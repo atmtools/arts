@@ -1850,19 +1850,16 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines,
-                                               const QuantumIdentifier& QI,
-                                               const String& parameter_name,
-                                               const Numeric& x,
-                                               const Verbosity&)
-{
+void abs_linesBaseParameterMatchingLines(ArrayOfAbsorptionLines& abs_lines,
+                                         const QuantumIdentifier& QI,
+                                         const String& parameter_name,
+                                         const Numeric& x,
+                                         const Verbosity&) {
   Index parameter_switch = -1;
-  
-  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
-                      "parameter_name is empty.\n");
-  
-  if (parameter_name == "Central Frequency" or
-      parameter_name == "Line Center")
+
+  ARTS_USER_ERROR_IF(parameter_name.nelem() == 0, "parameter_name is empty.\n");
+
+  if (parameter_name == "Central Frequency" or parameter_name == "Line Center")
     parameter_switch = 0;
   else if (parameter_name == "Line Strength")
     parameter_switch = 1;
@@ -1878,10 +1875,11 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
     parameter_switch = 8;
   else if (parameter_name == "Upper Zeeman Coefficient")
     parameter_switch = 9;
-  
-  for (auto& band: abs_lines) {
-    for (Index k=0; k<band.NumLines(); k++) {
-      const Quantum::Number::StateMatch lt(QI, band.lines[k].localquanta, band.quantumidentity);
+
+  for (auto& band : abs_lines) {
+    for (Index k = 0; k < band.NumLines(); k++) {
+      const Quantum::Number::StateMatch lt(
+          QI, band.lines[k].localquanta, band.quantumidentity);
       if (lt == Quantum::Number::StateMatchType::Full) {
         switch (parameter_switch) {
           case 0:  // "Central Frequency":
@@ -1909,9 +1907,10 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
             band.lines[k].zeeman.gu() = x;
             break;
           default: {
-            ARTS_USER_ERROR (
-                                "Usupported paramter_name\n", parameter_name,
-                                "\nSee method description for supported parameter names.\n")
+            ARTS_USER_ERROR(
+                "Usupported paramter_name\n",
+                parameter_name,
+                "\nSee method description for supported parameter names.\n")
           }
         }
       }
@@ -1920,70 +1919,79 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetBaseParameterForMatchingLines(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                           const QuantumIdentifier& QI,
-                                                           const String& parameter_name,
-                                                           const Numeric& change,
-                                                           const Verbosity& verbosity)
-{
-  for (auto& lines: abs_lines_per_species)
-    abs_linesSetBaseParameterForMatchingLines(lines, QI, parameter_name, change, verbosity);
+void abs_lines_per_speciesBaseParameterMatchingLines(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const QuantumIdentifier& QI,
+    const String& parameter_name,
+    const Numeric& change,
+    const Verbosity& verbosity) {
+  for (auto& lines : abs_lines_per_species)
+    abs_linesBaseParameterMatchingLines(
+        lines, QI, parameter_name, change, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetBaseParameterForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const QuantumIdentifier& QI,
-  const String& parameter_name,
-  const Numeric& change,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesChangeBaseParameterForSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const QuantumIdentifier& QI,
+    const String& parameter_name,
+    const Numeric& change,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesBaseParameterMatchingLines(
+          abs_lines_per_species[ispec], QI, parameter_name, change, verbosity);
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLineShapeModelParametersForMatchingLines(
-  ArrayOfAbsorptionLines& abs_lines,
-  const QuantumIdentifier& QI,
-  const String& parameter,
-  const String& species,
-  const String& temperaturemodel,
-  const Vector& new_values,
-  const Verbosity& verbosity)
-{
+void abs_linesLineShapeModelParametersMatchingLines(
+    ArrayOfAbsorptionLines& abs_lines,
+    const QuantumIdentifier& QI,
+    const String& parameter,
+    const String& species,
+    const String& temperaturemodel,
+    const Vector& new_values,
+    const Verbosity& verbosity) {
   CREATE_OUT3;
-  
+
   const bool do_self = species == LineShape::self_broadening;
   const bool do_bath = species == LineShape::bath_broadening;
-  
+
   // Set the spec index if possible
-  const Species::Species spec = do_self ? Species::Species::FINAL : do_bath ? Species::Species::Bath : SpeciesTag(species).Spec();
-  
+  const Species::Species spec = do_self   ? Species::Species::FINAL
+                                : do_bath ? Species::Species::Bath
+                                          : SpeciesTag(species).Spec();
+
   const LineShape::Variable var = LineShape::toVariableOrThrow(parameter);
-  
-  ARTS_USER_ERROR_IF (new_values.nelem() not_eq LineShape::ModelParameters::N,
-    "Mismatch between input and expected number of variables\n"
-    "\tInput is: ", new_values.nelem(), " long but expects: ", LineShape::ModelParameters::N, " values\n")
-  
+
+  ARTS_USER_ERROR_IF(new_values.nelem() not_eq LineShape::ModelParameters::N,
+                     "Mismatch between input and expected number of variables\n"
+                     "\tInput is: ",
+                     new_values.nelem(),
+                     " long but expects: ",
+                     LineShape::ModelParameters::N,
+                     " values\n")
+
   LineShape::ModelParameters newdata;
   newdata.type = LineShape::toTemperatureModelOrThrow(temperaturemodel);
   newdata.X0 = new_values[0];
   newdata.X1 = new_values[1];
   newdata.X2 = new_values[2];
   newdata.X3 = new_values[3];
-  
-  for (auto& band: abs_lines) {
-    for (Index k=0; k<band.NumLines(); k++) {
-      const Quantum::Number::StateMatch lt(QI, band.lines[k].localquanta, band.quantumidentity);
+
+  for (auto& band : abs_lines) {
+    for (Index k = 0; k < band.NumLines(); k++) {
+      const Quantum::Number::StateMatch lt(
+          QI, band.lines[k].localquanta, band.quantumidentity);
       if (lt == Quantum::Number::StateMatchType::Full) {
         if (do_self and band.selfbroadening) {
           out3 << "Changing self\n";
@@ -1992,9 +2000,12 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
           out3 << "Changing bath\n";
           band.lines[k].lineshape.Data().back().Data()[Index(var)] = newdata;
         } else {
-          for (Index i=band.selfbroadening; i<band.broadeningspecies.nelem()-band.bathbroadening; i++) {
+          for (Index i = band.selfbroadening;
+               i < band.broadeningspecies.nelem() - band.bathbroadening;
+               i++) {
             if (spec == band.broadeningspecies[i]) {
-              out3 << "Changing species: " << Species::toShortName(spec) << '\n';
+              out3 << "Changing species: " << Species::toShortName(spec)
+                   << '\n';
               band.lines[k].lineshape.Data()[i].Data()[Index(var)] = newdata;
             }
           }
@@ -2005,18 +2016,17 @@ void abs_linesSetLineShapeModelParametersForMatchingLines(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLineShapeModelParametersForMatchingLines(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const QuantumIdentifier& QI,
-  const String& parameter,
-  const String& species,
-  const String& temperaturemodel,
-  const Vector& new_values,
-  const Verbosity& verbosity)
-{
-  for (auto& lines: abs_lines_per_species)
-    abs_linesSetLineShapeModelParametersForMatchingLines(
-      lines, QI, parameter, species, temperaturemodel, new_values, verbosity);
+void abs_lines_per_speciesLineShapeModelParametersMatchingLines(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const QuantumIdentifier& QI,
+    const String& parameter,
+    const String& species,
+    const String& temperaturemodel,
+    const Vector& new_values,
+    const Verbosity& verbosity) {
+  for (auto& lines : abs_lines_per_species)
+    abs_linesLineShapeModelParametersMatchingLines(
+        lines, QI, parameter, species, temperaturemodel, new_values, verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -2134,24 +2144,23 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbs
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
-                                               const QuantumIdentifier& QI,
-                                               const String& parameter_name,
-                                               const Numeric& x,
-                                               const Verbosity&)
-{
+void abs_linesBaseParameterMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
+                                         const QuantumIdentifier& QI,
+                                         const String& parameter_name,
+                                         const Numeric& x,
+                                         const Verbosity&) {
   Index parameter_switch = -1;
-  
-  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
-                      "parameter_name is empty.\n");
+
+  ARTS_USER_ERROR_IF(parameter_name.nelem() == 0, "parameter_name is empty.\n");
   if (parameter_name == "Statistical Weight")
     parameter_switch = 1;
   else if (parameter_name == "Zeeman Coefficient")
     parameter_switch = 2;
-  
-  for (auto& band: abs_lines) {
-    for (Index k=0; k<band.NumLines(); k++) {
-      const Quantum::Number::StateMatch lt(QI, band.lines[k].localquanta, band.quantumidentity);
+
+  for (auto& band : abs_lines) {
+    for (Index k = 0; k < band.NumLines(); k++) {
+      const Quantum::Number::StateMatch lt(
+          QI, band.lines[k].localquanta, band.quantumidentity);
       if (lt == Quantum::Number::StateMatchType::Level and lt.low) {
         switch (parameter_switch) {
           case 1:  // "Statistical Weight":
@@ -2161,13 +2170,14 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.lines[k].zeeman.gl() = x;
             break;
           default: {
-            ARTS_USER_ERROR (
-                                "Usupported paramter_name\n", parameter_name,
-                                "\nSee method description for supported parameter names.\n")
+            ARTS_USER_ERROR(
+                "Usupported paramter_name\n",
+                parameter_name,
+                "\nSee method description for supported parameter names.\n")
           }
         }
       }
-      
+
       if (lt == Quantum::Number::StateMatchType::Level and lt.upp) {
         switch (parameter_switch) {
           case 1:  // "Statistical Weight":
@@ -2177,9 +2187,10 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.lines[k].zeeman.gu() = x;
             break;
           default: {
-            ARTS_USER_ERROR (
-                                "Usupported paramter_name\n", parameter_name,
-                                "\nSee method description for supported parameter names.\n")
+            ARTS_USER_ERROR(
+                "Usupported paramter_name\n",
+                parameter_name,
+                "\nSee method description for supported parameter names.\n")
           }
         }
       }
@@ -2188,43 +2199,47 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetBaseParameterForMatchingLevel(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                           const QuantumIdentifier& QI,
-                                                           const String& parameter_name,
-                                                           const Numeric& change,
-                                                           const Verbosity& verbosity)
-{
-  for (auto& lines: abs_lines_per_species)
-    abs_linesSetBaseParameterForMatchingLevel(lines, QI, parameter_name, change, verbosity);
+void abs_lines_per_speciesBaseParameterMatchingLevel(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const QuantumIdentifier& QI,
+    const String& parameter_name,
+    const Numeric& change,
+    const Verbosity& verbosity) {
+  for (auto& lines : abs_lines_per_species)
+    abs_linesBaseParameterMatchingLevel(
+        lines, QI, parameter_name, change, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
-                                                const ArrayOfQuantumIdentifier& QID,
-                                                const String& parameter_name,
-                                                const Vector& change,
-                                                const Verbosity& verbosity)
-{
-  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
-                      "Mismatch between QID and change input lengths not allowed");
-  
-  for (Index iq=0; iq<QID.nelem(); iq++)
-    abs_linesSetBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], verbosity);
+void abs_linesBaseParameterMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
+                                          const ArrayOfQuantumIdentifier& QID,
+                                          const String& parameter_name,
+                                          const Vector& change,
+                                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(
+      QID.nelem() not_eq change.nelem(),
+      "Mismatch between QID and change input lengths not allowed");
+
+  for (Index iq = 0; iq < QID.nelem(); iq++)
+    abs_linesBaseParameterMatchingLevel(
+        abs_lines, QID[iq], parameter_name, change[iq], verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                            const ArrayOfQuantumIdentifier& QID,
-                                                            const String& parameter_name,
-                                                            const Vector& change,
-                                                            const Verbosity& verbosity)
-{
-  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
-                      "Mismatch between QID and change input lengths not allowed");
-  
-  for (Index iq=0; iq<QID.nelem(); iq++)
-    for (auto& lines: abs_lines_per_species)
-      abs_linesSetBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], verbosity);
+void abs_lines_per_speciesBaseParameterMatchingLevels(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfQuantumIdentifier& QID,
+    const String& parameter_name,
+    const Vector& change,
+    const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(
+      QID.nelem() not_eq change.nelem(),
+      "Mismatch between QID and change input lengths not allowed");
+
+  for (Index iq = 0; iq < QID.nelem(); iq++)
+    for (auto& lines : abs_lines_per_species)
+      abs_linesBaseParameterMatchingLevel(
+          lines, QID[iq], parameter_name, change[iq], verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

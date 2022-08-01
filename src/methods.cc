@@ -1909,7 +1909,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesSetBaseParameterForMatchingLevel"),
+      NAME("abs_linesBaseParameterMatchingLevel"),
       DESCRIPTION(
           "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
           "Only works for these parameters:\n"
@@ -1929,8 +1929,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Value with which to set matching level's value")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesSetBaseParameterForMatchingLevels"),
-      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
+      NAME("abs_linesBaseParameterMatchingLevels"),
+      DESCRIPTION("See *abs_linesBaseParameterMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1945,8 +1945,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Value with which to set matching level's value")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevel"),
-      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
+      NAME("abs_lines_per_speciesBaseParameterMatchingLevel"),
+      DESCRIPTION("See *abs_linesBaseParameterMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1961,8 +1961,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Value with which to set matching level's value")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevels"),
-      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
+      NAME("abs_lines_per_speciesBaseParameterMatchingLevels"),
+      DESCRIPTION("See *abs_linesBaseParameterMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -2039,7 +2039,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesSetBaseParameterForMatchingLines"),
+      NAME("abs_linesBaseParameterMatchingLines"),
       DESCRIPTION(
           "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
           "Only works for these parameters:\n"
@@ -2065,7 +2065,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Value with which to change matching line's value")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesSetLineShapeModelParametersForMatchingLines"),
+      NAME("abs_linesLineShapeModelParametersMatchingLines"),
       DESCRIPTION("Sets line shape model data parameter in matching lines.\n"
         "\n"
         "The matching is done so that QI must be in the line identifier\n"
@@ -2119,8 +2119,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Sets the values found")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetLineShapeModelParametersForMatchingLines"),
-      DESCRIPTION("See *abs_linesSetLineShapeModelParametersForMatchingLines*\n"
+      NAME("abs_lines_per_speciesLineShapeModelParametersMatchingLines"),
+      DESCRIPTION("See *abs_linesLineShapeModelParametersMatchingLines*\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
