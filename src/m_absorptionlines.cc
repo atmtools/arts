@@ -2232,7 +2232,7 @@ void abs_lines_per_speciesSetBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorp
 /////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlteSetByQuantumIdentifiers(
+void abs_lines_per_speciesPopulationNlteField(
     Index& nlte_do,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const EnergyLevelMap& nlte_field,

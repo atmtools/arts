@@ -56,7 +56,7 @@ Extract( z_surface, z_field, 0 )
 
 VectorCreate(ev)
 ReadXML(ev,"testdata/tropical.ev.xml")
-nlteSetByQuantumIdentifiers
+abs_lines_per_speciesPopulationNlteField
 
 #NumericSet(ppath_lmax,5e3)
 propmat_clearsky_agenda_checkedCalc

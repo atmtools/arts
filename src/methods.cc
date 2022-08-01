@@ -11359,7 +11359,7 @@ Possible models:
                GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("nlteSetByQuantumIdentifiers"),
+      NAME("abs_lines_per_speciesPopulationNlteField"),
       DESCRIPTION(
           "Turns on NTLE calculations.\n"
           "\n"
