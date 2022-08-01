@@ -58,7 +58,7 @@ inline void Touch(Workspace& ws,
                   // WS Generic Output:
                   Agenda& out,
                   const Verbosity&) {
-  out = Agenda{ws.shared_ptr()};
+  out = Agenda{ws};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

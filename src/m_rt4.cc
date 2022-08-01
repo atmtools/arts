@@ -312,7 +312,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                     surface_complex_refr_index,
                     stokes_dim);
 
-  Agenda dummy_agenda{ws.shared_ptr()};
+  Agenda dummy_agenda{ws};
 
   run_rt4(ws,
           cloudbox_field,

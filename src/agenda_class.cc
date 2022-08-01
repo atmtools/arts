@@ -41,9 +41,10 @@
 #include "methods.h"
 #include "workspace_ng.h"
 
-MRecord::MRecord(const std::shared_ptr<Workspace>& ws)
-    : moutput(), minput(), msetvalue(), mtasks(ws) { /* Nothing to do here. */
-}
+MRecord::MRecord() : moutput(), minput(), msetvalue(), mtasks() {}
+
+MRecord::MRecord(Workspace& ws)
+    : moutput(), minput(), msetvalue(), mtasks(ws) {}
 
 MRecord::MRecord(const Index id,
                  ArrayOfIndex output,
@@ -59,9 +60,14 @@ MRecord::MRecord(const Index id,
       minternal(internal) {
 }
 
-Agenda::Agenda(const std::shared_ptr<Workspace>& workspace)
-    : ws(workspace), mname(), mml(), moutput_push(), moutput_dup() {
-}
+Agenda::Agenda() : ws(nullptr), mname(), mml(), moutput_push(), moutput_dup() {}
+
+Agenda::Agenda(Workspace& workspace)
+    : ws(workspace.shared_ptr()),
+      mname(),
+      mml(),
+      moutput_push(),
+      moutput_dup() {}
 
 //! Appends methods to an agenda
 /*!
@@ -91,7 +97,7 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   // Find explicit method id in MdMap.
   ArrayOfIndex input = md_data[id].InOnly();
 
-  mml.push_back(MRecord(id, output, input, keywordvalue, Agenda(ws)));
+  mml.push_back(MRecord(id, output, input, keywordvalue, Agenda(*ws)));
   mchecked = false;
 }
 

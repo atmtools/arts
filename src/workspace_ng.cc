@@ -63,7 +63,7 @@ void Workspace::duplicate(Index i) {
     wsvs.initialized = true;
   } else {
     if ((*wsv_data_ptr)[i].Group() == agenda_index) {
-      wsvs.wsv = std::make_shared<Agenda>(shared_ptr());
+      wsvs.wsv = std::make_shared<Agenda>(*this);
     } else {
       wsvs.wsv = workspace_memory_handler.allocate((*wsv_data_ptr)[i].Group());
     }
@@ -104,9 +104,8 @@ void Workspace::emplace(Index i) {
   static const auto agenda_index = global_data::WsvGroupMap.at("Agenda");
 
   if ((*wsv_data_ptr)[i].Group() == agenda_index) {
-    ws[i].emplace(WorkspaceVariableStruct{
-        std::make_shared<Agenda>(shared_ptr()),
-        false});
+    ws[i].emplace(
+        WorkspaceVariableStruct{std::make_shared<Agenda>(*this), false});
   } else {
     ws[i].emplace(WorkspaceVariableStruct{
         workspace_memory_handler.allocate((*wsv_data_ptr)[i].Group()), false});

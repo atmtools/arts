@@ -1028,10 +1028,10 @@ int main(int argc, char** argv) {
 
         // The list of methods to execute and their keyword data from
         // the control file.
-        Agenda tasklist{workspace_shared};
+        Agenda tasklist{workspace};
 
         // Call the parser to parse the control text:
-        ArtsParser arts_parser(workspace_shared, tasklist, parameters.controlfiles[i], verbosity);
+        ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
 
         arts_parser.parse_tasklist();
 

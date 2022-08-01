@@ -68,7 +68,8 @@ class MRecord;
 */
 class Agenda final {
  public:
-  explicit Agenda(const std::shared_ptr<Workspace>& workspace=nullptr);
+  Agenda();
+  explicit Agenda(Workspace& workspace);
 
   /*! 
     Copies an agenda.
@@ -133,7 +134,9 @@ class Agenda final {
     @author Stefan Buehler */
 class MRecord {
  public:
-  explicit MRecord(const std::shared_ptr<Workspace>& ws=nullptr);
+  MRecord();
+
+  explicit MRecord(Workspace& ws);
 
   MRecord(const MRecord& x) = default;
 

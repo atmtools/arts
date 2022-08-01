@@ -18,25 +18,25 @@
 #ifndef parser_h
 #define parser_h
 
-#include <map>
 #include "agenda_class.h"
 #include "methods.h"
 #include "sourcetext.h"
+#include <map>
 
 class ArtsParser {
  public:
-  ArtsParser(const std::shared_ptr<Workspace>& workspace, Agenda& tasklist, String controlfile, const Verbosity& verbosity);
+  ArtsParser(Agenda& tasklist, String controlfile, const Verbosity& verbosity);
 
   void parse_tasklist();
 
  private:
-  typedef struct {
+  using NamedArgument = struct {
     String name;
     Index line;
     Index column;
-  } NamedArgument;
+  };
 
-  typedef vector<NamedArgument> NamedArguments;
+  using NamedArguments = vector<NamedArgument>;
 
   void find_named_arguments(vector<NamedArgument>& named_args);
 
@@ -46,7 +46,7 @@ class ArtsParser {
 
   void get_argument_index_by_name(Index& arg_index,
                                   NamedArguments& named_args,
-                                  String name);
+                                  const String& name);
 
   void parse_main();
 
@@ -158,9 +158,9 @@ class ArtsParser {
 
   bool parse_stringarray_from_string(ArrayOfString& res, String& str);
 
-  const std::shared_ptr<Workspace>& ws;
-
   Agenda& mtasklist;
+
+  std::shared_ptr<Workspace> ws;
 
   String mcfile;
 
