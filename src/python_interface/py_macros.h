@@ -163,13 +163,31 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           py::doc("Appends a :class:`" #BaseType "` at the end of the Array")) \
       .def(                                                                    \
           "pop",                                                               \
-          [](Array<BaseType>& x) -> BaseType {                                 \
+          [](Array<BaseType>& x, Index i) -> BaseType {                        \
             if (x.size() < 1) throw std::out_of_range("pop from empty list");  \
+            i = negative_clamp(i, x.nelem());                                  \
+            if (x.nelem() <= i or i < 0)                                       \
+              throw std::out_of_range(var_string("pop index out of range"));   \
+            std::rotate(x.begin() + i, x.begin() + 1 + i, x.end());            \
             BaseType copy = std::move(x.back());                               \
             x.pop_back();                                                      \
             return copy;                                                       \
           },                                                                   \
-          py::doc("Pops a :class:`" #BaseType "` from the Array"))             \
+          py::doc("Pops a :class:`" #BaseType "` from the Array"),             \
+          py::arg("i") = -1)                                                   \
+      .def("reverse",                                                          \
+           [](Array<BaseType>& x) { std::reverse(x.begin(), x.end()); })       \
+      .def("clear", [](Array<BaseType>& x) { x.clear(); })                     \
+      .def("copy", [](Array<BaseType>& x) { return x; })                       \
+      .def("extend",                                                           \
+           [](Array<BaseType>& x, const Array<BaseType>& y) {                  \
+             for (auto& z : y) x.push_back(z);                                 \
+           })                                                                  \
+      .def("insert",                                                           \
+           [](Array<BaseType>& x, Index i, BaseType y) {                       \
+             auto pos = (i < x.nelem() and i >= 0) ? x.begin() + i : x.end();  \
+             x.insert(pos, std::move(y));                                      \
+           })                                                                  \
       .def(py::pickle(                                                         \
           [](const Array<BaseType>& v) {                                       \
             auto n = v.size();                                                 \
@@ -612,6 +630,8 @@ Returns:\
       .PythonInterfaceValueOperator(__contains__)          \
                                                            \
       .PythonInterfaceValueOperator(__getitem__)           \
-      .PythonInterfaceTwoValueOperator(__setitem__)
+      .PythonInterfaceTwoValueOperator(__setitem__)        \
+                                                           \
+      .PythonInterfaceSelfOperator(flatten)
 
 #endif

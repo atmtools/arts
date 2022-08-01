@@ -26,6 +26,7 @@
 
 #include "constants.h"
 #include "arts_omp.h"
+#include "debug.h"
 #include "wigner_functions.h"
 #include <algorithm>
 
@@ -59,6 +60,8 @@ Numeric wigner3j(const Rational j1,
   g = WIGNER3(a, b, c, d, e, f);
   wig_temp_free();
 
+  ARTS_USER_ERROR_IF(errno == EDOM, "Bad state, perhaps you need to call Wigner3Init?")
+
   return Numeric(g);
 }
 
@@ -81,6 +84,8 @@ Numeric wigner6j(const Rational j1,
   wig_temp_init(j);
   g = WIGNER6(a, b, c, d, e, f);
   wig_temp_free();
+
+  ARTS_USER_ERROR_IF(errno == EDOM, "Bad state, perhaps you need to call Wigner6Init?")
 
   return Numeric(g);
 }

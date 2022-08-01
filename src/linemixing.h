@@ -63,7 +63,7 @@ struct PopulationAndDipole {
    * @param[in] band The absorption band
    */
   PopulationAndDipole(const Numeric T,
-                      const AbsorptionLines& band) noexcept;
+                      const AbsorptionLines& band);
   
   /*! Sort self by f0*pop*dip^2 and returns positions of sorted values in the original
    * 

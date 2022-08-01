@@ -1,5 +1,3 @@
-set(WIGXJPF_CPP_ERROR 1)
-
 add_subdirectory(wigxjpf)
 
 if(FASTWIGNER)

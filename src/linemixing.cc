@@ -137,7 +137,7 @@ Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
 
 
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
-                                         const AbsorptionLines& band) noexcept :
+                                         const AbsorptionLines& band) :
   pop(band.NumLines()), dip(band.NumLines()) {
   const Index n = band.NumLines();
   
@@ -428,8 +428,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  */
 namespace LinearRovibErrorCorrectedSudden {
 
-EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
-{
+EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot) {
   if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
     return [](const Rational J) -> Numeric {return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));};
   }
@@ -442,8 +441,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT
-{
+                                   const Numeric T) ARTS_NOEXCEPT {
   using Conversion::kelvin2joule;
   
   const Index n = band.NumLines();
@@ -697,7 +695,7 @@ std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
       works = false;
     }
   }
-  
+
   return retval;
 }
 
