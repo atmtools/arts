@@ -591,7 +591,20 @@ void py_spectroscopy(py::module_& m) {
            py::arg("lines") = Array<AbsorptionSingleLine>{})
       .PythonInterfaceCopyValue(AbsorptionLines)
       .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
-      .PythonInterfaceBasicRepresentation(AbsorptionLines)
+      .def(
+          "__str__",
+          [](const AbsorptionLines& x) { return var_string(x); },
+          py::is_operator())
+      .def(
+          "__repr__",
+          [](const AbsorptionLines& x) {
+            return var_string("'",
+                              x.quantumidentity,
+                              "'-band of ",
+                              x.lines.nelem(),
+                              " lines");
+          },
+          py::is_operator())
       .PythonInterfaceFileIO(AbsorptionLines)
       .PythonInterfaceReadWriteData(AbsorptionLines, selfbroadening)
       .PythonInterfaceReadWriteData(AbsorptionLines, bathbroadening)

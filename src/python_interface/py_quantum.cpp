@@ -3,6 +3,8 @@
 
 #include "py_macros.h"
 
+#include <pybind11/operators.h>
+
 namespace Python {
 void py_quantum(py::module_& m) {
   py::class_<QuantumNumberType>(m, "QuantumNumberType")
@@ -126,6 +128,8 @@ void py_quantum(py::module_& m) {
             ARTS_USER_ERROR_IF(res < 0, "Bad species: ", iso)
             qid.isotopologue_index = res;
           })
+      .def(py::self == py::self)
+      .def("__hash__", [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
       .def(py::pickle(
           [](const QuantumIdentifier& t) {
             return py::make_tuple(t.isotopologue_index, t.val);
