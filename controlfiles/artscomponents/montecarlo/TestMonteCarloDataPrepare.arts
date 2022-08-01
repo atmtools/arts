@@ -59,7 +59,7 @@ jacobianOff
 
 abs_lookupSetup
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 abs_lookupCalc
 WriteXML( output_file_format, abs_lookup )
 

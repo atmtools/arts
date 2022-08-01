@@ -131,7 +131,7 @@ Append( casefull, risurfname )
 GriddedField5Create( ri_surface )
 ReadXML( ri_surface, casefull )
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 lbl_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc

@@ -86,7 +86,7 @@ abs_lines_per_speciesCreateFromLines
 abs_lines_per_speciesSetNormalization(option="VVH")
 abs_lines_per_speciesSetCutoff(option="ByLine", value=750e9)
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 
 

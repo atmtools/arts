@@ -125,7 +125,7 @@ FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
 # 
 abs_lines_per_speciesSetEmpty
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 
 

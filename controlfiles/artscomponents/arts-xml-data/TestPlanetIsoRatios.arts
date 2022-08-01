@@ -81,7 +81,7 @@ MatrixSetConstant( sensor_los, 1, 1, 60. )
 
 
 # check basic atm&surface setup of
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

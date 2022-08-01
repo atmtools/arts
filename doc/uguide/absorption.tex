@@ -141,15 +141,15 @@ predefines some typical alternatives how
 \wsvindex{propmat\_clearsky\_agenda} can be set for different
 purposes.
 
-The method \wsmindex{propmat\_clearsky\_agendaSetAutomatic} constructs
+The method \wsmindex{propmat\_clearsky\_agendaAuto} constructs
 a \wsvindex{propmat\_clearsky\_agenda} that contains all required
 absorption methods. The list of methods is determined automatically
 from the species present in \wsvindex{abs\_species}. This agenda can
 then be used for RT calculation with one-the-fly absorption or the
 preparation of an absorption lookup table. The method
-\wsmindex{propmat\_clearsky\_agendaSetAutomaticForLookup} constructs a
+\wsmindex{propmat\_clearsky\_agendaAuto} can also constructs a
 \wsvindex{propmat\_clearsky\_agenda} that uses a lookup table in RT
-calculations.
+calculations if given the correct flag (see method description).
 
 \section{Calculating gas absorption}
 \label{sec:absorption:calculating}
@@ -315,8 +315,7 @@ Sec.~\ref{sec:absorption:lookup}). Note that the lookup
 table cannot contain absorption for Zeeman tagged species, Faraday rotation, and
 particles due to their directional dependencies.\newline
 Recommendation:
-\wsmindex{propmat\_clearsky\_agendaSetAutomatic} can be used to setup lookup table free calculations, and\newline
-\wsmindex{propmat\_clearsky\_agendaSetAutomaticForLookup} can be used to setup calculations using the lookup table\\
+\wsmindex{propmat\_clearsky\_agendaAuto} can be used to setup all \wsaindex{propmat\_clearsky\_agenda} calculations\\
 %---------------------------------------------------------------------
 \arabic{rownum}b &
 Calculate absorption lookup table. &

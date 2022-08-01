@@ -71,7 +71,7 @@ abs_linesSetCutoff(option="ByLine", value=750e9)
 abs_linesSetNormalization(option="VVH")
 abs_lines_per_speciesCreateFromLines
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 #######
 # CASE (a): H2O only with builtIn setup and standard profiles

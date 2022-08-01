@@ -125,16 +125,8 @@ class MdRecord {
   */
   ostream& PrintTemplate(ostream& os, bool show_description = true) const;
 
-  //! To override the default assignment operator.
-  /*! MdRecords cannot be assigned! */
-  MdRecord& operator=(const MdRecord& m) {
-    Verbosity verbosity;
-    ArtsOut0 out0(verbosity);
-    out0 << "MdRecord cannot be assigned!\n"
-         << "You tried to assign: " << m << "\n";
-    arts_exit();
-    return *this;
-  }
+  MdRecord& operator=(MdRecord&& m) = default;
+  MdRecord& operator=(const MdRecord& m) = default;
 
   // Needed by make_auto_md_h.cc. See documentation there.
   friend void subst_any_with_group(MdRecord& mdd, Index g);

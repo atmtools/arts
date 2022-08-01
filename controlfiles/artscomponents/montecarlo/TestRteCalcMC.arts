@@ -65,7 +65,7 @@ cloudbox_checkedCalc
 
 # absorption from LUT
 abs_lines_per_speciesSetEmpty
-propmat_clearsky_agendaSetAutomaticForLookup
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 
 #### Define viewing position and line of sight #########################

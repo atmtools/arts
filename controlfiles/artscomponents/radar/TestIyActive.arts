@@ -23,7 +23,7 @@ abs_speciesSet( species= [  "N2", "O2", "H2O" ] )
 # No line data needed here
 abs_lines_per_speciesSetEmpty
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 # Dimensionality of the atmosphere
 AtmosphereSet1D
@@ -132,7 +132,7 @@ abs_speciesSet( species=[ "N2-SelfContStandardType",
                           "H2O-PWR98"
                         ] )
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 #
 # Check that iy_aux vars rrun

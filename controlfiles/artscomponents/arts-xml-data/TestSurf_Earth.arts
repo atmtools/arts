@@ -159,7 +159,7 @@ Append( casefull, surfmaskname )
 GriddedField2Create( lsmask )
 ReadXML( lsmask, casefull )
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 lbl_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data

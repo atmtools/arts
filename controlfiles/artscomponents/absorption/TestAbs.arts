@@ -76,7 +76,7 @@ VectorSet( abs_nls_pert, [] )
 
 IndexSet(stokes_dim, 1)
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 lbl_checkedCalc
 

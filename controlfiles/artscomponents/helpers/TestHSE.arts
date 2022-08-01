@@ -34,7 +34,7 @@ abs_speciesSet( species=["H2O", "N2", "O2"] )
 # 
 abs_lines_per_speciesSetEmpty
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 
 # A pressure grid rougly matching 0 to 1000 km, in steps of 2km.

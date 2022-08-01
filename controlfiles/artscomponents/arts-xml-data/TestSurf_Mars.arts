@@ -209,7 +209,7 @@ AgendaSet( surface_rtprop_agenda ){
    #Print( surface_skin_t, 0 )
    surfaceFlatScalarReflectivity
 }
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 yCalc
 #Print( y, 0 )
 

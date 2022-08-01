@@ -37,7 +37,7 @@ Arts2{
   # Absorption
   abs_speciesSet(species=["N2-SelfContStandardType","O2-PWR98","H2O-MPM89"])
   abs_lines_per_speciesSetEmpty
-  propmat_clearsky_agendaSetAutomatic
+  propmat_clearsky_agendaAuto
 
   # Atmosphere and surface altitude
   VectorNLogSpace( p_grid, 35, 1013e2, 100e2 )

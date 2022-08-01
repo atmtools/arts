@@ -52,7 +52,7 @@ abs_speciesSet( species=[
 ReadARTSCAT( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 # Surface altitude
 MatrixSetConstant( z_surface, 1, 1, 0 )

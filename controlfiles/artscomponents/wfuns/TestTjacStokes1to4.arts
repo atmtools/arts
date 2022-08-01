@@ -48,7 +48,7 @@ abs_speciesSet( species= [ "N2-SelfContStandardType",
 # 
 abs_lines_per_speciesSetEmpty
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 
 # Atmosphere

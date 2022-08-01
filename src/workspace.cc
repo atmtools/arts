@@ -5702,6 +5702,10 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"),
       GROUP("Matrix")));
+
+  std::sort(wsv_data.begin(), wsv_data.end(), [](auto& a, auto& b) {
+    return a.Name() < b.Name();
+  });
 }
 
 void define_wsv_map() {

@@ -21830,6 +21830,7 @@ where N>=0 and the species name is something line "H2O".
         "propmat_clearskyAddFaraday",
         "propmat_clearskyAddXsecFit",
         "propmat_clearskyAddParticles",
+        "propmat_clearskyAddFromLookup",
         "propmat_clearskyAddPredefined",
         "propmat_clearskyAddOnTheFlyLineMixing",
         "propmat_clearskyAddHitranLineMixingLines",
@@ -21852,7 +21853,10 @@ where N>=0 and the species name is something line "H2O".
     String doc{R"--(Sets the *propmat_clearsky_agenda* automatically
 
 This method introspects the input and uses it for generating the
-*propmat_clearsky_agenda* automatically
+*propmat_clearsky_agenda* automatically.  If *use_abs_lookup*, all
+methods that can be used to generate the absorption lookup table
+are ignored and instead the calculations from the absorption
+lookup are used.
 
 The following methods are considered for addition:
 )--"};
@@ -21861,75 +21865,21 @@ The following methods are considered for addition:
         doc += "    " + std::to_string(count++) + ") *" + m + "*\n";
     }
 
-    md_data_raw.push_back(
-        MdRecord("propmat_clearsky_agendaSetAutomatic",
-                 doc.c_str(),
-                 {"Richard Larsson"},
-                 {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
-                 {},
-                 {},
-                 {},
-                 {"abs_species", "abs_lines_per_species"},
-                 gin,
-                 gintype,
-                 gindefault,
-                 gindesc,
-                 false,
-                 false,
-                 false,
-                 true,
-                 false));
-  }
-
-  //! Special method that has to look through some of the above methods for changes
-  {
-    //! Special method that has to look through some of the above methods for changes
-    ArrayOfString gin;
-    ArrayOfString gintype;
-    ArrayOfString gindefault;
-    ArrayOfString gindesc;
-    const ArrayOfString targets = {
-        "propmat_clearskyInit",
-        "propmat_clearskyAddZeeman",
-        "propmat_clearskyAddFaraday",
-        "propmat_clearskyAddParticles",
-        "propmat_clearskyAddFromLookup",
-        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
-        };
-    Index i = 0;
-    for (auto& m : md_data_raw) {
-      if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
-          targets.cend()) {
-        i++;
-        for (auto& x : m.GIn()) gin.push_back(x);
-        for (auto& x : m.GInType()) {
-          gintype.push_back(global_data::wsv_groups.at(x).name);
-          gindesc.push_back("See *" + m.Name() + "*");
-        }
-        for (auto& x : m.GInDefault()) gindefault.push_back(x);
-      }
-    }
-    if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
-    String doc{R"--(See *propmat_clearsky_agendaSetAutomatic*
-
-This method does not set any calculations that could be computed with the
-lookup table
-
-The intended order of use is:
-    1) *propmat_clearsky_agendaSetAutomatic*
+    doc += R"--(
+To perform absorption lookupo table calculation, call:
+    1) *propmat_clearsky_agendaAuto*
     2) *abs_lookupCalc*
-    3) *propmat_clearsky_agendaSetAutomaticForLookup*
+    3) *propmat_clearsky_agendaAuto*(use_abs_lookup=1)
     4) Perform other calculations
+)--";
 
-The following methods are considered for addition:
-)--"};
-    Index count=1;
-    for (auto& m: targets) {
-        doc += "    " + std::to_string(count++) + ") *" + m + "*\n";
-    }
+    gin.push_back("use_abs_lookup");
+    gintype.push_back("Index");
+    gindefault.push_back("0");
+    gindesc.push_back("Uses lookup calculations if true, ignores methods that can be part of the lookup table");
 
     md_data_raw.push_back(
-        MdRecord("propmat_clearsky_agendaSetAutomaticForLookup",
+        MdRecord("propmat_clearsky_agendaAuto",
                  doc.c_str(),
                  {"Richard Larsson"},
                  {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
@@ -21947,4 +21897,8 @@ The following methods are considered for addition:
                  true,
                  false));
   }
+
+  std::sort(md_data_raw.begin(), md_data_raw.end(), [](auto& a, auto& b) {
+    return a.Name() < b.Name();
+  });
 }

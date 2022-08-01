@@ -52,7 +52,7 @@ ReadARTSCAT(filename="line_118ghz.xml", localquantumnumbers="J")
 abs_lines_per_speciesCreateFromLines
 Wigner6Init(wigner_initialized, 40000, 100)
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 # Atmosphere
 #
