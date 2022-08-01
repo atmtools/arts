@@ -111,8 +111,8 @@ abs_speciesSet( species=[ "H2O-PWR98",
 # Creation of abs_lookup table
 #-----------------------------
 ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0, fmax=3e12)
-abs_linesSetCutoff(option="ByLine", value=750e9)
-abs_linesSetNormalization(option="VVH")
+abs_linesCutoff(option="ByLine", value=750e9)
+abs_linesNormalization(option="VVH")
 abs_lines_per_speciesCreateFromLines
 
 abs_lookupSetupBatch   	

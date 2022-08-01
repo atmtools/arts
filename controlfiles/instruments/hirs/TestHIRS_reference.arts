@@ -106,8 +106,8 @@ abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
 
 # deriving abs_lines separate, because one might want to use a lookup table
 ReadARTSCAT( abs_lines, "testdata/abs_lines_IR.xml.gz" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 abs_lines_per_speciesCreateFromLines
 
 

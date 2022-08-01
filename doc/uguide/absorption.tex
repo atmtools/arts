@@ -288,7 +288,7 @@ Methods:
 Optimize line data. (optional)&
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods: Add mirror lines for VVW line shape with
-\wsmindex{abs\_linesSetMirroring} (see \theory,
+\wsmindex{abs\_linesMirroring} (see \theory,
 Chapter \ref{T-sec:abs_theory}). \\
 %---------------------------------------------------------------------
 \multicolumn{3}{>{\raggedright\arraybackslash\hsize=2\hsize}X}{The
@@ -648,7 +648,7 @@ Line mixing is provided together with the line-by-line data and is then computed
 calculations.  If no such data is provided, line mixing is not computed.
 
 You can deactivate line mixing calculations manually using one of the methods that sets the line mixing limit.
-As an example, \wsmindex{abs\_linesSetLinemixingLimit} sets the line mixing limit for all lines in \wsvindex{abs\_lines}.
+As an example, \wsmindex{abs\_linesLinemixingLimit} sets the line mixing limit for all lines in \wsvindex{abs\_lines}.
 Only at pressures higher than this line mixing limit will the line mixing calculations be available, so setting this
 much higher than the pressure will ensure that no line mixing is computed.
 

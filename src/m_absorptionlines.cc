@@ -319,12 +319,12 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
   merge_local_lines(abs_lines, local_bands);
   
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesPopulation(abs_lines, population_option, verbosity);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
   
   tag.read_from_stream(is_xml);
   tag.check_name("/Array");
@@ -445,12 +445,12 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
   merge_local_lines(abs_lines, local_bands);
   
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesPopulation(abs_lines, population_option, verbosity);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
   
   tag.read_from_stream(is_xml);
   tag.check_name("/ArrayOfLineRecord");
@@ -618,12 +618,12 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
 
   merge_local_lines(abs_lines, local_bands);
 
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesPopulation(abs_lines, population_option, verbosity);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -684,12 +684,12 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
     x.pop_back();
   }
   
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesPopulation(abs_lines, population_option, verbosity);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -750,12 +750,12 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
     x.pop_back();
   }
   
-  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesSetPopulation(abs_lines, population_option, verbosity);
-  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesPopulation(abs_lines, population_option, verbosity);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -1065,7 +1065,7 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_lines, const Verbosity& /*verbosity*/)
+void abs_linesEmptyBroadeningParameters(ArrayOfAbsorptionLines& abs_lines, const Verbosity& /*verbosity*/)
 {
   for (auto& band: abs_lines) {
     std::array<bool, LineShape::nVars> var_is_empty;
@@ -1207,38 +1207,35 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
-                        const String& type,
-                        const Numeric& x,
-                        const Verbosity&) 
-{
+void abs_linesCutoff(ArrayOfAbsorptionLines& abs_lines,
+                     const String& type,
+                     const Numeric& x,
+                     const Verbosity&) {
   auto t = Absorption::toCutoffTypeOrThrow(type);
-  for (auto& lines: abs_lines) {
+  for (auto& lines : abs_lines) {
     lines.cutoff = t;
     lines.cutofffreq = x;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetCutoff(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                    const String& type,
-                                    const Numeric& x,
-                                    const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetCutoff(abs_lines, type, x, v);
+void abs_lines_per_speciesCutoff(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const Numeric& x,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesCutoff(abs_lines, type, x, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetCutoffForMatch(
-  ArrayOfAbsorptionLines& abs_lines,
-  const String& type,
-  const Numeric& x,
-  const QuantumIdentifier& QI,
-  const Verbosity&)
-{
+void abs_linesCutoffMatch(ArrayOfAbsorptionLines& abs_lines,
+                          const String& type,
+                          const Numeric& x,
+                          const QuantumIdentifier& QI,
+                          const Verbosity&) {
   auto t = Absorption::toCutoffTypeOrThrow(type);
-  for (auto& band: abs_lines) {
+  for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       band.cutoff = t;
@@ -1248,33 +1245,33 @@ void abs_linesSetCutoffForMatch(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetCutoffForMatch(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const String& type,
-  const Numeric& x,
-  const QuantumIdentifier& QI,
-  const Verbosity& verbosity)
-{
-  for (auto& lines: abs_lines_per_species) {
-    abs_linesSetCutoffForMatch(lines, type, x, QI, verbosity);
+void abs_lines_per_speciesCutoffMatch(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const Numeric& x,
+    const QuantumIdentifier& QI,
+    const Verbosity& verbosity) {
+  for (auto& lines : abs_lines_per_species) {
+    abs_linesCutoffMatch(lines, type, x, QI, verbosity);
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetCutoffForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const String& type,
-  const Numeric& x,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesCutoffSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& type,
+    const Numeric& x,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetCutoff(abs_lines_per_species[ispec], type, x, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesCutoff(abs_lines_per_species[ispec], type, x, verbosity);
     }
   }
 }
@@ -1284,32 +1281,29 @@ void abs_lines_per_speciesSetCutoffForSpecies(
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
-                           const String& type,
-                           const Verbosity&) 
-{
+void abs_linesMirroring(ArrayOfAbsorptionLines& abs_lines,
+                        const String& type,
+                        const Verbosity&) {
   auto t = Absorption::toMirroringTypeOrThrow(type);
-  for (auto& lines: abs_lines)
-    lines.mirroring = t;
+  for (auto& lines : abs_lines) lines.mirroring = t;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetMirroring(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                       const String& type,
-                                       const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetMirroring(abs_lines, type, v);
+void abs_lines_per_speciesMirroring(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesMirroring(abs_lines, type, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetMirroringForMatch(ArrayOfAbsorptionLines& abs_lines,
-                                   const String& type,
-                                   const QuantumIdentifier& QI,
-                                   const Verbosity&) 
-{
+void abs_linesMirroringMatch(ArrayOfAbsorptionLines& abs_lines,
+                             const String& type,
+                             const QuantumIdentifier& QI,
+                             const Verbosity&) {
   auto t = Absorption::toMirroringTypeOrThrow(type);
-  for (auto& band: abs_lines) {
+  for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       band.mirroring = t;
@@ -1318,115 +1312,123 @@ void abs_linesSetMirroringForMatch(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetMirroringForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                               const String& type,
-                                               const QuantumIdentifier& QI,
-                                               const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetMirroringForMatch(abs_lines, type, QI, v);
+void abs_lines_per_speciesMirroringMatch(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const QuantumIdentifier& QI,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesMirroringMatch(abs_lines, type, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetMirroringForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const String& type,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesMirroringSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& type,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetMirroring(abs_lines_per_species[ispec], type, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesMirroring(abs_lines_per_species[ispec], type, verbosity);
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesMakeManualMirroring(ArrayOfAbsorptionLines& abs_lines,
-                                  const Verbosity&) 
-{
+void abs_linesManualMirroring(ArrayOfAbsorptionLines& abs_lines,
+                              const Verbosity&) {
   const ArrayOfAbsorptionLines abs_lines_copy = abs_lines;
-  for (AbsorptionLines band: abs_lines_copy) {
+  for (AbsorptionLines band : abs_lines_copy) {
     band.mirroring = Absorption::MirroringType::Manual;
-    
+
     //! Don't allow running this function twice
     ARTS_USER_ERROR_IF(
-      std::find_if(abs_lines_copy.cbegin(), abs_lines_copy.cend(),
-                   [&band](const AbsorptionLines& li){
-                     return band.Match(li).first;
-                   }) not_eq abs_lines_copy.cend(),
-      "Dual bands with same setup is not allowed for mirroring of band:\n",
-      band, '\n')
-    
-    for (auto& line: band.lines) {
+        std::find_if(abs_lines_copy.cbegin(),
+                     abs_lines_copy.cend(),
+                     [&band](const AbsorptionLines& li) {
+                       return band.Match(li).first;
+                     }) not_eq abs_lines_copy.cend(),
+        "Dual bands with same setup is not allowed for mirroring of band:\n",
+        band,
+        '\n')
+
+    for (auto& line : band.lines) {
       line.F0 *= -1;
     }
-    
+
     abs_lines.emplace_back(std::move(band));
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesMakeManualMirroring(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                              const Verbosity& verbosity) 
-{
-  for (auto& abs_lines: abs_lines_per_species) abs_linesMakeManualMirroring(abs_lines, verbosity);
+void abs_lines_per_speciesManualMirroring(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Verbosity& verbosity) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesManualMirroring(abs_lines, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesMakeManualMirroringSpecies(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                     const ArrayOfSpeciesTag& species,
-                                                     const Verbosity& verbosity) 
-{
+void abs_lines_per_speciesManualMirroringSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& species,
+    const Verbosity& verbosity) {
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
-    "Mismatch abs_species and abs_lines_per_species sizes [",
-    abs_species.size(), " vs ", abs_lines_per_species.size(),
-    ", respectively]")
-  
-  if (auto ind = std::distance(abs_species.cbegin(), std::find(abs_species.cbegin(), abs_species.cend(), species)); ind not_eq abs_species.nelem()) {
-    abs_linesMakeManualMirroring(abs_lines_per_species[ind], verbosity);
+                     "Mismatch abs_species and abs_lines_per_species sizes [",
+                     abs_species.size(),
+                     " vs ",
+                     abs_lines_per_species.size(),
+                     ", respectively]")
+
+  if (auto ind = std::distance(
+          abs_species.cbegin(),
+          std::find(abs_species.cbegin(), abs_species.cend(), species));
+      ind not_eq abs_species.nelem()) {
+    abs_linesManualMirroring(abs_lines_per_species[ind], verbosity);
   } else {
-    ARTS_USER_ERROR("Cannot find species: ", species, "\nIn abs_species: [", abs_species, ']')
+    ARTS_USER_ERROR("Cannot find species: ",
+                    species,
+                    "\nIn abs_species: [",
+                    abs_species,
+                    ']')
   }
 }
-
 
 /////////////////////////////////////////////////////////
 ///////////////////////////////// Change Population Style
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
-                            const String& type,
-                            const Verbosity&) 
-{
+void abs_linesPopulation(ArrayOfAbsorptionLines& abs_lines,
+                         const String& type,
+                         const Verbosity&) {
   auto t = Absorption::toPopulationTypeOrThrow(type);
-  for (auto& lines: abs_lines)
-    lines.population = t;
+  for (auto& lines : abs_lines) lines.population = t;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetPopulation(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                        const String& type,
-                                        const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetPopulation(abs_lines, type, v);
+void abs_lines_per_speciesPopulation(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesPopulation(abs_lines, type, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetPopulationForMatch(ArrayOfAbsorptionLines& abs_lines,
-                                    const String& type,
-                                    const QuantumIdentifier& QI,
-                                    const Verbosity&) 
-{
+void abs_linesPopulationMatch(ArrayOfAbsorptionLines& abs_lines,
+                              const String& type,
+                              const QuantumIdentifier& QI,
+                              const Verbosity&) {
   auto t = Absorption::toPopulationTypeOrThrow(type);
-  for (auto& lines: abs_lines) {
+  for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       lines.population = t;
@@ -1435,29 +1437,30 @@ void abs_linesSetPopulationForMatch(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetPopulationForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                const String& type,
-                                                const QuantumIdentifier& QI,
-                                                const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetPopulationForMatch(abs_lines, type, QI, v);
+void abs_lines_per_speciesPopulationMatch(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const QuantumIdentifier& QI,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesPopulationMatch(abs_lines, type, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetPopulationForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const String& type,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesPopulationSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& type,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetPopulation(abs_lines_per_species[ispec], type, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesPopulation(abs_lines_per_species[ispec], type, verbosity);
     }
   }
 }
@@ -1467,32 +1470,29 @@ void abs_lines_per_speciesSetPopulationForSpecies(
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
-                           const String& type,
-                           const Verbosity&) 
-{
+void abs_linesNormalization(ArrayOfAbsorptionLines& abs_lines,
+                            const String& type,
+                            const Verbosity&) {
   auto t = Absorption::toNormalizationTypeOrThrow(type);
-  for (auto& lines: abs_lines)
-    lines.normalization = t;
+  for (auto& lines : abs_lines) lines.normalization = t;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetNormalization(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                           const String& type,
-                                           const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetNormalization(abs_lines, type, v);
+void abs_lines_per_speciesNormalization(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesNormalization(abs_lines, type, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetNormalizationForMatch(ArrayOfAbsorptionLines& abs_lines,
-                                       const String& type,
-                                       const QuantumIdentifier& QI,
-                                       const Verbosity&) 
-{
+void abs_linesNormalizationMatch(ArrayOfAbsorptionLines& abs_lines,
+                                 const String& type,
+                                 const QuantumIdentifier& QI,
+                                 const Verbosity&) {
   auto t = Absorption::toNormalizationTypeOrThrow(type);
-  for (auto& lines: abs_lines) {
+  for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       lines.normalization = t;
@@ -1501,29 +1501,30 @@ void abs_linesSetNormalizationForMatch(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetNormalizationForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                   const String& type,
-                                                   const QuantumIdentifier& QI,
-                                                   const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetNormalizationForMatch(abs_lines, type, QI, v);
+void abs_lines_per_speciesNormalizationMatch(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const QuantumIdentifier& QI,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesNormalizationMatch(abs_lines, type, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetNormalizationForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const String& type,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesNormalizationSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& type,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetNormalization(abs_lines_per_species[ispec], type, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesNormalization(abs_lines_per_species[ispec], type, verbosity);
     }
   }
 }
@@ -1533,33 +1534,30 @@ void abs_lines_per_speciesSetNormalizationForSpecies(
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLineShapeType(ArrayOfAbsorptionLines& abs_lines,
-                               const String& type,
-                               const Verbosity&) 
-{
+void abs_linesLineShapeType(ArrayOfAbsorptionLines& abs_lines,
+                            const String& type,
+                            const Verbosity&) {
   auto t = LineShape::toType(type);
   check_enum_error(t, "Cannot understand type: ", type);
-  for (auto& lines: abs_lines)
-    lines.lineshapetype = t;
+  for (auto& lines : abs_lines) lines.lineshapetype = t;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLineShapeType(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                           const String& type,
-                                           const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetLineShapeType(abs_lines, type, v);
+void abs_lines_per_speciesLineShapeType(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesLineShapeType(abs_lines, type, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLineShapeTypeForMatch(ArrayOfAbsorptionLines& abs_lines,
-                                       const String& type,
-                                       const QuantumIdentifier& QI,
-                                       const Verbosity&) 
-{
+void abs_linesLineShapeTypeMatch(ArrayOfAbsorptionLines& abs_lines,
+                                 const String& type,
+                                 const QuantumIdentifier& QI,
+                                 const Verbosity&) {
   auto t = LineShape::toTypeOrThrow(type);
-  for (auto& lines: abs_lines) {
+  for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       lines.lineshapetype = t;
@@ -1568,29 +1566,30 @@ void abs_linesSetLineShapeTypeForMatch(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLineShapeTypeForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                   const String& type,
-                                                   const QuantumIdentifier& QI,
-                                                   const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetLineShapeTypeForMatch(abs_lines, type, QI, v);
+void abs_lines_per_speciesLineShapeTypeMatch(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const String& type,
+    const QuantumIdentifier& QI,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesLineShapeTypeMatch(abs_lines, type, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLineShapeTypeForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const String& type,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesLineShapeTypeSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& type,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetLineShapeType(abs_lines_per_species[ispec], type, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesLineShapeType(abs_lines_per_species[ispec], type, verbosity);
     }
   }
 }
@@ -1600,30 +1599,27 @@ void abs_lines_per_speciesSetLineShapeTypeForSpecies(
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLinemixingLimit(ArrayOfAbsorptionLines& abs_lines,
-                                 const Numeric& x,
-                                 const Verbosity&) 
-{
-  for (auto& lines: abs_lines)
-    lines.linemixinglimit = x;
+void abs_linesLinemixingLimit(ArrayOfAbsorptionLines& abs_lines,
+                              const Numeric& x,
+                              const Verbosity&) {
+  for (auto& lines : abs_lines) lines.linemixinglimit = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLinemixingLimit(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                             const Numeric& x,
-                                             const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetLinemixingLimit(abs_lines, x, v);
+void abs_lines_per_speciesLinemixingLimit(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Numeric& x,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesLinemixingLimit(abs_lines, x, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLinemixingLimitForMatch(ArrayOfAbsorptionLines& abs_lines,
-                                         const Numeric& x,
-                                         const QuantumIdentifier& QI,
-                                         const Verbosity&) 
-{
-  for (auto& lines: abs_lines) {
+void abs_linesLinemixingLimitMatch(ArrayOfAbsorptionLines& abs_lines,
+                                      const Numeric& x,
+                                      const QuantumIdentifier& QI,
+                                      const Verbosity&) {
+  for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       lines.linemixinglimit = x;
@@ -1632,29 +1628,30 @@ void abs_linesSetLinemixingLimitForMatch(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLinemixingLimitForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                     const Numeric& x,
-                                                     const QuantumIdentifier& QI,
-                                                     const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetLinemixingLimitForMatch(abs_lines, x, QI, v);
+void abs_lines_per_speciesLinemixingLimitMatch(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Numeric& x,
+    const QuantumIdentifier& QI,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesLinemixingLimitMatch(abs_lines, x, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetLinemixingLimitForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const Numeric& x,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesLinemixingLimitSpecies(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Numeric& x,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetLinemixingLimit(abs_lines_per_species[ispec], x, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesLinemixingLimit(abs_lines_per_species[ispec], x, verbosity);
     }
   }
 }
@@ -1664,30 +1661,26 @@ void abs_lines_per_speciesSetLinemixingLimitForSpecies(
 /////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetT0(ArrayOfAbsorptionLines& abs_lines,
-                    const Numeric& x,
-                    const Verbosity&) 
-{
-  for (auto& lines: abs_lines)
-    lines.T0 = x;
+void abs_linesT0(ArrayOfAbsorptionLines& abs_lines,
+                 const Numeric& x,
+                 const Verbosity&) {
+  for (auto& lines : abs_lines) lines.T0 = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetT0(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                const Numeric& x,
-                                const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetT0(abs_lines, x, v);
+void abs_lines_per_speciesT0(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Numeric& x,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species) abs_linesT0(abs_lines, x, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetT0ForMatch(ArrayOfAbsorptionLines& abs_lines,
-                            const Numeric& x,
-                            const QuantumIdentifier& QI,
-                            const Verbosity&) 
-{
-  for (auto& lines: abs_lines) {
+void abs_linesT0Match(ArrayOfAbsorptionLines& abs_lines,
+                      const Numeric& x,
+                      const QuantumIdentifier& QI,
+                      const Verbosity&) {
+  for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       lines.T0 = x;
@@ -1696,29 +1689,30 @@ void abs_linesSetT0ForMatch(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetT0ForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                        const Numeric& x,
-                                        const QuantumIdentifier& QI,
-                                        const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetT0ForMatch(abs_lines, x, QI, v);
+void abs_lines_per_speciesT0Match(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Numeric& x,
+    const QuantumIdentifier& QI,
+    const Verbosity& v) {
+  for (auto& abs_lines : abs_lines_per_species)
+    abs_linesT0Match(abs_lines, x, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetT0ForSpecies(
-  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-  const ArrayOfArrayOfSpeciesTag& abs_species,
-  const Numeric& x,
-  const String& species_tag,
-  const Verbosity& verbosity)
-{
+void abs_lines_per_speciesT0Species(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Numeric& x,
+    const String& species_tag,
+    const Verbosity& verbosity) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag}, verbosity);
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
-    if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesSetT0(abs_lines_per_species[ispec], x, verbosity);
+  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+    if (std::equal(abs_species[ispec].begin(),
+                   abs_species[ispec].end(),
+                   target_species[0].begin())) {
+      abs_linesT0(abs_lines_per_species[ispec], x, verbosity);
     }
   }
 }

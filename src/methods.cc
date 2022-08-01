@@ -818,11 +818,8 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetEmptyBroadeningParametersToEmpty"),
-               DESCRIPTION("Sets a broadening parameter to empty if it is efficiently empty\n"
-                           "\n"
-                           "This will not save RAM but it will save disk space (reading time),\n"
-                           "and computational time by not doing unecessary calculations\n"),
+      create_mdrecord(NAME("abs_linesEmptyBroadeningParameters"),
+               DESCRIPTION("Sets a broadening parameter to empty if it is effectively empty\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -835,16 +832,22 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetNormalization"),
-               DESCRIPTION("Sets normalization type for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "\t\"VVH\"  \t - \t Van Vleck and Huber\n"
-                           "\t\"VVW\"  \t - \t Van Vleck and Weisskopf\n"
-                           "\t\"RQ\"   \t - \t Rosenkranz quadratic\n"
-                           "\t\"None\" \t - \t No extra normalization\n"
-                           "\n"
-                           "See the theory guide for more details.\n"),
+      create_mdrecord(NAME("abs_linesNormalization"),
+               DESCRIPTION(R"--(Sets normalization type for all lines
+
+Available options:
+    "VVH"  : Van Vleck and Huber
+
+    "VVW"  : Van Vleck and Weisskopf
+
+    "RQ"   : Rosenkranz quadratic
+
+    "SFS"  : Simple frequency scaling
+
+    "None" : No extra normalization
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -857,8 +860,22 @@ void define_md_data_raw() {
                GIN_DESC("Method of line normalizations")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetNormalization"),
-               DESCRIPTION("See *abs_linesSetNormalization*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesNormalization"),
+               DESCRIPTION(R"--(Sets normalization type for all lines
+
+Available options:
+    "VVH"  : Van Vleck and Huber
+
+    "VVW"  : Van Vleck and Weisskopf
+
+    "RQ"   : Rosenkranz quadratic
+
+    "SFS"  : Simple frequency scaling
+
+    "None" : No extra normalization
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -871,10 +888,24 @@ void define_md_data_raw() {
                GIN_DESC("Method of line normalizations")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetNormalizationForMatch"),
-               DESCRIPTION("See *abs_linesSetNormalization* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_linesNormalizationMatch"),
+               DESCRIPTION(R"--(Sets normalization type for all matching lines
+
+Match is done with a quantum identifier
+
+Available options:
+    "VVH"  : Van Vleck and Huber
+
+    "VVW"  : Van Vleck and Weisskopf
+
+    "RQ"   : Rosenkranz quadratic
+
+    "SFS"  : Simple frequency scaling
+
+    "None" : No extra normalization
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -888,10 +919,24 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetNormalizationForMatch"),
-               DESCRIPTION("See *abs_linesSetNormalization* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesNormalizationMatch"),
+               DESCRIPTION(R"--(Sets normalization type for all matching lines
+
+Match is done with a quantum identifier
+
+Available options:
+    "VVH"  : Van Vleck and Huber
+
+    "VVW"  : Van Vleck and Weisskopf
+
+    "RQ"   : Rosenkranz quadratic
+
+    "SFS"  : Simple frequency scaling
+
+    "None" : No extra normalization
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -905,8 +950,24 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    create_mdrecord(NAME("abs_lines_per_speciesSetNormalizationForSpecies"),
-             DESCRIPTION("See *abs_linesSetNormalization* but for single species\n"),
+    create_mdrecord(NAME("abs_lines_per_speciesNormalizationSpecies"),
+             DESCRIPTION(R"--(Sets normalization type for all matching lines
+
+Match is done with a species tag
+
+Available options:
+    "VVH"  : Van Vleck and Huber
+
+    "VVW"  : Van Vleck and Weisskopf
+
+    "RQ"   : Rosenkranz quadratic
+
+    "SFS"  : Simple frequency scaling
+
+    "None" : No extra normalization
+
+See the theory guide for more details.
+)--"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
              GOUT(),
@@ -920,19 +981,25 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetMirroring"),
-               DESCRIPTION("Sets mirroring type for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "\t\"None\"           \t - \t No mirrored line\n"
-                           "\t\"SameAsLineShape\"\t - \t Mirrored line broadened by line shape\n"
-                           "\t\"Manual\"         \t - \t Manually mirrored line (be careful; allows all frequencies)\n"
-                           "\t\"Lorentz\"        \t - \t Mirrored line broadened by Lorentz\n"
-                           "\n"
-                           "Note that mirroring is never applied for DP line shape\n"
-                           "Also note that Lorentz profile is approached by most line shapes at high frequency offset.\n"
-                           "Also note that Manual settings are potentially dangerous as other frequency\n"
-                           "offsets might not work as hoped.\n"),
+      create_mdrecord(NAME("abs_linesMirroring"),
+               DESCRIPTION(R"--(Sets mirroring type for all lines.
+
+Available options:
+    "None"            : No mirrored line
+
+    "SameAsLineShape" : Mirrored line broadened by line shape
+
+    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
+
+    "Lorentz"         : Mirrored line broadened by Lorentz
+
+Note that mirroring is never applied for DP line shape
+
+Also note that Lorentz profile is approached by most line shapes at high frequency offset.
+
+Also note that Manual settings are potentially dangerous as other frequency
+offsets might not work as hoped.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -945,8 +1012,25 @@ void define_md_data_raw() {
                GIN_DESC("Method of line mirroring")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetMirroring"),
-               DESCRIPTION("See *abs_linesSetMirroring*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesMirroring"),
+               DESCRIPTION(R"--(Sets mirroring type for all lines.
+
+Available options:
+    "None"            : No mirrored line
+    
+    "SameAsLineShape" : Mirrored line broadened by line shape
+
+    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
+
+    "Lorentz"         : Mirrored line broadened by Lorentz
+
+Note that mirroring is never applied for DP line shape
+
+Also note that Lorentz profile is approached by most line shapes at high frequency offset.
+
+Also note that Manual settings are potentially dangerous as other frequency
+offsets might not work as hoped.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -959,10 +1043,27 @@ void define_md_data_raw() {
                GIN_DESC("Method of line mirroring")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetMirroringForMatch"),
-               DESCRIPTION("See *abs_linesSetMirroring* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_linesMirroringMatch"),
+               DESCRIPTION(R"--(Sets mirroring type for all matching lines.
+
+Match is done with a quantum identifier
+
+Available options:
+    "None"            : No mirrored line
+    
+    "SameAsLineShape" : Mirrored line broadened by line shape
+
+    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
+
+    "Lorentz"         : Mirrored line broadened by Lorentz
+
+Note that mirroring is never applied for DP line shape
+
+Also note that Lorentz profile is approached by most line shapes at high frequency offset.
+
+Also note that Manual settings are potentially dangerous as other frequency
+offsets might not work as hoped.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -976,10 +1077,27 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetMirroringForMatch"),
-               DESCRIPTION("See *abs_linesSetMirroring* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesMirroringMatch"),
+               DESCRIPTION(R"--(Sets mirroring type for all matching lines.
+
+Match is done with a quantum identifier
+
+Available options:
+    "None"            : No mirrored line
+    
+    "SameAsLineShape" : Mirrored line broadened by line shape
+
+    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
+
+    "Lorentz"         : Mirrored line broadened by Lorentz
+
+Note that mirroring is never applied for DP line shape
+
+Also note that Lorentz profile is approached by most line shapes at high frequency offset.
+
+Also note that Manual settings are potentially dangerous as other frequency
+offsets might not work as hoped.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -993,8 +1111,27 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    create_mdrecord(NAME("abs_lines_per_speciesSetMirroringForSpecies"),
-             DESCRIPTION("See *abs_linesSetMirroring* but for single species\n"),
+    create_mdrecord(NAME("abs_lines_per_speciesMirroringSpecies"),
+             DESCRIPTION(R"--(Sets mirroring type for all matching lines.
+
+Match is done with a species tag
+
+Available options:
+    "None"            : No mirrored line
+    
+    "SameAsLineShape" : Mirrored line broadened by line shape
+
+    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
+
+    "Lorentz"         : Mirrored line broadened by Lorentz
+
+Note that mirroring is never applied for DP line shape
+
+Also note that Lorentz profile is approached by most line shapes at high frequency offset.
+
+Also note that Manual settings are potentially dangerous as other frequency
+offsets might not work as hoped.
+)--"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
              GOUT(),
@@ -1022,7 +1159,7 @@ void define_md_data_raw() {
                GIN_DESC("Sorting option")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesMakeManualMirroring"),
+      create_mdrecord(NAME("abs_linesManualMirroring"),
                DESCRIPTION("Makes a copy of all lines at negative frequency setting them.\n"
                            "to manual mirroring mode\n"),
                AUTHORS("Richard Larsson"),
@@ -1037,8 +1174,9 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesMakeManualMirroring"),
-               DESCRIPTION("See *abs_linesMakeManualMirroring*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesManualMirroring"),
+               DESCRIPTION("Makes a copy of all lines at negative frequency setting them.\n"
+                           "to manual mirroring mode\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1051,8 +1189,8 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesMakeManualMirroringSpecies"),
-               DESCRIPTION("Calls *abs_linesMakeManualMirroring* for given species in *abs_species*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesManualMirroringSpecies"),
+               DESCRIPTION("Calls *abs_linesManualMirroring* for given species in *abs_species*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1065,15 +1203,30 @@ void define_md_data_raw() {
                GIN_DESC("Species to mirror")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetPopulation"),
-               DESCRIPTION("Sets population type for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "\t\"LTE\"                          \t - \t Standard distribution by temperature\n"
-                           "\t\"NLTE-VibrationalTemperatures\" \t - \t LTE but with vibrational temperatures\n"
-                           "\t\"NLTE\"                         \t - \t Distribution is given as input\n"
-                           "\n"
-                           "You must have set *nlte_field* and/or its ilk to use the NLTE methods.\n"),
+      create_mdrecord(NAME("abs_linesPopulation"),
+               DESCRIPTION(R"--(Sets population type for all lines.
+
+Available options:
+    "LTE"                           : Assume band is in LTE
+
+    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
+
+    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+
+    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+
+    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+
+    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+
+    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+
+You must have set *nlte_field* and/or its ilk to use the NLTE methods.
+
+You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+
+You must have *ecs_data* for the other two relaxation matrix options
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1086,8 +1239,30 @@ void define_md_data_raw() {
                GIN_DESC("Method of line population")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetPopulation"),
-               DESCRIPTION("See *abs_linesSetPopulation*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesPopulation"),
+               DESCRIPTION(R"--(Sets population type for all lines.
+
+Available options:
+    "LTE"                           : Assume band is in LTE
+
+    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
+
+    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+
+    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+
+    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+
+    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+
+    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+
+You must have set *nlte_field* and/or its ilk to use the NLTE methods.
+
+You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+
+You must have *ecs_data* for the other two relaxation matrix options
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1100,10 +1275,32 @@ void define_md_data_raw() {
                GIN_DESC("Method of line population")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetPopulationForMatch"),
-               DESCRIPTION("See *abs_linesSetPopulation* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_linesPopulationMatch"),
+               DESCRIPTION(R"--(Sets population type for all matching lines.
+
+Match is done with a quantum identifier
+
+Available options:
+    "LTE"                           : Assume band is in LTE
+
+    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
+
+    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+
+    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+
+    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+
+    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+
+    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+
+You must have set *nlte_field* and/or its ilk to use the NLTE methods.
+
+You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+
+You must have *ecs_data* for the other two relaxation matrix options
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1117,10 +1314,32 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetPopulationForMatch"),
-               DESCRIPTION("See *abs_linesSetPopulation* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesPopulationMatch"),
+               DESCRIPTION(R"--(Sets population type for all matching lines.
+
+Match is done with a quantum identifier
+
+Available options:
+    "LTE"                           : Assume band is in LTE
+
+    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
+
+    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+
+    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+
+    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+
+    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+
+    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+
+You must have set *nlte_field* and/or its ilk to use the NLTE methods.
+
+You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+
+You must have *ecs_data* for the other two relaxation matrix options
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1134,8 +1353,32 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetPopulationForSpecies"),
-               DESCRIPTION("See *abs_linesSetPopulation* but for single species\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesPopulationSpecies"),
+               DESCRIPTION(R"--(Sets population type for all matching lines.
+
+Match is done with a species tag
+
+Available options:
+    "LTE"                           : Assume band is in LTE
+
+    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
+
+    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+
+    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+
+    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+
+    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+
+    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+
+You must have set *nlte_field* and/or its ilk to use the NLTE methods.
+
+You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+
+You must have *ecs_data* for the other two relaxation matrix options
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1149,17 +1392,22 @@ void define_md_data_raw() {
                         "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetLineShapeType"),
-               DESCRIPTION("Sets shape calculations type for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "\t\"DP\"   \t - \t Doppler profile\n"
-                           "\t\"LP\"   \t - \t Lorentz profile\n"
-                           "\t\"VP\"   \t - \t Voigt profile\n"
-                           "\t\"SDVP\" \t - \t Speed-dependent Voigt profile\n"
-                           "\t\"HTP\"  \t - \t Hartman-Tran profile\n"
-                           "\n"
-                           "See the theory guide for more details.\n"),
+      create_mdrecord(NAME("abs_linesLineShapeType"),
+               DESCRIPTION(R"--(Sets shape calculations type for all lines.
+
+Available options:
+    "DP"   : Doppler profile
+
+    "LP"   : Lorentz profile
+
+    "VP"   : Voigt profile
+
+    "SDVP" : Speed-dependent Voigt profile
+
+    "HTP"  : Hartman-Tran profile
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1172,8 +1420,22 @@ void define_md_data_raw() {
                GIN_DESC("Method of line shape calculations")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetLineShapeType"),
-               DESCRIPTION("See *abs_linesSetLineShapeType*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesLineShapeType"),
+               DESCRIPTION(R"--(Sets shape calculations type for all lines.
+
+Available options:
+    "DP"   : Doppler profile
+
+    "LP"   : Lorentz profile
+
+    "VP"   : Voigt profile
+    
+    "SDVP" : Speed-dependent Voigt profile
+
+    "HTP"  : Hartman-Tran profile
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1186,10 +1448,24 @@ void define_md_data_raw() {
                GIN_DESC("Method of line shape calculations")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetLineShapeTypeForMatch"),
-               DESCRIPTION("See *abs_linesSetLineShapeType* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_linesLineShapeTypeMatch"),
+               DESCRIPTION(R"--(Sets shape calculations type for all matching lines.
+
+Match is done with a quantum identifier
+
+Available options:
+    "DP"   : Doppler profile
+
+    "LP"   : Lorentz profile
+
+    "VP"   : Voigt profile
+    
+    "SDVP" : Speed-dependent Voigt profile
+
+    "HTP"  : Hartman-Tran profile
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1203,10 +1479,24 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetLineShapeTypeForMatch"),
-               DESCRIPTION("See *abs_linesSetLineShapeType* for options\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesLineShapeTypeMatch"),
+               DESCRIPTION(R"--(Sets shape calculations type for all matching lines.
+
+Match is done with a quantum identifier
+
+Available options:
+    "DP"   : Doppler profile
+
+    "LP"   : Lorentz profile
+
+    "VP"   : Voigt profile
+    
+    "SDVP" : Speed-dependent Voigt profile
+
+    "HTP"  : Hartman-Tran profile
+
+See the theory guide for more details.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1220,8 +1510,24 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    create_mdrecord(NAME("abs_lines_per_speciesSetLineShapeTypeForSpecies"),
-             DESCRIPTION("See *abs_linesSetLineShapeType* but for single species\n"),
+    create_mdrecord(NAME("abs_lines_per_speciesLineShapeTypeSpecies"),
+             DESCRIPTION(R"--(Sets shape calculations type for all matching lines.
+
+Match is done with a species tag
+
+Available options:
+    "DP"   : Doppler profile
+
+    "LP"   : Lorentz profile
+
+    "VP"   : Voigt profile
+    
+    "SDVP" : Speed-dependent Voigt profile
+
+    "HTP"  : Hartman-Tran profile
+
+See the theory guide for more details.
+)--"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
              GOUT(),
@@ -1235,17 +1541,19 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetCutoff"),
-               DESCRIPTION("Sets cutoff type and magnitude for all lines.\n"
-                           "\n"
-                           "The line is cut off when this is active at the given frequency.\n"
-                           "The only non-zero range is from this range to its negative equivalent\n"
-                           "\n"
-                           "Available options:\n"
-                           "\t\"None\"   \t - \t No cutoff\n"
-                           "\t\"ByLine\" \t - \t Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0\n"
-                           "\n"
-                           "For \"ByLine\", the negative frequency is at F0-cutoff-D0\n"),
+      create_mdrecord(NAME("abs_linesCutoff"),
+               DESCRIPTION(R"--(Sets cutoff type and magnitude for all lines.
+
+The line is cut off when this is active at the given frequency.
+"The only non-zero range is from this range to its negative equivalent
+
+Available options:
+    "None"   : No cutoff
+
+    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+
+For "ByLine", the negative frequency is at F0-cutoff-D0
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1259,8 +1567,19 @@ void define_md_data_raw() {
                         "Value of cutoff")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetCutoff"),
-               DESCRIPTION("See *abs_linesSetCutoff*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesCutoff"),
+               DESCRIPTION(R"--(Sets cutoff type and magnitude for all lines.
+
+The line is cut off when this is active at the given frequency.
+"The only non-zero range is from this range to its negative equivalent
+
+Available options:
+    "None"   : No cutoff
+    
+    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+
+For "ByLine", the negative frequency is at F0-cutoff-D0
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1274,10 +1593,21 @@ void define_md_data_raw() {
                         "Value of cutoff")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetCutoffForMatch"),
-               DESCRIPTION("See *abs_linesSetCutoff* for more options.\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_linesCutoffMatch"),
+               DESCRIPTION(R"--(Sets cutoff type and magnitude for all matching lines.
+
+Match is done with a quantum identifier
+
+The line is cut off when this is active at the given frequency.
+"The only non-zero range is from this range to its negative equivalent
+
+Available options:
+    "None"   : No cutoff
+    
+    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+
+For "ByLine", the negative frequency is at F0-cutoff-D0
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1292,10 +1622,21 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetCutoffForMatch"),
-               DESCRIPTION("See *abs_linesSetCutoff* for more options.\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesCutoffMatch"),
+               DESCRIPTION(R"--(Sets cutoff type and magnitude for all matching lines.
+
+Match is done with a quantum identifier
+
+The line is cut off when this is active at the given frequency.
+"The only non-zero range is from this range to its negative equivalent
+
+Available options:
+    "None"   : No cutoff
+    
+    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+
+For "ByLine", the negative frequency is at F0-cutoff-D0
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1310,8 +1651,21 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetCutoffForSpecies"),
-               DESCRIPTION("See *abs_linesSetCutoff* but for single species\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesCutoffSpecies"),
+               DESCRIPTION(R"--(Sets cutoff type and magnitude for all matching lines.
+
+Match is done with a species tag
+
+The line is cut off when this is active at the given frequency.
+"The only non-zero range is from this range to its negative equivalent
+
+Available options:
+    "None"   : No cutoff
+    
+    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+
+For "ByLine", the negative frequency is at F0-cutoff-D0
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1326,7 +1680,7 @@ void define_md_data_raw() {
                         "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetLinemixingLimit"),
+      create_mdrecord(NAME("abs_linesLinemixingLimit"),
                DESCRIPTION("Sets line mixing limit for all lines.\n"
                            "\n"
                            "If value is less than 0, no limit is applied and line mixing is active.\n"
@@ -1343,8 +1697,8 @@ void define_md_data_raw() {
                GIN_DESC("Value of limit")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetLinemixingLimit"),
-               DESCRIPTION("See *abs_linesSetLinemixingLimit*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesLinemixingLimit"),
+               DESCRIPTION("See *abs_linesLinemixingLimit*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1357,8 +1711,8 @@ void define_md_data_raw() {
                GIN_DESC("Value of limit")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetLinemixingLimitForMatch"),
-               DESCRIPTION("See *abs_linesSetLinemixingLimit* for values\n"
+      create_mdrecord(NAME("abs_linesLinemixingLimitMatch"),
+               DESCRIPTION("See *abs_linesLinemixingLimit* for values\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
                AUTHORS("Richard Larsson"),
@@ -1374,8 +1728,8 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetLinemixingLimitForMatch"),
-               DESCRIPTION("See *abs_linesSetLinemixingLimit* for values\n"
+      create_mdrecord(NAME("abs_lines_per_speciesLinemixingLimitMatch"),
+               DESCRIPTION("See *abs_linesLinemixingLimit* for values\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
                AUTHORS("Richard Larsson"),
@@ -1391,8 +1745,8 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetLinemixingLimitForSpecies"),
-               DESCRIPTION("See *abs_linesSetLinemixingLimit* but for single species\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesLinemixingLimitSpecies"),
+               DESCRIPTION("See *abs_linesLinemixingLimit* but for single species\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1406,7 +1760,7 @@ void define_md_data_raw() {
                         "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetT0"),
+      create_mdrecord(NAME("abs_linesT0"),
                DESCRIPTION("Sets reference temperature for all lines.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
@@ -1420,8 +1774,8 @@ void define_md_data_raw() {
                GIN_DESC("Value of T0")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetT0"),
-               DESCRIPTION("See *abs_linesSetT0*\n"),
+      create_mdrecord(NAME("abs_lines_per_speciesT0"),
+               DESCRIPTION("See *abs_linesT0*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1434,7 +1788,7 @@ void define_md_data_raw() {
                GIN_DESC("Value of T0")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_linesSetT0ForMatch"),
+      create_mdrecord(NAME("abs_linesT0Match"),
                DESCRIPTION("Sets reference temperature\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1451,7 +1805,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("abs_lines_per_speciesSetT0ForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesT0Match"),
                DESCRIPTION("Sets reference temperature\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1468,8 +1822,8 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    create_mdrecord(NAME("abs_lines_per_speciesSetT0ForSpecies"),
-             DESCRIPTION("See *abs_linesSetT0* but for single species\n"),
+    create_mdrecord(NAME("abs_lines_per_speciesT0Species"),
+             DESCRIPTION("See *abs_linesT0* but for single species\n"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
              GOUT(),

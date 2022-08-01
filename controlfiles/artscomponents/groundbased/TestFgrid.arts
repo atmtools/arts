@@ -42,8 +42,8 @@ AtmFieldsCalc
 # ---- Absorption ------------------------------------------------------------
 
 ReadARTSCAT( abs_lines, "testdata/ozone_line.xml" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 abs_lines_per_speciesCreateFromLines
 
 propmat_clearsky_agendaAuto
