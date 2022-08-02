@@ -2142,7 +2142,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Sets the values found")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_linesSetZeemanCoefficients"),
+      NAME("abs_linesZeemanCoefficients"),
       DESCRIPTION("Sets the Zeeman coefficients of the lines by user input\n"
         "\n"
         "The matching is permissive, all in qid must just match.  If there\n"
@@ -2160,8 +2160,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Corresponding value to set as Zeeman coefficient")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetZeemanCoefficients"),
-      DESCRIPTION("See *abs_linesSetZeemanCoefficients*\n"),
+      NAME("abs_lines_per_speciesZeemanCoefficients"),
+      DESCRIPTION("See *abs_linesZeemanCoefficients*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -2767,7 +2767,7 @@ if they are defined.  Otherwise some values are just selected
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("predefined_model_dataSetHitranMTCKD"),
+      NAME("predefined_model_dataAddHitranMTCKD"),
       DESCRIPTION(R"--(Sets the data for Hitran MTCKD
 
 Note that the vectors must have the same length, and that wavenumbers must be growing
@@ -2817,7 +2817,7 @@ Possible models:
         Note that this model comes with the copyright statement [1].
 
         Note also that this model requires *predefined_model_data* to contain relevant data set either using
-        *predefined_model_dataSetHitranMTCKD* or via some file reading routine.
+        *predefined_model_dataAddHitranMTCKD* or via some file reading routine.
     H2O-ForeignContHitranMTCKD:
         Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
@@ -2826,7 +2826,7 @@ Possible models:
         Note that this model comes with the copyright statement [1].
 
         Note also that this model requires *predefined_model_data* to contain relevant data set either using
-        *predefined_model_dataSetHitranMTCKD* or via some file reading routine.
+        *predefined_model_dataAddHitranMTCKD* or via some file reading routine.
 
     Copyright statements:
         [1]:
@@ -6474,7 +6474,7 @@ Possible models:
       GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("ecs_dataSetMeanAir"),
+      NAME("ecs_dataAddMeanAir"),
       DESCRIPTION("Sets ECS data for air from other data if available.\n"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
@@ -6490,7 +6490,7 @@ Possible models:
         "Air species")));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("ecs_dataSetSpeciesData"),
+      NAME("ecs_dataAddSpeciesData"),
       DESCRIPTION("Sets ECS data for one set of species and quantum identifiers.\n"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
@@ -11418,7 +11418,7 @@ Possible models:
       GIN_DESC("Vibrational data [nlevels, np, nlat, nlon]")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldSetLteExternalPartitionFunction"),
+      NAME("nlte_fieldLteExternalPartitionFunction"),
       DESCRIPTION("Turns on NTLE calculations.\n"
                   "\n"
                   "Sets NLTE ratios to those expected for LTE calculations\n"
@@ -11455,7 +11455,7 @@ Possible models:
       GIN_DESC("Only look at global quantum numbers")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldSetLteInternalPartitionFunction"),
+      NAME("nlte_fieldLteInternalPartitionFunction"),
       DESCRIPTION(
           "Turns on NTLE calculations.\n"
           "\n"

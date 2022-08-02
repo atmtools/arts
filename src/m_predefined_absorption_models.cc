@@ -36,7 +36,7 @@ void predefined_model_dataInit(PredefinedModelData& predefined_model_data,
   predefined_model_data = PredefinedModelData{};
 }
 
-void predefined_model_dataSetHitranMTCKD(
+void predefined_model_dataAddHitranMTCKD(
     PredefinedModelData& predefined_model_data,
     const Vector& self_absco_ref,
     const Vector& for_absco_ref,
