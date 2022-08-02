@@ -81,6 +81,7 @@ void DisortCalc(Workspace& ws,
                     const Index& Npfct,
                     const Index& cdisort_quiet,
                     const Index& emission,
+                    const Index& intensity_correction,
                     const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
@@ -219,6 +220,7 @@ void DisortCalc(Workspace& ws,
               Npfct,
               cdisort_quiet,
               emission,
+              intensity_correction,
               verbosity);
 }
 
@@ -260,6 +262,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Index& Npfct,
                     const Index& cdisort_quiet,
                     const Index& emission,
+                    const Index& intensity_correction,
                     const Numeric& inc_angle,
                     const Verbosity& verbosity) {
 
@@ -416,6 +419,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
               Npfct,
               cdisort_quiet,
               emission,
+              intensity_correction,
               verbosity);
 }
 
@@ -450,6 +454,7 @@ void DisortCalcClearSky(Workspace& ws,
                     const Index& nstreams,
                     const Index& cdisort_quiet,
                     const Index& emission,
+                    const Index& intensity_correction,
                     const Verbosity& verbosity) {
 
   if (atmosphere_dim != 1)
@@ -525,6 +530,7 @@ void DisortCalcClearSky(Workspace& ws,
                  181,
                  cdisort_quiet,
                  emission,
+                 intensity_correction,
                  verbosity);
 
 }

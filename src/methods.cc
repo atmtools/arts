@@ -5777,9 +5777,9 @@ Possible models:
          "surface_scalar_reflectivity",
          "gas_scattering_do",
          "star_do"),
-      GIN("nstreams", "Npfct", "quiet", "emission"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0", "1"),
+      GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0", "1", "1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
                "solution (must be an even number).\n",
                "Number of angular grid points to calculate bulk phase\n"
@@ -5788,7 +5788,10 @@ Possible models:
                "Silence C Disort warnings.\n",
                "Enables blackbody emission. Set to zero, if no\n "
                "Emission e. g. like in visible regime for earth\n"
-               "is needed\n")));
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcWithARTSSurface"),
@@ -5837,9 +5840,9 @@ Possible models:
          "z_surface",
          "gas_scattering_do",
          "star_do"),
-      GIN("nstreams", "Npfct", "quiet", "emission", "inc_angle"),
-      GIN_TYPE("Index", "Index", "Index", "Index","Numeric"),
-      GIN_DEFAULT("8", "181", "0", "1","-1"),
+      GIN("nstreams", "Npfct", "quiet", "emission", "intensity_correction", "inc_angle"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index","Numeric"),
+      GIN_DEFAULT("8", "181", "0", "1", "1", "-1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).\n",
                "Number of angular grid points to calculate bulk phase\n"
@@ -5849,6 +5852,9 @@ Possible models:
                "Enables blackbody emission. Set to zero, if no\n "
                "Emission e. g. like in visible regime for earth\n"
                "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n",
                "Incidence angle, see above.\n")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -5892,15 +5898,18 @@ Possible models:
          "surface_scalar_reflectivity",
          "gas_scattering_do",
          "star_do"),
-      GIN("nstreams", "quiet", "emission"),
-      GIN_TYPE("Index", "Index", "Index"),
-      GIN_DEFAULT("8", "0", "1"),
+      GIN("nstreams", "quiet", "emission", "intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "0", "1", "1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
                "solution (must be an even number).\n",
                "Silence C Disort warnings.\n",
                "Enables blackbody emission. Set to zero, if no\n "
                "Emission e. g. like in visible regime for earth\n"
-               "is needed\n")));
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),

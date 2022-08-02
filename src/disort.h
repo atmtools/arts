@@ -172,6 +172,7 @@ void get_disortsurf_props(  // Output
  *                function.
  * @param[in]     quiet Silence warnings.
  * @param[in]     emission Enables blackbody emission.
+ * @param[in]     intensity_correction Enables intensity correction (for low nstreams)
  * @param[in]     verbosity Verbosity setting.
  *
  * @author        Oliver Lemke, Manfred Brath
@@ -206,6 +207,7 @@ void run_cdisort(Workspace& ws,
                  const Index& Npfct,
                  const Index& quiet,
                  const Index& emission,
+                 const Index& intensity_correction,
                  const Verbosity& verbosity);
 
 /** get_gasoptprop.

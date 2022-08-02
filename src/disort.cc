@@ -890,6 +890,7 @@ void run_cdisort(Workspace& ws,
                       const Index& Npfct,
                       const Index& quiet,
                       const Index& emission,
+                      const Index& intensity_correction,
                       const Verbosity& verbosity) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
@@ -961,17 +962,21 @@ void run_cdisort(Workspace& ws,
   ds.flag.ibcnd = GENERAL_BC;
   ds.flag.usrang = TRUE;
 
-  if (emission){
+  if (emission) {
     ds.flag.planck = TRUE;
-  }
-  else {
+  } else {
     ds.flag.planck = FALSE;
   }
   ds.flag.onlyfl = FALSE;
   ds.flag.lamber = TRUE;
   ds.flag.quiet = FALSE;
-  ds.flag.intensity_correction = TRUE;
-  ds.flag.old_intensity_correction = TRUE;
+  if (intensity_correction) {
+    ds.flag.intensity_correction = TRUE;
+    ds.flag.old_intensity_correction = FALSE;
+  } else {
+    ds.flag.intensity_correction = FALSE;
+    ds.flag.old_intensity_correction = FALSE;
+  }
 
   ds.nstr = static_cast<int>(nstreams);
   ds.nphase = ds.nstr;
