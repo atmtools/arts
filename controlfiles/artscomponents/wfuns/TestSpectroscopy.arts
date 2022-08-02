@@ -133,7 +133,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G0", species="AIR", temperaturemodel="T1", new_values=[10020, 0.7, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G0", species="AIR", temperaturemodel="T1", new_values=[10020, 0.7, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -143,7 +143,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G0", species="AIR", temperaturemodel="T1", new_values=[10000, 0.7008, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G0", species="AIR", temperaturemodel="T1", new_values=[10000, 0.7008, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -153,7 +153,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D0", species="AIR", temperaturemodel="T5", new_values=[1001, 0.7, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="D0", species="AIR", temperaturemodel="T5", new_values=[1001, 0.7, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -163,7 +163,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D0", species="AIR", temperaturemodel="T5", new_values=[1000, 0.7008, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="D0", species="AIR", temperaturemodel="T5", new_values=[1000, 0.7008, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -173,7 +173,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G2-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G2", species="AIR", temperaturemodel="T3", new_values=[154, 0.1, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G2", species="AIR", temperaturemodel="T3", new_values=[154, 0.1, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -183,7 +183,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G2-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G2", species="AIR", temperaturemodel="T3", new_values=[150, 0.11, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G2", species="AIR", temperaturemodel="T3", new_values=[150, 0.11, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -193,7 +193,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D2-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D2", species="AIR", temperaturemodel="T2", new_values=[100.5, 1, 0.1, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="D2", species="AIR", temperaturemodel="T2", new_values=[100.5, 1, 0.1, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -203,7 +203,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D2-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="D2", species="AIR", temperaturemodel="T2", new_values=[100, 1.01, 0.1, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="D2", species="AIR", temperaturemodel="T2", new_values=[100, 1.01, 0.1, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -213,7 +213,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-FVC-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="FVC", species="AIR", temperaturemodel="T3", new_values=[820, 250, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="FVC", species="AIR", temperaturemodel="T3", new_values=[820, 250, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -223,7 +223,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-FVC-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="FVC", species="AIR", temperaturemodel="T3", new_values=[800, 252, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="FVC", species="AIR", temperaturemodel="T3", new_values=[800, 252, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -233,7 +233,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="ETA", species="AIR", temperaturemodel="T3", new_values=[0.500001, 0.001, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="ETA", species="AIR", temperaturemodel="T3", new_values=[0.500001, 0.001, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -243,7 +243,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="ETA", species="AIR", temperaturemodel="T3", new_values=[0.5, 0.0010001, 0, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="ETA", species="AIR", temperaturemodel="T3", new_values=[0.5, 0.0010001, 0, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -253,7 +253,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-Y-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1.0001e-07, 1e-09, 0.8, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1.0001e-07, 1e-09, 0.8, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -263,7 +263,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-Y-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1e-07, 1.0001e-09, 0.8, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1e-07, 1.0001e-09, 0.8, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -273,7 +273,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-Y-X2 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1e-07, 1e-09, 0.81, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="Y", species="AIR", temperaturemodel="T4", new_values=[1e-07, 1e-09, 0.81, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -283,7 +283,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1.0001e-11, 1e-13, 1.6, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1.0001e-11, 1e-13, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -293,7 +293,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1e-11, 1.0001e-13, 1.6, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1e-11, 1.0001e-13, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -303,7 +303,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G-X2 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1e-11, 1e-13, 1.61, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="G", species="AIR", temperaturemodel="T4", new_values=[1e-11, 1e-13, 1.61, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -313,7 +313,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-DV-X0 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001001, 1e-06, 1.6, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001001, 1e-06, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -323,7 +323,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-DV-X1 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001, 1.001e-06, 1.6, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001, 1.001e-06, 1.6, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc
@@ -333,7 +333,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-DV-X2 derivative
-  abs_linesSetLineShapeModelParametersForMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001, 1e-06, 1.61, 0])
+  abs_linesLineShapeModelParametersMatchingLines(QI=QI, parameter="DV", species="AIR", temperaturemodel="T4", new_values=[0.0001, 1e-06, 1.61, 0])
   abs_lines_per_speciesCreateFromLines
   #abs_xsec_agenda_checkedCalc
   yCalc

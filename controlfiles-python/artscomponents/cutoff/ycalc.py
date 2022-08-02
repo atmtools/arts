@@ -160,7 +160,7 @@ arts.propmat_clearsky_agenda_checkedCalc()
 cutoffs = np.logspace(7, 13, 13-7+1)
 y = []
 for cutoff in cutoffs:
-    arts.abs_lines_per_speciesSetCutoff(option="ByLine", value=cutoff)
+    arts.abs_lines_per_speciesCutoff(option="ByLine", value=cutoff)
     arts.yCalc()
     y.append(arts.y.value * 1.0)
 y = np.array(y)

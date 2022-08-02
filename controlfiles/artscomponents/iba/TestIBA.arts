@@ -52,7 +52,7 @@ abs_speciesSet( species = [
 # 
 abs_lines_per_speciesSetEmpty
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 # some checks
 #

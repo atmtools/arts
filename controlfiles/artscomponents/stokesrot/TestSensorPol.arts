@@ -37,7 +37,7 @@ abs_speciesSet( species=
 
 abs_lines_per_speciesSetEmpty
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 VectorSet( p_grid, [1013e2,1] )
 VectorSet( lat_grid, [-90,90] )

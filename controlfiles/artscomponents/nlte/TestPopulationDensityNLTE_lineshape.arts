@@ -30,7 +30,7 @@ Arts2 {
   ReadXML(nlte_level_identifiers, "testdata/o2-qi.xml")
   Touch(nlte_vibrational_energies)
   rtp_nlteFromRaw(data=[0.7, 0.4])
-  nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
+  abs_lines_per_speciesPopulationNlteField(nlte_field=rtp_nlte)
   
   # Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations
   VectorSet(p_grid, [150])  # We have no grid
@@ -96,7 +96,7 @@ Arts2 {
   # Perform calculations for perturbed line strength derivative
   abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-30, relative=0)
   abs_lines_per_speciesCreateFromLines
-  nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
+  abs_lines_per_speciesPopulationNlteField(nlte_field=rtp_nlte)
   propmat_clearskyInit
   propmat_clearskyAddLines
   Copy(abs_lines, aolr)
@@ -107,7 +107,7 @@ Arts2 {
   # Perform calculations for perturbed line center derivative
   abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0)
   abs_lines_per_speciesCreateFromLines
-  nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
+  abs_lines_per_speciesPopulationNlteField(nlte_field=rtp_nlte)
   propmat_clearskyInit
   propmat_clearskyAddLines
   Copy(abs_lines, aolr)

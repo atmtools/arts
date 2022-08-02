@@ -747,4 +747,8 @@ void define_agenda_data() {
           "See further *ybatchCalc*.\n"),
       OUTPUT("y", "y_aux", "jacobian"),
       INPUT("ybatch_index")));
+
+  std::sort(agenda_data.begin(), agenda_data.end(), [](auto& a, auto& b) {
+    return a.Name() < b.Name();
+  });
 }

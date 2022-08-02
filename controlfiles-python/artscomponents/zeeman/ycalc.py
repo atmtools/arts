@@ -117,7 +117,7 @@ arts.isotopologue_ratiosInitFromBuiltin()
 arts.Wigner6Init()
 
 # %% Use the automatic agenda setter
-arts.propmat_clearsky_agendaSetAutomatic(manual_mag_field=not DYNMAG,
+arts.propmat_clearsky_agendaAuto(manual_mag_field=not DYNMAG,
                                          H=MAGSTR,
                                          theta=MAGTHE,
                                          eta=MAGETA)

@@ -40,8 +40,8 @@ FrequencyFromCGSKayserWavenumber( f_grid, tmp_kayser )
 #WriteXML("ascii",f_grid,"f.xml")
 
 ReadArrayOfARTSCAT(abs_lines=abs_lines, filename="../../testdata/NLTE_CO2_testlines.xml", globalquantumnumbers="v1 v2 v3 r l2", localquantumnumbers="J")
-abs_linesSetNormalization(option="VVH")
-abs_linesSetCutoff(option="ByLine", value=750e9)
+abs_linesNormalization(option="VVH")
+abs_linesCutoff(option="ByLine", value=750e9)
 abs_lines_per_speciesCreateFromLines
 isotopologue_ratiosInitFromBuiltin
 sensorOff
@@ -56,7 +56,7 @@ Extract( z_surface, z_field, 0 )
 
 VectorCreate(ev)
 ReadXML(ev,"testdata/tropical.ev.xml")
-nlteSetByQuantumIdentifiers
+abs_lines_per_speciesPopulationNlteField
 
 #NumericSet(ppath_lmax,5e3)
 propmat_clearsky_agenda_checkedCalc
@@ -77,7 +77,7 @@ ArrayOfQuantumIdentifierCreate(tmp_aoqi)
 Copy(tmp_elm, nlte_field)
 Copy(tmp_aoqi, nlte_level_identifiers)
 nlteOff
-abs_lines_per_speciesSetPopulation(option="LTE")
+abs_lines_per_speciesPopulation(option="LTE")
 
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc

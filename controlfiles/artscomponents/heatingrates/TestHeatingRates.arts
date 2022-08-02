@@ -123,7 +123,7 @@ Arts2 {
 	abs_lookupAdapt
 
     abs_lines_per_speciesSetEmpty
-    propmat_clearsky_agendaSetAutomaticForLookup
+    propmat_clearsky_agendaAuto(use_abs_lookup=1)
 	
 	#==========================================================================
 			#### RT calculations ####

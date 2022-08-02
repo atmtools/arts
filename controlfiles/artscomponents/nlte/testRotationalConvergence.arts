@@ -47,7 +47,7 @@ Arts2{
     AtmFieldsCalc
     abs_lines_per_speciesCreateFromLines
 
-    propmat_clearsky_agendaSetAutomatic
+    propmat_clearsky_agendaAuto
     
     # No fancy computations by turning all of these off
     jacobianOff

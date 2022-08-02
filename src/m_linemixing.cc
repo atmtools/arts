@@ -420,7 +420,7 @@ void ecs_dataInit(MapOfErrorCorrectedSuddenData& ecs_data, const Verbosity&) {
   ecs_data.resize(0);
 }
 
-void ecs_dataSetSpeciesData(
+void ecs_dataAddSpeciesData(
     MapOfErrorCorrectedSuddenData& ecs_data,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const QuantumIdentifier& qid,
@@ -449,7 +449,7 @@ void ecs_dataSetSpeciesData(
   data.mass = Species::mean_mass(spec, isotopologue_ratios);
 }
 
-void ecs_dataSetMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
+void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
                         const Vector& vmrs,
                         const ArrayOfSpeciesTag& specs,
                         const Verbosity&) {

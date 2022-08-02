@@ -72,10 +72,10 @@ INCLUDE "general/planet_earth.arts"
 #                             1000e9 )
 #    abs_linesArtscat5FromArtscat34( abs_lines )
     ReadARTSCAT( abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
-    abs_linesSetCutoff(option="ByLine", value=750e9)
-    abs_linesSetNormalization(option="VVH")
+    abs_linesCutoff(option="ByLine", value=750e9)
+    abs_linesNormalization(option="VVH")
     abs_lines_per_speciesCreateFromLines
-    abs_lines_per_speciesSetCutoffForSpecies(option="ByLine", value=5e9, species_tag="O3")
+    abs_lines_per_speciesCutoffForSpecies(option="ByLine", value=5e9, species_tag="O3")
 #    WriteXML( "zascii", abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
 
 # ====================================================================
@@ -95,9 +95,9 @@ INCLUDE "general/planet_earth.arts"
 # Absorption lookup table
     abs_lookupSetupBatch
     lbl_checkedCalc
-    propmat_clearsky_agendaSetAutomatic
+    propmat_clearsky_agendaAuto
     abs_lookupCalc
-    propmat_clearsky_agendaSetAutomaticForLookup
+    propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 # Setting the agenda for batch calculation 
 # Garand profiles have 42 different. We will make RT calculations for all of them.

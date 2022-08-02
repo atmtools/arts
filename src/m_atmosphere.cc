@@ -3991,7 +3991,7 @@ void vmr_fieldSetAllConstant(Tensor4& vmr_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldSetLteExternalPartitionFunction(
+void nlte_fieldLteExternalPartitionFunction(
     Index& nlte_do,
     EnergyLevelMap& nlte_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -4069,7 +4069,7 @@ void nlte_fieldSetLteExternalPartitionFunction(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldSetLteInternalPartitionFunction(
+void nlte_fieldLteInternalPartitionFunction(
     Index& nlte_do,
     EnergyLevelMap& nlte_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,

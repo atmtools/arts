@@ -49,7 +49,7 @@ ws.ecs_dataInit()
 ws.ecs_dataAddRodrigues1997()
 ws.ecs_dataAddTran2011()
 ws.ecs_dataAddMakarov2020()
-ws.ecs_dataSetMeanAir(vmrs=[1], specs="N2")  # Since the rest is for O2
+ws.ecs_dataAddMeanAir(vmrs=[1], specs="N2")  # Since the rest is for O2
 
 ws.abs_lines_per_speciesSetPopulation(option="ByMakarovFullRelmat")
 ws.abs_lines_per_speciesAdaptOnTheFlyLineMixing(t_grid = np.linspace(150, 350, 51), pressure=1e5, order=1)

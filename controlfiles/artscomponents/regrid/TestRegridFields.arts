@@ -47,8 +47,8 @@ cloudboxOff
 # Read a line file and a matching small frequency grid
 # ---
 ReadARTSCAT( abs_lines, "artscomponents/clearsky/abs_lines.xml" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
 
 
@@ -64,7 +64,7 @@ abs_speciesSet( species=
 # ---
 abs_lines_per_speciesCreateFromLines
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 
 # Atmospheric scenario
 # ---

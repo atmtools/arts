@@ -83,10 +83,10 @@ abs_speciesSet( abs_species=abs_nls, species=[] )
 VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 lbl_checkedCalc
 abs_lookupCalc
-propmat_clearsky_agendaSetAutomaticForLookup
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 
 

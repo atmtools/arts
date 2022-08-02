@@ -27,7 +27,7 @@ ws.abs_speciesSet(
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 # Use an automatic agenda
-ws.propmat_clearsky_agendaSetAutomatic()
+ws.propmat_clearsky_agendaAuto()
 
 # Arts setup (No NLTE, no polarization, and standard isotopologue ratios)
 ws.nlte_do = 0

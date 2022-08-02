@@ -87,9 +87,9 @@ VectorSet( abs_t_pert, [] )
 
 lbl_checkedCalc
 
-propmat_clearsky_agendaSetAutomatic
+propmat_clearsky_agendaAuto
 abs_lookupCalc
-propmat_clearsky_agendaSetAutomaticForLookup
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 # ---- Sensor position and LOS -----------------------------------------------
 
