@@ -16411,7 +16411,7 @@ where N>=0 and the species name is something line "H2O".
       IN("complex_refr_index"),
       GIN("data_f_grid", "data_t_grid", "density_water", "only_valid_range"),
       GIN_TYPE("Vector", "Vector", "Vector", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, 1),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1"),
       GIN_DESC("Frequency grid for refractive index calculation",
                "Temperature grid for refractive index calculation",
                "Density of water",
