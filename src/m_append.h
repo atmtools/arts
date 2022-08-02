@@ -133,13 +133,13 @@ inline void Append(Workspace& ws,
             const String& /* direction_name */,
             const Verbosity& verbosity) {
   // Append in to end of out:
-  out.push_back(in);
-  out[out.nelem() - 1].set_name(out_name);
-  out[out.nelem() - 1].check(ws, verbosity);
+  auto& newag = out.emplace_back(in);
+  newag.set_name(out_name);
+  newag.check(ws, verbosity);
 }
 
 /* Implementation for array types to append single element */
-inline void Append(Workspace& ws,
+inline void Append(Workspace& ws_in,
             // WS Generic Output:
             ArrayOfAgenda& out,
             const String& out_name,
@@ -150,10 +150,10 @@ inline void Append(Workspace& ws,
             const String& /* direction_name */,
             const Verbosity& verbosity) {
   // Append in to end of out:
-  for (ArrayOfAgenda::const_iterator it = in.begin(); it != in.end(); it++) {
-    out.push_back(*it);
-    out[out.nelem() - 1].set_name(out_name);
-    out[out.nelem() - 1].check(ws, verbosity);
+  for (const auto & it : in) {
+    auto& newag = out.emplace_back(it);
+    newag.set_name(out_name);
+    newag.check(ws_in, verbosity);
   }
 }
 
@@ -287,7 +287,7 @@ inline void Append(  // WS Generic Output:
     }
   } else
     throw runtime_error(
-        "Dimension must be either \"leading\" or \"trailing\".");
+        R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Vector/Numeric */

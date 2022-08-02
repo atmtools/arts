@@ -64,7 +64,7 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(Workspace& ws,
+void jacobianClose(Workspace& ws_in,
                    Index& jacobian_do,
                    Agenda& jacobian_agenda,
                    const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -74,26 +74,28 @@ void jacobianClose(Workspace& ws,
     throw runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
-  jacobian_agenda.check(ws, verbosity);
+  jacobian_agenda.check(ws_in, verbosity);
   jacobian_do = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianInit(ArrayOfRetrievalQuantity& jacobian_quantities,
+void jacobianInit(Workspace& ws,
+                  ArrayOfRetrievalQuantity& jacobian_quantities,
                   Agenda& jacobian_agenda,
                   const Verbosity&) {
   jacobian_quantities.resize(0);
-  jacobian_agenda = Agenda();
+  jacobian_agenda = Agenda{ws};
   jacobian_agenda.set_name("jacobian_agenda");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianOff(Index& jacobian_do,
+void jacobianOff(Workspace& ws, 
+                 Index& jacobian_do,
                  Agenda& jacobian_agenda,
                  ArrayOfRetrievalQuantity& jacobian_quantities,
                  const Verbosity& verbosity) {
   jacobian_do = 0;
-  jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
+  jacobianInit(ws, jacobian_quantities, jacobian_agenda, verbosity);
 }
 
 //----------------------------------------------------------------------------
@@ -560,7 +562,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
     jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
   } else
     throw runtime_error(
-      "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
+      R"(Possible choices for *calcmode* are "recalc" and "interp".)");
   rq.Target().perturbation = dza;
 
   // To store the value or the polynomial order, create a vector with length

@@ -41,6 +41,7 @@
   ===========================================================================*/
 #include <cmath>
 #include <cstdlib>
+#include <memory>
 #include <stdexcept>
 
 #include "array.h"
@@ -79,7 +80,8 @@ extern const Numeric DENSITY_OF_ICE;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxOff(Index& cloudbox_on,
+void cloudboxOff(Workspace& ws,
+                 Index& cloudbox_on,
                  Index& ppath_inside_cloudbox_do,
                  ArrayOfIndex& cloudbox_limits,
                  Agenda& iy_cloudbox_agenda,
@@ -95,7 +97,7 @@ void cloudboxOff(Index& cloudbox_on,
   cloudbox_on = 0;
   ppath_inside_cloudbox_do = 0;
   cloudbox_limits.resize(0);
-  iy_cloudbox_agenda = Agenda();
+  iy_cloudbox_agenda = Agenda{ws};
   iy_cloudbox_agenda.set_name("iy_cloudbox_agenda");
   pnd_field.resize(0, 0, 0, 0);
   // we need to size dpnd_field to be consistent with jacobian_quantities.

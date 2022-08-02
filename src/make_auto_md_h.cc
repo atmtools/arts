@@ -72,6 +72,7 @@
 #include "global_data.h"
 #include "methods.h"
 #include "workspace_ng.h"
+#include "workspace_global_data.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
@@ -91,7 +92,7 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
   \param mdd Method lookup data.
 */
 void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
-  const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+  const Array<WsvRecord>& wsv_data = global_data::wsv_data;
 
   String fullname = mdd.Name();
 
@@ -262,7 +263,7 @@ void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
 */
 void write_method_header(ofstream& ofs, const MdRecord& mdd) {
   using global_data::wsv_groups;
-  const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+  const Array<WsvRecord>& wsv_data = global_data::wsv_data;
 
   //   // Work out the full name to use:
   //   String fullname;
@@ -346,8 +347,8 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      ofs << wsv_groups[Workspace::wsv_data[vo[j]].Group()] << "& "
-          << Workspace::wsv_data[vo[j]].Name();
+      ofs << wsv_groups[global_data::wsv_data[vo[j]].Group()] << "& "
+          << global_data::wsv_data[vo[j]].Name();
     }
   }
 
@@ -419,8 +420,8 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      ofs << "const " << wsv_groups[Workspace::wsv_data[vi[j]].Group()]
-          << "& " << Workspace::wsv_data[vi[j]].Name();
+      ofs << "const " << wsv_groups[global_data::wsv_data[vi[j]].Group()]
+          << "& " << global_data::wsv_data[vi[j]].Name();
     }
   }
 
@@ -569,10 +570,10 @@ int main() {
     define_wsv_groups();
 
     // Initialize wsv data.
-    Workspace::define_wsv_data();
+    define_wsv_data();
 
     // Initialize WsvMap.
-    Workspace::define_wsv_map();
+    define_wsv_map();
 
     // Initialize method data.
     define_md_data_raw();
@@ -664,14 +665,14 @@ int main() {
     // Create prototypes for the agenda wrappers
 
     // Initialize agenda data.
-    Workspace::define_wsv_map();
+    define_wsv_map();
     define_agenda_data();
 
     using global_data::agenda_data;
-    const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+    const Array<WsvRecord>& wsv_data = global_data::wsv_data;
     for (Index i = 0; i < agenda_data.nelem(); i++) {
       bool is_agenda_array =
-          wsv_data[get_wsv_id(agenda_data[i].Name())].Group() ==
+          wsv_data[global_data::WsvMap.at(agenda_data[i].Name())].Group() ==
           get_wsv_group_id("ArrayOfAgenda");
       write_agenda_wrapper_header(ofs, agenda_data[i], is_agenda_array);
 

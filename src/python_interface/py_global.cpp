@@ -6,6 +6,7 @@
 #include <global_data.h>
 #include <parameters.h>
 #include <pybind11/pybind11.h>
+#include <workspace_global_data.h>
 
 extern Parameters parameters;
 extern String out_basename;
@@ -69,12 +70,12 @@ void py_global(py::module_& m) {
 
   m.def(
       "get_wsv_data",
-      []() { return Workspace::wsv_data; },
+      []() { return global_data::wsv_data; },
       py::doc("Get a copy of the global data variable"));
 
   m.def(
       "get_WsvMap",
-      []() { return Workspace::WsvMap; },
+      []() { return global_data::WsvMap; },
       py::doc("Get a copy of the global data variable"));
 
 #ifdef _OPENMP

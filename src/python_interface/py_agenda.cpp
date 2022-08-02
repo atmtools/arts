@@ -48,8 +48,8 @@ std::filesystem::path correct_include_path(
   return path;
 }
 
-Agenda* parse_agenda(const char* filename, const Verbosity& verbosity) {
-  auto* a = new Agenda;
+Agenda* parse_agenda(Workspace& ws, const char* filename, const Verbosity& verbosity) {
+  auto* a = new Agenda{ws};
   ArtsParser parser = ArtsParser(*a, filename, verbosity);
 
   parser.parse_tasklist();
@@ -75,8 +75,8 @@ Array<AgendaMethodVariable> sorted_mdrecord(
 
   for (auto& output : ptr->Out()) {
     auto& var = var_order.emplace_back();
-    var.name = ws.wsv_data[output].Name();
-    var.group = ws.wsv_data[output].Group();
+    var.name = ws.wsv_data_ptr->operator[](output).Name();
+    var.group = ws.wsv_data_ptr->operator[](output).Group();
     var.ws_pos = output;
     var.input = false;
   }
@@ -98,8 +98,8 @@ Array<AgendaMethodVariable> sorted_mdrecord(
       continue;
 
     auto& var = var_order.emplace_back();
-    var.name = ws.wsv_data[input].Name();
-    var.group = ws.wsv_data[input].Group();
+    var.name = ws.wsv_data_ptr->operator[](input).Name();
+    var.group = ws.wsv_data_ptr->operator[](input).Group();
     var.ws_pos = input;
     var.input = true;
   }
@@ -162,7 +162,7 @@ MRecord simple_set_method(WorkspaceVariable val) {
 
   // Set method set values
   TokVal t;
-  Agenda a;
+  Agenda a{val.ws};
   if (group == "Agenda") {
     a = Agenda(val);
   } else {
@@ -196,7 +196,12 @@ MRecord simple_delete_method(WorkspaceVariable val) {
               "Expects to find a Delete method but encounters ",
               ptr->Name())
 
-  return MRecord(std::distance(md_data.begin(), ptr), {}, {val.pos}, {}, {});
+  return MRecord(
+      std::distance(md_data.begin(), ptr),
+      {},
+      {val.pos},
+      {},
+      Agenda{val.ws});
 }
 
 void py_agenda(py::module_& m) {
@@ -304,8 +309,12 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<AgRecord>);
 
   py::class_<Agenda>(m, "Agenda")
-      .def(py::init([]() { return new Agenda{}; }))
-      .def(py::init([](Workspace&, const Agenda& a) { return a; }),
+      .def(py::init([](Workspace& ws) {
+        return new Agenda{ws};
+      }))
+      .def(py::init([](Workspace&, const Agenda& a) {
+             return a;
+           }),
            py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
       .def(py::init([](Workspace& ws,
                        const std::function<py::object(Workspace&)>& f) {
@@ -314,11 +323,9 @@ void py_agenda(py::module_& m) {
            py::keep_alive<0, 1>())
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
-             Agenda* a = parse_agenda(
-                 correct_include_path(path).c_str(),
-                 *w.get<Verbosity>("verbosity"));
-             w.initialize();
-             return a;
+             return parse_agenda(w,
+                                 correct_include_path(path).c_str(),
+                                 *w.get<Verbosity>("verbosity"));
            }),
            py::keep_alive<0, 1>())
       .PythonInterfaceCopyValue(Agenda)
@@ -328,17 +335,18 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("output2push", &Agenda::get_output2push)
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
       .def("set_outputs_to_push_and_dup",
-           [](Agenda& a, Workspace& w) {
+           [](Agenda& a) {
              a.set_outputs_to_push_and_dup(
-                 *w.get<Verbosity>("verbosity"));
+                 *a.workspace().get<Verbosity>("verbosity"));
            })
       .def(
           "add_workspace_method",
           [](Agenda& a,
-             Workspace& ws,
              const char* name,
              const py::args& args,
              const py::kwargs& kwargs) {
+            auto& ws = a.workspace();
+
             const Index nargs = args.size();
 
             // The MdRecord
@@ -437,7 +445,7 @@ void py_agenda(py::module_& m) {
               // Ensure we have GIN and GOUT for all of the generic types
               for (Index i = 0; i < var_order.nelem(); i++) {
                 auto& var = var_order[i];
-                var.group = ws.wsv_data[var.ws_pos].Group();
+                var.group = ws.wsv_data_ptr->operator[](var.ws_pos).Group();
               }
 
               // Loop until all generic GIN and GOUT fits a known method
@@ -504,7 +512,12 @@ void py_agenda(py::module_& m) {
                                   a.Methods().back().SetValue(),
                                   a.Methods().back().Tasks()));
             } else {
-              a.push_back(MRecord(m_id, out, in, {}, {}));
+              a.push_back(MRecord(
+                  m_id,
+                  out,
+                  in,
+                  {},
+                  Agenda{ws}));
             }
 
             // Clean up the value
@@ -515,8 +528,6 @@ void py_agenda(py::module_& m) {
               }
             }
           },
-          py::keep_alive<1, 2>(),
-          py::arg("ws"),
           py::arg("name").none(false),
           R"--(
 Adds a named method to the Agenda
@@ -530,7 +541,9 @@ so Copy(a, out=b) will not even see the b variable.
 )--")
       .def(
           "add_callback_method",
-          [](Agenda& a, Workspace& ws, const CallbackFunction& f) mutable {
+          [](Agenda& a, const CallbackFunction& f) mutable {
+            auto& ws = a.workspace();
+
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
@@ -538,7 +551,7 @@ so Copy(a, out=b) will not even see the b variable.
             static std::size_t counter = 0;
             const String name = var_string("::callback::", counter++);
 
-            Index in = ws.add_wsv_inplace(WsvRecord(
+            Index in = ws.add_wsv(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
             ws.push_move(in, std::make_shared<CallbackFunction>(f));
 
@@ -549,10 +562,14 @@ so Copy(a, out=b) will not even see the b variable.
 
             WorkspaceVariable val(ws, in);
             a.push_back(simple_set_method(val));
-            a.push_back(MRecord(method_ptr->second, {}, {in}, {}, {}));
+            a.push_back(MRecord(
+                method_ptr->second,
+                {},
+                {in},
+                {},
+                Agenda{val.ws}));
             a.push_back(simple_delete_method(val));
           },
-          py::keep_alive<1, 2>(),
           py::doc(R"--(
 Adds a callback method to the Agenda
 
@@ -563,11 +580,11 @@ Parameters
     f : CallbackFunction
         A method that takes ws and only ws as input
 )--"),
-          py::arg("ws"),
           py::arg("f"))
       .def(
           "append_agenda_methods",
           [](Agenda& self, const Agenda& other) {
+            ARTS_USER_ERROR_IF(not self.has_same_origin(other.workspace()), "Agendas on different workspaces")
             const Index n = other.Methods().nelem();  // if other==self
             for (Index i = 0; i < n; i++) self.push_back(other.Methods()[i]);
           },
@@ -597,7 +614,6 @@ Both agendas must be defined on the same workspace)--"),
             a.check(w,
                     *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")));
           },
-          py::keep_alive<1, 2>(),
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
@@ -612,6 +628,7 @@ Both agendas must be defined on the same workspace)--"),
              return out;
            })
       .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
+      .def("has_same_origin", &Agenda::has_same_origin)
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")

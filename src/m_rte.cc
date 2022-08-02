@@ -897,9 +897,11 @@ void iyEmissionStandard(
     ArrayOfString fail_msg;
     bool do_abort = false;
 
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(ws, a, B, dB_dT, S, da_dx, dS_dx)
+    firstprivate(wss, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -907,7 +909,7 @@ void iyEmissionStandard(
             B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
         Index lte;
-        get_stepwise_clearsky_propmat(ws,
+        get_stepwise_clearsky_propmat(wss,
                                       K[ip],
                                       S,
                                       lte,
@@ -1745,7 +1747,9 @@ void iyMC(Workspace& ws,
   String fail_msg;
   bool failed = false;
 
-  if (nf)
+  if (nf) {
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) continue;
@@ -1761,7 +1765,7 @@ void iyMC(Workspace& ws,
         Tensor3 mc_points;
         ArrayOfIndex mc_scat_order, mc_source_domain;
 
-        MCGeneral(ws,
+        MCGeneral(wss,
                   y,
                   mc_iteration_count,
                   mc_error,
@@ -1828,8 +1832,9 @@ void iyMC(Workspace& ws,
         continue;
       }
     }
+  }
 
-    ARTS_USER_ERROR_IF (failed, fail_msg);
+  ARTS_USER_ERROR_IF (failed, fail_msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1988,7 +1993,9 @@ void yCalc(Workspace& ws,
       (nf <= nmblock && nmblock >= nlos)) {
     out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
 
-#pragma omp parallel for firstprivate(ws)
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
+#pragma omp parallel for firstprivate(wss)
     for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -1996,7 +2003,7 @@ void yCalc(Workspace& ws,
       yCalc_mblock_loop_body(failed,
                              fail_msg,
                              iyb_aux_array,
-                             ws,
+                             wss,
                              y,
                              y_f,
                              y_pol,

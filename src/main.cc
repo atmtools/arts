@@ -28,6 +28,7 @@
    \date   2001-07-24
 */
 
+#include <memory>
 #include "arts.h"
 
 #ifdef ENABLE_DOCSERVER
@@ -54,6 +55,7 @@
 #include "parser.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"
+#include "workspace_global_data.h"
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby() {
@@ -116,9 +118,7 @@ void set_reporting_level(Index r) {
 
     \param methods All or name of a variable.
     \author Stefan Buehler */
-void option_methods(const String& methods) {
-  Workspace workspace;
-  workspace.initialize();
+void option_methods(Workspace& workspace, const String& methods) {
   // Make global data visible:
   using global_data::md_data_raw;
   extern const Parameters parameters;
@@ -153,8 +153,8 @@ void option_methods(const String& methods) {
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(methods);
-  if (mi != Workspace::WsvMap.end()) {
+  auto mi = workspace.WsvMap_ptr->find(methods);
+  if (mi != workspace.WsvMap_ptr->end()) {
     // If we are here, then the given name matches a variable.
     Index wsv_key = mi->second;
 
@@ -163,7 +163,7 @@ void option_methods(const String& methods) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can generate "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << (*workspace.wsv_data_ptr)[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -175,7 +175,7 @@ void option_methods(const String& methods) {
       // The else clause picks up methods with supergeneric input.
       if (count(mdd.GOutType().begin(),
                 mdd.GOutType().end(),
-                Workspace::wsv_data[wsv_key].Group())) {
+                (*workspace.wsv_data_ptr)[wsv_key].Group())) {
         cout << "- " << mdd.Name() << "\n";
         ++hitcount;
       } else if (count(mdd.GOutType().begin(),
@@ -186,7 +186,7 @@ void option_methods(const String& methods) {
             if (mdd.GOutSpecType()[j].nelem()) {
               if (count(mdd.GOutSpecType()[j].begin(),
                         mdd.GOutSpecType()[j].end(),
-                        Workspace::wsv_data[wsv_key].Group())) {
+                        (*workspace.wsv_data_ptr)[wsv_key].Group())) {
                 cout << "- " << mdd.Name() << "\n";
                 ++hitcount;
               }
@@ -205,7 +205,7 @@ void option_methods(const String& methods) {
     cout
         << "\n---------------------------------------------------------------------\n"
         << "Specific methods that can generate "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << (*workspace.wsv_data_ptr)[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -309,8 +309,8 @@ void option_input(const String& input) {
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(input);
-  if (mi != Workspace::WsvMap.end()) {
+  auto mi = global_data::WsvMap.find(input);
+  if (mi != global_data::WsvMap.end()) {
     // This is used to count the number of matches to a query, so
     // that `none' can be output if necessary
     Index hitcount = 0;
@@ -322,7 +322,7 @@ void option_input(const String& input) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can use "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << global_data::wsv_data[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -334,7 +334,7 @@ void option_input(const String& input) {
       // The else clause picks up methods with supergeneric input.
       if (count(mdd.GInType().begin(),
                 mdd.GInType().end(),
-                Workspace::wsv_data[wsv_key].Group())) {
+                global_data::wsv_data[wsv_key].Group())) {
         cout << "- " << mdd.Name() << "\n";
         ++hitcount;
       } else if (count(mdd.GInType().begin(),
@@ -345,7 +345,7 @@ void option_input(const String& input) {
             if (mdd.GInSpecType()[j].nelem()) {
               if (count(mdd.GInSpecType()[j].begin(),
                         mdd.GInSpecType()[j].end(),
-                        Workspace::wsv_data[wsv_key].Group())) {
+                        global_data::wsv_data[wsv_key].Group())) {
                 cout << "- " << mdd.Name() << "\n";
                 ++hitcount;
               }
@@ -364,7 +364,7 @@ void option_input(const String& input) {
     cout
         << "\n---------------------------------------------------------------------\n"
         << "Specific methods that require "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << global_data::wsv_data[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -482,9 +482,9 @@ void option_workspacevariables(const String& workspacevariables) {
           << "---------------------------------------------------------------------\n";
     }
 
-    for (Index i = 0; i < Workspace::wsv_data.nelem(); ++i) {
+    for (Index i = 0; i < global_data::wsv_data.nelem(); ++i) {
       if (!parameters.plain) cout << "- ";
-      cout << Workspace::wsv_data[i].Name() << "\n";
+      cout << global_data::wsv_data[i].Name() << "\n";
     }
 
     if (!parameters.plain)
@@ -494,7 +494,7 @@ void option_workspacevariables(const String& workspacevariables) {
   }
 
   // Now check if the user gave the name of a method.
-  map<String, Index>::const_iterator mi = MdMap.find(workspacevariables);
+  auto mi = MdMap.find(workspacevariables);
   if (mi != MdMap.end()) {
     // If we are here, then the given name matches a method.
     // Assign the data record for this method to a local
@@ -521,7 +521,7 @@ void option_workspacevariables(const String& workspacevariables) {
         << "Specific workspace variables required by " << mdr.Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < mdr.In().nelem(); ++i) {
-      cout << "- " << Workspace::wsv_data[mdr.In()[i]].Name() << "\n";
+      cout << "- " << global_data::wsv_data[mdr.In()[i]].Name() << "\n";
       ++hitcount;
     }
     if (0 == hitcount) cout << "none\n";
@@ -552,7 +552,7 @@ void option_describe(const String& describe) {
   // described.
 
   // Find method id:
-  map<String, Index>::const_iterator i = MdRawMap.find(describe);
+  auto i = MdRawMap.find(describe);
   if (i != MdRawMap.end()) {
     // If we are here, then the given name matches a method.
     cout << md_data_raw[i->second] << "\n";
@@ -563,11 +563,11 @@ void option_describe(const String& describe) {
   // described.
 
   // Find wsv id:
-  i = Workspace::WsvMap.find(describe);
-  if (i != Workspace::WsvMap.end()) {
+  i = global_data::WsvMap.find(describe);
+  if (i != global_data::WsvMap.end()) {
     // If we are here, then the given name matches a workspace
     // variable.
-    cout << Workspace::wsv_data[i->second] << "\n";
+    cout << global_data::wsv_data[i->second] << "\n";
     return;
   }
 
@@ -773,10 +773,10 @@ int main(int argc, char** argv) {
   define_wsv_groups();
 
   // Initialize the wsv data:
-  Workspace::define_wsv_data();
+  define_wsv_data();
 
   // Initialize WsvMap:
-  Workspace::define_wsv_map();
+  define_wsv_map();
 
   // Initialize the md data:
   define_md_data_raw();
@@ -801,6 +801,10 @@ int main(int argc, char** argv) {
 
   // Initialize memory handler.
   global_data::workspace_memory_handler.initialize();
+
+  auto workspace_shared = std::make_shared<Workspace>();
+
+  Workspace& workspace=*workspace_shared;
 
   // Make all global data visible:
   using global_data::wsv_groups;
@@ -827,7 +831,7 @@ int main(int argc, char** argv) {
   // a variable, it should print all methods that produce this
   // variable as output.
   if ("" != parameters.methods) {
-    option_methods(parameters.methods);
+    option_methods(workspace, parameters.methods);
     arts_exit(EXIT_SUCCESS);
   }
 
@@ -1024,9 +1028,7 @@ int main(int argc, char** argv) {
 
         // The list of methods to execute and their keyword data from
         // the control file.
-        Agenda tasklist;
-
-        Workspace workspace;
+        Agenda tasklist{workspace};
 
         // Call the parser to parse the control text:
         ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
@@ -1036,10 +1038,6 @@ int main(int argc, char** argv) {
         tasklist.set_name("Arts");
 
         tasklist.set_main_agenda();
-
-        //tasklist.find_unused_variables();
-
-        workspace.initialize();
 
         // Execute main agenda:
         Arts2(workspace, tasklist, verbosity);

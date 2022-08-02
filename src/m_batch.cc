@@ -119,9 +119,11 @@ void ybatchCalc(Workspace& ws,
 
   // Go through the batch:
 
-  if (ybatch_n)
+  if (ybatch_n) {
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1) firstprivate(ws)
+                                               ybatch_n > 1) firstprivate(wss)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -143,7 +145,7 @@ void ybatchCalc(Workspace& ws,
         ArrayOfVector y_aux;
         Matrix jacobian;
 
-        ybatch_calc_agendaExecute(ws,
+        ybatch_calc_agendaExecute(wss,
                                   y,
                                   y_aux,
                                   jacobian,
@@ -211,6 +213,7 @@ void ybatchCalc(Workspace& ws,
         fail_msg.push_back(os.str());
       }
     }
+  }
 
   if (fail_msg.nelem()) {
     ostringstream os;
@@ -680,9 +683,11 @@ void DOBatchCalc(Workspace& ws,
 
   // Go through the batch:
 
-  if (ybatch_n)
+  if (ybatch_n) {
+  WorkspaceOmpParallelCopyGuard wss{ws};
+  
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1) firstprivate(ws)
+                                               ybatch_n > 1) firstprivate(wss)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -705,7 +710,7 @@ void DOBatchCalc(Workspace& ws,
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
 
-        dobatch_calc_agendaExecute(ws,
+        dobatch_calc_agendaExecute(wss,
                                    cloudbox_field,
                                    radiance_field,
                                    irradiance_field,
@@ -751,6 +756,7 @@ void DOBatchCalc(Workspace& ws,
         fail_msg.push_back(os.str());
       }
     }
+  }
 
   if (fail_msg.nelem()) {
     ostringstream os;

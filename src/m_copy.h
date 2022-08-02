@@ -30,6 +30,7 @@
 #define m_copy_h
 
 #include "agenda_class.h"
+#include "debug.h"
 #include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
@@ -70,9 +71,9 @@ inline void Copy(Workspace& ws,
           const String& /* in_name */,
           const Verbosity& verbosity) {
   out = in;
-  for (ArrayOfAgenda::iterator it = out.begin(); it != out.end(); it++) {
-    (*it).set_name(out_name);
-    (*it).check(ws, verbosity);
+  for (auto & it : out) {
+    it.set_name(out_name);
+    it.check(ws, verbosity);
   }
 }
 

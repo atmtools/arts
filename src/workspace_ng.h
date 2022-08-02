@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "array.h"
+#include "arts_omp.h"
 #include "wsv_aux.h"
 
 struct WorkspaceVariableStruct final {
@@ -49,18 +50,16 @@ struct WorkspaceBorrowGuard final {
  *
  * Manages the workspace variables.
  */
-class Workspace final {
- protected:
-
-  /** Workspace variable container. */
-  Array<WorkspaceVariable> ws{};
-
+class Workspace final : public std::enable_shared_from_this<Workspace> {
  public:
-  /** Global WSV data. */
-  static Array<WsvRecord> wsv_data;
+  /** Workspace variable container. */
+  Array<WorkspaceVariable> ws;
 
-  /** Global map associated with wsv_data. */
-  static map<String, Index> WsvMap;
+  std::shared_ptr<Array<WsvRecord>> wsv_data_ptr;
+
+  std::shared_ptr<map<String, Index>> WsvMap_ptr;
+
+  Workspace* original_workspace;
 
   /** Construct a new workspace
    *
@@ -76,15 +75,6 @@ class Workspace final {
    * @param[in] workspace The workspace to be copied
    */
   Workspace(const Workspace &workspace);
-
-  /** Define workspace variables. */
-  static void define_wsv_data();
-
-  /** Map WSV names to indices. */
-  static void define_wsv_map();
-
-  /** Append a new WSV to the workspace. */
-  static Index add_wsv(const WsvRecord &wsv);
 
   /** Delete WSV.
    *
@@ -103,23 +93,15 @@ class Workspace final {
    */
   void duplicate(Index i);
 
-  /** Reset the size of the workspace.
-   *
-   * Resize the workspace to match the number of WSVs in wsv_data.
-   */
-  void initialize() { ws.resize(wsv_data.nelem()); }
-
   /** Checks existence of the given WSV.
    *
    * @param[in] i WSV index.
    * @return true if the WSV exists, otherwise false.
    */
-  [[nodiscard]] bool is_initialized(Index i) const {
-    return ws[i].size() and ws[i].top().initialized;
-  }
+  [[nodiscard]] bool is_initialized(Index i) const;
 
   /** Return scoping level of the given WSV. */
-  Index depth(Index i) { return static_cast<Index>(ws[i].size()); }
+  [[nodiscard]] Index depth(Index i) const;
 
   /** Remove the topmost WSV from its stack.
    *
@@ -185,8 +167,8 @@ class Workspace final {
   /** Get the number of workspace variables. */
   [[nodiscard]] Index nelem() const { return ws.nelem(); }
 
-  /** Add a new variable to existing workspace and to the static maps */
-  Index add_wsv_inplace(const WsvRecord &wsv);
+  /** Add a new variable to this workspace */
+  Index add_wsv(const WsvRecord &wsv);
 
   /** Retrieve a pointer to the given WSV. */
   std::shared_ptr<void> operator[](Index i);
@@ -194,17 +176,16 @@ class Workspace final {
   /** Retrieve a value ptr if it exist (FIXME: C++20 allows const char* as template argument) */
   template <class T>
   T* get(const char *name) {
-    if (const Index pos = WsvMap.at(name); is_initialized(pos)) {
+    if (const Index pos = WsvMap_ptr -> at(name); is_initialized(pos)) {
       return static_cast<T*>(ws[pos].top().wsv.get());
     }
     return nullptr;
   }
 
   /** Swap with another workspace */
-  void swap(Workspace &other);
-};
+  void swap(Workspace &other) noexcept;
 
-/** Print WSV name to output stream.
+  /** Print WSV name to output stream.
  *
  * Looks up the name of the WSV with index i and
  * prints it to the given output stream.
@@ -212,26 +193,43 @@ class Workspace final {
  * @param[in,out] outstream OutputStream
  * @param[in] i Index of WSV
  */
-template <typename OutputStream>
-void PrintWsvName(OutputStream &outstream, Index i) {
-  outstream << Workspace::wsv_data[i].Name() << "(" << i << ") ";
-}
-
-/** Print list of WSV names to output stream.
-  *
-  * Runs through the list of WSV indexes and print all names to the given output
-  * stream. The list of indexes can be any STL container such as Array,
-  * vector...
-  * @param outstream OutputStream
-  * @param container List of WSV indexes
-  */
-template <typename OutputStream, typename Container>
-void PrintWsvNames(OutputStream &outstream, const Container &container) {
-  for (typename Container::const_iterator it = container.begin();
-       it != container.end();
-       it++) {
-    PrintWsvName(outstream, *it);
+  template <typename OutputStream>
+  void PrintWsvName(OutputStream &outstream, Index i) const {
+    outstream << (*wsv_data_ptr)[i].Name() << "(" << i << ") ";
   }
-}
+
+  std::shared_ptr<Workspace> shared_ptr() {return shared_from_this();}
+};
+
+void define_wsv_data();
+
+void define_wsv_map();
+
+template <class T>
+class OmpParallelCopyGuard {
+  T &orig;
+  bool do_copy;
+  std::shared_ptr<T> copy;
+
+ public:
+  OmpParallelCopyGuard(T &ws) 
+    : orig(ws),
+      do_copy(not arts_omp_in_parallel() and arts_omp_get_max_threads() not_eq 1),
+      copy(nullptr) {}
+
+  OmpParallelCopyGuard(T &ws, bool do_copy_manually)
+    : orig(ws), do_copy(do_copy_manually), copy(nullptr) {}
+
+  OmpParallelCopyGuard(const OmpParallelCopyGuard &cp)
+    : orig(cp.orig),
+      do_copy(cp.do_copy),
+      copy(do_copy ? new T{orig} : nullptr) {}
+
+  operator T &() { return copy ? *copy : orig; }
+
+  operator const T &() const { return copy ? *copy : orig; }
+};
+
+using WorkspaceOmpParallelCopyGuard = OmpParallelCopyGuard<Workspace>;
 
 #endif /* WORKSPACE_NG_INCLUDED */

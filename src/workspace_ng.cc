@@ -23,35 +23,26 @@
  */
 
 #include "workspace_ng.h"
+#include "debug.h"
+#include "workspace_global_data.h"
+#include <memory>
 
+#include "agenda_class.h"
+#include "global_data.h"
 #include "workspace_memory_handler.h"
 #include "wsv_aux.h"
 
 namespace global_data {
 WorkspaceMemoryHandler workspace_memory_handler{};
 }  // namespace global_data
+
 using global_data::workspace_memory_handler;
 
-Array<WsvRecord> Workspace::wsv_data;
-
-map<String, Index> Workspace::WsvMap;
-
-void Workspace::define_wsv_map() {
-  for (Index i = 0; i < wsv_data.nelem(); ++i) {
-    WsvMap[wsv_data[i].Name()] = i;
-  }
-}
-
 Index Workspace::add_wsv(const WsvRecord &wsv) {
-  Workspace::wsv_data.push_back(wsv);
-  Workspace::define_wsv_map();
-  return wsv_data.nelem() - 1;
-}
-
-Index Workspace::add_wsv_inplace(const WsvRecord &wsv) {
-  const Index pos = add_wsv(wsv);
+  wsv_data_ptr->push_back(wsv);
+  WsvMap_ptr->operator[](wsv.Name()) = wsv_data_ptr->nelem() - 1;
   ws.emplace_back();
-  return pos;
+  return wsv_data_ptr->nelem() - 1;
 }
 
 void Workspace::set_empty(Index i) {
@@ -62,20 +53,30 @@ void Workspace::set_empty(Index i) {
 }
 
 void Workspace::duplicate(Index i) {
+  static const auto agenda_index = global_data::WsvGroupMap.at("Agenda");
+
   WorkspaceVariableStruct wsvs;
 
   if (ws[i].size()) {
-    wsvs.wsv = workspace_memory_handler.duplicate(wsv_data[i].Group(),
+    wsvs.wsv = workspace_memory_handler.duplicate((*wsv_data_ptr)[i].Group(),
                                                   ws[i].top().wsv);
     wsvs.initialized = true;
   } else {
-    wsvs.wsv = workspace_memory_handler.allocate(wsv_data[i].Group());
+    if ((*wsv_data_ptr)[i].Group() == agenda_index) {
+      wsvs.wsv = std::make_shared<Agenda>(*this);
+    } else {
+      wsvs.wsv = workspace_memory_handler.allocate((*wsv_data_ptr)[i].Group());
+    }
     wsvs.initialized = false;
   }
   ws[i].push(std::move(wsvs));
 }
 
-Workspace::Workspace(const Workspace &workspace) : ws(workspace.ws.nelem()) {
+Workspace::Workspace(const Workspace &workspace)
+    : ws(workspace.ws.nelem()),
+      wsv_data_ptr(workspace.wsv_data_ptr),
+      WsvMap_ptr(workspace.WsvMap_ptr),
+      original_workspace(workspace.original_workspace) {
   for (Index i = 0; i < workspace.ws.nelem(); i++) {
     if (workspace.ws[i].size() && workspace.ws[i].top().wsv) {
       WorkspaceVariableStruct wsvs;
@@ -86,17 +87,29 @@ Workspace::Workspace(const Workspace &workspace) : ws(workspace.ws.nelem()) {
   }
 }
 
-void Workspace::pop(Index i) { ws[i].pop(); }
+void Workspace::pop(Index i) {
+  ws[i].pop(); }
 
-void Workspace::swap(Workspace &other) {
-  initialize();
-  other.initialize();
+void Workspace::swap(Workspace &other) noexcept {
   ws.swap(other.ws);
 }
 
+bool Workspace::is_initialized(Index i) const {
+  return ws[i].size() and ws[i].top().initialized;
+}
+
+Index Workspace::depth(Index i) const { return static_cast<Index>(ws[i].size()); }
+
 void Workspace::emplace(Index i) {
-  ws[i].emplace(
-      WorkspaceVariableStruct{workspace_memory_handler.allocate(wsv_data[i].Group()), false});
+  static const auto agenda_index = global_data::WsvGroupMap.at("Agenda");
+
+  if ((*wsv_data_ptr)[i].Group() == agenda_index) {
+    ws[i].emplace(
+        WorkspaceVariableStruct{std::make_shared<Agenda>(*this), false});
+  } else {
+    ws[i].emplace(WorkspaceVariableStruct{
+        workspace_memory_handler.allocate((*wsv_data_ptr)[i].Group()), false});
+  }
 }
 
 std::shared_ptr<void> Workspace::operator[](Index i) {
@@ -105,12 +118,16 @@ std::shared_ptr<void> Workspace::operator[](Index i) {
   return ws[i].top().wsv;
 }
 
+Workspace::Workspace()
+    : ws(global_data::wsv_data.nelem()),
+      wsv_data_ptr(std::make_shared<Array<WsvRecord>>(global_data::wsv_data)),
+      WsvMap_ptr(std::make_shared<map<String, Index>>(global_data::WsvMap)),
+      original_workspace(this) {
+  ARTS_ASSERT(wsv_data_ptr -> size() == WsvMap_ptr->size())
 
-Workspace::Workspace() {
-  initialize();
-  for (Index i=0; i<wsv_data.nelem(); i++) {
-    if (wsv_data[i].has_defaults()) {
-      push_move(i, wsv_data[i].get_copy());
+  for (Index i = 0; i < (*wsv_data_ptr).nelem(); i++) {
+    if ((*wsv_data_ptr)[i].has_defaults()) {
+      push_move(i, (*wsv_data_ptr)[i].get_copy());
     }
   }
 }

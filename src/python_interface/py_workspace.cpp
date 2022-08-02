@@ -12,17 +12,16 @@ namespace Python {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
-Agenda* parse_agenda(const char* filename, const Verbosity& verbosity);
+Agenda* parse_agenda(Workspace&, const char* filename, const Verbosity& verbosity);
 
-void py_auto_workspace(py::class_<Workspace>&, py::class_<WorkspaceVariable>&);
+void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>&, py::class_<WorkspaceVariable>&);
 
 void py_workspace(py::module_& m,
-                  py::class_<Workspace>& ws,
+                  py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
                   py::class_<WorkspaceVariable>& wsv) {
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
            auto* w = new Workspace{};
-           w->initialize();
-           w->push_move(w->WsvMap.at("verbosity"),
+           w->push_move(w->WsvMap_ptr->at("verbosity"),
                    std::make_shared<Verbosity>(agenda_verbosity, verbosity, 0));
            return w;
          }),
@@ -30,10 +29,9 @@ void py_workspace(py::module_& m,
          py::arg("agenda_verbosity") = 0)
       .def("execute_controlfile",
            [](Workspace& w, const std::filesystem::path& path) {
-             std::unique_ptr<Agenda> a{parse_agenda(
+             std::unique_ptr<Agenda> a{parse_agenda(w, 
                  correct_include_path(path).c_str(),
                  *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")))};
-             w.initialize();
              a->execute(w);
            })
       .def_property_readonly("size", &Workspace::nelem)
@@ -52,20 +50,20 @@ void py_workspace(py::module_& m,
               name = name_;
             } else {
               Index i = 0;
-              while (w.WsvMap.find(
+              while (w.WsvMap_ptr->find(
                          name = var_string("::auto::", group, i++)) not_eq
-                     w.WsvMap.end()) {
+                     w.WsvMap_ptr->end()) {
               }
             }
 
-            auto varptr = w.WsvMap.find(name);
+            auto varptr = w.WsvMap_ptr->find(name);
             ARTS_USER_ERROR_IF(
-                varptr not_eq w.WsvMap.end() and
-                    w.wsv_data.at(varptr->second).Group() not_eq group_index,
+                varptr not_eq w.WsvMap_ptr->end() and
+                    w.wsv_data_ptr->at(varptr->second).Group() not_eq group_index,
                 "Already exist of different group: ",
                 name)
 
-            const Index pos = w.add_wsv_inplace(
+            const Index pos = w.add_wsv(
                 WsvRecord(name.c_str(),
                           desc.has_value() ? *desc : "No description",
                           group_index));
@@ -78,13 +76,13 @@ void py_workspace(py::module_& m,
           py::arg("desc") = std::nullopt);
 
   ws.def("_hasattr_check_", [](Workspace& w, const char* name) -> bool {
-    return w.WsvMap.find(name) != w.WsvMap.end();
+    return w.WsvMap_ptr->find(name) != w.WsvMap_ptr->end();
   });
 
   ws.def(
       "_getattr_unchecked_",
       [](Workspace& w, const char* name) -> WorkspaceVariable {
-        return WorkspaceVariable{w, w.WsvMap.at(name)};
+        return WorkspaceVariable{w, w.WsvMap_ptr->at(name)};
       },
       py::keep_alive<0, 1>());
 
@@ -99,11 +97,11 @@ void py_workspace(py::module_& m,
     ArrayOfString vars;
     for (Index i = 0; i < w.nelem(); i++)
       if (w.is_initialized(i))
-        if (auto x = w.wsv_data.at(i).Name(); x[0] != ':')
+        if (auto x = w.wsv_data_ptr->at(i).Name(); x[0] != ':')
           vars.push_back(var_string(
               x,
               ": ",
-              global_data::wsv_groups.at(w.wsv_data.at(i).Group())));
+              global_data::wsv_groups.at(w.wsv_data_ptr->at(i).Group())));
     std::sort(vars.begin(), vars.end());
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
@@ -122,7 +120,7 @@ void py_workspace(py::module_& m,
       .def_property_readonly("name", &WorkspaceVariable::name)
       .def_property_readonly("desc",
                              [](WorkspaceVariable& wv) {
-                               return wv.ws.wsv_data.at(wv.pos).Description();
+                               return wv.ws.wsv_data_ptr->at(wv.pos).Description();
                              })
       .def_property_readonly("init", &WorkspaceVariable::is_initialized)
       .def("initialize_if_not", &WorkspaceVariable::initialize_if_not)

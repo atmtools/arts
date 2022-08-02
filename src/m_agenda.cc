@@ -23,8 +23,6 @@
   \brief  Workspace methods for Agenda.
 */
 
-#include <algorithm>
-#include <map>
 #include "agenda_class.h"
 #include "agenda_record.h"
 #include "debug.h"
@@ -33,8 +31,11 @@
 #include "workspace_ng.h"
 #include "wsv_aux.h"
 
+#include <algorithm>
+#include <map>
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaExecute(Workspace& ws,
+void AgendaExecute(Workspace& ws [[maybe_unused]],
                    // WS Generic Input:
                    const Agenda& this_agenda,
                    const Verbosity& verbosity) {
@@ -150,6 +151,7 @@ void AgendaSet(Workspace& ws,
                const Agenda& input_agenda,
                const Verbosity& verbosity) {
   output_agenda = input_agenda;
+  
   output_agenda.set_name(agenda_name);
 
   output_agenda.check(ws, verbosity);
@@ -173,13 +175,13 @@ void ArrayOfAgendaAppend(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaAppend(Workspace& ws,
+void AgendaAppend(Workspace& ws [[maybe_unused]],
                   // WS Generic Output:
                   Agenda& output_agenda,
                   // WS Generic Output Names:
                   const String& output_agenda_name,
                   // WS Generic Input:
-                  const Agenda& in_agenda _U_,
+                  const Agenda& in_agenda [[maybe_unused]],
                   // WS Generic Input Names:
                   const String& in_agenda_name,
                   // Agenda from controlfile:
@@ -217,7 +219,7 @@ void Arts2(Workspace& ws,
            // Agenda from controlfile:
            const Agenda& input_agenda,
            const Verbosity& verbosity) {
-  Verbosity* v = static_cast<Verbosity*>(ws[ws.WsvMap.find("verbosity") -> second].get());
+  Verbosity* v = static_cast<Verbosity*>(ws[ws.WsvMap_ptr->find("verbosity") -> second].get());
 
   // If the verbosity in the current workspace and the verbosity parameter point
   // to the same variable in memory, that means we were called

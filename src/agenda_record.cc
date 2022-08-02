@@ -30,6 +30,7 @@
 #include "groups.h"
 #include "messages.h"
 #include "workspace_ng.h"
+#include "workspace_global_data.h"
 #include "wsv_aux.h"
 
 namespace global_data {
@@ -65,7 +66,7 @@ AgRecord::AgRecord(const char* name,
   // in workspace.cc for your agenda. If you have done so and
   // still get an assertion failure, then check that you spelled
   // the name in exactly the same way in both places.
-  if (Workspace::WsvMap.end() == Workspace::WsvMap.find(mname)) {
+  if (global_data::WsvMap.end() == global_data::WsvMap.find(mname)) {
     std::ostringstream os;
     os << "Agenda *" << mname << "* not found in WSV data.";
     throw std::runtime_error(os.str());
@@ -73,7 +74,7 @@ AgRecord::AgRecord(const char* name,
 
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
-    moutput[j] = get_wsv_id(output[j]);
+    moutput[j] = global_data::WsvMap.at(output[j]);
     if (moutput[j] == -1) {
       ostringstream os;
 
@@ -84,7 +85,7 @@ AgRecord::AgRecord(const char* name,
 
   minput.resize(input.nelem());
   for (Index j = 0; j < input.nelem(); ++j) {
-    minput[j] = get_wsv_id(input[j]);
+    minput[j] = global_data::WsvMap.at(input[j]);
     if (minput[j] == -1) {
       ostringstream os;
 
@@ -135,15 +136,15 @@ bool check_agenda_data() {
     // exactly the same in both places.
     // Uncomment the cout statement above and recompile to see which
     // agenda causes the trouble.
-    ARTS_ASSERT(Workspace::WsvMap.end() !=
-           Workspace::WsvMap.find(agenda_data[i].Name()));
+    ARTS_ASSERT(global_data::WsvMap.end() !=
+           global_data::WsvMap.find(agenda_data[i].Name()));
   }
 
   // Check, that each agenda from wsv_data occurs in agenda_data:
-  for (j = 0; j < Workspace::wsv_data.nelem(); ++j) {
+  for (j = 0; j < global_data::wsv_data.nelem(); ++j) {
     // Is this an agenda WSV?
-    if (get_wsv_group_id("Agenda") == Workspace::wsv_data[j].Group() ||
-        get_wsv_group_id("ArrayOfAgenda") == Workspace::wsv_data[j].Group()) {
+    if (get_wsv_group_id("Agenda") == global_data::wsv_data[j].Group() ||
+        get_wsv_group_id("ArrayOfAgenda") == global_data::wsv_data[j].Group()) {
       //      cout << "Checking agenda_data for " << Workspace::wsv_data[j].Name() << ".\n";
 
       // Find returns end() if the name is not found in the map.  If
@@ -154,7 +155,7 @@ bool check_agenda_data() {
       // exactly the same in both places.
       // Uncomment the cout statement above and recompile to see which
       // agenda causes the trouble.
-      ARTS_ASSERT(AgendaMap.end() != AgendaMap.find(Workspace::wsv_data[j].Name()));
+      ARTS_ASSERT(AgendaMap.end() != AgendaMap.find(global_data::wsv_data[j].Name()));
 
       // Counts the number of agenda WSVs in Workspace::wsv_data:
       ++k;
@@ -197,7 +198,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr) {
     else
       os << ", ";
 
-    os << Workspace::wsv_data[agr.Out()[i]].Name();
+    os << global_data::wsv_data[agr.Out()[i]].Name();
   }
   os << "\n";
 
@@ -210,7 +211,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr) {
     else
       os << ", ";
 
-    os << Workspace::wsv_data[agr.In()[i]].Name();
+    os << global_data::wsv_data[agr.In()[i]].Name();
   }
 
   os << "\n*-------------------------------------------------------------------*\n";
@@ -239,8 +240,8 @@ void write_agenda_wrapper_header(ofstream& ofs,
   ofs << "        // Output\n";
   for (ArrayOfIndex::const_iterator j = ago.begin(); j != ago.end(); j++) {
     ofs << "        ";
-    ofs << wsv_groups[Workspace::wsv_data[*j].Group()] << "& ";
-    ofs << Workspace::wsv_data[*j].Name() << ",\n";
+    ofs << wsv_groups[global_data::wsv_data[*j].Group()] << "& ";
+    ofs << global_data::wsv_data[*j].Name() << ",\n";
   }
 
   // Wrapper function input parameters
@@ -252,7 +253,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
     while (it != ago.end() && *it != *j) it++;
 
     if (it == ago.end()) {
-      String group_name = wsv_groups[Workspace::wsv_data[*j].Group()].name;
+      String group_name = wsv_groups[global_data::wsv_data[*j].Group()].name;
 
       ofs << "        const ";
       ofs << group_name;
@@ -261,7 +262,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
       if (group_name != "Index" && group_name != "Numeric") {
         ofs << "&";
       }
-      ofs << " " << Workspace::wsv_data[*j].Name() << ",\n";
+      ofs << " " << global_data::wsv_data[*j].Name() << ",\n";
     }
   }
 

@@ -2809,7 +2809,9 @@ void DoitCalc(Workspace& ws,
     String fail_msg;
     bool failed = false;
 
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(wss)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) {
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
@@ -2823,7 +2825,7 @@ void DoitCalc(Workspace& ws,
 
         Tensor6 cloudbox_field_mono_local =
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
-        doit_mono_agendaExecute(ws,
+        doit_mono_agendaExecute(wss,
                                 cloudbox_field_mono_local,
                                 f_grid,
                                 f_index,

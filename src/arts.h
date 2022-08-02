@@ -119,8 +119,6 @@ using namespace std;
 class ArtsOut;
 
 void define_wsv_groups();
-Index get_wsv_id(const String& name);
-Index get_wsv_id(const char* name);
 bool is_valid_keyword_group(const Index name);
 
 void arts_exit(int status = EXIT_FAILURE);

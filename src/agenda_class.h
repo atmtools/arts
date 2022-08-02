@@ -28,17 +28,36 @@
 
 
 #include "array.h"
+#include "debug.h"
 #include "matpack.h"
 #include "mystring.h"
 
 #include "messages.h"
 #include "tokval.h"
+#include "workspace_ng.h"
+
 #include <set>
 #include <utility>
+#include "workspace_global_data.h"
+
+/** Print list of WSV names to output stream.
+  *
+  * Runs through the list of WSV indexes and print all names to the given output
+  * stream. The list of indexes can be any STL container such as Array,
+  * vector...
+  * @param outstream OutputStream
+  * @param container List of WSV indexes
+  */
+template <typename OutputStream, typename Container>
+void PrintWsvNames(OutputStream &outstream, const Workspace& ws, const Container &container) {
+  for (typename Container::const_iterator it = container.begin();
+       it != container.end();
+       it++) {
+    ws.PrintWsvName(outstream, *it);
+  }
+}
 
 class MRecord;
-
-class Workspace;
 
 //! The Agenda class.
 /*! An agenda is a list of workspace methods (including keyword data)
@@ -49,24 +68,18 @@ class Workspace;
 */
 class Agenda final {
  public:
-  Agenda()
-      : mname(),
-        mml(),
-        moutput_push(),
-        moutput_dup() { /* Nothing to do here */
-  }
+  Agenda();
+  explicit Agenda(Workspace& workspace);
 
   /*! 
     Copies an agenda.
   */
   Agenda(const Agenda& x) = default;
 
-  Agenda(Agenda&&) noexcept = default;
-
   void append(const String& methodname, const TokVal& keywordvalue);
-  void check(Workspace& ws, const Verbosity& verbosity);
+  void check(Workspace& ws_in, const Verbosity& verbosity);
   void push_back(const MRecord& n);
-  void execute(Workspace& ws) const;
+  void execute(Workspace& ws_in) const;
   void resize(Index n);
   [[nodiscard]] Index nelem() const;
   Agenda& operator=(const Agenda& x);
@@ -74,7 +87,7 @@ class Agenda final {
   [[nodiscard]] bool has_method(const String& methodname) const;
   void set_methods(const Array<MRecord>& ml);
   void set_outputs_to_push_and_dup(const Verbosity& verbosity);
-  bool is_input(Workspace& ws, Index var) const;
+  [[nodiscard]] bool is_input(Workspace& ws_in, Index var) const;
   [[nodiscard]] bool is_output(Index var) const;
   void set_name(const String& nname);
   [[nodiscard]] String name() const;
@@ -90,7 +103,13 @@ class Agenda final {
 
   friend ostream& operator<<(ostream& os, const Agenda& a);
 
+  [[nodiscard]] bool has_same_origin(const Workspace& ws2) const {return ws->original_workspace == ws2.original_workspace;}
+  
+  [[nodiscard]] Workspace& workspace() {return *ws;}
+  [[nodiscard]] const Workspace& workspace() const {return *ws;}
+
  private:
+  std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */
   Array<MRecord> mml; /*!< The actual list of methods to execute. */
 
@@ -117,13 +136,15 @@ class MRecord {
  public:
   MRecord();
 
+  explicit MRecord(Workspace& ws);
+
   MRecord(const MRecord& x) = default;
 
   MRecord(const Index id,
           ArrayOfIndex  output,
           ArrayOfIndex  input,
           const TokVal&  setvalue,
-          Agenda  tasks,
+          const Agenda& tasks,
           bool internal = false);
 
   [[nodiscard]] Index Id() const { return mid; }

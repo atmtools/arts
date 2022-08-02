@@ -356,11 +356,13 @@ Your current lowest_vmr value is: )--", lowest_vmr)
       // function. Anyway, shared is the correct setting for
       // abs_lookup, so there is no problem.
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (                                         \
     !arts_omp_in_parallel() &&                                        \
     these_t_pert_nelem >=                                             \
         arts_omp_get_max_threads()) private(this_t)                   \
-    firstprivate(ws)
+    firstprivate(wss)
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
         // Skip remaining iterations if an error occurred
         if (failed) continue;
@@ -396,7 +398,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
             // Perform the propagation matrix computations
-            propmat_clearsky_agendaExecute(ws,
+            propmat_clearsky_agendaExecute(wss,
                                            K,
                                            S,
                                            dK,
@@ -2222,11 +2224,13 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   // Make local copy of f_grid, so that we can apply Dopler if we want.
   Vector this_f_grid = f_grid;
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
   // Now we have to loop all points in the atmosphere:
   if (n_pressures)
 #pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
                              n_pressures >= arts_omp_get_max_threads()) \
-    firstprivate(ws, this_f_grid) private(                              \
+    firstprivate(wss, this_f_grid) private(                              \
         abs, nlte, partial_abs, partial_nlte, a_vmr_list)
     for (Index ipr = 0; ipr < n_pressures; ++ipr)  // Pressure:  ipr
     {
@@ -2272,7 +2276,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: abs, nlte
-            propmat_clearsky_agendaExecute(ws,
+            propmat_clearsky_agendaExecute(wss,
                                            abs,
                                            nlte,
                                            partial_abs,

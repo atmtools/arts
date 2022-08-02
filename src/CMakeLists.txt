@@ -104,7 +104,6 @@ add_executable (make_auto_md_h
         messages.cc
         parameters.cc
         workspace.cc
-        workspace_ng.cc
         wsv_aux.cc
         )
 
@@ -129,7 +128,6 @@ add_executable (make_auto_md_cc
         messages.cc
         parameters.cc
         workspace.cc
-        workspace_ng.cc
         wsv_aux.cc
         )
 
@@ -667,3 +665,9 @@ if (IPO_SUPPORTED)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
+
+########################################################################################
+# Test OpenMP
+add_executable(test_omp EXCLUDE_FROM_ALL test_omp.cc)
+target_link_libraries(test_omp PUBLIC ${ALL_ARTS_LIBRARIES})
+########################################################################################

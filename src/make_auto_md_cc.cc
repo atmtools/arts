@@ -22,6 +22,7 @@
 #include "global_data.h"
 #include "methods.h"
 #include "workspace_ng.h"
+#include "workspace_global_data.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
@@ -40,16 +41,17 @@ int main() {
     // Make the global data visible:
     using global_data::md_data;
     using global_data::wsv_groups;
-    const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+
+    const Array<WsvRecord>& wsv_data = global_data::wsv_data;
 
     // Initialize the wsv group name array:
     define_wsv_groups();
 
     // Initialize wsv data.
-    Workspace::define_wsv_data();
+    define_wsv_data();
 
     // Initialize WsvMap.
-    Workspace::define_wsv_map();
+    define_wsv_map();
 
     // Initialize method data.
     define_md_data_raw();
@@ -257,7 +259,7 @@ int main() {
           // Add comma and line break, if not first element:
           align(ofs, is_first_parameter, indent);
 
-          ofs << "Workspace::wsv_data[mr.Out()[" << j + vo.nelem()
+          ofs << "(*ws.wsv_data_ptr)[mr.Out()[" << j + vo.nelem()
               << "]].Name()";
         }
       }
@@ -305,7 +307,7 @@ int main() {
               // Add comma and line break, if not first element:
               align(ofs, is_first_parameter, indent);
 
-              ofs << "Workspace::wsv_data[mr.In()[" << j + vi.nelem()
+              ofs << "(*ws.wsv_data_ptr)[mr.In()[" << j + vi.nelem()
                   << "]].Name()";
             }
           }
@@ -337,7 +339,7 @@ int main() {
       }
 
       if (pass_verbosity) {
-        static Index verbosity_wsv_id = get_wsv_id("verbosity");
+        static Index verbosity_wsv_id = global_data::WsvMap.at("verbosity");
         static Index verbosity_group_id = get_wsv_group_id("Verbosity");
         align(ofs, is_first_parameter, indent);
         ofs << "*(static_cast<" << wsv_groups[verbosity_group_id] << "*>(ws["
@@ -418,7 +420,7 @@ int main() {
     // Create implementation of the agenda wrappers
 
     // Initialize agenda data.
-    Workspace::define_wsv_map();
+    define_wsv_map();
     define_agenda_data();
 
     using global_data::agenda_data;
@@ -429,7 +431,7 @@ int main() {
       ostringstream ain_push_os, ain_pop_os;
       ostringstream aout_push_os, aout_pop_os;
 
-      bool is_agenda_array = wsv_data[get_wsv_id(agr.Name())].Group() ==
+      bool is_agenda_array = wsv_data[global_data::WsvMap.at(agr.Name())].Group() ==
                              get_wsv_group_id("ArrayOfAgenda");
       write_agenda_wrapper_header(ofs, agr, is_agenda_array);
 
@@ -513,27 +515,33 @@ int main() {
     // Create implementation of the GroupCreate WSMs
     //
     for (auto&& it : wsv_groups) {
-      if (it != "Any") {
+      if (it == "Any") continue;
+      ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
+          << "void " << it << "Create(";
+
+      if (it == "Agenda") ofs << "Workspace& ws, ";
+
+      ofs << it << "& var, const Verbosity&)\n"
+          << "{ ";
+
+      // Treat atomic types separately.
+      // For objects the default constructor is used.
+      if (it == "Index")
+        ofs << "var = 0;";
+      else if (it == "Numeric")
+        ofs << "var = 0.;";
+      else {
+        ofs << "var = " << it << '(';
+        if (it == "Agenda") ofs << "ws";
+        ofs << ");";
+      }
+
+      ofs << " }\n\n";
+
+      if (it not_eq "Agenda" and it not_eq "ArrayOfAgenda") {
         ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
-            << "void " << it << "Create(" << it << "& var, const Verbosity&)\n"
-            << "{ ";
-
-        // Treat atomic types separately.
-        // For objects the default constructor is used.
-        if (it == "Index")
-          ofs << "var = 0;";
-        else if (it == "Numeric")
-          ofs << "var = 0.;";
-        else
-          ofs << "var = " << it << "();";
-
-        ofs << " }\n\n";
-
-        if (it not_eq "Agenda" and it not_eq "ArrayOfAgenda") {
-          ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
-              << "void " << it << "Set(" << it << "& out, const " << it
-              << "& value, const Verbosity&) { out = value; }\n\n";
-        }
+            << "void " << it << "Set(" << it << "& out, const " << it
+            << "& value, const Verbosity&) { out = value; }\n\n";
       }
     }
   } catch (const std::runtime_error& x) {
