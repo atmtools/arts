@@ -1089,7 +1089,7 @@ void run_cdisort(Workspace& ws,
   ds.bc.temis = 1.;
 
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-    sprintf(ds.header, "ARTS Calc f_index = %ld", f_index);
+    sprintf(ds.header, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
                 dtauc(f_index, joker).get_c_array(),
