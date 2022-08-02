@@ -14913,13 +14913,13 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+               "Normalization option, see *abs_linesNormalization*",
+               "Mirroring option, see *abs_linesMirroring*",
+               "Population option, see *abs_linesPopulation*",
+               "Lineshape option, see *abs_linesLineShapeType*",
+               "Cutoff option, see *abs_linesCutoff*",
+               "Cutoff value, see *abs_linesCutoff*",
+               "Line mixing limit, see *abs_linesLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadSplitARTSCAT"),
@@ -14948,13 +14948,13 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
                "Ignores instead of throws if an *abs_species* is missing",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+               "Normalization option, see *abs_linesNormalization*",
+               "Mirroring option, see *abs_linesMirroring*",
+               "Population option, see *abs_linesPopulation*",
+               "Lineshape option, see *abs_linesLineShapeType*",
+               "Cutoff option, see *abs_linesCutoff*",
+               "Cutoff value, see *abs_linesCutoff*",
+               "Line mixing limit, see *abs_linesLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadARTSCAT"),
@@ -14982,13 +14982,13 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+               "Normalization option, see *abs_linesNormalization*",
+               "Mirroring option, see *abs_linesMirroring*",
+               "Population option, see *abs_linesPopulation*",
+               "Lineshape option, see *abs_linesLineShapeType*",
+               "Cutoff option, see *abs_linesCutoff*",
+               "Cutoff value, see *abs_linesCutoff*",
+               "Line mixing limit, see *abs_linesLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadHITRAN"),
@@ -15043,13 +15043,13 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Global quantum number list (space-separated, default gives all)",
                "Local quantum number list (space-separated, default gives all)",
                "Method to use to read the line data",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+               "Normalization option, see *abs_linesNormalization*",
+               "Mirroring option, see *abs_linesMirroring*",
+               "Population option, see *abs_linesPopulation*",
+               "Lineshape option, see *abs_linesLineShapeType*",
+               "Cutoff option, see *abs_linesCutoff*",
+               "Cutoff value, see *abs_linesCutoff*",
+               "Line mixing limit, see *abs_linesLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadLBLRTM"),
@@ -15075,13 +15075,13 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+               "Normalization option, see *abs_linesNormalization*",
+               "Mirroring option, see *abs_linesMirroring*",
+               "Population option, see *abs_linesPopulation*",
+               "Lineshape option, see *abs_linesLineShapeType*",
+               "Cutoff option, see *abs_linesCutoff*",
+               "Cutoff value, see *abs_linesCutoff*",
+               "Line mixing limit, see *abs_linesLinemixingLimit*")));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadJPL"),
@@ -15107,13 +15107,13 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
-               "Normalization option, see *abs_linesSetNormalization*",
-               "Mirroring option, see *abs_linesSetMirroring*",
-               "Population option, see *abs_linesSetPopulation*",
-               "Lineshape option, see *abs_linesSetLineShapeType*",
-               "Cutoff option, see *abs_linesSetCutoff*",
-               "Cutoff value, see *abs_linesSetCutoff*",
-               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
+               "Normalization option, see *abs_linesNormalization*",
+               "Mirroring option, see *abs_linesMirroring*",
+               "Population option, see *abs_linesPopulation*",
+               "Lineshape option, see *abs_linesLineShapeType*",
+               "Cutoff option, see *abs_linesCutoff*",
+               "Cutoff value, see *abs_linesCutoff*",
+               "Line mixing limit, see *abs_linesLinemixingLimit*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesWriteSpeciesSplitCatalog"),
