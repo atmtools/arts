@@ -115,9 +115,7 @@ PYBIND11_MODULE(arts, m) {
   py_xsec(m);
   py_nlte(m);
   py_predefined(m);
-  py_constants(m);
   py_star(m);
-  py_physics(m);
   py_agenda(m);
 
   // Must be last, it contains automatic conversion operations
