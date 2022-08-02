@@ -132,7 +132,7 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     # No line data needed here, because here we consider only rayleigh scattering
     ws.abs_lines_per_speciesSetEmpty()
 
-    ws.propmat_clearsky_agendaSetAutomatic()
+    ws.propmat_clearsky_agendaAuto()
 
     # Load atmospheric data
     ws.AtmRawRead(basename="testdata/tropical")

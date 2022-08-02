@@ -117,7 +117,7 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     # No line data needed here
     ws.abs_lines_per_speciesSetEmpty()
 
-    ws.propmat_clearsky_agendaSetAutomatic()
+    ws.propmat_clearsky_agendaAuto()
 
     # Atmospheric profiles
     ws.AtmRawRead(basename="testdata/tropical")
