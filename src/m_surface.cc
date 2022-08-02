@@ -519,7 +519,6 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   Vector specular_los, surface_normal;
   ArrayOfMatrix iy_aux;
   Ppath ppath;
-  Index iy_id_new = iy_id + 1;
   ArrayOfTensor3 diy_dx_dumb;
   Matrix surface_los;
   Tensor4 surface_rmatrix;
@@ -832,7 +831,6 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
   Vector specular_los, surface_normal;
   ArrayOfMatrix iy_aux;
   Ppath ppath;
-  Index iy_id_new = iy_id + 1;
   ArrayOfTensor3 diy_dx_dumb;
   Matrix surface_los;
   Tensor4 surface_rmatrix;
@@ -1077,11 +1075,9 @@ void iySurfaceFlatRefractiveIndexDirect(
 void iySurfaceInit(Matrix& iy,
                    const Vector& f_grid,
                    const Index& stokes_dim,
-                   const Verbosity& verbosity){
-
-  iy.resize(f_grid.nelem(),stokes_dim);
-  iy=0.;
-
+                   const Verbosity&) {
+  iy.resize(f_grid.nelem(), stokes_dim);
+  iy = 0.;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1177,7 +1173,6 @@ void iySurfaceLambertian(Workspace& ws,
                           verbosity);
 
   Tensor3 iy_trans_new;
-  Index idx = 2 * N_za;
   Vector los(2, 0);
 
   ArrayOfString iy_aux_var(0);
