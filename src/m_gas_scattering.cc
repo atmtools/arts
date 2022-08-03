@@ -50,13 +50,14 @@ using Constant::boltzmann_constant;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringOff(Index& gas_scattering_do,
+void gas_scatteringOff(Workspace& ws,
+                       Index& gas_scattering_do,
                        Agenda& gas_scattering_agenda,
                        const Verbosity&) {
   // set flag to False (default)
   gas_scattering_do = 0;
 
-  gas_scattering_agenda = Agenda();
+  gas_scattering_agenda = Agenda(ws);
   gas_scattering_agenda.set_name("gas_scattering_agenda");
 }
 
