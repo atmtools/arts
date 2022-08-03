@@ -63,4 +63,4 @@ complex_refr_index = ws.complex_refr_index.value
 complex_refr_index_REFERENCE = pa.xml.load('complex_refr_index_REFERENCE_Test_refr_index_waterVisibleNIR.xml')
 
 # Compare with reference
-ws.Compare(complex_refr_index, complex_refr_index_REFERENCE, 1e-14)
+ws.Compare(complex_refr_index, complex_refr_index_REFERENCE, 1e-6)
