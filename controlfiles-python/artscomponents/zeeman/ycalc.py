@@ -109,9 +109,6 @@ arts.rt_integration_option = "default"
 arts.rte_alonglos_v = 0.0
 arts.nlteOff()
 
-# switch off stars
-arts.starOff()
-
 # %% Species and line absorption
 
 arts.abs_speciesSet(species=[f"O2-Z-66-{CENTRAL_LINE_FREQ-1}-{CENTRAL_LINE_FREQ+1}"])
