@@ -202,11 +202,8 @@ if __name__ == "__main__":
     y, ws = ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
                           surface_reflectivity)
 
-    # # Save reference results. Uncomment only if new reference is needed.
-    # xml.save(y, 'yREFERENCE_Test_iySurfaceLambertian.xml',precision='.14e')
-
-    # Load reference data
-    yREFERENCE = xml.load('yREFERENCE_Test_iySurfaceLambertian.xml')
+    # Reference data
+    yREFERENCE = np.array([4.49321403187969e-13])
 
     # Compare with reference
-    ws.CompareRelative(y, yREFERENCE, 1e-14)
+    ws.CompareRelative(y, yREFERENCE, 1e-6)
