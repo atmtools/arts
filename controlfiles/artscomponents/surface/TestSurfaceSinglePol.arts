@@ -61,9 +61,6 @@ jacobianOff
 # No scattering
 cloudboxOff
 
-# No star
-starOff
-
 # No gas scattering
 gas_scatteringOff
 
