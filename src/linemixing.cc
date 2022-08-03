@@ -481,7 +481,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT {
+                                   const Numeric T) {
   using Conversion::kelvin2joule;
   
   const Index n = band.NumLines();

@@ -3,6 +3,7 @@
 #include "gui/plot.h"
 #include "lineshape.h"
 #include "species.h"
+#include "wigner_functions.h"
 
 namespace {
   constexpr Index N = 10001;

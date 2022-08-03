@@ -759,35 +759,35 @@ constexpr Rational test_numeric2rational(const Index i, const Index maxi, const 
 void test43() {
   // Simple construction compile-time test
   constexpr Rational r=3_2;  // should be 3/2
-  static_assert(r.Nom() == 3, "Rational fail to initialize properly");
-  static_assert(r.Denom() == 2, "Rational fail to initialize properly");
+  static_assert(r.numer == 3, "Rational fail to initialize properly");
+  static_assert(r.denom == 2, "Rational fail to initialize properly");
 
   // Simple expression compile-time test
   constexpr Rational r2 = 1 + r;  // should be 5/2
-  static_assert(r2.Nom() == 5, "Rational fail to initialize properly");
-  static_assert(r2.Denom() == 2, "Rational fail to initialize properly");
+  static_assert(r2.numer == 5, "Rational fail to initialize properly");
+  static_assert(r2.denom == 2, "Rational fail to initialize properly");
 
   // Div-zero by index generates an undefined rational:  0/0
   constexpr Rational r3 = r / 0;  // should be undefined
-  static_assert(r3.Nom() == 0, "Rational fail to initialize properly");
-  static_assert(r3.Denom() == 0, "Rational fail to initialize properly");
+  static_assert(r3.numer == 0, "Rational fail to initialize properly");
+  static_assert(r3.denom == 0, "Rational fail to initialize properly");
   static_assert(r3 not_eq r3, "Undefined rational does not equal self");
   static_assert(r3.isUndefined(), "Rational fail to initialize properly");
   
   // Mul-zero gives 0/1
   constexpr Rational r4 = r * 0;  // should be undefined
-  static_assert(r4.Nom() == 0, "Rational fail to initialize properly");
-  static_assert(r4.Denom() == 1, "Rational fail to initialize properly");
+  static_assert(r4.numer == 0, "Rational fail to initialize properly");
+  static_assert(r4.denom == 1, "Rational fail to initialize properly");
 
   // Complicated expression compile-time test
   constexpr Rational r5 = (Rational(1, 9) * r) % 3;  // should be 1/6
-  static_assert(r5.Nom() == 1, "Rational fail to initialize properly");
-  static_assert(r5.Denom() == 6, "Rational fail to initialize properly");
+  static_assert(r5.numer == 1, "Rational fail to initialize properly");
+  static_assert(r5.denom == 6, "Rational fail to initialize properly");
 
   // The simplify operation simplifies expressions
   constexpr Rational r6 = 10 % r;  // should be 1
-  static_assert(r6.Nom() == 1, "Rational fail to initialize properly");
-  static_assert(r6.Denom() == 1, "Rational fail to initialize properly");
+  static_assert(r6.numer == 1, "Rational fail to initialize properly");
+  static_assert(r6.denom == 1, "Rational fail to initialize properly");
   static_assert(r6.toInt() == 1, "Rational fail to initialize properly");
   static_assert(r6.toIndex() == 1, "Rational fail to initialize properly");
   static_assert(r6.toNumeric() == 1e0, "Rational fail to initialize properly");
