@@ -28,7 +28,11 @@
 #define wigner_functions_h
 
 #include "rational.h"
+
 #include <wigner/wigxjpf/inc/wigxjpf.h>
+
+#include <algorithm>
+#include <array>
 
 #ifdef FAST_WIGNER_PATH_3J
 #define DO_FAST_WIGNER 1
@@ -206,5 +210,13 @@ bool is_wigner3_ready(const Rational& J);
  * @return false Otherwise
  */
 bool is_wigner6_ready(const Rational& J);
+
+template <class ... Integer>
+int temp_init_size(Integer... vals) {
+  constexpr auto N = sizeof...(Integer);
+  static_assert(N > 0);
+  const std::array<int, N> v{int(vals)...};
+  return 1 + 3 * (*std::max_element(v.begin(), v.end()));
+}
 
 #endif  // wigner_functions_h

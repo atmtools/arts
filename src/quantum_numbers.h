@@ -407,12 +407,12 @@ struct TwoLevelValueHolder {
   const Rational r = reduce_by_gcd(r_);
 
   // We must now have a half-integer or not
-  if (r.Denom() == 2) {
+  if (r.denom == 2) {
     x.type = ValueType::H;
-    x.val.h.x = r.Nom();
-  } else if (r.Denom() == 1) {
+    x.val.h.x = r.numer;
+  } else if (r.denom == 1) {
     x.type = ValueType::I;
-    x.val.i.x = r.Nom();
+    x.val.i.x = r.numer;
   } else {
     x.type = ValueType::I;
     x.val.i.x = quantum_number_error_value;
@@ -667,15 +667,15 @@ struct Value {
     Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
 
     if (common_value_type(type) == ValueType::H) {
-      ARTS_ASSERT(upp.Denom() <= 2 and low.Denom() <= 2)
-      if (upp.Denom() not_eq 2) upp *= 2;
-      if (low.Denom() not_eq 2) low *= 2;
-      qn.upp.h.x = upp.Nom();
-      qn.low.h.x = low.Nom();
+      ARTS_ASSERT(upp.denom <= 2 and low.denom <= 2)
+      if (upp.denom not_eq 2) upp *= 2;
+      if (low.denom not_eq 2) low *= 2;
+      qn.upp.h.x = upp.numer;
+      qn.low.h.x = low.numer;
     } else if (common_value_type(type) == ValueType::I) {
-      ARTS_ASSERT(upp.Denom() == 1 and low.Denom() == 1)
-      qn.upp.i.x = upp.Nom();
-      qn.low.i.x = low.Nom();
+      ARTS_ASSERT(upp.denom == 1 and low.denom == 1)
+      qn.upp.i.x = upp.numer;
+      qn.low.i.x = low.numer;
     } else {
       ARTS_USER_ERROR(
           t, " is a string-type, so cannot be constructed from rationals")

@@ -34,7 +34,6 @@
 #include "mystring.h"
 #include "propagationmatrix.h"
 #include "quantum_numbers.h"
-#include "wigner_functions.h"
 #include <limits>
 
 /** Implements Zeeman modeling */

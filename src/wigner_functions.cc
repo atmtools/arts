@@ -62,7 +62,7 @@ Numeric wigner3j(const Rational j1,
                     3 / 2 +
                 1;
 
-  wig_temp_init(j);
+  wig_thread_temp_init(j);
   g = WIGNER3(a, b, c, d, e, f);
   wig_temp_free();
 
@@ -92,7 +92,7 @@ Numeric wigner6j(const Rational j1,
                           std::abs(e),
                           std::abs(f)});
 
-  wig_temp_init(j);
+  wig_thread_temp_init(j);
   g = WIGNER6(a, b, c, d, e, f);
   wig_temp_free();
 

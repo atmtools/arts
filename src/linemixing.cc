@@ -14,8 +14,18 @@
 #include "messages.h"
 #include "minimize.h"
 #include "physics_funcs.h"
+#include "quantum_numbers.h"
 #include "rational.h"
 #include "species.h"
+#include "wigner_functions.h"
+
+#if DO_FAST_WIGNER
+#define WIGNER3 fw3jja6
+#define WIGNER6 fw6jja
+#else
+#define WIGNER3 wig3jj
+#define WIGNER6 wig6jj
+#endif
 
 namespace Absorption::LineMixing {
 EquivalentLines::EquivalentLines(const ComplexMatrix& W,
@@ -323,7 +333,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT {
+                                   const Numeric T) {
   using Conversion::kelvin2joule;
   
   const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
@@ -344,6 +354,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
     dipr[i] = reduced_dipole(J.upp(), J.low(), N.upp());
   }
 
+  wig_thread_temp_init(temp_init_size(band.max(QuantumNumberType::J), band.max(QuantumNumberType::N)));
   for (Index i = 0; i < n; i++) {
     auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
     auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
@@ -368,24 +379,53 @@ void relaxation_matrix_offdiagonal(MatrixView W,
 
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
-      Numeric sum=0;
-      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) * bk(Ji_p);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), {Rational(2), std::numeric_limits<Index>::max()});
-      for (Rational L=L0; L<=L1; L+=2) {
-        const Numeric a = wigner3j(Ni_p, Ni, L, 0, 0, 0);
-        const Numeric b = wigner3j(Nf_p, Nf, L, 0, 0, 0);
-        const Numeric c = wigner6j(L, Ji, Ji_p, Si, Ni_p, Ni);
-        const Numeric d = wigner6j(L, Jf, Jf_p, Sf, Nf_p, Nf);
-        const Numeric e = wigner6j(L, Ji, Ji_p, 1, Jf_p, Jf);
-        sum += a * b * c * d * e * Numeric(2*L + 1) * rovib_data.Q(L, T, band.T0, erot(L)) / rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(L), erot(L-2));
+      Numeric sum = 0;
+      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) *
+                          bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) *
+                          bk(Ji_p);
+      const auto [L0, L1] =
+          wigner_limits(wigner3j_limits<3>(Ni_p, Ni),
+                        {Rational(2), std::numeric_limits<Index>::max()});
+      for (Rational L = L0; L <= L1; L += 2) {
+        const Numeric a =
+            WIGNER3(Ni_p.toInt(2), Ni.toInt(2), L.toInt(2), 0, 0, 0);
+        const Numeric b =
+            WIGNER3(Nf_p.toInt(2), Nf.toInt(2), L.toInt(2), 0, 0, 0);
+        const Numeric c = WIGNER6(L.toInt(2),
+                                  Ji.toInt(2),
+                                  Ji_p.toInt(2),
+                                  Si.toInt(2),
+                                  Ni_p.toInt(2),
+                                  Ni.toInt(2));
+        const Numeric d = WIGNER6(L.toInt(2),
+                                  Jf.toInt(2),
+                                  Jf_p.toInt(2),
+                                  Sf.toInt(2),
+                                  Nf_p.toInt(2),
+                                  Nf.toInt(2));
+        const Numeric e = WIGNER6(L.toInt(2),
+                                  Ji.toInt(2),
+                                  Ji_p.toInt(2),
+                                  2,
+                                  Jf_p.toInt(2),
+                                  Jf.toInt(2));
+        sum += a * b * c * d * e * Numeric(2 * L + 1) *
+               rovib_data.Q(L, T, band.T0, erot(L)) /
+               rovib_data.Omega(
+                   T, band.T0, band.SpeciesMass(), erot(L), erot(L - 2));
       }
-      sum *= scl * rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(Ni), erot(Ni - 2));
-      
+      sum *= scl * rovib_data.Omega(
+                       T, band.T0, band.SpeciesMass(), erot(Ni), erot(Ni - 2));
+
       // Add to W and rescale to upwards element by the populations
       W(i, j) = sum;
-      W(j, i) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
+      W(j, i) =
+          sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
     }
   }
+  wig_temp_free();
+
+  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 
   // Sum rule correction
   for (Index i=0; i<n; i++) {
@@ -1044,7 +1084,7 @@ EcsReturn ecs_absorption(const Numeric T,
     }
   }
   
-  return EcsReturn(std::move(absorption), std::move(jacobian), not work);
+  return {std::move(absorption), std::move(jacobian), not work};
 }
 
 Index band_eigenvalue_adaptation(

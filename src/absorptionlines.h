@@ -35,12 +35,12 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "enums.h"
+#include "jacobian.h"
 #include "lineshapemodel.h"
 #include "matpack.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
 #include "zeemandata.h"
-#include "jacobian.h"
 
 #include <utility>
 #include <vector>
@@ -724,6 +724,8 @@ struct Lines {
   [[nodiscard]] Numeric DopplerConstant(Numeric T) const noexcept;
 
   [[nodiscard]] QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept;
+
+  [[nodiscard]] Rational max(QuantumNumberType) const;
 
   friend std::ostream& operator<<(std::ostream&, const Lines&);
 
