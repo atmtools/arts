@@ -21,9 +21,7 @@
   ===  File description
   ===========================================================================*/
 
-#include "agenda_class.h"
-#include "arts.h"
-#include "rte.h"
+#include "matpackI.h"
 
 /*!
   \file   gas_scattering.h
