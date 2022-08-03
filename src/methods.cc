@@ -7189,7 +7189,11 @@ Possible models:
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN_DESC(),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scatteringCoefAirSimple"),
