@@ -26,6 +26,7 @@
 #include "constants.h"
 #include "gas_scattering.h"
 #include "optproperties.h"
+#include "rte.h"
 #include "transmissionmatrix.h"
 #include <cmath>
 
