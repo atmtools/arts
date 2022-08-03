@@ -213,11 +213,8 @@ if __name__ == "__main__":
     y, ws = starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity, npres=81, nlat=3, nlon=5,
                               stokes_dim=1)
 
-    # Save reference results. Uncomment only if new reference is needed.
-    # xml.save(y, 'yREFERENCE_TestClearsky_StarGasScatteringRayleigh.xml',precision='.14e')
-
-    # Load reference data
-    yREFERENCE = 3.94192129256117e-13
+    # Reference data
+    yREFERENCE = np.array([3.94192129256117e-13])
 
     # Compare with reference
     ws.CompareRelative(y, yREFERENCE, 1e-6)
