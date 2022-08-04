@@ -80,12 +80,10 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
   Vector Xsec(nf, ConstXsec);
 
   // set coefficients
-  PropagationMatrix sca_coef_temp(nf, stokes_dim);
-  sca_coef_temp.SetZero();
-  sca_coef_temp.Kjj() += Xsec;
-  sca_coef_temp.Kjj() *= N;
-
-  sca_coef=sca_coef_temp;
+  sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim);
+  sca_coef.SetZero();
+  sca_coef.Kjj() += Xsec;
+  sca_coef.Kjj() *= N;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -95,22 +93,16 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
                                   const Numeric& rtp_temperature,
                                   const Index& stokes_dim,
                                   const Verbosity&) {
-
-  Vector coefficients{3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
+  static constexpr std::array coefficients{
+      3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
   // Number density
   Numeric N = number_density(rtp_pressure, rtp_temperature);
 
-  PropagationMatrix sca_coef_temp(f_grid.nelem(), stokes_dim);
-  sca_coef_temp.SetZero();
-
-  Matrix eye(stokes_dim, stokes_dim, 0.0);
-  for (Index i = 0; i < stokes_dim; i++){
-    eye(i,i) = 1;
-  }
+  sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim);
+  sca_coef.SetZero();
 
   for (Index f = 0; f < f_grid.nelem(); f++) {
-    Matrix Xsec = eye;
     Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6;
     Numeric sigma;
     Numeric sum = 0;
@@ -118,12 +110,10 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
       sum += coefficients[i] * pow(wavelen, -2.0 * static_cast<double>(i));
     }
     sigma = pow(wavelen, -4) * sum * 1e-32;
-    Xsec *= sigma;
-    sca_coef_temp.SetAtPosition(Xsec, f);
+    sca_coef.Kjj()[f] = sigma;
   }
 
-  sca_coef_temp.Kjj() *= N;
-  sca_coef=sca_coef_temp;
+  sca_coef.Kjj() *= N;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
