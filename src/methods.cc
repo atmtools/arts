@@ -7205,7 +7205,7 @@ Possible models:
           "Bates, 1984. Internally it calculates the spectrum of scattering\n"
           "coefficient matrices from the spectrum of scattering cross section matrices,\n"
           "atmospheric pressure, temperature for one point in the atmosphere. The\n"
-          "function multi- plies the cross sections with the number density of gas\n"
+          "function multiplies the cross sections with the number density of gas\n"
           "molecules under the assumption of an ideal gas to get the coefficients.\n"
           "The result is returned in *sca_coef*. The atmospheric  pressure  and \n"
           "temperature  state  has  to  be  specified by  *rtp_pressure*,\n"
