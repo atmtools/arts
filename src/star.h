@@ -36,7 +36,6 @@
 
 
 #include "arts.h"
-//#include "agenda_class.h"
 #include "gridded_fields.h"
 #include "matpack.h"
 #include "transmissionmatrix.h"
@@ -69,9 +68,11 @@ struct Star {
   Numeric latitude;
   /** longitude of the star in the sky of the planet */
   Numeric longitude;
+
+  friend std::ostream& operator<<(std::ostream& os, const Star& star);
 };
 
-std::ostream& operator<<(std::ostream& os, const Star& star);
+
 
 /** An array of star. */
 using ArrayOfStar = Array<Star>;
