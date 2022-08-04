@@ -22,7 +22,6 @@
   ===========================================================================*/
 
 #include "agenda_class.h"
-#include "check_input.h"
 #include "physics_funcs.h"
 #include "constants.h"
 #include "gas_scattering.h"
