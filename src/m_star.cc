@@ -40,8 +40,8 @@
   file auto_md.h.
 */
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
+
+using Constant::pi;
 
 /*===========================================================================
   === The functions
@@ -71,7 +71,7 @@ void starsAddSingleBlackbody(ArrayOfStar &star,
   new_star.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
 
   planck(new_star.spectrum(joker,0), f_grid, temperature);
-  new_star.spectrum *= PI ; // outgoing flux at the surface of the star.
+  new_star.spectrum *= pi ; // outgoing flux at the surface of the star.
 
 
   new_star.description = "Blackbody star" ;
@@ -111,7 +111,7 @@ void starsAddSingleFromGrid(ArrayOfStar &star,
   Star& new_star = star.emplace_back();
 
   new_star.spectrum = int_data; // set spectrum
-  new_star.spectrum *= PI; // outgoing flux at the surface of the star.
+  new_star.spectrum *= pi; // outgoing flux at the surface of the star.
 
   new_star.description = description;
   new_star.radius = radius;
