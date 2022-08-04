@@ -1628,10 +1628,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   Tensor3 I(nlos, nf, stokes_dim);
 
   ArrayOfString iy_aux_var(0);
-  if (star_do) {
-    iy_aux_var.resize(1);
-    iy_aux_var[0] = "Direct radiation";
-  }
+  if (star_do) iy_aux_var.emplace_back("Direct radiation");
 
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
@@ -1765,10 +1762,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
   Tensor3 I(nlos, nf, stokes_dim);
 
   ArrayOfString iy_aux_var(0);
-  if (star_do) {
-    iy_aux_var.resize(1);
-    iy_aux_var[0] = "Direct radiation";
-  }
+  if (star_do) iy_aux_var.emplace_back("Direct radiation");
 
   // Loop *surface_los*-es.
   if (nlos > 0) {
