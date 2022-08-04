@@ -320,6 +320,14 @@ static constexpr Numeric doppler_broadening_const_squared = 2'000 * R / pow2(c);
 
 /** One degree in radians */
 static constexpr Numeric one_degree_in_radians = pi / 180;
+
+/** Stefan-Boltzmann constant [W/(K^4*m^2)] */
+static constexpr Numeric stefan_boltzmann_constant =
+    pow2(pi) * pow4(k) / (pow3(h_bar) * pow2(c)) / 60.;
+
+/** Stefan-Boltzmann constant convenience name [W/(K^4*m^2)] */
+static constexpr Numeric sigma = stefan_boltzmann_constant;
+
 };  // namespace Constant
 
 /** Namespace containing several practical unit conversions, physical and mathematical **/
