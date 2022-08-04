@@ -19281,7 +19281,7 @@ where N>=0 and the species name is something line "H2O".
                "The longitude or azimuthal position of the star in the sky.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starFromGrid"),
+      NAME("starsAddSingleFromGrid"),
       DESCRIPTION(
           "Extracts a star spectrum from a field of such data.\n"
           "\n"

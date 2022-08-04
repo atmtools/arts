@@ -85,7 +85,7 @@ void starsAddSingleBlackbody(ArrayOfStar &star,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starFromGrid(ArrayOfStar &star,
+void starsAddSingleFromGrid(ArrayOfStar &star,
                          Index &star_do,
                          // Inputs:
                          const Vector &f_grid,
