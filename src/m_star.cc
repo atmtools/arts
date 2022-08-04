@@ -65,27 +65,23 @@ void starBlackbodySimple(ArrayOfStar &star,
                       "The distance to the center of the star (",distance," m) \n"
                      " is smaller than the radius of the star (", radius," m )")
 
-  Star star_temp;
+  Star& new_star = star.emplace_back();
 
   // spectrum
-  star_temp.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
+  new_star.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
 
-  planck(star_temp.spectrum(joker,0), f_grid, temperature);
-  star_temp.spectrum *= PI ; // outgoing flux at the surface of the star.
+  planck(new_star.spectrum(joker,0), f_grid, temperature);
+  new_star.spectrum *= PI ; // outgoing flux at the surface of the star.
 
 
-  star_temp.description = "Blackbody star" ;
-  star_temp.radius = radius;
-  star_temp.distance = distance;
-  star_temp.latitude = latitude;
-  star_temp.longitude = longitude;
+  new_star.description = "Blackbody star" ;
+  new_star.radius = radius;
+  new_star.distance = distance;
+  new_star.latitude = latitude;
+  new_star.longitude = longitude;
 
   // set flag
   star_do = 1;
-
-  //append
-  star.push_back(star_temp);
-
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -112,22 +108,20 @@ void starFromGrid(ArrayOfStar &star,
   Matrix int_data = regrid_star_spectrum(star_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
 
   // create star
-  Star star_temp;
-  
-  star_temp.spectrum = int_data; // set spectrum
-  star_temp.spectrum *= PI; // outgoing flux at the surface of the star.
+  Star& new_star = star.emplace_back();
 
-  star_temp.description = description;
-  star_temp.radius = radius;
-  star_temp.distance = distance;
-  star_temp.latitude = latitude;
-  star_temp.longitude = longitude;
+  new_star.spectrum = int_data; // set spectrum
+  new_star.spectrum *= PI; // outgoing flux at the surface of the star.
+
+  new_star.description = description;
+  new_star.radius = radius;
+  new_star.distance = distance;
+  new_star.latitude = latitude;
+  new_star.longitude = longitude;
 
   // set flag
   star_do = 1;
 
-  //append
-  star.push_back(star_temp);
 }
 
 void starOff(Index &star_do,
