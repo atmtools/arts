@@ -3,7 +3,7 @@ Arts2{
 	Touch(star_pos)
 	VectorNLinSpace(f_grid,300,3e13,3e15)
 	IndexSet(stokes_dim,4)
-	starBlackbodySimple
+	starsSingleBlackbody
 	Print(star_spectrum,0)
 	WriteXML("ascii",star_spectrum)
 	WriteXML("ascii",f_grid)

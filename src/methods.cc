@@ -19245,7 +19245,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starBlackbodySimple"),
+      NAME("starsSingleBlackbody"),
       DESCRIPTION("to be done\n"),
       AUTHORS("Jon Petersen"),
       OUT("stars",

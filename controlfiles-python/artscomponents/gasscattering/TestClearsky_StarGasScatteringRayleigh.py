@@ -151,7 +151,7 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     ws.VectorSet(ws.surface_scalar_reflectivity, Reflectivity)
 
     # set a simple blackbody sun
-    ws.starBlackbodySimple(latitude=sun_pos[0], longitude=sun_pos[1])
+    ws.starsSingleBlackbody(latitude=sun_pos[0], longitude=sun_pos[1])
 
     # No jacobian calculations
     ws.jacobianOff()
