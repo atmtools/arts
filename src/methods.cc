@@ -19339,7 +19339,7 @@ where N>=0 and the species name is something line "H2O".
   md_data_raw.push_back(create_mdrecord(
       NAME("starsOff"),
       DESCRIPTION(
-          "tbd \n"),
+          "Turns all calculations with stars off \n"),
       AUTHORS("Jon Petersen"),
       OUT("star_do",
           "stars"),
