@@ -2375,7 +2375,7 @@ void ppath_step_geom_1d(Ppath& ppath,
   }
 
   // The path is determined by another function. Determine some variables
-  // needed b� that function and call the function.
+  // needed by that function and call the function.
   //
   // Vars to hold found path points, path step length and coding for end face
   Vector r_v, lat_v, za_v;
