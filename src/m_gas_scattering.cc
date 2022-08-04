@@ -23,6 +23,7 @@
 
 #include "agenda_class.h"
 #include "check_input.h"
+#include "physics_funcs.h"
 #include "constants.h"
 #include "gas_scattering.h"
 #include "optproperties.h"
@@ -74,8 +75,7 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
   const Index nf = f_grid.nelem();
 
   // Number density
-  Numeric N;
-  N = rtp_pressure / rtp_temperature / boltzmann_constant;
+  Numeric N = number_density(rtp_pressure, rtp_temperature);
 
   //Vector of constant cross sections
   Vector Xsec(nf, ConstXsec);
@@ -100,8 +100,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
   Vector coefficients{3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
   // Number density
-  Numeric N;
-  N = rtp_pressure / rtp_temperature / boltzmann_constant;
+  Numeric N = number_density(rtp_pressure, rtp_temperature);
 
   PropagationMatrix sca_coef_temp(f_grid.nelem(), stokes_dim);
   sca_coef_temp.SetZero();
