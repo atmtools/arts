@@ -33,6 +33,7 @@
 #include "star.h"
 #include "auto_md.h"
 #include "agenda_class.h"
+#include "constants.h"
 #include "check_input.h"
 #include "debug.h"
 #include "matpack.h"
@@ -44,10 +45,8 @@
 #include "arts.h"
 #include "workspace_ng.h"
 
-
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric sigma = 5.670374419184429453970e-8; // Stefan–Boltzmann constant W m-2 K-4
+using Constant::sigma;
+using Constant::pi;
 
 /*===========================================================================
   === The functions
@@ -107,7 +106,7 @@ void get_scattered_starsource(Workspace& ws,
 
     for (Index j = 0; j < ns; j++) {
       scattered_starlight(i_f, j) =
-          scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f] /(4*PI);
+          scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f] /(4*pi);
     }
   }
 
@@ -204,7 +203,7 @@ void get_star_radiation(Matrix& iy,
   if (beta <= alpha) {
     //Here we assume that the star radiates isotropically.
     Matrix star_radiance = stars.spectrum;
-    star_radiance /= PI;
+    star_radiance /= pi;
 
     iy += star_radiance;
 
