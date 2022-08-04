@@ -48,7 +48,7 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsSingleBlackbody(ArrayOfStar &star,
+void starsAddSingleBlackbody(ArrayOfStar &star,
                          Index &star_do,
                          // Inputs:
                          const Vector &f_grid,

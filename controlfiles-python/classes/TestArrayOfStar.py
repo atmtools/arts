@@ -7,7 +7,7 @@ ws.stokes_dim = 1
 ws.f_grid = [1e9, 2e9, 3e9]
 
 ws.starOff()
-ws.starsSingleBlackbody(radius=20,
+ws.starsAddSingleBlackbody(radius=20,
                        distance=2000,
                        temperature=5000,
                        latitude=10,

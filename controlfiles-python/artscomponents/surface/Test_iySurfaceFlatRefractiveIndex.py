@@ -138,7 +138,7 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     ws.Copy(ws.surface_complex_refr_index, ws.complex_refr_index)
 
     # set star source
-    ws.starsSingleBlackbody(longitude=sun_longitude_pos)
+    ws.starsAddSingleBlackbody(longitude=sun_longitude_pos)
 
     # =============================================================================
     # the calculation
