@@ -76,7 +76,7 @@ void DisortCalc(Workspace& ws,
                     const Numeric& surface_skin_t,
                     const Vector& surface_scalar_reflectivity,
                     const Index& gas_scattering_do,
-                    const Index& star_do,
+                    const Index& stars_do,
                     const Index& nstreams,
                     const Index& Npfct,
                     const Index& cdisort_quiet,
@@ -113,7 +113,7 @@ void DisortCalc(Workspace& ws,
   Vector star_rte_los;
   Vector star_pos(3);
   Vector cloudboxtop_pos(3);
-  Index star_on = star_do;
+  Index star_on = stars_do;
   Numeric scale_factor;
 
   if (star_on){
@@ -257,7 +257,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Index& stokes_dim,
                     const Matrix& z_surface,
                     const Index& gas_scattering_do,
-                    const Index& star_do,
+                    const Index& stars_do,
                     const Index& nstreams,
                     const Index& Npfct,
                     const Index& cdisort_quiet,
@@ -296,7 +296,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
   Vector star_rte_los;
   Vector star_pos(3);
   Vector cloudboxtop_pos(3);
-  Index star_on = star_do;
+  Index star_on = stars_do;
   Numeric scale_factor;
 
   if (star_on){
@@ -450,7 +450,7 @@ void DisortCalcClearSky(Workspace& ws,
                     const Numeric& surface_skin_t,
                     const Vector& surface_scalar_reflectivity,
                     const Index& gas_scattering_do,
-                    const Index& star_do,
+                    const Index& stars_do,
                     const Index& nstreams,
                     const Index& cdisort_quiet,
                     const Index& emission,
@@ -525,7 +525,7 @@ void DisortCalcClearSky(Workspace& ws,
                  surface_skin_t,
                  surface_scalar_reflectivity,
                  gas_scattering_do,
-                 star_do,
+                 stars_do,
                  nstreams,
                  181,
                  cdisort_quiet,

@@ -4715,7 +4715,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("star_do"),
+      NAME("stars_do"),
       DESCRIPTION("Flag to activate the star(s).\n"),
       GROUP("Index"), Index{0}));
 

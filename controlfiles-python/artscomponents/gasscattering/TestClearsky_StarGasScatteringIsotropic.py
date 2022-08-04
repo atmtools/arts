@@ -181,7 +181,7 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     ws.IndexSet(ws.gas_scattering_do, 1)
 
     # Switch off star
-    ws.IndexSet(ws.star_do, 1)
+    ws.IndexSet(ws.stars_do, 1)
 
     # the actual simulation
     ws.yCalc()

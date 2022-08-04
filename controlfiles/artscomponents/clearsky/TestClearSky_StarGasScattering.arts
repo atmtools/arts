@@ -126,7 +126,7 @@ VectorSet(surface_scalar_reflectivity,[0])
 IndexSet(gas_scattering_do,1)
 
 #Switch off star
-IndexSet(star_do,1)
+IndexSet(stars_do,1)
 
 sensor_checkedCalc
 abs_xsec_agenda_checkedCalc

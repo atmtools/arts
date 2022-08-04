@@ -884,7 +884,7 @@ void run_cdisort(Workspace& ws,
                       ConstVectorView aa_grid,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
-                      const Index& star_do,
+                      const Index& stars_do,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
@@ -933,7 +933,7 @@ void run_cdisort(Workspace& ws,
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
 
-  if (star_do) {
+  if (stars_do) {
     nphi = aa_grid.nelem();
     umu0 = Conversion::cosd(star_rte_los[0]);
     phi0 = star_rte_los[1];
@@ -1107,7 +1107,7 @@ void run_cdisort(Workspace& ws,
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
 
     // Set irradiance of incident solar beam at top boundary
-    if (star_do) {
+    if (stars_do) {
       fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
               (100 * SPEED_OF_LIGHT)*scale_factor;
     }

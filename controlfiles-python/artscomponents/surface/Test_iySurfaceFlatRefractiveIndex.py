@@ -168,7 +168,7 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     ws.lbl_checkedCalc()
 
     # Switch off star
-    ws.IndexSet(ws.star_do, 1)
+    ws.IndexSet(ws.stars_do, 1)
 
     ws.yCalc()
 

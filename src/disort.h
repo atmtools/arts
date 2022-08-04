@@ -163,7 +163,7 @@ void get_disortsurf_props(  // Output
  * @param[in]     aa_grid azimuth angle grid.
  * @param[in]     star_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
- * @param[in]     star_do Flag to activate the star(s).
+ * @param[in]     stars_do Flag to activate the star(s).
  * @param[in]     scale_factor Geometric scaling factor, scales the star spectral
  *                irradiance at the surface of the star to the spectral irradiance
  *                of the star at cloubbox top.
@@ -201,7 +201,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView aa_grid,
                  ConstVectorView star_rte_los,
                  const Index& gas_scattering_do,
-                 const Index& star_do,
+                 const Index& stars_do,
                  const Numeric& scale_factor,
                  const Index& nstreams,
                  const Index& Npfct,

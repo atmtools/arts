@@ -8,5 +8,5 @@ Arts2{
 	WriteXML("ascii",star_spectrum)
 	WriteXML("ascii",f_grid)
 	Print(star_pos,0)
-	Print(star_do,0)
+	Print(stars_do,0)
 }

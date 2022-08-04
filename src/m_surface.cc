@@ -455,7 +455,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
-                         const Index& star_do,
+                         const Index& stars_do,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,
                          const Index& cloudbox_on,
@@ -603,7 +603,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                       iy_transmittance,
                       iy_id,
                       jacobian_do,
-                      star_do,
+                      stars_do,
                       jacobian_quantities,
                       atmosphere_dim,
                       nlte_field,
@@ -655,7 +655,7 @@ void iySurfaceFlatReflectivityDirect(
     const Index& ppath_inside_cloudbox_do,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& star_do,
+    const Index& stars_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -668,12 +668,12 @@ void iySurfaceFlatReflectivityDirect(
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
   //Check for correct unit
-  ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
+  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
 
   chk_size("iy", iy, f_grid.nelem(), stokes_dim);
 
-  if (star_do) {
+  if (stars_do) {
     Matrix iy_incoming;
     Index stars_visible;
     Vector specular_los;
@@ -768,7 +768,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const Tensor3& iy_transmittance,
                                const Index& iy_id,
                                const Index& jacobian_do,
-                               const Index& star_do,
+                               const Index& stars_do,
                                const Index& atmosphere_dim,
                                const EnergyLevelMap& nlte_field,
                                const Index& cloudbox_on,
@@ -915,7 +915,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                       iy_transmittance,
                       iy_id,
                       jacobian_do,
-                      star_do,
+                      stars_do,
                       jacobian_quantities,
                       atmosphere_dim,
                       nlte_field,
@@ -967,7 +967,7 @@ void iySurfaceFlatRefractiveIndexDirect(
     const Index& ppath_inside_cloudbox_do,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& star_do,
+    const Index& stars_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -980,12 +980,12 @@ void iySurfaceFlatRefractiveIndexDirect(
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
   //Check for correct unit
-  ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
+  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
 
   chk_size("iy", iy, f_grid.nelem(), stokes_dim);
 
-  if (star_do) {
+  if (stars_do) {
     Matrix iy_incoming;
     Index stars_visible;
     Vector specular_los;
@@ -1087,7 +1087,7 @@ void iySurfaceLambertian(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
-                         const Index& star_do,
+                         const Index& stars_do,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,
                          const Index& cloudbox_on,
@@ -1176,7 +1176,7 @@ void iySurfaceLambertian(Workspace& ws,
   Vector los(2, 0);
 
   ArrayOfString iy_aux_var(0);
-  if (star_do) {
+  if (stars_do) {
     iy_aux_var.resize(1);
     iy_aux_var[0] = "Direct radiation";
   }
@@ -1239,7 +1239,7 @@ void iySurfaceLambertian(Workspace& ws,
       //subtract the direct radiation, so that only the diffuse radiation is considered here.
       //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
       //radiation at the surface. Otherwise it is zero.
-      if (star_do) {
+      if (stars_do) {
         iy_temp -= iy_aux[0];
       }
       iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
@@ -1298,7 +1298,7 @@ void iySurfaceLambertian(Workspace& ws,
         //subtract the direct radiation, so that only the diffuse radiation is considered here.
         //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
         //radiation at the surface. Otherwise it is zero.
-        if (star_do) {
+        if (stars_do) {
           iy_temp -= iy_aux[0];
         }
         iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
@@ -1407,7 +1407,7 @@ void iySurfaceLambertianDirect(
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& star_do,
+    const Index& stars_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -1427,7 +1427,7 @@ void iySurfaceLambertianDirect(
   ArrayOfIndex stars_visible(stars.nelem());
 
   //Check for correct unit
-  ARTS_USER_ERROR_IF(iy_unit != "1" && star_do,
+  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
   //Check size of iy
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
@@ -1448,7 +1448,7 @@ void iySurfaceLambertianDirect(
 
 
   //do something only if there is a star
-  if (star_do) {
+  if (stars_do) {
     //get star ppaths
     get_star_ppaths(ws,
                     star_ppaths,
@@ -1570,7 +1570,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Tensor3& iy_transmittance,
                            const Index& iy_id,
                            const Index& jacobian_do,
-                           const Index& star_do,
+                           const Index& stars_do,
                            const Index& atmosphere_dim,
                            const EnergyLevelMap& nlte_field,
                            const Index& cloudbox_on,
@@ -1628,7 +1628,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   Tensor3 I(nlos, nf, stokes_dim);
 
   ArrayOfString iy_aux_var(0);
-  if (star_do) iy_aux_var.emplace_back("Direct radiation");
+  if (stars_do) iy_aux_var.emplace_back("Direct radiation");
 
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
@@ -1678,7 +1678,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
         //subtract the direct radiation, so that only the diffuse radiation is considered here.
         //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
         //radiation at the surface. Otherwise it is zero.
-        if (star_do){
+        if (stars_do){
           iy-=iy_aux[0];
         }
 
@@ -1715,7 +1715,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
-                         const Index& star_do,
+                         const Index& stars_do,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,                         
@@ -1762,7 +1762,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
   Tensor3 I(nlos, nf, stokes_dim);
 
   ArrayOfString iy_aux_var(0);
-  if (star_do) iy_aux_var.emplace_back("Direct radiation");
+  if (stars_do) iy_aux_var.emplace_back("Direct radiation");
 
   // Loop *surface_los*-es.
   if (nlos > 0) {
@@ -1811,7 +1811,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
         //subtract the direct radiation, so that only the diffuse radiation is considered here.
         //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
         //radiation at the surface. Otherwise it is zero.
-        if (star_do){
+        if (stars_do){
           iy-=iy_aux[0];
         }
 

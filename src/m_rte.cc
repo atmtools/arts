@@ -199,7 +199,7 @@ void iyClearsky(
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const Index& gas_scattering_do,
-    const Index& star_do,
+    const Index& stars_do,
     const String& iy_unit,
     const ArrayOfString& iy_aux_vars,
     const Index& jacobian_do,
@@ -241,10 +241,10 @@ void iyClearsky(
                       "A secondary propagation path starting at the "
                       "surface and is going directly into the surface "
                       "is found. This is not allowed.");
-  ARTS_USER_ERROR_IF (iy_unit != "1" && star_do,
+  ARTS_USER_ERROR_IF (iy_unit != "1" && stars_do,
                      "If stars are present only iy_unit=\"1\" can be used.");
 
-  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && (star_do || gas_scattering_do) , R"--(
+  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && (stars_do || gas_scattering_do) , R"--(
 Jacobian calculation are not supported when gas scattering or stars are included.
 This feature will be added in a future version.
 )--");
@@ -458,7 +458,7 @@ This feature will be added in a future version.
 
           Numeric minP = min(ppvar_p);
 
-          if (star_do && ppvar_p[ip] > minP) {
+          if (stars_do && ppvar_p[ip] > minP) {
             // We skip the uppermost altitude
             // level as there can be sometimes issue due
             // to the finite precision when calculating
@@ -696,7 +696,7 @@ This feature will be added in a future version.
   // Direct radiative background
   Matrix iy_direct(nf, ns, 0.);
 
-  if (star_do) {
+  if (stars_do) {
     Matrix iy_direct_toa;
     Tensor3 total_transmission;
     total_transmission = tot_tra[np - 1];

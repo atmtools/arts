@@ -49,7 +49,7 @@ using Constant::pi;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void starsAddSingleBlackbody(ArrayOfStar &star,
-                         Index &star_do,
+                         Index &stars_do,
                          // Inputs:
                          const Vector &f_grid,
                          const Index &stokes_dim,
@@ -81,12 +81,12 @@ void starsAddSingleBlackbody(ArrayOfStar &star,
   new_star.longitude = longitude;
 
   // set flag
-  star_do = 1;
+  stars_do = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void starsAddSingleFromGrid(ArrayOfStar &star,
-                         Index &star_do,
+                         Index &stars_do,
                          // Inputs:
                          const Vector &f_grid,
                          const Index &stokes_dim,
@@ -120,16 +120,16 @@ void starsAddSingleFromGrid(ArrayOfStar &star,
   new_star.longitude = longitude;
 
   // set flag
-  star_do = 1;
+  stars_do = 1;
 
 }
 
-void starsOff(Index &star_do,
+void starsOff(Index &stars_do,
              ArrayOfStar &star,
              const Verbosity &){
 
   // set flag to False (default)
-  star_do = 0;
+  stars_do = 0;
 
   // create empty Array of Matrix for the star_spectrum
   star.resize(0);
