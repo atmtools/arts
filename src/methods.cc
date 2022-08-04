@@ -19246,7 +19246,7 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("starsAddSingleBlackbody"),
-      DESCRIPTION("to be done\n"),
+      DESCRIPTION("Adds a single blackbody to *stars*\n"),
       AUTHORS("Jon Petersen"),
       OUT("stars",
           "star_do"),
@@ -19283,7 +19283,8 @@ where N>=0 and the species name is something line "H2O".
   md_data_raw.push_back(create_mdrecord(
       NAME("starsAddSingleFromGrid"),
       DESCRIPTION(
-          "Extracts a star spectrum from a field of such data.\n"
+          "Extracts a star spectrum from a field of such data and\n"
+          "adds it to *stars*.\n"
           "\n"
           "The method allows to obtain the star spectrum by\n"
           "interpolation from a field of such data. \n"
