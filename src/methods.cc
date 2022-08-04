@@ -19337,7 +19337,7 @@ where N>=0 and the species name is something line "H2O".
                "The description of the star.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starOff"),
+      NAME("starsOff"),
       DESCRIPTION(
           "tbd \n"),
       AUTHORS("Jon Petersen"),

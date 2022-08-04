@@ -124,7 +124,7 @@ void starsAddSingleFromGrid(ArrayOfStar &star,
 
 }
 
-void starOff(Index &star_do,
+void starsOff(Index &star_do,
              ArrayOfStar &star,
              const Verbosity &){
 
