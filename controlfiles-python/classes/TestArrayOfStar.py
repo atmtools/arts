@@ -6,7 +6,6 @@ ws = pyarts.workspace.Workspace()
 ws.stokes_dim = 1
 ws.f_grid = [1e9, 2e9, 3e9]
 
-ws.starsOff()
 ws.starsAddSingleBlackbody(radius=20,
                        distance=2000,
                        temperature=5000,
