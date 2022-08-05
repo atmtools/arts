@@ -4731,23 +4731,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("ArrayOfStar"), ArrayOfStar{}));
 
   wsv_data.push_back(WsvRecord(
-      NAME("star_spectrum_raw"),
-      DESCRIPTION(
-          "Raw data for monochromatic irradiance spectra.\n"
-          "\n"
-          "This variable gives the monochromatic irradiance spectra as stored in the \n"
-          "database for the respective sun.\n"
-          "\n"
-          "Can be set to be empty, which is interpreted as no star.\n"
-          "\n"
-          "Dimensions: \n"
-          "   GriddedField2:\n"
-          "      Vector frequency grid of spectra [f_grid_spec]\n"
-          "      Vector stockes dimension [stockes_sim]\n"
-          "      Matrix data [f_grid_spec][stockes_dim]\n"),
-      GROUP("GriddedField2")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),
       DESCRIPTION(
           "Rotation of the Stokes H and V directions.\n"
