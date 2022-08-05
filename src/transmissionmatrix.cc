@@ -103,8 +103,6 @@ void TransmissionMatrix::setZero() {
   std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Zero());
 }
 
-
-
 void TransmissionMatrix::mul(const TransmissionMatrix& A,
                              const TransmissionMatrix& B) {
   for (size_t i = 0; i < T4.size(); i++) T4[i].noalias() = A.T4[i] * B.T4[i];

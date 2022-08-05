@@ -31,11 +31,14 @@
 
 #ifndef surface_h
 #define surface_h
-#include "auto_md.h"
+
 #include "matpack_complex.h"
 #include "matpackIV.h"
 #include "mystring.h"
 #include "ppath.h"
+
+class Agenda;
+class Workspace;
 
 /**
     Calculates the incidence angle for a flat surface, based on rte_los and

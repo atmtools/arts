@@ -88,10 +88,10 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
   for (Index f = 0; f < f_grid.nelem(); f++) {
     const Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6;
     Numeric sum = 0;
-    Numeric coeff=1;
-    for (Index i = 0; i < 4; i++) {
-      sum += coefficients[i] * coeff;
-      coeff /= Constant::pow2(wavelen);
+    Numeric pows = 1;
+    for (auto& coef: coefficients) {
+      sum += coef * pows;
+      pows /= Constant::pow2(wavelen);
     }
     sca_coef.Kjj()[f] = 1e-32 * sum / Constant::pow4(wavelen);
   }
