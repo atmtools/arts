@@ -56,11 +56,8 @@ ws.refr_index_waterVisibleNIR(data_f_grid=data_f_grid,
 
 complex_refr_index = ws.complex_refr_index.value
 
-# Save reference results. Uncomment only if new reference is needed.
-# pa.xml.save(complex_refr_index, 'complex_refr_index_REFERENCE_Test_refr_index_waterVisibleNIR.xml',precision='.14e')
-
-# Load reference data
-complex_refr_index_REFERENCE = pa.xml.load('complex_refr_index_REFERENCE_Test_refr_index_waterVisibleNIR.xml')
-
+# Reference data
+complex_refr_index_REFERENCE = pa.arts.GriddedField3([[614328807377049], [283.15], ["real", "imaginary"]],
+                                                     [[[1.33821937010893, 0]]], ["Frequency", "Temperature", "Complex"])
 # Compare with reference
 ws.Compare(complex_refr_index, complex_refr_index_REFERENCE, 1e-6)
