@@ -36,6 +36,9 @@
 #include "matpackIV.h"
 #include "mystring.h"
 #include "ppath.h"
+#include "energylevelmap.h"
+#include "optproperties.h"
+#include "star.h"
 
 class Agenda;
 class Workspace;
