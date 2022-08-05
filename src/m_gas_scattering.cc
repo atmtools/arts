@@ -70,20 +70,7 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
                                  const Index& stokes_dim,
                                  const Numeric& ConstXsec,
                                  const Verbosity&) {
-  // Some basic sizes
-  const Index nf = f_grid.nelem();
-
-  // Number density
-  Numeric N = number_density(rtp_pressure, rtp_temperature);
-
-  //Vector of constant cross sections
-  Vector Xsec(nf, ConstXsec);
-
-  // set coefficients
-  sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim);
-  sca_coef.SetZero();
-  sca_coef.Kjj() += Xsec;
-  sca_coef.Kjj() *= N;
+  sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim, 1, 1, ConstXsec * number_density(rtp_pressure, rtp_temperature));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
