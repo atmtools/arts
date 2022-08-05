@@ -5184,7 +5184,7 @@ Possible models:
                "Temperature grid for refractive index calculation")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("complex_refr_indexTConstant"),
+      NAME("complex_refr_indexTemperatureConstant"),
       DESCRIPTION(
           "Set frequency dependent complex refractive index.\n"
           "\n"
@@ -5196,11 +5196,12 @@ Possible models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid"),
-      GIN("refr_index_real", "refr_index_imag"),
-      GIN_TYPE("Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
+      GIN("refr_index_real", "refr_index_imag", "temperature"),
+      GIN_TYPE("Vector", "Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF,"273.15"),
       GIN_DESC("Real part of refractive index, Dimension [Number of frequencies]",
-               "Imag part of refractive index, Dimension [Number of frequencies]")));
+               "Imag part of refractive index, Dimension [Number of frequencies]",
+               "Temperature [K]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexWaterLiebe93"),

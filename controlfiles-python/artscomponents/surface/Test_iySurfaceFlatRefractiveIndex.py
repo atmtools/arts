@@ -133,7 +133,7 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     ws.ArrayOfStringSet(ws.surface_props_names, ["Skin temperature"])
     ws.Tensor3SetConstant(ws.surface_props_data, 1, nlat, nlon, ws.t_surface.value[0, 0])
 
-    ws.complex_refr_indexTConstant(refr_index_real=[ComplexRefractiveIndex[0]],
+    ws.complex_refr_indexTemperatureConstant(refr_index_real=[ComplexRefractiveIndex[0]],
                                    refr_index_imag=[ComplexRefractiveIndex[1]])
     ws.Copy(ws.surface_complex_refr_index, ws.complex_refr_index)
 

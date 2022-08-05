@@ -433,10 +433,11 @@ void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_refr_indexTConstant(GriddedField3& complex_refr_index,
+void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
                                  const Vector& f_grid,
                                  const Vector& refr_index_real,
                                  const Vector& refr_index_imag,
+                                 const Numeric& temperature,
                                  const Verbosity&) {
   chk_vector_length("f_grid","refr_index_real",f_grid,refr_index_real);
   chk_vector_length("f_grid","refr_index_imag",f_grid,refr_index_imag);
@@ -447,7 +448,7 @@ void complex_refr_indexTConstant(GriddedField3& complex_refr_index,
   complex_refr_index.set_grid_name(0, "Frequency");
   complex_refr_index.set_grid(0, f_grid);
   complex_refr_index.set_grid_name(1, "Temperature");
-  complex_refr_index.set_grid(1, Vector(1, 0));
+  complex_refr_index.set_grid(1, Vector(1, temperature));
   complex_refr_index.set_grid_name(2, "Complex");
   complex_refr_index.set_grid(2, {"real", "imaginary"});
 
