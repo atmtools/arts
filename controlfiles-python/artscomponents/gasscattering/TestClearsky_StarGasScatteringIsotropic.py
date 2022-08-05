@@ -6,7 +6,7 @@
 
 import numpy as np
 from pyarts.workspace import Workspace, arts_agenda
-from pyarts import xml
+
 
 
 # =============================================================================
@@ -17,8 +17,8 @@ from pyarts import xml
 @arts_agenda
 def gas_scattering_agenda(ws):
     ws.Ignore(ws.rtp_vmr)
-    ws.gas_scatteringCoefXsecConst(ConstXsec=4.65e-31)
-    ws.gas_scatteringMatrixIsotropic()
+    ws.gas_scattering_coefXsecConst(ConstXsec=4.65e-31)
+    ws.gas_scattering_matIsotropic()
 
 
 # surface scattering agenda

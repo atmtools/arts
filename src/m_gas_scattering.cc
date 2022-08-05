@@ -63,7 +63,7 @@ void gas_scatteringOff(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringCoefXsecConst(PropagationMatrix& gas_scattering_coef,
+void gas_scattering_coefXsecConst(PropagationMatrix& gas_scattering_coef,
                                  const Vector& f_grid,
                                  const Numeric& rtp_pressure,
                                  const Numeric& rtp_temperature,
@@ -74,7 +74,7 @@ void gas_scatteringCoefXsecConst(PropagationMatrix& gas_scattering_coef,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringCoefAirSimple(PropagationMatrix& gas_scattering_coef,
+void gas_scattering_coefAirSimple(PropagationMatrix& gas_scattering_coef,
                                   const Vector& f_grid,
                                   const Numeric& rtp_pressure,
                                   const Numeric& rtp_temperature,
@@ -100,7 +100,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& gas_scattering_coef,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringMatrixIsotropic(TransmissionMatrix& gas_scattering_mat,
+void gas_scattering_matIsotropic(TransmissionMatrix& gas_scattering_mat,
                                    Vector& gas_scattering_fct_legendre,
                                    const Vector& gas_scattering_los_in,
                                    const Vector& gas_scattering_los_out,
@@ -125,7 +125,7 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& gas_scattering_mat,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringMatrixRayleigh(TransmissionMatrix& gas_scattering_mat,
+void gas_scattering_matRayleigh(TransmissionMatrix& gas_scattering_mat,
                                   Vector& gas_scattering_fct_legendre,
                                   const Vector& gas_scattering_los_in,
                                   const Vector& gas_scattering_los_out,

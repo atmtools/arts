@@ -7240,7 +7240,7 @@ Possible models:
       PASSWORKSPACE(true)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("gas_scatteringCoefAirSimple"),
+      NAME("gas_scattering_coefAirSimple"),
       DESCRIPTION(
           "Calculates of scattering coefficient matrix for air.\n"
           "\n"
@@ -7270,7 +7270,7 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("gas_scatteringCoefXsecConst"),
+      NAME("gas_scattering_coefXsecConst"),
       DESCRIPTION(
           "Calculates the spectrum of scattering coefficient matrices.\n"
           "\n"
@@ -7296,7 +7296,7 @@ Possible models:
       GIN_DESC("Constant Xsec value")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("gas_scatteringMatrixIsotropic"),
+      NAME("gas_scattering_matIsotropic"),
       DESCRIPTION(
           "Calculates the spectrum of normalized scattering matrices.\n"
           "Important, the angular direction are line of sight direction not the\n"
@@ -7317,7 +7317,7 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("gas_scatteringMatrixRayleigh"),
+      NAME("gas_scattering_matRayleigh"),
       DESCRIPTION(
           "Calculates the normalized Rayleigh scattering matrix.\n"
           "\n"

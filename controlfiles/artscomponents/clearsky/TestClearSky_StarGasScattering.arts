@@ -47,8 +47,8 @@ AgendaSet( gas_scattering_agenda){
   Ignore(gas_scattering_los_out)
   
   # propmat_clearskyZero( sca_xsec, f_grid, stokes_dim )
-  gas_scatteringCoefXsecConst(ConstXsec=1e-31)  
-  gas_scatteringMatrixIsotropic
+  gas_scattering_coefXsecConst(ConstXsec=1e-31)
+  gas_scattering_matIsotropic
   
 }
 
