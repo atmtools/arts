@@ -145,13 +145,13 @@ void get_star_background(Matrix& iy,
 
 void get_star_radiation(Matrix& iy,
                         Index& stars_visible,
-                         const Star& stars,
+                         const Star& star,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
                          const Vector& refellipsoid) {
 
   //Calculate earth centric radial component of star_pos and rtp_pos.
-  const Numeric R_star = stars.distance;
+  const Numeric R_star = star.distance;
   const Numeric R_rte = refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
 
   //Transform to cartesian coordinate system
@@ -160,7 +160,7 @@ void get_star_radiation(Matrix& iy,
   Numeric r_los_x, r_los_y, r_los_z;
 
   // r_star
-  sph2cart(r_star_x, r_star_y, r_star_z, R_star, stars.latitude, stars.longitude);
+  sph2cart(r_star_x, r_star_y, r_star_z, R_star, star.latitude, star.longitude);
 
   // r_rte, r_los
   poslos2cart(r_rte_x,
@@ -196,13 +196,13 @@ void get_star_radiation(Matrix& iy,
   const Numeric beta = acos(cos_beta);
 
   // angular radius of star
-  const Numeric alpha = atan(stars.radius / r_ps);
+  const Numeric alpha = atan(star.radius / r_ps);
 
   //Check if we see the star. We see the star if the angle beta is smaller than
   // the angular radius alpha of the star.
   if (beta <= alpha) {
     //Here we assume that the star radiates isotropically.
-    Matrix star_radiance = stars.spectrum;
+    Matrix star_radiance = star.spectrum;
     star_radiance /= pi;
 
     iy += star_radiance;

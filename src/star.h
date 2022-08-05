@@ -137,7 +137,7 @@ void get_star_background(Matrix& iy,
 /** Checks and adds star radiance if star is in line of sight.
  *
  * @param[in, out] iy Matrix of star.
- * @param[out] stars_visible Index indicating if stars are in los
+ * @param[out] stars_visible Index indicating if star are in los
  * @param[in] star Star-structure.
  * @param[in] rtp_pos The position of the ppath point.
  * @param[in] rtp_los The line of sight of the ppath.
@@ -145,7 +145,7 @@ void get_star_background(Matrix& iy,
   */
 void get_star_radiation(Matrix& iy,
                         Index& stars_visible,
-                         const Star& stars,
+                         const Star& star,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
                          const Vector& refellipsoid);

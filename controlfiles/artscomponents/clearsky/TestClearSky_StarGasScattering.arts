@@ -125,7 +125,7 @@ VectorSet(surface_scalar_reflectivity,[0])
 #Switch on gas scattering
 IndexSet(gas_scattering_do,1)
 
-#Switch off star
+#Switch off stars
 IndexSet(stars_do,1)
 
 sensor_checkedCalc

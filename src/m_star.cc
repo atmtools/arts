@@ -48,7 +48,7 @@ using Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsAddSingleBlackbody(ArrayOfStar &star,
+void starsAddSingleBlackbody(ArrayOfStar &stars,
                          Index &stars_do,
                          // Inputs:
                          const Vector &f_grid,
@@ -65,7 +65,7 @@ void starsAddSingleBlackbody(ArrayOfStar &star,
                       "The distance to the center of the star (",distance," m) \n"
                      " is smaller than the radius of the star (", radius," m )")
 
-  Star& new_star = star.emplace_back();
+  Star& new_star = stars.emplace_back();
 
   // spectrum
   new_star.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
@@ -85,7 +85,7 @@ void starsAddSingleBlackbody(ArrayOfStar &star,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsAddSingleFromGrid(ArrayOfStar &star,
+void starsAddSingleFromGrid(ArrayOfStar &stars,
                          Index &stars_do,
                          // Inputs:
                          const Vector &f_grid,
@@ -108,7 +108,7 @@ void starsAddSingleFromGrid(ArrayOfStar &star,
   Matrix int_data = regrid_star_spectrum(star_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
 
   // create star
-  Star& new_star = star.emplace_back();
+  Star& new_star = stars.emplace_back();
 
   new_star.spectrum = int_data; // set spectrum
   new_star.spectrum *= pi; // outgoing flux at the surface of the star.
@@ -125,13 +125,13 @@ void starsAddSingleFromGrid(ArrayOfStar &star,
 }
 
 void starsOff(Index &stars_do,
-             ArrayOfStar &star,
+             ArrayOfStar &stars,
              const Verbosity &){
 
   // set flag to False (default)
   stars_do = 0;
 
   // create empty Array of Matrix for the star_spectrum
-  star.resize(0);
+  stars.resize(0);
 
 }
