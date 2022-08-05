@@ -346,8 +346,8 @@ AgendaSet( gas_scattering_agenda ){
   Ignore(rtp_pressure)
   Ignore(rtp_temperature)
   Ignore(rtp_vmr)
-  Ignore(in_los)
-  Ignore(out_los)
+  Ignore(gas_scattering_los_in)
+  Ignore(gas_scattering_los_out)
   Ignore(gas_scattering_output_type)
 }
 

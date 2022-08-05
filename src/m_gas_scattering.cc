@@ -102,8 +102,8 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    Vector& sca_fct_legendre,
-                                   const Vector& in_los,
-                                   const Vector& out_los,
+                                   const Vector& gas_scattering_los_in,
+                                   const Vector& gas_scattering_los_out,
                                    const Index& stokes_dim,
                                    const Index& gas_scattering_output_type,
                                    const Verbosity&) {
@@ -113,7 +113,7 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
     sca_fct_legendre = 1.;
 
   } else {
-    if (in_los.nelem() > 0 && out_los.nelem() > 0) {
+    if (gas_scattering_los_in.nelem() > 0 && gas_scattering_los_out.nelem() > 0) {
       TransmissionMatrix sca_mat_temp(1, stokes_dim);
       sca_mat_temp.setIdentity();
       sca_mat = sca_mat_temp;
@@ -127,14 +127,14 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
                                   Vector& sca_fct_legendre,
-                                  const Vector& in_los,
-                                  const Vector& out_los,
+                                  const Vector& gas_scattering_los_in,
+                                  const Vector& gas_scattering_los_out,
                                   const Index& stokes_dim,
                                   const Index& gas_scattering_output_type,
                                   const Numeric& depolarization_factor,
                                   const Verbosity&) {
 
-  ARTS_USER_ERROR_IF(in_los.nelem() != out_los.nelem(),
+  ARTS_USER_ERROR_IF(gas_scattering_los_in.nelem() != gas_scattering_los_out.nelem(),
     "The length of the vectors of incoming and outgoing direction must be the same.")
 
 
@@ -145,11 +145,11 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
 
   } else {
 
-    //if in_los or out_los is empty then sca_mat is empty.
-    if (in_los.nelem()>0 && out_los.nelem()>0){
+    //if gas_scattering_los_in or gas_scattering_los_out is empty then sca_mat is empty.
+    if (gas_scattering_los_in.nelem()>0 && gas_scattering_los_out.nelem()>0){
 
       Index atmosphere_dim = 1;
-      if (in_los.nelem()==2){
+      if (gas_scattering_los_in.nelem()==2){
         atmosphere_dim=3;
       }
 
@@ -159,10 +159,10 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
       Vector in_prop;
       Vector out_prop;
 
-      mirror_los(in_prop, in_los,atmosphere_dim);
-      mirror_los(out_prop, out_los,atmosphere_dim);
+      mirror_los(in_prop, gas_scattering_los_in,atmosphere_dim);
+      mirror_los(out_prop, gas_scattering_los_out,atmosphere_dim);
 
-      // calc_scatteringAngle() between in_los and out_los
+      // calc_scatteringAngle() between gas_scattering_los_in and gas_scattering_los_out
       Numeric za_inc = in_prop[0];
       Numeric za_sca = out_prop[0];
 
@@ -199,7 +199,13 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
           pha_mat_int += depol;
       }
 
-      pha_mat_labCalc(pha_mat, pha_mat_int, out_los[0], out_los[1], in_los[0], in_los[1], theta_rad);
+      pha_mat_labCalc(pha_mat,
+                      pha_mat_int,
+                      gas_scattering_los_out[0],
+                      gas_scattering_los_out[1],
+                      gas_scattering_los_in[0],
+                      gas_scattering_los_in[1],
+                      theta_rad);
 
       TransmissionMatrix sca_mat_temp(pha_mat);
 

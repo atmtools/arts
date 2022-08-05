@@ -227,12 +227,12 @@ void define_agenda_data() {
                            "\n"
                            "This agenda calculates the gas scattering cross\n"
                            "section and the normalized phase matrix for a specific\n"
-                           "incoming ( *in_los* ) and outgoing (*out_los*) direction.\n"
+                           "incoming ( *gas_scattering_los_in* ) and outgoing (*gas_scattering_los_out*) direction.\n"
                            "The scattering cross section is calculated along a\n"
                            "propagtion path given by the propagation path variables\n"
                            "*rtp_pressure*, *rtp_temperature*, and *rtp_vmr*."
-                           "If *in_los* and *out_los* are empty vectors, then\n"
-                           "*sca_mat* is set empty. If *in_los* and *out_los*\n"
+                           "If *gas_scattering_los_in* and *gas_scattering_los_out* are empty vectors, then\n"
+                           "*sca_mat* is set empty. If *gas_scattering_los_in* and *gas_scattering_los_out*\n"
                            "are not empty, then the phase matrix is calculated\n"
                            "for the define incoming and outgoing direction.\n"),
                OUTPUT("sca_coef","sca_mat","sca_fct_legendre"),
@@ -240,8 +240,8 @@ void define_agenda_data() {
                      "rtp_pressure",
                      "rtp_temperature",
                      "rtp_vmr",
-                     "in_los",
-                     "out_los",
+                     "gas_scattering_los_in",
+                     "gas_scattering_los_out",
                      "gas_scattering_output_type")));
 
   agenda_data.push_back(

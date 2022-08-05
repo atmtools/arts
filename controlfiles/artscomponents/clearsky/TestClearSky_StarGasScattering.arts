@@ -43,8 +43,8 @@ Copy( surface_rtprop_agenda,surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTF
 #gas scattering agenda
 AgendaSet( gas_scattering_agenda){
   Ignore(rtp_vmr)
-  Ignore(in_los)
-  Ignore(out_los)
+  Ignore(gas_scattering_los_in)
+  Ignore(gas_scattering_los_out)
   
   # propmat_clearskyZero( sca_xsec, f_grid, stokes_dim )
   gas_scatteringCoefXsecConst(ConstXsec=1e-31)  

@@ -94,9 +94,9 @@ using ArrayOfStar = Array<Star>;
  *            of scattering.
  * @param[in] transmitted_starlight Matrix transmitted monochromatic irradiance
  *             spectrum of star at location of scattering.
- * @param[in] in_los Vector incoming direction of the transmitted star irradiance
+ * @param[in] gas_scattering_los_in Vector incoming direction of the transmitted star irradiance
  *            spectrum.
- * @param[in] out_los outgoing direction of the transmitted star irradiance
+ * @param[in] gas_scattering_los_out outgoing direction of the transmitted star irradiance
  *            spectrum.
  * @param[in] gas_scattering_agenda Agenda agenda calculating the gas scattering
  *            cross sectionand matrix.
@@ -108,8 +108,8 @@ void get_scattered_starsource(Workspace& ws,
                               const Numeric& T,
                               const Vector& vmr,
                               const Matrix& transmitted_starlight,
-                              const Vector& in_los,
-                              const Vector& out_los,
+                              const Vector& gas_scattering_los_in,
+                              const Vector& gas_scattering_los_out,
                               const Agenda& gas_scattering_agenda);
 
 /** Gets the star background for a given ppath.

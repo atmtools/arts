@@ -1658,6 +1658,40 @@ void define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_los_in"),
+      DESCRIPTION(
+          "Incoming line-of-sight for gas scattering.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_los_out"),
+      DESCRIPTION(
+          "Outgoing line-of-sight for gas scattering.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("geo_pos"),
       DESCRIPTION(
           "Geo-position of a measurement.\n"
@@ -1814,23 +1848,6 @@ void define_wsv_data() {
       DESCRIPTION(
           "Agenda recalculating spectra and Jacobian for iterative inversion methods.\n"),
       GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("in_los"),
-      DESCRIPTION(
-          "Incoming line-of-sight.\n"
-          "\n"
-          "This variable holds a local line-of-sight. The angles of this\n"
-          "vector are defined as for *rte_los*.\n"
-          "\n"
-          "The WSV is used as input in *gas_scattering_agenda*\n"
-          "\n"
-          "Usage: Communication variable.\n"
-          "\n"
-          "Units: [ degree, degree ]\n"
-          "\n"
-          "Size:  [ 2 ]\n"),
-      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("irradiance_field"),
@@ -2822,23 +2839,6 @@ void define_wsv_data() {
           "*output_file_formatSetAscii*, *output_file_formatSetZippedAscii*, and\n"
           "*output_file_formatSetBinary*\n"),
       GROUP("String"), String{"ascii"}));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("out_los"),
-      DESCRIPTION(
-          "Incoming line-of-sight.\n"
-          "\n"
-          "This variable holds a local line-of-sight. The angles of this\n"
-          "vector are defined as for *rte_los*.\n"
-          "\n"
-          "The WSV is used as input in *gas_scattering_agenda*\n"
-          "\n"
-          "Usage: Communication variable.\n"
-          "\n"
-          "Units: [ degree, degree ]\n"
-          "\n"
-          "Size:  [ 2 ]\n"),
-      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_field"),

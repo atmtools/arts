@@ -882,7 +882,7 @@ This feature will be added in a future version.
       K_sca = PropagationMatrix(nf, ns);
     }
 
-    Vector in_los, out_los;
+    Vector gas_scattering_los_in, gas_scattering_los_out;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
@@ -936,8 +936,8 @@ This feature will be added in a future version.
                                      ppvar_p[ip],
                                      ppvar_t[ip],
                                      ppvar_vmr(joker, ip),
-                                     in_los,
-                                     out_los,
+                                     gas_scattering_los_in,
+                                     gas_scattering_los_out,
                                      0,
                                      gas_scattering_agenda);
 
