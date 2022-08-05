@@ -83,24 +83,20 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
   static constexpr std::array coefficients{
       3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
-  // Number density
-  Numeric N = number_density(rtp_pressure, rtp_temperature);
-
   sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim);
-  sca_coef.SetZero();
 
   for (Index f = 0; f < f_grid.nelem(); f++) {
-    Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6;
-    Numeric sigma;
+    const Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6;
     Numeric sum = 0;
-    for (Index i = 0; i < 4; i++){
-      sum += coefficients[i] * pow(wavelen, -2.0 * static_cast<double>(i));
+    Numeric coeff=1;
+    for (Index i = 0; i < 4; i++) {
+      sum += coefficients[i] * coeff;
+      coeff /= Constant::pow2(wavelen);
     }
-    sigma = pow(wavelen, -4) * sum * 1e-32;
-    sca_coef.Kjj()[f] = sigma;
+    sca_coef.Kjj()[f] = 1e-32 * sum / Constant::pow4(wavelen);
   }
 
-  sca_coef.Kjj() *= N;
+  sca_coef.Kjj() *= number_density(rtp_pressure, rtp_temperature);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
