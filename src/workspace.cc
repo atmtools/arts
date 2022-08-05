@@ -1645,8 +1645,8 @@ void define_wsv_data() {
           "Flag to select the output of the *gas_scattering_agenda*.\n"
           "\n"
           "Internal communications variable, not intended to be used by user."
-          "If equals 0 *sca_mat* is output and *sca_fct_legendre* is empty.\n"
-          "If equals 1 *sca_fct_legendre* is output and *sca_mat* is empty.\n"
+          "If equals 0 *gas_scattering_mat* is output and *gas_scattering_fct_legendre* is empty.\n"
+          "If equals 1 *gas_scattering_fct_legendre* is output and *gas_scattering_mat* is empty.\n"
           "\n"),
       GROUP("Index")));
 
@@ -1689,6 +1689,51 @@ void define_wsv_data() {
           "Units: [ degree, degree ]\n"
           "\n"
           "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_coef"),
+      DESCRIPTION(
+          "Spectrum of scattering coefficient matrices.\n"
+          "\n"
+          "This variable contains the elements of the extinction matrix solely\n"
+          "due to scattering.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ m^-1. ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("PropagationMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_mat"),
+      DESCRIPTION(
+          "Spectrum of normalized phase matrices.\n"
+          "\n"
+          "This variable contains the elements of the normalized phase matrix\n"
+          "for a specific incoming and outgoing direction.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("TransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_fct_legendre"),
+      DESCRIPTION(
+          "Normalized phase function as Legendre series.\n"
+          "\n"
+          "This variable contains the normalized phase function\n"
+          "as Legendre series.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [Number of Legendre polynomials]\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -3843,51 +3888,6 @@ Can currently only contain data for new MT CKD models of water.
           "Units: [ Differ between the elements, can be VMR, kg/m3 or #/m3. ]\n"
           "\n"
           "Size:  Should match abs_species.nelem()\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("sca_coef"),
-      DESCRIPTION(
-          "Spectrum of scattering coefficient matrices.\n"
-          "\n"
-          "This variable contains the elements of the extinction matrix solely\n"
-          "due to scattering.\n"
-          "\n"
-          "Usage: Output of *gas_scattering_agenda*.\n"
-          "\n"
-          "Units: [ m^-1. ]\n"
-          "\n"
-          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
-      GROUP("PropagationMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("sca_mat"),
-      DESCRIPTION(
-          "Spectrum of normalized phase matrices.\n"
-          "\n"
-          "This variable contains the elements of the normalized phase matrix\n"
-          "for a specific incoming and outgoing direction.\n"
-          "\n"
-          "Usage: Output of *gas_scattering_agenda*.\n"
-          "\n"
-          "Units: [ 1 ]\n"
-          "\n"
-          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
-      GROUP("TransmissionMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("sca_fct_legendre"),
-      DESCRIPTION(
-          "Normalized phase function as Legendre series.\n"
-          "\n"
-          "This variable contains the normalized phase function\n"
-          "as Legendre series.\n"
-          "\n"
-          "Usage: Output of *gas_scattering_agenda*.\n"
-          "\n"
-          "Units: [ 1 ]\n"
-          "\n"
-          "Size:  [Number of Legendre polynomials]\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(

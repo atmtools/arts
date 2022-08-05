@@ -232,10 +232,10 @@ void define_agenda_data() {
                            "propagtion path given by the propagation path variables\n"
                            "*rtp_pressure*, *rtp_temperature*, and *rtp_vmr*."
                            "If *gas_scattering_los_in* and *gas_scattering_los_out* are empty vectors, then\n"
-                           "*sca_mat* is set empty. If *gas_scattering_los_in* and *gas_scattering_los_out*\n"
+                           "*gas_scattering_mat* is set empty. If *gas_scattering_los_in* and *gas_scattering_los_out*\n"
                            "are not empty, then the phase matrix is calculated\n"
                            "for the define incoming and outgoing direction.\n"),
-               OUTPUT("sca_coef","sca_mat","sca_fct_legendre"),
+               OUTPUT("gas_scattering_coef","gas_scattering_mat","gas_scattering_fct_legendre"),
                INPUT("f_grid",
                      "rtp_pressure",
                      "rtp_temperature",

@@ -73,13 +73,13 @@ void get_scattered_starsource(Workspace& ws,
                               const Vector& gas_scattering_los_out,
                               const Agenda& gas_scattering_agenda) {
   PropagationMatrix K_sca;
-  TransmissionMatrix sca_mat;
+  TransmissionMatrix gas_scattering_mat;
   Vector sca_fct_dummy;
 
   // calculate gas scattering properties
   gas_scattering_agendaExecute(ws,
                                K_sca,
-                               sca_mat,
+                               gas_scattering_mat,
                                sca_fct_dummy,
                                f_grid,
                                p,
@@ -102,7 +102,7 @@ void get_scattered_starsource(Workspace& ws,
   for (Index i_f = 0; i_f < nf; i_f++) {
     mat_temp(0,joker) =  transmitted_starlight(i_f, joker);
     scattered_starlight_temp = mat_temp;//transmitted_starlight(i_f, joker);
-    scattered_starlight_temp.leftMul(sca_mat);
+    scattered_starlight_temp.leftMul(gas_scattering_mat);
 
     for (Index j = 0; j < ns; j++) {
       scattered_starlight(i_f, j) =

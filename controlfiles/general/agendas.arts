@@ -339,9 +339,9 @@ AgendaSet( water_p_eq_agenda ){
 
 ###
 AgendaSet( gas_scattering_agenda ){
-  Touch(sca_coef)
-  Touch(sca_mat)
-  Touch(sca_fct_legendre)
+  Touch(gas_scattering_coef)
+  Touch(gas_scattering_mat)
+  Touch(gas_scattering_fct_legendre)
   Ignore(f_grid)
   Ignore(rtp_pressure)
   Ignore(rtp_temperature)

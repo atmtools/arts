@@ -63,18 +63,18 @@ void gas_scatteringOff(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringCoefXsecConst(PropagationMatrix& sca_coef,
+void gas_scatteringCoefXsecConst(PropagationMatrix& gas_scattering_coef,
                                  const Vector& f_grid,
                                  const Numeric& rtp_pressure,
                                  const Numeric& rtp_temperature,
                                  const Index& stokes_dim,
                                  const Numeric& ConstXsec,
                                  const Verbosity&) {
-  sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim, 1, 1, ConstXsec * number_density(rtp_pressure, rtp_temperature));
+  gas_scattering_coef = PropagationMatrix(f_grid.nelem(), stokes_dim, 1, 1, ConstXsec * number_density(rtp_pressure, rtp_temperature));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
+void gas_scatteringCoefAirSimple(PropagationMatrix& gas_scattering_coef,
                                   const Vector& f_grid,
                                   const Numeric& rtp_pressure,
                                   const Numeric& rtp_temperature,
@@ -83,7 +83,7 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
   static constexpr std::array coefficients{
       3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
-  sca_coef = PropagationMatrix(f_grid.nelem(), stokes_dim);
+  gas_scattering_coef = PropagationMatrix(f_grid.nelem(), stokes_dim);
 
   for (Index f = 0; f < f_grid.nelem(); f++) {
     const Numeric wavelen = Conversion::freq2wavelen(f_grid[f]) * 1e6;
@@ -93,15 +93,15 @@ void gas_scatteringCoefAirSimple(PropagationMatrix& sca_coef,
       sum += coef * pows;
       pows /= Constant::pow2(wavelen);
     }
-    sca_coef.Kjj()[f] = 1e-32 * sum / Constant::pow4(wavelen);
+    gas_scattering_coef.Kjj()[f] = 1e-32 * sum / Constant::pow4(wavelen);
   }
 
-  sca_coef.Kjj() *= number_density(rtp_pressure, rtp_temperature);
+  gas_scattering_coef.Kjj() *= number_density(rtp_pressure, rtp_temperature);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
-                                   Vector& sca_fct_legendre,
+void gas_scatteringMatrixIsotropic(TransmissionMatrix& gas_scattering_mat,
+                                   Vector& gas_scattering_fct_legendre,
                                    const Vector& gas_scattering_los_in,
                                    const Vector& gas_scattering_los_out,
                                    const Index& stokes_dim,
@@ -109,24 +109,24 @@ void gas_scatteringMatrixIsotropic(TransmissionMatrix& sca_mat,
                                    const Verbosity&) {
   //out
   if (gas_scattering_output_type) {
-    sca_fct_legendre.resize(1);
-    sca_fct_legendre = 1.;
+    gas_scattering_fct_legendre.resize(1);
+    gas_scattering_fct_legendre = 1.;
 
   } else {
     if (gas_scattering_los_in.nelem() > 0 && gas_scattering_los_out.nelem() > 0) {
       TransmissionMatrix sca_mat_temp(1, stokes_dim);
       sca_mat_temp.setIdentity();
-      sca_mat = sca_mat_temp;
+      gas_scattering_mat = sca_mat_temp;
     } else {
       // set the scattering matrics empty in case the in and out los are empty
-      sca_mat = TransmissionMatrix();
+      gas_scattering_mat = TransmissionMatrix();
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
-                                  Vector& sca_fct_legendre,
+void gas_scatteringMatrixRayleigh(TransmissionMatrix& gas_scattering_mat,
+                                  Vector& gas_scattering_fct_legendre,
                                   const Vector& gas_scattering_los_in,
                                   const Vector& gas_scattering_los_out,
                                   const Index& stokes_dim,
@@ -140,12 +140,12 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
 
 
     if (gas_scattering_output_type) {
-    sca_fct_legendre.resize(3);
-    sca_fct_legendre = {1, 0, 0.1};
+    gas_scattering_fct_legendre.resize(3);
+    gas_scattering_fct_legendre = {1, 0, 0.1};
 
   } else {
 
-    //if gas_scattering_los_in or gas_scattering_los_out is empty then sca_mat is empty.
+    //if gas_scattering_los_in or gas_scattering_los_out is empty then gas_scattering_mat is empty.
     if (gas_scattering_los_in.nelem()>0 && gas_scattering_los_out.nelem()>0){
 
       Index atmosphere_dim = 1;
@@ -209,10 +209,10 @@ void gas_scatteringMatrixRayleigh(TransmissionMatrix& sca_mat,
 
       TransmissionMatrix sca_mat_temp(pha_mat);
 
-      sca_mat = sca_mat_temp;
+      gas_scattering_mat = sca_mat_temp;
     } else {
       // set the scattering matrics empty in case the in and out los are empty
-      sca_mat = TransmissionMatrix();
+      gas_scattering_mat = TransmissionMatrix();
     }
   }
 }

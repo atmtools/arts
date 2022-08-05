@@ -7251,12 +7251,12 @@ Possible models:
           "atmospheric pressure, temperature for one point in the atmosphere. The\n"
           "function multiplies the cross sections with the number density of gas\n"
           "molecules under the assumption of an ideal gas to get the coefficients.\n"
-          "The result is returned in *sca_coef*. The atmospheric  pressure  and \n"
+          "The result is returned in *gas_scattering_coef*. The atmospheric  pressure  and \n"
           "temperature  state  has  to  be  specified by  *rtp_pressure*,\n"
           "*rtp_temperature*. The formula is accurate to 0.3 percent for wavelengths\n"
           "between 0.205 and 1.05 micrometer.\n"),
       AUTHORS("Jon Petersen"),
-      OUT("sca_coef"),
+      OUT("gas_scattering_coef"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -7278,11 +7278,11 @@ Possible models:
           "constant spectrum of scattering cross section matrices, atmospheric pressure,\n"
           "temperature for one point in the atmosphere. Basically, it multiplies\n"
           "the cross sections with the number density of gas molecules under the\n"
-          "assumption of an ideal gas. The result is returned in *sca_coef*. The\n"
+          "assumption of an ideal gas. The result is returned in *gas_scattering_coef*. The\n"
           "atmospheric  pressure  and  temperature  state  has  to  be  specified\n"
           "by  *rtp_pressure*, *rtp_temperature*.\n"),
       AUTHORS("Manfred Brath"),
-      OUT("sca_coef"),
+      OUT("gas_scattering_coef"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -7302,8 +7302,8 @@ Possible models:
           "Important, the angular direction are line of sight direction not the\n"
           "propagation direction.\n"),
       AUTHORS("Manfred Brath"),
-      OUT("sca_mat",
-          "sca_fct_legendre"),
+      OUT("gas_scattering_mat",
+          "gas_scattering_fct_legendre"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -7325,7 +7325,7 @@ Possible models:
           "Important, the angular direction are defined as line of sight direction not as\n"
           "propagation direction.\n"),
       AUTHORS("Jon Petersen"),
-      OUT("sca_mat", "sca_fct_legendre"),
+      OUT("gas_scattering_mat", "gas_scattering_fct_legendre"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

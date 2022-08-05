@@ -875,7 +875,7 @@ This feature will be added in a future version.
     ArrayOfIndex lte(np);
 
     // size gas scattering variables
-    TransmissionMatrix sca_mat;
+    TransmissionMatrix gas_scattering_mat;
     Vector sca_fct_dummy;
     PropagationMatrix K_sca;
     if (gas_scattering_do) {
@@ -930,7 +930,7 @@ This feature will be added in a future version.
       if (gas_scattering_do) {
         gas_scattering_agendaExecute(ws,
                                      K_sca,
-                                     sca_mat,
+                                     gas_scattering_mat,
                                      sca_fct_dummy,
                                      f_grid,
                                      ppvar_p[ip],
