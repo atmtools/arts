@@ -50,7 +50,7 @@ data_t_grid = np.array([283.15])
 density_water = np.array([1000.])
 
 ws.Touch(ws.complex_refr_index)
-ws.refr_index_waterVisibleNIR(data_f_grid=data_f_grid,
+ws.complex_refr_indexWaterVisibleNIRHarvey98(data_f_grid=data_f_grid,
                               data_t_grid=data_t_grid,
                               density_water=density_water)
 

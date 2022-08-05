@@ -5228,6 +5228,49 @@ Possible models:
                "Temperature grid for refractive index calculation")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("complex_refr_indexWaterVisibleNIRHarvey98"),
+      DESCRIPTION(
+          "Refractive index of water and steam for the optical and near infrared.\n"
+          "\n"
+          "Refractive index as function of temparature, frequency and density.\n"
+          "It is limited only to the real part. The imaginary part is 0.\n"
+          "\n"
+          "From:\n"
+          "Revised formulation for the Refractive Index of Water and Steam as a Function\n"
+          "of Wavelength, Temperature and Density\n"
+          "Journal of Physical and Chemical Reference Data 27, 761 (1998), \n"
+          "https://doi.org/10.1063/1.556029 27, 761 \n"
+          "\n"
+          "see also http://www.iapws.org/release.html or https://www.nist.gov"
+          "\n"
+          "Range of validity:\n"
+          "271.15K < temperature < 773.15K\n"
+          "0 kg m^-3 < density < 1060 kg m^-3\n"
+          "157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
+          "\n"
+          "Density can be set as Vector of size 1 or it must have the same size as\n"
+          "as data_t_grid.\n"
+          "\n"
+          "IMPORTANT: Though the output is *complex_refr_index*, it only contains\n"
+          "the real part. The imaginry part is zero.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("complex_refr_index"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("complex_refr_index"),
+      GIN("data_f_grid", "data_t_grid", "density_water", "only_valid_range"),
+      GIN_TYPE("Vector", "Vector", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1"),
+      GIN_DESC("Frequency grid for refractive index calculation",
+               "Temperature grid for refractive index calculation",
+               "Density of water",
+               "Flag. If true refractive index is calculated only\n"
+               "within range of validity and it will throw an error if outside\n"
+               "range of validity. \n"
+               "If false no check is made, so use at your own risk.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("Copy"),
       DESCRIPTION(
           "Copy a workspace variable.\n"
@@ -16381,48 +16424,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refr_index_waterVisibleNIR"),
-      DESCRIPTION(
-          "Refractive index of water and steam for the optical and near infrared.\n"
-          "\n"
-          "Refractive index as function of temparature, frequency and density.\n"
-          "\n"
-          "From:\n"
-          "Revised formulation for the Refractive Index of Water and Steam as a Function\n"
-          "of Wavelength, Temperature and Density\n"
-          "Journal of Physical and Chemical Reference Data 27, 761 (1998), \n"
-          "https://doi.org/10.1063/1.556029 27, 761 \n"
-          "\n"
-          "see also http://www.iapws.org/release.html or https://www.nist.gov"
-          "\n"
-          "Range of validity:\n"
-          "271.15K < temperature < 773.15K\n"
-          "0 kg m^-3 < density < 1060 kg m^-3\n"
-          "157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
-          "\n"
-          "Density can be set as Vector of size 1 or it must have the same size as\n"
-          "as data_t_grid.\n"
-          "\n"
-          "IMPORTANT: Though the output is *complex_refr_index*, it only contains\n"
-          "the real part. The imaginry part is zero.\n"),
-      AUTHORS("Manfred Brath"),
-      OUT("complex_refr_index"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("complex_refr_index"),
-      GIN("data_f_grid", "data_t_grid", "density_water", "only_valid_range"),
-      GIN_TYPE("Vector", "Vector", "Vector", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "1"),
-      GIN_DESC("Frequency grid for refractive index calculation",
-               "Temperature grid for refractive index calculation",
-               "Density of water",
-               "Flag. If true refractive index is calculated only\n"
-               "within range of validity and it will throw an error if outside\n"
-               "range of validity. \n"
-               "If false no check is made, so use at your own risk.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalDefClose"),

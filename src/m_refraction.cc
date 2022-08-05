@@ -300,7 +300,7 @@ void refr_index_airMicrowavesGeneral(
   refr_index_air_group += n;
 }
 
-void refr_index_waterVisibleNIR(GriddedField3& complex_refr_index,
+void complex_refr_indexWaterVisibleNIRHarvey98(GriddedField3& complex_refr_index,
                                 const Vector& data_f_grid,
                                 const Vector& data_t_grid,
                                 const Vector& density_water,    //Gin
