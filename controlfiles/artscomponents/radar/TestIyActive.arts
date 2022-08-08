@@ -71,17 +71,13 @@ ReadXML( range_bins, "testdata/range_bins.xml" )
 #
 ReadXML( sensor_pos, "testdata/sensor_pos.xml" )
 MatrixSet( sensor_los, [180] )
-#
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
+
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
-#
+
 AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
+  iy_transmitterSinglePol
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( pext_scaling = weight_ext )
   VectorSet(geo_pos, [])

@@ -300,6 +300,48 @@ void refr_index_airMicrowavesGeneral(
   refr_index_air_group += n;
 }
 
+void complex_refr_indexWaterVisibleNIRHarvey98(GriddedField3& complex_refr_index,
+                                const Vector& data_f_grid,
+                                const Vector& data_t_grid,
+                                const Vector& density_water,    //Gin
+                                const Index& only_valid_range,  //Gin
+                                const Verbosity&) {
+  const Index N_f = data_f_grid.nelem();
+  const Index N_t = data_t_grid.nelem();
+  const Index N_d = density_water.nelem();
+
+  if (N_d > 1)
+    ARTS_USER_ERROR_IF(N_d != N_f, R"--(
+density_water must be a Vector of size 1 or must be of the size of *data_t_grid*
+)--")
+
+  complex_refr_index.resize(N_f, N_t, 2);
+  complex_refr_index.set_grid_name(0, "Frequency");
+  complex_refr_index.set_grid(0, data_f_grid);
+  complex_refr_index.set_grid_name(1, "Temperature");
+  complex_refr_index.set_grid(1, data_t_grid);
+  complex_refr_index.set_grid_name(2, "Complex");
+  complex_refr_index.set_grid(2, {"real", "imaginary"});
+
+  Numeric refractive_index;
+  Numeric density = density_water[0];
+
+  for (Index i_f = 0; i_f < N_f; i_f++) {
+    for (Index i_t = 0; i_t < N_t; i_t++) {
+      if (density_water.nelem() > 1 && i_t > 0) density = density_water[i_t];
+
+      refractive_index_water_and_steam_VisNIR(refractive_index,
+                                              only_valid_range,
+                                              data_f_grid[i_f],
+                                              data_t_grid[i_t],
+                                              density);
+
+      complex_refr_index.data(i_f, i_t, 0) = refractive_index;
+    }
+  }
+  complex_refr_index.data(joker, joker, 1) = 0.;
+}
+
 /*===========================================================================
   === WSMs for complex_refr_index
   ===========================================================================*/
@@ -388,6 +430,30 @@ void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
     complex_n_ice_matzler06(complex_n, f_grid, t_grid[i_t]);
     complex_refr_index.data(joker, i_t, joker) = complex_n;
   }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
+                                 const Vector& f_grid,
+                                 const Vector& refr_index_real,
+                                 const Vector& refr_index_imag,
+                                 const Numeric& temperature,
+                                 const Verbosity&) {
+  chk_vector_length("f_grid","refr_index_real",f_grid,refr_index_real);
+  chk_vector_length("f_grid","refr_index_imag",f_grid,refr_index_imag);
+
+  const Index nf = f_grid.nelem();
+
+  complex_refr_index.resize(nf, 1, 2);
+  complex_refr_index.set_grid_name(0, "Frequency");
+  complex_refr_index.set_grid(0, f_grid);
+  complex_refr_index.set_grid_name(1, "Temperature");
+  complex_refr_index.set_grid(1, Vector(1, temperature));
+  complex_refr_index.set_grid_name(2, "Complex");
+  complex_refr_index.set_grid(2, {"real", "imaginary"});
+
+  complex_refr_index.data(joker, 0, 0) = refr_index_real;
+  complex_refr_index.data(joker, 0, 1) = refr_index_imag;
 }
 
 #ifdef ENABLE_REFICE

@@ -134,6 +134,19 @@ Numeric TransmissionMatrix::operator()(const Index i,
   }
 }
 
+Numeric& TransmissionMatrix::operator()(const Index i, const Index j, const Index k) {
+  switch (stokes_dim) {
+    case 4:
+      return T4[i](j, k);
+    case 3:
+      return T3[i](j, k);
+    case 2:
+      return T2[i](j, k);
+    default:
+      return T1[i](j, k);
+  }
+}
+
 [[nodiscard]] Index TransmissionMatrix::Frequencies() const {
   switch (stokes_dim) {
     case 4:
@@ -146,6 +159,13 @@ Numeric TransmissionMatrix::operator()(const Index i,
       return Index(T1.size());
   }
 }
+
+TransmissionMatrix::TransmissionMatrix(const ConstMatrixView& mat): TransmissionMatrix(1, mat.nrows()){
+  ARTS_ASSERT(mat.nrows() == mat.ncols());
+  for (Index i = 0; i < stokes_dim; i++)
+    for (Index j = 0; j < stokes_dim; j++)
+      operator()(0, i, j) = mat(i,j);
+};
 
 TransmissionMatrix& TransmissionMatrix::operator+=(
     const LazyScale<TransmissionMatrix>& lstm) {
@@ -203,6 +223,19 @@ Eigen::Vector3d& RadiationVector::Vec3(size_t i) { return R3[i]; }
 Eigen::Vector2d& RadiationVector::Vec2(size_t i) { return R2[i]; }
 Eigen::Matrix<double, 1, 1>& RadiationVector::Vec1(size_t i) { return R1[i]; }
 
+Numeric& RadiationVector::operator()(const Index i, const Index j) {
+  switch (stokes_dim) {
+    case 4:
+      return R4[i][j];
+    case 3:
+      return R3[i][j];
+    case 2:
+      return R2[i][j];
+    default:
+      return R1[i][j];
+  }
+}
+
 void RadiationVector::leftMul(const TransmissionMatrix& T) {
   for (size_t i = 0; i < R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
   for (size_t i = 0; i < R3.size(); i++) R3[i] = T.Mat3(i) * R3[i];
@@ -225,6 +258,10 @@ void RadiationVector::SetZero(size_t i) {
       R1[i][0] = 0;
       break;
   }
+}
+
+void RadiationVector::SetZero() {
+  for (Index i=0; i<Frequencies(); i++) SetZero(i);
 }
 
 Eigen::VectorXd RadiationVector::Vec(size_t i) const {
@@ -444,6 +481,20 @@ RadiationVector& RadiationVector::operator=(const ConstMatrixView& M) {
   }
   return *this;
 }
+
+RadiationVector& RadiationVector::operator+=(const RadiationVector& rv) {
+  for (size_t i = 0; i < R4.size(); i++)
+    R4[i].noalias() += rv.R4[i];
+  for (size_t i = 0; i < R3.size(); i++)
+    R3[i].noalias() += rv.R3[i];
+  for (size_t i = 0; i < R2.size(); i++)
+    R2[i].noalias() += rv.R2[i];
+  for (size_t i = 0; i < R1.size(); i++)
+    R1[i].noalias() += rv.R1[i];
+
+  return *this;
+}
+
 
 const Numeric& RadiationVector::operator()(const Index i, const Index j) const {
   switch (stokes_dim) {
@@ -1752,6 +1803,7 @@ void stepwise_transmission(TransmissionMatrix& T,
 
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
+                     RadiationVector& J_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
@@ -1794,6 +1846,10 @@ void stepwise_source(RadiationVector& J,
               }
             }
           }
+          if (J_add.Frequencies()) {
+            J_add.Vec4(i) = invK * J_add.Vec4(i);
+            //TODO: Add jacobians dJ_add of additional source
+          }
         } break;
         case 3: {
           const auto invK = inv_prop_matrix<3>(K.Data()(0, 0, i, joker));
@@ -1816,6 +1872,10 @@ void stepwise_source(RadiationVector& J,
                      prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
               }
             }
+          }
+          if (J_add.Frequencies()) {
+            J_add.Vec3(i) = invK * J_add.Vec3(i);
+            //TODO: Add jacobians dJ_add of additional source
           }
         } break;
         case 2: {
@@ -1840,6 +1900,10 @@ void stepwise_source(RadiationVector& J,
               }
             }
           }
+          if (J_add.Frequencies()) {
+            J_add.Vec2(i) = invK * J_add.Vec2(i);
+            //TODO: Add jacobians dJ_add of additional source
+          }
         } break;
         default: {
           const auto invK = inv_prop_matrix<1>(K.Data()(0, 0, i, joker));
@@ -1863,9 +1927,17 @@ void stepwise_source(RadiationVector& J,
               }
             }
           }
+          if (J_add.Frequencies()) {
+            J_add.Vec1(i) = invK * J_add.Vec1(i);
+            //TODO: Add jacobians dJ_add of additional source
+          }
         } break;
       }
     }
+  }
+
+  if (J_add.Frequencies()) {
+    J += J_add;
   }
 }
 

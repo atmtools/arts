@@ -53,6 +53,7 @@
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
+using Constant::pi;
 
 #define F11 pha_mat_int[0]
 #define F12 pha_mat_int[1]
@@ -2196,10 +2197,10 @@ void pha_mat_labCalc(  //Output:
   pha_mat_lab(0, 0) = F11;
 
   if (stokes_dim > 1) {
-    Numeric za_sca_rad = za_sca * DEG2RAD;
-    Numeric za_inc_rad = za_inc * DEG2RAD;
-    Numeric aa_sca_rad = aa_sca * DEG2RAD;
-    Numeric aa_inc_rad = aa_inc * DEG2RAD;
+    Numeric za_sca_rad = Conversion::deg2rad(za_sca);
+    Numeric za_inc_rad = Conversion::deg2rad(za_inc);
+    Numeric aa_sca_rad = Conversion::deg2rad(aa_sca);
+    Numeric aa_inc_rad = Conversion::deg2rad(aa_inc);
 
     const Numeric ANGTOL_RAD = 1e-6;  //CPD: this constant is used to adjust
         //zenith angles close to 0 and PI.  This is
@@ -2210,11 +2211,11 @@ void pha_mat_labCalc(  //Output:
     //
 
     if ((abs(theta_rad) < ANGTOL_RAD)          // forward scattering
-        || (abs(theta_rad - PI) < ANGTOL_RAD)  // backward scattering
+        || (abs(theta_rad - Constant::pi) < ANGTOL_RAD)  // backward scattering
         ||
         (abs(aa_inc_rad - aa_sca_rad) < ANGTOL_RAD)  // inc and sca on meridian
-        || (abs(abs(aa_inc_rad - aa_sca_rad) - 360.) < ANGTOL_RAD)  //   "
-        || (abs(abs(aa_inc_rad - aa_sca_rad) - 180.) < ANGTOL_RAD)  //   "
+        || (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::two_pi) < ANGTOL_RAD)  //   "
+        || (abs(abs(aa_inc_rad - aa_sca_rad) - Constant::pi) < ANGTOL_RAD)  //   "
     ) {
       pha_mat_lab(0, 1) = F12;
       pha_mat_lab(1, 0) = F12;
@@ -2248,16 +2249,16 @@ void pha_mat_labCalc(  //Output:
       // In these cases we have to take limiting values.
 
       if (za_inc_rad < ANGTOL_RAD) {
-        sigma1 = PI + aa_sca_rad - aa_inc_rad;
+        sigma1 = pi + aa_sca_rad - aa_inc_rad;
         sigma2 = 0;
-      } else if (za_inc_rad > PI - ANGTOL_RAD) {
+      } else if (za_inc_rad > pi - ANGTOL_RAD) {
         sigma1 = aa_sca_rad - aa_inc_rad;
-        sigma2 = PI;
+        sigma2 = pi;
       } else if (za_sca_rad < ANGTOL_RAD) {
         sigma1 = 0;
-        sigma2 = PI + aa_sca_rad - aa_inc_rad;
-      } else if (za_sca_rad > PI - ANGTOL_RAD) {
-        sigma1 = PI;
+        sigma2 = pi + aa_sca_rad - aa_inc_rad;
+      } else if (za_sca_rad > pi - ANGTOL_RAD) {
+        sigma1 = pi;
         sigma2 = aa_sca_rad - aa_inc_rad;
       } else {
         s1 = (cos(za_sca_rad) - cos(za_inc_rad) * cos(theta_rad)) /
@@ -2273,12 +2274,12 @@ void pha_mat_labCalc(  //Output:
         // this (also) catches the case when inc and sca are on one meridian
         if (std::isnan(sigma1) || std::isnan(sigma2)) {
           if (abs(s1 - 1) < ANGTOL_RAD) sigma1 = 0;
-          if (abs(s1 + 1) < ANGTOL_RAD) sigma1 = PI;
+          if (abs(s1 + 1) < ANGTOL_RAD) sigma1 = pi;
           if (abs(s2 - 1) < ANGTOL_RAD) sigma2 = 0;
-          if (abs(s2 + 1) < ANGTOL_RAD) sigma2 = PI;
+          if (abs(s2 + 1) < ANGTOL_RAD) sigma2 = pi;
         }
       }
-
+    
       const Numeric C1 = cos(2 * sigma1);
       const Numeric C2 = cos(2 * sigma2);
 

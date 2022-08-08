@@ -177,6 +177,7 @@ add_library (artscore STATIC
   predefined_absorption_models.cc
   file.cc
   gas_abs_lookup.cc
+  gas_scattering.cc
   geodetic.cc
   gridded_fields.cc
   gui_propmat.cc
@@ -211,6 +212,7 @@ add_library (artscore STATIC
   m_doit.cc
   m_fluxes.cc
   m_predefined_absorption_models.cc
+  m_gas_scattering.cc
   m_general.cc
   m_geodetic.cc
   m_xsec_fit.cc
@@ -235,6 +237,7 @@ add_library (artscore STATIC
   m_rte.cc
   m_retrieval.cc
   m_sensor.cc
+  m_star.cc
   m_surface.cc
   m_telsem.cc
   m_tessem.cc
@@ -273,6 +276,7 @@ add_library (artscore STATIC
   special_interp.cc
   species_info.cc
   species_tags.cc
+  star.cc
   surface.cc
   telsem.cc
   tessem.cc

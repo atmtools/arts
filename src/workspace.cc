@@ -1178,6 +1178,18 @@ void define_wsv_data() {
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("depolarization_factor"),
+      DESCRIPTION(
+          "Depolarization factor for the scattered gas.\n"
+          "\n"
+          "The variable accounts for the anisotropy of the scatterer.\n"
+          "It is the ratio of intensities parallel and perpendicular \n"
+          "to the plan of scattering. A table of measured values is \n"
+          "given by Penndorf (1957). Some values are: H2=0.02, N2=0.03\n"
+          "O2=0.06, CO2=0.09 and atmospheric air=0.03."),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
       DESCRIPTION(
           "Agenda defining the calculations to perform for each batch case.\n"),
@@ -1618,6 +1630,113 @@ void define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_do"),
+      DESCRIPTION(
+          "Flag to activate gas scattering.\n"
+          "\n"
+          "If this variable is set to 0, no gas scattering will be considered,\n"
+          "even if the gas_scattering_agenda is set.\n"
+          "\n"),
+      GROUP("Index"), Index{0}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_output_type"),
+      DESCRIPTION(
+          "Flag to select the output of the *gas_scattering_agenda*.\n"
+          "\n"
+          "Internal communications variable, not intended to be used by user."
+          "If equals 0 *gas_scattering_mat* is output and *gas_scattering_fct_legendre* is empty.\n"
+          "If equals 1 *gas_scattering_fct_legendre* is output and *gas_scattering_mat* is empty.\n"
+          "\n"),
+      GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_agenda"),
+      DESCRIPTION(
+          "Agenda calculating gas scattering extinction and phase matrix.\n"
+          "\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_los_in"),
+      DESCRIPTION(
+          "Incoming line-of-sight for gas scattering.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_los_out"),
+      DESCRIPTION(
+          "Outgoing line-of-sight for gas scattering.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_coef"),
+      DESCRIPTION(
+          "Spectrum of scattering coefficient matrices.\n"
+          "\n"
+          "This variable contains the elements of the extinction matrix solely\n"
+          "due to scattering.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ m^-1. ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("PropagationMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_mat"),
+      DESCRIPTION(
+          "Spectrum of normalized phase matrices.\n"
+          "\n"
+          "This variable contains the elements of the normalized phase matrix\n"
+          "for a specific incoming and outgoing direction.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("TransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_fct_legendre"),
+      DESCRIPTION(
+          "Normalized phase function as Legendre series.\n"
+          "\n"
+          "This variable contains the normalized phase function\n"
+          "as Legendre series.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [Number of Legendre polynomials]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("geo_pos"),
       DESCRIPTION(
           "Geo-position of a measurement.\n"
@@ -1978,10 +2097,18 @@ void define_wsv_data() {
           "Dimensions: [ f_grid, stokes_dim, stokes_dim ]\n"),
       GROUP("Tensor3")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("iy_transmitter_agenda"),
-                DESCRIPTION("Agenda providing a transmitter signal.\n"),
-                GROUP("Agenda")));
+  wsv_data.push_back(WsvRecord(
+      NAME("iy_transmitter"),
+      DESCRIPTION(
+          "Monochromatic pencil beam radiance spectrum of transmitter signal.\n"
+          "\n"
+          "This variable holds a single spectrum, with values corresponding\n"
+          "to infinite frequency and spatial resolution (compare to *y*).\n"
+          "\n"
+          "Unit:       Depend on the transmitted signal\n"
+          "\n"
+          "Dimensions: [ f_grid, stokes_dim ]\n"),
+      GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit"),
@@ -2731,6 +2858,18 @@ void define_wsv_data() {
       WsvRecord(NAME("oem_errors"),
                 DESCRIPTION("Errors encountered during OEM execution.\n"),
                 GROUP("ArrayOfString")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("optical_depth"),
+      DESCRIPTION(
+          "optical depth\n"
+          "\n"
+          "This vector holds optical depth in frequency and layer.\n"
+          "\n"
+          "Usage: Output from *DisortCalc*.\n"
+          "\n"
+          "Unit:  Undefined.\n"),
+      GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("output_file_format"),
@@ -4574,6 +4713,22 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                             "\n"
                             "Usage:      Set by the user.\n"),
                 GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("stars_do"),
+      DESCRIPTION("Flag to activate the star(s).\n"),
+      GROUP("Index"), Index{0}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("stars"),
+      DESCRIPTION("Array of Star.\n"
+                  "\n"
+                  "This variable describes a list of stars.\n"
+                  "Each star is described by a struct with its spectrum, radius,\n"
+                  "distance from center of planet to center of star,\n"
+                  "temperature (if possible), latitude in the sky of the planet,\n"
+                  "longitude in the sky of the planet and the type\n"),
+      GROUP("ArrayOfStar"), ArrayOfStar{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),

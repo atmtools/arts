@@ -222,6 +222,29 @@ void define_agenda_data() {
   */
 
   agenda_data.push_back(
+      AgRecord(NAME("gas_scattering_agenda"),
+               DESCRIPTION("Calculation of the gas scattering extinction and phase matrix.\n"
+                           "\n"
+                           "This agenda calculates the gas scattering cross\n"
+                           "section and the normalized phase matrix for a specific\n"
+                           "incoming ( *gas_scattering_los_in* ) and outgoing (*gas_scattering_los_out*) direction.\n"
+                           "The scattering cross section is calculated along a\n"
+                           "propagtion path given by the propagation path variables\n"
+                           "*rtp_pressure*, *rtp_temperature*, and *rtp_vmr*."
+                           "If *gas_scattering_los_in* and *gas_scattering_los_out* are empty vectors, then\n"
+                           "*gas_scattering_mat* is set empty. If *gas_scattering_los_in* and *gas_scattering_los_out*\n"
+                           "are not empty, then the phase matrix is calculated\n"
+                           "for the define incoming and outgoing direction.\n"),
+               OUTPUT("gas_scattering_coef","gas_scattering_mat","gas_scattering_fct_legendre"),
+               INPUT("f_grid",
+                     "rtp_pressure",
+                     "rtp_temperature",
+                     "rtp_vmr",
+                     "gas_scattering_los_in",
+                     "gas_scattering_los_out",
+                     "gas_scattering_output_type")));
+
+  agenda_data.push_back(
       AgRecord(NAME("g0_agenda"),
                DESCRIPTION("Calculation of the gravity at zero altitude.\n"
                            "\n"
@@ -441,21 +464,6 @@ void define_agenda_data() {
             "rtp_los",
             "rte_pos2",
             "surface_type_aux")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("iy_transmitter_agenda"),
-      DESCRIPTION(
-          "Transmitter signal.\n"
-          "\n"
-          "This agenda describes the signal at the start of the propagation\n"
-          "path for calculations of transmission type. That is, the agenda\n"
-          "describes a transmitter, which either can be a natural source or\n"
-          "an artificial device.\n"
-          "\n"
-          "The include-file 'agendas.arts' defines an example agenda that\n"
-          "can be used for transmission calculations\n"),
-      OUTPUT("iy"),
-      INPUT("f_grid", "rtp_pos", "rtp_los")));
 
   agenda_data.push_back(AgRecord(
       NAME("jacobian_agenda"),

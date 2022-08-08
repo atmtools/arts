@@ -18,8 +18,10 @@
 
 /**
  * @file   disort.cc
- * @author Claudia Emde <claudia.emde@dlr.de>
- * @date   Tue Feb  7 10:08:28 2006
+ * @author Claudia Emde <claudia.emde@dlr.de>,
+ *         Manfred Brath <manfred.brath@uni-hamburg.de>
+ * @date   Tue Feb  7 10:08:28 2006,
+ *         October 27, 2021
  * 
  * @brief  This file contains functions related to the DISORT interface.
  */
@@ -36,6 +38,7 @@
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "constants.h"
 
 extern "C" {
 #include "cdisort.h"
@@ -54,6 +57,30 @@ extern const Numeric DEG2RAD;
 extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
+
+void add_normed_phase_functions(Tensor3View& pfct1,
+                                const MatrixView& sca1,
+                                const MatrixView& pfct2,
+                                const MatrixView& sca2) {
+  const Index np1 = pfct1.npages();
+  const Index nr1 = pfct1.nrows();
+  const Index nc1 = pfct1.ncols();
+
+
+  ARTS_ASSERT(pfct2.nrows() == nr1);
+
+  ARTS_ASSERT(pfct2.ncols() == nc1);
+
+  for (Index i = 0; i < np1; i++) {        // frequncy loop
+    for (Index j = 0; j < nr1 ; j++) {  // layer loop
+      for (Index k = 0; k < nc1; k++)      // polynomial loop
+
+        pfct1(i, j, k) =
+            (sca1(i, j) * pfct1(i, j, k) + sca2(i, j) * pfct2(j, k)) /
+            (sca1(i, j) + sca2(i, j));
+    }
+  }
+}
 
 void check_disort_input(  // Input
     const Index& cloudbox_on,
@@ -186,14 +213,15 @@ void init_ifield(  // Output
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& nang,
+    const Index& n_za,
+    const Index& n_aa,
     const Index& stokes_dim) {
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   //const Index Nza = za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  cloudbox_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
+  cloudbox_field.resize(Nf, Np_cloud, 1, 1, n_za, n_aa, stokes_dim);
   cloudbox_field = NAN;
 }
 
@@ -283,6 +311,69 @@ void get_gasoptprop(Workspace& ws,
                                    vmr_profiles(joker, ip),
                                    propmat_clearsky_agenda);
     ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
+  }
+}
+
+void get_gas_scattering_properties(Workspace& ws,
+                                   MatrixView& sca_coeff_gas,
+                                   MatrixView& sca_coeff_gas_level,
+                                   MatrixView& pfct_gas,
+                                   const ConstVectorView& f_grid,
+                                   const VectorView& p,
+                                   const VectorView& t,
+                                   const MatrixView& vmr,
+                                   const Agenda& gas_scattering_agenda) {
+  const Index Np = p.nelem(); // Number of pressure levels
+  const Index Nl = pfct_gas.ncols();  // Number of legendre polynomials
+  const Index Nf = f_grid.nelem(); // Number of frequencies
+
+  PropagationMatrix K_sca_gas_temp;
+  TransmissionMatrix sca_mat_dummy;
+  Vector dummy;
+  Vector sca_fct_temp;
+  Matrix pmom_gas_level( Np, Nl, 0.);
+  Index N_polys;
+
+  // calculate gas scattering properties on level
+  for (Index ip = 0; ip < Np; ip++) {
+    gas_scattering_agendaExecute(ws,
+                                 K_sca_gas_temp,
+                                 sca_mat_dummy,
+                                 sca_fct_temp,
+                                 f_grid,
+                                 p[ip],
+                                 t[ip],
+                                 vmr(joker, ip),
+                                 dummy,
+                                 dummy,
+                                 1,
+                                 gas_scattering_agenda);
+
+    // gas scattering extinction
+    sca_coeff_gas_level(joker, ip) = K_sca_gas_temp.Kjj(0, 0);
+
+    // gas scattering (phase) function
+    N_polys = min(Nl, sca_fct_temp.nelem());
+    for (Index k = 0; k < N_polys; k++) {
+      pmom_gas_level( ip, k) = sca_fct_temp[k];
+    }
+  }
+
+  // layer averages
+  for (Index ip = 0; ip < Np - 1; ip++) {
+    for (Index f_index = 0; f_index < Nf; f_index++) {
+      // extinction
+      sca_coeff_gas(f_index, Np - 2 - ip) =
+          0.5 *
+          (sca_coeff_gas_level(f_index, ip) +
+                 sca_coeff_gas_level(f_index, ip + 1));
+    }
+    // phase function
+    for (Index l_index = 0; l_index < Nl; l_index++) {
+      pfct_gas( Np - 2 - ip, l_index) =
+          0.5 * (pmom_gas_level( ip, l_index) +
+                 pmom_gas_level( ip + 1, l_index));
+    }
   }
 }
 
@@ -536,13 +627,15 @@ void get_pmom(Tensor3View pmom,
   pmom = 0.;
 
   // we need the cosine of the pfct angles
-  Vector u(nang), adu(nang - 1);
+  Vector u(nang), adu(nang - 1), ad_angs(nang - 1);
   Tensor3 px(nang - 1, Nlegendre, 2, 0.);
   u[0] = cos(pfct_angs[0] * PI / 180.);
   px(joker, 0, joker) = 1.;
   for (Index ia = 1; ia < nang; ia++) {
     u[ia] = cos(pfct_angs[ia] * PI / 180.);
     adu[ia - 1] = abs(u[ia] - u[ia - 1]);
+    ad_angs[ia - 1] =
+        abs(pfct_angs[ia] * PI / 180. - pfct_angs[ia - 1] * PI / 180.);
     px(ia - 1, 1, 0) = u[ia - 1];
     px(ia - 1, 1, 1) = u[ia];
     for (Index l = 2; l < Nlegendre; l++) {
@@ -561,9 +654,16 @@ void get_pmom(Tensor3View pmom,
           Vector pfct = pfct_bulk_par(f_index, il, joker);
 
           // Check if phase function is properly normalized
+          // For highly peaked phasefunctions, integrating over the angle instead
+          // of over the cosine of the angle is numerically more exact though both 
+          // ways are analytically equal. Furthermore in *scat_dataCalc* the 
+          // integration is also done over the angle.
           Numeric pint = 0.;
-          for (Index ia = 0; ia < nang - 1; ia++)
-            pint += 0.5 * adu[ia] * (pfct[ia] + pfct[ia + 1]);
+          for (Index ia = 0; ia < nang - 1; ia++) {
+            pint += 0.5 * ad_angs[ia] *
+                    (pfct[ia] * sin(pfct_angs[ia] * PI / 180.) +
+                     pfct[ia + 1] * sin(pfct_angs[ia + 1] * PI / 180.));
+          }
 
           if (abs(pint / 2. - 1.) > pfct_threshold) {
             ostringstream os;
@@ -581,14 +681,41 @@ void get_pmom(Tensor3View pmom,
 
           pmom(f_index, il, 0) = 1.;
           for (Index ia = 0; ia < nang - 1; ia++) {
-            //for (Index l=0; l<Nlegendre; l++)
-            for (Index l = 1; l < Nlegendre; l++)
+            for (Index l = 1; l < Nlegendre; l++) {
               pmom(f_index, il, l) +=
-                  0.25 * adu[ia] *
-                  (px(ia, l, 0) * pfct[ia] + px(ia, l, 1) * pfct[ia + 1]);
-          }
+                  0.25 * ad_angs[ia] *
+                  (px(ia, l, 0) * pfct[ia] * sin(pfct_angs[ia] * PI / 180.) +
+                   px(ia, l, 1) * pfct[ia + 1] *
+                       sin(pfct_angs[ia + 1] * PI / 180.));
+            }
+          }            
         }
       }
+}
+
+void get_scat_bulk_layer(MatrixView& sca_bulk_layer,
+                         const MatrixView& ext_bulk,
+                         const MatrixView& abs_bulk) {
+  const Index nf = ext_bulk.nrows();
+  const Index Np = ext_bulk.ncols();
+
+  ARTS_ASSERT(sca_bulk_layer.nrows() == nf);
+  ARTS_ASSERT(sca_bulk_layer.ncols() == Np - 1);
+  ARTS_ASSERT(abs_bulk.nrows() == nf);
+  ARTS_ASSERT(abs_bulk.ncols() == Np);
+
+  // Initialization
+  sca_bulk_layer = 0.;
+
+  for (Index ip = 0; ip < Np - 1; ip++)
+    // Do layer averaging and derive single scattering albedo & optical depth
+    for (Index f_index = 0; f_index < nf; f_index++) {
+      Numeric sca =
+          0.5 * (ext_bulk(f_index, ip) - abs_bulk(f_index, ip) +
+                 ext_bulk(f_index, ip + 1) - abs_bulk(f_index, ip + 1));
+
+      sca_bulk_layer(f_index, Np - 2 - ip) = sca;
+    }
 }
 
 // Use a thread_local variable to communicate the Verbosity to the
@@ -735,26 +862,36 @@ void reduced_1datm(Vector& p,
 }
 
 void run_cdisort(Workspace& ws,
-                 Tensor7& cloudbox_field,
-                 ConstVectorView f_grid,
-                 ConstVectorView p_grid,
-                 ConstVectorView z_profile,
-                 const Numeric& z_surface,
-                 ConstVectorView t_profile,
-                 ConstMatrixView vmr_profiles,
-                 ConstMatrixView pnd_profiles,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const Agenda& propmat_clearsky_agenda,
-                 const ArrayOfIndex& cloudbox_limits,
-                 const Numeric& surface_skin_t,
-                 const Vector& surface_scalar_reflectivity,
-                 ConstVectorView za_grid,
-                 const Index& nstreams,
-                 const Index& Npfct,
-                 const Index& only_tro,
-                 const Index& quiet,
-                 const Verbosity& verbosity) {
-
+                      // Output
+                      Tensor7& cloudbox_field,
+                      Matrix& optical_depth,
+                      // Input
+                      ConstVectorView f_grid,
+                      ConstVectorView p_grid,
+                      ConstVectorView z_profile,
+                      const Numeric& z_surface,
+                      ConstVectorView t_profile,
+                      ConstMatrixView vmr_profiles,
+                      ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const ArrayOfStar& stars,
+                      const Agenda& propmat_clearsky_agenda,
+                      const Agenda& gas_scattering_agenda,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Numeric& surface_skin_t,
+                      const Vector& surface_scalar_reflectivity,
+                      ConstVectorView za_grid,
+                      ConstVectorView aa_grid,
+                      ConstVectorView star_rte_los,
+                      const Index& gas_scattering_do,
+                      const Index& stars_do,
+                      const Numeric& scale_factor,
+                      const Index& nstreams,
+                      const Index& Npfct,
+                      const Index& quiet,
+                      const Index& emission,
+                      const Index& intensity_correction,
+                      const Verbosity& verbosity) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -786,6 +923,25 @@ void run_cdisort(Workspace& ws,
 
   const Index nf = f_grid.nelem();
 
+  // solar dependent properties if no sun is present
+  // Number of azimuth angles
+  Index nphi = 1;
+  //local zenith angle of sun
+  Numeric umu0 = 0.;
+  //local azimuth angle of sun
+  Numeric phi0 = 0.;
+  //Intensity of incident sun beam
+  Numeric fbeam = 0.;
+
+  if (stars_do) {
+    nphi = aa_grid.nelem();
+    umu0 = Conversion::cosd(star_rte_los[0]);
+    phi0 = star_rte_los[1];
+    if (phi0 < 0) {
+      phi0 = phi0 + 360.;
+    }
+  }
+
   ds.accur = 0.005;
   ds.flag.prnt[0] = FALSE;
   ds.flag.prnt[1] = FALSE;
@@ -805,33 +961,112 @@ void run_cdisort(Workspace& ws,
 
   ds.flag.ibcnd = GENERAL_BC;
   ds.flag.usrang = TRUE;
-  ds.flag.planck = TRUE;
+
+  if (emission) {
+    ds.flag.planck = TRUE;
+  } else {
+    ds.flag.planck = FALSE;
+  }
   ds.flag.onlyfl = FALSE;
   ds.flag.lamber = TRUE;
   ds.flag.quiet = FALSE;
-  ds.flag.intensity_correction = TRUE;
-  ds.flag.old_intensity_correction = TRUE;
+  if (intensity_correction) {
+    ds.flag.intensity_correction = TRUE;
+    ds.flag.old_intensity_correction = FALSE;
+  } else {
+    ds.flag.intensity_correction = FALSE;
+    ds.flag.old_intensity_correction = FALSE;
+  }
 
   ds.nstr = static_cast<int>(nstreams);
   ds.nphase = ds.nstr;
   ds.nmom = ds.nstr;
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
   ds.numu = static_cast<int>(za_grid.nelem());
-  ds.nphi = 1;
+  ds.nphi = static_cast<int>(nphi);
   Index Nlegendre = nstreams + 1;
 
   /* Allocate memory */
   c_disort_state_alloc(&ds);
   c_disort_out_alloc(&ds, &out);
 
-  // Properties of solar beam, set to zero as they are not needed
-  ds.bc.fbeam = 0.;
-  ds.bc.umu0 = 0.;
-  ds.bc.phi0 = 0.;
+  // Looking direction of solar beam
+  ds.bc.umu0 = umu0;
+  ds.bc.phi0 = phi0;
+
+  // Intensity of bottom-boundary isotropic illumination
   ds.bc.fluor = 0.;
 
-  // Since we have no solar source there is no angular dependance
-  ds.phi[0] = 0.;
+  // fill up azimuth angle and temperature array
+  for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
+
+  if  (ds.flag.planck==TRUE){
+    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+  }
+
+  // Transform to mu, starting with negative values
+  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
+
+  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
+  get_paroptprop(
+      ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
+
+  // get the angles where to calculate the scattering, which is later used for
+  //for the calculation of the legendre polynoms
+  Vector pfct_angs;
+  get_angs(pfct_angs, scat_data, Npfct);
+  Index nang = pfct_angs.nelem();
+
+  Index nf_ssd = scat_data[0][0].f_grid.nelem();
+  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
+  get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
+  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+
+  // Legendre polynomials of phase function
+  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
+  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+
+  if (gas_scattering_do) {
+    // gas scattering
+
+    // layer averaged particle scattering coefficient
+    Matrix sca_bulk_par_layer(nf_ssd, ds.nlyr);
+    get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
+
+    // call gas_scattering_properties
+    Matrix sca_coeff_gas_layer(nf_ssd, ds.nlyr, 0.);
+    Matrix sca_coeff_gas_level(nf_ssd, ds.nlyr + 1, 0.);
+    Matrix pmom_gas(ds.nlyr, Nlegendre, 0.);
+
+    get_gas_scattering_properties(ws,
+                                  sca_coeff_gas_layer,
+                                  sca_coeff_gas_level,
+                                  pmom_gas,
+                                  f_grid,
+                                  p,
+                                  t,
+                                  vmr,
+                                  gas_scattering_agenda);
+
+    // call add_norm_phase_functions
+    add_normed_phase_functions(
+        pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
+
+    // add gas_scat_ext to ext_bulk_par
+    ext_bulk_par += sca_coeff_gas_level;
+  }
+
+  // Optical depth of layers
+  Matrix dtauc(nf, ds.nlyr);
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, ds.nlyr);
+  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
+
+  // DEBUG output
+  optical_depth=dtauc;
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -853,78 +1088,6 @@ void run_cdisort(Workspace& ws,
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
 
-  
-  for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
-
-  // Absorption species
-  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
-
-  // Get particle bulk properties
-  Index nang;
-  Vector pfct_angs;
-  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
-  Index nf_ssd = scat_data[0][0].f_grid.nelem();
-  Tensor3 pha_bulk_par;
-
-  if (only_tro && Npfct > 3) {
-    nang = Npfct;
-    nlinspace(pfct_angs, 0, 180, nang);
-
-    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
-    
-    ext_bulk_par = 0.0;
-    abs_bulk_par = 0.0;
-    pha_bulk_par = 0.0;
-
-    Index iflat = 0;
-    
-    for (Index iss=0; iss < scat_data.nelem(); iss++) {
-      const Index nse = scat_data[iss].nelem();
-      ext_abs_pfun_from_tro(ext_bulk_par,
-                            abs_bulk_par,
-                            pha_bulk_par,
-                            scat_data[iss],
-                            iss,
-                            pnd(Range(iflat,nse),joker),
-                            cboxlims,
-                            t,
-                            pfct_angs);
-      iflat += nse;
-    }
-  } else {
-    get_angs(pfct_angs, scat_data, Npfct);
-    nang = pfct_angs.nelem();
-    
-    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
-  
-    get_paroptprop(ext_bulk_par,
-                   abs_bulk_par,
-                   scat_data,
-                   pnd,
-                   t,
-                   p,
-                   cboxlims,
-                   f_grid);
-    get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
-  }
-  
-  // Optical depth of layers
-  Matrix dtauc(nf, ds.nlyr);
-  // Single scattering albedo of layers
-  Matrix ssalb(nf, ds.nlyr);
-  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
-
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
-
-  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
-  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
-
-  // Legendre polynomials of phase function
-  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
-  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
-
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     sprintf(ds.header, "ARTS Calc f_index = %" PRId64, f_index);
 
@@ -940,7 +1103,15 @@ void run_cdisort(Workspace& ws,
     ds.wvnmhi += ds.wvnmhi * 1e-7;
     ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
+    // set
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
+
+    // Set irradiance of incident solar beam at top boundary
+    if (stars_do) {
+      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
+              (100 * SPEED_OF_LIGHT)*scale_factor;
+    }
+    ds.bc.fbeam = fbeam;
 
     std::memcpy(ds.pmom,
                 pmom(f_index, joker, joker).get_c_array(),
@@ -948,17 +1119,20 @@ void run_cdisort(Workspace& ws,
 
     c_disort(&ds, &out);
 
-    for (Index j = 0; j < ds.numu; j++) {
-      for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-        cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, 0, 0) =
-            out.uu[ds.numu * (ds.nlyr - k - cboxlims[0]) + j] /
-            (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
-      }
-      // To avoid potential numerical problems at interpolation of the field,
-      // we copy the surface field to underground altitudes
-      for (Index k = ncboxremoved - 1; k >= 0; k--) {
-        cloudbox_field(f_index, k, 0, 0, j, 0, 0) =
-            cloudbox_field(f_index, k + 1, 0, 0, j, 0, 0);
+    for (Index i = 0; i < ds.nphi; i++) {
+      for (Index j = 0; j < ds.numu; j++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
+          cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, i, 0) =
+              out.uu[j + ((ds.nlyr - k - cboxlims[0]) + i * (ds.nlyr + 1)) *
+                             ds.numu] /
+              (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
+        }
+        // To avoid potential numerical problems at interpolation of the field,
+        // we copy the surface field to underground altitudes
+        for (Index k = ncboxremoved - 1; k >= 0; k--) {
+          cloudbox_field(f_index, k, 0, 0, j, i, 0) =
+              cloudbox_field(f_index, k + 1, 0, 0, j, i, 0);
+        }
       }
     }
   }

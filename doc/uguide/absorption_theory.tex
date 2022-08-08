@@ -1,9 +1,10 @@
-\chapter{Gas absorption}
+\chapter{Gas absorption and scattering}
  \label{sec:abs_theory}
 
 \graphicspath{{Figs/abs_theory/}}
 
 \starthistory
+  2021-11-22 & Added gas scattering, Manfred Brath. \\
   2012-09-21 & Added pressure broadening and shift documentation,
   Stefan Buehler.\\
   2011-07-05 & Revised for ARTS2 by Stefan Buehler.\\
@@ -3531,6 +3532,101 @@ of atmospheric conditions, the negative values occur only at the noise level of 
 absorption spectra. Therefore, negative absorption cross sections are simply set to zero.
 To avoid a positive bias due to the removal of negative values, the spectrum is scaled 
 afterwards so that the integral over the spectrum of the specific band does not change.
+
+\section{Gas scattering}
+%-----------------------
+\label{sec:abs_theory:gas_scattering}
+
+This sections contains theoretical background and scientific details
+for gas scattering calculations in ARTS. By gas scattering is meant
+the scattering of electromagnetic radiation with atoms and molecules.
+Here, we consider only elastic scattering in the case that the wavelength
+$\lambda$ is much greater than the spatial dimension $D$ of the molecule/atom
+\begin{equation}
+  \lambda \gg \pi D
+\end{equation}
+also known as Rayleigh scattering. Non-elastic scattering processes like Raman
+or Compton scattering are not considered.
+
+In Earth related optical radiative transfer, Rayleigh scattering is
+modelled from mixture models based on classical electrodynamics e.
+g. \citet{Bodhaine:99}\footnote{\citet{Bodhaine:99} for example is used in LibRadTran (\url{http://www.libradtran.org/doc/libRadtran.pdf},
+  27/01/2021)},\citet{Tomasi:05} or \citet{Eberhard:10}. In
+astrophysical related radiative transfer Rayleigh scattering is also
+modelled from quantum theory \citep{Fisak:16}. For the
+quantum theory of Rayleigh scattering, see for example \citet{Long:02}
+or \citet{Vinogradov:21}. For now, the the quantum mechanical
+treatment of Rayleigh scattering is beyond our scope. Therefore we
+stick to the classical way.
+
+Following \citet{Tomasi:05} for the scattering coefficient
+$\beta$ generally holds
+\begin{equation}
+  \beta\left(\lambda,z\right)=N\left(z\right)\sigma\left(\lambda,z\right)
+\end{equation}
+with $N\left(z\right)$ the total number density of molecules and
+atoms, $\lambda$ the wavelength and $z$ the altitude and $\sigma$
+the scattering cross section.
+\begin{equation}
+  \sigma\left(\lambda,z\right)=\frac{24\pi^{3}\left(n\left(\lambda,z\right)^{2}-1\right)^{2}}{\lambda^{4}N\left(z\right)^{2}\left(n\left(\lambda,z\right)^{2}+2\right)^{2}}F\left(\lambda,z\right)
+\end{equation}
+$n\left(\lambda,z\right)$ is the refractive index for wavelength
+$\lambda$ at altitude $z$. Depending on the actual model for the
+refractive index, the refractive index is a function of pressure $p$,
+temperature $T$, wavelength, atmospheric gas composition $vmr_{1},...,vmr_{M}$
+\begin{equation}
+  \Longrightarrow n\left(\lambda,z\right)=n\left(\lambda,p,T,vmr_{1},...,vmr_{M}\right)\,.
+\end{equation}
+$F\left(\lambda,z\right)$ is known as the King factor for the depolarization
+of air.
+\begin{equation}
+  F\left(\lambda,z\right)=\frac{\sum vmr_{i}\left(z\right)F_{i}\left(\lambda\right)}{\sum vmr_{i}\left(z\right)}
+\end{equation}
+Basically, this means that not only the scattering coefficient $\beta$
+depends on pressure $p$, temperature $T$, wavelenght $\lambda$
+and atmospheric gas compositions $vmr_{i}$ but also the scattering
+cross section.
+This is different to the scattering handling of solid and liquid matter.
+For solid and liquid matter the scattering cross sections are independent of pressure,
+but for the scattering at atoms and molecules this does not hold.
+Furthermore for the case of gas scattering the normalized phase matrix is in good approximation
+frequency independent, whereas for the scattering at solid and liquid matter it is not.
+
+For the case of gas scattering the molecules and atoms are assumed to be randomly oriented.
+In that case the normalized Rayleigh scattering phase matrix for a spherical object \citet{Mishchenko:02} is 
+\begin{equation}
+  P = \frac{3}{4}
+  \begin{pmatrix}
+   1+\cos^2 \Theta & -\sin^2 \Theta   & 0            & 0 \\
+  -\sin^2 \Theta   & 1+\cos^2 \Theta  & 0            & 0 \\
+   0               & 0                & 2\cos \Theta & 0  \\
+   0               & 0                & 0            & 2\cos \Theta \\
+  \end{pmatrix}
+\end{equation}
+
+%%TODO: Add here Phasematrix of Hansen and Travis 1974/ Emde et al 2010.
+
+Furthermore, the Rayleigh scattering cross section for air in the visible part of the sectrum 
+can be approximated using a fitted version \citep{Stamnes2017_Radiative} of the numerical results of \citep{Bates1984_Rayleigh}.
+
+\begin{equation}
+\sigma_{ray,xsec}=10^{-28}\lambda^{-4}\sum^3_{i=0}a_{i}\lambda^{-2i}\ \ \left[\text{cm}^{2}\right]
+\end{equation}
+with the wavelength $\lambda$ in $[\mathrm{\mu m}]$. The coefficients
+are
+\begin{align*}
+a_{0}= & 3.9729066\\
+a_{1}= & 4.6547659\cdot10^{-2}\\
+a_{2}= & 4.5055995\cdot10^{-4}\\
+a_{3}= & 2.3229848\cdot10^{-5}\,.
+\end{align*}
+The formula is accurate to $0.3\%$ for wavelengths between $0.205\,\mathrm{\mu m}$
+and $1.05\,\mathrm{\mu m}$. The Rayleigh scattering coefficient is
+\begin{equation}
+\sigma_{ray}=N\sigma_{ray,xsec}=\frac{p}{Tk_{b}}\sigma_{ray,xsec}
+\end{equation}
+with $N$ the number density of molecules, pressure $p$, temperature
+$T$ and the Boltzmann constant $k_{B}$.
 
 
 

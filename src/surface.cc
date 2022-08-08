@@ -226,3 +226,177 @@ void dsurface_check(const ArrayOfString& surface_props_names,
         " calling *jacobianAddSurfaceQuantity*.")
   }
 }
+
+
+void surface_get_incoming_direct(
+    Workspace& ws,
+    Matrix& iy_incoming,
+    Index& stars_visible,
+    Vector& specular_los,
+    const Vector& rtp_pos,
+    const Vector& rtp_los,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const Vector& refellipsoid,
+    const Tensor4& pnd_field,
+    const ArrayOfTensor4& dpnd_field_dx,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& ppath_inside_cloudbox_do,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity){
+
+  //Allocate
+  Vector surface_normal;
+  Matrix iy_star_toa;
+
+  //get specular line of sight
+  specular_losCalc(specular_los,
+                   surface_normal,
+                   rtp_pos,
+                   rtp_los,
+                   atmosphere_dim,
+                   lat_grid,
+                   lon_grid,
+                   refellipsoid,
+                   z_surface,
+                   0,
+                   verbosity);
+
+  //calculate propagation path from the surface to the space in line of sight
+  Ppath ppath;
+  ppath_calc(ws,
+             ppath,
+             ppath_step_agenda,
+             atmosphere_dim,
+             p_grid,
+             lat_grid,
+             lon_grid,
+             z_field,
+             f_grid,
+             refellipsoid,
+             z_surface,
+             cloudbox_on,
+             cloudbox_limits,
+             rtp_pos,
+             specular_los,
+             ppath_lmax,
+             ppath_lraytrace,
+             ppath_inside_cloudbox_do,
+             verbosity);
+
+
+  //get the incoming spectral radiance of the star at toa. If there is no in
+  //line of sight, then iy_star_toa is simply zero and we are finished. No further
+  //calculations needed.
+  stars_visible=0;
+  get_star_background(iy_star_toa,
+                      stars_visible,
+                      stars,
+                      ppath,
+                      f_grid,
+                      stokes_dim,
+                      atmosphere_dim,
+                      refellipsoid);
+
+  if (stars_visible){
+
+    //dummy variables needed for the output and input of iyTransmission
+    ArrayOfMatrix iy_aux_dummy;
+    ArrayOfString iy_aux_vars_dummy;
+    Vector ppvar_p_dummy;
+    Vector ppvar_t_dummy;
+    EnergyLevelMap ppvar_nlte_dummy;
+    Matrix ppvar_vmr_dummy;
+    Matrix ppvar_wind_dummy;
+    Matrix ppvar_mag_dummy;
+    Matrix ppvar_pnd_dummy;
+    Matrix ppvar_f_dummy;
+    Tensor3 ppvar_iy_dummy;
+    Tensor4 ppvar_trans_cumulat_dummy;
+    Tensor4 ppvar_trans_partial_dummy;
+    ArrayOfTensor3 diy_incoming_dummy;
+
+    //Calculate the transmitted radiation from toa to the surface
+    iyTransmissionStandard(ws,
+                           iy_incoming,
+                           iy_aux_dummy,
+                           diy_incoming_dummy,
+                           ppvar_p_dummy,
+                           ppvar_t_dummy,
+                           ppvar_nlte_dummy,
+                           ppvar_vmr_dummy,
+                           ppvar_wind_dummy,
+                           ppvar_mag_dummy,
+                           ppvar_pnd_dummy,
+                           ppvar_f_dummy,
+                           ppvar_iy_dummy,
+                           ppvar_trans_cumulat_dummy,
+                           ppvar_trans_partial_dummy,
+                           stokes_dim,
+                           f_grid,
+                           atmosphere_dim,
+                           p_grid,
+                           t_field,
+                           nlte_field,
+                           vmr_field,
+                           abs_species,
+                           wind_u_field,
+                           wind_v_field,
+                           wind_w_field,
+                           mag_u_field,
+                           mag_v_field,
+                           mag_w_field,
+                           cloudbox_on,
+                           cloudbox_limits,
+                           gas_scattering_do,
+                           pnd_field,
+                           dpnd_field_dx,
+                           scat_species,
+                           scat_data,
+                           iy_aux_vars_dummy,
+                           jacobian_do,
+                           jacobian_quantities,
+                           ppath,
+                           iy_star_toa,
+                           propmat_clearsky_agenda,
+                           water_p_eq_agenda,
+                           gas_scattering_agenda,
+                           1,
+                           Tensor3(),
+                           rte_alonglos_v,
+                           verbosity);
+
+  } else {
+    iy_incoming.resize(f_grid.nelem(),stokes_dim);
+    iy_incoming=0;
+  }
+}

@@ -147,6 +147,9 @@ void emission_from_propmat_field(
   src_rad = ArrayOfRadiationVector(np, RadiationVector(nf, ns));
   lyr_tra = ArrayOfTransmissionMatrix(np, TransmissionMatrix(nf, ns));
 
+  RadiationVector J_add_dummy;
+  ArrayOfRadiationVector dJ_add_dummy;
+
   // Size radiative variables always used
   Vector B(nf);
   PropagationMatrix K_this(nf, ns), K_past(nf, ns);
@@ -183,6 +186,7 @@ void emission_from_propmat_field(
 
     stepwise_source(src_rad[ip],
                     rvtmp,
+                    J_add_dummy,
                     K_this,
                     a,
                     S,

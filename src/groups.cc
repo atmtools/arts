@@ -179,6 +179,8 @@ about the isotopologue, the absorption scheme, and the frequency limits)--");
 
   wsv_groups.emplace_back("ArrayOfSparse", "A list of *Sparse*");
 
+  wsv_groups.emplace_back("ArrayOfStar", "A list of star");
+
   wsv_groups.emplace_back("ArrayOfStokesVector", "A list of *StokesVector*");
 
   wsv_groups.emplace_back("ArrayOfString", "A list of *String*");

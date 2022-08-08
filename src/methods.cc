@@ -76,7 +76,7 @@ MdRecord create_mdrecord(
   const std::array<String, NUM_OF_GIN_DEFAULTS>& gindefault,
   const std::array<String, NUM_OF_GIN_DESCRIPTIONS>& gindesc,
   Ts ... flags)
-{ 
+{
   static_assert(LEN_OF_NAME > 1, "Must have a name");
   static_assert(LEN_OF_DESCRIPTION > 1, "Must have a description");
   static_assert(NUM_OF_AUTHORS not_eq 0, "Must have at least one author");
@@ -85,7 +85,7 @@ MdRecord create_mdrecord(
   static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_TYPES, "GIN type(s) count does not match number of GIN");
   static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_DEFAULTS, "GIN default(s) count does not match number of GIN");
   static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_DESCRIPTIONS, "GIN description(s) count does not match number of GIN");
-  
+
   return MdRecord(name,
                   description,
                   ArrayOfString(authors),
@@ -161,11 +161,11 @@ MdRecord create_mdrecord(
         GIN_DEFAULT( NODEF ),
         GIN_DESC(    "Description for Generic Input Variable 1" )
         ));
- 
+
  For variable descriptions longer than one line, use the following format.
  Don't forget to remove the space in '/ *' and '* /' if you copy this template.
  I had to put it in there because C++ doesn't allow nested comments.
- 
+
   md_data_raw.push_back
     ( create_mdrecord
       ( NAME( "MethodName" ),
@@ -753,7 +753,7 @@ void define_md_data_raw() {
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
-  
+
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesDeleteBadF0"),
       DESCRIPTION(
@@ -948,7 +948,7 @@ See the theory guide for more details.
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Method of line normalizations",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesNormalizationSpecies"),
              DESCRIPTION(R"--(Sets normalization type for all matching lines
@@ -1109,7 +1109,7 @@ offsets might not work as hoped.
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Method of line mirroring",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesMirroringSpecies"),
              DESCRIPTION(R"--(Sets mirroring type for all matching lines.
@@ -1508,7 +1508,7 @@ See the theory guide for more details.
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Method of line shape calculations",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesLineShapeTypeSpecies"),
              DESCRIPTION(R"--(Sets shape calculations type for all matching lines.
@@ -1820,7 +1820,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                GIN_DEFAULT(NODEF, NODEF),
                GIN_DESC("Value of T0",
                         "ID of one or more bands")));
-  
+
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesT0Species"),
              DESCRIPTION("See *abs_linesT0* but for single species\n"),
@@ -2499,7 +2499,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Temperature grid maximum [K].",
                "Humidity grid minimum [fractional].",
                "Humidity grid maximum [fractional].")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_nlteFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
@@ -5184,6 +5184,26 @@ Possible models:
                "Temperature grid for refractive index calculation")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("complex_refr_indexTemperatureConstant"),
+      DESCRIPTION(
+          "Set frequency dependent complex refractive index.\n"
+          "\n"
+          "Temperature grid is set to have length 1 (and\n"
+          "set to the value 0).\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("complex_refr_index"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid"),
+      GIN("refr_index_real", "refr_index_imag", "temperature"),
+      GIN_TYPE("Vector", "Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF,"273.15"),
+      GIN_DESC("Real part of refractive index, Dimension [Number of frequencies]",
+               "Imag part of refractive index, Dimension [Number of frequencies]",
+               "Temperature [K]")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexWaterLiebe93"),
       DESCRIPTION(
           "Complex refractive index of liquid water according to Liebe 1993.\n"
@@ -5207,6 +5227,49 @@ Possible models:
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Frequency grid for refractive index calculation",
                "Temperature grid for refractive index calculation")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("complex_refr_indexWaterVisibleNIRHarvey98"),
+      DESCRIPTION(
+          "Refractive index of water and steam for the optical and near infrared.\n"
+          "\n"
+          "Refractive index as function of temparature, frequency and density.\n"
+          "It is limited only to the real part. The imaginary part is 0.\n"
+          "\n"
+          "From:\n"
+          "Revised formulation for the Refractive Index of Water and Steam as a Function\n"
+          "of Wavelength, Temperature and Density\n"
+          "Journal of Physical and Chemical Reference Data 27, 761 (1998), \n"
+          "https://doi.org/10.1063/1.556029 27, 761 \n"
+          "\n"
+          "see also http://www.iapws.org/release.html or https://www.nist.gov"
+          "\n"
+          "Range of validity:\n"
+          "271.15K < temperature < 773.15K\n"
+          "0 kg m^-3 < density < 1060 kg m^-3\n"
+          "157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
+          "\n"
+          "Density can be set as Vector of size 1 or it must have the same size as\n"
+          "as data_t_grid.\n"
+          "\n"
+          "IMPORTANT: Though the output is *complex_refr_index*, it only contains\n"
+          "the real part. The imaginry part is zero.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("complex_refr_index"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("complex_refr_index"),
+      GIN("data_f_grid", "data_t_grid", "density_water", "only_valid_range"),
+      GIN_TYPE("Vector", "Vector", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1"),
+      GIN_DESC("Frequency grid for refractive index calculation",
+               "Temperature grid for refractive index calculation",
+               "Density of water",
+               "Flag. If true refractive index is calculated only\n"
+               "within range of validity and it will throw an error if outside\n"
+               "range of validity. \n"
+               "If false no check is made, so use at your own risk.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Copy"),
@@ -5683,6 +5746,9 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
+          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
+          "DEVELOPMENT VERSION!"
+          "\n"
           "DISCLAIMER: There is a couple of known issues with the current\n"
           "implementation (see below). Use this WSM with care and only if\n"
           "these limitations/requirements are fulfilled. Results might be\n"
@@ -5722,8 +5788,8 @@ Possible models:
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
           "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
-      AUTHORS("Claudia Emde, Jana Mendrok"),
-      OUT("cloudbox_field"),
+      AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
+      OUT("cloudbox_field","optical_depth"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5734,34 +5800,51 @@ Possible models:
          "cloudbox_on",
          "cloudbox_limits",
          "propmat_clearsky_agenda",
+         "gas_scattering_agenda",
          "atmosphere_dim",
          "pnd_field",
          "t_field",
          "z_field",
          "vmr_field",
          "p_grid",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
          "scat_data",
+         "stars",
          "f_grid",
          "za_grid",
+         "aa_grid",
          "stokes_dim",
          "z_surface",
          "surface_skin_t",
-         "surface_scalar_reflectivity"),
-      GIN("nstreams", "Npfct", "only_tro", "quiet"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0", "0"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polynomials from). If <0,"
-               " the finest za_grid from scat_data will be used.",
-               "Set to 1 if the scattering data is just of TRO type. Has effect "
-               "only if Npfct > 3, but then leads to much faster calculatuions.",
-               "Silence C Disort warnings.")));
+         "surface_scalar_reflectivity",
+         "gas_scattering_do",
+         "stars_do"),
+      GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0", "1", "1"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
+               "solution (must be an even number).\n",
+               "Number of angular grid points to calculate bulk phase\n"
+               " function on (and derive Legendre polynomials from). If <0,\n"
+               " the finest za_grid from scat_data will be used.\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcWithARTSSurface"),
       DESCRIPTION(
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
+          "\n"
+          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
+          "DEVELOPMENT VERSION!"
+          "\n"
           "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
           "\n"
           "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
@@ -5769,8 +5852,8 @@ Possible models:
           "set according to the result of *surface_rtprop_agenda* for this incidence\n"
           "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
           "multiple angles, to estimate the hemispheric mean value.\n"),
-      AUTHORS("Claudia Emde, Jana Mendrok"),
-      OUT("cloudbox_field"),
+      AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
+      OUT("cloudbox_field","optical_depth"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5782,41 +5865,57 @@ Possible models:
          "cloudbox_limits",
          "propmat_clearsky_agenda",
          "surface_rtprop_agenda",
+         "gas_scattering_agenda",
          "atmosphere_dim",
          "pnd_field",
          "t_field",
          "z_field",
          "vmr_field",
          "p_grid",
-         "z_surface",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
          "scat_data",
+         "stars",
          "f_grid",
          "za_grid",
-         "stokes_dim"),
-      GIN("nstreams", "Npfct", "only_tro", "quiet", "inc_angle"),
-      GIN_TYPE("Index", "Index", "Index", "Index", "Numeric"),
-      GIN_DEFAULT("8", "181", "0", "0", "-1"),
+         "aa_grid",
+         "stokes_dim",
+         "z_surface",
+         "gas_scattering_do",
+         "stars_do"),
+      GIN("nstreams", "Npfct", "quiet", "emission", "intensity_correction", "inc_angle"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index","Numeric"),
+      GIN_DEFAULT("8", "181", "0", "1", "1", "-1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polynomials from). If <0,"
-               " the finest za_grid from scat_data will be used.",
-               "Set to 1 if the scattering data is just of TRO type. Has effect "
-               "only if Npfct > 3, but then leads to much faster calculatuions.",
-               "Silence C Disort warnings.",
-               "Incidence angle, see above.")));
+               "solution (must be an even number).\n",
+               "Number of angular grid points to calculate bulk phase\n"
+               " function on (and derive Legendre polynomials from). If <0,\n"
+               " the finest za_grid from scat_data will be used.\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n",
+               "Incidence angle, see above.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcClearsky"),
+      NAME("DisortCalcClearSky"),
       DESCRIPTION(
-          "Interface to DISORT for running clear-sky cases.\n"
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
+          "for running clear-sky cases.\n"
+          "\n"
+          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
+          "DEVELOPMENT VERSION!"
           "\n"
           "The method runs DISORT with *pnd_field* set to zero.\n"
           "\n"
           "Note that this version returns *spectral_radiance_field*, i.e.\n"
           "the solution for the full atmosphere. The standard *DisortCalc*\n"
           "only returns the field inside the cloudbox.\n"),
-      AUTHORS("Patrick Eriksson"),
+      AUTHORS("Patrick Eriksson", "Manfred Brath"),
       OUT("spectral_radiance_field"),
       GOUT(),
       GOUT_TYPE(),
@@ -5824,23 +5923,37 @@ Possible models:
       IN("atmfields_checked",
          "atmgeom_checked",
          "propmat_clearsky_agenda",
+         "gas_scattering_agenda",
          "atmosphere_dim",
          "t_field",
          "z_field",
          "vmr_field",
          "p_grid",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
+         "stars",
          "f_grid",
          "za_grid",
+         "aa_grid",
          "stokes_dim",
          "z_surface",
          "surface_skin_t",
-         "surface_scalar_reflectivity"),
-      GIN("nstreams", "quiet"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("8", "0"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Silence C Disort warnings.")));
+         "surface_scalar_reflectivity",
+         "gas_scattering_do",
+         "stars_do"),
+      GIN("nstreams", "quiet", "emission", "intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "0", "1", "1"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
+               "solution (must be an even number).\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
@@ -6399,7 +6512,7 @@ Possible models:
       GIN_TYPE("String"),
       GIN_DEFAULT("linear"),
       GIN_DESC("Interpolation method (\"linear\" or \"polynomial\").")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("Duration"),
       DESCRIPTION("Sets the seconds between two times.\n"),
@@ -7105,6 +7218,122 @@ Possible models:
       GIN_DEFAULT("-1", "-1"),
       GIN_DESC("User input for F0 [see description for default]",
                "User input for DF [see description for default]")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("gas_scatteringOff"),
+      DESCRIPTION(
+          "Deactivates the gas_scattering within radiative transfer calculations.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("gas_scattering_do",
+          "gas_scattering_agenda"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC(),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("gas_scattering_coefAirSimple"),
+      DESCRIPTION(
+          "Calculates of scattering coefficient matrix for air.\n"
+          "\n"
+          "This function calculates the scattering coefficient for air using a\n"
+          "fitted version from Stamnes et al., 2017 of the numerical results of\n"
+          "Bates, 1984. Internally it calculates the spectrum of scattering\n"
+          "coefficient matrices from the spectrum of scattering cross section matrices,\n"
+          "atmospheric pressure, temperature for one point in the atmosphere. The\n"
+          "function multiplies the cross sections with the number density of gas\n"
+          "molecules under the assumption of an ideal gas to get the coefficients.\n"
+          "The result is returned in *gas_scattering_coef*. The atmospheric  pressure  and \n"
+          "temperature  state  has  to  be  specified by  *rtp_pressure*,\n"
+          "*rtp_temperature*. The formula is accurate to 0.3 percent for wavelengths\n"
+          "between 0.205 and 1.05 micrometer.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("gas_scattering_coef"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "stokes_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("gas_scattering_coefXsecConst"),
+      DESCRIPTION(
+          "Calculates the spectrum of scattering coefficient matrices.\n"
+          "\n"
+          "It calculates the spectrum of scattering coefficient matrices from \n"
+          "constant spectrum of scattering cross section matrices, atmospheric pressure,\n"
+          "temperature for one point in the atmosphere. Basically, it multiplies\n"
+          "the cross sections with the number density of gas molecules under the\n"
+          "assumption of an ideal gas. The result is returned in *gas_scattering_coef*. The\n"
+          "atmospheric  pressure  and  temperature  state  has  to  be  specified\n"
+          "by  *rtp_pressure*, *rtp_temperature*.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("gas_scattering_coef"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "rtp_pressure",
+         "rtp_temperature",
+         "stokes_dim"),
+      GIN("ConstXsec"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("0."),
+      GIN_DESC("Constant Xsec value")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("gas_scattering_matIsotropic"),
+      DESCRIPTION(
+          "Calculates the spectrum of normalized scattering matrices.\n"
+          "Important, the angular direction are line of sight direction not the\n"
+          "propagation direction.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("gas_scattering_mat",
+          "gas_scattering_fct_legendre"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("gas_scattering_los_in",
+         "gas_scattering_los_out",
+         "stokes_dim",
+         "gas_scattering_output_type"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("gas_scattering_matRayleigh"),
+      DESCRIPTION(
+          "Calculates the normalized Rayleigh scattering matrix.\n"
+          "\n"
+          "The phase matrix for anisotropic Rayleigh particles in random orientations."
+          "Important, the angular direction are defined as line of sight direction not as\n"
+          "propagation direction.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("gas_scattering_mat", "gas_scattering_fct_legendre"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("gas_scattering_los_in", "gas_scattering_los_out", "stokes_dim", "gas_scattering_output_type"),
+      GIN("depolarization_factor"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("0.03"),
+      GIN_DESC("depolarization factor for air")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
@@ -7905,6 +8134,126 @@ Possible models:
        GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iyClearsky"),
+      DESCRIPTION(
+          "Standard method for radiative transfer calculations with emission\n"
+          "and a direct (solar, star) source\n."
+          "\n"
+          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
+          "outside the cloudbox (no scattering). For details se the user guide.\n"
+          "\n"
+          "The possible choices for *iy_unit* are\n"
+          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
+          "                     frequency unit).\n"
+          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
+          "                     temperature.\n"
+          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
+          " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
+          "                     wavelength unit).\n"
+          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
+          "                     wavenumber unit).\n"
+          "Expressions applied and considerations for the unit conversion of\n"
+          "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
+          "\n"
+          "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
+          "no unit ocnversion is applied for internal iterative calls.\n"
+          "\n"
+          "Recognised choices for *rt_integration_option* are:\n"
+          "   \"first order\": A first order integration is applied.\n"
+          "   \"second order\": A second order integration is applied.\n"
+          "   \"default\": Another way to select the first order option.\n"
+          "\n"
+          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Radiative background\": Index value flagging the radiative\n"
+          "    background. The following coding is used: 0=space, 1=surface\n"
+          "    and 2=cloudbox.\n"
+          " \"Optical depth\": Scalar optical depth between the observation point\n"
+          "    and the end of the present propagation path. Calculated based on\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
+          "    i.e. only fully valid for scalar RT.\n"
+          " \"Direct radiation\": Stokes vector of direct radiation. It dimensions\n"
+          "   are number of frequencies and *stokes_dim*. If no star is present \n"
+          "   in the line of sight, it is zero.\n"
+          " \"Radiation Background\": Stokes vector of the radiation at start of\n"
+          "   the propagation path. It dimensions are number of frequencies and\n"
+          "   *stokes_dim*.\n"
+          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
+          "i.e. the column matching Stokes element I, while remaing columns are\n"
+          "are filled with zeros.\n"
+          "\n"
+          "IMPORTANT: No jacobian calculation is supported when stars or gas "
+          "scattering is included! This will be implemented in a future version.\n"),
+      AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke", "Manfred Brath"),
+      OUT("iy",
+          "iy_aux",
+          "diy_dx",
+          "ppvar_p",
+          "ppvar_t",
+          "ppvar_nlte",
+          "ppvar_vmr",
+          "ppvar_wind",
+          "ppvar_mag",
+          "ppvar_f",
+          "ppvar_iy",
+          "ppvar_trans_cumulat",
+          "ppvar_trans_partial"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "iy_id",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "refellipsoid",
+         "ppath_lmax",
+         "ppath_lraytrace",
+         "cloudbox_on",
+         "gas_scattering_do",
+         "stars_do",
+         "iy_unit",
+         "iy_aux_vars",
+         "jacobian_do",
+         "jacobian_quantities",
+         "ppath",
+         "rte_pos2",
+         "stars",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "rt_integration_option",
+         "iy_main_agenda",
+         "iy_space_agenda",
+         "iy_surface_agenda",
+         "iy_cloudbox_agenda",
+         "gas_scattering_agenda",
+         "ppath_step_agenda",
+         "iy_agenda_call1",
+         "iy_transmittance",
+         "rte_alonglos_v",
+         "surface_props_data"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyEmissionHybrid"),
       DESCRIPTION(
         "Radiative transfer with emission and precalculated radiation field.\n"
@@ -8157,14 +8506,14 @@ Possible models:
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim",
-            "p_grid", "z_field", "t_field", "vmr_field", "abs_species", 
+            "p_grid", "z_field", "t_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
             "mag_v_field", "mag_w_field", "cloudbox_on", "cloudbox_limits",
             "pnd_field", "scat_data",
-            "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
-            "ppath_agenda", 
-            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
-            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance", 
+            "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do",
+            "ppath_agenda",
+            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
+            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance",
             "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v",
             "ppath_lmax", "ppath_lraytrace",
             "fos_scatint_angles", "fos_iyin_za_angles"
@@ -8438,7 +8787,7 @@ Possible models:
          "Radiative transfer for (active) radio links.\n"
          "\n"
          "The method assumes that *ppath_agenda* is set up to return the\n"
-         "propagation path between the transmitter and the receiver. The\n" 
+         "propagation path between the transmitter and the receiver. The\n"
          "position of the transmitter is given as *rte_pos*, and the\n"
          "\"sensor\" is taken as the receiver.\n"
          "\n"
@@ -8531,13 +8880,13 @@ Possible models:
             "p_grid", "lat_grid", "lon_grid",
             "z_field", "t_field", "vmr_field", "abs_species",
             "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", 
-            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits", 
-            "pnd_field", "scat_data", 
-            "particle_masses", "iy_aux_vars", "jacobian_do", 
+            "mag_v_field", "mag_w_field",
+            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits",
+            "pnd_field", "scat_data",
+            "particle_masses", "iy_aux_vars", "jacobian_do",
             "ppath_agenda", "ppath_step_agenda",
             "propmat_clearsky_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los", 
+            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los",
             "rte_pos2", "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
         GIN(      "defocus_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
@@ -8546,7 +8895,7 @@ Possible models:
                   "Angular shift to apply in defocusing estimates." )
         ));
   */
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iyRadarSingleScat"),
       DESCRIPTION(
@@ -8574,9 +8923,9 @@ Possible models:
           "frequency occupy the np first rows of *iy* etc.\n"
           "\n"
           "The polarisation state of the transmitted pulse is taken from\n"
-          "*iy_transmitter_agenda*. If the radar transmits several\n"
-          "polarisations at the same frequency, you need to handle this by\n"
-          "using two frequencies in *f_grid*, but these can be almost identical.\n"
+          "*iy_transmitter*. If the radar transmits several polarisations at\n"
+          "the same frequency, you need to handle this by using two frequencies\n"
+          "in *f_grid*, but these can be almost identical.\n"
           "\n"
           "This method does not consider *iy_unit_radar*. Unit changes are instead\n"
           "applied in *yRadar. The output of this method matches the option \"1\".\n"
@@ -8647,9 +8996,9 @@ Possible models:
          "jacobian_do",
          "jacobian_quantities",
          "ppath",
+         "iy_transmitter",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
-         "iy_transmitter_agenda",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),
@@ -8770,6 +9119,384 @@ Possible models:
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceFlatReflectivity"),
+      DESCRIPTION(
+          "This method calculates upwelling radiation for a specular flat surface\n"
+          "due to the reflection of the downgoing diffuse radiation and emission from\n"
+          "the surface using a predefined reflectivity matrix. \n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the reflection of the diffuse\n"
+          "downward radiation. No direct incoming radiation is considered\n"
+          "\n"
+          "Jacobian is supported only for Skin temperature\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx",
+          "dsurface_rmatrix_dx",
+          "dsurface_emission_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+          "diy_dx",
+         "dsurface_rmatrix_dx",
+         "dsurface_emission_dx",
+         "iy_transmittance",
+         "iy_id",
+         "jacobian_do",
+         "stars_do",
+         "atmosphere_dim",
+         "nlte_field",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_surface",
+         "refellipsoid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "surface_reflectivity",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_quantities",
+         "iy_main_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceFlatReflectivityDirect"),
+      DESCRIPTION(
+          "This method calculates the specular reflection at a flat \n"
+          "surface of the direct radiation with a predefined reflectivity matrix.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the scattering of the direct\n"
+          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "\n"
+          "This method has no jacobian capability\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "rtp_pos",
+         "rtp_los",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "surface_reflectivity",
+         "refellipsoid",
+         "pnd_field",
+         "dpnd_field_dx",
+         "scat_species",
+         "scat_data",
+         "ppath_lmax",
+         "ppath_lraytrace",
+         "ppath_inside_cloudbox_do",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "stars_do",
+         "gas_scattering_do",
+         "jacobian_do",
+         "jacobian_quantities",
+         "stars",
+         "rte_alonglos_v",
+         "iy_unit",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "gas_scattering_agenda",
+         "ppath_step_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceFlatRefractiveIndex"),
+      DESCRIPTION(
+          "This method calculates upwelling radiation for a specular flat surface\n"
+          "due to the reflection of the downgoing diffuse radiation and emission from\n"
+          "the surface using a predefined reflectivity matrix. \n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the reflection of the diffuse\n"
+          "downward radiation. No direct incoming radiation is considered\n"
+          "\n"
+          "Jacobian is supported only for Skin temperature\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx",
+          "dsurface_rmatrix_dx",
+          "dsurface_emission_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "diy_dx",
+         "dsurface_rmatrix_dx",
+         "dsurface_emission_dx",
+         "iy_transmittance",
+         "iy_id",
+         "jacobian_do",
+         "stars_do",
+         "atmosphere_dim",
+         "nlte_field",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_surface",
+         "refellipsoid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "surface_complex_refr_index",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_quantities",
+         "iy_main_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceFlatRefractiveIndexDirect"),
+      DESCRIPTION(
+          "This method calculates the specular reflection at a flat \n"
+          "surface of the direct radiation.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the scattering of the direct\n"
+          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "\n"
+          "This method has no jacobian capability\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "rtp_pos",
+         "rtp_los",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "surface_complex_refr_index",
+         "refellipsoid",
+         "pnd_field",
+         "dpnd_field_dx",
+         "scat_species",
+         "scat_data",
+         "ppath_lmax",
+         "ppath_lraytrace",
+         "ppath_inside_cloudbox_do",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "stars_do",
+         "gas_scattering_do",
+         "jacobian_do",
+         "jacobian_quantities",
+         "stars",
+         "rte_alonglos_v",
+         "iy_unit",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "gas_scattering_agenda",
+         "ppath_step_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceInit"),
+      DESCRIPTION(
+          "This method initialize iy.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*.\n"
+          "Its only prpose is to initialize *iy* properly within the \n"
+          "*iy_surface_agenda*\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "stokes_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceLambertian"),
+      DESCRIPTION(
+          "This method calculates upwelling radiation for a lambertian surface\n"
+          "due to the scattering of the downgoing diffuse radiation and emission from\n"
+          "the surface.\n"
+          "This method works only for 1D or 3D atmospheres.\n"
+          "For the integration over the zenith angles a gaussian quadrature with\n"
+          "N_za\n angles is used.\n"
+          "For 1D atmospheres N_aa is ignored. For 3D atmospheres without clouds\n"
+          "azimuthal dependency\n can be neglected. N_aa = 1 is sufficient.\n"
+          "For 3D atmospheres with cloudbox on azimuthal dependency needs to be \n"
+          "accounted. In that case the number of azimuth angles N_aa as a rule of"
+          "thumb should be set to 4*N_za.\n"
+          "For the 1D case N_za downwelling streams and 3D case N_za*N_aa downwelling\n"
+          "streams are calculated.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the scattering of the diffuse\n"
+          "downward radiation. No direct incoming radiation is considered\n"
+          "\n"
+          "Jacobian is supported only for Skin temperature\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy",
+          "diy_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "diy_dx",
+         "iy_transmittance",
+         "iy_id",
+         "jacobian_do",
+         "stars_do",
+         "atmosphere_dim",
+         "nlte_field",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_surface",
+         "refellipsoid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "surface_scalar_reflectivity",
+         "surface_props_data",
+         "surface_props_names",
+         "dsurface_names",
+         "jacobian_quantities",
+         "iy_main_agenda"),
+      GIN("N_za","N_aa"),
+      GIN_TYPE("Index","Index"),
+      GIN_DEFAULT("3","1"),
+      GIN_DESC("Number of zenith angles.","Number of azimuth angles")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iySurfaceLambertianDirect"),
+      DESCRIPTION(
+          "This method calculates the scattering of the direct radiation\n"
+          "for a Lambertian surface.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*\n"
+          "\n"
+          "Important this method calculates only the scattering of the direct\n"
+          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "\n"
+          "This method has no jacobian capability\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("iy"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy",
+         "rtp_pos",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "surface_scalar_reflectivity",
+         "refellipsoid",
+         "pnd_field",
+         "dpnd_field_dx",
+         "scat_species",
+         "scat_data",
+         "ppath_lmax",
+         "ppath_lraytrace",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "stars_do",
+         "gas_scattering_do",
+         "jacobian_do",
+         "jacobian_quantities",
+         "stars",
+         "rte_alonglos_v",
+         "iy_unit",
+         "propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "gas_scattering_agenda",
+         "ppath_step_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceRtpropAgenda"),
       DESCRIPTION(
           "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
@@ -8794,6 +9521,7 @@ Possible models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
+         "stars_do",
          "atmosphere_dim",
          "nlte_field",
          "cloudbox_on",
@@ -8838,6 +9566,7 @@ Possible models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
+         "stars_do",
          "jacobian_quantities",
          "atmosphere_dim",
          "nlte_field",
@@ -8863,10 +9592,10 @@ Possible models:
           "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
           "\n"
           "The transmitter is assumed to be placed at the end of provided *ppath*.\n"
-          "The transmitted signal is taken from *iy_transmitter_agenda*. This\n"
+          "The transmitted signal is taken from *iy_transmitter*. This\n"
           "signal is propagated along the path, considering attenuation alone.\n"
           "That is, the result of the method (*iy*) is the output of\n"
-          "*iy_transmitter_agenda* multiplied with the transmittance along the\n"
+          "*iy_transmitter* multiplied with the transmittance along the\n"
           "propagation path.\n"
           "\n"
           "As mentioned, the given *ppath* determines the position of the\n"
@@ -8888,7 +9617,10 @@ Possible models:
           "    and the end of the present propagation path. Calculated based on\n"
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT. The value is added to each\n"
-          "    column.\n"),
+          "    column.\n"
+          "\n"
+          "IMPORTANT: No jacobian calculation is supported when gas scattering is\n "
+          "included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
           "iy_aux",
@@ -8924,6 +9656,7 @@ Possible models:
          "mag_w_field",
          "cloudbox_on",
          "cloudbox_limits",
+         "gas_scattering_do",
          "pnd_field",
          "dpnd_field_dx",
          "scat_species",
@@ -8932,9 +9665,10 @@ Possible models:
          "jacobian_do",
          "jacobian_quantities",
          "ppath",
+         "iy_transmitter",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
-         "iy_transmitter_agenda",
+         "gas_scattering_agenda",
          "iy_agenda_call1",
          "iy_transmittance",
          "rte_alonglos_v"),
@@ -8948,13 +9682,15 @@ Possible models:
       DESCRIPTION(
           "Transmitted signal having multiple polarisations.\n"
           "\n"
-          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
-          "sets *iy* to describe the transmitted signal/pulses. The polarisation\n"
-          "state is taken from *instrument_pol*, where *instrument_pol* must\n"
-          "contain an element for each frequency in *f_grid*. The transmitted\n"
-          "signal/pulses are set to be of unit magnitude, such as [1,1,0,0].\n"),
+          "The method is intended to be used as possible input of "
+          "*iyTransmissionStandard.\n"
+          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n "
+          "The polarisation state is taken from *instrument_pol*, where\n"
+          "*instrument_pol* must contain an element for each frequency in *f_grid*.\n"
+          "The transmitted signal/pulses are set to be of unit magnitude, such\n"
+          "as [1,1,0,0].\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("iy"),
+      OUT("iy_transmitter"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -8969,14 +9705,16 @@ Possible models:
       DESCRIPTION(
           "Transmitted signal having a single polarisations.\n"
           "\n"
-          "The method is intended to be part of *iy_transmitter_agenda*. It\n"
-          "sets *iy* to describe the transmitted pulses/signal. The polarisation\n"
-          "state is taken from *instrument_pol*, where *instrument_pol* must contain\n"
-          "a single value. This polarisation state is applied for all\n"
-          "frequencies. The transmitted pulses/signals are set to be of unit\n"
+          "The method is intended to be used as possible input of "
+          "*iyTransmissionStandard.\n"
+          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n "
+          "The polarisation state is taken from *instrument_pol*, where\n"
+          "*instrument_pol* must contain a single value.\n"
+          "This polarisation state is applied for all frequencies.\n"
+          "The transmitted pulses/signals are set to be of unit\n"
           "magnitude, such as [1,1,0,0].\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("iy"),
+      OUT("iy_transmitter"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -10201,7 +10939,7 @@ Possible models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("LocalTimeOffset"),
       DESCRIPTION("Sets the seconds between localtime and gmtime representation of now().\n"),
@@ -10720,7 +11458,7 @@ Possible models:
           "GIN *spacing*. All points inside a radius from (0,0) are included in\n"
           "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
           "a roughly circular domain, and cover the same solid beam angle.\n"
-          "The radius is adjusted according to *spacing' and *centre*, but is\n" 
+          "The radius is adjusted according to *spacing' and *centre*, but is\n"
           "ensured to be >= *width*.\n"
           "\n"
           "Note that the method assumes that width is small and the solid beam\n"
@@ -11472,7 +12210,7 @@ Possible models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("timeNow"),
       DESCRIPTION("Sets time to system_clock::now().\n"),
@@ -11486,7 +12224,7 @@ Possible models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("timeOffset"),
       DESCRIPTION("Offsets time for some seconds\n"),
@@ -11500,7 +12238,7 @@ Possible models:
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Time in seconds")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
       DESCRIPTION(
@@ -16586,8 +17324,8 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
-  
+
+
   md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
@@ -17034,13 +17772,13 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN( "scat_meta", "complex_refr_index" ),
-      GIN( "description", "material", "shape", "ptype", "density", 
+      GIN( "description", "material", "shape", "ptype", "density",
            "aspect_ratio_grid", "diameter_max_grid", "scat_f_grid", "scat_T_grid" ),
       GIN_TYPE( "String", "String", "String", "String", "Numeric", "Vector",
            "Vector", "Vector", "Vector" ),
       GIN_DEFAULT( "", "undefined", NODEF, NODEF, "-999", NODEF, NODEF,
                    NODEF, NODEF ),
-      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder", 
+      GIN_DESC( "Particle description", "Water or Ice", "spheroidal or cylinder",
                 "Particle Type: "totally_random" (20) or "azimuthally_random" (30)",
                 "Particle mass density",
                 "Particle aspect ratio vector",
@@ -18211,7 +18949,7 @@ where N>=0 and the species name is something line "H2O".
                GIN_TYPE("Index"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Number of threads.")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("Sleep"),
       DESCRIPTION("Sleeps for a number of seconds\n"),
@@ -18225,7 +18963,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Time to sleep for in seconds")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("timeSleep"),
       DESCRIPTION("Sleeps until time has been reached.\n"),
@@ -18449,7 +19187,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to select parallelization over zenith angles.\n")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
       DESCRIPTION(
@@ -18503,6 +19241,117 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("rtp_pos", "rtp_los", "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("starsAddSingleBlackbody"),
+      DESCRIPTION("Adds a single blackbody to *stars*\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("stars",
+          "stars_do"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("stars",
+         "f_grid",
+         "stokes_dim"),
+      GIN("radius",
+          "distance",
+          "temperature",
+          "latitude",
+          "longitude"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric"),
+      GIN_DEFAULT("6.963242e8",
+                  "1.495978707e11",
+                  "5772",
+                  "0",
+                  "0"),
+      GIN_DESC("The radius of the star in meter.\n"
+               "Default is the radius of our sun.\n",
+               "The average distance between the star and the planet in meter.\n"
+               "Default value is set to 1 a.u.\n",
+               "The effective temperature of the stars photosphere in Kelvin.\n"
+               "Default is the temperature of our sun - 5772 Kelvin\n",
+               "The latitude or the zenith position of the star in the sky.\n",
+               "The longitude or azimuthal position of the star in the sky.\n")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("starsAddSingleFromGrid"),
+      DESCRIPTION(
+          "Extracts a star spectrum from a field of such data and\n"
+          "adds it to *stars*.\n"
+          "\n"
+          "The method allows to obtain the star spectrum by\n"
+          "interpolation from a field of such data. \n"
+          "The star spectrum is expected to be stored as:\n"
+          "   GriddedField2:\n"
+          "      Vector f_grid[N_f]\n"
+          "      Vector stockes_dim[N_s]\n"
+          "\n"
+          "This method performs an interpolation onto the f_grid.\n"
+          "The point of *f_grid* that are outside the data frequency grid\n"
+          "are initialized according to planck's law of the temperature variable.\n"
+          "Hence, a temperature of 0 means 0 st the edges of the f_grid.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("stars",
+          "stars_do"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("stars",
+         "f_grid",
+         "stokes_dim"),
+      GIN("star_spectrum_raw",
+          "radius",
+          "distance",
+          "temperature",
+          "latitude",
+          "longitude",
+          "description"),
+      GIN_TYPE("GriddedField2",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "String"),
+      GIN_DEFAULT(NODEF,
+                  "6.963242e8",
+                  "1.495978707e11",
+                  "-1",
+                  "0",
+                  "0",
+                  "Star spectrum from Griddedfield."),
+      GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
+               "The radius of the star in meter.\n"
+               "Default is the radius of our sun.\n",
+               "The average distance between the star and the planet in meter.\n"
+               "Default value is set to 1 a.u.\n",
+               "The temperature of the padding if the f_grid is outside the \n"
+               "star spectrum data. Choose 0 for 0 at the edges or a effective\n"
+               "temperature for a padding using plack's law.\n",
+               "The latitude or the zenith position of the star in the sky.\n",
+               "The longitude or azimuthal position of the star in the sky.\n",
+               "The description of the star.\n")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("starsOff"),
+      DESCRIPTION(
+          "Turns all calculations with stars off \n"),
+      AUTHORS("Jon Petersen"),
+      OUT("stars_do",
+          "stars"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -19142,7 +19991,7 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "Switch between the elements of *surface_rtprop_agenda_array*.\n"
           "\n"
-          "This method requires that *surface_types* have length 1, in\n"          
+          "This method requires that *surface_types* have length 1, in\n"
           "contrast to *iySurfaceCallAgendaX*\n"
           "\n"
           "This method obtains the surface properties as defined by the\n"
@@ -20021,7 +20870,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("time_gridOffset"),
       DESCRIPTION("Offsets a time grid by some seconds.\n"),
@@ -20073,7 +20922,7 @@ where N>=0 and the species name is something line "H2O".
                GIN_TYPE(),
                GIN_DEFAULT(),
                GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("time_stampsSort"),
       DESCRIPTION("Sort *in* by *time_stamps* into *out*.\n"),
@@ -21671,7 +22520,7 @@ where N>=0 and the species name is something line "H2O".
                "that case, a warning message is written to screen and file\n"
                "(out1 output stream), and the *y* Vector entry for the\n"
                "failed job in *ybatch* is left empty.")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("yColdAtmHot"),
       DESCRIPTION(
@@ -21698,7 +22547,7 @@ where N>=0 and the species name is something line "H2O".
                "Cold load temperature",
                "Hot load temperature",
                "Flag for calibration scheme, false means system temperature is computed")));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
       DESCRIPTION(
@@ -21784,7 +22633,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC")));
 
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
@@ -21838,7 +22687,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(create_mdrecord(
       NAME("yCalc"),
       DESCRIPTION(

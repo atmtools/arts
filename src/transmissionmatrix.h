@@ -98,6 +98,8 @@ struct TransmissionMatrix {
 
   operator Tensor3() const;
 
+  explicit TransmissionMatrix(const ConstMatrixView& mat);
+
   /** Get Matrix at position
    * 
    * @param[in] i Position
@@ -195,6 +197,15 @@ struct TransmissionMatrix {
   [[nodiscard]] Numeric operator()(const Index i,
                                    const Index j,
                                    const Index k) const;
+
+  /** Access value in matrix
+   *
+   * @param[in] i Position in vector
+   * @param[in] j Row in matrix
+   * @param[in] k Col in matrix
+   * @return const Numeric& value
+   */
+  Numeric& operator()(const Index i, const Index j, const Index k);
 
   /** Number of frequencies */
   [[nodiscard]] Index Frequencies() const;
@@ -411,6 +422,13 @@ struct RadiationVector {
    */
   RadiationVector& operator=(RadiationVector&& rv) noexcept = default;
 
+  /** Addition operator
+   *
+   * @param[in] rv Addition by rv
+   * @return RadiationVector& *this
+   */
+  RadiationVector& operator+=(const RadiationVector& rv);
+
   /** Multiply radiation vector from the left
    * 
    * @param[in] T Tranmission Vector
@@ -422,6 +440,8 @@ struct RadiationVector {
    * @param[in] i position
    */
   void SetZero(size_t i);
+
+  void SetZero();
 
   /** Return Vector at position
    * 
@@ -616,6 +636,13 @@ struct RadiationVector {
    */
   const Numeric& operator()(const Index i, const Index j) const;
 
+  /** Access operator
+   *
+   * @param[in] i Position in outer vector
+   * @param[in] j Position in inner vector
+   * @return Numeric&
+   */
+  [[nodiscard]] Numeric& operator()(const Index i, const Index j);
   /** Convert *this to Matrix class
    * 
    * @return Matrix
@@ -713,6 +740,7 @@ void update_radiation_vector(RadiationVector& I,
  * 
  * @param[in,out] J Source vector
  * @param[in,out] dJ Source vector derivatives
+ * @param[in] J_add Additional source vector
  * @param[in] K Propagation matrix
  * @param[in] a Absorption vector
  * @param[in] S Scattering source vector
@@ -726,6 +754,7 @@ void update_radiation_vector(RadiationVector& I,
  */
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
+                     RadiationVector& J_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,

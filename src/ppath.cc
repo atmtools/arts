@@ -2375,7 +2375,7 @@ void ppath_step_geom_1d(Ppath& ppath,
   }
 
   // The path is determined by another function. Determine some variables
-  // needed bý that function and call the function.
+  // needed by that function and call the function.
   //
   // Vars to hold found path points, path step length and coding for end face
   Vector r_v, lat_v, za_v;
@@ -4996,8 +4996,10 @@ void ppath_start_stepping(Ppath& ppath,
         }
       }
 
-      ARTS_USER_ERROR_IF (r_p <= r_toa_max,
-          "The sensor is horizontally outside (or at the limit) of "
+      ARTS_USER_ERROR_IF (r_p < r_toa_max - RTOL,
+          "r_p=",setprecision(18),r_p,"\n"
+          "r_toa_max=",r_toa_max,"\n"
+          "The sensor is horizontally outside of "
           "the model\natmosphere, but is at a radius smaller than "
           "the maximum value of\nthe top-of-the-atmosphere radii. "
           "This is not allowed. Make the\nmodel atmosphere larger "

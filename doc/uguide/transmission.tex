@@ -39,7 +39,7 @@ atmosphere for a given position and line-of-sight. The set-up is largely the
 same as for simulations involving emission, such as that the observation
 geometry is defined by \wsvindex{sensor\_pos} and \wsvindex{sensor\_los} (or
 \wsvindex{rte\_pos} and \wsvindex{rte\_los} if \builtindoc{iyCalc} is used).
-The first main difference is that \wsaindex{iy\_transmitter\_agenda} replaces
+The first main difference is that \wsvindex{iy\_transmitter} replaces
 \wsaindex{iy\_space\_agenda} and \wsaindex{iy\_surface\_agenda}. The second
 main difference is that handling of cloud scattering is built-in and the need
 to define \wsaindex{iy\_cloudbox\_agenda} vanishes. These differences appear
@@ -52,12 +52,12 @@ without considering the cloud-box (it is simple deactivated during this step).
 The possible ``radiative backgrounds'' are accordingly the surface or space,
 i.e.\ where the propagation path starts. 
 
-The next step is to call \builtindoc{iy\_transmitter\_agenda}. It should be
-noted that the same agenda is called independently if the radiative background
+The next step is to set \builtindoc{iy\_transmitter}. It should be
+noted that the same variable is use independently if the radiative background
 is space or the surface. It is up to the user to decide if these two cases
 shall be distinguished in some manner (no workspace method for this task exists
-yet). For these calculations, the standard choice for
-\builtindoc{iy\_transmitter\_agenda} is \wsmindex{MatrixUnitIntensity}. If this
+yet). For these calculations, the standard choice is to set
+\builtindoc{iy\_transmitter} with \wsmindex{MatrixUnitIntensity}. If this
 workspace method is used, the output of \builtindoc{iyTransmissionStandard}
 shows you the fraction of unpolarised radiation that is transmitted through the
 atmosphere, and the polarisation state of the transmitted part.
@@ -278,7 +278,7 @@ the propagation path can be extracted, and also the transmission matrix
 % $p_t'$ (e.g.\ $p_t'=[1,\pm1,0,0]$ when V or H is transmitted). The next step
 % towards a more complete treatment of the transmitter should be to include $p_t$
 % and $g_t$ in $p_t'$. In any case, \builtindocXXX{iyRadioLink} expects
-% \wsaindex{iy\_transmitter\_agenda} to return $p_t'$, for each frequency in
+% \wsvindex{iy\_transmitter} to return $p_t'$, for each frequency in
 % \builtindocXXX{f\_grid}.
 
 % So far ARTS has no dedicated support to handle characteristics of receivers in

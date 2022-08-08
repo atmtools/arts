@@ -11,7 +11,7 @@
 #
 ############
 #
-# Authors: Jana Mendrok
+# Authors: Jana Mendrok, Manfred Brath
 #
 
 
@@ -30,10 +30,40 @@ AgendaSet( iy_main_agenda__Emission ){
 }
 
 ###
+AgendaCreate( iy_main_agenda__Clearsky )
+AgendaSet( iy_main_agenda__Clearsky ){
+  ppathCalc
+  iyClearsky
+  VectorSet(geo_pos, [])
+}
+
+###
 AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
   Ignore( iy_id )
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionStandard
+  VectorSet(geo_pos, [])
+}
+
+
+AgendaCreate( iy_main_agenda__TransmissionUnitUnpolIntensity )
+AgendaSet( iy_main_agenda__TransmissionUnitUnpolIntensity ){
+  Ignore( iy_unit )
+  Ignore( iy_id )
+  MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionStandard
+  VectorSet(geo_pos, [])
+}
+
+###
+AgendaCreate( iy_main_agenda__TransmissionUnitPolIntensity )
+AgendaSet( iy_main_agenda__TransmissionUnitPolIntensity ){
+  Ignore( iy_unit )
+  Ignore( iy_id )
+  iy_transmitterSinglePol
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
   VectorSet(geo_pos, [])
@@ -99,32 +129,6 @@ AgendaSet( iy_space_agenda__CosmicBackground ){
   Ignore( rtp_los )
   MatrixCBR( iy, stokes_dim, f_grid )
 }
-
-
-##################################
-#    iy_transmitter_agenda
-##################################
-
-###
-# Unit (unpolarised) intensity
-#
-AgendaCreate( iy_transmitter_agenda__UnitUnpolIntensity )
-AgendaSet( iy_transmitter_agenda__UnitUnpolIntensity ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  MatrixUnitIntensity( iy, stokes_dim, f_grid )
-}
-
-###
-# Unit polarised intensity
-#
-AgendaCreate( iy_transmitter_agenda__UnitPolIntensity )
-AgendaSet( iy_transmitter_agenda__UnitPolIntensity ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
-
 
 ##################################
 #    iy_surface_agenda
@@ -327,6 +331,24 @@ AgendaSet( refr_index_air_agenda__GasMicrowavesEarthAndElectrons ){
 #
 AgendaSet( water_p_eq_agenda ){
   water_p_eq_fieldMK05
+}
+
+##################################
+#    dummy agenda
+##################################
+
+###
+AgendaSet( gas_scattering_agenda ){
+  Touch(gas_scattering_coef)
+  Touch(gas_scattering_mat)
+  Touch(gas_scattering_fct_legendre)
+  Ignore(f_grid)
+  Ignore(rtp_pressure)
+  Ignore(rtp_temperature)
+  Ignore(rtp_vmr)
+  Ignore(gas_scattering_los_in)
+  Ignore(gas_scattering_los_out)
+  Ignore(gas_scattering_output_type)
 }
 
 

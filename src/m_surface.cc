@@ -54,6 +54,11 @@
 #include "special_interp.h"
 #include "surface.h"
 #include "tessem.h"
+#include "constants.h"
+#include "gas_scattering.h"
+
+using Constant::pi;
+using Conversion::deg2rad;
 
 extern Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
@@ -442,6 +447,1119 @@ void iySurfaceFastem(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceFlatReflectivity(Workspace& ws,
+                         Matrix& iy,
+                         ArrayOfTensor3& diy_dx,
+                         ArrayOfTensor4& dsurface_rmatrix_dx,
+                         ArrayOfMatrix& dsurface_emission_dx,
+                         const Tensor3& iy_transmittance,
+                         const Index& iy_id,
+                         const Index& jacobian_do,
+                         const Index& stars_do,
+                         const Index& atmosphere_dim,
+                         const EnergyLevelMap& nlte_field,
+                         const Index& cloudbox_on,
+                         const Index& stokes_dim,
+                         const Vector& f_grid,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
+                         const Matrix& z_surface,
+                         const Vector& refellipsoid,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
+                         const Vector& rte_pos2,
+                         const String& iy_unit,
+                         const Tensor3& surface_reflectivity,
+                         const Tensor3& surface_props_data,
+                         const ArrayOfString& surface_props_names,
+                         const ArrayOfString& dsurface_names,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities,
+                         const Agenda& iy_main_agenda,
+                         const Verbosity& verbosity) {
+
+  // Input checks
+  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
+
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector surface_skin_t(1);
+  surface_props_interp(surface_skin_t,
+                       "Skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  chk_not_negative("surface_skin_t", surface_skin_t[0]);
+
+
+
+  //Allocate
+  Tensor3 iy_trans_new;
+  Matrix iy_incoming;
+  Vector specular_los, surface_normal;
+  ArrayOfMatrix iy_aux;
+  Ppath ppath;
+  ArrayOfTensor3 diy_dx_dumb;
+  Matrix surface_los;
+  Tensor4 surface_rmatrix;
+  Matrix surface_emission;
+  Tensor3 I(1,f_grid.nelem(),stokes_dim);
+  if (iy_transmittance.npages()) {
+    iy_trans_new=iy_transmittance;
+  }
+
+  //get specular line of sight
+  specular_losCalc(specular_los,
+                   surface_normal,
+                   rtp_pos,
+                   rtp_los,
+                   atmosphere_dim,
+                   lat_grid,
+                   lon_grid,
+                   refellipsoid,
+                   z_surface,
+                   0,
+                   verbosity);
+
+  // Calculate incoming radiation directions, surface reflection matrix and
+  // emission vector
+  surfaceFlatReflectivity(surface_los,
+                          surface_rmatrix,
+                          surface_emission,
+                          f_grid,
+                          stokes_dim,
+                          atmosphere_dim,
+                          rtp_pos,
+                          rtp_los,
+                          specular_los,
+                          surface_skin_t[0],
+                          surface_reflectivity,
+                          verbosity);
+
+
+
+  // Jacobian part
+  if (jacobian_do) {
+    dsurface_check(surface_props_names,
+                   dsurface_names,
+                   dsurface_rmatrix_dx,
+                   dsurface_emission_dx);
+
+    Index irq;
+
+    // Skin temperature
+    irq = find_first(dsurface_names, String("Skin temperature"));
+    if (irq >= 0) {
+      const Numeric dd = 0.1;
+      Matrix surface_los2;
+      surfaceFlatReflectivity(surface_los2,
+                                    dsurface_rmatrix_dx[irq],
+                                    dsurface_emission_dx[irq],
+                                    f_grid,
+                                    stokes_dim,
+                                    atmosphere_dim,
+                                    rtp_pos,
+                                    rtp_los,
+                                    specular_los,
+                                    surface_skin_t[0]+dd,
+                                    surface_reflectivity,
+                                    verbosity);
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
+  }
+
+  iySurfaceRtpropCalc(ws,
+                      iy,
+                      diy_dx,
+                      surface_los,
+                      surface_rmatrix,
+                      surface_emission,
+                      dsurface_names,
+                      dsurface_rmatrix_dx,
+                      dsurface_emission_dx,
+                      iy_transmittance,
+                      iy_id,
+                      jacobian_do,
+                      stars_do,
+                      jacobian_quantities,
+                      atmosphere_dim,
+                      nlte_field,
+                      cloudbox_on,
+                      stokes_dim,
+                      f_grid,
+                      rtp_pos,
+                      rtp_los,
+                      rte_pos2,
+                      iy_unit,
+                      iy_main_agenda,
+                      verbosity);
+
+
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceFlatReflectivityDirect(
+    Workspace& ws,
+    Matrix& iy,
+    const Vector& rtp_pos,
+    const Vector& rtp_los,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const Tensor3& surface_reflectivity,
+    const Vector& refellipsoid,
+    const Tensor4& pnd_field,
+    const ArrayOfTensor4& dpnd_field_dx,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& ppath_inside_cloudbox_do,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Index& stars_do,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const String& iy_unit,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity) {
+  //Check for correct unit
+  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
+                     "If stars are present only iy_unit=\"1\" can be used.");
+
+  chk_size("iy", iy, f_grid.nelem(), stokes_dim);
+
+  if (stars_do) {
+    Matrix iy_incoming;
+    Index stars_visible;
+    Vector specular_los;
+
+    //Get incoming direct radiation, if no star is in line of sight, then
+    //iy_incoming is zero.
+    surface_get_incoming_direct(ws,
+                                iy_incoming,
+                                stars_visible,
+                                specular_los,
+                                rtp_pos,
+                                rtp_los,
+                                stokes_dim,
+                                f_grid,
+                                atmosphere_dim,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                z_field,
+                                t_field,
+                                nlte_field,
+                                vmr_field,
+                                abs_species,
+                                wind_u_field,
+                                wind_v_field,
+                                wind_w_field,
+                                mag_u_field,
+                                mag_v_field,
+                                mag_w_field,
+                                z_surface,
+                                refellipsoid,
+                                pnd_field,
+                                dpnd_field_dx,
+                                scat_species,
+                                scat_data,
+                                ppath_lmax,
+                                ppath_lraytrace,
+                                ppath_inside_cloudbox_do,
+                                cloudbox_on,
+                                cloudbox_limits,
+                                gas_scattering_do,
+                                jacobian_do,
+                                jacobian_quantities,
+                                stars,
+                                rte_alonglos_v,
+                                propmat_clearsky_agenda,
+                                water_p_eq_agenda,
+                                gas_scattering_agenda,
+                                ppath_step_agenda,
+                                verbosity);
+
+    if (stars_visible) {
+      Matrix surface_los;
+      Tensor4 surface_rmatrix;
+      Matrix surface_emission;
+      Numeric surface_skin_t_dummy = 1.;
+
+      //As we only consider the reflection of the direct radiation we do not consider
+      //any type of surface emission, therefore we set the surface skin temperature
+      //to a dummy value and later on set the surface emission vector (matrix) to zero.
+      surfaceFlatReflectivity(surface_los,
+                              surface_rmatrix,
+                              surface_emission,
+                              f_grid,
+                              stokes_dim,
+                              atmosphere_dim,
+                              rtp_pos,
+                              rtp_los,
+                              specular_los,
+                              surface_skin_t_dummy,
+                              surface_reflectivity,
+                              verbosity);
+
+      surface_emission *= 0.;
+
+      Tensor3 I(1, f_grid.nelem(), stokes_dim);
+      I(0, joker, joker) = iy_incoming;
+
+      surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
+
+      //TODO: add reflectivity jacobian
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceFlatRefractiveIndex(Workspace& ws,
+                               Matrix& iy,
+                               ArrayOfTensor3& diy_dx,
+                               ArrayOfTensor4& dsurface_rmatrix_dx,
+                               ArrayOfMatrix& dsurface_emission_dx,
+                               const Tensor3& iy_transmittance,
+                               const Index& iy_id,
+                               const Index& jacobian_do,
+                               const Index& stars_do,
+                               const Index& atmosphere_dim,
+                               const EnergyLevelMap& nlte_field,
+                               const Index& cloudbox_on,
+                               const Index& stokes_dim,
+                               const Vector& f_grid,
+                               const Vector& lat_grid,
+                               const Vector& lon_grid,
+                               const Matrix& z_surface,
+                               const Vector& refellipsoid,
+                               const Vector& rtp_pos,
+                               const Vector& rtp_los,
+                               const Vector& rte_pos2,
+                               const String& iy_unit,
+                               const GriddedField3& surface_complex_refr_index,
+                               const Tensor3& surface_props_data,
+                               const ArrayOfString& surface_props_names,
+                               const ArrayOfString& dsurface_names,
+                               const ArrayOfRetrievalQuantity& jacobian_quantities,
+                               const Agenda& iy_main_agenda,
+                               const Verbosity& verbosity) {
+
+  // Input checks
+  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
+
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector surface_skin_t(1);
+  surface_props_interp(surface_skin_t,
+                       "Skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  chk_not_negative("surface_skin_t", surface_skin_t[0]);
+
+
+  //Allocate
+  Tensor3 iy_trans_new;
+  Matrix iy_incoming;
+  Vector specular_los, surface_normal;
+  ArrayOfMatrix iy_aux;
+  Ppath ppath;
+  ArrayOfTensor3 diy_dx_dumb;
+  Matrix surface_los;
+  Tensor4 surface_rmatrix;
+  Matrix surface_emission;
+  Tensor3 I(1,f_grid.nelem(),stokes_dim);
+  if (iy_transmittance.npages()) {
+    iy_trans_new=iy_transmittance;
+  }
+
+  //get specular line of sight
+  specular_losCalc(specular_los,
+                   surface_normal,
+                   rtp_pos,
+                   rtp_los,
+                   atmosphere_dim,
+                   lat_grid,
+                   lon_grid,
+                   refellipsoid,
+                   z_surface,
+                   0,
+                   verbosity);
+
+  // Calculate incoming radiation directions, surface reflection matrix and
+  // emission vector
+  surfaceFlatRefractiveIndex(surface_los,
+                             surface_rmatrix,
+                             surface_emission,
+                             f_grid,
+                             stokes_dim,
+                             atmosphere_dim,
+                             rtp_pos,
+                             rtp_los,
+                             specular_los,
+                             surface_skin_t[0],
+                             surface_complex_refr_index,
+                             verbosity);
+
+
+
+  // Jacobian part
+  if (jacobian_do) {
+    dsurface_check(surface_props_names,
+                   dsurface_names,
+                   dsurface_rmatrix_dx,
+                   dsurface_emission_dx);
+
+    Index irq;
+
+    // Skin temperature
+    irq = find_first(dsurface_names, String("Skin temperature"));
+    if (irq >= 0) {
+      const Numeric dd = 0.1;
+      Matrix surface_los2;
+      surfaceFlatRefractiveIndex(surface_los2,
+                              dsurface_rmatrix_dx[irq],
+                              dsurface_emission_dx[irq],
+                              f_grid,
+                              stokes_dim,
+                              atmosphere_dim,
+                              rtp_pos,
+                              rtp_los,
+                              specular_los,
+                              surface_skin_t[0]+dd,
+                                 surface_complex_refr_index,
+                              verbosity);
+      dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+      dsurface_rmatrix_dx[irq] /= dd;
+      dsurface_emission_dx[irq] -= surface_emission;
+      dsurface_emission_dx[irq] /= dd;
+    }
+  }
+
+  iySurfaceRtpropCalc(ws,
+                      iy,
+                      diy_dx,
+                      surface_los,
+                      surface_rmatrix,
+                      surface_emission,
+                      dsurface_names,
+                      dsurface_rmatrix_dx,
+                      dsurface_emission_dx,
+                      iy_transmittance,
+                      iy_id,
+                      jacobian_do,
+                      stars_do,
+                      jacobian_quantities,
+                      atmosphere_dim,
+                      nlte_field,
+                      cloudbox_on,
+                      stokes_dim,
+                      f_grid,
+                      rtp_pos,
+                      rtp_los,
+                      rte_pos2,
+                      iy_unit,
+                      iy_main_agenda,
+                      verbosity);
+
+
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceFlatRefractiveIndexDirect(
+    Workspace& ws,
+    Matrix& iy,
+    const Vector& rtp_pos,
+    const Vector& rtp_los,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const GriddedField3& surface_complex_refr_index,
+    const Vector& refellipsoid,
+    const Tensor4& pnd_field,
+    const ArrayOfTensor4& dpnd_field_dx,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& ppath_inside_cloudbox_do,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Index& stars_do,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const String& iy_unit,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity) {
+  //Check for correct unit
+  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
+                     "If stars are present only iy_unit=\"1\" can be used.");
+
+  chk_size("iy", iy, f_grid.nelem(), stokes_dim);
+
+  if (stars_do) {
+    Matrix iy_incoming;
+    Index stars_visible;
+    Vector specular_los;
+
+    //Get incoming direct radiation, if no star is in line of sight, then
+    //iy_incoming is zero.
+    surface_get_incoming_direct(ws,
+                                iy_incoming,
+                                stars_visible,
+                                specular_los,
+                                rtp_pos,
+                                rtp_los,
+                                stokes_dim,
+                                f_grid,
+                                atmosphere_dim,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                z_field,
+                                t_field,
+                                nlte_field,
+                                vmr_field,
+                                abs_species,
+                                wind_u_field,
+                                wind_v_field,
+                                wind_w_field,
+                                mag_u_field,
+                                mag_v_field,
+                                mag_w_field,
+                                z_surface,
+                                refellipsoid,
+                                pnd_field,
+                                dpnd_field_dx,
+                                scat_species,
+                                scat_data,
+                                ppath_lmax,
+                                ppath_lraytrace,
+                                ppath_inside_cloudbox_do,
+                                cloudbox_on,
+                                cloudbox_limits,
+                                gas_scattering_do,
+                                jacobian_do,
+                                jacobian_quantities,
+                                stars,
+                                rte_alonglos_v,
+                                propmat_clearsky_agenda,
+                                water_p_eq_agenda,
+                                gas_scattering_agenda,
+                                ppath_step_agenda,
+                                verbosity);
+
+    if (stars_visible) {
+      Matrix surface_los;
+      Tensor4 surface_rmatrix;
+      Matrix surface_emission;
+      Numeric surface_skin_t_dummy = 1.;
+
+      //As we only consider the reflection of the direct radiation we do not consider
+      //any type of surface emission, therefore we set the surface skin temperature
+      //to a dummy value and later on set the surface emission vector (matrix) to zero.
+     surfaceFlatRefractiveIndex(surface_los,
+                                surface_rmatrix,
+                                surface_emission,
+                                f_grid,
+                                stokes_dim,
+                                atmosphere_dim,
+                                rtp_pos,
+                                rtp_los,
+                                specular_los,
+                                surface_skin_t_dummy,
+                                surface_complex_refr_index,
+                                verbosity);
+
+      surface_emission *= 0.;
+
+      Tensor3 I(1, f_grid.nelem(), stokes_dim);
+      I(0, joker, joker) = iy_incoming;
+
+      surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
+
+      //TODO: add reflectivity jacobian
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceInit(Matrix& iy,
+                   const Vector& f_grid,
+                   const Index& stokes_dim,
+                   const Verbosity&) {
+  iy.resize(f_grid.nelem(), stokes_dim);
+  iy = 0.;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceLambertian(Workspace& ws,
+                         Matrix& iy,
+                         ArrayOfTensor3& diy_dx,
+                         const Tensor3& iy_transmittance,
+                         const Index& iy_id,
+                         const Index& jacobian_do,
+                         const Index& stars_do,
+                         const Index& atmosphere_dim,
+                         const EnergyLevelMap& nlte_field,
+                         const Index& cloudbox_on,
+                         const Index& stokes_dim,
+                         const Vector& f_grid,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
+                         const Matrix& z_surface,
+                         const Vector& refellipsoid,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
+                         const Vector& rte_pos2,
+                         const String& iy_unit,
+                         const Vector& surface_scalar_reflectivity,
+                         const Tensor3& surface_props_data,
+                         const ArrayOfString& surface_props_names,
+                         const ArrayOfString& dsurface_names,
+                         const ArrayOfRetrievalQuantity& jacobian_quantities,
+                         const Agenda& iy_main_agenda,
+                         const Index& N_za,
+                         const Index& N_aa,
+                         const Verbosity& verbosity) {
+  // Input checks
+  ARTS_USER_ERROR_IF(surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
+                     surface_scalar_reflectivity.nelem() != 1,
+                     "The number of elements in *surface_scalar_reflectivity* should\n",
+                     "match length of *f_grid* or be 1.",
+                     "\n length of *f_grid* : ", f_grid.nelem(),
+                     "\n length of *surface_scalar_reflectivity* : ",
+                     surface_scalar_reflectivity.nelem());
+  ARTS_USER_ERROR_IF(min(surface_scalar_reflectivity) < 0 ||
+                         max(surface_scalar_reflectivity) > 1,
+                     "All values in *surface_scalar_reflectivity* must be inside [0,1].");
+  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.");
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
+
+  // Check surface_data
+  surface_props_check(atmosphere_dim,
+                      lat_grid,
+                      lon_grid,
+                      surface_props_data,
+                      surface_props_names);
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix itw;
+  rte_pos2gridpos(
+      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+
+  // Skin temperature
+  Vector surface_skin_t(1);
+  surface_props_interp(surface_skin_t,
+                       "Skin temperature",
+                       atmosphere_dim,
+                       gp_lat,
+                       gp_lon,
+                       itw,
+                       surface_props_data,
+                       surface_props_names);
+
+  chk_not_negative("surface_skin_t", surface_skin_t[0]);
+
+
+
+
+  const Index nf = f_grid.nelem();
+
+  Vector za_grid, aa_grid, za_grid_weights;
+
+  //get angular grids. here we use gauss quadrature. As the function is not intended for
+  //a hemisphere but for full sphere, we have to tweak it a little bit and use only
+  //the first half of the angles.
+  AngularGridsSetFluxCalc(za_grid,
+                          aa_grid,
+                          za_grid_weights,
+                          N_za * 2,
+                          N_aa,
+                          "double_gauss",
+                          verbosity);
+
+  Tensor3 iy_trans_new;
+  Vector los(2, 0);
+
+  ArrayOfString iy_aux_var(0);
+  if (stars_do) {
+    iy_aux_var.resize(1);
+    iy_aux_var[0] = "Direct radiation";
+  }
+
+  Matrix iy_temp;
+  Matrix Flx(nf, 1, 0.);
+
+  if (iy_transmittance.npages()) {
+    iy_trans_new=iy_transmittance;
+  }
+
+
+//  ArrayOfMatrix Flx_dx;
+//  if (jacobian_do) {
+//    Flx_dx.resize(diy_dx.nelem(),
+//                  Matrix(diy_dx[0].npages(), diy_dx[0].nrows()));
+//  }
+  ArrayOfTensor3 diy_dx_dumb;
+  iy.resize(nf, stokes_dim);
+  iy = 0;
+
+  if (N_aa == 1 || atmosphere_dim == 1) {
+    //Set azimuth angle index
+    Index i_aa = 0;
+
+    for (Index i_za = 0; i_za < N_za; i_za++) {
+
+      los[0] = za_grid[i_za];
+
+      // For clearsky, the skylight is in general approximately independent of the azimuth direction.
+      // So, we consider only the line of sight plane.
+      los[1] = rtp_los[1];
+
+      // Calculate downwelling radiation for a los
+      ArrayOfMatrix iy_aux;
+      Ppath ppath;
+      Vector geo_pos_dumb;
+      Index iy_id_new = iy_id + i_za + i_aa * N_za + 1;
+      iy_main_agendaExecute(ws,
+                            iy_temp,
+                            iy_aux,
+                            ppath,
+                            diy_dx_dumb,
+                            geo_pos_dumb,
+                            0,
+                            iy_trans_new,
+                            iy_aux_var,
+                            iy_id_new,
+                            iy_unit,
+                            cloudbox_on,
+                            jacobian_do,
+                            f_grid,
+                            nlte_field,
+                            rtp_pos,
+                            los,
+                            rte_pos2,
+                            iy_main_agenda);
+
+      //For the case that a star is present and the los is towards a star, we
+      //subtract the direct radiation, so that only the diffuse radiation is considered here.
+      //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+      //radiation at the surface. Otherwise it is zero.
+      if (stars_do) {
+        iy_temp -= iy_aux[0];
+      }
+      iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
+                 za_grid_weights[i_za];
+      Flx(joker, 0) += iy_temp(joker, 0);
+    }
+    //Azimuthal integration just gives a factor of 2*pi
+    Flx *= 2 * pi;
+
+  } else {
+    // before we start with the actual RT calculation, we calculate the integration
+    // weights for a trapezoidal integration over the azimuth.
+    Vector aa_grid_weights;
+    Vector aa_grid_rad = aa_grid;
+
+    //For the integration we need the aa grid in rad
+    for (Index i = 0; i < aa_grid_rad.nelem(); i++) {
+      aa_grid_rad[i] = deg2rad(aa_grid_rad[i]);
+    }
+
+    calculate_int_weights_arbitrary_grid(aa_grid_weights, aa_grid_rad);
+
+    for (Index i_aa = 0; i_aa < N_aa; i_aa++) {
+      for (Index i_za = 0; i_za < N_za; i_za++) {
+
+
+        los[0] = za_grid[i_za];
+        los[1] = aa_grid[i_aa];
+
+        // Calculate downwelling radiation for LOS ilos
+        ArrayOfMatrix iy_aux;
+        Ppath ppath;
+        Vector geo_pos_dumb;
+        Index iy_id_new = iy_id + i_za + i_aa * N_za + 1;
+        iy_main_agendaExecute(ws,
+                              iy_temp,
+                              iy_aux,
+                              ppath,
+                              diy_dx_dumb,
+                              geo_pos_dumb,
+                              0,
+                              iy_trans_new,
+                              iy_aux_var,
+                              iy_id_new,
+                              iy_unit,
+                              cloudbox_on,
+                              jacobian_do,
+                              f_grid,
+                              nlte_field,
+                              rtp_pos,
+                              los,
+                              rte_pos2,
+                              iy_main_agenda);
+
+        //For the case that a star is present and the los is towards a star, we
+        //subtract the direct radiation, so that only the diffuse radiation is considered here.
+        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //radiation at the surface. Otherwise it is zero.
+        if (stars_do) {
+          iy_temp -= iy_aux[0];
+        }
+        iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
+                   za_grid_weights[i_za] * aa_grid_weights[i_aa];
+        Flx(joker, 0) += iy_temp(joker, 0);
+      }
+    }
+  }
+
+  Vector specular_los, surface_normal;
+  specular_losCalc(specular_los,
+                   surface_normal,
+                   rtp_pos,
+                   rtp_los,
+                   atmosphere_dim,
+                   lat_grid,
+                   lon_grid,
+                   refellipsoid,
+                   z_surface,
+                   0,
+                   verbosity);
+
+  //Surface emission
+  Vector b(nf);
+  planck(b, f_grid, surface_skin_t[0]);
+
+  //Upwelling radiation
+  Numeric r;
+  for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
+    if (i_freq == 0 || surface_scalar_reflectivity.nelem() > 1) {
+      r = surface_scalar_reflectivity[i_freq];
+    }
+    iy(i_freq, 0) = r *
+                        cos(deg2rad(specular_los[0])) / pi * Flx(i_freq, 0) +
+                    (1 - r) * b[i_freq];
+  }
+
+  // Surface Jacobians
+  if (jacobian_do && dsurface_names.nelem()) {
+
+    Index irq;
+    irq = find_first(dsurface_names, String("Skin temperature"));
+
+    if (irq >= 0){
+      // Find index among jacobian quantities
+      Index ihit = -1;
+      for (Index j = 0; j < jacobian_quantities.nelem() && ihit < 0; j++) {
+        if (dsurface_names[irq] == jacobian_quantities[j].Subtag()) {
+          ihit = j;
+        }
+      }
+
+      // Derivative of surface skin temperature, as observed at the surface
+      Matrix diy_dpos0(f_grid.nelem(), stokes_dim, 0.), diy_dpos;
+      dplanck_dt(diy_dpos0(joker, 0), f_grid, surface_skin_t[0]);
+
+      Vector emissivity=surface_scalar_reflectivity;
+      emissivity*=-1;
+      emissivity+=1;
+      diy_dpos0*=emissivity;
+
+      // Weight with transmission to sensor
+      iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
+
+      // Put into diy_dx
+      diy_from_pos_to_rgrids(diy_dx[ihit],
+                             jacobian_quantities[ihit],
+                             diy_dpos,
+                             atmosphere_dim,
+                             rtp_pos);
+
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iySurfaceLambertianDirect(
+    Workspace& ws,
+    Matrix& iy,
+    const Vector& rtp_pos,
+    const Index& stokes_dim,
+    const Vector& f_grid,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const Tensor3& z_field,
+    const Tensor3& t_field,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Tensor3& wind_u_field,
+    const Tensor3& wind_v_field,
+    const Tensor3& wind_w_field,
+    const Tensor3& mag_u_field,
+    const Tensor3& mag_v_field,
+    const Tensor3& mag_w_field,
+    const Matrix& z_surface,
+    const Vector& surface_scalar_reflectivity,
+    const Vector& refellipsoid,
+    const Tensor4& pnd_field,
+    const ArrayOfTensor4& dpnd_field_dx,
+    const ArrayOfString& scat_species,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Numeric& ppath_lmax,
+    const Numeric& ppath_lraytrace,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Index& stars_do,
+    const Index& gas_scattering_do,
+    const Index& jacobian_do,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfStar& stars,
+    const Numeric& rte_alonglos_v,
+    const String& iy_unit,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& water_p_eq_agenda,
+    const Agenda& gas_scattering_agenda,
+    const Agenda& ppath_step_agenda,
+    const Verbosity& verbosity) {
+  //Allocate
+  ArrayOfVector star_rte_los(stars.nelem());
+  ArrayOfMatrix transmitted_starlight;
+  ArrayOfArrayOfTensor3 dtransmitted_starlight;
+  ArrayOfPpath star_ppaths(stars.nelem());
+  ArrayOfIndex stars_visible(stars.nelem());
+
+  //Check for correct unit
+  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
+                     "If stars are present only iy_unit=\"1\" can be used.");
+  //Check size of iy
+  chk_size("iy",iy,f_grid.nelem(),stokes_dim);
+
+  ARTS_USER_ERROR_IF(surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
+                         surface_scalar_reflectivity.nelem() != 1,
+                     "The number of elements in *surface_scalar_reflectivity* should\n",
+                     "match length of *f_grid* or be 1.",
+                     "\n length of *f_grid* : ", f_grid.nelem(),
+                     "\n length of *surface_scalar_reflectivity* : ",
+                     surface_scalar_reflectivity.nelem());
+  ARTS_USER_ERROR_IF(min(surface_scalar_reflectivity) < 0 ||
+                         max(surface_scalar_reflectivity) > 1,
+                     "All values in *surface_scalar_reflectivity* must be inside [0,1].");
+  // Input checks
+  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+
+
+  //do something only if there is a star
+  if (stars_do) {
+    //get star ppaths
+    get_star_ppaths(ws,
+                    star_ppaths,
+                    stars_visible,
+                    star_rte_los,
+                    rtp_pos,
+                    stars,
+                    f_grid,
+                    atmosphere_dim,
+                    p_grid,
+                    lat_grid,
+                    lon_grid,
+                    z_field,
+                    z_surface,
+                    refellipsoid,
+                    ppath_lmax,
+                    ppath_lraytrace,
+                    ppath_step_agenda,
+                    verbosity);
+
+    get_direct_radiation(ws,
+                         transmitted_starlight,
+                         dtransmitted_starlight,
+                         stokes_dim,
+                         f_grid,
+                         atmosphere_dim,
+                         p_grid,
+                         lat_grid,
+                         lon_grid,
+                         t_field,
+                         nlte_field,
+                         vmr_field,
+                         abs_species,
+                         wind_u_field,
+                         wind_v_field,
+                         wind_w_field,
+                         mag_u_field,
+                         mag_v_field,
+                         mag_w_field,
+                         cloudbox_on,
+                         cloudbox_limits,
+                         gas_scattering_do,
+                         1,
+                         star_ppaths,
+                         stars,
+                         stars_visible,
+                         refellipsoid,
+                         pnd_field,
+                         dpnd_field_dx,
+                         scat_species,
+                         scat_data,
+                         jacobian_do,
+                         jacobian_quantities,
+                         propmat_clearsky_agenda,
+                         water_p_eq_agenda,
+                         gas_scattering_agenda,
+                         rte_alonglos_v,
+                         verbosity);
+
+    //loop over stars
+    Vector specular_los, surface_normal;
+
+    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
+      if (stars_visible[i_star]) {
+        //star_rte_los is the direction toward the star, but we need from the star
+
+        Vector incoming_los;
+        mirror_los(incoming_los,star_rte_los[i_star], atmosphere_dim);
+
+        specular_losCalc(specular_los,
+                         surface_normal,
+                         rtp_pos,
+                         incoming_los,
+                         atmosphere_dim,
+                         lat_grid,
+                         lon_grid,
+                         refellipsoid,
+                         z_surface,
+                         0,
+                         verbosity);
+
+        // Only the first component of transmitted_starlight is relevant.
+        // Comment taken from surfaceLambertianSimple.
+        // This follows VDISORT that refers to: K. L. Coulson, Polarization and Intensity of Light in
+        // the Atmosphere (1989), page 229
+        // (Thanks to Michael Kahnert for providing this information!)
+        // Update: Is the above for a later edition? We have not found a copy of
+        // that edition. In a 1988 version of the book, the relevant page seems
+        // to be 232.
+
+        Vector iy_surface_direct(f_grid.nelem());
+        Numeric r;
+        for (Index i_freq = 0; i_freq < f_grid.nelem(); i_freq++) {
+          if (i_freq == 0 || surface_scalar_reflectivity.nelem() > 1) {
+            r = surface_scalar_reflectivity[i_freq];
+          }
+          iy_surface_direct[i_freq] = r / pi *
+                                      transmitted_starlight[i_star](i_freq, 0) *
+                                      cos(deg2rad(specular_los[0]));
+        }
+
+        //Add the surface contribution of the direct part
+        iy(joker, 0) += iy_surface_direct;
+
+
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceRtpropAgenda(Workspace& ws,
                            Matrix& iy,
                            ArrayOfTensor3& diy_dx,
@@ -452,6 +1570,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Tensor3& iy_transmittance,
                            const Index& iy_id,
                            const Index& jacobian_do,
+                           const Index& stars_do,
                            const Index& atmosphere_dim,
                            const EnergyLevelMap& nlte_field,
                            const Index& cloudbox_on,
@@ -508,6 +1627,9 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   // Variable to hold down-welling radiation
   Tensor3 I(nlos, nf, stokes_dim);
 
+  ArrayOfString iy_aux_var(0);
+  if (stars_do) iy_aux_var.emplace_back("Direct radiation");
+
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
@@ -540,7 +1662,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                               geo_pos,
                               0,
                               iy_trans_new,
-                              ArrayOfString(0),
+                              iy_aux_var,
                               iy_id_new,
                               iy_unit,
                               cloudbox_on,
@@ -551,6 +1673,15 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                               los,
                               rte_pos2,
                               iy_main_agenda);
+
+        //For the case that a star is present and the los is towards a star, we
+        //subtract the direct radiation, so that only the diffuse radiation is considered here.
+        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //radiation at the surface. Otherwise it is zero.
+        if (stars_do){
+          iy-=iy_aux[0];
+        }
+
       }
 
       if (iy.ncols() != stokes_dim || iy.nrows() != nf) {
@@ -584,6 +1715,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
+                         const Index& stars_do,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,                         
@@ -629,6 +1761,9 @@ void iySurfaceRtpropCalc(Workspace& ws,
   // Variable to hold down-welling radiation
   Tensor3 I(nlos, nf, stokes_dim);
 
+  ArrayOfString iy_aux_var(0);
+  if (stars_do) iy_aux_var.emplace_back("Direct radiation");
+
   // Loop *surface_los*-es.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
@@ -660,7 +1795,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                               geo_pos,
                               0,
                               iy_trans_new,
-                              ArrayOfString(0),
+                              iy_aux_var,
                               iy_id,
                               iy_unit,
                               cloudbox_on,
@@ -671,6 +1806,15 @@ void iySurfaceRtpropCalc(Workspace& ws,
                               los,
                               rte_pos2,
                               iy_main_agenda);
+
+        //For the case that a star is present and the los is towards a star, we
+        //subtract the direct radiation, so that only the diffuse radiation is considered here.
+        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //radiation at the surface. Otherwise it is zero.
+        if (stars_do){
+          iy-=iy_aux[0];
+        }
+
       }
 
       if (iy.ncols() != stokes_dim || iy.nrows() != nf) {

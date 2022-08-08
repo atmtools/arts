@@ -104,8 +104,7 @@ VectorSet( rte_pos2, [] )                  # No transmitter position defined
 
 # Radiative transfer agendas
 #
-Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitUnpolIntensity )
-Copy( iy_main_agenda, iy_main_agenda__Transmission )
+Copy( iy_main_agenda , iy_main_agenda__TransmissionUnitUnpolIntensity )
 
 
 # Auxiliary variables
@@ -148,7 +147,12 @@ Copy( iy0, iy )
 
 
 Copy( iy_main_agenda, iy_main_agenda__Freqloop )
-Copy( iy_loop_freqs_agenda, iy_loop_freqs_agenda__Transmission )
+AgendaSet( iy_loop_freqs_agenda ){
+  Ignore( iy_id )  
+  MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
+  ppathCalc
+  iyTransmissionStandard
+}
 
 
 # No along-the-path-variables can here be included

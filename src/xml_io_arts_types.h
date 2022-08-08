@@ -58,6 +58,7 @@
 #include "ppath.h"
 #include "propagationmatrix.h"
 #include <predefined/predef_data.h>
+#include "star.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "transmissionmatrix.h"
@@ -115,6 +116,7 @@ TMPL_XML_READ_WRITE_STREAM(ScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(SLIData2)
 TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(Star)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
@@ -148,6 +150,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfRetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfStar)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
