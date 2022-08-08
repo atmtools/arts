@@ -29,7 +29,8 @@
   \author Stefan Buehler
   \date   2000-06-10
 */
-#include "workspace_ng.h"
+#include "workspace.h"
+#include "tokval_io.h"
 
 // Some #defines to make the records better readable:
 #define NAME(x) x
@@ -39,7 +40,7 @@
 namespace global_data {
 Array<WsvRecord> wsv_data;
 
-map<String, Index> WsvMap;
+std::map<String, Index> WsvMap;
 }  // namespace global_data
 
 using global_data::wsv_data;

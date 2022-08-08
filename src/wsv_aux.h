@@ -103,11 +103,6 @@ class WsvRecord {
 
   [[nodiscard]] const TokVal& default_value() const { return defval; }
 
-  /** Output operator for WsvRecord.
-
-      \author Stefan Buehler */
-  friend ostream& operator<<(ostream& os, const WsvRecord& wr);
-
  private:
   String mname;
 

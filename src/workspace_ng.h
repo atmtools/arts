@@ -201,10 +201,6 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
   std::shared_ptr<Workspace> shared_ptr() {return shared_from_this();}
 };
 
-void define_wsv_data();
-
-void define_wsv_map();
-
 template <class T>
 class OmpParallelCopyGuard {
   T &orig;

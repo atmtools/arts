@@ -26,7 +26,7 @@ int main(int argc, char** argv) try {
   ArrayOfPropagationMatrix x(0);
 
   Absorption::PredefinedModel::compute(
-      propmat_clearsky, x, tag.Isotopologue(), f_grid, P, T, vmr, {});
+      propmat_clearsky, x, tag.Isotopologue(), f_grid, P, T, vmr, {}, {});
 
   if (not gui)
     std::cout << std::setprecision(15) << propmat_clearsky << '\n';

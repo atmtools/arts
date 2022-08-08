@@ -71,6 +71,7 @@
 #include "file.h"
 #include "global_data.h"
 #include "methods.h"
+#include "workspace.h"
 #include "workspace_ng.h"
 #include "workspace_global_data.h"
 

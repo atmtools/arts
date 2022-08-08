@@ -28,8 +28,8 @@
    \date   2001-07-24
 */
 
-#include <memory>
 #include "arts.h"
+#include <memory>
 
 #ifdef ENABLE_DOCSERVER
 #include <unistd.h>
@@ -53,9 +53,11 @@
 #include "mystring.h"
 #include "parameters.h"
 #include "parser.h"
+#include "workspace_global_data.h"
+#include "workspace.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"
-#include "workspace_global_data.h"
+#include "wsv_aux_operator.h"
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby() {

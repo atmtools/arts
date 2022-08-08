@@ -1,5 +1,7 @@
 #include <global_data.h>
 #include <parameters.h>
+#include <wsv_aux_operator.h>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl/filesystem.h>
 
