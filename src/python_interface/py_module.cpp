@@ -1,4 +1,5 @@
 #include <workspace_ng.h>
+#include <workspace.h>
 #include <memory>
 
 #include "py_auto_interface.h"

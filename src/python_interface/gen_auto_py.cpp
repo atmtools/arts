@@ -1,4 +1,3 @@
-#include <auto_md.h>
 #include <global_data.h>
 
 #include <algorithm>
@@ -12,6 +11,13 @@
 #include "debug.h"
 #include "mystring.h"
 #include "tokval_io.h"
+#include "workspace.h"
+
+namespace global_data {
+extern Array<WsvRecord> wsv_data;
+
+extern std::map<String, Index> WsvMap;
+} // namespace global_data
 
 /** Implements pybind11 bindings generation for Arts workspace
  *
@@ -103,11 +109,7 @@ std::map<std::string, Group> groups() {
     auto& val = desc[x.Name()];
     val = x.Description();
     if (x.has_defaults())
-      val += var_string("\nDefault: ", [](auto&& tokval) {
-        std::string out = var_string(TokValPrinter{tokval});
-        if (out.length() == 0) out += "[]";
-        return out;
-      }(x.default_value()));
+      val += "\nDefault exist: Please see builtin documentation for value";
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;

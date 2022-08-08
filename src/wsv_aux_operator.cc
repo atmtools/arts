@@ -24,8 +24,9 @@
   \brief  Implementation of WSV aux functions.
 */
 
+#include "wsv_aux_operator.h"
+
 #include "tokval_io.h"
-#include "wsv_aux.h"
 
 #include <iostream>
 #include <map>
@@ -43,7 +44,7 @@
 
   \return Output stream.
 */
-ostream& operator<<(ostream& os, const WsvRecord& wr) {
+std::ostream& operator<<(std::ostream& os, const WsvRecord& wr) {
   using global_data::wsv_groups;
 
   // We need a special treatment for the case that the WSV is an agenda.
@@ -76,7 +77,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr) {
     // AgendaMap is constant here and should never be changed
     using global_data::AgendaMap;
 
-    map<String, Index>::const_iterator j = AgendaMap.find(wr.Name());
+    auto j = AgendaMap.find(wr.Name());
 
     // Just for added safety, check that we really found something:
     ARTS_ASSERT(j != AgendaMap.end());

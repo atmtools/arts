@@ -4,8 +4,6 @@
 
 #include "global_data.h"
 
-void define_wsv_groups();
-
 int main() {
   std::ofstream file_var_h("tokval_variant.h");
   std::ofstream file_h("tokval.h");

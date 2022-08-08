@@ -51,7 +51,7 @@ endwhile()
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp)
-target_link_libraries(gen_auto_py PUBLIC ${ALL_ARTS_LIBRARIES})
+target_link_libraries(gen_auto_py PUBLIC methods)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command

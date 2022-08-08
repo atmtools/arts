@@ -124,11 +124,22 @@ int main() try {
           if(ji[iRp] > ji[iR]) continue;
           if (max(W(iRp, iR, joker)) == min(W(iRp, iR, joker))) continue;
           char str[200];
-          std::sprintf(str,
-                       " %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E   %ld   %ld   %ld   %ld\n",
-                       W(iRp, iR, 0), W(iRp, iR, 1), W(iRp, iR, 2), W(iRp, iR, 3),
-                       W(iRp, iR, 4), W(iRp, iR, 5), W(iRp, iR, 6), W(iRp, iR, 7),
-                       ji[iR], jf[iR], ji[iRp], jf[iRp]);
+          std::sprintf(
+              str,
+              " %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E %0.12E   %" PRId64
+              "   %" PRId64 "   %" PRId64 "   %" PRId64 "\n",
+              W(iRp, iR, 0),
+              W(iRp, iR, 1),
+              W(iRp, iR, 2),
+              W(iRp, iR, 3),
+              W(iRp, iR, 4),
+              W(iRp, iR, 5),
+              W(iRp, iR, 6),
+              W(iRp, iR, 7),
+              ji[iR],
+              jf[iR],
+              ji[iRp],
+              jf[iRp]);
           fil << str;
         }
       }

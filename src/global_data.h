@@ -100,7 +100,6 @@ extern const map<String, Index> WsvGroupMap;
  * Defined in workspace_ng.cc.
  */
 extern WorkspaceMemoryHandler workspace_memory_handler;
-
 } /* namespace global_data */
 
 #endif /* global_data_h */

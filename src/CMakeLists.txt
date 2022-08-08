@@ -103,8 +103,6 @@ add_executable (make_auto_md_h
         make_auto_md_h.cc
         messages.cc
         parameters.cc
-        workspace.cc
-        wsv_aux.cc
         )
 
 if (ENABLE_PCH)
@@ -127,8 +125,6 @@ add_executable (make_auto_md_cc
         make_auto_md_cc.cc
         messages.cc
         parameters.cc
-        workspace.cc
-        wsv_aux.cc
         )
 
 if (ENABLE_PCH)
@@ -285,10 +281,8 @@ add_library (artscore STATIC
   tokval_io.cc
   transmissionmatrix.cc
   wigner_functions.cc
-  workspace.cc
   workspace_ng.cc
   workspace_memory_handler.cc
-  wsv_aux.cc
   wsv_aux_operator.cc
   xml_io.cc
   xml_io_array_types.cc
@@ -390,6 +384,8 @@ add_library (methods STATIC
         methods_aux.cc
         groups.cc
         tokval.cc
+        workspace.cc
+        wsv_aux.cc
         )
 
 target_link_libraries(methods PUBLIC predef species)

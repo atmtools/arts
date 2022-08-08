@@ -43,6 +43,7 @@
 #include "tokval_io.h"
 #include "workspace_ng.h"
 #include "workspace_global_data.h"
+#include "wsv_aux_operator.h"
 
 #define DOCSERVER_NAME "ARTS built-in documentation server"
 
