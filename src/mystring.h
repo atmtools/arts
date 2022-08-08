@@ -237,9 +237,9 @@ void extract(T& x, String& line, std::size_t n) {
 
   const std::size_t N = n;
   std::size_t i = 0;
-  while (i < N and isspace(line[i])) ++i;
-  while (n > i and isspace(line[n-1])) --n;
-
+  while (i < N and i < line.size() and isspace(line[i])) ++i;
+  while (n > i and (n-1) < line.size() and isspace(line[n-1])) --n;
+  
   if constexpr (std::is_same_v<double, T> or std::is_same_v<float, T>) {
     fast_float::from_chars(line.data() + i, line.data() + n, x);
   } else if constexpr (std::is_same_v<long long, T> or
