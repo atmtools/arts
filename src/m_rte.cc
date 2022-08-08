@@ -408,13 +408,13 @@ This feature will be added in a future version.
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
 
-    Workspace l_ws(ws);
+    WorkspaceOmpParallelCopyGuard wss{ws};;
     ArrayOfString fail_msg;
     bool do_abort = false;
 
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, a, B, dB_dT, S, da_dx, dS_dx)
+    firstprivate(wss, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
@@ -422,7 +422,7 @@ This feature will be added in a future version.
             B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
         Index lte;
-        get_stepwise_clearsky_propmat(l_ws,
+        get_stepwise_clearsky_propmat(wss,
                                       K[ip],
                                       S,
                                       lte,
@@ -468,7 +468,7 @@ This feature will be added in a future version.
             ArrayOfPpath star_ppaths(stars.nelem());
             ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
 
-            get_star_ppaths(l_ws,
+            get_star_ppaths(wss,
                             star_ppaths,
                             stars_visible,
                             star_rte_los,
@@ -490,7 +490,7 @@ This feature will be added in a future version.
             ArrayOfMatrix transmitted_starlight;
             ArrayOfArrayOfTensor3 dtransmitted_starlight_dummy(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
-            get_direct_radiation(l_ws,
+            get_direct_radiation(wss,
                                  transmitted_starlight,
                                  dtransmitted_starlight_dummy,
                                  stokes_dim,
@@ -537,7 +537,7 @@ This feature will be added in a future version.
 
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
-                get_scattered_starsource(l_ws,
+                get_scattered_starsource(wss,
                                          scattered_starlight_istar,
                                          f_grid,
                                          ppvar_p[ip],
@@ -558,7 +558,7 @@ This feature will be added in a future version.
           TransmissionMatrix sca_mat_dummy;
           Vector sca_fct_dummy;
 
-          gas_scattering_agendaExecute(l_ws,
+          gas_scattering_agendaExecute(wss,
                                        K_sca,
                                        sca_mat_dummy,
                                        sca_fct_dummy,
