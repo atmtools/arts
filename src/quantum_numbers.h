@@ -342,8 +342,24 @@ union ValueHolder {
   IntegerValue i;
   HalfIntegerValue h;
 
-  //! Defaults to an integer type
-  constexpr ValueHolder() noexcept : s("NODEF") {}
+  constexpr ValueHolder(ValueType t) noexcept : s(StringValue{"NODEF"}) {
+    switch (t) {
+      case ValueType::H:
+        h = HalfIntegerValue{0};
+        break;
+      case ValueType::I:
+        i = IntegerValue{0};
+        break;
+      default: {
+      }
+    }
+  }
+
+  constexpr ValueHolder(Type t) noexcept : ValueHolder(common_value_type(t)) {}
+  constexpr ValueHolder(const ValueHolder&) = default;
+  constexpr ValueHolder(ValueHolder&&) noexcept = default;
+  constexpr ValueHolder& operator=(const ValueHolder&) = default;
+  constexpr ValueHolder& operator=(ValueHolder&&) noexcept = default;
 };
 
 /** A complete description of a value, its type and value
@@ -353,6 +369,12 @@ union ValueHolder {
 struct ValueDescription {
   ValueType type;
   ValueHolder val;
+
+  constexpr ValueDescription(ValueType t) noexcept : type(t), val(t) {}
+  constexpr ValueDescription(const ValueDescription&) = default;
+  constexpr ValueDescription(ValueDescription&&) noexcept = default;
+  constexpr ValueDescription& operator=(const ValueDescription&) = default;
+  constexpr ValueDescription& operator=(ValueDescription&&) noexcept = default;
 
   //! Debug output only
   friend std::ostream& operator<<(std::ostream& os, ValueDescription x);
@@ -365,7 +387,8 @@ struct ValueDescription {
  * there's a 'mismatch'
  */
 struct TwoLevelValueHolder {
-  ValueHolder upp{}, low{};
+  ValueHolder upp;
+  ValueHolder low;
 
   //! Constructor to ensure two ValueDescription have the same type, for IO purposes
   constexpr TwoLevelValueHolder(ValueDescription u, ValueDescription l, Type t)
@@ -390,7 +413,11 @@ struct TwoLevelValueHolder {
     }
   }
 
-  constexpr TwoLevelValueHolder() = default;
+  constexpr TwoLevelValueHolder(Type t) noexcept : upp(t), low(t) {}
+  constexpr TwoLevelValueHolder(const TwoLevelValueHolder&) = default;
+  constexpr TwoLevelValueHolder(TwoLevelValueHolder&&) noexcept = default;
+  constexpr TwoLevelValueHolder& operator=(const TwoLevelValueHolder&) = default;
+  constexpr TwoLevelValueHolder& operator=(TwoLevelValueHolder&&) noexcept = default;
 };
 
 /** Takes a rational and determine which type of quantum number it is,
@@ -401,23 +428,23 @@ struct TwoLevelValueHolder {
  * @return constexpr ValueDescription 
  */
 [[nodiscard]] constexpr ValueDescription value_holder(Rational r_) {
-  ValueDescription x{};
-
-  // First reduce it since we technically allow math on rationals to keep non-gcd results
   const Rational r = reduce_by_gcd(r_);
 
   // We must now have a half-integer or not
   if (r.denom == 2) {
-    x.type = ValueType::H;
+    ValueDescription x{ValueType::H};
     x.val.h.x = r.numer;
-  } else if (r.denom == 1) {
-    x.type = ValueType::I;
+    return x;
+  }
+  
+  if (r.denom == 1) {
+    ValueDescription x{ValueType::I};
     x.val.i.x = r.numer;
-  } else {
-    x.type = ValueType::I;
-    x.val.i.x = quantum_number_error_value;
+    return x;
   }
 
+  ValueDescription x{ValueType::I};
+  x.val.i.x = quantum_number_error_value;
   return x;
 }
 
@@ -529,23 +556,22 @@ struct TwoLevelValueHolder {
  */
 [[nodiscard]] constexpr ValueDescription value_holder(std::string_view s,
                                                       Type t) {
-  ValueDescription x{};
-  // If this is possibly a rational, we return this as a rational type
   switch (common_value_type(t)) {
-    case ValueType::I:
+    case ValueType::I: 
     case ValueType::H: {
       const Rational r = cast_qnrat(s);
       return value_holder(r);
     }
-    case ValueType::S:
-      x.type = ValueType::S;
+    case ValueType::S: {
+      ValueDescription x{ValueType::S};
       x.val.s = StringValue(s);
       return x;
+    }
     case ValueType::FINAL: {
     }
   }
-  x.type = ValueType::FINAL;
-  return x;
+  
+  return ValueType::FINAL;
 }
 
 //! Struct that converts to bool automatically but allows checking both energy levels matching status
@@ -658,12 +684,16 @@ constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
 
 //! A complete quantum number value with type information
 struct Value {
-  Type type{Type::FINAL};
-  TwoLevelValueHolder qn{};
+  Type type;
+  TwoLevelValueHolder qn;
 
-  Value() = default;
+  constexpr Value(Type t=Type::FINAL) : type(t), qn(type) {}
+  Value(const Value&) = default;
+  Value(Value&&) noexcept = default;
+  Value& operator=(const Value&) = default;
+  Value& operator=(Value&&) noexcept = default;
 
-  constexpr Value(Type t, Rational upp_, Rational low_) : type(t) {
+  constexpr Value(Type t, Rational upp_, Rational low_) : Value(t) {
     Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
 
     if (common_value_type(type) == ValueType::H) {
@@ -683,7 +713,7 @@ struct Value {
   }
 
   //! Default constructor from some string of values
-  constexpr Value(std::string_view s) : type(toTypeOrThrow(items(s, 0))) {
+  constexpr Value(std::string_view s) : Value(toTypeOrThrow(items(s, 0))) {
     ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
                        "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
                        s,

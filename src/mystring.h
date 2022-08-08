@@ -38,6 +38,7 @@
 #include <type_traits>
 
 #include "array.h"
+#include "debug.h"
 #include "matpack.h"
 
 /**
@@ -229,28 +230,33 @@ using ArrayOfArrayOfString = Array<Array<String>>;
 
  \author Stefan Buehler */
 template <class T>
-void extract(T& x, String& line, Index n) {
+void extract(T& x, String& line, std::size_t n) {
   // Initialize output to zero! This is important, because otherwise
   // the output variable could `remember' old values.
   x = T(0);
 
+  const std::size_t N = n;
+  std::size_t i = 0;
+  while (i < N and isspace(line[i])) ++i;
+  while (n > i and isspace(line[n-1])) --n;
+
   if constexpr (std::is_same_v<double, T> or std::is_same_v<float, T>) {
-    fast_float::from_chars(line.data(), line.data() + n, x);
+    fast_float::from_chars(line.data() + i, line.data() + n, x);
   } else if constexpr (std::is_same_v<long long, T> or
                        std::is_same_v<long, T> or std::is_same_v<int, T>) {
-    std::from_chars(line.data(), line.data() + n, x);
+    std::from_chars(line.data() + i, line.data() + n, x);
   } else {
     // This will contain the short subString with the item to extract.
     // Make it a String stream, for easy parsing,
     // extracting subString of width n from line:
-    std::istringstream item(line.substr(0, n));
+    std::istringstream item(line.substr(i, n));
 
     // Convert with the aid of String stream item:
     item >> x;
   }
 
   // Shorten line by n:
-  line.erase(0, n);
+  line.erase(0, N);
 }
 
 #endif  // mystring_h

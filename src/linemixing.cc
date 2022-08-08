@@ -242,7 +242,7 @@ PopulationAndDipole presorted_population_and_dipole(const Numeric T,
 Numeric SpeciesErrorCorrectedSuddenData::Q(const Rational J,
                                            const Numeric T,
                                            const Numeric T0,
-                                           const Numeric energy) const noexcept {
+                                           const Numeric energy) const {
   return std::exp(- beta.at(T, T0) * energy / (Constant::k * T)) * scaling.at(T, T0) / pow(J * (J+1), lambda.at(T, T0));
 }
 
@@ -250,8 +250,7 @@ Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
                                                const Numeric T0,
                                                const Numeric other_mass,
                                                const Numeric energy_x,
-                                               const Numeric energy_xm2) const noexcept
-{
+                                               const Numeric energy_xm2) const {
   using Constant::h;
   using Constant::k;
   using Constant::pi;
@@ -344,7 +343,6 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   auto& S = band.quantumidentity.val[QuantumNumberType::S];
   const Rational Si = S.upp();
   const Rational Sf = S.low();
-  ARTS_ASSERT(Si.isDefined() and Sf.isDefined(), "Need S for band selection")
   
   Vector dipr(n);
   for (Index i=0; i<n; i++) {
@@ -1492,5 +1490,64 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
   }
   return out;
 }
-} // namespace Absorption::LineMixing
 
+std::ostream& operator<<(std::ostream& os,
+                         const ErrorCorrectedSuddenData& rbd) {
+  for (Index i = 0; i < rbd.data.nelem(); i++) {
+    if (i) os << '\n';
+    os << rbd.data[i];
+  }
+  return os;
+}
+
+std::istream& operator>>(std::istream& is, ErrorCorrectedSuddenData& rbd) {
+  for (auto& x : rbd.data) is >> x;
+  return is;
+}
+
+Index ErrorCorrectedSuddenData::pos(Species::Species spec) const {
+  return std::distance(data.begin(),
+                       std::find(data.cbegin(), data.cend(), spec));
+}
+
+const SpeciesErrorCorrectedSuddenData& ErrorCorrectedSuddenData::operator[](
+    Species::Species spec) const {
+  if (auto ptr = std::find(data.cbegin(), data.cend(), spec);
+      ptr not_eq data.cend())
+    return *ptr;
+  return *std::find(data.cbegin(), data.cend(), Species::Species::Bath);
+}
+
+SpeciesErrorCorrectedSuddenData& ErrorCorrectedSuddenData::operator[](
+    Species::Species spec) {
+  if (auto ptr = std::find(data.begin(), data.end(), spec);
+      ptr not_eq data.end())
+    return *ptr;
+  return data.emplace_back(spec);
+}
+
+ErrorCorrectedSuddenData& MapOfErrorCorrectedSuddenData::operator[](
+    const QuantumIdentifier& id) {
+  if (auto ptr = std::find(begin(), end(), id); ptr not_eq end()) return *ptr;
+  return emplace_back(id);
+}
+
+const ErrorCorrectedSuddenData& MapOfErrorCorrectedSuddenData::operator[](
+    const QuantumIdentifier& id) const {
+  if (auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
+    return *ptr;
+  }
+  ARTS_USER_ERROR("Cannot find data for QuantumIdentifier:\n",
+                  id,
+                  '\n',
+                  "Available data:\n",
+                  *this);
+  return front();  // To get rid of potential warnings...
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const MapOfErrorCorrectedSuddenData& m) {
+  std::for_each(m.cbegin(), m.cend(), [&](auto& x) { os << x << '\n'; });
+  return os;
+}
+}  // namespace Absorption::LineMixing

@@ -35,18 +35,6 @@ struct EquivalentLines {
    */
   EquivalentLines(const ComplexMatrix& W, const Vector& pop, const Vector& dip) noexcept;
   
-  //! Explicitly deleted
-  EquivalentLines(const EquivalentLines&) = delete;
-  
-  //! Explicitly defaulted
-  EquivalentLines(EquivalentLines&&) = default;
-  
-  //! Explicitly deleted
-  EquivalentLines& operator=(const EquivalentLines&) = delete;
-  
-  //! Explicitly defaulted
-  EquivalentLines& operator=(EquivalentLines&&) = default;
-  
   void sort_by_frequency(Vector& f, const ArrayOfIndex& sorting);
   
   friend std::ostream& operator<<(std::ostream& os, const EquivalentLines& eqv);
@@ -89,13 +77,7 @@ struct SpeciesErrorCorrectedSuddenData {
   LineShapeModelParameters collisional_distance;
   Numeric mass{1};
   
-  constexpr SpeciesErrorCorrectedSuddenData() noexcept :
-    scaling(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    beta(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    lambda(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
-    collisional_distance(LineShapeTemperatureModel::T0, 0, 0, 0, 0) {}
-  
-  constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec) noexcept :
+  constexpr SpeciesErrorCorrectedSuddenData(Species::Species inspec=Species::Species::Bath) noexcept :
     spec(inspec), scaling(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
     beta(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
     lambda(LineShapeTemperatureModel::T0, 0, 0, 0, 0),
@@ -104,13 +86,13 @@ struct SpeciesErrorCorrectedSuddenData {
   [[nodiscard]] Numeric Q(const Rational J,
             const Numeric T,
             const Numeric T0,
-            const Numeric energy) const noexcept;
+            const Numeric energy) const;
   
   [[nodiscard]] Numeric Omega(const Numeric T,
                 const Numeric T0,
                 const Numeric other_mass,
                 const Numeric energy_x,
-                const Numeric energy_xm2) const noexcept;
+                const Numeric energy_xm2) const;
   
   friend std::ostream& operator<<(std::ostream& os, const SpeciesErrorCorrectedSuddenData& srbd);
   
@@ -120,6 +102,8 @@ struct SpeciesErrorCorrectedSuddenData {
     return species == spec;
   }
 };  // SpeciesErrorCorrectedSuddenData
+
+using ArrayOfSpeciesErrorCorrectedSuddenData = Array<SpeciesErrorCorrectedSuddenData>;
 
 /** Rovibrational line mixing data following
  * the ideas of Collisional Effects On
@@ -137,65 +121,32 @@ struct ErrorCorrectedSuddenData {
   /** Data of species data
    * The program is considered ill-formed if data does not
    * contain a Bath-species, either the default one or modified */
-  Array<SpeciesErrorCorrectedSuddenData> data;
+  ArrayOfSpeciesErrorCorrectedSuddenData data;
   
-  explicit ErrorCorrectedSuddenData(QuantumIdentifier  qid={}) noexcept :
+  explicit ErrorCorrectedSuddenData(QuantumIdentifier qid={}) noexcept :
   id(std::move(qid)), data({SpeciesErrorCorrectedSuddenData()}) {}
   
-  friend std::ostream& operator<<(std::ostream& os, const ErrorCorrectedSuddenData& rbd) {
-    for (Index i=0; i<rbd.data.nelem(); i++) {
-      if (i) os << '\n';
-      os << rbd.data[i];
-    }
-    return os;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const ErrorCorrectedSuddenData& rbd);
   
-  friend std::istream& operator>>(std::istream& is, ErrorCorrectedSuddenData& rbd) {
-    for (auto& x: rbd.data) is >> x;
-    return is;
-  }
+  friend std::istream& operator>>(std::istream& is, ErrorCorrectedSuddenData& rbd);
   
   bool operator==(const QuantumIdentifier& band_id) const noexcept {
     return band_id.part_of(id);
   }
 
-  [[nodiscard]] Index pos(Species::Species spec) const noexcept {
-    return std::distance(data.begin(), std::find(data.cbegin(), data.cend(), spec));
-  }
+  [[nodiscard]] Index pos(Species::Species spec) const;
 
-  [[nodiscard]] Index size() const noexcept {
-    return data.size();
-  }
+  [[nodiscard]] Index size() const noexcept { return data.size(); }
+
+  const SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) const;
   
-  const SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) const noexcept {
-    if(auto ptr = std::find(data.cbegin(), data.cend(), spec); ptr not_eq data.cend())
-      return *ptr;
-    return *std::find(data.cbegin(), data.cend(), Species::Species::Bath);
-  }
-  
-  SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec) noexcept {
-    if(auto ptr = std::find(data.begin(), data.end(), spec); ptr not_eq data.end())
-      return *ptr;
-    return data.emplace_back(spec);
-  }
+  SpeciesErrorCorrectedSuddenData& operator[](Species::Species spec);
 };  // ErrorCorrectedSuddenData
 
 struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
-  ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) noexcept {
-    if(auto ptr = std::find(begin(), end(), id); ptr not_eq end())
-      return *ptr;
-    return emplace_back(id);
-   
-  }
+  ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id);
   
-  const ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) const {
-    if(auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
-      return *ptr;
-    }
-    ARTS_USER_ERROR("Cannot find data for QuantumIdentifier:\n", id, '\n',
-      "Available data:\n", *this);
-    return front(); // To get rid of potential warnings...
-  }
+  const ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) const;
   
   const ErrorCorrectedSuddenData& operator[](Index i) const ARTS_NOEXCEPT {
     ARTS_ASSERT(i >= 0 and i < nelem())
@@ -207,10 +158,7 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
     return * (begin() + i);
   }
   
-  friend std::ostream& operator<<(std::ostream& os, const MapOfErrorCorrectedSuddenData& m) {
-    std::for_each(m.cbegin(), m.cend(), [&](auto& x){os << x << '\n';});
-    return os;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const MapOfErrorCorrectedSuddenData& m);
 };  // MapOfErrorCorrectedSuddenData
 
 // Return struct from calculations
@@ -347,5 +295,6 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
 using ErrorCorrectedSuddenData = Absorption::LineMixing::ErrorCorrectedSuddenData;
 using MapOfErrorCorrectedSuddenData = Absorption::LineMixing::MapOfErrorCorrectedSuddenData;
 using SpeciesErrorCorrectedSuddenData = Absorption::LineMixing::SpeciesErrorCorrectedSuddenData;
+using Absorption::LineMixing::ArrayOfSpeciesErrorCorrectedSuddenData;
 
 #endif  // linemixing_h

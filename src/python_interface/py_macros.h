@@ -338,7 +338,18 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
   py::implicitly_convertible<std::vector<BaseType>, ArrayOf##BaseType>();          \
                                                                                    \
   auto_impl_name##BaseType.PythonInterfaceFileIO(ArrayOf##BaseType)                \
-      .PythonInterfaceBasicRepresentation(ArrayOf##BaseType)                       \
+      .def(                                                                        \
+          "__repr__",                                                              \
+          [](const py::object& arr) {                                              \
+            return py::list{arr}.attr("__repr__")();                               \
+          },                                                                       \
+          py::is_operator())                                                       \
+      .def(                                                                        \
+          "__str__",                                                               \
+          [](const py::object& arr) {                                              \
+            return py::list{arr}.attr("__str__")();                                \
+          },                                                                       \
+          py::is_operator())                                                       \
       .PythonInterfaceArrayDefault(BaseType)                                       \
       .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)
 

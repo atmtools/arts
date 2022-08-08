@@ -328,8 +328,7 @@ const Value& ValueList::operator[](Type t) const ARTS_NOEXCEPT {
 }
 
 Value& ValueList::add(Type t) {
-  Value v;
-  v.type = t;
+  Value v{t};
   values.push_back(v);
   finalize();
 

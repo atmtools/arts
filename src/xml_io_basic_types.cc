@@ -636,6 +636,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("AbsorptionLines");
   open_tag.add_attribute("version", al.version);
+  open_tag.add_attribute("id", var_string(al.quantumidentity));
   open_tag.add_attribute("nlines", al.NumLines());
   open_tag.add_attribute("cutofftype", Absorption::toString(al.cutoff));
   open_tag.add_attribute("mirroringtype", Absorption::toString(al.mirroring));
@@ -646,11 +647,6 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("cutofffreq", al.cutofffreq);
   open_tag.add_attribute("linemixinglimit", al.linemixinglimit);
 
-//  open_tag.add_attribute("species", al.SpeciesName());
-//  open_tag.add_attribute("localquanta", al.LocalQuanta());
-//  open_tag.add_attribute("upperglobalquanta", al.UpperQuantumNumbers());
-//  open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
-  open_tag.add_attribute("id", var_string(al.quantumidentity));
   const String localquanta_str =
       al.NumLines() ? al.lines.front().localquanta.keys() : "";
   open_tag.add_attribute("localquanta", localquanta_str);
