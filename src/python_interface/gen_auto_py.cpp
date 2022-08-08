@@ -109,7 +109,7 @@ std::map<std::string, Group> groups() {
     auto& val = desc[x.Name()];
     val = x.Description();
     if (x.has_defaults())
-      val += "\nDefault exist: Please see builtin documentation for value";
+      val += "\nDefault exist: use the value property to see the default value";
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
