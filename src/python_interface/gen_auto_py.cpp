@@ -107,9 +107,9 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::string> desc;
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
-    val = x.Description();
+    val = var_string("Group: pyarts.arts.", global_data::wsv_groups[x.Group()].name, "\n\n", x.Description());
     if (x.has_defaults())
-      val += "\nDefault exist: use the value property to see the default value";
+      val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().", x.Name(), ".value to see default");
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
@@ -433,7 +433,7 @@ void workspace_variables(size_t n, const NameMaps& arts) {
     os << R"--(  py::cpp_function([](Workspace& w) -> WorkspaceVariable {
     return WorkspaceVariable{w, )--"
        << data.artspos
-       << "};\n  }, py::return_value_policy::reference_internal),\n";
+       << "};\n  }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),\n";
 
     os << "  [](Workspace& w, " << data.varname_group << "& val) {\n";
 
@@ -1736,7 +1736,7 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
 
   os << R"--(wsv.def_property("value",
   py::cpp_function([](const WorkspaceVariable& w) -> WorkspaceVariablesVariant {
-    return w; }, py::return_value_policy::reference_internal),
+    return w; }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
   py::cpp_function([](WorkspaceVariable& w, WorkspaceVariablesVariant v) {
     WorkspaceVariablesVariant wvv{w};
     )--";
