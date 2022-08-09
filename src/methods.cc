@@ -5953,6 +5953,61 @@ Possible models:
                "of streams (>30)\n")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("DisortCalcIrradiance"),
+      DESCRIPTION(
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
+          "for running flux (irradiance) calculations\n"
+          "\n"
+          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
+          "DEVELOPMENT VERSION!"
+          "\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("cloudbox_field","optical_depth"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "scat_data_checked",
+         "propmat_clearsky_agenda",
+         "gas_scattering_agenda",
+         "atmosphere_dim",
+         "pnd_field",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "p_grid",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
+         "scat_data",
+         "stars",
+         "f_grid",
+         "za_grid",
+         "aa_grid",
+         "stokes_dim",
+         "z_surface",
+         "surface_skin_t",
+         "surface_scalar_reflectivity",
+         "gas_scattering_do",
+         "stars_do"),
+      GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("8", "181", "0", "1", "1"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
+               "solution (must be an even number).\n",
+               "Number of angular grid points to calculate bulk phase\n"
+               " function on (and derive Legendre polynomials from). If <0,\n"
+               " the finest za_grid from scat_data will be used.\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
       DESCRIPTION(
           "Performs batch calculations for radiation fields.\n"
