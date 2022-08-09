@@ -6573,6 +6573,20 @@ Possible models:
       GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
+      NAME("ecs_dataAddTran2006"),
+      DESCRIPTION("Sets the O2-66 visible band data for ECS.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ecs_data"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ecs_data", "isotopologue_ratios"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataInit"),
       DESCRIPTION("Resets/initializes the ECS data.\n"),
       AUTHORS("Richard Larsson"),
