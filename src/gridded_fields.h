@@ -34,6 +34,8 @@
 #define gridded_fields_h
 
 #include <stdexcept>
+#include <utility>
+
 #include "array.h"
 #include "matpackVI.h"
 #include "mystring.h"
@@ -41,7 +43,7 @@
 /*! Enumeration containing the possible grid types for gridded fields */
 enum GridType { GRID_TYPE_NUMERIC, GRID_TYPE_STRING };
 
-typedef Array<GridType> ArrayOfGridType;
+using ArrayOfGridType = Array<GridType>;
 
 #define CHECK_ERROR_BOILERPLATE                           \
   "size mismatch between grids and data.\n"               \
@@ -112,9 +114,9 @@ class GriddedField {
     \param[in] d Dimension.
     \param[in] s Name.
   */
-  GriddedField(const Index d, const String& s)
+  GriddedField(const Index d, String s)
       : dim(d),
-        mname(s),
+        mname(std::move(s)),
         mgridtypes(d, GRID_TYPE_NUMERIC),
         mgridnames(d),
         mstringgrids(d),
@@ -124,7 +126,7 @@ class GriddedField {
  public:
   //! Get the dimension of this gridded field.
   /*! \return Dimension. */
-  Index get_dim() const { return dim; }
+  [[nodiscard]] Index get_dim() const { return dim; }
 
   void copy_grids(const GriddedField& gf);
 
@@ -135,7 +137,7 @@ class GriddedField {
      \param[in] i Grid index.
      \return      Grid name.
   */
-  const String& get_grid_name(Index i) const { return mgridnames[i]; }
+  [[nodiscard]] const String& get_grid_name(Index i) const { return mgridnames[i]; }
 
   //! Get the size of a grid.
   /*!
@@ -144,7 +146,7 @@ class GriddedField {
    \param[in]  i  Grid index.
    \return        Grid size.
    */
-  Index get_grid_size(Index i) const {
+  [[nodiscard]] Index get_grid_size(Index i) const {
     Index ret = 0;
     ARTS_ASSERT(i < dim);
     switch (mgridtypes[i]) {
@@ -166,19 +168,19 @@ class GriddedField {
      \param[in] i Grid index.
      \return      Grid type.
   */
-  GridType get_grid_type(Index i) const { return mgridtypes[i]; }
+  [[nodiscard]] GridType get_grid_type(Index i) const { return mgridtypes[i]; }
 
-  const Vector& get_numeric_grid(Index i) const;
+  [[nodiscard]] const Vector& get_numeric_grid(Index i) const;
 
   Vector& get_numeric_grid(Index i);
 
-  const ArrayOfString& get_string_grid(Index i) const;
+  [[nodiscard]] const ArrayOfString& get_string_grid(Index i) const;
 
   ArrayOfString& get_string_grid(Index i);
 
   //! Get the name of this gridded field.
   /*! \return Gridded field name. */
-  const String& get_name() const { return mname; }
+  [[nodiscard]] const String& get_name() const { return mname; }
 
   void set_grid(Index i, const Vector& g);
 
@@ -208,16 +210,13 @@ class GriddedField {
 
     \return True if sizes match.
   */
-  virtual bool checksize() const = 0;
+  [[nodiscard]] virtual bool checksize() const = 0;
 
   //! Strict consistency check.
   /*!
    Same as GriddedField::checksize but throws runtime_error in case of error.
   */
   virtual void checksize_strict() const = 0;
-
-  //! GriddedField virtual destructor
-  virtual ~GriddedField() {}
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField& gf);
 };
@@ -230,7 +229,7 @@ class GriddedField1 final : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField1(const String& s) : GriddedField(1, s) {}
 
-  bool checksize() const final {
+  [[nodiscard]] bool checksize() const final {
     return (!get_grid_size(0) && data.nelem() == 1) ||
            data.nelem() == get_grid_size(0);
   }
@@ -262,7 +261,7 @@ class GriddedField2 final : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField2(const String& s) : GriddedField(2, s) {}
 
-  bool checksize() const final {
+  [[nodiscard]] bool checksize() const final {
     return ((!get_grid_size(1) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(1)) &&
            ((!get_grid_size(0) && data.nrows() == 1) ||
@@ -304,7 +303,7 @@ class GriddedField3 final : public GriddedField {
     return *this;
   }
 
-  bool checksize() const final {
+  [[nodiscard]] bool checksize() const final {
     return ((!get_grid_size(2) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(2)) &&
            ((!get_grid_size(1) && data.nrows() == 1) ||
@@ -342,7 +341,7 @@ class GriddedField4 final : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField4(const String& s) : GriddedField(4, s) {}
 
-  bool checksize() const final {
+  [[nodiscard]] bool checksize() const final {
     return ((!get_grid_size(3) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(3)) &&
            ((!get_grid_size(2) && data.nrows() == 1) ||
@@ -385,7 +384,7 @@ class GriddedField5 final : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField5(const String& s) : GriddedField(5, s) {}
 
-  bool checksize() const final {
+  [[nodiscard]] bool checksize() const final {
     return ((!get_grid_size(4) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(4)) &&
            ((!get_grid_size(3) && data.nrows() == 1) ||
@@ -433,7 +432,7 @@ class GriddedField6 final : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField6(const String& s) : GriddedField(6, s) {}
 
-  bool checksize() const final {
+  [[nodiscard]] bool checksize() const final {
     return ((!get_grid_size(5) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(5)) &&
            ((!get_grid_size(4) && data.nrows() == 1) ||
@@ -478,14 +477,14 @@ class GriddedField6 final : public GriddedField {
 
 /************ Array types *************/
 
-typedef Array<GriddedField1> ArrayOfGriddedField1;
-typedef Array<GriddedField2> ArrayOfGriddedField2;
-typedef Array<GriddedField3> ArrayOfGriddedField3;
-typedef Array<GriddedField4> ArrayOfGriddedField4;
-typedef Array<GriddedField5> ArrayOfGriddedField5;
-typedef Array<Array<GriddedField1> > ArrayOfArrayOfGriddedField1;
-typedef Array<Array<GriddedField2> > ArrayOfArrayOfGriddedField2;
-typedef Array<Array<GriddedField3> > ArrayOfArrayOfGriddedField3;
+using ArrayOfGriddedField1 = Array<GriddedField1>;
+using ArrayOfGriddedField2 = Array<GriddedField2>;
+using ArrayOfGriddedField3 = Array<GriddedField3>;
+using ArrayOfGriddedField4 = Array<GriddedField4>;
+using ArrayOfGriddedField5 = Array<GriddedField5>;
+using ArrayOfArrayOfGriddedField1 = Array<Array<GriddedField1>>;
+using ArrayOfArrayOfGriddedField2 = Array<Array<GriddedField2>>;
+using ArrayOfArrayOfGriddedField3 = Array<Array<GriddedField3>>;
 
 #undef CHECK_ERROR_BOILERPLATE
 
