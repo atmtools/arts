@@ -261,6 +261,7 @@ add_library (artscore STATIC
   propmat_field.cc
   psd.cc
   quantum_numbers.cc
+  quantum_term_symbol.cc
   radiation_field.cc
   raw.cc
   refraction.cc

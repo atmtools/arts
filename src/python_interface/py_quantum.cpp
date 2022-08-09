@@ -1,5 +1,6 @@
 #include <py_auto_interface.h>
 #include <quantum_numbers.h>
+#include <quantum_term_symbol.h>
 
 #include "py_macros.h"
 
@@ -130,6 +131,7 @@ void py_quantum(py::module_& m) {
           })
       .def(py::self == py::self)
       .def("__hash__", [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
+      .def("as_symbol", &Quantum::Helpers::molecular_term_symbol)
       .def(py::pickle(
           [](const QuantumIdentifier& t) {
             return py::make_tuple(t.isotopologue_index, t.val);
