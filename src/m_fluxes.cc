@@ -412,8 +412,8 @@ void spectral_irradiance_fieldFromSpectralRadianceField(
     const Vector& za_grid_weights,
     const Verbosity&) {
   // Number of zenith angles.
-  const Index N_scat_za = za_grid.nelem();
-  const Index N_scat_aa = aa_grid.nelem();
+  const Index N_scat_za = spectral_radiance_field.npages();
+  const Index N_scat_aa = spectral_radiance_field.nrows();
 
   Tensor5 iy_field_aa_integrated;
 

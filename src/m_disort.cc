@@ -362,6 +362,13 @@ void DisortCalcWithARTSSurface(Workspace& ws,
 
 
   } else {
+    
+    ARTS_USER_ERROR_IF(aa_grid.nelem() != 1,
+                       "There is no star and therefore no azimuth dependency.\n",
+                       "The length of th aa_grid should be 1, but is",
+                       aa_grid.nelem(),
+                       "instead.")
+
     init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
