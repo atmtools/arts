@@ -154,7 +154,7 @@ template<typename T1>
 using is_move_assignable = typename std::is_move_assignable<T1>;
 
 template<typename T1>
-using return_type = typename std::result_of<T1>::type;
+using return_type = std::invoke_result_t<T1>;
 
 template<typename T1>
 using CopyWrapper = typename std::conditional<std::is_lvalue_reference<T1>::value,
