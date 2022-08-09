@@ -32,6 +32,7 @@
 #define exceptions_h
 
 #include <stdexcept>
+
 #include "matpack.h"
 #include "mystring.h"
 
@@ -39,21 +40,16 @@
 
 class ParseError : public std::runtime_error {
  public:
-  ParseError(const String& s = "",
-             const String& f = "",
-             Index l = 0,
-             Index c = 0)
+  ParseError(const String& s = "", String f = "", Index l = 0, Index c = 0)
       : runtime_error(s),
-        mFile(f),
+        mFile(std::move(f)),
         mLine(l),
         mColumn(c) { /* Nothing to do here. */
   }
 
-  virtual ~ParseError() throw() {}
-
-  virtual String file() const { return mFile; }
-  virtual Index line() const { return mLine; }
-  virtual Index column() const { return mColumn; }
+  [[nodiscard]] String file() const { return mFile; }
+  [[nodiscard]] Index line() const { return mLine; }
+  [[nodiscard]] Index column() const { return mColumn; }
 
  private:
   /** Filename associated with this part of the text */
