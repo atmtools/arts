@@ -362,6 +362,10 @@ void DisortCalcWithARTSSurface(Workspace& ws,
 
 
   } else {
+    CREATE_OUT3;
+    out3 << "Disort calculation encountered aa_grid size larger than 1 in a case when it\n";
+    out3 << "does not use aa_grid. Calculations are performed as if there is no aa_grid.\n";
+
     init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
