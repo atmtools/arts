@@ -14,6 +14,7 @@ jobs:
           ubuntu-doc,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
+          ubuntu-gcc-10-cxx20,
           ubuntu-clang-13-debug,
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
@@ -56,6 +57,19 @@ jobs:
             fortran-version: "10"
             check: "yes"
             libcxx: "no"
+            buildtype: "Release"
+
+          - name: ubuntu-gcc-10-cxx20
+            os: ubuntu-20.04
+            compiler: gcc
+            version: "10"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            fortran-version: "10"
+            check: "yes"
+            libcxx: "no"
+            cmakeflags: "-DENABLE_CXX20=1"
             buildtype: "Release"
 
           - name: ubuntu-clang-13-debug
@@ -166,7 +180,7 @@ jobs:
             sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
             echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
           fi
-          sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
+          sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libglew-dev libglfw3-dev
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
@@ -202,40 +216,32 @@ jobs:
             echo "USEFORTRAN=0" >> $GITHUB_ENV
           fi
 
+          brew install glew glfw
+
       - name: Configure (Linux / macOS)
         if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
           mkdir cmake-build
           cd cmake-build
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_GUI=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN ${{ matrix.cmakeflags }} ..
 
       - name: Build (Linux)
         if: runner.os == 'Linux' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j2 -C 3rdparty
-          make -j2 arts
-          make -j2 pyarts_cpp
           make -j2 -C src
 
       - name: Build (Linux / macOS)
         if: runner.os == 'macOS' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j3 -C 3rdparty
-          make -j3 arts
-          make -j3 pyarts_cpp
           make -j3 -C src
 
       - name: Docs (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         run: |
           cd cmake-build
-          make -j2 -C 3rdparty
-          make -j2 arts
-          make -j2 pyarts_cpp
-          make -j2 -C doc/uguide
-          make -j2 -C doc/doxygen
+          make -j2 -C doc
           make -j2 pyarts_docs
 
       - name: Check (Linux / macOS)
