@@ -221,7 +221,9 @@ void run_cdisort(Workspace& ws,
  * dimensions removed
  *
  * @param[in,out] ws Current workspace.
- * @param[out]    cloudbox_field Radiation field.
+ * @param[out]    spectral_irradiance_field spectral irradiance field.
+ * @param[out]    spectral_direct_irradiance_field spectral irradiance field of
+ *                direct radiation (only downward).
  * @param[out]    optical_depth optical depth.
  * @param[in]     f_grid Frequency grid.
  * @param[in]     p_grid Pressure grid.
@@ -259,36 +261,37 @@ void run_cdisort(Workspace& ws,
  * @date          2019-09-19, 2021-10-27
  */
 void run_cdisort_flux(Workspace& ws,
-                 // Output
-                 Tensor7& cloudbox_field,
-                 Matrix& optical_depth,
-                 // Input
-                 ConstVectorView f_grid,
-                 ConstVectorView p_grid,
-                 ConstVectorView z_profile,
-                 const Numeric& z_surface,
-                 ConstVectorView t_profile,
-                 ConstMatrixView vmr_profiles,
-                 ConstMatrixView pnd_profiles,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const ArrayOfStar& stars,
-                 const Agenda& propmat_clearsky_agenda,
-                 const Agenda& gas_scattering_agenda,
-                 const ArrayOfIndex& cloudbox_limits,
-                 const Numeric& surface_skin_t,
-                 const Vector& surface_scalar_reflectivity,
-                 ConstVectorView za_grid,
-                 ConstVectorView aa_grid,
-                 ConstVectorView star_rte_los,
-                 const Index& gas_scattering_do,
-                 const Index& stars_do,
-                 const Numeric& scale_factor,
-                 const Index& nstreams,
-                 const Index& Npfct,
-                 const Index& quiet,
-                 const Index& emission,
-                 const Index& intensity_correction,
-                 const Verbosity& verbosity);
+                      // Output
+                      Tensor5& spectral_irradiance_field,
+                      Tensor5& spectral_direct_irradiance_field,
+                      Matrix& optical_depth,
+                      // Input
+                      ConstVectorView f_grid,
+                      ConstVectorView p_grid,
+                      ConstVectorView z_profile,
+                      const Numeric& z_surface,
+                      ConstVectorView t_profile,
+                      ConstMatrixView vmr_profiles,
+                      ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const ArrayOfStar& stars,
+                      const Agenda& propmat_clearsky_agenda,
+                      const Agenda& gas_scattering_agenda,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Numeric& surface_skin_t,
+                      const Vector& surface_scalar_reflectivity,
+                      ConstVectorView za_grid,
+                      ConstVectorView aa_grid,
+                      ConstVectorView star_rte_los,
+                      const Index& gas_scattering_do,
+                      const Index& stars_do,
+                      const Numeric& scale_factor,
+                      const Index& nstreams,
+                      const Index& Npfct,
+                      const Index& quiet,
+                      const Index& emission,
+                      const Index& intensity_correction,
+                      const Verbosity& verbosity);
 
 /** get_gasoptprop.
  *

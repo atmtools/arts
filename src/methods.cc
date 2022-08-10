@@ -5958,11 +5958,10 @@ Possible models:
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running flux (irradiance) calculations\n"
           "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
+          "DEVELOPMENT VERSION!\n"
           "\n"),
       AUTHORS("Manfred Brath"),
-      OUT("cloudbox_field","optical_depth"),
+      OUT("spectral_irradiance_field","optical_depth"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

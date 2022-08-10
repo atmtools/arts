@@ -542,7 +542,7 @@ void DisortCalcClearSky(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalcIrradiance(Workspace& ws,
                 // WS Output:
-                Tensor7& cloudbox_field,
+                Tensor5& spectral_irradiance_field,
                 Matrix& optical_depth,
                 // WS Input
                 const Index& atmfields_checked,
@@ -592,6 +592,9 @@ void DisortCalcIrradiance(Workspace& ws,
                      0.,
                      verbosity);
 
+  const Index Nf = f_grid.nelem();
+  const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+
   check_disort_input(cloudbox_on,
                      atmfields_checked,
                      atmgeom_checked,
@@ -617,6 +620,11 @@ void DisortCalcIrradiance(Workspace& ws,
   Vector cloudboxtop_pos(3);
   Index star_on = stars_do;
   Numeric scale_factor;
+
+  Tensor5 spectral_direct_irradiance_field;
+
+  spectral_irradiance_field.resize(Nf, Np_cloud, 1, 1, 2);
+  spectral_irradiance_field = NAN;
 
   if (star_on){
 
@@ -651,13 +659,6 @@ void DisortCalcIrradiance(Workspace& ws,
       //TODO: Add warning message that star is switched off because it is below horizon
     }
 
-    init_ifield(cloudbox_field,
-                f_grid,
-                cloudbox_limits,
-                za_grid.nelem(),
-                aa_grid.nelem(),
-                stokes_dim);
-
     //get the cloudbox top distance to earth center.
     Numeric R_TOA = refell2r(refellipsoid,
                              lat_true[0]) +
@@ -678,15 +679,10 @@ void DisortCalcIrradiance(Workspace& ws,
     scale_factor=stars[0].radius*stars[0].radius/
                    (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
 
+    //Resize direct field
+    spectral_direct_irradiance_field.resize(Nf, Np_cloud, 1, 1, 1);
+    spectral_direct_irradiance_field = NAN;
 
-
-  } else {
-    init_ifield(cloudbox_field,
-                f_grid,
-                cloudbox_limits,
-                za_grid.nelem(),
-                1,
-                stokes_dim);
   }
 
   Vector albedo(f_grid.nelem(), 0.);
@@ -696,32 +692,33 @@ void DisortCalcIrradiance(Workspace& ws,
       albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
   run_cdisort_flux(ws,
-              cloudbox_field,
-              optical_depth,
-              f_grid,
-              p_grid,
-              z_field(joker, 0, 0),
-              z_surface(0, 0),
-              t_field(joker, 0, 0),
-              vmr_field(joker, joker, 0, 0),
-              pnd_field(joker, joker, 0, 0),
-              scat_data,
-              stars,
-              propmat_clearsky_agenda,
-              gas_scattering_agenda,
-              cloudbox_limits,
-              btemp,
-              albedo,
-              za_grid,
-              aa_grid,
-              star_rte_los,
-              gas_scattering_do,
-              star_on,
-              scale_factor,
-              nstreams,
-              Npfct,
-              cdisort_quiet,
-              emission,
-              intensity_correction,
-              verbosity);
+                   spectral_irradiance_field,
+                   spectral_direct_irradiance_field,
+                   optical_depth,
+                   f_grid,
+                   p_grid,
+                   z_field(joker, 0, 0),
+                   z_surface(0, 0),
+                   t_field(joker, 0, 0),
+                   vmr_field(joker, joker, 0, 0),
+                   pnd_field(joker, joker, 0, 0),
+                   scat_data,
+                   stars,
+                   propmat_clearsky_agenda,
+                   gas_scattering_agenda,
+                   cloudbox_limits,
+                   btemp,
+                   albedo,
+                   za_grid,
+                   aa_grid,
+                   star_rte_los,
+                   gas_scattering_do,
+                   star_on,
+                   scale_factor,
+                   nstreams,
+                   Npfct,
+                   cdisort_quiet,
+                   emission,
+                   intensity_correction,
+                   verbosity);
 }

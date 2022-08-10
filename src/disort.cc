@@ -1145,7 +1145,8 @@ void run_cdisort(Workspace& ws,
 
 void run_cdisort_flux(Workspace& ws,
                  // Output
-                 Tensor7& cloudbox_field,
+                 Tensor5& spectral_irradiance_field,
+                 Tensor5& spectral_direct_irradiance_field,
                  Matrix& optical_depth,
                  // Input
                  ConstVectorView f_grid,
@@ -1225,10 +1226,10 @@ void run_cdisort_flux(Workspace& ws,
   }
 
   ds.accur = 0.005;
-  ds.flag.prnt[0] = TRUE;
-  ds.flag.prnt[1] = TRUE;
-  ds.flag.prnt[2] = TRUE;
-  ds.flag.prnt[3] = TRUE;
+  ds.flag.prnt[0] = FALSE;
+  ds.flag.prnt[1] = FALSE;
+  ds.flag.prnt[2] = FALSE;
+  ds.flag.prnt[3] = FALSE;
   ds.flag.prnt[4] = TRUE;
 
   ds.flag.usrtau = FALSE;
@@ -1401,23 +1402,42 @@ void run_cdisort_flux(Workspace& ws,
 
     c_disort(&ds, &out);
 
-    std::cout << &out;
-    std::cout << "Disort done!\n";
+    //factor for converting it into spectral radiance units
+    const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
 
-    for (Index i = 0; i < ds.nphi; i++) {
-      for (Index j = 0; j < ds.numu; j++) {
-        for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-          cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, i, 0) =
-              out.uu[j + ((ds.nlyr - k - cboxlims[0]) + i * (ds.nlyr + 1)) *
-                             ds.numu] /
-              (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
-        }
-        // To avoid potential numerical problems at interpolation of the field,
-        // we copy the surface field to underground altitudes
-        for (Index k = ncboxremoved - 1; k >= 0; k--) {
-          cloudbox_field(f_index, k, 0, 0, j, i, 0) =
-              cloudbox_field(f_index, k + 1, 0, 0, j, i, 0);
-        }
+    for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
+      if (stars_do){
+        // downward direct flux
+        spectral_direct_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
+            out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
+
+        // downward total flux
+        spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
+            (out.rad[ds.nlyr - k - cboxlims[0]].rfldir +
+            out.rad[ds.nlyr - k - cboxlims[0]].rfldn)/conv_fac;
+
+      } else {
+        // downward total flux
+        spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
+            out.rad[ds.nlyr - k - cboxlims[0]].rfldn/conv_fac;
+      }
+
+      // upward flux
+      spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 1) =
+          out.rad[ds.nlyr - k - cboxlims[0]].flup/conv_fac;
+    }
+
+
+
+    // To avoid potential numerical problems at interpolation of the field,
+    // we copy the surface field to underground altitudes
+    for (Index k = ncboxremoved - 1; k >= 0; k--) {
+      spectral_irradiance_field(f_index, k, 0, 0, joker) =
+          spectral_irradiance_field(f_index, k + 1, 0, 0, joker);
+
+      if (stars_do) {
+        spectral_direct_irradiance_field(f_index, k, 0, 0, 0) =
+            spectral_direct_irradiance_field(f_index, k + 1, 0, 0, 0);
       }
     }
   }
