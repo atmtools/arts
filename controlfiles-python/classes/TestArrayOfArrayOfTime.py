@@ -1,8 +1,0 @@
-import pyarts.arts as cxx
-import test_functions as test
-
-
-x = cxx.ArrayOfArrayOfTime(1, cxx.ArrayOfTime(1, cxx.Time()))
-test.io(x, delete=True)
-test.array(x)
-test.array_of_array(x)
