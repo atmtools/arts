@@ -23,12 +23,12 @@ Building ARTS
 
 Build Prerequisites:
 
-- gcc/g++ >=8 (or llvm/clang >=10) older versions might work, but are untested
+- gcc/g++ >=9 (or llvm/clang >=13) older versions might work, but are untested
 - cmake (>=3.18)
 - zlib
 - openblas
 - netcdf (optional)
-- Python3 (>=3.6)
+- Python3 (>=3.8)
   - required modules:
     docutils
     lark-parser
