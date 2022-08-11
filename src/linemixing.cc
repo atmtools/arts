@@ -27,6 +27,29 @@
 #define WIGNER6 wig6jj
 #endif
 
+Numeric wig3(const Rational& a,
+             const Rational& b,
+             const Rational& c,
+             const Rational& d,
+             const Rational& e,
+             const Rational& f) noexcept {
+  return WIGNER3(
+      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+}
+
+Numeric wig6(const Rational& a,
+             const Rational& b,
+             const Rational& c,
+             const Rational& d,
+             const Rational& e,
+             const Rational& f) noexcept {
+  return WIGNER6(
+      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+}
+
+#undef WIGNER3
+#undef WIGNER6
+
 namespace Absorption::LineMixing {
 EquivalentLines::EquivalentLines(const ComplexMatrix& W,
                                  const Vector& pop,
@@ -385,28 +408,11 @@ void relaxation_matrix_offdiagonal(MatrixView W,
           wigner_limits(wigner3j_limits<3>(Ni_p, Ni),
                         {Rational(2), std::numeric_limits<Index>::max()});
       for (Rational L = L0; L <= L1; L += 2) {
-        const Numeric a =
-            WIGNER3(Ni_p.toInt(2), Ni.toInt(2), L.toInt(2), 0, 0, 0);
-        const Numeric b =
-            WIGNER3(Nf_p.toInt(2), Nf.toInt(2), L.toInt(2), 0, 0, 0);
-        const Numeric c = WIGNER6(L.toInt(2),
-                                  Ji.toInt(2),
-                                  Ji_p.toInt(2),
-                                  Si.toInt(2),
-                                  Ni_p.toInt(2),
-                                  Ni.toInt(2));
-        const Numeric d = WIGNER6(L.toInt(2),
-                                  Jf.toInt(2),
-                                  Jf_p.toInt(2),
-                                  Sf.toInt(2),
-                                  Nf_p.toInt(2),
-                                  Nf.toInt(2));
-        const Numeric e = WIGNER6(L.toInt(2),
-                                  Ji.toInt(2),
-                                  Ji_p.toInt(2),
-                                  2,
-                                  Jf_p.toInt(2),
-                                  Jf.toInt(2));
+        const Numeric a = wig3(Ni_p, Ni,   L, 0, 0, 0);
+        const Numeric b = wig3(Nf_p, Nf, L, 0, 0, 0);
+        const Numeric c = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
+        const Numeric d = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
+        const Numeric e = wig6(L, Ji, Ji_p, 1, Jf_p, Jf);
         sum += a * b * c * d * e * Numeric(2 * L + 1) *
                rovib_data.Q(L, T, band.T0, erot(L)) /
                rovib_data.Omega(
@@ -418,7 +424,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       // Add to W and rescale to upwards element by the populations
       W(i, j) = sum;
       W(j, i) =
-          sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
+          sum * std::exp((erot(Nf_p) - erot(Nf)) / kelvin2joule(T));
     }
   }
   wig_temp_free();
@@ -448,7 +454,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
         W(i, j) = 0.0;
       } else {
         W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(Ni, Ji) - erot(Nj, Jj)) / kelvin2joule(T));  // This gives LTE
+        W(i, j) = W(j, i) * std::exp((erot(Ni) - erot(Nj)) / kelvin2joule(T));  // This gives LTE
       }
     }
   }

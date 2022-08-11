@@ -649,7 +649,7 @@ void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
   ecs[Species::Species::Nitrogen].beta =
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 0, 0, 0, 0);
   ecs[Species::Species::Nitrogen].mass =
-      Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
+      Species::mean_mass(Species::Species::Nitrogen, isotopologue_ratios);
 }
 
 void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,
