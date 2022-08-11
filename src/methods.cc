@@ -5958,8 +5958,7 @@ Possible models:
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running flux (irradiance) calculations\n"
           "\n"
-          "DEVELOPMENT VERSION!\n"
-          "\n"),
+          "DEVELOPMENT VERSION!\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field","optical_depth"),
       GOUT(),
