@@ -94,6 +94,8 @@ PYBIND11_MODULE(arts, m) {
 
     parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);
     parse_path_from_environment("ARTS_DATA_PATH", parameters.datapath);
+    parse_path_from_environment("ARTS_CAT_DATA_DIR", parameters.datapath);
+    parse_path_from_environment("ARTS_XML_DATA_DIR", parameters.datapath);
 
     parameters.includepath.insert(parameters.includepath.begin(), ".");
     parameters.datapath.insert(parameters.datapath.begin(), ".");
