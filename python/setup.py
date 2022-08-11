@@ -67,7 +67,7 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["contrib", "doc", "tests*"]),
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=[
         "docutils",
         "matplotlib>=1.4",
