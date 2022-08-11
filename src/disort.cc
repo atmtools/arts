@@ -483,6 +483,10 @@ void get_dtauc_ssalb(MatrixView dtauc,
             (ext_bulk_gas(f_index, ip) + abs_bulk_par(f_index, ip) +
              ext_bulk_gas(f_index, ip + 1) + abs_bulk_par(f_index, ip + 1));
         ssalb(f_index, Np - 2 - ip) = (ext - abs) / ext;
+
+        ARTS_USER_ERROR_IF((ext - abs) / ext > 1,
+                           "ssalb has values > 1!");
+
       }
 
       dtauc(f_index, Np - 2 - ip) = ext * (z_profile[ip + 1] - z_profile[ip]);
@@ -1289,7 +1293,7 @@ void run_cdisort_flux(Workspace& ws,
 
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
-  
+
   Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
   get_paroptprop(
       ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
