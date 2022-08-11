@@ -1819,6 +1819,12 @@ void test_wigner_error() {
   wigner3j(1, 0, 1, 0, 0, 0);
 }
 
+void test_pow_negative_one() {
+  std::vector<Index> x(30);
+  std::iota(x.begin(), x.end(), -15);
+  for (auto& i: x) std::cout << "-1^" << i << '=' << pow_negative_one(i) << '\n';
+}
+
 int main() {
   //   test1();
   //   test2();
@@ -1869,7 +1875,8 @@ int main() {
   //    test46();
   //  test47();
   //test48();
-  test_wigner_error();
+  //test_wigner_error();
+  test_pow_negative_one();
 
   //    const double tolerance = 1e-9;
   //    double error;

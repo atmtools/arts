@@ -219,4 +219,37 @@ int temp_init_size(Integer... vals) {
   return 1 + 3 * (*std::max_element(v.begin(), v.end()));
 }
 
+/** Computes the wigner 3J symbol with floating point precision
+
+         /               \
+         |  J1   J2   J  |
+output = |               |
+         |  M   -M    0  |
+         \               /
+
+ @param M Input as above
+ @param J1 Input as above
+ @param J2 Input as above
+ @param J Input as above
+ @return Numeric 
+ */
+Numeric dwigner3j(Index M, Index J1, Index J2, Index J);
+
+/** Computes the wigner 6J symbol with floating point precision
+
+         /             \
+         |  A   B   1  |
+output = <             >
+         |  D   C   F  |
+         \             /
+
+  @param A Input as above
+  @param B Input as above
+  @param C Input as above
+  @param D Input as above
+  @param F Input as above
+  @return Numeric 
+ */
+Numeric dwigner6j(Index A, Index B, Index C, Index D, Index F);
+
 #endif  // wigner_functions_h

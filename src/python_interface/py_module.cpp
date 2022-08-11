@@ -38,6 +38,7 @@ void py_constants(py::module_& m);
 void py_star(py::module_& m);
 void py_physics(py::module_& m);
 void py_predefined(py::module_& m);
+void py_math(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -127,5 +128,6 @@ PYBIND11_MODULE(arts, m) {
   py_physics(m);
   py_global(m);
   py_physics(m);
+  py_math(m);
 }
 }  // namespace Python

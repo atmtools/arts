@@ -32,6 +32,7 @@
 #ifndef math_funcs_h
 #define math_funcs_h
 
+#include "matpack.h"
 #include "matpackI.h"
 #include "matpackIII.h"
 
@@ -148,5 +149,12 @@ constexpr bool any_negative(const MatpackType& var) noexcept {
   if (min(var) < 0) return true;
   return false;
 }
+
+/** Computes std::pow(-1, x) without std::pow
+ * 
+ * @param x Index
+ * @return constexpr Index 
+ */
+constexpr Index pow_negative_one(Index x) noexcept { return (x % 2) ? -1 : 1; }
 
 #endif  // math_funcs_h
