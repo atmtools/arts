@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
+#include <vector>
 
 #include "constants.h"
 #include "debug.h"
@@ -351,31 +352,49 @@ Numeric erot(const Rational N, const Rational j=-1) {
  * @param[in] mass_self The mass of the self-species
  * @param[in] mass_other The mass of the colliding species
  */
-void relaxation_matrix_offdiagonal(MatrixView W,
-                                   const AbsorptionLines& band,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) {
+void relaxation_matrix_offdiagonal(
+    MatrixView W,
+    const AbsorptionLines& band,
+    const ArrayOfIndex& sorting,
+    const SpeciesErrorCorrectedSuddenData& rovib_data,
+    const Numeric T) {
   using Conversion::kelvin2joule;
-  
-  const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
-  
+
+  const auto bk = [](const Rational& r) -> Numeric { return sqrt(2 * r + 1); };
+
   const Index n = band.NumLines();
   if (n == 0) return;
 
   auto& S = band.quantumidentity.val[QuantumNumberType::S];
   const Rational Si = S.upp();
   const Rational Sf = S.low();
-  
+
   Vector dipr(n);
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
     auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
-    
+
     dipr[i] = reduced_dipole(J.upp(), J.low(), N.upp());
   }
 
-  wig_thread_temp_init(temp_init_size(band.max(QuantumNumberType::J), band.max(QuantumNumberType::N)));
+  const auto maxL = temp_init_size(band.max(QuantumNumberType::J), band.max(QuantumNumberType::N));
+
+  const auto Om = [&]() {
+    std::vector<Numeric> out(maxL);
+    for (Index i = 0; i < maxL; i++)
+      out[i] = rovib_data.Omega(
+          T, band.T0, band.SpeciesMass(), erot(i), erot(i - 2));
+    return out;
+  }();
+
+  const auto Q = [&]() {
+    std::vector<Numeric> out(maxL);
+    for (Index i = 0; i < maxL; i++)
+      out[i] = rovib_data.Q(i, T, band.T0, erot(i));
+    return out;
+  }();
+
+  wig_thread_temp_init(maxL);
   for (Index i = 0; i < n; i++) {
     auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
     auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
@@ -408,23 +427,18 @@ void relaxation_matrix_offdiagonal(MatrixView W,
           wigner_limits(wigner3j_limits<3>(Ni_p, Ni),
                         {Rational(2), std::numeric_limits<Index>::max()});
       for (Rational L = L0; L <= L1; L += 2) {
-        const Numeric a = wig3(Ni_p, Ni,   L, 0, 0, 0);
+        const Numeric a = wig3(Ni_p, Ni, L, 0, 0, 0);
         const Numeric b = wig3(Nf_p, Nf, L, 0, 0, 0);
         const Numeric c = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
         const Numeric d = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
         const Numeric e = wig6(L, Ji, Ji_p, 1, Jf_p, Jf);
-        sum += a * b * c * d * e * Numeric(2 * L + 1) *
-               rovib_data.Q(L, T, band.T0, erot(L)) /
-               rovib_data.Omega(
-                   T, band.T0, band.SpeciesMass(), erot(L), erot(L - 2));
+        sum += a * b * c * d * e * Numeric(2 * L + 1) * Q[L.toIndex()] / Om[L.toIndex()];
       }
-      sum *= scl * rovib_data.Omega(
-                       T, band.T0, band.SpeciesMass(), erot(Ni), erot(Ni - 2));
+      sum *= scl * Om[Ni.toIndex()];
 
       // Add to W and rescale to upwards element by the populations
       W(i, j) = sum;
-      W(j, i) =
-          sum * std::exp((erot(Nf_p) - erot(Nf)) / kelvin2joule(T));
+      W(j, i) = sum * std::exp((erot(Nf_p) - erot(Nf)) / kelvin2joule(T));
     }
   }
   wig_temp_free();
@@ -432,11 +446,11 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 
   // Sum rule correction
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     Numeric sumlw = 0.0;
     Numeric sumup = 0.0;
-    
-    for (Index j=0; j<n; j++) {
+
+    for (Index j = 0; j < n; j++) {
       if (j > i) {
         sumlw += dipr[j] * W(j, i);
       } else {
@@ -444,17 +458,18 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       }
     }
 
-    const Rational Ji = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J].low();
-    const Rational Ni = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N].low();
+    const Rational Ni =
+        band.lines[sorting[i]].localquanta.val[QuantumNumberType::N].low();
     for (Index j = i + 1; j < n; j++) {
-      const Rational Jj = band.lines[sorting[j]].localquanta.val[QuantumNumberType::J].low();
-      const Rational Nj = band.lines[sorting[j]].localquanta.val[QuantumNumberType::N].low();
+      const Rational Nj =
+          band.lines[sorting[j]].localquanta.val[QuantumNumberType::N].low();
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
       } else {
-        W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(Ni) - erot(Nj)) / kelvin2joule(T));  // This gives LTE
+        W(j, i) *= -sumup / sumlw;
+        W(i, j) = W(j, i) * std::exp((erot(Ni) - erot(Nj)) /
+                                     kelvin2joule(T));  // This gives LTE
       }
     }
   }
