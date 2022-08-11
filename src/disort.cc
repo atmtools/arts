@@ -1243,7 +1243,7 @@ void run_cdisort_flux(Workspace& ws,
   ds.flag.brdf_type = BRDF_NONE;
 
   ds.flag.ibcnd = GENERAL_BC;
-  ds.flag.usrang = TRUE;
+  ds.flag.usrang = FALSE;
 
   if (emission) {
     ds.flag.planck = TRUE;
@@ -1287,11 +1287,9 @@ void run_cdisort_flux(Workspace& ws,
     for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
   }
 
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
-
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+  
   Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
   get_paroptprop(
       ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
