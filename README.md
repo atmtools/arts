@@ -84,7 +84,7 @@ Developer install of the PyARTS Python package:
 
 ```
 cd python
-pip install --user -e .
+python3 -m pip install --user -e .
 ```
 
 You only have to do the package install once. If the ARTS source has changed,
@@ -168,7 +168,7 @@ directory:
 ```
 make pyarts
 cd python
-pip install --user -e .
+python3 -m pip install --user -e .
 ```
 
 This will not mess with your system's Python installation.
