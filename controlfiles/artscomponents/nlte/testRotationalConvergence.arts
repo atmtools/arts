@@ -54,7 +54,7 @@ Arts2{
     cloudboxOff
     
     # Initialize the ratio-field
-    nlte_fieldSetLteInternalPartitionFunction
+    nlte_fieldLteInternalPartitionFunction
     nlte_fieldRescalePopulationLevels(s=0.75)
 
     # Check that we are performing sane computations

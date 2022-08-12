@@ -38,7 +38,6 @@
 #endif
 
 #include <Eigen/Dense>
-#include <Eigen/StdVector>
 
 #pragma GCC diagnostic pop
 
@@ -48,12 +47,10 @@
 /** Class to keep track of Transmission Matrices for Stokes Dim 1-4 */
 struct TransmissionMatrix {
   Index stokes_dim;
-  std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>> T4;
-  std::vector<Eigen::Matrix3d, Eigen::aligned_allocator<Eigen::Matrix3d>> T3;
-  std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> T2;
-  std::vector<Eigen::Matrix<double, 1, 1>,
-              Eigen::aligned_allocator<Eigen::Matrix<double, 1, 1>>>
-      T1;
+  std::vector<Eigen::Matrix4d> T4;
+  std::vector<Eigen::Matrix3d> T3;
+  std::vector<Eigen::Matrix2d> T2;
+  std::vector<Eigen::Matrix<double, 1, 1>> T1;
 
   /** Construct a new Transmission Matrix object
    * 
@@ -382,12 +379,10 @@ struct TransmissionMatrix {
 /** Radiation Vector for Stokes dimension 1-4 */
 struct RadiationVector {
   Index stokes_dim;
-  std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> R4;
-  std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> R3;
-  std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d>> R2;
-  std::vector<Eigen::Matrix<double, 1, 1>,
-              Eigen::aligned_allocator<Eigen::Matrix<double, 1, 1>>>
-      R1;
+  std::vector<Eigen::Vector4d> R4;
+  std::vector<Eigen::Vector3d> R3;
+  std::vector<Eigen::Vector2d> R2;
+  std::vector<Eigen::Matrix<double, 1, 1>> R1;
 
   /** Construct a new Radiation Vector object
    * 
