@@ -79,6 +79,29 @@ void check_disort_input(  // Input
     ConstVectorView za_grid,
     const Index& nstreams);
 
+/** check_disort_input.
+ *
+ * Checks that input of DisortCalcIrradiance* is sane.
+ *
+ * @param[in]  disort_is_initialized as the WSV.
+ * @param[in]  atmfields_checked     as the WSV.
+ * @param[in]  atmgeom_checked       as the WSV.
+ * @param[in]  cloudbox_checked      as the WSV.
+ * @param[in]  scat_data             as the WSV.
+ * @param[in]  nstreams              Number of quadrature angles (both hemispheres).
+ *
+ * @author     Jana Mendrok, Manfred Brath
+ * @date       2017-02-23, 2022-08-12
+ */
+void check_disort_irradiance_input(  // Input
+    const Index& atmfields_checked,
+    const Index& atmgeom_checked,
+    const Index& scat_data_checked,
+    const Index& atmosphere_dim,
+    const Index& stokes_dim,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Index& nstreams);
+
 /** init_ifield.
  *
  * Initialize cloudbox_field with the right size and NaN values.
@@ -241,8 +264,6 @@ void run_cdisort(Workspace& ws,
  * @param[in]     cloudbox_limits Cloudbox limits.
  * @param[in]     surface_skin_t Surface skin temperature.
  * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity.
- * @param[in]     za_grid Zenith angle grid.
- * @param[in]     aa_grid azimuth angle grid.
  * @param[in]     star_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
  * @param[in]     stars_do Flag to activate the star(s).
@@ -261,11 +282,9 @@ void run_cdisort(Workspace& ws,
  * @date          2019-09-19, 2021-10-27
  */
 void run_cdisort_flux(Workspace& ws,
-                      // Output
                       Tensor5& spectral_irradiance_field,
                       Tensor5& spectral_direct_irradiance_field,
                       Matrix& optical_depth,
-                      // Input
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
                       ConstVectorView z_profile,
@@ -280,8 +299,6 @@ void run_cdisort_flux(Workspace& ws,
                       const ArrayOfIndex& cloudbox_limits,
                       const Numeric& surface_skin_t,
                       const Vector& surface_scalar_reflectivity,
-                      ConstVectorView za_grid,
-                      ConstVectorView aa_grid,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& stars_do,

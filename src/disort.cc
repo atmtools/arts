@@ -209,6 +209,73 @@ void check_disort_input(  // Input
   }
 }
 
+void check_disort_irradiance_input(  // Input
+    const Index& atmfields_checked,
+    const Index& atmgeom_checked,
+    const Index& scat_data_checked,
+    const Index& atmosphere_dim,
+    const Index& stokes_dim,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Index& nstreams) {
+  if (atmfields_checked != 1)
+    throw runtime_error(
+        "The atmospheric fields must be flagged to have "
+        "passed a consistency check (atmfields_checked=1).");
+
+  if (atmgeom_checked != 1)
+    throw runtime_error(
+        "The atmospheric geometry must be flagged to have "
+        "passed a consistency check (atmgeom_checked=1).");
+
+  if (scat_data_checked != 1)
+    throw runtime_error(
+        "The scat_data must be flagged to have "
+        "passed a consistency check (scat_data_checked=1).");
+
+  if (atmosphere_dim != 1)
+    throw runtime_error(
+        "For running DISORT, atmospheric dimensionality "
+        "must be 1.\n");
+
+  if (stokes_dim < 0 || stokes_dim > 1)
+    throw runtime_error(
+        "For running DISORT, the dimension of stokes vector "
+        "must be 1.\n");
+
+  if (scat_data.empty())
+    throw runtime_error(
+        "No single scattering data present.\n"
+        "See documentation of WSV *scat_data* for options to "
+        "make single scattering data available.\n");
+
+  // DISORT requires even number of streams:
+  // nstreams is total number of directions, up- and downwelling, and the up-
+  // and downwelling directions need to be symmetrically distributed, i.e. same
+  // number of directions in both hemispheres is required. horizontal direction
+  // (90deg) can not be covered in a plane-parallel atmosphere.
+  if (nstreams / 2 * 2 != nstreams) {
+    ostringstream os;
+    os << "DISORT requires an even number of streams, but yours is " << nstreams
+       << ".\n";
+    throw runtime_error(os.str());
+  }
+
+  // DISORT can only handle randomly oriented particles.
+  bool all_totrand = true;
+  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
+    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+      if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND) all_totrand = false;
+  if (!all_totrand) {
+    ostringstream os;
+    os << "DISORT can only handle scattering elements of type "
+       << PTYPE_TOTAL_RND << " (" << PTypeToString(PTYPE_TOTAL_RND) << "),\n"
+       << "but at least one element of other type (" << PTYPE_AZIMUTH_RND << "="
+       << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL << "="
+       << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
+    throw runtime_error(os.str());
+  }
+}
+
 void init_ifield(  // Output
     Tensor7& cloudbox_field,
     // Input
@@ -1148,37 +1215,33 @@ void run_cdisort(Workspace& ws,
 }
 
 void run_cdisort_flux(Workspace& ws,
-                 // Output
-                 Tensor5& spectral_irradiance_field,
-                 Tensor5& spectral_direct_irradiance_field,
-                 Matrix& optical_depth,
-                 // Input
-                 ConstVectorView f_grid,
-                 ConstVectorView p_grid,
-                 ConstVectorView z_profile,
-                 const Numeric& z_surface,
-                 ConstVectorView t_profile,
-                 ConstMatrixView vmr_profiles,
-                 ConstMatrixView pnd_profiles,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const ArrayOfStar& stars,
-                 const Agenda& propmat_clearsky_agenda,
-                 const Agenda& gas_scattering_agenda,
-                 const ArrayOfIndex& cloudbox_limits,
-                 const Numeric& surface_skin_t,
-                 const Vector& surface_scalar_reflectivity,
-                 ConstVectorView za_grid,
-                 ConstVectorView aa_grid,
-                 ConstVectorView star_rte_los,
-                 const Index& gas_scattering_do,
-                 const Index& stars_do,
-                 const Numeric& scale_factor,
-                 const Index& nstreams,
-                 const Index& Npfct,
-                 const Index& quiet,
-                 const Index& emission,
-                 const Index& intensity_correction,
-                 const Verbosity& verbosity) {
+                      Tensor5& spectral_irradiance_field,
+                      Tensor5& spectral_direct_irradiance_field,
+                      Matrix& optical_depth,
+                      ConstVectorView f_grid,
+                      ConstVectorView p_grid,
+                      ConstVectorView z_profile,
+                      const Numeric& z_surface,
+                      ConstVectorView t_profile,
+                      ConstMatrixView vmr_profiles,
+                      ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const ArrayOfStar& stars,
+                      const Agenda& propmat_clearsky_agenda,
+                      const Agenda& gas_scattering_agenda,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Numeric& surface_skin_t,
+                      const Vector& surface_scalar_reflectivity,
+                      ConstVectorView star_rte_los,
+                      const Index& gas_scattering_do,
+                      const Index& stars_do,
+                      const Numeric& scale_factor,
+                      const Index& nstreams,
+                      const Index& Npfct,
+                      const Index& quiet,
+                      const Index& emission,
+                      const Index& intensity_correction,
+                      const Verbosity& verbosity) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -1211,8 +1274,6 @@ void run_cdisort_flux(Workspace& ws,
   const Index nf = f_grid.nelem();
 
   // solar dependent properties if no sun is present
-  // Number of azimuth angles
-  Index nphi = 1;
   //local zenith angle of sun
   Numeric umu0 = 0.;
   //local azimuth angle of sun
@@ -1221,7 +1282,6 @@ void run_cdisort_flux(Workspace& ws,
   Numeric fbeam = 0.;
 
   if (stars_do) {
-    nphi = aa_grid.nelem();
     umu0 = Conversion::cosd(star_rte_los[0]);
     phi0 = star_rte_los[1];
     if (phi0 < 0) {
@@ -1268,9 +1328,12 @@ void run_cdisort_flux(Workspace& ws,
   ds.nstr = static_cast<int>(nstreams);
   ds.nphase = ds.nstr;
   ds.nmom = ds.nstr;
-  //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
-  ds.numu = static_cast<int>(za_grid.nelem());
-  ds.nphi = static_cast<int>(nphi);
+
+  // set grid size of angular variable to dummy value
+  ds.numu = 1;
+  ds.nphi = 1;
+
+  //Set number of legendre terms
   Index Nlegendre = nstreams + 1;
 
   /* Allocate memory */
@@ -1284,9 +1347,7 @@ void run_cdisort_flux(Workspace& ws,
   // Intensity of bottom-boundary isotropic illumination
   ds.bc.fluor = 0.;
 
-  // fill up azimuth angle and temperature array
-  for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
-
+  // fill up temperature array
   if  (ds.flag.planck==TRUE){
     for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
   }

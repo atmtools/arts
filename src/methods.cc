@@ -5981,8 +5981,6 @@ Possible models:
          "scat_data",
          "stars",
          "f_grid",
-         "za_grid",
-         "aa_grid",
          "stokes_dim",
          "z_surface",
          "surface_skin_t",
