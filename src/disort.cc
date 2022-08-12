@@ -552,7 +552,9 @@ void get_dtauc_ssalb(MatrixView dtauc,
         ssalb(f_index, Np - 2 - ip) = (ext - abs) / ext;
 
         ARTS_USER_ERROR_IF((ext - abs) / ext > 1,
-                           "ssalb has values > 1!");
+                           "ssalb > 1 @ \n",
+                           "pressure level   = ", ip,"\n",
+                           "frequency number = ", f_index,"\n");
 
       }
 
