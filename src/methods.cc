@@ -5960,7 +5960,7 @@ Possible models:
           "\n"
           "DEVELOPMENT VERSION!\n"),
       AUTHORS("Manfred Brath"),
-      OUT("spectral_irradiance_field","optical_depth"),
+      OUT("spectral_irradiance_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5986,7 +5986,8 @@ Possible models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "181", "0", "1", "1"),

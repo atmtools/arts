@@ -1218,8 +1218,7 @@ void run_cdisort(Workspace& ws,
 
 void run_cdisort_flux(Workspace& ws,
                       Tensor5& spectral_irradiance_field,
-                      Tensor5& spectral_direct_irradiance_field,
-                      Matrix& optical_depth,
+                      ArrayOfMatrix& disort_aux,
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
                       ConstVectorView z_profile,
@@ -1237,6 +1236,7 @@ void run_cdisort_flux(Workspace& ws,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& stars_do,
+                      const ArrayOfString& disort_aux_vars,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
@@ -1413,9 +1413,6 @@ void run_cdisort_flux(Workspace& ws,
   Matrix ssalb(nf, ds.nlyr);
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
 
-  // DEBUG output
-  optical_depth=dtauc;
-
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
   // emission. Both are applied additively.
@@ -1435,6 +1432,13 @@ void run_cdisort_flux(Workspace& ws,
   ds.bc.ttemp = COSMIC_BG_TEMP;
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
+
+  //Resize direct field
+  Matrix spectral_direct_irradiance_field;
+  if (stars_do){
+    spectral_direct_irradiance_field.resize(nf, ds.nlyr+1);
+    spectral_direct_irradiance_field = 0;
+  }
 
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     sprintf(ds.header, "ARTS Calc f_index = %" PRId64, f_index);
@@ -1473,7 +1477,7 @@ void run_cdisort_flux(Workspace& ws,
     for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
       if (stars_do){
         // downward direct flux
-        spectral_direct_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
+        spectral_direct_irradiance_field(f_index, k + ncboxremoved) =
             out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
 
         // downward total flux
@@ -1501,11 +1505,43 @@ void run_cdisort_flux(Workspace& ws,
           spectral_irradiance_field(f_index, k + 1, 0, 0, joker);
 
       if (stars_do) {
-        spectral_direct_irradiance_field(f_index, k, 0, 0, 0) =
-            spectral_direct_irradiance_field(f_index, k + 1, 0, 0, 0);
+        spectral_direct_irradiance_field(f_index, k) =
+            spectral_direct_irradiance_field(f_index, k + 1);
       }
     }
   }
+
+  // Allocate aux data
+  disort_aux.resize(disort_aux_vars.nelem());
+  // Allocate and set (if possible here) iy_aux
+  Index cnt=-1;
+  for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
+
+
+    if (disort_aux_vars[i] == "Optical depth"){
+      cnt+=1;
+      disort_aux[cnt]=dtauc;
+    }
+    else if (disort_aux_vars[i] == "Single scatteriering albedo"){
+      cnt+=1;
+      disort_aux[cnt]=ssalb;
+    }
+    else if (disort_aux_vars[i] == "Direct downward spectral irradiance"){
+      cnt+=1;
+      disort_aux[cnt]=spectral_direct_irradiance_field;
+    }
+    else {
+      ARTS_USER_ERROR (
+          "The only allowed strings in *iy_aux_vars* are:\n"
+          "  \"Radiative background\"\n"
+          "  \"Optical depth\"\n"
+          "  \"Direct radiation\"\n"
+          "  \"Radiation Background\"\n"
+          "but you have selected: \"", disort_aux_vars[i], "\"")
+    }
+  }
+
+
 
   /* Free allocated memory */
   c_disort_out_free(&ds, &out);

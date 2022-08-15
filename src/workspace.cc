@@ -1191,6 +1191,32 @@ void define_wsv_data() {
       GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("disort_aux"),
+      DESCRIPTION(
+          "Auxilary data to the output of the DisortCalc-Methods.\n"
+          "\n"
+          "Different data beside the direct result of Disort\n"
+          "calculations can be obtained by this variable. These auxilary\n"
+          "data are selected by *disort_aux_vars*.\n"
+          "\n"
+          "Usage:      Provided by some radiative transfer methods.\n"
+          "\n"
+          "Dimensions: [quantity][ f_grid, number of disort levels/layers ]\n"),
+      GROUP("ArrayOfMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("disort_aux_vars"),
+      DESCRIPTION(
+          "Selection of quantities for *disort_aux* .\n"
+          "\n"
+          "Each element of this string array determines the quantity for the\n"
+          "corresponding element in *disort_aux* (i.e. the quantities\n"
+          "are stored in the order given in *disort_aux_vars*).\n"
+          "\n"
+          "The possible choices vary between the Disort methods. See the WSM you select\n"),
+      GROUP("ArrayOfString"), ArrayOfString{}));
+
+  wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
       DESCRIPTION(
           "Agenda defining the calculations to perform for each batch case.\n"),

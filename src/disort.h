@@ -245,9 +245,7 @@ void run_cdisort(Workspace& ws,
  *
  * @param[in,out] ws Current workspace.
  * @param[out]    spectral_irradiance_field spectral irradiance field.
- * @param[out]    spectral_direct_irradiance_field spectral irradiance field of
- *                direct radiation (only downward).
- * @param[out]    optical_depth optical depth.
+ * @param[out]    disort_aux Auxilary data to spectral_irradiance_field.
  * @param[in]     f_grid Frequency grid.
  * @param[in]     p_grid Pressure grid.
  * @param[in]     z_profile Profile of geometric altitudes.
@@ -267,6 +265,7 @@ void run_cdisort(Workspace& ws,
  * @param[in]     star_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
  * @param[in]     stars_do Flag to activate the star(s).
+ * @param[in]     disort_aux_vars Selection of quantities for disort_aux.
  * @param[in]     scale_factor Geometric scaling factor, scales the star spectral
  *                irradiance at the surface of the star to the spectral irradiance
  *                of the star at cloubbox top.
@@ -283,8 +282,7 @@ void run_cdisort(Workspace& ws,
  */
 void run_cdisort_flux(Workspace& ws,
                       Tensor5& spectral_irradiance_field,
-                      Tensor5& spectral_direct_irradiance_field,
-                      Matrix& optical_depth,
+                      ArrayOfMatrix& disort_aux,
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
                       ConstVectorView z_profile,
@@ -302,6 +300,7 @@ void run_cdisort_flux(Workspace& ws,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& stars_do,
+                      const ArrayOfString& disort_aux_vars,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,

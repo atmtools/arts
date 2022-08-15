@@ -543,7 +543,7 @@ void DisortCalcClearSky(Workspace& ws,
 void DisortCalcIrradiance(Workspace& ws,
                 // WS Output:
                 Tensor5& spectral_irradiance_field,
-                Matrix& optical_depth,
+                ArrayOfMatrix& disort_aux,
                 // WS Input
                 const Index& atmfields_checked,
                 const Index& atmgeom_checked,
@@ -568,6 +568,7 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Vector& surface_scalar_reflectivity,
                 const Index& gas_scattering_do,
                 const Index& stars_do,
+                const ArrayOfString& disort_aux_vars,
                 const Index& nstreams,
                 const Index& Npfct,
                 const Index& cdisort_quiet,
@@ -614,8 +615,6 @@ void DisortCalcIrradiance(Workspace& ws,
   Vector cloudboxtop_pos(3);
   Index star_on = stars_do;
   Numeric scale_factor;
-
-  Tensor5 spectral_direct_irradiance_field;
 
   spectral_irradiance_field.resize(Nf, Np_cloud, 1, 1, 2);
   spectral_irradiance_field = NAN;
@@ -673,10 +672,6 @@ void DisortCalcIrradiance(Workspace& ws,
     scale_factor=stars[0].radius*stars[0].radius/
                    (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
 
-    //Resize direct field
-    spectral_direct_irradiance_field.resize(Nf, Np_cloud, 1, 1, 1);
-    spectral_direct_irradiance_field = NAN;
-
   }
 
   Vector albedo(f_grid.nelem(), 0.);
@@ -687,8 +682,7 @@ void DisortCalcIrradiance(Workspace& ws,
 
   run_cdisort_flux(ws,
                    spectral_irradiance_field,
-                   spectral_direct_irradiance_field,
-                   optical_depth,
+                   disort_aux,
                    f_grid,
                    p_grid,
                    z_field(joker, 0, 0),
@@ -706,6 +700,7 @@ void DisortCalcIrradiance(Workspace& ws,
                    star_rte_los,
                    gas_scattering_do,
                    star_on,
+                   disort_aux_vars,
                    scale_factor,
                    nstreams,
                    Npfct,
