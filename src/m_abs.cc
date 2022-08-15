@@ -1684,6 +1684,7 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors,
     const Numeric& extpolfac,
+    const Index& no_negative_from_lut,
     const Numeric& force_p,
     const Numeric& force_t,
     const Numeric& lines_sparse_df,
@@ -1718,7 +1719,8 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
   // propmat_clearskyAddFromLookup
   if (use_abs_lookup) {
     const std::array gins{
-        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac)};
+        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac),
+        MethodSetDelHelper(ws, "no_negative_from_lut", "Index", no_negative_from_lut)};
     agenda.append_gin_method("propmat_clearskyAddFromLookup", gins);
   }
 

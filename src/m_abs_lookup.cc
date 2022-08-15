@@ -2021,6 +2021,7 @@ void propmat_clearskyAddFromLookup(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const Numeric& extpolfac,
+    const Index& no_negative_from_lut,
     const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -2091,6 +2092,15 @@ void propmat_clearskyAddFromLookup(
                        a_vmr_list,
                        f_grid,
                        extpolfac);
+  }
+
+  if (no_negative_from_lut){
+    //Check for negative values due to interpolation and set them to zero
+    for (Index ir = 0; ir < abs_scalar_gas.nrows(); ir++){
+      for (Index ic = 0; ic < abs_scalar_gas.ncols(); ic++){
+        if (abs_scalar_gas(ir, ic)<0) abs_scalar_gas(ir, ic)=0;
+      }
+    }
   }
 
   // Now add to the right place in the absorption matrix.

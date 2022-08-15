@@ -13961,10 +13961,12 @@ Possible models:
          "jacobian_quantities",
          "abs_species",
          "select_abs_species"),
-      GIN("extpolfac"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0.5"),
-      GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).")));
+      GIN("extpolfac","no_negative_from_lut"),
+      GIN_TYPE("Numeric","Index"),
+      GIN_DEFAULT("0.5","1"),
+      GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).",
+               "Boolean. If it is true negative values due to interpolation\n"
+               "are set to zero.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddHitranLineMixingLines"),
