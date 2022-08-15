@@ -12,9 +12,6 @@ jobs:
       matrix:
         name: [
           ubuntu-doc,
-          ubuntu-gcc-9,
-          ubuntu-gcc-10,
-          ubuntu-gcc-10-cxx20,
           ubuntu-clang-13-debug,
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
@@ -33,43 +30,6 @@ jobs:
             fortran: "no"
             check: "no"
             libcxx: "yes"
-            buildtype: "Release"
-
-          - name: ubuntu-gcc-9
-            os: ubuntu-20.04
-            compiler: gcc
-            version: "9"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "9"
-            check: "yes"
-            libcxx: "no"
-            buildtype: "Release"
-
-          - name: ubuntu-gcc-10
-            os: ubuntu-20.04
-            compiler: gcc
-            version: "10"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "10"
-            check: "yes"
-            libcxx: "no"
-            buildtype: "Release"
-
-          - name: ubuntu-gcc-10-cxx20
-            os: ubuntu-20.04
-            compiler: gcc
-            version: "10"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            fortran-version: "10"
-            check: "yes"
-            libcxx: "no"
-            cmakeflags: "-DENABLE_CXX20=1"
             buildtype: "Release"
 
           - name: ubuntu-clang-13-debug
