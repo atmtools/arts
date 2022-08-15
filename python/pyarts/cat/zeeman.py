@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import pyarts
 
 
 def set(ws, lines, directory, spec):
@@ -19,23 +20,17 @@ def set(ws, lines, directory, spec):
         lines modified
     """
     
-    if "pyarts_zeeman_set_aoqi__" not in dir(ws):
-        ws.create_variable("ArrayOfQuantumIdentifier", "pyarts_zeeman_set_aoqi__")
-
-    if "pyarts_zeeman_set_v__" not in dir(ws):
-        ws.create_variable("Vector", "pyarts_zeeman_set_v__")
-
-    assert ws.pyarts_zeeman_set_aoqi__.group == "ArrayOfQuantumIdentifier"
-    assert ws.pyarts_zeeman_set_v__.group == "Vector"
+    aoqi = pyarts.arts.ArrayOfQuantumIdentifier()
+    vec = pyarts.arts.Vector()
     
-    aoqi = os.path.join(directory, f"{spec}.qid.xml")
-    v = os.path.join(directory, f"{spec}.g.xml")
+    aoqi_file = os.path.join(directory, f"{spec}.qid.xml")
+    vec_file = os.path.join(directory, f"{spec}.g.xml")
 
-    assert os.path.exists(aoqi), f"Cannot find file {aoqi}"
-    assert os.path.exists(v), f"Cannot find file {v}"
+    assert os.path.exists(aoqi_file), f"Cannot find file {aoqi_file}"
+    assert os.path.exists(vec_file), f"Cannot find file {vec_file}"
 
-    ws.ReadXML(ws.pyarts_zeeman_set_aoqi__, aoqi)
-    ws.ReadXML(ws.pyarts_zeeman_set_v__, os.path.join(directory, v))
-    ws.abs_linesSetZeemanCoefficients(lines, ws.pyarts_zeeman_set_aoqi__, ws.pyarts_zeeman_set_v__)
+    aoqi.readxml(aoqi_file)
+    vec.readxml(vec_file)
+    ws.abs_linesZeemanCoefficients(lines, aoqi, vec)
     
     return lines

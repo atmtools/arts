@@ -1,7 +1,10 @@
 #include <py_auto_interface.h>
 #include <quantum_numbers.h>
+#include <quantum_term_symbol.h>
 
 #include "py_macros.h"
+
+#include <pybind11/operators.h>
 
 namespace Python {
 void py_quantum(py::module_& m) {
@@ -126,6 +129,9 @@ void py_quantum(py::module_& m) {
             ARTS_USER_ERROR_IF(res < 0, "Bad species: ", iso)
             qid.isotopologue_index = res;
           })
+      .def(py::self == py::self)
+      .def("__hash__", [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
+      .def("as_symbol", &Quantum::Helpers::molecular_term_symbol)
       .def(py::pickle(
           [](const QuantumIdentifier& t) {
             return py::make_tuple(t.isotopologue_index, t.val);

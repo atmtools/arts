@@ -7,8 +7,10 @@ arts_test_run_pyfile(fast raw/corr.py)
 
 if (ARTS_XML_DATA_DIR)
   arts_test_run_pyfile(slow artscomponents/surfaceblackbody/TestSurfaceBlackbody.py)
-  arts_test_run_pyfile(fast artscomponents/linemixing/TestMolOxyAdaptation.py)
 endif()
+
+# Data downloaded as part of the automatic downloader
+arts_test_run_pyfile(fast artscomponents/linemixing/TestMolOxyAdaptation.py)
 
 arts_test_run_pyfile(fast artscomponents/cutoff/ycalc.py)
 arts_test_run_pyfile(fast artscomponents/gasscattering/TestClearsky_StarGasScatteringIsotropic.py)

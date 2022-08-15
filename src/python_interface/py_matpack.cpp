@@ -613,7 +613,7 @@ via x.value)--");
       .PythonInterfaceComparisonOperators(Rational, Index)
       .def(py::pickle(
           [](const Rational& self) {
-            return py::make_tuple(self.Nom(), self.Denom());
+            return py::make_tuple(self.numer, self.denom);
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")

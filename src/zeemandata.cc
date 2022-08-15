@@ -30,6 +30,7 @@
 
 #include "debug.h"
 #include "species_info.h"
+#include "wigner_functions.h"
 
 Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
                               const Numeric& GS,

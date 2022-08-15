@@ -25,25 +25,22 @@
 
 void wigxjpf_error(void);
 
-#if PYWIGXJPF_ERROR_HANDLING
-
 #include <setjmp.h>
 
-extern __thread jmp_buf _pywigxjpf_jmp_env;
+extern __thread jmp_buf _error_jmp_env;
 
-# define PYWIGXJPF_ERROR_SETUP(x) do {	\
-    if (setjmp(_pywigxjpf_jmp_env))	\
-      return x;				\
+#if PYWIGXJPF_ERROR_HANDLING || ERRNO_ERROR_HANDLING
+#define NONABORT_ERROR_SETUP(x)           \
+  do {                                    \
+    if (setjmp(_error_jmp_env)) return x; \
   } while (0)
 #else
-# define PYWIGXJPF_ERROR_SETUP(x) do { } while (0)
+#define NONABORT_ERROR_SETUP(x) do {} while(0)
 #endif
 
-#if PYWIGXJPF_ERROR_HANDLING || CPP_WIGXJPF_ERROR_HANDLING
 void wigxjpf_drop_temp(void);
-#endif
 
-# define PYWIGXJPF_ERROR_SETUP_void  PYWIGXJPF_ERROR_SETUP()
-# define PYWIGXJPF_ERROR_SETUP_NaN   PYWIGXJPF_ERROR_SETUP(strtof("NAN",NULL))
+# define NONABORT_ERROR_SETUP_void  NONABORT_ERROR_SETUP()
+# define NONABORT_ERROR_SETUP_NaN   NONABORT_ERROR_SETUP(strtof("NAN",NULL))
 
 #endif/*__WIGXJPF_ERROR_H__*/

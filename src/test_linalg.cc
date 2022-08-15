@@ -466,7 +466,7 @@ void test_real_diagonalize(Index ntests, Index dim) {
 
     // Use the two expm methods to test that diagonalize works
     matrix_exp(F1, A, 10);
-    matrix_exp2(F2, A);
+    matrix_exp(F2, A);
 
     Numeric err1 = 0.0, err2 = 0.0;
     err1 = get_maximum_error(F1, F2, true);

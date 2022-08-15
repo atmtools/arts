@@ -37,6 +37,7 @@
 #include "check_input.h"
 #include "cloudbox.h"
 #include "matpackI.h"
+#include "wigner_functions.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric LAT_LON_MIN;

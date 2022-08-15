@@ -28,6 +28,7 @@
  * compute the relaxation, not simply use the relaxation
  */
 
+#include "constants.h"
 #include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
@@ -621,6 +622,34 @@ void ecs_dataAddRodrigues1997(
     ecs[Species::Species::Oxygen].mass =
         Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
   }
+}
+
+void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
+                         const SpeciesIsotopologueRatios& isotopologue_ratios,
+                         const Verbosity&) {
+  auto& ecs = ecs_data[QuantumIdentifier("O2-66")];
+
+  ecs[Species::Species::Oxygen].scaling =
+      LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0275), 1.01, 0, 0);
+  ecs[Species::Species::Oxygen].collisional_distance = LineShapeModelParameters(
+      LineShapeTemperatureModel::T0, Conversion::angstrom2meter(1.05), 0, 0, 0);
+  ecs[Species::Species::Oxygen].lambda =
+      LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.935, 0, 0, 0);
+  ecs[Species::Species::Oxygen].beta =
+      LineShapeModelParameters(LineShapeTemperatureModel::T0, 0, 0, 0, 0);
+  ecs[Species::Species::Oxygen].mass =
+      Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
+
+  ecs[Species::Species::Nitrogen].scaling =
+      LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0285), 1.03, 0, 0);
+  ecs[Species::Species::Nitrogen].collisional_distance = LineShapeModelParameters(
+      LineShapeTemperatureModel::T0, Conversion::angstrom2meter(1.00), 0, 0, 0);
+  ecs[Species::Species::Nitrogen].lambda =
+      LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.95, 0, 0, 0);
+  ecs[Species::Species::Nitrogen].beta =
+      LineShapeModelParameters(LineShapeTemperatureModel::T0, 0, 0, 0, 0);
+  ecs[Species::Species::Nitrogen].mass =
+      Species::mean_mass(Species::Species::Nitrogen, isotopologue_ratios);
 }
 
 void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,

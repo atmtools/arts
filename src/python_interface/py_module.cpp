@@ -38,6 +38,7 @@ void py_constants(py::module_& m);
 void py_star(py::module_& m);
 void py_physics(py::module_& m);
 void py_predefined(py::module_& m);
+void py_math(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -93,6 +94,8 @@ PYBIND11_MODULE(arts, m) {
 
     parse_path_from_environment("ARTS_INCLUDE_PATH", parameters.includepath);
     parse_path_from_environment("ARTS_DATA_PATH", parameters.datapath);
+    parse_path_from_environment("ARTS_CAT_DATA_DIR", parameters.datapath);
+    parse_path_from_environment("ARTS_XML_DATA_DIR", parameters.datapath);
 
     parameters.includepath.insert(parameters.includepath.begin(), ".");
     parameters.datapath.insert(parameters.datapath.begin(), ".");
@@ -127,5 +130,6 @@ PYBIND11_MODULE(arts, m) {
   py_physics(m);
   py_global(m);
   py_physics(m);
+  py_math(m);
 }
 }  // namespace Python

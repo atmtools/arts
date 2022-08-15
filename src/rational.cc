@@ -35,10 +35,10 @@ std::ostream& operator<<(std::ostream& os, const Rational& a) {
   Rational r = reduce_by_gcd(a);
   r.fixSign();
 
-  if (r.Denom() == 1)
-    os << r.Nom();
+  if (r.denom == 1)
+    os << r.numer;
   else
-    os << r.Nom() << "/" << r.Denom();
+    os << r.numer << "/" << r.denom;
   return os;
 }
 
@@ -54,8 +54,7 @@ std::istream& operator>>(std::istream& is, Rational& a) {
 }
 
 
-Rational::Rational(const String& s)
-{
+Rational::Rational(const String& s) {
   auto len = s.length();
   
   if (len) {
@@ -84,10 +83,9 @@ Rational::Rational(const String& s)
 }
 
 
-void Rational::simplify_in_place() noexcept
-{
+void Rational::simplify_in_place() noexcept {
   Rational a = reduce_by_gcd(*this);
-  mnom = a.Nom();
-  mdenom = a.Denom();
+  numer = a.numer;
+  denom = a.denom;
   fixSign();
 }

@@ -31,6 +31,8 @@
 
 #include "absorptionlines.h"
 
+#include <algorithm>
+#include <limits>
 #include <ostream>
 #include <string>
 
@@ -44,6 +46,8 @@
 #include "linescaling.h"
 #include "lineshapemodel.h"
 #include "quantum_numbers.h"
+#include "rational.h"
+#include "wigner_functions.h"
 
 LineShape::Output Absorption::Lines::ShapeParameters(
     size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
@@ -2806,11 +2810,32 @@ AbsorptionSpeciesBandIndex flat_index(
   return {ispec, i};
 }
 
-bool Absorption::any_cutoff(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
-  return std::any_of(abs_lines_per_species.cbegin(), abs_lines_per_species.cend(),
-                     [](auto& abs_lines){
-                       return std::any_of(abs_lines.cbegin(), abs_lines.cend(), [](auto& band) {
-                         return band.cutoff not_eq CutoffType::None;
-                      });
-                    });
+namespace Absorption {
+bool any_cutoff(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
+  return std::any_of(
+      abs_lines_per_species.cbegin(),
+      abs_lines_per_species.cend(),
+      [](auto& abs_lines) {
+        return std::any_of(
+            abs_lines.cbegin(), abs_lines.cend(), [](auto& band) {
+              return band.cutoff not_eq CutoffType::None;
+            });
+      });
 }
+
+Rational Lines::max(QuantumNumberType x) const {
+  ARTS_USER_ERROR_IF(Quantum::Number::common_value_type(x) == Quantum::Number::ValueType::S, "Cannot get a rational out from quantum number type ", x)
+  if (quantumidentity.val.has(x)) {
+    auto& val = quantumidentity.val[x];
+    return std::max(val.low(), val.upp());
+  }
+
+  Rational out{std::numeric_limits<Index>::lowest()};
+  for (auto& line : lines) {
+    ARTS_USER_ERROR_IF(not line.localquanta.val.has(x), "No ", x, " in some line(s)")
+    auto& val = line.localquanta.val[x];
+    out = std::max(std::max(val.low(), val.upp()), out);
+  }
+  return out;
+}
+} // namespace Absorption

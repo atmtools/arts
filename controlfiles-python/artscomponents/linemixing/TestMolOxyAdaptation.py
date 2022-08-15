@@ -20,11 +20,24 @@ ws.Touch(ws.rtp_nlte)
 ws.abs_speciesSet(species=["O2-66"])
 ws.ReadXML(ws.abs_lines, "lines/O2-66.xml")
 
-qn = pyarts.arts.QuantumIdentifier("O2-66 S 1 1 Lambda 0 0 v1 0 0 ElecStateLabel X X")
+qn = pyarts.arts.QuantumIdentifier("O2-66 S 1 1 Lambda 0 0 v 0 0 ElecStateLabel X X")
 
-ws.abs_linesKeepBand(qid=qn)
-ws.abs_linesRemoveEmptyBands()
-ws.abs_linesRemoveLines(lower_frequency=30e9, upper_frequency=120e9, safe=0)
+z = None
+for y in ws.abs_lines.value:
+    if y.quantumidentity == qn:
+        z = y
+
+assert z
+
+i=0
+minf0, maxf0 = 1e9, 120e9
+while i < len(z.lines):
+    if z.lines[i].F0 <= minf0 or z.lines[i].F0 >= maxf0:
+        z.lines.pop(i)
+    else:
+        i += 1
+
+ws.abs_lines = [z]
 
 assert len(ws.abs_lines.value) == 1
 
@@ -46,12 +59,10 @@ ws.propmat_clearskyAddLines()
 old = 1.0 * ws.propmat_clearsky.value.data.value.flatten()
 
 ws.ecs_dataInit()
-ws.ecs_dataAddRodrigues1997()
-ws.ecs_dataAddTran2011()
 ws.ecs_dataAddMakarov2020()
 ws.ecs_dataAddMeanAir(vmrs=[1], specs="N2")  # Since the rest is for O2
 
-ws.abs_lines_per_speciesSetPopulation(option="ByMakarovFullRelmat")
+ws.abs_lines_per_speciesPopulation(option="ByMakarovFullRelmat")
 ws.abs_lines_per_speciesAdaptOnTheFlyLineMixing(t_grid = np.linspace(150, 350, 51), pressure=1e5, order=1)
 
 new = 1.0 * ws.propmat_clearsky.value.data.value.flatten()
