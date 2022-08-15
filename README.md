@@ -23,7 +23,7 @@ Building ARTS
 
 Build Prerequisites:
 
-- gcc/g++ >=9 (or llvm/clang >=13) older versions might work, but are untested
+- gcc/g++ >=11 (or llvm/clang >=13) older versions might work, but are untested
 - cmake (>=3.18)
 - zlib
 - openblas
