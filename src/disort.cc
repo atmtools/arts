@@ -1433,9 +1433,12 @@ void run_cdisort_flux(Workspace& ws,
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
 
-  //Resize direct field
   Matrix spectral_direct_irradiance_field;
+  Matrix dFdtau(nf, ds.nlyr+1,0);
+  Matrix dFdz(nf, ds.nlyr+1,0);
+
   if (stars_do){
+    //Resize direct field
     spectral_direct_irradiance_field.resize(nf, ds.nlyr+1);
     spectral_direct_irradiance_field = 0;
   }
@@ -1494,9 +1497,19 @@ void run_cdisort_flux(Workspace& ws,
       // upward flux
       spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 1) =
           out.rad[ds.nlyr - k - cboxlims[0]].flup/conv_fac;
+
+      // flux divergence in tau space
+      dFdtau(f_index, k + ncboxremoved) =
+          out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
     }
 
-
+    // flux divergence in physical space
+    // For that, we simply need to multiply dFdtau with the extinction.
+    for (Index lvl_index = cboxlims[0]; lvl_index <= cboxlims[1]; lvl_index++) {
+      dFdz(f_index, lvl_index) =
+          dFdtau(f_index, lvl_index) *
+          (ext_bulk_par(f_index, lvl_index) + ext_bulk_gas(f_index, lvl_index));
+    }
 
     // To avoid potential numerical problems at interpolation of the field,
     // we copy the surface field to underground altitudes
@@ -1508,6 +1521,8 @@ void run_cdisort_flux(Workspace& ws,
         spectral_direct_irradiance_field(f_index, k) =
             spectral_direct_irradiance_field(f_index, k + 1);
       }
+      dFdtau(f_index, k) = dFdtau(f_index, k + 1);
+      dFdz(f_index, k) = dFdz(f_index, k + 1);
     }
   }
 
@@ -1518,7 +1533,7 @@ void run_cdisort_flux(Workspace& ws,
   for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
 
 
-    if (disort_aux_vars[i] == "Optical depth"){
+    if (disort_aux_vars[i] == "dtau"){
       cnt+=1;
       disort_aux[cnt]=dtauc;
     }
@@ -1526,18 +1541,27 @@ void run_cdisort_flux(Workspace& ws,
       cnt+=1;
       disort_aux[cnt]=ssalb;
     }
-    else if (disort_aux_vars[i] == "Direct downward spectral irradiance"){
+    else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
+      cnt += 1;
+      disort_aux[cnt] = spectral_direct_irradiance_field;
+    }
+    else if (disort_aux_vars[i] == "dFdtau"){
+        cnt+=1;
+        disort_aux[cnt]=dFdtau;
+    }
+    else if (disort_aux_vars[i] == "dFdz"){
       cnt+=1;
-      disort_aux[cnt]=spectral_direct_irradiance_field;
+      disort_aux[cnt]=dFdz;
     }
     else {
       ARTS_USER_ERROR (
-          "The only allowed strings in *iy_aux_vars* are:\n"
-          "  \"Radiative background\"\n"
-          "  \"Optical depth\"\n"
-          "  \"Direct radiation\"\n"
-          "  \"Radiation Background\"\n"
-          "but you have selected: \"", disort_aux_vars[i], "\"")
+          "The only allowed strings in *disort_aux_vars* are:\n"
+          "  \"dtau\"\n"
+          "  \"Single scatteriering albedo\"\n"
+          "  \"Direct downward spectral irradiance\"\n"
+          "  \"dFdtau\"\n"
+          "  \"dFdz\"\n"
+          "but you have selected: \"", disort_aux_vars[i], "\"\n");
     }
   }
 
