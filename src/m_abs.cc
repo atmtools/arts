@@ -1672,7 +1672,7 @@ struct MethodAppender {
 };
 }  // namespace
 
-void propmat_clearsky_agendaAuto(  // Workspace reference:
+void propmat_clearsky_agendaAuto(// Workspace reference:
     Workspace& ws,
     // WS Output:
     Agenda& propmat_clearsky_agenda,
@@ -1681,21 +1681,20 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     // WS Generic Input:
+    const Numeric& H,
     const Numeric& T_extrapolfac,
-    const Index& ignore_errors,
+    const Numeric& eta,
     const Numeric& extpolfac,
     const Numeric& force_p,
     const Numeric& force_t,
+    const Index& ignore_errors,
     const Numeric& lines_sparse_df,
     const Numeric& lines_sparse_lim,
     const String& lines_speedup_option,
-    const Index& no_negatives,
-    const Index& use_abs_as_ext,
     const Index& manual_mag_field,
-    const Numeric& H,
+    const Index& no_negatives,
     const Numeric& theta,
-    const Numeric& eta,
-    // Special parameter:
+    const Index& use_abs_as_ext,
     const Index& use_abs_lookup_ind,
     // Verbosity object:
     const Verbosity& verbosity) {
@@ -1718,7 +1717,8 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
   // propmat_clearskyAddFromLookup
   if (use_abs_lookup) {
     const std::array gins{
-        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac)};
+        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac),
+        MethodSetDelHelper(ws, "no_negatives", "Index", no_negatives)};
     agenda.append_gin_method("propmat_clearskyAddFromLookup", gins);
   }
 

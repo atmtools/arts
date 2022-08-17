@@ -13961,10 +13961,12 @@ Possible models:
          "jacobian_quantities",
          "abs_species",
          "select_abs_species"),
-      GIN("extpolfac"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0.5"),
-      GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).")));
+      GIN("extpolfac","no_negatives"),
+      GIN_TYPE("Numeric","Index"),
+      GIN_DEFAULT("0.5","1"),
+      GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).",
+               "Boolean. If it is true negative values due to interpolation\n"
+               "are set to zero.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddHitranLineMixingLines"),
@@ -23053,11 +23055,11 @@ where N>=0 and the species name is something line "H2O".
         "propmat_clearskyAddHitranLineMixingLines",
         "propmat_clearskyAddOnTheFlyLineMixingWithZeeman",
         };
-    Index i = 0;
+    Index method_counter = 0;
     for (auto& m : md_data_raw) {
       if (std::find(targets.cbegin(), targets.cend(), m.Name()) not_eq
           targets.cend()) {
-        i++;
+        method_counter++;
         for (auto& x : m.GIn()) gin.push_back(x);
         for (auto& x : m.GInType()) {
           gintype.push_back(global_data::wsv_groups.at(x).name);
@@ -23066,7 +23068,7 @@ where N>=0 and the species name is something line "H2O".
         for (auto& x : m.GInDefault()) gindefault.push_back(x);
       }
     }
-    if (i not_eq targets.nelem()) throw std::logic_error("Lacking functions");
+    if (method_counter not_eq targets.nelem()) throw std::logic_error("Lacking functions");
     String doc{R"--(Sets the *propmat_clearsky_agenda* automatically
 
 This method introspects the input and uses it for generating the
@@ -23089,6 +23091,32 @@ To perform absorption lookupo table calculation, call:
     3) *propmat_clearsky_agendaAuto*(use_abs_lookup=1)
     4) Perform other calculations
 )--";
+
+    //Remove duplicate GINs.
+    for (Index i=0; i<gin.nelem(); i++) {
+      for (Index j=i+1; j<gin.nelem(); j++) {
+        if (gin[j] < gin[i]) {
+          std::swap(gin[i], gin[j]);
+          std::swap(gintype[i], gintype[j]);
+          std::swap(gindefault[i], gindefault[j]);
+          std::swap(gindesc[i], gindesc[j]);
+        }
+      }
+    }
+
+    auto ptr = std::adjacent_find(gin.begin(), gin.end());
+    while (ptr != gin.end()){
+      const Index i = std::distance(gin.begin(),ptr);
+      ARTS_ASSERT(gintype[i]==gintype[i+1], "Same name variable must be of the same type");
+      ARTS_ASSERT(gindefault[i]==gindefault[i+1], "Same name variable must have the same default");
+      gindesc[i]+="; "+gindesc[i+1];
+
+      gin.erase(gin.begin()+i+1);
+      gintype.erase(gintype.begin()+i+1);
+      gindefault.erase(gindefault.begin()+i+1);
+      gindesc.erase(gindesc.begin()+i+1);
+      ptr = std::adjacent_find(gin.begin(), gin.end());
+    }
 
     gin.push_back("use_abs_lookup");
     gintype.push_back("Index");
