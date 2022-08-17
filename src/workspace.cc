@@ -724,7 +724,7 @@ void define_wsv_data() {
           "\n"
           "Shall be set by *atmfields_checkedCalc*. See that WSMs for treated\n"
           "WSVs. Only the value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("atmgeom_checked"),
@@ -739,7 +739,7 @@ void define_wsv_data() {
           "\n"
           "Shall be set by *atmgeom_checkedCalc*. Only the value 1 is taken\n"
           "as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("atm_fields_compact"),
@@ -922,7 +922,7 @@ void define_wsv_data() {
           "\n"
           "Relevant checks are performed by *cloudbox_checkedCalc. Only the\n"
           "value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("cloudbox_field"),
@@ -2251,7 +2251,7 @@ void define_wsv_data() {
                   "Usage: Set manually on own risk, or use *lbl_checkedCalc*.\n"
                   "\n"
                   "Unit:  Boolean\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
   
   wsv_data.push_back(
       WsvRecord(NAME("line_irradiance"),
@@ -3459,7 +3459,7 @@ Can currently only contain data for new MT CKD models of water.
                 DESCRIPTION("OK-flag for *propmat_clearsky_agenda*.\n"
                             "\n"
                             "Set by *propmat_clearsky_agenda_checkedCalc*.\n"),
-                GROUP("Index")));
+                GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky_agenda"),
@@ -3654,7 +3654,7 @@ Can currently only contain data for new MT CKD models of water.
           "Flag indicating completeness and consistency of retrieval setup.\n"
           "\n"
           "Unit: Boolean\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("retrieval_eo"),
@@ -4204,7 +4204,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Shall be set by *sensor_checkedCalc*. See that WSM for treated WSVs.\n"
           "Only the value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("sensor_description_amsu"),
