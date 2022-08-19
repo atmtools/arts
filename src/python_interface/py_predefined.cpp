@@ -44,7 +44,7 @@ void internalMTCKD(
           }));
 
   m.def(
-      "get_foreign_h2o",
+      "get_foreign_h2oHitranMTCKD",
       [](const Vector& f,
          Numeric p,
          Numeric t,
@@ -81,7 +81,7 @@ Parameters:
 )--"));
 
   m.def(
-      "get_self_h2o",
+      "get_self_h2oHitranMTCKD",
       [](const Vector& f,
          Numeric p,
          Numeric t,
@@ -120,7 +120,7 @@ Parameters:
 
 void internalCKDMT350(py::module_& m) {
   m.def(
-      "get_self_h2o",
+      "get_self_h2oCKDMT350",
       [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
         PropagationMatrix pm(f.nelem());
         Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, p, t, x);
@@ -144,7 +144,7 @@ Parameters:
 )--"));
 
   m.def(
-      "get_foreign_h2o",
+      "get_foreign_h2oCKDMT350",
       [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
         PropagationMatrix pm(f.nelem());
         Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(
@@ -218,14 +218,11 @@ void py_predefined(py::module_& m) {
 
   auto predef = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
-  auto CKDMT350 = predef.def_submodule("CKDMT350");
-  m.doc() = "Contains implementations for using MT CKD version 3.50";
-  auto hitran_mtckd = predef.def_submodule("Hitran").def_submodule("MTCKD");
 
   py::class_<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>
-      hitran_mtckd_data(hitran_mtckd, "WaterData");
+      hitran_mtckd_data(predef, "WaterData");
 
-  internalCKDMT350(CKDMT350);
-  internalMTCKD(hitran_mtckd, hitran_mtckd_data);
+  internalCKDMT350(predef);
+  internalMTCKD(predef, hitran_mtckd_data);
 }
 }  // namespace Python

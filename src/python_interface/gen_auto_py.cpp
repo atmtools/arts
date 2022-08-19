@@ -1782,7 +1782,8 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
     os << "    } else ";
   }
   os << R"--({}
-  }, py::arg("ws").noconvert(), py::arg("value"))
+  }, py::arg("ws").noconvert(), py::arg("value")),
+  py::doc("The value of the workspace variable (if initialized)")
 );
 
 )--";
