@@ -83,7 +83,7 @@ def doc_split(mod):
     functions = []
     submodules = {}
     for item in dir(mod):
-        if item[0] == "_:" or item[-1] == "_" or  ":" in item: continue
+        if item[0] == "_" or item[-1] == "_" or  ":" in item: continue
         
         attr = getattr(mod, item)
         if isclass(attr): classes.append(item)
