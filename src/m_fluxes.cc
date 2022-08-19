@@ -241,7 +241,7 @@ void heating_ratesFromIrradiance(Tensor3& heating_rates,
                                (p_grid[2] - p_grid[0]) * g0 /
                                specific_heat_capacity(0, p, r);
 
-      // lower boundary
+      // upper boundary
       net_flux_t = (irradiance_field(idx - 1, p, r, 0) +
                     irradiance_field(idx - 1, p, r, 1));
       net_flux_c = (irradiance_field(idx - 2, p, r, 0) +
@@ -251,7 +251,7 @@ void heating_ratesFromIrradiance(Tensor3& heating_rates,
 
       heating_rates(idx - 1, p, r) =
           -(-3 * net_flux_t + 4 * net_flux_c - net_flux_b) /
-          (p_grid[2] - p_grid[0]) * g0 / specific_heat_capacity(0, p, r);
+          (p_grid[idx-1] - p_grid[idx-3]) * g0 / specific_heat_capacity(0, p, r);
     }
   }
 }

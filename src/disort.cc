@@ -1481,17 +1481,17 @@ void run_cdisort_flux(Workspace& ws,
       if (stars_do){
         // downward direct flux
         spectral_direct_irradiance_field(f_index, k + ncboxremoved) =
-            out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
 
         // downward total flux
         spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
-            (out.rad[ds.nlyr - k - cboxlims[0]].rfldir +
+            -(out.rad[ds.nlyr - k - cboxlims[0]].rfldir +
             out.rad[ds.nlyr - k - cboxlims[0]].rfldn)/conv_fac;
 
       } else {
         // downward total flux
         spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
-            out.rad[ds.nlyr - k - cboxlims[0]].rfldn/conv_fac;
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldn/conv_fac;
       }
 
       // upward flux
