@@ -686,7 +686,7 @@ class TestGroups:
         assert not ws.atmosphere_dim.init
         x(ws)
         assert ws.atmosphere_dim.init
-        assert ws.atmosphere_dim.value.val == 3
+        assert ws.atmosphere_dim.value.value == 3
 
         return x
 
@@ -767,9 +767,9 @@ class TestGroups:
         x = cxx.Index(0)
         test.io(x, delete=True)
 
-        assert x.val == 0
-        x.val = x + 3
-        assert x.val == 3
+        assert x.value == 0
+        x.value = x + 3
+        assert x.value == 3
 
         return x
 
@@ -823,9 +823,9 @@ class TestGroups:
         x = cxx.Numeric(0)
         test.io(x, delete=True)
 
-        assert x.val == 0
-        x.val = x + 2
-        assert x.val == 2
+        assert x.value == 0
+        x.value = x + 2
+        assert x.value == 2
 
         return x
 

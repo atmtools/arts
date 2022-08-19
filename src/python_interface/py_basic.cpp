@@ -147,7 +147,7 @@ object's instances (i.e., no element-wise comparisions))--");
       .PythonInterfaceComparisonOperators(Numeric_, Numeric_)
       .PythonInterfaceMathOperators(Numeric_, Numeric_)
       .def_property(
-          "val",
+          "value",
           [](Numeric_& x) { return x.val; },
           [](Numeric_& x, Numeric y) { x.val = y; })
       .PythonInterfaceBasicRepresentation(Numeric_)
@@ -203,7 +203,7 @@ object's instances (i.e., no element-wise comparisions))--");
 
 This is a wrapper class for Arts Numeric.
 
-You can get copies and set the value by the "val" property)--");
+You can get copies and set the value by the "value" property)--");
 
   py::class_<Index_>(m, "Index")
       .def(py::init([]() { return new Index_{}; }))
@@ -216,7 +216,7 @@ You can get copies and set the value by the "val" property)--");
       .PythonInterfaceComparisonOperators(Index_, Index_)
       .PythonInterfaceMathOperators(Index_, Index_)
       .def_property(
-          "val",
+          "value",
           [](Index_& x) { return x.val; },
           [](Index_& x, Index y) { x.val = y; })
       .PythonInterfaceBasicRepresentation(Index_)
@@ -272,7 +272,7 @@ You can get copies and set the value by the "val" property)--");
 
 This is a wrapper class for Arts Index.
 
-You can get copies and set the value by the "val" property)--");
+You can get copies and set the value by the "value" property)--");
 
   py::implicitly_convertible<py::str, String>();
   py::implicitly_convertible<std::vector<py::str>, ArrayOfString>();
