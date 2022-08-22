@@ -20352,7 +20352,7 @@ void xsec_continuum_tag(MatrixView xsec,
   // true cross section.
 
   // Boltzmann constant
-  static constexpr const Numeric BOLTZMAN_CONST=Constant::stefan_boltzmann_constant;
+  static constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
 
   // Loop all pressures:
   for (Index i = 0; i < abs_p.nelem(); ++i) {
