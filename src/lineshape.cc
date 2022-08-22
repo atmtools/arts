@@ -11,9 +11,9 @@
 using Constant::inv_pi;
 using Constant::inv_sqrt_pi;
 using Constant::pi;
-using Constant::pow2;
-using Constant::pow3;
-using Constant::pow4;
+using Math::pow2;
+using Math::pow3;
+using Math::pow4;
 using Constant::sqrt_ln_2;
 using Constant::sqrt_pi;
 
@@ -1934,14 +1934,14 @@ struct FullNonLocalThermodynamicEquilibriumInitialization {
         e(c3 * r2 * A21),
         dedF0(e / F0),
         dedr2(c3 * A21),
-        B(2 * Constant::h / Constant::pow2(Constant::c) * Constant::pow3(F0) /
+        B(2 * Constant::h / Math::pow2(Constant::c) * Math::pow3(F0) /
           std::expm1((Constant::h / Constant::k * F0) / T)),
-        dBdT(Constant::pow2(B) * Constant::pow2(Constant::c) *
+        dBdT(Math::pow2(B) * Math::pow2(Constant::c) *
              std::exp((Constant::h / Constant::k * F0) / T) /
-             (2 * Constant::k * Constant::pow2(F0 * T))),
-        dBdF0(3 * B / F0 - Constant::pow2(B) * Constant::pow2(Constant::c) *
+             (2 * Constant::k * Math::pow2(F0 * T))),
+        dBdF0(3 * B / F0 - Math::pow2(B) * Math::pow2(Constant::c) *
                                std::exp((Constant::h / Constant::k * F0) / T) /
-                               (2 * Constant::k * T * Constant::pow3(F0))) {}
+                               (2 * Constant::k * T * Math::pow3(F0))) {}
 
   constexpr FullNonLocalThermodynamicEquilibrium operator()(
       Numeric r, Numeric drdSELFVMR, Numeric drdT) &&noexcept {
@@ -2007,14 +2007,14 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
         K4(boltzman_ratio(Tu, T, Evu)),
         dK4dT(dboltzman_ratio_dT(K4, T, Evu)),
         dK4dTu(dboltzman_ratio_dT(K4, Tu, Evu)),
-        B(2 * Constant::h / Constant::pow2(Constant::c) * Constant::pow3(F0) /
+        B(2 * Constant::h / Math::pow2(Constant::c) * Math::pow3(F0) /
           std::expm1((Constant::h / Constant::k * F0) / T)),
-        dBdT(Constant::pow2(B) * Constant::pow2(Constant::c) *
+        dBdT(Math::pow2(B) * Math::pow2(Constant::c) *
              std::exp((Constant::h / Constant::k * F0) / T) /
-             (2 * Constant::k * Constant::pow2(F0 * T))),
-        dBdF0(3 * B / F0 - Constant::pow2(B) * Constant::pow2(Constant::c) *
+             (2 * Constant::k * Math::pow2(F0 * T))),
+        dBdF0(3 * B / F0 - Math::pow2(B) * Math::pow2(Constant::c) *
                                std::exp((Constant::h / Constant::k * F0) / T) /
-                               (2 * Constant::k * T * Constant::pow3(F0))) {}
+                               (2 * Constant::k * T * Math::pow3(F0))) {}
 
   constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium operator()(
       Numeric I0,
@@ -3737,14 +3737,14 @@ void ComputeData::interp_add_triplequad(const ComputeData &sparse)
   Numeric f2 = sparse.f_grid[sparse_iv + 2];
   Numeric f1 = sparse.f_grid[sparse_iv + 1];
   Numeric f0 = sparse.f_grid[sparse_iv];
-  Numeric inv = 1.0 / Constant::pow2(f1 - f0);
+  Numeric inv = 1.0 / Math::pow2(f1 - f0);
   for (Index iv = 0; iv < nv; iv++) {
     if (sparse_iv < (sparse_nv - 3) and f2 == f_grid[iv]) {
       sparse_iv += 3;
       f2 = sparse.f_grid[sparse_iv + 2];
       f1 = sparse.f_grid[sparse_iv + 1];
       f0 = sparse.f_grid[sparse_iv];
-      inv = 1.0 / Constant::pow2(f1 - f0);
+      inv = 1.0 / Math::pow2(f1 - f0);
     }
     ARTS_ASSERT(f_grid[iv] >= f0 and
                     (f_grid[iv] < f2 or

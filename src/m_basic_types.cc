@@ -46,6 +46,7 @@
 #include <string_view>
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "artstime.h"
 #include "energylevelmap.h"
 #include "exceptions.h"
@@ -3203,29 +3204,18 @@ void CompareRelative(const EnergyLevelMap& var1,
 void PrintPhysicalConstants(const Verbosity& verbosity) {
   CREATE_OUT0;
 
-  extern const Numeric AVOGADROS_NUMB;
-  extern const Numeric BOHR_MAGNETON;
-  extern const Numeric BOLTZMAN_CONST;
-  extern const Numeric ELECTRON_CHARGE;
-  extern const Numeric ELECTRON_MASS;
-  extern const Numeric GAS_CONSTANT;
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric SPEED_OF_LIGHT;
-  extern const Numeric VACUUM_PERMITTIVITY;
-  extern const Numeric DOPPLER_CONST;
-
   out0 << std::setprecision(15) << std::scientific;
   out0 << "---------------------------------------------------------\n"
        << "Numerical const in ARTS \tValue\n"
-       << "Avogadro's constant:    \t " << AVOGADROS_NUMB << '\n'
-       << "Bohr's magneton:        \t " << BOHR_MAGNETON << '\n'
-       << "Boltzmann's constant:   \t " << BOLTZMAN_CONST << '\n'
-       << "Electron charge:        \t" << ELECTRON_CHARGE << '\n'
-       << "Electron mass:          \t " << ELECTRON_MASS << '\n'
-       << "Ideal gas constant:     \t " << GAS_CONSTANT << '\n'
-       << "Planck's constant:      \t " << PLANCK_CONST << '\n'
-       << "Speed of light:         \t " << SPEED_OF_LIGHT << '\n'
-       << "Vacuum permittivity:    \t " << VACUUM_PERMITTIVITY << '\n'
-       << "Doppler constant:       \t " << DOPPLER_CONST << '\n'
+       << "Avogadro's constant:    \t " << Constant::avogadro_constant << '\n'
+       << "Bohr's magneton:        \t " << Constant::bohr_magneton << '\n'
+       << "Boltzmann's constant:   \t " << Constant::boltzmann_constant << '\n'
+       << "Electron charge:        \t" << Constant::elementary_charge << '\n'
+       << "Electron mass:          \t " << Constant::electron_mass << '\n'
+       << "Ideal gas constant:     \t " << Constant::ideal_gas_constant << '\n'
+       << "Planck's constant:      \t " << Constant::planck_constant << '\n'
+       << "Speed of light:         \t " << Constant::speed_of_light << '\n'
+       << "Vacuum permittivity:    \t " << Constant::vacuum_permittivity << '\n'
+       << "Doppler constant:       \t " << std::sqrt(Constant::doppler_broadening_const_squared) << '\n'
        << "---------------------------------------------------------\n";
 }

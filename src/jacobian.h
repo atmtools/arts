@@ -26,10 +26,10 @@
 #ifndef jacobian_h
 #define jacobian_h
 
-#include "species_tags.h"
+#include "arts_conversions.h"
+#include "arts_options.h"
 #include "array.h"
 #include "bifstream.h"
-#include "constants.h"
 #include "enums.h"
 #include "interpolation.h"
 #include "logic.h"
@@ -38,6 +38,7 @@
 #include "mystring.h"
 #include "ppath_struct.h"
 #include "quantum_numbers.h"  
+#include "species_tags.h"
 #include <iostream>
 #include <map>
 #include <stdexcept>

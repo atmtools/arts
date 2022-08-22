@@ -29,7 +29,7 @@
 #ifndef zeemandata_h
 #define zeemandata_h
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "file.h"
 #include "mystring.h"
 #include "propagationmatrix.h"

@@ -25,6 +25,7 @@
 
 #include "jacobian.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "global_data.h"
@@ -33,8 +34,8 @@
 #include "rte.h"
 #include "special_interp.h"
 
-extern const Numeric NAT_LOG_TEN;
-extern const Numeric PI;
+inline constexpr Numeric NAT_LOG_TEN=Constant::ln_10;
+inline constexpr Numeric PI=Constant::pi;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
   return os << "\n       Target   = " << ot.Target()

@@ -38,12 +38,14 @@
 #include <cmath>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "check_input.h"
 #include "matpackI.h"
 #include "messages.h"
 
-extern const Numeric EARTH_RADIUS;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 // Ref. 1:
 // Seidelmann, P. Kenneth; Archinal, B. A.; A'hearn, M. F. et al (2007).

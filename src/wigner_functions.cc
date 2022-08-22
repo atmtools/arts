@@ -31,7 +31,7 @@
 #include <algorithm>
 
 #include "arts_omp.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "debug.h"
 
 #if DO_FAST_WIGNER

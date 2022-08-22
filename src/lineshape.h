@@ -3,7 +3,7 @@
 
 #include <variant>
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "energylevelmap.h"
 #include "linescaling.h"
 #include "nonstd.h"
@@ -40,7 +40,7 @@ struct Doppler {
 
   [[nodiscard]] constexpr Complex dFdT(const Output &,
                                        Numeric T) const noexcept {
-    return F * (2 * Constant::pow2(x) - 1) / (2 * T);
+    return F * (2 * Math::pow2(x) - 1) / (2 * T);
   }
   [[nodiscard]] constexpr Complex dFdf() const noexcept {
     return -2 * invGD * F * x;
@@ -103,7 +103,7 @@ struct Lorentz {
 
   constexpr Complex operator()(Numeric f) noexcept {
     F = Constant::inv_pi / Complex(G0, mF0 - f);
-    dF = -Constant::pi * Constant::pow2(F);
+    dF = -Constant::pi * Math::pow2(F);
     return F;
   }
 };  // Lorentz
@@ -309,14 +309,14 @@ struct VanVleckWeisskopf {
 
   static constexpr Numeric dNdT(Numeric, Numeric) noexcept { return 0; }
   [[nodiscard]] constexpr Numeric dNdf(Numeric f) const noexcept {
-    return 2.0 * f * Constant::pow2(invF0);
+    return 2.0 * f * Math::pow2(invF0);
   }
   [[nodiscard]] constexpr Numeric dNdF0() const noexcept {
     return -2.0 * N * invF0;
   }
 
   constexpr Numeric operator()(Numeric f) noexcept {
-    N = Constant::pow2(f * invF0);
+    N = Math::pow2(f * invF0);
     return N;
   }
 };  // VanVleckWeisskopf
@@ -455,7 +455,7 @@ struct FullNonLocalThermodynamicEquilibrium {
   Numeric S;
   Numeric N;
 
-  static constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
+  static constexpr Numeric c0 = 2.0 * Constant::h / Math::pow2(Constant::c);
   static constexpr Numeric c1 = Constant::h / (4 * Constant::pi);
 
   Numeric dSdTval;
@@ -580,13 +580,13 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
         dSdI0val(r * QT0 / QT * K1 * K2 * K3),
         dNdI0val(B * r * QT0 / QT * K1 * K2 * (K4 - K3)),
         dSdTval(I0 * (drdT * QT0 / QT * K1 * K2 * K3 -
-                      r * dQTdT * QT0 / Constant::pow2(QT) * K1 * K2 * K3 +
+                      r * dQTdT * QT0 / Math::pow2(QT) * K1 * K2 * K3 +
                       r * QT0 / QT * dK1dT * K2 * K3 +
                       r * QT0 / QT * K1 * dK2dT * K3 +
                       r * QT0 / QT * K1 * K2 * dK3dT)),
         dNdTval(I0 * (dBdT * r * QT0 / QT * K1 * K2 * (K4 - K3) +
                       B * drdT * QT0 / QT * K1 * K2 * (K4 - K3) -
-                      B * r * dQTdT * QT0 / Constant::pow2(QT) * K1 * K2 *
+                      B * r * dQTdT * QT0 / Math::pow2(QT) * K1 * K2 *
                           (K4 - K3) +
                       B * r * QT0 / QT * dK1dT * K2 * (K4 - K3) +
                       B * r * QT0 / QT * K1 * dK2dT * (K4 - K3) +

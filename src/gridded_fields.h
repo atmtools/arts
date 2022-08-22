@@ -40,6 +40,80 @@
 #include "matpackVI.h"
 #include "mystring.h"
 
+namespace GriddedFieldGrids {
+  /** Global constant, Index of the frequency grid in GriddedField1.
+    \author Patrick Eriksson
+    \date   2008-07-02
+*/
+inline constexpr Index GFIELD1_F_GRID = 0;
+
+/** Global constant, Index of the pressure grid in GriddedField3.
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+inline constexpr Index GFIELD3_P_GRID = 0;
+
+/** Global constant, Index of the latitude grid in GriddedField3.
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+inline constexpr Index GFIELD3_LAT_GRID = 1;
+
+/** Global constant, Index of the longitude grid in GriddedField3.
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+inline constexpr Index GFIELD3_LON_GRID = 2;
+
+/** Global constant, Index of the field names in GriddedField4.
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+inline constexpr Index GFIELD4_FIELD_NAMES = 0;
+
+/** Global constant, Index of incidence angles in GriddedField4.
+    \author Patrick Eriksson
+    \date   2008-09-20
+*/
+inline constexpr Index GFIELD4_IA_GRID = 0;
+
+/** Global constant, Index of the pressure grid in GriddedField4.
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+inline constexpr Index GFIELD4_P_GRID = 1;
+
+/** Global constant, Index of the frequency grid in GriddedField4.
+    \author Patrick Eriksson
+    \date   2008-07-01
+*/
+inline constexpr Index GFIELD4_F_GRID = 1;
+
+/** Global constant, Index of the latitude grid in GriddedField4.
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+inline constexpr Index GFIELD4_LAT_GRID = 2;
+
+/** Global constant, Index of the zenith angle grid in GriddedField4.
+    \author Patrick Eriksson
+    \date   2008-07-01
+*/
+inline constexpr Index GFIELD4_ZA_GRID = 2;
+
+/** Global constant, Index of the longitude grid in GriddedField4.
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+inline constexpr Index GFIELD4_LON_GRID = 3;
+
+/** Global constant, Index of the azimuth angle grid in GriddedField4.
+    \author Patrick Eriksson
+    \date   2008-07-01
+*/
+inline constexpr Index GFIELD4_AA_GRID = 3;
+}  // namespace GriddedFieldGrids
+
 /*! Enumeration containing the possible grid types for gridded fields */
 enum GridType { GRID_TYPE_NUMERIC, GRID_TYPE_STRING };
 

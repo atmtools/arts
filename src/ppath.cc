@@ -37,6 +37,7 @@
 #include <stdexcept>
 #include "agenda_class.h"
 #include "array.h"
+#include "arts_conversions.h"
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
@@ -50,8 +51,8 @@
 #include "rte.h"
 #include "special_interp.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 /*===========================================================================
   === Precision variables

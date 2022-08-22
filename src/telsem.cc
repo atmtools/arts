@@ -27,12 +27,14 @@
 #include "telsem.h"
 #include <cmath>
 #include <utility>
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "check_input.h"
 #include "geodetic.h"
 
-extern const Numeric EARTH_RADIUS;
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
 
 ////////////////////////////////////////////////////////////////////////////////
 // TelsemAtlas Class

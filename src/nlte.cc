@@ -25,6 +25,7 @@
  */
 
 #include "nlte.h"
+#include "arts_constants.h"
 #include "interpolation_lagrange.h"
 
 void statistical_equilibrium_equation(MatrixView A,
@@ -111,7 +112,7 @@ Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
 }
 
 Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
-  constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
+  constexpr Numeric c0 = 2.0 * Constant::h / Math::pow2(Constant::c);
   
   // Size of problem
   const Index n = nelem(abs_lines);
@@ -122,7 +123,7 @@ Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        Bij[i] = band.lines[k].A / (c0 * Constant::pow3(band.lines[k].F0));
+        Bij[i] = band.lines[k].A / (c0 * Math::pow3(band.lines[k].F0));
         i++;
       }
     }
@@ -161,8 +162,7 @@ void setCji(Vector& Cji,
             const Vector& Cij,
             const ArrayOfArrayOfAbsorptionLines& abs_lines,
             const Numeric& T) {
-  extern const Numeric PLANCK_CONST, BOLTZMAN_CONST;
-  const static Numeric c0 = -PLANCK_CONST / BOLTZMAN_CONST;
+  static constexpr Numeric c0 = -Constant::planck_constant / Constant::boltzmann_constant;
   const Numeric constant = c0 / T;
 
   // Base equation for single state:  C12 = C21 exp(-hf / kT) g2 / g1

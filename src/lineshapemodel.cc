@@ -32,7 +32,7 @@
  * real work happens in the header file and not here
  **/
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "lineshapemodel.h"
 #include "matpackI.h"
 

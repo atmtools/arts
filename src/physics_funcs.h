@@ -32,8 +32,8 @@
   === External declarations
   ===========================================================================*/
 
+#include "arts_conversions.h"
 #include "arts.h"
-#include "constants.h"
 #include "matpackI.h"
 #include "matpack_complex.h"
 
@@ -81,7 +81,7 @@ constexpr Numeric number_density(Numeric p, Numeric t) noexcept {return p / (Con
  * @author Richard Larsson
  * @date   2015-09-22
  */
-constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {return - p / (Constant::k * Constant::pow2(t));}
+constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept {return - p / (Constant::k * Math::pow2(t));}
 
 Numeric planck(const Numeric& f, const Numeric& t);
 

@@ -35,6 +35,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include "arts_constants.h"
 #include "species_tags.h"
 #include "absorption.h"
 #include "arts.h"
@@ -46,11 +47,11 @@
 #include "refraction.h"
 #include "special_interp.h"
 
-extern const Numeric ELECTRON_CHARGE;
-extern const Numeric ELECTRON_MASS;
-extern const Numeric PI;
-extern const Numeric VACUUM_PERMITTIVITY;
-extern const Numeric TORR2PA;
+inline constexpr Numeric ELECTRON_CHARGE=-Constant::elementary_charge;
+inline constexpr Numeric ELECTRON_MASS=Constant::electron_mass;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric VACUUM_PERMITTIVITY=Constant::vacuum_permittivity;
+inline constexpr Numeric TORR2PA=Conversion::torr2pa(1);
 
 /*===========================================================================
   === WSMs for refr_index_air
@@ -462,13 +463,13 @@ void complex_refr_indexIceWarren84(GriddedField3& complex_refr_index,
                                    const Vector& f_grid,
                                    const Vector& t_grid,
                                    const Verbosity&) {
-  extern const Numeric SPEED_OF_LIGHT;
+  static constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
   const Index nf = f_grid.nelem();
   const Index nt = t_grid.nelem();
 
   // Frequency must be between 0.0443 to 8.600E+06 microns
-  const Numeric f_max = 1e6 * SPEED_OF_LIGHT / 0.0443;
-  const Numeric f_min = 1e6 * SPEED_OF_LIGHT / 8.6e6;
+  static constexpr Numeric f_max = 1e6 * SPEED_OF_LIGHT / 0.0443;
+  static constexpr Numeric f_min = 1e6 * SPEED_OF_LIGHT / 8.6e6;
   chk_if_in_range("min of scat_f_grid", min(f_grid), f_min, f_max);
   chk_if_in_range("max of scat_f_grid", max(f_grid), f_min, f_max);
 

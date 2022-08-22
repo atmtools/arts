@@ -26,6 +26,7 @@
 #include <cfloat>
 #include <cmath>
 #include <stdexcept>
+#include "arts_constants.h"
 #include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -34,7 +35,7 @@
 #include "special_interp.h"
 #include "tmatrix.h"
 
-extern const Numeric PI;
+inline constexpr Numeric PI=Constant::pi;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void diameter_maxFromDiameter_volume_equ(Numeric& diameter_max,

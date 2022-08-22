@@ -33,17 +33,18 @@
 
 #include "refraction.h"
 #include <cmath>
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "matpack_complex.h"
 #include "geodetic.h"
 #include "interpolation.h"
 #include "special_interp.h"
 #include "check_input.h"
-#include "constants.h"
+#include "arts_conversions.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric TEMP_0_C;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions (in alphabetical order)

@@ -30,12 +30,14 @@
 #include <cfloat>
 #include <sstream>
 
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "geodetic.h"
 #include "mc_interp.h"
 #include "montecarlo.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 // Some root-finding helper functions (for MCRadar) that don't need
 // visibility outside this source file
@@ -1568,7 +1570,7 @@ void Sample_los(VectorView new_rte_los,
   pnds(joker, 0) = pnd_vec;
 
   while (tryagain) {
-    new_rte_los[0] = acos(1 - 2 * rng.draw()) * RAD2DEG;
+    new_rte_los[0] = Conversion::acosd(1 - 2 * rng.draw());
     new_rte_los[1] = rng.draw() * 360 - 180;
 
     //Calculate Phase matrix////////////////////////////////
@@ -1606,5 +1608,5 @@ void Sample_los(VectorView new_rte_los,
 
 void Sample_los_uniform(VectorView new_rte_los, Rng& rng) {
   new_rte_los[1] = rng.draw() * 360 - 180;
-  new_rte_los[0] = acos(1 - 2 * rng.draw()) * RAD2DEG;
+  new_rte_los[0] = Conversion::acosd(1 - 2 * rng.draw());
 }

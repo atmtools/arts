@@ -28,10 +28,10 @@
 #define LINEMIXING_HITRAN_H
 
 #include "absorptionlines.h"
-#include "matpack_complex.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "linescaling.h"
 #include "matpackIV.h"
+#include "matpack_complex.h"
 #include "mystring.h"
 
 

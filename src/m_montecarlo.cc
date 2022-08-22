@@ -33,6 +33,8 @@
 #include <fstream>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "lin_alg.h"
@@ -50,11 +52,11 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PI;
-extern const Numeric BOLTZMAN_CONST;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)

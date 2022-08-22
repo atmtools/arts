@@ -33,7 +33,7 @@
 #include <numeric>
 #include <sstream>
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "exceptions.h"
 #include "legendre.h"
 #include "math_funcs.h"
@@ -2025,7 +2025,7 @@ std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax) ARTS_NO
   ARTS_ASSERT(nmax > 0)
 
   using std::sqrt;
-  using Constant::pow2;
+  using Math::pow2;
 
   Index N = 1 + nmax;
 
@@ -2201,9 +2201,9 @@ MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const
 
 //! Computes the altitude, latitude and longitude in relation to the ellopsiod using non-iterative method
 std::array<Numeric, 3> to_geodetic(const std::array<Numeric, 3> xyz, const std::array<Numeric, 2> ell) noexcept {
-  using Constant::pow2;
-  using Constant::pow3;
-  using Constant::pow4;
+  using Math::pow2;
+  using Math::pow3;
+  using Math::pow4;
 
   const Numeric X = std::get<0>(xyz);
   const Numeric Y = std::get<1>(xyz);

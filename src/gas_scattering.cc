@@ -31,7 +31,7 @@
   \brief  Implementation file for functions related to gas scattering.
 */
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "gas_scattering.h"
 #include "matpack.h"
 #include "check_input.h"
@@ -40,7 +40,7 @@
 Vector calc_rayleighPhaMat(const Numeric& theta_rad,
                             const Index& stokes_dim) {
 
-  using Constant::pow2;
+  using Math::pow2;
   using Constant::pi;
 
   chk_if_in_range("Scattering angle", theta_rad, 0, pi);

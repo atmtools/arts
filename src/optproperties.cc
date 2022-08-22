@@ -41,7 +41,7 @@
 #include "array.h"
 #include "arts.h"
 #include "check_input.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "logic.h"
@@ -50,10 +50,10 @@
 #include "messages.h"
 #include "xml_io.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PI;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 using Constant::pi;
+inline constexpr Numeric PI=pi;
 
 #define F11 pha_mat_int[0]
 #define F12 pha_mat_int[1]

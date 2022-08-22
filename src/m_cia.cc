@@ -30,6 +30,7 @@
 #include <filesystem>
 #include "absorption.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "cia.h"
 #include "debug.h"
@@ -40,7 +41,7 @@
 #include "species_tags.h"
 #include "xml_io.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddCIA(  // WS Output:

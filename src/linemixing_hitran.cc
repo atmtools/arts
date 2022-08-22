@@ -800,7 +800,7 @@ void calcw(CommonBlock& cmn,
   
   Vector s(n);
   for (Index i=0; i<n; i++) {
-    s[i] = cmn.LineSg.Sig(i, iband) * cmn.PopuT.PopuT[i] * Constant::pow2(cmn.DipoTcm.DipoT(i, iband));
+    s[i] = cmn.LineSg.Sig(i, iband) * cmn.PopuT.PopuT[i] * Math::pow2(cmn.DipoTcm.DipoT(i, iband));
   }
   
   for (Index i=0; i<n; i++) {
@@ -1000,7 +1000,7 @@ Sorter sorter_calcw(ConvTPOut& out,
     if (at_t0) {
       s[i] = band.lines[i].I0;
     } else {
-      s[i] = f0[i] * pop[i] * Constant::pow2(dip[i]);
+      s[i] = f0[i] * pop[i] * Math::pow2(dip[i]);
     }
   }
   
@@ -1316,7 +1316,7 @@ void convtp(CommonBlock& cmn,
       + (xco2 * (cmn.GamVT0CO2.HWVT0SELF(iline, iband) * std::pow(ratiot, cmn.DTGAMCO2.BHWSELF(iline, iband))));
     }
     cmn.SHIFT.shft[iline]=cmn.SHIFT0.shft0(iline, iband);
-    const Numeric wgt = cmn.PopuT.PopuT[iline] * Constant::pow2(cmn.DipoTcm.DipoT(iline, iband));
+    const Numeric wgt = cmn.PopuT.PopuT[iline] * Math::pow2(cmn.DipoTcm.DipoT(iline, iband));
     sumwgt += wgt;
     sigmoy += cmn.LineSg.Sig(iline,iband) * wgt;
   }
@@ -1373,7 +1373,7 @@ ConvTPOut convtp(const ConstVectorView& vmrs,
     out.shft[i] = band.lines[i].lineshape.D0(T, band.T0, 1, vmrs);
     out.dip[i] = std::sqrt(- band.lines[i].I0/(pop0 * band.lines[i].F0 * std::expm1(- (Constant::h * band.lines[i].F0) / (Constant::k * band.T0))));
     out.hwt2[i] = band.lines[i].lineshape.G2(T, band.T0, 1, vmrs);
-    wgt[i] = out.pop[i] * Constant::pow2(out.dip[i]);
+    wgt[i] = out.pop[i] * Math::pow2(out.dip[i]);
   }
   
   // Calculate the relaxation matrix
@@ -1408,7 +1408,7 @@ void qsdv(const Numeric& sg0,
           Numeric& ls_qsdv_r,
           Numeric& ls_qsdv_i)
 {
-  using Constant::pow2;
+  using Math::pow2;
   Complex x , y, csqrty, z1, z2, w1, w2, aterm;
   Numeric xz1, yz1, xz2, yz2;
   
@@ -1493,7 +1493,7 @@ Complex qsdv_si(const Numeric F0,
                 const Numeric shift2,
                 const Numeric f)
 {
-  using Constant::pow2;
+  using Math::pow2;
   Complex x , y, csqrty, z1, z2, w1, w2, aterm;
   Numeric xz1, yz1, xz2, yz2;
   
@@ -1578,8 +1578,8 @@ void compabs(
   VectorView absy,
   VectorView absw)
 {
-  using Constant::pow2;
-  using Constant::pow3;
+  using Math::pow2;
+  using Math::pow3;
   
   constexpr Numeric rdmult = 30;
   
@@ -1691,8 +1691,8 @@ Vector compabs(
   const ConstVectorView &vmrs,
   const ConstVectorView &f_grid)
 {
-  using Constant::pow2;
-  using Constant::pow3;
+  using Math::pow2;
+  using Math::pow3;
   
   // Number of points to compute
   const Index nf = f_grid.nelem();

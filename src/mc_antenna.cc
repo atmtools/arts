@@ -30,10 +30,12 @@
 #include "mc_antenna.h"
 #include <cfloat>
 #include <sstream>
+#include "arts_constants.h"
+#include "arts_conversions.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 Numeric ran_gaussian(Rng& rng, const Numeric sigma) {
   Numeric x, y, r2;

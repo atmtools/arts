@@ -35,6 +35,8 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "geodetic.h"
 #include "jacobian.h"
@@ -48,10 +50,10 @@
 #include <cmath>
 #include <stdexcept>
 
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
-extern const Numeric RAD2DEG;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* Has not been updated since v2.2

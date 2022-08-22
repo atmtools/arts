@@ -162,7 +162,6 @@ add_library (artscore STATIC
   check_input.cc
   cia.cc
   cloudbox.cc
-  constants.cc
   compile_time_tests.cc
   covariance_matrix.cc
   disort.cc
@@ -420,7 +419,6 @@ target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
 ########### next testcase ###############
 
 add_executable (test_linalg
-  constants.cc
   lin_alg.cc
   test_linalg.cc)
 
@@ -430,7 +428,6 @@ target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES}
 ########### next testcase ###############
 
 add_executable (test_integration
-  constants.cc
   math_funcs.cc
   test_integration.cc)
 

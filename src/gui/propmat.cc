@@ -11,8 +11,8 @@
 #include <string_view>
 #include <vector>
 
+#include "arts_conversions.h"
 #include "artstime.h"
-#include "constants.h"
 #include "debug.h"
 #include "error.h"
 #include "gui.h"

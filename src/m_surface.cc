@@ -39,6 +39,7 @@
 #include <cmath>
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "matpack_complex.h"
@@ -54,14 +55,14 @@
 #include "special_interp.h"
 #include "surface.h"
 #include "tessem.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "gas_scattering.h"
 
 using Constant::pi;
 using Conversion::deg2rad;
 
-extern Numeric EARTH_RADIUS;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)

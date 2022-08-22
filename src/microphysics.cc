@@ -25,11 +25,13 @@
 */
 
 #include "microphysics.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 
-extern const Numeric PI;
-extern const Numeric DENSITY_OF_ICE;
-extern const Numeric DENSITY_OF_WATER;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
+inline constexpr Numeric DENSITY_OF_WATER=Constant::denity_of_water_at_4c;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 
 /*===========================================================================

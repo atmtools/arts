@@ -35,6 +35,7 @@ void py_global(py::module_& m);
 void py_xsec(py::module_& m);
 void py_nlte(py::module_& m);
 void py_constants(py::module_& m);
+void py_conversions(py::module_& m);
 void py_star(py::module_& m);
 void py_physics(py::module_& m);
 void py_predefined(py::module_& m);
@@ -128,6 +129,7 @@ PYBIND11_MODULE(arts, m) {
 
   // Extras calling pure internal functions
   py_constants(m);
+  py_conversions(m);
   py_physics(m);
   py_global(m);
   py_physics(m);

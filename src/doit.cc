@@ -37,6 +37,8 @@
 #include <stdexcept>
 #include "agenda_class.h"
 #include "array.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -54,8 +56,8 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 //FIXME function name of 'rte_step_doit_replacement' should be replaced by
 //proper name

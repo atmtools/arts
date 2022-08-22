@@ -26,7 +26,7 @@
 
 #include <algorithm>
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "raw.h"
 
 template <typename T>
@@ -170,7 +170,7 @@ VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const I
   // Compute
   for (Index k=start; k<end; k++)
     for (Index i=0; i<y.nelem(); i++)
-      var[i] += Constant::pow2(ys[k][i] - y[i]) * scale;
+      var[i] += Math::pow2(ys[k][i] - y[i]) * scale;
   return var;
 }
 
@@ -187,7 +187,7 @@ VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, cons
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
-        var[i] += Constant::pow2(ys[k][i] - y[i]);
+        var[i] += Math::pow2(ys[k][i] - y[i]);
         numnormal++;
       }
     }

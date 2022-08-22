@@ -29,6 +29,8 @@
   === External declarations
   ===========================================================================*/
 
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "config.h"
 
 #ifdef ENABLE_RT4
@@ -46,11 +48,11 @@
 #include "rt4.h"
 #include "rte.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric COSMIC_BG_TEMP;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_temperature;
 
 void check_rt4_input(  // Output
     Index& nhstreams,

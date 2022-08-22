@@ -39,6 +39,8 @@
 
 #include <cfloat>
 #include <cmath>
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "species_tags.h"
 #include "absorption.h"
 #include "agenda_class.h"
@@ -59,21 +61,21 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Index GFIELD3_P_GRID;
-extern const Index GFIELD3_LAT_GRID;
-extern const Index GFIELD3_LON_GRID;
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_P_GRID;
-extern const Index GFIELD4_LAT_GRID;
-extern const Index GFIELD4_LON_GRID;
+using GriddedFieldGrids::GFIELD3_P_GRID;
+using GriddedFieldGrids::GFIELD3_LAT_GRID;
+using GriddedFieldGrids::GFIELD3_LON_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_P_GRID;
+using GriddedFieldGrids::GFIELD4_LAT_GRID;
+using GriddedFieldGrids::GFIELD4_LON_GRID;
 
 
-extern const Numeric GAS_CONSTANT;
+inline constexpr Numeric GAS_CONSTANT=Constant::ideal_gas_constant;
 
 //! Data value accuracy requirement for values at 0 and 360 deg if longitudes are cyclic
 /*!
  */
-extern const Numeric EPSILON_LON_CYCLIC = 2 * DBL_EPSILON;
+inline constexpr Numeric EPSILON_LON_CYCLIC = 2 * DBL_EPSILON;
 
 /*===========================================================================
  *=== Helper functions
@@ -3762,10 +3764,10 @@ void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
     wind_u_field = 0.;
   }
 
-  const Numeric k1 = 2 * PI / planet_rotation_period;
+  const Numeric k1 = 2 * Constant::pi / planet_rotation_period;
 
   for (Index a = 0; a < na; a++) {
-    const Numeric k2 = k1 * cos(DEG2RAD * lat_grid[a]);
+    const Numeric k2 = k1 * Conversion::cosd(lat_grid[a]);
     const Numeric re = refell2r(refellipsoid, lat_grid[a]);
 
     for (Index o = 0; o < no; o++) {

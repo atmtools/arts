@@ -37,7 +37,7 @@
 #include <string>
 
 #include "absorption.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "debug.h"
 #include "enums.h"
 #include "file.h"
@@ -1681,7 +1681,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
 
   // Cpnvert from per Atm and per Atm^2
   Y /= Conversion::atm2pa(1);
-  G /= Constant::pow2(Conversion::atm2pa(1));
+  G /= Math::pow2(Conversion::atm2pa(1));
 
   // ARTS uses (1-iY) as line-mixing factor, LBLRTM uses (1+iY), so we must change sign
   Y *= -1;

@@ -35,6 +35,9 @@
 #include <list>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
+#include "gridded_fields.h"
 #include "logic.h"
 #include "matpackI.h"
 #include "matpackII.h"
@@ -43,14 +46,14 @@
 #include "sensor.h"
 #include "sorting.h"
 
-extern const Numeric PI;
-extern const Numeric NAT_LOG_2;
-extern const Numeric DEG2RAD;
-extern const Index GFIELD1_F_GRID;
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_F_GRID;
-extern const Index GFIELD4_ZA_GRID;
-extern const Index GFIELD4_AA_GRID;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+using GriddedFieldGrids::GFIELD1_F_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_F_GRID;
+using GriddedFieldGrids::GFIELD4_ZA_GRID;
+using GriddedFieldGrids::GFIELD4_AA_GRID;
 
 /*===========================================================================
   === The functions, besides the core integration and sum functions that are

@@ -28,7 +28,7 @@
  */
 
 #include "zeeman.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "linescaling.h"
 #include "species_info.h"
 

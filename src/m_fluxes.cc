@@ -23,6 +23,8 @@
 #include <stdexcept>
 #include "absorption.h"
 #include "agenda_class.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "legendre.h"
@@ -46,8 +48,8 @@
   file auto_md.h.
 */
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions

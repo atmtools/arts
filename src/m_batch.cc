@@ -37,6 +37,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include "gridded_fields.h"
 using namespace std;
 
 #include "arts.h"
@@ -47,10 +48,10 @@ using namespace std;
 #include "rte.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Index GFIELD3_P_GRID;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+using GriddedFieldGrids::GFIELD3_P_GRID;
 
 /*===========================================================================
   === The functions (in alphabetical order)

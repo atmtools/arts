@@ -43,6 +43,7 @@
 
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -63,7 +64,7 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
+inline constexpr Numeric PI=Constant::pi;
 
 /*===========================================================================
   === The functions (in alphabetical order)

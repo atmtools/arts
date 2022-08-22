@@ -32,6 +32,7 @@
 
 #include <cmath>
 #include "arts.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
@@ -46,8 +47,8 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric RAD2DEG;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)

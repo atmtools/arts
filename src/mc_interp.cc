@@ -27,8 +27,15 @@
   === External declarations
   ===========================================================================*/
 #include "mc_interp.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "logic.h"
 #include "montecarlo.h"
+
+
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI=Constant::pi;
 
 Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const {
   GridPos gp1, gpl, gpr;

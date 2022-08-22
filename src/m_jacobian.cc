@@ -35,7 +35,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "interpolation_lagrange.h"
 #include "jacobian.h"
 #include "m_xml.h"

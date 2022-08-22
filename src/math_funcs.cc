@@ -38,11 +38,13 @@
 #include <iostream>
 #include <stdexcept>
 #include "array.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "logic.h"
 #include "mystring.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
 
 /*****************************************************************************
  *** The functions (in alphabetical order)
