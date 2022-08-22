@@ -64,34 +64,14 @@ namespace Constant {
 /** The following mathematical constants are generated in python Decimal package by the code:
     * 
     import decimal as d
-    pi_str = '3.141592653589793238462643383279502884197169399375105820974944592307816406286'
-    d.getcontext().prec = len(pi_str) - 1
-    pi = d.Decimal(pi_str)
-    one = d.Decimal('1')
+    d.getcontext().prec = 76
     two = d.Decimal('2')
-    ten = d.Decimal('10')
-    print('pi =', pi)
-    print('inv_pi =', 1/pi)
-    print('two_pi =', two*pi)
-    print('inv_two_pi =', 1/(two*pi))
-    print('sqrt_pi =', pi.sqrt())
-    print('inv_sqrt_pi =', 1/pi.sqrt())
-    print('euler =', one.exp())
-    print('inv_euler =', 1/one.exp())
-    print('log10_euler =', one.exp().log10())
-    print('ln_10 =', ten.ln())
-    print('sqrt_2 =', two.sqrt())
-    print('inv_sqrt_2 =', 1/two.sqrt())
-    print('ln_2 = ', two.ln())
-    print('inv_ln_2 =', 1/two.ln())
     print('sqrt_ln_2 =', two.ln().sqrt())
     print('inv_sqrt_ln_2 =', 1/two.ln().sqrt())
     *
   To improve the numerical accuracy further, insert larger pi string */
 
-/** Pi, related to circles
-   From: //www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html 2019-04-01
-   **/
+/** Pi, related to circles */
 inline constexpr Numeric pi = std::numbers::pi;
 
 /** Inverse of pi */

@@ -17,35 +17,14 @@
  * USA. */
 
 /*!
- * \file   arts_constants.h
- * \brief  Constants of physical expressions as constexpr
+ * \file   arts_constexpr_math.h
+ * \brief  Simple constexpr math that we can make use of in Arts
+ *
+ * The main advantage of maning things like here is to avoid repetition
+ * later x*x*x*x is more difficult than pow4(x).
  * 
- * Following May 2019 reported SI unit updates, several previously
- * important constant are proper constants and not derived constants.
- * 
- * This file contains the intended May 2019 constants update meaning
- * that the Planck constant, Boltzmann constant, elementary charge,
- * Avogadro number, the definition of a luminosity, the frequency of
- * Cesium, and the speed of light have been given constant values.
- * 
- * All other values are derived.  To be internally consistent in ARTS,
- * the adaptation of these rules below take the approach that only the
- * fine structure constant and the Rydberg constant are 'measurable'
- * quantities.  All other quantities are derived by their formal
- * relationships.  As an example, the resting mass of an electron is
- * defined as 2 h R_inf / c alpha^2.  This means that they should be
- * constant in their internal relationships to the level permitted by
- * the select floating point accuracy.
- * 
- * Note 1: The constants below contains both named and a few convenience
- * variables
- * 
- * Note 2: Derived constants of convenience, such as the Doppler broadening
- * constant, should also go into here if they have a clear name.
- * 
- * Note 3: The PrintPhysicalConstants convenience function is part of the 
- * global ARTS namespace.  Please update this if and when new constants
- * are added to this namespace.
+ * The main point of these functions is to avoid repetition as above in
+ * context where we also want to support compile time computations
  * 
  * \author Richard Larsson
  * \date   2019-04-01

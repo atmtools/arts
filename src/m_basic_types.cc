@@ -3203,14 +3203,14 @@ void CompareRelative(const EnergyLevelMap& var1,
 
 void PrintPhysicalConstants(const Verbosity& verbosity) {
   CREATE_OUT0;
-
+  
   out0 << std::setprecision(15) << std::scientific;
   out0 << "---------------------------------------------------------\n"
        << "Numerical const in ARTS \tValue\n"
        << "Avogadro's constant:    \t " << Constant::avogadro_constant << '\n'
        << "Bohr's magneton:        \t " << Constant::bohr_magneton << '\n'
        << "Boltzmann's constant:   \t " << Constant::boltzmann_constant << '\n'
-       << "Electron charge:        \t" << Constant::elementary_charge << '\n'
+       << "Elemental charge:       \t " << Constant::elementary_charge << '\n'
        << "Electron mass:          \t " << Constant::electron_mass << '\n'
        << "Ideal gas constant:     \t " << Constant::ideal_gas_constant << '\n'
        << "Planck's constant:      \t " << Constant::planck_constant << '\n'
