@@ -54,6 +54,8 @@
 #ifndef CONSTANTS_IN_ARTS_H
 #define CONSTANTS_IN_ARTS_H
 
+#include <numbers>
+
 #include "arts_constexpr_math.h"
 #include "matpack.h"
 
@@ -90,60 +92,46 @@ namespace Constant {
 /** Pi, related to circles
    From: //www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html 2019-04-01
    **/
-inline constexpr Numeric pi =
-    3.141592653589793238462643383279502884197169399375105820974944592307816406286;
+inline constexpr Numeric pi = std::numbers::pi;
 
 /** Inverse of pi */
-inline constexpr Numeric inv_pi =
-    0.3183098861837906715377675267450287240689192914809128974953346881177935952685;
+inline constexpr Numeric inv_pi = std::numbers::inv_pi;
 
 /** Two times pi **/
-inline constexpr Numeric two_pi =
-    6.283185307179586476925286766559005768394338798750211641949889184615632812572;
+inline constexpr Numeric two_pi = 2 * pi;
 
 /** Inverse of two pi **/
-inline constexpr Numeric inv_two_pi =
-    0.1591549430918953357688837633725143620344596457404564487476673440588967976342;
+inline constexpr Numeric inv_two_pi = 0.5 * inv_pi;
 
 /** Square root of pi */
-inline constexpr Numeric sqrt_pi =
-    1.772453850905516027298167483341145182797549456122387128213807789852911284591;
+inline constexpr Numeric sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
 
 /** Inverse of the square root of pi */
-inline constexpr Numeric inv_sqrt_pi =
-    0.5641895835477562869480794515607725858440506293289988568440857217106424684415;
+inline constexpr Numeric inv_sqrt_pi = std::numbers::inv_sqrtpi;
 
 /** Euler's number */
-inline constexpr Numeric euler =
-    2.718281828459045235360287471352662497757247093699959574966967627724076630354;
+inline constexpr Numeric euler = std::numbers::e;
 
 /** Inverse of Euler's number */
-inline constexpr Numeric inv_euler =
-    0.3678794411714423215955237701614608674458111310317678345078368016974614957448;
+inline constexpr Numeric inv_euler = 1.0 / euler;
 
 /** Ten's logarithm of Euler's number */
-inline constexpr Numeric log10_euler =
-    0.4342944819032518276511289189166050822943970058036665661144537831658646492089;
+inline constexpr Numeric log10_euler = std::numbers::log10e;
 
 /** Natural logarithm of 10 */
-inline constexpr Numeric ln_10 =
-    2.302585092994045684017991454684364207601101488628772976033327900967572609677;
+inline constexpr Numeric ln_10 = std::numbers::ln10;
 
 /** Square root of 2 */
-inline constexpr Numeric sqrt_2 =
-    1.414213562373095048801688724209698078569671875376948073176679737990732478462;
+inline constexpr Numeric sqrt_2 = std::numbers::sqrt2;
 
 /** Inverse of the square root of 2 */
-inline constexpr Numeric inv_sqrt_2 =
-    0.7071067811865475244008443621048490392848359376884740365883398689953662392311;
+inline constexpr Numeric inv_sqrt_2 = 1.0 / sqrt_2;
 
 /** Natural logarithm of 2 */
-inline constexpr Numeric ln_2 =
-    0.6931471805599453094172321214581765680755001343602552541206800094933936219697;
+inline constexpr Numeric ln_2 = std::numbers::ln2;
 
 /** Inverse of the natural logarithm of 2 */
-inline constexpr Numeric inv_ln_2 =
-    1.442695040888963407359924681001892137426645954152985934135449406931109219181;
+inline constexpr Numeric inv_ln_2 = 1.0 / ln_2;
 
 /** Square root of natural logarithm of 2 */
 inline constexpr Numeric sqrt_ln_2 =
