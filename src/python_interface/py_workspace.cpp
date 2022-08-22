@@ -119,13 +119,13 @@ void py_workspace(py::module_& m,
           "__deepcopy__",
           [](WorkspaceVariable&, py::dict&) { ARTS_USER_ERROR("Cannot copy") },
           "Cannot copy a workspace variable, try instead to copy its value")
-      .def_property_readonly("name", &WorkspaceVariable::name)
+      .def_property_readonly("name", &WorkspaceVariable::name, "The name of the workspace variable")
       .def_property_readonly("desc",
                              [](WorkspaceVariable& wv) {
                                return wv.ws.wsv_data_ptr->at(wv.pos).Description();
-                             })
-      .def_property_readonly("init", &WorkspaceVariable::is_initialized)
-      .def("initialize_if_not", &WorkspaceVariable::initialize_if_not)
+                             }, "A description of the workspace variable")
+      .def_property_readonly("init", &WorkspaceVariable::is_initialized, "Flag if the variable is initialized")
+      .def("initialize_if_not", &WorkspaceVariable::initialize_if_not, "Default initialize the variable if it is not already initialized")
       .def("__str__",
            [](const WorkspaceVariable& w) {
              return var_string("Workspace ",
@@ -139,10 +139,10 @@ void py_workspace(py::module_& m,
       .def_property_readonly("group",
                              [](const WorkspaceVariable& w) {
                                return global_data::wsv_groups.at(w.group());
-                             })
+                             }, "The group of the variable")
       .def("delete_level", [](WorkspaceVariable& v) {
         if (v.stack_depth()) v.pop_workspace_level();
-      });
+      }, "Delete a level from the workspace variable stack");
 
   ws.def("number_of_initialized_variables", [](Workspace& w){
     Index count = 0;

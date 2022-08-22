@@ -55,6 +55,7 @@ PYBIND11_MODULE(arts, m) {
   m.doc() = "Contains direct C++ interface for Arts";
   py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "Pyarts::Workspace");
   py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
+  wsv.doc() = "A wrapper around all workspace variables";
 
   static bool init = true;
   if (init) {
