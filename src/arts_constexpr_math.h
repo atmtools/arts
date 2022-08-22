@@ -36,22 +36,13 @@
 /** Namespace containing several constants, physical and mathematical **/
 namespace Math {
 /** power of two */
-template <class T>
-constexpr auto pow2(T x) noexcept -> decltype(x * x) {
-  return x * x;
-}
+constexpr auto pow2(auto x) noexcept { return x * x; }
 
 /** power of three */
-template <class T>
-constexpr auto pow3(T x) noexcept -> decltype(pow2(x) * x) {
-  return pow2(x) * x;
-}
+constexpr auto pow3(auto x) noexcept { return pow2(x) * x; }
 
 /** power of four */
-template <class T>
-constexpr auto pow4(T x) noexcept -> decltype(pow2(pow2(x))) {
-  return pow2(pow2(x));
-}
+constexpr auto pow4(auto x) noexcept { return pow2(pow2(x)); }
 }  // namespace Math
 
 #endif 
