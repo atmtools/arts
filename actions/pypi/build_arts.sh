@@ -23,7 +23,7 @@ cmake -DCMAKE_PREFIX_PATH=$PYTHONDIR -DCMAKE_BUILD_TYPE=Release -DENABLE_FORTRAN
 echo "########## CMakeCache.txt ##########"
 cat CMakeCache.txt
 echo "########## CMakeCache.txt ##########"
-make -j2 arts
+make -j1 arts
 make -j1 pyarts
 echo "########## Check Python version ##########"
 make check-pyversion

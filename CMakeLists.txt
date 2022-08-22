@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 3.18)
+if (ENABLE_CXX23)
+  cmake_minimum_required (VERSION 3.20)
+else ()
+  cmake_minimum_required (VERSION 3.18)
+endif ()
 
 project (ARTS C CXX)
 
@@ -36,7 +40,7 @@ endif()
 # User options (auto-complete and cmake gui works better like this)
 include(CMakeDependentOption)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
-option (ENABLE_CXX20 "Turn on C++20 (experimental)" OFF)
+option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_FORTRAN "Turn on Fortran code" OFF)
 option (ENABLE_GUI "Turn on Debug GUI" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
@@ -70,6 +74,19 @@ if (IGNORE_CONDA_PATH)
     endif()
   endif()
 endif()
+
+########### C++20/23 Support ##########
+
+if (NOT CMAKE_CXX_STANDARD)
+  if (ENABLE_CXX23)
+    set(CMAKE_CXX_STANDARD 23)
+  else ()
+    set(CMAKE_CXX_STANDARD 20)
+  endif ()
+endif ()
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 enable_testing ()
 
@@ -147,18 +164,7 @@ if (ENABLE_CCACHE)
   endif (CCACHE_FOUND)
 endif ()
 
-########### C++17/20 Support ##########
-
-if (NOT CMAKE_CXX_STANDARD)
-  if (ENABLE_CXX20)
-    set(CMAKE_CXX_STANDARD 20)
-  else ()
-    set(CMAKE_CXX_STANDARD 17)
-  endif ()
-endif()
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+########### IPO ##########
 
 if (ENABLE_IPO)
   include(CheckIPOSupported)
