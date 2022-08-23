@@ -294,8 +294,36 @@ You can get copies and set the value by the "value" property)--");
                       }))
       .PythonInterfaceWorkspaceDocumentation(Any);
 
-  py::class_<Array<Numeric>>(m, "ArrayOfNumeric")
+  py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
+      // .PythonInterfaceFileIO(ArrayOfNumeric)
       .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
-      .PythonInterfaceArrayDefault(Numeric);
+      .PythonInterfaceArrayDefault(Numeric)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](ArrayOfNumeric& x) -> py::buffer_info {
+        return py::buffer_info(x.data(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {x.nelem()},
+                               {sizeof(Numeric)});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](ArrayOfNumeric& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](ArrayOfNumeric& x, ArrayOfNumeric& y) { x = y; })
+      .doc() = R"--(This is a wrapper class for Arts ArrayOfNumeric.
+
+This class is compatible with numpy arrays.  The data can
+be accessed without copy using np.array(x, copy=False),
+with x as an instance of this class.  Note that access to
+any and all of the mathematical operations are only available
+via the numpy interface.  The main constern equality operations,
+which only checks pointer equality if both LHS and RHS of this
+object's instances (i.e., no element-wise comparisions))--";
+  py::implicitly_convertible<std::vector<Numeric>, ArrayOfNumeric>();
 }
 }  // namespace Python
