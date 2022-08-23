@@ -53,7 +53,7 @@ void py_rte(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](TransmissionMatrix& x, TransmissionMatrix& y) { x = y; })
-      .PythonInterfaceValueOperators
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def(py::pickle(
           [](const TransmissionMatrix& self) {
             return py::make_tuple(
@@ -110,7 +110,7 @@ void py_rte(py::module_& m) {
                         },
                         py::keep_alive<0, 1>()),
                     [](RadiationVector& x, RadiationVector& y) { x = y; })
-      .PythonInterfaceValueOperators
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def(py::pickle(
           [](const RadiationVector& self) {
             return py::make_tuple(

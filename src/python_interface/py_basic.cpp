@@ -102,6 +102,8 @@ be accessed without copy using element-wise access operators)--");
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
       .PythonInterfaceBasicRepresentation(ArrayOfIndex)
       .PythonInterfaceArrayDefault(Index)
+      .PythonInterfaceValueOperators
+      .PythonInterfaceNumpyValueProperties
       .def_buffer([](ArrayOfIndex& x) -> py::buffer_info {
         return py::buffer_info(x.data(),
                                sizeof(Index),

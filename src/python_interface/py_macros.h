@@ -582,13 +582,14 @@ Returns:\
       },                                                \
       py::is_operator())
 
+#define PythonInterfaceNumpyValueProperties \
+  PythonInterfaceSelfAttribute(ndim)        \
+      .PythonInterfaceSelfAttribute(shape)  \
+      .PythonInterfaceSelfAttribute(size)   \
+      .PythonInterfaceSelfAttribute(dtype)
+
 #define PythonInterfaceValueOperators                      \
-  PythonInterfaceSelfAttribute(ndim)                       \
-      .PythonInterfaceSelfAttribute(shape)                 \
-      .PythonInterfaceSelfAttribute(size)                  \
-      .PythonInterfaceSelfAttribute(dtype)                 \
-                                                           \
-      .PythonInterfaceSelfOperator(__len__)                \
+  PythonInterfaceSelfOperator(__len__)                     \
       .PythonInterfaceSelfOperator(__iter__)               \
       .PythonInterfaceSelfOperator(__pos__)                \
       .PythonInterfaceSelfOperator(__neg__)                \
