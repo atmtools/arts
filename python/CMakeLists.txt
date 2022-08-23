@@ -52,11 +52,6 @@ add_custom_target(python_tests
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_tests
   COMMENT "Converting *.arts controlfiles to Python")
-add_custom_target(pyarts_agendatest
-  COMMAND ${Python3_EXECUTABLE} -m test.workspace.test_agendas
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS pyarts
-  COMMENT "Run PyARTS Agenda test")
 
 add_custom_target(pyarts_tests
   COMMAND ${Python3_EXECUTABLE} -m pytest -v test
