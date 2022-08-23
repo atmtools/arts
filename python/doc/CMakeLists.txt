@@ -33,7 +33,13 @@ if (SPHINX_FOUND)
   configure_file(build/.nojekyll build/.nojekyll @ONLY)
   
   add_custom_target(gen_pyarts_arts_rst
-  COMMAND PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/.. ${Python3_EXECUTABLE} gen_pyarts_arts_rst.py > ${CMAKE_CURRENT_BINARY_DIR}/source/pyarts_arts.rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_rst.py > ${CMAKE_CURRENT_BINARY_DIR}/source/pyarts_arts.rst
   )
   add_dependencies (gen_pyarts_arts_rst pyarts)
+
+  #
+  # Clean
+  #
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+    build source/pyarts_arts.rst)
 endif()
