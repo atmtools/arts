@@ -76,8 +76,9 @@ void py_matpack(py::module_& m) {
            py::arg("vec").none(false))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
-      .PythonInterfaceValueOperators.PythonInterfaceBasicRepresentation(Vector)
+      .PythonInterfaceBasicRepresentation(Vector)
       .PythonInterfaceFileIO(Vector)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Vector& x) -> py::buffer_info {
         return py::buffer_info(x.get_c_array(),
                                sizeof(Numeric),
@@ -128,11 +129,7 @@ via x.value)--");
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
       .PythonInterfaceFileIO(Matrix)
-      .PythonInterfaceValueOperators
-      .def_property_readonly(
-          "T",
-          [](const Matrix& x) { return Matrix(transpose(x)); },
-          "Non-trivial transpose")
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Matrix& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -143,6 +140,10 @@ via x.value)--");
             {sizeof(Numeric) * static_cast<ssize_t>(x.ncols()),
              sizeof(Numeric)});
       })
+      .def_property_readonly(
+          "T",
+          [](const Matrix& x) { return Matrix(transpose(x)); },
+          "Non-trivial transpose")
       .def_property("value",
                     py::cpp_function(
                         [](Matrix& x) {
@@ -189,7 +190,7 @@ via x.value)--");
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
       .PythonInterfaceFileIO(Tensor3)
-      .PythonInterfaceValueOperators
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor3& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -253,7 +254,7 @@ via x.value)--");
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
       .PythonInterfaceFileIO(Tensor4)
-      .PythonInterfaceValueOperators
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor4& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -323,7 +324,7 @@ via x.value)--");
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
       .PythonInterfaceFileIO(Tensor5)
-      .PythonInterfaceValueOperators
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor5& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -400,7 +401,7 @@ via x.value)--");
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
       .PythonInterfaceFileIO(Tensor6)
-      .PythonInterfaceValueOperators
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor6& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),
@@ -485,8 +486,9 @@ via x.value)--");
            py::arg("ten7").none(false))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
+      .PythonInterfaceBasicRepresentation(Tensor7)
       .PythonInterfaceFileIO(Tensor7)
-      .PythonInterfaceValueOperators.PythonInterfaceBasicRepresentation(Tensor7)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
             x.get_c_array(),

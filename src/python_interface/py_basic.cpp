@@ -102,6 +102,8 @@ be accessed without copy using element-wise access operators)--");
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
       .PythonInterfaceBasicRepresentation(ArrayOfIndex)
       .PythonInterfaceArrayDefault(Index)
+      .PythonInterfaceValueOperators
+      .PythonInterfaceNumpyValueProperties
       .def_buffer([](ArrayOfIndex& x) -> py::buffer_info {
         return py::buffer_info(x.data(),
                                sizeof(Index),
@@ -147,9 +149,9 @@ object's instances (i.e., no element-wise comparisions))--");
       .PythonInterfaceComparisonOperators(Numeric_, Numeric_)
       .PythonInterfaceMathOperators(Numeric_, Numeric_)
       .def_property(
-          "val",
+          "value",
           [](Numeric_& x) { return x.val; },
-          [](Numeric_& x, Numeric y) { x.val = y; })
+          [](Numeric_& x, Numeric_ y) { x.val = y.val; })
       .PythonInterfaceBasicRepresentation(Numeric_)
       .def(
           "savexml",
@@ -203,7 +205,7 @@ object's instances (i.e., no element-wise comparisions))--");
 
 This is a wrapper class for Arts Numeric.
 
-You can get copies and set the value by the "val" property)--");
+You can get copies and set the value by the "value" property)--");
 
   py::class_<Index_>(m, "Index")
       .def(py::init([]() { return new Index_{}; }))
@@ -216,9 +218,9 @@ You can get copies and set the value by the "val" property)--");
       .PythonInterfaceComparisonOperators(Index_, Index_)
       .PythonInterfaceMathOperators(Index_, Index_)
       .def_property(
-          "val",
+          "value",
           [](Index_& x) { return x.val; },
-          [](Index_& x, Index y) { x.val = y; })
+          [](Index_& x, Index_ y) { x.val = y.val; })
       .PythonInterfaceBasicRepresentation(Index_)
       .def(
           "savexml",
@@ -272,7 +274,7 @@ You can get copies and set the value by the "val" property)--");
 
 This is a wrapper class for Arts Index.
 
-You can get copies and set the value by the "val" property)--");
+You can get copies and set the value by the "value" property)--");
 
   py::implicitly_convertible<py::str, String>();
   py::implicitly_convertible<std::vector<py::str>, ArrayOfString>();
@@ -292,8 +294,36 @@ You can get copies and set the value by the "val" property)--");
                       }))
       .PythonInterfaceWorkspaceDocumentation(Any);
 
-  py::class_<Array<Numeric>>(m, "ArrayOfNumeric")
+  py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
+      // .PythonInterfaceFileIO(ArrayOfNumeric)
       .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
-      .PythonInterfaceArrayDefault(Numeric);
+      .PythonInterfaceArrayDefault(Numeric)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](ArrayOfNumeric& x) -> py::buffer_info {
+        return py::buffer_info(x.data(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {x.nelem()},
+                               {sizeof(Numeric)});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](ArrayOfNumeric& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](ArrayOfNumeric& x, ArrayOfNumeric& y) { x = y; })
+      .doc() = R"--(This is a wrapper class for Arts ArrayOfNumeric.
+
+This class is compatible with numpy arrays.  The data can
+be accessed without copy using np.array(x, copy=False),
+with x as an instance of this class.  Note that access to
+any and all of the mathematical operations are only available
+via the numpy interface.  The main constern equality operations,
+which only checks pointer equality if both LHS and RHS of this
+object's instances (i.e., no element-wise comparisions))--";
+  py::implicitly_convertible<std::vector<Numeric>, ArrayOfNumeric>();
 }
 }  // namespace Python

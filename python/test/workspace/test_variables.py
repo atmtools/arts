@@ -43,7 +43,7 @@ class TestVariables:
         self.ws.IndexCreate("index_variable")
         i = np.random.randint(0, 100)
         self.ws.index_variable = i
-        assert self.ws.index_variable.value.val == i
+        assert self.ws.index_variable.value.value == i
 
     def test_string_transfer(self):
         """
