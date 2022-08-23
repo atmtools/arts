@@ -151,7 +151,7 @@ object's instances (i.e., no element-wise comparisions))--");
       .def_property(
           "value",
           [](Numeric_& x) { return x.val; },
-          [](Numeric_& x, Numeric y) { x.val = y; })
+          [](Numeric_& x, Numeric_ y) { x.val = y.val; })
       .PythonInterfaceBasicRepresentation(Numeric_)
       .def(
           "savexml",
@@ -220,7 +220,7 @@ You can get copies and set the value by the "value" property)--");
       .def_property(
           "value",
           [](Index_& x) { return x.val; },
-          [](Index_& x, Index y) { x.val = y; })
+          [](Index_& x, Index_ y) { x.val = y.val; })
       .PythonInterfaceBasicRepresentation(Index_)
       .def(
           "savexml",
