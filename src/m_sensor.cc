@@ -41,8 +41,11 @@
 #include <stdexcept>
 #include <string>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "gridded_fields.h"
 #include "interpolation_lagrange.h"
 #include "m_select.h"
 #include "math_funcs.h"
@@ -54,16 +57,16 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric NAT_LOG_2;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Index GFIELD1_F_GRID;
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_F_GRID;
-extern const Index GFIELD4_ZA_GRID;
-extern const Index GFIELD4_AA_GRID;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+using GriddedFieldGrids::GFIELD1_F_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_F_GRID;
+using GriddedFieldGrids::GFIELD4_ZA_GRID;
+using GriddedFieldGrids::GFIELD4_AA_GRID;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)

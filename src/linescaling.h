@@ -30,7 +30,7 @@
 #define linescaling_h
 
 #include "absorption.h"
-#include "constants.h"
+#include "arts_conversions.h"
 
 /** Computes the partition function at one temperature
  * 

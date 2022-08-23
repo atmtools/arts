@@ -38,10 +38,6 @@
 #include "optproperties.h"
 #include "ppath.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PI;
-
 /** A 2D sequential linear interpolation (SLI) lookup table
  * This class holds the gridded for 2D SLI as well as the
  * interpolate member function for retrieving interpolated values.

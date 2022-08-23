@@ -88,7 +88,7 @@ Numeric case_b_g_coefficient_o2(Rational J,
                                 Numeric lB,
                                 Numeric lD,
                                 Numeric lH) {
-  using Constant::pow2, Constant::pow3;
+  using Math::pow2, Math::pow3;
   using std::atan2, std::cos, std::sin;
 
   if (J.isUndefined() or N.isUndefined()) return NAN;
@@ -122,7 +122,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
                                          Rational j,
                                          Numeric gperp,
                                          Numeric gpara) {
-  using Constant::pow2;
+  using Math::pow2;
   if (k.isUndefined() or j.isUndefined() or j == 0) return 0;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
@@ -294,7 +294,7 @@ Zeeman::Derived Zeeman::FromGrids(
 
     // Compute theta (and its derivatives if possible)
     const Numeric cos_theta = n.dot(nH);
-    const Numeric sin_theta = std::sqrt(1 - Constant::pow2(cos_theta));
+    const Numeric sin_theta = std::sqrt(1 - Math::pow2(cos_theta));
     output.theta = std::acos(cos_theta);
     if (sin_theta not_eq 0) {
       const Eigen::Vector3d dtheta =
@@ -315,7 +315,7 @@ Zeeman::Derived Zeeman::FromGrids(
     output.eta = std::atan2(y, x);
     if (x not_eq 0 or y not_eq 0) {
       const Eigen::Vector3d deta =
-          n.cross(nH) / (output.H * (Constant::pow2(x) + Constant::pow2(y)));
+          n.cross(nH) / (output.H * (Math::pow2(x) + Math::pow2(y)));
       output.deta_dv = deta[0];
       output.deta_du = deta[1];
       output.deta_dw = deta[2];
@@ -335,7 +335,7 @@ Numeric Model::Strength(Rational Ju,
                         Zeeman::Polarization type,
                         Index n) const ARTS_NOEXCEPT {
   ARTS_ASSERT(type not_eq Zeeman::Polarization::None);
-  using Constant::pow2;
+  using Math::pow2;
 
   auto ml = Ml(Ju, Jl, type, n);
   auto mu = Mu(Ju, Jl, type, n);

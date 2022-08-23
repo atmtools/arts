@@ -40,6 +40,8 @@
 #include <cmath>
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "exceptions.h"
@@ -55,9 +57,9 @@
 #include "sorting.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 #define PART_TYPE scat_data[i_ss][i_se].ptype
 #define F_DATAGRID scat_data[i_ss][i_se].f_grid

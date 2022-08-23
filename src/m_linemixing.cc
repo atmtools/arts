@@ -28,7 +28,7 @@
  * compute the relaxation, not simply use the relaxation
  */
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"

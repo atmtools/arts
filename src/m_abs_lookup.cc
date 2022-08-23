@@ -38,6 +38,7 @@
 #include "debug.h"
 #include "gas_abs_lookup.h"
 #include "global_data.h"
+#include "gridded_fields.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
 #include "matpackI.h"
@@ -47,8 +48,8 @@
 #include "propagationmatrix.h"
 #include "rng.h"
 
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_P_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_P_GRID;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& x, const Verbosity& verbosity) {

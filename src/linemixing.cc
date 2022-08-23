@@ -5,7 +5,7 @@
 #include <Faddeeva/Faddeeva.hh>
 #include <vector>
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "debug.h"
 #include "lin_alg.h"
 #include "linemixing.h"
@@ -206,7 +206,7 @@ ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
   // Strength
   Vector s(N);
   for (Index i=0; i<N; i++) {
-    s[i] = band.lines[i].F0 * pop[i] * Constant::pow2(dip[i]);
+    s[i] = band.lines[i].F0 * pop[i] * Math::pow2(dip[i]);
   }
   
   // Sorter
@@ -280,7 +280,7 @@ Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
   using Constant::pi;
   using Constant::m_u;
   using Constant::h_bar;
-  using Constant::pow2;
+  using Math::pow2;
   
   // Constants for the expression
   constexpr Numeric fac = 8 * k / (m_u * pi);
@@ -312,8 +312,8 @@ Numeric erot(const Rational N, const Rational j=-1) {
     return erot<false>(N, J) - erot<false>(1, 0);
   } else {
     using Conversion::mhz2joule;
-    using Constant::pow2;
-    using Constant::pow3;
+    using Math::pow2;
+    using Math::pow3;
     
     constexpr Numeric B0=43100.4425e0;
     constexpr Numeric D0=.145123e0;
@@ -1236,9 +1236,9 @@ Vector RosenkranzG(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      G[k] += W(k, j) * W(j, k) / Constant::pow2(band.lines[j].F0 - band.lines[k].F0);
-      G[k] += Constant::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.lines[j].F0 - band.lines[k].F0));
-      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Constant::pow2(band.lines[j].F0 - band.lines[k].F0);
+      G[k] += W(k, j) * W(j, k) / Math::pow2(band.lines[j].F0 - band.lines[k].F0);
+      G[k] += Math::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.lines[j].F0 - band.lines[k].F0));
+      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Math::pow2(band.lines[j].F0 - band.lines[k].F0);
       for (Index l=0; l<N; l++) {
         if (l == k or l == j) continue;
         G[k] -= 2 * std::abs(dip[j] / dip[k]) * W(j, l) * W(l, k) / ((band.lines[j].F0 - band.lines[k].F0) * (band.lines[l].F0 - band.lines[k].F0));

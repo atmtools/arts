@@ -6,7 +6,8 @@
 #include <cmath>
 #include <iterator>
 
-#include "constants.h"
+#include <arts_conversions.h>
+
 #include "debug.h"
 
 #include "predef_data.h"

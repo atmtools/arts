@@ -38,13 +38,14 @@
 #include <cmath>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpackI.h"
 #include "messages.h"
 
-extern const Numeric DEG2RAD;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)

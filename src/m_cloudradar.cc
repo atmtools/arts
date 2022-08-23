@@ -33,6 +33,7 @@
 #include <stdexcept>
 
 #include "arts.h"
+#include "arts_constants.h"
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "logic.h"
@@ -42,9 +43,9 @@
 #include "rte.h"
 #include "sensor.h"
 
-extern const Numeric PI;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric LOG10_EULER_NUMBER;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric LOG10_EULER_NUMBER=Constant::log10_euler;
 
 // Index of grids inside radar inversion tables
 const Index GFIELD3_DB_GRID = 1;
@@ -962,7 +963,7 @@ void particle_bulkpropRadarOnionPeeling(
           Numeric dbze_corr_hyd = 0;
           Numeric k_part_above = 0, k_abs_above = 0;
           // Take abs below if incangle wrongly given as viewing angle
-          const Numeric hfac = abs(1 / cos(DEG2RAD * incangles(ilat, ilon)));
+          const Numeric hfac = abs(1 / Conversion::cosd(incangles(ilat, ilon)));
 
           for (Index ip = np - 1; ip >= 0; ip--) {
             // Above clutter zone

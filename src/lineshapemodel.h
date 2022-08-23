@@ -34,7 +34,7 @@
 #ifndef lineshapemodel_h
 #define lineshapemodel_h
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "enums.h"
 #include "file.h"
 #include "jacobian.h"

@@ -30,10 +30,12 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "arts_constants.h"
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
+#include "gridded_fields.h"
 #include "jacobian.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -48,12 +50,12 @@
 #include <cmath>
 #include <stdexcept>
 
-extern const Numeric PI;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_P_GRID;
-extern const Index GFIELD4_LAT_GRID;
-extern const Index GFIELD4_LON_GRID;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_P_GRID;
+using GriddedFieldGrids::GFIELD4_LAT_GRID;
+using GriddedFieldGrids::GFIELD4_LON_GRID;
 
 /*===========================================================================
   === Workspace methods

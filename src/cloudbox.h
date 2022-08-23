@@ -36,6 +36,14 @@
 #include "optproperties.h"
 #include "ppath.h"
 
+namespace Cloudbox {
+   /** Global constant, minimum distance of cloudbox to lat/lon_grid edges.
+    \author Patrick Eriksson, Jana Mendrok
+    \date   2016-09-08
+*/
+  inline constexpr Numeric LAT_LON_MIN = 20;
+}  // namespace Cloudbox
+
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
                   const Index& atmosphere_dim,

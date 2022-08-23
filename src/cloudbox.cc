@@ -25,10 +25,11 @@
 */
 
 #include "cloudbox.h"
+#include "gridded_fields.h"
 
-extern const Index GFIELD3_P_GRID;
-extern const Index GFIELD3_LAT_GRID;
-extern const Index GFIELD3_LON_GRID;
+using GriddedFieldGrids::GFIELD3_P_GRID;
+using GriddedFieldGrids::GFIELD3_LAT_GRID;
+using GriddedFieldGrids::GFIELD3_LON_GRID;
 
 /*===========================================================================
   === External declarations

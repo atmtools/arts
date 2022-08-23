@@ -41,6 +41,7 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "arts_omp.h"
 #include "artstime.h"
 #include "auto_md.h"
@@ -72,11 +73,11 @@
 #include "nc_io.h"
 #endif
 
-extern const Numeric ELECTRON_CHARGE;
-extern const Numeric ELECTRON_MASS;
-extern const Numeric PI;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric VACUUM_PERMITTIVITY;
+inline constexpr Numeric ELECTRON_CHARGE=-Constant::elementary_charge;
+inline constexpr Numeric ELECTRON_MASS=Constant::electron_mass;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric VACUUM_PERMITTIVITY=Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AbsInputFromRteScalars(  // WS Output:

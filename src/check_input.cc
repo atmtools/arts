@@ -42,9 +42,9 @@
 #include "gridded_fields.h"
 #include "logic.h"
 
-extern const Index GFIELD3_P_GRID;
-extern const Index GFIELD3_LAT_GRID;
-extern const Index GFIELD3_LON_GRID;
+using GriddedFieldGrids::GFIELD3_P_GRID;
+using GriddedFieldGrids::GFIELD3_LAT_GRID;
+using GriddedFieldGrids::GFIELD3_LON_GRID;
 
 /*===========================================================================
   === Functions for Index

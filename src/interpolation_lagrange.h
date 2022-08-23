@@ -1,7 +1,7 @@
 #ifndef interpolation_lagrange_h
 #define interpolation_lagrange_h
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "debug.h"
 #include "enums.h"
 #include "grids.h"

@@ -401,6 +401,7 @@
 #include "absorption.h"
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "global_data.h"
 #include "matpackI.h"
 
@@ -410,12 +411,12 @@
 
 // global constants as defined in constants.cc
 
-extern const Numeric EULER_NUMBER;
-extern const Numeric LOG10_EULER_NUMBER;
-extern const Numeric NAT_LOG_TEN;
-extern const Numeric PI;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric DENSITY_OF_WATER;
+inline constexpr Numeric EULER_NUMBER=Constant::euler;
+inline constexpr Numeric LOG10_EULER_NUMBER=Constant::log10_euler;
+inline constexpr Numeric NAT_LOG_TEN=Constant::ln_10;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric DENSITY_OF_WATER=Constant::denity_of_water_at_4c;
 
 const Numeric LIQUID_AND_ICE_TREAT_AS_ZERO = 1e-10;
 
@@ -20351,7 +20352,7 @@ void xsec_continuum_tag(MatrixView xsec,
   // true cross section.
 
   // Boltzmann constant
-  extern const Numeric BOLTZMAN_CONST;
+  static constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
 
   // Loop all pressures:
   for (Index i = 0; i < abs_p.nelem(); ++i) {

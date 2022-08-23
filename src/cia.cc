@@ -28,6 +28,7 @@
  \date   2012-11-30
  */
 
+#include "arts_constants.h"
 #include "check_input.h"
 #include "cia.h"
 #include <cmath>
@@ -36,7 +37,7 @@
 #include "file.h"
 #include "interpolation_lagrange.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /** Interpolate CIA data.
  

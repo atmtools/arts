@@ -23,7 +23,7 @@
 
 #include "agenda_class.h"
 #include "physics_funcs.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "gas_scattering.h"
 #include "optproperties.h"
 #include "rte.h"
@@ -91,9 +91,9 @@ void gas_scattering_coefAirSimple(PropagationMatrix& gas_scattering_coef,
     Numeric pows = 1;
     for (auto& coef: coefficients) {
       sum += coef * pows;
-      pows /= Constant::pow2(wavelen);
+      pows /= Math::pow2(wavelen);
     }
-    gas_scattering_coef.Kjj()[f] = 1e-32 * sum / Constant::pow4(wavelen);
+    gas_scattering_coef.Kjj()[f] = 1e-32 * sum / Math::pow4(wavelen);
   }
 
   gas_scattering_coef.Kjj() *= number_density(rtp_pressure, rtp_temperature);

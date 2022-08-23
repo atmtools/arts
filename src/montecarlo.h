@@ -53,10 +53,6 @@
 #include "rte.h"
 #include "special_interp.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PI;
-
 /** clear_rt_vars_at_gp.
  *
  * Calculates a bunch of atmospheric variables at the end of a ppath.

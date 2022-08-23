@@ -38,6 +38,7 @@ Numeric stimulated_emission(Numeric T, Numeric F0) {
 
 Numeric dstimulated_emissiondT(Numeric T, Numeric F0) {
   using namespace Constant;
+  using namespace Math;
   static constexpr Numeric c1 = -h / k;
   return -F0 * c1 * std::exp(F0 * c1 / T) / pow2(T);
 }
@@ -60,7 +61,7 @@ Numeric dstimulated_relative_emission_dT(const Numeric F0, const Numeric T0, con
 Numeric dstimulated_relative_emission_dF0(const Numeric F0, const Numeric T0, const Numeric T) noexcept {
   const Numeric exp0m1 = std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T0));
   const Numeric exptm1 = std::expm1(-Conversion::hz2joule(F0) / Conversion::kelvin2joule(T));
-  return Constant::h * (T * exptm1 * (1 + exp0m1) - T0 * exp0m1 * (1 + exptm1)) / (Constant::k * T * T0 * Constant::pow2(exp0m1));
+  return Constant::h * (T * exptm1 * (1 + exp0m1) - T0 * exp0m1 * (1 + exptm1)) / (Constant::k * T * T0 * Math::pow2(exp0m1));
 }
 
 Numeric stimulated_relative_emission(const Numeric& gamma,
@@ -72,9 +73,7 @@ Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
                                          const Numeric& gamma_ref,
                                          const Numeric& F0,
                                          const Numeric& T) {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = -PLANCK_CONST / BOLTZMAN_CONST;
+  static constexpr Numeric c = -Constant::h / Constant::k;
 
   return c * F0 * gamma / (T * T * (1. - gamma_ref));
 }
@@ -83,9 +82,7 @@ Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
                                           const Numeric& gamma_ref,
                                           const Numeric& T,
                                           const Numeric& T0) {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = -PLANCK_CONST / BOLTZMAN_CONST;
+  static constexpr Numeric c = -Constant::h / Constant::k;
 
   const Numeric g0 = 1 - gamma_ref;
   const Numeric g = 1 - gamma;
@@ -95,8 +92,7 @@ Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
 
 // Ratio of boltzman emission at T and T0
 Numeric boltzman_ratio(const Numeric& T, const Numeric& T0, const Numeric& E0) {
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = 1 / BOLTZMAN_CONST;
+  static constexpr Numeric c = 1 / Constant::k;
 
   return exp(E0 * c * (T - T0) / (T * T0));
 }
@@ -104,8 +100,7 @@ Numeric boltzman_ratio(const Numeric& T, const Numeric& T0, const Numeric& E0) {
 Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
                            const Numeric& T,
                            const Numeric& E0) {
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = 1 / BOLTZMAN_CONST;
+  static constexpr Numeric c = 1 / Constant::k;
 
   return E0 * c * boltzmann_ratio / (T * T);
 }
@@ -119,6 +114,7 @@ Numeric boltzman_factor(Numeric T, Numeric E0)
 // Boltzmann factor at T
 Numeric dboltzman_factordT(Numeric T, Numeric E0) {
   using namespace Constant;
+  using namespace Math;
   static constexpr Numeric c1 = -1 / k;
   return -E0 * c1 * std::exp(E0 * c1 / T) / pow2(T);
 }
@@ -143,9 +139,7 @@ Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
                                  const Numeric& Eu,
                                  const Numeric& r_upp,
                                  const Numeric& r_low) {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = 1 / BOLTZMAN_CONST;
+  static constexpr Numeric c = 1 / Constant::k;
 
   ARTS_USER_ERROR_IF (El < 0 or Eu < 0,
     "It is considered undefined behavior to NLTE and "
@@ -153,7 +147,7 @@ Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
     "vibrational energy states")
 
   const Numeric x = 1 / (T * (gamma - 1));
-  const Numeric hf = F0 * PLANCK_CONST;
+  const Numeric hf = F0 * Constant::h;
 
   return x * x * c *
          ((gamma - 1) * (El * r_low - Eu * gamma * r_upp) -
@@ -164,11 +158,9 @@ Numeric dabsorption_nlte_rate_dF0(const Numeric& gamma,
                                   const Numeric& T,
                                   const Numeric& r_upp,
                                   const Numeric& r_low) {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = -PLANCK_CONST / BOLTZMAN_CONST;
+  static constexpr Numeric c = -Constant::h / Constant::k;
 
-  return c * gamma * (r_low - r_upp) / (T * Constant::pow2(gamma - 1));
+  return c * gamma * (r_low - r_upp) / (T * Math::pow2(gamma - 1));
 }
 
 Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,
@@ -176,9 +168,7 @@ Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,
                                   const Numeric& Tl,
                                   const Numeric& El,
                                   const Numeric& r_low) {
-  extern const Numeric BOLTZMAN_CONST;
-
-  const Numeric x = 1 / (BOLTZMAN_CONST * T);
+  const Numeric x = 1 / (Constant::k * T);
   const Numeric y = 1 / Tl;
 
   return El * x * y * y * T * r_low / (gamma - 1);
@@ -189,9 +179,7 @@ Numeric dabsorption_nlte_rate_dTu(const Numeric& gamma,
                                   const Numeric& Tu,
                                   const Numeric& Eu,
                                   const Numeric& r_upp) {
-  extern const Numeric BOLTZMAN_CONST;
-
-  const Numeric x = 1 / (BOLTZMAN_CONST * T);
+  const Numeric x = 1 / (Constant::k * T);
   const Numeric y = 1 / Tu;
 
   return Eu * x * y * y * T * gamma * r_upp / (gamma - 1);

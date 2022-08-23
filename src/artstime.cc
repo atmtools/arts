@@ -25,7 +25,7 @@
 */
 
 #include "artstime.h"
-#include "constants.h"
+#include "arts_options.h"
 #include <cstdlib>
 #include <ctime>
 

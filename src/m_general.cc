@@ -46,6 +46,7 @@
 #include <stdexcept>
 
 #include "array.h"
+#include "arts_constants.h"
 #include "check_input.h"
 #include "m_general.h"
 #include "messages.h"
@@ -62,7 +63,7 @@
 #include "fastem.h"
 #include "tessem.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)

@@ -39,6 +39,7 @@
 #include <stdexcept>
 
 #include "arts.h"
+#include "arts_constants.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "lin_alg.h"
@@ -51,9 +52,9 @@
 #include "rng.h"
 #include "sorting.h"
 
-extern const Numeric PI;
-extern const Numeric DENSITY_OF_ICE;
-extern const Numeric DENSITY_OF_WATER;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
+inline constexpr Numeric DENSITY_OF_WATER=Constant::denity_of_water_at_4c;
 
 void psd_cloudice_MH97(Vector& psd,
                        const Vector& diameter,

@@ -90,7 +90,8 @@ pybind11_add_module(pyarts_cpp
     py_global.cpp
     py_xsec_fit.cpp
     py_nlte.cpp
-    py_constants.cpp
+    py_constant.cpp
+    py_convert.cpp
     py_physics.cpp
     py_predefined.cpp
     py_star.cpp

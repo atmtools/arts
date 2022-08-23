@@ -888,7 +888,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
               out += result;
             }
 
-            out *= Constant::pow2(number_density(P, T)) * X0 * X1;
+            out *= Math::pow2(number_density(P, T)) * X0 * X1;
             return out;
           },
           py::arg("T"),

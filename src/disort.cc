@@ -36,9 +36,10 @@
 
 #include "agenda_class.h"
 #include "array.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "constants.h"
+#include "arts_conversions.h"
 
 extern "C" {
 #include "cdisort.h"
@@ -52,11 +53,11 @@ extern "C" {
 #include "rte.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric PLANCK_CONST;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric COSMIC_BG_TEMP;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PLANCK_CONST=Constant::planck_constant;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_temperature;
 
 void add_normed_phase_functions(Tensor3View& pfct1,
                                 const MatrixView& sca1,

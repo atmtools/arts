@@ -19,8 +19,8 @@
 #include <iostream>
 
 #include "array.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
-#include "constants.h"
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
@@ -864,7 +864,7 @@ void test25() {
 }
 
 void test26() {
-  auto f = [](Numeric x){return Constant::pow2(Interpolation::cyclic_clamp(x, {-2, 2})) - 4;};
+  auto f = [](Numeric x){return Math::pow2(Interpolation::cyclic_clamp(x, {-2, 2})) - 4;};
   auto df = [](Numeric x){return 2*Interpolation::cyclic_clamp(x, {-2, 2});};
   
   constexpr Index N = 9;
@@ -962,8 +962,8 @@ void test27() {
 }
 
 void test28() {
-  using Constant::pow2;
-  using Constant::pow3;
+  using Math::pow2;
+  using Math::pow3;
   using Conversion::sind;
   using Conversion::cosd;
   

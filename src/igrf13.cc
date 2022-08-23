@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "igrf13.h"
 #include "legendre.h"
 
@@ -221,7 +221,7 @@ Matrix matrix(const std::array<Numeric, 196> data) {
  */
 Numeric radius(const Numeric h, const Numeric lat, const Numeric lon, const Numeric a, const Numeric e) ARTS_NOEXCEPT {
   using std::sqrt;
-  using Conversion::pow2;
+  using Math::pow2;
   using Conversion::cosd;
   using Conversion::sind;
   

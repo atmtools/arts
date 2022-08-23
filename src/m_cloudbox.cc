@@ -46,6 +46,8 @@
 
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -66,14 +68,14 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Index GFIELD3_P_GRID;
-extern const Index GFIELD3_LAT_GRID;
-extern const Index GFIELD3_LON_GRID;
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric LAT_LON_MIN;
-extern const Numeric DENSITY_OF_ICE;
+using GriddedFieldGrids::GFIELD3_P_GRID;
+using GriddedFieldGrids::GFIELD3_LAT_GRID;
+using GriddedFieldGrids::GFIELD3_LON_GRID;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+using Cloudbox::LAT_LON_MIN;
+inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
 
 /*===========================================================================
   === The functions (in alphabetical order)

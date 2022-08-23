@@ -30,6 +30,9 @@
   ===========================================================================*/
 
 #include "rte.h"
+#include "arts_constexpr_math.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
@@ -45,8 +48,8 @@
 #include <cmath>
 #include <stdexcept>
 
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric TEMP_0_C;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions in alphabetical order
@@ -523,7 +526,7 @@ void defocusing_general(Workspace& ws,
       distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
     }
     //
-    dlf = lp * 2 * DEG2RAD * dza / l12;
+    dlf = lp * 2 * Conversion::deg2rad(1) * dza / l12;
   }
   // If different backgrounds, then only use the second calculation
   else {
@@ -545,7 +548,7 @@ void defocusing_general(Workspace& ws,
                  pos2[2]);
     }
     //
-    dlf = lp * DEG2RAD * dza / l12;
+    dlf = lp * Conversion::deg2rad(1) * dza / l12;
   }
 }
 
@@ -586,7 +589,7 @@ void defocusing_sat2sat(Workspace& ws,
   // Bending angle and impact parameter for centre ray
   Numeric alpha0, a0;
   bending_angle1d(alpha0, ppath);
-  alpha0 *= DEG2RAD;
+  alpha0 *= Conversion::deg2rad(1);
   a0 = ppath.constant;
 
   // Azimuth loss term (Eq 18.5 in Kursinski et al.)
@@ -621,7 +624,7 @@ void defocusing_sat2sat(Workspace& ws,
              false,
              verbosity);
   bending_angle1d(alpha2, ppt);
-  alpha2 *= DEG2RAD;
+  alpha2 *= Conversion::deg2rad(1);
   a2 = ppt.constant;
   //
   rte_los[0] += 2 * dza;
@@ -651,7 +654,7 @@ void defocusing_sat2sat(Workspace& ws,
   // Otherwise use the centre ray as the second one.
   if (ppath_what_background(ppt) == 1) {
     bending_angle1d(alpha1, ppt);
-    alpha1 *= DEG2RAD;
+    alpha1 *= Conversion::deg2rad(1);
     a1 = ppt.constant;
     dada = (alpha2 - alpha1) / (a2 - a1);
   } else {
@@ -680,8 +683,8 @@ Numeric dotprod_with_los(const ConstVectorView& los,
   // Zenith and azimuth angle for photon direction (in radians)
   Vector los_p;
   mirror_los(los_p, los, atmosphere_dim);
-  const Numeric za_p = DEG2RAD * los_p[0];
-  const Numeric aa_p = DEG2RAD * los_p[1];
+  const Numeric za_p = Conversion::deg2rad(1) * los_p[0];
+  const Numeric aa_p = Conversion::deg2rad(1) * los_p[1];
 
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
@@ -1841,13 +1844,13 @@ void muellersparse_rotation(Sparse& H,
   ARTS_ASSERT(H(1, 0) == 0);
   //
   H.rw(0, 0) = 1;
-  const Numeric a = cos(2 * DEG2RAD * rotangle);
+  const Numeric a = Conversion::cosd(2 * rotangle);
   H.rw(1, 1) = a;
   if (stokes_dim > 2) {
     ARTS_ASSERT(H(2, 0) == 0);
     ARTS_ASSERT(H(0, 2) == 0);
 
-    const Numeric b = sin(2 * DEG2RAD * rotangle);
+    const Numeric b = Conversion::sind(2 * rotangle);
     H.rw(1, 2) = b;
     H.rw(2, 1) = -b;
     H.rw(2, 2) = a;
@@ -1889,7 +1892,7 @@ void mueller_rotation(Matrix& L,
   L.resize(stokes_dim, stokes_dim);
   L(0, 0) = 1;
   if (stokes_dim > 1 ) {
-    const Numeric alpha = 2 * DEG2RAD * rotangle;
+    const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
     const Numeric c2 = cos(alpha);
     L(0,1) = L(1,0) = 0;
     L(1,1) = c2;
@@ -2296,7 +2299,7 @@ void ze_cfac(Vector& fac,
   }
 
   // Common conversion factor
-  const Numeric a = 4e18 / (PI * PI * PI * PI);
+  static constexpr Numeric a = 4e18 / Math::pow4(Constant::pi);
 
   for (Index iv = 0; iv < nf; iv++) {
     // Reference dielectric factor.

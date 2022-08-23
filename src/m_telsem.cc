@@ -23,6 +23,7 @@
   \brief  This file contains functions to read TELSEM atlases.
 */
 
+#include "arts_conversions.h"
 #include "file.h"
 #include "geodetic.h"
 #include "matpackI.h"
@@ -31,8 +32,8 @@
 #include "telsem.h"
 #include "check_input.h"
 
-extern const Numeric EARTH_RADIUS;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsemStandalone(Matrix &emis,

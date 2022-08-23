@@ -38,6 +38,7 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "logic.h"
@@ -45,8 +46,8 @@
 #include "messages.h"
 #include "physics_funcs.h"
 
-extern const Numeric TEMP_0_C;
-extern const Numeric COSMIC_BG_TEMP;
+inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
+inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_temperature;
 
 /*===========================================================================
   === The functions (in alphabetical order)

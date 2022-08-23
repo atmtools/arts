@@ -33,14 +33,15 @@
 */
 
 #include "arts.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "matpackI.h"
 #include "wigner_functions.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric LAT_LON_MIN;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+using  Cloudbox::LAT_LON_MIN;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
