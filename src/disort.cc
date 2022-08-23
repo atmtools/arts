@@ -1545,13 +1545,13 @@ void run_cdisort_flux(Workspace& ws,
       cnt += 1;
       disort_aux[cnt] = spectral_direct_irradiance_field;
     }
-    else if (disort_aux_vars[i] == "dFdtau"){
+    else if (disort_aux_vars[i] == "ext_bulk_gas"){
         cnt+=1;
-        disort_aux[cnt]=dFdtau;
+        disort_aux[cnt]=ext_bulk_gas;
     }
-    else if (disort_aux_vars[i] == "dFdz"){
+    else if (disort_aux_vars[i] == "vmr"){
       cnt+=1;
-      disort_aux[cnt]=dFdz;
+      disort_aux[cnt]=vmr;
     }
     else {
       ARTS_USER_ERROR (
@@ -1559,8 +1559,8 @@ void run_cdisort_flux(Workspace& ws,
           "  \"dtau\"\n"
           "  \"Single scatteriering albedo\"\n"
           "  \"Direct downward spectral irradiance\"\n"
-          "  \"dFdtau\"\n"
-          "  \"dFdz\"\n"
+          "  \"ext_bulk_gas\"\n"
+          "  \"vmr\"\n"
           "but you have selected: \"", disort_aux_vars[i], "\"\n");
     }
   }
