@@ -143,6 +143,7 @@ object's instances (i.e., no element-wise comparisions))--");
       .def(py::init([](Numeric n) { return new Numeric_{n}; }))
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
+      .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(x.val)); })
       .PythonInterfaceCommonMath(Numeric)
       .PythonInterfaceCommonMath(Index_)
       .PythonInterfaceCommonMath(Index)
@@ -211,6 +212,7 @@ You can get copies and set the value by the "value" property)--");
       .def(py::init([](Index i) { return new Index_{i}; }))
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
+      .def("__hash__", [](Index_& x) { return py::hash(py::int_(x.val)); })
       .PythonInterfaceCommonMath(Numeric)
       .PythonInterfaceCommonMath(Index)
       .PythonInterfaceCommonMathSelf

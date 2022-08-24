@@ -15,14 +15,23 @@ struct ValueHolder {
 
   template <typename T> using common_type = std::common_type_t<type, T>;
 
+  constexpr ValueHolder() = default;
+  constexpr ValueHolder(const ValueHolder&) = default;
+  constexpr ValueHolder(ValueHolder&&) = default;
+  constexpr ValueHolder& operator=(const ValueHolder&) = default;
+  constexpr ValueHolder& operator=(ValueHolder&&) = default;
+  constexpr ValueHolder(const type& a) noexcept : val(a) {}
+  constexpr ValueHolder(type&& a) noexcept : val(a) {}
+  constexpr ValueHolder& operator=(const type& a) noexcept { val = a; }
+  constexpr ValueHolder& operator=(type&& a) noexcept { val = a; }
+
   constexpr operator type&() noexcept { return val; }
   constexpr operator const type&() const noexcept { return val; }
-  constexpr ValueHolder& operator=(type x) noexcept { val = x; return *this; }
 
   friend std::ostream& operator<<(std::ostream& os, ValueHolder x) {return os << x.val;}
 
-  constexpr type operator-() const noexcept {return - val;}
-  constexpr type operator+() const noexcept {return val;}
+  constexpr ValueHolder operator-() const noexcept {return - val;}
+  constexpr ValueHolder operator+() const noexcept {return val;}
 
   template <typename T> friend constexpr auto operator<=>(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) <=> static_cast<common_type<T>>(b.val);}
   template <typename T> friend constexpr auto operator+(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) + static_cast<common_type<T>>(b.val);}
