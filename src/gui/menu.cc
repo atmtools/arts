@@ -156,7 +156,7 @@ bool change_item(const char* name,
 
       if (ImGui::BeginMenu(name)) {
         target = Jacobian::Target(Jacobian::Atm::Temperature);
-        target_name = "\t" + change_item_name(target) + "\t";
+        target_name = '\t' + change_item_name(target) + '\t';
         if (bool has = std::any_of(jac.begin(), jac.end(), tpred);
             ImGui::Selectable(target_name.c_str(),
                               has,
@@ -173,7 +173,7 @@ bool change_item(const char* name,
         ImGui::Separator();
 
         target = Jacobian::Target(Jacobian::Atm::WindMagnitude);
-        target_name = "\t" + change_item_name(target) + "\t";
+        target_name = '\t' + change_item_name(target) + '\t';
         if (bool has = std::any_of(jac.begin(), jac.end(), fpred);
             ImGui::Selectable(target_name.c_str(),
                               has,
@@ -258,7 +258,7 @@ bool change_item(const char* name,
         if (ImGui::BeginMenu("\tSelect VMR type\t")) {
           for (auto& x : enumtyps::VMRTypes) {
             if (ImGui::Selectable(
-                    (" " + std::string{toString(x)} + " ").c_str(),
+                    (' ' + std::string{toString(x)} + ' ').c_str(),
                     x == menu.vmr,
                     ImGuiSelectableFlags_DontClosePopups))
               menu.vmr = x;
