@@ -567,7 +567,7 @@ void get_short_wsv_description(String& s, const String& desc) {
 
   // Replace any newlines inside the description with spaces
   while ((pos = s.find("\n")) != String::npos) {
-    s.replace(pos, 1, " ");
+    s[pos] = ' ';
   }
 }
 
