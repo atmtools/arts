@@ -388,6 +388,7 @@ add_library (methods STATIC
         wsv_aux.cc
         )
 
+set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
 target_link_libraries(methods PUBLIC predef species)
 
 ########### next target ###############
