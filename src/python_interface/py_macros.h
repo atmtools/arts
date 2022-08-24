@@ -3,6 +3,7 @@
 
 #include <debug.h>
 #include <global_data.h>
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <xml_io.h>
@@ -294,6 +295,50 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           "__ge__",                                       \
           [](Type& x, const Other& y) { return x >= y; }, \
           py::is_operator())
+
+#define PythonInterfaceCommonMath(Type) \
+  def(py::self + Type())                \
+      .def(py::self - Type())           \
+      .def(py::self * Type())           \
+      .def(py::self / Type())           \
+      .def(py::self += Type())          \
+      .def(py::self -= Type())          \
+      .def(py::self *= Type())          \
+      .def(py::self /= Type())          \
+      .def(py::self == Type())          \
+      .def(py::self != Type())          \
+      .def(py::self <= Type())          \
+      .def(py::self < Type())           \
+      .def(py::self >= Type())          \
+      .def(py::self > Type())           \
+      .def(Type() + py::self)           \
+      .def(Type() - py::self)           \
+      .def(Type() * py::self)           \
+      .def(Type() / py::self)           \
+      .def(Type() == py::self)          \
+      .def(Type() != py::self)          \
+      .def(Type() <= py::self)          \
+      .def(Type() < py::self)           \
+      .def(Type() >= py::self)          \
+      .def(Type() > py::self)
+
+#define PythonInterfaceCommonMathSelf \
+  def(+py::self)                      \
+      .def(-py::self)                 \
+      .def(py::self + py::self)       \
+      .def(py::self - py::self)       \
+      .def(py::self * py::self)       \
+      .def(py::self / py::self)       \
+      .def(py::self += py::self)      \
+      .def(py::self -= py::self)      \
+      .def(py::self *= py::self)      \
+      .def(py::self /= py::self)      \
+      .def(py::self == py::self)      \
+      .def(py::self != py::self)      \
+      .def(py::self <= py::self)      \
+      .def(py::self < py::self)       \
+      .def(py::self >= py::self)      \
+      .def(py::self > py::self)
 
 #define PythonInterfaceWorkspaceVariableConversion(Type)                   \
   def(py::init([](const Type& x) { return new Type{x}; }), py::arg("val")) \

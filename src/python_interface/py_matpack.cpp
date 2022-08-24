@@ -607,12 +607,8 @@ via x.value)--");
       .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
       .PythonInterfaceFileIO(Rational)
       .PythonInterfaceBasicRepresentation(Rational)
-      .PythonInterfaceInPlaceMathOperators(Rational, Rational)
-      .PythonInterfaceInPlaceMathOperators(Rational, Index)
-      .PythonInterfaceMathOperators(Rational, Rational)
-      .PythonInterfaceMathOperators(Rational, Index)
-      .PythonInterfaceComparisonOperators(Rational, Rational)
-      .PythonInterfaceComparisonOperators(Rational, Index)
+      .PythonInterfaceCommonMath(Index)
+      .PythonInterfaceCommonMathSelf
       .def(py::pickle(
           [](const Rational& self) {
             return py::make_tuple(self.numer, self.denom);
