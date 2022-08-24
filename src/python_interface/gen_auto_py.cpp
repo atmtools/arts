@@ -17,7 +17,7 @@ namespace global_data {
 extern Array<WsvRecord> wsv_data;
 
 extern std::map<String, Index> WsvMap;
-} // namespace global_data
+}  // namespace global_data
 
 /** Implements pybind11 bindings generation for Arts workspace
  *
@@ -107,9 +107,14 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::string> desc;
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
-    val = var_string("Group: pyarts.arts.", global_data::wsv_groups[x.Group()].name, "\n\n", x.Description());
+    val = var_string("Group: pyarts.arts.",
+                     global_data::wsv_groups[x.Group()].name,
+                     "\n\n",
+                     x.Description());
     if (x.has_defaults())
-      val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().", x.Name(), ".value to see default");
+      val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().",
+                        x.Name(),
+                        ".value to see default");
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
@@ -422,7 +427,8 @@ void workspace_variables(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
     oss[i]
         << "#include <python_interface.h>\n\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_"
-        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
+        << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -445,9 +451,10 @@ void workspace_variables(size_t n, const NameMaps& arts) {
       os << "    for(auto& a : val) a.set_name(\"" << name
          << "\");\n    for(auto& a : val) a.check(w, *static_cast<Verbosity*>(w["
          << verbpos << "].get()));\n";
-    os << "    " << data.varname_group << "& v = *static_cast<" <<  data.varname_group << " *>(w["
-       << data.artspos << "].get());\n    v = val;\n  }, py::doc(R\"-x-("
-       << data.varname_desc << ")-x-\")\n); \n\n";
+    os << "    " << data.varname_group << "& v = *static_cast<"
+       << data.varname_group << " *>(w[" << data.artspos
+       << "].get());\n    v = val;\n  }, py::doc(R\"-x-(" << data.varname_desc
+       << ")-x-\")\n); \n\n";
 
     osptr++;
     if (osptr == oss.end()) osptr = oss.begin();
@@ -473,7 +480,8 @@ void print_method_desc(std::ofstream& os,
   os << '\n' << '\n' << "Parameters\n----------\n";
 
   for (const auto& i : method.out.varname) {
-    os << i << " : " << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
+    os << i << " : "
+       << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
     os << "    As WSV (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
@@ -483,19 +491,22 @@ void print_method_desc(std::ofstream& os,
     os << "OUT)\n";
   }
   for (size_t i = 0; i < method.gout.name.size(); i++) {
-    os << method.gout.name[i] << " : " << "pyarts.arts." << method.gout.group[i] << "\n    "
+    os << method.gout.name[i] << " : "
+       << "pyarts.arts." << method.gout.group[i] << "\n    "
        << method.gout.desc[i] << " (OUT)\n";
   }
   for (const auto& i : method.in.varname) {
     if (std::none_of(method.out.varname.cbegin(),
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
-      os << i << " : " << "pyarts.arts." << groups.at(i).varname_group
+      os << i << " : "
+         << "pyarts.arts." << groups.at(i).varname_group
          << ", optional\n    As WSV (IN)\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
-    os << method.gin.name[i] << " : " << "pyarts.arts." << method.gin.group[i];
+    os << method.gin.name[i] << " : "
+       << "pyarts.arts." << method.gin.group[i];
     if (method.gin.hasdefs[i]) {
       os << ", optional";
     }
@@ -558,7 +569,8 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_create_", i, ".cc"));
     oss[i]
         << "#include \"py_auto_interface.h\"\n#include <pybind11/stl.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsc_"
-        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
+        << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
   auto osptr = oss.begin();
 
@@ -583,8 +595,8 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
        << group_index << R"--(, "Already exist of different group: ", name)
   }
 
-  if (value.has_value()) w.push_move(pos, std::make_shared<)--"
-       << group << R"--(>(*value));
+  if (value.has_value()) w.push_move(pos, std::shared_ptr<)--"
+       << group << ">(new " << group << R"--({*value}));
 }, py::doc(R"-x-(
 Create new )--"
        << group << R"--( on the workspace
@@ -631,7 +643,8 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_methods_", i, ".cc"));
     oss[i]
         << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsm_"
-        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
+        << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -860,7 +873,8 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
         std::ofstream(var_string("py_auto_workspace_split_generic_", i, ".cc"));
     oss[i]
         << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsg_"
-        << i << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
+        << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
   }
 
   auto osptr = oss.begin();
@@ -1179,12 +1193,15 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
                                  arg.types[i],
                                  num ? '_' : ' ',
                                  "*>()");
-            x.second = var_string("*std::get<",
-                                  arg.types[i],
-                                  (num ? '_' : ' '),
-                                  "*>(wvv_arg",
-                                  counter,
-                                  "_) /* Must use std::get because while it can only be a ", arg.types[i], ", user input might disagree */ ");
+            x.second = var_string(
+                "*std::get<",
+                arg.types[i],
+                (num ? '_' : ' '),
+                "*>(wvv_arg",
+                counter,
+                "_) /* Must use std::get because while it can only be a ",
+                arg.types[i],
+                ", user input might disagree */ ");
             input_var_args.push_back(x);
             continue;
           }
@@ -1565,8 +1582,8 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
     os << "      case " << group << ": {auto conv_obj = py::type::of<" << name
        << extra << ">()(";
     if (name == "Agenda") os << "ws, ";
-    os << "obj); value_ptr = std::make_shared<" << name << ">(* conv_obj.cast<" << name
-       << extra << "*>());} break;\n";
+    os << "obj); value_ptr = std::shared_ptr<" << name << ">(new " << name
+       << "{* conv_obj.cast<" << name << extra << "*>()});} break;\n";
   }
 
   os << R"--(      default: ARTS_USER_ERROR("Cannot create type")
@@ -1664,7 +1681,7 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
   }
 
   {
-    Index counter=0;
+    Index counter = 0;
     for (auto& [key, items] : has) {
       os << "    {\"" << key << "\", " << counter++ << "},\n";
     }
@@ -1685,7 +1702,7 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
          << ">(ws, pos, key.c_str(), " << items.val << ");\n";
     }
   }
- os << R"--(  }
+  os << R"--(  }
 
   return pos;
 }
@@ -1695,10 +1712,12 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
     const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
 
     os << "WorkspaceVariable::operator " << name << extra;
-    os << "&() {return *static_cast<" << name << extra << "*>(ws[pos].get());}\n";
+    os << "&() {return *static_cast<" << name << extra
+       << "*>(ws[pos].get());}\n";
 
     os << "WorkspaceVariable::operator " << name << extra;
-    os << "&() const {ARTS_USER_ERROR_IF(not is_initialized(), \"Not initialized: \", name()) return *static_cast<" << name << extra << "*>(ws[pos].get());}\n";
+    os << "&() const {ARTS_USER_ERROR_IF(not is_initialized(), \"Not initialized: \", name()) return *static_cast<"
+       << name << extra << "*>(ws[pos].get());}\n";
   }
 
   os << R"--(WorkspaceVariable::operator Index&() {return *static_cast<Index *>(ws[pos].get());}
@@ -1866,8 +1885,9 @@ ws.def(py::pickle(
   for (auto& [name, id] : arts.group) {
     const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
     os << "        case " << id << ": {\n";
-    os << "          out -> push_move(wsv_pos, std::make_shared<" << name << ">(* value[i].cast<"
-       << name << extra << " *>()));\n";
+    os << "          out -> push_move(wsv_pos, std::shared_ptr<" << name
+       << ">(new " << name << "{* value[i].cast<" << name << extra
+       << " *>()}));\n";
     os << "          } break;\n";
   }
   os << R"--(        default: { ARTS_USER_ERROR("Bad group") }
@@ -1920,20 +1940,24 @@ int main(int argc, char** argv) {
   includes(py_workspace);
   py_workspace << '\n' << "namespace Python {\n";
   for (int i = 0; i < nwsv; i++) {
-    py_workspace << "void py_auto_workspace_wsv_" << i
-                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
+    py_workspace
+        << "void py_auto_workspace_wsv_" << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   for (int i = 0; i < nwsg; i++) {
-    py_workspace << "void py_auto_workspace_wsg_" << i
-                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
+    py_workspace
+        << "void py_auto_workspace_wsg_" << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   for (int i = 0; i < nwsc; i++) {
-    py_workspace << "void py_auto_workspace_wsc_" << i
-                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
+    py_workspace
+        << "void py_auto_workspace_wsc_" << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   for (int i = 0; i < nwsm; i++) {
-    py_workspace << "void py_auto_workspace_wsm_" << i
-                 << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
+    py_workspace
+        << "void py_auto_workspace_wsm_" << i
+        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
   }
   py_workspace
       << "void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws, py::class_<WorkspaceVariable>& wsv) {\n";
