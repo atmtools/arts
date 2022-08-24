@@ -19313,7 +19313,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("starsAddSingleBlackbody"),
-      DESCRIPTION("Adds a single blackbody to *stars*\n"),
+      DESCRIPTION("Adds a single blackbody to *stars*\n"
+                  "\n"
+                  "Important note:\n"
+                  "For a Sol-like star there are huge differences in the UV-range \n"
+                  "between the actual star spectrum and the blackbody spectrum"
+                  "with the effective temperature of the star. The blackbody star\""
+                  "strongly overestimates the UV radiation.\n"),
       AUTHORS("Jon Petersen"),
       OUT("stars",
           "stars_do"),
