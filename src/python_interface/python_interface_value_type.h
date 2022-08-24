@@ -9,18 +9,6 @@
 #include <matpack.h>
 
 namespace Python {
-template <typename T>
-concept Arithmetic = std::is_arithmetic_v<T>;
-
-template <typename T>
-concept PythonValueHolderType = requires(T a) {
-  { a * a } -> Arithmetic;
-  { 1 * a } -> Arithmetic;
-  { 1. * a } -> Arithmetic;
-  { a } -> std::totally_ordered;
-  { a.val } -> std::totally_ordered;
-};
-
 template <typename type>
 struct ValueHolder {
   type val;
@@ -36,24 +24,28 @@ struct ValueHolder {
   constexpr type operator-() const noexcept {return - val;}
   constexpr type operator+() const noexcept {return val;}
 
-  template <typename T> friend constexpr auto operator<=>(ValueHolder a, PythonValueHolderType auto b) noexcept {return static_cast<common_type<T>>(a.val) <=> static_cast<common_type<T>>(b.val);}
-  template <typename T> friend constexpr auto operator+(ValueHolder a, PythonValueHolderType auto b) noexcept {return static_cast<common_type<T>>(a.val) + static_cast<common_type<T>>(b.val);}
-  template <typename T> friend constexpr auto operator-(ValueHolder a, PythonValueHolderType auto b) noexcept {return static_cast<common_type<T>>(a.val) - static_cast<common_type<T>>(b.val);}
-  template <typename T> friend constexpr auto operator*(ValueHolder a, PythonValueHolderType auto b) noexcept {return static_cast<common_type<T>>(a.val) * static_cast<common_type<T>>(b.val);}
-  template <typename T> friend constexpr auto operator/(ValueHolder a, PythonValueHolderType auto b) noexcept {return static_cast<common_type<T>>(a.val) / static_cast<common_type<T>>(b.val);}
+  template <typename T> friend constexpr auto operator<=>(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) <=> static_cast<common_type<T>>(b.val);}
+  template <typename T> friend constexpr auto operator+(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) + static_cast<common_type<T>>(b.val);}
+  template <typename T> friend constexpr auto operator-(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) - static_cast<common_type<T>>(b.val);}
+  template <typename T> friend constexpr auto operator*(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) * static_cast<common_type<T>>(b.val);}
+  template <typename T> friend constexpr auto operator/(ValueHolder a, ValueHolder<T> b) noexcept {return static_cast<common_type<T>>(a.val) / static_cast<common_type<T>>(b.val);}
 
-  template <typename T> friend constexpr auto operator<=>(type a, ValueHolder b) noexcept {return a <=> b.val;}
-  template <typename T> friend constexpr auto operator+(type a, ValueHolder b) noexcept {return a + b.val;}
-  template <typename T> friend constexpr auto operator-(type a, ValueHolder b) noexcept {return a - b.val;}
-  template <typename T> friend constexpr auto operator*(type a, ValueHolder b) noexcept {return a * b.val;}
-  template <typename T> friend constexpr auto operator/(type a, ValueHolder b) noexcept {return a / b.val;}
+  friend constexpr auto operator<=>(std::floating_point auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) <=> static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator+(std::floating_point auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) + static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator-(std::floating_point auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) - static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator*(std::floating_point auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) * static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator/(std::floating_point auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) / static_cast<common_type<decltype(a)>>(b.val);}
+
+  friend constexpr auto operator<=>(std::integral auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) <=> static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator+(std::integral auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) + static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator-(std::integral auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) - static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator*(std::integral auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) * static_cast<common_type<decltype(a)>>(b.val);}
+  friend constexpr auto operator/(std::integral auto a, ValueHolder b) noexcept {return static_cast<common_type<decltype(a)>>(a) / static_cast<common_type<decltype(a)>>(b.val);}
   
   constexpr ValueHolder& operator+=(auto x) noexcept { return operator=(val + static_cast<type>(x)); }
   constexpr ValueHolder& operator-=(auto x) noexcept { return operator=(val - static_cast<type>(x)); }
   constexpr ValueHolder& operator*=(auto x) noexcept { return operator=(val * static_cast<type>(x)); }
   constexpr ValueHolder& operator/=(auto x) noexcept { return operator=(val / static_cast<type>(x)); }
-
-  static_assert(PythonValueHolderType<ValueHolder>);
 };
 
 // Set the type and ensure they are correct
