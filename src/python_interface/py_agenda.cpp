@@ -223,24 +223,13 @@ void py_agenda(py::module_& m) {
       .def(py::init([](const WorkspaceVariablesVariant& x) -> TokVal {
         return std::visit(
             [](auto& v) -> TokVal {
-              if constexpr (
-                  std::is_same_v<
-                      Index_*,
-                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>> or
-                  std::is_same_v<
-                      Numeric_*,
-                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>>)
+              if constexpr (std::is_same_v<Index_*,
+                                           std::remove_cvref_t<decltype(v)>> or
+                            std::is_same_v<Numeric_*,
+                                           std::remove_cvref_t<decltype(v)>>)
                 return v->val;
               else if constexpr (
-                  std::is_same_v<
-                      Agenda*,
-                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>> or
-                  std::is_same_v<
-                      ArrayOfAgenda*,
-                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>> or
-                  std::is_same_v<
-                      py::object*,
-                      std::remove_cv_t<std::remove_reference_t<decltype(v)>>>)
+                  std::is_same_v<py::object*, std::remove_cvref_t<decltype(v)>>)
                 ARTS_USER_ERROR(
                     "Must be a non-agenda ARTS type (try specifying the type if the input is not an Agenda type)")
               else

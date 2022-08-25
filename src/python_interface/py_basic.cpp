@@ -143,11 +143,11 @@ object's instances (i.e., no element-wise comparisions))--");
       .def(py::init([](Numeric n) { return new Numeric_{n}; }))
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def(+py::self)
-      .def(-py::self)
-      .PythonInterfaceInPlaceMathOperators(Numeric_, Numeric_)
-      .PythonInterfaceComparisonOperators(Numeric_, Numeric_)
-      .PythonInterfaceMathOperators(Numeric_, Numeric_)
+      .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(x.val)); })
+      .PythonInterfaceCommonMath(Numeric)
+      .PythonInterfaceCommonMath(Index_)
+      .PythonInterfaceCommonMath(Index)
+      .PythonInterfaceCommonMathSelf
       .def_property(
           "value",
           [](Numeric_& x) { return x.val; },
@@ -212,11 +212,10 @@ You can get copies and set the value by the "value" property)--");
       .def(py::init([](Index i) { return new Index_{i}; }))
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def(+py::self)
-      .def(-py::self)
-      .PythonInterfaceInPlaceMathOperators(Index_, Index_)
-      .PythonInterfaceComparisonOperators(Index_, Index_)
-      .PythonInterfaceMathOperators(Index_, Index_)
+      .def("__hash__", [](Index_& x) { return py::hash(py::int_(x.val)); })
+      .PythonInterfaceCommonMath(Numeric)
+      .PythonInterfaceCommonMath(Index)
+      .PythonInterfaceCommonMathSelf
       .def_property(
           "value",
           [](Index_& x) { return x.val; },
@@ -284,7 +283,7 @@ You can get copies and set the value by the "value" property)--");
 
   py::class_<Any>(m, "Any")
       .def(py::init([]() { return new Any{}; }))
-      .def(py::init([](py::args, py::kwargs) { return new Any{}; }))
+      .def(py::init([](const py::args&, const py::kwargs&) { return new Any{}; }))
       .def("__repr__", [](Any&) { return "Any"; })
       .def("__str__", [](Any&) { return "Any"; })
       .def(py::pickle([](const py::object&) { return py::make_tuple(); },

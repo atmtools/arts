@@ -3,6 +3,7 @@
 
 #include <debug.h>
 #include <global_data.h>
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <xml_io.h>
@@ -200,100 +201,49 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             return new Array<BaseType>{t[0].cast<std::vector<BaseType>>()};    \
           }))
 
-/** Provides -=, +=, /=, and *= for all LHS Type */
-#define PythonInterfaceInPlaceMathOperators(Type, Other) \
-  def(                                                   \
-      "__imul__",                                        \
-      [](Type& x, const Other& y) {                      \
-        x *= y;                                          \
-        return x;                                        \
-      },                                                 \
-      py::is_operator())                                 \
-      .def(                                              \
-          "__itruediv__",                                \
-          [](Type& x, const Other& y) {                  \
-            x /= y;                                      \
-            return x;                                    \
-          },                                             \
-          py::is_operator())                             \
-      .def(                                              \
-          "__iadd__",                                    \
-          [](Type& x, const Other& y) {                  \
-            x += y;                                      \
-            return x;                                    \
-          },                                             \
-          py::is_operator())                             \
-      .def(                                              \
-          "__isub__",                                    \
-          [](Type& x, const Other& y) {                  \
-            x -= y;                                      \
-            return x;                                    \
-          },                                             \
-          py::is_operator())
+#define PythonInterfaceCommonMath(Type) \
+  def(py::self + Type())                \
+      .def(py::self - Type())           \
+      .def(py::self * Type())           \
+      .def(py::self / Type())           \
+      .def(py::self += Type())          \
+      .def(py::self -= Type())          \
+      .def(py::self *= Type())          \
+      .def(py::self /= Type())          \
+      .def(py::self == Type())          \
+      .def(py::self != Type())          \
+      .def(py::self <= Type())          \
+      .def(py::self < Type())           \
+      .def(py::self >= Type())          \
+      .def(py::self > Type())           \
+      .def(Type() + py::self)           \
+      .def(Type() - py::self)           \
+      .def(Type() * py::self)           \
+      .def(Type() / py::self)           \
+      .def(Type() == py::self)          \
+      .def(Type() != py::self)          \
+      .def(Type() <= py::self)          \
+      .def(Type() < py::self)           \
+      .def(Type() >= py::self)          \
+      .def(Type() > py::self)
 
-/** Provides -, +, /, and * for Type (right and left)
- */
-#define PythonInterfaceMathOperators(Type, Other)        \
-  def(                                                   \
-      "__mul__",                                         \
-      [](Type& x, const Other& y) { return x * y; },     \
-      py::is_operator())                                 \
-      .def(                                              \
-          "__truediv__",                                 \
-          [](Type& x, const Other& y) { return x / y; }, \
-          py::is_operator())                             \
-      .def(                                              \
-          "__add__",                                     \
-          [](Type& x, const Other& y) { return x + y; }, \
-          py::is_operator())                             \
-      .def(                                              \
-          "__sub__",                                     \
-          [](Type& x, const Other& y) { return x - y; }, \
-          py::is_operator())                             \
-      .def(                                              \
-          "__rmul__",                                    \
-          [](Type& x, const Other& y) { return y * x; }, \
-          py::is_operator())                             \
-      .def(                                              \
-          "__rtruediv__",                                \
-          [](Type& x, const Other& y) { return y / x; }, \
-          py::is_operator())                             \
-      .def(                                              \
-          "__radd__",                                    \
-          [](Type& x, const Other& y) { return y + x; }, \
-          py::is_operator())                             \
-      .def(                                              \
-          "__rsub__",                                    \
-          [](Type& x, const Other& y) { return y - x; }, \
-          py::is_operator())
-
-/** Provides ==, !=, <, <=, >, and >= for Type
- */
-#define PythonInterfaceComparisonOperators(Type, Other)   \
-  def(                                                    \
-      "__eq__",                                           \
-      [](Type& x, const Other& y) { return x == y; },     \
-      py::is_operator())                                  \
-      .def(                                               \
-          "__ne__",                                       \
-          [](Type& x, const Other& y) { return x != y; }, \
-          py::is_operator())                              \
-      .def(                                               \
-          "__lt__",                                       \
-          [](Type& x, const Other& y) { return x < y; },  \
-          py::is_operator())                              \
-      .def(                                               \
-          "__le__",                                       \
-          [](Type& x, const Other& y) { return x <= y; }, \
-          py::is_operator())                              \
-      .def(                                               \
-          "__gt__",                                       \
-          [](Type& x, const Other& y) { return x > y; },  \
-          py::is_operator())                              \
-      .def(                                               \
-          "__ge__",                                       \
-          [](Type& x, const Other& y) { return x >= y; }, \
-          py::is_operator())
+#define PythonInterfaceCommonMathSelf \
+  def(+py::self)                      \
+      .def(-py::self)                 \
+      .def(py::self + py::self)       \
+      .def(py::self - py::self)       \
+      .def(py::self * py::self)       \
+      .def(py::self / py::self)       \
+      .def(py::self += py::self)      \
+      .def(py::self -= py::self)      \
+      .def(py::self *= py::self)      \
+      .def(py::self /= py::self)      \
+      .def(py::self == py::self)      \
+      .def(py::self != py::self)      \
+      .def(py::self <= py::self)      \
+      .def(py::self < py::self)       \
+      .def(py::self >= py::self)      \
+      .def(py::self > py::self)
 
 #define PythonInterfaceWorkspaceVariableConversion(Type)                   \
   def(py::init([](const Type& x) { return new Type{x}; }), py::arg("val")) \
