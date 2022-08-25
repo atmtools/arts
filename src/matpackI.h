@@ -97,22 +97,9 @@
 
 #include <algorithm>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wfloat-conversion"
-#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
-#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
-#if !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-
-#include <Eigen/Dense>
-
-#pragma GCC diagnostic pop
-
 #include "array.h"
 #include "matpack.h"
+#include "matpack_concepts.h"
 
 // Declare existance of some classes
 class bofstream;
@@ -124,13 +111,6 @@ class Tensor4;
 class Tensor5;
 class Tensor6;
 class Tensor7;
-
-// Declaration of Eigen types
-using StrideType = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
-using MatrixType =
-    Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using MatrixViewMap = Eigen::Map<MatrixType, 0, StrideType>;
-using ConstMatrixViewMap = Eigen::Map<const MatrixType, 0, StrideType>;
 
 /** The Joker class.
 
@@ -621,16 +601,25 @@ class ConstVectorView {
                         ConstVectorView,
                         const ArrayOfIndex&);
   friend void diagonalize(MatrixView, VectorView, VectorView, ConstMatrixView);
-
-  friend ConstMatrixViewMap MapToEigen(const ConstVectorView&);
-  friend ConstMatrixViewMap MapToEigenCol(const ConstVectorView&);
-  friend MatrixViewMap MapToEigen(VectorView&);
-  friend MatrixViewMap MapToEigenCol(VectorView&);
+  
   friend std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
   /** A special constructor, which allows to make a ConstVectorView from
     a scalar. */
   ConstVectorView(const Numeric& a) ARTS_NOEXCEPT;
+
+  //! Start element in memory
+  [[nodiscard]] Index selem() const noexcept {return mrange.mstart;}
+
+  //! Steps in memory between elements
+  [[nodiscard]] Index delem() const noexcept {return mrange.mstride;}
+
+  /** Conversion to plain C-array, const-version.
+
+  This function returns a pointer to the raw data. It fails if the
+  VectorView is not pointing to the beginning of a Vector or the stride
+  is not 1 because the caller expects to get a C array with continuous data. */
+  [[nodiscard]] Numeric* get_c_array() const noexcept {return mdata;}
 
  protected:
   // Constructors:
@@ -769,20 +758,6 @@ class VectorView : public ConstVectorView {
 
   /** Conversion to 1 column matrix. */
   operator MatrixView() ARTS_NOEXCEPT;
-
-  /** Conversion to plain C-array, const-version.
-
-  This function returns a pointer to the raw data. It fails if the
-  VectorView is not pointing to the beginning of a Vector or the stride
-  is not 1 because the caller expects to get a C array with continuous data. */
-  [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
-
-  /** Conversion to plain C-array, non-const version.
-
-  This function returns a pointer to the raw data. It fails if the
-  VectorView is not pointing to the beginning of a Vector or the stride
-  is not 1 because the caller expects to get a C array with continuous data. */
-  Numeric* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
   virtual ~VectorView() = default;
@@ -929,8 +904,10 @@ class Vector : public VectorView {
   /** Initialization list constructor. */
   Vector(std::initializer_list<Numeric> init);
 
-  /** Initialization from an Eigen vector. */
-  Vector(const Eigen::VectorXd& init);
+  /** Initialization from a vector type. */
+  explicit Vector(const matpack::vector_like auto& init) : Vector(init.size()) {
+    for (Index i=0; i<size(); i++) operator[](i) = init[i];
+  }
 
   /** Constructor setting size. */
   explicit Vector(Index n);
@@ -1074,8 +1051,11 @@ class ConstMatrixView {
   using const_iterator = ConstIterator2D;
 
   // Member functions:
+  [[nodiscard]] Index selem() const noexcept { return mrr.mstart + mcr.mstart; }
   [[nodiscard]] Index nrows() const noexcept { return mrr.mextent; }
   [[nodiscard]] Index ncols() const noexcept { return mcr.mextent; }
+  [[nodiscard]] Index drows() const noexcept { return mrr.mstride; }
+  [[nodiscard]] Index dcols() const noexcept { return mcr.mstride; }
 
   // Total size
   [[nodiscard]] Index size() const noexcept { return nrows() * ncols(); }
@@ -1147,10 +1127,10 @@ class ConstMatrixView {
   friend void inv(MatrixView, ConstMatrixView);
   friend void diagonalize(MatrixView, VectorView, VectorView, ConstMatrixView);
 
-  friend ConstMatrixViewMap MapToEigen(const ConstMatrixView&);
-  friend MatrixViewMap MapToEigen(MatrixView&);
-
   friend std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
+
+  // Conversion to a plain C-array
+  [[nodiscard]] Numeric* get_c_array() const noexcept {return mdata;}
 
  protected:
   // Constructors:
@@ -1243,10 +1223,6 @@ class MatrixView : public ConstMatrixView {
   MatrixView& operator+=(const ConstVectorView& x) ARTS_NOEXCEPT;
   MatrixView& operator-=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
-  // Conversion to a plain C-array
-  [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
-  Numeric* get_c_array() ARTS_NOEXCEPT;
-
   //! Destructor
   virtual ~MatrixView() = default;
 
@@ -1292,6 +1268,11 @@ class Matrix : public MatrixView {
   Matrix(const Matrix& m);
   Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v)) {
     v.mdata = nullptr;
+  }
+
+  /** Initialization from a vector type. */
+  explicit Matrix(const matpack::matrix_like auto& init) : Matrix(matpack::row_size(init), matpack::column_size(init)) {
+    for (Index i=0; i<nrows(); i++) for (Index j=0; j<ncols(); j++) operator()(i, j) = init(i, j);
   }
 
   /*! Construct from known data
@@ -1410,23 +1391,6 @@ Numeric mean(const ConstMatrixView& x) ARTS_NOEXCEPT;
 
 Numeric operator*(const ConstVectorView& a,
                   const ConstVectorView& b) ARTS_NOEXCEPT;
-
-// Converts constant matrix to constant eigen map
-ConstMatrixViewMap MapToEigen(const ConstMatrixView& A);
-// Converts constant vector to constant eigen row-view
-ConstMatrixViewMap MapToEigen(const ConstVectorView& A);
-// Converts constant vector to constant eigen row-view
-ConstMatrixViewMap MapToEigenRow(const ConstVectorView& A);
-// Converts constant vector to constant eigen column-view
-ConstMatrixViewMap MapToEigenCol(const ConstVectorView& A);
-// Converts matrix to eigen map
-MatrixViewMap MapToEigen(MatrixView& A);
-// Converts vector to eigen map row-view
-MatrixViewMap MapToEigen(VectorView& A);
-// Converts vector to eigen map row-view
-MatrixViewMap MapToEigenRow(VectorView& A);
-// Converts vector to eigen map column-view
-MatrixViewMap MapToEigenCol(VectorView& A);
 
 ////////////////////////////////
 // Helper function for debugging

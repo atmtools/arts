@@ -12,6 +12,7 @@
 #include "lineshape.h"
 #include "matpack.h"
 #include "matpack_complex.h"
+#include "matpack_eigen.h"
 #include "messages.h"
 #include "minimize.h"
 #include "physics_funcs.h"
@@ -674,7 +675,7 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
     if (vmrs[k] == 0) continue;
     
     // Sum up all atmospheric components
-    MapToEigen(W).noalias() += vmrs[k] * MapToEigen(
+    matpack::MapToEigen(W).noalias() += vmrs[k] * matpack::MapToEigen(
       single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.broadeningspecies[k]], k));
   }
 

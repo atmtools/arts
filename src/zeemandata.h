@@ -34,6 +34,7 @@
 #include "mystring.h"
 #include "propagationmatrix.h"
 #include "quantum_numbers.h"
+
 #include <limits>
 
 /** Implements Zeeman modeling */
@@ -92,7 +93,7 @@ constexpr Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
     case Polarization::None:
       return 0;
   }
-  return Rational(std::numeric_limits<Index>::max());
+  return std::numeric_limits<Index>::max();
 }
 
 /** Gives the largest M for a polarization type of this transition
@@ -125,7 +126,7 @@ constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
     case Polarization::None:
       return 0;
   }
-  return Rational(std::numeric_limits<Index>::max());
+  return std::numeric_limits<Index>::max();
 }
 
 /** Gives the number of elements of the polarization type of this transition
@@ -418,12 +419,10 @@ Model GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
  * representing [a,b,c,d] and [u,v,w] of PropagationMatrix
  * class
  */
-class PolarizationVector {
- private:
-  Eigen::RowVector4d att;  // attenuation vector
-  Eigen::RowVector3d dis;  // dispersion vector
+struct PolarizationVector {
+  std::array<Numeric, 4> att{0, 0, 0, 0};  // attenuation vector
+  std::array<Numeric, 3> dis{0, 0, 0};     // dispersion vector
 
- public:
   /** Default init of class */
   PolarizationVector(Numeric a = 1,
                      Numeric b = 0,
@@ -432,43 +431,7 @@ class PolarizationVector {
                      Numeric u = 0,
                      Numeric v = 0,
                      Numeric w = 0) noexcept
-      : att(a, b, c, d), dis(u, v, w){};
-
-  /** Returns the attenuation vector */
-  [[nodiscard]] const Eigen::RowVector4d& attenuation() const noexcept { return att; }
-  
-  /** Returns the dispersion vector */
-  [[nodiscard]] const Eigen::RowVector3d& dispersion() const noexcept { return dis; }
-  
-  /** Returns the attenuation vector */
-  Eigen::RowVector4d& attenuation() noexcept { return att; }
-  
-  /** Returns the dispersion vector */
-  Eigen::RowVector3d& dispersion() noexcept { return dis; }
-
-  /** Returns the true propagation matrix
-   * 
-   * Use only for debug printing if possible
-   */
-  [[nodiscard]] Eigen::Matrix4d matrix() const noexcept {
-    return (Eigen::Matrix4d() << att[0],
-            att[1],
-            att[2],
-            att[3],
-            att[1],
-            att[0],
-            dis[0],
-            dis[1],
-            att[2],
-            -dis[0],
-            att[0],
-            dis[2],
-            att[3],
-            -dis[1],
-            -dis[2],
-            att[0])
-        .finished();
-  }
+      : att({a, b, c, d}), dis({u, v, w}) {};
 };
 
 /** PolarizationVector for each Polarization
