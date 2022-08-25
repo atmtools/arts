@@ -201,6 +201,4 @@ void zeeman_on_the_fly(
       }
     }
   }
-
-  std::cout << propmat_clearsky << '\n' << "/////////////////////////////////" << '\n';
 }

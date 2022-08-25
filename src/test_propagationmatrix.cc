@@ -30,6 +30,7 @@
 #include "legacy_continua.h"
 #include "linescaling.h"
 #include "lineshapemodel.h"
+#include "matpack_eigen.h"
 #include "predefined_absorption_models.h"
 #include "transmissionmatrix.h"
 #include "wigner_functions.h"
@@ -125,7 +126,7 @@ void test_matrix_buildup() {
 
   Matrix F(4, 4, 0), A(4, 4, 0);
 
-  MatrixViewMap eigF = MapToEigen(F);
+  auto eigF = matpack::MapToEigen(F);
   Eigen::Matrix4d eigA;
   eigA << 0, b, c, d, b, 0, u, v, c, -u, 0, w, d, -v, -w, 0;
 
@@ -232,43 +233,43 @@ void test_r_deriv_propagationmatrix() {
       T_normal, dT1, dT2, r_normal, a, b, da, da, df(x1), df(x2), 0);
 
   std::cout << "Transmission at r=" << r_normal << ":\n"
-            << MapToEigen(T_normal(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_normal(0, joker, joker)) << "\n"
             << "\n";
   std::cout << "First derivative:\n"
-            << MapToEigen(dT1(0, 0, joker, joker)) << "\n"
+            << matpack::MapToEigen(dT1(0, 0, joker, joker)) << "\n"
             << "\n";
   std::cout << "Second derivative:\n"
-            << MapToEigen(dT2(0, 0, joker, joker)) << "\n"
+            << matpack::MapToEigen(dT2(0, 0, joker, joker)) << "\n"
             << "\n";
 
   compute_transmission_matrix(T_extra, r_extra1, a, b);
 
   std::cout << "Transmission at perturbed r1=" << r_extra1 << ":\n"
-            << MapToEigen(T_extra(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_extra(0, joker, joker)) << "\n"
             << "\n";
   T_extra -= T_normal;
   T_extra /= x1;
   std::cout << "First derivative perturbed:\n"
-            << MapToEigen(T_extra(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_extra(0, joker, joker)) << "\n"
             << "\n";
   T_extra /= dT1(0, joker, joker, joker);
   std::cout << "First derivative perturbed relative:\n"
-            << MapToEigen(T_extra(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_extra(0, joker, joker)) << "\n"
             << "\n";
 
   compute_transmission_matrix(T_extra, r_extra2, a, b);
 
   std::cout << "Transmission at perturbed r2=" << r_extra2 << ":\n"
-            << MapToEigen(T_extra(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_extra(0, joker, joker)) << "\n"
             << "\n";
   T_extra -= T_normal;
   T_extra /= x2;
   std::cout << "Second derivative perturbed:\n"
-            << MapToEigen(T_extra(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_extra(0, joker, joker)) << "\n"
             << "\n";
   T_extra /= dT2(0, joker, joker, joker);
   std::cout << "Second derivative perturbed relative:\n"
-            << MapToEigen(T_extra(0, joker, joker)) << "\n"
+            << matpack::MapToEigen(T_extra(0, joker, joker)) << "\n"
             << "\n";
 }
 
