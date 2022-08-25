@@ -23,77 +23,49 @@
 namespace matpack {
 
 // Eigen library interactions numeric:
-using StrideType = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
-using MatrixType = Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using MatrixViewMap = Eigen::Map<MatrixType, 0, StrideType>;
-using ConstMatrixViewMap = Eigen::Map<const MatrixType, 0, StrideType>;
+template<typename internal_type, bool constant_type=true>
+struct eigen {
+  using stride_type = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
+  using matrix_type = Eigen::Matrix<internal_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  using constant_matrix_type = std::add_const_t<matrix_type>;
+  using mutable_matrix_type = std::remove_const_t<matrix_type>;
+  using map = Eigen::Map<std::conditional_t<constant_type, constant_matrix_type, mutable_matrix_type>, Eigen::Unaligned, stride_type>;
+};
 
-// Eigen library interactions complex:
-using ComplexMatrixType = Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using ComplexMatrixViewMap = Eigen::Map<ComplexMatrixType, 0, StrideType>;
-using ConstComplexMatrixViewMap = Eigen::Map<const ComplexMatrixType, 0, StrideType>;
+template<typename internal_type, bool constant_type=true>
+using eigen_map = typename eigen<internal_type, constant_type>::map;
+
+template<typename internal_type, bool constant_type=true>
+using eigen_stride = typename eigen<internal_type, constant_type>::stride_type;
 
 auto MapToEigenCol(matpack::vector auto&& x) {
   using internal_type = std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
-  constexpr bool complex_type = matpack::is_complex<internal_type>::value;
 
-  auto* data = x.get_c_array() + x.selem();
-  auto stride = StrideType(1, x.delem());
-  const Index row_size = 1;
-  const Index col_size = x.nelem();
-
-  if constexpr (complex_type and constant_type) {
-    return ConstComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else if constexpr (not complex_type and constant_type) {
-    return ConstMatrixViewMap(data, row_size, col_size, stride);
-  } else if constexpr (complex_type and not constant_type) {
-    return ComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else {
-    return MatrixViewMap(data, row_size, col_size, stride);
-  }
+  using stride_type = eigen_stride<internal_type, constant_type>;
+  using matrix_map = eigen_map<internal_type, constant_type>;
+  
+  return matrix_map(x.get_c_array() + x.selem(), 1, x.nelem(), stride_type(1, x.delem()));
 }
 
 auto MapToEigenRow(matpack::vector auto&& x) {
   using internal_type = std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
-  constexpr bool complex_type = matpack::is_complex<internal_type>::value;
 
-  auto* data = x.get_c_array() + x.selem();
-  auto stride = StrideType(x.delem(), 1);
-  const Index row_size = x.nelem();
-  const Index col_size = 1;
-
-  if constexpr (complex_type and constant_type) {
-    return ConstComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else if constexpr (not complex_type and constant_type) {
-    return ConstMatrixViewMap(data, row_size, col_size, stride);
-  } else if constexpr (complex_type and not constant_type) {
-    return ComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else {
-    return MatrixViewMap(data, row_size, col_size, stride);
-  }
+  using stride_type = eigen_stride<internal_type, constant_type>;
+  using matrix_map = eigen_map<internal_type, constant_type>;
+  
+  return matrix_map(x.get_c_array() + x.selem(), x.nelem(), 1, stride_type(x.delem(), 1));
 }
 
 auto MapToEigen(matpack::matrix auto&& x) {
   using internal_type = std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
-  constexpr bool complex_type = matpack::is_complex<internal_type>::value;
 
-  auto* data = x.get_c_array() + x.selem();
-  auto stride = StrideType(x.drows(), x.dcols());
-  const auto row_size = x.nrows();
-  const auto col_size = x.ncols();
-
-  if constexpr (complex_type and constant_type) {
-    return ConstComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else if constexpr (not complex_type and constant_type) {
-    return ConstMatrixViewMap(data, row_size, col_size, stride);
-  } else if constexpr (complex_type and not constant_type) {
-    return ComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else {
-    return MatrixViewMap(data, row_size, col_size, stride);
-  }
+  using stride_type = eigen_stride<internal_type, constant_type>;
+  using matrix_map = eigen_map<internal_type, constant_type>;
+  
+  return matrix_map(x.get_c_array() + x.selem(), x.nrows(), x.ncols(), stride_type(x.drows(), x.dcols()));
 }
 
 auto MapToEigen(matpack::vector auto&& x) {return MapToEigenRow(x);}
@@ -107,33 +79,19 @@ concept standard_vector = requires(T a) {
 
 auto ConstantEigenColumnVector(standard_vector auto&& x) {
   using internal_type = std::remove_cvref_t<std::remove_pointer_t<decltype(x.data())>>;
-  constexpr bool complex_type = matpack::is_complex<internal_type>::value;
 
-  auto* data = x.data();
-  auto stride = StrideType(1, 1);
-  const Index row_size = 1;
-  const Index col_size = x.size();
+  using stride_type = eigen_stride<internal_type>;
+  using matrix_map = eigen_map<internal_type>;
 
-  if constexpr (complex_type) {
-    return ConstComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else  {
-    return ConstMatrixViewMap(data, row_size, col_size, stride);
-  } 
+  return matrix_map(x.data(), 1, x.size(), stride_type(1, 1));
 }
 
 auto ConstantEigenRowVector(standard_vector auto&& x) {
   using internal_type = std::remove_cvref_t<std::remove_pointer_t<decltype(x.data())>>;
-  constexpr bool complex_type = matpack::is_complex<internal_type>::value;
 
-  auto* data = x.data();
-  auto stride = StrideType(1, 1);
-  const Index col_size = 1;
-  const Index row_size = x.size();
+  using stride_type = eigen_stride<internal_type>;
+  using matrix_map = eigen_map<internal_type>;
 
-  if constexpr (complex_type) {
-    return ConstComplexMatrixViewMap(data, row_size, col_size, stride);
-  } else  {
-    return ConstMatrixViewMap(data, row_size, col_size, stride);
-  } 
+  return matrix_map(x.data(), x.size(), 1, stride_type(1, 1)); 
 }
 }  // namespace matpack
