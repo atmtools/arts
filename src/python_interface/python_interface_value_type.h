@@ -17,9 +17,9 @@ struct ValueHolder {
 
   constexpr ValueHolder() = default;
   constexpr ValueHolder(const ValueHolder&) = default;
-  constexpr ValueHolder(ValueHolder&&) = default;
+  constexpr ValueHolder(ValueHolder&&) noexcept = default;
   constexpr ValueHolder& operator=(const ValueHolder&) = default;
-  constexpr ValueHolder& operator=(ValueHolder&&) = default;
+  constexpr ValueHolder& operator=(ValueHolder&&) noexcept = default;
   constexpr ValueHolder(const type& a) noexcept : val(a) {}
   constexpr ValueHolder(type&& a) noexcept : val(a) {}
   constexpr ValueHolder& operator=(const type& a) noexcept { val = a; return *this; }
