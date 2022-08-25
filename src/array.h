@@ -65,7 +65,7 @@ class Array : public std::vector<base> {
   template <class base2, size_t N>
   explicit Array(const std::array<base2, N>& input)
       : std::vector<base>(input.begin(), input.end()) {
-    static_assert(std::is_convertible<base, base2>::value,
+    static_assert(std::is_convertible<base2, base>::value,
                   "Must be convertible");
   }
 
