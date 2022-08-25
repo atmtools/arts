@@ -44,14 +44,12 @@ extern const ArrayOfGroupRecord wsv_groups;
 }  // namespace global_data
 
 template <typename ... T>
-std::array<String, sizeof...(T)> string_array(const T&... input)
+std::array<const char *, sizeof...(T)> string_array(const T*... input)
 {
-  return {String(input)...};
+  return {input...};
 }
 
-template <size_t LEN_OF_NAME,
-          size_t LEN_OF_DESCRIPTION,
-          size_t NUM_OF_AUTHORS,
+template <size_t NUM_OF_AUTHORS,
           size_t NUM_OF_OUTPUTS,
           size_t NUM_OF_GOUT_ARGS,
           size_t NUM_OF_GOUT_TYPES,
@@ -63,22 +61,20 @@ template <size_t LEN_OF_NAME,
           size_t NUM_OF_GIN_DESCRIPTIONS,
           typename ... Ts>
 MdRecord create_mdrecord(
-  const char (&name) [LEN_OF_NAME],
-  const char (&description) [LEN_OF_DESCRIPTION],
-  const std::array<String, NUM_OF_AUTHORS>& authors,
-  const std::array<String, NUM_OF_OUTPUTS>& output,
-  const std::array<String, NUM_OF_GOUT_ARGS>& gout,
-  const std::array<String, NUM_OF_GOUT_TYPES>& gouttype,
-  const std::array<String, NUM_OF_GOUT_DESCRIPTIONS>& goutdesc,
-  const std::array<String, NUM_OF_INPUTS>& input,
-  const std::array<String, NUM_OF_GIN_ARGS>& gin,
-  const std::array<String, NUM_OF_GIN_TYPES>& gintype,
-  const std::array<String, NUM_OF_GIN_DEFAULTS>& gindefault,
-  const std::array<String, NUM_OF_GIN_DESCRIPTIONS>& gindesc,
+  const char *name,
+  const char *description,
+  const std::array<const char *, NUM_OF_AUTHORS>& authors,
+  const std::array<const char *, NUM_OF_OUTPUTS>& output,
+  const std::array<const char *, NUM_OF_GOUT_ARGS>& gout,
+  const std::array<const char *, NUM_OF_GOUT_TYPES>& gouttype,
+  const std::array<const char *, NUM_OF_GOUT_DESCRIPTIONS>& goutdesc,
+  const std::array<const char *, NUM_OF_INPUTS>& input,
+  const std::array<const char *, NUM_OF_GIN_ARGS>& gin,
+  const std::array<const char *, NUM_OF_GIN_TYPES>& gintype,
+  const std::array<const char *, NUM_OF_GIN_DEFAULTS>& gindefault,
+  const std::array<const char *, NUM_OF_GIN_DESCRIPTIONS>& gindesc,
   Ts ... flags)
 {
-  static_assert(LEN_OF_NAME > 1, "Must have a name");
-  static_assert(LEN_OF_DESCRIPTION > 1, "Must have a description");
   static_assert(NUM_OF_AUTHORS not_eq 0, "Must have at least one author");
   static_assert(NUM_OF_GOUT_ARGS == NUM_OF_GOUT_TYPES, "GOUT type(s) count does not match number of GOUT");
   static_assert(NUM_OF_GOUT_ARGS == NUM_OF_GOUT_DESCRIPTIONS, "GOUT description(s) count does not match number of GOUT");
@@ -3269,21 +3265,22 @@ Possible models:
       AUTHORS("Stefan Buehler, Oliver Lemke"),
       OUT(),
       GOUT("out"),
-      GOUT_TYPE("Vector, Vector,"
-                "Matrix, Matrix,"
-                "Tensor3, Tensor3,"
-                "Tensor4, Tensor4,"
-                "String, " +
-                ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE),
+      GOUT_TYPE(("Vector, Vector,"
+                 "Matrix, Matrix,"
+                 "Tensor3, Tensor3,"
+                 "Tensor4, Tensor4,"
+                 "String, " +
+                 ARRAY_GROUPS + ", " + ARRAY_GROUPS_WITH_BASETYPE)
+                    .c_str()),
       GOUT_DESC("The variable to append to."),
       IN(),
       GIN("in", "dimension"),
-      GIN_TYPE("Numeric, Vector,"
+      GIN_TYPE(("Numeric, Vector,"
                "Matrix, Vector,"
                "Matrix, Tensor3,"
                "Tensor3, Tensor4,"
                "String, " +
-                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE,
+                   ARRAY_GROUPS + "," + GROUPS_WITH_ARRAY_TYPE).c_str(),
                "String"),
       GIN_DEFAULT(NODEF, "leading"),
       GIN_DESC(
@@ -7862,7 +7859,7 @@ Possible models:
       GOUT_DESC(),
       IN(),
       GIN("v"),
-      GIN_TYPE(ARRAY_GROUPS + ", Vector"),
+      GIN_TYPE((ARRAY_GROUPS + ", Vector").c_str()),
       GIN_DEFAULT(NODEF),
       GIN_DESC("The method is defined for these groups."),
       SETMETHOD(false),
@@ -11952,7 +11949,7 @@ Possible models:
       GOUT_DESC(),
       IN(),
       GIN("v"),
-      GIN_TYPE(ARRAY_GROUPS + ", Vector"),
+      GIN_TYPE((ARRAY_GROUPS + ", Vector").c_str()),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Variable to get the number of elements from."),
       SETMETHOD(false),
@@ -18061,12 +18058,12 @@ where N>=0 and the species name is something line "H2O".
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("needles"),
-      GOUT_TYPE(ARRAY_GROUPS + ", Vector, Matrix, Sparse"),
+      GOUT_TYPE((ARRAY_GROUPS + ", Vector, Matrix, Sparse").c_str()),
       GOUT_DESC("Selected elements. Must have the same variable type as "
                 "haystack."),
       IN(),
       GIN("haystack", "needleindexes"),
-      GIN_TYPE(ARRAY_GROUPS + ", Vector, Matrix, Sparse", "ArrayOfIndex"),
+      GIN_TYPE((ARRAY_GROUPS + ", Vector, Matrix, Sparse").c_str(), "ArrayOfIndex"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Variable to select from. May be the same variable as needles.",
                "The elements to select (zero based indexing, as always.)"),
