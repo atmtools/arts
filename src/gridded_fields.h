@@ -198,6 +198,13 @@ class GriddedField {
   }
 
  public:
+  //! Defaulted con-/de-structors and assignments so unique pointers work w/o warnings
+  virtual ~GriddedField() = default;
+  GriddedField(const GriddedField&) = default;
+  GriddedField(GriddedField&&) = default;
+  GriddedField& operator=(const GriddedField&) = default;
+  GriddedField& operator=(GriddedField&&) = default;
+
   //! Get the dimension of this gridded field.
   /*! \return Dimension. */
   [[nodiscard]] Index get_dim() const { return dim; }
