@@ -63,6 +63,7 @@ public:
   TokVal();
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
+  [[nodiscard]] std::string_view type() const;
 
   ~TokVal();
 
@@ -75,7 +76,7 @@ public:
 #endif
 )--";
 
-file_var_h <<  R"--(// auto-generated tokval implementation
+  file_var_h << R"--(// auto-generated tokval implementation
 
 #include "tokval.h"
 
@@ -96,7 +97,7 @@ inline TokValType* tokval_type(void * ptr) {
 }
 )--";
 
-file_cc << R"--(// auto-generated tokval implementation
+  file_cc << R"--(// auto-generated tokval implementation
 
 #include "tokval.h"
 #include "tokval_variant.h"
@@ -105,9 +106,10 @@ file_cc << R"--(// auto-generated tokval implementation
 )--";
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "TokVal::TokVal(" << group
-            << " in) : ptr(static_cast<void*>(new TokValType{std::make_unique<Any>()})) {*tokval_type(ptr) = std::make_unique<" << group
-            << ">(std::move(in));}\n";
+    file_cc
+        << "TokVal::TokVal(" << group
+        << " in) : ptr(static_cast<void*>(new TokValType{std::make_unique<Any>()})) {*tokval_type(ptr) = std::make_unique<"
+        << group << ">(std::move(in));}\n";
   }
 
   file_cc << '\n';
@@ -121,18 +123,32 @@ file_cc << R"--(// auto-generated tokval implementation
   file_cc << '\n';
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "bool TokVal::holds" << group << "() const {return std::holds_alternative<std::unique_ptr<"<<group<<">>(*tokval_type(ptr));}\n";
+    file_cc << "bool TokVal::holds" << group
+            << "() const {return std::holds_alternative<std::unique_ptr<"
+            << group << ">>(*tokval_type(ptr));}\n";
   }
 
   file_cc << '\n';
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "TokVal::operator " << group << "() const {\n"
-    "   ARTS_USER_ERROR_IF(not holds"<<group<<"(), \"Wrong type\")\n"
-    "  return **std::get_if<std::unique_ptr<"<<group<<">>(tokval_type(ptr));\n}\n";
+    file_cc << "TokVal::operator " << group
+            << "() const {\n"
+               "   ARTS_USER_ERROR_IF(not holds"
+            << group
+            << "(), \"Wrong type\")\n"
+               "  return **std::get_if<std::unique_ptr<"
+            << group << ">>(tokval_type(ptr));\n}\n";
   }
 
-  file_cc << R"--(
+  file_cc << "[[nodiscard]] std::string_view TokVal::type() const {\n";
+
+  for (auto& group : global_data::wsv_groups) {
+    file_cc << "  if (holds" << group << "()) return \"" << group << "\";\n";
+  }
+
+  file_cc << R"--(return "this is a nonsense results!";
+}
+   
 TokVal::TokVal(const char * const c) : TokVal(String(c)) {}
     
 TokVal::TokVal() : TokVal(Any{}) {}
