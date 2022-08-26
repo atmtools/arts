@@ -10,11 +10,11 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
-#if !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#else
+#if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#else
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
 
 #include <Eigen/Dense>
