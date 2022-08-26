@@ -675,7 +675,7 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
     if (vmrs[k] == 0) continue;
     
     // Sum up all atmospheric components
-    matpack::MapToEigen(W).noalias() += vmrs[k] * matpack::MapToEigen(
+    matpack::eigen::mat(W).noalias() += vmrs[k] * matpack::eigen::mat(
       single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.broadeningspecies[k]], k));
   }
 

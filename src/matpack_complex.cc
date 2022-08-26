@@ -1540,11 +1540,11 @@ void mult(ComplexVectorView y,
   ARTS_ASSERT(x.nelem() == M.nrows());
   ARTS_ASSERT(y.nelem() == M.ncols());
 
-  auto eigen_y = matpack::MapToEigenRow(y);
+  auto eigen_y = matpack::eigen::row_vec(y);
   if (y.mdata == x.mdata)
-    eigen_y = matpack::MapToEigen(M) * matpack::MapToEigenRow(x);
+    eigen_y = matpack::eigen::mat(M) * matpack::eigen::row_vec(x);
   else
-    eigen_y.noalias() = matpack::MapToEigen(M) * matpack::MapToEigenRow(x);
+    eigen_y.noalias() = matpack::eigen::mat(M) * matpack::eigen::row_vec(x);
 }
 
 //! Matrix-Matrix Multiplication
@@ -1566,11 +1566,11 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  auto eigen_A = matpack::MapToEigen(A);
+  auto eigen_A = matpack::eigen::mat(A);
   if (A.mdata == B.mdata || A.mdata == C.mdata)
-    eigen_A = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+    eigen_A = matpack::eigen::mat(B) * matpack::eigen::mat(C);
   else
-    eigen_A.noalias() = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+    eigen_A.noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
 
 void mult(ComplexMatrixView A,
@@ -1580,11 +1580,11 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  auto eigen_A = matpack::MapToEigen(A);
+  auto eigen_A = matpack::eigen::mat(A);
   if (A.mdata == B.mdata)
-    eigen_A = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+    eigen_A = matpack::eigen::mat(B) * matpack::eigen::mat(C);
   else
-    eigen_A.noalias() = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+    eigen_A.noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
 
 void mult(ComplexMatrixView A,
@@ -1594,11 +1594,11 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  auto eigen_A = matpack::MapToEigen(A);
+  auto eigen_A = matpack::eigen::mat(A);
   if (A.mdata == C.mdata)
-    eigen_A = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+    eigen_A = matpack::eigen::mat(B) * matpack::eigen::mat(C);
   else
-    eigen_A.noalias() = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+    eigen_A.noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
 
 void mult(ComplexMatrixView A,
@@ -1608,7 +1608,7 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  matpack::MapToEigen(A).noalias() = matpack::MapToEigen(B) * matpack::MapToEigen(C);
+  matpack::eigen::mat(A).noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
 
 ////////////////////////////////

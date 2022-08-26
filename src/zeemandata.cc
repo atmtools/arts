@@ -440,14 +440,14 @@ void sum(PropagationMatrix& pm,
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
                        : pm.NumberOfNeededVectors() == 4)
 
-  const auto pol_real = matpack::ConstantEigenColumnVector(polvec.att);
-  const auto pol_imag = matpack::ConstantEigenColumnVector(polvec.dis);
+  const auto pol_real = matpack::eigen::col_vec(polvec.att);
+  const auto pol_imag = matpack::eigen::col_vec(polvec.dis);
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
-  matpack::MapToEigen(out).leftCols<4>().noalias() += matpack::MapToEigen(abs.real()) * pol_real;
+  matpack::eigen::mat(out).leftCols<4>().noalias() += matpack::eigen::row_vec(abs.real()) * pol_real;
   if (do_phase)
-    matpack::MapToEigen(out).rightCols<3>().noalias() +=
-        matpack::MapToEigen(abs.imag()) * pol_imag;
+    matpack::eigen::mat(out).rightCols<3>().noalias() +=
+        matpack::eigen::row_vec(abs.imag()) * pol_imag;
 }
 
 void dsum(PropagationMatrix& pm,
@@ -466,12 +466,12 @@ void dsum(PropagationMatrix& pm,
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
                        : pm.NumberOfNeededVectors() == 4)
 
-  const auto pol_real = matpack::ConstantEigenColumnVector(polvec.att);
-  const auto pol_imag = matpack::ConstantEigenColumnVector(polvec.dis);
-  const auto dpolvec_dtheta_real = matpack::ConstantEigenColumnVector(dpolvec_dtheta.att);
-  const auto dpolvec_dtheta_imag = matpack::ConstantEigenColumnVector(dpolvec_dtheta.dis);
-  const auto dpolvec_deta_real = matpack::ConstantEigenColumnVector(dpolvec_deta.att);
-  const auto dpolvec_deta_imag = matpack::ConstantEigenColumnVector(dpolvec_deta.dis);
+  const auto pol_real = matpack::eigen::col_vec(polvec.att);
+  const auto pol_imag = matpack::eigen::col_vec(polvec.dis);
+  const auto dpolvec_dtheta_real = matpack::eigen::col_vec(dpolvec_dtheta.att);
+  const auto dpolvec_dtheta_imag = matpack::eigen::col_vec(dpolvec_dtheta.dis);
+  const auto dpolvec_deta_real = matpack::eigen::col_vec(dpolvec_deta.att);
+  const auto dpolvec_deta_imag = matpack::eigen::col_vec(dpolvec_deta.dis);
 
   auto da_r =
       (dt * dpolvec_dtheta_real + de * dpolvec_deta_real);
@@ -479,10 +479,10 @@ void dsum(PropagationMatrix& pm,
       (dt * dpolvec_dtheta_imag + de * dpolvec_deta_imag);
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
-  matpack::MapToEigen(out).leftCols<4>().noalias() +=
-      dH * matpack::MapToEigen(dabs.real()) * pol_real + matpack::MapToEigen(abs.real()) * da_r;
+  matpack::eigen::mat(out).leftCols<4>().noalias() +=
+      dH * matpack::eigen::row_vec(dabs.real()) * pol_real + matpack::eigen::row_vec(abs.real()) * da_r;
   if (do_phase)
-    matpack::MapToEigen(out).rightCols<3>().noalias() +=
-        dH * matpack::MapToEigen(dabs.imag()) * pol_imag + matpack::MapToEigen(abs.imag()) * da_i;
+    matpack::eigen::mat(out).rightCols<3>().noalias() +=
+        dH * matpack::eigen::row_vec(dabs.imag()) * pol_imag + matpack::eigen::row_vec(abs.imag()) * da_i;
 }
 }  // namespace Zeeman
