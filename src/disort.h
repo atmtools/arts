@@ -165,7 +165,7 @@ void get_disortsurf_props(  // Output
  *
  * @param[in,out] ws Current workspace.
  * @param[out]    cloudbox_field Radiation field.
- * @param[out]    optical_depth optical depth.
+ * @param[out]    disort_aux Auxilary data to spectral_irradiance_field.
  * @param[in]     f_grid Frequency grid.
  * @param[in]     p_grid Pressure grid.
  * @param[in]     z_profile Profile of geometric altitudes.
@@ -187,6 +187,7 @@ void get_disortsurf_props(  // Output
  * @param[in]     star_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
  * @param[in]     stars_do Flag to activate the star(s).
+ * @param[in]     disort_aux_vars Selection of quantities for disort_aux.
  * @param[in]     scale_factor Geometric scaling factor, scales the star spectral
  *                irradiance at the surface of the star to the spectral irradiance
  *                of the star at cloubbox top.
@@ -204,7 +205,7 @@ void get_disortsurf_props(  // Output
 void run_cdisort(Workspace& ws,
                  // Output
                  Tensor7& cloudbox_field,
-                 Matrix& optical_depth,
+                 ArrayOfMatrix& disort_aux,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
@@ -225,6 +226,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView star_rte_los,
                  const Index& gas_scattering_do,
                  const Index& stars_do,
+                 const ArrayOfString& disort_aux_vars,
                  const Numeric& scale_factor,
                  const Index& nstreams,
                  const Index& Npfct,

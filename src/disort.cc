@@ -938,7 +938,7 @@ void reduced_1datm(Vector& p,
 void run_cdisort(Workspace& ws,
                       // Output
                       Tensor7& cloudbox_field,
-                      Matrix& optical_depth,
+                      ArrayOfMatrix& disort_aux,
                       // Input
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
@@ -959,6 +959,7 @@ void run_cdisort(Workspace& ws,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& stars_do,
+                      const ArrayOfString& disort_aux_vars,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
@@ -1139,9 +1140,6 @@ void run_cdisort(Workspace& ws,
   Matrix ssalb(nf, ds.nlyr);
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
 
-  // DEBUG output
-  optical_depth=dtauc;
-
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
   // emission. Both are applied additively.
@@ -1208,6 +1206,61 @@ void run_cdisort(Workspace& ws,
               cloudbox_field(f_index, k + 1, 0, 0, j, i, 0);
         }
       }
+    }
+  }
+
+  // Allocate aux data
+  disort_aux.resize(disort_aux_vars.nelem());
+  // Allocate and set (if possible here) iy_aux
+  Index cnt=-1;
+  for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
+
+
+    if (disort_aux_vars[i] == "Layer optical thickness"){
+      cnt += 1;
+      Matrix deltatau(nf, ds.nlyr, 0);
+      for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+          deltatau(f_index, k - 1 + ncboxremoved) =
+              dtauc(f_index, ds.nlyr - k  + ncboxremoved);
+        }
+      }
+      disort_aux[cnt] = deltatau;
+    }
+    else if (disort_aux_vars[i] == "Single scattering albedo"){
+      cnt+=1;
+      Matrix snglsctalbedo(nf, ds.nlyr,0);
+      for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+          snglsctalbedo(f_index, k - 1 + ncboxremoved) =
+              ssalb(f_index, ds.nlyr - k + ncboxremoved);
+        }
+      }
+      disort_aux[cnt]=snglsctalbedo;
+    }
+    else if (disort_aux_vars[i] == "Direct beam") {
+      cnt += 1;
+      Matrix directbeam(nf, ds.nlyr + 1, 0);
+      if (stars_do) {
+        for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+          directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
+              stars[0].spectrum(f_index, 0)/PI;
+
+          for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+            directbeam(f_index, k - 1 + ncboxremoved) =
+                directbeam(f_index, k + ncboxremoved) *
+                exp(-dtauc(f_index, ds.nlyr - k + ncboxremoved)/umu0);
+          }
+        }
+      }
+      disort_aux[cnt]=directbeam;
+    } else {
+      ARTS_USER_ERROR (
+          "The only allowed strings in *disort_aux_vars* are:\n"
+          "  \"Layer optical thickness\"\n"
+          "  \"Single scattering albedo\"\n"
+          "  \"Direct beam\"\n"
+          "but you have selected: \"", disort_aux_vars[i], "\"\n");
     }
   }
 
@@ -1435,7 +1488,8 @@ void run_cdisort_flux(Workspace& ws,
 
   Matrix spectral_direct_irradiance_field;
   Matrix dFdtau(nf, ds.nlyr+1,0);
-  Matrix dFdz(nf, ds.nlyr+1,0);
+  Matrix deltatau(nf, ds.nlyr,0);
+  Matrix snglsctalbedo(nf, ds.nlyr,0);
 
   if (stars_do){
     //Resize direct field
@@ -1500,15 +1554,14 @@ void run_cdisort_flux(Workspace& ws,
 
       // flux divergence in tau space
       dFdtau(f_index, k + ncboxremoved) =
-          out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
-    }
+           -out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
 
-    // flux divergence in physical space
-    // For that, we simply need to multiply dFdtau with the extinction.
-    for (Index lvl_index = cboxlims[0]; lvl_index <= cboxlims[1]; lvl_index++) {
-      dFdz(f_index, lvl_index) =
-          dFdtau(f_index, lvl_index) *
-          (ext_bulk_par(f_index, lvl_index) + ext_bulk_gas(f_index, lvl_index));
+      // k is running over the number of levels but deltatau, ssalb is defined for layers,
+      // therefore we need to exlude k==0 and remove one from the index.
+      if (k>0){
+        deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
+        snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
+      }
     }
 
     // To avoid potential numerical problems at interpolation of the field,
@@ -1522,7 +1575,6 @@ void run_cdisort_flux(Workspace& ws,
             spectral_direct_irradiance_field(f_index, k + 1);
       }
       dFdtau(f_index, k) = dFdtau(f_index, k + 1);
-      dFdz(f_index, k) = dFdz(f_index, k + 1);
     }
   }
 
@@ -1533,34 +1585,29 @@ void run_cdisort_flux(Workspace& ws,
   for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
 
 
-    if (disort_aux_vars[i] == "dtau"){
+    if (disort_aux_vars[i] == "Layer optical thickness"){
       cnt+=1;
-      disort_aux[cnt]=dtauc;
+      disort_aux[cnt]=deltatau;
     }
-    else if (disort_aux_vars[i] == "Single scatteriering albedo"){
+    else if (disort_aux_vars[i] == "Single scattering albedo"){
       cnt+=1;
-      disort_aux[cnt]=ssalb;
+      disort_aux[cnt]=snglsctalbedo;
     }
     else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
       cnt += 1;
       disort_aux[cnt] = spectral_direct_irradiance_field;
     }
-    else if (disort_aux_vars[i] == "ext_bulk_gas"){
-        cnt+=1;
-        disort_aux[cnt]=ext_bulk_gas;
-    }
-    else if (disort_aux_vars[i] == "vmr"){
-      cnt+=1;
-      disort_aux[cnt]=vmr;
+    else if (disort_aux_vars[i] == "dFdtau") {
+      cnt += 1;
+      disort_aux[cnt] = dFdtau;
     }
     else {
       ARTS_USER_ERROR (
           "The only allowed strings in *disort_aux_vars* are:\n"
-          "  \"dtau\"\n"
+          "  \"Layer optical thickness\"\n"
           "  \"Single scatteriering albedo\"\n"
           "  \"Direct downward spectral irradiance\"\n"
-          "  \"ext_bulk_gas\"\n"
-          "  \"vmr\"\n"
+          "  \"dFdtau\"\n"
           "but you have selected: \"", disort_aux_vars[i], "\"\n");
     }
   }

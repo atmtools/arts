@@ -5784,9 +5784,20 @@ Possible models:
           "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
-          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
+          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
+          "                               scattering albedo.\n"
+          " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
+          "                               Zero, if no star is present \n"
+          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
-      OUT("cloudbox_field","optical_depth"),
+      OUT("cloudbox_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5817,7 +5828,8 @@ Possible models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "181", "0", "1", "1"),
@@ -5848,9 +5860,20 @@ Possible models:
           "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
           "set according to the result of *surface_rtprop_agenda* for this incidence\n"
           "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
-          "multiple angles, to estimate the hemispheric mean value.\n"),
+          "multiple angles, to estimate the hemispheric mean value.\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
+          "                               scattering albedo.\n"
+          " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
+          "                               Zero, if no star is present \n"
+          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
-      OUT("cloudbox_field","optical_depth"),
+      OUT("cloudbox_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5880,7 +5903,8 @@ Possible models:
          "stokes_dim",
          "z_surface",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "Npfct", "quiet", "emission", "intensity_correction", "inc_angle"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index","Numeric"),
       GIN_DEFAULT("8", "181", "0", "1", "1", "-1"),
@@ -5911,9 +5935,20 @@ Possible models:
           "\n"
           "Note that this version returns *spectral_radiance_field*, i.e.\n"
           "the solution for the full atmosphere. The standard *DisortCalc*\n"
-          "only returns the field inside the cloudbox.\n"),
+          "only returns the field inside the cloudbox.\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical\n"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\n"
+          "                               scattering albedo.\n"
+          " \"Direct beam\": Matrix [f_grid, p_grid]. Level direct spectral radiance.\n"
+          "                               Zero, if no star is present \n"
+          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
-      OUT("spectral_radiance_field"),
+      OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5938,7 +5973,8 @@ Possible models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "quiet", "emission", "intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "0", "1", "1"),
@@ -5971,7 +6007,20 @@ Possible models:
           "matrix, the more streams are required. The computational burden\n"
           "increases approximately linearly with *nstreams*. The default value\n"
           "(6) is sufficient for most flux calculations.\n"
-          "\n"),
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical\n"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
+          "                               scattering albedo.\n"
+          " \"Direct downward spectral irradiance\": Matrix [f_grid, p_grid]. \n"
+          "                               Direct downward spectral irradiance.\n"
+          "                               Zero, if no star is present. \n"
+          " \"dFdtau\": Matrix [f_grid, p_grid]. Flux divergence in optical \n"
+          "                               thickness space.\n"
+          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field","disort_aux"),
       GOUT(),
