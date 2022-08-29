@@ -5791,8 +5791,7 @@ Possible models:
           " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
           "                               scattering albedo.\n"
           " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
-          "                               Zero, if no star is present \n"
-          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
+          "                               Zero, if no star is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -5864,8 +5863,7 @@ Possible models:
           " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
           "                               scattering albedo.\n"
           " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
-          "                               Zero, if no star is present \n"
-          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
+          "                               Zero, if no star is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -5936,8 +5934,7 @@ Possible models:
           " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\n"
           "                               scattering albedo.\n"
           " \"Direct beam\": Matrix [f_grid, p_grid]. Level direct spectral radiance.\n"
-          "                               Zero, if no star is present \n"
-          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
+          "                               Zero, if no star is present \n"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
       OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
@@ -6010,8 +6007,7 @@ Possible models:
           "                               Direct downward spectral irradiance.\n"
           "                               Zero, if no star is present. \n"
           " \"dFdtau\": Matrix [f_grid, p_grid]. Flux divergence in optical \n"
-          "                               thickness space.\n"
-          "If nothing else is stated, only the first column of *disort_aux* is empty.\n"),
+          "                               thickness space.\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field","disort_aux"),
       GOUT(),
