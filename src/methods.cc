@@ -5958,7 +5958,20 @@ Possible models:
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running flux (irradiance) calculations\n"
           "\n"
-          "DEVELOPMENT VERSION!\n"),
+          "It provides the irradiance field from a scalar\n"
+          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
+          "Earth). Only totally randomly oriented particles are allowed.\n"
+          "Refraction is not taken into account. Only Lambertian surface\n"
+          "reflection is handled.\n"
+          "\n"
+          "*nstreams* is the number of polar angles taken into account\n"
+          "internally in the scattering solution and for the angular integration.\n"
+          "*nstreams* determines the angular resolution, hence the accuracy,\n"
+          "of the scattering solution. The more anisotropic the bulk scattering\n"
+          "matrix, the more streams are required. The computational burden\n"
+          "increases approximately linearly with *nstreams*. The default value\n"
+          "(6) is sufficient for most flux calculations.\n"
+          "\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field","disort_aux"),
       GOUT(),
@@ -5990,7 +6003,7 @@ Possible models:
          "disort_aux_vars"),
       GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("8", "181", "0", "1", "1"),
+      GIN_DEFAULT("6", "181", "0", "1", "1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
                "solution (must be an even number).\n",
                "Number of angular grid points to calculate bulk phase\n"
