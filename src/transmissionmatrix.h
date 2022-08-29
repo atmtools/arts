@@ -33,9 +33,10 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
+#if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
-#if !defined(__clang__)
+#else
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
 
@@ -45,6 +46,121 @@
 
 #include "jacobian.h"
 #include "propagationmatrix.h"
+
+template <int N>
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstVectorView& vec) {
+#define a vec[0]
+#define b vec[1]
+#define c vec[2]
+#define d vec[3]
+#define u vec[N]
+#define v vec[5]
+#define w vec[6]
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<Numeric, 1, 1>(a);
+  } else if constexpr (N==2) {
+    return (Eigen::Matrix2d() << a, b, b, a).finished();
+  } else if constexpr (N==3) {
+    return (Eigen::Matrix3d() << a, b, c, b, a, u, c, -u, a).finished();
+  } else if constexpr (N==4) {
+    return (Eigen::Matrix4d() << a, b, c, d, b, a, u, v, c, -u, a, w, d, -v, -w, a).finished();
+  }
+#undef a
+#undef b
+#undef c
+#undef d
+#undef u
+#undef v
+#undef w
+}
+
+template <int N>
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstMatrixView& m) {
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<Numeric, 1, 1>(m(0, 0));
+  } else if constexpr (N == 2) {
+    return (Eigen::Matrix2d() << m(0, 0), m(0, 1),
+                                 m(1, 0), m(1, 1)).finished();
+  } else if constexpr (N == 3) {
+    return (Eigen::Matrix3d() << m(0, 0), m(0, 1), m(0, 2),
+                                 m(1, 0), m(1, 1), m(1, 2),
+                                 m(2, 0), m(2, 1), m(2, 2)) .finished();
+  } else if constexpr (N == 4) {
+    return (Eigen::Matrix4d() << m(0, 0), m(0, 1), m(0, 2), m(0, 3),
+                                 m(1, 0), m(1, 1), m(1, 2), m(1, 3),
+                                 m(2, 0), m(2, 1), m(2, 2), m(2, 3),
+                                 m(3, 0), m(3, 1), m(3, 2), m(3, 3)) .finished();
+  }
+}
+
+template <int N>
+Eigen::Matrix<Numeric, N, N> inv_prop_matrix(const ConstVectorView& vec) {
+#define a vec[0]
+#define b vec[1]
+#define c vec[2]
+#define d vec[3]
+#define u vec[N]
+#define v vec[5]
+#define w vec[6]
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<double, 1, 1>(1 / a);
+  } else if constexpr (N==2) {
+    return (Eigen::Matrix2d() << a, -b, -b, a).finished() / (a * a - b * b);
+  } else if constexpr (N==3) {
+    return (Eigen::Matrix3d() << a * a + u * u,
+          -a * b - c * u,
+          -a * c + b * u,
+          -a * b + c * u,
+          a * a - c * c,
+          -a * u + b * c,
+          -a * c - b * u,
+          a * u + b * c,
+          a * a - b * b)
+             .finished() /
+         (a * a * a - a * b * b - a * c * c + a * u * u);
+  } else if constexpr (N==4) {
+    return (Eigen::Matrix4d() << a * a * a + a * u * u + a * v * v + a * w * w,
+          -a * a * b - a * c * u - a * d * v - b * w * w + c * v * w -
+              d * u * w,
+          -a * a * c + a * b * u - a * d * w + b * v * w - c * v * v +
+              d * u * v,
+          -a * a * d + a * b * v + a * c * w - b * u * w + c * u * v -
+              d * u * u,
+          -a * a * b + a * c * u + a * d * v - b * w * w + c * v * w -
+              d * u * w,
+          a * a * a - a * c * c - a * d * d + a * w * w,
+          -a * a * u + a * b * c - a * v * w + b * d * w - c * d * v +
+              d * d * u,
+          -a * a * v + a * b * d + a * u * w - b * c * w + c * c * v -
+              c * d * u,
+          -a * a * c - a * b * u + a * d * w + b * v * w - c * v * v +
+              d * u * v,
+          a * a * u + a * b * c - a * v * w - b * d * w + c * d * v - d * d * u,
+          a * a * a - a * b * b - a * d * d + a * v * v,
+          -a * a * w + a * c * d - a * u * v + b * b * w - b * c * v +
+              b * d * u,
+          -a * a * d - a * b * v - a * c * w - b * u * w + c * u * v -
+              d * u * u,
+          a * a * v + a * b * d + a * u * w + b * c * w - c * c * v + c * d * u,
+          a * a * w + a * c * d - a * u * v - b * b * w + b * c * v - b * d * u,
+          a * a * a - a * b * b - a * c * c + a * u * u)
+             .finished() /
+         (a * a * a * a - a * a * b * b - a * a * c * c - a * a * d * d +
+          a * a * u * u + a * a * v * v + a * a * w * w - b * b * w * w +
+          2 * b * c * v * w - 2 * b * d * u * w - c * c * v * v +
+          2 * c * d * u * v - d * d * u * u);
+  }
+#undef a
+#undef b
+#undef c
+#undef d
+#undef u
+#undef v
+#undef w
+}
 
 /** Class to keep track of Transmission Matrices for Stokes Dim 1-4 */
 struct TransmissionMatrix {

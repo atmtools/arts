@@ -28,11 +28,11 @@
  */
 
 #include "zeeman.h"
+
 #include "arts_conversions.h"
 #include "linescaling.h"
-#include "species_info.h"
-
 #include "lineshape.h"
+#include "species_info.h"
 
 void zeeman_on_the_fly(
     PropagationMatrix& propmat_clearsky,

@@ -32,11 +32,13 @@
 #include <cmath>
 #include <stdexcept>
 
+
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "logic.h"
+#include "matpack_eigen.h"
 #include "messages.h"
 #include "montecarlo.h"
 #include "propagationmatrix.h"
@@ -542,7 +544,7 @@ void iyRadarSingleScat(Workspace& ws,
     for (Index ip = 0; ip < np; ip++) {
       for (Index iv = 0; iv < nf; iv++) {
         VectorView stokesvec = VectorView(iy_aux[auxBackScat](iv*np+ip, joker));
-        MapToEigen(stokesvec).noalias() = reflect_matrix[ip].Mat(iv) * rad_inc.Vec(iv);
+        matpack::eigen::row_vec(stokesvec).noalias() = reflect_matrix[ip].Mat(iv) * rad_inc.Vec(iv);
       }
     }
   }

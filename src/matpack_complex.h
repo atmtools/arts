@@ -189,11 +189,6 @@ class ConstComplexVectorView;
 // Declare the existence of class ConstMatrixView:
 class ConstComplexMatrixView;
 
-// Eigen library interactions:
-using ComplexMatrixType = Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using ComplexMatrixViewMap = Eigen::Map<ComplexMatrixType, 0, StrideType>;
-using ConstComplexMatrixViewMap = Eigen::Map<const ComplexMatrixType, 0, StrideType>;
-
 /** The iterator class for sub vectors. This takes into account the
  *  defined stride. */
 class ComplexIterator1D {
@@ -299,6 +294,7 @@ class ConstComplexVectorView {
   // Member functions:
   [[nodiscard]] bool empty() const noexcept { return (nelem() == 0); }
   [[nodiscard]] Index nelem() const noexcept { return mrange.mextent; }
+  [[nodiscard]] Index size() const noexcept { return mrange.mextent; }
   [[nodiscard]] Complex sum() const;
 
   // Const index operators:
@@ -352,15 +348,18 @@ class ConstComplexVectorView {
                    const ConstComplexMatrixView&,
                    const ConstComplexVectorView&);
 
-  friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView&);
-  friend ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
-  friend ComplexMatrixViewMap MapToEigen(ComplexVectorView&);
-  friend ComplexMatrixViewMap MapToEigenCol(ComplexVectorView&);
-
   friend std::ostream& operator<<(std::ostream& os, const ConstComplexVectorView& v);
 
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstComplexVectorView(const Complex& a);
+
+  //! Start element in memory
+  [[nodiscard]] Index selem() const noexcept {return mrange.mstart;}
+
+  //! Steps in memory between elements
+  [[nodiscard]] Index delem() const noexcept {return mrange.mstride;}
+
+  [[nodiscard]] Complex* get_c_array() const noexcept {return mdata;}
 
  protected:
   // Constructors:
@@ -473,9 +472,6 @@ class ComplexVectorView : public ConstComplexVectorView {
 
   // Conversion to 1 column matrix:
   operator ComplexMatrixView();
-  // Conversion to a plain C-array
-  [[nodiscard]] const Complex* get_c_array() const ARTS_NOEXCEPT;
-  Complex* get_c_array() ARTS_NOEXCEPT;
 
   //! Destructor
    ~ComplexVectorView() override = default;
@@ -615,6 +611,11 @@ class ComplexVector : public ComplexVectorView {
     ARTS_ASSERT(r0.get_extent() >= 0, "Must have size. Has: ", r0.get_extent());
   }
 
+  /** Initialization from a vector type. */
+  explicit ComplexVector(const matpack::vector_like auto& init) : ComplexVector(init.size()) {
+    for (Index i=0; i<size(); i++) operator[](i) = init[i];
+  }
+
   // Assignment operators:
   ComplexVector& operator=(const ComplexVector& v);
   ComplexVector& operator=(const Array<Complex>& v);
@@ -639,9 +640,6 @@ class ComplexVector : public ComplexVectorView {
 
   // Destructor:
    ~ComplexVector() override;
-  
-  // Total size
-  [[nodiscard]] Index size() const noexcept {return nelem();}
 };
 
 // Declare class ComplexMatrix:
@@ -668,8 +666,14 @@ class ConstComplexMatrixView {
   using const_iterator = ConstComplexIterator2D;
 
   // Member functions:
+  [[nodiscard]] Index selem() const noexcept { return mrr.mstart + mcr.mstart; }
   [[nodiscard]] Index nrows() const noexcept { return mrr.mextent; }
   [[nodiscard]] Index ncols() const noexcept { return mcr.mextent; }
+  [[nodiscard]] Index drows() const noexcept { return mrr.mstride; }
+  [[nodiscard]] Index dcols() const noexcept { return mcr.mstride; }
+  
+  // Total size
+  [[nodiscard]] Index size() const noexcept {return nrows() * ncols();}
   [[nodiscard]] bool empty() const noexcept { return not nrows() or not ncols(); }
 
   // Const index operators:
@@ -739,8 +743,7 @@ class ConstComplexMatrixView {
   
   friend std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v);
 
-  friend ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
-  friend ComplexMatrixViewMap MapToEigen(ComplexMatrixView&);
+  [[nodiscard]] Complex* get_c_array() const noexcept {return mdata;}
 
  protected:
   // Constructors:
@@ -867,10 +870,6 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   ComplexMatrixView& operator+=(const ConstComplexVectorView& x);
   ComplexMatrixView& operator-=(const ConstComplexVectorView& x);
 
-  // Conversion to a plain C-array
-  [[nodiscard]] const Complex* get_c_array() const ARTS_NOEXCEPT;
-  Complex* get_c_array() ARTS_NOEXCEPT;
-
   //! Destructor
    ~ComplexMatrixView() override = default;
 
@@ -908,6 +907,11 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix(const ConstComplexMatrixView& v);
   ComplexMatrix(const ComplexMatrix& v);
 
+  /** Initialization from a vector type. */
+  explicit ComplexMatrix(const matpack::matrix_like auto& init) : ComplexMatrix(matpack::row_size(init), matpack::column_size(init)) {
+    for (Index i=0; i<nrows(); i++) for (Index j=0; j<ncols(); j++) operator()(i, j) = init(i, j);
+  }
+
   // Assignment operators:
   ComplexMatrix& operator=(ComplexMatrix x);
   ComplexMatrix& operator=(Complex x);
@@ -924,9 +928,6 @@ class ComplexMatrix : public ComplexMatrixView {
 
   // Destructor:
    ~ComplexMatrix() override;
-  
-  // Total size
-  [[nodiscard]] Index size() const noexcept {return nrows() * ncols();}
 
   Complex* get_raw_data() { return mdata; }
 };
@@ -969,23 +970,6 @@ void mult(ComplexMatrixView A,
 
 Complex operator*(const ConstComplexVectorView& a,
                   const ConstComplexVectorView& b);
-
-// Converts constant matrix to constant eigen map
-ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView& A);
-// Converts constant vector to constant eigen row-view
-ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView& A);
-// Converts constant vector to constant eigen row-view
-ConstComplexMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A);
-// Converts constant vector to constant eigen column-view
-ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A);
-// Converts matrix to eigen map
-ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A);
-// Converts vector to eigen map row-view
-ComplexMatrixViewMap MapToEigen(ComplexVectorView& A);
-// Converts vector to eigen map row-view
-ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A);
-// Converts vector to eigen map column-view
-ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A);
 
 using ArrayOfComplexVector = Array<ComplexVector>;
 using ArrayOfComplexMatrix = Array<ComplexMatrix>;

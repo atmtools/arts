@@ -33,6 +33,21 @@
 #include "linemixing.h"
 #include "physics_funcs.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#else
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
+#include <Eigen/Dense>
+
+#pragma GCC diagnostic pop
+
 namespace lm_hitran_2017 {
 namespace parameters {
   static constexpr Index nBmx=7'000;  // Max Number of Bands

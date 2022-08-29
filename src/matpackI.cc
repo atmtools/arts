@@ -269,22 +269,6 @@ VectorView::operator MatrixView() ARTS_NOEXCEPT {
   return MatrixView(mdata, mrange, Range(0, 1));
 }
 
-const Numeric* VectorView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(
-      mrange.mstart == 0 and (mrange.mstride == 1 or mrange.mextent == 0),
-      mrange)
-
-  return mdata;
-}
-
-Numeric* VectorView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(
-      mrange.mstart == 0 and (mrange.mstride == 1 or mrange.mextent == 0),
-      mrange)
-
-  return mdata;
-}
-
 VectorView::VectorView(Numeric& a) ARTS_NOEXCEPT : ConstVectorView(a) {
   // Nothing to do here.
 }
@@ -322,11 +306,6 @@ void copy(Numeric x, Iterator1D target, const Iterator1D& end) ARTS_NOEXCEPT {
 Vector::Vector(std::initializer_list<Numeric> init)
     : VectorView(new Numeric[init.size()], Range(0, init.size())) {
   std::copy(init.begin(), init.end(), begin());
-}
-
-Vector::Vector(const Eigen::VectorXd& init)
-    : VectorView(new Numeric[init.size()], Range(0, init.size())) {
-  for (Index i = 0; i < size(); i++) operator[](i) = init[i];
 }
 
 Vector::Vector(Index n) : VectorView(new Numeric[n], Range(0, n)) {
@@ -727,38 +706,6 @@ MatrixView& MatrixView::operator-=(Numeric x) ARTS_NOEXCEPT {
     for (Iterator1D c = r->begin(); c != ec; ++c) *c -= x;
   }
   return *this;
-}
-
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  MatrixView is not pointing to the beginning of a Matrix or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
-const Numeric* MatrixView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
-              "Row ",
-              mrr)
-  ARTS_ASSERT(
-      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
-
-  return mdata;
-}
-
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  MatrixView is not pointing to the beginning of a Matrix or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
-Numeric* MatrixView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT(mrr.mstart == 0 and (mrr.mstride == mcr.mextent or size() == 0),
-              "Row ",
-              mrr)
-  ARTS_ASSERT(
-      mcr.mstart == 0 and (mcr.mstride == 1 or size() == 0), "Column ", mcr)
-
-  return mdata;
 }
 
 /** Element-vise multiplication by another Matrix. */
@@ -1677,66 +1624,6 @@ VectorView& VectorView::operator=(const Array<Numeric>& v) {
   for (; i != e; ++i, ++target) *target = *i;
 
   return *this;
-}
-
-// Const
-
-// Converts constant matrix to constant eigen map
-ConstMatrixViewMap MapToEigen(const ConstMatrixView& A) {
-  return ConstMatrixViewMap(A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-                            A.nrows(),
-                            A.ncols(),
-                            StrideType(A.mrr.get_stride(), A.mcr.get_stride()));
-}
-
-// Converts constant vector to constant eigen row-view
-ConstMatrixViewMap MapToEigen(const ConstVectorView& A) {
-  return ConstMatrixViewMap(A.mdata + A.mrange.get_start(),
-                            A.nelem(),
-                            1,
-                            StrideType(A.mrange.get_stride(), 1));
-}
-
-// Converts constant vector to constant eigen row-view
-ConstMatrixViewMap MapToEigenRow(const ConstVectorView& A) {
-  return MapToEigen(A);
-}
-
-// Converts constant vector to constant eigen column-view
-ConstMatrixViewMap MapToEigenCol(const ConstVectorView& A) {
-  return ConstMatrixViewMap(A.mdata + A.mrange.get_start(),
-                            1,
-                            A.nelem(),
-                            StrideType(1, A.mrange.get_stride()));
-}
-
-// Non- const
-
-// Converts matrix to eigen map
-MatrixViewMap MapToEigen(MatrixView& A) {
-  return MatrixViewMap(A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-                       A.nrows(),
-                       A.ncols(),
-                       StrideType(A.mrr.get_stride(), A.mcr.get_stride()));
-}
-
-// Converts vector to eigen map row-view
-MatrixViewMap MapToEigen(VectorView& A) {
-  return MatrixViewMap(A.mdata + A.mrange.get_start(),
-                       A.nelem(),
-                       1,
-                       StrideType(A.mrange.get_stride(), 1));
-}
-
-// Converts vector to eigen map row-view
-MatrixViewMap MapToEigenRow(VectorView& A) { return MapToEigen(A); }
-
-// Converts vector to eigen map column-view
-MatrixViewMap MapToEigenCol(VectorView& A) {
-  return MatrixViewMap(A.mdata + A.mrange.get_start(),
-                       1,
-                       A.nelem(),
-                       StrideType(1, A.mrange.get_stride()));
 }
 
 ////////////////////////////////

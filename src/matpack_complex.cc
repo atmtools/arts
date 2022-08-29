@@ -23,9 +23,10 @@
   \brief  A class implementing complex numbers for ARTS.
 */
 
-#include "matpack_complex.h"
 #include "blas.h"
 #include "exceptions.h"
+#include "matpack_complex.h"
+#include "matpack_eigen.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -415,30 +416,6 @@ ComplexVectorView::operator ComplexMatrixView() {
   // the mstart from both row and columm range object to mdata
 
   return ComplexMatrixView(mdata, mrange, Range(0, 1));
-}
-
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  VectorView is not pointing to the beginning of a Vector or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
-const Complex* ComplexVectorView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mrange.mstart != 0 || mrange.mstride != 1),
-        "A ComplexVectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-  return mdata;
-}
-
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  VectorView is not pointing to the beginning of a Vector or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
-Complex* ComplexVectorView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mrange.mstart != 0 || mrange.mstride != 1),
-        "A ComplexVectorView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-  return mdata;
 }
 
 /** A special constructor, which allows to make a VectorView from
@@ -1115,32 +1092,6 @@ ComplexMatrixView& ComplexMatrixView::operator-=(Numeric x) {
   return *this;
 }
 
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  MatrixView is not pointing to the beginning of a Matrix or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
-const Complex* ComplexMatrixView::get_c_array() const ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1),
-        "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-  return mdata;
-}
-
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  MatrixView is not pointing to the beginning of a Matrix or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
-Complex* ComplexMatrixView::get_c_array() ARTS_NOEXCEPT {
-  ARTS_ASSERT (not (mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
-      mcr.mstride != 1),
-        "A MatrixView can only be converted to a plain C-array if it's pointing to a continuous block of data");
-  return mdata;
-}
-
 /** Element-vise multiplication by another Matrix. */
 ComplexMatrixView& ComplexMatrixView::operator*=(
     const ConstComplexMatrixView& x) {
@@ -1589,11 +1540,11 @@ void mult(ComplexVectorView y,
   ARTS_ASSERT(x.nelem() == M.nrows());
   ARTS_ASSERT(y.nelem() == M.ncols());
 
-  ComplexMatrixViewMap eigen_y = MapToEigenRow(y);
+  auto eigen_y = matpack::eigen::row_vec(y);
   if (y.mdata == x.mdata)
-    eigen_y = MapToEigen(M) * MapToEigenRow(x);
+    eigen_y = matpack::eigen::mat(M) * matpack::eigen::row_vec(x);
   else
-    eigen_y.noalias() = MapToEigen(M) * MapToEigenRow(x);
+    eigen_y.noalias() = matpack::eigen::mat(M) * matpack::eigen::row_vec(x);
 }
 
 //! Matrix-Matrix Multiplication
@@ -1615,12 +1566,13 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  ComplexMatrixViewMap eigen_A = MapToEigen(A);
+  auto eigen_A = matpack::eigen::mat(A);
   if (A.mdata == B.mdata || A.mdata == C.mdata)
-    eigen_A = MapToEigen(B) * MapToEigen(C);
+    eigen_A = matpack::eigen::mat(B) * matpack::eigen::mat(C);
   else
-    eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
+    eigen_A.noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
+
 void mult(ComplexMatrixView A,
           const ConstComplexMatrixView& B,
           const ConstMatrixView& C) {
@@ -1628,12 +1580,13 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  ComplexMatrixViewMap eigen_A = MapToEigen(A);
+  auto eigen_A = matpack::eigen::mat(A);
   if (A.mdata == B.mdata)
-    eigen_A = MapToEigen(B) * MapToEigen(C);
+    eigen_A = matpack::eigen::mat(B) * matpack::eigen::mat(C);
   else
-    eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
+    eigen_A.noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
+
 void mult(ComplexMatrixView A,
           const ConstMatrixView& B,
           const ConstComplexMatrixView& C) {
@@ -1641,12 +1594,13 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  ComplexMatrixViewMap eigen_A = MapToEigen(A);
+  auto eigen_A = matpack::eigen::mat(A);
   if (A.mdata == C.mdata)
-    eigen_A = MapToEigen(B) * MapToEigen(C);
+    eigen_A = matpack::eigen::mat(B) * matpack::eigen::mat(C);
   else
-    eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
+    eigen_A.noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
+
 void mult(ComplexMatrixView A,
           const ConstMatrixView& B,
           const ConstMatrixView& C) {
@@ -1654,68 +1608,7 @@ void mult(ComplexMatrixView A,
   ARTS_ASSERT(C.ncols() == A.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  ComplexMatrixViewMap eigen_A = MapToEigen(A);
-  eigen_A.noalias() = MapToEigen(B) * MapToEigen(C);
-}
-
-// Converts constant matrix to constant eigen map
-ConstComplexMatrixViewMap MapToEigen(const ConstComplexMatrixView& A) {
-  return ConstComplexMatrixViewMap(
-      A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-      A.nrows(),
-      A.ncols(),
-      StrideType(A.mrr.get_stride(), A.mcr.get_stride()));
-}
-
-// Converts constant vector to constant eigen row-view
-ConstComplexMatrixViewMap MapToEigen(const ConstComplexVectorView& A) {
-  return ConstComplexMatrixViewMap(A.mdata + A.mrange.get_start(),
-                                   A.nelem(),
-                                   1,
-                                   StrideType(A.mrange.get_stride(), 1));
-}
-
-// Converts constant vector to constant eigen row-view
-ConstComplexMatrixViewMap MapToEigenRow(const ConstComplexVectorView& A) {
-  return MapToEigen(A);
-}
-
-// Converts constant vector to constant eigen column-view
-ConstComplexMatrixViewMap MapToEigenCol(const ConstComplexVectorView& A) {
-  return ConstComplexMatrixViewMap(A.mdata + A.mrange.get_start(),
-                                   1,
-                                   A.nelem(),
-                                   StrideType(1, A.mrange.get_stride()));
-}
-
-// Converts matrix to eigen map
-ComplexMatrixViewMap MapToEigen(ComplexMatrixView& A) {
-  return ComplexMatrixViewMap(
-      A.mdata + A.mrr.get_start() + A.mcr.get_start(),
-      A.nrows(),
-      A.ncols(),
-      StrideType(A.mrr.get_stride(), A.mcr.get_stride()));
-}
-
-// Converts vector to eigen map row-view
-ComplexMatrixViewMap MapToEigen(ComplexVectorView& A) {
-  return ComplexMatrixViewMap(A.mdata + A.mrange.get_start(),
-                              A.nelem(),
-                              1,
-                              StrideType(A.mrange.get_stride(), 1));
-}
-
-// Converts vector to eigen map row-view
-ComplexMatrixViewMap MapToEigenRow(ComplexVectorView& A) {
-  return MapToEigen(A);
-}
-
-// Converts vector to eigen map column-view
-ComplexMatrixViewMap MapToEigenCol(ComplexVectorView& A) {
-  return ComplexMatrixViewMap(A.mdata + A.mrange.get_start(),
-                              1,
-                              A.nelem(),
-                              StrideType(1, A.mrange.get_stride()));
+  matpack::eigen::mat(A).noalias() = matpack::eigen::mat(B) * matpack::eigen::mat(C);
 }
 
 ////////////////////////////////
