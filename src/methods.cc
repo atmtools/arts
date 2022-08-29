@@ -5743,9 +5743,6 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
-          "\n"
           "DISCLAIMER: There is a couple of known issues with the current\n"
           "implementation (see below). Use this WSM with care and only if\n"
           "these limitations/requirements are fulfilled. Results might be\n"
@@ -5851,9 +5848,6 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
-          "\n"
           "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
           "\n"
           "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
@@ -5927,9 +5921,6 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running clear-sky cases.\n"
-          "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
           "\n"
           "The method runs DISORT with *pnd_field* set to zero.\n"
           "\n"
