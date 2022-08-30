@@ -35,9 +35,10 @@
 
 #ifdef ENABLE_RT4
 
-#include <complex.h>
-#include <cfloat>
+#include <complex>
 #include <stdexcept>
+
+#include "auto_md.h"
 #include "check_input.h"
 #include "disort.h"
 #include "interpolation.h"

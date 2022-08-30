@@ -38,7 +38,6 @@
 
 #include "agenda_class.h"
 #include "arts.h"
-#include "auto_md.h"
 #include "jacobian.h"
 #include "matpackI.h"
 #include "matpackII.h"
@@ -46,6 +45,9 @@
 #include "matpack_complex.h"
 #include "optproperties.h"
 #include "ppath.h"
+
+
+class Workspace;
 
 /*===========================================================================
   === Functions in rte.cc

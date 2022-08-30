@@ -90,10 +90,10 @@ struct Sparse {
   void resize(Index r, Index c);
 
   // Member functions:
-  bool empty() const;
-  Index nrows() const;
-  Index ncols() const;
-  Index nnz() const;
+  [[nodiscard]] bool empty() const;
+  [[nodiscard]] Index nrows() const;
+  [[nodiscard]] Index ncols() const;
+  [[nodiscard]] Index nnz() const;
 
   /** Create a sparse matrix from a vector.
      *
@@ -110,12 +110,12 @@ struct Sparse {
      *
      * @return A vector containing the diagonal elements.
      */
-  Vector diagonal() const;
+  [[nodiscard]] Vector diagonal() const;
 
   // Index Operators:
-  Numeric& rw(Index r, Index c);
-  Numeric ro(Index r, Index c) const;
-  Numeric operator()(Index r, Index c) const;
+  [[nodiscard]] Numeric& rw(Index r, Index c);
+  [[nodiscard]] Numeric ro(Index r, Index c) const;
+  [[nodiscard]] Numeric operator()(Index r, Index c) const;
 
   // Arithmetic operators:
   Sparse& operator+=(const Sparse& x);
@@ -133,9 +133,9 @@ struct Sparse {
                      ArrayOfIndex& row_indices,
                      ArrayOfIndex& column_indices) const;
 
-  Numeric* get_element_pointer() { return matrix.valuePtr(); }
-  int* get_column_index_pointer() { return matrix.innerIndexPtr(); }
-  int* get_row_start_pointer() { return matrix.outerIndexPtr(); }
+  Numeric* get_element_pointer();
+  int* get_column_index_pointer();
+  int* get_row_start_pointer();
 
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
