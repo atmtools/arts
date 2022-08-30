@@ -378,12 +378,13 @@ target_link_libraries (binio ${ZLIB_LIBRARIES})
 ########### next target ###############
 
 add_library (methods STATIC
+        methods.cc
+        tokval.cc
+
         agendas.cc
         agenda_record.cc
-        methods.cc
         methods_aux.cc
         groups.cc
-        tokval.cc
         workspace.cc
         wsv_aux.cc
         )
