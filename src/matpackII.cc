@@ -40,19 +40,15 @@
   the same as S.ro(3,4).
 */
 
-// #include <vector>
 #include "matpackII.h"
-#include <Eigen/Core>
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>  // For debugging.
 #include <iterator>
 #include <set>
+#include <vector>
 
-using std::cout;
-using std::endl;
-using std::setw;
-using std::vector;
 
 // Simple member Functions
 // ----------------
@@ -291,6 +287,10 @@ void Sparse::list_elements(Vector& values,
     }
   }
 }
+
+Numeric* Sparse::get_element_pointer() { return matrix.valuePtr(); }
+int* Sparse::get_column_index_pointer() { return matrix.innerIndexPtr(); }
+int* Sparse::get_row_start_pointer() { return matrix.outerIndexPtr(); }
 
 //! Reduce matrix to the row range [offset, offset + nrows]
 void Sparse::split(Index offset, Index nrows_block) {
