@@ -110,7 +110,7 @@ NumericSet( mc_std_err,       -1 )
 IndexSet(   mc_max_time,      -1 )
 IndexSet(   mc_max_iter,      100 )
 
-Copy( iy_main_agenda, iy_main_agenda__ScattMC )
+iy_main_agendaSet( option="ScattMC" )
 
 ArrayOfStringSet( iy_aux_vars, [ "Error (uncorrelated)" ] )
 
