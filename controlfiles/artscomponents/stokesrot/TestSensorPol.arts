@@ -13,7 +13,7 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )

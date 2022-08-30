@@ -22,7 +22,7 @@ Arts2{
   Copy(ppath_agenda, ppath_agenda__FollowSensorLosPath)
   Copy(ppath_step_agenda, ppath_step_agenda__GeometricPath)
   Copy(iy_space_agenda, iy_space_agenda__CosmicBackground)
-  Copy(iy_main_agenda, iy_main_agenda__Emission)
+  iy_main_agendaSet(option="Emission")
 
   # Various basic settings
   AtmosphereSet3D

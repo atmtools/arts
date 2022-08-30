@@ -71,7 +71,7 @@ lbl_checkedCalc
 
 # ---- Part 1: An emission measurement at 110.8 GHz --------------------------
 
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 
 MatrixSetConstant( sensor_pos, 1, 1, 0 )
@@ -146,7 +146,7 @@ yCalcAppend( jacobian_quantities_copy=jacobian_quantities_copy,
 
 VectorSet( f_grid, [ 23.4e9, 31e9 ] )
 
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 MatrixSetConstant( sensor_los, 1, 1, 0 )
 sensorOff

@@ -30,7 +30,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 # Standard RT agendas
 #
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 
 # Definition of species

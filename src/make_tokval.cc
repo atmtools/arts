@@ -135,7 +135,7 @@ inline TokValType* tokval_type(void * ptr) {
             << "() const {\n"
                "   ARTS_USER_ERROR_IF(not holds"
             << group
-            << "(), \"Wrong type\")\n"
+            << "(), \"Wrong type: \", type())\n"
                "  return **std::get_if<std::unique_ptr<"
             << group << ">>(tokval_type(ptr));\n}\n";
   }

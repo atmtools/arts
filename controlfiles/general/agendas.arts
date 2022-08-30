@@ -22,12 +22,6 @@ Arts2 {
 ##################################
 
 ###
-AgendaCreate( iy_main_agenda__Emission )
-AgendaSet( iy_main_agenda__Emission ){
-  ppathCalc
-  iyEmissionStandard
-  VectorSet(geo_pos, [])
-}
 
 ###
 AgendaCreate( iy_main_agenda__Clearsky )

@@ -140,6 +140,20 @@ add_custom_command (
 
 ########### next target ###############
 
+add_executable (make_default_gins
+        make_default_gins.cc
+        )
+
+target_link_libraries (make_default_gins methods)
+
+add_custom_command (
+        OUTPUT default_gins.cc default_gins.h
+        COMMAND make_default_gins
+        DEPENDS make_default_gins
+        )
+
+########### next target ###############
+
 set (ARTSCORE_EXTRA_SOURCES)
 if (NOT HAVE_GETOPT_H)
   list (APPEND ARTSCORE_EXTRA_SOURCES
@@ -164,6 +178,7 @@ add_library (artscore STATIC
   cloudbox.cc
   compile_time_tests.cc
   covariance_matrix.cc
+  default_gins.cc
   disort.cc
   docserver.cc
   doit.cc
@@ -194,6 +209,7 @@ add_library (artscore STATIC
   m_absorptionlines.cc
   m_abs_lookup.cc
   m_agenda.cc
+  m_agenda_set.cc
   m_array.cc
   m_artstime.cc
   m_atmosphere.cc

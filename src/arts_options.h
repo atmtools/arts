@@ -56,6 +56,17 @@ ENUMCLASS(
 ENUMCLASS(LblSpeedup, char, None, QuadraticIndependent, LinearIndependent)
 
 ENUMCLASS(SortingOption, char, ByFrequency, ByEinstein)
+
+/** Options for setting iy_main_agenda */
+ENUMCLASS(iy_main_agendaDefaultOptions,
+          char,
+          Emission,
+          Clearsky,
+          Transmission,
+          TransmissionUnitUnpolIntensity,
+          TransmissionUnitPolIntensity,
+          Freqloop,
+          ScattMC)
 }  // namespace Options
 
 #endif

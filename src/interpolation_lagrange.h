@@ -74,12 +74,8 @@ constexpr bool full_cycle(const Numeric xo,
          (xo == xlim.second and xn == xlim.first);
 }
 
-/*! Returns an index to a position in xvec whose upper bound is x
- *
- * If x is outside the range of xvec, returns 0 or n-1,
- * where n is the size of xvec.
- * 
- * If xvec is size 0, returns -1
+/*! Find an estimation of the start position in a linearly
+ * separated grid (useful as a start position esitmated
  * 
  * @param[in] x The position
  * @param[in] xvec The grid
@@ -87,8 +83,14 @@ constexpr bool full_cycle(const Numeric xo,
 */
 template <class SortedVectorType>
 constexpr Index start_pos_finder(const Numeric x, const SortedVectorType& xvec) noexcept {
-  auto ptr = std::upper_bound(xvec.begin(), xvec.end(), x);
-  return std::distance(xvec.begin(), ptr - (ptr == xvec.end()));
+  if (const Index n = xvec.size(); n > 1) {
+    const Numeric x0 = xvec[    0];
+    const Numeric x1 = xvec[n - 1];
+    const Numeric frac = (x - x0) / (x1 - x0);
+    const auto start_pos = Index(frac * (Numeric)(n - 2));
+    return start_pos > 0 ? (start_pos < n ? start_pos : n - 1) : 0;
+  }
+  return 0;
 }
 
 //! Return the maximum of two integer numbers.

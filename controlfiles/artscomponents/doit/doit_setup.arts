@@ -7,7 +7,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
