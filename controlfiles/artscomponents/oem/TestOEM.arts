@@ -14,8 +14,8 @@ INCLUDE "general/planet_earth.arts"
 iy_main_agendaSet(option="Emission")
 iy_space_agendaSet
 iy_surface_agendaSet
-Copy( ppath_agenda,               ppath_agenda__FollowSensorLosPath   )
-Copy( ppath_step_agenda,          ppath_step_agenda__GeometricPath    )
+ppath_agendaSet( option="FollowSensorLosPath" )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Basic settings

@@ -17,7 +17,7 @@ INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 
 # Number of Stokes components to be computed
@@ -88,8 +88,8 @@ cloudbox_checkedCalc
 # Propagation path agendas and variables
 #
 # refracted path
-Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth  )
+ppath_step_agendaSet( option="RefractedPath" )
+refr_index_air_agendaSet( option="GasMicrowavesEarth"  )
 
 NumericSet( ppath_lmax, 2e3 )
 NumericSet( ppath_lraytrace, 500 )

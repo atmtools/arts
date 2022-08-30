@@ -14,7 +14,7 @@ INCLUDE "general/planet_earth.arts"
 iy_space_agendaSet
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Blackbody surface with skin temperature interpolated from t_surface field
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )

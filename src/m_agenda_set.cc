@@ -452,3 +452,167 @@ void iy_cloudbox_agendaSet(Workspace& ws,
 
   iy_cloudbox_agenda = agenda.finalize();
 }
+
+void ppath_agendaSet(Workspace& ws,
+                     Agenda& ppath_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "ppath_agenda", verbosity);
+
+  using enum Options::ppath_agendaDefaultOptions;
+  switch (Options::toppath_agendaDefaultOptionsOrThrow(option)) {
+    case FollowSensorLosPath:
+      agenda.add("Ignore", "rte_pos2");
+      agenda.add("ppathStepByStep");
+      break;
+    case PlaneParallel:
+      agenda.add("Ignore", "ppath_lraytrace");
+      agenda.add("Ignore", "rte_pos2");
+      agenda.add("Ignore", "t_field");
+      agenda.add("Ignore", "vmr_field");
+      agenda.add("Ignore", "f_grid");
+      agenda.add("ppathPlaneParallel");
+      break;
+    case TransmitterReceiverPath:
+      agenda.add("Ignore", "cloudbox_on");
+      agenda.add("Ignore", "ppath_inside_cloudbox_do");
+      agenda.add("rte_losGeometricFromRtePosToRtePos2");
+      agenda.add("ppathFromRtePos2");
+      break;
+    case FINAL:
+      break;
+  }
+
+  ppath_agenda = agenda.finalize();
+}
+
+void ppath_step_agendaSet(Workspace& ws,
+                     Agenda& ppath_step_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "ppath_step_agenda", verbosity);
+
+  using enum Options::ppath_step_agendaDefaultOptions;
+  switch (Options::toppath_step_agendaDefaultOptionsOrThrow(option)) {
+    case GeometricPath:
+      agenda.add("Ignore", "f_grid");
+      agenda.add("Ignore", "ppath_lraytrace");
+      agenda.add("ppath_stepGeometric");
+      break;
+    case RefractedPath:
+      agenda.add("ppath_stepRefractionBasic");
+      break;
+    case FINAL:
+      break;
+  }
+
+  ppath_step_agenda = agenda.finalize();
+}
+
+void refr_index_air_agendaSet(Workspace& ws,
+                     Agenda& refr_index_air_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "refr_index_air_agenda", verbosity);
+
+  using enum Options::refr_index_air_agendaDefaultOptions;
+  switch (Options::torefr_index_air_agendaDefaultOptionsOrThrow(option)) {
+    case NoRefrac:
+      agenda.add("Ignore", "f_grid");
+      agenda.add("Ignore", "rtp_pressure");
+      agenda.add("Ignore", "rtp_temperature");
+      agenda.add("Ignore", "rtp_vmr");
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      break;
+    case GasMicrowavesEarth:
+      agenda.add("Ignore", "f_grid");
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.add("refr_index_airMicrowavesEarth");
+      break;
+    case GasInfraredEarth:
+      agenda.add("Ignore", "f_grid");
+      agenda.add("Ignore", "rtp_vmr");
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.add("refr_index_airInfraredEarth");
+      break;
+    case GasMicrowavesGeneral:
+      agenda.add("Ignore", "f_grid");
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.add("refr_index_airMicrowavesGeneral");
+      break;
+    case FreeElectrons:
+      agenda.add("Ignore", "rtp_pressure");
+      agenda.add("Ignore", "rtp_temperature");
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.add("refr_index_airFreeElectrons");
+      break;
+    case GasMicrowavesGeneralAndElectrons:
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.add("refr_index_airMicrowavesGeneral");
+      agenda.add("refr_index_airFreeElectrons");
+      break;
+    case GasMicrowavesEarthAndElectrons:
+      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
+      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.add("refr_index_airMicrowavesEarth");
+      agenda.add("refr_index_airFreeElectrons");
+      break;
+    case FINAL:
+      break;
+  }
+
+  refr_index_air_agenda = agenda.finalize();
+}
+
+
+void water_p_eq_agendaSet(Workspace& ws,
+                     Agenda& water_p_eq_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "water_p_eq_agenda", verbosity);
+
+  using enum Options::water_p_eq_agendaDefaultOptions;
+  switch (Options::towater_p_eq_agendaDefaultOptionsOrThrow(option)) {
+    case MK05:
+      agenda.add("water_p_eq_fieldMK05");
+      break;
+    case FINAL:
+      break;
+  }
+
+  water_p_eq_agenda = agenda.finalize();
+}
+
+
+void gas_scattering_agendaSet(Workspace& ws,
+                     Agenda& gas_scattering_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "gas_scattering_agenda", verbosity);
+
+  using enum Options::gas_scattering_agendaDefaultOptions;
+  switch (Options::togas_scattering_agendaDefaultOptionsOrThrow(option)) {
+    case Dummy:
+      agenda.add("Touch", "gas_scattering_coef");
+      agenda.add("Touch", "gas_scattering_mat");
+      agenda.add("Touch", "gas_scattering_fct_legendre");
+      agenda.add("Ignore", "f_grid");
+      agenda.add("Ignore", "rtp_pressure");
+      agenda.add("Ignore", "rtp_temperature");
+      agenda.add("Ignore", "rtp_vmr");
+      agenda.add("Ignore", "gas_scattering_los_in");
+      agenda.add("Ignore", "gas_scattering_los_out");
+      agenda.add("Ignore", "gas_scattering_output_type");
+      break;
+    case FINAL:
+      break;
+  }
+
+  gas_scattering_agenda = agenda.finalize();
+}

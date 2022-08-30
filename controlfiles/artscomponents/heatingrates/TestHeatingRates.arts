@@ -27,10 +27,10 @@ Arts2 {
     #Surface Agenda, see in python script
                 
     # sensor-only path
-    Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-        
+    ppath_agendaSet( option="FollowSensorLosPath" )
+    
     # no refraction
-    Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )	
+    ppath_step_agendaSet( option="GeometricPath" )	
     
     # (standard) emission calculation
     iy_main_agendaSet(option="Emission")

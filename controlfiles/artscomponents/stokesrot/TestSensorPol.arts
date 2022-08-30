@@ -16,8 +16,8 @@ INCLUDE "general/planet_earth.arts"
 iy_main_agendaSet(option="Emission")
 iy_surface_agendaSet
 iy_space_agendaSet
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
+ppath_step_agendaSet( option="GeometricPath" )
 
 AgendaSet( iy_main_agenda ){
   ppathCalc
@@ -29,7 +29,7 @@ AgendaSet( iy_main_agenda ){
 # Create an empty (having zero absorption) 3D atmosphere
 #
 
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 abs_speciesSet( species=
             ["H2O", 

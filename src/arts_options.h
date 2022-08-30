@@ -89,6 +89,40 @@ ENUMCLASS(iy_cloudbox_agendaDefaultOptions,
           char,
           LinInterpField,
           QuarticInterpField)
+
+/** Options for setting ppath_agenda */
+ENUMCLASS(ppath_agendaDefaultOptions,
+          char,
+          FollowSensorLosPath,
+          PlaneParallel,
+          TransmitterReceiverPath)
+
+/** Options for setting ppath_step_agenda */
+ENUMCLASS(ppath_step_agendaDefaultOptions,
+          char,
+          GeometricPath,
+          RefractedPath)
+
+/** Options for setting refr_index_air_agenda */
+ENUMCLASS(refr_index_air_agendaDefaultOptions,
+          char,
+          NoRefrac,
+          GasMicrowavesEarth,
+          GasInfraredEarth,
+          GasMicrowavesGeneral,
+          FreeElectrons,
+          GasMicrowavesGeneralAndElectrons,
+          GasMicrowavesEarthAndElectrons)
+
+/** Options for setting water_p_eq_agenda */
+ENUMCLASS(water_p_eq_agendaDefaultOptions,
+          char,
+          MK05)
+
+/** Options for setting gas_scattering_agenda */
+ENUMCLASS(gas_scattering_agendaDefaultOptions,
+          char,
+          Dummy)
 }  // namespace Options
 
 #endif

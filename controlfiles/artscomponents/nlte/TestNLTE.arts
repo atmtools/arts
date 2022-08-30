@@ -15,8 +15,8 @@ propmat_clearskyAddLines
 iy_main_agendaSet(option="Emission")
 iy_surface_agendaSet
 iy_space_agendaSet
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
+ppath_step_agendaSet( option="GeometricPath" )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field)
 
 IndexSet( stokes_dim, 1 )

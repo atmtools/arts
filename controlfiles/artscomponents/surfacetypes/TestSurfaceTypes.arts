@@ -19,8 +19,8 @@ Arts2{
   INCLUDE "general/planet_earth.arts"
 
   # Agendas (excpept surface ones)
-  Copy(ppath_agenda, ppath_agenda__FollowSensorLosPath)
-  Copy(ppath_step_agenda, ppath_step_agenda__GeometricPath)
+  ppath_agendaSet(option="FollowSensorLosPath")
+  ppath_step_agendaSet(option="GeometricPath")
   iy_space_agendaSet
   iy_main_agendaSet(option="Emission")
 
