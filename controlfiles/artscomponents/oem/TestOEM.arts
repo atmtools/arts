@@ -12,8 +12,8 @@ INCLUDE "general/planet_earth.arts"
 # Agendas to use
 #
 iy_main_agendaSet(option="Emission")
-Copy( iy_space_agenda,            iy_space_agenda__CosmicBackground   )
-Copy( iy_surface_agenda,          iy_surface_agenda__UseSurfaceRtprop )
+iy_space_agendaSet
+iy_surface_agendaSet
 Copy( ppath_agenda,               ppath_agenda__FollowSensorLosPath   )
 Copy( ppath_step_agenda,          ppath_step_agenda__GeometricPath    )
 

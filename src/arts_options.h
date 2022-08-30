@@ -67,6 +67,28 @@ ENUMCLASS(iy_main_agendaDefaultOptions,
           TransmissionUnitPolIntensity,
           Freqloop,
           ScattMC)
+
+/** Options for setting iy_loop_freqs_agenda */
+ENUMCLASS(iy_loop_freqs_agendaDefaultOptions,
+          char,
+          Emission,
+          Transmission)
+
+/** Options for setting iy_space_agenda */
+ENUMCLASS(iy_space_agendaDefaultOptions,
+          char,
+          CosmicBackground)
+
+/** Options for setting iy_surface_agenda */
+ENUMCLASS(iy_surface_agendaDefaultOptions,
+          char,
+          UseSurfaceRtprop)
+
+/** Options for setting iy_cloudbox_agenda */
+ENUMCLASS(iy_cloudbox_agendaDefaultOptions,
+          char,
+          LinInterpField,
+          QuarticInterpField)
 }  // namespace Options
 
 #endif

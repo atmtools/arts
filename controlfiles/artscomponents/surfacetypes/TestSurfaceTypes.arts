@@ -21,7 +21,7 @@ Arts2{
   # Agendas (excpept surface ones)
   Copy(ppath_agenda, ppath_agenda__FollowSensorLosPath)
   Copy(ppath_step_agenda, ppath_step_agenda__GeometricPath)
-  Copy(iy_space_agenda, iy_space_agenda__CosmicBackground)
+  iy_space_agendaSet
   iy_main_agendaSet(option="Emission")
 
   # Various basic settings

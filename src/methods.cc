@@ -8189,6 +8189,82 @@ Possible models:
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
+        md_data_raw.push_back(create_mdrecord(
+      NAME("iy_loop_freqs_agendaSet"),
+      DESCRIPTION(
+          "Sets a default agenda\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("iy_loop_freqs_agenda"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("option"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Default agenda option (see description)"),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true)));
+
+        md_data_raw.push_back(create_mdrecord(
+      NAME("iy_space_agendaSet"),
+      DESCRIPTION(
+          "Sets a default agenda\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("iy_space_agenda"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("option"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("CosmicBackground"),
+      GIN_DESC("Default agenda option (see description)"),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true)));
+
+        md_data_raw.push_back(create_mdrecord(
+      NAME("iy_surface_agendaSet"),
+      DESCRIPTION(
+          "Sets a default agenda\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("iy_surface_agenda"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("option"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("UseSurfaceRtprop"),
+      GIN_DESC("Default agenda option (see description)"),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true)));
+
+        md_data_raw.push_back(create_mdrecord(
+      NAME("iy_cloudbox_agendaSet"),
+      DESCRIPTION(
+          "Sets a default agenda\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("iy_cloudbox_agenda"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("option"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Default agenda option (see description)"),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true)));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(

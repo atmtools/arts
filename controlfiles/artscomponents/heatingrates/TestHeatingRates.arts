@@ -19,10 +19,10 @@ Arts2 {
 	#==========================================================================                  
                     
     # cosmic background radiation
-    Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+    iy_space_agendaSet
             
     # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-    Copy( iy_surface_agenda,iy_surface_agenda__UseSurfaceRtprop)
+    iy_surface_agendaSet
                 
     #Surface Agenda, see in python script
                 

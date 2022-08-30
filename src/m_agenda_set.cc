@@ -194,18 +194,18 @@ struct MethodVariable {
 
  private:
   void method_position(const Array<AgendaMethodVariable>& list,
-                        const std::string_view rhs) {
+                       const std::string_view rhs) {
     auto ptr = std::find_if(
         list.begin(), list.end(), [rhs](auto& x) { return x.name == rhs; });
     ARTS_ASSERT(
         ptr not_eq list.end(), "Wrongly named parameter selection: ", rhs);
-    method_pos =  std::distance(list.begin(), ptr);
+    method_pos = std::distance(list.begin(), ptr);
   }
 
   void wsv_position(Workspace& ws, const TokVal& value) {
     new_value = true;
     static std::size_t n = 0;
-    ws_pos =  ws.add_wsv(WsvRecord(
+    ws_pos = ws.add_wsv(WsvRecord(
         var_string("::wsv", n++).c_str(), "method value", value.type(), value));
   }
 };
@@ -263,9 +263,11 @@ void add_method_and_setters(Workspace& ws,
                           [method](auto& x) { return method == x.Name(); });
   const auto m_id = std::distance(global_data::md_data.begin(), ptr);
 
-  if (not ptr -> SetMethod()) for (auto& x : input_data) x.add_set(ws, a);
+  if (not ptr->SetMethod())
+    for (auto& x : input_data) x.add_set(ws, a);
   a.push_back(MRecord(m_id, out, in, to_tokval(ws, input_data), a));
-  if (not ptr -> SetMethod()) for (auto& x : input_data) x.add_del(ws, a);
+  if (not ptr->SetMethod())
+    for (auto& x : input_data) x.add_del(ws, a);
 }
 
 //! Helper class to create an agenda
@@ -365,4 +367,88 @@ void iy_main_agendaSet(Workspace& ws,
   }
 
   iy_main_agenda = agenda.finalize();
+}
+
+void iy_loop_freqs_agendaSet(Workspace& ws,
+                             Agenda& iy_loop_freqs_agenda,
+                             const String& option,
+                             const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "iy_loop_freqs_agenda", verbosity);
+
+  using enum Options::iy_loop_freqs_agendaDefaultOptions;
+  switch (Options::toiy_loop_freqs_agendaDefaultOptionsOrThrow(option)) {
+    case Emission:
+      agenda.add("ppathCalc");
+      agenda.add("iyEmissionStandard");
+      break;
+    case Transmission:
+      agenda.add("Ignore", "iy_id");
+      agenda.add("ppathCalc");
+      agenda.add("iyTransmissionStandard");
+      break;
+    case FINAL:
+      break;
+  }
+
+  iy_loop_freqs_agenda = agenda.finalize();
+}
+
+void iy_space_agendaSet(Workspace& ws,
+                        Agenda& iy_space_agenda,
+                        const String& option,
+                        const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "iy_space_agenda", verbosity);
+
+  using enum Options::iy_space_agendaDefaultOptions;
+  switch (Options::toiy_space_agendaDefaultOptionsOrThrow(option)) {
+    case CosmicBackground:
+      agenda.add("Ignore", "rtp_pos");
+      agenda.add("Ignore", "rtp_los");
+      agenda.add("MatrixCBR", "iy", "stokes_dim", "f_grid");
+      break;
+    case FINAL:
+      break;
+  }
+
+  iy_space_agenda = agenda.finalize();
+}
+
+void iy_surface_agendaSet(Workspace& ws,
+                          Agenda& iy_surface_agenda,
+                          const String& option,
+                          const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "iy_surface_agenda", verbosity);
+
+  using enum Options::iy_surface_agendaDefaultOptions;
+  switch (Options::toiy_surface_agendaDefaultOptionsOrThrow(option)) {
+    case UseSurfaceRtprop:
+      agenda.add("SurfaceDummy");
+      agenda.add("iySurfaceRtpropAgenda");
+      break;
+    case FINAL:
+      break;
+  }
+
+  iy_surface_agenda = agenda.finalize();
+}
+
+void iy_cloudbox_agendaSet(Workspace& ws,
+                           Agenda& iy_cloudbox_agenda,
+                           const String& option,
+                           const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "iy_cloudbox_agenda", verbosity);
+
+  using enum Options::iy_cloudbox_agendaDefaultOptions;
+  switch (Options::toiy_cloudbox_agendaDefaultOptionsOrThrow(option)) {
+    case LinInterpField:
+      agenda.add("iyInterpCloudboxField");
+      break;
+    case QuarticInterpField:
+      agenda.add("iyInterpCloudboxField", SetWsv{"za_interp_order", Index{4}});
+      break;
+    case FINAL:
+      break;
+  }
+
+  iy_cloudbox_agenda = agenda.finalize();
 }

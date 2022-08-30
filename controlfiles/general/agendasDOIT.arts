@@ -96,7 +96,7 @@ AgendaSet( doit_conv_test_agenda ){
 
 }
 
-Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__LinInterpField )
+iy_cloudbox_agendaSet( option="LinInterpField" )
 
 
 } # End main-----------------------------------------------------------------

@@ -13,8 +13,8 @@ propmat_clearskyAddLines
 }
 
 iy_main_agendaSet(option="Emission")
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_surface_agendaSet
+iy_space_agendaSet
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field)
