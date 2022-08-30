@@ -1,9 +1,10 @@
 import os
 import sys
-from   ast      import parse, Call, Name, Expression, Expr, FunctionDef, \
-                       Starred, Module, Str
-from   inspect  import getsource, getclosurevars
-from   copy     import copy
+from ast import parse, Call, Name, Expression, Expr, FunctionDef, \
+    Starred, Module, Str
+from inspect import getsource, getclosurevars, ismodule, isclass
+from copy import copy
+from typing import Callable
 
 import pyarts.arts as cxx
 from pyarts.workspace.utility import unindent as unindent
@@ -98,7 +99,7 @@ def arts_agenda(func=None, *, ws=None, allow_callbacks=False, set_agenda=False):
     (allowing initiating automatic checking if the type is named as a defined
     workspace agenda)
     """
-    
+
     def agenda_decorator(func):
         return parse_function(func, ws, allow_callbacks=allow_callbacks, set_agenda=set_agenda)
     
@@ -106,6 +107,7 @@ def arts_agenda(func=None, *, ws=None, allow_callbacks=False, set_agenda=False):
         return agenda_decorator
     else:
         return parse_function(func, ws, False, False)
+
 
 def parse_function(func, arts, allow_callbacks, set_agenda):
     """
@@ -118,12 +120,23 @@ def parse_function(func, arts, allow_callbacks, set_agenda):
     Return:
         An 'Agenda' object containing the code in the given function.
     """
-    
+
     source = getsource(func)
     source = unindent(source)
     ast = parse(source)
-    
+
     context = copy(func.__globals__)
+    dellist = []
+    for key in context:
+        if key.startswith("__"):
+            continue
+        if (not ismodule(context[key]) and
+            not isclass(context[key]) and
+            not isinstance(context[key], Callable)):
+            dellist.append(key)
+    for key in dellist:
+        del context[key]
+
     nls, _, _, _ = getclosurevars(func)
     context.update(nls)
     
