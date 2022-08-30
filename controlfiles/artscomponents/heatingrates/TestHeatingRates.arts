@@ -180,6 +180,9 @@ Arts2 {
     heating_ratesFromIrradiance
     Tensor3Create( heating_rates1 )
     Copy(heating_rates1,heating_rates)
+
+    #Uncomment, if you want to calculate new reference
+    #WriteXML("ascii", heating_rates, "TestHeatingRates.heating_ratesREFERENCE2.xml" )
     
     
     # For testing calculate first spectral irradiance and than do spectral 
@@ -189,8 +192,8 @@ Arts2 {
                             spectral_radiation_field=spectral_irradiance_field
     )
     
-    heating_ratesFromIrradiance   
-    
+    heating_ratesFromIrradiance
+
     Compare( heating_rates, heating_rates1, 1e-14)
     
     
