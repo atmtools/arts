@@ -36,8 +36,8 @@
 #include <string_view>
 
 namespace {
-constexpr std::string_view quotation_mark_replacement{"”"};
-constexpr std::string_view quotation_mark_original{"\""};
+static inline std::string quotation_mark_replacement{"”"};
+static inline std::string quotation_mark_original{"\""};
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////
