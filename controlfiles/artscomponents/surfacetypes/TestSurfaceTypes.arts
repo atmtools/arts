@@ -14,7 +14,7 @@ Arts2{
 
   # Includes
   
-  INCLUDE "general/agendas.arts"
+  water_p_eq_agendaSet gas_scattering_agendaSet
   INCLUDE "general/continua.arts"
   INCLUDE "general/planet_earth.arts"
 

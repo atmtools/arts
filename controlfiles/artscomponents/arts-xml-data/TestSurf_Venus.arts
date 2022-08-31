@@ -26,7 +26,7 @@
 Arts2 {
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet gas_scattering_agendaSet
 INCLUDE "general/planet_venus.arts"
 
 # the 3D geo grid to test
