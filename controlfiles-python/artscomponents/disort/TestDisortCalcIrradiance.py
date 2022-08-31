@@ -46,23 +46,21 @@ ws.verbositySetAgenda(level=0)
 
 
 ws.execute_controlfile("general/continua.arts")
-ws.execute_controlfile("general/agendas.arts")
 ws.execute_controlfile("general/planet_earth.arts")
 
 
 # gas scattering agenda
-@arts_agenda
+@arts_agenda(ws=ws, set_agenda=True)
 def gas_scattering_agenda(ws):
     ws.Ignore(ws.rtp_vmr)
     ws.gas_scattering_coefAirSimple()
     ws.gas_scattering_matRayleigh()
 
 
-ws.gas_scattering_agenda = gas_scattering_agenda
-ws.iy_main_agenda = ws.iy_main_agenda__Clearsky
-ws.iy_space_agenda = ws.iy_space_agenda__CosmicBackground
-ws.ppath_step_agenda = ws.ppath_step_agenda__GeometricPath
-ws.ppath_agenda = ws.ppath_agenda__FollowSensorLosPath
+ws.iy_main_agendaSet( option="Clearsky" )
+ws.iy_space_agendaSet( option="CosmicBackground" )
+ws.ppath_step_agendaSet( option="GeometricPath" )
+ws.ppath_agendaSet( option="FollowSensorLosPath" )
 
 # define environment
 # =============================================================================
