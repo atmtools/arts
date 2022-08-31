@@ -17,7 +17,7 @@ iy_space_agendaSet
 ppath_step_agendaSet( option="GeometricPath" )
 
 # Blackbody surface with skin temperature interpolated from t_surface field
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 IndexSet( stokes_dim, 1 )
 AtmosphereSet3D

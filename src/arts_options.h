@@ -123,6 +123,18 @@ ENUMCLASS(water_p_eq_agendaDefaultOptions,
 ENUMCLASS(gas_scattering_agendaDefaultOptions,
           char,
           Dummy)
+
+/** Options for setting surface_rtprop_agenda */
+ENUMCLASS(surface_rtprop_agendaDefaultOptions,
+          char,
+          Blackbody_SurfTFromt_surface,
+          Blackbody_SurfTFromt_field,
+          Specular_NoPol_ReflFix_SurfTFromt_surface,
+          Specular_NoPol_ReflFix_SurfTFromt_field,
+          Specular_WithPol_ReflFix_SurfTFromt_surface,
+          lambertian_ReflFix_SurfTFromt_surface,
+          lambertian_ReflFix_SurfTFromt_field
+          )
 }  // namespace Options
 
 #endif

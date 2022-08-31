@@ -54,8 +54,7 @@ ppath_step_agendaSet( option="GeometricPath" )
 NumericSet( ppath_lmax, 250 )
 
 # Surface
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 
 # 2. Spectroscopy

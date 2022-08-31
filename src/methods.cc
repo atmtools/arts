@@ -8350,6 +8350,24 @@ Possible models:
                       USES_TEMPLATES(false),
                       PASSWORKSPACE(true)));
 
+  md_data_raw.push_back(
+      create_mdrecord(NAME("surface_rtprop_agendaSet"),
+                      DESCRIPTION("Sets a default agenda\n"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("surface_rtprop_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(

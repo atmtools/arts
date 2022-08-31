@@ -143,14 +143,10 @@ struct MethodVariable {
           auto lhs = std::string_view(expr.begin(), equal_sign);
           auto rhs = std::string_view(equal_sign, expr.end());
 
-          while (std::isspace(lhs.front()) or lhs.front() == '=')
-            lhs.remove_prefix(1);
-          while (std::isspace(lhs.back()) or lhs.back() == '=')
-            lhs.remove_suffix(1);
-          while (std::isspace(rhs.front()) or rhs.front() == '=')
-            lhs.remove_prefix(1);
-          while (std::isspace(rhs.back()) or rhs.back() == '=')
-            lhs.remove_suffix(1);
+          while (lhs.size() and (std::isspace(lhs.front()) or lhs.front() == '=')) lhs.remove_prefix(1);
+          while (lhs.size() and (std::isspace(lhs.back()) or lhs.back() == '='))   lhs.remove_suffix(1);
+          while (rhs.size() and (std::isspace(rhs.front()) or rhs.front() == '=')) rhs.remove_prefix(1);
+          while (rhs.size() and (std::isspace(rhs.back()) or rhs.back() == '='))   rhs.remove_suffix(1);
           method_position(list, lhs);
           ws_pos = ws.WsvMap_ptr->at(rhs);
         }
@@ -615,4 +611,53 @@ void gas_scattering_agendaSet(Workspace& ws,
   }
 
   gas_scattering_agenda = agenda.finalize();
+}
+
+
+void surface_rtprop_agendaSet(Workspace& ws,
+                     Agenda& surface_rtprop_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "surface_rtprop_agenda", verbosity);
+
+  using enum Options::surface_rtprop_agendaDefaultOptions;
+  switch (Options::tosurface_rtprop_agendaDefaultOptionsOrThrow(option)) {
+    case Blackbody_SurfTFromt_surface:
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("surfaceBlackbody");
+      break;
+    case Blackbody_SurfTFromt_field:
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_field");
+      agenda.add("surfaceBlackbody");
+      break;
+    case Specular_NoPol_ReflFix_SurfTFromt_surface:
+      agenda.add("specular_losCalc");
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("surfaceFlatScalarReflectivity");
+      break;
+    case Specular_NoPol_ReflFix_SurfTFromt_field:
+      agenda.add("specular_losCalc");
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_field");
+      agenda.add("surfaceFlatScalarReflectivity");
+      break;
+    case Specular_WithPol_ReflFix_SurfTFromt_surface:
+      agenda.add("specular_losCalc");
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("surfaceFlatReflectivity");
+      break;
+    case lambertian_ReflFix_SurfTFromt_surface:
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("specular_losCalc");
+      agenda.add("surfaceLambertianSimple");
+      break;
+    case lambertian_ReflFix_SurfTFromt_field:
+      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_field");
+      agenda.add("specular_losCalc");
+      agenda.add("surfaceLambertianSimple");
+      break;
+    case FINAL:
+      break;
+  }
+
+  surface_rtprop_agenda = agenda.finalize();
 }

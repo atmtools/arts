@@ -45,8 +45,7 @@ Arts2 {
     }
 	
     # surface agenda
-    Copy( surface_rtprop_agenda,
-            surface_rtprop_agenda__Blackbody_SurfTFromt_surface)
+    surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_surface" )
 	
 	
 	#==========================================================================

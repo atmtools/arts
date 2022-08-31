@@ -64,8 +64,7 @@ AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 Extract( t_surface, t_field, 0 )
 VectorSet( surface_scalar_reflectivity, [0.4] )
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 
 # Frequencies and Stokes dim.
