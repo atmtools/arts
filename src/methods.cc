@@ -5743,9 +5743,6 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
-          "\n"
           "DISCLAIMER: There is a couple of known issues with the current\n"
           "implementation (see below). Use this WSM with care and only if\n"
           "these limitations/requirements are fulfilled. Results might be\n"
@@ -5784,9 +5781,19 @@ Possible models:
           "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
-          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"),
+          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
+          "                               scattering albedo.\n"
+          " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
+          "                               Zero, if no star is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
-      OUT("cloudbox_field","optical_depth"),
+      OUT("cloudbox_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5817,7 +5824,8 @@ Possible models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "181", "0", "1", "1"),
@@ -5839,18 +5847,25 @@ Possible models:
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
-          "\n"
           "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
           "\n"
           "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
           "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
           "set according to the result of *surface_rtprop_agenda* for this incidence\n"
           "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
-          "multiple angles, to estimate the hemispheric mean value.\n"),
+          "multiple angles, to estimate the hemispheric mean value.\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
+          "                               scattering albedo.\n"
+          " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
+          "                               Zero, if no star is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
-      OUT("cloudbox_field","optical_depth"),
+      OUT("cloudbox_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5880,7 +5895,8 @@ Possible models:
          "stokes_dim",
          "z_surface",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "Npfct", "quiet", "emission", "intensity_correction", "inc_angle"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index","Numeric"),
       GIN_DEFAULT("8", "181", "0", "1", "1", "-1"),
@@ -5904,16 +5920,23 @@ Possible models:
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running clear-sky cases.\n"
           "\n"
-          "THIS VERSION INCLUDES DIRECT SOURCE!\n"
-          "DEVELOPMENT VERSION!"
-          "\n"
           "The method runs DISORT with *pnd_field* set to zero.\n"
           "\n"
           "Note that this version returns *spectral_radiance_field*, i.e.\n"
           "the solution for the full atmosphere. The standard *DisortCalc*\n"
-          "only returns the field inside the cloudbox.\n"),
+          "only returns the field inside the cloudbox.\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical\n"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\n"
+          "                               scattering albedo.\n"
+          " \"Direct beam\": Matrix [f_grid, p_grid]. Level direct spectral radiance.\n"
+          "                               Zero, if no star is present \n"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
-      OUT("spectral_radiance_field"),
+      OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5938,12 +5961,90 @@ Possible models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do"),
+         "stars_do",
+         "disort_aux_vars"),
       GIN("nstreams", "quiet", "emission", "intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "0", "1", "1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
                "solution (must be an even number).\n",
+               "Silence C Disort warnings.\n",
+               "Enables blackbody emission. Set to zero, if no\n "
+               "Emission e. g. like in visible regime for earth\n"
+               "is needed\n",
+               "Enables intensity correction. Importantant for low number of \n"
+               "streams. Set to zero, if problems encounter or using a high number\n "
+               "of streams (>30)\n")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("DisortCalcIrradiance"),
+      DESCRIPTION(
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
+          "for running flux (irradiance) calculations\n"
+          "\n"
+          "It provides the irradiance field from a scalar\n"
+          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
+          "Earth). Only totally randomly oriented particles are allowed.\n"
+          "Refraction is not taken into account. Only Lambertian surface\n"
+          "reflection is handled.\n"
+          "\n"
+          "*nstreams* is the number of polar angles taken into account\n"
+          "internally in the scattering solution and for the angular integration.\n"
+          "*nstreams* determines the angular resolution, hence the accuracy,\n"
+          "of the scattering solution. The more anisotropic the bulk scattering\n"
+          "matrix, the more streams are required. The computational burden\n"
+          "increases approximately linearly with *nstreams*. The default value\n"
+          "(6) is sufficient for most flux calculations.\n"
+          "\n"
+          "Some auxiliary quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical\n"
+          "                              thickness.\n"
+          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
+          "                               scattering albedo.\n"
+          " \"Direct downward spectral irradiance\": Matrix [f_grid, p_grid]. \n"
+          "                               Direct downward spectral irradiance.\n"
+          "                               Zero, if no star is present. \n"
+          " \"dFdtau\": Matrix [f_grid, p_grid]. Flux divergence in optical \n"
+          "                               thickness space.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("spectral_irradiance_field","disort_aux"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "scat_data_checked",
+         "propmat_clearsky_agenda",
+         "gas_scattering_agenda",
+         "atmosphere_dim",
+         "pnd_field",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "p_grid",
+         "lat_true",
+         "lon_true",
+         "refellipsoid",
+         "scat_data",
+         "stars",
+         "f_grid",
+         "stokes_dim",
+         "z_surface",
+         "surface_skin_t",
+         "surface_scalar_reflectivity",
+         "gas_scattering_do",
+         "stars_do",
+         "disort_aux_vars"),
+      GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("6", "181", "0", "1", "1"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
+               "solution (must be an even number).\n",
+               "Number of angular grid points to calculate bulk phase\n"
+               " function on (and derive Legendre polynomials from). If <0,\n"
+               " the finest za_grid from scat_data will be used.\n",
                "Silence C Disort warnings.\n",
                "Enables blackbody emission. Set to zero, if no\n "
                "Emission e. g. like in visible regime for earth\n"
@@ -19261,7 +19362,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("starsAddSingleBlackbody"),
-      DESCRIPTION("Adds a single blackbody to *stars*\n"),
+      DESCRIPTION("Adds a single blackbody to *stars*\n"
+                  "\n"
+                  "Important note:\n"
+                  "For a Sol-like star there are huge differences in the UV-range \n"
+                  "between the actual star spectrum and the blackbody spectrum"
+                  "with the effective temperature of the star. The blackbody star\""
+                  "strongly overestimates the UV radiation.\n"),
       AUTHORS("Jon Petersen"),
       OUT("stars",
           "stars_do"),

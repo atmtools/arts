@@ -13,6 +13,7 @@ endif()
 arts_test_run_pyfile(fast artscomponents/linemixing/TestMolOxyAdaptation.py)
 
 arts_test_run_pyfile(fast artscomponents/cutoff/ycalc.py)
+arts_test_run_pyfile(fast artscomponents/disort/TestDisortCalcIrradiance.py)
 arts_test_run_pyfile(fast artscomponents/gasscattering/TestClearsky_StarGasScatteringIsotropic.py)
 arts_test_run_pyfile(fast artscomponents/gasscattering/TestClearsky_StarGasScatteringRayleigh.py)
 arts_test_run_pyfile(fast artscomponents/predefined/TestCKDMT350.py)

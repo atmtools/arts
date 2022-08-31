@@ -209,6 +209,73 @@ void check_disort_input(  // Input
   }
 }
 
+void check_disort_irradiance_input(  // Input
+    const Index& atmfields_checked,
+    const Index& atmgeom_checked,
+    const Index& scat_data_checked,
+    const Index& atmosphere_dim,
+    const Index& stokes_dim,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Index& nstreams) {
+  if (atmfields_checked != 1)
+    throw runtime_error(
+        "The atmospheric fields must be flagged to have "
+        "passed a consistency check (atmfields_checked=1).");
+
+  if (atmgeom_checked != 1)
+    throw runtime_error(
+        "The atmospheric geometry must be flagged to have "
+        "passed a consistency check (atmgeom_checked=1).");
+
+  if (scat_data_checked != 1)
+    throw runtime_error(
+        "The scat_data must be flagged to have "
+        "passed a consistency check (scat_data_checked=1).");
+
+  if (atmosphere_dim != 1)
+    throw runtime_error(
+        "For running DISORT, atmospheric dimensionality "
+        "must be 1.\n");
+
+  if (stokes_dim < 0 || stokes_dim > 1)
+    throw runtime_error(
+        "For running DISORT, the dimension of stokes vector "
+        "must be 1.\n");
+
+  if (scat_data.empty())
+    throw runtime_error(
+        "No single scattering data present.\n"
+        "See documentation of WSV *scat_data* for options to "
+        "make single scattering data available.\n");
+
+  // DISORT requires even number of streams:
+  // nstreams is total number of directions, up- and downwelling, and the up-
+  // and downwelling directions need to be symmetrically distributed, i.e. same
+  // number of directions in both hemispheres is required. horizontal direction
+  // (90deg) can not be covered in a plane-parallel atmosphere.
+  if (nstreams / 2 * 2 != nstreams) {
+    ostringstream os;
+    os << "DISORT requires an even number of streams, but yours is " << nstreams
+       << ".\n";
+    throw runtime_error(os.str());
+  }
+
+  // DISORT can only handle randomly oriented particles.
+  bool all_totrand = true;
+  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
+    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+      if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND) all_totrand = false;
+  if (!all_totrand) {
+    ostringstream os;
+    os << "DISORT can only handle scattering elements of type "
+       << PTYPE_TOTAL_RND << " (" << PTypeToString(PTYPE_TOTAL_RND) << "),\n"
+       << "but at least one element of other type (" << PTYPE_AZIMUTH_RND << "="
+       << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL << "="
+       << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
+    throw runtime_error(os.str());
+  }
+}
+
 void init_ifield(  // Output
     Tensor7& cloudbox_field,
     // Input
@@ -483,6 +550,12 @@ void get_dtauc_ssalb(MatrixView dtauc,
             (ext_bulk_gas(f_index, ip) + abs_bulk_par(f_index, ip) +
              ext_bulk_gas(f_index, ip + 1) + abs_bulk_par(f_index, ip + 1));
         ssalb(f_index, Np - 2 - ip) = (ext - abs) / ext;
+
+        ARTS_USER_ERROR_IF((ext - abs) / ext > 1,
+                           "ssalb > 1 @ \n",
+                           "pressure level   = ", ip,"\n",
+                           "frequency number = ", f_index,"\n");
+
       }
 
       dtauc(f_index, Np - 2 - ip) = ext * (z_profile[ip + 1] - z_profile[ip]);
@@ -865,7 +938,7 @@ void reduced_1datm(Vector& p,
 void run_cdisort(Workspace& ws,
                       // Output
                       Tensor7& cloudbox_field,
-                      Matrix& optical_depth,
+                      ArrayOfMatrix& disort_aux,
                       // Input
                       ConstVectorView f_grid,
                       ConstVectorView p_grid,
@@ -886,6 +959,7 @@ void run_cdisort(Workspace& ws,
                       ConstVectorView star_rte_los,
                       const Index& gas_scattering_do,
                       const Index& stars_do,
+                      const ArrayOfString& disort_aux_vars,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
@@ -1066,9 +1140,6 @@ void run_cdisort(Workspace& ws,
   Matrix ssalb(nf, ds.nlyr);
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
 
-  // DEBUG output
-  optical_depth=dtauc;
-
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
   // emission. Both are applied additively.
@@ -1137,6 +1208,411 @@ void run_cdisort(Workspace& ws,
       }
     }
   }
+
+  // Allocate aux data
+  disort_aux.resize(disort_aux_vars.nelem());
+  // Allocate and set (if possible here) iy_aux
+  Index cnt=-1;
+  for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
+
+
+    if (disort_aux_vars[i] == "Layer optical thickness"){
+      cnt += 1;
+      Matrix deltatau(nf, ds.nlyr, 0);
+      for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+          deltatau(f_index, k - 1 + ncboxremoved) =
+              dtauc(f_index, ds.nlyr - k  + ncboxremoved);
+        }
+      }
+      disort_aux[cnt] = deltatau;
+    }
+    else if (disort_aux_vars[i] == "Single scattering albedo"){
+      cnt+=1;
+      Matrix snglsctalbedo(nf, ds.nlyr,0);
+      for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+          snglsctalbedo(f_index, k - 1 + ncboxremoved) =
+              ssalb(f_index, ds.nlyr - k + ncboxremoved);
+        }
+      }
+      disort_aux[cnt]=snglsctalbedo;
+    }
+    else if (disort_aux_vars[i] == "Direct beam") {
+      cnt += 1;
+      Matrix directbeam(nf, ds.nlyr + 1, 0);
+      if (stars_do) {
+        for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+          directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
+              stars[0].spectrum(f_index, 0)/PI;
+
+          for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+            directbeam(f_index, k - 1 + ncboxremoved) =
+                directbeam(f_index, k + ncboxremoved) *
+                exp(-dtauc(f_index, ds.nlyr - k + ncboxremoved)/umu0);
+          }
+        }
+      }
+      disort_aux[cnt]=directbeam;
+    } else {
+      ARTS_USER_ERROR (
+          "The only allowed strings in *disort_aux_vars* are:\n"
+          "  \"Layer optical thickness\"\n"
+          "  \"Single scattering albedo\"\n"
+          "  \"Direct beam\"\n"
+          "but you have selected: \"", disort_aux_vars[i], "\"\n");
+    }
+  }
+
+  /* Free allocated memory */
+  c_disort_out_free(&ds, &out);
+  c_disort_state_free(&ds);
+}
+
+void run_cdisort_flux(Workspace& ws,
+                      Tensor5& spectral_irradiance_field,
+                      ArrayOfMatrix& disort_aux,
+                      ConstVectorView f_grid,
+                      ConstVectorView p_grid,
+                      ConstVectorView z_profile,
+                      const Numeric& z_surface,
+                      ConstVectorView t_profile,
+                      ConstMatrixView vmr_profiles,
+                      ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const ArrayOfStar& stars,
+                      const Agenda& propmat_clearsky_agenda,
+                      const Agenda& gas_scattering_agenda,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Numeric& surface_skin_t,
+                      const Vector& surface_scalar_reflectivity,
+                      ConstVectorView star_rte_los,
+                      const Index& gas_scattering_do,
+                      const Index& stars_do,
+                      const ArrayOfString& disort_aux_vars,
+                      const Numeric& scale_factor,
+                      const Index& nstreams,
+                      const Index& Npfct,
+                      const Index& quiet,
+                      const Index& emission,
+                      const Index& intensity_correction,
+                      const Verbosity& verbosity) {
+  // Create an atmosphere starting at z_surface
+  Vector p, z, t;
+  Matrix vmr, pnd;
+  ArrayOfIndex cboxlims;
+  Index ncboxremoved;
+  //
+  reduced_1datm(p,
+                z,
+                t,
+                vmr,
+                pnd,
+                cboxlims,
+                ncboxremoved,
+                p_grid,
+                z_profile,
+                z_surface,
+                t_profile,
+                vmr_profiles,
+                pnd_profiles,
+                cloudbox_limits);
+
+  disort_state ds;
+  disort_output out;
+
+  if (quiet == 0)
+    disort_verbosity = verbosity;
+  else
+    disort_verbosity = Verbosity(0, 0, 0);
+
+  const Index nf = f_grid.nelem();
+
+  // solar dependent properties if no sun is present
+  //local zenith angle of sun
+  Numeric umu0 = 0.;
+  //local azimuth angle of sun
+  Numeric phi0 = 0.;
+  //Intensity of incident sun beam
+  Numeric fbeam = 0.;
+
+  if (stars_do) {
+    umu0 = Conversion::cosd(star_rte_los[0]);
+    phi0 = star_rte_los[1];
+    if (phi0 < 0) {
+      phi0 = phi0 + 360.;
+    }
+  }
+
+  ds.accur = 0.005;
+  ds.flag.prnt[0] = FALSE;
+  ds.flag.prnt[1] = FALSE;
+  ds.flag.prnt[2] = FALSE;
+  ds.flag.prnt[3] = FALSE;
+  ds.flag.prnt[4] = TRUE;
+
+  ds.flag.usrtau = FALSE;
+  ds.flag.usrang = TRUE;
+  ds.flag.spher = FALSE;
+  ds.flag.general_source = FALSE;
+  ds.flag.output_uum = FALSE;
+
+  ds.nlyr = static_cast<int>(p.nelem() - 1);
+
+  ds.flag.brdf_type = BRDF_NONE;
+
+  ds.flag.ibcnd = GENERAL_BC;
+  ds.flag.usrang = FALSE;
+
+  if (emission) {
+    ds.flag.planck = TRUE;
+  } else {
+    ds.flag.planck = FALSE;
+  }
+  ds.flag.onlyfl = TRUE;
+  ds.flag.lamber = TRUE;
+  ds.flag.quiet = FALSE;
+  if (intensity_correction) {
+    ds.flag.intensity_correction = TRUE;
+    ds.flag.old_intensity_correction = FALSE;
+  } else {
+    ds.flag.intensity_correction = FALSE;
+    ds.flag.old_intensity_correction = FALSE;
+  }
+
+  ds.nstr = static_cast<int>(nstreams);
+  ds.nphase = ds.nstr;
+  ds.nmom = ds.nstr;
+
+  // set grid size of angular variable to dummy value
+  ds.numu = 1;
+  ds.nphi = 1;
+
+  //Set number of legendre terms
+  Index Nlegendre = nstreams + 1;
+
+  /* Allocate memory */
+  c_disort_state_alloc(&ds);
+  c_disort_out_alloc(&ds, &out);
+
+  // Looking direction of solar beam
+  ds.bc.umu0 = umu0;
+  ds.bc.phi0 = phi0;
+
+  // Intensity of bottom-boundary isotropic illumination
+  ds.bc.fluor = 0.;
+
+  // fill up temperature array
+  if  (ds.flag.planck==TRUE){
+    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+  }
+
+  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+
+  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
+  get_paroptprop(
+      ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
+
+  // get the angles where to calculate the scattering, which is later used for
+  //for the calculation of the legendre polynoms
+  Vector pfct_angs;
+  get_angs(pfct_angs, scat_data, Npfct);
+  Index nang = pfct_angs.nelem();
+
+  Index nf_ssd = scat_data[0][0].f_grid.nelem();
+  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
+  get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
+  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+
+  // Legendre polynomials of phase function
+  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
+  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+
+  if (gas_scattering_do) {
+    // gas scattering
+
+    // layer averaged particle scattering coefficient
+    Matrix sca_bulk_par_layer(nf_ssd, ds.nlyr);
+    get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
+
+    // call gas_scattering_properties
+    Matrix sca_coeff_gas_layer(nf_ssd, ds.nlyr, 0.);
+    Matrix sca_coeff_gas_level(nf_ssd, ds.nlyr + 1, 0.);
+    Matrix pmom_gas(ds.nlyr, Nlegendre, 0.);
+
+    get_gas_scattering_properties(ws,
+                                  sca_coeff_gas_layer,
+                                  sca_coeff_gas_level,
+                                  pmom_gas,
+                                  f_grid,
+                                  p,
+                                  t,
+                                  vmr,
+                                  gas_scattering_agenda);
+
+    // call add_norm_phase_functions
+    add_normed_phase_functions(
+        pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
+
+    // add gas_scat_ext to ext_bulk_par
+    ext_bulk_par += sca_coeff_gas_level;
+  }
+
+  // Optical depth of layers
+  Matrix dtauc(nf, ds.nlyr);
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, ds.nlyr);
+  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
+
+  //upper boundary conditions:
+  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
+  // emission. Both are applied additively.
+  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
+  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
+  // are additive we should use either the one or the other.
+  // Note: previous setup (using fisot) setting temis=0 should be avoided.
+  // Generally, temis!=1 should be avoided since that technically implies a
+  // reflective upper boundary (though it seems that this is not exploited in
+  // DISORT1.2, which we so far use).
+
+  // Cosmic background
+  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
+  ds.bc.fisot = 0;
+
+  // Top of the atmosphere temperature and emissivity
+  ds.bc.ttemp = COSMIC_BG_TEMP;
+  ds.bc.btemp = surface_skin_t;
+  ds.bc.temis = 1.;
+
+  Matrix spectral_direct_irradiance_field;
+  Matrix dFdtau(nf, ds.nlyr+1,0);
+  Matrix deltatau(nf, ds.nlyr,0);
+  Matrix snglsctalbedo(nf, ds.nlyr,0);
+
+  if (stars_do){
+    //Resize direct field
+    spectral_direct_irradiance_field.resize(nf, ds.nlyr+1);
+    spectral_direct_irradiance_field = 0;
+  }
+
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+    sprintf(ds.header, "ARTS Calc f_index = %" PRId64, f_index);
+
+    std::memcpy(ds.dtauc,
+                dtauc(f_index, joker).get_c_array(),
+                sizeof(Numeric) * ds.nlyr);
+    std::memcpy(ds.ssalb,
+                ssalb(f_index, joker).get_c_array(),
+                sizeof(Numeric) * ds.nlyr);
+
+    // Wavenumber in [1/cm]
+    ds.wvnmhi = ds.wvnmlo = (f_grid[f_index]) / (100. * SPEED_OF_LIGHT);
+    ds.wvnmhi += ds.wvnmhi * 1e-7;
+    ds.wvnmlo -= ds.wvnmlo * 1e-7;
+
+    // set
+    ds.bc.albedo = surface_scalar_reflectivity[f_index];
+
+    // Set irradiance of incident solar beam at top boundary
+    if (stars_do) {
+      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
+              (100 * SPEED_OF_LIGHT)*scale_factor;
+    }
+    ds.bc.fbeam = fbeam;
+
+    std::memcpy(ds.pmom,
+                pmom(f_index, joker, joker).get_c_array(),
+                sizeof(Numeric) * pmom.nrows() * pmom.ncols());
+
+    c_disort(&ds, &out);
+
+    //factor for converting it into spectral radiance units
+    const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
+
+    for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
+      if (stars_do){
+        // downward direct flux
+        spectral_direct_irradiance_field(f_index, k + ncboxremoved) =
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
+
+        // downward total flux
+        spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
+            -(out.rad[ds.nlyr - k - cboxlims[0]].rfldir +
+            out.rad[ds.nlyr - k - cboxlims[0]].rfldn)/conv_fac;
+
+      } else {
+        // downward total flux
+        spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldn/conv_fac;
+      }
+
+      // upward flux
+      spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 1) =
+          out.rad[ds.nlyr - k - cboxlims[0]].flup/conv_fac;
+
+      // flux divergence in tau space
+      dFdtau(f_index, k + ncboxremoved) =
+           -out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
+
+      // k is running over the number of levels but deltatau, ssalb is defined for layers,
+      // therefore we need to exlude k==0 and remove one from the index.
+      if (k>0){
+        deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
+        snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
+      }
+    }
+
+    // To avoid potential numerical problems at interpolation of the field,
+    // we copy the surface field to underground altitudes
+    for (Index k = ncboxremoved - 1; k >= 0; k--) {
+      spectral_irradiance_field(f_index, k, 0, 0, joker) =
+          spectral_irradiance_field(f_index, k + 1, 0, 0, joker);
+
+      if (stars_do) {
+        spectral_direct_irradiance_field(f_index, k) =
+            spectral_direct_irradiance_field(f_index, k + 1);
+      }
+      dFdtau(f_index, k) = dFdtau(f_index, k + 1);
+    }
+  }
+
+  // Allocate aux data
+  disort_aux.resize(disort_aux_vars.nelem());
+  // Allocate and set (if possible here) iy_aux
+  Index cnt=-1;
+  for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
+
+
+    if (disort_aux_vars[i] == "Layer optical thickness"){
+      cnt+=1;
+      disort_aux[cnt]=deltatau;
+    }
+    else if (disort_aux_vars[i] == "Single scattering albedo"){
+      cnt+=1;
+      disort_aux[cnt]=snglsctalbedo;
+    }
+    else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
+      cnt += 1;
+      disort_aux[cnt] = spectral_direct_irradiance_field;
+    }
+    else if (disort_aux_vars[i] == "dFdtau") {
+      cnt += 1;
+      disort_aux[cnt] = dFdtau;
+    }
+    else {
+      ARTS_USER_ERROR (
+          "The only allowed strings in *disort_aux_vars* are:\n"
+          "  \"Layer optical thickness\"\n"
+          "  \"Single scatteriering albedo\"\n"
+          "  \"Direct downward spectral irradiance\"\n"
+          "  \"dFdtau\"\n"
+          "but you have selected: \"", disort_aux_vars[i], "\"\n");
+    }
+  }
+
+
 
   /* Free allocated memory */
   c_disort_out_free(&ds, &out);
