@@ -125,14 +125,13 @@ struct MethodVariable {
 
   constexpr MethodVariable() {}
 
-  //! Fully named parameters; fun(X) or fun(X = Y)
   MethodVariable(Workspace& ws,
                  const Array<AgendaMethodVariable>& list,
                  const SetWsv& wsv) {
     using enum SetWsv::opt;
     switch (wsv.test) {
       case NameOnly: {
-        auto& expr = wsv.str;
+        const std::string_view expr = wsv.str;
         auto equal_sign = std::find(expr.begin(), expr.end(), '=');
         if (equal_sign == expr.end()) {
           positional = true;
