@@ -29,7 +29,7 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # blackbody surface with skin temperature interpolated from t_surface field
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 
 jacobianOff

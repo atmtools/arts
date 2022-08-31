@@ -16,19 +16,19 @@ INCLUDE "general/planet_earth.arts"
 
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet( option="CosmicBackground" )
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # Geometrical path calculation (i.e., refraction neglected)
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Standard RT agendas
 #
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_surface_agendaSet( option="UseSurfaceRtprop" )
+iy_main_agendaSet( option="Emission" )
 
 
 # Frequencies and Stokes dim.

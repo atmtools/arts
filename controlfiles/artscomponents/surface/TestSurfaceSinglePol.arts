@@ -33,12 +33,12 @@ NumericCreate( inc_angle )
 
 
 # Standard emission calculation
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_surface_agendaSet( option="UseSurfaceRtprop" )
+iy_space_agendaSet( option="CosmicBackground" )
 
 # Ppaths
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Main radiation agenda
 AgendaSet( iy_main_agenda ) {
@@ -223,7 +223,7 @@ cloudbox_checkedCalc
 scat_data_checkedCalc
 VectorNLinSpace( za_grid, 180, 0, 180 )
 VectorSet( aa_grid, [0] )
-Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuarticInterpField )
+iy_cloudbox_agendaSet( option="QuarticInterpField" )
 
 Extract( pol_angle, pols, 0 )
 DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )

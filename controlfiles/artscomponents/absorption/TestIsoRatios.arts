@@ -60,7 +60,7 @@ VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( sensor_los, za )
 
 # Blackbody surface
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 # Definition of species: here we neglect continua
 abs_speciesSet( species=["H2O-161", "H2O-162", "N2", "O2"] )

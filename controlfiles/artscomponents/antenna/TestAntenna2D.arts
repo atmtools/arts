@@ -12,16 +12,16 @@ water_p_eq_agendaSet gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # (standard) emission calculation
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet( option="UseSurfaceRtprop" )
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet( option="CosmicBackground" )
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Main radiation agenda
 AgendaSet( iy_main_agenda ) {

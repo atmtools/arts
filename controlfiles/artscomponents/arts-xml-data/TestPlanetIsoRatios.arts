@@ -49,7 +49,7 @@ sensorOff
 StringSet( iy_unit, "PlanckBT" )
 
 # Blackbody surface
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 # set atmospheric scenario
 StringCreate( atmcase )
