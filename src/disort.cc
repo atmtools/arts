@@ -1324,6 +1324,7 @@ void run_cdisort_flux(Workspace& ws,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
+                      const Index& only_tro,
                       const Index& quiet,
                       const Index& emission,
                       const Index& intensity_correction,
@@ -1438,22 +1439,53 @@ void run_cdisort_flux(Workspace& ws,
     for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
   }
 
+  //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
 
-  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
-  get_paroptprop(
-      ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
-
-  // get the angles where to calculate the scattering, which is later used for
-  //for the calculation of the legendre polynoms
+  // Get particle bulk properties
+  Index nang;
   Vector pfct_angs;
-  get_angs(pfct_angs, scat_data, Npfct);
-  Index nang = pfct_angs.nelem();
-
+  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
   Index nf_ssd = scat_data[0][0].f_grid.nelem();
-  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
-  get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  Tensor3 pha_bulk_par;
+
+  if (only_tro && (Npfct < 0 || Npfct > 3)) {
+    nang = Npfct;
+    nlinspace(pfct_angs, 0, 180, nang);
+
+    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
+
+    ext_bulk_par = 0.0;
+    abs_bulk_par = 0.0;
+    pha_bulk_par = 0.0;
+
+    Index iflat = 0;
+
+    for (Index iss = 0; iss < scat_data.nelem(); iss++) {
+      const Index nse = scat_data[iss].nelem();
+      ext_abs_pfun_from_tro(ext_bulk_par,
+                            abs_bulk_par,
+                            pha_bulk_par,
+                            scat_data[iss],
+                            iss,
+                            pnd(Range(iflat, nse), joker),
+                            cboxlims,
+                            t,
+                            pfct_angs);
+      iflat += nse;
+    }
+  } else {
+    get_angs(pfct_angs, scat_data, Npfct);
+    nang = pfct_angs.nelem();
+
+    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
+
+    get_paroptprop(
+        ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
+    get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
+  }
+
   Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
   get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 

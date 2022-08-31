@@ -274,6 +274,7 @@ void run_cdisort(Workspace& ws,
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function.
+ * @param[in]     only_tro Flag indicating that only TRO scattering data is used.
  * @param[in]     quiet Silence warnings.
  * @param[in]     emission Enables blackbody emission.
  * @param[in]     intensity_correction Enables intensity correction (for low nstreams)
@@ -306,6 +307,7 @@ void run_cdisort_flux(Workspace& ws,
                       const Numeric& scale_factor,
                       const Index& nstreams,
                       const Index& Npfct,
+                      const Index& only_tro,
                       const Index& quiet,
                       const Index& emission,
                       const Index& intensity_correction,

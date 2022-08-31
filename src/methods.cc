@@ -6043,14 +6043,17 @@ Possible models:
          "gas_scattering_do",
          "stars_do",
          "disort_aux_vars"),
-      GIN("nstreams", "Npfct", "quiet", "emission","intensity_correction"),
-      GIN_TYPE("Index", "Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("6", "181", "0", "1", "1"),
+      GIN("nstreams", "Npfct", "only_tro", "quiet", "emission","intensity_correction"),
+      GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("6", "181", "0", "0", "1", "1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
                "solution (must be an even number).\n",
                "Number of angular grid points to calculate bulk phase\n"
                " function on (and derive Legendre polynomials from). If <0,\n"
                " the finest za_grid from scat_data will be used.\n",
+               "Set to 1 if the scattering data is just of TRO type. Has\n"
+               "       effect only if Npfct > 3 or Npfct<0, but then leads to "
+               "       much faster calculations.\n",
                "Silence C Disort warnings.\n",
                "Enables blackbody emission. Set to zero, if no\n "
                "Emission e. g. like in visible regime for earth\n"
