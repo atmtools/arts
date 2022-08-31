@@ -37,5 +37,16 @@ void py_options(py::module_& m) {
   opt.doc() = "Various named options of Arts";
 
   DeclareOption(Options, iy_main_agendaDefaultOptions)
+  DeclareOption(Options, iy_loop_freqs_agendaDefaultOptions)
+  DeclareOption(Options, iy_space_agendaDefaultOptions)
+  DeclareOption(Options, iy_surface_agendaDefaultOptions)
+  DeclareOption(Options, iy_cloudbox_agendaDefaultOptions)
+  DeclareOption(Options, ppath_agendaDefaultOptions)
+  DeclareOption(Options, ppath_step_agendaDefaultOptions)
+  DeclareOption(Options, refr_index_air_agendaDefaultOptions)
+  DeclareOption(Options, water_p_eq_agendaDefaultOptions)
+  DeclareOption(Options, gas_scattering_agendaDefaultOptions)
+  DeclareOption(Options, surface_rtprop_agendaDefaultOptions)
+  DeclareOption(Options, g0_agendaDefaultOptions)
 }
 }  // namespace Python

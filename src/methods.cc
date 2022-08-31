@@ -8368,6 +8368,24 @@ Possible models:
                       USES_TEMPLATES(false),
                       PASSWORKSPACE(true)));
 
+  md_data_raw.push_back(
+      create_mdrecord(NAME("g0_agendaSet"),
+                      DESCRIPTION("Sets a default agenda\n"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("g0_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(

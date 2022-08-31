@@ -133,8 +133,16 @@ ENUMCLASS(surface_rtprop_agendaDefaultOptions,
           Specular_NoPol_ReflFix_SurfTFromt_field,
           Specular_WithPol_ReflFix_SurfTFromt_surface,
           lambertian_ReflFix_SurfTFromt_surface,
-          lambertian_ReflFix_SurfTFromt_field
-          )
+          lambertian_ReflFix_SurfTFromt_field)
+
+/** Options for setting g0_agenda */
+ENUMCLASS(g0_agendaDefaultOptions,
+          char,
+          Earth,
+          Io,
+          Jupiter,
+          Mars,
+          Venus)
 }  // namespace Options
 
 #endif

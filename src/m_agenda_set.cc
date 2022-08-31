@@ -661,3 +661,43 @@ void surface_rtprop_agendaSet(Workspace& ws,
 
   surface_rtprop_agenda = agenda.finalize();
 }
+
+
+void g0_agendaSet(Workspace& ws,
+                     Agenda& g0_agenda,
+                     const String& option,
+                     const Verbosity& verbosity) {
+  AgendaCreator agenda(ws, "g0_agenda", verbosity);
+
+  using enum Options::g0_agendaDefaultOptions;
+  switch (Options::tog0_agendaDefaultOptionsOrThrow(option)) {
+    case Earth:
+      agenda.add("Ignore", "lon");
+      agenda.add("g0Earth");
+      break;
+    case Io:
+      agenda.add("Ignore", "lon");
+      agenda.add("Ignore", "lat");
+      agenda.add("g0Io");
+      break;
+    case Jupiter:
+      agenda.add("Ignore", "lon");
+      agenda.add("Ignore", "lat");
+      agenda.add("g0Jupiter");
+      break;
+    case Mars:
+      agenda.add("Ignore", "lon");
+      agenda.add("Ignore", "lat");
+      agenda.add("g0Mars");
+      break;
+    case Venus:
+      agenda.add("Ignore", "lon");
+      agenda.add("Ignore", "lat");
+      agenda.add("g0Venus");
+      break;
+    case FINAL:
+      break;
+  }
+
+  g0_agenda = agenda.finalize();
+}

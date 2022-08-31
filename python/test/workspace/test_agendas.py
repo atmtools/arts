@@ -232,6 +232,38 @@ class TestAgendas:
         # Call twice to test multiple defaults
         do_something()
         do_something()
+    
+    def test_agenda_set(self):
+        def get_agendas():
+            wsvdata = pyarts.arts.get_wsv_data()
+            out = []
+            for wsv in wsvdata:
+                if wsv.groupname == "Agenda":
+                    out.append(str(wsv.name))
+            return out
+
+        def get_options(enum_object):
+            out = []
+            for thing in dir(enum_object):
+                if thing.startswith("__") or thing == "value": continue
+                out.append(thing)
+            return out
+
+        def set_agendas(ws, agenda_string):
+            options = get_options(eval(f"pyarts.arts.options.{agenda_string}DefaultOptions"))
+            for enum_option in options:
+                try:
+                    eval(f"ws.{agenda_string}Set(option=enum_option)")
+                except RuntimeError as err:
+                    print(f"Failed to parse {enum_option} of {agenda_string} with error:\n\n{err}")
+
+        ws = pyarts.workspace.Workspace()
+
+        agendas = get_agendas()
+
+        for agenda in agendas: 
+            if f"{agenda}Set" in dir(ws):
+                set_agendas(ws, agenda)
 
 
 if __name__ == "__main__":

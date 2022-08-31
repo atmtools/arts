@@ -36,11 +36,7 @@ NumericSet( molarmass_dry_air, 43.45 )
 # Gravity
 # (needed for hydrostatic equilibrium calculations)
 # 
-AgendaSet( g0_agenda ){
-   Ignore( lon )
-   Ignore( lat )
-   g0Venus
-} 
+g0_agendaSet (option="Venus" )
 
 
 #

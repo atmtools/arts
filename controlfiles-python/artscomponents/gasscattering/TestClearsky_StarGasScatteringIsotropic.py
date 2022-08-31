@@ -72,20 +72,22 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     # =============================================================================
 
     ws.execute_controlfile("general/continua.arts")
-    ws.execute_controlfile("general/agendas.arts")
     ws.execute_controlfile("general/planet_earth.arts")
 
     # cosmic background radiation
-    ws.iy_space_agenda = ws.iy_space_agenda__CosmicBackground
+    ws.iy_space_agendaSet()
 
     # sensor-only path
-    ws.ppath_agenda = ws.ppath_agenda__FollowSensorLosPath
+    ws.ppath_agendaSet( option="FollowSensorLosPath" )
 
     # no refraction
-    ws.ppath_step_agenda = ws.ppath_step_agenda__GeometricPath
+    ws.ppath_step_agendaSet( option="GeometricPath" )
 
     # main agenda
-    ws.iy_main_agenda = ws.iy_main_agenda__Clearsky
+    ws.iy_main_agendaSet( option="Clearsky" )
+
+    # water agenda
+    ws.water_p_eq_agendaSet()
 
     # surface agenda
     ws.iy_surface_agenda = iy_surface_agenda
