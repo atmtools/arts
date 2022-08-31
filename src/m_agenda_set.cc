@@ -140,15 +140,21 @@ struct MethodVariable {
           positional = false;
           auto rhs = expr;
           rhs.remove_prefix(equal_sign);
-          
+
           auto lhs = expr;
           lhs.remove_suffix(rhs.size());
-          
-          while (lhs.size() and (std::isspace(lhs.front()) or lhs.front() == '=')) lhs.remove_prefix(1);
-          while (lhs.size() and (std::isspace(lhs.back()) or lhs.back() == '='))   lhs.remove_suffix(1);
-          while (rhs.size() and (std::isspace(rhs.front()) or rhs.front() == '=')) rhs.remove_prefix(1);
-          while (rhs.size() and (std::isspace(rhs.back()) or rhs.back() == '='))   rhs.remove_suffix(1);
-          
+
+          while (lhs.size() and
+                 (std::isspace(lhs.front()) or lhs.front() == '='))
+            lhs.remove_prefix(1);
+          while (lhs.size() and (std::isspace(lhs.back()) or lhs.back() == '='))
+            lhs.remove_suffix(1);
+          while (rhs.size() and
+                 (std::isspace(rhs.front()) or rhs.front() == '='))
+            rhs.remove_prefix(1);
+          while (rhs.size() and (std::isspace(rhs.back()) or rhs.back() == '='))
+            rhs.remove_suffix(1);
+
           method_position(list, lhs);
           ws_pos = ws.WsvMap_ptr->at(rhs);
         }
@@ -174,7 +180,7 @@ struct MethodVariable {
           {},
           {ws_pos},
           {},
-          a));
+          Agenda{ws}));
   }
 
   void add_set(Workspace& ws, Agenda& a) const {
@@ -187,7 +193,7 @@ struct MethodVariable {
           {ws_pos},
           {},
           ws.wsv_data_ptr->at(ws_pos).default_value(),
-          a));
+          Agenda{ws}));
   }
 
  private:
@@ -263,7 +269,7 @@ void add_method_and_setters(Workspace& ws,
 
   if (not ptr->SetMethod())
     for (auto& x : input_data) x.add_set(ws, a);
-  a.push_back(MRecord(m_id, out, in, to_tokval(ws, input_data), a));
+  a.push_back(MRecord(m_id, out, in, to_tokval(ws, input_data), Agenda{ws}));
   if (not ptr->SetMethod())
     for (auto& x : input_data) x.add_del(ws, a);
 }
@@ -485,9 +491,9 @@ void ppath_agendaSet(Workspace& ws,
 }
 
 void ppath_step_agendaSet(Workspace& ws,
-                     Agenda& ppath_step_agenda,
-                     const String& option,
-                     const Verbosity& verbosity) {
+                          Agenda& ppath_step_agenda,
+                          const String& option,
+                          const Verbosity& verbosity) {
   AgendaCreator agenda(ws, "ppath_step_agenda", verbosity);
 
   using enum Options::ppath_step_agendaDefaultOptions;
@@ -508,9 +514,9 @@ void ppath_step_agendaSet(Workspace& ws,
 }
 
 void refr_index_air_agendaSet(Workspace& ws,
-                     Agenda& refr_index_air_agenda,
-                     const String& option,
-                     const Verbosity& verbosity) {
+                              Agenda& refr_index_air_agenda,
+                              const String& option,
+                              const Verbosity& verbosity) {
   AgendaCreator agenda(ws, "refr_index_air_agenda", verbosity);
 
   using enum Options::refr_index_air_agendaDefaultOptions;
@@ -568,11 +574,10 @@ void refr_index_air_agendaSet(Workspace& ws,
   refr_index_air_agenda = agenda.finalize();
 }
 
-
 void water_p_eq_agendaSet(Workspace& ws,
-                     Agenda& water_p_eq_agenda,
-                     const String& option,
-                     const Verbosity& verbosity) {
+                          Agenda& water_p_eq_agenda,
+                          const String& option,
+                          const Verbosity& verbosity) {
   AgendaCreator agenda(ws, "water_p_eq_agenda", verbosity);
 
   using enum Options::water_p_eq_agendaDefaultOptions;
@@ -587,11 +592,10 @@ void water_p_eq_agendaSet(Workspace& ws,
   water_p_eq_agenda = agenda.finalize();
 }
 
-
 void gas_scattering_agendaSet(Workspace& ws,
-                     Agenda& gas_scattering_agenda,
-                     const String& option,
-                     const Verbosity& verbosity) {
+                              Agenda& gas_scattering_agenda,
+                              const String& option,
+                              const Verbosity& verbosity) {
   AgendaCreator agenda(ws, "gas_scattering_agenda", verbosity);
 
   using enum Options::gas_scattering_agendaDefaultOptions;
@@ -615,45 +619,58 @@ void gas_scattering_agendaSet(Workspace& ws,
   gas_scattering_agenda = agenda.finalize();
 }
 
-
 void surface_rtprop_agendaSet(Workspace& ws,
-                     Agenda& surface_rtprop_agenda,
-                     const String& option,
-                     const Verbosity& verbosity) {
+                              Agenda& surface_rtprop_agenda,
+                              const String& option,
+                              const Verbosity& verbosity) {
   AgendaCreator agenda(ws, "surface_rtprop_agenda", verbosity);
 
   using enum Options::surface_rtprop_agendaDefaultOptions;
   switch (Options::tosurface_rtprop_agendaDefaultOptionsOrThrow(option)) {
     case Blackbody_SurfTFromt_surface:
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_surface");
       agenda.add("surfaceBlackbody");
       break;
     case Blackbody_SurfTFromt_field:
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_field");
+      agenda.add("InterpAtmFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_field");
       agenda.add("surfaceBlackbody");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_surface:
       agenda.add("specular_losCalc");
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_surface");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_field:
       agenda.add("specular_losCalc");
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_field");
+      agenda.add("InterpAtmFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_field");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_WithPol_ReflFix_SurfTFromt_surface:
       agenda.add("specular_losCalc");
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_surface");
       agenda.add("surfaceFlatReflectivity");
       break;
     case lambertian_ReflFix_SurfTFromt_surface:
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_surface");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
       break;
     case lambertian_ReflFix_SurfTFromt_field:
-      agenda.add("InterpSurfaceFieldToPosition", "out=surface_skin_t", "field=t_field");
+      agenda.add("InterpAtmFieldToPosition",
+                 "out=surface_skin_t",
+                 "field=t_field");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
       break;
@@ -664,11 +681,10 @@ void surface_rtprop_agendaSet(Workspace& ws,
   surface_rtprop_agenda = agenda.finalize();
 }
 
-
 void g0_agendaSet(Workspace& ws,
-                     Agenda& g0_agenda,
-                     const String& option,
-                     const Verbosity& verbosity) {
+                  Agenda& g0_agenda,
+                  const String& option,
+                  const Verbosity& verbosity) {
   AgendaCreator agenda(ws, "g0_agenda", verbosity);
 
   using enum Options::g0_agendaDefaultOptions;
