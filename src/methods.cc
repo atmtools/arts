@@ -5921,7 +5921,7 @@ Possible models:
                "Incidence angle, see above.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcClearSky"),
+      NAME("DisortCalcClearsky"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running clear-sky cases.\n"

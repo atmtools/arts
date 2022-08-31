@@ -445,7 +445,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcClearSky(Workspace& ws,
+void DisortCalcClearsky(Workspace& ws,
                     // WS Output:
                     Tensor7& spectral_radiance_field,
                     ArrayOfMatrix& disort_aux,

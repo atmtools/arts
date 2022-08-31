@@ -105,7 +105,7 @@ Copy( ref_field, spectral_radiance_field )
 
 # Set spectral_radiance_field as full DISORT calculation
 #
-DisortCalcClearSky( nstreams = 8 )
+DisortCalcClearsky( nstreams = 8 )
 #WriteXML( "binary", spectral_radiance_field, "f2.xml" )
 Compare( ref_field, spectral_radiance_field, 2e-18 )
 #Copy( ref_field, spectral_radiance_field )
