@@ -1174,7 +1174,7 @@ void iySurfaceLambertian(Workspace& ws,
                           verbosity);
 
   Tensor3 iy_trans_new;
-  Vector los(2, 0);
+
 
   ArrayOfString iy_aux_var(0);
   if (stars_do) {
@@ -1203,13 +1203,19 @@ void iySurfaceLambertian(Workspace& ws,
     //Set azimuth angle index
     Index i_aa = 0;
 
+    std::cout << "1D atmosphere\n";
+
     for (Index i_za = 0; i_za < N_za; i_za++) {
 
-      los[0] = za_grid[i_za];
+
+      std::cout << "i_za: " << i_za << "\n";
+
+      Vector los(1, za_grid[i_za]);
+//      los[0] = za_grid[i_za];
 
       // For clearsky, the skylight is in general approximately independent of the azimuth direction.
       // So, we consider only the line of sight plane.
-      los[1] = rtp_los[1];
+//      los[1] = 0.;
 
       // Calculate downwelling radiation for a los
       ArrayOfMatrix iy_aux;
@@ -1262,6 +1268,9 @@ void iySurfaceLambertian(Workspace& ws,
     }
 
     calculate_int_weights_arbitrary_grid(aa_grid_weights, aa_grid_rad);
+
+    //Allocate
+    Vector los(2, 0);
 
     for (Index i_aa = 0; i_aa < N_aa; i_aa++) {
       for (Index i_za = 0; i_za < N_za; i_za++) {
