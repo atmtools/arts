@@ -132,20 +132,23 @@ struct MethodVariable {
     switch (wsv.test) {
       case NameOnly: {
         const std::string_view expr = wsv.str;
-        auto equal_sign = std::find(expr.begin(), expr.end(), '=');
-        if (equal_sign == expr.end()) {
+        auto equal_sign = expr.find('=');
+        if (equal_sign == expr.npos) {
           positional = true;
           ws_pos = ws.WsvMap_ptr->at(expr);
-
         } else {
           positional = false;
-          auto lhs = std::string_view(expr.begin(), equal_sign);
-          auto rhs = std::string_view(equal_sign, expr.end());
-
+          auto rhs = expr;
+          rhs.remove_prefix(equal_sign);
+          
+          auto lhs = expr;
+          lhs.remove_suffix(rhs.size());
+          
           while (lhs.size() and (std::isspace(lhs.front()) or lhs.front() == '=')) lhs.remove_prefix(1);
           while (lhs.size() and (std::isspace(lhs.back()) or lhs.back() == '='))   lhs.remove_suffix(1);
           while (rhs.size() and (std::isspace(rhs.front()) or rhs.front() == '=')) rhs.remove_prefix(1);
           while (rhs.size() and (std::isspace(rhs.back()) or rhs.back() == '='))   rhs.remove_suffix(1);
+          
           method_position(list, lhs);
           ws_pos = ws.WsvMap_ptr->at(rhs);
         }
