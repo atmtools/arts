@@ -1668,7 +1668,7 @@ void run_cdisort_flux(Workspace& ws,
       ARTS_USER_ERROR (
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
-          "  \"Single scatteriering albedo\"\n"
+          "  \"Single scattering albedo\"\n"
           "  \"Direct downward spectral irradiance\"\n"
           "  \"dFdtau\"\n"
           "but you have selected: \"", disort_aux_vars[i], "\"\n");
