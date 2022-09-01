@@ -80,6 +80,7 @@ void DisortCalc(Workspace& ws,
                     const ArrayOfString& disort_aux_vars,
                     const Index& nstreams,
                     const Index& Npfct,
+                    const Index& only_tro,
                     const Index& cdisort_quiet,
                     const Index& emission,
                     const Index& intensity_correction,
@@ -147,7 +148,9 @@ void DisortCalc(Workspace& ws,
     if (star_rte_los[0] >= 90) {
       star_on = 0;
 
-      //TODO: Add warning message that star is switched off because it is below horizon
+      CREATE_OUT0;
+      out0 << "Star is below the horizon\n";
+      out0 << "Star is ignored.\n";
     }
 
     init_ifield(cloudbox_field,
@@ -180,6 +183,10 @@ void DisortCalc(Workspace& ws,
 
 
   } else {
+    CREATE_OUT3;
+    out3 << "Disort calculation encountered aa_grid size larger than 1 in a case when it\n";
+    out3 << "does not use aa_grid. Calculations are performed as if there is no aa_grid.\n";
+
     init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
@@ -220,6 +227,7 @@ void DisortCalc(Workspace& ws,
               scale_factor,
               nstreams,
               Npfct,
+              only_tro,
               cdisort_quiet,
               emission,
               intensity_correction,
@@ -263,6 +271,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const ArrayOfString& disort_aux_vars,
                     const Index& nstreams,
                     const Index& Npfct,
+                    const Index& only_tro,
                     const Index& cdisort_quiet,
                     const Index& emission,
                     const Index& intensity_correction,
@@ -332,7 +341,9 @@ void DisortCalcWithARTSSurface(Workspace& ws,
     if (star_rte_los[0] >= 90) {
       star_on = 0;
 
-      //TODO: Add warning message that star is switched off because it is below horizon
+      CREATE_OUT0;
+      out0 << "Star is below the horizon\n";
+      out0 << "Star is ignored.\n";
     }
 
     init_ifield(cloudbox_field,
@@ -425,6 +436,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
               scale_factor,
               nstreams,
               Npfct,
+              only_tro,
               cdisort_quiet,
               emission,
               intensity_correction,
@@ -433,7 +445,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcClearSky(Workspace& ws,
+void DisortCalcClearsky(Workspace& ws,
                     // WS Output:
                     Tensor7& spectral_radiance_field,
                     ArrayOfMatrix& disort_aux,
@@ -540,6 +552,7 @@ void DisortCalcClearSky(Workspace& ws,
                  nstreams,
                  181,
                  cdisort_quiet,
+                 0,
                  emission,
                  intensity_correction,
                  verbosity);
@@ -578,17 +591,15 @@ void DisortCalcIrradiance(Workspace& ws,
                 const ArrayOfString& disort_aux_vars,
                 const Index& nstreams,
                 const Index& Npfct,
+                const Index& only_tro,
                 const Index& cdisort_quiet,
                 const Index& emission,
                 const Index& intensity_correction,
                 const Verbosity& verbosity) {
-  // Don't do anything if there's no cloudbox defined.
 
   // Set cloudbox to cover complete atmosphere
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
-  const Index cloudbox_checked = 1;
-  //
   cloudboxSetFullAtm(cloudbox_on,
                      cloudbox_limits,
                      atmosphere_dim,
@@ -656,7 +667,9 @@ void DisortCalcIrradiance(Workspace& ws,
     if (star_rte_los[0] >= 90) {
       star_on = 0;
 
-      //TODO: Add warning message that star is switched off because it is below horizon
+      CREATE_OUT0;
+      out0 << "Star is below the horizon\n";
+      out0 << "Star is ignored.\n";
     }
 
     //get the cloudbox top distance to earth center.
@@ -711,6 +724,7 @@ void DisortCalcIrradiance(Workspace& ws,
                    scale_factor,
                    nstreams,
                    Npfct,
+                   only_tro,
                    cdisort_quiet,
                    emission,
                    intensity_correction,
