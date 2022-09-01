@@ -31,18 +31,24 @@ std::pair<ArrayOfIndex, ArrayOfIndex> split_io(
     Array<AgendaMethodVariable>& var_order);
 
 struct SetWsv {
+  //! Checks for which type of information should be used later on
   enum class opt : char { NameOnly, ValueOnly, NameAndValue };
 
   opt test;
   std::string str{""};
   TokVal val{};
 
+  //! For named wsv1=wsv2
   SetWsv(const std::string& x, const std::string& y);
+
+  //! For either named "wsv1=wsv2" or positional wsv1
   SetWsv(std::string_view x);
-  SetWsv(ArtsType auto&& t)
-      : test(opt::ValueOnly), val(std::forward<decltype(t)>(t)) {}
-  SetWsv(std::string_view x, ArtsType auto&& t)
-      : test(opt::NameAndValue), str(x), val(std::forward<decltype(t)>(t)) {}
+
+  //! For position value
+  SetWsv(ArtsType auto&& t) : test(opt::ValueOnly), val(std::forward<decltype(t)>(t)) {}
+
+  //! For named value
+  SetWsv(std::string_view x, ArtsType auto&& t) : test(opt::NameAndValue), str(x), val(std::forward<decltype(t)>(t)) {}
 };
 
 struct MethodVariable {
@@ -137,7 +143,7 @@ struct AgendaCreator {
 
   AgendaCreator(Workspace& workspace, const char* name);
 
-  //! Check the agenda and move it out of here
+  //! Check the agenda and return a copy of it (ignoring/touching all agenda input/output not dealt with)
   Agenda finalize();
 
   //! Add a method with as many inputs as you want.  These inputs must be of type Wsv
@@ -152,6 +158,9 @@ struct AgendaCreator {
     else
       add_method_and_setters(ws, agenda, method, std::array<SetWsv, 0>{});
   }
+
+  //! Set a variable to a value
+  void set(const std::string_view var, const TokVal& value);
 };
 
 Agenda get_iy_main_agenda(Workspace& ws, const String& option);
@@ -166,4 +175,23 @@ Agenda get_water_p_eq_agenda(Workspace& ws, const String& option);
 Agenda get_gas_scattering_agenda(Workspace& ws, const String& option);
 Agenda get_surface_rtprop_agenda(Workspace& ws, const String& option);
 Agenda get_g0_agenda(Workspace& ws, const String& option);
+Agenda get_dobatch_calc_agenda(Workspace& ws, const String& option);
+Agenda get_ybatch_calc_agenda(Workspace& ws, const String& option);
+Agenda get_test_agenda(Workspace& ws, const String& option);
+Agenda get_surface_rtprop_sub_agenda(Workspace& ws, const String& option);
+Agenda get_spt_calc_agenda(Workspace& ws, const String& option);
+Agenda get_sensor_response_agenda(Workspace& ws, const String& option);
+Agenda get_propmat_clearsky_agenda(Workspace& ws, const String& option);
+Agenda get_pha_mat_spt_agenda(Workspace& ws, const String& option);
+Agenda get_met_profile_calc_agenda(Workspace& ws, const String& option);
+Agenda get_main_agenda(Workspace& ws, const String& option);
+Agenda get_jacobian_agenda(Workspace& ws, const String& option);
+Agenda get_iy_radar_agenda(Workspace& ws, const String& option);
+Agenda get_iy_independent_beam_approx_agenda(Workspace& ws, const String& option);
+Agenda get_inversion_iterate_agenda(Workspace& ws, const String& option);
+Agenda get_forloop_agenda(Workspace& ws, const String& option);
+Agenda get_doit_scat_field_agenda(Workspace& ws, const String& option);
+Agenda get_doit_rte_agenda(Workspace& ws, const String& option);
+Agenda get_doit_mono_agenda(Workspace& ws, const String& option);
+Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option);
 }  // namespace AgendaManip

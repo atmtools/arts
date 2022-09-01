@@ -143,6 +143,63 @@ ENUMCLASS(g0_agendaDefaultOptions,
           Jupiter,
           Mars,
           Venus)
+
+/** Options for setting dobatch_calc_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(dobatch_calc_agendaDefaultOptions, char)
+
+/** Options for setting ybatch_calc_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(ybatch_calc_agendaDefaultOptions, char)
+
+/** Options for setting test_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(test_agendaDefaultOptions, char)
+
+/** Options for setting surface_rtprop_sub_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(surface_rtprop_sub_agendaDefaultOptions, char)
+
+/** Options for setting spt_calc_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(spt_calc_agendaDefaultOptions, char)
+
+/** Options for setting sensor_response_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(sensor_response_agendaDefaultOptions, char)
+
+/** Options for setting propmat_clearsky_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(propmat_clearsky_agendaDefaultOptions, char)
+
+/** Options for setting pha_mat_spt_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(pha_mat_spt_agendaDefaultOptions, char)
+
+/** Options for setting met_profile_calc_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(met_profile_calc_agendaDefaultOptions, char)
+
+/** Options for setting main_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(main_agendaDefaultOptions, char)
+
+/** Options for setting jacobian_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(jacobian_agendaDefaultOptions, char)
+
+/** Options for setting iy_radar_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(iy_radar_agendaDefaultOptions, char)
+
+/** Options for setting iy_independent_beam_approx_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(iy_independent_beam_approx_agendaDefaultOptions, char)
+
+/** Options for setting inversion_iterate_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(inversion_iterate_agendaDefaultOptions, char)
+
+/** Options for setting forloop_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(forloop_agendaDefaultOptions, char)
+
+/** Options for setting doit_scat_field_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(doit_scat_field_agendaDefaultOptions, char)
+
+/** Options for setting doit_rte_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(doit_rte_agendaDefaultOptions, char)
+
+/** Options for setting doit_mono_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(doit_mono_agendaDefaultOptions, char)
+
+/** Options for setting doit_conv_test_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY(doit_conv_test_agendaDefaultOptions, char)
 }  // namespace Options
 
 #endif

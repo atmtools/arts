@@ -252,6 +252,8 @@ class TestAgendas:
         def set_agendas(ws, agenda_string):
             options = get_options(eval(f"pyarts.arts.options.{agenda_string}DefaultOptions"))
             for enum_option in options:
+                if (enum_option + ":" )not in eval(f"ws.{agenda_string}Set").__doc__:
+                    raise RuntimeError(f"The option {enum_option} is not documented")
                 try:
                     eval(f"ws.{agenda_string}Set(option=enum_option)")
                 except RuntimeError as err:
@@ -264,10 +266,78 @@ class TestAgendas:
         for agenda in agendas: 
             if f"{agenda}Set" in dir(ws):
                 set_agendas(ws, agenda)
+            else:
+                raise RuntimeError(f"""THERE ARE MISSING AGENDA DEFAULTS.
+If you want a no-defaults version, copy-paste the following (fixing obvious hints in methods.cc):
+
+To agenda_set.cc:
+Agenda get_{agenda}(Workspace& ws, const String& option) {"{"}
+  AgendaCreator agenda(ws, "{agenda}");
+
+  using enum Options::{agenda}DefaultOptions;
+  switch (Options::to{agenda}DefaultOptionsOrThrow(option)) {"{"}
+    case FINAL:
+      break;
+  {"}"}
+  
+  return agenda.finalize();
+{"}"}
+
+To agenda_set.h:
+Agenda get_{agenda}(Workspace& ws, const String& option);
+
+To m_agenda_set.cc:
+void {agenda}Set(Workspace& ws,
+                  Agenda& out,
+                  const String& option,
+                  const Verbosity&) {"{"}
+  out = get_{agenda}(ws, option);
+{"}"}
+
+To methods.cc:
+  md_data_raw.push_back(
+      create_mdrecord(NAME("{agenda}Set"),
+                      DESCRIPTION(R"--(Sets *{agenda}* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+    It only exist to enforce defaultable options for future agendas
+    If you are copy-pasting this into methods.cc, dear author,
+    please add one default to help us use your agenda :)
+    If you do not foresee adding other options in the near-future, make this
+    default the GIN_DEFAULT
+)--"),
+                      AUTHORS("Automatic Nonsense Name, Please Fix"),
+                      OUT("{agenda}"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+    
+To arts_options.h:
+/** Options for setting {agenda} --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
+ENUMCLASS_EMPTY({agenda}DefaultOptions, char)
+
+To py_options.cpp:
+DeclareOption(Options, {agenda}DefaultOptions)
+
+NOTE THAT THIS DESCRIPTION WAS VALID ON 1-Sep 2022, and if anythin has changed,
+please update the description.  Also note that the commented out code is useful
+to have only, as it allows us to easily add some agenda defaults if they do
+exist in the future
+""")
 
 
 if __name__ == "__main__":
     ta = TestAgendas()
     ta.setup_method()
-    ta.test_assignment()
+    ta.test_agenda_set()
 

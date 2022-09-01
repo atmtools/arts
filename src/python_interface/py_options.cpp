@@ -36,6 +36,7 @@ void py_options(py::module_& m) {
   auto opt = m.def_submodule("options");
   opt.doc() = "Various named options of Arts";
 
+  // Default agenda options:
   DeclareOption(Options, iy_main_agendaDefaultOptions)
   DeclareOption(Options, iy_loop_freqs_agendaDefaultOptions)
   DeclareOption(Options, iy_space_agendaDefaultOptions)
@@ -48,5 +49,24 @@ void py_options(py::module_& m) {
   DeclareOption(Options, gas_scattering_agendaDefaultOptions)
   DeclareOption(Options, surface_rtprop_agendaDefaultOptions)
   DeclareOption(Options, g0_agendaDefaultOptions)
+  DeclareOption(Options, test_agendaDefaultOptions)
+  DeclareOption(Options, dobatch_calc_agendaDefaultOptions)
+  DeclareOption(Options, ybatch_calc_agendaDefaultOptions)
+  DeclareOption(Options, surface_rtprop_sub_agendaDefaultOptions)
+  DeclareOption(Options, spt_calc_agendaDefaultOptions)
+  DeclareOption(Options, sensor_response_agendaDefaultOptions)
+  DeclareOption(Options, propmat_clearsky_agendaDefaultOptions)
+  DeclareOption(Options, pha_mat_spt_agendaDefaultOptions)
+  DeclareOption(Options, met_profile_calc_agendaDefaultOptions)
+  DeclareOption(Options, main_agendaDefaultOptions)
+  DeclareOption(Options, jacobian_agendaDefaultOptions)
+  DeclareOption(Options, iy_radar_agendaDefaultOptions)
+  DeclareOption(Options, iy_independent_beam_approx_agendaDefaultOptions)
+  DeclareOption(Options, inversion_iterate_agendaDefaultOptions)
+  DeclareOption(Options, forloop_agendaDefaultOptions)
+  DeclareOption(Options, doit_scat_field_agendaDefaultOptions)
+  DeclareOption(Options, doit_rte_agendaDefaultOptions)
+  DeclareOption(Options, doit_mono_agendaDefaultOptions)
+  DeclareOption(Options, doit_conv_test_agendaDefaultOptions)
 }
 }  // namespace Python

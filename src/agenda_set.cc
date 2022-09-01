@@ -176,8 +176,49 @@ AgendaCreator::AgendaCreator(Workspace& workspace, const char* name)
 
 //! Check the agenda and move it out of here
 Agenda AgendaCreator::finalize() {
+  auto& agrecord = global_data::agenda_data.at(global_data::AgendaMap.at(agenda.name()));
+
+  ArrayOfIndex input, output;
+  for (auto& method: agenda.Methods()) {
+    for (auto& wsv: method.In()) input.push_back(wsv);
+    for (auto& wsv: method.Out()) output.push_back(wsv);
+  }
+  std::sort(input.begin(), input.end());
+  std::sort(output.begin(), output.end());
+
+  //! Add Ignore(WSV)
+  for (auto& wsv: agrecord.In()) {
+    auto test = [wsv](auto& x){return x == wsv;};
+    if (std::none_of(input.begin(), input.end(), test) and std::none_of(output.begin(), output.end(), test)) {
+      auto& group = global_data::wsv_groups.at(ws.wsv_data_ptr -> at(wsv).Group()).name;
+      auto pos = global_data::MdMap.at(var_string("Ignore_sg_", group));
+      agenda.push_back(MRecord(pos, {}, {wsv}, {}, Agenda(ws)));
+    }
+  }
+
+  //! Add Touch(WSV)
+  for (auto& wsv: agrecord.Out()) {
+    auto test = [wsv](auto& x){return x == wsv;};
+    if (std::none_of(output.begin(), output.end(), test)) {
+      auto& group = global_data::wsv_groups.at(ws.wsv_data_ptr -> at(wsv).Group()).name;
+      auto pos = global_data::MdMap.at(var_string("Touch_sg_", group));
+      agenda.push_back(MRecord(pos, {wsv}, {}, {}, Agenda(ws)));
+    }
+  }
+
+  //! Finally check that the agenda is OK (it should be a developer error if this fails!)
   agenda.check(ws, Verbosity{});
-  return std::move(agenda);
+
+  return agenda;
+}
+
+void AgendaCreator::set(const std::string_view var, const TokVal& value) {
+  auto pos = global_data::MdMap.at(var_string(value.type(), "Set"));
+  auto ws_pos = ws.WsvMap_ptr -> at(var);
+  if (value.holdsAgenda())
+    agenda.push_back(MRecord(pos, {ws_pos}, {}, {}, Agenda{value}));
+  else
+    agenda.push_back(MRecord(pos, {ws_pos}, {}, value, Agenda{ws}));
 }
 
 Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
@@ -188,56 +229,40 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
     case Emission:
       agenda.add("ppathCalc");
       agenda.add("iyEmissionStandard");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
       break;
     case Clearsky:
       agenda.add("ppathCalc");
       agenda.add("iyClearsky");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
       break;
     case Transmission:
-      agenda.add("Ignore", "iy_unit");
-      agenda.add("Ignore", "iy_id");
       agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
       agenda.add("iyTransmissionStandard");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
       break;
     case TransmissionUnitUnpolIntensity:
-      agenda.add("Ignore", "iy_unit");
-      agenda.add("Ignore", "iy_id");
       agenda.add(
           "MatrixUnitIntensity", "iy_transmitter", "stokes_dim", "f_grid");
       agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
       agenda.add("iyTransmissionStandard");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
       break;
     case TransmissionUnitPolIntensity:
-      agenda.add("Ignore", "iy_unit");
-      agenda.add("Ignore", "iy_id");
       agenda.add("iy_transmitterSinglePol");
       agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
       agenda.add("iyTransmissionStandard");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
       break;
     case Freqloop:
-      agenda.add("Ignore", "diy_dx");
-      agenda.add("Ignore", "iy_id");
-      agenda.add("Ignore", "iy_unit");
-      agenda.add("Ignore", "nlte_field");
-      agenda.add("Ignore", "cloudbox_on");
-      agenda.add("Ignore", "jacobian_do");
       agenda.add("iyLoopFrequencies");
-      agenda.add("Touch", "ppath");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
+      agenda.add("Ignore", "diy_dx");
       break;
     case ScattMC:
-      agenda.add("Ignore", "rte_pos2");
-      agenda.add("Ignore", "diy_dx");
-      agenda.add("Ignore", "iy_id");
-      agenda.add("Ignore", "nlte_field");
       agenda.add("iyMC");
-      agenda.add("Touch", "ppath");
-      agenda.add("VectorSet", "geo_pos", Vector{});
+      agenda.set("geo_pos", Vector{});
+      agenda.add("Ignore", "diy_dx");
       break;
     case FINAL:
       break;
@@ -256,7 +281,6 @@ Agenda get_iy_loop_freqs_agenda(Workspace& ws, const String& option) {
       agenda.add("iyEmissionStandard");
       break;
     case Transmission:
-      agenda.add("Ignore", "iy_id");
       agenda.add("ppathCalc");
       agenda.add("iyTransmissionStandard");
       break;
@@ -273,8 +297,6 @@ Agenda get_iy_space_agenda(Workspace& ws, const String& option) {
   using enum Options::iy_space_agendaDefaultOptions;
   switch (Options::toiy_space_agendaDefaultOptionsOrThrow(option)) {
     case CosmicBackground:
-      agenda.add("Ignore", "rtp_pos");
-      agenda.add("Ignore", "rtp_los");
       agenda.add("MatrixCBR", "iy", "stokes_dim", "f_grid");
       break;
     case FINAL:
@@ -324,20 +346,12 @@ Agenda get_ppath_agenda(Workspace& ws, const String& option) {
   using enum Options::ppath_agendaDefaultOptions;
   switch (Options::toppath_agendaDefaultOptionsOrThrow(option)) {
     case FollowSensorLosPath:
-      agenda.add("Ignore", "rte_pos2");
       agenda.add("ppathStepByStep");
       break;
     case PlaneParallel:
-      agenda.add("Ignore", "ppath_lraytrace");
-      agenda.add("Ignore", "rte_pos2");
-      agenda.add("Ignore", "t_field");
-      agenda.add("Ignore", "vmr_field");
-      agenda.add("Ignore", "f_grid");
       agenda.add("ppathPlaneParallel");
       break;
     case TransmitterReceiverPath:
-      agenda.add("Ignore", "cloudbox_on");
-      agenda.add("Ignore", "ppath_inside_cloudbox_do");
       agenda.add("rte_losGeometricFromRtePosToRtePos2");
       agenda.add("ppathFromRtePos2");
       break;
@@ -354,8 +368,6 @@ Agenda get_ppath_step_agenda(Workspace& ws, const String& option) {
   using enum Options::ppath_step_agendaDefaultOptions;
   switch (Options::toppath_step_agendaDefaultOptionsOrThrow(option)) {
     case GeometricPath:
-      agenda.add("Ignore", "f_grid");
-      agenda.add("Ignore", "ppath_lraytrace");
       agenda.add("ppath_stepGeometric");
       break;
     case RefractedPath:
@@ -374,48 +386,38 @@ Agenda get_refr_index_air_agenda(Workspace& ws, const String& option) {
   using enum Options::refr_index_air_agendaDefaultOptions;
   switch (Options::torefr_index_air_agendaDefaultOptionsOrThrow(option)) {
     case NoRefrac:
-      agenda.add("Ignore", "f_grid");
-      agenda.add("Ignore", "rtp_pressure");
-      agenda.add("Ignore", "rtp_temperature");
-      agenda.add("Ignore", "rtp_vmr");
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       break;
     case GasMicrowavesEarth:
-      agenda.add("Ignore", "f_grid");
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airMicrowavesEarth");
       break;
     case GasInfraredEarth:
-      agenda.add("Ignore", "f_grid");
-      agenda.add("Ignore", "rtp_vmr");
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airInfraredEarth");
       break;
     case GasMicrowavesGeneral:
-      agenda.add("Ignore", "f_grid");
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airMicrowavesGeneral");
       break;
     case FreeElectrons:
-      agenda.add("Ignore", "rtp_pressure");
-      agenda.add("Ignore", "rtp_temperature");
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airFreeElectrons");
       break;
     case GasMicrowavesGeneralAndElectrons:
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airMicrowavesGeneral");
       agenda.add("refr_index_airFreeElectrons");
       break;
     case GasMicrowavesEarthAndElectrons:
-      agenda.add("NumericSet", "refr_index_air", Numeric{1.0});
-      agenda.add("NumericSet", "refr_index_air_group", Numeric{1.0});
+      agenda.set("refr_index_air", Numeric{1.0});
+      agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airMicrowavesEarth");
       agenda.add("refr_index_airFreeElectrons");
       break;
@@ -447,16 +449,6 @@ Agenda get_gas_scattering_agenda(Workspace& ws, const String& option) {
   using enum Options::gas_scattering_agendaDefaultOptions;
   switch (Options::togas_scattering_agendaDefaultOptionsOrThrow(option)) {
     case Dummy:
-      agenda.add("Touch", "gas_scattering_coef");
-      agenda.add("Touch", "gas_scattering_mat");
-      agenda.add("Touch", "gas_scattering_fct_legendre");
-      agenda.add("Ignore", "f_grid");
-      agenda.add("Ignore", "rtp_pressure");
-      agenda.add("Ignore", "rtp_temperature");
-      agenda.add("Ignore", "rtp_vmr");
-      agenda.add("Ignore", "gas_scattering_los_in");
-      agenda.add("Ignore", "gas_scattering_los_out");
-      agenda.add("Ignore", "gas_scattering_output_type");
       break;
     case FINAL:
       break;
@@ -527,33 +519,252 @@ Agenda get_g0_agenda(Workspace& ws, const String& option) {
   using enum Options::g0_agendaDefaultOptions;
   switch (Options::tog0_agendaDefaultOptionsOrThrow(option)) {
     case Earth:
-      agenda.add("Ignore", "lon");
       agenda.add("g0Earth");
       break;
     case Io:
-      agenda.add("Ignore", "lon");
-      agenda.add("Ignore", "lat");
       agenda.add("g0Io");
       break;
     case Jupiter:
-      agenda.add("Ignore", "lon");
-      agenda.add("Ignore", "lat");
       agenda.add("g0Jupiter");
       break;
     case Mars:
-      agenda.add("Ignore", "lon");
-      agenda.add("Ignore", "lat");
       agenda.add("g0Mars");
       break;
     case Venus:
-      agenda.add("Ignore", "lon");
-      agenda.add("Ignore", "lat");
       agenda.add("g0Venus");
       break;
     case FINAL:
       break;
   }
 
+  return agenda.finalize();
+}
+
+Agenda get_dobatch_calc_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "dobatch_calc_agenda");
+
+  using enum Options::dobatch_calc_agendaDefaultOptions;
+  switch (Options::todobatch_calc_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_ybatch_calc_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "ybatch_calc_agenda");
+
+  using enum Options::ybatch_calc_agendaDefaultOptions;
+  switch (Options::toybatch_calc_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_test_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "test_agenda");
+
+  using enum Options::test_agendaDefaultOptions;
+  switch (Options::totest_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_surface_rtprop_sub_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "surface_rtprop_sub_agenda");
+
+  using enum Options::surface_rtprop_sub_agendaDefaultOptions;
+  switch (Options::tosurface_rtprop_sub_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_spt_calc_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "spt_calc_agenda");
+
+  using enum Options::spt_calc_agendaDefaultOptions;
+  switch (Options::tospt_calc_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_sensor_response_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "sensor_response_agenda");
+
+  using enum Options::sensor_response_agendaDefaultOptions;
+  switch (Options::tosensor_response_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_propmat_clearsky_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "propmat_clearsky_agenda");
+
+  using enum Options::propmat_clearsky_agendaDefaultOptions;
+  switch (Options::topropmat_clearsky_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_pha_mat_spt_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "pha_mat_spt_agenda");
+
+  using enum Options::pha_mat_spt_agendaDefaultOptions;
+  switch (Options::topha_mat_spt_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_met_profile_calc_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "met_profile_calc_agenda");
+
+  using enum Options::met_profile_calc_agendaDefaultOptions;
+  switch (Options::tomet_profile_calc_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_main_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "main_agenda");
+
+  using enum Options::main_agendaDefaultOptions;
+  switch (Options::tomain_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_jacobian_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "jacobian_agenda");
+
+  using enum Options::jacobian_agendaDefaultOptions;
+  switch (Options::tojacobian_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_iy_radar_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "iy_radar_agenda");
+
+  using enum Options::iy_radar_agendaDefaultOptions;
+  switch (Options::toiy_radar_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_iy_independent_beam_approx_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "iy_independent_beam_approx_agenda");
+
+  using enum Options::iy_independent_beam_approx_agendaDefaultOptions;
+  switch (Options::toiy_independent_beam_approx_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_inversion_iterate_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "inversion_iterate_agenda");
+
+  using enum Options::inversion_iterate_agendaDefaultOptions;
+  switch (Options::toinversion_iterate_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_forloop_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "forloop_agenda");
+
+  using enum Options::forloop_agendaDefaultOptions;
+  switch (Options::toforloop_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_doit_scat_field_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "doit_scat_field_agenda");
+
+  using enum Options::doit_scat_field_agendaDefaultOptions;
+  switch (Options::todoit_scat_field_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_doit_rte_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "doit_rte_agenda");
+
+  using enum Options::doit_rte_agendaDefaultOptions;
+  switch (Options::todoit_rte_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_doit_mono_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "doit_mono_agenda");
+
+  using enum Options::doit_mono_agendaDefaultOptions;
+  switch (Options::todoit_mono_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
+  return agenda.finalize();
+}
+
+Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "doit_conv_test_agenda");
+
+  using enum Options::doit_conv_test_agendaDefaultOptions;
+  switch (Options::todoit_conv_test_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  
   return agenda.finalize();
 }
 }  // namespace AgendaManip

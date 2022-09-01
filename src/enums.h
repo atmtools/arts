@@ -59,6 +59,8 @@ std::array<std::string_view, size_t(EnumType::FINAL)> enum_strarray(
   return out;
 }
 
+constexpr std::array<std::string_view, 0> enum_strarray() noexcept { return {}; }
+
 /** A list of all enum types by index-conversion
  * 
  * Note that this assumes the enums are sorted from 0-FINAL
@@ -173,6 +175,49 @@ void check_enum_error(EnumType type, Messages ... args) {
     is >> val;                                                            \
     x = to##ENUMTYPE##OrThrow(val);                                       \
     return is;                                                            \
+  }
+
+#define ENUMCLASS_EMPTY(ENUMTYPE, TYPE)                                        \
+  enum class ENUMTYPE : TYPE { FINAL };                                        \
+                                                                               \
+  namespace enumstrs {                                                         \
+  constexpr auto ENUMTYPE##Names = enum_strarray();                            \
+  }                                                                            \
+                                                                               \
+  namespace enumtyps {                                                         \
+  [[maybe_unused]] constexpr auto ENUMTYPE##Types = enum_typarray<ENUMTYPE>(); \
+  }                                                                            \
+                                                                               \
+  constexpr std::string_view toString(ENUMTYPE x) noexcept {                   \
+    if (good_enum(x)) return enumstrs::ENUMTYPE##Names[(TYPE)x];               \
+    return "BAD " #ENUMTYPE;                                                   \
+  }                                                                            \
+                                                                               \
+  constexpr ENUMTYPE to##ENUMTYPE(const std::string_view x) noexcept {         \
+    for (TYPE i = 0; i < (TYPE)ENUMTYPE::FINAL; i++)                           \
+      if (enumstrs::ENUMTYPE##Names[i] == x) return ENUMTYPE(i);               \
+    return ENUMTYPE::FINAL;                                                    \
+  }                                                                            \
+                                                                               \
+  constexpr ENUMTYPE to##ENUMTYPE##OrThrow(const std::string_view x) {         \
+    ENUMTYPE out = to##ENUMTYPE(x);                                            \
+    check_enum_error(out,                                                      \
+                     "Cannot understand argument: \"",                         \
+                     x,                                                        \
+                     "\"\n"                                                    \
+                     "Valid " #ENUMTYPE " options are: []");                   \
+    return out;                                                                \
+  }                                                                            \
+                                                                               \
+  inline std::ostream &operator<<(std::ostream &os, const ENUMTYPE x) {        \
+    return os << toString(x);                                                  \
+  }                                                                            \
+                                                                               \
+  inline std::istream &operator>>(std::istream &is, ENUMTYPE &x) {             \
+    std::string val;                                                           \
+    is >> val;                                                                 \
+    x = to##ENUMTYPE##OrThrow(val);                                            \
+    return is;                                                                 \
   }
 
 #endif  // enums_h

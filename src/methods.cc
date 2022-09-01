@@ -8170,222 +8170,6 @@ Possible models:
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(
-      create_mdrecord(NAME("iy_main_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("iy_main_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("iy_loop_freqs_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("iy_loop_freqs_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("iy_space_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("iy_space_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT("CosmicBackground"),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("iy_surface_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("iy_surface_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT("UseSurfaceRtprop"),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("iy_cloudbox_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("iy_cloudbox_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("ppath_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("ppath_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("ppath_step_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("ppath_step_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("refr_index_air_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("refr_index_air_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("water_p_eq_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("water_p_eq_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT("MK05"),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("gas_scattering_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("gas_scattering_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT("Dummy"),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("surface_rtprop_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("surface_rtprop_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("g0_agendaSet"),
-                      DESCRIPTION("Sets a default agenda\n"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("g0_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(
@@ -23352,6 +23136,862 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  //! Add all the agenda-setting methods below here:
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("dobatch_calc_agendaSet"),
+                      DESCRIPTION(R"--(Sets *dobatch_calc_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("dobatch_calc_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("doit_conv_test_agendaSet"),
+                      DESCRIPTION(R"--(Sets *doit_conv_test_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("doit_conv_test_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("doit_mono_agendaSet"),
+                      DESCRIPTION(R"--(Sets *doit_mono_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("doit_mono_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("doit_rte_agendaSet"),
+                      DESCRIPTION(R"--(Sets *doit_rte_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("doit_rte_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("doit_scat_field_agendaSet"),
+                      DESCRIPTION(R"--(Sets *doit_scat_field_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("doit_scat_field_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("forloop_agendaSet"),
+                      DESCRIPTION(R"--(Sets *forloop_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("forloop_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("g0_agendaSet"),
+                      DESCRIPTION(R"--(Sets *g0_agenda* to a default value
+
+Options are:
+    Earth:
+        Uses *g0Earth* to set *g0*
+    
+    Io:
+        Uses *g0Io* to set *g0*
+    
+    Jupiter:
+        Uses *g0Jupiter* to set *g0*
+    
+    Mars:
+        Uses *g0Mars* to set *g0*
+    
+    Venus:
+        Uses *g0Venus* to set *g0*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("g0_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("gas_scattering_agendaSet"),
+                      DESCRIPTION(R"--(Sets *gas_scattering_agenda* to a default value
+
+Options are:
+    Dummy:
+        Uses *Ignore* on all inputs
+        Uses *Touch* on all outputs
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("gas_scattering_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT("Dummy"),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("inversion_iterate_agendaSet"),
+                      DESCRIPTION(R"--(Sets *inversion_iterate_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("inversion_iterate_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_cloudbox_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_cloudbox_agenda* to a default value
+
+Options are:
+    LinInterpField:
+        Uses *iyInterpCloudboxField* to set *iy*
+    
+    QuarticInterpField:
+        Uses *iyInterpCloudboxField* to set *iy*,
+            with za_interp_order=4
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_cloudbox_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_independent_beam_approx_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_independent_beam_approx_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_independent_beam_approx_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_loop_freqs_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_loop_freqs_agenda* to a default value
+
+Options are:
+    Emission:
+        Uses *ppathCalc* for *ppath*
+        Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                         *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                         *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                               to modify *diy_dx*
+
+    Transmission:
+        Uses *ppathCalc* for *ppath*
+        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                   to modify *diy_dx*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_loop_freqs_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_main_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_main_agenda* to a default value
+
+Options are:
+    Emission:
+        Uses *ppathCalc* to set *ppath*
+        Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                         *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                         *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                               to modify *diy_dx*
+        Sets *geo_pos* to empty
+
+    Clearsky:
+        Uses *ppathCalc* to set *ppath*
+        Uses *iyClearsky* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                 *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                 *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                       to modify *diy_dx*
+        Sets *geo_pos* to empty
+
+    Transmission:
+        Uses *ppathCalc* to set *ppath*,
+            with *cloudbox_on*=0
+        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                   to modify *diy_dx*
+        Sets *geo_pos* to empty
+
+    TransmissionUnitUnpolIntensity:
+        Uses *MatrixUnitIntensity* to set *iy_transmitter*,
+            with f=*f_grid*
+        Uses *ppathCalc* to set *ppath*,
+            with *cloudbox_on*=0
+        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                   to modify *diy_dx*
+        Sets *geo_pos* to empty
+
+    TransmissionUnitPolIntensity:
+        Uses *iy_transmitterSinglePol* to set *iy_transmitter*
+        Uses *ppathCalc* to set *ppath*,
+            with *cloudbox_on*=0
+        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                   to modify *diy_dx*
+        Sets *geo_pos* to empty
+
+    Freqloop:
+        Uses *iyLoopFrequencies* to set *iy*, *iy_aux*, *ppath*, and *diy_dx*
+        Sets *geo_pos* to empty
+        Will *Ignore* any *diy_dx* input
+
+    ScattMC:
+        Uses *iyMC* to set *iy*, *iy_aux*, and *diy_dx*
+        Sets *geo_pos* to empty
+        Will *Ignore* any *diy_dx* input
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_main_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_radar_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_radar_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_radar_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_space_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_space_agenda* to a default value
+
+Options are:
+    CosmicBackground:
+        Uses *MatrixCBR* to set *iy*,
+            with f=*f_grid*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_space_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT("CosmicBackground"),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_surface_agendaSet"),
+                      DESCRIPTION(R"--(Sets *iy_space_agenda* to a default value
+
+Options are:
+    UseSurfaceRtprop:
+        Uses *SurfaceDummy* for *dsurface_rmatrix_dx* and *dsurface_emission_dx*
+        Uses *iySurfaceRtpropAgenda* to set *iy*, *surface_skin_t*, *surface_los*,
+                                            *surface_rmatrix*, and *surface_emission*, and also
+                                  to modify *diy_dx*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_surface_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT("UseSurfaceRtprop"),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("jacobian_agendaSet"),
+                      DESCRIPTION(R"--(Sets *jacobian_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("jacobian_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("main_agendaSet"),
+                      DESCRIPTION("Calling this is and, always will be, an error\n"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("main_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("met_profile_calc_agendaSet"),
+                      DESCRIPTION(R"--(Sets *met_profile_calc_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("met_profile_calc_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("pha_mat_spt_agendaSet"),
+                      DESCRIPTION(R"--(Sets *pha_mat_spt_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("pha_mat_spt_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("ppath_agendaSet"),
+                      DESCRIPTION(R"--(Sets *ppath_agenda* to a default value
+
+Options are:
+    FollowSensorLosPath:
+        Uses *ppathStepByStep* to set *ppath*
+    
+    PlaneParallel:
+        Uses *ppathPlaneParallel* to set *ppath*
+
+    TransmitterReceiverPath:
+        Uses *rte_losGeometricFromRtePosToRtePos2* for *rte_los*
+        Uses *ppathFromRtePos2* to set *ppath*, and also
+                             to modify *rte_los*, and *ppath_lraytrace	*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("ppath_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("ppath_step_agendaSet"),
+                      DESCRIPTION(R"--(Sets *ppath_step_agenda* to a default value
+
+Options are:
+    GeometricPath:
+        Uses *ppath_stepGeometric* to modify *ppath*
+    
+    RefractedPath:
+        Uses *ppath_stepRefractionBasic* to modify *ppath*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("ppath_step_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("propmat_clearsky_agendaSet"),
+                      DESCRIPTION(R"--(Sets *propmat_clearsky_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+    Please consider using *propmat_clearsky_agendaAuto* instead
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("propmat_clearsky_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("refr_index_air_agendaSet"),
+                      DESCRIPTION(R"--(Sets *refr_index_air_agenda* to a default value
+
+Options are:
+    NoRefrac:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+    
+    GasMicrowavesEarth:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+        Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
+    
+    GasInfraredEarth:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+        Uses *refr_index_airInfraredEarth* to modify *refr_index_air*, and *refr_index_air_group*
+    
+    GasMicrowavesGeneral:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+        Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
+    
+    FreeElectrons:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+        Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
+    
+    GasMicrowavesGeneralAndElectrons:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+        Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
+        Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
+    
+    GasMicrowavesEarthAndElectrons:
+        Sets *refr_index_air* to 1
+        Sets *refr_index_air_group* to 1
+        Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
+        Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("refr_index_air_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("sensor_response_agendaSet"),
+                      DESCRIPTION(R"--(Sets *sensor_response_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("sensor_response_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("spt_calc_agendaSet"),
+                      DESCRIPTION(R"--(Sets *spt_calc_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("spt_calc_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("surface_rtprop_agendaSet"),
+                      DESCRIPTION(R"--(Sets *surface_rtprop_agenda* to a default value
+
+Options are:
+    Blackbody_SurfTFromt_surface:
+        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
+                             to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+
+    Blackbody_SurfTFromt_field:
+        Uses *InterpAtmFieldToPosition* to set *surface_skin_t* from *t_field*
+        Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
+                             to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+
+    Specular_NoPol_ReflFix_SurfTFromt_surface:
+        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
+                                          to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+
+    Specular_NoPol_ReflFix_SurfTFromt_field:
+        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *InterpAtmFieldToPosition* to set *surface_skin_t* from *t_field*
+        Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
+                                          to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+
+    Specular_WithPol_ReflFix_SurfTFromt_surface:
+        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *surfaceFlatReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
+
+    lambertian_ReflFix_SurfTFromt_surface:
+        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
+
+    lambertian_ReflFix_SurfTFromt_field:
+        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *InterpAtmFieldToPosition* to set *surface_skin_t* from *t_field*
+        Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("surface_rtprop_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("surface_rtprop_sub_agendaSet"),
+                      DESCRIPTION(R"--(Sets *surface_rtprop_sub_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("surface_rtprop_sub_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("test_agendaSet"),
+                      DESCRIPTION(R"--(Sets *test_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("test_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("water_p_eq_agendaSet"),
+                      DESCRIPTION(R"--(Sets *water_p_eq_agenda* to a default value
+
+Options are:
+    MK05:
+        Uses *water_p_eq_fieldMK05* to set *water_p_eq_field*
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("water_p_eq_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT("MK05"),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("ybatch_calc_agendaSet"),
+                      DESCRIPTION(R"--(Sets *ybatch_calc_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("ybatch_calc_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
 
   //! Special method that has to look through some of the above methods for changes
   {
