@@ -39,7 +39,8 @@ struct SetWsv {
 
   SetWsv(const std::string& x, const std::string& y);
   SetWsv(std::string_view x);
-  SetWsv(ArtsType auto&& t) : test(opt::ValueOnly), val(std::forward<decltype(t)>(t)) {}
+  SetWsv(ArtsType auto&& t)
+      : test(opt::ValueOnly), val(std::forward<decltype(t)>(t)) {}
   SetWsv(std::string_view x, ArtsType auto&& t)
       : test(opt::NameAndValue), str(x), val(std::forward<decltype(t)>(t)) {}
 };
@@ -134,8 +135,7 @@ struct AgendaCreator {
   Workspace& ws;
   Agenda agenda;
 
-  AgendaCreator(Workspace& workspace,
-                const char* name);
+  AgendaCreator(Workspace& workspace, const char* name);
 
   //! Check the agenda and move it out of here
   Agenda finalize();
@@ -145,7 +145,10 @@ struct AgendaCreator {
   void add(const std::string_view method, Input&&... input) {
     if constexpr (sizeof...(Input) > 0)
       add_method_and_setters(
-          ws, agenda, method, stdarrayify<SetWsv>(SetWsv(std::forward<Input>(input))...));
+          ws,
+          agenda,
+          method,
+          stdarrayify<SetWsv>(SetWsv(std::forward<Input>(input))...));
     else
       add_method_and_setters(ws, agenda, method, std::array<SetWsv, 0>{});
   }

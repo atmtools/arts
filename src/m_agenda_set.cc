@@ -81,7 +81,7 @@ void surface_rtprop_agendaSet(Workspace& ws,
                               const String& option,
                               const Verbosity&) {
   out = get_surface_rtprop_agenda(ws, option);
-                              }
+}
 
 void g0_agendaSet(Workspace& ws,
                   Agenda& out,
