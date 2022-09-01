@@ -168,6 +168,7 @@ add_library (artscore STATIC
   absorptionlines.cc
   agenda_class.cc
   agenda_record.cc
+  agenda_set.cc
   arts.cc
   arts_omp.cc
   artstime.cc

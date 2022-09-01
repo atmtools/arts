@@ -44,10 +44,30 @@ template <class base> class Array;
 class Agenda;
 using ArrayOfAgenda = Array<Agenda>;
 
+template <typename T>
+concept ArtsType = false)--";
+
+  for (auto& group : global_data::wsv_groups) {
+    file_h << "\n  or std::is_same_v<std::remove_cvref_t<T>, " << group << ">";
+  }
+
+  file_h << R"--(;
+
+template <typename T>
+concept ArtsTypeMove = ArtsType<T> and std::is_same_v<std::add_rvalue_reference<std::remove_cvref_t<T>>, T>;
+
+template <typename T>
+concept ArtsTypeRef = ArtsType<T> and std::is_same_v<std::add_lvalue_reference<std::remove_cvref_t<T>>, T>;
+
+template <typename T>
+concept ArtsTypeConstRef = ArtsType<T> and std::is_same_v<std::add_const_t<std::add_lvalue_reference<std::remove_cvref_t<T>>>, T>;
+
+template <typename T>
+concept ArtsTypeBase = ArtsType<T> and std::is_same_v<std::remove_cvref_t<T>, T>;
+
 class TokVal {
   void * ptr{nullptr};
 public:
-
 )--";
 
   for (auto& group : global_data::wsv_groups) {
@@ -64,6 +84,8 @@ public:
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
   [[nodiscard]] std::string_view type() const;
+  TokVal& operator=(TokVal&& t) {swap(ptr, t.ptr); return*this;}
+  TokVal(TokVal&& t) : ptr(nullptr) {swap(ptr, t.ptr);}
 
   ~TokVal();
 
