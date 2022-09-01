@@ -1174,7 +1174,7 @@ void iySurfaceLambertian(Workspace& ws,
                           verbosity);
 
   Tensor3 iy_trans_new;
-  Vector los(2, 0);
+
 
   ArrayOfString iy_aux_var(0);
   if (stars_do) {
@@ -1190,26 +1190,30 @@ void iySurfaceLambertian(Workspace& ws,
   }
 
 
-//  ArrayOfMatrix Flx_dx;
-//  if (jacobian_do) {
-//    Flx_dx.resize(diy_dx.nelem(),
-//                  Matrix(diy_dx[0].npages(), diy_dx[0].nrows()));
-//  }
   ArrayOfTensor3 diy_dx_dumb;
   iy.resize(nf, stokes_dim);
   iy = 0;
 
-  if (N_aa == 1 || atmosphere_dim == 1) {
+  Vector los;
+
+  //No azimuth dependency
+  if (N_aa == 1) {
     //Set azimuth angle index
     Index i_aa = 0;
 
     for (Index i_za = 0; i_za < N_za; i_za++) {
 
+      if (atmosphere_dim==1){
+        los.resize(1);
+      }
+      else{
+        los.resize(2);
+        // For clearsky, the skylight is in general approximately independent of the azimuth direction.
+        // So, we consider only the line of sight plane.
+        los[1] = 0.;
+      }
       los[0] = za_grid[i_za];
 
-      // For clearsky, the skylight is in general approximately independent of the azimuth direction.
-      // So, we consider only the line of sight plane.
-      los[1] = rtp_los[1];
 
       // Calculate downwelling radiation for a los
       ArrayOfMatrix iy_aux;
@@ -1239,7 +1243,7 @@ void iySurfaceLambertian(Workspace& ws,
       //For the case that a star is present and the los is towards a star, we
       //subtract the direct radiation, so that only the diffuse radiation is considered here.
       //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
-      //radiation at the surface. Otherwise it is zero.
+      //radiation at the surface. Otherwise,  it is zero.
       if (stars_do) {
         iy_temp -= iy_aux[0];
       }
@@ -1250,6 +1254,7 @@ void iySurfaceLambertian(Workspace& ws,
     //Azimuthal integration just gives a factor of 2*pi
     Flx *= 2 * pi;
 
+  //Azimuth dependency
   } else {
     // before we start with the actual RT calculation, we calculate the integration
     // weights for a trapezoidal integration over the azimuth.
@@ -1262,6 +1267,9 @@ void iySurfaceLambertian(Workspace& ws,
     }
 
     calculate_int_weights_arbitrary_grid(aa_grid_weights, aa_grid_rad);
+
+    //Allocate
+    los.resize(2);
 
     for (Index i_aa = 0; i_aa < N_aa; i_aa++) {
       for (Index i_za = 0; i_za < N_za; i_za++) {
