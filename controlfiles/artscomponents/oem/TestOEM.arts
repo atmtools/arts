@@ -6,16 +6,17 @@ Arts2 {
 
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # Agendas to use
 #
-Copy( iy_main_agenda,             iy_main_agenda__Emission            )
-Copy( iy_space_agenda,            iy_space_agenda__CosmicBackground   )
-Copy( iy_surface_agenda,          iy_surface_agenda__UseSurfaceRtprop )
-Copy( ppath_agenda,               ppath_agenda__FollowSensorLosPath   )
-Copy( ppath_step_agenda,          ppath_step_agenda__GeometricPath    )
+iy_main_agendaSet(option="Emission")
+iy_space_agendaSet
+iy_surface_agendaSet
+ppath_agendaSet( option="FollowSensorLosPath" )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Basic settings

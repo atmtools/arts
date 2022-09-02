@@ -11,7 +11,8 @@ Arts2 {
 
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 
@@ -147,8 +148,8 @@ cloudbox_checkedCalc
 
 # Propagation path agendas and variables
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_step_agendaSet( option="GeometricPath" )
+ppath_agendaSet( option="FollowSensorLosPath" )
 NumericSet( ppath_lmax, 10e3 )
 
 

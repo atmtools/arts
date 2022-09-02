@@ -14,15 +14,16 @@ Arts2{
 
   # Includes
   
-  INCLUDE "general/agendas.arts"
+  water_p_eq_agendaSet
+gas_scattering_agendaSet
   INCLUDE "general/continua.arts"
   INCLUDE "general/planet_earth.arts"
 
   # Agendas (excpept surface ones)
-  Copy(ppath_agenda, ppath_agenda__FollowSensorLosPath)
-  Copy(ppath_step_agenda, ppath_step_agenda__GeometricPath)
-  Copy(iy_space_agenda, iy_space_agenda__CosmicBackground)
-  Copy(iy_main_agenda, iy_main_agenda__Emission)
+  ppath_agendaSet(option="FollowSensorLosPath")
+  ppath_step_agendaSet(option="GeometricPath")
+  iy_space_agendaSet
+  iy_main_agendaSet(option="Emission")
 
   # Various basic settings
   AtmosphereSet3D

@@ -7,22 +7,23 @@ Arts2 {
 
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # Blackbody surface
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 VectorSet( surface_scalar_reflectivity, [0] )
 
 # Standard ppath calculations
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_step_agendaSet( option="GeometricPath" )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # Radiative transfer agendas
-Copy( iy_main_agenda, iy_main_agenda__Emission )
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__QuarticInterpField )
+iy_main_agendaSet( option="Emission" )
+iy_space_agendaSet( option="CosmicBackground" )
+iy_surface_agendaSet( option="UseSurfaceRtprop" )
+iy_cloudbox_agendaSet( option="QuarticInterpField" )
 
 # Absorption species
 abs_speciesSet( species=[ "N2-SelfContStandardType",

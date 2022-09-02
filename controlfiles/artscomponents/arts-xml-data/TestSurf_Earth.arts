@@ -36,7 +36,8 @@
 Arts2 {
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # parameters for converting land/sea mask to surface reflectivities
@@ -260,7 +261,7 @@ VectorAdd( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc
 sensor_checkedCalc
-#Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+#surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 #Copy( surface_rtprop_agenda, surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field )
 yCalc

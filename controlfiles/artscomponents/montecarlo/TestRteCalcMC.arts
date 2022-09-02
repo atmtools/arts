@@ -7,17 +7,18 @@
 Arts2 {
 
 
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Blackbody surface with skin temperature interpolated from t_surface field
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 IndexSet( stokes_dim, 1 )
 AtmosphereSet3D
@@ -110,7 +111,7 @@ NumericSet( mc_std_err,       -1 )
 IndexSet(   mc_max_time,      -1 )
 IndexSet(   mc_max_iter,      100 )
 
-Copy( iy_main_agenda, iy_main_agenda__ScattMC )
+iy_main_agendaSet( option="ScattMC" )
 
 ArrayOfStringSet( iy_aux_vars, [ "Error (uncorrelated)" ] )
 

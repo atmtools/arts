@@ -9,7 +9,8 @@
 Arts2{
 
 
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 
 # Use sensor_pos/los to store each case
 VectorCreate( za )
@@ -24,7 +25,7 @@ nrowsGet( ilast, sensor_pos )
 IndexSubtract( ilast, ilast, 1 )
 
 
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 IndexSet( stokes_dim, 1 )
 AtmosphereSet1D
 jacobianOff
@@ -53,15 +54,15 @@ AgendaSet( forloop_agenda ){
 
   ###
   # CASE 0-0: geometric path (no refraction)
-  Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+  ppath_step_agendaSet( option="GeometricPath" )
   ppathCalc
   TangentPointExtract( tan_pos=tp1 )
   TangentPointPrint( level=tpoutlev )
 
   ###
   # CASE 0-1: refracted path with n==1 (no refraction)
-  Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-  Copy( refr_index_air_agenda, refr_index_air_agenda__NoRefrac )
+  ppath_step_agendaSet( option="RefractedPath" )
+  refr_index_air_agendaSet( option="NoRefrac" )
   ppathCalc
   TangentPointExtract( tan_pos=tp2 )
   TangentPointPrint( level=tpoutlev )
@@ -78,7 +79,7 @@ AgendaSet( forloop_agenda ){
 
   ###
   # CASE 1: refracted path with n from MicrowavesEarth
-  Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth )
+  refr_index_air_agendaSet( option="GasMicrowavesEarth" )
   ppathCalc
   #WriteXMLIndexed( "ascii", forloop_index, ppath, "thayer" )
   TangentPointExtract( tan_pos=tp1 )
@@ -86,7 +87,7 @@ AgendaSet( forloop_agenda ){
 
   ###
   # CASE 2: refracted path with n from MicrowavesGeneral
-  Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesGeneral )
+  refr_index_air_agendaSet( option="GasMicrowavesGeneral" )
   ppathCalc
   #WriteXMLIndexed( "ascii", forloop_index, ppath, "MicrowavesGeneral" )
   TangentPointExtract( tan_pos=tp2 )

@@ -13,11 +13,12 @@ Arts2 {
 
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 
 # Number of Stokes components to be computed
@@ -88,8 +89,8 @@ cloudbox_checkedCalc
 # Propagation path agendas and variables
 #
 # refracted path
-Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth  )
+ppath_step_agendaSet( option="RefractedPath" )
+refr_index_air_agendaSet( option="GasMicrowavesEarth"  )
 
 NumericSet( ppath_lmax, 2e3 )
 NumericSet( ppath_lraytrace, 500 )
@@ -104,7 +105,7 @@ VectorSet( rte_pos2, [] )                  # No transmitter position defined
 
 # Radiative transfer agendas
 #
-Copy( iy_main_agenda , iy_main_agenda__TransmissionUnitUnpolIntensity )
+iy_main_agendaSet(option="TransmissionUnitUnpolIntensity")
 
 
 # Auxiliary variables
@@ -146,7 +147,7 @@ Compare( iy, iy0, 0.0001 )
 Copy( iy0, iy )
 
 
-Copy( iy_main_agenda, iy_main_agenda__Freqloop )
+iy_main_agendaSet( option="Freqloop" )
 AgendaSet( iy_loop_freqs_agenda ){
   Ignore( iy_id )  
   MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )

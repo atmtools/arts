@@ -9,7 +9,8 @@ Arts2 {
 	
 	
 	INCLUDE "general/continua.arts"
-	INCLUDE "general/agendas.arts"
+	water_p_eq_agendaSet
+gas_scattering_agendaSet
 	INCLUDE "general/planet_earth.arts"
 	
 
@@ -19,21 +20,21 @@ Arts2 {
 	#==========================================================================                  
                     
     # cosmic background radiation
-    Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+    iy_space_agendaSet
             
     # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-    Copy( iy_surface_agenda,iy_surface_agenda__UseSurfaceRtprop)
+    iy_surface_agendaSet
                 
     #Surface Agenda, see in python script
                 
     # sensor-only path
-    Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-        
+    ppath_agendaSet( option="FollowSensorLosPath" )
+    
     # no refraction
-    Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )	
+    ppath_step_agendaSet( option="GeometricPath" )	
     
     # (standard) emission calculation
-    Copy( iy_main_agenda, iy_main_agenda__Emission )
+    iy_main_agendaSet(option="Emission")
     
     # saturation pressure agenda of water vapor
     AgendaSet( water_p_eq_agenda ){
@@ -45,8 +46,7 @@ Arts2 {
     }
 	
     # surface agenda
-    Copy( surface_rtprop_agenda,
-            surface_rtprop_agenda__Blackbody_SurfTFromt_surface)
+    surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_surface" )
 	
 	
 	#==========================================================================

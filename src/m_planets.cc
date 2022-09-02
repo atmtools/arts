@@ -40,6 +40,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "auto_md.h"
 #include "check_input.h"
 #include "matpackI.h"
 #include "messages.h"

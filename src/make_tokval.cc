@@ -44,10 +44,30 @@ template <class base> class Array;
 class Agenda;
 using ArrayOfAgenda = Array<Agenda>;
 
+template <typename T>
+concept ArtsType = false)--";
+
+  for (auto& group : global_data::wsv_groups) {
+    file_h << "\n  or std::is_same_v<std::remove_cvref_t<T>, " << group << ">";
+  }
+
+  file_h << R"--(;
+
+template <typename T>
+concept ArtsTypeMove = ArtsType<T> and std::is_same_v<std::add_rvalue_reference<std::remove_cvref_t<T>>, T>;
+
+template <typename T>
+concept ArtsTypeRef = ArtsType<T> and std::is_same_v<std::add_lvalue_reference<std::remove_cvref_t<T>>, T>;
+
+template <typename T>
+concept ArtsTypeConstRef = ArtsType<T> and std::is_same_v<std::add_const_t<std::add_lvalue_reference<std::remove_cvref_t<T>>>, T>;
+
+template <typename T>
+concept ArtsTypeBase = ArtsType<T> and std::is_same_v<std::remove_cvref_t<T>, T>;
+
 class TokVal {
   void * ptr{nullptr};
 public:
-
 )--";
 
   for (auto& group : global_data::wsv_groups) {
@@ -63,6 +83,9 @@ public:
   TokVal();
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
+  [[nodiscard]] std::string_view type() const;
+  TokVal& operator=(TokVal&& t) {swap(ptr, t.ptr); return*this;}
+  TokVal(TokVal&& t) : ptr(nullptr) {swap(ptr, t.ptr);}
 
   ~TokVal();
 
@@ -75,7 +98,7 @@ public:
 #endif
 )--";
 
-file_var_h <<  R"--(// auto-generated tokval implementation
+  file_var_h << R"--(// auto-generated tokval implementation
 
 #include "tokval.h"
 
@@ -96,7 +119,7 @@ inline TokValType* tokval_type(void * ptr) {
 }
 )--";
 
-file_cc << R"--(// auto-generated tokval implementation
+  file_cc << R"--(// auto-generated tokval implementation
 
 #include "tokval.h"
 #include "tokval_variant.h"
@@ -105,9 +128,10 @@ file_cc << R"--(// auto-generated tokval implementation
 )--";
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "TokVal::TokVal(" << group
-            << " in) : ptr(static_cast<void*>(new TokValType{std::make_unique<Any>()})) {*tokval_type(ptr) = std::make_unique<" << group
-            << ">(std::move(in));}\n";
+    file_cc
+        << "TokVal::TokVal(" << group
+        << " in) : ptr(static_cast<void*>(new TokValType{std::make_unique<Any>()})) {*tokval_type(ptr) = std::make_unique<"
+        << group << ">(std::move(in));}\n";
   }
 
   file_cc << '\n';
@@ -121,18 +145,32 @@ file_cc << R"--(// auto-generated tokval implementation
   file_cc << '\n';
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "bool TokVal::holds" << group << "() const {return std::holds_alternative<std::unique_ptr<"<<group<<">>(*tokval_type(ptr));}\n";
+    file_cc << "bool TokVal::holds" << group
+            << "() const {return std::holds_alternative<std::unique_ptr<"
+            << group << ">>(*tokval_type(ptr));}\n";
   }
 
   file_cc << '\n';
 
   for (auto& group : global_data::wsv_groups) {
-    file_cc << "TokVal::operator " << group << "() const {\n"
-    "   ARTS_USER_ERROR_IF(not holds"<<group<<"(), \"Wrong type\")\n"
-    "  return **std::get_if<std::unique_ptr<"<<group<<">>(tokval_type(ptr));\n}\n";
+    file_cc << "TokVal::operator " << group
+            << "() const {\n"
+               "   ARTS_USER_ERROR_IF(not holds"
+            << group
+            << "(), \"Wrong type: \", type())\n"
+               "  return **std::get_if<std::unique_ptr<"
+            << group << ">>(tokval_type(ptr));\n}\n";
   }
 
-  file_cc << R"--(
+  file_cc << "[[nodiscard]] std::string_view TokVal::type() const {\n";
+
+  for (auto& group : global_data::wsv_groups) {
+    file_cc << "  if (holds" << group << "()) return \"" << group << "\";\n";
+  }
+
+  file_cc << R"--(return "this is a nonsense results!";
+}
+   
 TokVal::TokVal(const char * const c) : TokVal(String(c)) {}
     
 TokVal::TokVal() : TokVal(Any{}) {}

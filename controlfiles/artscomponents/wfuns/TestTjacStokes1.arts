@@ -14,23 +14,24 @@ Arts2 {
 
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # Geometrical path calculation (i.e., refraction neglected)
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Standard RT agendas
 #
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_surface_agendaSet
+iy_main_agendaSet(option="Emission")
 
 
 # Definition of species
@@ -64,8 +65,7 @@ AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 Extract( t_surface, t_field, 0 )
 VectorSet( surface_scalar_reflectivity, [0.4] )
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 
 # Frequencies and Stokes dim.

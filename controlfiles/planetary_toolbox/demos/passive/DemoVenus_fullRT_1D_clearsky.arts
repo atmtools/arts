@@ -91,7 +91,8 @@ Arts2 {
 # do NOT modify
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_venus.arts"
 
 

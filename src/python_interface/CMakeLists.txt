@@ -96,6 +96,7 @@ pybind11_add_module(pyarts_cpp
     py_predefined.cpp
     py_star.cpp
     py_math.cpp
+    py_options.cpp
 
     py_auto_interface.h
     py_auto_interface.cc

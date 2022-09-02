@@ -8,7 +8,8 @@ Arts2 {
 
 
 INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_earth.arts"
 
 
@@ -54,7 +55,7 @@ AtmFieldsCalc
 #
 MatrixSet( z_surface, [0] )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 # Map this to variables used by DISORT
 #
