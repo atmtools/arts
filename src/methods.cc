@@ -23312,8 +23312,8 @@ Options are:
 
 Options are:
     Dummy:
-        Uses *Ignore* on all inputs
-        Uses *Touch* on all outputs
+        Will *Ignore* all agenda inputs
+        Uses *Touch* on all agenda outputs
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("gas_scattering_agenda"),
@@ -23361,8 +23361,7 @@ Options are:
         Uses *iyInterpCloudboxField* to set *iy*
     
     QuarticInterpField:
-        Uses *iyInterpCloudboxField* to set *iy*,
-            with za_interp_order=4
+        Uses *iyInterpCloudboxField* to set *iy* using za_interp_order=4
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_cloudbox_agenda"),
@@ -23407,18 +23406,18 @@ Options are:
 
 Options are:
     Emission:
-        Uses *ppathCalc* for *ppath*
+        Uses *ppathCalc* to set *ppath*
         Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                         *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                         *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                               to modify *diy_dx*
+                                       *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                       *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                             to modify *diy_dx*
 
     Transmission:
-        Uses *ppathCalc* for *ppath*
+        Uses *ppathCalc* to set *ppath*
         Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                   to modify *diy_dx*
+                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                 to modify *diy_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_loop_freqs_agenda"),
@@ -23443,58 +23442,54 @@ Options are:
     Emission:
         Uses *ppathCalc* to set *ppath*
         Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                         *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                         *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                               to modify *diy_dx*
+                                       *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                       *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                             to modify *diy_dx*
         Sets *geo_pos* to empty
 
     Clearsky:
         Uses *ppathCalc* to set *ppath*
         Uses *iyClearsky* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                 *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                 *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                       to modify *diy_dx*
+                               *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                               *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                     to modify *diy_dx*
         Sets *geo_pos* to empty
 
     Transmission:
-        Uses *ppathCalc* to set *ppath*,
-            with *cloudbox_on*=0
+        Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
         Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                   to modify *diy_dx*
+                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                 to modify *diy_dx*
         Sets *geo_pos* to empty
 
     TransmissionUnitUnpolIntensity:
-        Uses *MatrixUnitIntensity* to set *iy_transmitter*,
-            with f=*f_grid*
-        Uses *ppathCalc* to set *ppath*,
-            with *cloudbox_on*=0
+        Uses *MatrixUnitIntensity* using out=*iy_transmitter*, and f=*f_grid*
+        Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
         Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                   to modify *diy_dx*
+                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                 to modify *diy_dx*
         Sets *geo_pos* to empty
 
     TransmissionUnitPolIntensity:
         Uses *iy_transmitterSinglePol* to set *iy_transmitter*
-        Uses *ppathCalc* to set *ppath*,
-            with *cloudbox_on*=0
+        Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
         Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                             *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                             *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                   to modify *diy_dx*
+                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
+                                 to modify *diy_dx*
         Sets *geo_pos* to empty
 
     Freqloop:
         Uses *iyLoopFrequencies* to set *iy*, *iy_aux*, *ppath*, and *diy_dx*
         Sets *geo_pos* to empty
-        Will *Ignore* any *diy_dx* input
+        Will *Ignore* the *diy_dx* agenda input
 
     ScattMC:
         Uses *iyMC* to set *iy*, *iy_aux*, and *diy_dx*
         Sets *geo_pos* to empty
-        Will *Ignore* any *diy_dx* input
+        Will *Ignore* the *diy_dx* agenda input
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_main_agenda"),
@@ -23539,8 +23534,7 @@ Options are:
 
 Options are:
     CosmicBackground:
-        Uses *MatrixCBR* to set *iy*,
-            with f=*f_grid*
+        Uses *MatrixCBR* using out=*iy*, and f=*f_grid*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_space_agenda"),
@@ -23563,10 +23557,10 @@ Options are:
 
 Options are:
     UseSurfaceRtprop:
-        Uses *SurfaceDummy* for *dsurface_rmatrix_dx* and *dsurface_emission_dx*
+        Uses *SurfaceDummy* to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
         Uses *iySurfaceRtpropAgenda* to set *iy*, *surface_skin_t*, *surface_los*,
-                                            *surface_rmatrix*, and *surface_emission*, and also
-                                  to modify *diy_dx*
+                                          *surface_rmatrix*, and *surface_emission*, and also
+                                to modify *diy_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_surface_agenda"),
@@ -23607,7 +23601,7 @@ Options are:
 
   md_data_raw.push_back(
       create_mdrecord(NAME("main_agendaSet"),
-                      DESCRIPTION("Calling this is and, always will be, an error\n"),
+                      DESCRIPTION("Calling this is - and always will be - an error\n"),
                       AUTHORS("Richard Larsson"),
                       OUT("main_agenda"),
                       GOUT(),
@@ -23679,9 +23673,9 @@ Options are:
         Uses *ppathPlaneParallel* to set *ppath*
 
     TransmitterReceiverPath:
-        Uses *rte_losGeometricFromRtePosToRtePos2* for *rte_los*
+        Uses *rte_losGeometricFromRtePosToRtePos2* to set *rte_los*
         Uses *ppathFromRtePos2* to set *ppath*, and also
-                             to modify *rte_los*, and *ppath_lraytrace	*
+                           to modify *rte_los*, and *ppath_lraytrace*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("ppath_agenda"),
@@ -23853,40 +23847,40 @@ Options are:
 
 Options are:
     Blackbody_SurfTFromt_surface:
-        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                             to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+                           to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Blackbody_SurfTFromt_field:
-        Uses *InterpAtmFieldToPosition* to set *surface_skin_t* from *t_field*
+        Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
         Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                             to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+                           to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Specular_NoPol_ReflFix_SurfTFromt_surface:
         Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                                          to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+                                        to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Specular_NoPol_ReflFix_SurfTFromt_field:
         Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpAtmFieldToPosition* to set *surface_skin_t* from *t_field*
+        Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
         Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                                          to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+                                        to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Specular_WithPol_ReflFix_SurfTFromt_surface:
         Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceFlatReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 
     lambertian_ReflFix_SurfTFromt_surface:
         Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpSurfaceFieldToPosition* to set *surface_skin_t* from *t_surface*
+        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 
     lambertian_ReflFix_SurfTFromt_field:
         Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpAtmFieldToPosition* to set *surface_skin_t* from *t_field*
+        Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
         Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 )--"),
                       AUTHORS("Richard Larsson"),
