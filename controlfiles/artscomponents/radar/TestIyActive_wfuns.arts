@@ -10,7 +10,8 @@ Arts2 {
 LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
-INCLUDE "general/planet_earth.arts"
+PlanetSet(option="Earth")
+isotopologue_ratiosInitFromBuiltin
 
 # Read data from files
 ReadXML( p_grid, "testdata/p_grid_wfuntest.xml" )

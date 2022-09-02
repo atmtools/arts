@@ -82,20 +82,22 @@ std::array<MethodVariable, N> input_data_array(
     const Array<AgendaMethodVariable>& list,
     const std::array<SetWsv, N>& vals) {
   std::array<MethodVariable, N> out{};
-  for (std::size_t i = 0; i < N; i++)
-    out[i] = MethodVariable(ws, list, vals[i]);
+  if constexpr (N > 0)
+    for (std::size_t i = 0; i < N; i++)
+      out[i] = MethodVariable(ws, list, vals[i]);
   return out;
 }
 
 template <std::size_t N>
 const TokVal& to_tokval(Workspace& ws,
                         const std::array<MethodVariable, N>& input_data) {
-  static TokVal any{};
-  if (auto ptr = std::find_if(input_data.crbegin(),
-                              input_data.crend(),
-                              [](auto& mv) { return mv.new_value; });
-      ptr not_eq input_data.crend())
-    return ws.wsv_data_ptr->at(ptr->ws_pos).default_value();
+  const static TokVal any{};
+  if constexpr (N > 0)
+    if (auto ptr = std::find_if(input_data.crbegin(),
+                                input_data.crend(),
+                                [](auto& mv) { return mv.new_value; });
+        ptr not_eq input_data.crend())
+      return ws.wsv_data_ptr->at(ptr->ws_pos).default_value();
   return any;
 }
 
@@ -110,8 +112,10 @@ void add_method_and_setters(Workspace& ws,
   auto input_data = input_data_array(ws, list, input);
 
   // Adapt positional arguments
-  for (Index i = 0; i < static_cast<Index>(input_data.size()); i++) {
-    if (input_data[i].positional) input_data[i].method_pos = i;
+  if constexpr (N > 0) {
+    for (Index i = 0; i < static_cast<Index>(N); i++) {
+      if (input_data[i].positional) input_data[i].method_pos = i;
+    }
   }
 
   for (auto& x : input_data) list[x.method_pos].ws_pos = x.ws_pos;

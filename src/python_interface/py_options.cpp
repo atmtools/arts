@@ -68,5 +68,8 @@ void py_options(py::module_& m) {
   DeclareOption(Options, doit_rte_agendaDefaultOptions)
   DeclareOption(Options, doit_mono_agendaDefaultOptions)
   DeclareOption(Options, doit_conv_test_agendaDefaultOptions)
+
+  // Default multiple-choice options:
+  DeclareOption(Options, planetDefaultOptions)
 }
 }  // namespace Python

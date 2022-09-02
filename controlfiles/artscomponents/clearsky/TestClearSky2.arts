@@ -14,7 +14,8 @@ Arts2 {
 LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
-INCLUDE "general/planet_earth.arts"
+PlanetSet(option="Earth")
+isotopologue_ratiosInitFromBuiltin
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )

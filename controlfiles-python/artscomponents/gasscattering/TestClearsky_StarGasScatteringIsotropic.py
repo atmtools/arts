@@ -72,7 +72,8 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     # =============================================================================
 
     ws.LegacyContinuaInit()
-    ws.execute_controlfile("general/planet_earth.arts")
+    ws.PlanetSet(option="Earth")
+    ws.isotopologue_ratiosInitFromBuiltin()
 
     # cosmic background radiation
     ws.iy_space_agendaSet()

@@ -566,7 +566,7 @@ Matrix regrid_star_spectrum(const GriddedField2 &star_spectrum_raw,
   }  
   
   // Padding
-  if (i_fstart < 0 || f_extent == nf){
+  if (f_extent < nf){
     if (temperature == -1){
       ARTS_USER_ERROR(
       "f_grid is (partially) outside the star spectrum data"
