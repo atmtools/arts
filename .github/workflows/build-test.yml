@@ -14,6 +14,7 @@ jobs:
           ubuntu-doc,
           ubuntu-clang-13-debug,
           ubuntu-gcc-11,
+          ubuntu-gcc-12,
           ubuntu-clang-13-nofortran,
           ubuntu-clang-14-nofortran,
           macos-gcc-12,
@@ -52,6 +53,18 @@ jobs:
             arts: "yes"
             fortran: "yes"
             fortran-version: "11"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "Release"
+
+          - name: ubuntu-gcc-12
+            os: ubuntu-22.04
+            compiler: gcc
+            version: "12"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            fortran-version: "12"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
