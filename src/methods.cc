@@ -11062,6 +11062,20 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("LegacyContinuaInit"),
+      DESCRIPTION("Default initialization for all legacy contiuna models.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("LocalTimeOffset"),
       DESCRIPTION("Sets the seconds between localtime and gmtime representation of now().\n"),
       AUTHORS("Richard Larsson"),

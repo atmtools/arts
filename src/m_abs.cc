@@ -1704,3 +1704,570 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
   }
 }
 
+void LegacyContinuaInit(ArrayOfString& abs_cont_names,
+                        ArrayOfString& abs_cont_models,
+                        ArrayOfVector& abs_cont_parameters,
+                        const Verbosity& verbosity) {
+  const Vector no_extras{};
+
+  //
+  // initialize the continua tag structures
+  //
+  abs_cont_descriptionInit(
+      abs_cont_names, abs_cont_models, abs_cont_parameters, verbosity);
+
+  //
+  // define the continua tags with the appropriate input
+  //
+
+  //
+  // H2O continuum
+  //
+  // Rosenkranz-type H2O-H2O continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContStandardType",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz-type H2O-dry air continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContStandardType",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz H2O full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-PWR98",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1993 H2O full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-MPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1989 H2O full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-MPM89",
+                             "MPM89",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1987 H2O full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-MPM87",
+                             "MPM87",
+                             no_extras,
+                             verbosity);
+
+  // Ma Tipping Continuum model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContMaTippingType",
+                             "MaTipping",
+                             no_extras,
+                             verbosity);
+
+  // MPM93-type H2O-air continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ContMPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // CKD2.42 original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContCKD242",
+                             "CKD242",
+                             no_extras,
+                             verbosity);
+
+  // CKD2.42 original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContCKD242",
+                             "CKD242",
+                             no_extras,
+                             verbosity);
+
+  // CKD2.4 original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContCKD24",
+                             "CKD24",
+                             no_extras,
+                             verbosity);
+
+  // CKD2.4 original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContCKD24",
+                             "CKD24",
+                             no_extras,
+                             verbosity);
+
+  // CKD2.22 original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContCKD222",
+                             "CKD222",
+                             no_extras,
+                             verbosity);
+
+  // CKD2.22 original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContCKD222",
+                             "CKD222",
+                             no_extras,
+                             verbosity);
+
+  //
+  // CKD MT 1.00 self continuum original parameters:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContCKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+  //
+  // CKD MT 1.00 H2O foreign continuum original parameters:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContCKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  //
+  // CKD MT 2.52 self continuum original parameters:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContCKDMT252",
+                             "CKDMT252",
+                             no_extras,
+                             verbosity);
+  //
+  // CKD MT 2.52 H2O foreign continuum original parameters:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContCKDMT252",
+                             "CKDMT252",
+                             no_extras,
+                             verbosity);
+
+  //
+  // CKD MT 3.20 self continuum original parameters:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-SelfContCKDMT320",
+                             "CKDMT320",
+                             no_extras,
+                             verbosity);
+  //
+  // CKD MT 3.20 H2O foreign continuum original parameters:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContCKDMT320",
+                             "CKDMT320",
+                             no_extras,
+                             verbosity);
+  //
+  //  Cruz-Pol et al. 98 Continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-CP98",
+                             "CruzPol",
+                             no_extras,
+                             verbosity);
+
+  //
+  //  Pardo et al. model 2001 Continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "H2O-ForeignContATM01",
+                             "ATM",
+                             no_extras,
+                             verbosity);
+
+  //
+  // O2 continuum
+  //
+  // Standard O2-air continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-SelfContStandardType",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  //
+  // Liebe 1993 O2-air continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-SelfContMPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz 1998 full oxygen continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-PWR98",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz 1993 full oxygen continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-PWR93",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz 1988 full oxygen continuum
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-PWR88",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1993 O2 full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-MPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1992 O2 full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-MPM92",
+                             "MPM92",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1989 O2 full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-MPM89",
+                             "MPM89",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1987 O2 full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-MPM87",
+                             "MPM87",
+                             no_extras,
+                             verbosity);
+
+  // Liebe 1985 O2 full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-MPM85",
+                             "MPM85",
+                             no_extras,
+                             verbosity);
+
+  // Tretyakov etal. 2005 modernization of Liebe 1993 O2 full absorption model
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-TRE05",
+                             "TRE05",
+                             no_extras,
+                             verbosity);
+
+  //
+  // Thibault et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-CIAfunCKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  // Mate et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-v0v0CKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  // Mlawer et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-v1v0CKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  // Mlawer et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-v1v0CKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  // Greenblatt et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "O2-visCKDMT252",
+                             "CKDMT252",
+                             no_extras,
+                             verbosity);
+
+  //
+
+  //
+  // N2 continuum
+  //
+  // Rosenkranz N2-N2 continuum (only N2-N2 broadening;
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-SelfContStandardType",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // MPM93 N2-N2 continuum (only N2-N2 broadening);
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-SelfContMPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz N2-N2 continuum (only N2-N2 broadening);
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-SelfContPWR93",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Borysow-Frommhold original parameters
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-SelfContBorysow",
+                             "BF86",
+                             no_extras,
+                             verbosity);
+
+  // Borysow-Frommhold from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-CIArotCKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+  //
+  //
+  // Lafferty et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-CIAfunCKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  // Borysow-Frommhold from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-CIArotCKDMT252",
+                             "CKDMT252",
+                             no_extras,
+                             verbosity);
+  //
+  //
+  // Lafferty et  al. from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-CIAfunCKDMT252",
+                             "CKDMT252",
+                             no_extras,
+                             verbosity);
+
+  //
+  //  Pardo et al. model 2001 Continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "N2-DryContATM01",
+                             "ATM",
+                             no_extras,
+                             verbosity);
+
+  //
+
+  //
+  // CO2 continuum
+  //
+  // Rosenkranz CO2-CO2 continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-SelfContPWR93",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz CO2-N2 continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-ForeignContPWR93",
+                             "Rosenkranz",
+                             no_extras,
+                             verbosity);
+
+  // Ho et al 1966 CO2-CO2 continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-SelfContHo66",
+                             "Ho66",
+                             no_extras,
+                             verbosity);
+
+  // Ho et al 1966 CO2-N2 continuum:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-ForeignContHo66",
+                             "Ho66",
+                             no_extras,
+                             verbosity);
+
+  // far line wing continuum from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-CKDMT100",
+                             "CKDMT100",
+                             no_extras,
+                             verbosity);
+
+  // far line wing continuum from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-CKDMT252",
+                             "CKDMT252",
+                             no_extras,
+                             verbosity);
+
+  // far line wing continuum from CKD F77 program:
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "CO2-CKD241",
+                             "CKD241",
+                             no_extras,
+                             verbosity);
+
+  //
+  // Hydrometeors
+  //
+
+  // Rosenkranz liquid cloud
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "liquidcloud-MPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // Ellison liquid cloud (2007, no_extras, verbosity );
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "liquidcloud-ELL07",
+                             "ELL07",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz ice cloud
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "icecloud-MPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+
+  // Rosenkranz rain
+  abs_cont_descriptionAppend(abs_cont_names,
+                             abs_cont_models,
+                             abs_cont_parameters,
+                             "rain-MPM93",
+                             "MPM93",
+                             no_extras,
+                             verbosity);
+}

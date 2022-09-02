@@ -16,8 +16,8 @@ Arts2{
   
   water_p_eq_agendaSet
 gas_scattering_agendaSet
-  INCLUDE "general/continua.arts"
-  PlanetSet(option="Earth")
+LegacyContinuaInit
+PlanetSet(option="Earth")
 isotopologue_ratiosInitFromBuiltin
 
   # Agendas (excpept surface ones)
