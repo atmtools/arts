@@ -16,8 +16,8 @@ jobs:
           ubuntu-gcc-11,
           ubuntu-clang-13-nofortran,
           ubuntu-clang-14-nofortran,
-          macos-gcc-11,
-          macos-clang-13,
+          macos-gcc-12,
+          macos-clang-14,
         ]
 
         include:
@@ -78,22 +78,22 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: macos-gcc-11
+          - name: macos-gcc-12
             os: macos-latest
             compiler: gcc
-            version: "11"
+            version: "12"
             doc: "no"
             arts: "yes"
             fortran: "yes"
-            fortran-version: "11"
+            fortran-version: "12"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
 
-          - name: macos-clang-13
+          - name: macos-clang-14
             os: macos-latest
             compiler: clang
-            version: "13"
+            version: "14"
             doc: "no"
             arts: "yes"
             fortran: "no"
