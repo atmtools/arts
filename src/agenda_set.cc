@@ -221,6 +221,8 @@ void AgendaCreator::set(const std::string_view var, const TokVal& value) {
     agenda.push_back(MRecord(pos, {ws_pos}, {}, value, Agenda{ws}));
 }
 
+void AgendaCreator::ignore(const std::string_view var) { add("Ignore", var); }
+
 Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
   AgendaCreator agenda(ws, "iy_main_agenda");
 
@@ -257,12 +259,12 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
     case Freqloop:
       agenda.add("iyLoopFrequencies");
       agenda.set("geo_pos", Vector{});
-      agenda.add("Ignore", "diy_dx");
+      agenda.ignore("diy_dx");
       break;
     case ScattMC:
       agenda.add("iyMC");
       agenda.set("geo_pos", Vector{});
-      agenda.add("Ignore", "diy_dx");
+      agenda.ignore("diy_dx");
       break;
     case FINAL:
       break;

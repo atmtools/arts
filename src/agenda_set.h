@@ -161,6 +161,9 @@ struct AgendaCreator {
 
   //! Set a variable to a value
   void set(const std::string_view var, const TokVal& value);
+
+  //! Ignores a variable (only call if the variable input is ignored despite being BOTH in- and output)
+  void ignore(const std::string_view var);
 };
 
 Agenda get_iy_main_agenda(Workspace& ws, const String& option);
