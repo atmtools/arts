@@ -39,6 +39,7 @@
 #include "absorption.h"
 #include "absorptionlines.h"
 #include "agenda_class.h"
+#include "agenda_set.h"
 #include "array.h"
 #include "arts.h"
 #include "arts_constants.h"
@@ -1566,113 +1567,6 @@ void WriteMolTau(  //WS Input
 
 #endif /* ENABLE_NETCDF */
 
-//! Define an anonomous helper class for setting and getting defaults in the automatic agenda creation
-namespace {
-struct MethodSetDelHelper {
-  String name, type;
-  Index pos{-1};
-  MRecord del, set;
-
-  template <typename T>
-  MethodSetDelHelper(Workspace& ws, String n, String t, T val)
-      : name(std::move(n)), type(std::move(t)), del(ws), set(ws) {
-    auto k = "::propmat_clearsky_agendaSetAutomatic::autogen::" + name;
-    auto ptr = ws.WsvMap_ptr->find(k);
-    pos = ptr == ws.WsvMap_ptr->end()
-              ? ws.add_wsv(WsvRecord(k.c_str(), "Added automatically", type))
-              : ptr->second;
-
-    set = MRecord(
-        global_data::MdMap.at(type + "Set"), {pos}, {}, std::move(val), Agenda{ws});
-    del =
-        MRecord(global_data::MdMap.at("Delete_sg_" + type), {}, {pos}, {}, Agenda{ws});
-  }
-};
-
-template <typename T>
-bool gins_are_ok(const MdRecord& rec, const T& gins) {
-  const auto N = static_cast<Index>(gins.size());
-  if (rec.GIn().nelem() not_eq N) return false;
-  for (Index i = 0; i < N; i++) {
-    if (gins.at(i).name not_eq rec.GIn().at(i)) return false;
-    if (global_data::WsvGroupMap.at(gins.at(i).type) not_eq rec.GInType().at(i))
-      return false;
-  }
-  return true;
-}
-
-struct MethodAppender {
-  Workspace& ws;
-  Agenda& propmat_clearsky_agenda;
-  ArrayOfIndex full_out{};
-  ArrayOfIndex full_in{};
-  MethodAppender(Workspace& w, Agenda& agenda) : ws(w), propmat_clearsky_agenda(agenda) {}
-  
-  void append_nogin_method(std::string_view method) {
-    const auto pos = global_data::MdMap.at(method);
-    const MdRecord& rec = global_data::md_data.at(pos);
-    auto& out = rec.Out();
-    auto& in = rec.InOnly();
-    for (auto& i : out) full_out.push_back(i);
-    for (auto& i : in) full_in.push_back(i);
-    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{ws}));
-  }
-
-  template <typename T>
-  void append_gin_method(std::string_view method, const T& gins) {
-    const auto pos = global_data::MdMap.at(method);
-    const MdRecord& rec = global_data::md_data.at(pos);
-
-    ARTS_ASSERT(gins_are_ok(rec, gins),
-                "Something is wrong with the Generic inputs!")
-
-    auto& out = rec.Out();
-    auto in = rec.InOnly();
-    for (auto& i : out) full_out.push_back(i);
-    for (auto& i : in) full_in.push_back(i);
-
-    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.set);
-    for (auto& x : gins) in.push_back(x.pos);
-    propmat_clearsky_agenda.push_back(MRecord(pos, out, in, {}, Agenda{ws}));
-    for (auto& x : gins) propmat_clearsky_agenda.push_back(x.del);
-  }
-
-  auto& append_ignores() {
-    const auto pos = global_data::AgendaMap.at("propmat_clearsky_agenda");
-    const AgRecord& rec = global_data::agenda_data.at(pos);
-    std::sort(full_in.begin(), full_in.end());
-    auto end = std::unique(full_in.begin(), full_in.end());
-    for (auto& val_pos : rec.In()) {
-      if (end == std::find(full_in.begin(), end, val_pos)) {
-        auto fun_pos = global_data::MdMap.at(
-            "Ignore_sg_" +
-            global_data::wsv_groups.at(ws.wsv_data_ptr->at(val_pos).Group()).name);
-        propmat_clearsky_agenda.push_back(
-            MRecord(fun_pos, {}, {val_pos}, {}, Agenda{ws}));
-      }
-    }
-    return *this;
-  }
-
-  auto& append_touch() {
-    const auto pos = global_data::AgendaMap.at("propmat_clearsky_agenda");
-    const AgRecord& rec = global_data::agenda_data.at(pos);
-    std::sort(full_out.begin(), full_out.end());
-    auto end = std::unique(full_out.begin(), full_out.end());
-    for (auto& val_pos : rec.Out()) {
-      if (end == std::find(full_out.begin(), end, val_pos)) {
-        auto fun_pos = global_data::MdMap.at(
-            "Touch_sg_" +
-            global_data::wsv_groups.at(ws.wsv_data_ptr->at(val_pos).Group()).name);
-        propmat_clearsky_agenda.push_back(
-            MRecord(fun_pos, {val_pos}, {}, {}, Agenda{ws}));
-      }
-    }
-    return *this;
-  }
-};
-}  // namespace
-
 void propmat_clearsky_agendaAuto(// Workspace reference:
     Workspace& ws,
     // WS Output:
@@ -1699,120 +1593,114 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
     const Index& use_abs_lookup_ind,
     // Verbosity object:
     const Verbosity& verbosity) {
+  using namespace AgendaManip;
+
   propmat_clearsky_agenda_checked = 0;  // In case of crash
+
+  AgendaCreator agenda(ws, "propmat_clearsky_agenda");
 
   // Use bool because logic is easier
   const bool use_abs_lookup = static_cast<bool>(use_abs_lookup_ind);
 
-  // Reset the agenda
-  propmat_clearsky_agenda = Agenda{ws};
-  propmat_clearsky_agenda.set_name("propmat_clearsky_agenda");
-
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
-  MethodAppender agenda{ws, propmat_clearsky_agenda};
 
   // propmat_clearskyInit
-  agenda.append_nogin_method("propmat_clearskyInit");
+  agenda.add("propmat_clearskyInit");
 
   // propmat_clearskyAddFromLookup
   if (use_abs_lookup) {
-    const std::array gins{
-        MethodSetDelHelper(ws, "extpolfac", "Numeric", extpolfac),
-        MethodSetDelHelper(ws, "no_negatives", "Index", no_negatives)};
-    agenda.append_gin_method("propmat_clearskyAddFromLookup", gins);
+    agenda.add("propmat_clearskyAddFromLookup",
+               SetWsv{"extpolfac", extpolfac},
+               SetWsv{"no_negatives", no_negatives});
   }
 
   // propmat_clearskyAddLines
   if (not use_abs_lookup and any_species.Plain and
       (any_lines.population.LTE or any_lines.population.NLTE or
        any_lines.population.VibTemps)) {
-    const std::array gins{
-        MethodSetDelHelper(ws, "lines_sparse_df", "Numeric", lines_sparse_df),
-        MethodSetDelHelper(ws, "lines_sparse_lim", "Numeric", lines_sparse_lim),
-        MethodSetDelHelper(
-            ws, "lines_speedup_option", "String", lines_speedup_option),
-        MethodSetDelHelper(ws, "no_negatives", "Index", no_negatives)};
-    agenda.append_gin_method("propmat_clearskyAddLines", gins);
+    agenda.add("propmat_clearskyAddLines",
+               SetWsv{"lines_sparse_df", lines_sparse_df},
+               SetWsv{"lines_sparse_lim", lines_sparse_lim},
+               SetWsv{"lines_speedup_option", lines_speedup_option},
+               SetWsv{"no_negatives", no_negatives});
   }
 
   // propmat_clearskyAddZeeman
   if (any_species.Zeeman and
       (any_lines.population.LTE or any_lines.population.NLTE or
        any_lines.population.VibTemps)) {
-    const std::array gins{
-        MethodSetDelHelper(ws, "manual_mag_field", "Index", manual_mag_field),
-        MethodSetDelHelper(ws, "H", "Numeric", H),
-        MethodSetDelHelper(ws, "theta", "Numeric", theta),
-        MethodSetDelHelper(ws, "eta", "Numeric", eta)};
-    agenda.append_gin_method("propmat_clearskyAddZeeman", gins);
+    agenda.add("propmat_clearskyAddZeeman",
+               SetWsv{"manual_mag_field", manual_mag_field},
+               SetWsv{"H", H},
+               SetWsv{"theta", theta},
+               SetWsv{"eta", eta});
   }
 
   //propmat_clearskyAddHitranXsec
   if (not use_abs_lookup and any_species.XsecFit) {
-    const std::array gins{
-        MethodSetDelHelper(ws, "force_p", "Numeric", force_p),
-        MethodSetDelHelper(ws, "force_t", "Numeric", force_t)};
-    agenda.append_gin_method("propmat_clearskyAddXsecFit", gins);
+    agenda.add("propmat_clearskyAddXsecFit",
+               SetWsv{"force_p", force_p},
+               SetWsv{"force_t", force_t});
   }
 
   //propmat_clearskyAddOnTheFlyLineMixing
   if (not use_abs_lookup and any_species.Plain and
       (any_lines.population.ByMakarovFullRelmat or
        any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.append_nogin_method("propmat_clearskyAddOnTheFlyLineMixing");
+    agenda.add("propmat_clearskyAddOnTheFlyLineMixing");
   }
 
   //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
   if (any_species.Zeeman and
       (any_lines.population.ByMakarovFullRelmat or
        any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.append_nogin_method(
-        "propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+    agenda.add("propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
   }
 
   //propmat_clearskyAddCIA
   if (not use_abs_lookup and any_species.Cia) {
-    const std::array gins{
-        MethodSetDelHelper(ws, "T_extrapolfac", "Numeric", T_extrapolfac),
-        MethodSetDelHelper(ws, "ignore_errors", "Index", ignore_errors)};
-    agenda.append_gin_method("propmat_clearskyAddCIA", gins);
+    agenda.add("propmat_clearskyAddCIA",
+               SetWsv{"T_extrapolfac", T_extrapolfac},
+               SetWsv{"ignore_errors", ignore_errors});
   }
 
   //propmat_clearskyAddConts
   if (not use_abs_lookup and any_species.PredefinedLegacy) {
-    agenda.append_nogin_method("propmat_clearskyAddConts");
+    agenda.add("propmat_clearskyAddConts");
   }
 
   //propmat_clearskyAddPredefined
   if (not use_abs_lookup and any_species.PredefinedModern) {
-    agenda.append_nogin_method("propmat_clearskyAddPredefined");
+    agenda.add("propmat_clearskyAddPredefined");
   }
 
   //propmat_clearskyAddParticles
   if (any_species.Particles) {
-    const std::array gins{
-        MethodSetDelHelper(ws, "use_abs_as_ext", "Index", use_abs_as_ext)};
-    agenda.append_gin_method("propmat_clearskyAddParticles", gins);
+    agenda.add("propmat_clearskyAddParticles",
+               SetWsv{"use_abs_as_ext", use_abs_as_ext});
   }
 
   //propmat_clearskyAddFaraday
   if (any_species.FreeElectrons) {
-    agenda.append_nogin_method("propmat_clearskyAddFaraday");
+    agenda.add("propmat_clearskyAddFaraday");
   }
 
   // propmat_clearskyAddHitranLineMixingLines
   if (not use_abs_lookup and any_species.Plain and
       (any_lines.population.ByHITRANFullRelmat or
        any_lines.population.ByHITRANRosenkranzRelmat)) {
-    agenda.append_nogin_method("propmat_clearskyAddHitranLineMixingLines");
+    agenda.add("propmat_clearskyAddHitranLineMixingLines");
   }
 
-  // Ignore and touch all unused input and ouptut of the agenda
-  agenda.append_ignores().append_touch();
-
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda.check(ws, verbosity);
-  propmat_clearsky_agenda_checked=1;
+  propmat_clearsky_agenda = agenda.finalize();
+  propmat_clearsky_agenda_checked = 1;
+
+  CREATE_OUT3;
+  if (out3.sufficient_priority()) {
+    out3 << "propmat_clearsky_agendaAuto sets propmat_clearsky_agenda to:\n\n"
+         << propmat_clearsky_agenda << '\n';
+  }
 }
 

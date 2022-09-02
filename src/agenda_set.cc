@@ -233,6 +233,11 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
       agenda.add("iyEmissionStandard");
       agenda.set("geo_pos", Vector{});
       break;
+    case EmissionPlaneParallel:
+      agenda.add("ppathPlaneParallel");
+      agenda.add("iyEmissionStandard");
+      agenda.set("geo_pos", Vector{});
+      break;
     case Clearsky:
       agenda.add("ppathCalc");
       agenda.add("iyClearsky");

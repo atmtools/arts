@@ -23447,6 +23447,14 @@ Options are:
                              to modify *diy_dx*
         Sets *geo_pos* to empty
 
+    EmissionPlaneParallel:
+        Uses *ppathPlaneParallel* to set *ppath*
+        Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
+                                       *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
+                                       *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
+                             to modify *diy_dx*
+        Sets *geo_pos* to empty
+
     Clearsky:
         Uses *ppathCalc* to set *ppath*
         Uses *iyClearsky* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,

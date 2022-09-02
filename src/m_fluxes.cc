@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include "absorption.h"
 #include "agenda_class.h"
+#include "agenda_set.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "auto_md.h"
@@ -550,16 +551,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method. This definition of iy_main_agenda will be used to when
   // calculating the the radiation reflected by the surface
-  Agenda iy_main_agenda(ws);
-  iy_main_agenda.append("ppathPlaneParallel", TokVal());
-  iy_main_agenda.append("iyEmissionStandard", TokVal());
-  iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
-                                   {ws.WsvMap_ptr->at("geo_pos")},
-                                   {},
-                                   Vector{},
-                                   Agenda{ws}));
-  iy_main_agenda.set_name("iy_main_agenda");
-  iy_main_agenda.check(ws, verbosity);
+  const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");
 
   // Index in p_grid where field at surface shall be placed
   const Index i0 = index_of_zsurface(z_surface(0, 0), z_field(joker, 0, 0));
@@ -812,16 +804,7 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method (but the agenda will not be used).
-  Agenda iy_main_agenda{ws};
-  iy_main_agenda.append("ppathPlaneParallel", TokVal());
-  iy_main_agenda.append("iyEmissionStandard", TokVal());
-  iy_main_agenda.push_back(MRecord(global_data::MdMap.at("VectorSet"),
-                                   {ws.WsvMap_ptr->at("geo_pos")},
-                                   {},
-                                   Vector{},
-                                   Agenda{ws}));
-  iy_main_agenda.set_name("iy_main_agenda");
-  iy_main_agenda.check(ws, verbosity);
+  const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");;
 
   // Variables related to the top of the cloudbox
   const Index i0 = cloudbox_limits[1];
