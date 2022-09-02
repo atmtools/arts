@@ -45,7 +45,7 @@ ws.verbositySetAgenda(level=0)
 # =============================================================================
 
 
-ws.execute_controlfile("general/continua.arts")
+ws.LegacyContinuaInit()
 ws.execute_controlfile("general/planet_earth.arts")
 
 
