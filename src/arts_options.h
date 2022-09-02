@@ -201,6 +201,15 @@ ENUMCLASS_EMPTY(doit_mono_agendaDefaultOptions, char)
 
 /** Options for setting doit_conv_test_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
 ENUMCLASS_EMPTY(doit_conv_test_agendaDefaultOptions, char)
+
+/** Options for setting planets */
+ENUMCLASS(planetDefaultOptions,
+          char,
+          Earth,
+          Io,
+          Jupiter,
+          Mars,
+          Venus)
 }  // namespace Options
 
 #endif

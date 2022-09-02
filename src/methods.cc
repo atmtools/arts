@@ -23146,6 +23146,53 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  md_data_raw.push_back(
+      create_mdrecord(NAME("PlanetSet"),
+                      DESCRIPTION(R"--(Sets *g0_agenda*, *refellipsoid*, *molarmass_dry_air*, and *planet_rotation_period* to default values
+
+*g0_agenda* is set using *g0_agendaSet* with the same option
+
+Options are:
+    Earth:
+        Uses *refellipsoidEarth* with model="Sphere"
+        Sets *molarmass_dry_air* to 28.966
+        Sets *planet_rotation_period* to 86164.1
+    
+    Io:
+        Uses *refellipsoidIo* with model="Sphere"
+        Sets *molarmass_dry_air* to 63.110068828000003
+        Sets *planet_rotation_period* to 152853
+    
+    Jupiter:
+        Uses *refellipsoidJupiter* with model="Sphere"
+        Sets *molarmass_dry_air* to 2.22
+        Sets *planet_rotation_period* to 35730
+    
+    Mars:
+        Uses *refellipsoidMars* with model="Sphere"
+        Sets *molarmass_dry_air* to 43.34
+        Sets *planet_rotation_period* to 88643
+    
+    Venus:
+        Uses *refellipsoidVenus* with model="Sphere"
+        Sets *molarmass_dry_air* to 43.45
+        Sets *planet_rotation_period* to -2.0997e7
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("g0_agenda", "refellipsoid", "molarmass_dry_air", "planet_rotation_period"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
   //! Add all the agenda-setting methods below here:
 
   md_data_raw.push_back(

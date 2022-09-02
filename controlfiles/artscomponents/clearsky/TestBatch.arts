@@ -103,7 +103,8 @@ AgendaSet( doit_conv_test_agenda ){
 }
 
 iy_cloudbox_agendaSet( option="LinInterpField" )
-INCLUDE "general/planet_earth.arts"
+PlanetSet(option="Earth")
+isotopologue_ratiosInitFromBuiltin
 
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 
