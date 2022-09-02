@@ -334,10 +334,23 @@ please update the description.  Also note that the commented out code is useful
 to have only, as it allows us to easily add some agenda defaults if they do
 exist in the future
 """)
+    def test_planet_set(self):
+        def get_options(enum_object):
+            out = []
+            for thing in dir(enum_object):
+                if thing.startswith("__") or thing == "value": continue
+                out.append(thing)
+            return out
+        options = get_options(pyarts.arts.options.planetDefaultOptions)
+
+        ws = pyarts.workspace.Workspace()
+        for opt in options:
+            assert (opt+':') in ws.PlanetSet.__doc__, f"The {opt}-option is not documented correctly"
+            ws.PlanetSet(option=opt)
 
 
 if __name__ == "__main__":
     ta = TestAgendas()
     ta.setup_method()
-    ta.test_agenda_set()
+    ta.test_planet_set()
 

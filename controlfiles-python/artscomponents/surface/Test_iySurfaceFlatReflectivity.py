@@ -63,7 +63,8 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
 
     # import basic definitions
     ws.execute_controlfile("general/continua.arts")
-    ws.execute_controlfile("general/planet_earth.arts")
+    ws.PlanetSet(option="Earth")
+    ws.isotopologue_ratiosInitFromBuiltin()
 
     # =============================================================================
     # select/define agendas
