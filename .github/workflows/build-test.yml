@@ -14,15 +14,16 @@ jobs:
           ubuntu-doc,
           ubuntu-clang-13-debug,
           ubuntu-gcc-11,
+          ubuntu-gcc-12-debug,
           ubuntu-clang-13-nofortran,
           ubuntu-clang-14-nofortran,
-          macos-gcc-11,
-          macos-clang-13,
+          macos-gcc-12,
+          macos-clang-14,
         ]
 
         include:
           - name: ubuntu-doc
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             compiler: clang
             version: "13"
             doc: "yes"
@@ -33,7 +34,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-clang-13-debug
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             compiler: clang
             version: "13"
             doc: "no"
@@ -45,7 +46,7 @@ jobs:
             buildtype: "RelWithDebInfo"
 
           - name: ubuntu-gcc-11
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             compiler: gcc
             version: "11"
             doc: "no"
@@ -56,8 +57,20 @@ jobs:
             libcxx: "no"
             buildtype: "Release"
 
+          - name: ubuntu-gcc-12-debug
+            os: ubuntu-22.04
+            compiler: gcc
+            version: "12"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            fortran-version: "12"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "RelWithDebInfo"
+
           - name: ubuntu-clang-13-nofortran
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             compiler: clang
             version: "13"
             doc: "no"
@@ -68,7 +81,7 @@ jobs:
             buildtype: "Release"
 
           - name: ubuntu-clang-14-nofortran
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             compiler: clang
             version: "14"
             doc: "no"
@@ -78,22 +91,22 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: macos-gcc-11
+          - name: macos-gcc-12
             os: macos-latest
             compiler: gcc
-            version: "11"
+            version: "12"
             doc: "no"
             arts: "yes"
             fortran: "yes"
-            fortran-version: "11"
+            fortran-version: "12"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
 
-          - name: macos-clang-13
+          - name: macos-clang-14
             os: macos-latest
             compiler: clang
-            version: "13"
+            version: "14"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -189,9 +202,15 @@ jobs:
         if: runner.os == 'Linux' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j2 -C src
+          if [[ ${{ matrix.buildtype }} == "Release" ]]; then
+            make -j2 -C src
+          else
+            make -j2 arts
+            make -j1 pyarts
+            make -j2 -C src
+          fi
 
-      - name: Build (Linux / macOS)
+      - name: Build (macOS)
         if: runner.os == 'macOS' && matrix.arts == 'yes'
         run: |
           cd cmake-build
