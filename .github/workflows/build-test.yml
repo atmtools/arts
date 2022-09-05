@@ -210,7 +210,7 @@ jobs:
             make -j2 -C src
           fi
 
-      - name: Build (Linux / macOS)
+      - name: Build (macOS)
         if: runner.os == 'macOS' && matrix.arts == 'yes'
         run: |
           cd cmake-build
