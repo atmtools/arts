@@ -202,7 +202,13 @@ jobs:
         if: runner.os == 'Linux' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j2 -C src
+          if [[ ${{ matrix.buildtype }} == "Release" ]]; then
+            make -j2 -C src
+          else
+            make -j2 arts
+            make -j1 pyarts
+            make -j2 -C src
+          fi
 
       - name: Build (Linux / macOS)
         if: runner.os == 'macOS' && matrix.arts == 'yes'
