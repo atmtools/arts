@@ -13,6 +13,7 @@ namespace Python {
 namespace py = pybind11;
 
 void py_basic(py::module_&);
+void py_docserver(py::module_&);
 void py_matpack(py::module_&);
 void py_ppath(py::module_&);
 void py_griddedfield(py::module_&);
@@ -105,6 +106,7 @@ PYBIND11_MODULE(arts, m) {
   }
 
   py_basic(m);
+  py_docserver(m);
   py_matpack(m);
   py_griddedfield(m);
   py_time(m);
