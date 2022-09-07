@@ -71,6 +71,7 @@ pybind11_add_module(pyarts_cpp
     py_module.cpp
     py_matpack.cpp
     py_basic.cpp
+    py_docserver.cpp
     py_ppath.cpp
     py_griddedfield.cpp
     py_time.cpp

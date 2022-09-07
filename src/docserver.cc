@@ -2058,4 +2058,20 @@ static int ahc_echo(void* cls,
   return ret;
 }
 
+void run_docserver(Index port, const String& baseurl, bool daemon) {
+  if (daemon) {
+    int pid = fork();
+    if (!pid) {
+      Docserver docserver(port, baseurl);
+      docserver.launch(daemon);
+    } else {
+      std::cout << "Docserver daemon started with PID: " << pid << endl;
+    }
+  } else {
+    Docserver docserver(port, baseurl);
+    std::cout << "Starting the arts documentation server." << endl;
+    docserver.launch(daemon);
+  }
+}
+
 #endif /* ENABLE_DOCSERVER */
