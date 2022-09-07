@@ -84,4 +84,7 @@ struct scoped_disable final {
     }
   }
 };
+
+void show_plot_controls();
+void show_propmat_controls();
 }  // namespace ARTSGUI::MainMenu

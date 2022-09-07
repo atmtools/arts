@@ -512,4 +512,117 @@ void tooltip(const char* tip, const Config& config) {
     }
   }
 }
+
+void show_plot_controls() {
+  static bool doit = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("Help")) {
+      if (ImGui::MenuItem("Show Plot Controls")) doit = true;
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+  if (doit) {
+    ImGui::OpenPopup("Plot Controls");
+    doit = false;
+  }
+
+  if (ImGui::BeginPopupModal("Plot Controls")) {
+    ImGui::Text(R"--(    The following controls are available to manipulate the plot panel                
+    Note that gui has to be selected for any interactions to work
+
+    Inside the plot panel:
+        Left-click, hold, and drag:    Moves the current axes
+        Double left-click:             Recenter the plot axis (might miss very small values)
+        Right-click, hold, and drag:   Zoom in on the highlighted area
+                     Shift modifier:   Selects the full y-axis
+                       Alt modifier:   Selects the full x-axis
+        Double right-click:            Open a menu that allows modifying the plot layout
+        Spin mouse scroll-wheel:       Zoom in and out
+        Press the color of the legend: Turn on-and-off the plot line (useful mostly when stokes_dim>1)    
+
+    On the x-axis and on the y-axis:
+        Same as above but for just the axis, bar the right-click, hold, and drag features
+    
+    The double right-click menu:
+        X-Axis/Y-Axis:
+            Set min value manually, and/or lock the minimum value by ticking the box
+            Set max value manually, and/or lock the maximum value by ticking the box
+            Invert:    The order of the axis is inverted (min at top) if ticked
+            Log Scale: The axis is shown logarithmically if ticked
+            Time:      Interpret the X-Axis as a unix time stamp (do not use)
+        Other settings: Various interaction best understood by using them
+)--");
+    if (ImGui::Button("\tOK\t", {-1.0f, 30.0f})) {
+      ImGui::CloseCurrentPopup();
+    }
+  }
+}
+
+void show_propmat_controls() {
+  static bool doit = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("Help")) {
+      if (ImGui::MenuItem("Show Propagation Matrix Agenda Controls")) doit = true;
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+  if (doit) {
+    ImGui::OpenPopup("Propagation Matrix Agenda Controls");
+    doit = false;
+  }
+
+  if (ImGui::BeginPopupModal("Propagation Matrix Agenda Controls")) {
+    ImGui::Text(R"--(    The following controls are available to manipulate agenda                              
+    Note that gui has to be selected for any interactions to work
+
+    The Panel Control Panel:
+        Run Agenda Button:                 This button runs the agenda with the current
+                                           values
+        Update Automatic Tickbox:          If ticked, then the agenda will run as soon
+                                           as a value is updated    
+        Automatic Frequency Grid Tickbox:  If ticked, then the agenda is run when the
+                                           drawn x-axis is updated    
+        Last Run Information:              Shows the time it took to execute the last
+                                           agenda run
+        Not Running / Running Information: The first shows if we are running, the latter    
+                                           shows for how long the current calculations
+                                           have been going on
+    
+    The Panel Status Panel:
+        This shows the input to the last run agenda.  If a star appears next to a value,
+        then this value is different from what the current settings entail (indicating
+        you might want to run the agenda)
+    
+    Value Menu:
+        Allows manually setting the propmat_clearsky_agenda inputs, as well as the
+        transmission distance
+
+    Display Menu:
+        Propagation Matrix Scale:     Scale the Y-Axis of the propagation matrix
+        Transmission Matrix Scale:    Scale the Y-Axis of the transmission matrix
+        Frequency Scale:              Scale the X-Axis to the new frequency unit
+        Select Plot:                  Select main calculations or a derivative to show
+        Binning Count:                Bin data to make it smoother (number of binned
+                                      points)
+        Show As Transmission Tickbox: Shows the propagation matrix when unticked and the
+        transmission matrix when ticked    
+    Note that the rescaling does not change the numbers you are looking at in the plot
+    panel but that you will have to refit the plotting window to match the new scale.
+    Some scales might even make the numbers so small that the automatic rescaling of
+    the plot panel with double left-click misses the values.  Also note that automatic
+    frequency grids do not work very well with the inverse frequency scales.
+)--");
+    if (ImGui::Button("\tOK\t", {-1.0f, 30.0f})) {
+      ImGui::CloseCurrentPopup();
+    }
+  }
+}
 }  // namespace ARTSGUI::MainMenu

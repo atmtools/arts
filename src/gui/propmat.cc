@@ -753,6 +753,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
     ImGui::EndMainMenuBar();
   }
+  MainMenu::show_plot_controls();
+  MainMenu::show_propmat_controls();
 
   if (Windows::sub<5, 1, 0, 0, 4, 1>(
           window, Windows::CurrentPosition(), "DrawingWindow")) {
