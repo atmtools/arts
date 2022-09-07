@@ -47,7 +47,6 @@ ws.verbositySetAgenda(level=0)
 
 ws.LegacyContinuaInit()
 ws.PlanetSet(option="Earth")
-ws.isotopologue_ratiosInitFromBuiltin()
 
 
 # gas scattering agenda

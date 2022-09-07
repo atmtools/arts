@@ -18,7 +18,7 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
+#
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -94,7 +94,7 @@ cloudbox_checkedCalc
 sensor_checkedCalc
 
 #now do the RT calc
-isotopologue_ratiosInitFromBuiltin
+#
 #WriteXML("ascii", isotopologue_ratios, "IRfromARTSBuiltin.xml")
 yCalc
 #WriteXML( "ascii", y, "y.IsoRatios_Builtin.xml" )

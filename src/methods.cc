@@ -23166,34 +23166,41 @@ where N>=0 and the species name is something line "H2O".
 
 *g0_agenda* is set using *g0_agendaSet* with the same option
 
+Note that ARTS-XML-DATA must be present for several of the options below
+
 Options are:
     Earth:
         Uses *refellipsoidEarth* with model="Sphere"
         Sets *molarmass_dry_air* to 28.966
         Sets *planet_rotation_period* to 86164.1
+        Uses *isotopologue_ratiosInitFromBuiltin*
     
     Io:
         Uses *refellipsoidIo* with model="Sphere"
         Sets *molarmass_dry_air* to 63.110068828000003
         Sets *planet_rotation_period* to 152853
+        Reads "planets/Jupiter/isotopratio_Jupiter.xml" to set *isotopologue_ratios*
     
     Jupiter:
         Uses *refellipsoidJupiter* with model="Sphere"
         Sets *molarmass_dry_air* to 2.22
         Sets *planet_rotation_period* to 35730
+        Reads "planets/Jupiter/isotopratio_Jupiter.xml" to set *isotopologue_ratios*
     
     Mars:
         Uses *refellipsoidMars* with model="Sphere"
         Sets *molarmass_dry_air* to 43.34
         Sets *planet_rotation_period* to 88643
+        Reads "planets/Mars/isotopratio_Mars.xml" to set *isotopologue_ratios*
     
     Venus:
         Uses *refellipsoidVenus* with model="Sphere"
         Sets *molarmass_dry_air* to 43.45
         Sets *planet_rotation_period* to -2.0997e7
+        Reads "planets/Venus/isotopratio_Venus.xml" to set *isotopologue_ratios*
 )--"),
                       AUTHORS("Richard Larsson"),
-                      OUT("g0_agenda", "refellipsoid", "molarmass_dry_air", "planet_rotation_period"),
+                      OUT("g0_agenda", "isotopologue_ratios", "refellipsoid", "molarmass_dry_air", "planet_rotation_period"),
                       GOUT(),
                       GOUT_TYPE(),
                       GOUT_DESC(),

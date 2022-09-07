@@ -43,8 +43,10 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "isotopologues.h"
 #include "matpackI.h"
 #include "messages.h"
+#include "xml_io.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -252,6 +254,7 @@ void refellipsoidVenus(Vector& refellipsoid,
 
 void PlanetSet(Workspace& ws,
                Agenda& g0_agenda,
+               SpeciesIsotopologueRatios& isotopologue_ratios,
                Vector& refellipsoid,
                Numeric& molarmass_dry_air,
                Numeric& planet_rotation_period,
@@ -267,26 +270,31 @@ void PlanetSet(Workspace& ws,
       refellipsoidEarth(refellipsoid, "Sphere", verbosity);
       molarmass_dry_air = 28.966;
       planet_rotation_period = 86164.1;
+      isotopologue_ratiosInitFromBuiltin(isotopologue_ratios, verbosity);
       break;
     case Io:
       refellipsoidIo(refellipsoid, "Sphere", verbosity);
       molarmass_dry_air = 63.110068828000003;
       planet_rotation_period = 152853;
+      xml_read_from_file("planets/Jupiter/isotopratio_Jupiter.xml", isotopologue_ratios, verbosity);
       break;
     case Jupiter:
       refellipsoidJupiter(refellipsoid, "Sphere", verbosity);
       molarmass_dry_air = 2.22;
       planet_rotation_period = 35730;
+      xml_read_from_file("planets/Jupiter/isotopratio_Jupiter.xml", isotopologue_ratios, verbosity);
       break;
     case Mars:
       refellipsoidMars(refellipsoid, "Sphere", verbosity);
       molarmass_dry_air = 43.34;
       planet_rotation_period = 88643;
+      xml_read_from_file("planets/Mars/isotopratio_Mars.xml", isotopologue_ratios, verbosity);
       break;
     case Venus:
       refellipsoidVenus(refellipsoid, "Sphere", verbosity);
       molarmass_dry_air = 43.45;
       planet_rotation_period = -2.0997e7;
+      xml_read_from_file("planets/Venus/isotopratio_Venus.xml", isotopologue_ratios, verbosity);
       break;
     case FINAL:
       break;

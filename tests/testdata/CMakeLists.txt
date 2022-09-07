@@ -32,6 +32,9 @@ if (ARTS_XML_DATA_DIR)
 else()
     list(APPEND DOWNLOAD_XMLDATA
         planets/Earth/Fascod/tropical/tropical.O2.xml
+        planets/Jupiter/isotopratio_Jupiter.xml
+        planets/Mars/isotopratio_Mars.xml
+        planets/Venus/isotopratio_Venus.xml
     )
 endif()
 
