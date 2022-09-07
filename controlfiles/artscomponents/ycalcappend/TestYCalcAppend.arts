@@ -19,7 +19,7 @@ water_p_eq_agendaSet
 gas_scattering_agendaSet
 LegacyContinuaInit
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
+#
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
 iy_surface_agendaSet

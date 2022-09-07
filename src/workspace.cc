@@ -1944,7 +1944,8 @@ void define_wsv_data() {
                             "\n"
                             "This variable can be set to default values by\n"
                             "calling *isotopologue_ratiosInitFromBuiltin*\n"),
-                GROUP("SpeciesIsotopologueRatios")));
+                GROUP("SpeciesIsotopologueRatios"),
+                Species::isotopologue_ratiosInitFromBuiltin()));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy"),

@@ -18,7 +18,7 @@ Arts2{
 gas_scattering_agendaSet
 LegacyContinuaInit
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
+#
 
   # Agendas (excpept surface ones)
   ppath_agendaSet(option="FollowSensorLosPath")

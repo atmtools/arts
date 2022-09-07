@@ -109,7 +109,6 @@ arts.nlteOff()
 
 arts.abs_speciesSet(species=["O2-66"])
 arts.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = os.path.join(LINEPATH, ""))
-arts.isotopologue_ratiosInitFromBuiltin()
 
 # %% Introduce a weird shift so that the cutoff is tested properly
 

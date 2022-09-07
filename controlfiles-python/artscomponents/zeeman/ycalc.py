@@ -113,7 +113,6 @@ arts.nlteOff()
 
 arts.abs_speciesSet(species=[f"O2-Z-66-{CENTRAL_LINE_FREQ-1}-{CENTRAL_LINE_FREQ+1}"])
 arts.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = os.path.join(LINEPATH, ""))
-arts.isotopologue_ratiosInitFromBuiltin()
 arts.Wigner6Init()
 
 # %% Use the automatic agenda setter

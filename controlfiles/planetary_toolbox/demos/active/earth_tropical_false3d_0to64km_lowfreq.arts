@@ -15,7 +15,7 @@
 Arts2{
 
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
+#
 
 VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 

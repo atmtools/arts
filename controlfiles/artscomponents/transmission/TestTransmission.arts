@@ -16,7 +16,7 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
+#
 
 # sensor-only path
 ppath_agendaSet( option="FollowSensorLosPath" )
