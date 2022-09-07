@@ -51,25 +51,31 @@ auto col_vec(matpack::vector auto&& x) {
   using internal_type =
       std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
+  constexpr bool real_type = std::is_same_v<internal_type, Numeric>;
+  using matrix_type_real = std::conditional_t<real_type, Eigen::RowVectorXd, Eigen::RowVectorXcd>;
+  using matrix_type = std::conditional_t<constant_type, const matrix_type_real, matrix_type_real>;
+  using stride_type = Eigen::InnerStride<Eigen::Dynamic>;
+  using map_type = Eigen::Map<matrix_type, Eigen::Unaligned, stride_type>;
+  
+  static_assert(real_type or std::is_same_v<internal_type, Complex>, "Only for Complex and Numeric");
 
-  using stride_type = eigen_stride<internal_type, constant_type>;
-  using matrix_map = eigen_map<internal_type, constant_type>;
-
-  return matrix_map(
-      x.get_c_array() + x.selem(), 1, x.nelem(), stride_type(1, x.delem()));
+  return map_type(x.get_c_array() + x.selem(), x.nelem(), stride_type{x.delem()});
 }
 
-//! Map the input to a non-owning const-correct Eigen Map representing a row vector
+//! Map the input to a non-owning const-correct Eigen Map representing a column vector
 auto row_vec(matpack::vector auto&& x) {
   using internal_type =
       std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
+  constexpr bool real_type = std::is_same_v<internal_type, Numeric>;
+  using matrix_type_real = std::conditional_t<real_type, Eigen::VectorXd, Eigen::VectorXcd>;
+  using matrix_type = std::conditional_t<constant_type, const matrix_type_real, matrix_type_real>;
+  using stride_type = Eigen::InnerStride<Eigen::Dynamic>;
+  using map_type = Eigen::Map<matrix_type, Eigen::Unaligned, stride_type>;
+  
+  static_assert(real_type or std::is_same_v<internal_type, Complex>, "Only for Complex and Numeric");
 
-  using stride_type = eigen_stride<internal_type, constant_type>;
-  using matrix_map = eigen_map<internal_type, constant_type>;
-
-  return matrix_map(
-      x.get_c_array() + x.selem(), x.nelem(), 1, stride_type(x.delem(), 1));
+  return map_type(x.get_c_array() + x.selem(), x.nelem(), stride_type{x.delem()});
 }
 
 //! Map the input to a non-owning const-correct Eigen Map representing a row matrix
