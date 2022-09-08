@@ -30,7 +30,6 @@
 
 #include "arts_conversions.h"
 #include "double_imanip.h"
-#include "matpack_complex.h"
 
 TransmissionMatrix::TransmissionMatrix(Index nf, Index stokes)
     : stokes_dim(stokes),

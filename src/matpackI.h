@@ -987,6 +987,13 @@ class Vector : public VectorView {
   //! Assignment from an initializatoin list.
   Vector& operator=(std::initializer_list<Numeric> v);
 
+  Vector& operator=(const matpack::vector_like auto& init) {
+    auto sz = init.size();
+    if (sz not_eq size()) resize(sz);
+    for (Index i = 0; i < sz; i++) operator[](i) = init[i];
+    return *this;
+  }
+
   /** Assignment operator from Array<Numeric>.
 
   This copies the data from an Array<Numeric> to this VectorView. The
@@ -1295,6 +1302,15 @@ class Matrix : public MatrixView {
   Matrix& operator=(Matrix&& m) noexcept;
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
+
+  /** Initialization from a vector type. */
+   Matrix& operator=(const matpack::matrix_like auto& init) {
+    const auto nr = matpack::row_size(init);
+    const auto nc = matpack::column_size(init);
+    if (nrows() not_eq nr or ncols() not_eq nc) resize(nr, nc);
+    for (Index i=0; i<nr; i++) for (Index j=0; j<nc; j++) operator()(i, j) = init(i, j);
+    return *this;
+  }
 
   // Resize function:
   void resize(Index r, Index c);

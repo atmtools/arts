@@ -689,6 +689,6 @@ add_executable(test_omp EXCLUDE_FROM_ALL test_omp.cc)
 target_link_libraries(test_omp PUBLIC ${ALL_ARTS_LIBRARIES})
 ########################################################################################
 # Test Eigen
-add_executable(test_eigen EXCLUDE_FROM_ALL test_eigen.cc)
+add_executable(test_eigen test_eigen.cc)
 target_link_libraries(test_eigen PUBLIC matpack)
 ########################################################################################

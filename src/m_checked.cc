@@ -114,6 +114,7 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                            const Index& abs_f_interp_order,
                            const Index& negative_vmr_ok,
                            const Verbosity&) {
+                            std::cerr << p_grid << '\n';
   // Consistency between dim, grids and atmospheric fields/surfaces
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);

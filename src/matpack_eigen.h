@@ -103,8 +103,7 @@ concept standard_vector = requires(T a) {
 
 //! Map the input to a non-owning const Eigen Map representing a column vector
 auto col_vec(standard_vector auto&& x) {
-  using internal_type =
-      std::remove_cvref_t<std::remove_pointer_t<decltype(x.data())>>;
+  using internal_type = std::remove_cvref_t<std::remove_pointer_t<decltype(x.data())>>;
 
   using stride_type = eigen_stride<internal_type>;
   using matrix_map = eigen_map<internal_type>;
@@ -123,3 +122,101 @@ auto row_vec(standard_vector auto&& x) {
   return matrix_map(x.data(), x.size(), 1, stride_type(1, 1));
 }
 }  // namespace matpack::eigen
+
+auto operator*(matpack::matrix auto&& A, matpack::vector auto&& x) {
+  using namespace matpack::eigen;
+  return mat(std::forward<decltype(A)>(A)) * row_vec(std::forward<decltype(x)>(x));
+}
+
+auto operator*(matpack::matrix auto&& A, matpack::matrix auto&& B) {
+  using namespace matpack::eigen;
+  return mat(std::forward<decltype(A)>(A)) * mat(std::forward<decltype(B)>(B));
+}
+
+template <typename Derived>
+auto operator*(Eigen::MatrixBase<Derived>&& A, matpack::vector auto&& x) {
+  using namespace matpack::eigen;
+  return std::forward<Eigen::MatrixBase<Derived>>(A) * row_vec(std::forward<decltype(x)>(x));
+}
+
+template <typename Derived>
+auto operator*(Eigen::MatrixBase<Derived>&& A, matpack::matrix auto&& B) {
+  using namespace matpack::eigen;
+  return std::forward<Eigen::MatrixBase<Derived>>(A) * mat(std::forward<decltype(B)>(B));
+}
+
+template <typename Derived>
+auto operator*(matpack::matrix auto&& A, Eigen::MatrixBase<Derived>&& x) {
+  using namespace matpack::eigen;
+  return mat(std::forward<decltype(A)>(A)) * std::forward<Eigen::MatrixBase<Derived>>(x);
+}
+
+
+auto operator+(matpack::vector auto&& x, matpack::vector auto&& y) {
+  using namespace matpack::eigen;
+  return row_vec(std::forward<decltype(x)>(x)) + row_vec(std::forward<decltype(y)>(y));
+}
+
+auto operator+(matpack::matrix auto&& x, matpack::matrix auto&& y) {
+  using namespace matpack::eigen;
+  return row_vec(std::forward<decltype(x)>(x)) + row_vec(std::forward<decltype(y)>(y));
+}
+
+template <typename Derived>
+auto operator+(Eigen::MatrixBase<Derived>&& A, matpack::vector auto&& x) {
+  using namespace matpack::eigen;
+  return std::forward<Eigen::MatrixBase<Derived>>(A) + row_vec(std::forward<decltype(x)>(x));
+}
+
+template <typename Derived>
+auto operator+(Eigen::MatrixBase<Derived>&& A, matpack::matrix auto&& B) {
+  using namespace matpack::eigen;
+  return std::forward<Eigen::MatrixBase<Derived>>(A) + mat(std::forward<decltype(B)>(B));
+}
+
+template <typename Derived>
+auto operator+(matpack::vector auto&& x, Eigen::MatrixBase<Derived>&& y) {
+  using namespace matpack::eigen;
+  return row_vec(std::forward<decltype(x)>(x)) + std::forward<Eigen::MatrixBase<Derived>>(y);
+}
+
+template <typename Derived>
+auto operator+(matpack::matrix auto&& x, Eigen::MatrixBase<Derived>&& y) {
+  using namespace matpack::eigen;
+  return mat(std::forward<decltype(x)>(x)) + std::forward<Eigen::MatrixBase<Derived>>(y);
+}
+
+
+auto operator-(matpack::vector auto&& x, matpack::vector auto&& y) {
+  using namespace matpack::eigen;
+  return row_vec(std::forward<decltype(x)>(x)) - row_vec(std::forward<decltype(y)>(y));
+}
+
+auto operator-(matpack::matrix auto&& x, matpack::matrix auto&& y) {
+  using namespace matpack::eigen;
+  return row_vec(std::forward<decltype(x)>(x)) - row_vec(std::forward<decltype(y)>(y));
+}
+
+template <typename Derived>
+auto operator-(Eigen::MatrixBase<Derived>&& A, matpack::vector auto&& x) {
+  using namespace matpack::eigen;
+  return std::forward<Eigen::MatrixBase<Derived>>(A) - row_vec(std::forward<decltype(x)>(x));
+}
+
+template <typename Derived>
+auto operator-(Eigen::MatrixBase<Derived>&& A, matpack::matrix auto&& B) {
+  using namespace matpack::eigen;
+  return std::forward<Eigen::MatrixBase<Derived>>(A) - mat(std::forward<decltype(B)>(B));
+}
+
+template <typename Derived>
+auto operator-(matpack::vector auto&& x, Eigen::MatrixBase<Derived>&& y) {
+  using namespace matpack::eigen;
+  return row_vec(std::forward<decltype(x)>(x)) - std::forward<Eigen::MatrixBase<Derived>>(y);
+}
+
+template <typename Derived>
+auto operator-(matpack::matrix auto&& x, Eigen::MatrixBase<Derived>&& y) {
+  using namespace matpack::eigen;
+  return mat(std::forward<decltype(x)>(x)) - std::forward<Eigen::MatrixBase<Derived>>(y);
+}

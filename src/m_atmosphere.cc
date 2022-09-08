@@ -1782,6 +1782,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
   // Grids:
   p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
+  std::cerr << p_grid << '\n';
   lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
@@ -1800,6 +1801,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
       "is needed, but none is found.")
   const Index npn = l + 1;
   p_grid = p_grid[Range(0, npn)];
+  std::cerr << p_grid << '\n';
 
   const Index nsa = abs_species.nelem();
 
@@ -1918,6 +1920,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
     particle_bulkprop_names[j] = species_name + delim + scat_type;
   }
+
+  std::cerr << p_grid << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
