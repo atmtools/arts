@@ -44,32 +44,47 @@ using eigen_map = typename eigen_type<internal_type, constant_type>::map;
 
 //! The stride of the eigen type
 template <typename internal_type, bool constant_type = true>
-using eigen_stride = typename eigen_type<internal_type, constant_type>::stride_type;
+using eigen_stride =
+    typename eigen_type<internal_type, constant_type>::stride_type;
 
 //! Map the input to a non-owning const-correct Eigen Map representing a column vector
 auto col_vec(matpack::vector auto&& x) {
   using internal_type =
       std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
+  constexpr bool real_type = std::is_same_v<internal_type, Numeric>;
+  using matrix_type_real =
+      std::conditional_t<real_type, Eigen::RowVectorXd, Eigen::RowVectorXcd>;
+  using matrix_type = std::
+      conditional_t<constant_type, const matrix_type_real, matrix_type_real>;
+  using stride_type = Eigen::InnerStride<Eigen::Dynamic>;
+  using map_type = Eigen::Map<matrix_type, Eigen::Unaligned, stride_type>;
 
-  using stride_type = eigen_stride<internal_type, constant_type>;
-  using matrix_map = eigen_map<internal_type, constant_type>;
+  static_assert(real_type or std::is_same_v<internal_type, Complex>,
+                "Only for Complex and Numeric");
 
-  return matrix_map(
-      x.get_c_array() + x.selem(), 1, x.nelem(), stride_type(1, x.delem()));
+  return map_type(
+      x.get_c_array() + x.selem(), x.nelem(), stride_type{x.delem()});
 }
 
-//! Map the input to a non-owning const-correct Eigen Map representing a row vector
+//! Map the input to a non-owning const-correct Eigen Map representing a column vector
 auto row_vec(matpack::vector auto&& x) {
   using internal_type =
       std::remove_cvref_t<std::remove_pointer_t<decltype(x.get_c_array())>>;
   constexpr bool constant_type = std::is_const_v<decltype(x)>;
+  constexpr bool real_type = std::is_same_v<internal_type, Numeric>;
+  using matrix_type_real =
+      std::conditional_t<real_type, Eigen::VectorXd, Eigen::VectorXcd>;
+  using matrix_type = std::
+      conditional_t<constant_type, const matrix_type_real, matrix_type_real>;
+  using stride_type = Eigen::InnerStride<Eigen::Dynamic>;
+  using map_type = Eigen::Map<matrix_type, Eigen::Unaligned, stride_type>;
 
-  using stride_type = eigen_stride<internal_type, constant_type>;
-  using matrix_map = eigen_map<internal_type, constant_type>;
+  static_assert(real_type or std::is_same_v<internal_type, Complex>,
+                "Only for Complex and Numeric");
 
-  return matrix_map(
-      x.get_c_array() + x.selem(), x.nelem(), 1, stride_type(x.delem(), 1));
+  return map_type(
+      x.get_c_array() + x.selem(), x.nelem(), stride_type{x.delem()});
 }
 
 //! Map the input to a non-owning const-correct Eigen Map representing a row matrix
@@ -116,4 +131,78 @@ auto row_vec(standard_vector auto&& x) {
 
   return matrix_map(x.data(), x.size(), 1, stride_type(1, 1));
 }
+
+//! A generic concept we might want to move out of here
+template <typename T>
+concept arithmetic = std::is_arithmetic_v<T>;
+
+//! Convert using row_vec or mat
+auto as_eigen(matrix_or_vector auto&& x) {
+  using t = decltype(x);
+  if constexpr(matpack::matrix<t>) return mat(std::forward<t>(x));
+  else return row_vec(std::forward<t>(x));
+}
 }  // namespace matpack::eigen
+
+auto operator*(matpack::matrix auto&& A, matpack::vector auto&& x) {
+  return matpack::eigen::mat(std::forward<decltype(A)>(A)) *
+         matpack::eigen::row_vec(std::forward<decltype(x)>(x));
+}
+
+auto operator*(matpack::matrix auto&& A, matpack::matrix auto&& B) {
+  return matpack::eigen::mat(std::forward<decltype(A)>(A)) *
+         matpack::eigen::mat(std::forward<decltype(B)>(B));
+}
+
+auto operator*(matpack::eigen::arithmetic auto&& a, matpack::matrix_or_vector auto&& b) {
+  return std::forward<decltype(a)>(a) *
+         matpack::eigen::as_eigen(std::forward<decltype(b)>(b));
+}
+
+auto operator+(matpack::matrix_or_vector auto&& x, matpack::matrix_or_vector auto&& y) {
+  return matpack::eigen::as_eigen(std::forward<decltype(x)>(x)) +
+         matpack::eigen::as_eigen(std::forward<decltype(y)>(y));
+}
+
+auto operator-(matpack::matrix_or_vector auto&& x, matpack::matrix_or_vector auto&& y) {
+  return matpack::eigen::as_eigen(std::forward<decltype(x)>(x)) -
+         matpack::eigen::as_eigen(std::forward<decltype(y)>(y));
+}
+
+
+template <typename Derived>
+auto operator*(Eigen::MatrixBase<Derived>&& A, matpack::matrix_or_vector auto&& x) {
+  return std::forward<decltype(A)>(A) *
+         matpack::eigen::as_eigen(std::forward<decltype(x)>(x));
+}
+
+template <typename Derived>
+auto operator+(Eigen::MatrixBase<Derived>&& A, matpack::matrix_or_vector auto&& x) {
+  return std::forward<decltype(A)>(A) +
+         matpack::eigen::as_eigen(std::forward<decltype(x)>(x));
+}
+
+template <typename Derived>
+auto operator-(Eigen::MatrixBase<Derived>&& A, matpack::matrix_or_vector auto&& x) {
+  return std::forward<decltype(A)>(A) -
+         matpack::eigen::as_eigen(std::forward<decltype(x)>(x));
+}
+
+
+template <typename Derived>
+auto operator*(matpack::matrix_or_vector auto&& A, Eigen::MatrixBase<Derived>&& x) {
+  return matpack::eigen::as_eigen(std::forward<decltype(A)>(A)) *
+         std::forward<decltype(x)>(x);
+}
+
+template <typename Derived>
+auto operator+(matpack::matrix_or_vector auto&& x, Eigen::MatrixBase<Derived>&& y) {
+  return matpack::eigen::as_eigen(std::forward<decltype(x)>(x)) +
+         std::forward<decltype(y)>(y);
+}
+
+template <typename Derived>
+auto operator-(matpack::matrix_or_vector auto&& x, Eigen::MatrixBase<Derived>&& y) {
+  return matpack::eigen::as_eigen(std::forward<decltype(x)>(x)) -
+         std::forward<decltype(y)>(y);
+}

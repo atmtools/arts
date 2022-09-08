@@ -905,7 +905,7 @@ class Vector : public VectorView {
   Vector(std::initializer_list<Numeric> init);
 
   /** Initialization from a vector type. */
-  explicit Vector(const matpack::vector_like auto& init) : Vector(init.size()) {
+  explicit Vector(const matpack::vector_like_not_vector auto& init) : Vector(init.size()) {
     for (Index i=0; i<size(); i++) operator[](i) = init[i];
   }
 
@@ -986,6 +986,13 @@ class Vector : public VectorView {
 
   //! Assignment from an initializatoin list.
   Vector& operator=(std::initializer_list<Numeric> v);
+
+  Vector& operator=(const matpack::vector_like_not_vector auto& init) {
+    auto sz = init.size();
+    if (sz not_eq size()) resize(sz);
+    for (Index i = 0; i < sz; i++) operator[](i) = init[i];
+    return *this;
+  }
 
   /** Assignment operator from Array<Numeric>.
 
@@ -1271,7 +1278,7 @@ class Matrix : public MatrixView {
   }
 
   /** Initialization from a vector type. */
-  explicit Matrix(const matpack::matrix_like auto& init) : Matrix(matpack::row_size(init), matpack::column_size(init)) {
+  explicit Matrix(const matpack::matrix_like_not_matrix auto& init) : Matrix(matpack::row_size(init), matpack::column_size(init)) {
     for (Index i=0; i<nrows(); i++) for (Index j=0; j<ncols(); j++) operator()(i, j) = init(i, j);
   }
 
@@ -1295,6 +1302,15 @@ class Matrix : public MatrixView {
   Matrix& operator=(Matrix&& m) noexcept;
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
+
+  /** Initialization from a vector type. */
+   Matrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
+    const auto nr = matpack::row_size(init);
+    const auto nc = matpack::column_size(init);
+    if (nrows() not_eq nr or ncols() not_eq nc) resize(nr, nc);
+    for (Index i=0; i<nr; i++) for (Index j=0; j<nc; j++) operator()(i, j) = init(i, j);
+    return *this;
+  }
 
   // Resize function:
   void resize(Index r, Index c);

@@ -110,6 +110,10 @@ concept vector = vector_like<T> and requires(T a) {
   { *a.get_c_array() } -> complex_or_real;
 };
 
+//! A concept precluding Arts vector objects but allowing things similar to vectors
+template <typename T>
+concept vector_like_not_vector = vector_like<T> and not vector<T>;
+
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept matrix_like = requires(T a) {
@@ -127,4 +131,12 @@ concept matrix = matrix_like<T> and has_ncols<T> and has_nrows<T> and requires(T
   { a.selem() } -> std::integral;
   { *a.get_c_array() } -> complex_or_real;
 };
+
+//! A concept precluding Arts matrix objects but allowing things similar to matrices
+template <typename T>
+concept matrix_like_not_matrix = matrix_like<T> and not matrix<T>;
+
+//! Matrix or vector
+template <typename T>
+concept matrix_or_vector = matrix<T> or vector<T>;
 }  // namespace matpack
