@@ -612,7 +612,7 @@ class ComplexVector : public ComplexVectorView {
   }
 
   /** Initialization from a vector type. */
-  explicit ComplexVector(const matpack::vector_like auto& init) : ComplexVector(init.size()) {
+  explicit ComplexVector(const matpack::vector_like_not_vector auto& init) : ComplexVector(init.size()) {
     for (Index i=0; i<size(); i++) operator[](i) = init[i];
   }
 
@@ -620,6 +620,12 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector& operator=(const ComplexVector& v);
   ComplexVector& operator=(const Array<Complex>& v);
   ComplexVector& operator=(Complex x);
+  ComplexVector& operator=(const matpack::vector_like_not_vector auto& init) {
+    auto sz = init.size();
+    if (sz not_eq size()) resize(sz);
+    for (Index i = 0; i < sz; i++) operator[](i) = init[i];
+    return *this;
+  }
 
   ComplexVector& operator=(ComplexVector&& v) noexcept {
     if (this != &v) {
@@ -908,7 +914,7 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix(const ComplexMatrix& v);
 
   /** Initialization from a vector type. */
-  explicit ComplexMatrix(const matpack::matrix_like auto& init) : ComplexMatrix(matpack::row_size(init), matpack::column_size(init)) {
+  explicit ComplexMatrix(const matpack::matrix_like_not_matrix auto& init) : ComplexMatrix(matpack::row_size(init), matpack::column_size(init)) {
     for (Index i=0; i<nrows(); i++) for (Index j=0; j<ncols(); j++) operator()(i, j) = init(i, j);
   }
 
@@ -916,6 +922,14 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix& operator=(ComplexMatrix x);
   ComplexMatrix& operator=(Complex x);
   ComplexMatrix& operator=(const ConstComplexVectorView& v);
+
+  ComplexMatrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
+    const auto nr = matpack::row_size(init);
+    const auto nc = matpack::column_size(init);
+    if (nrows() not_eq nr or ncols() not_eq nc) resize(nr, nc);
+    for (Index i=0; i<nr; i++) for (Index j=0; j<nc; j++) operator()(i, j) = init(i, j);
+    return *this;
+  }
   
   // Inverse in place
   ComplexMatrix& inv(const lapack_help::Inverse<Complex>& help=lapack_help::Inverse<Complex>{0});
