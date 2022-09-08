@@ -66,9 +66,15 @@ void test_chaining_expressions() {
   std::cout << b << "\n-\n" << A << "\n*\n" << x << "\n=\n" << b - A * x << '\n';
   row_vec(y).noalias() = b - A * x;
   std::cout << y << '\n' << '\n';
+
+  std::cout << 5*y << '\n';
+  std::cout << -1.2*y << '\n';
+  std::cout << 5*A << '\n';
+  std::cout << -1.2*A << '\n';
 }
 
 int main() {
+  test_col_and_row_vec();
   test_multiplication_and_setting();
   test_chaining_expressions();
 }
