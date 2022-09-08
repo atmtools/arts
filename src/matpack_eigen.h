@@ -137,145 +137,126 @@ template <typename T>
 concept arithmetic = std::is_arithmetic_v<T>;
 
 //! Can perform basic vector operations
-template <typename T, typename U>
+template <typename T>
 concept vector_linear_algebraic =
-    not vector<T> and not matrix<T> and vector<U> and requires(T a, U b) {
-  a * row_vec(b);
-  a + row_vec(b);
-  a - row_vec(b);
-  row_vec(b) + a;
-  row_vec(b) - a;
+    not matpack::vector<T> and not matpack::matrix<T> and requires(T a) {
+  Eigen::MatrixBase{a};
+  a * row_vec(Vector{});
+  a + row_vec(Vector{});
+  a - row_vec(Vector{});
+  row_vec(Vector{}) + a;
+  row_vec(Vector{}) - a;
 };
 
 //! Can perform basic matrix operations
-template <typename T, typename U>
+template <typename T>
 concept matrix_linear_algebraic =
-    not vector<T> and not matrix<T> and matrix<U> and requires(T a, U b) {
-  a * mat(b);
-  a + mat(b);
-  a - mat(b);
-  mat(b) + a;
-  mat(b) - a;
+    not matpack::vector<T> and not matpack::matrix<T> and requires(T a) {
+  Eigen::MatrixBase{a};
+  a * mat(Matrix{});
+  a + mat(Matrix{});
+  a - mat(Matrix{});
+  mat(Matrix{}) + a;
+  mat(Matrix{}) - a;
 };
-
-/*! Concept that the second type is a matpack type and the former an eigen type,
-    or at least something that supports the intended operations */
-template <typename T, typename U>
-concept linear_algebraic =
-    matrix_linear_algebraic<T, U> or vector_linear_algebraic<T, U>;
 }  // namespace matpack::eigen
 
 auto operator*(matpack::matrix auto&& A, matpack::vector auto&& x) {
-  using namespace matpack::eigen;
-  return mat(std::forward<decltype(A)>(A)) *
-         row_vec(std::forward<decltype(x)>(x));
+  return matpack::eigen::mat(std::forward<decltype(A)>(A)) *
+         matpack::eigen::row_vec(std::forward<decltype(x)>(x));
 }
 
 auto operator*(matpack::matrix auto&& A, matpack::matrix auto&& B) {
-  using namespace matpack::eigen;
-  return mat(std::forward<decltype(A)>(A)) * mat(std::forward<decltype(B)>(B));
+  return matpack::eigen::mat(std::forward<decltype(A)>(A)) *
+         matpack::eigen::mat(std::forward<decltype(B)>(B));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Vector>
-auto operator*(T&& A, matpack::vector auto&& x) {
-  using namespace matpack::eigen;
-  return std::forward<T>(A) * row_vec(std::forward<decltype(x)>(x));
+auto operator*(matpack::eigen::matrix_linear_algebraic auto&& A,
+               matpack::vector auto&& x) {
+  return std::forward<decltype(A)>(A) *
+         matpack::eigen::row_vec(std::forward<decltype(x)>(x));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Matrix>
-auto operator*(T&& A, matpack::matrix auto&& B) {
-  using namespace matpack::eigen;
-  return std::forward<T>(A) * mat(std::forward<decltype(B)>(B));
+auto operator*(matpack::eigen::matrix_linear_algebraic auto&& A,
+               matpack::matrix auto&& B) {
+  return std::forward<decltype(A)>(A) *
+         matpack::eigen::mat(std::forward<decltype(B)>(B));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Matrix>
-auto operator*(matpack::matrix auto&& A, T&& x) {
-  using namespace matpack::eigen;
-  return mat(std::forward<decltype(A)>(A)) * std::forward<T>(x);
+auto operator*(matpack::matrix auto&& A,
+               matpack::eigen::matrix_linear_algebraic auto&& x) {
+  return matpack::eigen::mat(std::forward<decltype(A)>(A)) *
+         std::forward<decltype(x)>(x);
 }
 
 auto operator+(matpack::vector auto&& x, matpack::vector auto&& y) {
-  using namespace matpack::eigen;
-  return row_vec(std::forward<decltype(x)>(x)) +
-         row_vec(std::forward<decltype(y)>(y));
+  return matpack::eigen::row_vec(std::forward<decltype(x)>(x)) +
+         matpack::eigen::row_vec(std::forward<decltype(y)>(y));
 }
 
 auto operator+(matpack::matrix auto&& x, matpack::matrix auto&& y) {
-  using namespace matpack::eigen;
-  return row_vec(std::forward<decltype(x)>(x)) +
-         row_vec(std::forward<decltype(y)>(y));
+  return matpack::eigen::row_vec(std::forward<decltype(x)>(x)) +
+         matpack::eigen::row_vec(std::forward<decltype(y)>(y));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Vector>
-auto operator+(T&& A, matpack::vector auto&& x) {
-  using namespace matpack::eigen;
-  return std::forward<T>(A) + row_vec(std::forward<decltype(x)>(x));
+auto operator+(matpack::eigen::vector_linear_algebraic auto&& A,
+               matpack::vector auto&& x) {
+  return std::forward<decltype(A)>(A) +
+         matpack::eigen::row_vec(std::forward<decltype(x)>(x));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Matrix>
-auto operator+(T&& A, matpack::matrix auto&& B) {
-  using namespace matpack::eigen;
-  return std::forward<T>(A) + mat(std::forward<decltype(B)>(B));
+auto operator+(matpack::eigen::matrix_linear_algebraic auto&& A,
+               matpack::matrix auto&& B) {
+  return std::forward<decltype(A)>(A) +
+         matpack::eigen::mat(std::forward<decltype(B)>(B));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Vector>
-auto operator+(matpack::vector auto&& x, T&& y) {
-  using namespace matpack::eigen;
-  return row_vec(std::forward<decltype(x)>(x)) + std::forward<T>(y);
+auto operator+(matpack::vector auto&& x,
+               matpack::eigen::vector_linear_algebraic auto&& y) {
+  return matpack::eigen::row_vec(std::forward<decltype(x)>(x)) +
+         std::forward<decltype(y)>(y);
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Matrix>
-auto operator+(matpack::matrix auto&& x, T&& y) {
-  using namespace matpack::eigen;
-  return mat(std::forward<decltype(x)>(x)) + std::forward<T>(y);
+auto operator+(matpack::matrix auto&& x,
+               matpack::eigen::matrix_linear_algebraic auto&& y) {
+  return matpack::eigen::mat(std::forward<decltype(x)>(x)) +
+         std::forward<decltype(y)>(y);
 }
 
 auto operator-(matpack::vector auto&& x, matpack::vector auto&& y) {
-  using namespace matpack::eigen;
-  return row_vec(std::forward<decltype(x)>(x)) -
-         row_vec(std::forward<decltype(y)>(y));
+  return matpack::eigen::row_vec(std::forward<decltype(x)>(x)) -
+         matpack::eigen::row_vec(std::forward<decltype(y)>(y));
 }
 
 auto operator-(matpack::matrix auto&& x, matpack::matrix auto&& y) {
-  using namespace matpack::eigen;
-  return row_vec(std::forward<decltype(x)>(x)) -
-         row_vec(std::forward<decltype(y)>(y));
+  return matpack::eigen::row_vec(std::forward<decltype(x)>(x)) -
+         matpack::eigen::row_vec(std::forward<decltype(y)>(y));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Vector>
-auto operator-(T&& A, matpack::vector auto&& x) {
-  using namespace matpack::eigen;
-  return std::forward<T>(A) - row_vec(std::forward<decltype(x)>(x));
+auto operator-(matpack::eigen::vector_linear_algebraic auto&& A,
+               matpack::vector auto&& x) {
+  return std::forward<decltype(A)>(A) -
+         matpack::eigen::row_vec(std::forward<decltype(x)>(x));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Matrix>
-auto operator-(T&& A, matpack::matrix auto&& B) {
-  using namespace matpack::eigen;
-  return std::forward<T>(A) - mat(std::forward<decltype(B)>(B));
+auto operator-(matpack::eigen::matrix_linear_algebraic auto&& A,
+               matpack::matrix auto&& B) {
+  return std::forward<decltype(A)>(A) -
+         matpack::eigen::mat(std::forward<decltype(B)>(B));
 }
 
-template <typename T>
-requires matpack::eigen::linear_algebraic<T, Vector>
-auto operator-(matpack::vector auto&& x, T&& y) {
-  using namespace matpack::eigen;
-  return row_vec(std::forward<decltype(x)>(x)) - std::forward<T>(y);
+auto operator-(matpack::vector auto&& x,
+               matpack::eigen::vector_linear_algebraic auto&& y) {
+  return matpack::eigen::row_vec(std::forward<decltype(x)>(x)) -
+         std::forward<decltype(y)>(y);
 }
 
 auto operator*(matpack::eigen::arithmetic auto&& a, matpack::vector auto&& b) {
-  using namespace matpack::eigen;
-  return std::forward<decltype(a)>(a) * row_vec(std::forward<decltype(b)>(b));
+  return std::forward<decltype(a)>(a) *
+         matpack::eigen::row_vec(std::forward<decltype(b)>(b));
 }
 
 auto operator*(matpack::eigen::arithmetic auto&& a, matpack::matrix auto&& b) {
-  using namespace matpack::eigen;
-  return std::forward<decltype(a)>(a) * mat(std::forward<decltype(b)>(b));
+  return std::forward<decltype(a)>(a) *
+         matpack::eigen::mat(std::forward<decltype(b)>(b));
 }
