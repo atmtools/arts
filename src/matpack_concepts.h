@@ -135,4 +135,8 @@ concept matrix = matrix_like<T> and has_ncols<T> and has_nrows<T> and requires(T
 //! A concept precluding Arts matrix objects but allowing things similar to matrices
 template <typename T>
 concept matrix_like_not_matrix = matrix_like<T> and not matrix<T>;
+
+//! Matrix or vector
+template <typename T>
+concept matrix_or_vector = matrix<T> or vector<T>;
 }  // namespace matpack
