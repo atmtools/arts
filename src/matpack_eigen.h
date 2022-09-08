@@ -121,9 +121,6 @@ auto row_vec(standard_vector auto&& x) {
 
   return matrix_map(x.data(), x.size(), 1, stride_type(1, 1));
 }
-
-//! Can be converted to a eigen matrix base
-template <typename T, typename U> concept matrix_base = std::is_convertible_v<T, Eigen::MatrixBase<U>>;
 }  // namespace matpack::eigen
 
 auto operator*(matpack::matrix auto&& A, matpack::vector auto&& x) {
