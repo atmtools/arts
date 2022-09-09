@@ -29,6 +29,20 @@ void py_workspace(py::module_& m,
          }),
          py::arg("verbosity") = 0,
          py::arg("agenda_verbosity") = 0)
+      .def(
+          "__copy__",
+          [](Workspace& w) -> Workspace { return w; },
+          py::is_operator())
+      .def(
+          "__deepcopy__",
+          [](Workspace& w, py::dict&) -> Workspace* {
+            auto* out = new Workspace{w};
+            *out->wsv_data_ptr = *w.wsv_data_ptr;
+            *out->WsvMap_ptr = *w.WsvMap_ptr;
+            // FIXME: this should be on its own original_workspace?  Agendas must be fixed!
+            return out;
+          },
+          py::is_operator())
       .def("execute_controlfile",
            [](Workspace& w, const std::filesystem::path& path) {
              std::unique_ptr<Agenda> a{parse_agenda(w, 
