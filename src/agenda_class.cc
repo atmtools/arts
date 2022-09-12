@@ -911,3 +911,12 @@ ostream& operator<<(ostream& os, const MRecord& a) {
   a.print(os, "");
   return os;
 }
+
+void MRecord::swap_workspace(Workspace& workspace) {
+  mtasks.swap_workspace(workspace);
+}
+
+void Agenda::swap_workspace(Workspace& workspace) {
+  for (auto& method: mml) method.swap_workspace(workspace);
+  ws = workspace.shared_ptr();
+}

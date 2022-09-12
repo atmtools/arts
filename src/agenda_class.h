@@ -108,6 +108,9 @@ class Agenda final {
   [[nodiscard]] Workspace& workspace() {return *ws;}
   [[nodiscard]] const Workspace& workspace() const {return *ws;}
 
+  //! Swaps the workspace.  Use with care as this may break the agenda!
+  void swap_workspace(Workspace&);
+
  private:
   std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */
@@ -152,6 +155,9 @@ class MRecord {
   [[nodiscard]] const ArrayOfIndex& In() const { return minput; }
   [[nodiscard]] const TokVal& SetValue() const { return msetvalue; }
   [[nodiscard]] const Agenda& Tasks() const { return mtasks; }
+
+  //! Swaps the workspace.  Use with care as this may break the method!
+  void swap_workspace(Workspace&);
 
   //! Indicates the origin of this method.
   /*!

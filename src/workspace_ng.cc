@@ -131,3 +131,29 @@ Workspace::Workspace()
     }
   }
 }
+
+std::shared_ptr<Workspace> Workspace::deepcopy() {
+  std::shared_ptr<Workspace> out{new Workspace(*this)};
+  out->wsv_data_ptr = std::shared_ptr<Workspace::wsv_data_type>(
+      new Workspace::wsv_data_type{*wsv_data_ptr});
+  out->WsvMap_ptr = std::shared_ptr<Workspace::WsvMap_type>(
+      new Workspace::WsvMap_type{*WsvMap_ptr});
+  out->original_workspace = out.get();
+
+  for (Index i = 0; i < out->nelem(); i++) {
+    if (depth(i) > 0) {
+      out->ws[i].top().wsv = workspace_memory_handler.duplicate(
+        (*wsv_data_ptr)[i].Group(), ws[i].top().wsv);
+
+      auto &wsv_data = out->wsv_data_ptr->operator[](i);
+      if (wsv_data.Group() == workspace_group("Agenda"))
+        static_cast<Agenda *>(out->operator[](i).get())->swap_workspace(*out);
+
+      if (wsv_data.Group() == workspace_group("ArrayOfAgenda"))
+        for (auto &a : *static_cast<ArrayOfAgenda *>(out->operator[](i).get()))
+          a.swap_workspace(*out);
+    }
+  }
+
+  return out;
+}
