@@ -65,15 +65,16 @@ concept ArtsTypeConstRef = ArtsType<T> and std::is_same_v<std::add_const_t<std::
 template <typename T>
 concept ArtsTypeBase = ArtsType<T> and std::is_same_v<std::remove_cvref_t<T>, T>;
 
-consteval Index workspace_group(std::string_view x) {
+template <ArtsTypeBase> struct WorkspaceGroupIndex { static constexpr Index value=-1; };
 )--";
 
   for (Index i = 0; i < global_data::wsv_groups.nelem(); i++)
-    file_h << "  if (x == \"" << global_data::wsv_groups[i] << "\") return "
-           << i << ";\n";
+    file_h << "template <> struct WorkspaceGroupIndex<"
+           << global_data::wsv_groups[i]
+           << "> { static constexpr Index value=" << i << "; };\n";
 
-  file_h << R"--(  return -1;
-}
+  file_h << R"--(
+template <ArtsTypeBase T> inline constexpr Index WorkspaceGroupIndexValue = WorkspaceGroupIndex<T>::value;
 
 class TokVal {
   void * ptr{nullptr};

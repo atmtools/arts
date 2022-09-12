@@ -146,10 +146,10 @@ std::shared_ptr<Workspace> Workspace::deepcopy() {
         (*wsv_data_ptr)[i].Group(), ws[i].top().wsv);
 
       auto &wsv_data = out->wsv_data_ptr->operator[](i);
-      if (wsv_data.Group() == workspace_group("Agenda"))
+      if (wsv_data.Group() == WorkspaceGroupIndexValue<Agenda>)
         static_cast<Agenda *>(out->operator[](i).get())->swap_workspace(*out);
 
-      if (wsv_data.Group() == workspace_group("ArrayOfAgenda"))
+      if (wsv_data.Group() == WorkspaceGroupIndexValue<ArrayOfAgenda>)
         for (auto &a : *static_cast<ArrayOfAgenda *>(out->operator[](i).get()))
           a.swap_workspace(*out);
     }
