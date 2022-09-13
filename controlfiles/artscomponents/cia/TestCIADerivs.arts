@@ -1,7 +1,6 @@
 Arts2{
   
   # Constants (changes here might require changes in perturbations to match)
-  isotopologue_ratiosInitFromBuiltin
   abs_speciesSet(species=["H2-CIA-H2-0,H2-CIA-He-0", "He"]) # BUG:  Must have lines (though good for this test)
   VectorNLinSpace( f_grid, 11, 0, 75e12 )
   VectorSet(rtp_vmr, [0.1, 0.2])

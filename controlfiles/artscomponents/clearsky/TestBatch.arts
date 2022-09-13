@@ -104,7 +104,6 @@ AgendaSet( doit_conv_test_agenda ){
 
 iy_cloudbox_agendaSet( option="LinInterpField" )
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
 
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 

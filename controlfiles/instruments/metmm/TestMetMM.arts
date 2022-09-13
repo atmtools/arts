@@ -5,7 +5,6 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
 
 # Basic settings of simulation
     AtmosphereSet1D

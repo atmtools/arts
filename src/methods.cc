@@ -8151,7 +8151,7 @@ Possible models:
       NAME("isotopologue_ratiosInitFromBuiltin"),
       DESCRIPTION(
           "Initialize isotopologue ratios with default values from built-in\n"
-          "species data.\n"),
+          "species data.  This should be OK for Earth-like atmospheres\n"),
       AUTHORS("Oliver Lemke"),
       OUT("isotopologue_ratios"),
       GOUT(),
@@ -23165,6 +23165,10 @@ where N>=0 and the species name is something line "H2O".
                       DESCRIPTION(R"--(Sets *g0_agenda*, *refellipsoid*, *molarmass_dry_air*, and *planet_rotation_period* to default values
 
 *g0_agenda* is set using *g0_agendaSet* with the same option
+
+Note that the default value of *isotopologue_ratios* is set to "Earth" by
+default and that we strongly recommend users to update these values if they
+are using non-Earth atmospheres.
 
 Options are:
     Earth:

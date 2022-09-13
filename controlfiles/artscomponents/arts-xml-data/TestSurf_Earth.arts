@@ -39,7 +39,6 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-isotopologue_ratiosInitFromBuiltin
 
 # parameters for converting land/sea mask to surface reflectivities
 #  mask has land=1, sea=0 

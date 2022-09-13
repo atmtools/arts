@@ -11,7 +11,6 @@ import pyarts
 
 ws = pyarts.workspace.Workspace()
 
-ws.isotopologue_ratiosInitFromBuiltin()
 ws.Wigner6Init(ws.wigner_initialized)
 
 ws.Touch(ws.jacobian_quantities)

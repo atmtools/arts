@@ -1,6 +1,5 @@
 Arts2{
 Wigner6Init
-isotopologue_ratiosInitFromBuiltin
 
 abs_speciesSet(species = ["CO2-LM-626"])
 
