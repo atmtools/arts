@@ -148,10 +148,10 @@ std::shared_ptr<Workspace> Workspace::deepcopy() {
 
     if (depth(i) > 0) {
       // Set the WSV by copying the top value
-      out->ws[i].emplace(
+      out->ws[i].emplace(WorkspaceVariableStruct{
           workspace_memory_handler.duplicate(
               wsv_data_ptr->operator[](i).Group(), ws[i].top().wsv),
-          is_initialized(i));
+          is_initialized(i)});
 
       // Copy the agenda to the new workspace
       if (wsv_data.Group() == WorkspaceGroupIndexValue<Agenda>) {
