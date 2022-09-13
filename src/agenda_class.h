@@ -108,6 +108,9 @@ class Agenda final {
   [[nodiscard]] Workspace& workspace() {return *ws;}
   [[nodiscard]] const Workspace& workspace() const {return *ws;}
 
+  //! Creates a deep copy of the agenda if necessary (i.e., different workspace)!
+  Agenda deepcopy_if(Workspace&) const;
+
  private:
   std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */
@@ -152,6 +155,9 @@ class MRecord {
   [[nodiscard]] const ArrayOfIndex& In() const { return minput; }
   [[nodiscard]] const TokVal& SetValue() const { return msetvalue; }
   [[nodiscard]] const Agenda& Tasks() const { return mtasks; }
+
+  //! Creates a deep copy of the method if necessary (i.e., different workspace)!
+  MRecord deepcopy_if(Workspace&) const;
 
   //! Indicates the origin of this method.
   /*!
@@ -221,5 +227,8 @@ class MRecord {
 
 /** An array of Agenda. */
 using ArrayOfAgenda = Array<Agenda>;
+
+//! Same as Agenda member method but for an entire array
+ArrayOfAgenda deepcopy_if(Workspace& ws, const ArrayOfAgenda& agendas);
 
 #endif

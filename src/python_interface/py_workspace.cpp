@@ -29,6 +29,17 @@ void py_workspace(py::module_& m,
          }),
          py::arg("verbosity") = 0,
          py::arg("agenda_verbosity") = 0)
+      .def(py::init([](Workspace& w) {return new Workspace{w};}))
+      .def(
+          "__copy__",
+          [](Workspace& w) -> Workspace { return w; },
+          py::is_operator())
+      .def(
+          "__deepcopy__",
+          [](Workspace& w, py::dict&) {
+            return w.deepcopy();
+          },
+          py::is_operator())
       .def("execute_controlfile",
            [](Workspace& w, const std::filesystem::path& path) {
              std::unique_ptr<Agenda> a{parse_agenda(w, 
