@@ -14,22 +14,18 @@ class TestWorkspace:
     def test_copy(self):
         ws = Workspace()
         ws.aaavar = Index(5)
-        assert ws.aaavar.value == ws.aaavar.value
         
         ws2 = copy.copy(ws)
         ws2.aaavar = 6
-        assert ws2.aaavar.value == ws2.aaavar.value
         
         assert ws2.aaavar.value == ws.aaavar.value
     
     def test_deepcopy(self):
         ws = Workspace()
         ws.aaavar = Index(5)
-        assert ws.aaavar.value == ws.aaavar.value
         
         ws2 = copy.deepcopy(ws)
         ws2.aaavar = 6
-        assert ws2.aaavar.value == ws2.aaavar.value
         
         assert ws2.aaavar.value != ws.aaavar.value
     
