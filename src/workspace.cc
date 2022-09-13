@@ -1940,10 +1940,10 @@ void define_wsv_data() {
 
   wsv_data.push_back(
       WsvRecord(NAME("isotopologue_ratios"),
-                DESCRIPTION("Contains the isotopologue ratios.\n"
-                            "\n"
-                            "This variable can be set to default values by\n"
-                            "calling *isotopologue_ratiosInitFromBuiltin*\n"),
+                DESCRIPTION(R"--(Contains the isotopologue ratios.
+
+This variable is set to the default provided by *isotopologue_ratiosInitFromBuiltin*
+)--"),
                 GROUP("SpeciesIsotopologueRatios"),
                 Species::isotopologue_ratiosInitFromBuiltin()));
 
