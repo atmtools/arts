@@ -15,7 +15,6 @@
 Arts2{
 
 PlanetSet(option="Earth")
-#
 
 VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 

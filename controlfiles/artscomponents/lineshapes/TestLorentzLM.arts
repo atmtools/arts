@@ -6,7 +6,6 @@ Arts2{
 #   Will fail at first derivatives...
   
   ## Constants (changes here might require changes in perturbations to match)
-  #
   abs_speciesSet(species=["O2-66"])
   VectorNLinSpace(f_grid, 101, 90e9, 110e9)
   Touch(rtp_nlte)

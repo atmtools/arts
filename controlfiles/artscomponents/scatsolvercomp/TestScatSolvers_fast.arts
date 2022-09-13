@@ -10,7 +10,6 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-#
 
 # Blackbody surface
 surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )

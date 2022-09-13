@@ -44,7 +44,6 @@ ReadArrayOfARTSCAT(abs_lines=abs_lines, filename="../../testdata/NLTE_CO2_testli
 abs_linesNormalization(option="VVH")
 abs_linesCutoff(option="ByLine", value=750e9)
 abs_lines_per_speciesCreateFromLines
-#
 sensorOff
 jacobianOff
 cloudboxOff

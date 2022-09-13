@@ -15,10 +15,9 @@ Arts2{
   # Includes
   
   water_p_eq_agendaSet
-gas_scattering_agendaSet
-LegacyContinuaInit
-PlanetSet(option="Earth")
-#
+  gas_scattering_agendaSet
+  LegacyContinuaInit
+  PlanetSet(option="Earth")
 
   # Agendas (excpept surface ones)
   ppath_agendaSet(option="FollowSensorLosPath")

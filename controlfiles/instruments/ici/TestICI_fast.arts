@@ -14,7 +14,6 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-#
 
 # Basic settings (already needed in sensor part)
 # ---

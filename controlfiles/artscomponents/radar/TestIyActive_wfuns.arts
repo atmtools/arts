@@ -11,7 +11,6 @@ LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
-#
 
 # Read data from files
 ReadXML( p_grid, "testdata/p_grid_wfuntest.xml" )

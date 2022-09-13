@@ -12,7 +12,6 @@ Arts2{
   refellipsoidEarth
   
   ## Constants (changes here might require changes in perturbations to match)
-  #
   abs_speciesSet(species=["O2-66"])
   VectorNLinSpace(f_grid, 100, 85e9, 115e9)  #FIXME: 101 freqs fail because HTP fails
   VectorNLogSpace( p_grid, 51, 1030e2, 1 )

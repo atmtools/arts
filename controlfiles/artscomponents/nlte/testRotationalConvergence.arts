@@ -40,7 +40,6 @@ Arts2{
     ReadXML(nlte_level_identifiers, "testdata/qi.xml")
     
     # Interpretation of data
-    #
     p_gridFromZRaw
     AtmosphereSet1D
     refellipsoidGanymede(model="Sphere")
