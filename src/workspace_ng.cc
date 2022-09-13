@@ -92,6 +92,9 @@ void Workspace::pop(Index i) {
 
 void Workspace::swap(Workspace &other) noexcept {
   ws.swap(other.ws);
+  wsv_data_ptr.swap(other.wsv_data_ptr);
+  WsvMap_ptr.swap(other.WsvMap_ptr);
+  std::swap(original_workspace, other.original_workspace);
 }
 
 bool Workspace::is_initialized(Index i) const {
@@ -133,25 +136,45 @@ Workspace::Workspace()
 }
 
 std::shared_ptr<Workspace> Workspace::deepcopy() {
-  std::shared_ptr<Workspace> out{new Workspace(*this)};
+  std::shared_ptr<Workspace> out{new Workspace{}};
   out->wsv_data_ptr = std::shared_ptr<Workspace::wsv_data_type>(
       new Workspace::wsv_data_type{*wsv_data_ptr});
   out->WsvMap_ptr = std::shared_ptr<Workspace::WsvMap_type>(
       new Workspace::WsvMap_type{*WsvMap_ptr});
-  out->original_workspace = out.get();
+  out->ws.resize(nelem());
 
   for (Index i = 0; i < out->nelem(); i++) {
+    auto &wsv_data = out->wsv_data_ptr->operator[](i);
+
     if (depth(i) > 0) {
-      out->ws[i].top().wsv = workspace_memory_handler.duplicate(
-        (*wsv_data_ptr)[i].Group(), ws[i].top().wsv);
+      // Set the WSV by copying the top value
+      out->ws[i].emplace(
+          workspace_memory_handler.duplicate(
+              wsv_data_ptr->operator[](i).Group(), ws[i].top().wsv),
+          is_initialized(i));
 
-      auto &wsv_data = out->wsv_data_ptr->operator[](i);
-      if (wsv_data.Group() == WorkspaceGroupIndexValue<Agenda>)
-        static_cast<Agenda *>(out->operator[](i).get())->swap_workspace(*out);
+      // Copy the agenda to the new workspace
+      if (wsv_data.Group() == WorkspaceGroupIndexValue<Agenda>) {
+        Agenda *ag = static_cast<Agenda *>(out->operator[](i).get());
+        *ag = ag->deepcopy_if(*out);
+      } else if (wsv_data.Group() == WorkspaceGroupIndexValue<ArrayOfAgenda>) {
+        for (auto &a :
+             *static_cast<ArrayOfAgenda *>(out->operator[](i).get())) {
+          a = a.deepcopy_if(*out);
+        }
+      }
+    }
 
-      if (wsv_data.Group() == WorkspaceGroupIndexValue<ArrayOfAgenda>)
-        for (auto &a : *static_cast<ArrayOfAgenda *>(out->operator[](i).get()))
-          a.swap_workspace(*out);
+    // If we have any default agenda types, we must copy them to the new workspace as well
+    if (wsv_data.has_defaults()) {
+      if (wsv_data.Group() == WorkspaceGroupIndexValue<Agenda>) {
+        wsv_data.update_default_value(
+            Agenda(wsv_data.default_value()).deepcopy_if(*out));
+      }
+      if (wsv_data.Group() == WorkspaceGroupIndexValue<ArrayOfAgenda>) {
+        wsv_data.update_default_value(
+            deepcopy_if(*out, wsv_data.default_value()));
+      }
     }
   }
 

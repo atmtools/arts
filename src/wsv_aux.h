@@ -102,6 +102,7 @@ class WsvRecord {
   [[nodiscard]] std::shared_ptr<void> get_copy() const;
 
   [[nodiscard]] const TokVal& default_value() const { return defval; }
+  void update_default_value(ArtsType auto&& v) {defval=std::forward<decltype(v)>(v);}
 
  private:
   String mname;
