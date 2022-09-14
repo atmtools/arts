@@ -111,6 +111,11 @@ void DisortCalc(Workspace& ws,
                      " stars. \n"
                      "Disort can handle only one star.")
 
+  //Check for aa_grid
+  ARTS_USER_ERROR_IF(aa_grid.nelem() == 0,
+                     "aa_grid has a size of 0.\n",
+                     "aa_grid must have at least a size of one.")
+
   //allocate Varibale for direct (star) source
   Vector star_rte_los;
   Vector star_pos(3);
@@ -303,6 +308,11 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                      stars.nelem(),
                      " stars. \n"
                      "Disort can handle only one star.")
+
+  //Check for aa_grid
+  ARTS_USER_ERROR_IF(aa_grid.nelem() == 0,
+                     "aa_grid has a size of 0.\n",
+                     "aa_grid must have at least a size of one.")
 
   //allocate Varibale for direct (star) source
   Vector star_rte_los;
