@@ -123,7 +123,7 @@ if (ENABLE_FORTRAN)
       set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
     endif()
     if (ENABLE_TMATRIX_QUAD)
-      message (FATAL_ERROR "Gfortran does not support quad-precision. Only supported on Intel compiler.")
+      message (FATAL_ERROR "Gfortran does not support quad-precision.")
     endif()
   elseif (FORTRAN_COMPILER MATCHES "ifort.*")
     set (FORTRAN_EXTRA_FLAGS "-i8 -r8")
@@ -188,27 +188,6 @@ if (ENABLE_IPO)
 else()
   set(IPO_SUPPORTED OFF)
 endif()
-
-# Explicitly set C++ flags for Intel compiler because cmake
-# only supports it from version 3.6.0+. We don't want to
-# depend on this newer version of cmake because it was only
-# released in June 2016.
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-endif ()
-
-########### Intel compiler specific settings ##########
-
-# Turn off value-unsafe floating-point optimizations which lead
-# to large descrepancies compared to other compilers
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise")
-endif ()
-
-if (ENABLE_FORTRAN AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fp-model precise")
-endif ()
 
 ########### OEM Support ##########
 
@@ -349,11 +328,6 @@ if (NO_USER_ERRORS)
   ARTS_ADD_COMPILER_FLAG (Wno-unused-parameter)
   ARTS_ADD_COMPILER_FLAG (Wno-unused-variable)
 endif (NO_USER_ERRORS)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  ARTS_ADD_COMPILER_FLAG (w1)
-  ARTS_ADD_COMPILER_FLAG (diag-disable=383,980,981,1418,1419,1682)
-endif ()
 
 if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
