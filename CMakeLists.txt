@@ -270,15 +270,7 @@ check_function_exists(unlink HAVE_REMOVE)
 include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
-########## BLAS support #########
-if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
-  # Workaround: Older versions of cmake
-  # rely on fortran being enabled to detect BLAS
-  enable_language (Fortran)
-endif()
-
 ########## BLAS/LAPACK support #########
-
 find_package (LAPACK REQUIRED)
 
 ########## NetCDF support #########
