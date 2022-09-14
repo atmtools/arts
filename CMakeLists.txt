@@ -327,13 +327,6 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-psabi)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
-######## Need to link to filesystem ########
-if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
-    message (STATUS "Linking against stdc++fs")
-    link_libraries (stdc++fs)
-endif()
-
-
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)
     ARTS_ADD_COMPILER_FLAG (march=native)
