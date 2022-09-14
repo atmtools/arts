@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   publish:
+    if: ${{ false }}  # Disable action, manylinux only provideds GCC 10 which is insufficient for ARTS
     #if: github.repository == 'atmtools/arts'
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
