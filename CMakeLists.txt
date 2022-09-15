@@ -293,7 +293,11 @@ endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
-endif (CMAKE_COMPILER_IS_GNUCXX)
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif ()
 
 ########### Warning flags ##########
 include (ArtsAddCompilerFlag)
