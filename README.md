@@ -27,8 +27,9 @@ Build Prerequisites:
 - cmake (>=3.18)
 - zlib
 - openblas
+- libc++ (only for clang)
 - netcdf (optional)
-- Python3 (>=3.8)
+- Python3 (>=3.9)
   - required modules:
     docutils
     lark-parser
