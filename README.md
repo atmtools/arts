@@ -131,33 +131,6 @@ make
 ```
 
 
-PyARTS Conda and Python compatibility
--------------------------------------
-
-If you're using a conda distribution as your Python environment, it is strongly
-recommended to compile the PyARTS Python package with the clang compiler (>=13)
-provided by your conda distribution (anaconda/miniforge/mambaforge) to avoid
-compatibility issues.
-
-Install the required compiler packages in your python environment:
-
-```
-conda install clang clangxx libcxx llvm-openmp
-```
-
-The following cmake configuration will ensure that the correct libraries from
-your conda distribution are used during the compilation. Ensure you run this in
-an empty build directory and adjust the CONDADIR path to the location where
-conda is installed on your system:
-
-```
-export CONDADIR=$HOME/mambaforge
-
-CXXFLAGS="-stdlib=libc++" LDFLAGS="-L$CONDADIR/lib -Wl,-rpath,$CONDADIR/lib -lc++abi" \
-  cmake -DCMAKE_PREFIX_PATH=$CONDADIR -DCMAKE_C_COMPILER=clang  -DCMAKE_CXX_COMPILER=clang++ ..
-```
-
-
 Installing PyARTS
 -----------------
 
