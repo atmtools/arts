@@ -384,7 +384,7 @@ class Tensor3 : public Tensor3View {
   friend void swap(Tensor3& t1, Tensor3& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor3();
+  virtual ~Tensor3() noexcept;
 
   /*! Reduce a Tensor3 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

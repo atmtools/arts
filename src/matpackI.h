@@ -1035,7 +1035,7 @@ class Vector : public VectorView {
 
   /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
-  virtual ~Vector();
+  virtual ~Vector() noexcept;
 
   template <class F>
   void transform_elementwise(F&& func) {
@@ -1328,7 +1328,7 @@ class Matrix : public MatrixView {
   friend void swap(Matrix& m1, Matrix& m2) noexcept;
 
   // Destructor:
-  virtual ~Matrix();
+  virtual ~Matrix() noexcept;
 
   /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>

@@ -725,7 +725,7 @@ void swap(ComplexVector& v1, ComplexVector& v2) noexcept {
 
 /** Destructor for ComplexVector. This is important, since Vector uses new to
  *   allocate storage. */
-ComplexVector::~ComplexVector() { delete[] mdata; }
+ComplexVector::~ComplexVector() noexcept { delete[] mdata; }
 
 // Functions for ConstMatrixView:
 // ------------------------------
@@ -1440,7 +1440,7 @@ void swap(ComplexMatrix& m1, ComplexMatrix& m2) noexcept {
 
 /** Destructor for Matrix. This is important, since Matrix uses new to
     allocate storage. */
-ComplexMatrix::~ComplexMatrix() {
+ComplexMatrix::~ComplexMatrix() noexcept {
   //   cout << "Destroying a Matrix:\n"
   //        << *this << "\n........................................\n";
   delete[] mdata;

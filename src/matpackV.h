@@ -562,7 +562,7 @@ class Tensor5 : public Tensor5View {
   friend void swap(Tensor5& t1, Tensor5& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor5();
+  virtual ~Tensor5() noexcept;
 
   /*! Reduce a Tensor5 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

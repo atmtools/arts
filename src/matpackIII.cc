@@ -692,7 +692,7 @@ void swap(Tensor3& t1, Tensor3& t2) noexcept {
 
 /** Destructor for Tensor3. This is important, since Tensor3 uses new to
     allocate storage. */
-Tensor3::~Tensor3() {
+Tensor3::~Tensor3() noexcept {
   //   cout << "Destroying a Tensor3:\n"
   //        << *this << "\n........................................\n";
   delete[] mdata;

@@ -472,7 +472,7 @@ class Tensor4 : public Tensor4View {
   friend void swap(Tensor4& t1, Tensor4& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor4();
+  virtual ~Tensor4() noexcept;
   
   // Returns data as a Vector
   Vector flatten() && ARTS_NOEXCEPT;

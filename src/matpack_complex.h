@@ -645,7 +645,7 @@ class ComplexVector : public ComplexVectorView {
   friend void swap(ComplexVector& v1, ComplexVector& v2) noexcept;
 
   // Destructor:
-   ~ComplexVector() override;
+   ~ComplexVector() noexcept override;
 };
 
 // Declare class ComplexMatrix:
@@ -941,7 +941,7 @@ class ComplexMatrix : public ComplexMatrixView {
   friend void swap(ComplexMatrix& m1, ComplexMatrix& m2) noexcept;
 
   // Destructor:
-   ~ComplexMatrix() override;
+   ~ComplexMatrix() noexcept override;
 
   Complex* get_raw_data() { return mdata; }
 };

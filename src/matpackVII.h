@@ -2427,7 +2427,7 @@ class Tensor7 : public Tensor7View {
   friend void swap(Tensor7& t1, Tensor7& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor7();
+  virtual ~Tensor7() noexcept;
 
   /*! Reduce a Tensor7 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

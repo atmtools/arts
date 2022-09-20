@@ -404,7 +404,7 @@ void swap(Vector& v1, Vector& v2) noexcept {
   swap(v1.mdata, v2.mdata);
 }
 
-Vector::~Vector() { delete[] mdata; }
+Vector::~Vector() noexcept { delete[] mdata; }
 
 // Functions for ConstMatrixView:
 // ------------------------------
@@ -1036,7 +1036,7 @@ void swap(Matrix& m1, Matrix& m2) noexcept {
 
 /** Destructor for Matrix. This is important, since Matrix uses new to
     allocate storage. */
-Matrix::~Matrix() {
+Matrix::~Matrix() noexcept {
   //   cout << "Destroying a Matrix:\n"
   //        << *this << "\n........................................\n";
   delete[] mdata;
