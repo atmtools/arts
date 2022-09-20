@@ -72,17 +72,7 @@ arts_test_run_ctlfile(fast artscomponents/surface/TestTessem.arts)
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
 arts_test_run_ctlfile(fast artscomponents/nlte/TestNLTE.arts)
-arts_test_run_ctlfile(fast artscomponents/nlte/TestPopulationDensityNLTE_lineshape.arts)
 arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)
-
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestDoppler.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestLorentz.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestLorentzLM.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigt.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigtLM.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP-VP.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTPLM.arts)
 
 arts_test_run_ctlfile(fast artscomponents/psd/TestFromParticleBulkProps.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestPsds.arts)
@@ -213,8 +203,6 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(fast artscomponents/helpers/TestGridsExtract.arts)
 
   arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
-
-  arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeeman.arts)
   
   ##################################
   ### planet toolbox demos cases ###
