@@ -31,6 +31,8 @@ if (ARTS_XML_DATA_DIR)
     set(DOWNLOAD_XMLDATA "")  # empty
 else()
     list(APPEND DOWNLOAD_XMLDATA
+        planets/Earth/Fascod/tropical/tropical.t.xml
+        planets/Earth/Fascod/tropical/tropical.z.xml
         planets/Earth/Fascod/tropical/tropical.O2.xml
     )
 endif()

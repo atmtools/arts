@@ -1,36 +1,48 @@
 #include <arts_options.h>
+#include <lineshapemodel.h>
 
+#include "py_macros.h"
 #include "py_auto_interface.h"
 #include "python_interface.h"
 
-#define DeclareOption(opt_namespace, opt_localname)  {\
-    using namespace opt_namespace;\
-    auto my_enum_ = py::class_<opt_localname>(\
-        opt, #opt_localname);\
-    my_enum_.def(py::init([](const std::string& s) {\
-      return to##opt_localname##OrThrow(s);\
-    }));\
-    my_enum_.def_property(\
-        "value",\
-        [](const opt_localname& x) { return toString(x); },\
-        [](opt_localname& x, const std::string& s) {\
-          x = to##opt_localname##OrThrow(s);\
-        });\
-    my_enum_.def("__str__", [](const opt_localname& x) {\
-      return toString(x);\
-    });\
-    my_enum_.doc() =\
-        "Options for "\
-        #opt_localname;\
-\
-    for (auto& x : enumtyps::opt_localname##Types) {\
-      my_enum_.def_property_readonly_static(\
-          std::string(toString(x)).c_str(),\
-          [x](const py::object& /* self */) { return toString(x); });\
-    }\
-    py::implicitly_convertible<std::string, LineShape::TemperatureModel>();\
-  }
+//! See DeclareOption macro, but this may rename the python class
+#define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)       \
+  py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
+      .def(py::init([]() { return new opt_namespace::opt_localname{}; }))    \
+      .def(py::init([](const std::string& s) {                               \
+        return opt_namespace::to##opt_localname##OrThrow(s);                 \
+      }))                                                                    \
+      .def_property(                                                         \
+          "value",                                                           \
+          [](const opt_namespace::opt_localname& x) { return toString(x); }, \
+          [](opt_namespace::opt_localname& x, const std::string& s) {        \
+            x = opt_namespace::to##opt_localname##OrThrow(s);                \
+          })                                                                 \
+      .PythonInterfaceCopyValue(opt_namespace::opt_localname)                \
+      .PythonInterfaceBasicRepresentation(opt_namespace::opt_localname)      \
+      .def(py::self == py::self)                                             \
+      .def(py::self != py::self)                                             \
+      .def(py::pickle(                                                       \
+          [](const opt_namespace::opt_localname& t) {                        \
+            return py::make_tuple(std::string(opt_namespace::toString(t)));  \
+          },                                                                 \
+          [](const py::tuple& t) {                                           \
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")              \
+            return new opt_namespace::opt_localname{                         \
+                opt_namespace::to##opt_localname(t[0].cast<std::string>())}; \
+          }))                                                                \
+      .def_static(                                                           \
+          "get_options",                                                     \
+          []() { return opt_namespace::enumtyps::opt_localname##Types; })    \
+      .def_static(                                                           \
+          "get_options_as_strings",                                          \
+          []() { return opt_namespace::enumstrs::opt_localname##Names; })    \
+      .doc() = "Options for " #opt_rename;                                   \
+  py::implicitly_convertible<std::string, opt_namespace::opt_localname>();
 
+//! Exposes and option defined by the ARTS internal ENUMCLASS macro to pyarts
+#define DeclareOption(opt_namespace, opt_localname) \
+  DeclareOptionRenamed(opt_localname, opt_namespace, opt_localname)
 namespace Python {
 void py_options(py::module_& m) {
   auto opt = m.def_submodule("options");
@@ -71,5 +83,14 @@ void py_options(py::module_& m) {
 
   // Default multiple-choice options:
   DeclareOption(Options, planetDefaultOptions)
+
+  // Enum options relating to spectroscopy
+  DeclareOptionRenamed(LineShapeTemperatureModel, LineShape, TemperatureModel)
+  DeclareOptionRenamed(AbsorptionCutoffType, Absorption, CutoffType)
+  DeclareOptionRenamed(AbsorptionMirroringType, Absorption, MirroringType)
+  DeclareOptionRenamed(AbsorptionPopulationType, Absorption,PopulationType)
+  DeclareOptionRenamed(AbsorptionNormalizationType, Absorption, NormalizationType)
+  DeclareOptionRenamed(LineShapeType, LineShape, Type)
+  DeclareOptionRenamed(LineShapeVariable, LineShape, Variable)
 }
 }  // namespace Python
