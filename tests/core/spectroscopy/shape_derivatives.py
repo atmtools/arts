@@ -155,7 +155,7 @@ for lineshapetype in ["DP", "LP", "VP", "HTP"]:
                 ws.z_surface = [[300]]
                 ws.p_grid = np.logspace(5, -1)
                 
-                ws.AtmRawRead( basename = "testdata/tropical" )
+                ws.AtmRawRead( basename = "planets/Earth/Fascod/tropical/tropical" )
                 ws.AtmosphereSet1D()
                 ws.AtmFieldsCalc()
                 
