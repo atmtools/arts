@@ -98,24 +98,6 @@ void internal_spectroscopy(py::module_& m) {
 }
 
 void py_spectroscopy(py::module_& m) {
-  py::class_<LineShape::TemperatureModel>(m, "LineShapeTemperatureModel")
-      .def(py::init([]() { return new LineShape::TemperatureModel{}; }))
-      .def(py::init([](const std::string& c) {
-        return LineShape::toTemperatureModelOrThrow(c);
-      }))
-      .PythonInterfaceCopyValue(LineShape::TemperatureModel)
-      .PythonInterfaceBasicRepresentation(LineShape::TemperatureModel)
-      .def(py::pickle(
-          [](const LineShape::TemperatureModel& t) {
-            return py::make_tuple(std::string(LineShape::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new LineShape::TemperatureModel{
-                LineShape::toTemperatureModel(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, LineShape::TemperatureModel>();
-
   static_assert(LineShapeModelParameters::N == 4);
   py::class_<LineShapeModelParameters>(m, "LineShapeModelParameters")
       .def(py::init([](LineShape::TemperatureModel a,
@@ -150,25 +132,6 @@ void py_spectroscopy(py::module_& m) {
                 t[3].cast<Numeric>(),
                 t[4].cast<Numeric>()};
           }));
-
-  py::class_<AbsorptionCutoffType>(m, "AbsorptionCutoffType")
-      .def(py::init([]() { return new AbsorptionCutoffType{}; }))
-      .def(py::init([](const std::string& c) {
-             return Absorption::toCutoffTypeOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(AbsorptionCutoffType)
-      .PythonInterfaceBasicRepresentation(AbsorptionCutoffType)
-      .def(py::pickle(
-          [](const AbsorptionCutoffType& t) {
-            return py::make_tuple(std::string(Absorption::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new AbsorptionCutoffType{
-                Absorption::toCutoffType(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, AbsorptionCutoffType>();
 
   auto ZeemanPolarizationStringGetter =
       [](Zeeman::Polarization c) -> std::string {
@@ -211,82 +174,6 @@ void py_spectroscopy(py::module_& m) {
           }));
   py::implicitly_convertible<std::string, Zeeman::Polarization>();
 
-  py::class_<AbsorptionMirroringType>(m, "AbsorptionMirroringType")
-      .def(py::init([]() { return new AbsorptionMirroringType{}; }))
-      .def(py::init([](const std::string& c) {
-             return Absorption::toMirroringTypeOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(AbsorptionMirroringType)
-      .PythonInterfaceBasicRepresentation(AbsorptionMirroringType)
-      .def(py::pickle(
-          [](const AbsorptionMirroringType& t) {
-            return py::make_tuple(std::string(Absorption::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new AbsorptionMirroringType{
-                Absorption::toMirroringType(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, AbsorptionMirroringType>();
-
-  py::class_<AbsorptionPopulationType>(m, "AbsorptionPopulationType")
-      .def(py::init([]() { return new AbsorptionPopulationType{}; }))
-      .def(py::init([](const std::string& c) {
-             return Absorption::toPopulationTypeOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(AbsorptionPopulationType)
-      .PythonInterfaceBasicRepresentation(AbsorptionPopulationType)
-      .def(py::pickle(
-          [](const AbsorptionPopulationType& t) {
-            return py::make_tuple(std::string(Absorption::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new AbsorptionPopulationType{
-                Absorption::toPopulationType(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, AbsorptionPopulationType>();
-
-  py::class_<AbsorptionNormalizationType>(m, "AbsorptionNormalizationType")
-      .def(py::init([]() { return new AbsorptionNormalizationType{}; }))
-      .def(py::init([](const std::string& c) {
-             return Absorption::toNormalizationTypeOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(AbsorptionNormalizationType)
-      .PythonInterfaceBasicRepresentation(AbsorptionNormalizationType)
-      .def(py::pickle(
-          [](const AbsorptionNormalizationType& t) {
-            return py::make_tuple(std::string(Absorption::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new AbsorptionNormalizationType{
-                Absorption::toNormalizationType(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, AbsorptionNormalizationType>();
-
-  py::class_<LineShapeType>(m, "LineShapeType")
-      .def(py::init([]() { return new LineShapeType{}; }))
-      .def(py::init([](const std::string& c) {
-             return LineShape::toTypeOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(LineShapeType)
-      .PythonInterfaceBasicRepresentation(LineShapeType)
-      .def(py::pickle(
-          [](const LineShapeType& t) {
-            return py::make_tuple(std::string(LineShape::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new LineShapeType{
-                LineShape::toType(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, LineShapeType>();
-
   py::class_<Zeeman::Model>(m, "ZeemanModel")
       .def(py::init([]() { return new Zeeman::Model{}; }))
       .def(py::init([](Numeric a, Numeric b) {
@@ -294,6 +181,10 @@ void py_spectroscopy(py::module_& m) {
            }),
            py::arg("gu"),
            py::arg("gl"))
+      .def(py::init([](std::array<Numeric, 2> a) {
+             return new Zeeman::Model{a[0], a[1]};
+           }),
+           py::arg("gs"))
       .PythonInterfaceCopyValue(Zeeman::Model)
       .PythonInterfaceBasicRepresentation(Zeeman::Model)
       .def_property("gu", &Zeeman::Model::gu, &Zeeman::Model::gu)
@@ -305,6 +196,7 @@ void py_spectroscopy(py::module_& m) {
             return new Zeeman::Model{t[0].cast<Numeric>(),
                                      t[1].cast<Numeric>()};
           }));
+  py::implicitly_convertible<std::array<Numeric, 2>, Zeeman::Model>();
 
   py::class_<LineShape::Output>(m, "LineShapeOutput")
       .def(py::init([](Numeric a,
@@ -378,6 +270,7 @@ void py_spectroscopy(py::module_& m) {
            py::arg("G") = LineShape::ModelParameters{},
            py::arg("DV") = LineShape::ModelParameters{})
       .PythonInterfaceCopyValue(LineShapeSingleSpeciesModel)
+      .PythonInterfaceBasicRepresentation(LineShapeSingleSpeciesModel)
       .def_property(
           "G0",
           [](const LineShapeSingleSpeciesModel& x) { return x.G0(); },

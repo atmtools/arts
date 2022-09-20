@@ -105,6 +105,11 @@ PYBIND11_MODULE(arts, m) {
     parameters.datapath.insert(parameters.datapath.begin(), ".");
   }
 
+  //! The options names space depends only on static c++ data,
+  // so it should be included early for documentation purposes when its
+  // data is used by modules below it
+  py_options(m);
+
   py_basic(m);
   py_docserver(m);
   py_matpack(m);
@@ -137,6 +142,5 @@ PYBIND11_MODULE(arts, m) {
   py_global(m);
   py_physics(m);
   py_math(m);
-  py_options(m);
 }
 }  // namespace Python

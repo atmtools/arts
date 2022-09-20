@@ -242,18 +242,11 @@ class TestAgendas:
                     out.append(str(wsv.name))
             return out
 
-        def get_options(enum_object):
-            out = []
-            for thing in dir(enum_object):
-                if thing.startswith("__") or thing == "value": continue
-                out.append(thing)
-            return out
-
         def set_agendas(ws, agenda_string):
-            options = get_options(eval(f"pyarts.arts.options.{agenda_string}DefaultOptions"))
+            options = eval(f"pyarts.arts.options.{agenda_string}DefaultOptions.get_options_as_strings()")
             for enum_option in options:
                 if (enum_option + ":" )not in eval(f"ws.{agenda_string}Set").__doc__:
-                    raise RuntimeError(f"The option {enum_option} is not documented")
+                    raise RuntimeError(f"The option {enum_option} is not documented for {agenda_string}")
                 try:
                     eval(f"ws.{agenda_string}Set(option=enum_option)")
                 except RuntimeError as err:
@@ -335,13 +328,7 @@ to have only, as it allows us to easily add some agenda defaults if they do
 exist in the future
 """)
     def test_planet_set(self):
-        def get_options(enum_object):
-            out = []
-            for thing in dir(enum_object):
-                if thing.startswith("__") or thing == "value": continue
-                out.append(thing)
-            return out
-        options = get_options(pyarts.arts.options.planetDefaultOptions)
+        options = pyarts.arts.options.planetDefaultOptions.get_options_as_strings()
 
         ws = pyarts.workspace.Workspace()
         for opt in options:
@@ -352,5 +339,5 @@ exist in the future
 if __name__ == "__main__":
     ta = TestAgendas()
     ta.setup_method()
-    ta.test_planet_set()
+    ta.test_agenda_set()
 

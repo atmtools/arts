@@ -605,6 +605,8 @@ via x.value)--");
       .PythonInterfaceWorkspaceVariableConversion(Rational)
       .def(py::init([](const String& s) { return new Rational{s}; }))
       .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
+      .def("__float__", [](const Rational& x) { return Numeric(x); })
+      .def("__int__", [](const Rational& x) { return Index(x); })
       .PythonInterfaceFileIO(Rational)
       .PythonInterfaceBasicRepresentation(Rational)
       .PythonInterfaceCommonMath(Index)
