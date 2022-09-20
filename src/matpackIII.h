@@ -381,7 +381,7 @@ class Tensor3 : public Tensor3View {
   void resize(Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor3& t1, Tensor3& t2);
+  friend void swap(Tensor3& t1, Tensor3& t2) noexcept;
 
   // Destructor:
   virtual ~Tensor3();

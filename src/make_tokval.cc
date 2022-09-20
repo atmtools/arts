@@ -95,8 +95,8 @@ public:
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
   [[nodiscard]] std::string_view type() const;
-  TokVal& operator=(TokVal&& t) {swap(ptr, t.ptr); return*this;}
-  TokVal(TokVal&& t) : ptr(nullptr) {swap(ptr, t.ptr);}
+  TokVal& operator=(TokVal&& t) noexcept {using std::swap; swap(ptr, t.ptr); return*this;}
+  TokVal(TokVal&& t) noexcept : ptr(nullptr) {using std::swap; swap(ptr, t.ptr);}
 
   ~TokVal();
 

@@ -961,6 +961,9 @@ class PropagationMatrix {
 
   friend std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm);
 
+  void swap(PropagationMatrix&) noexcept;
+  friend void swap(PropagationMatrix&, PropagationMatrix&) noexcept;
+
  protected:
   Index mfreqs, mstokes_dim;
   Index mza, maa;

@@ -5532,15 +5532,16 @@ void Tensor7::resize(
 }
 
 /** Swaps two objects. */
-void swap(Tensor7& t1, Tensor7& t2) {
-  std::swap(t1.mlr, t2.mlr);
-  std::swap(t1.mvr, t2.mvr);
-  std::swap(t1.msr, t2.msr);
-  std::swap(t1.mbr, t2.mbr);
-  std::swap(t1.mpr, t2.mpr);
-  std::swap(t1.mrr, t2.mrr);
-  std::swap(t1.mcr, t2.mcr);
-  std::swap(t1.mdata, t2.mdata);
+void swap(Tensor7& t1, Tensor7& t2) noexcept {
+  using std::swap;
+  swap(t1.mlr, t2.mlr);
+  swap(t1.mvr, t2.mvr);
+  swap(t1.msr, t2.msr);
+  swap(t1.mbr, t2.mbr);
+  swap(t1.mpr, t2.mpr);
+  swap(t1.mrr, t2.mrr);
+  swap(t1.mcr, t2.mcr);
+  swap(t1.mdata, t2.mdata);
 }
 
 /** Destructor for Tensor7. This is important, since Tensor7 uses new to

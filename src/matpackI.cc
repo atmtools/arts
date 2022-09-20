@@ -398,9 +398,10 @@ void Vector::resize(Index n) {
   }
 }
 
-void swap(Vector& v1, Vector& v2) {
-  std::swap(v1.mrange, v2.mrange);
-  std::swap(v1.mdata, v2.mdata);
+void swap(Vector& v1, Vector& v2) noexcept {
+  using std::swap;
+  swap(v1.mrange, v2.mrange);
+  swap(v1.mdata, v2.mdata);
 }
 
 Vector::~Vector() { delete[] mdata; }
@@ -1026,10 +1027,11 @@ void Matrix::resize(Index r, Index c) {
 }
 
 /** Swaps two objects. */
-void swap(Matrix& m1, Matrix& m2) {
-  std::swap(m1.mrr, m2.mrr);
-  std::swap(m1.mcr, m2.mcr);
-  std::swap(m1.mdata, m2.mdata);
+void swap(Matrix& m1, Matrix& m2) noexcept {
+  using std::swap;
+  swap(m1.mrr, m2.mrr);
+  swap(m1.mcr, m2.mcr);
+  swap(m1.mdata, m2.mdata);
 }
 
 /** Destructor for Matrix. This is important, since Matrix uses new to

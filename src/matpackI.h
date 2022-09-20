@@ -284,7 +284,7 @@ class Range {
       ARTS_ASSERT(fin <= prev_fin);
 #endif
     }
-  };
+  }
 
   // Friends:
   friend class ConstVectorView;
@@ -361,6 +361,15 @@ class Range {
   };
 
   friend std::ostream& operator<<(std::ostream& os, const Range& r);
+
+  constexpr void swap(Range& other) noexcept {
+    using std::swap;
+    swap(mstart, other.mstart);
+    swap(mextent, other.mextent);
+    swap(mstride, other.mstride);
+  }
+
+  friend constexpr void swap(Range& a, Range& b) noexcept { a.swap(b); }
 
  private:
   /** The start index. */
@@ -1022,7 +1031,7 @@ class Vector : public VectorView {
   void resize(Index n);
 
   /** Swaps two objects. */
-  friend void swap(Vector& v1, Vector& v2);
+  friend void swap(Vector& v1, Vector& v2) noexcept;
 
   /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
@@ -1316,7 +1325,7 @@ class Matrix : public MatrixView {
   void resize(Index r, Index c);
 
   // Swap function:
-  friend void swap(Matrix& m1, Matrix& m2);
+  friend void swap(Matrix& m1, Matrix& m2) noexcept;
 
   // Destructor:
   virtual ~Matrix();

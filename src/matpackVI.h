@@ -1146,7 +1146,7 @@ class Tensor6 : public Tensor6View {
   void resize(Index v, Index s, Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor6& t1, Tensor6& t2);
+  friend void swap(Tensor6& t1, Tensor6& t2) noexcept;
 
   // Destructor:
   virtual ~Tensor6();

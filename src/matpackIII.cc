@@ -682,11 +682,12 @@ void Tensor3::resize(Index p, Index r, Index c) {
 }
 
 /** Swaps two objects. */
-void swap(Tensor3& t1, Tensor3& t2) {
-  std::swap(t1.mpr, t2.mpr);
-  std::swap(t1.mrr, t2.mrr);
-  std::swap(t1.mcr, t2.mcr);
-  std::swap(t1.mdata, t2.mdata);
+void swap(Tensor3& t1, Tensor3& t2) noexcept {
+  using std::swap;
+  swap(t1.mpr, t2.mpr);
+  swap(t1.mrr, t2.mrr);
+  swap(t1.mcr, t2.mcr);
+  swap(t1.mdata, t2.mdata);
 }
 
 /** Destructor for Tensor3. This is important, since Tensor3 uses new to

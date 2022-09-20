@@ -469,7 +469,7 @@ class Tensor4 : public Tensor4View {
   void resize(Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor4& t1, Tensor4& t2);
+  friend void swap(Tensor4& t1, Tensor4& t2) noexcept;
 
   // Destructor:
   virtual ~Tensor4();

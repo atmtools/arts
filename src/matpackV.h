@@ -559,7 +559,7 @@ class Tensor5 : public Tensor5View {
   void resize(Index s, Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor5& t1, Tensor5& t2);
+  friend void swap(Tensor5& t1, Tensor5& t2) noexcept;
 
   // Destructor:
   virtual ~Tensor5();

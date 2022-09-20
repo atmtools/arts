@@ -1773,13 +1773,14 @@ void Tensor5::resize(Index s, Index b, Index p, Index r, Index c) {
 }
 
 /** Swaps two objects. */
-void swap(Tensor5& t1, Tensor5& t2) {
-  std::swap(t1.msr, t2.msr);
-  std::swap(t1.mbr, t2.mbr);
-  std::swap(t1.mpr, t2.mpr);
-  std::swap(t1.mrr, t2.mrr);
-  std::swap(t1.mcr, t2.mcr);
-  std::swap(t1.mdata, t2.mdata);
+void swap(Tensor5& t1, Tensor5& t2) noexcept {
+  using std::swap;
+  swap(t1.msr, t2.msr);
+  swap(t1.mbr, t2.mbr);
+  swap(t1.mpr, t2.mpr);
+  swap(t1.mrr, t2.mrr);
+  swap(t1.mcr, t2.mcr);
+  swap(t1.mdata, t2.mdata);
 }
 
 /** Destructor for Tensor5. This is important, since Tensor5 uses new to

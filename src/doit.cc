@@ -1425,7 +1425,7 @@ void cloud_RT_no_background(Workspace& ws,
   for (Index k = ppath_step.np - 1; k >= 0; k--) {
     // Save propmat_clearsky from previous level by
     // swapping it with current level
-    std::swap(cur_propmat_clearsky, prev_propmat_clearsky);
+    swap(cur_propmat_clearsky, prev_propmat_clearsky);
 
     //
     // Calculate scalar gas absorption

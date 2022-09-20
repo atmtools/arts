@@ -717,9 +717,10 @@ void ComplexVector::resize(Index n) {
 }
 
 /** Swaps two objects. */
-void swap(ComplexVector& v1, ComplexVector& v2) {
-  std::swap(v1.mrange, v2.mrange);
-  std::swap(v1.mdata, v2.mdata);
+void swap(ComplexVector& v1, ComplexVector& v2) noexcept {
+  using std::swap;
+  swap(v1.mrange, v2.mrange);
+  swap(v1.mdata, v2.mdata);
 }
 
 /** Destructor for ComplexVector. This is important, since Vector uses new to
@@ -1430,10 +1431,11 @@ void ComplexMatrix::resize(Index r, Index c) {
 }
 
 /** Swaps two objects. */
-void swap(ComplexMatrix& m1, ComplexMatrix& m2) {
-  std::swap(m1.mrr, m2.mrr);
-  std::swap(m1.mcr, m2.mcr);
-  std::swap(m1.mdata, m2.mdata);
+void swap(ComplexMatrix& m1, ComplexMatrix& m2) noexcept {
+  using std::swap;
+  swap(m1.mrr, m2.mrr);
+  swap(m1.mcr, m2.mcr);
+  swap(m1.mdata, m2.mdata);
 }
 
 /** Destructor for Matrix. This is important, since Matrix uses new to

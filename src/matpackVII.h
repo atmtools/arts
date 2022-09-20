@@ -2424,7 +2424,7 @@ class Tensor7 : public Tensor7View {
   void resize(Index l, Index v, Index s, Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor7& t1, Tensor7& t2);
+  friend void swap(Tensor7& t1, Tensor7& t2) noexcept;
 
   // Destructor:
   virtual ~Tensor7();

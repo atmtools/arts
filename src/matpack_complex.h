@@ -642,7 +642,7 @@ class ComplexVector : public ComplexVectorView {
   void resize(Index n);
 
   // Swap function:
-  friend void swap(ComplexVector& v1, ComplexVector& v2);
+  friend void swap(ComplexVector& v1, ComplexVector& v2) noexcept;
 
   // Destructor:
    ~ComplexVector() override;
@@ -938,7 +938,7 @@ class ComplexMatrix : public ComplexMatrixView {
   void resize(Index r, Index c);
 
   // Swap function:
-  friend void swap(ComplexMatrix& m1, ComplexMatrix& m2);
+  friend void swap(ComplexMatrix& m1, ComplexMatrix& m2) noexcept;
 
   // Destructor:
    ~ComplexMatrix() override;

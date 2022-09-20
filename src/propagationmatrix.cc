@@ -2044,3 +2044,15 @@ std::ostream& operator<<(std::ostream& os, const StokesVector& sv) {
   os << sv.Data() << "\n";
   return os;
 }
+
+void PropagationMatrix::swap(PropagationMatrix& pm) noexcept {
+  using std::swap;
+  swap(mfreqs, pm.mfreqs);
+  swap(mstokes_dim, pm.mstokes_dim);
+  swap(mza, pm.mza);
+  swap(maa, pm.maa);
+  swap(mdata, pm.mdata);
+  swap(mvectortype, pm.mvectortype);
+}
+
+void swap(PropagationMatrix& a, PropagationMatrix& b) noexcept { a.swap(b); }
