@@ -188,7 +188,7 @@ TokVal::TokVal() : TokVal(Any{}) {}
 TokVal::TokVal(const TokVal& v) : TokVal(Any{}) { std::visit([&](auto&& in) {*this = *in;}, *tokval_type(v.ptr)); }
 TokVal& TokVal::operator=(const TokVal& v) {std::visit([&](auto&& in) {*this = *in;}, *tokval_type(v.ptr)); return *this; }
 
-TokVal::~TokVal() noexcept {delete tokval_type(ptr);}
+TokVal::~TokVal() noexcept {delete tokval_type(ptr); ptr=nullptr;}
 
 std::shared_ptr<void> TokVal::copy_value() const {
   return std::visit(

@@ -2056,3 +2056,13 @@ void PropagationMatrix::swap(PropagationMatrix& pm) noexcept {
 }
 
 void swap(PropagationMatrix& a, PropagationMatrix& b) noexcept { a.swap(b); }
+
+LazyScale<PropagationMatrix> operator*(const PropagationMatrix& pm,
+                                       const Numeric& x) {
+  return LazyScale<PropagationMatrix>(pm, x);
+}
+
+LazyScale<PropagationMatrix> operator*(const Numeric& x,
+                                       const PropagationMatrix& pm) {
+  return LazyScale<PropagationMatrix>(pm, x);
+}

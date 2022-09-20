@@ -96,6 +96,7 @@
 #define matpackI_h
 
 #include <algorithm>
+#include <utility>
 
 #include "array.h"
 #include "matpack.h"
@@ -769,7 +770,7 @@ class VectorView : public ConstVectorView {
   operator MatrixView() ARTS_NOEXCEPT;
 
   //! Destructor
-  virtual ~VectorView() = default;
+  ~VectorView() override = default;
 
   // Friends:
   friend class ConstIterator2D;
@@ -861,8 +862,8 @@ class ConstIterator2D {
   ConstIterator2D() = default;
 
   /** Explicit constructor. */
-  ConstIterator2D(const ConstVectorView& x, Index stride) ARTS_NOEXCEPT
-      : msv(x),
+  ConstIterator2D(ConstVectorView x, Index stride) ARTS_NOEXCEPT
+      : msv(std::move(x)),
         mstride(stride) { /* Nothing to do here. */
   }
 
@@ -1035,7 +1036,7 @@ class Vector : public VectorView {
 
   /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
-  virtual ~Vector() noexcept;
+  ~Vector() noexcept override;
 
   template <class F>
   void transform_elementwise(F&& func) {
@@ -1240,7 +1241,7 @@ class MatrixView : public ConstMatrixView {
   MatrixView& operator-=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   //! Destructor
-  virtual ~MatrixView() = default;
+  ~MatrixView() override = default;
 
   // Friends:
   friend class VectorView;
@@ -1328,7 +1329,7 @@ class Matrix : public MatrixView {
   friend void swap(Matrix& m1, Matrix& m2) noexcept;
 
   // Destructor:
-  virtual ~Matrix() noexcept;
+  ~Matrix() noexcept override;
 
   /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>

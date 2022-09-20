@@ -31,6 +31,8 @@
 #ifndef matpackIV_h
 #define matpackIV_h
 
+#include <utility>
+
 #include "matpackIII.h"
 
 /** The outermost iterator class for rank 4 tensors. This takes into
@@ -83,8 +85,8 @@ class ConstIterator4D {
   ConstIterator4D() = default;
 
   /** Explicit constructor. */
-  ConstIterator4D(const ConstTensor3View& x, Index stride)
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+  ConstIterator4D(ConstTensor3View x, Index stride)
+      : msv(std::move(x)), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -385,7 +387,7 @@ class Tensor4View : public ConstTensor4View {
   Tensor4View& operator-=(const ConstTensor4View& x);
 
   //! Destructor
-  virtual ~Tensor4View() = default;
+  ~Tensor4View() override = default;
 
   // Friends:
   // friend class VectorView;
@@ -472,7 +474,7 @@ class Tensor4 : public Tensor4View {
   friend void swap(Tensor4& t1, Tensor4& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor4() noexcept;
+  ~Tensor4() noexcept override;
   
   // Returns data as a Vector
   Vector flatten() && ARTS_NOEXCEPT;

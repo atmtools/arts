@@ -27,6 +27,8 @@
 #ifndef matpackIII_h
 #define matpackIII_h
 
+#include <utility>
+
 #include "matpackI.h"
 
 /** The outermost iterator class for rank 3 tensors. This takes into
@@ -79,8 +81,8 @@ class ConstIterator3D {
   ConstIterator3D() = default;
 
   /** Explicit constructor. */
-  ConstIterator3D(const ConstMatrixView& x, Index stride)
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+  ConstIterator3D(ConstMatrixView x, Index stride)
+      : msv(std::move(x)), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -310,7 +312,7 @@ class Tensor3View : public ConstTensor3View {
   Tensor3View& operator-=(const ConstTensor3View& x);
 
   //! Destructor
-  virtual ~Tensor3View() = default;
+  ~Tensor3View() override = default;
 
   // Friends:
   friend class Iterator4D;
@@ -384,7 +386,7 @@ class Tensor3 : public Tensor3View {
   friend void swap(Tensor3& t1, Tensor3& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor3() noexcept;
+  ~Tensor3() noexcept override;
 
   /*! Reduce a Tensor3 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

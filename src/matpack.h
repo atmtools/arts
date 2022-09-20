@@ -30,12 +30,12 @@
 /** The type to use for all floating point numbers. You should never
     use float or double explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef NUMERIC Numeric;
+using Numeric = NUMERIC;
 
 //--------------------< Set integer type >--------------------
 /** The type to use for all integer numbers and indices. You should never
     use int, long, or size_t explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef INDEX Index;
+using Index = INDEX;
 
 #endif  // matpackI_h

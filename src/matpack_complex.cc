@@ -645,20 +645,61 @@ ComplexVector::ComplexVector(const std::vector<Numeric>& v)
  * \date   2002-12-19
  */
 ComplexVector& ComplexVector::operator=(const ComplexVector& v) {
-  const auto n = v.nelem();
-  resize(n);
-
-  auto* in = v.mdata + v.mrange.mstart;
-  auto* end = v.mdata + n;
-  auto* out = mdata;
-
-  while (in < end) {
-    out = in;
-    out++;
-    in += v.mrange.mstride;
+  if (this not_eq &v) {
+    resize(v.nelem());
+    matpack::eigen::row_vec(*this).noalias() = matpack::eigen::row_vec(v);
   }
 
   return *this;
+}
+
+ConstVectorView ConstComplexVectorView::real() const {
+  return ConstVectorView(
+      reinterpret_cast<Numeric*>(mdata),
+      Range(2 * mrange.mstart, mrange.mextent, mrange.mstride * 2));
+}
+
+ConstVectorView ConstComplexVectorView::imag() const {
+  return ConstVectorView(
+      reinterpret_cast<Numeric*>(mdata),
+      Range(2 * mrange.mstart + 1, mrange.mextent, mrange.mstride * 2));
+}
+
+VectorView ComplexVectorView::real() {
+  return VectorView(
+      reinterpret_cast<Numeric*>(mdata),
+      Range(2 * mrange.mstart, mrange.mextent, mrange.mstride * 2));
+}
+
+VectorView ComplexVectorView::imag() {
+  return VectorView(
+      reinterpret_cast<Numeric*>(mdata),
+      Range(2 * mrange.mstart + 1, mrange.mextent, mrange.mstride * 2));
+}
+
+MatrixView ComplexMatrixView::real() {
+  return MatrixView(reinterpret_cast<Numeric*>(mdata),
+                    Range(2 * mrr.mstart, mrr.mextent, mrr.mstride * 2),
+                    Range(2 * mcr.mstart, mcr.mextent, mcr.mstride * 2));
+}
+
+MatrixView ComplexMatrixView::imag() {
+  return MatrixView(reinterpret_cast<Numeric*>(mdata),
+                    Range(2 * mrr.mstart, mrr.mextent, mrr.mstride * 2),
+                    Range(2 * mcr.mstart + 1, mcr.mextent, mcr.mstride * 2));
+}
+
+ConstMatrixView ConstComplexMatrixView::real() const {
+  return ConstMatrixView(reinterpret_cast<Numeric*>(mdata),
+                         Range(2 * mrr.mstart, mrr.mextent, mrr.mstride * 2),
+                         Range(2 * mcr.mstart, mcr.mextent, mcr.mstride * 2));
+}
+
+ConstMatrixView ConstComplexMatrixView::imag() const {
+  return ConstMatrixView(
+      reinterpret_cast<Numeric*>(mdata),
+      Range(2 * mrr.mstart, mrr.mextent, mrr.mstride * 2),
+      Range(2 * mcr.mstart + 1, mcr.mextent, mcr.mstride * 2));
 }
 
 //! Assignment operator from Array<Numeric>.
