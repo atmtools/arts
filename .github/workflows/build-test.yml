@@ -151,7 +151,6 @@ jobs:
 
           if [ "${{ matrix.libcxx }}" = "yes" ]; then
             sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
-            echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
           fi
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libglew-dev libglfw3-dev
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray

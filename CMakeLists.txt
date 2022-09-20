@@ -26,6 +26,17 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}"
 )
 endif ()
 
+######## Check compiler versions ########
+set (REQUIRED_GCC_VERSION 11)
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${REQUIRED_GCC_VERSION})
+  message (FATAL_ERROR "GCC version must be at least ${REQUIRED_GCC_VERSION}!")
+endif()
+
+set (REQUIRED_CLANG_VERSION 13)
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${REQUIRED_CLANG_VERSION})
+  message (FATAL_ERROR "Clang version must be at least ${REQUIRED_CLANG_VERSION}!")
+endif()
+
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(DEFAULT_BUILD_TYPE "Release")
@@ -112,7 +123,7 @@ if (ENABLE_FORTRAN)
       set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
     endif()
     if (ENABLE_TMATRIX_QUAD)
-      message (FATAL_ERROR "Gfortran does not support quad-precision. Only supported on Intel compiler.")
+      message (FATAL_ERROR "Gfortran does not support quad-precision.")
     endif()
   elseif (FORTRAN_COMPILER MATCHES "ifort.*")
     set (FORTRAN_EXTRA_FLAGS "-i8 -r8")
@@ -177,27 +188,6 @@ if (ENABLE_IPO)
 else()
   set(IPO_SUPPORTED OFF)
 endif()
-
-# Explicitly set C++ flags for Intel compiler because cmake
-# only supports it from version 3.6.0+. We don't want to
-# depend on this newer version of cmake because it was only
-# released in June 2016.
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-endif ()
-
-########### Intel compiler specific settings ##########
-
-# Turn off value-unsafe floating-point optimizations which lead
-# to large descrepancies compared to other compilers
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise")
-endif ()
-
-if (ENABLE_FORTRAN AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fp-model precise")
-endif ()
 
 ########### OEM Support ##########
 
@@ -270,15 +260,7 @@ check_function_exists(unlink HAVE_REMOVE)
 include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
-########## BLAS support #########
-if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
-  # Workaround: Older versions of cmake
-  # rely on fortran being enabled to detect BLAS
-  enable_language (Fortran)
-endif()
-
 ########## BLAS/LAPACK support #########
-
 find_package (LAPACK REQUIRED)
 
 ########## NetCDF support #########
@@ -311,7 +293,11 @@ endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
-endif (CMAKE_COMPILER_IS_GNUCXX)
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif ()
 
 ########### Warning flags ##########
 include (ArtsAddCompilerFlag)
@@ -335,13 +321,6 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-psabi)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
-######## Need to link to filesystem ########
-if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
-    message (STATUS "Linking against stdc++fs")
-    link_libraries (stdc++fs)
-endif()
-
-
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)
     ARTS_ADD_COMPILER_FLAG (march=native)
@@ -353,11 +332,6 @@ if (NO_USER_ERRORS)
   ARTS_ADD_COMPILER_FLAG (Wno-unused-parameter)
   ARTS_ADD_COMPILER_FLAG (Wno-unused-variable)
 endif (NO_USER_ERRORS)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  ARTS_ADD_COMPILER_FLAG (w1)
-  ARTS_ADD_COMPILER_FLAG (diag-disable=383,980,981,1418,1419,1682)
-endif ()
 
 if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
