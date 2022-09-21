@@ -321,10 +321,10 @@ class ConstComplexVectorView {
   }
   
   /** Get a view of the real part of the vector */
-  [[nodiscard]] ConstVectorView real() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart, mrange.mextent, mrange.mstride*2));}
+  [[nodiscard]] ConstVectorView real() const;
   
   /** Get a view of the imaginary part of the vector */
-  [[nodiscard]] ConstVectorView imag() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart + 1, mrange.mextent, mrange.mstride*2));}
+  [[nodiscard]] ConstVectorView imag() const;
 
   ConstComplexVectorView operator[](const Range& r) const;
   friend Complex operator*(const ConstComplexVectorView& a,
@@ -428,10 +428,10 @@ class ComplexVectorView : public ConstComplexVectorView {
   }
   
   /** Get a view of the real part of the vector */
-  VectorView real() {return VectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart, mrange.mextent, mrange.mstride*2));}
+  [[nodiscard]] VectorView real();
   
   /** Get a view of the imaginary part of the vector */
-  VectorView imag() {return VectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart + 1, mrange.mextent, mrange.mstride*2));}
+  [[nodiscard]] VectorView imag();
 
   ComplexVectorView operator[](const Range& r);
 
@@ -642,10 +642,10 @@ class ComplexVector : public ComplexVectorView {
   void resize(Index n);
 
   // Swap function:
-  friend void swap(ComplexVector& v1, ComplexVector& v2);
+  friend void swap(ComplexVector& v1, ComplexVector& v2) noexcept;
 
   // Destructor:
-   ~ComplexVector() override;
+   ~ComplexVector() noexcept override;
 };
 
 // Declare class ComplexMatrix:
@@ -706,12 +706,10 @@ class ConstComplexMatrixView {
   [[nodiscard]] Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
   
   /** Get a view of the real part of the matrix */
-  [[nodiscard]] ConstMatrixView real() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2), 
-                                                                                           Range(2*mcr.mstart, mcr.mextent, mcr.mstride*2));}
-  
+  [[nodiscard]] ConstMatrixView real() const;
+
   /** Get a view of the imaginary part of the matrix */
-  [[nodiscard]] ConstMatrixView imag() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2),
-                                                                                           Range(2*mcr.mstart + 1, mcr.mextent, mcr.mstride*2));}
+  [[nodiscard]] ConstMatrixView imag() const;
   
   /** Get the extent of the underlying data */
   [[nodiscard]] Index get_column_extent() const {return mcr.get_extent();}
@@ -826,12 +824,10 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   }
   
   /** Get a view of the real part of the matrix */
-  MatrixView real() {return MatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2), 
-                                                                           Range(2*mcr.mstart, mcr.mextent, mcr.mstride*2));}
-  
+ [[nodiscard]] MatrixView real();
+
   /** Get a view of the imaginary parts of the matrix */
-  MatrixView imag() {return MatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2),
-                                                                           Range(2*mcr.mstart + 1, mcr.mextent, mcr.mstride*2));}
+  [[nodiscard]] MatrixView imag();
 
   ComplexMatrixView operator()(const Range& r, const Range& c);
   ComplexVectorView operator()(const Range& r, Index c);
@@ -938,10 +934,10 @@ class ComplexMatrix : public ComplexMatrixView {
   void resize(Index r, Index c);
 
   // Swap function:
-  friend void swap(ComplexMatrix& m1, ComplexMatrix& m2);
+  friend void swap(ComplexMatrix& m1, ComplexMatrix& m2) noexcept;
 
   // Destructor:
-   ~ComplexMatrix() override;
+   ~ComplexMatrix() noexcept override;
 
   Complex* get_raw_data() { return mdata; }
 };

@@ -27,6 +27,7 @@
 #include <iostream>
 #include <map>
 
+#include "debug.h"
 #include "groups.h"
 #include "messages.h"
 #include "workspace_ng.h"
@@ -120,9 +121,8 @@ bool check_agenda_data() {
   using global_data::agenda_data;
   DEBUG_ONLY(using global_data::AgendaMap);
 
-  Index i, j, k;
-
-  k = 0;
+  Index i, j;
+  DEBUG_ONLY(Index k=0;)
 
   // Check, that each agenda from agenda_data occurs in wsv_data:
   for (i = 0; i < agenda_data.nelem(); ++i) {
@@ -158,7 +158,7 @@ bool check_agenda_data() {
       ARTS_ASSERT(AgendaMap.end() != AgendaMap.find(global_data::wsv_data[j].Name()));
 
       // Counts the number of agenda WSVs in Workspace::wsv_data:
-      ++k;
+      DEBUG_ONLY(++k;)
     }
   }
 

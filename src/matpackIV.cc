@@ -1081,17 +1081,18 @@ void Tensor4::resize(Index b, Index p, Index r, Index c) {
 }
 
 /** Swaps two objects. */
-void swap(Tensor4& t1, Tensor4& t2) {
-  std::swap(t1.mbr, t2.mbr);
-  std::swap(t1.mpr, t2.mpr);
-  std::swap(t1.mrr, t2.mrr);
-  std::swap(t1.mcr, t2.mcr);
-  std::swap(t1.mdata, t2.mdata);
+void swap(Tensor4& t1, Tensor4& t2) noexcept {
+  using std::swap;
+  swap(t1.mbr, t2.mbr);
+  swap(t1.mpr, t2.mpr);
+  swap(t1.mrr, t2.mrr);
+  swap(t1.mcr, t2.mcr);
+  swap(t1.mdata, t2.mdata);
 }
 
 /** Destructor for Tensor4. This is important, since Tensor4 uses new to
     allocate storage. */
-Tensor4::~Tensor4() {
+Tensor4::~Tensor4() noexcept {
   //   cout << "Destroying a Tensor4:\n"
   //        << *this << "\n........................................\n";
   delete[] mdata;

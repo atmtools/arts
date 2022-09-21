@@ -29,6 +29,8 @@ USA. */
 #ifndef matpackVII_h
 #define matpackVII_h
 
+#include <utility>
+
 #include "matpackVI.h"
 
 /** The outermost iterator class for rank 7 tensors. This takes into
@@ -87,8 +89,8 @@ class ConstIterator7D {
   ConstIterator7D() = default;
 
   /** Explicit constructor. */
-  ConstIterator7D(const ConstTensor6View& x, Index stride)
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+  ConstIterator7D(ConstTensor6View x, Index stride)
+      : msv(std::move(x)), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -2353,7 +2355,7 @@ class Tensor7View : public ConstTensor7View {
   Tensor7View& operator-=(const ConstTensor7View& x);
 
   //! Destructor.
-  virtual ~Tensor7View() = default;
+  ~Tensor7View() override = default;
 
   // Friends:
 
@@ -2424,10 +2426,10 @@ class Tensor7 : public Tensor7View {
   void resize(Index l, Index v, Index s, Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor7& t1, Tensor7& t2);
+  friend void swap(Tensor7& t1, Tensor7& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor7();
+  ~Tensor7() noexcept override;
 
   /*! Reduce a Tensor7 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

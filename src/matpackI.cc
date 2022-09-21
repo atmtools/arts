@@ -61,13 +61,13 @@ ConstVectorView ConstVectorView::operator[](const Range& r) const
 }
 
 ConstIterator1D ConstVectorView::begin() const ARTS_NOEXCEPT {
-  return ConstIterator1D(mdata + mrange.mstart, mrange.mstride);
+  return {mdata + mrange.mstart, mrange.mstride};
 }
 
 ConstIterator1D ConstVectorView::end() const ARTS_NOEXCEPT {
-  return ConstIterator1D(
+  return {
       mdata + mrange.mstart + (mrange.mextent) * mrange.mstride,
-      mrange.mstride);
+      mrange.mstride};
 }
 
 ConstVectorView::operator ConstMatrixView() const {
@@ -142,12 +142,12 @@ VectorView VectorView::operator[](const Range& r) ARTS_NOEXCEPT {
 }
 
 Iterator1D VectorView::begin() ARTS_NOEXCEPT {
-  return Iterator1D(mdata + mrange.mstart, mrange.mstride);
+  return {mdata + mrange.mstart, mrange.mstride};
 }
 
 Iterator1D VectorView::end() ARTS_NOEXCEPT {
-  return Iterator1D(mdata + mrange.mstart + (mrange.mextent) * mrange.mstride,
-                    mrange.mstride);
+  return {mdata + mrange.mstart + (mrange.mextent) * mrange.mstride,
+                    mrange.mstride};
 }
 
 VectorView& VectorView::operator=(const ConstVectorView& v) {
@@ -343,9 +343,9 @@ Vector::Vector(const Vector& v)
 
 Vector::Vector(const std::vector<Numeric>& v)
     : VectorView(new Numeric[v.size()], Range(0, v.size())) {
-  std::vector<Numeric>::const_iterator vec_it_end = v.end();
+  auto vec_it_end = v.end();
   Iterator1D this_it = this->begin();
-  for (std::vector<Numeric>::const_iterator vec_it = v.begin();
+  for (auto vec_it = v.begin();
        vec_it != vec_it_end;
        ++vec_it, ++this_it)
     *this_it = *vec_it;
@@ -398,12 +398,13 @@ void Vector::resize(Index n) {
   }
 }
 
-void swap(Vector& v1, Vector& v2) {
-  std::swap(v1.mrange, v2.mrange);
-  std::swap(v1.mdata, v2.mdata);
+void swap(Vector& v1, Vector& v2) noexcept {
+  using std::swap;
+  swap(v1.mrange, v2.mrange);
+  swap(v1.mdata, v2.mdata);
 }
 
-Vector::~Vector() { delete[] mdata; }
+Vector::~Vector() noexcept { delete[] mdata; }
 
 // Functions for ConstMatrixView:
 // ------------------------------
@@ -446,14 +447,14 @@ ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) const
 
 /** Return const iterator to first row. */
 ConstIterator2D ConstMatrixView::begin() const ARTS_NOEXCEPT {
-  return ConstIterator2D(ConstVectorView(mdata + mrr.mstart, mcr), mrr.mstride);
+  return {ConstVectorView(mdata + mrr.mstart, mcr), mrr.mstride};
 }
 
 /** Return const iterator behind last row. */
 ConstIterator2D ConstMatrixView::end() const ARTS_NOEXCEPT {
-  return ConstIterator2D(
+  return {
       ConstVectorView(mdata + mrr.mstart + (mrr.mextent) * mrr.mstride, mcr),
-      mrr.mstride);
+      mrr.mstride};
 }
 
 //! Matrix diagonal as vector.
@@ -1026,15 +1027,16 @@ void Matrix::resize(Index r, Index c) {
 }
 
 /** Swaps two objects. */
-void swap(Matrix& m1, Matrix& m2) {
-  std::swap(m1.mrr, m2.mrr);
-  std::swap(m1.mcr, m2.mcr);
-  std::swap(m1.mdata, m2.mdata);
+void swap(Matrix& m1, Matrix& m2) noexcept {
+  using std::swap;
+  swap(m1.mrr, m2.mrr);
+  swap(m1.mcr, m2.mcr);
+  swap(m1.mdata, m2.mdata);
 }
 
 /** Destructor for Matrix. This is important, since Matrix uses new to
     allocate storage. */
-Matrix::~Matrix() {
+Matrix::~Matrix() noexcept {
   //   cout << "Destroying a Matrix:\n"
   //        << *this << "\n........................................\n";
   delete[] mdata;
@@ -1616,8 +1618,8 @@ VectorView& VectorView::operator=(const Array<Numeric>& v) {
   ARTS_ASSERT(mrange.mextent == v.nelem());
 
   // Iterators for Array:
-  Array<Numeric>::const_iterator i = v.begin();
-  const Array<Numeric>::const_iterator e = v.end();
+  auto i = v.begin();
+  const auto e = v.end();
   // Iterator for Vector:
   Iterator1D target = begin();
 

@@ -95,10 +95,10 @@ public:
   TokVal(const TokVal& v);
   TokVal& operator=(const TokVal& v);
   [[nodiscard]] std::string_view type() const;
-  TokVal& operator=(TokVal&& t) {swap(ptr, t.ptr); return*this;}
-  TokVal(TokVal&& t) : ptr(nullptr) {swap(ptr, t.ptr);}
+  TokVal& operator=(TokVal&& t) noexcept {using std::swap; swap(ptr, t.ptr); return*this;}
+  TokVal(TokVal&& t) noexcept : ptr(nullptr) {using std::swap; swap(ptr, t.ptr);}
 
-  ~TokVal();
+  ~TokVal() noexcept;
 
   [[nodiscard]] std::shared_ptr<void> copy_value() const;
 
@@ -125,7 +125,7 @@ using TokValType = std::variant<
 
   file_var_h << R"--(>;
 
-inline TokValType* tokval_type(void * ptr) {
+inline TokValType* tokval_type(void * ptr) noexcept {
   return static_cast<TokValType*>(ptr);
 }
 )--";
@@ -188,7 +188,7 @@ TokVal::TokVal() : TokVal(Any{}) {}
 TokVal::TokVal(const TokVal& v) : TokVal(Any{}) { std::visit([&](auto&& in) {*this = *in;}, *tokval_type(v.ptr)); }
 TokVal& TokVal::operator=(const TokVal& v) {std::visit([&](auto&& in) {*this = *in;}, *tokval_type(v.ptr)); return *this; }
 
-TokVal::~TokVal() {delete tokval_type(ptr);}
+TokVal::~TokVal() noexcept {delete tokval_type(ptr); ptr=nullptr;}
 
 std::shared_ptr<void> TokVal::copy_value() const {
   return std::visit(

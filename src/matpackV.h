@@ -31,6 +31,8 @@
 #ifndef matpackV_h
 #define matpackV_h
 
+#include <utility>
+
 #include "matpackIV.h"
 
 /** The outermost iterator class for rank 5 tensors. This takes into
@@ -88,8 +90,8 @@ class ConstIterator5D {
   ConstIterator5D() = default;
 
   /** Explicit constructor. */
-  ConstIterator5D(const ConstTensor4View& x, Index stride)
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+  ConstIterator5D(ConstTensor4View x, Index stride)
+      : msv(std::move(x)), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -470,7 +472,7 @@ class Tensor5View : public ConstTensor5View {
   Tensor5View& operator-=(const ConstTensor5View& x);
 
   //! Destructor
-  virtual ~Tensor5View() = default;
+  ~Tensor5View() override = default;
 
   // Friends:
   // friend class VectorView;
@@ -559,10 +561,10 @@ class Tensor5 : public Tensor5View {
   void resize(Index s, Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor5& t1, Tensor5& t2);
+  friend void swap(Tensor5& t1, Tensor5& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor5();
+  ~Tensor5() noexcept override;
 
   /*! Reduce a Tensor5 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

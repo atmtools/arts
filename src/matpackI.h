@@ -96,6 +96,7 @@
 #define matpackI_h
 
 #include <algorithm>
+#include <utility>
 
 #include "array.h"
 #include "matpack.h"
@@ -284,7 +285,7 @@ class Range {
       ARTS_ASSERT(fin <= prev_fin);
 #endif
     }
-  };
+  }
 
   // Friends:
   friend class ConstVectorView;
@@ -361,6 +362,15 @@ class Range {
   };
 
   friend std::ostream& operator<<(std::ostream& os, const Range& r);
+
+  constexpr void swap(Range& other) noexcept {
+    using std::swap;
+    swap(mstart, other.mstart);
+    swap(mextent, other.mextent);
+    swap(mstride, other.mstride);
+  }
+
+  friend constexpr void swap(Range& a, Range& b) noexcept { a.swap(b); }
 
  private:
   /** The start index. */
@@ -760,7 +770,7 @@ class VectorView : public ConstVectorView {
   operator MatrixView() ARTS_NOEXCEPT;
 
   //! Destructor
-  virtual ~VectorView() = default;
+  ~VectorView() override = default;
 
   // Friends:
   friend class ConstIterator2D;
@@ -852,8 +862,8 @@ class ConstIterator2D {
   ConstIterator2D() = default;
 
   /** Explicit constructor. */
-  ConstIterator2D(const ConstVectorView& x, Index stride) ARTS_NOEXCEPT
-      : msv(x),
+  ConstIterator2D(ConstVectorView x, Index stride) ARTS_NOEXCEPT
+      : msv(std::move(x)),
         mstride(stride) { /* Nothing to do here. */
   }
 
@@ -1022,11 +1032,11 @@ class Vector : public VectorView {
   void resize(Index n);
 
   /** Swaps two objects. */
-  friend void swap(Vector& v1, Vector& v2);
+  friend void swap(Vector& v1, Vector& v2) noexcept;
 
   /** Destructor for Vector. This is important, since Vector uses new to
     allocate storage. */
-  virtual ~Vector();
+  ~Vector() noexcept override;
 
   template <class F>
   void transform_elementwise(F&& func) {
@@ -1231,7 +1241,7 @@ class MatrixView : public ConstMatrixView {
   MatrixView& operator-=(const ConstVectorView& x) ARTS_NOEXCEPT;
 
   //! Destructor
-  virtual ~MatrixView() = default;
+  ~MatrixView() override = default;
 
   // Friends:
   friend class VectorView;
@@ -1316,10 +1326,10 @@ class Matrix : public MatrixView {
   void resize(Index r, Index c);
 
   // Swap function:
-  friend void swap(Matrix& m1, Matrix& m2);
+  friend void swap(Matrix& m1, Matrix& m2) noexcept;
 
   // Destructor:
-  virtual ~Matrix();
+  ~Matrix() noexcept override;
 
   /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>

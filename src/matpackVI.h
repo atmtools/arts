@@ -28,6 +28,8 @@
 #ifndef matpackVI_h
 #define matpackVI_h
 
+#include <utility>
+
 #include "matpackV.h"
 
 #define CHECK(x)       \
@@ -90,8 +92,8 @@ class ConstIterator6D {
   ConstIterator6D() = default;
 
   /** Explicit constructor. */
-  ConstIterator6D(const ConstTensor5View& x, Index stride)
-      : msv(x), mstride(stride) { /* Nothing to do here. */
+  ConstIterator6D(ConstTensor5View x, Index stride)
+      : msv(std::move(x)), mstride(stride) { /* Nothing to do here. */
   }
 
   // Operators:
@@ -1054,7 +1056,7 @@ class Tensor6View : public ConstTensor6View {
   Tensor6View& operator-=(const ConstTensor6View& x);
 
   // Destructor:
-  virtual ~Tensor6View() = default;
+  ~Tensor6View() override = default;
 
   // Friends:
   friend class Iterator7D;
@@ -1146,10 +1148,10 @@ class Tensor6 : public Tensor6View {
   void resize(Index v, Index s, Index b, Index p, Index r, Index c);
 
   // Swap function:
-  friend void swap(Tensor6& t1, Tensor6& t2);
+  friend void swap(Tensor6& t1, Tensor6& t2) noexcept;
 
   // Destructor:
-  virtual ~Tensor6();
+  ~Tensor6() noexcept override;
 
   /*! Reduce a Tensor6 to a Vector and leave this in an empty state */
   template <std::size_t dim0>

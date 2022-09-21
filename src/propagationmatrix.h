@@ -961,6 +961,9 @@ class PropagationMatrix {
 
   friend std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm);
 
+  void swap(PropagationMatrix&) noexcept;
+  friend void swap(PropagationMatrix&, PropagationMatrix&) noexcept;
+
  protected:
   Index mfreqs, mstokes_dim;
   Index mza, maa;
@@ -1375,10 +1378,8 @@ using ArrayOfArrayOfArrayOfStokesVector = Array<ArrayOfArrayOfStokesVector>;
  * @param[in] x Scale
  * @return LazyScale<PropagationMatrix> A lazy multiplier
  */
-inline LazyScale<PropagationMatrix> operator*(const PropagationMatrix& pm,
-                                              const Numeric& x) {
-  return LazyScale<PropagationMatrix>(pm, x);
-}
+LazyScale<PropagationMatrix> operator*(const PropagationMatrix& pm,
+                                       const Numeric& x);
 
 /** Returns a lazy multiplier
  * 
@@ -1386,11 +1387,8 @@ inline LazyScale<PropagationMatrix> operator*(const PropagationMatrix& pm,
  * @param[in] pm Propagation matrix
  * @return LazyScale<PropagationMatrix> A lazy multiplier
  */
-inline LazyScale<PropagationMatrix> operator*(const Numeric& x,
-                                              const PropagationMatrix& pm) {
-  return LazyScale<PropagationMatrix>(pm, x);
-}
-
+LazyScale<PropagationMatrix> operator*(const Numeric& x,
+                                       const PropagationMatrix& pm);
 
 /** Checks if a Propagation Matrix or something similar has good grids */
 template <class T>
