@@ -36,6 +36,7 @@
 #include "enums.h"
 #include "file.h"
 #include "global_data.h"
+#include "lineshapemodel.h"
 #include "m_xml.h"
 #include "quantum_numbers.h"
 #include <algorithm>
@@ -2584,5 +2585,27 @@ void abs_linesSort(ArrayOfAbsorptionLines & abs_lines,
       break;
     case Options::SortingOption::FINAL: { /*leave last*/
     }
+  }
+}
+
+void abs_linesTurnOffLineMixing(ArrayOfAbsorptionLines& abs_lines,
+                                const Verbosity&) {
+  for (auto& band : abs_lines) {
+    for (auto& line : band.lines) {
+      for (auto& slsm : line.lineshape) {
+        // Set the line mixing stuff to empty
+        slsm.Y() = LineShape::ModelParameters();
+        slsm.G() = LineShape::ModelParameters();
+        slsm.DV() = LineShape::ModelParameters();
+      }
+    }
+  }
+}
+
+void abs_lines_per_speciesTurnOffLineMixing(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Verbosity& verbosity) {
+  for (auto& abs_lines : abs_lines_per_species) {
+    abs_linesTurnOffLineMixing(abs_lines, verbosity);
   }
 }

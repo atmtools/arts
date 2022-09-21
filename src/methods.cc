@@ -2218,6 +2218,34 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("abs_linesTurnOffLineMixing"),
+      DESCRIPTION("Sets all line mixing parameters to emtpy.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("abs_lines_per_speciesTurnOffLineMixing"),
+      DESCRIPTION("Sets all line mixing parameters to emtpy.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupAdapt"),
       DESCRIPTION(
           "Adapts a gas absorption lookup table to the current calculation.\n"

@@ -857,7 +857,8 @@ void lbl_checkedCalc(Index& lbl_checked,
               ARTS_USER_ERROR_IF(
                 single_data.Y().type not_eq LineShape::TemperatureModel::None or
                 single_data.DV().type not_eq LineShape::TemperatureModel::None,
-                                 "Cannot have Rosenkranz-style line mixing with cutoff calculations"
+                                 "Cannot have Rosenkranz-style line mixing with cutoff calculations\n"
+                                 "Note that abs_lines_per_speciesTurnOffLineMixing will make this error go away by modifying the data\n"
               )
             }
           }
