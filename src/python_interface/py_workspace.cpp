@@ -166,9 +166,27 @@ void py_workspace(py::module_& m,
       .def_property_readonly("name", &WsvRecord::Name)
       .def_property_readonly("description", &WsvRecord::Description)
       .def_property_readonly("group", &WsvRecord::Group)
-      .def_property_readonly("groupname", [](const WsvRecord& x){return global_data::wsv_groups[x.Group()].name;})
+      .def_property_readonly("defval", &WsvRecord::default_value)
+      .def_property_readonly("groupname",
+                             [](const WsvRecord& x) {
+                               return global_data::wsv_groups[x.Group()].name;
+                             })
       .def("__str__", [](const WsvRecord& mr) { return var_string(mr); })
-      .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); });
+      .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); })
+      .def(py::pickle(
+          [](const WsvRecord& self) {
+            return py::make_tuple(self.Name(),
+                                  self.Description(),
+                                  global_data::wsv_groups[self.Group()].name,
+                                  self.default_value());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
+            return new WsvRecord{t[0].cast<String>().c_str(),
+                                 t[1].cast<String>().c_str(),
+                                 t[2].cast<String>(),
+                                 t[3].cast<TokVal>()};
+          }));
 
   py::class_<Array<WsvRecord>>(m, "ArrayOfWsvRecord")
       .PythonInterfaceArrayDefault(WsvRecord)

@@ -180,3 +180,30 @@ std::shared_ptr<Workspace> Workspace::deepcopy() {
 
   return out;
 }
+
+Workspace::wsv_data_type Workspace::wsvs(const ArrayOfIndex &inds) const {
+  Workspace::wsv_data_type out;
+  out.reserve(inds.nelem());
+  for (auto ind : inds) out.push_back(wsv_data_ptr->at(ind));
+  return out;
+}
+
+ArrayOfIndex Workspace::wsvs(const Workspace::wsv_data_type &wsv_data) {
+  ArrayOfIndex out;
+  out.reserve(wsv_data.nelem());
+  for (auto &wsv : wsv_data) {
+    Index &pos = out.emplace_back();
+
+    if (auto ptr = WsvMap_ptr->find(wsv.Name()); ptr == WsvMap_ptr->end()) {
+      pos = add_wsv(wsv);
+    } else {
+      pos = ptr->second;
+    }
+
+    auto &existing_wsv = wsv_data_ptr->at(pos);
+
+    ARTS_USER_ERROR_IF(existing_wsv.Group() not_eq wsv.Group(),
+                       "Mismatching groups")
+  }
+  return out;
+}
