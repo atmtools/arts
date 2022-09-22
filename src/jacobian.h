@@ -520,6 +520,11 @@ class RetrievalQuantity {
   Matrix& Transformation() {return transformation_matrix;}
   Vector& Offset() {return offset_vector;}
 
+  [[nodiscard]] const String& SubTag() const { return msubtag; }
+  [[nodiscard]] const String& SubSubTag() const { return msubsubtag; }
+  [[nodiscard]] const Matrix& Transformation() const { return transformation_matrix; }
+  [[nodiscard]] const Vector& Offset() const { return offset_vector; }
+
   friend ostream& operator<<(ostream& os, const RetrievalQuantity& ot);
 
  private:
