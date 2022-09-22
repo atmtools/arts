@@ -902,6 +902,17 @@ Both agendas must be defined on the same workspace)--"),
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
           })
+      .def(py::pickle(
+          [](const ArrayOfAgenda& v) {
+            auto n = v.size();
+            std::vector<Agenda> out(n);
+            std::copy(v.begin(), v.end(), out.begin());
+            return py::make_tuple(std::move(out));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new ArrayOfAgenda{t[0].cast<std::vector<Agenda>>()};
+          }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAgenda);
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
 }
