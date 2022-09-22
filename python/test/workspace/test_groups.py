@@ -1133,7 +1133,7 @@ class TestGroups:
             else:
                 exec(f"ws.v{i} = cxx.{x[i]}()")
             
-            print(f"Pickling the workspace aftetr adding a {x[i]}")
+            print(f"Pickling the workspace after adding a {x[i]}")
             pickle.dump(ws, open("test.pcl", "wb"))
 
             ws2 = pickle.load(open("test.pcl", "rb"))

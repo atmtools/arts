@@ -4,7 +4,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl/filesystem.h>
+#include <algorithm>
+#include <vector>
 
+#include "debug.h"
 #include "py_auto_interface.h"
 #include "py_macros.h"
 #include "python_interface.h"
@@ -192,8 +195,17 @@ void py_workspace(py::module_& m,
       .PythonInterfaceArrayDefault(WsvRecord)
       .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
 
+  auto get_group_types = [] {
+    ArrayOfIndex tmp(global_data::wsv_data.nelem());
+    std::transform(global_data::wsv_data.begin(),
+                   global_data::wsv_data.end(),
+                   tmp.begin(),
+                   [](auto& wsv) { return wsv.Group(); });
+    return tmp;
+  };
+
   ws.def(py::pickle(
-      [](Workspace& w) {
+      [get_group_types](Workspace& w) {
         std::vector<py::object> value;
         value.reserve(w.nelem());
 
@@ -213,10 +225,37 @@ void py_workspace(py::module_& m,
           }
         }
 
-        return py::make_tuple(value, *w.wsv_data_ptr);
+        return py::make_tuple(value,
+                              *w.wsv_data_ptr,
+                              global_data::AgendaMap,
+                              global_data::MdMap,
+                              global_data::WsvMap,
+                              global_data::WsvGroupMap,
+                              get_group_types());
       },
-      [](const py::tuple& t) {
-        ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+      [get_group_types](const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+
+        ARTS_USER_ERROR_IF((t[2].cast<std::map<String, Index>>() not_eq
+                            global_data::AgendaMap),
+                           "Mismatch between Agendas"
+                           " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF(
+            (t[3].cast<std::map<String, Index>>() not_eq global_data::MdMap),
+            "Mismatch between Methods"
+            " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF(
+            (t[4].cast<std::map<String, Index>>() not_eq global_data::WsvMap),
+            "Mismatch between Workspace Variable Names"
+            " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF((t[5].cast<std::map<String, Index>>() not_eq
+                            global_data::WsvGroupMap),
+                           "Mismatch between Groups"
+                           " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF((t[6].cast<ArrayOfIndex>() not_eq get_group_types()),
+                           "Mismatch between Workspace Variable Groups"
+                           " at time of pickling and unpickling the workspace")
+
         auto out = std::shared_ptr<Workspace>(new Workspace{});
 
         const auto aoi = out->wsvs(t[1].cast<Workspace::wsv_data_type>());
