@@ -1815,91 +1815,6 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
   os << '\n';
 }
 
-void make_workspace_pickle(std::ofstream& os, const NameMaps& arts) {
-  os << R"--(
-ws.def(py::pickle(
-  [](Workspace& w) {
-    constexpr Index ag_index = )--"
-     << arts.group.at("Agenda");
-  os << ";\n    constexpr Index aag_index = " << arts.group.at("ArrayOfAgenda");
-  os << ";\n    constexpr Index arq_index = "
-     << arts.group.at("ArrayOfRetrievalQuantity");
-  os << ";\n    constexpr Index cf_index = "
-     << arts.group.at("CallbackFunction");
-  os << R"--(;
-    
-    std::vector<py::object> value;
-    std::vector<std::string> name;
-    std::vector<std::string> group;
-    std::vector<std::string> description;
-
-    for (Index i=0; i<w.nelem(); i++) {
-      auto& wsv_data = w.wsv_data_ptr -> operator[](i);
-      if (w.is_initialized(i) and             // is initialized
-          wsv_data.Group() != ag_index and    // is not Agenda (needs workspace variables in fixed positions)
-          wsv_data.Group() != aag_index and   // is not ArrayOfAgenda (as above)
-          wsv_data.Group() != cf_index and    // is not CallbackFunction (needs code)
-          wsv_data.Group() != arq_index and   // is not ArrayOfRetrievalQuantity (always set together with agenda)
-          wsv_data.Name().front() != ':') {   // is not generated variable
-        name.push_back(wsv_data.Name());
-        description.push_back(wsv_data.Description());
-        switch (wsv_data.Group()) {)--";
-  for (auto& [name, id] : arts.group) {
-    const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
-    os << "          case " << id << ": {\n";
-    os << "            group.emplace_back(\"" << name << "\");\n";
-    os << "            " << name << extra << " val{*static_cast<" << name
-       << " *>(w[i].get())};\n";
-    os << "            value.emplace_back(py::cast(val));\n";
-    os << "          } break;\n";
-  }
-  os << R"--(          default: { ARTS_USER_ERROR("Bad group") }
-        }
-      }
-    }
-
-    return py::make_tuple(group, name, description, value);
-  },
-  [](const py::tuple& t) {
-    ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-
-    auto group = t[0].cast<std::vector<std::string>>();
-    auto name = t[1].cast<std::vector<std::string>>();
-    auto description = t[2].cast<std::vector<std::string>>();
-    auto value = t[3].cast<std::vector<py::object>>();
-    std::size_t n = group.size();
-
-    ARTS_USER_ERROR_IF(n != name.size() or n != description.size() or n != value.size(), "Invalid state!")
-
-    auto* out = new Workspace{};
-
-    for (std::size_t i=0; i<n; i++) {
-      auto wsv_data = out -> WsvMap_ptr -> find(name[i]);
-      const Index wsv_pos =
-        (wsv_data == out -> WsvMap_ptr -> end()) ?
-          out -> add_wsv(WsvRecord(name[i].c_str(), description[i].c_str(), group[i])) :
-          wsv_data -> second;
-
-      switch (out -> wsv_data_ptr -> operator[](wsv_pos).Group()) {
-)--";
-  for (auto& [name, id] : arts.group) {
-    const char extra = name == "Index" or name == "Numeric" ? '_' : ' ';
-    os << "        case " << id << ": {\n";
-    os << "          out -> push_move(wsv_pos, std::shared_ptr<" << name
-       << ">(new " << name << "{* value[i].cast<" << name << extra
-       << " *>()}));\n";
-    os << "          } break;\n";
-  }
-  os << R"--(        default: { ARTS_USER_ERROR("Bad group") }
-      }
-    }
-
-    return out;
-  }
-));
-)--";
-}
-
 int main(int argc, char** argv) {
   define_wsv_groups();
   define_wsv_data();
@@ -1974,7 +1889,6 @@ int main(int argc, char** argv) {
   for (int i = 0; i < nwsc; i++) {
     py_workspace << "py_auto_workspace_wsc_" << i << "(ws);\n";
   }
-  make_workspace_pickle(py_workspace, artsname);
   py_workspace << "}\n}  // namespace Python\n";
 
   workspace_variables(nwsv, artsname);

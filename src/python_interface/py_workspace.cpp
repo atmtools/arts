@@ -192,6 +192,64 @@ void py_workspace(py::module_& m,
       .PythonInterfaceArrayDefault(WsvRecord)
       .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
 
+  ws.def(py::pickle(
+      [](Workspace& w) {
+        std::vector<py::object> value;
+        value.reserve(w.nelem());
+
+        for (Index i = 0; i < w.nelem(); i++) {
+          auto& wsv_data = w.wsv_data_ptr->operator[](i);
+
+          ARTS_USER_ERROR_IF(
+              wsv_data.Group() == WorkspaceGroupIndexValue<CallbackFunction>,
+              "Cannot pickle a workspace that contains a CallbackFunction")
+
+          if (not w.is_initialized(i)) {
+            value.push_back(py::none{});
+          } else {
+            value.push_back(
+                py::type::of<WorkspaceVariable>()(WorkspaceVariable{w, i})
+                    .attr("value"));
+          }
+        }
+
+        return py::make_tuple(value, *w.wsv_data_ptr);
+      },
+      [](const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+        auto out = std::shared_ptr<Workspace>(new Workspace{});
+
+        const auto aoi = out->wsvs(t[1].cast<Workspace::wsv_data_type>());
+        auto value = t[0].cast<std::vector<py::object>>();
+
+        for (auto i : aoi) {
+          if (py::isinstance<Agenda>(value[i])) continue;
+          if (py::isinstance<ArrayOfAgenda>(value[i])) continue;
+          if (py::isinstance<py::none>(value[i])) continue;
+          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
+              .attr("value") = value[i];
+        }
+
+        for (auto i : aoi) {
+          if (not py::isinstance<Agenda>(value[i]) or
+              py::isinstance<py::none>(value[i]))
+            continue;
+          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
+              .attr("value") = value[i].cast<Agenda>().deepcopy_if(*out);
+        }
+
+        for (auto i : aoi) {
+          if (not py::isinstance<ArrayOfAgenda>(value[i]) or
+              py::isinstance<py::none>(value[i]))
+            continue;
+          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
+              .attr("value") =
+              deepcopy_if(*out, value[i].cast<ArrayOfAgenda>());
+        }
+
+        return out;
+      }));
+
   // Should be last as it contains several implicit conversions
   py_auto_workspace(ws, wsv);
 }

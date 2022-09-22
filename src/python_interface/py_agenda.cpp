@@ -783,8 +783,10 @@ Both agendas must be defined on the same workspace)--"),
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
+
             std::shared_ptr<Workspace> workspace{new Workspace{}};
             auto* val = new Agenda{*workspace};
+
             val->set_name(t[0].cast<String>());
             auto methods = t[1].cast<Array<MRecord>>();
             std::transform(methods.begin(),
@@ -795,10 +797,12 @@ Both agendas must be defined on the same workspace)--"),
                            });
             val->set_methods(methods);
             val->set_outputs_to_push_and_dup(Verbosity{});
+
             if (t[2].cast<bool>())
               val->set_main_agenda();
             else
               val->check(*workspace, Verbosity{});
+
             return val;
           }))
       .PythonInterfaceWorkspaceDocumentation(Agenda);
