@@ -164,9 +164,8 @@ void MethodVariable::method_position(const Array<AgendaMethodVariable>& list,
 
 void MethodVariable::wsv_position(Workspace& ws, const TokVal& value) {
   new_value = true;
-  static std::size_t n = 0;
   ws_pos = ws.add_wsv(WsvRecord(
-      var_string("::wsv", n++).c_str(), "method value", value.type(), value));
+      var_string("::wsv", ws.nelem()).c_str(), "method value", value.type(), value));
 }
 
 AgendaCreator::AgendaCreator(Workspace& workspace, const char* name)

@@ -695,8 +695,8 @@ so Copy(a, out=b) will not even see the b variable.
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
 
-            static std::size_t counter = 0;
-            const String name = var_string("::callback::", counter++);
+            const auto counter = a.workspace().nelem();
+            const String name = var_string("::callback::", counter);
 
             Index in = ws.add_wsv(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));

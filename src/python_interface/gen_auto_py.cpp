@@ -1590,8 +1590,8 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
     }
 
     // Create the variable and initialize it
-    static std::size_t i = 0;
-    pos = ws.add_wsv(WsvRecord(var_string("::anon::", i++).c_str(), "Anonymous agenda variable", group_index));
+    const auto i = ws.nelem();
+    pos = ws.add_wsv(WsvRecord(var_string("::anon::", i).c_str(), "Anonymous agenda variable", group_index));
     ws.push_move(pos, std::move(value_ptr));
   }
 }
