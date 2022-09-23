@@ -4,7 +4,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl/filesystem.h>
+#include <algorithm>
+#include <vector>
 
+#include "debug.h"
 #include "py_auto_interface.h"
 #include "py_macros.h"
 #include "python_interface.h"
@@ -166,13 +169,125 @@ void py_workspace(py::module_& m,
       .def_property_readonly("name", &WsvRecord::Name)
       .def_property_readonly("description", &WsvRecord::Description)
       .def_property_readonly("group", &WsvRecord::Group)
-      .def_property_readonly("groupname", [](const WsvRecord& x){return global_data::wsv_groups[x.Group()].name;})
+      .def_property_readonly("defval", &WsvRecord::default_value)
+      .def_property_readonly("groupname",
+                             [](const WsvRecord& x) {
+                               return global_data::wsv_groups[x.Group()].name;
+                             })
       .def("__str__", [](const WsvRecord& mr) { return var_string(mr); })
-      .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); });
+      .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); })
+      .def(py::pickle(
+          [](const WsvRecord& self) {
+            return py::make_tuple(self.Name(),
+                                  self.Description(),
+                                  global_data::wsv_groups[self.Group()].name,
+                                  self.default_value());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
+            return new WsvRecord{t[0].cast<String>().c_str(),
+                                 t[1].cast<String>().c_str(),
+                                 t[2].cast<String>(),
+                                 t[3].cast<TokVal>()};
+          }));
 
   py::class_<Array<WsvRecord>>(m, "ArrayOfWsvRecord")
       .PythonInterfaceArrayDefault(WsvRecord)
       .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
+
+  auto get_group_types = [] {
+    ArrayOfIndex tmp(global_data::wsv_data.nelem());
+    std::transform(global_data::wsv_data.begin(),
+                   global_data::wsv_data.end(),
+                   tmp.begin(),
+                   [](auto& wsv) { return wsv.Group(); });
+    return tmp;
+  };
+
+  ws.def(py::pickle(
+      [get_group_types](Workspace& w) {
+        std::vector<py::object> value;
+        value.reserve(w.nelem());
+
+        for (Index i = 0; i < w.nelem(); i++) {
+          auto& wsv_data = w.wsv_data_ptr->operator[](i);
+
+          ARTS_USER_ERROR_IF(
+              wsv_data.Group() == WorkspaceGroupIndexValue<CallbackFunction>,
+              "Cannot pickle a workspace that contains a CallbackFunction")
+
+          if (not w.is_initialized(i)) {
+            value.push_back(py::none{});
+          } else {
+            value.push_back(
+                py::type::of<WorkspaceVariable>()(WorkspaceVariable{w, i})
+                    .attr("value"));
+          }
+        }
+
+        return py::make_tuple(value,
+                              *w.wsv_data_ptr,
+                              global_data::AgendaMap,
+                              global_data::MdMap,
+                              global_data::WsvMap,
+                              global_data::WsvGroupMap,
+                              get_group_types());
+      },
+      [get_group_types](const py::tuple& t) {
+        ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+
+        ARTS_USER_ERROR_IF((t[2].cast<std::map<String, Index>>() not_eq
+                            global_data::AgendaMap),
+                           "Mismatch between Agendas"
+                           " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF(
+            (t[3].cast<std::map<String, Index>>() not_eq global_data::MdMap),
+            "Mismatch between Methods"
+            " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF(
+            (t[4].cast<std::map<String, Index>>() not_eq global_data::WsvMap),
+            "Mismatch between Workspace Variable Names"
+            " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF((t[5].cast<std::map<String, Index>>() not_eq
+                            global_data::WsvGroupMap),
+                           "Mismatch between Groups"
+                           " at time of pickling and unpickling the workspace")
+        ARTS_USER_ERROR_IF((t[6].cast<ArrayOfIndex>() not_eq get_group_types()),
+                           "Mismatch between Workspace Variable Groups"
+                           " at time of pickling and unpickling the workspace")
+
+        auto out = std::shared_ptr<Workspace>(new Workspace{});
+
+        const auto aoi = out->wsvs(t[1].cast<Workspace::wsv_data_type>());
+        auto value = t[0].cast<std::vector<py::object>>();
+
+        for (auto i : aoi) {
+          if (py::isinstance<Agenda>(value[i])) continue;
+          if (py::isinstance<ArrayOfAgenda>(value[i])) continue;
+          if (py::isinstance<py::none>(value[i])) continue;
+          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
+              .attr("value") = value[i];
+        }
+
+        for (auto i : aoi) {
+          if (not py::isinstance<Agenda>(value[i]) or
+              py::isinstance<py::none>(value[i]))
+            continue;
+          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
+              .attr("value") = value[i].cast<Agenda>().deepcopy_if(*out);
+        }
+
+        for (auto i : aoi) {
+          if (not py::isinstance<ArrayOfAgenda>(value[i]) or
+              py::isinstance<py::none>(value[i]))
+            continue;
+          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
+              .attr("value") =
+              deepcopy_if(*out, value[i].cast<ArrayOfAgenda>());
+        }
+
+        return out;
+      }));
 
   // Should be last as it contains several implicit conversions
   py_auto_workspace(ws, wsv);

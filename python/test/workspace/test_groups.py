@@ -11,7 +11,7 @@ import pickle
 
 import numpy as np
 import pyarts.arts as cxx
-from pyarts.workspace import Workspace
+from pyarts.workspace import Workspace, arts_agenda
 
 
 class test:
@@ -1127,29 +1127,41 @@ class TestGroups:
         x = list(cxx.get_WsvGroupMap().keys())
 
         for i in range(len(x)):
-            print(f"Create {x[i]} on workspace", end="; ")
+            if x[i] == "CallbackFunction": continue
             if x[i] == "Agenda":
                 exec(f"ws.v{i} = cxx.{x[i]}(ws)")
             else:
                 exec(f"ws.v{i} = cxx.{x[i]}()")
-
+            
+            print(f"Pickling the workspace after adding a {x[i]}")
             pickle.dump(ws, open("test.pcl", "wb"))
 
             ws2 = pickle.load(open("test.pcl", "rb"))
+        
+        assert ws.number_of_initialized_variables() == ws2.number_of_initialized_variables(), \
+            "Must be able to fully init a workspace containing no CallbackFunction"
 
-        x = 4
-        assert (
-            ws.number_of_initialized_variables() - ws2.number_of_initialized_variables()
-            == x
-        ), f"""
-        There should be {x} more initd vars because there are not picklable by design:
-            - Agenda (needs workspace variables in fixed positions)
-            - ArrayOfAgenda (as above)
-            - CallbackFunction (needs code)
-            - ArrayOfRetrievalQuantity (always set together with agenda)
-        """
+        ws.testing = cxx.Index(3)
+
+        @arts_agenda(ws=ws, set_agenda=True)
+        def test_agenda(ws):
+            ws.Print(ws.testing, 0)
+
+        pickle.dump(ws, open("ws.pcl", "wb"))
+
+        ws2 = pickle.load(open("ws.pcl", 'rb'))
+
+        print(ws)
+        print()
+        print(ws2)
+
+        ws.test_agenda.value.execute(ws)
+        ws2.test_agenda.value.execute(ws2)
+        ws2.testing = 2
+        ws.test_agenda.value.execute(ws)
+        ws2.test_agenda.value.execute(ws2)
 
 
 if __name__ == "__main__":
     x = TestGroups()
-    b = x.testAgenda()
+    b = x.test_pickle()

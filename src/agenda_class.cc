@@ -923,55 +923,18 @@ ArrayOfAgenda deepcopy_if(Workspace& ws, const ArrayOfAgenda& agendas) {
 ArrayOfIndex make_same_wsvs(Workspace& ws_out,
                             const Workspace& ws_in,
                             const ArrayOfIndex& vars) {
-  ArrayOfIndex out;
-
-  out.reserve(vars.size());
-  for (auto& v : vars) {
-
-    // Set the value position
-    if (v < ws_out.nelem()) {
-      if (ws_in.wsv_data_ptr->at(v).Name() ==
-              ws_out.wsv_data_ptr->at(v).Name() and
-          ws_in.wsv_data_ptr->at(v).Group() ==
-              ws_out.wsv_data_ptr->at(v).Group()) {
-        out.push_back(v);  // This is the only tested path!
-      } else {
-        out.push_back(ws_out.add_wsv(ws_in.wsv_data_ptr->at(v)));
-      }
-    } else {
-      out.push_back(ws_out.add_wsv(ws_in.wsv_data_ptr->at(v)));
-    }
-
-    // Update if the wsv holds an agenda default value
-    if (auto& wsv = ws_out.wsv_data_ptr->at(out.back()); wsv.has_defaults()) {
-      auto& val = wsv.default_value();
-      if (wsv.Group() == WorkspaceGroupIndexValue<Agenda>)
-        wsv.update_default_value(Agenda(val).deepcopy_if(ws_out));
-      else if (wsv.Group() == WorkspaceGroupIndexValue<ArrayOfAgenda>)
-        wsv.update_default_value(deepcopy_if(ws_out, val));
-    }
-  }
-
-  return out;
+  return ws_out.wsvs(ws_in.wsvs(vars));
 }
 
 MRecord MRecord::deepcopy_if(Workspace& workspace) const {
   if (mtasks.has_same_origin(workspace)) return *this;
 
   MRecord out(workspace);
+  
   out.mid = mid;
   out.moutput = make_same_wsvs(workspace, mtasks.workspace(), moutput);
   out.minput = make_same_wsvs(workspace, mtasks.workspace(), minput);
-
-  // Must update if the value is an agenda
-  if (msetvalue.holdsAgenda()) {
-    out.msetvalue = Agenda(msetvalue).deepcopy_if(workspace);
-  } else if (msetvalue.holdsArrayOfAgenda()) {
-    out.msetvalue = ::deepcopy_if(workspace, msetvalue);
-  } else {
-    out.msetvalue = msetvalue;
-  }
-
+  out.msetvalue = msetvalue;
   out.mtasks = mtasks.deepcopy_if(workspace);
   out.minternal = minternal;
 

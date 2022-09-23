@@ -163,7 +163,7 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
     WorkspaceVariableStruct wsvs;
     wsvs.initialized = true;
     wsvs.wsv = std::forward<std::shared_ptr<T>>(wsv_ptr);
-    ws[i].push(wsvs);
+    ws[i].push(std::move(wsvs));
   }
 
   /** Get the number of workspace variables. */
@@ -205,6 +205,9 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
 
   //! Gets a full copy that owns all the data (only gets the top of the stack)
   std::shared_ptr<Workspace> deepcopy();
+
+  wsv_data_type wsvs(const ArrayOfIndex&) const;
+  ArrayOfIndex wsvs(const wsv_data_type&);
 };
 
 template <class T>

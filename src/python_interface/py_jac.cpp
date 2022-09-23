@@ -142,9 +142,37 @@ void py_jac(py::module_& m) {
 
   PythonInterfaceWorkspaceArray(JacobianTarget);
 
-  py::class_<RetrievalQuantity>(m, "RetrievalQuantity").def(py::init([]() {
-    return new RetrievalQuantity{};
-  }));
+  py::class_<RetrievalQuantity>(m, "RetrievalQuantity")
+      .def(py::init([]() { return new RetrievalQuantity{}; }))
+      .def(py::pickle(
+          [](const RetrievalQuantity& self) {
+            return py::make_tuple(self.SubTag(),
+                                  self.SubSubTag(),
+                                  self.Mode(),
+                                  self.Grids(),
+                                  self.TransformationFunc(),
+                                  self.TFuncParameters(),
+                                  self.Transformation(),
+                                  self.Offset(),
+                                  self.Target());
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
+
+            auto* out = new RetrievalQuantity {};
+
+            out->SubTag() = t[0].cast<String>();
+            out->SubSubTag() = t[1].cast<String>();
+            out->Mode() = t[2].cast<String>();
+            out->Grids() = t[3].cast<ArrayOfVector>();
+            out->TransformationFunc() = t[4].cast<String>();
+            out->TFuncParameters() = t[5].cast<Vector>();
+            out->Transformation() = t[6].cast<Matrix>();
+            out->Offset() = t[7].cast<Vector>();
+            out->Target() = t[8].cast<JacobianTarget>();
+            
+            return out;
+          }));
 
   PythonInterfaceWorkspaceArray(RetrievalQuantity);
 }
