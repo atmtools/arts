@@ -251,7 +251,7 @@ void sensor_posGeodeticToGeocentric(Matrix& sensor_pos,
     sensor_pos(i,0) -= radius_ellipsoid_geocentric_lat(sensor_pos(i,1), refellipsoid);
   }
 }
-
+                                    
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_poslosGeodeticToGeocentric(Matrix& sensor_pos,
                                        Matrix& sensor_los,

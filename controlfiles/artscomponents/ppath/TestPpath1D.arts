@@ -1,160 +1,266 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# ARTS control file for testing 1D propagation path calculations.
+# Basic testing of 1D geometrical propagation paths
 #
-# It is also demonstration of how to use the ForLopp agenda.
-# 
-# 2012-02-17 Patrick Eriksson
+# Performs calculations with both spherical and WGS84 ellipsoid
 
-Arts2{
+# Patrick Eriksson 2021-08-13
 
+Arts2 {
 
-water_p_eq_agendaSet
-gas_scattering_agendaSet
+# Define a 1D atmosphere
+IndexSet( atmosphere_dim, 1 )
+VectorLinSpace( z_grid, 0, 100e3, 1e3)
+VectorSet( lat_grid, [0] )
+VectorSet( lon_grid, [0] )
+surface_elevationSetConstant(elevation=123)
 
-# sensor-only path
-ppath_agendaSet( option="FollowSensorLosPath" )
-
-
-# Number of Stokes components to be computed
-#
-IndexSet( stokes_dim, 1 )
-
-# Reference ellipsoid
-#
-refellipsoidEarth( refellipsoid, "Sphere" )
-
-
-# A pressure grid rougly matching 0 to 80 km.
-#
-VectorNLogSpace( p_grid, 41, 1000e2, 1 )
-
-
-# Atmospheric dimensionality
-#
-AtmosphereSet1D
-
-
-# Water vapour needed if refraction will be calculated
-#
-abs_speciesSet( species=["H2O"] )
-
-
-# Read a 1D atmospheric case
-#
-AtmRawRead( basename = "testdata/tropical" )
-AtmFieldsCalc
-
-
-# Ground altitude (z_surface)
-#
-MatrixSetConstant( z_surface, 1, 1, 500 )
-
-
-# No jacobian calculations
-#
-jacobianOff
-
-# Initializing cloudbox: No scattering
-#
-cloudboxOff
-
-# To instead make tests with cloudbox on, activate those:
-#FlagOn( cloudbox_on )
-#ArrayOfIndexSet( cloudbox_limits, [ 4, 10 ] )
-
-
-# A dummy frequency grid
-#
-VectorSet( f_grid, [10e9] )
-
-
-# Check if atmosphere OK
-#
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-
-
-# Max step length for the representation of the propagation path
-#
-NumericSet( ppath_lmax, 20e3 )
+# Ppath specific variables
+NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_stop_distance, -1 )
 
 
 
+# Start with spherical ellipsoid
+refellipsoidEarthZZZ( model = "Sphere" )
 
 #
-# A single propagation path:
+# No cloudbox
 #
+FlagOff( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [] )
 
-# Set a observation position and line-of-sight (LOS)
+# From space missing the atmosphere
+VectorSet( rte_pos, [600e3,11,22] )
+VectorSet( rte_los, [100,9] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      np = 0,
+                      zenith_angle = 100,
+                      dzenith_angle = 1e-9,
+                      azimuth_angle = 9,
+                      dazimuth_angle = 1e-9 )
+
+# From space looking into the surface
+VectorSet( rte_pos, [600e3,89,-23] )
+VectorSet( rte_los, [135,-39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1 )
+
+# From space doing limb sounding
+VectorSet( rte_pos, [600e3,-88,3] )
+VectorSet( rte_los, [113,-39] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1,
+                      zenith_angle = 82,  # Just a rough check that za is upward   
+                      dzenith_angle = 3)
+
+# From within the atmosphere looking up
+VectorSet( rte_pos, [500,-67,200] )
+VectorSet( rte_los, [10,-89] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1 )
+
+# From within the atmosphere looking down towards the surface
+VectorSet( rte_pos, [12e3,0,-180] )
+VectorSet( rte_los, [135,39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1e-3 )
+
+# Standing on the surface, looking down
+VectorSet( rte_pos, [123,10,20] )
+VectorSet( rte_los, [135,39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1e-3 )
+
+# From within the atmosphere doing limb sounding
+VectorSet( rte_pos, [20e3,-90,0] )
+VectorSet( rte_los, [93,-178] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1,
+                      zenith_angle = 81,    # Just a rough check that za is upward   
+                      dzenith_angle = 3 )
+
 #
-VectorSet( rte_pos, [ 600e3 ] )
-#VectorSet( rte_los, [ 112.2550477986 ] )  # Angle that just touches for 600e3
-VectorSet( rte_los, [ 113 ] )
-VectorSet( rte_pos2, [] )                  # No transmitter involved
+# With cloudbox
+#
+FlagOn( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [10,20] )
 
+# From space looking down on cloudbox
+VectorSet( rte_pos, [600e3,-11,23] )
+VectorSet( rte_los, [180,-123] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 20e3,
+                      daltitude = 1 )
+
+# From ground looking up on cloudbox
+VectorSet( rte_pos, [123,-55,-2] )
+VectorSet( rte_los, [18,22] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 10e3,
+                      daltitude = 1 )
+
+# From within the cloudbox
+VectorSet( rte_pos, [11e3,0,0] )
+VectorSet( rte_los, [90,0] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      np = 1,
+                      altitude = 11e3,
+                      daltitude = 1,
+                      zenith_angle = 90,    
+                      dzenith_angle = 1e-5)
 
 #
-# no refraction
+# With cloudbox reaching TOA
 #
-ppath_step_agendaSet( option="GeometricPath" )
+FlagOn( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [10,100] )
+
+# From space looking down on cloudbox
+VectorSet( rte_pos, [600e3,-11,23] )
+VectorSet( rte_los, [153,-123] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      np = 1,
+                      altitude = 100e3,
+                      daltitude = 1 )
 
 
-# Calculate propagation path
-#
-ppathCalc                       
 
-
-# Print complete ppath
-#
-#Print( ppath, 0 )
-
-
-
-# Uncomment to skip batch part below
-# 
-#Exit()
-
-
+# Redo all with WGS84
+refellipsoidEarthZZZ( model = "WGS84" )
 
 #
-# Run through a number of cases, that should run without error
-# 
-
-
-# Use sensor_pos/los to store each case
+# No cloudbox
 #
-MatrixSet( sensor_pos, [600e3;600e3;600e3;600e3; 3e3; 10e3; 9e3; 500; 500] )
-MatrixSet( sensor_los, [   45;   95;  113;  180;   0;   90; 100;  45; 100] )
+FlagOff( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [] )
 
-IndexCreate( ilast )
-nrowsGet( ilast, sensor_pos )
-IndexSubtract( ilast, ilast, 1 )
+# From space missing the atmosphere
+VectorSet( rte_pos, [600e3,11,22] )
+VectorSet( rte_los, [100,9] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      np = 0,
+                      zenith_angle = 100,
+                      dzenith_angle = 1e-9,
+                      azimuth_angle = 9,
+                      dazimuth_angle = 1e-9 )
 
-AgendaSet( forloop_agenda ){
-  VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
-  VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
-  ppathCalc
-}
+# From space looking into the surface
+VectorSet( rte_pos, [600e3,89,-23] )
+VectorSet( rte_los, [135,-39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1 )
 
+# From space doing limb sounding
+VectorSet( rte_pos, [600e3,-88,3] )
+VectorSet( rte_los, [113,-39] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1,
+                      zenith_angle = 82,  # Just a rough check that za is upward   
+                      dzenith_angle = 3)
+
+# From within the atmosphere looking up
+VectorSet( rte_pos, [500,-67,200] )
+VectorSet( rte_los, [10,-89] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1 )
+
+# From within the atmosphere looking down towards the surface
+VectorSet( rte_pos, [12e3,0,-180] )
+VectorSet( rte_los, [135,39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1e-3 )
+
+# Standing on the surface, looking down
+VectorSet( rte_pos, [123,10,20] )
+VectorSet( rte_los, [135,39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1e-3 )
+
+# From within the atmosphere doing limb sounding
+VectorSet( rte_pos, [20e3,-90,0] )
+VectorSet( rte_los, [93,-178] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1,
+                      zenith_angle = 81,    # Just a rough check that za is upward   
+                      dzenith_angle = 3 )
 
 #
-# no refraction
+# With cloudbox
 #
-ppath_step_agendaSet( option="GeometricPath" )
+FlagOn( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [10,20] )
 
-ForLoop( forloop_agenda, 0, ilast, 1  )
+# From space looking down on cloudbox
+VectorSet( rte_pos, [600e3,-11,23] )
+VectorSet( rte_los, [180,-123] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 20e3,
+                      daltitude = 1 )
 
+# From ground looking up on cloudbox
+VectorSet( rte_pos, [123,-55,-2] )
+VectorSet( rte_los, [18,22] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 10e3,
+                      daltitude = 1 )
 
+# From within the cloudbox
+VectorSet( rte_pos, [11e3,0,0] )
+VectorSet( rte_los, [90,0] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      np = 1,
+                      altitude = 11e3,
+                      daltitude = 1,
+                      zenith_angle = 90,    
+                      dzenith_angle = 1e-5)
 
 #
-# Repeat with refraction
+# With cloudbox reaching TOA
 #
-ppath_step_agendaSet( option="RefractedPath" )
-NumericSet( ppath_lraytrace, 1e3 )
-refr_index_air_agendaSet( option="GasMicrowavesEarth"  )
+FlagOn( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [10,100] )
 
-ForLoop( forloop_agenda, 0, ilast, 1  )
+# From space looking down on cloudbox
+VectorSet( rte_pos, [600e3,-11,23] )
+VectorSet( rte_los, [153,-123] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      np = 1,
+                      altitude = 100e3,
+                      daltitude = 1 )
 
 }
