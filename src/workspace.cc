@@ -3049,6 +3049,32 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "Usage: Output from *ppath_agenda*.\n"),
       GROUP("Ppath")));
 
+  wsv_data.push_back(WsvRecord(
+      NAME("ppathZZZ"),
+      DESCRIPTION(
+          "The propagation path for one observation.\n"
+          "\n"
+          "This variable describes the total (pencil beam) propagation path for\n"
+          "a given combination of starting point and line-of-sight. The path is\n"
+          "described by a data structure of type Ppath. This structure contains\n"
+          "also additional fields to faciliate the calculation of spectra and\n"
+          "interpolation of the atmospheric fields.\n"
+          "\n"
+          "The data struture is too extensive to be described here, but it is\n"
+          "described carefully in the ARTS user guide (AUG). Use the index to\n"
+          "find where the data structure, Ppath, for propagation paths is \n"
+          "discussed. It is listed as a subentry to \"data structures\".\n"
+          "\n"
+          "Two important things about ARTS propagation paths are:\n"
+          "  - The points are stored in backward order, i.e. the first point\n"
+          "    is the one closest to the observation (end) position.\n"
+          "  - The line-of-sights (LOS) are specified as the angles needed\n"
+          "    to observe the radiation. That is, the radiation travel in\n"
+          "    the reversed direction.\n"
+          "\n"
+          "Usage: Primarily output from *ppath_agenda*.\n"),
+      GROUP("Ppath")));
+
   wsv_data.push_back(
       WsvRecord(NAME("ppath_agenda"),
                 DESCRIPTION("Agenda calculating complete propagation paths.\n"),
@@ -3082,10 +3108,11 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       NAME("ppath_lmax"),
       DESCRIPTION(
           "Maximum length between points describing propagation paths.\n"
+          "The exact spacing of point in propagation paths can vary between\n"
+          "calculation options, but it is guaranteed to not exceed the value\n"
+          "of *ppath_lmax*.\n"
           "\n"
-          "See *ppath_stepGeometric* for a description of this variable.\n"
-          "\n"
-          "Usage: Ppath methods such as *ppath_stepGeometric*.\n"),
+          "Usage: Ppath methods such as *ppathGeometric*.\n"),
       GROUP("Numeric"), Numeric{10e3}));
 
   wsv_data.push_back(WsvRecord(
@@ -3120,6 +3147,23 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       WsvRecord(NAME("ppath_step_agenda"),
                 DESCRIPTION("Agenda calculating a propagation path step.\n"),
                 GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppath_stop_distance"),
+      DESCRIPTION(
+          "Maximum length of a full a propagation path.\n"
+          "\n"
+          "The standard choice is to calculate the propagation path backwards\n"
+          "until the surface, the top-of-the-atmosphere or the cloudbox (if active)\n"
+          "is reached. This is selected by setting *ppath_stop_distance* to -1.\n"
+          "\n"
+          "This variable allows to also stop the tracking of the propagation path\n"
+          "at a distance. This distance refers to the distance inside the atmosphere\n"
+          "(and does not include any distance between the observation point and the\n"
+          "the top-of-the-atmosphere.\n"
+          "\n"
+          "Usage: Mainly for internal use.\n"),
+      GROUP("Numeric"), Numeric{-1.0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_f"),
@@ -3488,6 +3532,21 @@ Can currently only contain data for new MT CKD models of water.
           "between the real ellipsoid and the 2D plane considered. That is\n"
           "the applied ellipsoid shall have een converted to match the internal\n"
           "treatment of 2D cases. For 3D, models can be used, such as WGS84.\n"
+          "\n"
+          "Usage:  Set by the user.\n"
+          "\n"
+          "Size:   [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("refellipsoidZZZ"),
+      DESCRIPTION(
+          "Reference ellipsoid.\n"
+          "\n"
+          "This vector specifies the shape of the reference ellipsoid. The\n"
+          "vector must have length 2, where the two elements are:\n"
+          "  1: Equatorial radius.\n"
+          "  2: Polar radius.\n"          
           "\n"
           "Usage:  Set by the user.\n"
           "\n"
@@ -4614,6 +4673,33 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("GriddedField3")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("surface_elevation"),
+      DESCRIPTION(
+          "Surface elevation as function of latitude and longitude.\n"
+          "\n"
+          "The variable gives the surface's elevation above the reference ellipsoid.\n"
+          "For 1D, both the latitude and longitude grid must have length one.\n"
+          "For 2D, the longitude grid must have length one. For length one grids,\n"
+          "the value in the grid does not matter.\n"
+          "\n"
+          "The latitude and longitude grids can have length one even if they are\n"
+          "allowed to be vectors. This is interpreted as that the elevation is\n"
+          "constant in the dimension of concern. For example, if the surface\n"
+          "elevation is assumed constant, the 1D version of the variable can also\n"
+          "be used for 2D and 3D without any change.\n"
+          "\n"
+          "A nearest neighbour interpolation is used outside of the range of\n"
+          "the latitude and longitude grids. That is, the end values are applied\n"
+          "outside of the grid range.\n"
+          "\n"
+          "Dimensions: \n"
+          "   GriddedField2:\n"
+          "      Vector Latitude [N_lat]\n"
+          "      Vector Longitude [N_lon]\n"
+          "      Matrix data [N_lat][N_lon]\n"),
+      GROUP("GriddedField2")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("surface_emission"),
       DESCRIPTION(
           "The emission from the surface.\n"
@@ -5671,6 +5757,28 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "       [N_lon] \n"
           "       [N_p, N_lat, N_lon] \n"),
       GROUP("GriddedField3")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("z_grid"),
+      DESCRIPTION(
+          "The altiude grid.\n"
+          "\n"
+          "The altitude levels on which the atmospheric fields are defined.\n"
+          "This variable must always be defined. The grid must be sorted in\n"
+          "increasing order, with no repetitions.\n"
+          "\n"
+          "No gap between the lowermost altitude level and the surface is\n"
+          "allowed. The uppermost altitude level defines the top-of-the-\n"
+          "atmosphere, as vacuum is assumed above.\n"
+          "\n"
+          "See further the ARTS user guide (AUG). Use the index to find where\n"
+          "this variable is discussed. The variable is listed as a subentry to\n"
+          "\"workspace variables\".\n"
+          "\n"
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("z_hse_accuracy"),

@@ -451,6 +451,24 @@ Numeric sign(const Numeric& x) {
     return 1.0;
 }
 
+Numeric min_geq(const Numeric n1,
+                const Numeric n2,
+                const Numeric limit) {
+  if (n1<limit) {
+    if (n2<limit)
+      return limit-1;
+    else
+      return n2;
+  } else if (n2<limit) {
+    if (n1<limit)
+      return limit-1;
+    else
+      return n1;
+  } else {
+    return min(n1,n2);
+  }
+}
+
 /*! Modified gamma distribution
  *  
  *  Uses all four free parameters (n0, mu, la, ga) to calculate

@@ -8346,12 +8346,6 @@ Available models:
       DESCRIPTION(
           "Calculates the geometrical intersection with an altitude.\n"
           "\n"
-          "This method only handles 3D !!! For non-spherical geoids the altitude\n"
-          "obtained in *sensor_pos* can deviate a bit from the GIN altitude if\n"
-          "the position is outside of *lat_grid*, due to the internal handling\n"
-          "of the geoid. Improvements around this are planned, but not clear when\n"
-          "they will be in place.\n"
-          "\n"
           "For each observation geometry specified by the combination of\n"
           "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
           "an altitude is determined. The intersections are described by the\n"
@@ -8369,11 +8363,104 @@ Available models:
       GOUT_TYPE("Matrix", "Matrix"),
       GOUT_DESC("Position of intersections.",
                 "Line-of-sight at intersections."),
-      IN("sensor_pos", "sensor_los", "refellipsoid", "lat_grid", "lon_grid"),
+      IN("sensor_pos", "sensor_los", "refellipsoidZZZ"),
       GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0"),
       GIN_DESC("Target altitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IntersectionGeometricalWithLatitude"),
+      DESCRIPTION(
+          "Calculates the geometrical intersection with a latitude.\n"
+          "\n"
+          "For each observation geometry specified by the combination of\n"
+          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
+          "a latitude is determined. The intersections are described by the\n"
+          "GOUT *pos* and *los.\n"
+          "\n"
+          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("pos", "los"),
+      GOUT_TYPE("Matrix", "Matrix"),
+      GOUT_DESC("Position of intersections.",
+                "Line-of-sight at intersections."),
+      IN("sensor_pos", "sensor_los", "refellipsoidZZZ"),
+      GIN("latitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Target latitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IntersectionGeometricalWithLongitude"),
+      DESCRIPTION(
+          "Calculates the geometrical intersection with a longitude.\n"
+          "\n"
+          "For each observation geometry specified by the combination of\n"
+          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
+          "a longitude is determined. The intersections are described by the\n"
+          "GOUT *pos* and *los.\n"
+          "\n"
+          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("pos", "los"),
+      GOUT_TYPE("Matrix", "Matrix"),
+      GOUT_DESC("Position of intersections.",
+                "Line-of-sight at intersections."),
+      IN("sensor_pos", "sensor_los", "refellipsoidZZZ"),
+      GIN("longitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Target longitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("IntersectionGeometricalWithSurface"),
+      DESCRIPTION(
+          "Calculates the geometrical intersection with the surface.\n"
+          "\n"
+          "For each observation geometry specified by the combination of\n"
+          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
+          "the surface is determined. The intersections are described by the\n"
+          "GOUT *pos* and *los. For cases with no intersection, *pos* and *los*\n"
+          "are filled with NaN.\n"
+          "\n"
+          "If the surface elevation is constant, the intersections are found\n"
+          "analytically. Otherwise a search in terms of distance from the sensor\n"
+          "is applied. The default is to use a bisection algorithm. This option\n"
+          "should suffice in general, but it can fail if the elevation varies\n"
+          "strongly and/or the incidence angle is high. The path can then cross the\n"
+          "surface at several positions and the bisection search does not guarantee\n"
+          "that the correct intersection is found. To avoid this, set\n"
+          "*safe_surface_search* to 1 and a safe, but more slow option, is used.\n"
+          "In this case the path is sampled backwards until the surface is found.\n"
+          "\n"
+          "To be clear, the faster bisection algorith can fail if the path goes\n"
+          "through a mountain top. For an upward observation inside a valley, the\n"
+          "bisection can also miss if the path touches the side of the valley.\n"
+          "\n"
+          "For both algorithms *l_accuracy* governs the accuracy. In the first\n"
+          "case, the bisection is stopped when *l_accuracy* has been reached, while\n"
+          "in the safe option *l_accuracy* is the step length used. The error (in\n"
+          "terms of length from sensor) of the intersection will not exceed\n"
+          "*l_accuracy*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("pos", "los"),
+      GOUT_TYPE("Matrix", "Matrix"),
+      GOUT_DESC("Position of intersections.",
+                "Line-of-sight at intersections."),
+      IN("sensor_pos",
+         "sensor_los",
+         "atmosphere_dim",
+         "refellipsoid",
+         "surface_elevation"),
+      GIN("l_accuracy", "safe_surface_search"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT("1","0"),
+      GIN_DESC("Required accuracy in terms of length from sensor",
+               "Set to 1 to active safe, but slow, search algorithm")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
@@ -13764,6 +13851,59 @@ Available models:
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppathCheckStartPoint"),
+      DESCRIPTION(
+         "Allows to check that a propagation path starts as expected.\n"
+         "\n"
+         "For example, to check the start altitude, set the GIN *altitude* to the\n"
+         "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
+         "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
+         "\n"
+         "A check is done as soon the tolerance value is >= 0. Don't forget to set\n"
+         "the expected value, otherwise 0 will be applied. \n"
+         "\n"
+         "The radiative background and number of points can be checked in the same\n"
+         "way, but here there are no tolrance values and the expected values are\n"
+         "integers. The following coding is used for the radiative background\n"
+         "  0: Undefined\n"
+         "  1: Space\n"
+         "  2: The surface\n"
+         "  3: The cloudbox\n"
+         "  4: A transmitter\n"
+         "  9: Start point determined by *ppath_stop_distance*\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppathZZZ"),
+      GIN("background", "np",
+          "altitude", "daltitude",
+          "latitude", "dlatitude",
+          "longitude", "dlongitude",
+          "zenith_angle", "dzenith_angle",
+          "azimuth_angle", "dazimuth_angle"),
+      GIN_TYPE("Index", "Index",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
+      GIN_DESC("Expected radiative background. See above.",
+               "Expected number of path points.",
+               "Expected altitude.",
+               "Allowed deviation for altitude.",
+               "Expected latitude.",
+               "Allowed deviation for latitude.",
+               "Expected longitude.",
+               "Allowed deviation for longitude.",
+               "Expected zenith angle.",
+               "Allowed deviation for zenith angle.",
+               "Expected azimuth angle.",
+               "Allowed deviation for azimuth angle.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathFixedLstep"),
       DESCRIPTION(
           "Full propagation path calculation with fixed step length.\n"
@@ -13862,6 +14002,50 @@ Available models:
                "no solution is found.",
                "Lowest value ppath_lraytrace to consider. The calculations "
                "are halted if this length is passed.")));
+
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppathGeometric"),
+      DESCRIPTION(
+         "Geometrical propagation paths.\n"
+         "\n"
+         "This method ignores refraction and determines the pure geometrical\n"
+         "propagation path.\n"
+         "\n"
+         "The path from the observation point is followed backwards until the\n"
+         "surface, the top-of-atmosphere (TOA) or the cloudbox (if active) is\n"
+         "reached. For observations from a point outside of the atmosphere, the\n"
+         "path effective starting point of the path is at TOA.\n"
+         "\n"
+         "The path is divived in equally long steps along the path. The length\n"
+         "of these steps is <= *ppath_lmax*.\n"
+         "\n"
+         "The path is mainly calculated using fully analytical expressions. The\n"
+         "exception is to find/test intersections with the surface, that requires\n"
+         "a search procedure. The two GOUT are settings for this search. See\n"
+         "*IntersectionGeometricalWithSurface* for details.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppathZZZ"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos",
+         "rte_los",
+         "atmosphere_dim",
+         "refellipsoidZZZ",
+         "z_grid",
+         "lat_grid",
+         "lon_grid",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "surface_elevation",
+         "ppath_lmax",
+         "ppath_stop_distance"),
+      GIN("l_accuracy", "safe_surface_search"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT("0.1", "0"),
+      GIN_DESC("See *IntersectionGeometricalWithSurface*.",
+               "See *IntersectionGeometricalWithSurface*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathPlaneParallel"),
@@ -16429,6 +16613,30 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidEarthZZZ"),
+      DESCRIPTION(
+          "Earth reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model the Earth,\n"
+          "following different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical Earth. The radius is set following\n"
+          "      the value set for the Earth radius in constants.cc.\n"
+          "\n"
+          "   \"WGS84\" : The reference ellipsoid used by the GPS system.\n"
+          "      Should be the standard choice for a non-spherical Earth.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("refellipsoidZZZ"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
   md_data_raw.push_back(
       create_mdrecord(NAME("refellipsoidGanymede"),
                DESCRIPTION("Ganymede reference ellipsoids.\n"
@@ -16436,6 +16644,22 @@ where N>=0 and the species name is something line "H2O".
                            "From Wikipedia\n"),
                AUTHORS("Takayoshi Yamada"),
                OUT("refellipsoid"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN(),
+               GIN("model"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT("Sphere"),
+               GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("refellipsoidGanymedeZZZ"),
+               DESCRIPTION("Ganymede reference ellipsoids.\n"
+                           "\n"
+                           "From Wikipedia\n"),
+               AUTHORS("Takayoshi Yamada"),
+               OUT("refellipsoidZZZ"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
@@ -16491,6 +16715,27 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidEuropaZZZ"),
+      DESCRIPTION(
+          "Io reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
+          "folowing different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
+          "      report of the IAU/IAG Working Group.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("refellipsoidZZZ"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidIo"),
       DESCRIPTION(
           "Io reference ellipsoids.\n"
@@ -16502,6 +16747,27 @@ where N>=0 and the species name is something line "H2O".
           "      report of the IAU/IAG Working Group.\n"),
       AUTHORS("Richard Larsson"),
       OUT("refellipsoid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidIoZZZ"),
+      DESCRIPTION(
+          "Io reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
+          "folowing different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
+          "      report of the IAU/IAG Working Group.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("refellipsoidZZZ"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -16536,6 +16802,30 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidJupiterZZZ"),
+      DESCRIPTION(
+          "Jupiter reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model Jupiter,\n"
+          "folowing different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+          "      report of the IAU/IAG Working Group.\n"
+          "\n"
+          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
+          "      a report of the IAU/IAG Working Group.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("refellipsoidZZZ"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidMars"),
       DESCRIPTION(
           "Mars reference ellipsoids.\n"
@@ -16550,6 +16840,30 @@ where N>=0 and the species name is something line "H2O".
           "      a report of the IAU/IAG Working Group.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidMarsZZZ"),
+      DESCRIPTION(
+          "Mars reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model Mars,\n"
+          "folowing different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+          "      report of the IAU/IAG Working Group.\n"
+          "\n"
+          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
+          "      a report of the IAU/IAG Working Group.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("refellipsoidZZZ"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -16575,6 +16889,31 @@ where N>=0 and the species name is something line "H2O".
           "      defines the Moon ellipsoid to be a sphere.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidMoonZZZ"),
+      DESCRIPTION(
+          "Moon reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model Moon,\n"
+          "folowing different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+          "      report of the IAU/IAG Working Group.\n"
+          "\n"
+          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
+          "      Wikepedia (see code for details). The IAU/IAG working group\n"
+          "      defines the Moon ellipsoid to be a sphere.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("refellipsoidZZZ"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -16626,6 +16965,25 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Average or equatorial radius.", "Eccentricity")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidSetZZZ"),
+      DESCRIPTION(
+          "Manual setting of the reference ellipsoid.\n"
+          "\n"
+          "The two values of *refellipsoid* can here be set manually. The two\n"
+          "arguments correspond directly to first and second element of\n"
+          "*refellipsoid*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("refellipsoidZZZ"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("r_equatorial", "r_polar"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Equatorial radius", "Polar radius")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidVenus"),
       DESCRIPTION(
           "Venus reference ellipsoids.\n"
@@ -16640,6 +16998,30 @@ where N>=0 and the species name is something line "H2O".
           "eccentricity and no further models should be required.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("model"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("Sphere"),
+      GIN_DESC("Model ellipsoid to use. Options listed above.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("refellipsoidVenusZZZ"),
+      DESCRIPTION(
+          "Venus reference ellipsoids.\n"
+          "\n"
+          "The reference ellipsoid (*refellipsoid*) is set to model Venus,\n"
+          "folowing different models. The options are:\n"
+          "\n"
+          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+          "      report of the IAU/IAG Working Group.\n"
+          "\n"
+          "According to the report used above, the Venus ellipsoid lacks\n"
+          "eccentricity and no further models should be required.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("refellipsoidZZZ"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -18615,6 +18997,68 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_posGeocentricToGeodetic"),
+      DESCRIPTION(
+          "Converts *sensor_pos* from geocentric to geodetic coordinates.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos", "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_poslosGeocentricToGeodetic"),
+      DESCRIPTION(
+          "Converts *sensor_pos* and *sensor_los* from geocentric to\n"
+          "geodetic coordinates.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos", "sensor_los", "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_posGeodeticToGeocentric"),
+      DESCRIPTION(
+          "Converts *sensor_pos* from geodetic to geocentric coordinates.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos", "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_poslosGeodeticToGeocentric"),
+      DESCRIPTION(
+          "Converts *sensor_pos* and *sensor_los* from geodetic to\n"
+          "geocentric coordinates.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos", "sensor_los", "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_poslosFromECEF"),
       DESCRIPTION(
           "Converts sensor position and LOS from ECEF to geocentric values.\n"
@@ -20443,6 +20887,43 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("A field of complex refractive index.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("surface_elevationSet"),
+      DESCRIPTION(
+          "Sets *surface_elevation* based on GIN arguments.\n"
+          "\n"
+          "Grids and elevation data must match in size.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_elevation"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("latitude_grid", "longitude_grid", "elevations"),
+      GIN_TYPE("Vector", "Vector", "Matrix"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("The latitude grid of *elevations*",
+               "The longitude grid of *elevations*",
+               "The elevation map")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_elevationSetConstant"),
+      DESCRIPTION(
+          "Sets *surface_elevation* to a constant value.\n"
+          "\n"
+          "Both the latitude and longituide grids are set to have length one,\n"
+          "with the value 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_elevation"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("elevation"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("The elevation to apply.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_reflectivityFromGriddedField6"),
       DESCRIPTION(
           "Extracts surface reflectivities from a field of such data.\n"
@@ -21369,6 +21850,36 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT("0"),
       GIN_DESC("Index of agenda in array to execute.")));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("TestBasicGeodeticAccuracy"),
+      DESCRIPTION(
+          "Tests the basic accuracy of the geodetic calculations.\n"
+          "\n"
+          "Basically all geodetic calculations involves conversion to ECEF coordinates\n"
+          "and back. This method tests the accuracy of this conversion. \n"
+          "\n"
+          "A random position and line-of-sights is generated and the conversion are\n"
+          "made. The change of position is calculated as a distance. If the distance\n"
+          "exceeds *max_allowed_dl* an error is issued. Otherwise a new test is made."
+          "This is repeated *ntests* times. The maximum error is returned as *max_dl*.\n"
+          "The position the maximum error is returned as *rte_pos*.\n"
+          "\n"
+          "Further, the maximum error for altitude, latitude etc. are returned in\n"
+          "GOUTs *max_dpos* and *max_dlos*. This is the max absolute error for each\n"
+          "value separately (i.e. they can come from different tests/positions.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos"),
+      GOUT("max_dl", "max_dpos", "max_dlos"),
+      GOUT_TYPE("Numeric", "Vector", "Vector"),
+      GOUT_DESC("Maximum error in term of distance.",
+                "The maximum error for each position component.",
+                "The maximum error for each LOS component."),
+      IN("refellipsoid"),
+      GIN("ntests","max_allowed_dl"),
+      GIN_TYPE("Index","Numeric"),
+      GIN_DEFAULT(NODEF,"0.1"),
+      GIN_DESC("Number of tests.", "Maximum allowed error in term of distance.")));
+  
   md_data_raw.push_back(create_mdrecord(
       NAME("TessemNNReadAscii"),
       DESCRIPTION(

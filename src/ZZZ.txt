@@ -1,0 +1,25 @@
+Coding for ppath background changed.
+
+refellipsoid is now [equatorial radius, polar radius]
+
+Longitudes must now be inside [-180,360].
+- Internally is [-180,180] default
+- See if old shift lon functions can be replaced
+
+z_surface replaced with surface_elevation
+
+ppath_lmax must now be > 0
+
+ToDo
+-
+* Remove path_inside_cloudbox_do
+* Replace old Ppath with new (in ppath2.h)
+   In code, background2->background and gp_p->gp_z
+* Better algorithm for ecef2geodetic
+* What to do with lat_true?
+* Update chk_rte_pos/los in check_input.cc
+* Rename POLELAT2 to POLELAT
+* Remove rte_pos/losSet
+* Change/rename rte_losGeometricFromRtePosToRtePos2
+* Make IntersectionRefractedWithAltitude etc
+* Remove sensor_pos_geodetic and sensor_pos_ecef

@@ -66,6 +66,25 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 
 Numeric sign(const Numeric& x);
 
+//! min_geq
+/*! 
+    Compares two values and returns the smallest positive >= *limit. That is,
+    values below *limit* are ignored. If none of the values is >= *limit, 
+    *limit-1 is returned.
+
+    \param n1     Numeric value 1
+    \param n2     Numeric value 2
+    \param limit  Limit for considering n1 and n2
+
+    \return  The smallest above or limit-1
+
+    \author Patrick Eriksson
+    \date   2020-08-12
+*/
+Numeric min_geq(const Numeric n1,
+                const Numeric n2,
+                const Numeric limit);
+
 void mgd(VectorView psd,
          const Vector& x,
          const Numeric& n0,
@@ -141,5 +160,6 @@ constexpr bool any_negative(const MatpackType& var) noexcept {
  * @return constexpr Index 
  */
 constexpr Index pow_negative_one(Index x) noexcept { return (x % 2) ? -1 : 1; }
+
 
 #endif  // math_funcs_h

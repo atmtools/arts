@@ -35,6 +35,8 @@ void chk_if_in_range(const String& x_name,
                      const Index& x_low,
                      const Index& x_high);
 
+void chk_if_positive(const String& x_name, const Numeric& x);
+
 void chk_if_increasing(const String& x_name, const ArrayOfIndex& x);
 
 void chk_not_negative(const String& x_name, const Numeric& x);
@@ -338,6 +340,15 @@ void chk_rte_pos(const Index& atmosphere_dim,
 
 void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los);
 
+void chk_sensor_pos(ConstMatrixView sensor_pos);
+void chk_sensor_los(ConstMatrixView sensor_los);
+void chk_sensor_poslos(ConstMatrixView sensor_pos,
+                       ConstMatrixView sensor_los);
+void chk_refellipsoid(ConstVectorView refellipsoid);
+void chk_refellipsoidZZZ(ConstVectorView refellipsoid);
+void chk_surface_elevation(const Index atmosphere_dim,
+                           const GriddedField2& surface_elevation);
+                           
 void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,
                                const String& gridname);

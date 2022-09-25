@@ -31,6 +31,18 @@ namespace GriddedFieldGrids {
 */
 inline constexpr Index GFIELD1_F_GRID = 0;
 
+/** Global constant, Index of the latitude grid in GriddedField2.
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+inline constexpr Index GFIELD2_LAT_GRID = 0;
+
+/** Global constant, Index of the longitude grid in GriddedField2.
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+inline constexpr Index GFIELD2_LON_GRID = 1;
+
 /** Global constant, Index of the pressure grid in GriddedField3.
     \author Oliver Lemke
     \date   2008-06-24

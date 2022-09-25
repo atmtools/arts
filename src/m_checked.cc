@@ -246,7 +246,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
                          const Tensor3& z_field,
-                         const Vector& refellipsoid,
+                         const Vector& refellipsoid,  // Adopt to new version ZZZ
                          const Matrix& z_surface,
                          const Vector& lat_true,
                          const Vector& lon_true,

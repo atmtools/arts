@@ -66,7 +66,7 @@ void add_za_aa(Numeric& za,
 
 /** Converts a cartesian directional vector to zenith and azimuth
 
-   This function and the sister function cart2zaaa handle
+   This function and the sister function zaaa2cart handle
    transformation of line-of-sights. This in contrast to the sph/poslos
    functions that handles positions, or combinations of positions and
    line-of-sight.
@@ -122,7 +122,7 @@ void zaaa2cart(Numeric& dx,
 
 /** Converts ENU unit vector vector to zenith and azimuth
 
-   This function and the sister function enu2zaaa handles transformation of
+   This function and the sister function zaaa2enu handles transformation of
    line-of-sights, from and to ENU (east-north-up). The ENU vector is
    normalised to have length 1.
 
