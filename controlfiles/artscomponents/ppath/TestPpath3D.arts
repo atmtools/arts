@@ -1,206 +1,198 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# ARTS control file for testing 3D propagation path calculations
-# 
-# It is also demonstration of how to use the ForLopp agenda.
+# Basic testing of 3D geometrical propagation paths
 #
-# 2012-02-17 Patrick Eriksson
+# Performs calculations with WGS84 ellipsoid
 
-Arts2{
+# Patrick Eriksson 2021-08-15
 
+Arts2 {
 
-water_p_eq_agendaSet
-gas_scattering_agendaSet
-PlanetSet(option="Earth")
+# Define a 3D atmosphere
+IndexSet( atmosphere_dim, 3 )
+VectorLinSpace( z_grid, 0, 100e3, 1e3)
+VectorLinSpace( lat_grid, 10, 45, 1)
+VectorLinSpace( lon_grid, 100, 200, 1)
+surface_elevationSetConstant(elevation=123)
 
-# sensor-only path
-ppath_agendaSet( option="FollowSensorLosPath" )
+# Ppath specific variables
+NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_stop_distance, -1 )
 
+# Set WGS84 
+refellipsoidEarthZZZ( model = "WGS84" )
 
-# Number of Stokes components to be computed
 #
-IndexSet( stokes_dim, 1 )
-
-# A pressure grid rougly matching 0 to 80 km.
+# No cloudbox
 #
-VectorNLogSpace( p_grid, 41, 1000e2, 1 )
+FlagOff( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [] )
+
+# From space missing the atmosphere
+VectorSet( rte_pos, [600e3,11,22] )
+VectorSet( rte_los, [100,9] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      np = 0,
+                      zenith_angle = 100,
+                      dzenith_angle = 1e-9,
+                      azimuth_angle = 9,
+                      dazimuth_angle = 1e-9 )
+
+# From space looking into the surface
+VectorSet( rte_pos, [600e3,34,123] )
+VectorSet( rte_los, [135,-39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1 )
+
+# From space doing limb sounding
+VectorSet( rte_pos, [600e3,55,103] )
+VectorSet( rte_los, [113.2,139] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1,
+                      zenith_angle = 82,  # Just a rough check that za is upward   
+                      dzenith_angle = 3)
+
+# From within the atmosphere looking up
+VectorSet( rte_pos, [500,42,190] )
+VectorSet( rte_los, [10,-89] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1 )
+
+# From within the atmosphere looking down towards the surface
+VectorSet( rte_pos, [12e3,22.2,-180] )
+VectorSet( rte_los, [135,39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1e-3 )
+
+# Standing on the surface, looking down
+VectorSet( rte_pos, [123,10,120] )
+VectorSet( rte_los, [135,39] )
+ppathGeometric
+ppathCheckStartPoint( background = 2,
+                      altitude = 123,
+                      daltitude = 1e-3 )
+
+# From within the atmosphere doing limb sounding
+VectorSet( rte_pos, [20e3,36.23,-162] )
+VectorSet( rte_los, [93,-178] )
+ppathGeometric
+ppathCheckStartPoint( background = 1,
+                      altitude = 100e3,
+                      daltitude = 1,
+                      zenith_angle = 81,    # Just a rough check that za is upward   
+                      dzenith_angle = 3)
 
 
-# Atmospheric dimensionality and lat/lon grids
 #
-VectorNLinSpace( lat_grid, 21, 35, 55 )
-VectorNLinSpace( lon_grid, 21, -40, 40 )
-AtmosphereSet3D
-
-
-# Water vapour needed if refraction will be calculated
+# With cloudbox
 #
-abs_speciesSet( species=["H2O"] )
+FlagOn( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [10,20,10,20,10,90] )
 
+# From space looking down on cloudbox
+VectorSet( rte_pos, [600e3,23,123] )
+VectorSet( rte_los, [180,-123] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 20e3,
+                      daltitude = 1 )
 
-# Read a 1D atmospheric case and expand to *atmosphere_dim*
-#
-AtmRawRead( basename = "testdata/tropical" )
-AtmFieldsCalcExpand1D
+# From ground looking up on cloudbox
+VectorSet( rte_pos, [123,27,-178] )
+VectorSet( rte_los, [18,22] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 10e3,
+                      daltitude = 1 )
 
+# Looking into south face of cloudbox
+VectorSet( rte_pos, [19.5e3,19.05,-172] )
+VectorSet( rte_los, [95,20] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      latitude = 20,
+                      dlatitude = 0.01 )
 
-# Ground altitude (z_surface)
-#
-IndexCreate( nlat )
-IndexCreate( nlon )
-nelemGet( nlat, lat_grid )
-nelemGet( nlon, lon_grid )
-#
-MatrixSetConstant( z_surface, nlat, nlon, 500 )
+# Looking into north face of cloudbox
+VectorSet( rte_pos, [8.78e3,30.5,-180] )
+VectorSet( rte_los, [81,-175] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      latitude = 30,
+                      dlatitude = 0.01 )
 
+# Looking into west face of cloudbox
+VectorSet( rte_pos, [14.11e3,22,108.7] )
+VectorSet( rte_los, [89.34,83] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      longitude = 110,
+                      dlongitude = 0.01 )
 
-# No jacobian calculations
-#
-jacobianOff
-
-# Initializing cloudbox: No scattering
-#
-cloudboxOff
-
-# Activate to make tests with cloudbox on:
-#FlagOn( cloudbox_on )
-#ArrayOfIndexSet( cloudbox_limits, [ 4, 7, 10, 11, 8, 12 ] )
-
-
-# A dummy frequency grid
-#
-VectorSet( f_grid, [10e9] )
-
-
-# Check if atmosphere OK
-#
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-
-
-# Max step length for the representation of the propagation path
-#
+# Looking into east face of cloudbox
+VectorSet( rte_pos, [14.11e3,22,-169.2] )
+VectorSet( rte_los, [89.34,-97] )
 NumericSet( ppath_lmax, 20e3 )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      longitude = 190,
+                      dlongitude = 0.01 )
 
+# From within the cloudbox
+VectorSet( rte_pos, [11e3,27,150] )
+VectorSet( rte_los, [90,0] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      np = 1,
+                      altitude = 11e3,
+                      daltitude = 1,
+                      zenith_angle = 90,    
+                      dzenith_angle = 1e-5)
 
+# Some further tests where the intersection with the cloudbox is around one corner
+# That is, only LOS angles are changed to m ove from one face to next
+# (while the tests above or more looking staright into a face)
+VectorSet( rte_pos, [21e3,19.94,109.5] )
+VectorSet( rte_los, [91.1,65] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      altitude = 20e3,
+                      daltitude = 1 )
 
+VectorSet( rte_los, [92,85] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      latitude = 20,
+                      dlatitude = 0.01 )
 
-#
-# A single propagation path:
-#
-
-# Set a observation position and line-of-sight (LOS)
-#
-VectorSet( rte_pos, [ 600e3, 70.1, 0 ] )
-VectorSet( rte_los, [   113,  180    ] )
-VectorSet( rte_pos2, [] )                  # No transmitter involved
-
-
-#
-# no refraction
-#
-ppath_step_agendaSet( option="GeometricPath" )
-
-# Calculate propagation path
-#
-ppathCalc                       
-
-
-# Print complete ppath
-#
-#Print( ppath, 0 )
-
-
-
-# Uncomment to skip batch part below
-# 
-#Exit()
-
-
-
-#
-# Run through a number of cases, that should run without error
-# 
-
-
-# Use sensor_pos/los to store each case
-#
-MatrixSet( sensor_pos, [ 600e3, 20.2,   23;
-                         600e3, 70.3,  -12;
-                         600e3, 20.1,  -30; 
-                         600e3, 70.2,   11;
-                         600e3,   41,  1.5;
-                         600e3, 37.4,  -20;
-                         600e3,   50,   10;
-                           6e3, 40.1, 34.6;
-                           6e3, 40.1,  -39;
-                           6e3,   41,  1.5;
-                           6e3, 37.4,  -20;
-                           6e3,   50,   10;
-                           500,   41, 0.23;
-                           500, 37.6, -1.1 ] )
-MatrixSet( sensor_los, [   45,    15; 
-                           95,   135; 
-                          113,    12; 
-                          113,  -168;
-                          180,     0;
-                          180,   156;
-                          180,   -29;
-                           34,  -160;
-                          156,    90;
-                            0,     0;
-                            0,   156;
-                            0,   -29;
-                           10,     0; 
-                          112,    55 ] )
-
-IndexCreate( ilast )
-nrowsGet( ilast, sensor_pos )
-IndexSubtract( ilast, ilast, 1 )
-
-AgendaSet( forloop_agenda ){
-  #Print( forloop_index, 0 )
-  VectorExtractFromMatrix( rte_pos, sensor_pos, forloop_index, "row" )
-  VectorExtractFromMatrix( rte_los, sensor_los, forloop_index, "row" )
-  ppathCalc
-}
-
-#
-# no refraction
-#
-ppath_step_agendaSet( option="GeometricPath" )
-
-ForLoop( forloop_agenda, 0, ilast, 1  )
-
-
-
+VectorSet( rte_los, [92,45] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      longitude = 110,
+                      dlongitude = 0.01 )
 
 
 #
-# Repeat with refraction
+# With cloudbox reaching TOA
 #
-ppath_step_agendaSet( option="RefractedPath" )
-NumericSet( ppath_lraytrace, 1e3 )
-refr_index_air_agendaSet( option="GasMicrowavesEarth" )
+FlagOn( cloudbox_on )
+ArrayOfIndexSet( cloudbox_limits, [10,100,10,20,10,90] )
 
-ForLoop( forloop_agenda, 0, ilast, 1  )
-
-
-
-
-
-#
-# Repeat all with non-spherical ellipsoid
-#
-
-refellipsoidEarth( refellipsoid, "WGS84" )
-
-ppath_step_agendaSet( option="GeometricPath" )
-ForLoop( forloop_agenda, 0, ilast, 1  )
-
-ppath_step_agendaSet( option="RefractedPath" )
-refr_index_air_agendaSet( option="GasMicrowavesEarth" )
-ForLoop( forloop_agenda, 0, ilast, 1  )
-
+# From space looking down on cloudbox
+VectorSet( rte_pos, [600e3,29,153] )
+VectorSet( rte_los, [153,-123] )
+ppathGeometric
+ppathCheckStartPoint( background = 3,
+                      np = 1,
+                      altitude = 100e3,
+                      daltitude = 1 )
 }
