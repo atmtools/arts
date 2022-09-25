@@ -187,6 +187,7 @@ add_library (artscore STATIC
   gas_abs_lookup.cc
   gas_scattering.cc
   geodetic.cc
+  geodeticZZZ.cc
   gridded_fields.cc
   gui_propmat.cc
   hitran_species.cc
@@ -224,6 +225,7 @@ add_library (artscore STATIC
   m_gas_scattering.cc
   m_general.cc
   m_geodetic.cc
+  m_geodeticZZZ.cc
   m_xsec_fit.cc
   m_jacobian.cc
   m_linemixing.cc
@@ -236,6 +238,7 @@ add_library (artscore STATIC
   m_physics.cc
   m_planets.cc
   m_ppath.cc
+  m_ppathZZZ.cc
   m_psd.cc
   m_quantum.cc
   m_radiation_field.cc
@@ -272,6 +275,8 @@ add_library (artscore STATIC
   poly_roots.cc
   ppath.cc
   ppath_struct.cc
+  ppathZZZ.cc
+  ppath_funcs.cc
   propmat_field.cc
   psd.cc
   quantum_numbers.cc

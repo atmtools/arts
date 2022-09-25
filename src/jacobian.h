@@ -757,7 +757,7 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
  *  @param[in]    ns                    The Stokes grid count
  *  @param[in]    active                If true, the middle dimension is np times nf, otherwise it is nf
  * 
- *  @return       diy_dpath             As expected by the methods using diy_dpath (size: jacobain_quantities.nelem())
+ *  @return       diy_dpath             As expected by the methods using diy_dpath (size: jacobian_quantities.nelem())
  * 
  *  @author Richard Larsson 
  *  @date   2020-11-12
@@ -774,7 +774,7 @@ ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_q
  *  @param[in]    ns                    The Stokes grid count
  *  @param[in]    active                If true, the middle dimension is np times nf, otherwise it is nf
  * 
- *  @return       diy_dx                As expected by the methods using diy_dpath (size: jacobain_quantities.nelem())
+ *  @return       diy_dx                As expected by the methods using diy_dpath (size: jacobian_quantities.nelem())
  * 
  *  @author Richard Larsson 
  *  @date   2020-11-12
@@ -795,7 +795,7 @@ ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jaco
     @param[in]    jacobian_quantities   As the WSV.
     @param[in]    abs_species           As the WSV.
     
-    @return       ArrayOfIndex          With information as above (size: jacobain_quantities.nelem())
+    @return       ArrayOfIndex          With information as above (size: jacobian_quantities.nelem())
 
     @author Richard Larsson 
     @date   2020-11-12
@@ -817,7 +817,7 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
     @param[in]    scat_species          As the WSV.
     @param[in]    cloudbox_on           As the WSV.
     
-    @return       ArrayOfIndex          With information as above (size: jacobain_quantities.nelem())
+    @return       ArrayOfIndex          With information as above (size: jacobian_quantities.nelem())
 
     @author Richard Larsson 
     @date   2020-11-12
@@ -855,7 +855,7 @@ Index do_analytical_jacobian(const ArrayOfRetrievalQuantity& jacobian_quantities
   That is, for points outisde the covered grid, the value at closest end point
   is taken. And here extrapolation to +-Inf is allowed.
 
-  This function modifies grid positions to jacobaina extrapolation approach.
+  This function modifies grid positions to the jacobian extrapolation approach.
   For efficiency, the input grid positions are not asserted at all, and
   "extrapolation points" are identified simply  by a fd outside [0,1].
 

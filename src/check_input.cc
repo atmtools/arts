@@ -42,6 +42,8 @@
 #include "gridded_fields.h"
 #include "logic.h"
 
+using GriddedFieldGrids::GFIELD2_LAT_GRID;
+using GriddedFieldGrids::GFIELD2_LON_GRID;
 using GriddedFieldGrids::GFIELD3_P_GRID;
 using GriddedFieldGrids::GFIELD3_LAT_GRID;
 using GriddedFieldGrids::GFIELD3_LON_GRID;
@@ -118,6 +120,21 @@ void chk_if_increasing(const String& x_name, const ArrayOfIndex& x) {
 /*===========================================================================
   === Functions for Numeric
   ===========================================================================*/
+
+//! chk_if_positive
+/*! 
+    Checks that a variable of type Numeric is >0
+    The function gives an error message if this is not the case.
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type Numeric.
+    \author Patrick Eriksson 
+    \date   2002-04-15
+*/
+void chk_if_positive(const String& x_name, const Numeric& x) {
+  ARTS_USER_ERROR_IF (x <= 0,
+      "The variable *", x_name, "* must be > 0.\n"
+      "The present value of *", x_name, "* is ", x, ".")
+}
 
 //! chk_not_negative
 /*! 
@@ -1586,7 +1603,7 @@ void chk_atm_surface(const String& x_name,
 }
 
 /*===========================================================================
-  === Functions related to sensor variables.
+  === Functions related to specif WSV
   ===========================================================================*/
 
 //! chk_rte_pos
@@ -1604,9 +1621,7 @@ void chk_atm_surface(const String& x_name,
 */
 void chk_rte_pos(const Index& atmosphere_dim,
                  ConstVectorView rte_pos,
-                 const bool& is_rte_pos2)
-
-{
+                 const bool& is_rte_pos2) {
   String vname = "*rte_pos*";
   if (is_rte_pos2) {
     vname = "*rte_pos2*";
@@ -1650,9 +1665,7 @@ void chk_rte_pos(const Index& atmosphere_dim,
     \author Patrick Eriksson 
     \date   2012-03-26
 */
-void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los)
-
-{
+void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los) {
   if (atmosphere_dim == 1) {
     ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
                         "For 1D, los-vectors must have length 1.");
@@ -1675,6 +1688,136 @@ void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los)
           "For 3D, the azimuth angle of a los-vector must "
           "be in the range [-180,180].");
   }
+}
+
+//! chk_sensor_pos
+/*! 
+    Performs all needed checks of sensor_pos
+    \param   sensor_pos   As the WSV with the same name.
+    \author Patrick Eriksson 
+    \date   2021-07-30
+*/
+void chk_sensor_pos(ConstMatrixView sensor_pos) {
+  ARTS_USER_ERROR_IF (sensor_pos.ncols() != 3,
+                      "*sensor_pos* must have three columns.");
+  ARTS_USER_ERROR_IF (sensor_pos.nrows() == 0,
+                      "*sensor_pos* must have at least one row.");
+  for (Index i=0; i<sensor_pos.nrows(); i++) {
+    ARTS_USER_ERROR_IF (sensor_pos(i,1) < -90 || sensor_pos(i,1) > 90,
+                        "Unvalid latitude in *sensor_pos*.\n"
+                        "Latitudes must be inside [-90,90],\n"
+                        "but sensor_pos(",i,",1) is ", sensor_pos(i,1));
+    ARTS_USER_ERROR_IF (sensor_pos(i,2) < -180 || sensor_pos(i,1) > 360,
+                        "Unvalid longitude in *sensor_pos*.\n"
+                        "Longitudes must be inside [-1800,360],\n"
+                        "but sensor_pos(",i,",2) is ", sensor_pos(i,2));
+  }
+}
+
+//! chk_sensor_los
+/*! 
+    Performs all needed checks of sensor_los
+    \param   sensor_los   As the WSV with the same name.
+    \author Patrick Eriksson 
+    \date   2021-07-30
+*/
+void chk_sensor_los(ConstMatrixView sensor_los) {
+  ARTS_USER_ERROR_IF (sensor_los.ncols() != 2,
+                      "*sensor_los* must have two columns.");
+  ARTS_USER_ERROR_IF (sensor_los.nrows() == 0,
+                      "*sensor_los* must have at least one row.");
+  for (Index i=0; i<sensor_los.nrows(); i++) {
+    ARTS_USER_ERROR_IF (sensor_los(i,0) < 0 || sensor_los(i,0) > 180,
+                        "Unvalid zenith angle in *sensor_los*.\n"
+                        "Latitudes must be inside [0,180],\n"
+                        "but sensor_los(",i,",0) is ", sensor_los(i,0));
+    ARTS_USER_ERROR_IF (sensor_los(i,1) < -180 || sensor_los(i,1) > 180,
+                        "Unvalid azimuth angle in *sensor_los*.\n"
+                        "Latitudes must be inside [-180,180],\n"
+                        "but sensor_los(",i,",1) is ", sensor_los(i,1));
+  }
+}
+
+//! chk_sensor_poslos
+/*! 
+    Performs all needed checks of sensor_pos and sensor_los
+    If you use this function, there is no need to call chk_sensor_pos or
+    chk_sensor_los
+    \param   sensor_los   As the WSV with the same name.
+    \author Patrick Eriksson 
+    \date   2021-07-30
+*/
+void chk_sensor_poslos(ConstMatrixView sensor_pos,
+                       ConstMatrixView sensor_los) {
+  chk_sensor_pos(sensor_pos);
+  chk_sensor_los(sensor_los);
+  ARTS_USER_ERROR_IF (sensor_los.nrows() != sensor_pos.nrows(),
+      "*sensor_los* and *sensor_pos* must have the same number of rows.");
+}
+
+//! chk_refellipsoid
+/*! 
+    Performs all needed checks of refellipsoid
+    The function gives an error message if this is not the case.
+    \param   refellipsoid   As the WSV with the same name.
+    \author Patrick Eriksson 
+    \date   2021-07-30
+*/
+void chk_refellipsoid(ConstVectorView refellipsoid) {
+  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
+                      "*refellipsoid* must have two elements.");
+  ARTS_USER_ERROR_IF (refellipsoid[0] <= 0 || refellipsoid[1] <= 0,
+                      "All elements of *refellipsoid* must be > 0.");
+  ARTS_USER_ERROR_IF (abs(refellipsoid[1]/refellipsoid[0]-1) > 0.5,
+      "The ratio of the two radii in *refellipsoid* is outisde of [0.5,1.5].\n"
+      "Do you really want to have such a flat reference ellipsoid?");
+}
+
+//! chk_refellipsoid
+/*! 
+    Performs all needed checks of refellipsoid
+    The function gives an error message if this is not the case.
+    \param   refellipsoid   As the WSV with the same name.
+    \author Patrick Eriksson 
+    \date   2021-07-30
+*/
+void chk_refellipsoidZZZ(ConstVectorView refellipsoid) {
+  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
+                      "*refellipsoid* must have two elements.");
+  ARTS_USER_ERROR_IF (refellipsoid[0] <= 0 || refellipsoid[1] <= 0,
+                      "All elements of *refellipsoid* must be > 0.");
+  ARTS_USER_ERROR_IF (abs(refellipsoid[1]/refellipsoid[0]-1) > 0.5,
+      "The ratio of the two radii in *refellipsoid* is outisde of [0.5,1.5].\n"
+      "Do you really want to have such a flat reference ellipsoid?");
+}
+
+//! chk_surface_elevation
+/*! 
+    Performs all needed checks of surface_elevation
+    \param   surface_elevation   As the WSV with the same name.
+    \author Patrick Eriksson 
+    \date   2021-08-08
+*/
+void chk_surface_elevation(const Index atmosphere_dim,
+                           const GriddedField2& surface_elevation) {
+  const Vector& lat_grid = surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
+  ARTS_USER_ERROR_IF (surface_elevation.data.nrows()!=lat_grid.nelem(),
+                      "Inconsistent latitude size in *surface_elevation*\n"
+                      "Length of latitude grid: ", lat_grid.nelem(), "\n"
+                      "Latitude size of data: ", surface_elevation.data.nrows());
+  const Vector& lon_grid = surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
+  ARTS_USER_ERROR_IF (surface_elevation.data.ncols()!=lon_grid.nelem(),
+                      "Inconsistent longitude size in *surface_elevation*\n"
+                      "Length of longitude grid: ", lon_grid.nelem(), "\n"
+                      "Longitude size of data: ", surface_elevation.data.ncols());
+  ARTS_USER_ERROR_IF (surface_elevation.data.empty(),
+                      "The data in *surface_elevation* are empty. Not allowed!");
+  ARTS_USER_ERROR_IF (atmosphere_dim==1 && lat_grid.nelem()!=1,
+                      "For 1D, the latitude size in *surface_elevation* "
+                      "must be one.");
+  ARTS_USER_ERROR_IF (atmosphere_dim==1 && lat_grid.nelem()!=1,
+                      "For 1D and 2D, the longitude size in *surface_elevation* "
+                      "must be one.");
 }
 
 /*===========================================================================
