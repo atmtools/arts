@@ -21874,7 +21874,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT_DESC("Maximum error in term of distance.",
                 "The maximum error for each position component.",
                 "The maximum error for each LOS component."),
-      IN("refellipsoid"),
+      IN("refellipsoidZZZ"),
       GIN("ntests","max_allowed_dl"),
       GIN_TYPE("Index","Numeric"),
       GIN_DEFAULT(NODEF,"0.1"),

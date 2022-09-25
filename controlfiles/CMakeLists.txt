@@ -42,6 +42,7 @@ arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
+arts_test_run_ctlfile(fast artscomponents/ppath/TestBasicGeodeticAccuracy.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath1D.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath2D.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath3D.arts)
@@ -196,8 +197,6 @@ if (ARTS_XML_DATA_DIR)
   ### cases USING data from arts-xml-data ###
   arts_test_run_ctlfile(fast artscomponents/helpers/TestRegridding.arts)
   arts_test_run_ctlfile(fast artscomponents/helpers/TestGridsExtract.arts)
-
-  arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
   
   ##################################
   ### planet toolbox demos cases ###
