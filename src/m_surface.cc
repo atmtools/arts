@@ -64,6 +64,10 @@ using Conversion::deg2rad;
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 
+using GriddedFieldGrids::GFIELD2_LAT_GRID;
+using GriddedFieldGrids::GFIELD2_LON_GRID;
+
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -2843,6 +2847,42 @@ void surface_complex_refr_indexFromGriddedField5(
           itw, complex_n_field.data(iv, it, 1, joker, joker), gp_lat, gp_lon);
     }
   }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_elevationSet(GriddedField2& surface_elevation,
+                          const Vector& latitude_grid,
+                          const Vector& longitude_grid,
+                          const Matrix& elevations,          
+                          const Verbosity&) {
+  surface_elevation.set_name("Surface elevation map");
+
+  surface_elevation.set_grid_name(GFIELD2_LAT_GRID, "Latitude");
+  surface_elevation.set_grid(GFIELD2_LAT_GRID, latitude_grid);
+
+  surface_elevation.set_grid_name(GFIELD2_LON_GRID, "Longitude");
+  surface_elevation.set_grid(GFIELD2_LON_GRID, longitude_grid);
+
+  surface_elevation.data = elevations;
+
+  // To not be too restrictive, we check assuming 3D
+  chk_surface_elevation(3, surface_elevation);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_elevationSetConstant(GriddedField2& surface_elevation,
+                                  const Numeric& elevation,
+                                  const Verbosity&) {
+  surface_elevation.set_name("Surface elevation map");
+
+  surface_elevation.set_grid_name(GFIELD2_LAT_GRID, "Latitude");
+  surface_elevation.set_grid(GFIELD2_LAT_GRID, Vector(1, 0));
+
+  surface_elevation.set_grid_name(GFIELD2_LON_GRID, "Longitude");
+  surface_elevation.set_grid(GFIELD2_LON_GRID, Vector(1, 0));
+
+  surface_elevation.data.resize(1,1);
+  surface_elevation.data(0,0) = elevation;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

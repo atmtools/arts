@@ -5,6 +5,15 @@
 #include "mystring.h"
 #include "interpolation.h"
 
+enum PpathBackground {
+  PPATH_BACKGROUND_UNDEFINED = 0,
+  PPATH_BACKGROUND_SPACE = 1,
+  PPATH_BACKGROUND_SURFACE = 2,
+  PPATH_BACKGROUND_CLOUDBOX = 3,
+  PPATH_BACKGROUND_TRANSMITTER = 4,
+  PPATH_BACKGROUND_STOP_DISTANCE = 9  
+};
+
 /*===========================================================================
   === The Ppath structure
   ===========================================================================*/
@@ -23,6 +32,7 @@ struct Ppath {
   Numeric constant;
   /** Radiative background */
   String background;
+  enum PpathBackground backgroundZZZ;   // Temporarily solution
   /** Start position */
   Vector start_pos;
   /** Start line-of-sight */

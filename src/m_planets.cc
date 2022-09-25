@@ -250,6 +250,151 @@ void refellipsoidVenus(Vector& refellipsoid,
     throw runtime_error("Unknown selection for input argument *model*.");
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidEarthZZZ(Vector& refellipsoid,
+                       const String& model,
+                       const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] = EARTH_RADIUS;
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else if (model == "WGS84") {
+    // https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version
+    refellipsoid[0] = 6378137.0;
+    refellipsoid[1] = 6356752.314245;
+  }
+
+  else
+    throw runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidJupiterZZZ(Vector& refellipsoid,
+                         const String& model,
+                         const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] = 69911e3;  // From Ref. 1 (see above)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else if (model == "Ellipsoid") {
+    refellipsoid[0] = 71492e3;  // From Ref. 1
+    refellipsoid[1] = 66854e3;
+  }
+
+  else
+    throw runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidMarsZZZ(Vector& refellipsoid,
+                      const String& model,
+                      const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] = 3389.5e3;  // From Ref. 1 (see above)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else if (model == "Ellipsoid") {
+    refellipsoid[0] = 3396.19e3;  // From Ref. 1
+    refellipsoid[1] = 3376.20e3;
+  }
+
+  else
+    throw runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidMoonZZZ(Vector& refellipsoid,
+                      const String& model,
+                      const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] = 1737.4e3;  // From Ref. 1 (see above)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else if (model == "Ellipsoid") {  
+    // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+    refellipsoid[0] = 1738.1e3;
+    refellipsoid[1] = 1736.0e3;
+  }
+
+  else
+    throw runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidIoZZZ(Vector& refellipsoid,
+                    const String& model,
+                    const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] =
+        1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else
+    throw std::runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidEuropaZZZ(Vector& refellipsoid,
+                        const String& model,
+                        const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] =
+        1560.8e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else
+    throw std::runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidGanymedeZZZ(Vector& refellipsoid,
+                          const String& model,
+                          const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] =
+        2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else
+    throw std::runtime_error("Unknown selection for input argument *model*.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidVenusZZZ(Vector& refellipsoid,
+                       const String& model,
+                       const Verbosity&) {
+  refellipsoid.resize(2);
+
+  if (model == "Sphere") {
+    refellipsoid[0] = 6051.8e3;  // From Ref. 1 (see above)
+    refellipsoid[1] = refellipsoid[0];
+  }
+
+  else
+    throw runtime_error("Unknown selection for input argument *model*.");
+}
+
 void PlanetSet(Workspace& ws,
                Agenda& g0_agenda,
                Vector& refellipsoid,

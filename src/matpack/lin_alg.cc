@@ -437,6 +437,18 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
   }
 }
 
+//! 2-norm of a vector
+/*!
+
+  \param v Input: vector, with length>=1
+
+  \return Norm
+*/
+Numeric norm2(ConstVectorView v) {
+  ARTS_ASSERT(v.nelem());
+  return sqrt(v*v);
+}
+
 //! Maximum absolute row sum norm
 /*!
   This function returns the maximum absolute row sum norm of a
