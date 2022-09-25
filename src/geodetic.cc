@@ -1256,7 +1256,7 @@ Numeric pos2refell_r(const Index& atmosphere_dim,
     known, use *refell2d*. The function pos2refell_r handles all this in a
     general way (but not always the fastest option).
 
-    \return                 Ellispoid radius
+    \return                 Ellipsoid radius
     \param  refellipsoid    In: As the WSV with same name.
     \param  latitude        In: A geoecentric latitude.
 

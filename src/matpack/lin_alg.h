@@ -61,6 +61,9 @@ void diagonalize(ComplexMatrixView P,
 // Exponential of a Matrix
 void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);
 
+// 2-norm of a vector
+Numeric norm2(ConstVectorView v);
+
 // Maximum absolute row sum norm
 Numeric norm_inf(ConstMatrixView A);
 
