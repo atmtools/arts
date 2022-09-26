@@ -1,0 +1,125 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Demonstrates methods for finding the intersections with a particular
+# altitude, latitude or the surface.
+#
+# These methods have internal asserts checking the results so the script 
+# performs also some testing
+#
+Arts2 {
+
+
+# Special variables
+MatrixCreate( pos )
+MatrixCreate( los )
+
+
+
+# Intersection with an altitude
+# -------------------------------------------------------------------------
+
+# Define a bunch of sensor positions and LOS
+MatrixSet( sensor_pos, [55e3,45,123;123e3,10,175;20e3,88,-160;5e3,0,-180] )
+MatrixSet( sensor_los, [167,-134;145,178;94,0;180,0] )
+
+# Set WGS84 
+refellipsoidEarthZZZ( model = "WGS84" )
+
+# Intersection with sea surface level
+IntersectionGeometricalWithAltitude( pos=pos, los=los, altitude=0 )
+#Print(pos,0)
+#Print(los,0)
+
+# Intersection with 10 km level
+IntersectionGeometricalWithAltitude( pos=pos, los=los, altitude=10e3 )
+#Print(pos,0)
+#Print(los,0)
+
+# Redo 0 m with spherical reference ellipsoid
+refellipsoidEarthZZZ( model = "Sphere" )
+IntersectionGeometricalWithAltitude( pos=pos, los=los, altitude=0 )
+
+
+
+# Get geoemtrical tangent point (activate when new method exists)
+# -------------------------------------------------------------------------
+
+# Define a bunch of sensor positions and LOS
+#MatrixSet( sensor_pos, [600e3,0,0;600e3,78,11;600e3,89,0] )
+#MatrixSet( sensor_los, [90,0;113,11;89,89] )
+
+# Set WGS84 
+#refellipsoidEarthZZZ( model = "WGS84" )
+
+#TangentPointGeometrical( pos=pos, los=los )
+#Print(pos,0)
+#Print(los,0)
+
+#refellipsoidEarthZZZ( model = "Sphere" )
+#TangentPointGeometrical( pos=pos, los=los )
+#Print(pos,0)
+#Print(los,0)
+
+
+
+# Intersection with the surface
+# -------------------------------------------------------------------------
+
+VectorCreate( latitude_grid )
+VectorCreate( longitude_grid )
+MatrixCreate( elevations )
+
+# Set WGS84 
+refellipsoidEarth( model = "WGS84" )
+
+# Define a sensor position and LOS
+MatrixSet( sensor_pos, [800e3,12,0] )
+MatrixSet( sensor_los, [135,78] )
+
+# A 1D case
+IndexSet( atmosphere_dim, 1 )
+surface_elevationSetConstant(elevation=0)
+IntersectionGeometricalWithSurface( pos=pos, los=los )
+#Print(pos,0)
+#Print(los,0)
+
+# A 3D case, but no variation of elevation on longitude dimension
+IndexSet( atmosphere_dim, 3 )
+VectorSet( latitude_grid, [0,45,45.1,90] )
+VectorSet( longitude_grid, [0] )
+MatrixSet( elevations, [0;0;100;7e3] )
+surface_elevationSet( latitude_grid = latitude_grid,
+                     longitude_grid = longitude_grid,
+                         elevations = elevations)
+IntersectionGeometricalWithSurface( pos=pos, los=los, l_accuracy=0.1, safe_surface_search=1 )
+#Print(pos,0)
+#Print(los,0)
+IntersectionGeometricalWithSurface( pos=pos, los=los, l_accuracy=0.1, safe_surface_search=0 )
+#Print(pos,0)
+#Print(los,0)
+
+
+# Intersection with a latitude
+# -------------------------------------------------------------------------
+
+# Define a sensor position and LOS
+MatrixSet( sensor_pos, [600e3,-80,0] )
+MatrixSet( sensor_los, [113,10] )
+
+IntersectionGeometricalWithLatitude( pos=pos, los=los, latitude=-60 )
+#Print(pos,0)
+#Print(los,0)
+
+
+# Intersection with a longitude
+# -------------------------------------------------------------------------
+
+# Define a sensor position and LOS
+MatrixSet( sensor_pos, [55e3,45,125] )
+MatrixSet( sensor_los, [115,78] )
+
+IntersectionGeometricalWithLongitude( pos=pos, los=los, longitude=126 )
+#Print(pos,0)
+#Print(los,0)
+
+}

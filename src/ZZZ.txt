@@ -16,6 +16,7 @@ ToDo
 * Replace old Ppath with new (in ppath2.h)
    In code, background2->background and gp_p->gp_z
 * Better algorithm for ecef2geodetic
+* Make good algorithm for finding geometrical tangent point
 * What to do with lat_true?
 * Update chk_rte_pos/los in check_input.cc
 * Rename POLELAT2 to POLELAT
