@@ -1,0 +1,82 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Tests conversion between geodetic and geocentric coordinates
+#
+Arts2 {
+
+
+# Special variables
+NumericCreate( maxdiff )
+MatrixCreate( sensor_pos0 )
+MatrixCreate( sensor_los0 )
+MatrixCreate( sensor_pos_geoc )
+NumericCreate( h )
+NumericCreate( h0 )
+
+# Define a bunch of geodetic sensor positions and LOS
+MatrixSet( sensor_pos0, [0,45,123;1e3,10,175;20e3,88,-160] )
+MatrixSet( sensor_los0, [1,-134;45,178;135,0] )
+
+# Set WGS84 
+refellipsoidEarthZZZ( model = "WGS84" )
+
+# The conversion from geocentric (or EcEF) to geodetic is not exact,
+# and we set 1e-3 as max allowed difference
+NumericSet( maxdiff, 1e-3 )
+
+
+# Conversion of sensor_pos alone
+# ---
+
+Copy( sensor_pos, sensor_pos0 )
+
+# Convert to geocentric
+sensor_posGeodeticToGeocentric
+Copy(sensor_pos_geoc, sensor_pos)
+
+# Convert back to geodetic and compare to start values
+sensor_posGeocentricToGeodetic
+Compare( sensor_pos, sensor_pos0, maxdiff )
+
+
+# A special check of geocentric position (to check that ellipsoid radius
+# correctly calculated)
+VectorExtractFromMatrix( rte_pos, sensor_pos, 0, "row" )
+Extract( h, rte_pos, 0 )
+NumericSet( h0, 0 )
+Compare( h, h0, maxdiff )
+
+
+# Convert to geocentroc and back with sensor_los
+# ---
+
+Copy( sensor_pos, sensor_pos0 )
+Copy( sensor_los, sensor_los0 )
+
+sensor_poslosGeodeticToGeocentric
+sensor_poslosGeocentricToGeodetic
+
+Compare( sensor_pos, sensor_pos0, maxdiff )
+Compare( sensor_los, sensor_los0, maxdiff )
+
+
+
+# Redo with spherical reference ellipsoid
+# ---
+
+refellipsoidEarthZZZ( model = "Sphere" )
+
+Copy( sensor_pos, sensor_pos0 )
+sensor_posGeodeticToGeocentric
+sensor_posGeocentricToGeodetic
+Compare( sensor_pos, sensor_pos0, maxdiff )
+
+Copy( sensor_pos, sensor_pos0 )
+Copy( sensor_los, sensor_los0 )
+sensor_poslosGeodeticToGeocentric
+sensor_poslosGeocentricToGeodetic
+Compare( sensor_pos, sensor_pos0, maxdiff )
+Compare( sensor_los, sensor_los0, maxdiff )
+
+}
+ 

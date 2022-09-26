@@ -39,7 +39,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodeticZZZ.h"
-#include "ppath_funcs.h"
+#include "ppathZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 

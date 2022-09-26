@@ -237,7 +237,6 @@ add_library (artscore STATIC
   ppath.cc
   ppath_struct.cc
   ppathZZZ.cc
-  ppath_funcs.cc
   propmat_field.cc
   psd.cc
   quantum_numbers.cc
