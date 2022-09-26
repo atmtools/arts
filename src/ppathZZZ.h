@@ -20,11 +20,8 @@
  * @author Patrick Eriksson <patrick.eriksson@chalmers.se>
  * @date   2021-07-28
  * 
- * @brief  Propagation path structure and basic functions.
+ * @brief  Propagation path basic functions.
  * 
- * This file contains the definition of the Ppath structure and the
- * functions in ppath_basic.cc that are of interest elsewhere.
- *
  * As these functions are called many times, very few checks and asserts are
  * included. Correctness of input shall be done by calling function. 
  */
