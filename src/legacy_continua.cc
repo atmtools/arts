@@ -21430,7 +21430,7 @@ L999:
     */
 
   /* Local variables */
-  int list, jsum = 0;
+  int list;
   extern double bgama_(
       double *, double *, double *, double *, double *, double *, double *);
   int i__, j;
@@ -21515,7 +21515,6 @@ L999:
       do_lio(&c__5, &c__1, (char *)&abscoef[1], (ftnlen)sizeof(double));
       e_wsle();
     */
-  jsum = 0;
   s__1 = jrange2;
   for (i1 = 1; i1 <= s__1; ++i1) {
     j1 = i1 - 1;
@@ -21534,7 +21533,6 @@ L999:
            exp(-1.4387859 / *temp *
                ((b01 - (double)s__3 * d01) * (double)s__3)) /
            q1;
-      ++jsum;
       s__3 = jp1 * ip1;
       s__4 = j1 * i1;
       omega1 = (b01 - (double)s__3 * d01) * (double)s__3 -
@@ -21607,7 +21605,6 @@ L152:
           exp(-1.4387859 / *temp *
               ((b01 - (double)s__4 * d01) * (double)s__4)) /
           q1;
-      ++jsum;
       s__4 = jp * ip;
       s__3 = j * i__;
       omega1 = (b01 - (double)s__4 * d01) * (double)s__4 -
