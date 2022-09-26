@@ -115,9 +115,10 @@ xscale_option() {
   std::array<char, 100> buf;
   for (size_t i = 0; i < out.size(); i++) {
     buf.fill('\0');
-    std::sprintf(buf.data(),
-                 "%g",
-                 xscale(1e12, PropmatClearsky::enumtyps::XScalingTypes[i]));
+    std::snprintf(buf.data(),
+                  buf.size(),
+                  "%g",
+                  xscale(1e12, PropmatClearsky::enumtyps::XScalingTypes[i]));
 
     out[i] = var_string("\tScale: ",
                         xunit(PropmatClearsky::enumtyps::XScalingTypes[i]),
@@ -371,7 +372,10 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
 
   std::array<char, 100> yscale_str;
   yscale_str.fill('\0');
-  sprintf(yscale_str.data(), " (Scale: 1:%g)", main_data.yscale_const);
+  snprintf(yscale_str.data(),
+           yscale_str.size(),
+           " (Scale: 1:%g)",
+           main_data.yscale_const);
 
   const std::string y_axis = var_string(
       select_jac ? MainMenu::absunit(

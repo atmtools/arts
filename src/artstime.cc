@@ -107,16 +107,16 @@ std::ostream& operator<<(std::ostream& os, const Time& t)
   std::tm x = t.toStruct();
   
   // Deal with seconds
-  char sec[2+1+9+100];
+  std::array <char, 2 + 1 + 9 + 100> sec;
   Numeric seconds = Numeric(x.tm_sec) + t.PartOfSecond();
-  sprintf(sec, "%.9lf", seconds);
+  snprintf(sec.data(), sec.size(), "%.9lf", seconds);
   
   // Print based on std::tm specs
   return os << 1900 + x.tm_year << '-' << std::setfill('0') << std::setw(2)
             << 1 + x.tm_mon << '-' << std::setfill('0') << std::setw(2)
             << x.tm_mday << ' ' << std::setfill('0') << std::setw(2)
             << x.tm_hour << ':' << std::setfill('0') << std::setw(2)
-            << x.tm_min <<':' << std::setfill('0') << std::setw(12) << sec;
+            << x.tm_min <<':' << std::setfill('0') << std::setw(12) << sec.data();
 }
 
 std::istream& operator>>(std::istream& is, Time& t)

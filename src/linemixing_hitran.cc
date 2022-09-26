@@ -1829,23 +1829,24 @@ void detband(CommonBlock& cmn,
       cmn.Bands.li[cmn.Bands.nBand] = lir;
       cmn.Bands.lf[cmn.Bands.nBand] = lfr;
 
-      char name[15];
-      sprintf(name,
-              "S%" PRId64 "%c%c%" PRId64 "%c%c%c%c%" PRId64 "%c%c%c%c",
-              isotr,
-              c11,
-              c12,
-              lfr,
-              c21,
-              c22,
-              c31,
-              c32,
-              lir,
-              c41,
-              c42,
-              c51,
-              c52);
-      cmn.Bands.BandFile[cmn.Bands.nBand] = name;
+      std::array<char, 15> name;
+      snprintf(name.data(),
+               name.size(),
+               "S%" PRId64 "%c%c%" PRId64 "%c%c%c%c%" PRId64 "%c%c%c%c",
+               isotr,
+               c11,
+               c12,
+               lfr,
+               c21,
+               c22,
+               c31,
+               c32,
+               lir,
+               c41,
+               c42,
+               c51,
+               c52);
+      cmn.Bands.BandFile[cmn.Bands.nBand] = name.data();
       cmn.Bands.nBand++;
       ARTS_USER_ERROR_IF (cmn.Bands.nBand > parameters::nBmx,
                           "Too many bands");
