@@ -577,7 +577,7 @@ Numeric surface_z_at_pos(const Vector pos,
       gp4length1grid(gp_lat);
     }
     Vector itw(2);
-    interpweights(itw, gp_lat);
+    interpweights(itw, gp_lat[0]);
     return interp(itw, surface_elevation.data(joker, 0), gp_lat[0]);
     
   } else if (atmosphere_dim == 3) {
@@ -598,7 +598,7 @@ Numeric surface_z_at_pos(const Vector pos,
       gp4length1grid(gp_lon);
     }
     Vector itw(4);
-    interpweights(itw, gp_lat, gp_lon);
+    interpweights(itw, gp_lat[0], gp_lon[0]);
     return interp(itw, surface_elevation.data, gp_lat[0], gp_lon[0]);
 
   } else {
