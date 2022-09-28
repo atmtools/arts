@@ -30,11 +30,9 @@
 #define ppathZZZ_h
 
 #include "agenda_class.h"
-#include "interpolation.h"
 #include "gridded_fields.h"
+#include "interpolation.h"
 #include "ppath.h"
-
-
 
 /*===========================================================================
   === Functions
@@ -47,15 +45,17 @@
 
    @param[in]   rte_pos         As the WSV with the same name.
    @param[in]   rte_los         As the WSV with the same name.
-   @param[in]   ecef            *rte_pos* in ECEF
-   @param[in]   decef           *rte_los* in ECEF
+   @param[in]   ecef            *rte_pos* in ECEF.
+   @param[in]   decef           *rte_los* in ECEF.
    @param[in]   atmosphere_dim  As the WSV with the same name.
    @param[in]   refellipsoid    As the WSV with same name.
    @param[in]   z_grid          As the WSV with same name.
    @param[in]   lon_grid        As the WSV with same name.
    @param[in]   lat_grid        As the WSV with same name.
+   @param[in]   cloudbox_on     As the WSV with same name.
+   @param[in]   cloudbox_limits As the WSV with same name.
    @param[in]   is_outside      Shall be set to true/false if *rte_pos* is
-                                outside/inside of cloudbox
+                                outside/inside of cloudbox.
 
    @return   Length to the cloudbox.
 
@@ -85,13 +85,13 @@ Numeric find_crossing_cloudbox(const Vector rte_pos,
 
    @param[in]   rte_pos           As the WSV with the same name.
    @param[in]   rte_los           As the WSV with the same name.
-   @param[in]   ecef              rte_pos in ECEF
-   @param[in]   decef             rte_los in ECEF
+   @param[in]   ecef              rte_pos in ECEF.
+   @param[in]   decef             rte_los in ECEF.
    @param[in]   atmosphere_dim    As the WSV with the same name.
    @param[in]   refellipsoid      As the WSV with same name.
    @param[in]   surface_elevation As the WSV with same name.
-   @param[in]   l_accuracy        See WSM IntersectionGeometricalWithSurface
-   @param[in]   safe_search       See WSM IntersectionGeometricalWithSurface
+   @param[in]   l_accuracy        See WSM IntersectionGeometricalWithSurface.
+   @param[in]   safe_search       See WSM IntersectionGeometricalWithSurface.
 
    @return   Length to the surface.
 
@@ -141,58 +141,31 @@ Index is_pos_outside_atmosphere(const Vector pos,
                                 const Vector& lat_grid,
                                 const Vector& lon_grid);
 
-/** Adjusts longitudes and calculates grid positions of a ppath
+
+/** Geometric ppath, with same distance between all points
+
+   Generates a full ppath structure holding a geomtrical path. The points of the
+   ppath have equidistant spacing, according to l_step_max. The total length of
+   the ppath does not exceed l_total_max (if > 0). 
    
-   A help function doing two things:
+   Intersections with TOA, surface and cloudbox are considered. The ppath is 
+   checked to fully be inside the atmosphere.
 
-   If 3D, adjusts the longitudes in pos, start_pos and end_pos so they match
-   lon_grid
-
-   Calculates grid positions
-
-   @param[in,out]  ppath      ppath-structure with at least fields dim, np,
-                              pos, end_pos and start_pos set
-   @param[in]   z_grid        As the WSV with the same name.
-   @param[in]   lat_grid      As the WSV with the same name.
-   @param[in]   lon_grid      As the WSV with the same name.
-
-
-   @author Patrick Eriksson
-   @date   2021-08-16
- */
-void ppath_fix_lon_and_gp(Ppath& ppath,
-                          const Vector& z_grid,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid);
-
-/** Some initial steps to determine a propagation path
-
-   The function performs initial checks that are independent if the geometrical
-   or refracted path shall be calculated. 
-
-   If sensor is outside of the atmosphere, the function checks that the
-   propagation path enters the atmosphere from the top (or is totally in
-   space).
-
-   The function also checks if rte_pos is inside the cloudbox. Inside here
-   includes to be at the boundary.
-
-   No check with respect to the surface is made.
-
-   @param[out]  l2toa             Length to TOA. Set to be negative if sensor
-                                  is inside  of atmosphere
-   @param[out]  pos_toa           If l2toa >= 0, holds the position where the
-                                  path enters the atmosphere.
-   @param[out]  los_toa           If l2toa >= 0, holds the LOS at pos_toa
+   @param[out]  ppath             As the WSV with the same name.
    @param[in]   rte_pos           As the WSV with the same name.
    @param[in]   rte_los           As the WSV with the same name.
-   @param[in]   ecef              rte_pos in ECEF
-   @param[in]   decef             rte_los in ECEF
    @param[in]   atmosphere_dim    As the WSV with the same name.
    @param[in]   refellipsoid      As the WSV with same name.
+   @param[in]   z_grid            As the WSV with same name.
+   @param[in]   lat_grid          As the WSV with same name.
+   @param[in]   lon_grid          As the WSV with same name.
+   @param[in]   cloudbox_on       As the WSV with same name.
+   @param[in]   cloudbox_limits   As the WSV with same name.
    @param[in]   surface_elevation As the WSV with same name.
-   @param[in]   l_accuracy        See WSM IntersectionGeometricalWithSurface
-   @param[in]   safe_search       See WSM IntersectionGeometricalWithSurface
+   @param[in]   l_step_max        Max distance between points of ppath.
+   @param[in]   l_total_max       Max total length of ppath.
+   @param[in]   l_accuracy        See WSM IntersectionGeometricalWithSurface.
+   @param[in]   safe_search       See WSM IntersectionGeometricalWithSurface.
 
    @return  Radiative background. Set to be undefined if not found to be space
    or cloudbox.
@@ -200,20 +173,21 @@ void ppath_fix_lon_and_gp(Ppath& ppath,
    @author Patrick Eriksson
    @date   2021-08-11
  */
-enum PpathBackground ppath_init_calc(Numeric& l2toa,
-                                     VectorView pos_toa,
-                                     VectorView los_toa,
-                                     const Vector rte_pos,
-                                     const Vector rte_los,
-                                     ConstVectorView ecef,
-                                     ConstVectorView decef,
-                                     const Index& atmosphere_dim,
-                                     const Vector& refellipsoid,
-                                     const Vector& z_grid,
-                                     const Vector& lat_grid,
-                                     const Vector& lon_grid,
-                                     const Index& cloudbox_on,
-                                     const ArrayOfIndex& cloudbox_limits);
+void ppath_geom_const_lstep(Ppath& ppath,
+                            const Vector& rte_pos,
+                            const Vector& rte_los,
+                            const Index& atmosphere_dim,
+                            const Vector& refellipsoid,
+                            const Vector& z_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid,
+                            const Index& cloudbox_on,
+                            const ArrayOfIndex& cloudbox_limits,
+                            const GriddedField2& surface_elevation,
+                            const Numeric& l_step_max,
+                            const Numeric& l_total_max,
+                            const Numeric& l_accuracy,
+                            const Index& safe_surface_search);
 
 /** Returns surface elevation at lat and lon of a position
 
@@ -221,6 +195,8 @@ enum PpathBackground ppath_init_calc(Numeric& l2toa,
    work as the retrieval grids.
 
    Can also be used for other GriddedField2 that are defined in the same way.
+
+   ZZZ Move to file for surface stuff ZZZ
 
    @param[in]   pos               Position vector.
    @param[in]   atmosphere_dim    As the WSV with the same name.
