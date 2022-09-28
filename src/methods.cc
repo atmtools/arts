@@ -13851,6 +13851,78 @@ Available models:
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppathCalcZZZ"),
+      DESCRIPTION(
+        "General method for the calculation of a propagation path (ppath).\n"
+        "\n"
+        "A propagation path is primarily defined by the observation geometry (real or\n"
+        "imagainary) described by *rte_pos* and *rte_los*. That is, a ppath describes\n"
+        "the propagation of the radiation observed in the backward direction. The other\n"
+        "end point of a single ppath is the intersection with the surface, the top of\n"
+        "the atmosphere (TOA) or the cloudbox (if active). If there are several such\n"
+        "intersections, the first one sets the end point. The exception is if the GIN\n"
+        "stop_distance is set and this distance is shorther than the one to the first\n"
+        "intersection with a atmospheric boundary. For observations from outside of\n"
+        "the atmosphere, the effective starting point of the ppath is at TOA.\n"
+        "\n"
+        "If refraction is ignored (refraction_do=0), the ppath is determined in two\n"
+        "parts:\n"
+        "   1: The ppath is described with equidistant steps between the end points.\n"
+        "      The distance is as high as possibly without exceeding GIN l_max.\n"
+        "   2: If GIN add_grid_crossings set to true, the crossings with the active\n"
+        "      atmospheric grids (just z_grid for 1D, as example) are taken as\n"
+        "      primary ppath points. Points from 1 are included if needed to fulfill\n"
+        "      the criterion set by l_max. Please note that a high value of l_max\n"
+        "      can in some conditions resukt in that grid crossings are missed. The\n"
+        "      main examples where this can happen should be limb sounding or any\n"
+        "      case having a ppath close the north or south pole.\n"
+        "\n"
+        "With GIN refraction_do set to true the same basic scheme applies, except\n"
+        "that in part 1 the distnces will be l_max except the last one that is\n"
+        "simply the remaining length to the end point. Please note that the step\n"
+        "length of the ray tracing performed is l_max/refraction_factor. That is,\n"
+        "refraction_factor ray tracing steps are taken before a new point is added\n"
+        "in part 1. \n"
+        "\n"
+        "The path is mainly calculated using fully analytical expressions. The\n"
+        "exception is to find intersections with the surface, that requires a\n"
+        "search procedure. The two last GIN are  settings for this search. See\n"
+        "*IntersectionGeometricalWithSurface* for details.\n"), 
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppathZZZ"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos",
+         "rte_los",
+         "atmosphere_dim",
+         "refellipsoidZZZ",
+         "z_grid",
+         "lat_grid",
+         "lon_grid",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "surface_elevation"),
+      GIN("refraction_do",
+          "add_grid_crossings",
+          "l_step_max",
+          "l_total_max",
+          "l_raytrace_geom",
+          "l_raytrace_refr",
+          "l_accuracy", 
+          "safe_surface_search"),
+      GIN_TYPE("Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT("0", "1", "10e3", "-1.0", "10e3", "2e3", "0.1", "0"),
+      GIN_DESC("Flag to consider refraction or not.",
+               "Flag to include crossings with z, lat and lon grids as ppath points.",
+               "If set to >0, sets the maximum distance between ppath points.",
+               "If set to >0, sets the maximum total length of the ppath calculated.",
+               "If refraction_do false, the ray tracing step length to apply.",
+               "If refraction_do true, the ray tracing step length to apply.",
+               "See *IntersectionGeometricalWithSurface*.",
+               "See *IntersectionGeometricalWithSurface*.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathCheckStartPoint"),
       DESCRIPTION(
          "Allows to check that a propagation path starts as expected.\n"
@@ -14002,50 +14074,6 @@ Available models:
                "no solution is found.",
                "Lowest value ppath_lraytrace to consider. The calculations "
                "are halted if this length is passed.")));
-
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathGeometric"),
-      DESCRIPTION(
-         "Geometrical propagation paths.\n"
-         "\n"
-         "This method ignores refraction and determines the pure geometrical\n"
-         "propagation path.\n"
-         "\n"
-         "The path from the observation point is followed backwards until the\n"
-         "surface, the top-of-atmosphere (TOA) or the cloudbox (if active) is\n"
-         "reached. For observations from a point outside of the atmosphere, the\n"
-         "path effective starting point of the path is at TOA.\n"
-         "\n"
-         "The path is divived in equally long steps along the path. The length\n"
-         "of these steps is <= *ppath_lmax*.\n"
-         "\n"
-         "The path is mainly calculated using fully analytical expressions. The\n"
-         "exception is to find/test intersections with the surface, that requires\n"
-         "a search procedure. The two GOUT are settings for this search. See\n"
-         "*IntersectionGeometricalWithSurface* for details.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("ppathZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("rte_pos",
-         "rte_los",
-         "atmosphere_dim",
-         "refellipsoidZZZ",
-         "z_grid",
-         "lat_grid",
-         "lon_grid",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "surface_elevation",
-         "ppath_lmax",
-         "ppath_stop_distance"),
-      GIN("l_accuracy", "safe_surface_search"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT("0.1", "0"),
-      GIN_DESC("See *IntersectionGeometricalWithSurface*.",
-               "See *IntersectionGeometricalWithSurface*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathPlaneParallel"),

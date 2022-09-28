@@ -31,7 +31,7 @@ ArrayOfIndexSet( cloudbox_limits, [] )
 # From space missing the atmosphere
 VectorSet( rte_pos, [600e3,11,22] )
 VectorSet( rte_los, [100,9] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 1,
                       np = 0,
                       zenith_angle = 100,
@@ -42,7 +42,7 @@ ppathCheckStartPoint( background = 1,
 # From space looking into the surface
 VectorSet( rte_pos, [600e3,34,123] )
 VectorSet( rte_los, [135,-39] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 2,
                       altitude = 123,
                       daltitude = 1 )
@@ -50,7 +50,7 @@ ppathCheckStartPoint( background = 2,
 # From space doing limb sounding
 VectorSet( rte_pos, [600e3,55,103] )
 VectorSet( rte_los, [113.2,139] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 1,
                       altitude = 100e3,
                       daltitude = 1,
@@ -60,7 +60,7 @@ ppathCheckStartPoint( background = 1,
 # From within the atmosphere looking up
 VectorSet( rte_pos, [500,42,190] )
 VectorSet( rte_los, [10,-89] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 1,
                       altitude = 100e3,
                       daltitude = 1 )
@@ -68,7 +68,7 @@ ppathCheckStartPoint( background = 1,
 # From within the atmosphere looking down towards the surface
 VectorSet( rte_pos, [12e3,22.2,-180] )
 VectorSet( rte_los, [135,39] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 2,
                       altitude = 123,
                       daltitude = 1e-3 )
@@ -76,7 +76,7 @@ ppathCheckStartPoint( background = 2,
 # Standing on the surface, looking down
 VectorSet( rte_pos, [123,10,120] )
 VectorSet( rte_los, [135,39] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 2,
                       altitude = 123,
                       daltitude = 1e-3 )
@@ -84,7 +84,7 @@ ppathCheckStartPoint( background = 2,
 # From within the atmosphere doing limb sounding
 VectorSet( rte_pos, [20e3,36.23,-162] )
 VectorSet( rte_los, [93,-178] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 1,
                       altitude = 100e3,
                       daltitude = 1,
@@ -101,7 +101,7 @@ ArrayOfIndexSet( cloudbox_limits, [10,20,10,20,10,90] )
 # From space looking down on cloudbox
 VectorSet( rte_pos, [600e3,23,123] )
 VectorSet( rte_los, [180,-123] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       altitude = 20e3,
                       daltitude = 1 )
@@ -109,7 +109,7 @@ ppathCheckStartPoint( background = 3,
 # From ground looking up on cloudbox
 VectorSet( rte_pos, [123,27,-178] )
 VectorSet( rte_los, [18,22] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       altitude = 10e3,
                       daltitude = 1 )
@@ -117,7 +117,7 @@ ppathCheckStartPoint( background = 3,
 # Looking into south face of cloudbox
 VectorSet( rte_pos, [19.5e3,19.05,-172] )
 VectorSet( rte_los, [95,20] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       latitude = 20,
                       dlatitude = 0.01 )
@@ -125,7 +125,7 @@ ppathCheckStartPoint( background = 3,
 # Looking into north face of cloudbox
 VectorSet( rte_pos, [8.78e3,30.5,-180] )
 VectorSet( rte_los, [81,-175] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       latitude = 30,
                       dlatitude = 0.01 )
@@ -133,7 +133,7 @@ ppathCheckStartPoint( background = 3,
 # Looking into west face of cloudbox
 VectorSet( rte_pos, [14.11e3,22,108.7] )
 VectorSet( rte_los, [89.34,83] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       longitude = 110,
                       dlongitude = 0.01 )
@@ -142,7 +142,7 @@ ppathCheckStartPoint( background = 3,
 VectorSet( rte_pos, [14.11e3,22,-169.2] )
 VectorSet( rte_los, [89.34,-97] )
 NumericSet( ppath_lmax, 20e3 )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       longitude = 190,
                       dlongitude = 0.01 )
@@ -150,7 +150,7 @@ ppathCheckStartPoint( background = 3,
 # From within the cloudbox
 VectorSet( rte_pos, [11e3,27,150] )
 VectorSet( rte_los, [90,0] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       np = 1,
                       altitude = 11e3,
@@ -163,19 +163,19 @@ ppathCheckStartPoint( background = 3,
 # (while the tests above or more looking staright into a face)
 VectorSet( rte_pos, [21e3,19.94,109.5] )
 VectorSet( rte_los, [91.1,65] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       altitude = 20e3,
                       daltitude = 1 )
 
 VectorSet( rte_los, [92,85] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       latitude = 20,
                       dlatitude = 0.01 )
 
 VectorSet( rte_los, [92,45] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       longitude = 110,
                       dlongitude = 0.01 )
@@ -190,7 +190,7 @@ ArrayOfIndexSet( cloudbox_limits, [10,100,10,20,10,90] )
 # From space looking down on cloudbox
 VectorSet( rte_pos, [600e3,29,153] )
 VectorSet( rte_los, [153,-123] )
-ppathGeometric
+ppathCalcZZZ
 ppathCheckStartPoint( background = 3,
                       np = 1,
                       altitude = 100e3,
