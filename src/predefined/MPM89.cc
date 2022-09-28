@@ -116,7 +116,7 @@ void water(PropagationMatrix& propmat_clearsky,
     }
     // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
     propmat_clearsky.Kjj()[s] +=
-        dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
+        vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
   }
 }
 
@@ -242,7 +242,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
       vmr,
       " which is below the threshold of ",
       VMRCalcLimit,
-      ".\n",
+      ".\n"
       "Therefore no calculation is performed.\n")
 
   // relative inverse temperature [1]
@@ -293,9 +293,8 @@ void oxygen(PropagationMatrix& propmat_clearsky,
     //
     // O2 line absorption [1/m]
     // cross section: pxsec = absorption / var
-    // the vmr of O2 will be multiplied at the stage of absorption calculation:
     propmat_clearsky.Kjj()[s] +=
-        dB_km_to_1_m * 0.1820 * ff * (Nppl + Nppc) / VMRISO;
+        vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + Nppc) / VMRISO;
   }
 }
 }  // namespace Absorption::PredefinedModel::MPM89
