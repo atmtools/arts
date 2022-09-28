@@ -167,57 +167,6 @@ void Print(  // WS Generic Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
-    const Ppath& x,
-    // Keywords:
-    const Index& level,
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-  SWITCH_OUTPUT(level, "dim: ");
-  Print(x.dim, level, verbosity);
-  SWITCH_OUTPUT(level, "np: ");
-  Print(x.np, level, verbosity);
-  SWITCH_OUTPUT(level, "constant: ");
-  Print(x.constant, level, verbosity);
-  SWITCH_OUTPUT(level, "background: ");
-  Print(x.background, level, verbosity);
-  SWITCH_OUTPUT(level, "start_pos: ");
-  Print(x.start_pos, level, verbosity);
-  SWITCH_OUTPUT(level, "start_los: ");
-  Print(x.start_los, level, verbosity);
-  SWITCH_OUTPUT(level, "start_lstep: ");
-  Print(x.start_lstep, level, verbosity);
-  SWITCH_OUTPUT(level, "pos: ");
-  Print(x.pos, level, verbosity);
-  SWITCH_OUTPUT(level, "los: ");
-  Print(x.los, level, verbosity);
-  SWITCH_OUTPUT(level, "r: ");
-  Print(x.r, level, verbosity);
-  SWITCH_OUTPUT(level, "lstep: ");
-  Print(x.lstep, level, verbosity);
-  SWITCH_OUTPUT(level, "end_pos: ");
-  Print(x.end_pos, level, verbosity);
-  SWITCH_OUTPUT(level, "end_los: ");
-  Print(x.end_los, level, verbosity);
-  SWITCH_OUTPUT(level, "end_lstep: ");
-  Print(x.end_lstep, level, verbosity);
-  SWITCH_OUTPUT(level, "nreal: ");
-  Print(x.nreal, level, verbosity);
-  SWITCH_OUTPUT(level, "ngroup: ");
-  Print(x.ngroup, level, verbosity);
-  SWITCH_OUTPUT(level, "gp_p: ");
-  Print(x.gp_p, level, verbosity);
-  if (x.dim >= 2) {
-    SWITCH_OUTPUT(level, "gp_lat: ");
-    Print(x.gp_lat, level, verbosity);
-  }
-  if (x.dim == 3) {
-    SWITCH_OUTPUT(level, "gp_lon: ");
-    Print(x.gp_lon, level, verbosity);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Print(  // WS Generic Input:
     const ArrayOfPpath& x,
     // Keywords:
     const Index& level,

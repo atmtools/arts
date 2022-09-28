@@ -274,6 +274,7 @@ add_library (artscore STATIC
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
+  ppath_struct.cc
   propmat_field.cc
   psd.cc
   quantum_numbers.cc

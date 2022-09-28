@@ -115,13 +115,6 @@ void Print(  // WS Generic Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
-    const Ppath& ppath,
-    // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Print(  // WS Generic Input:
     const ArrayOfPpath& x,
     // Keywords:
     const Index& level,
