@@ -56,9 +56,24 @@ void ppathCalcZZZ(Ppath& ppath,
                   const Numeric& l_accuracy,
                   const Index& safe_surface_search,
                   const Verbosity&) {
+  // Check lengths always used
+  if (l_step_max <= 0) {
+    ARTS_USER_ERROR("GIN l_step_max must be > 0.\n");
+  }
+  if (l_accuracy <= 0) {
+    ARTS_USER_ERROR("GIN l_accuracy must be > 0.\n");
+  }
+
   if (refraction_do) {
+    if (l_raytrace_refr <= 0 || l_raytrace_refr > l_step_max/4) {
+      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0 and < l_step_max/4.\n");
+    }
     ARTS_USER_ERROR("Refraction not yet implemented\n", l_raytrace_refr);
   } else {
+    if (l_raytrace_geom <= 0) {
+      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0.\n");
+    }
+    
     ppath_geom_const_lstep(ppath,
                            rte_pos,
                            rte_los,
