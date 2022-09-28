@@ -35,39 +35,48 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathGeometric(Ppath& ppath,
-                    const Vector& rte_pos,
-                    const Vector& rte_los,
-                    const Index& atmosphere_dim,
-                    const Vector& refellipsoid,
-                    const Vector& z_grid,
-                    const Vector& lat_grid,
-                    const Vector& lon_grid,
-                    const Index& cloudbox_on,
-                    const ArrayOfIndex& cloudbox_limits,
-                    const GriddedField2& surface_elevation,
-                    const Numeric& l_step_max,
-                    const Numeric& l_total_max,
-                    const Numeric& l_accuracy,
-                    const Index& safe_surface_search,
-                    const Verbosity&) {
-  ppath_geom_const_lstep(ppath,
-                         rte_pos,
-                         rte_los,
-                         atmosphere_dim,
-                         refellipsoid,
-                         z_grid,
-                         lat_grid,
-                         lon_grid,
-                         cloudbox_on,
-                         cloudbox_limits,
-                         surface_elevation,
-                         l_step_max,
-                         l_total_max,
-                         l_accuracy,
-                         safe_surface_search);
+void ppathCalcZZZ(Ppath& ppath,
+                  const Vector& rte_pos,
+                  const Vector& rte_los,
+                  const Index& atmosphere_dim,
+                  const Vector& refellipsoid,
+                  const Vector& z_grid,
+                  const Vector& lat_grid,
+                  const Vector& lon_grid,
+                  const Index& cloudbox_on,
+                  const ArrayOfIndex& cloudbox_limits,
+                  const GriddedField2& surface_elevation,
+                  const Index& refraction_do,
+                  const Index& add_grid_crossings,
+                  const Numeric& l_step_max,
+                  const Numeric& l_total_max,
+                  const Numeric& l_raytrace_geom,
+                  const Numeric& l_raytrace_refr,
+                  const Numeric& l_accuracy,
+                  const Index& safe_surface_search,
+                  const Verbosity&) {
+  if (refraction_do) {
+    ARTS_USER_ERROR("Refraction not yet implemented\n", l_raytrace_refr);
+  } else {
+    ppath_geom_const_lstep(ppath,
+                           rte_pos,
+                           rte_los,
+                           atmosphere_dim,
+                           refellipsoid,
+                           z_grid,
+                           lat_grid,
+                           lon_grid,
+                           cloudbox_on,
+                           cloudbox_limits,
+                           surface_elevation,
+                           add_grid_crossings ? l_raytrace_geom : l_step_max,
+                           l_total_max,
+                           l_accuracy,
+                           safe_surface_search);
+  }
+  if (add_grid_crossings) {
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
