@@ -1,4 +1,5 @@
 add_library(predef STATIC
+    MPM89.cc
     MPM2020.cc
     CKDMT350.cc
     hitran_water_mtckd.cc
