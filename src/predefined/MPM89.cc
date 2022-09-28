@@ -2,6 +2,7 @@
 #include <propagationmatrix.h>
 
 #include <array>
+#include <numeric>
 
 #include "arts_constants.h"
 
@@ -102,19 +103,23 @@ void water(PropagationMatrix& propmat_clearsky,
     // input frequency in [GHz]
     const Numeric ff = f_grid[s] * 1e-9;
     // H2O line contribution at position f
-    Numeric Nppl = 0.000;
+    const Numeric Nppl = std::transform_reduce(
+        mpm89.begin(),
+        mpm89.end(),
+        0.0,
+        std::plus{},
+        [pwv_dummy, theta, pwv, pda, ff](auto& l) {
+          const Numeric strength =
+              pwv_dummy * l[1] * pow(theta, 3.5) * exp(l[2] * (1.000 - theta));
+          // line broadening parameter [GHz]
+          const Numeric gam =
+              l[3] * 0.001 *
+              (l[5] * pwv * pow(theta, l[6]) + pda * pow(theta, l[4]));
+          return strength * MPMLineShapeFunction(gam, l[0], ff);
+        });
 
-    // Loop over MPM89 spectral lines:
-    for (const auto& l : mpm89) {
-      // line strength [kHz]
-      Numeric strength =
-          pwv_dummy * l[1] * pow(theta, 3.5) * exp(l[2] * (1.000 - theta));
-      // line broadening parameter [GHz]
-      Numeric gam = l[3] * 0.001 *
-                    (l[5] * pwv * pow(theta, l[6]) + pda * pow(theta, l[4]));
-      Nppl += strength * MPMLineShapeFunction(gam, l[0], ff);
-    }
-    // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
+    //
+    // H2O line absorption [1/m]
     propmat_clearsky.Kjj()[s] +=
         vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
   }
@@ -270,31 +275,31 @@ void oxygen(PropagationMatrix& propmat_clearsky,
         strength_cont * ff * gam_cont / (pow2(ff) + pow2(gam_cont));
 
     // Loop over MPM89 O2 spectral lines:
-    Numeric Nppl = 0.0;
-    for (const auto& l : mpm89) {
-      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
-      const Numeric strength = l[1] * 1.000e-6 * pda_dummy * pow3(theta) *
-                               exp(l[2] * (1.000 - theta)) / l[0];
-      // line broadening parameter [GHz]
-      const Numeric gam =
-          (l[3] * 1.000e-3 *
-           ((pda * pow(theta, ((Numeric)0.80 - l[4]))) + (1.10 * pwv * theta)));
-      // line mixing parameter [1]
-      const Numeric delta =
-          ((l[5] + l[6] * theta) * 1.000e-3 * pda * pow(theta, (Numeric)0.8));
-      // absorption [dB/km] like in the original MPM92
-      Nppl += strength * MPMLineShapeO2Function(gam, l[0], ff, delta);
-    }
-
-    // in MPM89 we adopt the cutoff for O2 line absorption if abs_l < 0
-    // absorption cannot be less than 0 according to MPM87 source code.
-    if (Nppl < 0.000) Nppl = 0.0000;
+    const Numeric Nppl = std::transform_reduce(
+        mpm89.begin(),
+        mpm89.end(),
+        0.0,
+        std::plus{},
+        [pda_dummy, theta, pda, pwv, ff](auto& l) {
+          // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+          const Numeric strength = l[1] * 1.000e-6 * pda_dummy * pow3(theta) *
+                                   exp(l[2] * (1.000 - theta)) / l[0];
+          // line broadening parameter [GHz]
+          const Numeric gam = (l[3] * 1.000e-3 *
+                               ((pda * pow(theta, ((Numeric)0.80 - l[4]))) +
+                                (1.10 * pwv * theta)));
+          // line mixing parameter [1]
+          const Numeric delta = ((l[5] + l[6] * theta) * 1.000e-3 * pda *
+                                 pow(theta, (Numeric)0.8));
+          // absorption [dB/km] like in the original MPM92
+          return strength * MPMLineShapeO2Function(gam, l[0], ff, delta);
+        });
 
     //
     // O2 line absorption [1/m]
-    // cross section: pxsec = absorption / var
-    propmat_clearsky.Kjj()[s] +=
-        vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + Nppc) / VMRISO;
+    propmat_clearsky.Kjj()[s] += vmr * dB_km_to_1_m * 0.1820 * ff *
+                                 (((Nppl < 0.000) ? 0.0 : Nppl) + Nppc) /
+                                 VMRISO;
   }
 }
 }  // namespace Absorption::PredefinedModel::MPM89
