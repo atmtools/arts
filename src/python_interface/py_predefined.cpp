@@ -249,6 +249,32 @@ Parameters:
 )--"));
 }
 
+void internalCKDMT100(py::module_& m) {
+  m.def(
+      "get_o2_cia_ckdmt100",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD100::oxygen_cia(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_h2o : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+)--"));
+}
+
 void internalCKDMT252(py::module_& m) {
   m.def(
       "get_co2_ckdmt252",
@@ -381,6 +407,7 @@ void py_predefined(py::module_& m) {
 
   internalCKDMT350(predef);
   internalCKDMT252(predef);
+  internalCKDMT100(predef);
   internalMTCKD(predef, hitran_mtckd_data);
   internalMPM89(predef);
   internalPWR98(predef);

@@ -48,6 +48,14 @@ void oxygen(PropagationMatrix& propmat_clearsky,
             const Numeric h2o);
 }  // namespace PWR98
 
+namespace MT_CKD100 {
+void oxygen_cia(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric p,
+                const Numeric Tave,
+                const Numeric vmr);
+}  // namespace MT_CKD100
+
 namespace MT_CKD252 {
 void carbon_dioxide(PropagationMatrix& propmat_clearsky,
                     const Vector& f_grid,

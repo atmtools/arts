@@ -2,6 +2,7 @@ add_library(predef STATIC
     ELL07.cc
     MPM89.cc
     MPM2020.cc
+    MT_CKD100.cc
     MT_CKD252.cc
     CKDMT350.cc
     PWR98.cc
