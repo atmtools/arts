@@ -19,9 +19,9 @@
  * @file   ppath_basic.cc
  * @author Patrick Eriksson <patrick.eriksson@chalmers.se>
  * @date   2021-07-28
- * 
+ *
  * @brief  Basic functions releated to calculation of propagation paths.
- * 
+ *
  * The term propagation path is here shortened to ppath.
  */
 
@@ -45,7 +45,7 @@ inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
   ===========================================================================*/
 
 /** Checks that a ppath is fully inside the atmoshere
-   
+
    If not, an error is issued.
 
    @param[in]  ppath           As the WSV with the same name.
@@ -123,7 +123,7 @@ void is_ppath_inside_atmosphere(const Ppath& ppath,
 }
 
 /** Adjusts longitudes and calculates grid positions of a ppath
-   
+
    A help function doing two things:
 
    If 3D, adjusts the longitudes in pos, start_pos and end_pos so they match
@@ -176,7 +176,7 @@ void ppath_fix_lon_and_gp(Ppath& ppath,
 /** Some initial steps to determine a propagation path
 
    The function performs initial checks that are independent if the geometrical
-   or refracted path shall be calculated. 
+   or refracted path shall be calculated.
 
    If sensor is outside of the atmosphere, the function checks that the
    propagation path enters the atmosphere from the top (or is totally in
@@ -1060,7 +1060,7 @@ void ppath_grid_crossings(Ppath& ppath,
       }
 
       // Sort found lengths
-      // ???
+      // How to do this best?
 
       // Move to overall arrays and add points if l_step_max that requires
       for (Index i = 0; i < l2next.nelem(); ++i) {
@@ -1073,6 +1073,7 @@ void ppath_grid_crossings(Ppath& ppath,
           const Numeric l_step = dl / Numeric(n_extra + 1);
           for (Index extra = 1; extra <= n_extra; ++extra) {
             const Numeric l_extra = l_last_inserted + Numeric(extra) * l_step;
+            // l_extra could be inside earlier ppath step! We have to search from start:
             Index i0 = 0;
             for (; l_from_start[i0 + 1] < l_extra; ++i0) {
             }
@@ -1089,5 +1090,66 @@ void ppath_grid_crossings(Ppath& ppath,
     }  // if dgp_p
   }    // ip loop
 
-  //
+  // Make copies of data in ppath that wuill change, but we need
+  Index np = ppath.np;
+  Vector nreal = ppath.nreal;
+  Vector ngroup = ppath.ngroup;
+  Matrix pos = ppath.pos;
+  Matrix los = ppath.los;
+
+  // New size of ppath
+  const Index nl = l_array.nelem();
+  ppath.np = nl + 2;
+  ppath.nreal = Vector(ppath.np, 1.0);  // We guess on no refraction
+  ppath.ngroup = Vector(ppath.np, 1.0);
+  ppath.lstep.resize(ppath.np - 1);
+  ppath.pos.resize(ppath.np, 3);
+  ppath.los.resize(ppath.np, 2);
+
+  // Pos and los at end points
+  ppath.pos(0, joker) = pos(0, joker);
+  ppath.los(0, joker) = los(0, joker);
+  ppath.pos(ppath.np - 1, joker) = pos(np - 1, joker);
+  ppath.los(ppath.np - 1, joker) = los(np - 1, joker);
+
+  // Calculate and insert new pos and los, and do lstep in parallel
+  Vector l_array_as_vector(nl);
+  for (Index i = 0; i < nl; ++i) {
+    l_array_as_vector[i] = l_array[i];
+    Numeric ecef, decef;
+    geodetic_los2ecef(ecef,
+                      decef,
+                      pos(istart_array[i], joker),
+                      los(istart_array[i], joker),
+                      refellipsoid);
+    poslos_at_distance(ppath.pos(i + 1, joker),
+                       ppath.los(i + 1, joker),
+                       ecef,
+                       decef,
+                       refellipsoid,
+                       l_array[i] - l_from_start[istart_array[i]]);
+    if (i > 0) {
+      ppath.lstep[i] = l_array[i] - l_array[i - 1];
+    }
+  }
+  ppath.lstep[0] = l_array[0];
+  ppath.lstep[nl] = l_from_start[np - 1] - l_array[nl - 1];
+
+  // New refractive indices, mainly set by interpolation
+  if (max(nreal) > 1.0) {
+    ppath.nreal[0] = nreal[0];
+    ppath.ngroup[0] = ngroup[0];
+    ppath.nreal[ppath.np - 1] = nreal[np - 1];
+    ppath.ngroup[ppath.np - 1] = ngroup[np - 1];
+    //
+    ArrayOfGridPos gp(nl);
+    gridpos(gp, l_from_start, l_array_as_vector);
+    Matrix itw(nl, 2);
+    interpweights(itw, gp);
+    interp(ppath.nreal[Range(1, nl)], itw, nreal, gp);
+    interp(ppath.ngroup[Range(1, nl)], itw, ngroup, gp);
+  }
+
+  // Adjust longitudes (if 3D) and calculate grid positions
+  ppath_fix_lon_and_gp(ppath, z_grid, lat_grid, lon_grid);
 }
