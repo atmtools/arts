@@ -3131,7 +3131,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "calculation options, but it is guaranteed to not exceed the value\n"
           "of *ppath_lmax*.\n"
           "\n"
-          "Usage: Ppath methods such as *ppathGeometric*.\n"),
+          "Usage: Ppath methods such as *ppath_stepGeometric*.\n"),
       GROUP("Numeric"), Numeric{10e3}));
 
   wsv_data.push_back(WsvRecord(
@@ -3166,23 +3166,6 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       WsvRecord(NAME("ppath_step_agenda"),
                 DESCRIPTION("Agenda calculating a propagation path step.\n"),
                 GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppath_stop_distance"),
-      DESCRIPTION(
-          "Maximum length of a full a propagation path.\n"
-          "\n"
-          "The standard choice is to calculate the propagation path backwards\n"
-          "until the surface, the top-of-the-atmosphere or the cloudbox (if active)\n"
-          "is reached. This is selected by setting *ppath_stop_distance* to -1.\n"
-          "\n"
-          "This variable allows to also stop the tracking of the propagation path\n"
-          "at a distance. This distance refers to the distance inside the atmosphere\n"
-          "(and does not include any distance between the observation point and the\n"
-          "the top-of-the-atmosphere.\n"
-          "\n"
-          "Usage: Mainly for internal use.\n"),
-      GROUP("Numeric"), Numeric{-1.0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_f"),

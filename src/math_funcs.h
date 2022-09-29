@@ -84,6 +84,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView grid_stepsize);
 
 Numeric sign(const Numeric& x);
+Index sign(const Index& x);
 
 //! min_geq
 /*! 
