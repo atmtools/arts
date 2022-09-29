@@ -236,7 +236,6 @@ void oxygen(PropagationMatrix& propmat_clearsky,
 
   // check if O2-VMR is exactly zero (caused by zeropadding), then return 0.
   if (vmr == 0.) {
-    propmat_clearsky.Kjj() = 0.;
     return;
   }
 

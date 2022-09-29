@@ -172,6 +172,83 @@ Parameters:
 )--"));
 }
 
+void internalELL07(py::module_& m) {
+  m.def(
+      "get_water_droplet_ell07",
+      [](const Vector& f, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::ELL07::compute(pm, f, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_temperature"),
+      py::arg("lwc"),
+      py::doc(R"--(Computes water absorption using PWR98
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    lwc : Numeric
+        Liquid water content [1e-10, ...)
+)--"));
+}
+
+void internalPWR98(py::module_& m) {
+  m.def(
+      "get_h2o_pwr98",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR98::water(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_h2o"),
+      py::doc(R"--(Computes water absorption using PWR98
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_o2_pwr98",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR98::oxygen(
+            pm, f, p, t, x, h2o);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::arg("x_h2o")=0.0,
+      py::doc(R"--(Computes oxygen absorption using PWR98
+
+Parameters:
+    f_grid : Vector
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric , optional
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+}
+
 void internalCKDMT350(py::module_& m) {
   m.def(
       "get_self_h2oCKDMT350",
@@ -279,5 +356,7 @@ void py_predefined(py::module_& m) {
   internalCKDMT350(predef);
   internalMTCKD(predef, hitran_mtckd_data);
   internalMPM89(predef);
+  internalPWR98(predef);
+  internalELL07(predef);
 }
 }  // namespace Python

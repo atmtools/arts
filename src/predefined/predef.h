@@ -3,6 +3,14 @@
 #include "predef_data.h"
 
 namespace Absorption::PredefinedModel {
+
+namespace ELL07 {
+void compute(PropagationMatrix& propmat_clearsky,
+             const Vector& f_grid,
+             const Numeric t,
+             const Numeric lwc);
+}  // namespace ELL07
+
 namespace MPM89 {
 void water(PropagationMatrix& propmat_clearsky,
            const Vector& f_grid,
@@ -25,6 +33,20 @@ void compute(PropagationMatrix& propmat_clearsky,
              const Numeric& t,
              const Numeric& oxygen_vmr) noexcept;
 }  // namespace MPM2020
+namespace PWR98 {
+void water(PropagationMatrix& propmat_clearsky,
+           const Vector& f_grid,
+           const Numeric p_pa,
+           const Numeric t,
+           const Numeric h2o) noexcept;
+
+void oxygen(PropagationMatrix& propmat_clearsky,
+            const Vector& f_grid,
+            const Numeric p_pa,
+            const Numeric t,
+            const Numeric o2,
+            const Numeric h2o);
+}  // namespace PWR98
 
 namespace CKDMT350 {
 void compute_self_h2o(PropagationMatrix& propmat_clearsky,
