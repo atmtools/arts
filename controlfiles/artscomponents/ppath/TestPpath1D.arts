@@ -17,8 +17,6 @@ surface_elevationSetConstant(elevation=123)
 
 # Ppath specific variables
 NumericSet( ppath_lmax, 10e3 )
-NumericSet( ppath_stop_distance, -1 )
-
 
 
 # Start with spherical ellipsoid
