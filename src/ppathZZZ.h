@@ -189,6 +189,36 @@ void ppath_geom_const_lstep(Ppath& ppath,
                             const Numeric& l_accuracy,
                             const Index& safe_surface_search);
 
+/** Geometric ppath including grid crossings
+
+  When called the variable ppath shall contain a description of the propagation 
+  path fine enough that it can be treated as piecewise linear. In addition, the
+  spacing of the input ppath must be fine enough that altitudes, latitudes and 
+  longitides vary monotonically over each ppaths step. The function will not catch
+  deviations from these criteria, neither crash, but the result will not be ideal. 
+   
+  The output ppath contains all found grid crossings and other points added to meet
+  l_step_max.
+
+   @param[in,out]  ppath          As the WSV with the same name.
+   @param[in]   atmosphere_dim    As the WSV with the same name.
+   @param[in]   refellipsoid      As the WSV with same name.
+   @param[in]   z_grid            As the WSV with same name.
+   @param[in]   lat_grid          As the WSV with same name.
+   @param[in]   lon_grid          As the WSV with same name.
+   @param[in]   l_step_max        Max distance between points of ppath.
+
+   @author Patrick Eriksson
+   @date   2022-09-29
+ */
+void ppath_grid_crossings(Ppath& ppath,
+                          const Index& atmosphere_dim,
+                          const Vector& refellipsoid,
+                          const Vector& z_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const Numeric& l_step_max);
+
 /** Returns surface elevation at lat and lon of a position
 
    Length one grids and infinite extrapolation applied. That is, surface grids
