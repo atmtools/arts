@@ -54,6 +54,17 @@ void oxygen_cia(PropagationMatrix& propmat_clearsky,
                 const Numeric p,
                 const Numeric Tave,
                 const Numeric vmr);
+void oxygen_v0v0(PropagationMatrix& propmat_clearsky,
+                 const Vector& f_grid,
+                 const Numeric p,
+                 const Numeric Tave,
+                 const Numeric vmr,
+                 const Numeric n2);
+void oxygen_v0v1(PropagationMatrix& propmat_clearsky,
+                 const Vector& f_grid,
+                 const Numeric p,
+                 const Numeric Tave,
+                 const Numeric vmr);
 }  // namespace MT_CKD100
 
 namespace MT_CKD252 {

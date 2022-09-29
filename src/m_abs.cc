@@ -1055,7 +1055,7 @@ void propmat_clearskyAddConts(  // Workspace reference:
         const Vector h2o_vmr{h2o == -1 ? 0.0 : rtp_vmr[h2o]};
         const Index n2 =
             find_first_species(abs_species, Species::fromShortName("N2"));
-        const Vector n2_vmr{n2 == -1 ? 0.0 : rtp_vmr[h2o]};
+        const Vector n2_vmr{n2 == -1 ? 0.0 : rtp_vmr[n2]};
         const Index o2 =
             find_first_species(abs_species, Species::fromShortName("O2"));
         const Vector o2_vmr{o2 == -1 ? 0.0 : rtp_vmr[o2]};

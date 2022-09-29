@@ -270,7 +270,58 @@ Parameters:
         Pressure value [Pa]
     rtp_temperature : Numeric
         Temperature value [K]
-    x_h2o : Numeric
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_o2_v0v0_ckdmt100",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric n2) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD100::oxygen_v0v0(pm, f, p, t, x, n2);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::arg("x_n2"),
+      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+    x_n2 : Numeric
+        Ratio of nitrogen in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_o2_v1v0_ckdmt100",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD100::oxygen_v0v1(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
         Ratio of oxygen in the atmosphere in the range [0, 1]
 )--"));
 }
