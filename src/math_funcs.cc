@@ -451,6 +451,23 @@ Numeric sign(const Numeric& x) {
     return 1.0;
 }
 
+//! sign
+/*! 
+    Returns the sign of an Index value.
+
+    The function returns 1 if the value is greater than zero, 0 if it 
+    equals zero and -1 if it is less than zero.
+
+    \return      The sign of x (see above).
+    \param   x   An Index.
+
+    \author Patrick Eriksson 
+    \date   2022-09-29
+*/
+Index sign(const Index& x) {
+  return (x > 0) - (x < 0);
+}
+
 Numeric min_geq(const Numeric n1,
                 const Numeric n2,
                 const Numeric limit) {

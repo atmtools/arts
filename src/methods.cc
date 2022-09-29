@@ -13942,7 +13942,7 @@ Available models:
          "  2: The surface\n"
          "  3: The cloudbox\n"
          "  4: A transmitter\n"
-         "  9: Start point determined by *ppath_stop_distance*\n"),
+         "  9: Start point determined by overall length criterion\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
