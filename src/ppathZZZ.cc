@@ -920,11 +920,7 @@ void ppath_geom_const_lstep(Ppath& ppath,
   }
 
   // Check that ppath is fully inside the atmosphere before doing grid positions
-  is_ppath_inside_atmosphere(ppath,
-                             atmosphere_dim,
-                             z_grid,
-                             lat_grid,
-                             lon_grid);
+  is_ppath_inside_atmosphere(ppath, atmosphere_dim, z_grid, lat_grid, lon_grid);
 
   // Adjust longitudes (if 3D) and calculate grid positions
   ppath_fix_lon_and_gp(ppath, z_grid, lat_grid, lon_grid);
@@ -980,4 +976,118 @@ Numeric surface_z_at_pos(const Vector pos,
   } else {
     ARTS_ASSERT(0);
   }
+}
+
+void ppath_grid_crossings(Ppath& ppath,
+                          const Index& atmosphere_dim,
+                          const Vector& refellipsoid,
+                          const Vector& z_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const Numeric& l_step_max) {
+  // Containers for new ppath points (excluding start and end points, that
+  // always are taken from original ppath)
+  ArrayOfIndex istart_array(0);
+  ArrayOfNumeric l_array(0);
+
+  // Accumulated length from ppath start point
+  Vector l_from_start(ppath.np);
+  l_from_start[0] = 0;
+  Numeric l_last_inserted = 0;
+
+  for (Index ip = 0; ip < ppath.np - 1; ++ip) {
+    // Accumulated length
+    l_from_start[ip + 1] = l_from_start[ip] + ppath.lstep[ip];
+
+    // Length to grid crossing inside ppath step
+    ArrayOfNumeric l2next(0);
+
+    // Change in integer grid position for each dimension
+    const Index dgp_p = ppath.gp_p[ip + 1].idx - ppath.gp_p[ip].idx;
+    const Index dgp_lat = atmosphere_dim < 2
+                              ? 0
+                              : ppath.gp_lat[ip + 1].idx - ppath.gp_lat[ip].idx;
+    const Index dgp_lon = atmosphere_dim < 3
+                              ? 0
+                              : ppath.gp_lon[ip + 1].idx - ppath.gp_lon[ip].idx;
+
+    if (dgp_p || dgp_lat || dgp_lon) {
+      // ECEF at start end of ppath step
+      Numeric ecef, decef;
+      geodetic_los2ecef(ecef,
+                        decef,
+                        ppath.pos(ip, joker),
+                        ppath.los(ip, joker),
+                        refellipsoid);
+
+      // Crossing(s) of z_grid
+      for (Index i = 1; i <= abs(dgp_p); ++i) {
+        const Numeric l_test =
+            intersection_altitude(ecef,
+                                  decef,
+                                  refellipsoid,
+                                  z_grid[ppath.gp_p[ip].idx + sign(dgp_p) * i]);
+        if (l_test > 0) {
+          l2next.push_back(l_test);
+        }
+      }
+
+      // Crossing(s) of lat_grid
+      for (Index i = 1; i <= abs(dgp_lat); ++i) {
+        const Numeric l_test = intersection_latitude(
+            ecef,
+            decef,
+            ppath.pos(ip, joker),
+            ppath.los(ip, joker),
+            refellipsoid,
+            lat_grid[ppath.gp_lat[ip].idx + sign(dgp_lat) * i]);
+        if (l_test > 0) {
+          l2next.push_back(l_test);
+        }
+      }
+
+      // Crossing(s) of lon_grid
+      for (Index i = 1; i <= abs(dgp_lon); ++i) {
+        const Numeric l_test = intersection_longitude(
+            ecef,
+            decef,
+            ppath.pos(ip, joker),
+            ppath.los(ip, joker),
+            lon_grid[ppath.gp_lon[ip].idx + sign(dgp_lon) * i]);
+        if (l_test > 0) {
+          l2next.push_back(l_test);
+        }
+      }
+
+      // Sort found lengths
+      // ???
+
+      // Move to overall arrays and add points if l_step_max that requires
+      for (Index i = 0; i < l2next.nelem(); ++i) {
+        // Some useful lengths
+        const Numeric l_next = l_from_start[ip] + l2next[i];
+        const Numeric dl = l_next - l_last_inserted;
+        // Number of points needed to fulfill l_step_max
+        const Index n_extra = Index(std::floor(dl / l_step_max));
+        if (n_extra) {
+          const Numeric l_step = dl / Numeric(n_extra + 1);
+          for (Index extra = 1; extra <= n_extra; ++extra) {
+            const Numeric l_extra = l_last_inserted + Numeric(extra) * l_step;
+            Index i0 = 0;
+            for (; l_from_start[i0 + 1] < l_extra; ++i0) {
+            }
+            istart_array.push_back(i0);
+            l_array.push_back(l_extra);
+            l_last_inserted = l_extra;
+          }
+        }
+        // Add grid crossing point
+        istart_array.push_back(ip);
+        l_array.push_back(l_next);
+        l_last_inserted = l_next;
+      }
+    }  // if dgp_p
+  }    // ip loop
+
+  //
 }
