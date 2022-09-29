@@ -249,6 +249,32 @@ Parameters:
 )--"));
 }
 
+void internalCKDMT252(py::module_& m) {
+  m.def(
+      "get_co2_ckdmt252",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD252::carbon_dioxide(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_co2"),
+      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_h2o : Numeric
+        Ratio of carbon dioxide in the atmosphere in the range [0, 1]
+)--"));
+}
+
 void internalCKDMT350(py::module_& m) {
   m.def(
       "get_self_h2oCKDMT350",
@@ -354,6 +380,7 @@ void py_predefined(py::module_& m) {
       hitran_mtckd_data(predef, "WaterData");
 
   internalCKDMT350(predef);
+  internalCKDMT252(predef);
   internalMTCKD(predef, hitran_mtckd_data);
   internalMPM89(predef);
   internalPWR98(predef);
