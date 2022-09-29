@@ -338,7 +338,7 @@ void internalCKDMT252(py::module_& m) {
       py::arg("rtp_pressure"),
       py::arg("rtp_temperature"),
       py::arg("x_co2"),
-      py::doc(R"--(Computes self absorption using MT CKD version 3.50
+      py::doc(R"--(Computes self absorption using MT CKD version 2.52
 
 Parameters:
     f_grid : :class:`Vector`
@@ -347,8 +347,92 @@ Parameters:
         Pressure value [Pa]
     rtp_temperature : Numeric
         Temperature value [K]
-    x_h2o : Numeric
+    x_co2 : Numeric
         Ratio of carbon dioxide in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_o2_vis_ckdmt252",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD252::oxygen_vis(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::doc(R"--(Computes self absorption using MT CKD version 2.52
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_n2_fun_ckdmt252",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o, Numeric o2) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(pm, f, p, t, x, h2o, o2);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_n2"),
+      py::arg("x_h2o"),
+      py::arg("x_o2"),
+      py::doc(R"--(Computes N2 fun absorption using MT CKD version 2.52
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_n2 : Numeric
+        Ratio of nitrogen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_n2_rot_ckdmt252",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o, Numeric o2) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(pm, f, p, t, x, h2o, o2);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_n2"),
+      py::arg("x_h2o"),
+      py::arg("x_o2"),
+      py::doc(R"--(Computes N2 rot absorption using MT CKD version 2.52
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_n2 : Numeric
+        Ratio of nitrogen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
 )--"));
 }
 

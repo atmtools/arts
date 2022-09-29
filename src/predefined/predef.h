@@ -73,6 +73,25 @@ void carbon_dioxide(PropagationMatrix& propmat_clearsky,
                     const Numeric p,
                     const Numeric Tave,
                     const Numeric vmr);
+void oxygen_vis(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric p,
+                const Numeric Tave,
+                const Numeric vmr);
+void nitrogen_fun(PropagationMatrix& propmat_clearsky,
+                  const Vector& f_grid,
+                  const Numeric p_pa,
+                  const Numeric t,
+                  const Numeric vmr,
+                  const Numeric h2o,
+                  const Numeric o2);
+void nitrogen_rot(PropagationMatrix& propmat_clearsky,
+                  const Vector& f_grid,
+                  const Numeric p_pa,
+                  const Numeric t,
+                  const Numeric vmr,
+                  const Numeric h2o,
+                  const Numeric o2);
 }  // namespace MT_CKD252
 
 namespace CKDMT350 {
