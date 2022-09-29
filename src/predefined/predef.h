@@ -1,7 +1,23 @@
-#include "predef_data.h"
 #include <propagationmatrix.h>
 
+#include "predef_data.h"
+
 namespace Absorption::PredefinedModel {
+namespace MPM89 {
+void water(PropagationMatrix& propmat_clearsky,
+           const Vector& f_grid,
+           const Numeric p_pa,
+           const Numeric t,
+           const Numeric h2o) noexcept;
+
+void oxygen(PropagationMatrix& propmat_clearsky,
+            const Vector& f_grid,
+            const Numeric p_pa,
+            const Numeric t,
+            const Numeric o2,
+            const Numeric h2o);
+}  // namespace MPM89
+
 namespace MPM2020 {
 void compute(PropagationMatrix& propmat_clearsky,
              const Vector& f_grid,
@@ -25,17 +41,17 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
 
 namespace Hitran::MTCKD {
 void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
-             const Vector& f_grid,
-             const Numeric& P,
-             const Numeric& T,
-             const Numeric& vmrh2o,
-             const WaterData& data);
+                         const Vector& f_grid,
+                         const Numeric& P,
+                         const Numeric& T,
+                         const Numeric& vmrh2o,
+                         const WaterData& data);
 void compute_self_h2o(PropagationMatrix& propmat_clearsky,
-             const Vector& f_grid,
-             const Numeric& P,
-             const Numeric& T,
-             const Numeric& vmrh2o,
-             const WaterData& data);
+                      const Vector& f_grid,
+                      const Numeric& P,
+                      const Numeric& T,
+                      const Numeric& vmrh2o,
+                      const WaterData& data);
 }  // namespace Hitran::MTCKD
 
 }  // namespace Absorption::PredefinedModel

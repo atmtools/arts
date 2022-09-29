@@ -24,7 +24,9 @@ Numeric Tag::dQdT(Numeric T) const {
 */
 constexpr bool is_modern_predefined(const IsotopeRecord& isot) {
   constexpr std::array modern{
+      find_species_index(Species::Oxygen, "MPM89"),
       find_species_index(Species::Oxygen, "MPM2020"),
+      find_species_index(Species::Water, "MPM89"),
       find_species_index(Species::Water, "ForeignContCKDMT350"),
       find_species_index(Species::Water, "SelfContCKDMT350"),
       find_species_index(Species::Water, "ForeignContHitranMTCKD"),
@@ -37,7 +39,7 @@ constexpr bool is_modern_predefined(const IsotopeRecord& isot) {
   return false;
 }
 
-constexpr Index legacy_predefined_count() {
+consteval Index legacy_predefined_count() {
   Index i = 0;
   for (auto& x : Isotopologues) {
     i += is_predefined_model(x) and not is_modern_predefined(x);
@@ -60,7 +62,7 @@ constexpr Index legacy_predefined_count() {
  * or by having added it the modern-checking function above, you have to decrement the index of
  * legacy models below.
  */
-static_assert(legacy_predefined_count() == 58,
+static_assert(legacy_predefined_count() == 56,
               "2021-11-18: No more legacy models.  "
               "Please see src/predefined to add a modern model.  "
               "Never increment the count of legacy models.  "

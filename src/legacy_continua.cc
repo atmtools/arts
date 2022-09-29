@@ -16254,7 +16254,7 @@ Numeric MPMLineShapeFunction(const Numeric gamma,
 Numeric MPMLineShapeO2Function(const Numeric gamma,
                                const Numeric fl,
                                const Numeric f,
-                               const Numeric delta) {
+                               const Numeric delta)  {
   /*
     this routine calculates the line shape function of Van Vleck and Weisskopf
     for O2 with line mixing.
@@ -17466,63 +17466,6 @@ void xsec_continuum_tag(MatrixView xsec,
     }
   }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ("H2O-MPM89" == name) {
-    //
-    // specific continuum parameters and units:
-    //  a) output
-    //     pxsec          : [1/m],
-    //  b) input
-    //     parameters[0] : continuum scale factor       (CC) [1]
-    //     parameters[1] : line strength scale factor   (CL) [1]
-    //     parameters[2] : line broadening scale factor (CW  [1]
-    //     f_grid        : [Hz]
-    //     abs_p         : [Pa]
-    //     abs_t         : [K]
-    //     vmr           : [1]
-    //
-    const int Nparam = 3;
-    if ((model == "user") &&
-        (parameters.nelem() == Nparam))  // -------------------------
-    {
-      out3 << "Full model " << name << " is running with \n"
-           << "user defined parameters according to model " << model << ".\n";
-      MPM89H2OAbsModel(pxsec,
-                       parameters[0],
-                       parameters[1],
-                       parameters[2],
-                       model,
-                       f_grid,
-                       abs_p,
-                       abs_t,
-                       vmr,
-                       verbosity);
-    } else if ((model == "user") &&
-               (parameters.nelem() != Nparam))  // --------------------
-    {
-      ostringstream os;
-      os << "Full model " << name << " requires " << Nparam << " input\n"
-         << "parameters for the model " << model << ",\n"
-         << "but you specified " << parameters.nelem() << " parameters.\n";
-      throw runtime_error(os.str());
-    } else if ((model != "user") &&
-               (parameters.nelem() == 0))  // --------------------
-    {
-      out3 << "Full model " << name << " running with \n"
-           << "the parameters for model " << model << ".\n";
-      MPM89H2OAbsModel(
-          pxsec, 0.00, 0.00, 0.00, model, f_grid, abs_p, abs_t, vmr, verbosity);
-    } else if ((model != "user") &&
-               (parameters.nelem() != 0))  // --------------------
-    {
-      ostringstream os;
-      os << "ERROR: Full model " << name << " requires NO input\n"
-         << "parameters for the model " << model << ",\n"
-         << "but you specified " << parameters.nelem() << " parameters.\n"
-         << "This ambiguity can not be solved by arts.\n"
-         << "Please see the arts user guide chapter 3.\n";
-      throw runtime_error(os.str());
-    }
-  }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ("H2O-MPM93" == name) {
     //
@@ -18669,88 +18612,6 @@ void xsec_continuum_tag(MatrixView xsec,
     }
   }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  else if ("O2-MPM89" == name) {
-    //   H. J. Liebe,
-    //   MPM - an atmospheric millimeter-wave propagation model,
-    //   Int. J. Infrared and Mill. Waves, Vol 10, pp. 631-650, 1989.
-    //
-    //  specific continuum parameters and units:
-    //  OUTPUT
-    //     pxsec          : [1/m],
-    //  INPUT
-    //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
-    //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
-    //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
-    //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
-    //     f_grid        : [Hz]
-    //     abs_p         : [Pa]
-    //     abs_t         : [K]
-    //     abs_h2o,      : [1]
-    //     vmr           : [1]
-    //
-
-    if (abs_h2o.sum() < -1.) {
-      ostringstream os;
-      os << "Continuum/full model tag " << name
-         << " requires H2O-vmr, but no tag group contains H2O!";
-      throw runtime_error(os.str());
-    }
-
-    const int Nparam = 4;
-    if ((model == "user") &&
-        (parameters.nelem() == Nparam))  // -------------------------
-    {
-      out3 << "Full model " << name << " is running with \n"
-           << "user defined parameters according to model " << model << ".\n";
-      MPM89O2AbsModel(pxsec,
-                      parameters[0],  // continuum term scale factor
-                      parameters[1],  // line strength scale factor
-                      parameters[2],  // line broadening scale factor
-                      parameters[3],  // line coupling scale factor
-                      model,
-                      f_grid,
-                      abs_p,
-                      abs_t,
-                      abs_h2o,
-                      vmr,
-                      verbosity);
-    } else if ((model == "user") &&
-               (parameters.nelem() != Nparam))  // --------------------
-    {
-      ostringstream os;
-      os << "Full model " << name << " requires " << Nparam << " input\n"
-         << "parameters for the model " << model << ",\n"
-         << "but you specified " << parameters.nelem() << " parameters.\n";
-      throw runtime_error(os.str());
-    } else if ((model != "user") &&
-               (parameters.nelem() == 0))  // --------------------
-    {
-      out3 << "Full model " << name << " running with \n"
-           << "the parameters for model " << model << ".\n";
-      MPM89O2AbsModel(pxsec,
-                      0.00,
-                      0.00,
-                      0.00,
-                      0.00,
-                      model,
-                      f_grid,
-                      abs_p,
-                      abs_t,
-                      abs_h2o,
-                      vmr,
-                      verbosity);
-    } else if ((model != "user") &&
-               (parameters.nelem() != 0))  // --------------------
-    {
-      ostringstream os;
-      os << "ERROR: Full model " << name << " requires NO input\n"
-         << "parameters for the model " << model << ",\n"
-         << "but you specified " << parameters.nelem() << " parameters.\n"
-         << "This ambiguity can not be solved by arts.\n"
-         << "Please see the arts user guide chapter 3.\n";
-      throw runtime_error(os.str());
-    }
-  }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ("O2-MPM87" == name) {
     //   H. J. Liebe and D. H. Layton,

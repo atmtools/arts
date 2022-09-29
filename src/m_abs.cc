@@ -1068,7 +1068,7 @@ void propmat_clearskyAddConts(  // Workspace reference:
         // certain continua:
         // abs_h2o for
         //   O2-PWR88, O2-PWR93, O2-PWR98,
-        //   O2-MPM85, O2-MPM87, O2-MPM89, O2-MPM92, O2-MPM93,
+        //   O2-MPM85, O2-MPM87, O2-MPM92, O2-MPM93,
         //   O2-TRE05,
         //   O2-SelfContStandardType, O2-SelfContMPM93, O2-SelfContPWR93,
         //   N2-SelfContMPM93, N2-DryContATM01,
@@ -1759,15 +1759,6 @@ void LegacyContinuaInit(ArrayOfString& abs_cont_names,
                              no_extras,
                              verbosity);
 
-  // Liebe 1989 H2O full absorption model
-  abs_cont_descriptionAppend(abs_cont_names,
-                             abs_cont_models,
-                             abs_cont_parameters,
-                             "H2O-MPM89",
-                             "MPM89",
-                             no_extras,
-                             verbosity);
-
   // Liebe 1987 H2O full absorption model
   abs_cont_descriptionAppend(abs_cont_names,
                              abs_cont_models,
@@ -1989,15 +1980,6 @@ void LegacyContinuaInit(ArrayOfString& abs_cont_names,
                              abs_cont_parameters,
                              "O2-MPM92",
                              "MPM92",
-                             no_extras,
-                             verbosity);
-
-  // Liebe 1989 O2 full absorption model
-  abs_cont_descriptionAppend(abs_cont_names,
-                             abs_cont_models,
-                             abs_cont_parameters,
-                             "O2-MPM89",
-                             "MPM89",
                              no_extras,
                              verbosity);
 

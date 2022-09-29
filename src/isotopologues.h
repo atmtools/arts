@@ -54,7 +54,7 @@ struct IsotopeRecord {
 #define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
 
 /** A list of all ARTS isotopologues, note how the species enum class input HAS to be sorted */
-constexpr std::array Isotopologues {
+inline constexpr std::array Isotopologues {
   /** Water species **/
   deal_with_spec(Water)
   IsotopeRecord(fromShortName("H2O"), "161", 18.010565, 1),
