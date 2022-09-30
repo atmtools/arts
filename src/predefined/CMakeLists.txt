@@ -8,6 +8,7 @@ add_library(predef STATIC
     PWR98.cc
     hitran_water_mtckd.cc
     predef_data.cc
+    standard.cc
 )
 
 if (ENABLE_PCH)

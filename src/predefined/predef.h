@@ -47,6 +47,32 @@ void oxygen(PropagationMatrix& propmat_clearsky,
             const Numeric o2,
             const Numeric h2o);
 }  // namespace PWR98
+namespace Standard {
+void water_self(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric p_pa,
+                const Numeric t,
+                const Numeric h2o);
+
+void water_foreign(PropagationMatrix& propmat_clearsky,
+                   const Vector& f_grid,
+                   const Numeric p_pa,
+                   const Numeric t,
+                   const Numeric h2o);
+
+void nitrogen(PropagationMatrix& propmat_clearsky,
+              const Vector& f_grid,
+              const Numeric p_pa,
+              const Numeric t,
+              const Numeric h2o);
+
+void oxygen(PropagationMatrix& propmat_clearsky,
+            const Vector& f_grid,
+            const Numeric p_pa,
+            const Numeric t,
+            const Numeric o2,
+            const Numeric h2o);
+}  // namespace PWR98
 
 namespace MT_CKD100 {
 void oxygen_cia(PropagationMatrix& propmat_clearsky,
@@ -100,6 +126,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const Numeric& p,
                       const Numeric& Tave,
                       const Numeric& vmrh2o) noexcept;
+
 void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                          const Vector& f_grid,
                          const Numeric& p,
@@ -114,6 +141,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                          const Numeric& T,
                          const Numeric& vmrh2o,
                          const WaterData& data);
+
 void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const Vector& f_grid,
                       const Numeric& P,
