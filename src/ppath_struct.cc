@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, const Ppath& x) {
   os << "dim: " << x.dim << "\n";
   os << "np: " << x.np << "\n";
   os << "constant: " << x.constant << "\n";
-  os << "background: " << x.background << "\n";
+  os << "background: " << x.backgroundZZZ << "\n";
   os << "start_pos: " << x.start_pos << "\n";
   os << "start_los: " << x.start_los << "\n";
   os << "start_lstep: " << x.start_lstep << "\n";
@@ -44,7 +44,7 @@ std::ostream& operator<<(std::ostream& os, const Ppath& x) {
   os << "end_lstep: " << x.end_lstep << "\n";
   os << "nreal: " << x.nreal << "\n";
   os << "ngroup: " << x.ngroup << "\n";
-  os << "gp_p: " << x.gp_p << "\n";
+  os << "gp_z: " << x.gp_p << "\n";
   if (x.dim >= 2) {
     os << "gp_lat: " << x.gp_lat << "\n";
   }
