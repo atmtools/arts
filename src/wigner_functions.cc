@@ -168,12 +168,12 @@ bool is_wigner6_ready(const Rational& J) {
 }
 
 Numeric dwigner3j(Index M, Index J1, Index J2, Index J) {
-  auto CJM = [](Index J, Index M) {
-    Numeric CJM = 1.;
-    for (Index I = 1; I <= J; I++) CJM *= (1. - .5 / static_cast<Numeric>(I));
-    for (Index K = 1; K <= M; K++)
-      CJM *= static_cast<Numeric>(J + 1 - K) / static_cast<Numeric>(J + K);
-    return CJM;
+  auto CJM = [](Index j, Index m) {
+    Numeric cjm = 1.;
+    for (Index I = 1; I <= j; I++) cjm *= (1. - .5 / static_cast<Numeric>(I));
+    for (Index K = 1; K <= m; K++)
+      cjm *= static_cast<Numeric>(j + 1 - K) / static_cast<Numeric>(j + K);
+    return cjm;
   };
 
   Numeric GCM = 0.;
