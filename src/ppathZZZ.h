@@ -141,7 +141,6 @@ Index is_pos_outside_atmosphere(const Vector pos,
                                 const Vector& lat_grid,
                                 const Vector& lon_grid);
 
-
 /** Geometric ppath, with same distance between all points
 
    Generates a full ppath structure holding a geomtrical path. The points of the
@@ -187,7 +186,8 @@ void ppath_geom_const_lstep(Ppath& ppath,
                             const Numeric& l_step_max,
                             const Numeric& l_total_max,
                             const Numeric& l_accuracy,
-                            const Index& safe_surface_search);
+                            const Index& safe_surface_search,
+                            const Index& do_not_calc_gps);
 
 /** Geometric ppath including grid crossings
 
@@ -217,7 +217,8 @@ void ppath_grid_crossings(Ppath& ppath,
                           const Vector& z_grid,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
-                          const Numeric& l_step_max);
+                          const Numeric& l_step_max,
+                          const Index& do_not_calc_gps);
 
 /** Returns surface elevation at lat and lon of a position
 
