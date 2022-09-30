@@ -45,7 +45,6 @@ ws.verbositySetAgenda(level=0)
 # =============================================================================
 
 
-ws.LegacyContinuaInit()
 ws.PlanetSet(option="Earth")
 
 
@@ -88,7 +87,7 @@ ws.AtmosphereSet1D()
 # =============================================================================
 
 # set absorption species
-ws.abs_speciesSet(species=["H2O, H2O-SelfContCKDMT320, H2O-ForeignContCKDMT320"])
+ws.abs_speciesSet(species=["H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350"])
 
 if recalc == False:
     try:

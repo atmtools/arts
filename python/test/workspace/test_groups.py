@@ -280,7 +280,7 @@ class TestGroups:
         return x
 
     def testArrayOfArrayOfSpeciesTag(self):
-        x = cxx.ArrayOfArrayOfSpeciesTag(["H2O,H2O-MPM93"])
+        x = cxx.ArrayOfArrayOfSpeciesTag(["H2O,H2O-PWR98"])
 
         test.io(x, delete=True)
         test.array(x)

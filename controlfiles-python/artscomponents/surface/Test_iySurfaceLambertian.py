@@ -62,7 +62,6 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
     ws.verbositySetScreen(level=2)
 
     # import basic definitions
-    ws.LegacyContinuaInit()
     ws.PlanetSet(option="Earth")
 
     # =============================================================================
