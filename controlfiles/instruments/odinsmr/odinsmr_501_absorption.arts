@@ -6,7 +6,7 @@ INCLUDE "odinsmr.arts"
 # A number of species with very weak emission are here neglected
 abs_speciesSet( species=[
   "H2O,H2O-ForeignContStandardType,H2O-SelfContStandardType",
-  "N2-SelfContMPM93",
+  "N2-SelfContStandardType",
   "O2,O2-PWR98",
   "O3",
   "ClO",

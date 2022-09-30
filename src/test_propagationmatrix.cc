@@ -27,7 +27,6 @@
 #include "arts.h"
 #include "global_data.h"
 #include "hitran_species.h"
-#include "legacy_continua.h"
 #include "linescaling.h"
 #include "lineshapemodel.h"
 #include "matpack_eigen.h"
@@ -482,9 +481,6 @@ void test_mpm20()
   Matrix pxsec_df(nf, 1, 0);
   Vector f_pert = f;
   f_pert += df;
-  PWR93O2AbsModel(pxsec, 0, 1, 1, 1, "user", "PWR98", f, {p}, {t}, {0.5}, {1}, Verbosity());
-  PWR93O2AbsModel(pxsec_dt, 0, 1, 1, 1, "user", "PWR98", f, {p}, {t+dt}, {0.5}, {1}, Verbosity());
-  PWR93O2AbsModel(pxsec_df, 0, 1, 1, 1, "user", "PWR98", f_pert, {p}, {t}, {0.5}, {1}, Verbosity());
   
   std::cout<< "xr = np.array([";
   for (Index i=0; i<nf; i++)

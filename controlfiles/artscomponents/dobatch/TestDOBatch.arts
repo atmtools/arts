@@ -9,7 +9,7 @@
 Arts2 {
 
 
-LegacyContinuaInit
+#
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 
@@ -181,7 +181,7 @@ batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
 abs_speciesSet( species=[ "H2O-PWR98",
                           "O3",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Creation of abs_lookup table

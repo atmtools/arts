@@ -13,7 +13,7 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore( select_abs_species )
   propmat_clearskyInit
   propmat_clearskyAddLines
-  propmat_clearskyAddConts
+  propmat_clearskyAddPredefined
 }
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 

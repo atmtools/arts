@@ -4,7 +4,6 @@ Arts2 {
 
 # ----- Absorption models used for Odin-SMR --------------------------------
 
-abs_cont_descriptionInit
 
 # ----- H2O continuum ------------------------------------
 #
@@ -14,28 +13,6 @@ abs_cont_descriptionInit
 
 # Present values are taken from Podobedov et al., JQSRT, 2008 (Table 3, 
 # experiment b).
-
-abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters,
-  "H2O-SelfContStandardType", 
-  "user", 
-  [ 9.21e-34, 5.50 ] 
-)
-
-abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters,
-  "H2O-ForeignContStandardType",
-  "user",
-  [ 5.32e-35, 1.80 ]
-)
-
-
-# ----- O2 continuum models ------------------------------
-
-# Rosenkranz O2 absorption model (only continuum):
-abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters,
-  "O2-PWR98",
-  "RosenkranzContinuum",
-  [ ]
-)
 
 
 # ----- N2 continuum -------------------------------------
@@ -56,11 +33,6 @@ abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters
 # in connection with the B&F model within the uncertainty range.
 
 # MPM93 N2 continuum model:
-abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters,
-  "N2-SelfContMPM93",
-  "MPM93Scale",
-  [ 1.34 ]
-)
 
 # ----- End of absorption models used for Odin-SMR ------------------------
 

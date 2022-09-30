@@ -5,7 +5,7 @@
 <SpeciesTag>"H2O-PWR98-*-*"</SpeciesTag>
 </Array>
 <Array type="SpeciesTag" nelem="1">
-<SpeciesTag>"O2-PWR93-*-*"</SpeciesTag>
+<SpeciesTag>"O2-PWR98-*-*"</SpeciesTag>
 </Array>
 <Array type="SpeciesTag" nelem="1">
 <SpeciesTag>"N2-SelfContStandardType-*-*"</SpeciesTag>

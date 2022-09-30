@@ -23,10 +23,8 @@ void internal_species(py::module_& m) {
       }))
       .def_readwrite("Plain", &SpeciesTagTypeStatus::Plain)
       .def_readwrite("Zeeman", &SpeciesTagTypeStatus::Zeeman)
-      .def_readwrite("PredefinedLegacy",
-                     &SpeciesTagTypeStatus::PredefinedLegacy)
-      .def_readwrite("PredefinedModern",
-                     &SpeciesTagTypeStatus::PredefinedModern)
+      .def_readwrite("Predefined",
+                     &SpeciesTagTypeStatus::Predefined)
       .def_readwrite("Cia", &SpeciesTagTypeStatus::Cia)
       .def_readwrite("FreeElectrons", &SpeciesTagTypeStatus::FreeElectrons)
       .def_readwrite("Particles", &SpeciesTagTypeStatus::Particles)

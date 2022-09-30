@@ -6,7 +6,7 @@
 
 Arts2 {
 
-LegacyContinuaInit
+#
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
@@ -33,7 +33,7 @@ ReadARTSCAT( abs_lines=abs_lines, filename="lines.xml", fmin=1e9, fmax=200e9 )
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
 abs_speciesSet( species=[ "H2O-PWR98",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Alternatively select all species that we can find in the scenario:

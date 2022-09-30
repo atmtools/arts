@@ -1879,10 +1879,6 @@ void nitrogen_rot(PropagationMatrix& propmat_clearsky,
   const Numeric TO = 296.0e0;
   const Numeric PO = 1013.0e0;
 
-  // wavenumber range where CKD H2O self continuum is valid
-  const Numeric VABS_min = -1.000e1;  // [cm^-1]
-  const Numeric VABS_max = 3.500e2;   // [cm^-1]
-
   // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
   // the frequency f_grid. n_f_new < n_f

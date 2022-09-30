@@ -93,8 +93,6 @@ abs_lines_per_speciesCreateFromLines
 
 propmat_clearsky_agendaAuto
 
-abs_cont_descriptionInit
-
 # We have to also set the absorption lookup table interpolation order, even though
 # we are not using the lookup table here. atmfields_checkedCalc will otherwise throw an error.
 IndexSet( abs_f_interp_order, 1 )

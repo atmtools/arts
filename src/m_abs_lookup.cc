@@ -144,15 +144,12 @@ Your current lowest_vmr value is: )--", lowest_vmr)
     // If there are nonlinear species, then at least one species must be
     // H2O. We will use that to set h2o_abs, and to perturb in the case
     // of nonlinear species.
-    if (n_nls > 0) {
-      ostringstream os;
-      os << "If you have nonlinear species, at least one\n"
-         << "species must be a H2O species.";
-      throw runtime_error(os.str());
-    } else {
-      out2 << "  You have no H2O species. Absorption continua will not work.\n"
-           << "  You should get a runtime error if you try them anyway.\n";
-    }
+    ARTS_USER_ERROR_IF(n_nls > 0,
+                       "If you have nonlinear species, at least one\n"
+                       "species must be a H2O species.")
+
+    out2 << "  You have no H2O species. Absorption continua will not work.\n"
+         << "  You should get a runtime error if you try them anyway.\n";
   }
 
   // abs_species, f_grid, and p_grid should not be empty:
@@ -492,7 +489,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
     // Loop tags in tag group
     for (Index s = 0; s < abs_species[i].nelem(); ++s) {
       // Check for continuum tags
-      if (abs_species[i][s].type == Species::TagType::PredefinedLegacy ||
+      if (abs_species[i][s].type == Species::TagType::Predefined ||
           abs_species[i][s].type == Species::TagType::Cia) {
         const String thisname = abs_species[i][s].Name();
         // Ok, now we know this is a continuum tag.

@@ -5,7 +5,7 @@
 
 Arts2 {
 
-LegacyContinuaInit
+#
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
@@ -20,7 +20,7 @@ IndexSet( stokes_dim, 1 )
 
 # Define the list of absorption species:
 abs_speciesSet( species=[ "H2O-PWR98",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 

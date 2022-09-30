@@ -42,8 +42,11 @@ namespace Absorption::PredefinedModel {
  *  wrapper in the compute function.
  */
 struct VMRS {
+  Numeric CO2{0};
   Numeric O2{0};
+  Numeric N2{0};
   Numeric H2O{0};
+  Numeric LWC{0};
 
   /**  Construct a new VMRS object
    * 
@@ -51,17 +54,32 @@ struct VMRS {
    * @param rtp_vmr 
    */
   VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
+  CO2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::CarbonDioxide)),
   O2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Oxygen)),
-  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water))
+  N2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Nitrogen)),
+  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
+  LWC(Species::first_vmr(abs_species, rtp_vmr, Species::Species::liquidcloud))
   {}
 
   constexpr VMRS() = default;
 
   friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
     return os << "O2: " << vmrs.O2 << '\n' <<
+    "N2: " << vmrs.N2 << '\n' <<
                  "H2O: " << vmrs.H2O << '\n';
   }
 };
+
+//! Debug only
+template <bool check_exist>
+extern bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
+                              const SpeciesIsotopeRecord& model,
+                              const Vector& f [[maybe_unused]],
+                              const Numeric& p [[maybe_unused]],
+                              const Numeric& t [[maybe_unused]],
+                              const VMRS& vmr [[maybe_unused]],
+                              const PredefinedModelData& predefined_model_data
+                              [[maybe_unused]]);
 
 /** Compute the predefined model
  *

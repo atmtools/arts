@@ -6,7 +6,7 @@
 Arts2 {
 
 
-LegacyContinuaInit
+#
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
@@ -30,7 +30,7 @@ ReadXML( lat_grid, "lat_grid.xml" )
 ReadXML( lon_grid, "lon_grid.xml" )
 
 abs_speciesSet( species=
-                [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
+                [ "O2-PWR98", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lines_per_speciesSetEmpty
 

@@ -14,8 +14,7 @@ namespace Species {
 ENUMCLASS(TagType, unsigned char,
     Plain,
     Zeeman,
-    PredefinedLegacy,
-    PredefinedModern,
+    Predefined,
     Cia,
     FreeElectrons,
     Particles,
@@ -51,7 +50,7 @@ struct Tag {
   
   constexpr Tag(const IsotopeRecord& isot) noexcept :
   spec_ind(find_species_index(isot)),
-  type(is_predefined_model(isot) ? TagType::PredefinedLegacy : TagType::Plain) { /* Nothing to be done here. */
+  type(is_predefined_model(isot) ? TagType::Predefined : TagType::Plain) { /* Nothing to be done here. */
   }
   
   // Documentation is with implementation.
@@ -173,8 +172,7 @@ using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 struct SpeciesTagTypeStatus {
   bool Plain{false},
     Zeeman{false},
-    PredefinedLegacy{false},
-    PredefinedModern{false},
+    Predefined{false},
     Cia{false},
     FreeElectrons{false},
     Particles{false},

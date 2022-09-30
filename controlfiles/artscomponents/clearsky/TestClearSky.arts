@@ -17,7 +17,7 @@
 Arts2 {
 
 
-LegacyContinuaInit
+#
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
@@ -35,7 +35,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
   propmat_clearskyInit
-  propmat_clearskyAddConts
+  propmat_clearskyAddPredefined
   propmat_clearskyAddLines
 }
 
