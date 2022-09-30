@@ -13944,7 +13944,7 @@ Available models:
           "l_accuracy", 
           "safe_surface_search"),
       GIN_TYPE("Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT("0", "1", "10e3", "-1.0", "10e3", "2e3", "0.1", "0"),
+      GIN_DEFAULT("0", "0", "10e3", "-1.0", "10e3", "2e3", "0.1", "0"),
       GIN_DESC("Flag to consider refraction or not.",
                "Flag to include crossings with z, lat and lon grids as ppath points.",
                "If set to >0, sets the maximum distance between ppath points.",
