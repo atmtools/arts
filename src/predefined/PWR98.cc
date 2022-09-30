@@ -7,6 +7,34 @@
 #include "arts_constants.h"
 
 namespace Absorption::PredefinedModel::PWR98 {
+//! Ported from legacy continua.  Original documentation
+//! PWR98H2OAbsModel
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            H2O (lines+continuum) according to P. W. Rosenkranz, 1998 [1/m]
+   \param    CCin           scaling factor for the H2O-continuum  [1]
+   \param    CLin           scaling factor for the line strengths [1]
+   \param    CWin           scaling factor for the line widths    [1]
+   \param    model          allows user defined input parameter set
+                            (CCin, CLin, and CWin)<br> or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K]
+   \param    vmr            H2O volume mixing ratio        [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, and CWin
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'Rosenkranz', 'RosenkranzLines', 'RosenkranzContinuum',
+             and 'user'. See the user guide for detailed explanations.
+
+   \remark   Reference: P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+             Radio Science, Vol. 34(4), 1025, 1999.
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
+//! New implementation
 void water(PropagationMatrix& propmat_clearsky,
            const Vector& f_grid,
            const Numeric p_pa,
@@ -209,6 +237,59 @@ void water(PropagationMatrix& propmat_clearsky,
   }
 }
 
+//! Ported from legacy continua.  Original documentation
+//! Oxygen complex at 60 GHz plus mm O2 lines plus O2 continuum
+/*!
+  REFERENCES FOR EQUATIONS AND COEFFICIENTS:
+  P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
+  BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
+  H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
+  M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
+  SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
+  This version differs from Liebe's MPM92 in two significant respects:
+  1. It uses the modification of the 1- line width temperature dependence
+  recommended by Schwartz: (1/T).
+  2. It uses the same temperature dependence (X) for submillimeter
+  line widths as in the 60 GHz band: (1/T)**0.8
+
+  history:
+  05-01-95  P. Rosenkranz
+  11-05-97  P. Rosenkranz - 1- line modification.
+  12-16-98  pwr - updated submm freq's and intensities from HITRAN96
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            O2 according to the P. W. Rosenkranz, 1993 [1/m]
+   \param    CCin           O2-continuum scale factor  [1]
+   \param    CLin           O2 line strength scale factor [1]
+   \param    CWin           O2 line broadening scale factor [1]
+   \param    COin           O2 line coupling scale factor [1]
+   \param    model          allows user defined input parameter set
+                            (CCin, CLin, CWin, and COin)<br> or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    version        determines model version: 1988, 1993, 1998
+   \param    f_grid         predefined frequency grid        [Hz]
+   \param    abs_p          predefined pressure              [Pa]
+   \param    abs_t          predefined temperature grid      [K]
+   \param    vmrh2o         H2O volume mixing ratio profile  [1]
+   \param    vmr            O2 volume mixing ratio profile   [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin
+             are neglected (model dominates over parameters).<br>
+             Allowed models:<br>
+             'Rosenkranz', 'RosenkranzLines', 'RosenkranzContinuum',
+             'RosenkranzNoCoupling', and 'user'. <br>
+       For the parameter  version the following three string values are allowed:
+       'PWR88', 'PWR93', 'PWR98'.<br>
+             See the user guide for detailed explanations.
+
+   \remark   Reference:  P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
+             <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
+             John Wiley & Sons, Inc., 1993.
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
+//! New implementation
 void oxygen(PropagationMatrix& propmat_clearsky,
             const Vector& f_grid,
             const Numeric p_pa,

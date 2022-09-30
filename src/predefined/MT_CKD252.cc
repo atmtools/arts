@@ -134,6 +134,33 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
   return RADFN;
 }
 
+//! Ported from legacy continua.  Original documentation
+//! CKD version MT 2.50 CO2 continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            CO2 continuum according to CKD_MT 1.00   [1/m]
+   \param    Cin            strength scaling factor                          [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            CO2 volume mixing ratio profile      [1]
+
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 2.50 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+             http://www.rtweb.aer.com/continuum_frame.html
+
+   \author   Mayuri Tatiya
+   \date     2014-26-06
+ */
+//! New implementation
 void carbon_dioxide(PropagationMatrix& propmat_clearsky,
                     const Vector& f_grid,
                     const Numeric p_pa,
@@ -1150,6 +1177,48 @@ void carbon_dioxide(PropagationMatrix& propmat_clearsky,
   }
 }
 
+//! Ported from legacy continua.  Original documentation
+//! CKD version MT 2.50 O2
+/*!
+  Model reference:
+  O2 continuum formulated by Greenblatt et al. over the spectral region
+  8797-29870 cm-1:  "Absorption Coefficients of Oxygen Between 
+  330 and 1140 nm, G.D. Green blatt, J.J. Orlando, J.B. Burkholder,
+  and A.R. Ravishabkara,  J. Geophys. Res., 95, 18577-18582, 1990. 
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            O2 v1<-v0 band according to CKD_MT 1.00  [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            O2 volume mixing ratio profile       [1]
+
+ 
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 2.50 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+       http://www.rtweb.aer.com/continuum_frame.html<br>
+             <br>
+       Oxygen band absorption model for the \f$a^1\Delta_g\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \f$X^3\Sigma^-_g\f$ band system considering the
+             \f$\nu=0\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \f$\nu=1\f$
+             transitions.
+
+   \author Mayuri Tatiya
+   \date 2014-27-06
+ */
+//! New implementation
 void oxygen_vis(PropagationMatrix& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric p_pa,
@@ -1474,6 +1543,49 @@ void oxygen_vis(PropagationMatrix& propmat_clearsky,
   }
 }
 
+//! Ported from legacy continua.  Original documentation
+//! CKD version MT 1.00 N2-N2 collision induced absorption (fundamental band)
+/*!
+  Model reference:
+  version_1 of the Nitrogen Collision Induced Fundamental
+  Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and
+  J._M. Hartmann, Infrared collision-induced absorption by
+  N2 near 4.3 microns for atmospheric applications:
+  Measurements and emprirical modeling, Appl. Optics, 35,
+  5911-5917, (1996).
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            N2-N2 CIA fundamental band according to CKD_MT 1.00   [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            N2 volume mixing ratio profile       [1]
+
+   \remark   Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and
+             J._M. Hartmann,<br>
+             Infrared collision-induced absorption by
+             N2 near 4.3 microns for atmospheric applications:
+             Measurements and emprirical modeling, <br>
+             Appl. Optics, 35, 5911-5917, (1996)
+
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 1.00 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+             http://www.rtweb.aer.com/continuum_frame.html
+
+
+   \author Thomas Kuhn
+   \date 2002-28-08
+ */
+//! New implementation
 void nitrogen_fun(PropagationMatrix& propmat_clearsky,
                   const Vector& f_grid,
                   const Numeric p_pa,
@@ -1654,6 +1766,45 @@ void nitrogen_fun(PropagationMatrix& propmat_clearsky,
   }
 }
 
+//! Ported from legacy continua.  Original documentation
+// =================================================================================
+//! CKD version MT 1.00 N2-N2 collision induced absorption (rotational band)
+/*!
+  Model reference:
+  Borysow, A, and L. Frommhold,
+  "Collision-induced rototranslational absorption spectra of N2-N2
+  pairs for temperatures from 50 to 300 K", The
+  Astrophysical Journal, 311, 1043-1057, 1986.
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            N2-N2 CIA rot. band according to CKD_MT 1.00   [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            N2 volume mixing ratio profile       [1]
+
+   \remark   Borysow, A, and L. Frommhold,<br>
+             Collision-induced rototranslational absorption spectra of N2-N2
+             pairs for temperatures from 50 to 300 K,<br>
+             The Astrophysical Journal, 311, 1043-1057, 1986.
+
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 1.00 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+             http://www.rtweb.aer.com/continuum_frame.html
+
+   \author Thomas Kuhn
+   \date 2002-28-08
+ */
+//! New implementation
 void nitrogen_rot(PropagationMatrix& propmat_clearsky,
                   const Vector& f_grid,
                   const Numeric p_pa,

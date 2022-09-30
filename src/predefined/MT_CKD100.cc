@@ -137,6 +137,46 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
   return RADFN;
 }
 
+//! Ported from legacy continua.  Original documentation
+//! CKD version MT 1.00 O2-O2 collision induced absorption (fundamental band)
+/*!
+  Model reference:
+  F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman,
+  J.-M. Hartmann, Ch. Boulet,
+  "Infrared collision-induced absorption by O2 near 6.4 microns for
+  atmospheric applications: measurements and emprirical modeling",
+  Appl. Optics, 35, 5911-5917, (1996).
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            O2-O2 CIA fundamental band according to CKD_MT 1.00   [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            O2 volume mixing ratio profile       [1]
+
+   \remark   F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman,
+             J.-M. Hartmann, Ch. Boulet,<br>
+             Infrared collision-induced absorption by O2 near 6.4 microns for
+             atmospheric applications: measurements and emprirical modeling,<br>
+             Appl. Optics, 35, 5911-5917, (1996).
+
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 1.00 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+             http://www.rtweb.aer.com/continuum_frame.html
+
+   \author Thomas Kuhn
+   \date 2002-28-08
+ */
+//! New implementation
 void oxygen_cia(PropagationMatrix& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric p_pa,
@@ -276,6 +316,62 @@ void oxygen_cia(PropagationMatrix& propmat_clearsky,
   }
 }
 
+//! Ported from legacy continua.  Original documentation
+//! CKD version MT 1.00 O2 v0<-v0 band absorption
+/*!
+  Model reference:
+  CKD_MT 1.00 implementation of oxygen collision induced fundamental model of
+  O2 continuum formulated by
+  Mate et al. over the spectral region 7550-8486 cm-1:
+  B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
+  "Absolute Intensities for the O2 1.27 micron
+  continuum absorption",
+  J. Geophys. Res., 104, 30,585-30,590, 1999.
+
+  The units of these continua coefficients are  1 / (amagat_O2*amagat_air)
+
+  Also, refer to the paper "Observed  Atmospheric
+  Collision Induced Absorption in Near Infrared Oxygen Bands",
+  Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
+  Journal of Geophysical Research (1997).
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            O2 v0<-v0 band according to CKD_MT 1.00  [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            O2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
+
+   \remark   B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,<br>
+             Absolute Intensities for the O2 1.27 micron continuum absorption,<br>
+             J. Geophys. Res., 104, 30,585-30,590, 1999.
+
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 1.00 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+             http://www.rtweb.aer.com/continuum_frame.html<br>
+             <br>
+       Oxygen band absorption model for the \f$a^1\Delta_g\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \f$X^3\Sigma^-_g\f$ band system considering the
+             \f$\nu=0\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \f$\nu=0\f$
+             transitions.
+
+   \author   Thomas Kuhn
+   \date     2002-28-08
+ */
+//! New implementation
 void oxygen_v0v0(PropagationMatrix& propmat_clearsky,
                  const Vector& f_grid,
                  const Numeric p_pa,
@@ -457,6 +553,51 @@ void oxygen_v0v0(PropagationMatrix& propmat_clearsky,
   }
 }
 
+//! Ported from legacy continua.  Original documentation
+//! CKD version MT 1.00 O2 v1<-v0 band absorption
+/*!
+  Model reference:
+  CKD_MT 1.00 implementation of oxygen v1<-v0 band model of
+  Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,
+  "Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands",
+  Journal of Geophysical Research, vol 103, no. D4, pp. 3859-3863, 1998.
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            O2 v1<-v0 band according to CKD_MT 1.00  [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set
+                            (Cin)<br>
+                            or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K]
+   \param    vmr            O2 volume mixing ratio profile       [1]
+
+   \remark   Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
+             Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
+             J. Geophys. Res., 103, D4, 3859-3863, 1998.
+
+   \note     This absorption model is taken from the FORTRAN77 code of
+             CKD_MT version 1.00 written by<br>
+             Atmospheric and Environmental Research Inc. (AER),<br>
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br>
+       http://www.rtweb.aer.com/continuum_frame.html<br>
+             <br>
+       Oxygen band absorption model for the \f$a^1\Delta_g\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \f$X^3\Sigma^-_g\f$ band system considering the
+             \f$\nu=0\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly
+             \f$\nu=1\f$
+             transitions.
+
+   \author Thomas Kuhn
+   \date 2002-28-08
+ */
+//! New implementation
 void oxygen_v0v1(PropagationMatrix& propmat_clearsky,
                  const Vector& f_grid,
                  const Numeric p_pa,

@@ -7,6 +7,25 @@
 #include "arts_constants.h"
 
 namespace Absorption::PredefinedModel::MPM89 {
+/**
+
+   \retval   MPMLineShapeFunction  H2O-line shape function value     [1/Hz]
+   \param    gamma                 H2O-line width                    [Hz]
+   \param    fl                    H2O-line central frequency        [Hz]
+   \param    f                     frequency position of calculation [Hz]
+
+   \note     This function calculates the line shape function of Van Vleck and Weisskopf
+             with the factor (f/fl)¹. for the MPM pseudo continuum line.
+
+   \remark   Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+             <i>Propagation modeling of moist air and suspended water/ice
+             particles at frequencies below 1000 GHz</i>,<br>
+             AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+             Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
 constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
                                        const Numeric fl,
                                        const Numeric f) noexcept {
@@ -40,6 +59,33 @@ constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
   return value;
 }
 
+//! Ported from legacy continua.  Original documentation
+//!  MPM89H2OAbsModel
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            H2O (lines+continuum) according to MPM89 [1/m]
+   \param    CCin           scaling factor for the H2O-continuum  [1]
+   \param    CLin           scaling factor for the line strengths [1]
+   \param    CWin           scaling factor for the line widths    [1]
+   \param    model          allows user defined input parameter set
+                            (CCin, CLin, and CWin)<br> or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K]
+   \param    vmr            H2O volume mixing ratio        [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, and CWin
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'MPM89', 'MPM89Lines', 'MPM89Continuum', and 'user'.
+             See the user guide for detailed explanations.
+
+   \remark   Reference: H. J. Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631.
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
+//! New implementation
 void water(PropagationMatrix& propmat_clearsky,
            const Vector& f_grid,
            const Numeric p_pa,
@@ -125,6 +171,26 @@ void water(PropagationMatrix& propmat_clearsky,
   }
 }
 
+/**
+
+   \retval   MPMLineShapeO2Function  O2-line shape function value         [1]
+   \param    gamma                   O2-line width                        [Hz]
+   \param    fl                      H2O-line central frequency of the    [Hz]
+   \param    f                       frequency position of calculation    [Hz]
+   \param    delta                   O2-line mixing parameter             [1]
+
+   \note     This function calculates the line shape function of Van Vleck and Weisskopf
+             for O2 with line mixing.
+
+   \remark   Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+             <i>Propagation modeling of moist air and suspended water/ice
+             particles at frequencies below 1000 GHz</i>,<br>
+             AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+             Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
 constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
                                          const Numeric fl,
                                          const Numeric f,
@@ -160,6 +226,37 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
   return value;
 }
 
+//! Ported from legacy continua.  Original documentation
+//! MPM89O2AbsModel
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            O2 according to MPM89 [1/m]
+   \param    CCin           scaling factor for the O2-continuum   [1]
+   \param    CLin           scaling factor for the O2-line strengths [1]
+   \param    CWin           scaling factor for the O2-line widths    [1]
+   \param    COin           scaling factor for the O2-line coupling  [1]
+   \param    model          allows user defined input parameter set
+                            (CCin, CLin, CWin, and COin)<br> or choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid           [Hz]
+   \param    abs_p          predefined pressure                 [Pa]
+   \param    abs_t          predefined temperature grid         [K]
+   \param    abs_h2o        H2O volume mixing ratio profile    [1]
+   \param    vmr            O2 volume mixing ratio profile     [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'MPM89', 'MPM89Lines', 'MPM89Continuum', 'MPM89NoCoupling',
+             'MPM89NoCutoff', and 'user'. See the user guide for detailed explanations.
+
+   \remark   Reference: H. J. Liebe,<br>
+             <i>MPM - an atmospheric millimeter-wave propagation model</i>,<br>
+             Int. J. Infrared and Mill. Waves, Vol 10, pp. 631-650, 1989.
+
+   \author Thomas Kuhn
+   \date 2002-04-05
+ */
+//! New implementation
 void oxygen(PropagationMatrix& propmat_clearsky,
             const Vector& f_grid,
             const Numeric p_pa,

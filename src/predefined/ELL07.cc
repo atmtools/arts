@@ -8,6 +8,31 @@
 #include "debug.h"
 
 namespace Absorption::PredefinedModel::ELL07 {
+//! Ported from legacy continua.  Original documentation
+//! ELL07WaterDropletAbs
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            water clouds according to ELL07 [1/m]
+   \param    model          allows choice of
+                            pre-defined parameters of specific models (see note below).
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K]
+   \param    vmr            suspended water droplet density profile [kg/m³]
+                            (valid range (Tab.1 of MPM93): 0-0.005)
+
+   \note     Allowed models: 'ELL07'.
+             See the user guide for detailed explanations.
+
+   \remark   Reference: W. J. Ellison, <br>
+            <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+             Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
+             J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
+
+   \author Stuart Fox
+   \date 2015-06-03
+ */
+//! New implementation
 void compute(PropagationMatrix& propmat_clearsky,
              const Vector& f_grid,
              const Numeric t,
