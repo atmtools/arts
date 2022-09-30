@@ -136,6 +136,11 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
   return false;
 }
 
+bool can_compute(const SpeciesIsotopeRecord& model) {
+  PropagationMatrix pm;
+  return compute_selection<true>(pm, model, {}, {}, {}, {}, {});
+}
+
 /** Sets a VMR perturbation
  * 
  * @tparam special Whether or not this is called for special derivatives

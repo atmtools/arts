@@ -2,19 +2,13 @@
 
 #include "isotopologues.h"
 #include "predefined_absorption_models.h"
-#include "propagationmatrix.h"
 
 int main() try {
-  PropagationMatrix pm;
-
   for (auto spec : Species::Isotopologues) {
     if (Species::is_predefined_model(spec)) {
-      if (not Absorption::PredefinedModel::compute_selection<true>(
-              pm, spec, {}, {}, {}, {}, {}))
-        throw spec;
-    } else if (Absorption::PredefinedModel::compute_selection<true>(
-              pm, spec, {}, {}, {}, {}, {}))
-        throw spec.FullName();
+      if (not Absorption::PredefinedModel::can_compute(spec)) throw spec;
+      else std::cout << "Can compute: " << spec.FullName() << '\n';
+    } else if (Absorption::PredefinedModel::can_compute(spec)) throw spec.FullName();
   }
 
   return EXIT_SUCCESS;

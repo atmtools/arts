@@ -70,16 +70,8 @@ struct VMRS {
   }
 };
 
-//! Debug only
-template <bool check_exist>
-extern bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
-                              const SpeciesIsotopeRecord& model,
-                              const Vector& f [[maybe_unused]],
-                              const Numeric& p [[maybe_unused]],
-                              const Numeric& t [[maybe_unused]],
-                              const VMRS& vmr [[maybe_unused]],
-                              const PredefinedModelData& predefined_model_data
-                              [[maybe_unused]]);
+//! Returns true if the model can be computed
+bool can_compute(const SpeciesIsotopeRecord& model);
 
 /** Compute the predefined model
  *
