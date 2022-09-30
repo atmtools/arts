@@ -31,6 +31,8 @@
 
 #include "ppathZZZ.h"
 
+#include <algorithm>
+
 #include "geodeticZZZ.h"
 #include "interpolation.h"
 #include "jacobian.h"
@@ -122,14 +124,7 @@ void is_ppath_inside_atmosphere(const Ppath& ppath,
   }
 }
 
-/** Adjusts longitudes and calculates grid positions of a ppath
-
-   A help function doing two things:
-
-   If 3D, adjusts the longitudes in pos, start_pos and end_pos so they match
-   lon_grid
-
-   Calculates grid positions
+/** Calculates grid positions of a ppath
 
    @param[in,out]  ppath      ppath-structure with at least fields dim, np,
                               pos, end_pos and start_pos set.
@@ -137,25 +132,13 @@ void is_ppath_inside_atmosphere(const Ppath& ppath,
    @param[in]   lat_grid      As the WSV with the same name.
    @param[in]   lon_grid      As the WSV with the same name.
 
-
    @author Patrick Eriksson
    @date   2021-08-16
  */
-void ppath_fix_lon_and_gp(Ppath& ppath,
-                          const Vector& z_grid,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid) {
-  // Adjust longitudes?
-  if (ppath.dim == 3) {
-    const Numeric lon_min = lon_grid[0];
-    const Numeric lon_max = last(lon_grid);
-    for (Index i = 0; i < ppath.np; i++) {
-      ppath.pos(i, 2) = move_lon_to_range(ppath.pos(i, 2), lon_min, lon_max);
-    }
-    ppath.end_pos[2] = move_lon_to_range(ppath.end_pos[2], lon_min, lon_max);
-    ppath.start_pos[2] =
-        move_lon_to_range(ppath.start_pos[2], lon_min, lon_max);
-  }
+void ppath_calc_gp(Ppath& ppath,
+                   const Vector& z_grid,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid) {
   // Calculate grid positions
   ppath.gp_p.resize(ppath.np);
   if (ppath.np) {
@@ -172,6 +155,31 @@ void ppath_fix_lon_and_gp(Ppath& ppath,
     gridpos(ppath.gp_lon, lon_grid, ppath.pos(joker, 2));
   } else {
     ppath.gp_lon.resize(0);
+  }
+}
+
+/** Adjusts longitudes of a ppath
+
+   If 3D, adjusts the longitudes in pos, start_pos and end_pos so they match
+   lon_grid
+
+   @param[in,out]  ppath      ppath-structure with at least fields dim, np,
+                              pos, end_pos and start_pos set.
+   @param[in]   lon_grid      As the WSV with the same name.
+
+   @author Patrick Eriksson
+   @date   2021-08-16
+ */
+void ppath_fix_lon(Ppath& ppath, const Vector& lon_grid) {
+  if (ppath.dim == 3) {
+    const Numeric lon_min = lon_grid[0];
+    const Numeric lon_max = last(lon_grid);
+    for (Index i = 0; i < ppath.np; i++) {
+      ppath.pos(i, 2) = move_lon_to_range(ppath.pos(i, 2), lon_min, lon_max);
+    }
+    ppath.end_pos[2] = move_lon_to_range(ppath.end_pos[2], lon_min, lon_max);
+    ppath.start_pos[2] =
+        move_lon_to_range(ppath.start_pos[2], lon_min, lon_max);
   }
 }
 
@@ -774,7 +782,8 @@ void ppath_geom_const_lstep(Ppath& ppath,
                             const Numeric& l_step_max,
                             const Numeric& l_total_max,
                             const Numeric& l_accuracy,
-                            const Index& safe_surface_search) {
+                            const Index& safe_surface_search,
+                            const Index& do_not_calc_gps) {
   // Convert rte_pos/los to ECEF
   Vector ecef(3), decef(3);
   geodetic_los2ecef(ecef, decef, rte_pos, rte_los, refellipsoid);
@@ -879,9 +888,9 @@ void ppath_geom_const_lstep(Ppath& ppath,
   ppath.np = np;
   ppath.backgroundZZZ = background;
   ppath.start_lstep = 0;
-  ppath.end_pos = rte_pos;
-  ppath.end_los = rte_los;
-  ppath.end_lstep = l_end;
+  ppath.start_pos = rte_pos;
+  ppath.start_los = rte_los;
+  ppath.start_lstep = l_end;
   ppath.nreal = Vector(np, 1.0);
   ppath.ngroup = Vector(np, 1.0);
   ppath.pos.resize(np, 3);
@@ -914,69 +923,25 @@ void ppath_geom_const_lstep(Ppath& ppath,
     ppath.lstep = l[1] - l[0];
   }
   if (np == 0) {
-    ppath.start_pos = ppath.end_pos;
-    ppath.start_los = ppath.end_los;
+    ppath.end_los = ppath.start_los;
   } else {
-    ppath.start_pos = ppath.pos(ppath.np - 1, joker);
-    ppath.start_los = ppath.los(ppath.np - 1, joker);
+    ppath.end_pos = ppath.pos(ppath.np - 1, joker);
+    ppath.end_los = ppath.los(ppath.np - 1, joker);
   }
 
   // Check that ppath is fully inside the atmosphere before doing grid positions
   is_ppath_inside_atmosphere(ppath, atmosphere_dim, z_grid, lat_grid, lon_grid);
 
-  // Adjust longitudes (if 3D) and calculate grid positions
-  ppath_fix_lon_and_gp(ppath, z_grid, lat_grid, lon_grid);
-}
+  // Adjust longitudes
+  ppath_fix_lon(ppath, lon_grid);
 
-Numeric surface_z_at_pos(const Vector pos,
-                         const Index& atmosphere_dim,
-                         const GriddedField2& surface_elevation) {
-  // We want here an extrapolation to infinity ->
-  //                                        extremly high extrapolation factor
-  const Numeric inf_proxy = 1.0e99;
-
-  if (atmosphere_dim == 1) {
-    return surface_elevation.data(0, 0);
-
-  } else if (atmosphere_dim == 2) {
-    const Vector& lat_grid =
-        surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
-    ArrayOfGridPos gp_lat(1);
-    if (lat_grid.nelem() > 1) {
-      gridpos(gp_lat, lat_grid, pos[1], inf_proxy);
-      jacobian_type_extrapol(gp_lat);
-    } else {
-      gp4length1grid(gp_lat);
-    }
-    Vector itw(2);
-    interpweights(itw, gp_lat[0]);
-    return interp(itw, surface_elevation.data(joker, 0), gp_lat[0]);
-
-  } else if (atmosphere_dim == 3) {
-    const Vector& lat_grid =
-        surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
-    const Vector& lon_grid =
-        surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
-    ArrayOfGridPos gp_lat(1);
-    if (lat_grid.nelem() > 1) {
-      gridpos(gp_lat, lat_grid, pos[1], inf_proxy);
-      jacobian_type_extrapol(gp_lat);
-    } else {
-      gp4length1grid(gp_lat);
-    }
-    ArrayOfGridPos gp_lon(1);
-    if (lon_grid.nelem() > 1) {
-      gridpos(gp_lon, lon_grid, pos[2], inf_proxy);
-      jacobian_type_extrapol(gp_lon);
-    } else {
-      gp4length1grid(gp_lon);
-    }
-    Vector itw(4);
-    interpweights(itw, gp_lat[0], gp_lon[0]);
-    return interp(itw, surface_elevation.data, gp_lat[0], gp_lon[0]);
-
+  // Calculate grid positions?
+  if (do_not_calc_gps) {
+    ppath.gp_p.resize(0);
+    ppath.gp_lat.resize(0);
+    ppath.gp_lon.resize(0);
   } else {
-    ARTS_ASSERT(0);
+    ppath_calc_gp(ppath, z_grid, lat_grid, lon_grid);
   }
 }
 
@@ -986,7 +951,8 @@ void ppath_grid_crossings(Ppath& ppath,
                           const Vector& z_grid,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
-                          const Numeric& l_step_max) {
+                          const Numeric& l_step_max,
+                          const Index& do_not_calc_gps) {
   // l means distance from ppath pos[0]
   // dl means distance from some other ppath point
   // Excpetion: l_step_max is still a local length
@@ -1001,7 +967,7 @@ void ppath_grid_crossings(Ppath& ppath,
   // Adjust grid position that are at end of z_grid
   // (from having fd[0]=1 to fd[0]=0)
   const Index nz = z_grid.nelem();
-  if (ppath.end_pos[0] > z_grid[nz - 1]) {
+  if (ppath.start_pos[0] > z_grid[nz - 1]) {
     ppath.gp_p[0].idx = nz - 1;
     ppath.gp_p[0].fd[0] = 0;
     ppath.gp_p[0].fd[1] = 1;
@@ -1081,7 +1047,7 @@ void ppath_grid_crossings(Ppath& ppath,
       }
 
       // Sort dl_from_ip
-      // How to do this best?
+      std::sort(dl_from_ip.begin(), dl_from_ip.end());
 
       // Move to overall arrays and add points if l_step_max that requires
       for (Index i = 0; i < dl_from_ip.nelem(); ++i) {
@@ -1115,7 +1081,7 @@ void ppath_grid_crossings(Ppath& ppath,
     const Numeric dl_step = dl / Numeric(n_extra + 1);
     for (Index extra = 0; extra < n_extra; ++extra) {
       const Numeric l_extra = l_last_inserted + dl_step;
-      istart_array.push_back(ppath.np-2);
+      istart_array.push_back(ppath.np - 2);
       l_array.push_back(l_extra);
       l_last_inserted = l_extra;
     }
@@ -1185,6 +1151,67 @@ void ppath_grid_crossings(Ppath& ppath,
     interp(ppath.ngroup[Range(1, nl)], itw, ngroup, gp);
   }
 
-  // Adjust longitudes (if 3D) and calculate grid positions
-  ppath_fix_lon_and_gp(ppath, z_grid, lat_grid, lon_grid);
+  // Adjust longitudes
+  ppath_fix_lon(ppath, lon_grid);
+
+  // Calculate grid positions?
+  if (do_not_calc_gps) {
+    ppath.gp_p.resize(0);
+    ppath.gp_lat.resize(0);
+    ppath.gp_lon.resize(0);
+  } else {
+    ppath_calc_gp(ppath, z_grid, lat_grid, lon_grid);
+  }
+}
+
+Numeric surface_z_at_pos(const Vector pos,
+                         const Index& atmosphere_dim,
+                         const GriddedField2& surface_elevation) {
+  // We want here an extrapolation to infinity ->
+  //                                        extremly high extrapolation factor
+  const Numeric inf_proxy = 1.0e99;
+
+  if (atmosphere_dim == 1) {
+    return surface_elevation.data(0, 0);
+
+  } else if (atmosphere_dim == 2) {
+    const Vector& lat_grid =
+        surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
+    ArrayOfGridPos gp_lat(1);
+    if (lat_grid.nelem() > 1) {
+      gridpos(gp_lat, lat_grid, pos[1], inf_proxy);
+      jacobian_type_extrapol(gp_lat);
+    } else {
+      gp4length1grid(gp_lat);
+    }
+    Vector itw(2);
+    interpweights(itw, gp_lat[0]);
+    return interp(itw, surface_elevation.data(joker, 0), gp_lat[0]);
+
+  } else if (atmosphere_dim == 3) {
+    const Vector& lat_grid =
+        surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
+    const Vector& lon_grid =
+        surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
+    ArrayOfGridPos gp_lat(1);
+    if (lat_grid.nelem() > 1) {
+      gridpos(gp_lat, lat_grid, pos[1], inf_proxy);
+      jacobian_type_extrapol(gp_lat);
+    } else {
+      gp4length1grid(gp_lat);
+    }
+    ArrayOfGridPos gp_lon(1);
+    if (lon_grid.nelem() > 1) {
+      gridpos(gp_lon, lon_grid, pos[2], inf_proxy);
+      jacobian_type_extrapol(gp_lon);
+    } else {
+      gp4length1grid(gp_lon);
+    }
+    Vector itw(4);
+    interpweights(itw, gp_lat[0], gp_lon[0]);
+    return interp(itw, surface_elevation.data, gp_lat[0], gp_lon[0]);
+
+  } else {
+    ARTS_ASSERT(0);
+  }
 }

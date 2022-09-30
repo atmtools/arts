@@ -36,77 +36,6 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathCalcZZZ(Ppath& ppath,
-                  const Vector& rte_pos,
-                  const Vector& rte_los,
-                  const Index& atmosphere_dim,
-                  const Vector& refellipsoid,
-                  const Vector& z_grid,
-                  const Vector& lat_grid,
-                  const Vector& lon_grid,
-                  const Index& cloudbox_on,
-                  const ArrayOfIndex& cloudbox_limits,
-                  const GriddedField2& surface_elevation,
-                  const Index& refraction_do,
-                  const Index& add_grid_crossings,
-                  const Numeric& l_step_max,
-                  const Numeric& l_total_max,
-                  const Numeric& l_raytrace_geom,
-                  const Numeric& l_raytrace_refr,
-                  const Numeric& l_accuracy,
-                  const Index& safe_surface_search,
-                  const Verbosity&) {
-  // Check lengths always used
-  if (l_step_max <= 0) {
-    ARTS_USER_ERROR("GIN l_step_max must be > 0.\n");
-  }
-  if (l_accuracy <= 0) {
-    ARTS_USER_ERROR("GIN l_accuracy must be > 0.\n");
-  }
-
-  // Step 1, with refraction
-  if (refraction_do) {
-    if (l_raytrace_refr <= 0 || l_raytrace_refr > l_step_max/4) {
-      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0 and < l_step_max/4.\n");
-    }
-    ARTS_USER_ERROR("Refraction not yet implemented\n", l_raytrace_refr);
-
-  // Step 1, geometrical
-  } else {
-    if (l_raytrace_geom <= 0) {
-      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0.\n");
-    }
-    
-    ppath_geom_const_lstep(ppath,
-                           rte_pos,
-                           rte_los,
-                           atmosphere_dim,
-                           refellipsoid,
-                           z_grid,
-                           lat_grid,
-                           lon_grid,
-                           cloudbox_on,
-                           cloudbox_limits,
-                           surface_elevation,
-                           add_grid_crossings ? l_raytrace_geom : l_step_max,
-                           l_total_max,
-                           l_accuracy,
-                           safe_surface_search);
-  }
-
-  // Add grid crossings?
-  if (add_grid_crossings) {
-    ppath_grid_crossings(ppath,
-                         atmosphere_dim,
-                         refellipsoid,
-                         z_grid,
-                         lat_grid,
-                         lon_grid,
-                         l_step_max);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCheckStartPoint(const Ppath& ppath,
                           const Index& background,
                           const Index& np,
@@ -129,8 +58,7 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Radiative background not as expected!\n"
         "  background in ppath: ",
         ppath.backgroundZZZ,
-        "\n"
-        "  background expected: ",
+        "\n  background expected: ",
         background);
   }
   if (np >= 0 && ppath.np != np) {
@@ -138,8 +66,7 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Number of ppath points not as expected!\n"
         "  number in ppath: ",
         ppath.np,
-        "\n"
-        "  number expected: ",
+        "\n  number expected: ",
         np);
   }
   if (daltitude >= 0 && abs(pos[0] - altitude) > daltitude) {
@@ -147,14 +74,11 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Start altitude not as expected!\n"
         "  altitude in ppath: ",
         pos[0],
-        "\n"
-        "  altitude expected: ",
+        "\n  altitude expected: ",
         altitude,
-        "\n"
-        "         difference: ",
+        "\n         difference: ",
         abs(pos[0] - altitude),
-        "\n"
-        "      set tolarance: ",
+        "\n      set tolarance: ",
         daltitude);
   }
   if (dlatitude >= 0 && abs(pos[1] - latitude) > dlatitude) {
@@ -162,14 +86,11 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Start latitude not as expected!\n"
         "  latitude in ppath: ",
         pos[1],
-        "\n"
-        "  latitude expected: ",
+        "\n  latitude expected: ",
         latitude,
-        "\n"
-        "         difference: ",
+        "\n         difference: ",
         abs(pos[1] - latitude),
-        "\n"
-        "      set tolarance: ",
+        "\n      set tolarance: ",
         dlatitude);
   }
   if (dlongitude >= 0 && abs(pos[2] - longitude) > dlongitude) {
@@ -177,14 +98,11 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Start longitude not as expected!\n"
         "  longitude in ppath: ",
         pos[2],
-        "\n"
-        "  longitude expected: ",
+        "\n  longitude expected: ",
         longitude,
-        "\n"
-        "          difference: ",
+        "\n          difference: ",
         abs(pos[2] - longitude),
-        "\n"
-        "       set tolarance: ",
+        "\n       set tolarance: ",
         dlongitude);
   }
   if (dzenith_angle >= 0 && abs(los[0] - zenith_angle) > dzenith_angle) {
@@ -192,14 +110,11 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Start zenith angle not as expected!\n"
         "  zenith angle in ppath: ",
         los[0],
-        "\n"
-        "  zenith angle expected: ",
+        "\n  zenith angle expected: ",
         zenith_angle,
-        "\n"
-        "             difference: ",
+        "\n             difference: ",
         abs(los[0] - zenith_angle),
-        "\n"
-        "          set tolarance: ",
+        "\n          set tolarance: ",
         dzenith_angle);
   }
   if (dazimuth_angle >= 0 && abs(los[1] - azimuth_angle) > dazimuth_angle) {
@@ -207,14 +122,84 @@ void ppathCheckStartPoint(const Ppath& ppath,
         "Start azimuth angle not as expected!\n"
         "  azimuth angle in ppath: ",
         los[1],
-        "\n"
-        "  azimuth angle expected: ",
+        "\n  azimuth angle expected: ",
         azimuth_angle,
-        "\n"
-        "              difference: ",
+        "\n              difference: ",
         abs(los[1] - azimuth_angle),
-        "\n"
-        "           set tolarance: ",
+        "\n           set tolarance: ",
         dazimuth_angle);
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathPassive(Ppath& ppath,
+                  const Vector& rte_pos,
+                  const Vector& rte_los,
+                  const Index& atmosphere_dim,
+                  const Vector& refellipsoid,
+                  const Vector& z_grid,
+                  const Vector& lat_grid,
+                  const Vector& lon_grid,
+                  const Index& cloudbox_on,
+                  const ArrayOfIndex& cloudbox_limits,
+                  const GriddedField2& surface_elevation,
+                  const Index& refraction_do,
+                  const Index& add_grid_crossings,
+                  const Numeric& l_step_max,
+                  const Numeric& l_total_max,
+                  const Numeric& l_raytrace_geom,
+                  const Numeric& l_raytrace_refr,
+                  const Numeric& l_accuracy,
+                  const Index& safe_surface_search,
+                  const Index& do_not_calc_gps,
+                  const Verbosity&) {
+  // Check lengths always used
+  if (l_step_max <= 0) {
+    ARTS_USER_ERROR("GIN l_step_max must be > 0.\n");
+  }
+  if (l_accuracy <= 0) {
+    ARTS_USER_ERROR("GIN l_accuracy must be > 0.\n");
+  }
+
+  // Step 1, with refraction
+  if (refraction_do) {
+    if (l_raytrace_refr <= 0 || l_raytrace_refr > l_step_max / 4) {
+      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0 and < l_step_max/4.\n");
+    }
+    ARTS_USER_ERROR("Refraction not yet implemented\n", l_raytrace_refr);
+
+    // Step 1, geometrical
+  } else {
+    if (l_raytrace_geom <= 0) {
+      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0.\n");
+    }
+    ppath_geom_const_lstep(ppath,
+                           rte_pos,
+                           rte_los,
+                           atmosphere_dim,
+                           refellipsoid,
+                           z_grid,
+                           lat_grid,
+                           lon_grid,
+                           cloudbox_on,
+                           cloudbox_limits,
+                           surface_elevation,
+                           add_grid_crossings ? l_raytrace_geom : l_step_max,
+                           l_total_max,
+                           l_accuracy,
+                           safe_surface_search,
+                           do_not_calc_gps && !add_grid_crossings);
+  }
+
+  // Add grid crossings?
+  if (add_grid_crossings) {
+    ppath_grid_crossings(ppath,
+                         atmosphere_dim,
+                         refellipsoid,
+                         z_grid,
+                         lat_grid,
+                         lon_grid,
+                         l_step_max,
+                         do_not_calc_gps);
   }
 }

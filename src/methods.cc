@@ -13883,9 +13883,65 @@ Available models:
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("ppathCalcZZZ"),
+      NAME("ppathCheckStartPoint"),
       DESCRIPTION(
-        "General method for the calculation of a propagation path (ppath).\n"
+         "Allows to check that a propagation path starts as expected.\n"
+         "\n"
+         "For example, to check the start altitude, set the GIN *altitude* to the\n"
+         "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
+         "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
+         "\n"
+         "A check is done as soon the tolerance value is >= 0. Don't forget to set\n"
+         "the expected value, otherwise 0 will be applied. \n"
+         "\n"
+         "The radiative background and number of points can be checked in the same\n"
+         "way, but here there are no tolrance values and the expected values are\n"
+         "integers. The following coding is used for the radiative background\n"
+         "  0: Undefined\n"
+         "  1: Space\n"
+         "  2: The surface\n"
+         "  3: The cloudbox\n"
+         "  4: A transmitter\n"
+         "  9: Start point determined by overall length criterion\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppathZZZ"),
+      GIN("background", "np",
+          "altitude", "daltitude",
+          "latitude", "dlatitude",
+          "longitude", "dlongitude",
+          "zenith_angle", "dzenith_angle",
+          "azimuth_angle", "dazimuth_angle"),
+      GIN_TYPE("Index", "Index",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
+      GIN_DESC("Expected radiative background. See above.",
+               "Expected number of path points.",
+               "Expected altitude.",
+               "Allowed deviation for altitude.",
+               "Expected latitude.",
+               "Allowed deviation for latitude.",
+               "Expected longitude.",
+               "Allowed deviation for longitude.",
+               "Expected zenith angle.",
+               "Allowed deviation for zenith angle.",
+               "Expected azimuth angle.",
+               "Allowed deviation for azimuth angle.")));
+
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppathPassive"),
+      DESCRIPTION(
+        "Propagation path (ppath) determination for passive observatrions.\n"
+        "\n"
+        "ZZZ Update when method finished ZZZ\n"
         "\n"
         "A propagation path is primarily defined by the observation geometry (real or\n"
         "imagainary) described by *rte_pos* and *rte_los*. That is, a ppath describes\n"
@@ -13942,9 +13998,10 @@ Available models:
           "l_raytrace_geom",
           "l_raytrace_refr",
           "l_accuracy", 
-          "safe_surface_search"),
-      GIN_TYPE("Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT("0", "0", "10e3", "-1.0", "10e3", "2e3", "0.1", "0"),
+          "safe_surface_search",
+          "do_not_calc_gps"),
+      GIN_TYPE("Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT("0", "0", "10e3", "-1.0", "10e3", "2e3", "0.1", "0","0"),
       GIN_DESC("Flag to consider refraction or not.",
                "Flag to include crossings with z, lat and lon grids as ppath points.",
                "If set to >0, sets the maximum distance between ppath points.",
@@ -13952,60 +14009,8 @@ Available models:
                "If refraction_do false, the ray tracing step length to apply.",
                "If refraction_do true, the ray tracing step length to apply.",
                "See *IntersectionGeometricalWithSurface*.",
-               "See *IntersectionGeometricalWithSurface*.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathCheckStartPoint"),
-      DESCRIPTION(
-         "Allows to check that a propagation path starts as expected.\n"
-         "\n"
-         "For example, to check the start altitude, set the GIN *altitude* to the\n"
-         "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
-         "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
-         "\n"
-         "A check is done as soon the tolerance value is >= 0. Don't forget to set\n"
-         "the expected value, otherwise 0 will be applied. \n"
-         "\n"
-         "The radiative background and number of points can be checked in the same\n"
-         "way, but here there are no tolrance values and the expected values are\n"
-         "integers. The following coding is used for the radiative background\n"
-         "  0: Undefined\n"
-         "  1: Space\n"
-         "  2: The surface\n"
-         "  3: The cloudbox\n"
-         "  4: A transmitter\n"
-         "  9: Start point determined by overall length criterion\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppathZZZ"),
-      GIN("background", "np",
-          "altitude", "daltitude",
-          "latitude", "dlatitude",
-          "longitude", "dlongitude",
-          "zenith_angle", "dzenith_angle",
-          "azimuth_angle", "dazimuth_angle"),
-      GIN_TYPE("Index", "Index",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric"),
-      GIN_DEFAULT("-1", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
-      GIN_DESC("Expected radiative background. See above.",
-               "Expected number of path points.",
-               "Expected altitude.",
-               "Allowed deviation for altitude.",
-               "Expected latitude.",
-               "Allowed deviation for latitude.",
-               "Expected longitude.",
-               "Allowed deviation for longitude.",
-               "Expected zenith angle.",
-               "Allowed deviation for zenith angle.",
-               "Expected azimuth angle.",
-               "Allowed deviation for azimuth angle.")));
+               "See *IntersectionGeometricalWithSurface*.",
+               "If true, grid position members of *ppath* will not be calculated.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFixedLstep"),
