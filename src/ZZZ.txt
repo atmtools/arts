@@ -1,4 +1,6 @@
 Coding for ppath background changed.
+start_pos and end_pos now shifted (to be strictly in observation direction)
+ppath_lmax must now be > 0
 
 refellipsoid is now [equatorial radius, polar radius]
 
@@ -8,7 +10,6 @@ Longitudes must now be inside [-180,360].
 
 z_surface replaced with surface_elevation
 
-ppath_lmax must now be > 0
 
 ToDo
 -
