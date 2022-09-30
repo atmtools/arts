@@ -158,7 +158,9 @@ void ppath_fix_lon_and_gp(Ppath& ppath,
   }
   // Calculate grid positions
   ppath.gp_p.resize(ppath.np);
-  if (ppath.np) gridpos(ppath.gp_p, z_grid, ppath.pos(joker, 0));
+  if (ppath.np) {
+    gridpos(ppath.gp_p, z_grid, ppath.pos(joker, 0));
+  }
   if (ppath.dim >= 2 && ppath.np) {
     ppath.gp_lat.resize(ppath.np);
     gridpos(ppath.gp_lat, lat_grid, ppath.pos(joker, 1));
@@ -985,22 +987,41 @@ void ppath_grid_crossings(Ppath& ppath,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
                           const Numeric& l_step_max) {
+  // l means distance from ppath pos[0]
+  // dl means distance from some other ppath point
+  // Excpetion: l_step_max is still a local length
+
+  // Accumulated lengths of ppath points
+  Vector l_acc_ppath(ppath.np);
+  l_acc_ppath[0] = 0;
+  for (Index ip = 0; ip < ppath.np - 1; ++ip) {
+    l_acc_ppath[ip + 1] = l_acc_ppath[ip] + ppath.lstep[ip];
+  }
+
+  // Adjust grid position that are at end of z_grid
+  // (from having fd[0]=1 to fd[0]=0)
+  const Index nz = z_grid.nelem();
+  if (ppath.end_pos[0] > z_grid[nz - 1]) {
+    ppath.gp_p[0].idx = nz - 1;
+    ppath.gp_p[0].fd[0] = 0;
+    ppath.gp_p[0].fd[1] = 1;
+  }
+  if (ppath.backgroundZZZ == PPATH_BACKGROUND_SPACE) {
+    ppath.gp_p[ppath.np - 1].idx = nz - 1;
+    ppath.gp_p[ppath.np - 1].fd[0] = 0;
+    ppath.gp_p[ppath.np - 1].fd[1] = 1;
+  }
+
   // Containers for new ppath points (excluding start and end points, that
   // always are taken from original ppath)
   ArrayOfIndex istart_array(0);
   ArrayOfNumeric l_array(0);
 
-  // Accumulated length from ppath start point
-  Vector l_from_start(ppath.np);
-  l_from_start[0] = 0;
+  // Loop ppath steps to find grid crossings
   Numeric l_last_inserted = 0;
-
   for (Index ip = 0; ip < ppath.np - 1; ++ip) {
-    // Accumulated length
-    l_from_start[ip + 1] = l_from_start[ip] + ppath.lstep[ip];
-
-    // Length to grid crossing inside ppath step
-    ArrayOfNumeric l2next(0);
+    // Length to grid crossings inside ppath step
+    ArrayOfNumeric dl_from_ip(0);
 
     // Change in integer grid position for each dimension
     const Index dgp_p = ppath.gp_p[ip + 1].idx - ppath.gp_p[ip].idx;
@@ -1013,7 +1034,7 @@ void ppath_grid_crossings(Ppath& ppath,
 
     if (dgp_p || dgp_lat || dgp_lon) {
       // ECEF at start end of ppath step
-      Numeric ecef, decef;
+      Vector ecef(3), decef(3);
       geodetic_los2ecef(ecef,
                         decef,
                         ppath.pos(ip, joker),
@@ -1022,62 +1043,58 @@ void ppath_grid_crossings(Ppath& ppath,
 
       // Crossing(s) of z_grid
       for (Index i = 1; i <= abs(dgp_p); ++i) {
-        const Numeric l_test =
+        const Numeric dl_test =
             intersection_altitude(ecef,
                                   decef,
                                   refellipsoid,
                                   z_grid[ppath.gp_p[ip].idx + sign(dgp_p) * i]);
-        if (l_test > 0) {
-          l2next.push_back(l_test);
+        if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l_acc_ppath[ip + 1]) {
+          dl_from_ip.push_back(dl_test);
         }
       }
 
       // Crossing(s) of lat_grid
       for (Index i = 1; i <= abs(dgp_lat); ++i) {
-        const Numeric l_test = intersection_latitude(
+        const Numeric dl_test = intersection_latitude(
             ecef,
             decef,
             ppath.pos(ip, joker),
             ppath.los(ip, joker),
             refellipsoid,
             lat_grid[ppath.gp_lat[ip].idx + sign(dgp_lat) * i]);
-        if (l_test > 0) {
-          l2next.push_back(l_test);
+        if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l_acc_ppath[ip + 1]) {
+          dl_from_ip.push_back(dl_test);
         }
       }
 
       // Crossing(s) of lon_grid
       for (Index i = 1; i <= abs(dgp_lon); ++i) {
-        const Numeric l_test = intersection_longitude(
+        const Numeric dl_test = intersection_longitude(
             ecef,
             decef,
             ppath.pos(ip, joker),
             ppath.los(ip, joker),
             lon_grid[ppath.gp_lon[ip].idx + sign(dgp_lon) * i]);
-        if (l_test > 0) {
-          l2next.push_back(l_test);
+        if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l_acc_ppath[ip + 1]) {
+          dl_from_ip.push_back(dl_test);
         }
       }
 
-      // Sort found lengths
+      // Sort dl_from_ip
       // How to do this best?
 
       // Move to overall arrays and add points if l_step_max that requires
-      for (Index i = 0; i < l2next.nelem(); ++i) {
+      for (Index i = 0; i < dl_from_ip.nelem(); ++i) {
         // Some useful lengths
-        const Numeric l_next = l_from_start[ip] + l2next[i];
+        const Numeric l_next = l_acc_ppath[ip] + dl_from_ip[i];
         const Numeric dl = l_next - l_last_inserted;
         // Number of points needed to fulfill l_step_max
-        const Index n_extra = Index(std::floor(dl / l_step_max));
-        if (n_extra) {
-          const Numeric l_step = dl / Numeric(n_extra + 1);
-          for (Index extra = 1; extra <= n_extra; ++extra) {
-            const Numeric l_extra = l_last_inserted + Numeric(extra) * l_step;
-            // l_extra could be inside earlier ppath step! We have to search from start:
-            Index i0 = 0;
-            for (; l_from_start[i0 + 1] < l_extra; ++i0) {
-            }
-            istart_array.push_back(i0);
+        if (dl > l_step_max) {
+          const Index n_extra = Index(std::floor(dl / l_step_max));
+          const Numeric dl_step = dl / Numeric(n_extra + 1);
+          for (Index extra = 0; extra < n_extra; ++extra) {
+            const Numeric l_extra = l_last_inserted + dl_step;
+            istart_array.push_back(ip);
             l_array.push_back(l_extra);
             l_last_inserted = l_extra;
           }
@@ -1090,7 +1107,22 @@ void ppath_grid_crossings(Ppath& ppath,
     }  // if dgp_p
   }    // ip loop
 
-  // Make copies of data in ppath that wuill change, but we need
+  // The distance between last grid crossing and end point can exceed l_step_max
+  // Fix (largely same code as above)!
+  const Numeric dl = l_acc_ppath[ppath.np - 1] - l_last_inserted;
+  if (dl > l_step_max) {
+    const Index n_extra = Index(std::floor(dl / l_step_max));
+    const Numeric dl_step = dl / Numeric(n_extra + 1);
+    for (Index extra = 0; extra < n_extra; ++extra) {
+      const Numeric l_extra = l_last_inserted + dl_step;
+      istart_array.push_back(ppath.np-2);
+      l_array.push_back(l_extra);
+      l_last_inserted = l_extra;
+    }
+  }
+  //-------------------------------------------------------------
+
+  // Make copies of data in ppath that will change, but we need
   Index np = ppath.np;
   Vector nreal = ppath.nreal;
   Vector ngroup = ppath.ngroup;
@@ -1116,7 +1148,7 @@ void ppath_grid_crossings(Ppath& ppath,
   Vector l_array_as_vector(nl);
   for (Index i = 0; i < nl; ++i) {
     l_array_as_vector[i] = l_array[i];
-    Numeric ecef, decef;
+    Vector ecef(3), decef(3);
     geodetic_los2ecef(ecef,
                       decef,
                       pos(istart_array[i], joker),
@@ -1127,13 +1159,16 @@ void ppath_grid_crossings(Ppath& ppath,
                        ecef,
                        decef,
                        refellipsoid,
-                       l_array[i] - l_from_start[istart_array[i]]);
+                       l_array[i] - l_acc_ppath[istart_array[i]]);
     if (i > 0) {
       ppath.lstep[i] = l_array[i] - l_array[i - 1];
+      ARTS_ASSERT(ppath.lstep[i] > 0)
     }
   }
   ppath.lstep[0] = l_array[0];
-  ppath.lstep[nl] = l_from_start[np - 1] - l_array[nl - 1];
+  ppath.lstep[nl] = l_acc_ppath[np - 1] - l_array[nl - 1];
+  ARTS_ASSERT(ppath.lstep[0] > 0)
+  ARTS_ASSERT(ppath.lstep[nl] > 0)
 
   // New refractive indices, mainly set by interpolation
   if (max(nreal) > 1.0) {
@@ -1143,7 +1178,7 @@ void ppath_grid_crossings(Ppath& ppath,
     ppath.ngroup[ppath.np - 1] = ngroup[np - 1];
     //
     ArrayOfGridPos gp(nl);
-    gridpos(gp, l_from_start, l_array_as_vector);
+    gridpos(gp, l_acc_ppath, l_array_as_vector);
     Matrix itw(nl, 2);
     interpweights(itw, gp);
     interp(ppath.nreal[Range(1, nl)], itw, nreal, gp);

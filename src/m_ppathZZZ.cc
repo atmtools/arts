@@ -64,11 +64,14 @@ void ppathCalcZZZ(Ppath& ppath,
     ARTS_USER_ERROR("GIN l_accuracy must be > 0.\n");
   }
 
+  // Step 1, with refraction
   if (refraction_do) {
     if (l_raytrace_refr <= 0 || l_raytrace_refr > l_step_max/4) {
       ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0 and < l_step_max/4.\n");
     }
     ARTS_USER_ERROR("Refraction not yet implemented\n", l_raytrace_refr);
+
+  // Step 1, geometrical
   } else {
     if (l_raytrace_geom <= 0) {
       ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0.\n");
@@ -90,7 +93,16 @@ void ppathCalcZZZ(Ppath& ppath,
                            l_accuracy,
                            safe_surface_search);
   }
+
+  // Add grid crossings?
   if (add_grid_crossings) {
+    ppath_grid_crossings(ppath,
+                         atmosphere_dim,
+                         refellipsoid,
+                         z_grid,
+                         lat_grid,
+                         lon_grid,
+                         l_step_max);
   }
 }
 
