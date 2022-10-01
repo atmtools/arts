@@ -36,22 +36,22 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathCheckStartPoint(const Ppath& ppath,
-                          const Index& background,
-                          const Index& np,
-                          const Numeric& altitude,
-                          const Numeric& daltitude,
-                          const Numeric& latitude,
-                          const Numeric& dlatitude,
-                          const Numeric& longitude,
-                          const Numeric& dlongitude,
-                          const Numeric& zenith_angle,
-                          const Numeric& dzenith_angle,
-                          const Numeric& azimuth_angle,
-                          const Numeric& dazimuth_angle,
-                          const Verbosity&) {
+void ppathCheckEndPoint(const Ppath& ppath,
+                        const Index& background,
+                        const Index& np,
+                        const Numeric& altitude,
+                        const Numeric& daltitude,
+                        const Numeric& latitude,
+                        const Numeric& dlatitude,
+                        const Numeric& longitude,
+                        const Numeric& dlongitude,
+                        const Numeric& zenith_angle,
+                        const Numeric& dzenith_angle,
+                        const Numeric& azimuth_angle,
+                        const Numeric& dazimuth_angle,
+                        const Verbosity&) {
   // pos and los to check
-  ConstVectorView pos = ppath.start_pos, los = ppath.start_los;
+  ConstVectorView pos = ppath.end_pos, los = ppath.end_los;
 
   if (background >= 0 && ppath.backgroundZZZ != background) {
     ARTS_USER_ERROR(
@@ -200,6 +200,7 @@ void ppathPassive(Ppath& ppath,
                          lat_grid,
                          lon_grid,
                          l_step_max,
+                         l_accuracy,
                          do_not_calc_gps);
   }
 }
