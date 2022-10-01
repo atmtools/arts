@@ -13883,11 +13883,14 @@ Available models:
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("ppathCheckStartPoint"),
+      NAME("ppathCheckEndPoint"),
       DESCRIPTION(
-         "Allows to check that a propagation path starts as expected.\n"
+         "Allows to check that a propagation path ends as expected.\n"
          "\n"
-         "For example, to check the start altitude, set the GIN *altitude* to the\n"
+         "Please note that ppaths are stored in observation direction and the \"end\"\n"
+         "is at the radiative background.\n"
+         "\n"
+         "For example, to check the end altitude, set the GIN *altitude* to the\n"
          "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
          "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
          "\n"
@@ -13895,7 +13898,7 @@ Available models:
          "the expected value, otherwise 0 will be applied. \n"
          "\n"
          "The radiative background and number of points can be checked in the same\n"
-         "way, but here there are no tolrance values and the expected values are\n"
+         "way, but here there are no tolarance values and the expected values are\n"
          "integers. The following coding is used for the radiative background\n"
          "  0: Undefined\n"
          "  1: Space\n"

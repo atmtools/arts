@@ -32,7 +32,7 @@ ArrayOfIndexSet( cloudbox_limits, [] )
 VectorSet( rte_pos, [600e3,11,22] )
 VectorSet( rte_los, [100,9] )
 ppathPassive
-ppathCheckStartPoint( background = 1,
+ppathCheckEndPoint( background = 1,
                       np = 0,
                       zenith_angle = 100,
                       dzenith_angle = 1e-9,
@@ -43,7 +43,7 @@ ppathCheckStartPoint( background = 1,
 VectorSet( rte_pos, [600e3,34,123] )
 VectorSet( rte_los, [135,-39] )
 ppathPassive
-ppathCheckStartPoint( background = 2,
+ppathCheckEndPoint( background = 2,
                       altitude = 123,
                       daltitude = 1 )
 
@@ -51,7 +51,7 @@ ppathCheckStartPoint( background = 2,
 VectorSet( rte_pos, [600e3,55,103] )
 VectorSet( rte_los, [113.2,139] )
 ppathPassive
-ppathCheckStartPoint( background = 1,
+ppathCheckEndPoint( background = 1,
                       altitude = 100e3,
                       daltitude = 1,
                       zenith_angle = 82,  # Just a rough check that za is upward   
@@ -61,7 +61,7 @@ ppathCheckStartPoint( background = 1,
 VectorSet( rte_pos, [500,42,190] )
 VectorSet( rte_los, [10,-89] )
 ppathPassive
-ppathCheckStartPoint( background = 1,
+ppathCheckEndPoint( background = 1,
                       altitude = 100e3,
                       daltitude = 1 )
 
@@ -69,7 +69,7 @@ ppathCheckStartPoint( background = 1,
 VectorSet( rte_pos, [12e3,22.2,-180] )
 VectorSet( rte_los, [135,39] )
 ppathPassive
-ppathCheckStartPoint( background = 2,
+ppathCheckEndPoint( background = 2,
                       altitude = 123,
                       daltitude = 1e-3 )
 
@@ -77,7 +77,7 @@ ppathCheckStartPoint( background = 2,
 VectorSet( rte_pos, [123,10,120] )
 VectorSet( rte_los, [135,39] )
 ppathPassive
-ppathCheckStartPoint( background = 2,
+ppathCheckEndPoint( background = 2,
                       altitude = 123,
                       daltitude = 1e-3 )
 
@@ -85,7 +85,7 @@ ppathCheckStartPoint( background = 2,
 VectorSet( rte_pos, [20e3,36.23,-162] )
 VectorSet( rte_los, [93,-178] )
 ppathPassive
-ppathCheckStartPoint( background = 1,
+ppathCheckEndPoint( background = 1,
                       altitude = 100e3,
                       daltitude = 1,
                       zenith_angle = 81,    # Just a rough check that za is upward   
@@ -102,7 +102,7 @@ ArrayOfIndexSet( cloudbox_limits, [10,20,10,20,10,90] )
 VectorSet( rte_pos, [600e3,23,123] )
 VectorSet( rte_los, [180,-123] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       altitude = 20e3,
                       daltitude = 1 )
 
@@ -110,7 +110,7 @@ ppathCheckStartPoint( background = 3,
 VectorSet( rte_pos, [123,27,-178] )
 VectorSet( rte_los, [18,22] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       altitude = 10e3,
                       daltitude = 1 )
 
@@ -118,7 +118,7 @@ ppathCheckStartPoint( background = 3,
 VectorSet( rte_pos, [19.5e3,19.05,-172] )
 VectorSet( rte_los, [95,20] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       latitude = 20,
                       dlatitude = 0.01 )
 
@@ -126,7 +126,7 @@ ppathCheckStartPoint( background = 3,
 VectorSet( rte_pos, [8.78e3,30.5,-180] )
 VectorSet( rte_los, [81,-175] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       latitude = 30,
                       dlatitude = 0.01 )
 
@@ -134,7 +134,7 @@ ppathCheckStartPoint( background = 3,
 VectorSet( rte_pos, [14.11e3,22,108.7] )
 VectorSet( rte_los, [89.34,83] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       longitude = 110,
                       dlongitude = 0.01 )
 
@@ -143,7 +143,7 @@ VectorSet( rte_pos, [14.11e3,22,-169.2] )
 VectorSet( rte_los, [89.34,-97] )
 NumericSet( ppath_lmax, 20e3 )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       longitude = 190,
                       dlongitude = 0.01 )
 
@@ -151,7 +151,7 @@ ppathCheckStartPoint( background = 3,
 VectorSet( rte_pos, [11e3,27,150] )
 VectorSet( rte_los, [90,0] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       np = 1,
                       altitude = 11e3,
                       daltitude = 1,
@@ -159,24 +159,24 @@ ppathCheckStartPoint( background = 3,
                       dzenith_angle = 1e-5)
 
 # Some further tests where the intersection with the cloudbox is around one corner
-# That is, only LOS angles are changed to m ove from one face to next
-# (while the tests above or more looking staright into a face)
+# That is, only LOS angles are changed to move from one face to next
+# (while the tests above or more looking straight into a face)
 VectorSet( rte_pos, [21e3,19.94,109.5] )
 VectorSet( rte_los, [91.1,65] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       altitude = 20e3,
                       daltitude = 1 )
 
 VectorSet( rte_los, [92,85] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       latitude = 20,
                       dlatitude = 0.01 )
 
 VectorSet( rte_los, [92,45] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       longitude = 110,
                       dlongitude = 0.01 )
 
@@ -191,7 +191,7 @@ ArrayOfIndexSet( cloudbox_limits, [10,100,10,20,10,90] )
 VectorSet( rte_pos, [600e3,29,153] )
 VectorSet( rte_los, [153,-123] )
 ppathPassive
-ppathCheckStartPoint( background = 3,
+ppathCheckEndPoint( background = 3,
                       np = 1,
                       altitude = 100e3,
                       daltitude = 1 )
