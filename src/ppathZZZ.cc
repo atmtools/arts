@@ -666,7 +666,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 
   // Constant surface altitude (in comparison to *l_accuracy*)
   if (atmosphere_dim == 1 || z_max - z_min < l_accuracy / 100) {
-    // Catch cases with position on the ground, as they can fail if 
+    // Catch cases with position on the ground, as they can fail if
     // intersection_altitude is used
     if (rte_pos[0] <= z_max) {
       return 0.0;
@@ -971,34 +971,33 @@ void ppath_grid_crossings(Ppath& ppath,
   // dl means distance from some other ppath point
   // Excpetion: l_step_max is still a local length
 
-  // Tolarance variables
-  // For mapping of input ppath to integer grid positions
-  const Numeric fd_tol = 1e-6;
-  // Mainly to avoid that TOA ends up twice if at end:
-  const Numeric dl_tol = l_accuracy / 100.0;
-
   // Process ppath to get some data in another form
   Vector l_acc_ppath(ppath.np);  // Accumulated length along ppath
-  ArrayOfIndex gp_z(ppath.np);   // Integer grid position, shifted if fd[0]=1
-  ArrayOfIndex gp_lat(atmosphere_dim < 2 ? 0 : ppath.np);
-  ArrayOfIndex gp_lon(atmosphere_dim < 3 ? 0 : ppath.np);
+  Vector gp_z(ppath.np);         // Grid positions as Numeric, i.e. idx+fd[0]
+  Vector gp_lat(atmosphere_dim < 2 ? 0 : ppath.np);
+  Vector gp_lon(atmosphere_dim < 3 ? 0 : ppath.np);
   for (Index ip = 0; ip < ppath.np; ++ip) {
     if (ip == 0) {
       l_acc_ppath[ip] = 0;
     } else {
       l_acc_ppath[ip] = l_acc_ppath[ip - 1] + ppath.lstep[ip - 1];
     }
-    gp_z[ip] = ppath.gp_p[ip].idx + (ppath.gp_p[ip].fd[1] > fd_tol ? 0 : 1);
+    gp_z[ip] = Numeric(ppath.gp_p[ip].idx) + ppath.gp_p[ip].fd[0];
     if (atmosphere_dim >= 2) {
-      gp_lat[ip] =
-          ppath.gp_lat[ip].idx + (ppath.gp_lat[ip].fd[1] > fd_tol ? 0 : 1);
+      gp_lat[ip] = Numeric(ppath.gp_lat[ip].idx) + ppath.gp_lat[ip].fd[0];
       if (atmosphere_dim >= 3) {
-        gp_lon[ip] =
-            ppath.gp_lon[ip].idx + (ppath.gp_lon[ip].fd[1] > fd_tol ? 0 : 1);
+        gp_lon[ip] = Numeric(ppath.gp_lon[ip].idx) + ppath.gp_lon[ip].fd[0];
       }
     }
   }
-  const Numeric l2end = l_acc_ppath[ppath.np - 1] - dl_tol;
+
+  // Fixes to handle numerical inaccuracy:
+  // Make sure that start gp_z is inside the atmosphere
+  if (gp_z[0] >= Numeric(z_grid.nelem() - 1)) {
+    gp_z[0] = Numeric(z_grid.nelem() - 1) - 1e-9;
+  }
+  // Total length of ppath, minus a small distance to avoid that end point gets repeated
+  const Numeric l2end = l_acc_ppath[ppath.np - 1] - l_accuracy / 100.0;
 
   // Containers for new ppath points (excluding start and end points, that
   // always are taken from original ppath)
@@ -1012,9 +1011,11 @@ void ppath_grid_crossings(Ppath& ppath,
     ArrayOfNumeric dl_from_ip(0);
 
     // Change in integer grid position for each dimension
-    const Index dgp_z = gp_z[ip + 1] - gp_z[ip];
-    const Index dgp_lat = atmosphere_dim < 2 ? 0 : gp_lat[ip + 1] - gp_lat[ip];
-    const Index dgp_lon = atmosphere_dim < 3 ? 0 : gp_lon[ip + 1] - gp_lon[ip];
+    const Index dgp_z = n_int_between(gp_z[ip], gp_z[ip + 1]);
+    const Index dgp_lat =
+        atmosphere_dim < 2 ? 0 : n_int_between(gp_lat[ip], gp_lat[ip + 1]);
+    const Index dgp_lon =
+        atmosphere_dim < 3 ? 0 : n_int_between(gp_lon[ip], gp_lon[ip + 1]);
 
     if (dgp_z || dgp_lat || dgp_lon) {
       // ECEF at start end of ppath step
@@ -1028,7 +1029,10 @@ void ppath_grid_crossings(Ppath& ppath,
       // Crossing(s) of z_grid
       for (Index i = 1; i <= abs(dgp_z); ++i) {
         const Numeric dl_test = intersection_altitude(
-            ecef, decef, refellipsoid, z_grid[gp_z[ip] + sign(dgp_z) * i]);
+            ecef,
+            decef,
+            refellipsoid,
+            z_grid[int_at_step(gp_z[ip], sign(dgp_z) * i)]);
         if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l2end) {
           dl_from_ip.push_back(dl_test);
         }
@@ -1036,13 +1040,13 @@ void ppath_grid_crossings(Ppath& ppath,
 
       // Crossing(s) of lat_grid
       for (Index i = 1; i <= abs(dgp_lat); ++i) {
-        const Numeric dl_test =
-            intersection_latitude(ecef,
-                                  decef,
-                                  ppath.pos(ip, joker),
-                                  ppath.los(ip, joker),
-                                  refellipsoid,
-                                  lat_grid[gp_lat[ip] + sign(dgp_lat) * i]);
+        const Numeric dl_test = intersection_latitude(
+            ecef,
+            decef,
+            ppath.pos(ip, joker),
+            ppath.los(ip, joker),
+            refellipsoid,
+            lat_grid[int_at_step(gp_lat[ip], sign(dgp_lat) * i)]);
         if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l2end) {
           dl_from_ip.push_back(dl_test);
         }
@@ -1050,12 +1054,12 @@ void ppath_grid_crossings(Ppath& ppath,
 
       // Crossing(s) of lon_grid
       for (Index i = 1; i <= abs(dgp_lon); ++i) {
-        const Numeric dl_test =
-            intersection_longitude(ecef,
-                                   decef,
-                                   ppath.pos(ip, joker),
-                                   ppath.los(ip, joker),
-                                   lon_grid[gp_lon[ip] + sign(dgp_lon) * i]);
+        const Numeric dl_test = intersection_longitude(
+            ecef,
+            decef,
+            ppath.pos(ip, joker),
+            ppath.los(ip, joker),
+            lon_grid[int_at_step(gp_lon[ip], sign(dgp_lon) * i)]);
         if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l2end) {
           dl_from_ip.push_back(dl_test);
         }
@@ -1112,6 +1116,7 @@ void ppath_grid_crossings(Ppath& ppath,
 
   // New size of ppath
   const Index nl = l_array.nelem();
+
   ppath.np = nl + 2;
   ppath.nreal = Vector(ppath.np, 1.0);  // We guess on no refraction
   ppath.ngroup = Vector(ppath.np, 1.0);
