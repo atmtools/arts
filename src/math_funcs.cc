@@ -505,6 +505,27 @@ Numeric min_geq(const Numeric n1,
   }
 }
 
+Index n_int_between(const Numeric x, const Numeric y) {
+  Index n;
+  if (y > x) {
+    n = Index(std::ceil(y)) - Index(std::floor(x)) - 1;
+    return n > 0 ? n : 0;
+  } else {
+    n = Index(std::ceil(x)) - Index(std::floor(y)) - 1;
+    return n > 0 ? -n : 0;
+  }
+}
+
+Index int_at_step(const Numeric gp, const Index step) {
+  ARTS_ASSERT(step != 0);
+  if (step > 0) {
+    return Index(std::floor(gp)) + step;
+  } else {
+    return Index(std::ceil(gp)) + step;
+  }
+}
+
+
 /*! Modified gamma distribution
  *  
  *  Uses all four free parameters (n0, mu, la, ga) to calculate

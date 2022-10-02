@@ -65,8 +65,7 @@ void nlogspace(Vector& x,
                const Numeric stop,
                const Index n);
 
-Numeric trapz(ConstVectorView x,
-              ConstVectorView y);
+Numeric trapz(ConstVectorView x, ConstVectorView y);
 
 void cumsum(VectorView csum,
             ConstVectorView x);
@@ -86,6 +85,42 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 Numeric sign(const Numeric& x);
 Index sign(const Index& x);
 
+//! n_int_between
+/*! 
+    Returns the number of integers between to float numbers.
+
+    For example, with x=1.1 and y=5.99, 4 is returned. For x=1.1 and y=1.6, 0 is returned.
+
+    If x > y, the returned value is <=0.
+
+    \param x     Numeric value 1
+    \param y     Numeric value 2
+
+    \return  Number of integers
+
+    \author Patrick Eriksson
+    \date   2022-10-02
+*/
+Index n_int_between(const Numeric x, const Numeric y);
+
+//! int_at_step
+/*! 
+    Integer at a step length from a numeric.
+
+    A sister function to n_int_between. This function returns the integer at some step size 
+    away from a Numeric. For example, with x=1.1 and step 1, 2 is returned. With step -1 , 1
+    is returned.
+
+    \param x     A numeric value 
+    \param step  Number of steps to integer values
+
+    \return  Integer at input step length
+
+    \author Patrick Eriksson
+    \date   2022-10-02
+*/
+Index int_at_step(const Numeric x, const Index step);
+
 //! min_geq
 /*! 
     Compares two values and returns the smallest positive >= *limit. That is,
@@ -101,9 +136,7 @@ Index sign(const Index& x);
     \author Patrick Eriksson
     \date   2020-08-12
 */
-Numeric min_geq(const Numeric n1,
-                const Numeric n2,
-                const Numeric limit);
+Numeric min_geq(const Numeric n1, const Numeric n2, const Numeric limit);
 
 void mgd(VectorView psd,
          const Vector& x,
@@ -165,7 +198,6 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph);
  */
 void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x);
 
-
 /** Checks for negative values */
 template <typename MatpackType>
 constexpr bool any_negative(const MatpackType& var) noexcept {
@@ -180,6 +212,5 @@ constexpr bool any_negative(const MatpackType& var) noexcept {
  * @return constexpr Index 
  */
 constexpr Index pow_negative_one(Index x) noexcept { return (x % 2) ? -1 : 1; }
-
 
 #endif  // math_funcs_h
