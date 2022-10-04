@@ -197,9 +197,24 @@ bool compute_vmr_deriv(PropagationMatrix& dpm,
       dvmr = dvmr_calc<special>(vmr.H2O);
       if constexpr (not special) vmr.H2O += dvmr;
       break;
+    case Species::Species::Nitrogen:
+      dvmr = dvmr_calc<special>(vmr.N2);
+      if constexpr (not special) vmr.N2 += dvmr;
+      break;
+    case Species::Species::CarbonDioxide:
+      dvmr = dvmr_calc<special>(vmr.CO2);
+      if constexpr (not special) vmr.CO2 += dvmr;
+      break;
+    case Species::Species::liquidcloud:
+      dvmr = dvmr_calc<special>(vmr.LWC);
+      if constexpr (not special) vmr.LWC += dvmr;
+      break;
     default:
       return false;  // Escape mechanism when nothing should be done
   }
+  static_assert(
+      sizeof(VMRS) / sizeof(Numeric) == 5,
+      "It seems you have changed VMRS.  Please check that the derivatives are up-to-date above this assert");
 
   if constexpr (not special) {
     dpm.SetZero();

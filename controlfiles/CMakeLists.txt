@@ -160,8 +160,6 @@ endif ()
 
 ###################
 ### Instruments ###
-arts_test_run_ctlfile(fast instruments/odinsmr/TestOdinSMR.arts)
-arts_test_run_ctlfile(slow instruments/odinsmr/TestOdinSMR_1D.arts)
 
 arts_test_run_ctlfile(fast instruments/ici/TestICI_fast.arts)
 
