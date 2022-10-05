@@ -17,9 +17,21 @@ namespace Python {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
-Agenda* parse_agenda(Workspace&, const char* filename, const Verbosity& verbosity);
+Agenda* parse_agenda(Workspace&,
+                     const char* filename,
+                     const Verbosity& verbosity);
 
-void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>&, py::class_<WorkspaceVariable>&);
+void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>&,
+                       py::class_<WorkspaceVariable>&);
+
+auto get_group_types() {
+  ArrayOfIndex tmp(global_data::wsv_data.nelem());
+  std::transform(global_data::wsv_data.begin(),
+                 global_data::wsv_data.end(),
+                 tmp.begin(),
+                 [](auto& wsv) { return wsv.Group(); });
+  return tmp;
+};
 
 void py_workspace(py::module_& m,
                   py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
@@ -195,17 +207,8 @@ void py_workspace(py::module_& m,
       .PythonInterfaceArrayDefault(WsvRecord)
       .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
 
-  auto get_group_types = [] {
-    ArrayOfIndex tmp(global_data::wsv_data.nelem());
-    std::transform(global_data::wsv_data.begin(),
-                   global_data::wsv_data.end(),
-                   tmp.begin(),
-                   [](auto& wsv) { return wsv.Group(); });
-    return tmp;
-  };
-
   ws.def(py::pickle(
-      [get_group_types](Workspace& w) {
+      [](Workspace& w) {
         std::vector<py::object> value;
         value.reserve(w.nelem());
 
@@ -233,7 +236,7 @@ void py_workspace(py::module_& m,
                               global_data::WsvGroupMap,
                               get_group_types());
       },
-      [get_group_types](const py::tuple& t) {
+      [](const py::tuple& t) {
         ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
         ARTS_USER_ERROR_IF((t[2].cast<std::map<String, Index>>() not_eq
