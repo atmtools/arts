@@ -549,7 +549,7 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
       os << "    Zeeman:           " << val.Zeeman << '\n';
       [[fallthrough]];
     case Species::TagType::Predefined:
-      os << "    PredefinedModern: " << val.Predefined << '\n';
+      os << "    Predefined: " << val.Predefined << '\n';
       [[fallthrough]];
     case Species::TagType::Cia:
       os << "    Cia:              " << val.Cia << '\n';
