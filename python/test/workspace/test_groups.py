@@ -1134,9 +1134,12 @@ class TestGroups:
                 exec(f"ws.v{i} = cxx.{x[i]}()")
             
             print(f"Pickling the workspace after adding a {x[i]}")
-            pickle.dump(ws, open("test.pcl", "wb"))
 
-            ws2 = pickle.load(open("test.pcl", "rb"))
+            with open("test.pcl", "wb") as f:
+                pickle.dump(ws, f)
+
+            with open("test.pcl", "rb") as f:
+                ws2 = pickle.load(f)
         
         assert ws.number_of_initialized_variables() == ws2.number_of_initialized_variables(), \
             "Must be able to fully init a workspace containing no CallbackFunction"
@@ -1147,9 +1150,11 @@ class TestGroups:
         def test_agenda(ws):
             ws.Print(ws.testing, 0)
 
-        pickle.dump(ws, open("ws.pcl", "wb"))
+        with open("ws.pcl", "wb") as f:
+            pickle.dump(ws, f)
 
-        ws2 = pickle.load(open("ws.pcl", 'rb'))
+        with open("ws.pcl", "rb") as f:
+            ws2 = pickle.load(f)
 
         print(ws)
         print()
