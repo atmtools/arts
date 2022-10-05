@@ -1155,6 +1155,7 @@ class TestGroups:
         print()
         print(ws2)
 
+        print("Predicted working output:\n\n3\n3\n3\n2\n\nActual output (if streams are synchronized):\n")
         ws.test_agenda.value.execute(ws)
         ws2.test_agenda.value.execute(ws2)
         ws2.testing = 2

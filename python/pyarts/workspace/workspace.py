@@ -379,3 +379,10 @@ class Workspace(InternalWorkspace):
     
     def __deepcopy__(self, *args):
         return Workspace(super().__deepcopy__(*args))
+    
+    def __getstate__(self):
+        return {"Workspace": super().__getstate__()}
+    
+    def __setstate__(self, d):
+        super().__setstate__(d["Workspace"])
+        
