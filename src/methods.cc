@@ -4839,6 +4839,27 @@ Available models:
                "New value for cloudbox_limits[5].")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("cloudbox_fieldInterp2Azimuth"),
+      DESCRIPTION(
+          "Interps an *cloudbox_field* with azimuthal dependency to a *cloudbox_field*"
+          "without azimuthal dependency.\n"
+          "\n"
+          "The *azimuth_los* defines to which azimuth direction the *cloudbox_field*\n"
+          "is interpolated.\n"),
+      AUTHORS("Manfred Brath"),
+      OUT("cloudbox_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("cloudbox_field","cloudbox_on", "aa_grid"),
+      GIN("azimuth_los",
+          "aa_interp_order"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT( NODEF, "1"),
+      GIN_DESC("azimuthal direction",
+               "Azimuth angle interpolation order.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetFromPrecalc"),
       DESCRIPTION(
           "Sets the initial cloudbox intensity field *cloudbox_field* from a\n"
