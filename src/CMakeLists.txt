@@ -199,7 +199,6 @@ add_library (artscore STATIC
   interpolation_lagrange.cc
   jacobian.cc
   jpl_species.cc
-  legacy_continua.cc
   legendre.cc
   linemixing.cc
   linemixing_hitran.cc
@@ -636,6 +635,14 @@ add_executable(test_partfun test_partfun.cc partfun.cc)
 target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_partfun)
 add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
+########################################################################################
+
+########################################################################################
+# Test that the implentation for predefined models are complete
+add_executable(test_predefined test_predefined.cc)
+target_link_libraries(test_predefined ${ALL_ARTS_LIBRARIES})
+add_dependencies(check-deps test_predefined)
+add_test(NAME "arts.cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################
 
 ########### next testcase ###############

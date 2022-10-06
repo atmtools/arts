@@ -280,7 +280,7 @@ class TestGroups:
         return x
 
     def testArrayOfArrayOfSpeciesTag(self):
-        x = cxx.ArrayOfArrayOfSpeciesTag(["H2O,H2O-MPM93"])
+        x = cxx.ArrayOfArrayOfSpeciesTag(["H2O,H2O-PWR98"])
 
         test.io(x, delete=True)
         test.array(x)
@@ -1134,9 +1134,12 @@ class TestGroups:
                 exec(f"ws.v{i} = cxx.{x[i]}()")
             
             print(f"Pickling the workspace after adding a {x[i]}")
-            pickle.dump(ws, open("test.pcl", "wb"))
 
-            ws2 = pickle.load(open("test.pcl", "rb"))
+            with open("test.pcl", "wb") as f:
+                pickle.dump(ws, f)
+
+            with open("test.pcl", "rb") as f:
+                ws2 = pickle.load(f)
         
         assert ws.number_of_initialized_variables() == ws2.number_of_initialized_variables(), \
             "Must be able to fully init a workspace containing no CallbackFunction"
@@ -1147,14 +1150,17 @@ class TestGroups:
         def test_agenda(ws):
             ws.Print(ws.testing, 0)
 
-        pickle.dump(ws, open("ws.pcl", "wb"))
+        with open("ws.pcl", "wb") as f:
+            pickle.dump(ws, f)
 
-        ws2 = pickle.load(open("ws.pcl", 'rb'))
+        with open("ws.pcl", "rb") as f:
+            ws2 = pickle.load(f)
 
         print(ws)
         print()
         print(ws2)
 
+        print("Predicted working output:\n\n3\n3\n3\n2\n\nActual output (if streams are synchronized):\n")
         ws.test_agenda.value.execute(ws)
         ws2.test_agenda.value.execute(ws2)
         ws2.testing = 2

@@ -303,11 +303,11 @@ Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
 Variable: \wsvindex{propmat\_clearsky}, which is initialized in \wsmindex{propmat\_clearskyInit}.\newline
 Methods: 
 \wsmindex{propmat\_clearskyAddCIA} computes collision-induced absorption,\newline
-\wsmindex{propmat\_clearskyAddConts} computes legacy continua or full absorption models,\newline
 \wsmindex{propmat\_clearskyAddLines} compute line-by-line absorption,\newline 
 \wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
 \wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
 \wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
+\wsmindex{propmat\_clearskyAddPredefined} computes legacy continua or full absorption models,\newline
 Alternative:
 \wsmindex{propmat\_clearskyAddFromLookup}
 (extract absorption from pre-calculated lookup table, see
@@ -457,33 +457,12 @@ extra explanation. They are absorption parameterizations by Liebe, and
 allow the inclusion of condensate in the (rare) cases where scattering
 is not important. Their general applicability is therefore fairly limited.
 
-The behavior of the continua and complete absorption models can be
-modified by passing them some additional parameters, stored in the
-variables \wsvindex{abs\_cont\_names}, \wsvindex{abs\_cont\_models},
-and \wsvindex{abs\_cont\_parameters}. Basically,
-\builtindoc{abs\_cont\_names} identifies the model,
-\builtindoc{abs\_cont\_models} contains switches that select different
-behavior (for example taking only the lines, or only the continuum
-part of a complete model), and \builtindoc{abs\_cont\_parameters} can
-contain numerical parameters. 
-
-Yes, the nomenclature for these additional continuum parameters,
-particularly \builtindoc{abs\_cont\_models}, is confusing. However,
-most users will never have to deal with these variables
-explicitly. They are set to default values in the include file
-\fileindex{continua.arts}. Users should therefore always include this file  at
-the start of their controlfiles with
-\begin{code}
-  INCLUDE "continua.arts"
-\end{code}
-Unless you work on continuum model development or verification, you
-should never have to modify these default settings.
-
 The core method to calculate continua and complete absorption models
-is \wsmindex{propmat\_clearskyAddConts}. Users normally do not have to
+is \wsmindex{propmat\_clearskyAddPredefined}. Users normally do not have to
 call this method explicitly, since it is used implicitly by higher
 level methods, such as \wsmindex{propmat\_clearsky\_fieldCalc} or the
-RT methods via \wsvindex{propmat\_clearsky\_agenda}.
+RT methods via \wsvindex{propmat\_clearsky\_agenda}, which is easiest
+set using \wsmindex{propmat\_clearsky\_agendaAuto}.
 
 \subsection{Collision-induced absorption}
 \label{sec:absorption:cia}

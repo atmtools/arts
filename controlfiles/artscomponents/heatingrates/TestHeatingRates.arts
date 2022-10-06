@@ -8,7 +8,6 @@ Arts2 {
 	#==========================================================================
 	
 	
-	LegacyContinuaInit
 	water_p_eq_agendaSet
     gas_scattering_agendaSet
 	PlanetSet(option="Earth")
@@ -93,7 +92,7 @@ Arts2 {
 	#==========================================================================
 
 		
-	abs_speciesSet(species=["H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
+	abs_speciesSet(species=["H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
 							"O3",
 							"O2, O2-CIAfunCKDMT100",
                            "CO2, CO2-CKDMT252",

@@ -5,7 +5,6 @@
 Arts2 {
 
 
-LegacyContinuaInit
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
@@ -16,7 +15,7 @@ IndexSet( np, 33 )
 VectorNLogSpace( p_grid, np, 1013e2, 100e2 )
 
 # Initial definition of species
-abs_speciesSet( species= [  "N2-SelfContStandardType", "O2-TRE05", "H2O-PWR98" ] )
+abs_speciesSet( species= [  "N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98" ] )
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty

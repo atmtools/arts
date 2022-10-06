@@ -36,7 +36,6 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
-#include "legacy_continua.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"

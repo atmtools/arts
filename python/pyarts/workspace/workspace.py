@@ -342,14 +342,18 @@ _group_types = [eval(f"cxx.{x.name}") for x in list(cxx.get_wsv_groups())]
 
 
 class Workspace(InternalWorkspace):
+    def __getattribute__(self, attr):
+        if attr.startswith("__"):
+            object.__getattribute__(self, attr)
+
+        return super().__getattribute__(attr)
+
     def __getattr__(self, attr):
-        if self._hasattr_check_(attr):
-            return self._getattr_unchecked_(attr)
+        if super()._hasattr_check_(attr):
+            return super()._getattr_unchecked_(attr)
 
-        if attr == "__class__":
-            return InternalWorkspace
-
-        raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
+        raise AttributeError(
+            f"'Workspace' object has no attribute '{attr}'")
 
     def __setattr__(self, attr, value):
         if self._hasattr_check_(attr):
@@ -379,3 +383,10 @@ class Workspace(InternalWorkspace):
     
     def __deepcopy__(self, *args):
         return Workspace(super().__deepcopy__(*args))
+    
+    def __getstate__(self):
+        return {"Workspace": super().__getstate__()}
+    
+    def __setstate__(self, d):
+        super().__setstate__(d["Workspace"])
+        

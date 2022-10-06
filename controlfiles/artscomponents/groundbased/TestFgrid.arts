@@ -49,8 +49,6 @@ abs_lines_per_speciesCreateFromLines
 
 propmat_clearsky_agendaAuto
 
-abs_cont_descriptionInit
-
 
 # ---- Observation geometry --------------------------------------------------
 

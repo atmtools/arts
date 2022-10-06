@@ -17,57 +17,6 @@ Numeric Tag::dQdT(Numeric T) const {
   return PartitionFunctions::dQdT(T, Isotopologue());
 }
 
-/** Checks if the isotname of an isotopologue match a modern model
-*
-* Append to this list when new models are added
-*
-*/
-constexpr bool is_modern_predefined(const IsotopeRecord& isot) {
-  constexpr std::array modern{
-      find_species_index(Species::Oxygen, "MPM89"),
-      find_species_index(Species::Oxygen, "MPM2020"),
-      find_species_index(Species::Water, "MPM89"),
-      find_species_index(Species::Water, "ForeignContCKDMT350"),
-      find_species_index(Species::Water, "SelfContCKDMT350"),
-      find_species_index(Species::Water, "ForeignContHitranMTCKD"),
-      find_species_index(Species::Water, "SelfContHitranMTCKD"),
-  };
-  const Index self = find_species_index(isot);
-
-  for (auto& x : modern)
-    if (x == self) return true;
-  return false;
-}
-
-consteval Index legacy_predefined_count() {
-  Index i = 0;
-  for (auto& x : Isotopologues) {
-    i += is_predefined_model(x) and not is_modern_predefined(x);
-  }
-  return i;
-}
-
-/** Safety check to instruct people what to do in case they add this type of model
- *
- * If you see this warning and you have implemented something in legacy_continua.cc,
- * you will need to extract that code and build it as a standalone code in the src/predefined
- * style of code.  See, e.g., src/predefined/CKDMT350.cc or src/predefined/MPM2020.cc as examples.
- * Note to also add the relevant headers in src/predefined_absorption_models.cc
- *
- * If you see this warning and have already done the above, if the code is new, add the name
- * of the model to the list in "constexpr bool is_modern_predefined(const IsotopeRecord& isot)"
- * to disable the warning.
- *
- * If you have removed a model from the legacy-set of models either by removing its IsotopeRecord
- * or by having added it the modern-checking function above, you have to decrement the index of
- * legacy models below.
- */
-static_assert(legacy_predefined_count() == 56,
-              "2021-11-18: No more legacy models.  "
-              "Please see src/predefined to add a modern model.  "
-              "Never increment the count of legacy models.  "
-              "If you remove any legacy model(s), decrement the count.");
-
 Tag::Tag(String def) : type(TagType::Plain) {
   // Save input string for error messages:
   String def_original = def;
@@ -249,9 +198,7 @@ Tag::Tag(String def) : type(TagType::Plain) {
     // Check if the found isotopologue represents a predefined model
     // (continuum or full absorption model) and set the type accordingly:
     if (is_predefined_model(Isotopologue()))
-      type = is_modern_predefined(Isotopologue())
-                 ? TagType::PredefinedModern
-                 : TagType::PredefinedLegacy;
+      type = TagType::Predefined;
   }
 
   if (0 == def.nelem()) {
@@ -564,11 +511,8 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_s
         case Species::TagType::Zeeman:
           Zeeman = true;
           break;
-        case Species::TagType::PredefinedLegacy:
-          PredefinedLegacy = true;
-          break;
-        case Species::TagType::PredefinedModern:
-          PredefinedModern = true;
+        case Species::TagType::Predefined:
+          Predefined = true;
           break;
         case Species::TagType::Cia:
           Cia = true;
@@ -604,11 +548,8 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
     case Species::TagType::Zeeman:
       os << "    Zeeman:           " << val.Zeeman << '\n';
       [[fallthrough]];
-    case Species::TagType::PredefinedLegacy:
-      os << "    PredefinedLegacy: " << val.PredefinedLegacy << '\n';
-      [[fallthrough]];
-    case Species::TagType::PredefinedModern:
-      os << "    PredefinedModern: " << val.PredefinedModern << '\n';
+    case Species::TagType::Predefined:
+      os << "    Predefined: " << val.Predefined << '\n';
       [[fallthrough]];
     case Species::TagType::Cia:
       os << "    Cia:              " << val.Cia << '\n';

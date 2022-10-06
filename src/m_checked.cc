@@ -61,10 +61,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           break;
         case Species::TagType::Zeeman:
           break;
-        case Species::TagType::PredefinedLegacy:
-          needs_continua = true;
-          break;
-        case Species::TagType::PredefinedModern:
+        case Species::TagType::Predefined:
           break;
         case Species::TagType::Cia:
           needs_cia = true;
@@ -897,11 +894,8 @@ void propmat_clearsky_agenda_checkedCalc(
         case Species::TagType::Zeeman:
           needs_zeeman = true;
           break;
-        case Species::TagType::PredefinedModern:
+        case Species::TagType::Predefined:
           needs_predefined = true;
-          break;
-        case Species::TagType::PredefinedLegacy:
-          needs_continua = true;
           break;
         case Species::TagType::Cia:
           needs_cia = true;

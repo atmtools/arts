@@ -69,27 +69,19 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
                        [[maybe_unused]]) {
   switch (Species::find_species_index(model)) {
     case find_species_index(Species::Species::Water, "ForeignContHitranMTCKD"):
-      if constexpr (not check_exist)
-        Hitran::MTCKD::compute_foreign_h2o(
-            pm,
-            f,
-            p,
-            t,
-            vmr.H2O,
-            predefined_model_data.get<Hitran::MTCKD::WaterData>());
+      if constexpr (not check_exist) Hitran::MTCKD::compute_foreign_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<Hitran::MTCKD::WaterData>());
       return true;
     case find_species_index(Species::Species::Water, "SelfContHitranMTCKD"):
-      if constexpr (not check_exist)
-        Hitran::MTCKD::compute_self_h2o(
-            pm,
-            f,
-            p,
-            t,
-            vmr.H2O,
-            predefined_model_data.get<Hitran::MTCKD::WaterData>());
+      if constexpr (not check_exist) Hitran::MTCKD::compute_self_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<Hitran::MTCKD::WaterData>());
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
+      return true;
+    case find_species_index(Species::Species::Oxygen, "PWR98"):
+      if constexpr (not check_exist) PWR98::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
+      return true;
+    case find_species_index(Species::Species::Water, "PWR98"):
+      if constexpr (not check_exist) PWR98::water(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM89"):
       if constexpr (not check_exist) MPM89::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
@@ -98,15 +90,55 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
       if constexpr (not check_exist) MPM89::water(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "ForeignContCKDMT350"):
-      if constexpr (not check_exist)
-        CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist) CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "SelfContCKDMT350"):
-      if constexpr (not check_exist)
-        CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist) CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
+    case find_species_index(Species::Species::Water, "ForeignContStandardType"):
+      if constexpr (not check_exist) Standard::water_foreign(pm, f, p, t, vmr.H2O);
+      return true;
+    case find_species_index(Species::Species::Water, "SelfContStandardType"):
+      if constexpr (not check_exist) Standard::water_self(pm, f, p, t, vmr.H2O);
+      return true;
+    case find_species_index(Species::Species::Oxygen, "SelfContStandardType"):
+      if constexpr (not check_exist) Standard::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
+      return true;
+    case find_species_index(Species::Species::Nitrogen, "SelfContStandardType"):
+      if constexpr (not check_exist) Standard::nitrogen(pm, f, p, t, vmr.N2);
+      return true;
+    case find_species_index(Species::Species::CarbonDioxide, "CKDMT252"):
+      if constexpr (not check_exist) MT_CKD252::carbon_dioxide(pm, f, p, t, vmr.CO2);
+      return true;
+    case find_species_index(Species::Species::Oxygen, "visCKDMT252"):
+      if constexpr (not check_exist) MT_CKD252::oxygen_vis(pm, f, p, t, vmr.O2);
+      return true;
+    case find_species_index(Species::Species::Nitrogen, "CIAfunCKDMT252"):
+      if constexpr (not check_exist) MT_CKD252::nitrogen_fun(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
+      return true;
+    case find_species_index(Species::Species::Nitrogen, "CIArotCKDMT252"):
+      if constexpr (not check_exist) MT_CKD252::nitrogen_rot(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
+      return true;
+    case find_species_index(Species::Species::Oxygen, "CIAfunCKDMT100"):
+      if constexpr (not check_exist) MT_CKD100::oxygen_cia(pm, f, p, t, vmr.O2);
+      return true;
+    case find_species_index(Species::Species::Oxygen, "v0v0CKDMT100"):
+      if constexpr (not check_exist) MT_CKD100::oxygen_v0v0(pm, f, p, t, vmr.O2, vmr.N2);
+      return true;
+    case find_species_index(Species::Species::Oxygen, "v1v0CKDMT100"):
+      if constexpr (not check_exist) MT_CKD100::oxygen_v0v1(pm, f, p, t, vmr.O2);
+      return true;
+    case find_species_index(Species::Species::liquidcloud, "ELL07"):
+      if constexpr (not check_exist) ELL07::compute(pm, f, t, vmr.LWC);
+      return true;
+    case find_species_index(Species::Species::FINAL, "Not A Model"): break;
   }
   return false;
+}
+
+bool can_compute(const SpeciesIsotopeRecord& model) {
+  PropagationMatrix pm;
+  return compute_selection<true>(pm, model, {}, {}, {}, {}, {});
 }
 
 /** Sets a VMR perturbation
@@ -165,9 +197,24 @@ bool compute_vmr_deriv(PropagationMatrix& dpm,
       dvmr = dvmr_calc<special>(vmr.H2O);
       if constexpr (not special) vmr.H2O += dvmr;
       break;
+    case Species::Species::Nitrogen:
+      dvmr = dvmr_calc<special>(vmr.N2);
+      if constexpr (not special) vmr.N2 += dvmr;
+      break;
+    case Species::Species::CarbonDioxide:
+      dvmr = dvmr_calc<special>(vmr.CO2);
+      if constexpr (not special) vmr.CO2 += dvmr;
+      break;
+    case Species::Species::liquidcloud:
+      dvmr = dvmr_calc<special>(vmr.LWC);
+      if constexpr (not special) vmr.LWC += dvmr;
+      break;
     default:
       return false;  // Escape mechanism when nothing should be done
   }
+  static_assert(
+      sizeof(VMRS) / sizeof(Numeric) == 5,
+      "It seems you have changed VMRS.  Please check that the derivatives are up-to-date above this assert");
 
   if constexpr (not special) {
     dpm.SetZero();

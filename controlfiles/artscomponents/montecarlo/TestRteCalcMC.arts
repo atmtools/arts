@@ -44,7 +44,7 @@ ReadXML( z_surface, "TestMonteCarloDataPrepare.z_surface.xml" )
 
 ReadXML( abs_lookup, "TestMonteCarloDataPrepare.abs_lookup.xml" )
 
-abs_speciesSet( species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"] )
+abs_speciesSet( species=["O2-PWR98","N2-SelfContStandardType","H2O-PWR98"] )
 
 abs_lookupAdapt
 

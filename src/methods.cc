@@ -353,58 +353,6 @@ void define_md_data_raw() {
       GIN_DESC("Name of the XML file.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_cont_descriptionAppend"),
-      DESCRIPTION(
-          "Appends the description of a continuum model or a complete absorption\n"
-          "model to *abs_cont_names* and *abs_cont_parameters*.\n"
-          "\n"
-          "See online documentation for *abs_cont_names* for a list of\n"
-          "allowed models and for information what parameters they require. See\n"
-          "file includes/continua.arts for default parameters for the various models.\n"),
-      AUTHORS("Thomas Kuhn", "Stefan Buehler"),
-      OUT("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
-      GIN("tagname", "model", "userparam"),
-      GIN_TYPE("String", "String", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF, "[]"),
-      GIN_DESC(
-          "The name (species tag) of a continuum model. Must match one\n"
-          "of the models implemented in ARTS.\n",
-          "A string selecting a particular continuum/full model under this\n"
-          "species tag.\n",
-          "A Vector containing the required parameters for the selected model.\n"
-          "The meaning of the parameters and how many parameters are required\n"
-          "depends on the model.\n")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_cont_descriptionInit"),
-      DESCRIPTION(
-          "Initializes the two workspace variables for the continuum description,\n"
-          "*abs_cont_names* and *abs_cont_parameters*.\n"
-          "\n"
-          "This method does not really do anything, except setting the two\n"
-          "variables to empty Arrays. It is just necessary because the method\n"
-          "*abs_cont_descriptionAppend* wants to append to the variables.\n"
-          "\n"
-          "Formally, the continuum description workspace variables are required\n"
-          "by the absorption calculation methods (e.g., *propmat_clearskyAddConts*).\n"
-          "Therefore you always have to call at least *abs_cont_descriptionInit*, even\n"
-          "if you do not want to use any continua.\n"),
-      AUTHORS("Thomas Kuhn", "Stefan Buehler"),
-      OUT("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
     NAME("abs_hitran_relmat_dataReadHitranRelmatDataAndLines"),
       DESCRIPTION("Reads HITRAN line mixing data from a basedir\n"
         "The basedir must point at line mixing data as provided by HITRAN.\n"
@@ -11090,20 +11038,6 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("LegacyContinuaInit"),
-      DESCRIPTION("Default initialization for all legacy contiuna models.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_cont_names", "abs_cont_models", "abs_cont_parameters"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("LocalTimeOffset"),
       DESCRIPTION("Sets the seconds between localtime and gmtime representation of now().\n"),
       AUTHORS("Richard Larsson"),
@@ -13990,31 +13924,6 @@ Possible models:
       GIN_DESC(
           "Temperature extrapolation factor (relative to grid spacing).",
           "Set to 1 to suppress runtime errors (and return NAN values instead).")));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("propmat_clearskyAddConts"),
-                      DESCRIPTION("Calculate propmat for continua.\n"),
-                      AUTHORS("Stefan Buehler, Oliver Lemke"),
-                      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN("propmat_clearsky",
-                         "dpropmat_clearsky_dx",
-                         "abs_species",
-                         "select_abs_species",
-                         "jacobian_quantities",
-                         "f_grid",
-                         "rtp_pressure",
-                         "rtp_temperature",
-                         "rtp_vmr",
-                         "abs_cont_names",
-                         "abs_cont_parameters",
-                         "abs_cont_models"),
-                      GIN(),
-                      GIN_TYPE(),
-                      GIN_DEFAULT(),
-                      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFaraday"),
@@ -24107,7 +24016,6 @@ Options are:
     const ArrayOfString targets = {
         "propmat_clearskyInit",
         "propmat_clearskyAddCIA",
-        "propmat_clearskyAddConts",
         "propmat_clearskyAddLines",
         "propmat_clearskyAddZeeman",
         "propmat_clearskyAddFaraday",
