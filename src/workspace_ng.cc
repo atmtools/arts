@@ -73,7 +73,8 @@ void Workspace::duplicate(Index i) {
 }
 
 Workspace::Workspace(const Workspace &workspace)
-    : ws(workspace.ws.nelem()),
+    : std::enable_shared_from_this<Workspace>(),
+      ws(workspace.ws.nelem()),
       wsv_data_ptr(workspace.wsv_data_ptr),
       WsvMap_ptr(workspace.WsvMap_ptr),
       original_workspace(workspace.original_workspace) {
