@@ -127,11 +127,10 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
                            const Verbosity &verbosity) {
   CREATE_OUT2;
   const Index imonth = filename_pattern.find("@MM@");
-  if (imonth < 0) {
-    ostringstream os;
-    os << "Substring '@MM@' not found in filename_pattern for" << std::endl
-       << "month number replacement: " << filename_pattern;
-  }
+  ARTS_USER_ERROR_IF(imonth == String::npos,
+                     "Substring '@MM@' not found in filename_pattern for\n",
+                     "month number replacement: ",
+                     filename_pattern)
 
   std::ifstream is;
 
@@ -177,11 +176,10 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
                              const Verbosity &verbosity) {
   CREATE_OUT2;
   const Index imonth = filename_pattern.find("@MM@");
-  if (imonth < 0) {
-    ostringstream os;
-    os << "Substring '@MM@' not found in filename_pattern for" << std::endl
-       << "month number replacement: " << filename_pattern;
-  }
+  ARTS_USER_ERROR_IF(imonth == String::npos,
+                     "Substring '@MM@' not found in filename_pattern for\n",
+                     "month number replacement: ",
+                     filename_pattern)
 
   telsem_atlases.resize(12);
   for (Index i = 1; i <= 12; i++) {
