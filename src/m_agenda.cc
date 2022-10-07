@@ -55,12 +55,16 @@ void AgendaExecute(Workspace& ws [[maybe_unused]],
     throw std::runtime_error(os.str());
   }
 
-  const AgRecord& agr = agenda_data[AgendaMap.find(this_agenda.name())->second];
-
-  // Duplicate input-only arguments of the agenda as they might be
-  // changed inside the agenda.
-  const ArrayOfIndex& ain = agr.In();
-  const ArrayOfIndex& aout = agr.Out();
+  ArrayOfIndex aout;
+  ArrayOfIndex ain;
+  if (auto agenda_it = AgendaMap.find(this_agenda.name());
+      agenda_it != AgendaMap.end()) {
+    const AgRecord& agr = agenda_data[agenda_it->second];
+    // Duplicate input-only arguments of the agenda as they might be
+    // changed inside the agenda.
+    aout = agr.Out();
+    ain = agr.In();
+  }
 
   // Put the input and outputs into new sets to sort them. Otherwise
   // set_difference screws up.
