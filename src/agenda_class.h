@@ -111,6 +111,9 @@ class Agenda final {
   //! Creates a deep copy of the agenda if necessary (i.e., different workspace)!
   Agenda deepcopy_if(Workspace&) const;
 
+  //! Get index lists of global input and output variables from agenda_data of this agenda.
+  [[nodiscard]] std::pair<ArrayOfIndex, ArrayOfIndex> get_global_inout() const;
+
  private:
   std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */

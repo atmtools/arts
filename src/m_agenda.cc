@@ -42,9 +42,6 @@ void AgendaExecute(Workspace& ws [[maybe_unused]],
   CREATE_OUT3;
   out3 << "  Manual agenda execution\n";
 
-  using global_data::agenda_data;
-  using global_data::AgendaMap;
-
   if (!this_agenda.checked()) {
     std::ostringstream os;
     if (this_agenda.name().nelem() == 0)
@@ -55,16 +52,7 @@ void AgendaExecute(Workspace& ws [[maybe_unused]],
     throw std::runtime_error(os.str());
   }
 
-  ArrayOfIndex aout;
-  ArrayOfIndex ain;
-  if (auto agenda_it = AgendaMap.find(this_agenda.name());
-      agenda_it != AgendaMap.end()) {
-    const AgRecord& agr = agenda_data[agenda_it->second];
-    // Duplicate input-only arguments of the agenda as they might be
-    // changed inside the agenda.
-    aout = agr.Out();
-    ain = agr.In();
-  }
+  const auto [ain, aout] = this_agenda.get_global_inout();
 
   // Put the input and outputs into new sets to sort them. Otherwise
   // set_difference screws up.
