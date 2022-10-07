@@ -401,13 +401,7 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
                  outs2dup.end(),
                  insert_iterator<set<Index> >(outs2push, outs2push.begin()));
 
-  ArrayOfIndex aout;
-  ArrayOfIndex ain;
-  if (auto agenda_it = AgendaMap.find(name()); agenda_it != AgendaMap.end()) {
-    const AgRecord& agr = agenda_data[agenda_it->second];
-    aout = agr.Out();
-    ain = agr.In();
-  }
+  const auto [ain, aout] = get_global_inout();
 
   // We have to build a new set of agenda input and output because the
   // set_difference function only works properly on sorted input.
@@ -957,4 +951,18 @@ Agenda Agenda::deepcopy_if(Workspace& workspace) const {
   out.mchecked = mchecked;
 
   return out;
+}
+
+std::pair<ArrayOfIndex, ArrayOfIndex> Agenda::get_global_inout() const {
+  using global_data::agenda_data;
+  using global_data::AgendaMap;
+  ArrayOfIndex aout;
+  ArrayOfIndex ain;
+  if (auto agenda_it = AgendaMap.find(name());
+      agenda_it != AgendaMap.end()) {
+    const AgRecord& agr = agenda_data[agenda_it->second];
+    aout = agr.Out();
+    ain = agr.In();
+  }
+  return {ain, aout};
 }
