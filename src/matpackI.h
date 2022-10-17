@@ -386,8 +386,7 @@ class Range {
 template <size_t N>
 struct Shape {
   std::array<Index, N> data;
-  bool operator==(const Shape& other) { return data == other.data; }
-  bool operator!=(const Shape& other) { return data not_eq other.data; }
+  bool operator<=>(const Shape& other) const = default;
   friend std::ostream& operator<<(std::ostream& os, const Shape& shape) {
     os << shape.data[0];
     for (size_t i = 1; i < N; i++) os << 'x' << shape.data[i];

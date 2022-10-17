@@ -52,6 +52,10 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
                                    rtp_nlte,
                                    rtp_vmr,
                                    propmat_clearsky_agenda);
+
+    ARTS_USER_ERROR_IF(propmat_clearsky.Data().shape() not_eq pm.Data().shape(), "Mismatching sizes")
+    ARTS_USER_ERROR_IF(nlte_source.Data().shape() not_eq sv.Data().shape(), "Mismatching sizes")
+    
     propmat_clearsky += scale * pm;
     nlte_source += scale * sv;
   }
