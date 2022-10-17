@@ -14060,6 +14060,39 @@ Possible models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddScaledSpecies"),
+      DESCRIPTION(
+          R"--(Adds a scaled target species absorption to *propmat_clearsky* and *nlte_source*
+
+This recomputes the entire propagation matrix.  There are more efficient ways
+to do these calculations but this method exist because of the composability it
+offers
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky", "nlte_source"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "nlte_source",
+         "jacobian_quantities",
+         "select_abs_species",
+         "f_grid",
+         "rtp_mag",
+         "rtp_los",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_nlte",
+         "rtp_vmr",
+         "propmat_clearsky_agenda"),
+      GIN("target", "scale"),
+      GIN_TYPE("ArrayOfSpeciesTag", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC(
+          "Target species tags to rescale (must be in *abs_species*",
+          R"(Rescaling factor (e.g., 0.1 adds 10% of the species to the absorption))")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddXsecFit"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
