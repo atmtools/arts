@@ -223,6 +223,7 @@ add_library (artscore STATIC
   m_doit.cc
   m_fluxes.cc
   m_predefined_absorption_models.cc
+  m_propmat.cc
   m_gas_scattering.cc
   m_general.cc
   m_geodetic.cc
