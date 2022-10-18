@@ -102,6 +102,7 @@ jobs:
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
+            cmakeflags: "-DRELEASE_O2=1"
 
           - name: macos-clang-14
             os: macos-latest
