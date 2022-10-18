@@ -9,6 +9,7 @@
 #include "isotopologues.h"
 #include "matpack_data.h"
 #include "mystring.h"
+#include "species.h"
 
 namespace Species {
 ENUMCLASS(TagType, unsigned char,
@@ -86,6 +87,8 @@ struct Tag {
   }
   
   [[nodiscard]] constexpr bool is_joker() const ARTS_NOEXCEPT {ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;}
+
+  [[nodiscard]] constexpr auto operator<=>(const Tag& x) const = default;
 };
 } // namespace Species
 
@@ -118,6 +121,8 @@ public:
     Array<SpeciesTag>::operator=(std::move(A));
     return *this;
   }
+
+  [[nodiscard]] auto operator<=>(const ArrayOfSpeciesTag& x) const = default;
   
   ArrayOfSpeciesTag(std::string_view text);
   
