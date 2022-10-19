@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <limits>
 #include <map>
 #include <ostream>
@@ -30,11 +31,64 @@ ENUMCLASS(Key,
           mag_w)
 
 class Point {
+  std::map<ArrayOfSpeciesTag, Numeric> species_content{};
   Numeric pressure{std::numeric_limits<Numeric>::min()};
   Numeric temperature{std::numeric_limits<Numeric>::min()};
   std::array<Numeric,3> wind{0. ,0. ,0.};
   std::array<Numeric,3> mag{0., 0., 0.};
-  std::map<ArrayOfSpeciesTag, Numeric> species_content{};
+
+public:
+  Numeric operator[](const ArrayOfSpeciesTag& x) const {
+    auto y = species_content.find(x);
+    return y == species_content.end() ? 0 : y -> second;
+  }
+  
+  [[nodiscard]] constexpr auto P() const {return pressure;}
+  
+  [[nodiscard]] constexpr auto T() const {return temperature;}
+  
+  [[nodiscard]] constexpr auto Mag() const {return mag;}
+  
+  [[nodiscard]] constexpr auto Wind() const {return wind;}
+
+  void set(const ArrayOfSpeciesTag& x, Numeric y) {
+    species_content[x] = y;
+  }
+
+  void set(Key x, Numeric y) {
+    ARTS_USER_ERROR_IF(std::isnan(y) or std::isinf(y), "Bad input NaN or Inf: ", y)
+
+    switch (x) {
+      case Key::temperature:
+        ARTS_USER_ERROR_IF(y <= 0, "Bad temperature: ", y)
+        temperature = y;
+        break;
+      case Key::pressure:
+        ARTS_USER_ERROR_IF(y <= 0, "Bad pressure: ", y)
+        pressure = y;
+        break;
+      case Key::wind_u:
+        wind[0] = y;
+        break;
+      case Key::wind_v:
+        wind[1] = y;
+        break;
+      case Key::wind_w:
+        wind[2] = y;
+        break;
+      case Key::mag_u:
+        mag[0] = y;
+        break;
+      case Key::mag_v:
+        mag[1] = y;
+        break;
+      case Key::mag_w:
+        mag[2] = y;
+        break;
+      case Key::FINAL:
+        break;
+    }
+  }
 };
 
 //! All the field data; if these types grow too much we might want to reconsider...
@@ -107,10 +161,10 @@ class Field {
   }
 
   //! Regularizes the calculations so that all data is one alt-lat-lon grids, and alt-lat-lon is in the grid map
-  void regularize(const ArrayOfTime& times,
-                  const Vector& altitudes,
-                  const Vector& latitudes,
-                  const Vector& longitudes);
+  Field& regularize(const ArrayOfTime& times,
+                    const Vector& altitudes,
+                    const Vector& latitudes,
+                    const Vector& longitudes);
 
   //! Compute the values at a single point
   [[nodiscard]] Point at(Time time_point,
