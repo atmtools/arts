@@ -67,7 +67,7 @@ add_custom_command(OUTPUT py_auto_interface.h
 ########################################################################################
 
 ########### pybind11 class interface
-pybind11_add_module(pyarts_cpp
+pybind11_add_module(pyarts_cpp THIN_LTO
     py_module.cpp
     py_matpack.cpp
     py_basic.cpp
