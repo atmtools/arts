@@ -18,7 +18,7 @@
 #include "species.h"
 #include "species_tags.h"
 
-namespace Atmosphere {
+namespace Atm {
 ENUMCLASS(Key,
           char,
           temperature,
@@ -30,65 +30,115 @@ ENUMCLASS(Key,
           mag_v,
           mag_w)
 
+template <typename T>
+concept isArrayOfSpeciesTag =
+    std::is_same_v<std::remove_cvref_t<T>, ArrayOfSpeciesTag>;
+template <typename T>
+concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
+template <typename T>
+concept KeyType = isKey<T> or isArrayOfSpeciesTag<T>;
 class Point {
   std::map<ArrayOfSpeciesTag, Numeric> species_content{};
   Numeric pressure{std::numeric_limits<Numeric>::min()};
   Numeric temperature{std::numeric_limits<Numeric>::min()};
-  std::array<Numeric,3> wind{0. ,0. ,0.};
-  std::array<Numeric,3> mag{0., 0., 0.};
+  std::array<Numeric, 3> wind{0., 0., 0.};
+  std::array<Numeric, 3> mag{0., 0., 0.};
 
-public:
-  Numeric operator[](const ArrayOfSpeciesTag& x) const {
-    auto y = species_content.find(x);
-    return y == species_content.end() ? 0 : y -> second;
-  }
-  
-  [[nodiscard]] constexpr auto P() const {return pressure;}
-  
-  [[nodiscard]] constexpr auto T() const {return temperature;}
-  
-  [[nodiscard]] constexpr auto Mag() const {return mag;}
-  
-  [[nodiscard]] constexpr auto Wind() const {return wind;}
-
-  void set(const ArrayOfSpeciesTag& x, Numeric y) {
-    species_content[x] = y;
+  template <typename... Ts>
+  void internal_set(KeyType auto&& lhs, auto&& rhs, Ts&&... ts) {
+    set(std::forward<decltype(lhs)>(lhs), std::forward<decltype(rhs)>(rhs));
+    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
-  void set(Key x, Numeric y) {
-    ARTS_USER_ERROR_IF(std::isnan(y) or std::isinf(y), "Bad input NaN or Inf: ", y)
+ public:
+  template <typename... Ts>
+  Point(Ts&&... ts) {
+    static_assert((sizeof...(Ts) % 2) == 0, "Uneven number of inputs");
+    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
+  }
 
-    switch (x) {
-      case Key::temperature:
-        ARTS_USER_ERROR_IF(y <= 0, "Bad temperature: ", y)
-        temperature = y;
-        break;
-      case Key::pressure:
-        ARTS_USER_ERROR_IF(y <= 0, "Bad pressure: ", y)
-        pressure = y;
-        break;
-      case Key::wind_u:
-        wind[0] = y;
-        break;
-      case Key::wind_v:
-        wind[1] = y;
-        break;
-      case Key::wind_w:
-        wind[2] = y;
-        break;
-      case Key::mag_u:
-        mag[0] = y;
-        break;
-      case Key::mag_v:
-        mag[1] = y;
-        break;
-      case Key::mag_w:
-        mag[2] = y;
-        break;
-      case Key::FINAL:
-        break;
+  Numeric operator[](KeyType auto&& x) const {
+    using T = decltype(x);
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      auto y = species_content.find(std::forward<T>(x));
+      return y == species_content.end() ? 0 : y->second;
+    } else {
+      switch (std::forward<T>(x)) {
+        case Key::temperature:
+          return temperature;
+        case Key::pressure:
+          return pressure;
+        case Key::wind_u:
+          return wind[0];
+        case Key::wind_v:
+          return wind[1];
+        case Key::wind_w:
+          return wind[2];
+        case Key::mag_u:
+          return mag[0];
+          break;
+        case Key::mag_v:
+          return mag[1];
+          break;
+        case Key::mag_w:
+          return mag[2];
+        case Key::FINAL: {
+        }
+      }
+      return 0;
     }
   }
+
+  [[nodiscard]] constexpr auto P() const { return pressure; }
+
+  [[nodiscard]] constexpr auto T() const { return temperature; }
+
+  [[nodiscard]] constexpr auto M() const { return mag; }
+
+  [[nodiscard]] constexpr auto W() const { return wind; }
+
+  void set(KeyType auto&& x, Numeric y) {
+    using T = decltype(x);
+    ARTS_USER_ERROR_IF(
+        std::isnan(y) or std::isinf(y), "Bad input NaN or Inf: ", y)
+
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      species_content[x] = y;
+    } else {
+      switch (std::forward<T>(x)) {
+        case Key::temperature:
+          ARTS_USER_ERROR_IF(y <= 0, "Bad temperature: ", y)
+          temperature = y;
+          break;
+        case Key::pressure:
+          ARTS_USER_ERROR_IF(y <= 0, "Bad pressure: ", y)
+          pressure = y;
+          break;
+        case Key::wind_u:
+          wind[0] = y;
+          break;
+        case Key::wind_v:
+          wind[1] = y;
+          break;
+        case Key::wind_w:
+          wind[2] = y;
+          break;
+        case Key::mag_u:
+          mag[0] = y;
+          break;
+        case Key::mag_v:
+          mag[1] = y;
+          break;
+        case Key::mag_w:
+          mag[2] = y;
+          break;
+        case Key::FINAL:
+          break;
+      }
+    }
+  }
+
+   friend std::ostream& operator<<(std::ostream& os, const Point& pnt) ;
 };
 
 //! All the field data; if these types grow too much we might want to reconsider...
@@ -104,16 +154,13 @@ class Field {
   ArrayOfTime time;
 
   template <typename... Ts>
-  void internal_set(const ArrayOfSpeciesTag& lhs,
-                    const FieldData& rhs,
-                    Ts&&... ts) {
-    specs[lhs] = rhs;
-    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
-  }
-
-  template <typename... Ts>
-  void internal_set(Key lhs, const FieldData& rhs, Ts&&... ts) {
-    other[lhs] = rhs;
+  void internal_set(KeyType auto&& lhs, auto&& rhs, Ts&&... ts) {
+    using T = decltype(lhs);
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      specs[std::forward<T>(lhs)] = std::forward<decltype(rhs)>(rhs);
+    } else {
+      other[std::forward<T>(lhs)] = std::forward<decltype(rhs)>(rhs);
+    }
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
@@ -124,30 +171,22 @@ class Field {
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
-  [[nodiscard]] const FieldData& get(Key x) const { return other.at(x); }
-
-  [[nodiscard]] const FieldData& get(const ArrayOfSpeciesTag& x) const {
-    return specs.at(x);
+  [[nodiscard]] const FieldData& get(KeyType auto&& x) const {
+    using T = decltype(x);
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      return specs.at(std::forward<T>(x));
+    } else {
+      return other.at(std::forward<T>(x));
+    }
   }
 
   [[nodiscard]] Shape<4> regularized_shape() const {
     return {time.nelem(), alt.nelem(), lat.nelem(), lon.nelem()};
   }
 
-  FieldData& set(Key x, const FieldData& y) {
-    const auto* const t4 = std::get_if<Tensor4>(&y);
-    ARTS_USER_ERROR_IF(t4 and t4->shape() not_eq regularized_shape(),
-                       "The shape is wrong.  The input field is shape ",
-                       t4->shape(),
-                       " but we have a regularized shape of ",
-                       regularized_shape())
-    ARTS_USER_ERROR_IF(
-        regularized and not t4,
-        "Expects a regularized field (i.e., Tensor4-style gridded)")
-    return other[x] = y;
-  }
+  void set(KeyType auto&& x, FieldData y) {
+    using T = decltype(x);
 
-  FieldData& set(const ArrayOfSpeciesTag& x, const FieldData& y) {
     const auto* const t4 = std::get_if<Tensor4>(&y);
     ARTS_USER_ERROR_IF(t4 and t4->shape() not_eq regularized_shape(),
                        "The shape is wrong.  The input field is shape ",
@@ -157,7 +196,12 @@ class Field {
     ARTS_USER_ERROR_IF(
         regularized and not t4,
         "Expects a regularized field (i.e., Tensor4-style gridded)")
-    return specs[x] = y;
+
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      specs[std::forward<T>(x)] = std::move(y);
+    } else {
+      other[std::forward<T>(x)] = std::move(y);
+    }
   }
 
   //! Regularizes the calculations so that all data is one alt-lat-lon grids, and alt-lat-lon is in the grid map

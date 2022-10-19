@@ -5,6 +5,16 @@
 #include "species_tags.h"
 
 void point() {
+  using namespace Atm;
+  using enum Key;
+  Point pnt {pressure, 3e4, temperature, 250, ArrayOfSpeciesTag{"O2-66"}, 0.21};
+  std::cout << pnt << '\n'<< '\n';
+
+  pnt.set(ArrayOfSpeciesTag{"H2O-161"},0.01);
+  std::cout << pnt << '\n'<< '\n';
+
+  std::cout << pnt[ArrayOfSpeciesTag{"O2-66"}] << '\n'<< '\n';
+  std::cout << pnt[pressure] << '\n'<< '\n';
 }
 
 void field() {
