@@ -571,3 +571,6 @@ if (NOT "${NUMERIC}" STREQUAL "double")
 endif()
 
 message(STATUS "Building ARTS in ${CMAKE_BUILD_TYPE} mode")
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
+  message(STATUS "Optimization level set to O2 instead of O3 in Release mode")
+endif ()
