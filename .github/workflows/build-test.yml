@@ -92,7 +92,7 @@ jobs:
             buildtype: "Release"
 
           - name: macos-gcc-12
-            os: macos-latest
+            os: macos-11
             compiler: gcc
             version: "12"
             doc: "no"
@@ -104,7 +104,7 @@ jobs:
             buildtype: "Release"
 
           - name: macos-clang-14
-            os: macos-latest
+            os: macos-11
             compiler: clang
             version: "14"
             doc: "no"
