@@ -12,6 +12,7 @@
 
 #include <array>
 #include <climits>
+#include <compare>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -113,6 +114,8 @@ class Array : public std::vector<base> {
 
     return os;
   }
+
+  [[nodiscard]] std::partial_ordering operator<=>(const Array& x) const = default;
 };
 
 /** An array of Index. */
