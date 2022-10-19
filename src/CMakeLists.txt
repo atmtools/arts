@@ -130,6 +130,7 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
+  atm.cc
   auto_version.cc
   callback.cc
   check_input.cc
