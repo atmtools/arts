@@ -168,6 +168,7 @@ add_library (artscore STATIC
   arts.cc
   arts_omp.cc
   artstime.cc
+  atm.cc
   auto_version.cc
   callback.cc
   check_input.cc
@@ -414,6 +415,11 @@ target_link_libraries (test_gridded_fields matpack)
 
 add_executable (test_interpolation test_interpolation.cc)
 target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
+add_executable (test_atm test_atm.cc)
+target_link_libraries (test_atm ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
