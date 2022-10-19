@@ -70,6 +70,7 @@ cmake_dependent_option(
 cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
+option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
 
 if (IGNORE_CONDA_PATH)
   # Avoid possible linker incompatibilities for
@@ -289,6 +290,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   string (REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO
           "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
+  string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+endif ()
 
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -566,3 +571,6 @@ if (NOT "${NUMERIC}" STREQUAL "double")
 endif()
 
 message(STATUS "Building ARTS in ${CMAKE_BUILD_TYPE} mode")
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
+  message(STATUS "Optimization level set to O2 instead of O3 in Release mode")
+endif ()
