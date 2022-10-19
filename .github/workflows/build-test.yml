@@ -164,6 +164,7 @@ jobs:
       - name: Setup (macOS)
         if: runner.os == 'macOS'
         run: |
+          pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
           brew upgrade python
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
