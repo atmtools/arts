@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <ostream>
@@ -33,10 +34,13 @@ ENUMCLASS(Key,
 template <typename T>
 concept isArrayOfSpeciesTag =
     std::is_same_v<std::remove_cvref_t<T>, ArrayOfSpeciesTag>;
+
 template <typename T>
 concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
+
 template <typename T>
 concept KeyType = isKey<T> or isArrayOfSpeciesTag<T>;
+
 class Point {
   std::map<ArrayOfSpeciesTag, Numeric> species_content{};
   Numeric pressure{std::numeric_limits<Numeric>::min()};
@@ -138,23 +142,42 @@ class Point {
     }
   }
 
-   friend std::ostream& operator<<(std::ostream& os, const Point& pnt) ;
+  friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
 
 //! All the field data; if these types grow too much we might want to reconsider...
-using FieldData = std::variant<GriddedField4, Tensor4, Numeric>;
+using FunctionalData = std::function<Numeric(Time,Numeric,Numeric,Numeric)>;
+using FieldData = std::variant<GriddedField4, Tensor4, Numeric, FunctionalData>;
+
+template <typename T>
+concept isGriddedField4 = std::is_same_v<std::remove_cvref_t<T>, GriddedField4>;
+
+template <typename T>
+concept isTensor4 = std::is_same_v<std::remove_cvref_t<T>, Tensor4>;
+
+template <typename T>
+concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
+
+template <typename T>
+concept isFunctionalDataType = std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
+
+template <typename T>
+concept RawDataType = isGriddedField4<T> or isNumeric<T> or isFunctionalDataType<T>;
+
+template <typename T>
+concept DataType = RawDataType<T> or isTensor4<T>;
 
 class Field {
-  std::map<Key, FieldData> other;
-  std::map<ArrayOfSpeciesTag, FieldData> specs;
+  std::map<Key, FieldData> other{};
+  std::map<ArrayOfSpeciesTag, FieldData> specs{};
 
   //! The below only exist if regularized is true
   bool regularized{false};
-  Vector alt, lat, lon;
-  ArrayOfTime time;
+  ArrayOfTime time{};
+  Vector alt{}, lat{}, lon{};
 
   template <typename... Ts>
-  void internal_set(KeyType auto&& lhs, auto&& rhs, Ts&&... ts) {
+  void internal_set(KeyType auto&& lhs, RawDataType auto&& rhs, Ts&&... ts) {
     using T = decltype(lhs);
     if constexpr (isArrayOfSpeciesTag<T>) {
       specs[std::forward<T>(lhs)] = std::forward<decltype(rhs)>(rhs);
@@ -171,6 +194,7 @@ class Field {
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
+  /*  // Make this unavailable?  It would make it easier to type erase in the future
   [[nodiscard]] const FieldData& get(KeyType auto&& x) const {
     using T = decltype(x);
     if constexpr (isArrayOfSpeciesTag<T>) {
@@ -179,23 +203,45 @@ class Field {
       return other.at(std::forward<T>(x));
     }
   }
+  */
 
   [[nodiscard]] Shape<4> regularized_shape() const {
     return {time.nelem(), alt.nelem(), lat.nelem(), lon.nelem()};
   }
 
-  void set(KeyType auto&& x, FieldData y) {
+  void set(KeyType auto&& x, DataType auto&& y) {
     using T = decltype(x);
+    using U = decltype(y);
 
-    const auto* const t4 = std::get_if<Tensor4>(&y);
-    ARTS_USER_ERROR_IF(t4 and t4->shape() not_eq regularized_shape(),
-                       "The shape is wrong.  The input field is shape ",
-                       t4->shape(),
-                       " but we have a regularized shape of ",
-                       regularized_shape())
-    ARTS_USER_ERROR_IF(
-        regularized and not t4,
-        "Expects a regularized field (i.e., Tensor4-style gridded)")
+    if constexpr (isTensor4<U>) {
+      ARTS_USER_ERROR_IF(not regularized,
+                         "Field needs to be regularized to set Tensor4 data")
+      ARTS_USER_ERROR_IF(y.shape() not_eq regularized_shape(),
+                         "The shape is wrong.  The input field is shape ",
+                         y.shape(),
+                         " but we have a regularized shape of ",
+                         regularized_shape())
+    } else {
+      ARTS_USER_ERROR_IF(
+          regularized,
+          "Expects a regularized field (i.e., Tensor4-style gridded)")
+    }
+
+    if constexpr (isGriddedField4<U>) {
+      ARTS_USER_ERROR_IF(
+          "Time" not_eq y.get_grid_name(0) or
+              "Altitude" not_eq y.get_grid_name(1) or
+              "Latitude" not_eq y.get_grid_name(2) or
+              "Longitude" not_eq y.get_grid_name(3),
+          "The grids should be [Time x Altitude x Latitude x Longitude] but it is [",
+          y.get_grid_name(0),
+          " x ",
+          y.get_grid_name(1),
+          " x ",
+          y.get_grid_name(2),
+          " x ",
+          y.get_grid_name(3), ']')
+    }
 
     if constexpr (isArrayOfSpeciesTag<T>) {
       specs[std::forward<T>(x)] = std::move(y);
@@ -204,7 +250,7 @@ class Field {
     }
   }
 
-  //! Regularizes the calculations so that all data is one alt-lat-lon grids, and alt-lat-lon is in the grid map
+  //! Regularizes the calculations so that all data is on a single grid
   Field& regularize(const ArrayOfTime& times,
                     const Vector& altitudes,
                     const Vector& latitudes,
@@ -216,6 +262,9 @@ class Field {
                          Numeric lat_point,
                          Numeric lon_point) const;
 
-  friend std::ostream& operator<<(std::ostream&, const Field&);
+  friend std::ostream& operator<<(std::ostream& os, const Field& atm);
 };
-}  // namespace Atmosphere
+}  // namespace Atm
+
+using AtmField = Atm::Field;
+using AtmPoint = Atm::Point;
