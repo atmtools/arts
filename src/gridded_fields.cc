@@ -60,7 +60,7 @@ void GriddedField::copy_grids(const GriddedField& gf) {
         mgridtypes[i] = GRID_TYPE_TIME;
         mtimegrids[i] = gf.get_time_grid(i);
         mnumericgrids[i].resize(0);
-        mtimegrids[i].resize(0);
+        mstringgrids[i].resize(0);
         break;
     }
   }
