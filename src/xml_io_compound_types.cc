@@ -13,6 +13,7 @@
 #include "cloudbox.h"
 #include "debug.h"
 #include "global_data.h"
+#include "gridded_fields.h"
 #include "predefined/predef_data.h"
 #include "xml_io.h"
 #include <sstream>
@@ -474,6 +475,13 @@ void xml_write_to_stream(ostream& os_xml,
       case GRID_TYPE_STRING:
         xml_write_to_stream(os_xml,
                             gfield.get_string_grid(i),
+                            pbofs,
+                            gfield.get_grid_name(i),
+                            verbosity);
+        break;
+      case GRID_TYPE_TIME:
+        xml_write_to_stream(os_xml,
+                            gfield.get_time_grid(i),
                             pbofs,
                             gfield.get_grid_name(i),
                             verbosity);
