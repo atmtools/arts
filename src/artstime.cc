@@ -115,8 +115,9 @@ std::ostream& operator<<(std::ostream& os, const Time& t)
   return os << 1900 + x.tm_year << '-' << std::setfill('0') << std::setw(2)
             << 1 + x.tm_mon << '-' << std::setfill('0') << std::setw(2)
             << x.tm_mday << ' ' << std::setfill('0') << std::setw(2)
-            << x.tm_hour << ':' << std::setfill('0') << std::setw(2)
-            << x.tm_min <<':' << std::setfill('0') << std::setw(12) << sec.data();
+            << x.tm_hour << ':' << std::setfill('0') << std::setw(2) << x.tm_min
+            << ':' << std::setfill('0') << std::setw(12) << sec.data()
+            << std::setfill(' ') << std::setw(0);
 }
 
 std::istream& operator>>(std::istream& is, Time& t)

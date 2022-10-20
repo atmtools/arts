@@ -3,6 +3,7 @@
 
 #include "array.h"
 #include "arts_conversions.h"
+#include "artstime.h"
 #include "debug.h"
 #include "enums.h"
 #include "grids.h"
@@ -687,7 +688,29 @@ struct FixedLagrange {
         lx(lx_finder(pos, x, xi, type, cycle)),
         dlx(do_derivs ? dlx_finder(pos, x, xi, lx, type, cycle)
                       : std::array<Numeric, PolyOrder + 1>{}) {}
-  
+
+  /*! Standard initializer from Vector-types
+   *
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] do_derivs Compute derivatives?
+   * @param[in] type Type of Lagrange
+   * @param[in] cycle Size of a cycle if Cyclic type
+   */
+  template <class SortedVectorType>
+  FixedLagrange(const Index p0,
+                const Time x,
+                const SortedVectorType& xi,
+                const bool do_derivs = false,
+                const GridType type = GridType::Standard,
+                const std::pair<Numeric, Numeric> cycle = {-180, 180}) noexcept {
+    Vector xs(static_cast<Index>(xi.size()));
+    std::transform(
+        xi.begin(), xi.end(), xs.begin(), [](auto& v) { return v.Seconds(); });
+    *this = FixedLagrange(p0, x.Seconds(), xs, do_derivs, type, cycle);
+  }
+
   /*! Friendly stream operator */
   friend std::ostream& operator<<(std::ostream& os, const FixedLagrange& l) {
     os << "pos: " << l.pos << '\n' << "lx: ";

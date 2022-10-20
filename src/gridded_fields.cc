@@ -38,6 +38,7 @@
 #include "gridded_fields.h"
 #include <iostream>
 #include <stdexcept>
+#include "artstime.h"
 #include "exceptions.h"
 #include "mystring.h"
 
@@ -65,11 +66,19 @@ void GriddedField::copy_grids(const GriddedField& gf) {
         mgridtypes[i] = GRID_TYPE_NUMERIC;
         mnumericgrids[i] = gf.get_numeric_grid(i);
         mstringgrids[i].resize(0);
+        mtimegrids[i].resize(0);
         break;
       case GRID_TYPE_STRING:
         mgridtypes[i] = GRID_TYPE_STRING;
         mstringgrids[i] = gf.get_string_grid(i);
         mnumericgrids[i].resize(0);
+        mtimegrids[i].resize(0);
+        break;
+      case GRID_TYPE_TIME:
+        mgridtypes[i] = GRID_TYPE_TIME;
+        mtimegrids[i] = gf.get_time_grid(i);
+        mnumericgrids[i].resize(0);
+        mtimegrids[i].resize(0);
         break;
     }
   }
@@ -147,6 +156,42 @@ ArrayOfString& GriddedField::get_string_grid(Index i) {
   return (mstringgrids[i]);
 }
 
+//! Get a time grid.
+/*!
+  Returns the time grid with index i.
+
+  Throws a runtime error if grid i is not of type ArrayOfTime.
+
+  \param[in]  i  Grid index.
+  \return        Time grid.
+*/
+const ArrayOfTime& GriddedField::get_time_grid(Index i) const {
+  ARTS_ASSERT(i < dim);
+  ARTS_USER_ERROR_IF (mgridtypes[i] != GRID_TYPE_TIME,
+                      mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
+                      mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
+                      " is not a time grid.")
+  return (mtimegrids[i]);
+}
+
+//! Get a time grid.
+/*!
+  Returns the time grid with index i.
+
+  Throws a runtime error if grid i is not of type ArrayOfTime.
+
+  \param[in]  i  Grid index.
+  \return        Time grid.
+*/
+ArrayOfTime& GriddedField::get_time_grid(Index i) {
+  ARTS_ASSERT(i < dim);
+  ARTS_USER_ERROR_IF (mgridtypes[i] != GRID_TYPE_TIME,
+                      mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
+                      mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
+                      " is not a time grid.")
+  return (mtimegrids[i]);
+}
+
 //! Set a numeric grid.
 /*!
   Sets grid i to the given grid.
@@ -158,6 +203,7 @@ void GriddedField::set_grid(Index i, const Vector& g) {
   ARTS_ASSERT(i < dim);
   mgridtypes[i] = GRID_TYPE_NUMERIC;
   mstringgrids[i].resize(0);
+  mtimegrids[i].resize(0);
   mnumericgrids[i] = g;
 }
 
@@ -172,7 +218,23 @@ void GriddedField::set_grid(Index i, const ArrayOfString& g) {
   ARTS_ASSERT(i < dim);
   mgridtypes[i] = GRID_TYPE_STRING;
   mnumericgrids[i].resize(0);
+  mtimegrids[i].resize(0);
   mstringgrids[i] = g;
+}
+
+//! Set a time grid.
+/*!
+  Sets grid i to the given grid.
+
+  \param[in] i Grid index.
+  \param[in] g New grid.
+*/
+void GriddedField::set_grid(Index i, const ArrayOfTime& g) {
+  ARTS_ASSERT(i < dim);
+  mgridtypes[i] = GRID_TYPE_TIME;
+  mnumericgrids[i].resize(0);
+  mstringgrids[i].resize(0);
+  mtimegrids[i] = g;
 }
 
 //! Output operator for GriddedField
@@ -197,6 +259,9 @@ ostream& operator<<(ostream& os, const GriddedField& gf) {
         break;
       case GRID_TYPE_NUMERIC:
         os << gf.mnumericgrids[i];
+        break;
+      case GRID_TYPE_TIME:
+        os << gf.mtimegrids[i];
         break;
     }
     os << endl;
