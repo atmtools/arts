@@ -406,6 +406,7 @@ target_link_libraries (test_binaryio ${ALL_ARTS_LIBRARIES})
 ########### next testcase ###############
 
 add_executable (test_gridded_fields
+  artstime.cc
   gridded_fields.cc
   test_gridded_fields.cc)
 
