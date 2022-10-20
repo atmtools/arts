@@ -61,24 +61,16 @@ void GriddedField::copy_grids(const GriddedField& gf) {
   ARTS_ASSERT(gf.get_dim() == dim);
 
   for (Index i = 0; i < dim; i++) {
+    set_grid_name(i, gf.get_grid_name(i));
     switch (gf.get_grid_type(i)) {
       case GRID_TYPE_NUMERIC:
-        mgridtypes[i] = GRID_TYPE_NUMERIC;
-        mnumericgrids[i] = gf.get_numeric_grid(i);
-        mstringgrids[i].resize(0);
-        mtimegrids[i].resize(0);
+        set_grid(i, gf.get_numeric_grid(i));
         break;
       case GRID_TYPE_STRING:
-        mgridtypes[i] = GRID_TYPE_STRING;
-        mstringgrids[i] = gf.get_string_grid(i);
-        mnumericgrids[i].resize(0);
-        mtimegrids[i].resize(0);
+        set_grid(i, gf.get_string_grid(i));
         break;
       case GRID_TYPE_TIME:
-        mgridtypes[i] = GRID_TYPE_TIME;
-        mtimegrids[i] = gf.get_time_grid(i);
-        mnumericgrids[i].resize(0);
-        mstringgrids[i].resize(0);
+        set_grid(i, gf.get_time_grid(i));
         break;
     }
   }
@@ -135,7 +127,7 @@ const ArrayOfString& GriddedField::get_string_grid(Index i) const {
                       mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
                       mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
                       " is not a string grid.")
-  return (mstringgrids[i]);
+  return mstringgrids[i];
 }
 
 //! Get a string grid.
@@ -153,7 +145,7 @@ ArrayOfString& GriddedField::get_string_grid(Index i) {
                       mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
                       mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
                       " is not a string grid.")
-  return (mstringgrids[i]);
+  return mstringgrids[i];
 }
 
 //! Get a time grid.
@@ -171,7 +163,7 @@ const ArrayOfTime& GriddedField::get_time_grid(Index i) const {
                       mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
                       mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
                       " is not a time grid.")
-  return (mtimegrids[i]);
+  return mtimegrids[i];
 }
 
 //! Get a time grid.
@@ -189,7 +181,7 @@ ArrayOfTime& GriddedField::get_time_grid(Index i) {
                       mname.length() ? var_string(mname, " Grid ") : var_string("Grid "),
                       mgridnames[i].length() ? var_string(mgridnames[i]) : var_string(i),
                       " is not a time grid.")
-  return (mtimegrids[i]);
+  return mtimegrids[i];
 }
 
 //! Set a numeric grid.
