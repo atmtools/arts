@@ -82,8 +82,7 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
                                const Numeric& xwidth_si,
                                const Numeric& dx_si,
                                const Verbosity& verbosity) {
-  if (dx_si > xwidth_si)
-    throw runtime_error("It is demanded that dx_si <= xwidth_si.");
+  ARTS_USER_ERROR_IF(dx_si > xwidth_si, "It is demanded that dx_si <= xwidth_si.");
 
   ARTS_USER_ERROR_IF(n_za_grid < 2, "It is demanded that n_za_grid > 1.");
 
