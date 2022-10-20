@@ -4,6 +4,7 @@
 #include <ostream>
 #include <variant>
 
+#include "arts_omp.h"
 #include "debug.h"
 #include "gridded_fields.h"
 #include "interpolation_lagrange.h"
