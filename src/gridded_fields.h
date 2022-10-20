@@ -39,6 +39,7 @@
 #include "array.h"
 #include "matpack_arrays.h"
 #include "matpack_data.h"
+#include "artstime.h"
 #include "mystring.h"
 
 namespace GriddedFieldGrids {
@@ -116,7 +117,7 @@ inline constexpr Index GFIELD4_AA_GRID = 3;
 }  // namespace GriddedFieldGrids
 
 /*! Enumeration containing the possible grid types for gridded fields */
-enum GridType { GRID_TYPE_NUMERIC, GRID_TYPE_STRING };
+enum GridType { GRID_TYPE_NUMERIC, GRID_TYPE_STRING, GRID_TYPE_TIME };
 
 using ArrayOfGridType = Array<GridType>;
 
@@ -162,6 +163,7 @@ class GriddedField {
   Array<GridType> mgridtypes;
   ArrayOfString mgridnames;
   Array<ArrayOfString> mstringgrids;
+  Array<ArrayOfTime> mtimegrids;
   ArrayOfVector mnumericgrids;
 
  protected:
@@ -176,6 +178,7 @@ class GriddedField {
         mgridtypes(),
         mgridnames(),
         mstringgrids(),
+        mtimegrids(),
         mnumericgrids() { /* Nothing to do here */
   }
 
@@ -195,6 +198,7 @@ class GriddedField {
         mgridtypes(d, GRID_TYPE_NUMERIC),
         mgridnames(d),
         mstringgrids(d),
+        mtimegrids(d),
         mnumericgrids(d) { /* Nothing to do here */
   }
 
@@ -238,6 +242,9 @@ class GriddedField {
       case GRID_TYPE_STRING:
         ret = mstringgrids[i].nelem();
         break;
+      case GRID_TYPE_TIME:
+        ret = mtimegrids[i].nelem();
+        break;
     }
 
     return ret;
@@ -260,6 +267,10 @@ class GriddedField {
 
   ArrayOfString& get_string_grid(Index i);
 
+  [[nodiscard]] const ArrayOfTime& get_time_grid(Index i) const;
+
+  ArrayOfTime& get_time_grid(Index i);
+
   //! Get the name of this gridded field.
   /*! \return Gridded field name. */
   [[nodiscard]] const String& get_name() const { return mname; }
@@ -267,6 +278,8 @@ class GriddedField {
   void set_grid(Index i, const Vector& g);
 
   void set_grid(Index i, const ArrayOfString& g);
+
+  void set_grid(Index i, const ArrayOfTime& g);
 
   //! Set grid name.
   /*!
