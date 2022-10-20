@@ -110,7 +110,7 @@ jobs:
           fi
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
-            sudo apt-get install -y texlive
+            sudo apt-get install -y texlive texlive-latex-extra
           fi
 
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
