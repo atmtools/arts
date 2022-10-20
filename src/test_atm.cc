@@ -42,7 +42,7 @@ void field() {
     for (Index i2 = 0; i2 < data.get_grid_size(1); i2++) {
       for (Index i3 = 0; i3 < data.get_grid_size(2); i3++) {
         for (Index i4 = 0; i4 < data.get_grid_size(3); i4++) {
-          data.data(i1, i2, i3, i4) = 1 + i1 + 2 * i2 + 3 * i3 + 4 * i4;
+          data.data(i1, i2, i3, i4) = static_cast<Numeric>(1 + i1 + 2 * i2 + 3 * i3 + 4 * i4);
         }
       }
     }
