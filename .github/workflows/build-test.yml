@@ -21,7 +21,7 @@ jobs:
 
         include:
           - name: ubuntu-doc
-            os: ubuntu-18.04
+            os: ubuntu-latest
             compiler: gcc
             version: "9"
             doc: "yes"
@@ -30,7 +30,7 @@ jobs:
             check: "no"
 
           - name: ubuntu-gcc-8
-            os: ubuntu-18.04
+            os: ubuntu-latest
             compiler: gcc
             version: "8"
             doc: "no"
@@ -39,7 +39,7 @@ jobs:
             check: "yes"
 
           - name: ubuntu-gcc-9
-            os: ubuntu-18.04
+            os: ubuntu-latest
             compiler: gcc
             version: "9"
             doc: "no"
@@ -48,7 +48,7 @@ jobs:
             check: "yes"
 
           - name: ubuntu-gcc-10
-            os: ubuntu-18.04
+            os: ubuntu-latest
             compiler: gcc
             version: "10"
             doc: "no"
@@ -57,7 +57,7 @@ jobs:
             check: "yes"
 
           - name: ubuntu-clang-11-nofortran
-            os: ubuntu-18.04
+            os: ubuntu-latest
             compiler: clang
             version: "11"
             doc: "no"
@@ -84,7 +84,7 @@ jobs:
         run: |
           if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "11" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main"
           fi
 
           sudo apt-get update
@@ -110,7 +110,7 @@ jobs:
           fi
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
-            sudo apt-get install -y texlive
+            sudo apt-get install -y texlive texlive-latex-extra
           fi
 
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
