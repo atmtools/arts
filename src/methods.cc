@@ -23779,7 +23779,7 @@ available for feature testing
 
 Options are:
     Empty:
-        Uses *propmat_clearskyInit* to set *propmat_clearsky*, *propmat_clearsky*, *nlte_source*,
+        Uses *propmat_clearskyInit* to set *propmat_clearsky*, *nlte_source*,
         *dpropmat_clearsky_dx*, and *dnlte_source_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
