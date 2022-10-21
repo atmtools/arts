@@ -4,6 +4,7 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <type_traits>
 #include <utility>
@@ -16,6 +17,7 @@
 #include "matpack.h"
 #include "matpackI.h"
 #include "matpackIV.h"
+#include "quantum_numbers.h"
 #include "species.h"
 #include "species_tags.h"
 
@@ -36,13 +38,19 @@ concept isArrayOfSpeciesTag =
     std::is_same_v<std::remove_cvref_t<T>, ArrayOfSpeciesTag>;
 
 template <typename T>
+concept isQuantumIdentifier =
+    std::is_same_v<std::remove_cvref_t<T>, QuantumIdentifier>;
+
+template <typename T>
 concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
 
 template <typename T>
-concept KeyType = isKey<T> or isArrayOfSpeciesTag<T>;
+concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or isQuantumIdentifier<T>;
 
 class Point {
   std::map<ArrayOfSpeciesTag, Numeric> species_content{};
+  std::map<QuantumIdentifier, Numeric> nlte{};
+  std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
   Numeric pressure{std::numeric_limits<Numeric>::min()};
   Numeric temperature{std::numeric_limits<Numeric>::min()};
   std::array<Numeric, 3> wind{0., 0., 0.};
@@ -66,6 +74,9 @@ class Point {
     if constexpr (isArrayOfSpeciesTag<T>) {
       auto y = species_content.find(std::forward<T>(x));
       return y == species_content.end() ? 0 : y->second;
+    } else if constexpr (isQuantumIdentifier<T>) {
+      auto y = nlte.find(std::forward<T>(x));
+      return y == nlte.end() ? 0 : y->second;
     } else {
       switch (std::forward<T>(x)) {
         case Key::temperature:
@@ -101,6 +112,19 @@ class Point {
 
   [[nodiscard]] constexpr auto W() const { return wind; }
 
+  // FIXME: This data should be elsewhere???
+  [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
+    ARTS_USER_ERROR_IF(not nlte_energy or nlte.size() not_eq nlte_energy->size(), "Incorrect NLTE energy term")
+    auto y = nlte_energy->find(x);
+    return y == nlte_energy->end() ? 0 : y->second;
+  }
+
+  // FIXME: This data should be elsewhere???
+  void set_energy_level(const decltype(nlte_energy)& x) {
+    ARTS_USER_ERROR_IF(x and x -> size() and x -> size() not_eq nlte.size(), "Mismatching sizes")
+    nlte_energy = x;
+  }
+
   void set(KeyType auto&& x, Numeric y) {
     using T = decltype(x);
     ARTS_USER_ERROR_IF(
@@ -108,6 +132,8 @@ class Point {
 
     if constexpr (isArrayOfSpeciesTag<T>) {
       species_content[x] = y;
+    }else if constexpr (isQuantumIdentifier<T>) {
+      nlte[x] = y;
     } else {
       switch (std::forward<T>(x)) {
         case Key::temperature:
@@ -170,6 +196,8 @@ concept DataType = RawDataType<T> or isTensor4<T>;
 class Field {
   std::map<Key, FieldData> other{};
   std::map<ArrayOfSpeciesTag, FieldData> specs{};
+  std::map<QuantumIdentifier, FieldData> nlte{};
+  std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
 
   //! The below only exist if regularized is true
   bool regularized{false};
@@ -178,12 +206,7 @@ class Field {
 
   template <typename... Ts>
   void internal_set(KeyType auto&& lhs, RawDataType auto&& rhs, Ts&&... ts) {
-    using T = decltype(lhs);
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      specs[std::forward<T>(lhs)] = std::forward<decltype(rhs)>(rhs);
-    } else {
-      other[std::forward<T>(lhs)] = std::forward<decltype(rhs)>(rhs);
-    }
+    set(std::forward<decltype(lhs)>(lhs), std::forward<decltype(rhs)>(rhs));
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
@@ -193,17 +216,6 @@ class Field {
     static_assert((sizeof...(Ts) % 2) == 0, "Uneven number of inputs");
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
-
-  /*  // Make this unavailable?  It would make it easier to type erase in the future
-  [[nodiscard]] const FieldData& get(KeyType auto&& x) const {
-    using T = decltype(x);
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      return specs.at(std::forward<T>(x));
-    } else {
-      return other.at(std::forward<T>(x));
-    }
-  }
-  */
 
   [[nodiscard]] Shape<4> regularized_shape() const {
     return {time.nelem(), alt.nelem(), lat.nelem(), lon.nelem()};
@@ -240,14 +252,30 @@ class Field {
           " x ",
           y.get_grid_name(2),
           " x ",
-          y.get_grid_name(3), ']')
+          y.get_grid_name(3),
+          ']')
     }
 
     if constexpr (isArrayOfSpeciesTag<T>) {
       specs[std::forward<T>(x)] = std::move(y);
+    } else if constexpr (isQuantumIdentifier<T>) {
+      nlte[std::forward<T>(x)] = std::move(y);
     } else {
       other[std::forward<T>(x)] = std::move(y);
     }
+  }
+
+    // FIXME: This data should be elsewhere???
+  [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
+    ARTS_USER_ERROR_IF(not nlte_energy or nlte.size() not_eq nlte_energy->size(), "Incorrect NLTE energy term")
+    auto y = nlte_energy->find(x);
+    return y == nlte_energy->end() ? 0 : y->second;
+  }
+
+  // FIXME: This data should be elsewhere???
+  void set_energy_level(const QuantumIdentifier& x, Numeric y) {
+    if (not nlte_energy) nlte_energy = std::make_shared<std::map<QuantumIdentifier, Numeric>>();
+    nlte_energy -> operator[](x) = y;
   }
 
   //! Regularizes the calculations so that all data is on a single grid
