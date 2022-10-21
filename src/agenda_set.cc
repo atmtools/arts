@@ -623,6 +623,8 @@ Agenda get_propmat_clearsky_agenda(Workspace& ws, const String& option) {
 
   using enum Options::propmat_clearsky_agendaDefaultOptions;
   switch (Options::topropmat_clearsky_agendaDefaultOptionsOrThrow(option)) {
+    case Empty:
+      agenda.add("propmat_clearskyInit");
     case FINAL:
       break;
   }

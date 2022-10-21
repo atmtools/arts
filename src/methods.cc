@@ -14379,11 +14379,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyInit"),
       DESCRIPTION(
-          "Initialize *propmat_clearsky* and *nlte_source*.\n"
+          "Initialize *propmat_clearsky*, *nlte_source*, and their derivatives to zeroes.\n"
           "\n"
-          "This method must be used inside *propmat_clearsky_agenda* and then\n"
-          "be called first.\n"),
-      AUTHORS("Oliver Lemke, Richard Larsson"),
+          "This method must be used inside *propmat_clearsky_agenda* and then be called first.\n"),
+      AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT("propmat_clearsky",
           "nlte_source",
           "dpropmat_clearsky_dx",
@@ -23774,9 +23773,14 @@ Options are:
       create_mdrecord(NAME("propmat_clearsky_agendaSet"),
                       DESCRIPTION(R"--(Sets *propmat_clearsky_agenda* to a default value
 
+Please consider using *propmat_clearsky_agendaAuto* instead of one of these options
+as it will ensure you have the best coverage of use cases.  The options below are
+available for feature testing
+
 Options are:
-    There are currently no options, calling this function is an error.
-    Please consider using *propmat_clearsky_agendaAuto* instead
+    Empty:
+        Uses *propmat_clearskyInit* to set *propmat_clearsky*, *propmat_clearsky*, *nlte_source*,
+        *dpropmat_clearsky_dx*, and *dnlte_source_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("propmat_clearsky_agenda"),
