@@ -23,6 +23,15 @@ std::ostream& operator<<(std::ostream& os, const Point& atm) {
     os << ",\n" << spec.first << ": " << spec.second;
   }
 
+  for (auto& vals : atm.nlte) {
+    if (atm.nlte_energy and atm.nlte_energy->size())
+      os << ",\n"
+         << vals.first << ": " << vals.second << " K; "
+         << atm.nlte_energy->at(vals.first) << " J";
+    else
+      os << ",\n" << vals.first << ": " << vals.second;
+  }
+
   return os;
 }
 
@@ -48,6 +57,13 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
 
   for (auto& vals : atm.specs) {
     os << ",\n" << vals.first << ":\n";
+    std::visit(printer, vals.second);
+  }
+
+  for (auto& vals : atm.nlte) {
+    os << ",\n" << vals.first << ":";
+    if (atm.nlte_energy and atm.nlte_energy->size())
+      os << " " << atm.nlte_energy->at(vals.first) << " J\n";
     std::visit(printer, vals.second);
   }
 
@@ -107,6 +123,7 @@ Point Field::at(Time time_point,
 
     for (auto& vals : specs) atm.set(vals.first, get_value(vals.second));
     for (auto& vals : other) atm.set(vals.first, get_value(vals.second));
+    for (auto& vals : nlte) atm.set(vals.first, get_value(vals.second));
   } else {
     const auto time_lagr = Interpolation::FixedLagrange<0>(0, time_point, time);
     const auto alt_lagr = Interpolation::FixedLagrange<0>(0, alt_point, alt);
@@ -126,8 +143,10 @@ Point Field::at(Time time_point,
 
     for (auto& vals : specs) atm.set(vals.first, get_value(vals.second));
     for (auto& vals : other) atm.set(vals.first, get_value(vals.second));
+    for (auto& vals : nlte) atm.set(vals.first, get_value(vals.second));
   }
 
+  atm.set_energy_level(nlte_energy);
   return atm;
 }
 
@@ -145,6 +164,10 @@ Field& Field::regularize(const ArrayOfTime& times,
       other.size(),
       Tensor4(
           times.size(), altitudes.size(), latitudes.size(), longitudes.size()));
+  ArrayOfTensor4 nlte_data(
+      nlte.size(),
+      Tensor4(
+          times.size(), altitudes.size(), latitudes.size(), longitudes.size()));
 
 #pragma omp parallel for collapse(4) if (!arts_omp_in_parallel())
   for (std::size_t i1 = 0; i1 < times.size(); i1++) {
@@ -158,6 +181,8 @@ Field& Field::regularize(const ArrayOfTime& times,
             specs_data[i0++](i1, i2, i3, i4) = pnt[vals.first];
           for (Index i0{0}; auto& vals : other)
             other_data[i0++](i1, i2, i3, i4) = pnt[vals.first];
+          for (Index i0{0}; auto& vals : nlte)
+            nlte_data[i0++](i1, i2, i3, i4) = pnt[vals.first];
         }
       }
     }
@@ -173,6 +198,8 @@ Field& Field::regularize(const ArrayOfTime& times,
     set(vals.first, std::move(specs_data[i0++]));
   for (Index i0{0}; auto& vals : other)
     set(vals.first, std::move(other_data[i0++]));
+  for (Index i0{0}; auto& vals : nlte)
+    set(vals.first, std::move(nlte_data[i0++]));
 
   return *this;
 }
