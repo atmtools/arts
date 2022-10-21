@@ -945,7 +945,7 @@ void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
         for (auto& rline: rlines.lines) {
           Index number_of_matching_single_lines = 0;
           for (auto& tline: tlines.lines) {
-            if (tline.localquanta.val == rline.localquanta.val) {
+            if (tline.localquanta.val.check_match(rline.localquanta.val)) {
               number_of_matching_single_lines++;
               tline = rline;
             }
@@ -981,7 +981,7 @@ void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
           for (auto& aline: alines.lines) {
             Index number_of_matching_single_lines = 0;
             for (auto& tline: tlines.lines) {
-              if (tline.localquanta.val == aline.localquanta.val) {
+              if (tline.localquanta.val.check_match(aline.localquanta.val)) {
                 number_of_matching_single_lines++;
               }
             }
@@ -1042,7 +1042,7 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
       if (tlines.Match(dlines).first) {
         for (auto& dline: dlines.lines) {
           for (Index i=0; i<tlines.NumLines(); i++) {
-            if (tlines.lines[i].localquanta.val == dline.localquanta.val) {
+            if (tlines.lines[i].localquanta.val.check_match(dline.localquanta.val)) {
               hits.push_back(i);
             }
           }
@@ -1169,7 +1169,7 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
         
         for (Index k=0; k<band.NumLines(); k++) {
           for (Index j=0; j<nl; j++) {
-            if (replacement.lines[j].localquanta.val == band.lines[k].localquanta.val) {
+            if (replacement.lines[j].localquanta.val.check_match(band.lines[k].localquanta.val)) {
               // We cannot have multiple entries
               ARTS_USER_ERROR_IF(pos.lines[j] not_eq -1 or std::any_of(pos.lines.begin(), pos.lines.end(), [k](auto& a){return a == k;}),
                                 "Found multiple matches of lines in:\n", replacement, "\n\nin mathcing band:\n", band)

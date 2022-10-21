@@ -159,7 +159,7 @@ void check_enum_error(EnumType type, Messages ... args) {
   }                                                                       \
                                                                           \
   constexpr ENUMTYPE to##ENUMTYPE##OrThrow(const std::string_view x) {    \
-    ENUMTYPE out = to##ENUMTYPE(x);                                       \
+    const ENUMTYPE out = to##ENUMTYPE(x);                                 \
     check_enum_error(out, "Cannot understand argument: \"", x, "\"\n"     \
                      "Valid " #ENUMTYPE " options are: ["                 \
                      #__VA_ARGS__ "]");                                   \
