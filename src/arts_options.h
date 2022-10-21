@@ -163,8 +163,8 @@ ENUMCLASS_EMPTY(spt_calc_agendaDefaultOptions, char)
 /** Options for setting sensor_response_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
 ENUMCLASS_EMPTY(sensor_response_agendaDefaultOptions, char)
 
-/** Options for setting propmat_clearsky_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
-ENUMCLASS_EMPTY(propmat_clearsky_agendaDefaultOptions, char)
+/** Options for setting propmat_clearsky_agenda */
+ENUMCLASS(propmat_clearsky_agendaDefaultOptions, char, Empty)
 
 /** Options for setting pha_mat_spt_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
 ENUMCLASS_EMPTY(pha_mat_spt_agendaDefaultOptions, char)
