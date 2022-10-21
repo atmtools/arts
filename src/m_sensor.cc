@@ -81,6 +81,9 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
   if (dx_si > xwidth_si)
     throw runtime_error("It is demanded that dx_si <= xwidth_si.");
 
+  if (n_za_grid < 2)
+    throw runtime_error("It is demanded that n_za_grid > 1.");
+
   antenna_dim = 1;
 
   antenna_dlos.resize(1, 1);

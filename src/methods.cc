@@ -2929,7 +2929,7 @@ void define_md_data_raw() {
       GIN("n_za_grid", "fwhm", "xwidth_si", "dx_si"),
       GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, "3", "0.1"),
-      GIN_DESC("Number of points to include in *mblock_dlos_grid*.",
+      GIN_DESC("Number of points (>1) to include in *mblock_dlos_grid*.",
                "Full width at half-maximum of antenna beam [deg].",
                "Half-width of response, in terms of std. dev.",
                "Grid spacing, in terms of std. dev.")));
