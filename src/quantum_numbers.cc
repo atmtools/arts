@@ -301,14 +301,14 @@ bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
   return true;
 }
 
-CheckMatch ValueList::operator==(const ValueList& other) const noexcept {
+CheckMatch ValueList::check_match(const ValueList& other) const noexcept {
   CheckMatch status = {CheckValue::Full, CheckValue::Full};
 
-  for (Type t : enumtyps::TypeTypes) {
+  for (Type const t : enumtyps::TypeTypes) {
     const bool ahas = has(t), bhas = other.has(t);
 
     if (ahas and bhas) {
-      const LevelMatch levels = operator[](t) == other[t];
+      const LevelMatch levels = operator[](t).level_match(other[t]);
       if (not levels.upp) status.upp = CheckValue::Miss;
       if (not levels.low) status.low = CheckValue::Miss;
     } else if (ahas and not bhas) {
@@ -935,8 +935,8 @@ StateMatch::StateMatch(const GlobalState& target,
     type = StateMatchType::Species;
 
   if (type == StateMatchType::Isotopologue) {
-    auto g = target.val == global.val;
-    auto l = target.val == local.val;
+    auto g = target.val.check_match(global.val);
+    auto l = target.val.check_match(local.val);
 
     bool ug = g.upp == CheckValue::Full or g.upp == CheckValue::BinA;
     bool ul = l.upp == CheckValue::Full or l.upp == CheckValue::BinA;
@@ -960,7 +960,7 @@ StateMatch::StateMatch(const GlobalState& target, const GlobalState& key) {
     type = StateMatchType::Species;
 
   if (type == StateMatchType::Isotopologue) {
-    auto m = target.val == key.val;
+    auto m = target.val.check_match(key.val);
 
     upp = m.upp == CheckValue::Full or m.upp == CheckValue::BinA;
     low = m.low == CheckValue::Full or m.low == CheckValue::BinA;
@@ -971,19 +971,10 @@ StateMatch::StateMatch(const GlobalState& target, const GlobalState& key) {
   }
 }
 
-bool GlobalState::operator==(const GlobalState& that) const {
-  return isotopologue_index == that.isotopologue_index and
-         bool(val == that.val);
-}
-
-bool GlobalState::operator!=(const GlobalState& that) const {
-  return not(*this == that);
-}
-
 bool GlobalState::part_of(const GlobalState& other) const {
   if (other.isotopologue_index not_eq isotopologue_index) return false;
 
-  auto test = other.val == val;
+  auto test = other.val.check_match(val);
   return (test.upp == CheckValue::Full or test.upp == CheckValue::AinB) and
          (test.low == CheckValue::Full or test.low == CheckValue::AinB);
 }
