@@ -912,9 +912,9 @@ void iyInterpCloudboxField(Matrix& iy,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldInterp2Azimuth(
                            Tensor7& cloudbox_field,
+                           Matrix& sensor_los,
                            const Index& cloudbox_on,
                            const Vector& aa_grid,
-                           const Numeric& azimuth_los,
                            const Index& aa_interp_order,
                            const Verbosity&) {
   //--- Check input -----------------------------------------------------------
@@ -924,6 +924,10 @@ void cloudbox_fieldInterp2Azimuth(
                      "Azimuth angle interpolation order *aa_interp_order*"
                      " must be smaller\n"
                      "than number of angles in *aa_grid*.");
+
+  ARTS_USER_ERROR_IF( sensor_los.nrows()>1,
+                     "Interpolation to azimuth works only for measurement\n"
+                     "blocks of size 1.");
 
   //---------------------------------------------------------------------------
 
@@ -943,6 +947,11 @@ void cloudbox_fieldInterp2Azimuth(
   }
 
   const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
+  const Numeric sensor_los_za = sensor_los(0,0);
+
+  const Numeric azimuth_los = sensor_los(0,1);
+  sensor_los.resize(1,1);
+  sensor_los(0,0)=sensor_los_za;
 
   cloudbox_field.resize(nf,np,1,1,nz,1,ns);
 

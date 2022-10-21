@@ -4844,20 +4844,17 @@ Available models:
           "Interps an *cloudbox_field* with azimuthal dependency to a *cloudbox_field*"
           "without azimuthal dependency.\n"
           "\n"
-          "The *azimuth_los* defines to which azimuth direction the *cloudbox_field*\n"
-          "is interpolated.\n"),
+          "TBD.....\n"),
       AUTHORS("Manfred Brath"),
-      OUT("cloudbox_field"),
+      OUT("cloudbox_field","sensor_los"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("cloudbox_field","cloudbox_on", "aa_grid"),
-      GIN("azimuth_los",
-          "aa_interp_order"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT( NODEF, "1"),
-      GIN_DESC("azimuthal direction",
-               "Azimuth angle interpolation order.")));
+      IN("cloudbox_field","sensor_los","cloudbox_on", "aa_grid"),
+      GIN("aa_interp_order"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Azimuth angle interpolation order.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetFromPrecalc"),
