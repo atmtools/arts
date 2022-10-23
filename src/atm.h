@@ -62,6 +62,15 @@ class Point {
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
+  template <typename... Ts>
+  bool internal_has(KeyType auto&& key, Ts&&... keys) const {
+    bool has_this = has_key(std::forward<decltype(key)>(key));
+    if constexpr (sizeof...(Ts))
+      return has_this and internal_has(std::forward<Ts>(keys)...);
+    else
+      return has_this;
+  }
+
  public:
   template <typename... Ts>
   Point(Ts&&... ts) {
@@ -114,14 +123,17 @@ class Point {
 
   // FIXME: This data should be elsewhere???
   [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
-    ARTS_USER_ERROR_IF(not nlte_energy or nlte.size() not_eq nlte_energy->size(), "Incorrect NLTE energy term")
+    ARTS_USER_ERROR_IF(
+        not nlte_energy or nlte.size() not_eq nlte_energy->size(),
+        "Incorrect NLTE energy term")
     auto y = nlte_energy->find(x);
     return y == nlte_energy->end() ? 0 : y->second;
   }
 
   // FIXME: This data should be elsewhere???
   void set_energy_level(const decltype(nlte_energy)& x) {
-    ARTS_USER_ERROR_IF(x and x -> size() and x -> size() not_eq nlte.size(), "Mismatching sizes")
+    ARTS_USER_ERROR_IF(x and x->size() and x->size() not_eq nlte.size(),
+                       "Mismatching sizes")
     nlte_energy = x;
   }
 
@@ -132,7 +144,7 @@ class Point {
 
     if constexpr (isArrayOfSpeciesTag<T>) {
       species_content[x] = y;
-    }else if constexpr (isQuantumIdentifier<T>) {
+    } else if constexpr (isQuantumIdentifier<T>) {
       nlte[x] = y;
     } else {
       switch (std::forward<T>(x)) {
@@ -168,11 +180,30 @@ class Point {
     }
   }
 
+  constexpr bool has_key(KeyType auto&& key) const {
+    using T = decltype(key);
+    if constexpr (isArrayOfSpeciesTag<T>)
+      return species_content.end() not_eq
+             species_content.find(std::forward<T>(key));
+    else if constexpr (isKey<T>)
+      return true;
+    else if constexpr (isQuantumIdentifier<T>)
+      return nlte.end() not_eq nlte.find(std::forward<T>(key));
+  }
+
+  template <typename... Ts>
+  constexpr bool has_keys(Ts&&... keys) const {
+    if constexpr (sizeof...(Ts))
+      return internal_has(std::forward<Ts>(keys)...);
+    else
+      return true;
+  }
+
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
 
 //! All the field data; if these types grow too much we might want to reconsider...
-using FunctionalData = std::function<Numeric(Time,Numeric,Numeric,Numeric)>;
+using FunctionalData = std::function<Numeric(Time, Numeric, Numeric, Numeric)>;
 using FieldData = std::variant<GriddedField4, Tensor4, Numeric, FunctionalData>;
 
 template <typename T>
@@ -185,10 +216,12 @@ template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
 
 template <typename T>
-concept isFunctionalDataType = std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
+concept isFunctionalDataType =
+    std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
 
 template <typename T>
-concept RawDataType = isGriddedField4<T> or isNumeric<T> or isFunctionalDataType<T>;
+concept RawDataType =
+    isGriddedField4<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 template <typename T>
 concept DataType = RawDataType<T> or isTensor4<T>;
@@ -208,6 +241,15 @@ class Field {
   void internal_set(KeyType auto&& lhs, RawDataType auto&& rhs, Ts&&... ts) {
     set(std::forward<decltype(lhs)>(lhs), std::forward<decltype(rhs)>(rhs));
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
+  }
+
+  template <typename... Ts>
+  bool internal_has(KeyType auto&& key, Ts&&... keys) const {
+    bool has_this = has_key(std::forward<decltype(key)>(key));
+    if constexpr (sizeof...(Ts))
+      return has_this and internal_has(std::forward<Ts>(keys)...);
+    else
+      return has_this;
   }
 
  public:
@@ -265,17 +307,20 @@ class Field {
     }
   }
 
-    // FIXME: This data should be elsewhere???
+  // FIXME: This data should be elsewhere???
   [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
-    ARTS_USER_ERROR_IF(not nlte_energy or nlte.size() not_eq nlte_energy->size(), "Incorrect NLTE energy term")
+    ARTS_USER_ERROR_IF(
+        not nlte_energy or nlte.size() not_eq nlte_energy->size(),
+        "Incorrect NLTE energy term")
     auto y = nlte_energy->find(x);
     return y == nlte_energy->end() ? 0 : y->second;
   }
 
   // FIXME: This data should be elsewhere???
   void set_energy_level(const QuantumIdentifier& x, Numeric y) {
-    if (not nlte_energy) nlte_energy = std::make_shared<std::map<QuantumIdentifier, Numeric>>();
-    nlte_energy -> operator[](x) = y;
+    if (not nlte_energy)
+      nlte_energy = std::make_shared<std::map<QuantumIdentifier, Numeric>>();
+    nlte_energy->operator[](x) = y;
   }
 
   //! Regularizes the calculations so that all data is on a single grid
@@ -289,6 +334,24 @@ class Field {
                          Numeric alt_point,
                          Numeric lat_point,
                          Numeric lon_point) const;
+
+  bool has_key(KeyType auto&& key) const {
+    using T = decltype(key);
+    if constexpr (isArrayOfSpeciesTag<T>)
+      return specs.end() not_eq specs.find(std::forward<T>(key));
+    else if constexpr (isKey<T>)
+      return other.end() not_eq other.find(std::forward<key>(key));
+    else if constexpr (isQuantumIdentifier<T>)
+      return nlte.end() not_eq nlte.find(std::forward<T>(key));
+  }
+
+  template <typename... Ts>
+  bool has_keys(Ts&&... keys) const {
+    if constexpr (sizeof...(Ts))
+      return internal_has(std::forward<Ts>(keys)...);
+    else
+      return true;
+  }
 
   friend std::ostream& operator<<(std::ostream& os, const Field& atm);
 };
