@@ -235,7 +235,7 @@ class Field {
   //! The below only exist if regularized is true
   bool regularized{false};
   ArrayOfTime time{};
-  Vector alt{}, lat{}, lon{};
+  Vector pre{}, lat{}, lon{};
 
   template <typename... Ts>
   void internal_set(KeyType auto&& lhs, RawDataType auto&& rhs, Ts&&... ts) {
@@ -260,7 +260,7 @@ class Field {
   }
 
   [[nodiscard]] Shape<4> regularized_shape() const {
-    return {time.nelem(), alt.nelem(), lat.nelem(), lon.nelem()};
+    return {time.nelem(), pre.nelem(), lat.nelem(), lon.nelem()};
   }
 
   void set(KeyType auto&& x, DataType auto&& y) {
@@ -284,10 +284,10 @@ class Field {
     if constexpr (isGriddedField4<U>) {
       ARTS_USER_ERROR_IF(
           "Time" not_eq y.get_grid_name(0) or
-              "Altitude" not_eq y.get_grid_name(1) or
+              "Pressure" not_eq y.get_grid_name(1) or
               "Latitude" not_eq y.get_grid_name(2) or
               "Longitude" not_eq y.get_grid_name(3),
-          "The grids should be [Time x Altitude x Latitude x Longitude] but it is [",
+          "The grids should be [Time x Pressure x Latitude x Longitude] but it is [",
           y.get_grid_name(0),
           " x ",
           y.get_grid_name(1),
@@ -303,6 +303,7 @@ class Field {
     } else if constexpr (isQuantumIdentifier<T>) {
       nlte[std::forward<T>(x)] = std::move(y);
     } else {
+      ARTS_USER_ERROR_IF(x == Key::pressure, "Cannot set pressure (it is still a grid)")
       other[std::forward<T>(x)] = std::move(y);
     }
   }
@@ -324,16 +325,16 @@ class Field {
   }
 
   //! Regularizes the calculations so that all data is on a single grid
-  Field& regularize(const ArrayOfTime& times,
-                    const Vector& altitudes,
-                    const Vector& latitudes,
-                    const Vector& longitudes);
+  Field& regularize(const ArrayOfTime& ,
+                    const Vector& ,
+                    const Vector& ,
+                    const Vector& );
 
   //! Compute the values at a single point
-  [[nodiscard]] Point at(Time time_point,
-                         Numeric alt_point,
-                         Numeric lat_point,
-                         Numeric lon_point) const;
+  [[nodiscard]] Point at(Time ,
+                         Numeric ,
+                         Numeric ,
+                         Numeric ) const;
 
   bool has(KeyType auto&& key) const {
     using T = decltype(key);
@@ -358,7 +359,7 @@ class Field {
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain all of the Time, Altitude, Latitude, and Longitude grids
+ * The input must contain all of the Time, Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
@@ -369,7 +370,7 @@ GriddedField4 fix(const GriddedField4&);
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain 3 of the Time, Altitude, Latitude, and Longitude grids
+ * The input must contain 3 of the Time, Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
@@ -380,7 +381,7 @@ GriddedField4 fix(const GriddedField3&);
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain 2 of the Time, Altitude, Latitude, and Longitude grids
+ * The input must contain 2 of the Time, Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
@@ -391,7 +392,7 @@ GriddedField4 fix(const GriddedField2&);
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain 1 of the Time, Altitude, Latitude, and Longitude grids
+ * The input must contain 1 of the Time, Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
