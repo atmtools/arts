@@ -285,23 +285,6 @@ bool file_exists(const std::string_view filename) {
 }
 
 /**
-  Convert relative path to absolute path.
- 
-  @param[in] filename Filename to expand to absolute path.
- 
-  @return Absolute path.
-
-  @author Oliver Lemke
-*/
-String get_absolute_path(const std::string_view filename) {
-  try {
-    return std::filesystem::canonical(filename).string();
-  } catch (const std::filesystem::filesystem_error&) {
-    return filename;
-  }
-}
-
-/**
   Searches through paths for a file with a matching name.
 
   If the filename starts with '/', the search path is ignored.
@@ -320,13 +303,13 @@ bool find_file(ArrayOfString& matches,
                const ArrayOfString& paths,
                const ArrayOfString& extensions) {
   bool exists = false;
-  String efilename{expand_path(filename)};
+  std::string efilename{expand_path(filename)};
 
   // filename contains full path
-  if (!paths.nelem() || (efilename.nelem() && efilename[0] == '/')) {
+  if (!paths.nelem() || std::filesystem::path(efilename).is_absolute()) {
     for (const auto& ext : extensions) {
-      String fullpath = get_absolute_path(efilename + ext);
-      // Full path + extension
+      const String fullpath{efilename + ext};
+
       if (file_exists(fullpath)) {
         if (std::find(matches.begin(), matches.end(), fullpath) ==
             matches.end())
@@ -339,8 +322,7 @@ bool find_file(ArrayOfString& matches,
   else {
     for (const auto& path : paths) {
       for (const auto& ext : extensions) {
-        String fullpath =
-            get_absolute_path(expand_path(path) + "/" + efilename + ext);
+        const String fullpath{expand_path(path) + "/" + efilename + ext};
 
         if (file_exists(fullpath)) {
           if (std::find(matches.begin(), matches.end(), fullpath) ==
