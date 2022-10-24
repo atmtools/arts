@@ -27,8 +27,7 @@ void point() {
 void field() {
   using namespace Atm;
   using enum Key;
-  Field atm{
-      pressure, 3e4, temperature, 250.0, ArrayOfSpeciesTag{"O2-66"}, 0.21};
+  Field atm{temperature, 250.0, ArrayOfSpeciesTag{"O2-66"}, 0.21};
   std::cout << atm << '\n' << '\n';
 
   atm.set(ArrayOfSpeciesTag{"H2O-161"}, 0.01);
@@ -38,8 +37,8 @@ void field() {
   data.set_grid(0, {Time{}});
   data.set_grid_name(0, "Time");
   data.set_grid(1, {0, 2, 4});
-  data.set_grid_name(1, "Altitude");
-  data.set_grid(2, {0, 2, 4});
+  data.set_grid_name(1, "Pressure");
+  data.set_grid(2, {1e-3, 2, 4});
   data.set_grid_name(2, "Latitude");
   data.set_grid(3, {0, 2, 4});
   data.set_grid_name(3, "Longitude");
@@ -55,9 +54,9 @@ void field() {
   }
   atm.set(mag_u, data);
 
-  std::cout << atm.at(Time{}, 0.0, 3.0, 0.0) << '\n' << '\n';
+  std::cout << atm.at(Time{}, 1e-2, 3.0, 0.0) << '\n' << '\n';
 
-  std::cout << atm.regularize({Time{}}, {0.0, 1.0}, {0.5}, {0.5}) << '\n'
+  std::cout << atm.regularize({Time{}}, {1e-1, 1.0}, {0.5}, {0.5}) << '\n'
             << '\n';
 }
 
