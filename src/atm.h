@@ -63,8 +63,8 @@ class Point {
   }
 
   template <typename... Ts>
-  bool internal_has(KeyType auto&& key, Ts&&... keys) const {
-    bool has_this = has_key(std::forward<decltype(key)>(key));
+  constexpr bool internal_has(KeyType auto&& key, Ts&&... keys) const {
+    bool has_this = has(std::forward<decltype(key)>(key));
     if constexpr (sizeof...(Ts))
       return has_this and internal_has(std::forward<Ts>(keys)...);
     else
@@ -180,7 +180,7 @@ class Point {
     }
   }
 
-  constexpr bool has_key(KeyType auto&& key) const {
+  constexpr bool has(KeyType auto&& key) const {
     using T = decltype(key);
     if constexpr (isArrayOfSpeciesTag<T>)
       return species_content.end() not_eq
@@ -192,7 +192,7 @@ class Point {
   }
 
   template <typename... Ts>
-  constexpr bool has_keys(Ts&&... keys) const {
+  constexpr bool has_data(Ts&&... keys) const {
     if constexpr (sizeof...(Ts))
       return internal_has(std::forward<Ts>(keys)...);
     else
@@ -245,7 +245,7 @@ class Field {
 
   template <typename... Ts>
   bool internal_has(KeyType auto&& key, Ts&&... keys) const {
-    bool has_this = has_key(std::forward<decltype(key)>(key));
+    bool has_this = has(std::forward<decltype(key)>(key));
     if constexpr (sizeof...(Ts))
       return has_this and internal_has(std::forward<Ts>(keys)...);
     else
@@ -335,7 +335,7 @@ class Field {
                          Numeric lat_point,
                          Numeric lon_point) const;
 
-  bool has_key(KeyType auto&& key) const {
+  bool has(KeyType auto&& key) const {
     using T = decltype(key);
     if constexpr (isArrayOfSpeciesTag<T>)
       return specs.end() not_eq specs.find(std::forward<T>(key));
@@ -346,7 +346,7 @@ class Field {
   }
 
   template <typename... Ts>
-  bool has_keys(Ts&&... keys) const {
+  bool has_data(Ts&&... keys) const {
     if constexpr (sizeof...(Ts))
       return internal_has(std::forward<Ts>(keys)...);
     else
@@ -355,6 +355,50 @@ class Field {
 
   friend std::ostream& operator<<(std::ostream& os, const Field& atm);
 };
+
+/** A wrapper to fix the input field to the expected format for Field
+ * 
+ * The input must contain all of the Time, Altitude, Latitude, and Longitude grids
+ *
+ * Throws if anything goes wrong
+ *
+ * @param[in] gf A gridded field
+ * @return GriddedField4 in the Field format
+ */
+GriddedField4 fix(const GriddedField4&);
+
+/** A wrapper to fix the input field to the expected format for Field
+ * 
+ * The input must contain 3 of the Time, Altitude, Latitude, and Longitude grids
+ *
+ * Throws if anything goes wrong
+ *
+ * @param[in] gf A gridded field
+ * @return GriddedField4 in the Field format
+ */
+GriddedField4 fix(const GriddedField3&);
+
+/** A wrapper to fix the input field to the expected format for Field
+ * 
+ * The input must contain 2 of the Time, Altitude, Latitude, and Longitude grids
+ *
+ * Throws if anything goes wrong
+ *
+ * @param[in] gf A gridded field
+ * @return GriddedField4 in the Field format
+ */
+GriddedField4 fix(const GriddedField2&);
+
+/** A wrapper to fix the input field to the expected format for Field
+ * 
+ * The input must contain 1 of the Time, Altitude, Latitude, and Longitude grids
+ *
+ * Throws if anything goes wrong
+ *
+ * @param[in] gf A gridded field
+ * @return GriddedField4 in the Field format
+ */
+GriddedField4 fix(const GriddedField1&);
 }  // namespace Atm
 
 using AtmField = Atm::Field;
