@@ -32,6 +32,10 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
   ARTS_USER_ERROR_IF(jacobian_quantities.nelem(), "Cannot use with derivatives")
 
   if (select_abs_species not_eq target) {
+    ARTS_USER_ERROR_IF(
+        select_abs_species.nelem(),
+        "Non-empty select_abs_species (lookup table calculations set select_abs_species)")
+
     PropagationMatrix pm;
     StokesVector sv;
     ArrayOfPropagationMatrix dpropmat_clearsky_dx;
