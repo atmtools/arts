@@ -1,14 +1,18 @@
 #include "atm.h"
 
 #include <algorithm>
+#include <numeric>
 #include <ostream>
 #include <variant>
 
 #include "arts_omp.h"
+#include "compare.h"
 #include "debug.h"
 #include "gridded_fields.h"
 #include "interpolation_lagrange.h"
+#include "matpack.h"
 #include "matpackIV.h"
+#include "matpack_concepts.h"
 
 namespace Atm {
 std::ostream& operator<<(std::ostream& os, const Point& atm) {
@@ -202,5 +206,130 @@ Field& Field::regularize(const ArrayOfTime& times,
     set(vals.first, std::move(nlte_data[i0++]));
 
   return *this;
+}
+
+namespace internal {
+  using namespace Compare;
+
+std::pair<std::array<Index, 4>, std::array<Index, 4>> shape(
+    const GriddedField& gf) {
+  std::array<Index, 4> size{1, 1, 1, 1};
+  std::array<Index, 4> pos{-1, -1, -1, -1};
+
+  for (Index i = 0; i < gf.get_dim(); i++) {
+    if (auto& name = gf.get_grid_name(i); name == "Time") {
+      size[0] = gf.get_grid_size(i);
+      pos[0] = i;
+    } else if (name == "Altitude") {
+      size[1] = gf.get_grid_size(i);
+      pos[1] = i;
+    } else if (name == "Latitude") {
+      size[2] = gf.get_grid_size(i);
+      pos[2] = i;
+    } else if (name == "Longitude") {
+      size[3] = gf.get_grid_size(i);
+      pos[3] = i;
+    } else {
+      ARTS_USER_ERROR("Bad grid name: ", name)
+    }
+  }
+
+  ARTS_USER_ERROR_IF(std::count(pos.begin(), pos.end(), -1) not_eq gf.get_dim(), "Bad griddedfield:\n", gf)
+
+  return {size, pos};
+}
+
+auto get_value(const auto& in_data,
+               const std::array<Index, 4>& ind,
+               const std::array<Index, 4>& pos) {
+  using T = decltype(in_data);
+  if constexpr (matpack::has_dim<T, 4>) {
+    return in_data(ind[pos[0]], ind[pos[1]], ind[pos[2]], ind[pos[3]]);
+  } else if constexpr (matpack::has_dim<T, 3>) {
+    if (pos[0] == -1) return in_data(ind[pos[1]], ind[pos[2]], ind[pos[3]]);
+    if (pos[1] == -1) return in_data(ind[pos[0]], ind[pos[2]], ind[pos[3]]);
+    if (pos[2] == -1) return in_data(ind[pos[0]], ind[pos[1]], ind[pos[3]]);
+    return in_data(ind[pos[0]], ind[pos[1]], ind[pos[2]]);
+  } else if constexpr (matpack::has_dim<T, 2>) {
+    if (pos[0] == -1) {
+      if (pos[1] == -1) return in_data(ind[pos[2]], ind[pos[3]]);
+      if (pos[2] == -1) return in_data(ind[pos[1]], ind[pos[3]]);
+      return in_data(ind[pos[1]], ind[pos[2]]);
+    }
+    if (pos[1] == -1) {
+      if (pos[2] == -1) return in_data(ind[pos[0]], ind[pos[3]]);
+      return in_data(ind[pos[0]], ind[pos[2]]);
+    }
+    return in_data(ind[pos[0]], ind[pos[1]]);
+  } else {
+    return in_data[ind[*std::find_if_not(pos.begin(), pos.end(), ne(-1))]];
+  }
+}
+
+void adapt_data(Tensor4& out_data,
+                const auto& in_data,
+                const GriddedField& gf) {
+  auto [size, pos] = shape(gf);
+
+  out_data = Tensor4(size[0], size[1], size[2], size[3]);
+  for (Index i = 0; i < size[0]; i++) {
+    for (Index j = 0; j < size[1]; j++) {
+      for (Index k = 0; k < size[2]; k++) {
+        for (Index m = 0; m < size[3]; m++) {
+          out_data(i, j, k, m) = get_value(in_data, {i, j, k, m}, pos);
+        }
+      }
+    }
+  }
+}
+
+void adapt_grid(GriddedField& out, const GriddedField& in) {
+  out.set_grid_name(0, "Time");
+  out.set_grid_name(1, "Altitude");
+  out.set_grid_name(2, "Latitude");
+  out.set_grid_name(3, "Longitude");
+
+  out.set_grid(0, ArrayOfTime(1, Time{}));
+  out.set_grid(1, Vector(1, 0));
+  out.set_grid(2, Vector(1, 0));
+  out.set_grid(3, Vector(1, 0));
+
+  for (Index i = 0; i < in.get_dim(); i++) {
+    if (auto& name = in.get_grid_name(i); name == "Time") {
+      out.set_grid(0, in.get_time_grid(i));
+    } else if (name == "Altitude") {
+      out.set_grid(0, in.get_numeric_grid(i));
+    } else if (name == "Latitude") {
+      out.set_grid(0, in.get_numeric_grid(i));
+    } else if (name == "Longitude") {
+      out.set_grid(0, in.get_numeric_grid(i));
+    } else {
+      ARTS_USER_ERROR("Bad grid name: ", name)
+    }
+  }
+}
+
+GriddedField4 adapt(const auto& in_data, const GriddedField& gf) {
+  GriddedField4 out(gf.get_name());
+  adapt_data(out.data, in_data, gf);
+  adapt_grid(out, gf);
+  return out;
+}
+}  // namespace internal
+
+GriddedField4 fix(const GriddedField4& gf) {
+  return internal::adapt(gf.data, gf);
+}
+
+GriddedField4 fix(const GriddedField3& gf) {
+  return internal::adapt(gf.data, gf);
+}
+
+GriddedField4 fix(const GriddedField2& gf) {
+  return internal::adapt(gf.data, gf);
+}
+
+GriddedField4 fix(const GriddedField1& gf) {
+  return internal::adapt(gf.data, gf);
 }
 }  // namespace Atm

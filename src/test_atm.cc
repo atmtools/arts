@@ -1,3 +1,4 @@
+#include <exception>
 #include <iostream>
 
 #include "atm.h"
@@ -16,6 +17,11 @@ void point() {
 
   std::cout << atm[ArrayOfSpeciesTag{"O2-66"}] << '\n' << '\n';
   std::cout << atm[pressure] << ' ' << atm.P() << '\n' << '\n';
+
+  ARTS_USER_ERROR_IF( not atm.has(pressure), "should have pressure")
+  ARTS_USER_ERROR_IF( not atm.has_data(wind_u, mag_v), "should have fields")
+  ARTS_USER_ERROR_IF( not atm.has(ArrayOfSpeciesTag{"O2-66"}), "should have O2-66")
+  ARTS_USER_ERROR_IF( atm.has(ArrayOfSpeciesTag{"N2-44"}), "should not have N2-44")
 }
 
 void field() {
@@ -55,7 +61,7 @@ void field() {
             << '\n';
 }
 
-int main() {
+int main() try {
   std::cout << "\n"
                "##################################################"
                "\n"
@@ -83,4 +89,6 @@ int main() {
                "##################################################"
                "\n"
                "\n";
+} catch (std::exception& e) {
+  std::cerr << e.what() << '\n';
 }
