@@ -209,7 +209,7 @@ Field& Field::regularize(const ArrayOfTime& times,
 }
 
 namespace internal {
-  using namespace Compare;
+  using namespace Cmp;
 
 std::pair<std::array<Index, 4>, std::array<Index, 4>> shape(
     const GriddedField& gf) {
