@@ -47,6 +47,14 @@ void oxygen(PropagationMatrix& propmat_clearsky,
             const Numeric o2,
             const Numeric h2o);
 }  // namespace PWR98
+namespace TRE05 {
+void oxygen(PropagationMatrix& propmat_clearsky,
+            const Vector& f_grid,
+            const Numeric p_pa,
+            const Numeric t,
+            const Numeric o2,
+            const Numeric h2o);
+}  // namespace TRE05
 namespace Standard {
 void water_self(PropagationMatrix& propmat_clearsky,
                 const Vector& f_grid,

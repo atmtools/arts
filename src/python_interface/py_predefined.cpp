@@ -249,6 +249,38 @@ Parameters:
 )--"));
 }
 
+
+
+void internalTRE05(py::module_& m) {
+  m.def(
+      "get_o2_tre05",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::TRE05::oxygen(
+            pm, f, p, t, x, h2o);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::arg("x_h2o")=0.0,
+      py::doc(R"--(Computes oxygen absorption using TRE05
+
+Parameters:
+    f_grid : Vector
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric , optional
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+}
+
 void internalCKDMT100(py::module_& m) {
   m.def(
       "get_o2_cia_ckdmt100",
@@ -647,6 +679,7 @@ void py_predefined(py::module_& m) {
   internalMTCKD(predef, hitran_mtckd_data);
   internalMPM89(predef);
   internalPWR98(predef);
+  internalTRE05(predef);
   internalELL07(predef);
   internalSTANDARD(predef);
 }
