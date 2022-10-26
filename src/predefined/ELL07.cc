@@ -37,7 +37,7 @@ void compute(PropagationMatrix& propmat_clearsky,
              const Vector& f_grid,
              const Numeric t,
              const Numeric lwc) {
-  using Compare::gt;
+  using Cmp::gt;
   using Constant::pi;
   using Constant::two_pi;
   using Math::pow2;
