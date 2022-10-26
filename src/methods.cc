@@ -19402,15 +19402,19 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method allows to obtain the star spectrum by\n"
           "interpolation from a field of such data. \n"
-          "The star spectrum is expected to be stored as:\n"
-          "   GriddedField2:\n"
-          "      Vector f_grid[N_f]\n"
-          "      Vector stockes_dim[N_s]\n"
+          "The star spectrum is expected to be stored as\n"
+          "the irradiance at the suns photosphere.\n"
+          "\n"
+          "Unit:        GriddedField2: [W m-2 Hz-1]\n"
+          "                 Vector *f_grid*[Hz]\n"
+          "                 Vector *stokes_dim*[1]\n"
+          "\n"
+          "Dimensions: [f_grid, stokes_dim]\n"
           "\n"
           "This method performs an interpolation onto the f_grid.\n"
           "The point of *f_grid* that are outside the data frequency grid\n"
           "are initialized according to planck's law of the temperature variable.\n"
-          "Hence, a temperature of 0 means 0 st the edges of the f_grid.\n"),
+          "Hence, a temperature of 0 means 0s the edges of the f_grid.\n"),
       AUTHORS("Jon Petersen"),
       OUT("stars",
           "stars_do"),
@@ -19444,7 +19448,8 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
                "The radius of the star in meter.\n"
                "Default is the radius of our sun.\n",
-               "The average distance between the star and the planet in meter.\n"
+               "The average distance between the center of the star and the \n"
+               "center of the planet in meter.\n"
                "Default value is set to 1 a.u.\n",
                "The temperature of the padding if the f_grid is outside the \n"
                "star spectrum data. Choose 0 for 0 at the edges or a effective\n"
