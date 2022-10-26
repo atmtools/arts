@@ -97,6 +97,8 @@ void py_species(py::module_& m) {
       .def_readwrite("isotname", &SpeciesIsotopeRecord::isotname)
       .def_readwrite("mass", &SpeciesIsotopeRecord::mass)
       .def_readwrite("gi", &SpeciesIsotopeRecord::gi)
+      .def_property_readonly("name", &SpeciesIsotopeRecord::FullName)
+      .def_property_readonly("predef", &Species::is_predefined_model)
       .def(py::pickle(
           [](const SpeciesIsotopeRecord& t) {
             return py::make_tuple(t.spec, t.isotname, t.mass, t.gi);

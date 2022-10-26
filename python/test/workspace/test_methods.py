@@ -135,3 +135,16 @@ class TestMethods:
         with pytest.raises(Exception):
             ws.atmgeom_checked = 0
             self.ws.yCalc()
+    
+    def test_predefined_doc(self):
+        isots = pyarts.arts.get_isotopologues()
+        desc = str(pyarts.arts.get_md_data()[pyarts.arts.get_MdMap()["propmat_clearskyAddPredefined"]].desc)
+        
+        for x in isots:
+            if x.predef:
+                assert f"{x.name}:" in desc, f"{x.name} is not documented properly (as '{x.name}: SOME INFORMATION')" 
+
+
+if __name__ == "__main__":
+    x = TestMethods()
+    x.test_predefined_doc()

@@ -1,6 +1,7 @@
 
 #include <py_auto_interface.h>
 
+#include "isotopologues.h"
 #include "py_macros.h"
 
 #include <global_data.h>
@@ -77,6 +78,11 @@ void py_global(py::module_& m) {
       "get_WsvMap",
       []() { return global_data::WsvMap; },
       py::doc("Get a copy of the global data variable"));
+
+  m.def(
+      "get_isotopologues",
+      [] { return Species::Isotopologues; },
+      py::doc("Get a list of the global isotopologues"));
 
 #ifdef _OPENMP
   m.def("omp_get_max_threads",

@@ -2623,9 +2623,6 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "To turn on Zeeman calculation for a species, \"-Z\" may be appended\n"
           "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
           "\n"
-          "To turn on line mixing calculation for a species, \"-LM\" may be appended\n"
-          "to its name (or after the Zeeman tag): \"O2-LM\" or \"O2-Z-LM-66\"\n"
-          "\n"
           "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
           "frequency range and isotopologue may be omitted.\n"
           "\n"
@@ -2647,7 +2644,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "\n"
           "   The third tag group selects H2O, with one of the complete\n"
           "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
-          "   data will be used for that third tag group.\n"
+          "   data will be used for that third tag group.  For more available full\n"
+          "   absorption models see *propmat_clearskyAddPredefined*\n"
           "\n"
           "   Note that order of tag groups in the species list matters. In our\n"
           "   example, changing the order of the first two tag group will give\n"
@@ -2764,23 +2762,33 @@ must be as described by each vector.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),
-      DESCRIPTION(R"--(Adds all of the modern predefined models in *abs_species* to the propmat_clearsky
+      DESCRIPTION(R"--(Adds all of the predefined models in *abs_species* to the propmat_clearsky
 
 Only supports temperature and wind speed derivatives
 
-Possible models:
+Available models:
+
     O2-MPM2020:
+        60 GHz and 118 GHz lines only (no continua, no higher Hz line centers) 
+
         Dmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020, Revision of the 
         60-GHz atmospheric oxygen absorption band models for practical use, 
         https://doi.org/10.1016/j.jqsrt.2019.106798
+
     H2O-ForeignContCKDMT350:
+        Foreign continua.  Expects H2O line center cutoff at 25 cm-1
+
         CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
         Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
         http://www.rtweb.aer.com/continuum_frame.html
+
     H2O-SelfContCKDMT350:
+        Self continua.  Expects H2O line center cutoff at 25 cm-1
+
         CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
         Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
         http://www.rtweb.aer.com/continuum_frame.html
+
     H2O-SelfContHitranMTCKD:
         Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
@@ -2790,6 +2798,7 @@ Possible models:
 
         Note also that this model requires *predefined_model_data* to contain relevant data set either using
         *predefined_model_dataAddHitranMTCKD* or via some file reading routine.
+
     H2O-ForeignContHitranMTCKD:
         Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
@@ -2800,25 +2809,212 @@ Possible models:
         Note also that this model requires *predefined_model_data* to contain relevant data set either using
         *predefined_model_dataAddHitranMTCKD* or via some file reading routine.
 
-    Copyright statements:
-        [1]:
-        !  --------------------------------------------------------------------------
-        ! |  Copyright �, Atmospheric and Environmental Research, Inc., 2022         |
-        ! |                                                                          |
-        ! |  All rights reserved. This source code was developed as part of the      |
-        ! |  LBLRTM software and is designed for scientific and research purposes.   |
-        ! |  Atmospheric and Environmental Research Inc. (AER) grants USER the right |
-        ! |  to download, install, use and copy this software for scientific and     |
-        ! |  research purposes only. This software may be redistributed as long as   |
-        ! |  this copyright notice is reproduced on any copy made and appropriate    |
-        ! |  acknowledgment is given to AER. This software or any modified version   |
-        ! |  of this software may not be incorporated into proprietary software or   |
-        ! |  commercial software offered for sale without the express written        |
-        ! |  consent of AER.                                                         |
-        ! |                                                                          |
-        ! |  This software is provided as is without any express or implied          |
-        ! |  warranties.                                                             |
-        !  --------------------------------------------------------------------------
+    H2O-ForeignContStandardType:
+        Water microwave continua
+
+        P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+        Radio Science, Vol. 34(4), 1025, 1999.
+
+    H2O-SelfContStandardType:
+        Water microwave continua
+
+        P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+        Radio Science, Vol. 34(4), 1025, 1999.
+
+    H2O-MPM89:
+        Microwave water absorption model
+
+        H. J. Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631.
+
+    H2O-PWR98:
+        Microwave water absorption model
+
+        P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+        Radio Science, Vol. 34(4), 1025, 1999.
+
+    CO2-CKDMT252:
+        MT CKD absorption for CO2
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 2.50 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html
+    
+    O2-CIAfunCKDMT100:
+        CIA for oxygen from MT CKD
+
+        F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman,
+        J.-M. Hartmann, Ch. Boulet,<br>
+        Infrared collision-induced absorption by O2 near 6.4 microns for
+        atmospheric applications: measurements and emprirical modeling,<br>
+        Appl. Optics, 35, 5911-5917, (1996).
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 1.00 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html
+
+    O2-MPM89:
+        Oxygen microwave absorption model
+
+        Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+        <i>Propagation modeling of moist air and suspended water/ice
+        particles at frequencies below 1000 GHz</i>,<br>
+        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+    
+    O2-PWR98:
+        Oxygen microwave absorption model
+
+        P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
+        BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
+        H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
+        M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
+        SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
+        This version differs from Liebe's MPM92 in two significant respects:
+        1. It uses the modification of the 1- line width temperature dependence
+        recommended by Schwartz: (1/T).
+        2. It uses the same temperature dependence (X) for submillimeter
+        line widths as in the 60 GHz band: (1/T)**0.8
+    
+    O2-SelfContStandardType:
+        Microwave continua term
+
+        Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
+        <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
+        John Wiley & Sons, Inc., 1993.<br>
+        <br>
+        Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+        <i>Propagation modeling of moist air and suspended water/ice
+        particles at frequencies below 1000 GHz</i>,<br>
+        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+    
+    O2-TRE05:
+        Oxygen microwave absorption model
+
+        References: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+        <i>Propagation modeling of moist air and suspended water/ice
+        particles at frequencies below 1000 GHz</i>,<br>
+        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+
+        M.Yu. Tretyakov, M.A. Koshelev, V.V. Dorovskikh,
+        D.S. Makarov, P.W. Rosenkranz; 60-GHz oxygen band: precise broadening and central frequencies
+        of fine-structure lines, absolute absorption profile
+        at atmospheric pressure, and revision of mixing coefficients
+        doi:10.1016/j.jms.2004.11.011
+    
+    O2-v0v0CKDMT100:
+        MT CKD
+
+        CKD_MT 1.00 implementation of oxygen collision induced fundamental model of
+        O2 continuum formulated by
+        Mate et al. over the spectral region 7550-8486 cm-1:
+        B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
+        "Absolute Intensities for the O2 1.27 micron
+        continuum absorption",
+        J. Geophys. Res., 104, 30,585-30,590, 1999.
+
+        Also, refer to the paper "Observed  Atmospheric
+        Collision Induced Absorption in Near Infrared Oxygen Bands",
+        Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
+        Journal of Geophysical Research (1997).
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 1.00 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html<br>
+        <br>
+
+    O2-v1v0CKDMT100:
+        MT CKD
+
+        Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
+        Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
+        J. Geophys. Res., 103, D4, 3859-3863, 1998.
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 1.00 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html<br>
+
+    O2-visCKDMT252:
+        MT CKD
+
+        O2 continuum formulated by Greenblatt et al. over the spectral region
+        8797-29870 cm-1:  "Absorption Coefficients of Oxygen Between 
+        330 and 1140 nm, G.D. Green blatt, J.J. Orlando, J.B. Burkholder,
+        and A.R. Ravishabkara,  J. Geophys. Res., 95, 18577-18582, 1990.
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 2.50 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html<br>
+
+    N2-CIAfunCKDMT252:
+        MT CKD
+
+        Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and
+        J._M. Hartmann,<br>
+        Infrared collision-induced absorption by
+        N2 near 4.3 microns for atmospheric applications:
+        Measurements and emprirical modeling, <br>
+        Appl. Optics, 35, 5911-5917, (1996)
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 1.00 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html
+    
+    N2-CIArotCKDMT252:
+        MT CKD
+
+        Borysow, A, and L. Frommhold,<br>
+        Collision-induced rototranslational absorption spectra of N2-N2
+        pairs for temperatures from 50 to 300 K,<br>
+        The Astrophysical Journal, 311, 1043-1057, 1986.
+
+        This absorption model is taken from the FORTRAN77 code of
+        CKD_MT version 1.00 written by<br>
+        Atmospheric and Environmental Research Inc. (AER),<br>
+        Radiation and Climate Group<br>
+        131 Hartwell Avenue<br>
+        Lexington, MA 02421, USA<br>
+        http://www.rtweb.aer.com/continuum_frame.html
+    
+    N2-SelfContStandardType:
+        Microwave nitrogen absorption continua
+
+        Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
+        <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
+        John Wiley & Sons, Inc., 1993.
+    
+    liquidcloud-ELL07:
+        Water droplet absorption
+
+        W. J. Ellison, <br>
+        <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+        Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
+        J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
 )--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky",
