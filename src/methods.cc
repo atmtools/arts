@@ -2877,11 +2877,6 @@ Available models:
         H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
         M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
         SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
-        This version differs from Liebe's MPM92 in two significant respects:
-        1. It uses the modification of the 1- line width temperature dependence
-        recommended by Schwartz: (1/T).
-        2. It uses the same temperature dependence (X) for submillimeter
-        line widths as in the 60 GHz band: (1/T)**0.8
     
     O2-SelfContStandardType:
         Microwave continua term
