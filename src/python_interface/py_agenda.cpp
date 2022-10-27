@@ -428,6 +428,7 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("g_in", &MdRecord::GIn)
       .def_property_readonly("g_in_types", &MdRecord::GInType)
       .def_property_readonly("g_in_default", &MdRecord::GInDefault)
+      .def_property_readonly("desc", &MdRecord::Description)
       .PythonInterfaceCopyValue(MdRecord)
       .def("__str__", [](MdRecord& mr) { return var_string('"', mr, '"'); })
       .def("__repr__", [](MdRecord& mr) { return var_string('"', mr, '"'); });

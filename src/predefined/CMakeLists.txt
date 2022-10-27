@@ -6,6 +6,7 @@ add_library(predef STATIC
     MT_CKD252.cc
     CKDMT350.cc
     PWR98.cc
+    TRE05.cc
     hitran_water_mtckd.cc
     predef_data.cc
     standard.cc

@@ -137,6 +137,7 @@ inline constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("O2"), "MPM89"),
   IsotopeRecord(fromShortName("O2"), "PWR98"),
   IsotopeRecord(fromShortName("O2"), "SelfContStandardType"),
+  IsotopeRecord(fromShortName("O2"), "TRE05"),
   IsotopeRecord(fromShortName("O2"), "v0v0CKDMT100"),
   IsotopeRecord(fromShortName("O2"), "v1v0CKDMT100"),
   IsotopeRecord(fromShortName("O2"), "visCKDMT252"),
