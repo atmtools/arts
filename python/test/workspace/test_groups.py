@@ -133,7 +133,6 @@ class TestGroups:
             / ls.F(line.F0).real,
             0.5,
         )
-        return x
 
     def testAgenda(self):
         ws = Workspace()
@@ -158,18 +157,41 @@ class TestGroups:
         x.check(ws)
         x.execute(ws)
 
-        return x
-
     def testAny(self):
-        return cxx.Any()
+        cxx.Any()
 
     def testArrayOfAbsorptionLines(self):
-        x = cxx.ArrayOfAbsorptionLines([self.testAbsorptionLines()])
+        lineshapemodel = cxx.LineShapeModel(
+            [
+                cxx.LineShapeSingleSpeciesModel(
+                    G0=cxx.LineShapeModelParameters("T1", 10000, 0.8)
+                )
+            ]
+        )
+
+        line = cxx.AbsorptionSingleLine(
+            F0=1e9,
+            I0=1e-20,
+            glow=5,
+            gupp=7,
+            zeeman=cxx.ZeemanModel(1e-4, 1e-3),
+            localquanta="J 3 2",
+            lineshape=lineshapemodel,
+        )
+
+        x = cxx.AbsorptionLines(
+            selfbroadening=False,
+            bathbroadening=True,
+            broadeningspecies=["AIR"],
+            quantumidentity="H2O-161",
+            lines=[line],
+            lineshapetype="VP",
+        )
+
+        x = cxx.ArrayOfAbsorptionLines([x])
 
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfAgenda(self):
         ws = Workspace()
@@ -178,43 +200,63 @@ class TestGroups:
 
         test.array(x)
 
-        return x
-
     def testArrayOfArrayOfAbsorptionLines(self):
-        x = cxx.ArrayOfArrayOfAbsorptionLines([self.testArrayOfAbsorptionLines()])
+        lineshapemodel = cxx.LineShapeModel(
+            [
+                cxx.LineShapeSingleSpeciesModel(
+                    G0=cxx.LineShapeModelParameters("T1", 10000, 0.8)
+                )
+            ]
+        )
+
+        line = cxx.AbsorptionSingleLine(
+            F0=1e9,
+            I0=1e-20,
+            glow=5,
+            gupp=7,
+            zeeman=cxx.ZeemanModel(1e-4, 1e-3),
+            localquanta="J 3 2",
+            lineshape=lineshapemodel,
+        )
+
+        x = cxx.AbsorptionLines(
+            selfbroadening=False,
+            bathbroadening=True,
+            broadeningspecies=["AIR"],
+            quantumidentity="H2O-161",
+            lines=[line],
+            lineshapetype="VP",
+        )
+
+        x = cxx.ArrayOfAbsorptionLines([x])
+
+        x = cxx.ArrayOfArrayOfAbsorptionLines(
+            [x])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfGriddedField1(self):
-        x = cxx.ArrayOfArrayOfGriddedField1([self.testArrayOfGriddedField1()])
+        x = cxx.ArrayOfArrayOfGriddedField1([cxx.ArrayOfGriddedField1([cxx.GriddedField1()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfGriddedField2(self):
-        x = cxx.ArrayOfArrayOfGriddedField2([self.testArrayOfGriddedField2()])
+        x = cxx.ArrayOfArrayOfGriddedField2([cxx.ArrayOfGriddedField2([cxx.GriddedField2()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfGriddedField3(self):
-        x = cxx.ArrayOfArrayOfGriddedField3([self.testArrayOfGriddedField3()])
+        x = cxx.ArrayOfArrayOfGriddedField3([cxx.ArrayOfGriddedField3([cxx.GriddedField3()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfIndex(self):
         x = cxx.ArrayOfArrayOfIndex([[1, 2, 3]])
@@ -229,8 +271,6 @@ class TestGroups:
 
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
-
-        return x
 
     def testArrayOfArrayOfMatrix(self):
         x = cxx.ArrayOfArrayOfMatrix([[[[1, 2, 3]]]])
@@ -247,37 +287,29 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfArrayOfPropagationMatrix(self):
-        x = cxx.ArrayOfArrayOfPropagationMatrix([self.testArrayOfPropagationMatrix()])
+        x = cxx.ArrayOfArrayOfPropagationMatrix(
+            [cxx.ArrayOfPropagationMatrix([cxx.PropagationMatrix()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfRadiationVector(self):
-        x = cxx.ArrayOfArrayOfRadiationVector([self.testArrayOfRadiationVector()])
+        x = cxx.ArrayOfArrayOfRadiationVector(
+            [cxx.ArrayOfRadiationVector([cxx.RadiationVector()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfScatteringMetaData(self):
         x = cxx.ArrayOfArrayOfScatteringMetaData()
         test.io(x, delete=True)
 
-        return x
-
     def testArrayOfArrayOfSingleScatteringData(self):
         x = cxx.ArrayOfArrayOfSingleScatteringData()
         test.io(x, delete=True)
-
-        return x
 
     def testArrayOfArrayOfSpeciesTag(self):
         x = cxx.ArrayOfArrayOfSpeciesTag(["H2O,H2O-PWR98"])
@@ -289,24 +321,18 @@ class TestGroups:
         x = cxx.ArrayOfArrayOfSpeciesTag(["H2O", "H2O-PWR98"])
         assert len(x) == 2
 
-        return x
-
     def testArrayOfArrayOfStokesVector(self):
-        x = cxx.ArrayOfArrayOfStokesVector([self.testArrayOfStokesVector()])
+        x = cxx.ArrayOfArrayOfStokesVector([cxx.ArrayOfStokesVector([cxx.StokesVector()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfString(self):
         x = cxx.ArrayOfArrayOfString([["OI"]])
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfTensor3(self):
         x = cxx.ArrayOfArrayOfTensor3([[[[[1, 2, 3]]]]])
@@ -323,8 +349,6 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfArrayOfTensor6(self):
         x = cxx.ArrayOfArrayOfTensor6([[[[[[[[1, 2, 3]]]]]]]])
         test.io(x, delete=True)
@@ -340,24 +364,19 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfArrayOfTime(self):
         x = cxx.ArrayOfArrayOfTime(1, cxx.ArrayOfTime(1, cxx.Time()))
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
 
-        return x
-
     def testArrayOfArrayOfTransmissionMatrix(self):
-        x = cxx.ArrayOfArrayOfTransmissionMatrix([self.testArrayOfTransmissionMatrix()])
+        x = cxx.ArrayOfArrayOfTransmissionMatrix(
+            [cxx.ArrayOfTransmissionMatrix([cxx.TransmissionMatrix()])])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
-
-        return x
 
     def testArrayOfArrayOfVector(self):
         x = cxx.ArrayOfArrayOfVector([[[1, 2, 3]]])
@@ -374,41 +393,29 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfCIARecord(self):
         x = cxx.ArrayOfCIARecord()
         test.io(x, delete=True)
 
-        return x
-
     def testArrayOfGriddedField1(self):
-        x = cxx.ArrayOfGriddedField1([self.testGriddedField1()])
+        x = cxx.ArrayOfGriddedField1([cxx.GriddedField1()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfGriddedField2(self):
-        x = cxx.ArrayOfGriddedField2([self.testGriddedField2()])
+        x = cxx.ArrayOfGriddedField2([cxx.GriddedField2()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfGriddedField3(self):
-        x = cxx.ArrayOfGriddedField3([self.testGriddedField3()])
+        x = cxx.ArrayOfGriddedField3([cxx.GriddedField3()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfGriddedField4(self):
-        x = cxx.ArrayOfGriddedField4([self.testGriddedField4()])
+        x = cxx.ArrayOfGriddedField4([cxx.GriddedField4()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfIndex(self):
         x = cxx.ArrayOfIndex([1])
@@ -422,14 +429,10 @@ class TestGroups:
         np.array(x, copy=False)[:] = 1
         assert np.all(np.array(x) == 1)
 
-        return x
-
     def testArrayOfJacobianTarget(self):
         x = cxx.ArrayOfJacobianTarget(1, cxx.JacobianTarget())
         # test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfMatrix(self):
         x = cxx.ArrayOfMatrix([[[1, 2, 3]]])
@@ -442,71 +445,51 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 1)
 
-        return x
-
     def testArrayOfPpath(self):
         x = cxx.ArrayOfPpath(1, cxx.Ppath())
         test.io(x, delete=True)
         test.array(x)
 
-        return x
-
     def testArrayOfPropagationMatrix(self):
-        x = cxx.ArrayOfPropagationMatrix([self.testPropagationMatrix()])
+        x = cxx.ArrayOfPropagationMatrix([cxx.PropagationMatrix()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfQuantumIdentifier(self):
         x = cxx.ArrayOfQuantumIdentifier(["H2O-161 J 1 1"])
         test.io(x, delete=True)
         test.array(x)
 
-        return x
-
     def testArrayOfRadiationVector(self):
-        x = cxx.ArrayOfRadiationVector([self.testRadiationVector()])
+        x = cxx.ArrayOfRadiationVector([cxx.RadiationVector()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfRetrievalQuantity(self):
         x = cxx.ArrayOfRetrievalQuantity(1, cxx.RetrievalQuantity())
         # test.io(x, delete=True)
         test.array(x)
 
-        return x
-
     def testArrayOfScatteringMetaData(self):
         x = cxx.ArrayOfScatteringMetaData(1, cxx.ScatteringMetaData())
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfSingleScatteringData(self):
         x = cxx.ArrayOfSingleScatteringData(1, cxx.SingleScatteringData())
         # test.io(x, delete=True)
         test.array(x)
 
-        return x
-
     def testArrayOfSparse(self):
         x = cxx.ArrayOfSparse(1, cxx.Sparse())
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfSpeciesTag(self):
         x = cxx.ArrayOfSpeciesTag("H2O")
         x = cxx.ArrayOfSpeciesTag(["H2O"])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfStar(self):
         ws = Workspace()
@@ -531,14 +514,10 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-        return x
-
     def testArrayOfStokesVector(self):
         x = cxx.ArrayOfStokesVector(1, cxx.StokesVector())
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfString(self):
         x = cxx.ArrayOfString(["OI"])
@@ -547,10 +526,8 @@ class TestGroups:
 
         x = cxx.ArrayOfString(["OI", cxx.String("AI")])
 
-        return x
-
     def testArrayOfTelsemAtlas(self):
-        return cxx.ArrayOfTelsemAtlas()
+        cxx.ArrayOfTelsemAtlas()
 
     def testArrayOfTensor3(self):
         x = cxx.ArrayOfTensor3([[[[1, 2, 3]]]])
@@ -566,8 +543,6 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfTensor4(self):
         x = cxx.ArrayOfTensor4([[[[[1, 2, 3]]]]])
         test.io(x, delete=True)
@@ -581,8 +556,6 @@ class TestGroups:
 
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
-
-        return x
 
     def testArrayOfTensor5(self):
         x = cxx.ArrayOfTensor5([[[[[[1, 2, 3]]]]]])
@@ -598,8 +571,6 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfTensor6(self):
         x = cxx.ArrayOfTensor6([[[[[[[1, 2, 3]]]]]]])
         test.io(x, delete=True)
@@ -613,8 +584,6 @@ class TestGroups:
 
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
-
-        return x
 
     def testArrayOfTensor7(self):
         x = cxx.ArrayOfTensor7([[[[[[[[1, 2, 3]]]]]]]])
@@ -630,8 +599,6 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfTime(self):
         import datetime as datetime
 
@@ -643,14 +610,10 @@ class TestGroups:
 
         assert x.as_datetime[-1] == datetime.datetime(2020, 1, 29, 0, 0)
 
-        return x
-
     def testArrayOfTransmissionMatrix(self):
-        x = cxx.ArrayOfTransmissionMatrix([self.testTransmissionMatrix()])
+        x = cxx.ArrayOfTransmissionMatrix([cxx.TransmissionMatrix()])
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testArrayOfVector(self):
         x = cxx.ArrayOfVector([[1, 2, 3]])
@@ -666,14 +629,10 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-        return x
-
     def testArrayOfXsecRecord(self):
         x = cxx.ArrayOfXsecRecord(1, cxx.XsecRecord())
         test.io(x, delete=True)
         test.array(x)
-
-        return x
 
     def testCallbackFunction(self):
         def oi(ws):
@@ -688,80 +647,54 @@ class TestGroups:
         assert ws.atmosphere_dim.init
         assert ws.atmosphere_dim.value.value == 3
 
-        return x
-
     def testCIARecord(self):
         x = cxx.CIARecord()
         test.io(x, delete=True)
-
-        return x
 
     def testCovarianceMatrix(self):
         x = cxx.CovarianceMatrix()
         test.io(x, delete=True)
 
-        return x
-
     def testEnergyLevelMap(self):
         x = cxx.EnergyLevelMap()
         test.io(x, delete=True)
-
-        return x
 
     def testGasAbsLookup(self):
         x = cxx.GasAbsLookup()
         test.io(x, delete=True)
 
-        return x
-
     def testGriddedField1(self):
         x = cxx.GriddedField1()
         test.io(x, delete=True)
-
-        return x
 
     def testGriddedField2(self):
         x = cxx.GriddedField2()
         test.io(x, delete=True)
 
-        return x
-
     def testGriddedField3(self):
         x = cxx.GriddedField3()
         test.io(x, delete=True)
-
-        return x
 
     def testGriddedField4(self):
         x = cxx.GriddedField4()
         test.io(x, delete=True)
 
-        return x
-
     def testGriddedField5(self):
         x = cxx.GriddedField5()
         test.io(x, delete=True)
-
-        return x
 
     def testGriddedField6(self):
         x = cxx.GriddedField6()
         test.io(x, delete=True)
 
-        return x
-
     def testGridPos(self):
         x = cxx.GridPos()
         test.io(x, delete=True)
-
-        return x
 
     def testHitranRelaxationMatrixData(self):
         x = cxx.HitranRelaxationMatrixData()
 
         test.io(x, delete=True)
-
-        return x
 
     def testIndex(self):
         x = cxx.Index(0)
@@ -771,19 +704,13 @@ class TestGroups:
         x.value = x + 3
         assert x.value == 3
 
-        return x
-
     def testJacobianTarget(self):
-        x = cxx.JacobianTarget()
+        cxx.JacobianTarget()
         # test.io(x, delete=True)
-
-        return x
 
     def testMapOfErrorCorrectedSuddenData(self):
         x = cxx.MapOfErrorCorrectedSuddenData()
         test.io(x, delete=True)
-
-        return x
 
     def testMatrix(self):
         x = cxx.Matrix([[1, 2, 3]])
@@ -811,13 +738,9 @@ class TestGroups:
         x *= 2
         assert np.all(np.array(x) == 4)
 
-        return x
-
     def testMCAntenna(self):
-        x = cxx.MCAntenna()
+        cxx.MCAntenna()
         # test.io(x, delete=True)
-
-        return x
 
     def testNumeric(self):
         x = cxx.Numeric(0)
@@ -827,19 +750,13 @@ class TestGroups:
         x.value = x + 2
         assert x.value == 2
 
-        return x
-
     def testPpath(self):
         x = cxx.Ppath()
         test.io(x, delete=True)
 
-        return x
-
     def testPredefinedModelData(self):
         x = cxx.PredefinedModelData()
         test.io(x, delete=True)
-
-        return x
 
     def testPropagationMatrix(self):
         x = cxx.PropagationMatrix(100, 4, 4, 4)
@@ -853,13 +770,9 @@ class TestGroups:
         np.array(x.data, copy=False)[:] = 1
         assert np.all(np.array(x.data) == 1)
 
-        return x
-
     def testQuantumIdentifier(self):
         x = cxx.QuantumIdentifier("O2-66 v 0 0")
         test.io(x, delete=True)
-
-        return x
 
     def testRadiationVector(self):
         x = cxx.RadiationVector(10, 4)
@@ -869,8 +782,6 @@ class TestGroups:
 
         x[0][:] = 2
         assert np.all(x[0] == 2)
-
-        return x
 
     def testRational(self):
         x = cxx.Rational()
@@ -902,31 +813,21 @@ class TestGroups:
 
         assert x > -4
 
-        return x
-
     def testScatteringMetaData(self):
         x = cxx.ScatteringMetaData()
         test.io(x, delete=True)
 
-        return x
-
     def testSingleScatteringData(self):
-        x = cxx.SingleScatteringData()
+        cxx.SingleScatteringData()
         # test.io(x, delete=True)
-
-        return x
 
     def testSparse(self):
         x = cxx.Sparse()
         test.io(x, delete=True)
 
-        return x
-
     def testSpeciesIsotopologueRatios(self):
         x = cxx.SpeciesIsotopologueRatios()
         test.io(x, delete=True)
-
-        return x
 
     def testStokesVector(self):
         x = cxx.StokesVector(50, 4)
@@ -940,8 +841,6 @@ class TestGroups:
         np.array(x.data, copy=False)[:] = 1
         assert np.all(np.array(x.data) == 1)
 
-        return x
-
     def testString(self):
         x = cxx.String("ho")
         test.io(x, delete=True)
@@ -953,13 +852,9 @@ class TestGroups:
         assert "hi" == x
         assert hash("hi") == hash(x)
 
-        return x
-
     def testTelsemAtlas(self):
         x = cxx.TelsemAtlas()
         test.io(x, delete=True)
-
-        return x
 
     def testTensor3(self):
         x = cxx.Tensor3([[[1, 2, 3]]])
@@ -980,8 +875,6 @@ class TestGroups:
         x *= 2
         assert np.all(np.array(x) == 4)
 
-        return x
-
     def testTensor4(self):
         x = cxx.Tensor4([[[[1, 2, 3]]]])
         test.io(x, delete=True)
@@ -1000,8 +893,6 @@ class TestGroups:
 
         x *= 2
         assert np.all(np.array(x) == 4)
-
-        return x
 
     def testTensor5(self):
         x = cxx.Tensor5([[[[[1, 2, 3]]]]])
@@ -1022,8 +913,6 @@ class TestGroups:
         x *= 2
         assert np.all(np.array(x) == 4)
 
-        return x
-
     def testTensor6(self):
         x = cxx.Tensor6([[[[[[1, 2, 3]]]]]])
         test.io(x, delete=True)
@@ -1042,8 +931,6 @@ class TestGroups:
 
         x *= 2
         assert np.all(np.array(x) == 4)
-
-        return x
 
     def testTensor7(self):
         x = cxx.Tensor7([[[[[[[1, 2, 3]]]]]]])
@@ -1064,24 +951,16 @@ class TestGroups:
         x *= 2
         assert np.all(np.array(x) == 4)
 
-        return x
-
     def testTessemNN(self):
-        x = cxx.TessemNN()
+        cxx.TessemNN()
         # test.io(x, delete=True)
-
-        return x
 
     def testTime(self):
         x = cxx.Time()
         test.io(x, delete=True)
 
-        return x
-
     def testTimer(self):
-        x = cxx.Timer()
-
-        return x
+        cxx.Timer()
 
     def testTransmissionMatrix(self):
         x = cxx.TransmissionMatrix(10, 4)
@@ -1091,8 +970,6 @@ class TestGroups:
 
         x[0][:] = 2
         assert np.all(x[0] == 2)
-
-        return x
 
     def testVector(self):
         x = cxx.Vector([1, 2, 3])
@@ -1115,24 +992,21 @@ class TestGroups:
 
         assert x @ x == 48
 
-        return x
-
     def testVerbosity(self):
-        x = cxx.Verbosity()
-
-        return x
+        cxx.Verbosity()
 
     def test_pickle(self):
         ws = Workspace()
         x = list(cxx.get_WsvGroupMap().keys())
 
         for i in range(len(x)):
-            if x[i] == "CallbackFunction": continue
+            if x[i] == "CallbackFunction":
+                continue
             if x[i] == "Agenda":
                 exec(f"ws.v{i} = cxx.{x[i]}(ws)")
             else:
                 exec(f"ws.v{i} = cxx.{x[i]}()")
-            
+
             print(f"Pickling the workspace after adding a {x[i]}")
 
             with open("test.pcl", "wb") as f:
@@ -1140,7 +1014,7 @@ class TestGroups:
 
             with open("test.pcl", "rb") as f:
                 ws2 = pickle.load(f)
-        
+
         assert ws.number_of_initialized_variables() == ws2.number_of_initialized_variables(), \
             "Must be able to fully init a workspace containing no CallbackFunction"
 
