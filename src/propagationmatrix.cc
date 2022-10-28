@@ -27,6 +27,7 @@
  */
 
 #include "propagationmatrix.h"
+#include <limits>
 #include "arts_omp.h"
 #include "lin_alg.h"
 
@@ -1948,8 +1949,6 @@ void PropagationMatrix::MatrixAtPosition(MatrixView ret,
   }
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric PropagationMatrix::operator()(const Index iv,
                                       const Index is1,
                                       const Index is2,
@@ -2030,8 +2029,8 @@ Numeric PropagationMatrix::operator()(const Index iv,
     default:
       ARTS_ASSERT(false, "out of bounds");
   }
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
-#pragma GCC diagnostic pop
 
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm) {

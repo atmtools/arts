@@ -1709,7 +1709,7 @@ Tensor5& Tensor5::operator=(const Tensor5& x) {
 }
 
 //! Move assignment operator from another tensor.
-Tensor5& Tensor5::operator=(Tensor5&& x) noexcept {
+Tensor5& Tensor5::operator=(Tensor5&& x) ARTS_NOEXCEPT {
   if (this != &x) {
     delete[] mdata;
     mdata = x.mdata;

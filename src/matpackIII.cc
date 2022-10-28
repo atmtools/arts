@@ -633,7 +633,7 @@ Tensor3& Tensor3::operator=(const Tensor3& x) {
 }
 
 //! Move assignment operator from another tensor.
-Tensor3& Tensor3::operator=(Tensor3&& x) noexcept {
+Tensor3& Tensor3::operator=(Tensor3&& x) ARTS_NOEXCEPT {
   if (this != &x) {
     delete[] mdata;
     mdata = x.mdata;

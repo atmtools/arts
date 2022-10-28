@@ -627,7 +627,7 @@ class ComplexVector : public ComplexVectorView {
     return *this;
   }
 
-  ComplexVector& operator=(ComplexVector&& v) noexcept {
+  ComplexVector& operator=(ComplexVector&& v) ARTS_NOEXCEPT {
     if (this != &v) {
       delete[] mdata;
       mdata = v.mdata;
@@ -796,6 +796,8 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   // Typedef for compatibility with STL
   using iterator = ComplexIterator2D;
 
+#define GETFUN(r, c) \
+  *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride)
   // Index Operators:
   /** Plain index operator. */
   Complex& operator()(Index r, Index c) {  // Check if indices are valid:
@@ -804,14 +806,12 @@ class ComplexMatrixView : public ConstComplexMatrixView {
     ARTS_ASSERT(r < mrr.mextent);
     ARTS_ASSERT(c < mcr.mextent);
 
-    return get(r, c);
+    return GETFUN(r, c);
   }
 
   /** Get element implementation without assertions. */
-  Complex& get(Index r, Index c) {
-    return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
-             c * mcr.mstride);
-  }
+  Complex& get(Index r, Index c) { return GETFUN(r, c); }
+#undef GETFUN
 
   /** Get element implementation without assertions. */
   Numeric& get_real(Index r, Index c) {

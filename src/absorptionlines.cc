@@ -75,7 +75,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dT(
 }
 
 Index Absorption::Lines::LineShapePos(
-    const Species::Species spec) const noexcept {
+    const Species::Species spec) const ARTS_NOEXCEPT {
   // Is always first if this is self and self broadening exists
   if (selfbroadening and spec == quantumidentity.Species()) {
     return 0;
@@ -99,7 +99,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     size_t k,
     Numeric T,
     Numeric P,
-    const QuantumIdentifier& vmr_qid) const noexcept {
+    const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
   const Index pos = LineShapePos(vmr_qid);
   if (pos >= 0) return lines[k].lineshape.GetVMRDerivs(T, T0, P, pos);
   return LineShape::Output{};
@@ -110,7 +110,7 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(
     Numeric T,
     Numeric P,
     const Vector& vmrs,
-    const RetrievalQuantity& derivative) const noexcept {
+    const RetrievalQuantity& derivative) const ARTS_NOEXCEPT {
   const auto self = derivative.Mode() == LineShape::self_broadening;
   const auto bath = derivative.Mode() == LineShape::bath_broadening;
   const auto& ls = lines[k].lineshape;
@@ -2116,7 +2116,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is) {
   return data;
 }
 
-bool Absorption::Lines::OK() const noexcept {
+bool Absorption::Lines::OK() const ARTS_NOEXCEPT {
   const Index nb = broadeningspecies.nelem();
 
   // Check that the isotopologue is ok
@@ -2331,7 +2331,7 @@ const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns)
                                            : qns.val[QuantumNumberType::J];
 }
 
-Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
+Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const ARTS_NOEXCEPT {
   if (type == Zeeman::Polarization::None) return 1;
 
   // Select F before J but assume one of them exist
@@ -2341,7 +2341,7 @@ Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
 
 Numeric Lines::ZeemanStrength(size_t k,
                               Zeeman::Polarization type,
-                              Index i) const noexcept {
+                              Index i) const ARTS_NOEXCEPT {
   if (type == Zeeman::Polarization::None) return 1.0;
 
   // Select F before J but assume one of them exist
@@ -2351,7 +2351,7 @@ Numeric Lines::ZeemanStrength(size_t k,
 
 Numeric Lines::ZeemanSplitting(size_t k,
                                Zeeman::Polarization type,
-                               Index i) const noexcept {
+                               Index i) const ARTS_NOEXCEPT {
   if (type == Zeeman::Polarization::None) return 0.0;
 
   // Select F before J but assume one of them exist
@@ -2398,8 +2398,6 @@ Numeric Lines::F_mean(Numeric T) const noexcept {
   return F_mean(wgts);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
   switch (cutoff) {
     case CutoffType::ByLine:
@@ -2410,11 +2408,9 @@ Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
     case CutoffType::FINAL:
       break;
   }
+  return std::numeric_limits<Numeric>::max();
 }
-#pragma GCC diagnostic pop
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric Lines::CutoffFreqMinus(size_t k, Numeric shift) const noexcept {
   switch (cutoff) {
     case CutoffType::ByLine:
@@ -2425,8 +2421,9 @@ Numeric Lines::CutoffFreqMinus(size_t k, Numeric shift) const noexcept {
     case CutoffType::FINAL:
       break;
   }
+  
+  return std::numeric_limits<Numeric>::lowest();
 }
-#pragma GCC diagnostic pop
 
 bifstream& Lines::read(bifstream& is) {
   for (auto& line : lines) line.read(is);

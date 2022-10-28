@@ -5449,7 +5449,7 @@ Tensor7& Tensor7::operator=(const Tensor7& x) {
 }
 
 //! Copy assignment operator from another tensor.
-Tensor7& Tensor7::operator=(Tensor7&& x) noexcept {
+Tensor7& Tensor7::operator=(Tensor7&& x) ARTS_NOEXCEPT {
   if (this != &x) {
     delete[] mdata;
     mdata = x.mdata;

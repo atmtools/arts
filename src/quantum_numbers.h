@@ -950,7 +950,7 @@ class ValueList {
   void finalize();
 
   //! Return number of quantum numbers
-  [[nodiscard]] Index nelem() const { return values.nelem(); }
+  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT { return values.nelem(); }
 
   //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
   [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;
@@ -990,7 +990,7 @@ class ValueList {
   void set(Index i, std::string_view upp, std::string_view low);
 
   //! Returns upper and lower matching status
-  [[nodiscard]] CheckMatch check_match(const ValueList& other) const noexcept;
+  [[nodiscard]] CheckMatch check_match(const ValueList& other) const ARTS_NOEXCEPT;
 
   //! ouptut stream if all values
   friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);

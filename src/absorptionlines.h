@@ -73,6 +73,7 @@ constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexce
       return "There are manual line entries in the catalog to mirror this line.\n";
     case MirroringType::FINAL: break;
   }
+  return "There's an error";
 }
 #pragma GCC diagnostic pop
 
@@ -108,6 +109,7 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
         "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
     case NormalizationType::FINAL: break;
   }
+  return "There's an error";
 }
 #pragma GCC diagnostic pop
 
@@ -145,6 +147,7 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
       return "The lines are considered as in pure NLTE.\n";
     case PopulationType::FINAL: return "There's an error";
   }
+  return "There's an error";
 }
 #pragma GCC diagnostic pop
 
@@ -239,7 +242,7 @@ struct SingleLine {
   [[nodiscard]] Index LineShapeElems() const noexcept {return lineshape.nelem();}
   
   /** Number of lower quantum numbers */
-  [[nodiscard]] Index LocalQuantumElems() const noexcept {return localquanta.val.nelem();}
+  [[nodiscard]] Index LocalQuantumElems() const ARTS_NOEXCEPT {return localquanta.val.nelem();}
   
   //////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////// Special settings
@@ -500,7 +503,7 @@ struct Lines {
   void MakeLineShapeModelCommon();
   
   /** Number of broadening species */
-  [[nodiscard]] Index NumBroadeners() const noexcept {return Index(broadeningspecies.nelem());}
+  [[nodiscard]] Index NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.nelem());}
   
   /** Number of broadening species */
   [[nodiscard]] Index NumLocalQuanta() const noexcept {
@@ -511,7 +514,7 @@ struct Lines {
    * @param[in] k Line number (less than NumLines())
    * @param[in] type Type of Zeeman polarization
    */
-  [[nodiscard]] Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept;
+  [[nodiscard]] Index ZeemanCount(size_t k, Zeeman::Polarization type) const ARTS_NOEXCEPT;
   
   /** Returns the strength of a Zeeman split line
    * 
@@ -519,7 +522,7 @@ struct Lines {
    * @param[in] type Type of Zeeman polarization
    * @param[in] i Zeeman line count
    */
-  [[nodiscard]] Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept;
+  [[nodiscard]] Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const ARTS_NOEXCEPT;
   
   /** Returns the splitting of a Zeeman split line
    * 
@@ -527,7 +530,7 @@ struct Lines {
    * @param[in] type Type of Zeeman polarization
    * @param[in] i Zeeman line count
    */
-  [[nodiscard]] Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept;
+  [[nodiscard]] Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const ARTS_NOEXCEPT;
   
   /** Set Zeeman effect for all lines that have the correct quantum numbers */
   void SetAutomaticZeeman() noexcept;
@@ -616,14 +619,14 @@ struct Lines {
    * @param[in] A species index that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const Species::Species spec) const noexcept;
+  [[nodiscard]] Index LineShapePos(const Species::Species spec) const ARTS_NOEXCEPT;
   
   /** Position among broadening species or -1
    * 
    * @param[in] An identity that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const QuantumIdentifier& qid) const noexcept {
+  [[nodiscard]] Index LineShapePos(const QuantumIdentifier& qid) const ARTS_NOEXCEPT {
     return LineShapePos(qid.Species());
   }
   
@@ -636,7 +639,7 @@ struct Lines {
    * @return Line shape parameters vmr derivative
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dVMR(size_t k, Numeric T, Numeric P,
-                                         const QuantumIdentifier& vmr_qid) const noexcept;
+                                         const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT;
   
   /** Line shape parameter internal derivative
    * 
@@ -649,7 +652,7 @@ struct Lines {
    */
   [[nodiscard]] Numeric ShapeParameter_dInternal(size_t k, Numeric T, Numeric P,
                                    const Vector& vmrs,
-                                   const RetrievalQuantity& derivative) const noexcept;
+                                   const RetrievalQuantity& derivative) const ARTS_NOEXCEPT;
   
   /** Returns cutoff frequency or maximum value
    * 
@@ -719,7 +722,7 @@ struct Lines {
   /** Binary write for Lines */
   bofstream& write(bofstream& os) const;
   
-  [[nodiscard]] bool OK() const noexcept;
+  [[nodiscard]] bool OK() const ARTS_NOEXCEPT;
   
   [[nodiscard]] Numeric DopplerConstant(Numeric T) const noexcept;
 

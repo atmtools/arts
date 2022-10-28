@@ -43,7 +43,7 @@ Numeric linterp(const std::array<Numeric, N>& Tg,
 }
 
 template <Derivatives deriv, std::size_t N> constexpr
-Numeric polynom(const std::array<Numeric, N>& coeffs, const Numeric T) noexcept {
+Numeric polynom(const std::array<Numeric, N>& coeffs, const Numeric T) {
   static_assert(N > 0);
   
   Numeric result = 0.;

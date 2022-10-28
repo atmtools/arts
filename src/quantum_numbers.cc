@@ -301,7 +301,7 @@ bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
   return true;
 }
 
-CheckMatch ValueList::check_match(const ValueList& other) const noexcept {
+CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
   CheckMatch status = {CheckValue::Full, CheckValue::Full};
 
   for (Type const t : enumtyps::TypeTypes) {

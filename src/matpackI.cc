@@ -365,7 +365,7 @@ Vector& Vector::operator=(const Vector& v) {
   return *this;
 }
 
-Vector& Vector::operator=(Vector&& v) noexcept {
+Vector& Vector::operator=(Vector&& v) ARTS_NOEXCEPT {
   if (this != &v) {
     delete[] mdata;
     mdata = v.mdata;
@@ -965,7 +965,7 @@ Matrix& Matrix::operator=(const Matrix& m) {
 }
 
 //! Move assignment operator from another matrix.
-Matrix& Matrix::operator=(Matrix&& m) noexcept {
+Matrix& Matrix::operator=(Matrix&& m) ARTS_NOEXCEPT {
   if (this != &m) {
     delete[] mdata;
     mdata = m.mdata;

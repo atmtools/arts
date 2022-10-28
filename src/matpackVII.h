@@ -2309,6 +2309,9 @@ class Tensor7View : public ConstTensor7View {
   VectorView operator()(
       const Range& l, Index v, Index s, Index b, Index p, Index r, Index c);
 
+#define GETFUN(l, v, s, b, p, r, c)                                     \
+  *(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + \
+    OFFSET(r) + OFFSET(c))
   // Result scalar (1 combination)
   // |||||||
   Numeric& operator()(
@@ -2320,14 +2323,14 @@ class Tensor7View : public ConstTensor7View {
     CHECK(p);
     CHECK(r);
     CHECK(c);
-    return get(l, v, s, b, p, r, c);
+    return GETFUN(l, v, s, b, p, r, c);
   }
 
   /** Get element implementation without assertions. */
   Numeric& get(Index l, Index v, Index s, Index b, Index p, Index r, Index c) {
-    return *(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) +
-             OFFSET(r) + OFFSET(c));
+    return GETFUN(l, v, s, b, p, r, c);
   }
+#undef GETFUN
 
   // Conversion to a plain C-array
   [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;
@@ -2419,7 +2422,7 @@ class Tensor7 : public Tensor7View {
 
   // Assignment operators:
   Tensor7& operator=(const Tensor7& x);
-  Tensor7& operator=(Tensor7&& x) noexcept;
+  Tensor7& operator=(Tensor7&& x) ARTS_NOEXCEPT;
   Tensor7& operator=(Numeric x);
 
   // Resize function:
