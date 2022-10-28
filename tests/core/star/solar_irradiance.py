@@ -10,7 +10,7 @@ def main():
     
     ws.jacobianOff()
     
-    ws.Touch(ws.abs_species)
+    ws.abs_speciesSet(species=['N2'])
     ws.abs_lines_per_speciesSetEmpty()
     ws.propmat_clearsky_agendaAuto()
     
