@@ -34,6 +34,7 @@ else()
         planets/Earth/Fascod/tropical/tropical.t.xml
         planets/Earth/Fascod/tropical/tropical.z.xml
         planets/Earth/Fascod/tropical/tropical.O2.xml
+        planets/Earth/Fascod/tropical/tropical.N2.xml
         star/Sun/solar_spectrum_May_2004.xml
     )
 endif()
