@@ -337,6 +337,9 @@ class Tensor4View : public ConstTensor4View {
   VectorView operator()(Index b, Index p, const Range& r, Index c);
   VectorView operator()(Index b, Index p, Index r, const Range& c);
 
+#define GETFUN(b, p, r, c)                                                \
+  *(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart + p * mpr.mstride + \
+    mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride)
   /** Plain non-const index operator. */
   Numeric& operator()(Index b,
                       Index p,
@@ -351,15 +354,14 @@ class Tensor4View : public ConstTensor4View {
     ARTS_ASSERT(r < mrr.mextent);
     ARTS_ASSERT(c < mcr.mextent);
 
-    return get(b, p, r, c);
+    return GETFUN(b, p, r, c);
   }
 
   /** Get element implementation without assertions. */
   Numeric& get(Index b, Index p, Index r, Index c) {
-    return *(mdata + mbr.mstart + b * mbr.mstride + mpr.mstart +
-             p * mpr.mstride + mrr.mstart + r * mrr.mstride + mcr.mstart +
-             c * mcr.mstride);
+    return GETFUN(b, p, r, c);
   }
+#undef GETFUN
 
   // Conversion to a plain C-array
   [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;

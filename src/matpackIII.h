@@ -267,6 +267,9 @@ class Tensor3View : public ConstTensor3View {
   VectorView operator()(Index p, const Range& r, Index c);
   VectorView operator()(const Range& p, Index r, Index c);
 
+#define GETFUN(p, r, c)                                                   \
+  *(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride + \
+    mcr.mstart + c * mcr.mstride)
   /** Plain non-const index operator. */
   Numeric& operator()(Index p, Index r, Index c) {
     // Check if indices are valid:
@@ -277,14 +280,12 @@ class Tensor3View : public ConstTensor3View {
     ARTS_ASSERT(r < mrr.mextent);
     ARTS_ASSERT(c < mcr.mextent);
 
-    return get(p, r, c);
+    return GETFUN(p, r, c);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index p, Index r, Index c) {
-    return *(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
-             r * mrr.mstride + mcr.mstart + c * mcr.mstride);
-  }
+  Numeric& get(Index p, Index r, Index c) { return GETFUN(p, r, c); }
+#undef GETFUN
 
   // Conversion to a plain C-array
   [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;

@@ -419,6 +419,10 @@ class Tensor5View : public ConstTensor5View {
   VectorView operator()(Index s, Index b, Index p, const Range& r, Index c);
   VectorView operator()(Index s, Index b, Index p, Index r, const Range& c);
 
+#define GETFUN(s, b, p, r, c)                                                  \
+  *(mdata + msr.mstart + s * msr.mstride + mbr.mstart + b * mbr.mstride +      \
+    mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride + mcr.mstart + \
+    c * mcr.mstride)
   /** Plain const index operator. */
   Numeric& operator()(Index s,
                       Index b,
@@ -436,15 +440,14 @@ class Tensor5View : public ConstTensor5View {
     ARTS_ASSERT(r < mrr.mextent);
     ARTS_ASSERT(c < mcr.mextent);
 
-    return get(s, b, p, r, c);
+    return GETFUN(s, b, p, r, c);
   }
 
   /** Get element implementation without assertions. */
   Numeric& get(Index s, Index b, Index p, Index r, Index c) {
-    return *(mdata + msr.mstart + s * msr.mstride + mbr.mstart +
-             b * mbr.mstride + mpr.mstart + p * mpr.mstride + mrr.mstart +
-             r * mrr.mstride + mcr.mstart + c * mcr.mstride);
+    return GETFUN(s, b, p, r, c);
   }
+#undef GETFUN
 
   // Conversion to a plain C-array
   [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;

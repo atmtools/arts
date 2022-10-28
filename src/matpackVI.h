@@ -1012,6 +1012,9 @@ class Tensor6View : public ConstTensor6View {
   VectorView operator()(
       const Range& v, Index s, Index b, Index p, Index r, Index c);
 
+#define GETFUN(v, s, b, p, r, c)                                        \
+  *(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r) + \
+    OFFSET(c))
   // Result scalar (1 combination)
   // IIIIII
   Numeric& operator()(Index v, Index s, Index b, Index p, Index r, Index c) {
@@ -1021,14 +1024,14 @@ class Tensor6View : public ConstTensor6View {
     CHECK(p);
     CHECK(r);
     CHECK(c);
-    return get(v, s, b, p, r, c);
+    return GETFUN(v, s, b, p, r, c);
   }
 
   /** Get element implementation without assertions. */
   Numeric& get(Index v, Index s, Index b, Index p, Index r, Index c) {
-    return *(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r) +
-             OFFSET(c));
+    return GETFUN(v, s, b, p, r, c);
   }
+#undef GETFUN
 
   // Conversion to a plain C-array
   [[nodiscard]] const Numeric* get_c_array() const ARTS_NOEXCEPT;

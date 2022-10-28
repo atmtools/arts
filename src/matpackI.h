@@ -255,7 +255,7 @@ class Range {
     // mstride:   Resulting stride (old*new)
 
     // Get the previous final element:
-    Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
+    Index const prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
 
     // Resulting start must be >= previous start:
     ARTS_ASSERT(p.mstart <= mstart);
@@ -689,17 +689,17 @@ class VectorView : public ConstVectorView {
   // Typedef for compatibility with STL
   using iterator = Iterator1D;
 
+#define GETFUN(n) *(mdata + mrange.mstart + n * mrange.mstride)
   /** Plain Index operator. */
   Numeric& operator[](Index n) ARTS_NOEXCEPT {  // Check if index is valid:
     ARTS_ASSERT(0 <= n);
     ARTS_ASSERT(n < mrange.mextent);
-    return get(n);
+    return GETFUN(n);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index n) ARTS_NOEXCEPT {
-    return *(mdata + mrange.mstart + n * mrange.mstride);
-  }
+  Numeric& get(Index n) ARTS_NOEXCEPT { return GETFUN(n); }
+#undef GETFUN
 
   /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Vector. This allows correct
@@ -1190,6 +1190,8 @@ class MatrixView : public ConstMatrixView {
   // Typedef for compatibility with STL
   using iterator = Iterator2D;
 
+#define GETFUN(r, c) \
+  *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride)
   // Index Operators:
   /** Plain index operator. */
   Numeric& operator()(Index r,
@@ -1199,14 +1201,12 @@ class MatrixView : public ConstMatrixView {
     ARTS_ASSERT(r < mrr.mextent);
     ARTS_ASSERT(c < mcr.mextent);
 
-    return get(r, c);
+    return GETFUN(r, c);
   }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index r, Index c) ARTS_NOEXCEPT {
-    return *(mdata + mrr.mstart + r * mrr.mstride + mcr.mstart +
-             c * mcr.mstride);
-  }
+  Numeric& get(Index r, Index c) ARTS_NOEXCEPT { return GETFUN(r, c); }
+#undef GETFUN
 
   MatrixView operator()(const Range& r, const Range& c) ARTS_NOEXCEPT;
   VectorView operator()(const Range& r, Index c) ARTS_NOEXCEPT;
