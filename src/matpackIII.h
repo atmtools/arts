@@ -376,7 +376,7 @@ class Tensor3 : public Tensor3View {
 
   // Assignment operators:
   Tensor3& operator=(const Tensor3& x);
-  Tensor3& operator=(Tensor3&& x) noexcept;
+  Tensor3& operator=(Tensor3&& x) ARTS_NOEXCEPT;
   Tensor3& operator=(Numeric x);
 
   // Resize function:

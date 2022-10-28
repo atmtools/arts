@@ -1141,7 +1141,7 @@ class Tensor6 : public Tensor6View {
 
   // Assignment operators:
   Tensor6& operator=(const Tensor6& x);
-  Tensor6& operator=(Tensor6&& x) noexcept;
+  Tensor6& operator=(Tensor6&& x) ARTS_NOEXCEPT;
   Tensor6& operator=(Numeric x);
 
   // Resize function:

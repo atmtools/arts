@@ -1024,7 +1024,7 @@ Tensor4& Tensor4::operator=(const Tensor4& x) {
 }
 
 //! Move assignment operator from another tensor.
-Tensor4& Tensor4::operator=(Tensor4&& x) noexcept {
+Tensor4& Tensor4::operator=(Tensor4&& x) ARTS_NOEXCEPT {
   if (this != &x) {
     delete[] mdata;
     mdata = x.mdata;

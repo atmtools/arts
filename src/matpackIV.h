@@ -464,7 +464,7 @@ class Tensor4 : public Tensor4View {
 
   // Assignment operators:
   Tensor4& operator=(const Tensor4& x);
-  Tensor4& operator=(Tensor4&& x) noexcept;
+  Tensor4& operator=(Tensor4&& x) ARTS_NOEXCEPT;
   Tensor4& operator=(Numeric x);
 
   // Resize function:

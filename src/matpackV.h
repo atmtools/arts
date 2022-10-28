@@ -554,7 +554,7 @@ class Tensor5 : public Tensor5View {
 
   // Assignment operators:
   Tensor5& operator=(const Tensor5& x);
-  Tensor5& operator=(Tensor5&& x) noexcept;
+  Tensor5& operator=(Tensor5&& x) ARTS_NOEXCEPT;
   Tensor5& operator=(Numeric x);
 
   // Resize function:

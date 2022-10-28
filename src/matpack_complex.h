@@ -627,7 +627,7 @@ class ComplexVector : public ComplexVectorView {
     return *this;
   }
 
-  ComplexVector& operator=(ComplexVector&& v) noexcept {
+  ComplexVector& operator=(ComplexVector&& v) ARTS_NOEXCEPT {
     if (this != &v) {
       delete[] mdata;
       mdata = v.mdata;

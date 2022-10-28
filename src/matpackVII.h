@@ -2419,7 +2419,7 @@ class Tensor7 : public Tensor7View {
 
   // Assignment operators:
   Tensor7& operator=(const Tensor7& x);
-  Tensor7& operator=(Tensor7&& x) noexcept;
+  Tensor7& operator=(Tensor7&& x) ARTS_NOEXCEPT;
   Tensor7& operator=(Numeric x);
 
   // Resize function:

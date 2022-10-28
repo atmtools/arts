@@ -991,7 +991,7 @@ class Vector : public VectorView {
   Vector& operator=(const Vector& v);
 
   //! Move assignment from another Vector.
-  Vector& operator=(Vector&& v) noexcept;
+  Vector& operator=(Vector&& v) ARTS_NOEXCEPT;
 
   //! Assignment from an initializatoin list.
   Vector& operator=(std::initializer_list<Numeric> v);
@@ -1308,7 +1308,7 @@ class Matrix : public MatrixView {
 
   // Assignment operators:
   Matrix& operator=(const Matrix& m);
-  Matrix& operator=(Matrix&& m) noexcept;
+  Matrix& operator=(Matrix&& m) ARTS_NOEXCEPT;
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
 
