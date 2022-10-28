@@ -472,9 +472,9 @@ constexpr std::string_view shapetype2metadatastring(Type type) noexcept {
       return "The line shape type is the speed-dependent Voigt profile.\n";
     case Type::HTP:
       return "The line shape type is the Hartmann-Tran profile.\n";
-    case Type::FINAL:
-      return "There's an error.\n";
+    case Type::FINAL: {}
   }
+  return "There's an error.\n";
 }
 #pragma GCC diagnostic pop
 
@@ -807,7 +807,7 @@ class Model {
                            Jacobian::Line deriv) const noexcept;
 
   /** Number of species in Model */
-  [[nodiscard]] Index nelem() const { return Index(mdata.size()); }
+  [[nodiscard]] Index nelem() const noexcept { return Index(mdata.size()); }
   
   /** Number of species in Model */
   [[nodiscard]] Index size() const { return Index(mdata.size()); }
@@ -979,6 +979,7 @@ constexpr Index temperaturemodel2legacynelem(TemperatureModel type) noexcept {
       return 4;
     case TemperatureModel::FINAL: break;
   }
+  return -1;
 }
 #pragma GCC diagnostic pop
 
@@ -1022,6 +1023,7 @@ constexpr Index typelm2nelem(LegacyLineMixingData::TypeLM type) {
     case TypeLM::LM_BYBAND:  // The band class
       return 1;
   }
+  return -1;
 }
 #pragma GCC diagnostic pop
 
@@ -1065,6 +1067,7 @@ constexpr Index typepb2nelem(LegacyPressureBroadeningData::TypePB type)  {
     case TypePB::PB_PLANETARY_BROADENING:
       return 20;
   }
+  return -1;
 }
 #pragma GCC diagnostic pop
 

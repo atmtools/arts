@@ -28,7 +28,7 @@
 #include "special_interp.h"
 
 
-bool EnergyLevelMap::OK() const noexcept {
+bool EnergyLevelMap::OK() const ARTS_NOEXCEPT {
   if (not (value.nbooks() == levels.nelem() and 
           (vib_energy.nelem() == levels.nelem() or vib_energy.nelem() == 0))) {
     return false;  // Bad dimensions, vibrational energies and IDs and data of strange size

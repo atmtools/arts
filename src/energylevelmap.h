@@ -92,7 +92,7 @@ struct EnergyLevelMap {
   Vector vib_energy;
   Tensor4 value;
   
-  [[nodiscard]] bool OK() const noexcept;
+  [[nodiscard]] bool OK() const ARTS_NOEXCEPT;
   
   void ThrowIfNotOK() const ARTS_NOEXCEPT {ARTS_ASSERT (OK(), "Class in bad state");}
   
