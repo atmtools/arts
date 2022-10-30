@@ -111,7 +111,6 @@ void starsAddSingleFromGrid(ArrayOfStar &stars,
   Star& new_star = stars.emplace_back();
 
   new_star.spectrum = int_data; // set spectrum
-  new_star.spectrum *= pi; // outgoing flux at the surface of the star.
 
   new_star.description = description;
   new_star.radius = radius;
