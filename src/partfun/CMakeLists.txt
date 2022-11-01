@@ -18,3 +18,7 @@ add_custom_command(OUTPUT auto_partfun.h ${partfun_cpp_files}
 
 add_library(auto_partfun STATIC ${partfun_cpp_files})
 target_include_directories(auto_partfun PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+if (IPO_SUPPORTED)
+    set_property(TARGET auto_partfun PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()

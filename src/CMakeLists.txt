@@ -306,6 +306,7 @@ add_library (artscore STATIC
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
+  partfun/xml_io_partfun.cc
   zeeman.cc
   zeemandata.cc
   ${NETCDF_CC_FILES}
