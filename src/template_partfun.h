@@ -14,10 +14,6 @@ struct Data {
   Type type;
   Matrix data;
   
-  void print_data() const;
-  
-  void print_method() const;
-  
   friend std::ostream& operator<<(std::ostream& os, const Data& d) {
     return os << d.data << '\n';
   }

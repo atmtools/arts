@@ -59,58 +59,6 @@ void xml_write_to_stream(std::ostream& os_xml,
 }
 
 namespace PartitionFunctions {
-void Data::print_data() const {
-  constexpr int cutline = 10;
-  const Index n = data.nrows();
-  
-  switch (type) {
-    case PartitionFunctions::Type::Interp:
-      std::cout << "static constexpr std::array<Numeric, " << n << "> data{";
-      for (Index i=0; i<n; i++) {
-        if (i % cutline == 0) {
-          std::cout << '\n';
-        }
-        std::cout << data(i, 1) << ',' << ' ';
-      }
-      std::cout << "};\n";
-      
-      std::cout << "static constexpr std::array<Numeric, " << n << "> grid{";
-      for (Index i=0; i<n; i++) {
-        if (i % cutline == 0)  {
-          std::cout << '\n';
-        }
-        std::cout << data(i, 0) << ',' << ' ';
-      }
-      std::cout << "};\n";
-      break;
-    case PartitionFunctions::Type::Coeff:
-      std::cout << "static constexpr std::array<Numeric, " << n << "> coeff{";
-      for (Index i=0; i<n; i++) {
-        if (i % cutline == 0)  {
-          std::cout << '\n';
-        }
-        std::cout << data(i, 0) << ',' << ' ';
-      }
-      std::cout << "};\n";
-      break;
-    case PartitionFunctions::Type::FINAL: {/* leave last
-      */ }
-  }
-}
-
-void Data::print_method() const {
-  switch (type) {
-    case PartitionFunctions::Type::Interp:
-      std::cout << "return linterp<derivative>(grid, data, T);\n";
-      break;
-    case PartitionFunctions::Type::Coeff:
-      std::cout << "return polynom<derivative>(coeff, T);\n";
-      break;
-    case PartitionFunctions::Type::FINAL: {/* leave last
-      */ }
-  }
-}
-
 Data data_read_file(const std::filesystem::path& path) {
   Data out;
   
