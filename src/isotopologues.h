@@ -10,7 +10,7 @@
 #include "species.h"
 
 namespace Species {
-constexpr std::string_view Joker = "*";
+inline constexpr std::string_view Joker = "*";
 
 /** Struct containing all information needed about one isotope */
 struct IsotopeRecord {

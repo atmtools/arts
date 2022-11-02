@@ -306,6 +306,7 @@ add_library (artscore STATIC
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
+  partfun/xml_io_partfun.cc
   zeeman.cc
   zeemandata.cc
   ${NETCDF_CC_FILES}
@@ -599,25 +600,15 @@ if (ENABLE_GUI)
   add_executable(test_gui test_gui.cc)
   target_link_libraries(test_gui PUBLIC ${ALL_ARTS_LIBRARIES})
 endif()
-
-########################################################################################
-add_executable(gen_auto_partfun gen_auto_partfun.cc xml_io_partfun.cc)
-target_link_libraries (gen_auto_partfun PRIVATE matpack xmliobase)
 ########################################################################################
 
 ########################################################################################
-# Generate auto_partfun.h for the ARTS interface
-add_custom_command(OUTPUT auto_partfun.h
-                   COMMAND gen_auto_partfun ${ARTS_PARTFUN_DATA_PATH} > ${ARTS_BINARY_DIR}/src/auto_partfun.h
-                   DEPENDS gen_auto_partfun)
-########################################################################################
+add_subdirectory(partfun)
 
-########################################################################################
 add_library(species STATIC
-            auto_partfun.h
             isotopologues.cc
-            xml_io_partfun.cc
             )
+target_link_libraries(species PUBLIC auto_partfun)
 ########################################################################################
 
 ########################################################################################
