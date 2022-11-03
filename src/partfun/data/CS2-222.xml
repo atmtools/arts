@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<PartitionFunctionsData type="Interp">
+<PartitionFunctionsData type="StaticInterp">
 <Matrix nrows="5000" ncols="2">
 1 3.3566526
 2 6.5385743
