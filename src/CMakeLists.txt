@@ -306,7 +306,6 @@ add_library (artscore STATIC
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
-  partfun/xml_io_partfun.cc
   zeeman.cc
   zeemandata.cc
   ${NETCDF_CC_FILES}
@@ -692,3 +691,6 @@ target_link_libraries(test_omp PUBLIC ${ALL_ARTS_LIBRARIES})
 add_executable(test_eigen test_eigen.cc)
 target_link_libraries(test_eigen PUBLIC matpack)
 ########################################################################################
+
+add_executable(run_partfun run_partfun.cc)
+target_link_libraries(run_partfun PRIVATE artscore)

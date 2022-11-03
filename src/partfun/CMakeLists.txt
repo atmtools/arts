@@ -16,7 +16,7 @@ add_custom_command(OUTPUT auto_partfun.h ${partfun_cpp_files}
                    COMMAND partfun_generator ${partfun_xml_files}
                    DEPENDS partfun_generator)
 
-add_library(auto_partfun STATIC ${partfun_cpp_files})
+add_library(auto_partfun STATIC ${partfun_cpp_files} xml_io_partfun.cc)
 target_include_directories(auto_partfun PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if (IPO_SUPPORTED)

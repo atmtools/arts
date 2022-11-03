@@ -3,12 +3,14 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 
 #include "enums.h"
+#include "matpack.h"
 #include "matpackI.h"
 
 namespace PartitionFunctions {
-ENUMCLASS(Type, Index, Interp, Coeff)
+ENUMCLASS(Type, Index, Interp, Coeff, StaticInterp)
 
 struct Data {
   Type type;
@@ -22,19 +24,38 @@ struct Data {
 enum class Derivatives : bool {No, Yes};
 
 template <Derivatives deriv, std::size_t N> 
-Numeric linterp(const std::array<Numeric, N>& Tg,
-                const std::array<Numeric, N>& Qg,
-                const Numeric T) noexcept {
+constexpr Numeric linterp(const std::array<Numeric, N>& Tg,
+                          const std::array<Numeric, N>& Qg,
+                          const Numeric T) noexcept {
   static_assert(N > 1);
-  
-  // First position
-  const std::size_t i = std::distance(Tg.cbegin(),
-    std::min(std::lower_bound(Tg.cbegin(), Tg.cend(), T), Tg.cend() - 2));
-  
+
+  // First position (note that we are only at left-most grid point when T<=Tg[0] because of the logical operand)
+  const auto i_low = std::distance(Tg.cbegin(), std::lower_bound(Tg.cbegin(), Tg.cend(), T));
+  const auto i = std::min<std::size_t>(i_low - (i_low > 0), N - 2);
+
   if constexpr (Derivatives::No == deriv) {
     return Qg[i] + (T - Tg[i]) * (Qg[i + 1] - Qg[i]) / (Tg[i + 1] - Tg[i]);
   } else {
     return (Qg[i + 1] - Qg[i]) / (Tg[i + 1] - Tg[i]);
+  }
+}
+
+template <Derivatives deriv, Numeric dT, Numeric T0, std::size_t N>
+constexpr Numeric static_linterp(const std::array<Numeric, N> &Q,
+                                 const Numeric T) noexcept {
+  static_assert(N > 1);
+
+  constexpr auto r_dT = 1.0 / dT;
+
+  const auto Tx = (T - T0) * r_dT;
+  const auto iTx = static_cast<std::size_t>(Tx);
+  const auto i = std::min<std::size_t>(iTx, N - 2);
+
+  if constexpr (Derivatives::No == deriv) {
+    const auto To = Tx - static_cast<Numeric>(i);
+    return Q[i] + To * (Q[i + 1] - Q[i]);
+  } else {
+    return (Q[i + 1] - Q[i]) * r_dT;
   }
 }
 

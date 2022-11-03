@@ -69,6 +69,19 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
       }
       os << "};\n";
       break;
+    case StaticInterp:
+        os << "static constexpr std::array<Numeric, " << n << "> data{";
+        for (Index i = 0; i < n; i++) {
+          if (i % cutline == 0) {
+            os << '\n';
+          }
+          os << data.data(i, 1) << ',' << ' ';
+        }
+        os << "};\n\n";
+
+        os << "constexpr Numeric dT = " << data.data(0, 0) << ";\n";
+        os << "constexpr Numeric T0 = " << data.data(1, 0) - data.data(0, 0) << ";\n";
+      break;
     case FINAL:
       throw std::logic_error("invalid");
   }
@@ -82,6 +95,9 @@ void print_method(const PartitionFunctions::Type& type, auto& os) {
       break;
     case Coeff:
       os << "return polynom<derivative>(coeff, T);\n";
+      break;
+    case StaticInterp:
+      os << "return static_linterp<derivative, dT, T0>(data, T);\n";
       break;
     case FINAL:
       throw std::logic_error("invalid");
