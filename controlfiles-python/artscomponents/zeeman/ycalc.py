@@ -171,6 +171,38 @@ arts.propmat_clearsky_agenda_checkedCalc()
 
 arts.yCalc()
 
+#%% Plot current
+
+if SHOW_PLOTS:
+    f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
+    plt.plot(f, arts.y.value[::4].reshape(NR, NF).T)
+    plt.xlabel("Freq offset [MHz]")
+    plt.ylabel("I [K]")
+    plt.title("Downlooking at 0-longitude")
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.show()
+    
+    plt.plot(f, arts.y.value[1::4].reshape(NR, NF).T)
+    plt.xlabel("Freq offset [MHz]")
+    plt.ylabel("Q [K]")
+    plt.title("Downlooking at 0-longitude")
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.show()
+    
+    plt.plot(f, arts.y.value[2::4].reshape(NR, NF).T)
+    plt.xlabel("Freq offset [MHz]")
+    plt.ylabel("U [K]")
+    plt.title("Downlooking at 0-longitude")
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.show()
+    
+    plt.plot(f, arts.y.value[3::4].reshape(NR, NF).T)
+    plt.xlabel("Freq offset [MHz]")
+    plt.ylabel("V [K]")
+    plt.title("Downlooking at 0-longitude")
+    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
+    plt.show()
+
 # %% Save and compare data
 
 if DO_SAVE:
@@ -213,35 +245,3 @@ if CF_SAVE:
         plt.show()
     
     arts.CompareRelative(arts.yref, arts.y, 1e-5, "y reference validation failed")
-
-#%% Plot current
-
-if SHOW_PLOTS:
-    f = (arts.f_grid.value - CENTRAL_LINE_FREQ) / 1e6  # MHz
-    plt.plot(f, arts.y.value[::4].reshape(NR, NF).T)
-    plt.xlabel("Freq offset [MHz]")
-    plt.ylabel("I [K]")
-    plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
-    plt.show()
-    
-    plt.plot(f, arts.y.value[1::4].reshape(NR, NF).T)
-    plt.xlabel("Freq offset [MHz]")
-    plt.ylabel("Q [K]")
-    plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
-    plt.show()
-    
-    plt.plot(f, arts.y.value[2::4].reshape(NR, NF).T)
-    plt.xlabel("Freq offset [MHz]")
-    plt.ylabel("U [K]")
-    plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
-    plt.show()
-    
-    plt.plot(f, arts.y.value[3::4].reshape(NR, NF).T)
-    plt.xlabel("Freq offset [MHz]")
-    plt.ylabel("V [K]")
-    plt.title("Downlooking at 0-longitude")
-    plt.legend(arts.sensor_pos.value[:, 1], title="Latitude", loc='lower left')
-    plt.show()
