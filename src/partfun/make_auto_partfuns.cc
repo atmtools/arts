@@ -97,7 +97,7 @@ void print_method(const PartitionFunctions::Type& type, auto& os) {
       os << "return polynom<derivative>(coeff, T);\n";
       break;
     case StaticInterp:
-      os << "return static_linterp<derivative, dT, T0>(data, T);\n";
+      os << "return STATIC_LINTERP(derivative, data, T, dT, T0);\n";
       break;
     case FINAL:
       throw std::logic_error("invalid");

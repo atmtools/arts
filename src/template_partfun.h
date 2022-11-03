@@ -40,12 +40,21 @@ constexpr Numeric linterp(const std::array<Numeric, N>& Tg,
   }
 }
 
+#if __cpp_nontype_template_args >= 201911L
+#define STATIC_LINTERP(deriv, Q, T, dT, T0) static_linterp<deriv, dT, T0>(Q, T)
 template <Derivatives deriv, Numeric dT, Numeric T0, std::size_t N>
 constexpr Numeric static_linterp(const std::array<Numeric, N> &Q,
                                  const Numeric T) noexcept {
-  static_assert(N > 1);
-
   constexpr auto r_dT = 1.0 / dT;
+#else
+#define STATIC_LINTERP(deriv, Q, T, dT, T0) static_linterp<deriv>(Q, T, dT, T0)
+template <Derivatives deriv, std::size_t N>
+constexpr Numeric static_linterp(const std::array<Numeric, N> &Q,
+                                 const Numeric T, Numeric dT,
+                                 Numeric T0) noexcept {
+  const auto r_dT = 1.0 / dT;
+#endif
+  static_assert(N > 1);
 
   const auto Tx = (T - T0) * r_dT;
   const auto iTx = static_cast<std::size_t>(Tx);
