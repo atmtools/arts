@@ -26,6 +26,7 @@ void py_species(py::module_& m);
 void py_sparse(py::module_& m);
 void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
+void py_scattering_new(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
 void py_workspace(py::module_& m,
@@ -125,6 +126,7 @@ PYBIND11_MODULE(arts, m) {
   py_sparse(m);
   py_mcantenna(m);
   py_scattering(m);
+  py_scattering_new(m);
   py_jac(m);
   py_xsec(m);
   py_nlte(m);

@@ -52,7 +52,10 @@ endwhile()
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp)
 target_link_libraries(gen_auto_py PUBLIC methods)
-target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
+target_include_directories(
+  gen_auto_py PUBLIC
+  ${ARTS_SOURCE_DIR}/src
+)
 
 # Generate the actual files with this command
 add_custom_command(OUTPUT py_auto_interface.h
@@ -82,6 +85,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_sparse.cpp
     py_mcantenna.cpp
     py_scattering.cpp
+    py_scattering_new.cpp
     py_quantum.cpp
     py_physics.cpp
     py_spectroscopy.cpp
@@ -98,7 +102,6 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_star.cpp
     py_math.cpp
     py_options.cpp
-
     py_auto_interface.h
     py_auto_interface.cc
     py_auto_workspace.cc
@@ -112,8 +115,13 @@ if (ENABLE_PCH)
   target_precompile_headers(pyarts_cpp PRIVATE python_interface.h)
 endif()
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES})
-target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
+target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES} fftw3 netcdf)
+target_include_directories(pyarts_cpp PUBLIC
+  ${ARTS_SOURCE_DIR}/src
+  ${ARTS_SOURCE_DIR}/3rdparty/shtns
+  ${ARTS_SOURCE_DIR}/3rdparty/Eigen
+  ${ARTS_SOURCE_DIR}/3rdparty/Eigen/unsupported
+  )
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_definitions(pyarts_cpp PUBLIC PYBIND11_DETAILED_ERROR_MESSAGES)
