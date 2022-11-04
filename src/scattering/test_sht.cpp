@@ -161,8 +161,8 @@ bool test_symmetry(int n_trials) {
         if (!small(diff)) {
             return false;
         }
-        return true;
     }
+    return true;
 }
 
 /** Test addition of spectral coefficients.
@@ -190,9 +190,8 @@ bool test_add_coefficients(int n_trials) {
       if (!small(diff)) {
           return false;
       }
-      return true;
-
     }
+    return true;
 }
 
 

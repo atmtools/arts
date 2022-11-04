@@ -3,11 +3,19 @@ include_directories (
   ${ARTS_SOURCE_DIR}/3rdparty/shtns
   ${ARTS_SOURCE_DIR}/3rdparty/Eigen/unsupported
 )
-add_library(scattering STATIC sht.cxx)
+add_library(
+  scattering
+  STATIC
+  sht.cpp
+  single_scattering_data.cpp
+  arts_ssdb.cpp
+  particle.cpp
+  particle_habit.cpp
+)
 add_dependencies(scattering libshtns)
 target_link_libraries(scattering ${SHTNS_LIBRARY})
 
-add_executable (test_scattering_math test_math.cc)
+add_executable (test_scattering_math test_math.cpp)
 
-add_executable (test_sht test_sht.cc)
+add_executable (test_sht test_sht.cpp)
 target_link_libraries(test_sht scattering ${SHTNS_LIBRARY} fftw3)
