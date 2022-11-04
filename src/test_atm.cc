@@ -33,30 +33,26 @@ void field() {
   atm.set(ArrayOfSpeciesTag{"H2O-161"}, 0.01);
   std::cout << atm << '\n' << '\n';
 
-  GriddedField4 data;
-  data.set_grid(0, {Time{}});
-  data.set_grid_name(0, "Time");
-  data.set_grid(1, {0, 2, 4});
-  data.set_grid_name(1, "Pressure");
-  data.set_grid(2, {1e-3, 2, 4});
-  data.set_grid_name(2, "Latitude");
-  data.set_grid(3, {0, 2, 4});
-  data.set_grid_name(3, "Longitude");
-  data.data.resize(1, 3, 3, 3);
+  GriddedField3 data;
+  data.set_grid(0, {0, 2, 4});
+  data.set_grid_name(0, "Pressure");
+  data.set_grid(1, {1e-3, 2, 4});
+  data.set_grid_name(1, "Latitude");
+  data.set_grid(2, {0, 2, 4});
+  data.set_grid_name(2, "Longitude");
+  data.data.resize(3, 3, 3);
   for (Index i1 = 0; i1 < data.get_grid_size(0); i1++) {
     for (Index i2 = 0; i2 < data.get_grid_size(1); i2++) {
       for (Index i3 = 0; i3 < data.get_grid_size(2); i3++) {
-        for (Index i4 = 0; i4 < data.get_grid_size(3); i4++) {
-          data.data(i1, i2, i3, i4) = static_cast<Numeric>(1 + i1 + 2 * i2 + 3 * i3 + 4 * i4);
-        }
+        data.data(i1, i2, i3) = static_cast<Numeric>(1 + i1 + 2 * i2 + 3 * i3);
       }
     }
   }
   atm.set(mag_u, data);
 
-  std::cout << atm.at(Time{}, 1e-2, 3.0, 0.0) << '\n' << '\n';
+  std::cout << atm.at(1e-2, 3.0, 0.0) << '\n' << '\n';
 
-  std::cout << atm.regularize({Time{}}, {1e-1, 1.0}, {0.5}, {0.5}) << '\n'
+  std::cout << atm.regularize({1e-1, 1.0}, {0.5}, {0.5}) << '\n'
             << '\n';
 }
 
