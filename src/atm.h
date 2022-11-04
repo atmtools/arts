@@ -10,7 +10,6 @@
 #include <utility>
 #include <variant>
 
-#include "artstime.h"
 #include "debug.h"
 #include "enums.h"
 #include "gridded_fields.h"
@@ -203,14 +202,14 @@ class Point {
 };
 
 //! All the field data; if these types grow too much we might want to reconsider...
-using FunctionalData = std::function<Numeric(Time, Numeric, Numeric, Numeric)>;
-using FieldData = std::variant<GriddedField4, Tensor4, Numeric, FunctionalData>;
+using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
+using FieldData = std::variant<GriddedField3, Tensor3, Numeric, FunctionalData>;
 
 template <typename T>
-concept isGriddedField4 = std::is_same_v<std::remove_cvref_t<T>, GriddedField4>;
+concept isGriddedField3 = std::is_same_v<std::remove_cvref_t<T>, GriddedField3>;
 
 template <typename T>
-concept isTensor4 = std::is_same_v<std::remove_cvref_t<T>, Tensor4>;
+concept isTensor3 = std::is_same_v<std::remove_cvref_t<T>, Tensor3>;
 
 template <typename T>
 concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
@@ -221,10 +220,10 @@ concept isFunctionalDataType =
 
 template <typename T>
 concept RawDataType =
-    isGriddedField4<T> or isNumeric<T> or isFunctionalDataType<T>;
+    isGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 template <typename T>
-concept DataType = RawDataType<T> or isTensor4<T>;
+concept DataType = RawDataType<T> or isTensor3<T>;
 
 class Field {
   std::map<Key, FieldData> other{};
@@ -234,7 +233,6 @@ class Field {
 
   //! The below only exist if regularized is true
   bool regularized{false};
-  ArrayOfTime time{};
   Vector pre{}, lat{}, lon{};
 
   template <typename... Ts>
@@ -259,17 +257,17 @@ class Field {
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
-  [[nodiscard]] Shape<4> regularized_shape() const {
-    return {time.nelem(), pre.nelem(), lat.nelem(), lon.nelem()};
+  [[nodiscard]] Shape<3> regularized_shape() const {
+    return {pre.nelem(), lat.nelem(), lon.nelem()};
   }
 
   void set(KeyType auto&& x, DataType auto&& y) {
     using T = decltype(x);
     using U = decltype(y);
 
-    if constexpr (isTensor4<U>) {
+    if constexpr (isTensor3<U>) {
       ARTS_USER_ERROR_IF(not regularized,
-                         "Field needs to be regularized to set Tensor4 data")
+                         "Field needs to be regularized to set Tensor3 data")
       ARTS_USER_ERROR_IF(y.shape() not_eq regularized_shape(),
                          "The shape is wrong.  The input field is shape ",
                          y.shape(),
@@ -278,23 +276,20 @@ class Field {
     } else {
       ARTS_USER_ERROR_IF(
           regularized,
-          "Expects a regularized field (i.e., Tensor4-style gridded)")
+          "Expects a regularized field (i.e., Tensor3-style gridded)")
     }
 
-    if constexpr (isGriddedField4<U>) {
+    if constexpr (isGriddedField3<U>) {
       ARTS_USER_ERROR_IF(
-          "Time" not_eq y.get_grid_name(0) or
-              "Pressure" not_eq y.get_grid_name(1) or
-              "Latitude" not_eq y.get_grid_name(2) or
-              "Longitude" not_eq y.get_grid_name(3),
-          "The grids should be [Time x Pressure x Latitude x Longitude] but it is [",
+              "Pressure" not_eq y.get_grid_name(0) or
+              "Latitude" not_eq y.get_grid_name(1) or
+              "Longitude" not_eq y.get_grid_name(2),
+          "The grids should be [Pressure x Latitude x Longitude] but it is [",
           y.get_grid_name(0),
           " x ",
           y.get_grid_name(1),
           " x ",
           y.get_grid_name(2),
-          " x ",
-          y.get_grid_name(3),
           ']')
     }
 
@@ -309,34 +304,28 @@ class Field {
   }
 
   // FIXME: This data should be elsewhere???
-  [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
-    ARTS_USER_ERROR_IF(
-        not nlte_energy or nlte.size() not_eq nlte_energy->size(),
-        "Incorrect NLTE energy term")
+  [[nodiscard]] Numeric energy_level(const QuantumIdentifier &x) const {
+    ARTS_USER_ERROR_IF(not nlte_energy or
+                           nlte.size() not_eq nlte_energy->size(),
+                       "Incorrect NLTE energy term")
     auto y = nlte_energy->find(x);
     return y == nlte_energy->end() ? 0 : y->second;
   }
 
   // FIXME: This data should be elsewhere???
-  void set_energy_level(const QuantumIdentifier& x, Numeric y) {
+  void set_energy_level(const QuantumIdentifier &x, Numeric y) {
     if (not nlte_energy)
       nlte_energy = std::make_shared<std::map<QuantumIdentifier, Numeric>>();
     nlte_energy->operator[](x) = y;
   }
 
   //! Regularizes the calculations so that all data is on a single grid
-  Field& regularize(const ArrayOfTime& ,
-                    const Vector& ,
-                    const Vector& ,
-                    const Vector& );
+  Field &regularize(const Vector &, const Vector &, const Vector &);
 
   //! Compute the values at a single point
-  [[nodiscard]] Point at(Time ,
-                         Numeric ,
-                         Numeric ,
-                         Numeric ) const;
+  [[nodiscard]] Point at(Numeric, Numeric, Numeric) const;
 
-  bool has(KeyType auto&& key) const {
+  bool has(KeyType auto &&key) const {
     using T = decltype(key);
     if constexpr (isArrayOfSpeciesTag<T>)
       return specs.end() not_eq specs.find(std::forward<T>(key));
@@ -346,60 +335,48 @@ class Field {
       return nlte.end() not_eq nlte.find(std::forward<T>(key));
   }
 
-  template <typename... Ts>
-  bool has_data(Ts&&... keys) const {
+  template <typename... Ts> bool has_data(Ts &&...keys) const {
     if constexpr (sizeof...(Ts))
       return internal_has(std::forward<Ts>(keys)...);
     else
       return true;
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const Field& atm);
+  friend std::ostream &operator<<(std::ostream &os, const Field &atm);
 };
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain all of the Time, Pressure, Latitude, and Longitude grids
+ * The input must contain all of the Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
  * @param[in] gf A gridded field
- * @return GriddedField4 in the Field format
+ * @return GriddedField3 in the Field format
  */
-GriddedField4 fix(const GriddedField4&);
+GriddedField3 fix(const GriddedField3&);
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain 3 of the Time, Pressure, Latitude, and Longitude grids
+ * The input must contain 2 of the Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
  * @param[in] gf A gridded field
- * @return GriddedField4 in the Field format
+ * @return GriddedField3 in the Field format
  */
-GriddedField4 fix(const GriddedField3&);
+GriddedField3 fix(const GriddedField2&);
 
 /** A wrapper to fix the input field to the expected format for Field
  * 
- * The input must contain 2 of the Time, Pressure, Latitude, and Longitude grids
+ * The input must contain 1 of the Pressure, Latitude, and Longitude grids
  *
  * Throws if anything goes wrong
  *
  * @param[in] gf A gridded field
- * @return GriddedField4 in the Field format
+ * @return GriddedField3 in the Field format
  */
-GriddedField4 fix(const GriddedField2&);
-
-/** A wrapper to fix the input field to the expected format for Field
- * 
- * The input must contain 1 of the Time, Pressure, Latitude, and Longitude grids
- *
- * Throws if anything goes wrong
- *
- * @param[in] gf A gridded field
- * @return GriddedField4 in the Field format
- */
-GriddedField4 fix(const GriddedField1&);
+GriddedField3 fix(const GriddedField1&);
 }  // namespace Atm
 
 using AtmField = Atm::Field;
