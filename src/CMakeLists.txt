@@ -311,6 +311,8 @@ add_library (artscore STATIC
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 add_dependencies (artscore auto_version_cc species)
+target_link_libraries(artscore auto_partfun)
+
 if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
