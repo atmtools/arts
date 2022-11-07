@@ -275,7 +275,9 @@ class TestVariables:
         assert(type(v[0][0]) == int)
 
         v = global_data.convert("ArrayOfArrayOfIndex", 1)
-        return v
+        assert(type(v) == list)
+        assert(type(v[0]) == list)
+        assert(type(v[0][0]) == int)
 
     def test_typeerror(self):
         with pytest.raises(TypeError):
