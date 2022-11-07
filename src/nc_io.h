@@ -95,6 +95,9 @@ void nca_get_data_int(const int ncid, const String& name, int* data);
 
 void nca_get_data_long(const int ncid, const String& name, long* data);
 
+void nca_get_data_longlong(const int ncid, const String& name, long long* data);
+
+
 void nca_get_data_double(const int ncid, const String& name, Numeric* data);
 
 void nca_get_dataa_double(const int ncid,

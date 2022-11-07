@@ -348,6 +348,22 @@ void nca_get_data_long(const int ncid, const String& name, long* data) {
     nca_error(retval, "nc_get_var(" + name + ")");
 }
 
+//! Read variable of type long long from NetCDF file.
+/** 
+ \param[in]  ncid   NetCDF file descriptor
+ \param[in]  name   Variable name in NetCDF file
+ \param[out] data   Data read from file
+ 
+ \author Oliver Lemke
+ */
+void nca_get_data_longlong(const int ncid, const String& name, long long* data) {
+  int retval, varid;
+  if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
+    nca_error(retval, "nc_inq_varid(" + name + ")");
+  if ((retval = nc_get_var_longlong(ncid, varid, data)))
+    nca_error(retval, "nc_get_var(" + name + ")");
+}
+
 //! Read variable of type double from NetCDF file.
 /** 
  \param[in]  ncid   NetCDF file descriptor
@@ -418,7 +434,7 @@ void nca_get_data_ArrayOfIndex(const int ncid,
   aoi.resize(nelem);
   if (nelem) {
     Index* ind_arr = new Index[nelem];
-    nca_get_data_long(ncid, name, ind_arr);
+    nca_get_data_longlong(ncid, name, ind_arr);
     Index i = 0;
     for (ArrayOfIndex::iterator it = aoi.begin(); it != aoi.end(); it++, i++)
       *it = ind_arr[i];
@@ -545,7 +561,7 @@ bool nca_put_var_ArrayOfIndex(const int ncid,
     for (Index i = 0; i < a.nelem(); i++) ind_arr[i] = a[i];
 
     int retval;
-    if ((retval = nc_put_var_long(ncid, varid, ind_arr)))
+    if ((retval = nc_put_var_longlong(ncid, varid, ind_arr)))
       nca_error(retval, "nc_put_var");
 
     delete[] ind_arr;
