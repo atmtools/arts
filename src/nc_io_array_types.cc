@@ -34,6 +34,38 @@
 #include "nc_io.h"
 #include "nc_io_types.h"
 
+//=== ArrayOfIndex ==========================================================
+
+//! Reads a ArrayOfIndex from a NetCDF file
+/*!
+  \param ncf     NetCDF file descriptor
+  \param v       ArrayOfIndex
+*/
+void nca_read_from_file(const int ncid, ArrayOfIndex& v, const Verbosity&) {
+  Index nelem;
+  nelem = nc_get_dim(ncid, "nelem");
+
+  v.resize(nelem);
+  nca_get_data(ncid, "ArrayOfIndex", v.data());
+}
+
+//! Writes a ArrayOfIndex to a NetCDF file
+/*!
+  \param ncid    NetCDF file descriptor
+  \param v       ArrayOfIndex
+*/
+void nca_write_to_file(const int ncid, const ArrayOfIndex& v, const Verbosity&) {
+  int retval;
+  int ncdim, varid;
+  if ((retval = nc_def_dim(ncid, "nelem", v.nelem(), &ncdim)))
+    nca_error(retval, "nc_def_dim");
+  if ((retval = nc_def_var(ncid, "ArrayOfIndex", NC_INT64, 1, &ncdim, &varid)))
+    nca_error(retval, "nc_def_var");
+  if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
+  if ((retval = nc_put_var(ncid, varid, v.data())))
+    nca_error(retval, "nc_put_var");
+}
+
 //=== ArrayOfMatrix ==========================================================
 
 //! Reads an ArrayOfMatrix from a NetCDF file
