@@ -47,7 +47,7 @@ void nca_read_from_file(const int ncid, Matrix& m, const Verbosity&) {
   ncols = nc_get_dim(ncid, "ncols");
 
   m.resize(nrows, ncols);
-  nca_get_data_double(ncid, "Matrix", m.get_c_array());
+  nca_get_data(ncid, "Matrix", m.get_c_array());
 }
 
 //! Writes a Matrix to a NetCDF file
@@ -83,7 +83,7 @@ void nca_read_from_file(const int ncid, Tensor3& t, const Verbosity&) {
   ncols = nc_get_dim(ncid, "ncols");
 
   t.resize(npages, nrows, ncols);
-  nca_get_data_double(ncid, "Tensor3", t.get_c_array());
+  nca_get_data(ncid, "Tensor3", t.get_c_array());
 }
 
 //! Writes a Tensor3 to a NetCDF file
@@ -122,7 +122,7 @@ void nca_read_from_file(const int ncid, Tensor4& t, const Verbosity&) {
   ncols = nc_get_dim(ncid, "ncols");
 
   t.resize(nbooks, npages, nrows, ncols);
-  nca_get_data_double(ncid, "Tensor4", t.get_c_array());
+  nca_get_data(ncid, "Tensor4", t.get_c_array());
 }
 
 //! Writes a Tensor4 to a NetCDF file
@@ -164,7 +164,7 @@ void nca_read_from_file(const int ncid, Tensor5& t, const Verbosity&) {
   ncols = nc_get_dim(ncid, "ncols");
 
   t.resize(nshelves, nbooks, npages, nrows, ncols);
-  nca_get_data_double(ncid, "Tensor5", t.get_c_array());
+  nca_get_data(ncid, "Tensor5", t.get_c_array());
 }
 
 //! Writes a Tensor5 to a NetCDF file
@@ -204,7 +204,7 @@ void nca_read_from_file(const int ncid, Vector& v, const Verbosity&) {
   nelem = nc_get_dim(ncid, "nelem");
 
   v.resize(nelem);
-  nca_get_data_double(ncid, "Vector", v.get_c_array());
+  nca_get_data(ncid, "Vector", v.get_c_array());
 }
 
 //! Writes a Vector to a NetCDF file
