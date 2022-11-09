@@ -98,26 +98,27 @@ void nca_read_from_file(const String &filename, T &type,
 
   out2 << "  Reading " << efilename << '\n';
 
+  bool fail = false;
+  String fail_msg;
 #pragma omp critical(netcdf__critical_region)
   {
     int ncid;
     if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid)) {
-      ostringstream os;
-      os << "Error reading file: " << efilename << endl;
-      throw runtime_error(os.str());
+      fail = true;
+      fail_msg = "Error opening file. Does it exists?";
+    } else {
+      try {
+        nca_read_from_file(ncid, type, verbosity);
+      } catch (const std::runtime_error &e) {
+        fail = true;
+        fail_msg = e.what();
+      }
+      nc_close(ncid);
     }
-
-    try {
-      nca_read_from_file(ncid, type, verbosity);
-    } catch (const std::runtime_error &e) {
-      ostringstream os;
-      os << "Error reading file: " << efilename << endl;
-      os << e.what() << endl;
-      throw runtime_error(os.str());
-    }
-
-    nc_close(ncid);
   }
+
+  if (fail)
+    ARTS_USER_ERROR("Error reading file: ", efilename, '\n', fail_msg);
 }
 
 //! Writes a variable to a NetCDF file
@@ -137,26 +138,27 @@ void nca_write_to_file(const String &filename, const T &type,
 
   out2 << "  Writing " << efilename << '\n';
 
+  bool fail = false;
+  String fail_msg;
 #pragma omp critical(netcdf__critical_region)
   {
     int ncid;
     if (nc_create(efilename.c_str(), NC_CLOBBER | NC_NETCDF4, &ncid)) {
-      ostringstream os;
-      os << "Error writing file: " << efilename << endl;
-      throw runtime_error(os.str());
+      fail = true;
+      fail_msg = "Error opening file for writing.";
+    } else {
+      try {
+        nca_write_to_file(ncid, type, verbosity);
+      } catch (const std::runtime_error &e) {
+        fail = true;
+        fail_msg = e.what();
+      }
+      nc_close(ncid);
     }
-
-    try {
-      nca_write_to_file(ncid, type, verbosity);
-    } catch (const std::runtime_error &e) {
-      ostringstream os;
-      os << "Error writing file: " << efilename << endl;
-      os << e.what() << endl;
-      throw runtime_error(os.str());
-    }
-
-    nc_close(ncid);
   }
+
+  if (fail)
+    ARTS_USER_ERROR("Error writing file: ", efilename, '\n', fail_msg);
 }
 
 //! Define NetCDF dimension.
@@ -639,9 +641,7 @@ bool nca_put_var(const int ncid, const int varid, const Tensor4 &t) {
  */
 
 void nca_error(const int e, const std::string_view s) {
-  ostringstream os;
-  os << "NetCDF error: " << s << ", " << e;
-  throw runtime_error(os.str());
+  ARTS_USER_ERROR("NetCDF error: ", s, ", ", e, "\nCheck your input file.");
 }
 
 // We can't do the instantiation at the beginning of this file, because the
