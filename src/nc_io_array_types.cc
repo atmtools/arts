@@ -34,6 +34,38 @@
 #include "nc_io.h"
 #include "nc_io_types.h"
 
+//=== ArrayOfIndex ==========================================================
+
+//! Reads a ArrayOfIndex from a NetCDF file
+/*!
+  \param ncf     NetCDF file descriptor
+  \param v       ArrayOfIndex
+*/
+void nca_read_from_file(const int ncid, ArrayOfIndex& v, const Verbosity&) {
+  Index nelem;
+  nelem = nca_get_dim(ncid, "nelem");
+
+  v.resize(nelem);
+  nca_get_data(ncid, "ArrayOfIndex", v.data());
+}
+
+//! Writes a ArrayOfIndex to a NetCDF file
+/*!
+  \param ncid    NetCDF file descriptor
+  \param v       ArrayOfIndex
+*/
+void nca_write_to_file(const int ncid, const ArrayOfIndex& v, const Verbosity&) {
+  int retval;
+  int ncdim, varid;
+  if ((retval = nc_def_dim(ncid, "nelem", v.nelem(), &ncdim)))
+    nca_error(retval, "nc_def_dim");
+  if ((retval = nc_def_var(ncid, "ArrayOfIndex", NC_INT64, 1, &ncdim, &varid)))
+    nca_error(retval, "nc_def_var");
+  if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
+  if ((retval = nc_put_var(ncid, varid, v.data())))
+    nca_error(retval, "nc_put_var");
+}
+
 //=== ArrayOfMatrix ==========================================================
 
 //! Reads an ArrayOfMatrix from a NetCDF file
@@ -43,17 +75,17 @@
 */
 void nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&) {
   Index nelem;
-  nelem = nc_get_dim(ncid, "nelem");
+  nelem = nca_get_dim(ncid, "nelem");
 
   long* vnrows = new long[nelem];
   long* vncols = new long[nelem];
   aom.resize(nelem);
-  nca_get_data_long(ncid, "Matrix_nrows", vnrows);
-  nca_get_data_long(ncid, "Matrix_ncols", vncols);
+  nca_get_data(ncid, "Matrix_nrows", vnrows);
+  nca_get_data(ncid, "Matrix_ncols", vncols);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++) {
     aom[i].resize(vnrows[i], vncols[i]);
-    nca_get_dataa_double(ncid,
+    nca_get_data(ncid,
                          "ArrayOfMatrix",
                          pos,
                          vnrows[i] * vncols[i],
@@ -91,10 +123,10 @@ void nca_write_to_file(const int ncid,
     nca_error(retval, "nc_def_dim");
 
   if ((retval =
-           nc_def_var(ncid, "Matrix_nrows", NC_LONG, 1, &ncdim, &varid_nrows)))
+           nc_def_var(ncid, "Matrix_nrows", NC_INT64, 1, &ncdim, &varid_nrows)))
     nca_error(retval, "nc_def_var");
   if ((retval =
-           nc_def_var(ncid, "Matrix_ncols", NC_LONG, 1, &ncdim, &varid_ncols)))
+           nc_def_var(ncid, "Matrix_ncols", NC_INT64, 1, &ncdim, &varid_ncols)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_def_var(
            ncid, "ArrayOfMatrix", NC_DOUBLE, 1, &ncdim_total, &varid)))
@@ -129,15 +161,15 @@ void nca_write_to_file(const int ncid,
 */
 void nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&) {
   Index nelem;
-  nelem = nc_get_dim(ncid, "nelem");
+  nelem = nca_get_dim(ncid, "nelem");
 
   long* vnelem = new long[nelem];
   aov.resize(nelem);
-  nca_get_data_long(ncid, "Vector_nelem", vnelem);
+  nca_get_data(ncid, "Vector_nelem", vnelem);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++) {
     aov[i].resize(vnelem[i]);
-    nca_get_dataa_double(
+    nca_get_data(
         ncid, "ArrayOfVector", pos, vnelem[i], aov[i].get_c_array());
     pos += vnelem[i];
   }
@@ -169,7 +201,7 @@ void nca_write_to_file(const int ncid,
     nca_error(retval, "nc_def_dim");
 
   if ((retval =
-           nc_def_var(ncid, "Vector_nelem", NC_LONG, 1, &ncdim, &varid_nelem)))
+           nc_def_var(ncid, "Vector_nelem", NC_INT64, 1, &ncdim, &varid_nelem)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_def_var(
            ncid, "ArrayOfVector", NC_DOUBLE, 1, &ncdim_total, &varid)))
@@ -197,12 +229,12 @@ void nca_write_to_file(const int ncid,
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
 
-#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                   \
-  void nca_write_to_file(const int, const what&, const Verbosity&) {          \
-    throw runtime_error("NetCDF support not yet implemented for this type!"); \
-  }                                                                           \
-  void nca_read_from_file(const int, what&, const Verbosity&) {               \
-    throw runtime_error("NetCDF support not yet implemented for this type!"); \
+#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                    \
+  void nca_write_to_file(const int, const what &, const Verbosity &) {         \
+    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
+  }                                                                            \
+  void nca_read_from_file(const int, what &, const Verbosity &) {              \
+    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
   }
 
 //==========================================================================

@@ -65,6 +65,7 @@ TMPL_NC_READ_WRITE_FILE(GasAbsLookup)
 
 //=== Array Types ==========================================================
 
+TMPL_NC_READ_WRITE_FILE(ArrayOfIndex)
 TMPL_NC_READ_WRITE_FILE(ArrayOfMatrix)
 TMPL_NC_READ_WRITE_FILE(ArrayOfVector)
 

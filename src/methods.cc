@@ -16217,7 +16217,7 @@ where N>=0 and the species name is something line "H2O".
       OUT(),
       GOUT("out"),
       GOUT_TYPE("Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
-                "ArrayOfMatrix, GasAbsLookup"),
+                "ArrayOfIndex, ArrayOfMatrix, GasAbsLookup"),
       GOUT_DESC("Variable to be read."),
       IN(),
       GIN("filename"),
@@ -22333,7 +22333,7 @@ where N>=0 and the species name is something line "H2O".
       IN(),
       GIN("in", "filename"),
       GIN_TYPE("Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
-               "ArrayOfMatrix, GasAbsLookup",
+               "ArrayOfIndex, ArrayOfMatrix, GasAbsLookup",
                "String"),
       GIN_DEFAULT(NODEF, ""),
       GIN_DESC("Variable to be saved.", "Name of the NetCDF file."),
