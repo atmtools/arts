@@ -48,8 +48,9 @@
 */
 void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&) {
   nca_get_data(ncid, "species", gal.species, true);
-  if (!gal.species.nelem())
-    ARTS_USER_ERROR("No species found in lookup table file!");
+
+  ARTS_USER_ERROR_IF(!gal.species.nelem(),
+                     "No species found in lookup table file!");
 
   nca_get_data(
       ncid, "nonlinear_species", gal.nonlinear_species, true);
@@ -81,53 +82,42 @@ void nca_write_to_file(const int ncid,
   Index species_max_strlen = 0;
   char* species_strings = nullptr;
 
-  if (gal.species.nelem()) {
-    long species_total_nelems = 0;
-    for (Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++) {
-      Index nspecies_nelem = gal.species[nspecies].nelem();
-      species_total_nelems += nspecies_nelem;
-      species_count[nspecies] = nspecies_nelem;
+  ARTS_USER_ERROR_IF(!gal.species.nelem(),
+                     "Current lookup table contains no species!");
 
-      for (const auto & it : gal.species[nspecies])
-        if (it.Name().nelem() > species_max_strlen)
-          species_max_strlen = it.Name().nelem();
-    }
-    species_max_strlen++;
+  long species_total_nelems = 0;
+  for (Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++) {
+    Index nspecies_nelem = gal.species[nspecies].nelem();
+    species_total_nelems += nspecies_nelem;
+    species_count[nspecies] = nspecies_nelem;
 
-    species_strings = new char[species_total_nelems * species_max_strlen];
-    memset(species_strings, 0, species_total_nelems * species_max_strlen);
-
-    Index str_i = 0;
-    for (const auto & species : gal.species)
-      for (const auto & it2 : species) {
-        memccpy(&species_strings[str_i],
-                it2.Name().c_str(),
-                0,
-                species_max_strlen);
-        str_i += species_max_strlen;
-      }
-
-    species_count_varid =
-        nca_def_ArrayOfIndex(ncid, "species_count", species_count);
-
-    std::array<int, 2> species_strings_ncdims;
-    nca_def_dim(ncid,
-                "species_strings_nelem",
-                species_total_nelems,
-                &species_strings_ncdims[0]);
-    nca_def_dim(ncid,
-                "species_strings_length",
-                species_max_strlen,
-                &species_strings_ncdims[1]);
-    nca_def_var(ncid,
-                "species_strings",
-                NC_CHAR,
-                2,
-                &species_strings_ncdims[0],
-                &species_strings_varid);
-  } else {
-    ARTS_USER_ERROR("Current lookup table contains no species!");
+    for (const auto &it : gal.species[nspecies])
+      if (it.Name().nelem() > species_max_strlen)
+        species_max_strlen = it.Name().nelem();
   }
+  species_max_strlen++;
+
+  species_strings = new char[species_total_nelems * species_max_strlen];
+  memset(species_strings, 0, species_total_nelems * species_max_strlen);
+
+  Index str_i = 0;
+  for (const auto &species : gal.species)
+    for (const auto &it2 : species) {
+      memccpy(&species_strings[str_i], it2.Name().c_str(), 0,
+              species_max_strlen);
+      str_i += species_max_strlen;
+    }
+
+  species_count_varid =
+      nca_def_ArrayOfIndex(ncid, "species_count", species_count);
+
+  std::array<int, 2> species_strings_ncdims;
+  nca_def_dim(ncid, "species_strings_nelem", species_total_nelems,
+              &species_strings_ncdims[0]);
+  nca_def_dim(ncid, "species_strings_length", species_max_strlen,
+              &species_strings_ncdims[1]);
+  nca_def_var(ncid, "species_strings", NC_CHAR, 2, &species_strings_ncdims[0],
+              &species_strings_varid);
 
   // Define dimensions and variables
   int nonlinear_species_varid =
@@ -168,12 +158,12 @@ void nca_write_to_file(const int ncid,
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
 
-#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                   \
-  void nca_write_to_file(const int, const what&, const Verbosity&) {          \
-    throw runtime_error("NetCDF support not yet implemented for this type!"); \
-  }                                                                           \
-  void nca_read_from_file(const int, what&, const Verbosity&) {               \
-    throw runtime_error("NetCDF support not yet implemented for this type!"); \
+#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                    \
+  void nca_write_to_file(const int, const what &, const Verbosity &) {         \
+    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
+  }                                                                            \
+  void nca_read_from_file(const int, what &, const Verbosity &) {              \
+    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
   }
 
 TMPL_NC_READ_WRITE_FILE_DUMMY(Agenda)
