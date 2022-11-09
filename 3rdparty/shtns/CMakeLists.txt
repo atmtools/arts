@@ -1,13 +1,29 @@
+add_subdirectory(SHT)
+
 file(GLOB_RECURSE shtns_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
 foreach(f IN LISTS shtns_files)
   configure_file(${f} ${f} COPYONLY)
 endforeach()
 
-set(SHTNS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/libshtns.a CACHE FILEPATH INTERNAL FORCE)
-add_custom_command(
-  OUTPUT libshtns.a
-  COMMAND ./configure CFLAGS=-fpic ENABLE_MEM=no
-  COMMAND make
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+include_directories (
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+add_library(
+  shtns
+  sht_init.c
+  sht_kernels_a.c
+  sht_kernels_s.c
+  sht_odd_nlat.c
+  sht_fly.c
+  sht_omp.c
   )
-add_custom_target(libshtns DEPENDS ${SHTNS_LIBRARY})
+target_compile_options(
+  shtns
+  PRIVATE
+  -O2 -march=native -mtune=skylake -O3 -ffast-math
+  -fopenmp-simd -fno-tree-loop-distribute-patterns -mno-vzeroupper
+  -std=gnu99 -D_GNU_SOURCE -DSHTNS_GIT=\"ARTS\"
+)
+add_dependencies(shtns shtns_files)
+

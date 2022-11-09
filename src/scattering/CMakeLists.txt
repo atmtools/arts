@@ -12,10 +12,10 @@ add_library(
   particle.cpp
   particle_habit.cpp
 )
-add_dependencies(scattering libshtns)
-target_link_libraries(scattering ${SHTNS_LIBRARY})
+add_dependencies(scattering shtns)
+target_link_libraries(scattering shtns)
 
 add_executable (test_scattering_math test_math.cpp)
 
 add_executable (test_sht test_sht.cpp)
-target_link_libraries(test_sht scattering ${SHTNS_LIBRARY} fftw3)
+target_link_libraries(test_sht scattering shtns fftw3)

@@ -36,8 +36,8 @@ Scalar fac(int n) {
 GridCoeffs evaluate_spherical_harmonic(
     int l,
     int m,
-    Vector<double> lons,
-    Vector<double> lats
+    scattering::math::Vector<double> lons,
+    scattering::math::Vector<double> lats
 ) {
 
     auto n_lon = lons.cols();
@@ -46,7 +46,7 @@ GridCoeffs evaluate_spherical_harmonic(
     double norm = sqrt((2 * l + 1.0) / (4.0 * M_PI));
     norm *= sqrt(fac<double>(l - m) / fac<double>(l + m));
 
-    Matrix<double> results{n_lon, n_lat};
+    scattering::math::Matrix<double> results{n_lon, n_lat};
     for (int i = 0; i < n_lon; ++i) {
         for (int j = 0; j < n_lat; ++j) {
             auto clon = cos(m * lons[i]);
