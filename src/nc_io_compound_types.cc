@@ -49,7 +49,7 @@
 void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&) {
   nca_get_data(ncid, "species", gal.species, true);
   if (!gal.species.nelem())
-    throw runtime_error("No species found in lookup table file!");
+    ARTS_USER_ERROR("No species found in lookup table file!");
 
   nca_get_data(
       ncid, "nonlinear_species", gal.nonlinear_species, true);
@@ -126,7 +126,7 @@ void nca_write_to_file(const int ncid,
                 &species_strings_ncdims[0],
                 &species_strings_varid);
   } else {
-    throw runtime_error("Current lookup table contains no species!");
+    ARTS_USER_ERROR("Current lookup table contains no species!");
   }
 
   // Define dimensions and variables
