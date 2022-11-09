@@ -88,9 +88,8 @@ int nca_def_Matrix(const int ncid, const String& name, const Matrix& m);
 
 int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t);
 
-Index nc_get_dim(const int ncid,
-                 const String& name,
-                 const bool noerror = false);
+Index nca_get_dim(const int ncid, const String &name,
+                  const bool noerror = false);
 
 void nca_get_data(const int ncid, const String& name, int* data);
 

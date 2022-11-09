@@ -293,7 +293,7 @@ int nca_def_Tensor4(const int ncid, const String &name, const Tensor4 &t) {
 
  \author Oliver Lemke
  */
-Index nc_get_dim(const int ncid, const String &name, const bool noerror) {
+Index nca_get_dim(const int ncid, const String &name, const bool noerror) {
   int retval, dimid;
   size_t ndim;
   if ((retval = nc_inq_dimid(ncid, name.c_str(), &dimid))) {
@@ -421,7 +421,7 @@ void nca_get_data(const int ncid, const String &name, char *data) {
  */
 void nca_get_data(const int ncid, const String &name, ArrayOfIndex &aoi,
                   const bool noerror) {
-  Index nelem = nc_get_dim(ncid, name + "_nelem", noerror);
+  Index nelem = nca_get_dim(ncid, name + "_nelem", noerror);
   aoi.resize(nelem);
   if (nelem) {
     nca_get_data(ncid, name, aoi.data());
@@ -445,9 +445,9 @@ void nca_get_data(const int ncid, const String &name,
   aast.resize(species_count.nelem());
   if (species_count.nelem()) {
     Index species_strings_nelem =
-        nc_get_dim(ncid, name + "_strings_nelem", noerror);
+        nca_get_dim(ncid, name + "_strings_nelem", noerror);
     Index species_strings_length =
-        nc_get_dim(ncid, name + "_strings_length", noerror);
+        nca_get_dim(ncid, name + "_strings_length", noerror);
     char *species_strings =
         new char[species_strings_nelem * species_strings_length];
     if (species_count.nelem())
@@ -478,7 +478,7 @@ void nca_get_data(const int ncid, const String &name,
  */
 void nca_get_data(const int ncid, const String &name, Vector &v,
                   const bool noerror) {
-  Index nelem = nc_get_dim(ncid, name + "_nelem", noerror);
+  Index nelem = nca_get_dim(ncid, name + "_nelem", noerror);
   v.resize(nelem);
   if (nelem)
     nca_get_data(ncid, name, v.get_c_array());
@@ -496,8 +496,8 @@ void nca_get_data(const int ncid, const String &name, Vector &v,
  */
 void nca_get_data(const int ncid, const String &name, Matrix &m,
                   const bool noerror) {
-  Index nrows = nc_get_dim(ncid, name + "_nrows", noerror);
-  Index ncols = nc_get_dim(ncid, name + "_ncols", noerror);
+  Index nrows = nca_get_dim(ncid, name + "_nrows", noerror);
+  Index ncols = nca_get_dim(ncid, name + "_ncols", noerror);
   m.resize(nrows, ncols);
   if (nrows && ncols)
     nca_get_data(ncid, name, m.get_c_array());
@@ -515,10 +515,10 @@ void nca_get_data(const int ncid, const String &name, Matrix &m,
  */
 void nca_get_data(const int ncid, const String &name, Tensor4 &t,
                   const bool noerror) {
-  Index nbooks = nc_get_dim(ncid, name + "_nbooks", noerror);
-  Index npages = nc_get_dim(ncid, name + "_npages", noerror);
-  Index nrows = nc_get_dim(ncid, name + "_nrows", noerror);
-  Index ncols = nc_get_dim(ncid, name + "_ncols", noerror);
+  Index nbooks = nca_get_dim(ncid, name + "_nbooks", noerror);
+  Index npages = nca_get_dim(ncid, name + "_npages", noerror);
+  Index nrows = nca_get_dim(ncid, name + "_nrows", noerror);
+  Index ncols = nca_get_dim(ncid, name + "_ncols", noerror);
   t.resize(nbooks, npages, nrows, ncols);
   if (nbooks && npages && nrows && ncols)
     nca_get_data(ncid, name, t.get_c_array());

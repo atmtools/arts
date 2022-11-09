@@ -43,7 +43,7 @@
 */
 void nca_read_from_file(const int ncid, ArrayOfIndex& v, const Verbosity&) {
   Index nelem;
-  nelem = nc_get_dim(ncid, "nelem");
+  nelem = nca_get_dim(ncid, "nelem");
 
   v.resize(nelem);
   nca_get_data(ncid, "ArrayOfIndex", v.data());
@@ -75,7 +75,7 @@ void nca_write_to_file(const int ncid, const ArrayOfIndex& v, const Verbosity&) 
 */
 void nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&) {
   Index nelem;
-  nelem = nc_get_dim(ncid, "nelem");
+  nelem = nca_get_dim(ncid, "nelem");
 
   long* vnrows = new long[nelem];
   long* vncols = new long[nelem];
@@ -161,7 +161,7 @@ void nca_write_to_file(const int ncid,
 */
 void nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&) {
   Index nelem;
-  nelem = nc_get_dim(ncid, "nelem");
+  nelem = nca_get_dim(ncid, "nelem");
 
   long* vnelem = new long[nelem];
   aov.resize(nelem);
