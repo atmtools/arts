@@ -5,10 +5,6 @@ foreach(f IN LISTS shtns_files)
   configure_file(${f} ${f} COPYONLY)
 endforeach()
 
-include_directories (
-  ${CMAKE_CURRENT_BINARY_DIR}
-)
-
 add_library(
   shtns
   sht_init.c
@@ -25,5 +21,7 @@ target_compile_options(
   -fopenmp-simd -fno-tree-loop-distribute-patterns -mno-vzeroupper
   -std=gnu99 -D_GNU_SOURCE -DSHTNS_GIT=\"ARTS\"
 )
-add_dependencies(shtns shtns_files)
+target_include_directories(shtns PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+add_dependencies(shtns shtns_generated_files)
 
