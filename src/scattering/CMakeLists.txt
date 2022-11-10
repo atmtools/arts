@@ -1,5 +1,4 @@
 include_directories (
-  ${CMAKE_CURRENT_SOURCE_DIR}
   ${FFTW_INCLUDE_DIR}
   ${ARTS_SOURCE_DIR}/3rdparty/shtns
   ${ARTS_SOURCE_DIR}/3rdparty/Eigen
@@ -17,7 +16,7 @@ add_library(
   particle_habit.cpp
 )
 add_dependencies(scattering shtns)
-target_link_libraries(scattering PUBLIC ${SHTNS_LIBRARY}  ${FFTW_LIBRARIES})
+target_link_libraries(scattering PUBLIC shtns  ${FFTW_LIBRARIES})
 
 # test executables
 add_executable (test_scattering_math test_math.cpp)
