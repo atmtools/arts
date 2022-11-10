@@ -115,7 +115,7 @@ if (ENABLE_PCH)
   target_precompile_headers(pyarts_cpp PRIVATE python_interface.h)
 endif()
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES} fftw3 netcdf)
+target_link_libraries(pyarts_cpp PUBLIC ${ALL_ARTS_LIBRARIES} ${FFTW_LIBRARIES} shtns netcdf)
 target_include_directories(pyarts_cpp PUBLIC
   ${ARTS_SOURCE_DIR}/src
   ${ARTS_SOURCE_DIR}/3rdparty/shtns
