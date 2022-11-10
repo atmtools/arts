@@ -29,7 +29,6 @@
 
 #include <sstream>
 #include <string>
-#include <tuple>
 
 /*! Take all arguments and turn to string by their operator<<() */
 template <typename ... Args>
@@ -80,19 +79,20 @@ std::string var_string(Args&& ... args) {
 #define ARTS_NOEXCEPT noexcept(false)
 
 /*! Condition should be true to pass internal check */
-#define ARTS_ASSERT(condition, ...) {     \
-  if (not (condition)) {                  \
-    throw std::runtime_error(             \
-    var_string("Failed Internal Assert: " \
-        #condition "\n" "This is a bug! " \
-        "Bug is found at:\n\t" __FILE__   \
-        ":", __LINE__, "\nPlease contact" \
-        " ARTS developers so we can fix " \
-        "our error(s) via:\n\t"           \
-        "github.com/atmtools/arts\n") +   \
-    var_string(__VA_ARGS__)               \
-    );                                    \
-  } }
+#define ARTS_ASSERT(condition, ...)                                            \
+  {                                                                            \
+    if (not(condition)) {                                                      \
+      throw std::runtime_error(                                                \
+          var_string("Failed Internal Assert: " #condition "\n"                \
+                     "This is a bug! "                                         \
+                     "Bug is found at:\n\t" __FILE__ ":",                      \
+                     __LINE__,                                                 \
+                     "\nPlease contact"                                        \
+                     " ARTS developers so we can fix "                         \
+                     "our error(s) via:\n\t"                                   \
+                     "github.com/atmtools/arts\n" __VA_OPT__(, __VA_ARGS__))); \
+    }                                                                          \
+  }
 
 #else
 
@@ -131,34 +131,34 @@ std::string var_string(Args&& ... args) {
 #define ARTS_USER_NOEXCEPT noexcept(false)
 
 /*! Condition should be false to pass external check */
-#define ARTS_USER_ERROR_IF(condition, ...) {  \
-  static_assert(std::tuple_size<decltype(     \
-    std::make_tuple(__VA_ARGS__))>::value,    \
-    "Must have an error message in user-"     \
-    "facing code in " __FILE__);              \
-  if (condition) {                            \
-    throw std::runtime_error(                 \
-      var_string("User Error: " #condition    \
-        "\nError is found at:\n\t" __FILE__   \
-        ":", __LINE__, "\nPlease follow "     \
-        "these instructions to correct your " \
-        "error:\n") + var_string(__VA_ARGS__) \
-    );                                        \
-  } }
+#define ARTS_USER_ERROR_IF(condition, ...)                                     \
+  {                                                                            \
+    static_assert(false __VA_OPT__(or true),                                   \
+                  "Must have an error message in user-"                        \
+                  "facing code in " __FILE__);                                 \
+    if (condition) {                                                           \
+      throw std::runtime_error(var_string(                                     \
+          "User Error: " #condition "\nError is found at:\n\t" __FILE__ ":",   \
+          __LINE__,                                                            \
+          "\nPlease follow "                                                   \
+          "these instructions to correct your "                                \
+          "error:\n" __VA_OPT__(, __VA_ARGS__)));                              \
+    }                                                                          \
+  }
 
 /*! An error has occured, will throw the error */
-#define ARTS_USER_ERROR(...) {                \
-  static_assert(std::tuple_size<decltype(     \
-    std::make_tuple(__VA_ARGS__))>::value,    \
-    "Must have an error message in user-"     \
-    "facing code in " __FILE__);              \
-    throw std::runtime_error(                 \
-      var_string("User Error:\n"              \
-        "Error is found at:\n\t" __FILE__     \
-        ":", __LINE__, "\nPlease follow "     \
-        "these instructions to correct your " \
-        "error:\n") + var_string(__VA_ARGS__) \
-    );                                        \
+#define ARTS_USER_ERROR(...)                                                   \
+  {                                                                            \
+    static_assert(false __VA_OPT__(or true),                                   \
+                  "Must have an error message in user-"                        \
+                  "facing code in " __FILE__);                                 \
+    throw std::runtime_error(                                                  \
+        var_string("User Error:\n"                                             \
+                   "Error is found at:\n\t" __FILE__ ":",                      \
+                   __LINE__,                                                   \
+                   "\nPlease follow "                                          \
+                   "these instructions to correct your "                       \
+                   "error:\n" __VA_OPT__(, __VA_ARGS__)));                     \
   }
 
 #endif  // NO_ARTS_USER_ERRORS
