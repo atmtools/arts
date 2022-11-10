@@ -194,7 +194,7 @@ jobs:
             echo "USEFORTRAN=0" >> $GITHUB_ENV
           fi
 
-          brew install glew glfw netcdf
+          brew install glew glfw fftw netcdf
 
       - name: Configure (Linux / macOS)
         if: runner.os == 'Linux' || runner.os == 'macOS'
