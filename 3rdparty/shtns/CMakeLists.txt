@@ -17,7 +17,7 @@ add_library(
 target_compile_options(
   shtns
   PRIVATE
-  -O2 -march=native -mtune=skylake -O3 -ffast-math
+  -march=native -O3 -ffast-math
   -fopenmp-simd  -mno-vzeroupper
   -std=gnu99 -D_GNU_SOURCE -DSHTNS_GIT=\"ARTS\"
 )
