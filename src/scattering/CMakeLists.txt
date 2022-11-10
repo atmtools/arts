@@ -21,4 +21,4 @@ target_link_libraries(scattering PUBLIC shtns  ${FFTW_LIBRARIES})
 # test executables
 add_executable (test_scattering_math test_math.cpp)
 add_executable (test_sht test_sht.cpp)
-target_link_libraries(test_sht scattering shtns fftw3)
+target_link_libraries(test_sht scattering shtns ${FFTW_LIBRARIES})
