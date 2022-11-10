@@ -5,8 +5,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __ARTS_SCATTERING_PARTICLE_HABIT__
-#define __ARTS_SCATTERING_PARTICLE_HABIT__
+#pragma once
 
 #include <random>
 
@@ -477,5 +476,3 @@ private:
 };
 
 }
-
-#endif

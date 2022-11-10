@@ -5,8 +5,7 @@
  *
  * @author Simon Pfreundschuh, 2020-2022
  */
-#ifndef __ARTS_SCATTERING_MATHS__
-#define __ARTS_SCATTERING_MATHS__
+#pragma once
 
 #include <Eigen/CXX11/Tensor>
 #include <Eigen/Core>
@@ -750,5 +749,3 @@ inline EigenConstTensorMap<5> const to_eigen(const Tensor5 &tensor) {
   return EigenConstTensorMap<5>{tensor.get_c_array(), dimensions};
 }
 }  // namespace scattering
-
-#endif

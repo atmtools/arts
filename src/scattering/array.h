@@ -1,5 +1,4 @@
-#ifndef __ARTS_SCATTERING_ARRAY__
-#define __ARTS_SCATTERING_ARRAY__
+#pragma once
 
 #include <array>
 #include <utility>
@@ -80,5 +79,3 @@ std::array<T, N - M> take_from(std::array<T, N> in) {
 }
 
 }  // namespace scattering
-
-#endif

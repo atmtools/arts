@@ -9,8 +9,7 @@
  *
  * Copyright: Simon Pfreundschuh, 2020
  */
-#ifndef __NETCDF_HPP__
-#define __NETCDF_HPP__
+#pragma once
 
 #include <map>
 #include <memory>
@@ -824,4 +823,3 @@ class File : public Group {
 };
 
 }  // namespace netcdf4
-#endif

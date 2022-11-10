@@ -27,8 +27,7 @@
 
    Provides an interface to the SHTns library.
 */
-#ifndef __SCATTERING_SHT__
-#define __SCATTERING_SHT__
+#pragma once
 
 #include <fftw3.h>
 #include <shtns.h>
@@ -482,5 +481,3 @@ class SHTProvider {
 
 }  // namespace sht
 }  // namespace scattering
-
-#endif

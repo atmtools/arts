@@ -5,8 +5,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __ARTS_SCATTERING_PARTICLE__
-#define __ARTS_SCATTERING_PARTICLE__
+#pragma once
 
 #include <scattering/single_scattering_data.h>
 
@@ -614,4 +613,3 @@ class Particle {
 };
 
 }  // namespace scattering
-#endif

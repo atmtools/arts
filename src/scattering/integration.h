@@ -11,8 +11,7 @@
 
 #include "scattering/math.h"
 
-#ifndef __SCATTERING_INTEGRATION__
-#define __SCATTERING_INTEGRATION__
+#pragma once
 
 namespace scattering {
 namespace detail {
@@ -581,4 +580,3 @@ Scalar integrate_angles(math::ConstMatrixRef<Scalar> data,
 }
 
 }  // namespace scattering
-#endif

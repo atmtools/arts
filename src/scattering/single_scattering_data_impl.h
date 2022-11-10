@@ -9,8 +9,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __SCATTERING_SINGLE_SCATTERING_DATA_IMPL__
-#define __SCATTERING_SINGLE_SCATTERING_DATA_IMPL__
+#pragma once
 
 #include <scattering/math.h>
 #include <scattering/interpolation.h>
@@ -1994,5 +1993,3 @@ SingleScatteringDataSpectral<Scalar>::to_spectral(Index l_max,
 }
 
 }  // namespace scattering
-
-#endif

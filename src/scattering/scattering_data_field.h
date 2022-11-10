@@ -23,8 +23,7 @@
  *
  * @author Simon Pfreundschuh, 2020 - 2022
  */
-#ifndef __SCATTERING_SCATTERING_DATA_FIELD__
-#define __SCATTERING_SCATTERING_DATA_FIELD__
+#pragma once
 
 #include <scattering/math.h>
 #include <scattering/integration.h>
@@ -2155,5 +2154,3 @@ ScatteringDataFieldFullySpectral<Scalar>::to_spectral() const {
 }
 
 }  // namespace scattering
-
-#endif

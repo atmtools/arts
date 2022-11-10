@@ -7,8 +7,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __ARTS_SCATTERING_STOKES__
-#define __ARTS_SCATTERING_STOKES__
+#pragma once
 
 #include "scattering/math.h"
 #include "scattering/scattering_data_field.h"
@@ -1260,4 +1259,3 @@ class AbsorptionVector : public Base {
 
 }  // namespace stokes
 }  // namespace scattering
-#endif

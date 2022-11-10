@@ -5,8 +5,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __SCATTERING_ARTS_SSDB__
-#define __SCATTERING_ARTS_SSDB__
+#pragma once
 
 #include <regex>
 #include <set>
@@ -533,4 +532,3 @@ private:
 
 }  // namespace arts_ssdb
 }
-#endif

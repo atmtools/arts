@@ -10,8 +10,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __ARTS_SCATTERING_SINGLE_SCATTERING_DATA__
-#define __ARTS_SCATTERING_SINGLE_SCATTERING_DATA__
+#pragma once
 
 #include <scattering/single_scattering_data_impl.h>
 #include <cassert>
@@ -857,5 +856,3 @@ SingleScatteringData SingleScatteringData::to_spectral(Index l_max,
 }
 
 }  // namespace scattering
-
-#endif

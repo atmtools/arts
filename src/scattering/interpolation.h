@@ -5,8 +5,7 @@
  *
  * @author Simon Pfreundschuh, 2020
  */
-#ifndef __ARTS_SCATTERING_INTERPOLATION__
-#define __ARTS_SCATTERING_INTERPOLATION__
+#pragma once
 
 #include <algorithm>
 #include <chrono>
@@ -352,10 +351,10 @@ __attribute__((always_inline)) inline
 //
 /** Regular grid interpolator.
  *
- * Piecewise-linear interpolator on regular grids.
+ * Piecewise-linear interpolation on the N-first axes of a given tensor.
  *
  * @tparam Tensor The Eigen tensor type to interpolate.
- * @tparam degree Along how many dimensions to interpolate.
+ * @tparam degree The number of axes along which to interpolate.
  */
 template <typename Tensor, size_t degree, typename Vector>
 class RegularGridInterpolator {
@@ -787,5 +786,3 @@ downsample_dimension(const TensorType& input,
 }
 
 }  // Namespace scattering
-
-#endif
