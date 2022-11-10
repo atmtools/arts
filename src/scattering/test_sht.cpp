@@ -4,8 +4,7 @@
 #include <scattering/sht.h>
 
 
-using namespace scattering::sht;
-using namespace scattering::math;
+using namespace scattering;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper functions
@@ -89,8 +88,8 @@ GridCoeffs evaluate_spherical_harmonic(
     return results;
 }
 
-SpectralCoeffs random_spectral_coeffs(Index l_max, Index m_max) {
-    SHT sht{l_max, m_max};
+SpectralCoeffs random_spectral_coeffs(math::Index l_max, math::Index m_max) {
+    sht::SHT sht{l_max, m_max};
     auto n_coeffs = sht.get_n_spectral_coeffs();
     SpectralCoeffs coeffs = SpectralCoeffs::Random(1, n_coeffs);
     // Imaginary part of coeffs with m == 0 must be 0.
@@ -110,7 +109,7 @@ SpectralCoeffs random_spectral_coeffs(Index l_max, Index m_max) {
  */
 bool test_transform_harmonics() {
 
-    auto sht = SHT{5, 5, 32, 32};
+    auto sht = sht::SHT{5, 5, 32, 32};
     auto lons = sht.get_longitude_grid();
     auto lats = sht.get_latitude_grid();
     auto spatial_coeffs = sht.get_spatial_coeffs();
@@ -134,7 +133,7 @@ bool test_transform_harmonics() {
                 } else {
                     diff = std::abs(spectral_coeffs[i]);
                 }
-                if (!small(diff)) {
+                if (!math::small(diff)) {
                     return false;
                 }
             }
@@ -153,12 +152,12 @@ bool test_symmetry(int n_trials) {
 
     for (int i = 0; i < n_trials; ++i) {
 
-        auto sht_v = SHT{16, 16, 34, 34};
+        auto sht_v = sht::SHT{16, 16, 34, 34};
         SpectralCoeffs v = random_spectral_coeffs(16, 16);
         auto v_spat = sht_v.synthesize(v);
         SpectralCoeffs v_ref = sht_v.transform(v_spat);
         auto diff = (v_ref - v).cwiseAbs().maxCoeff();
-        if (!small(diff)) {
+        if (!math::small(diff)) {
             return false;
         }
     }
@@ -175,19 +174,19 @@ bool test_add_coefficients(int n_trials) {
 
     for (int i = 0; i < n_trials; ++i) {
 
-      auto sht_w = SHT{8, 8, 34, 34};
-      auto sht_v = SHT{16, 16, 34, 34};
+        auto sht_w = sht::SHT{8, 8, 34, 34};
+        auto sht_v = sht::SHT{16, 16, 34, 34};
 
       SpectralCoeffs v = random_spectral_coeffs(16, 16);
       SpectralCoeffs w = random_spectral_coeffs(8, 8);
-      SpectralCoeffs vw = SHT::add_coeffs(sht_v, v, sht_w, w);
+      SpectralCoeffs vw = sht::SHT::add_coeffs(sht_v, v, sht_w, w);
 
       auto v_spat = sht_v.synthesize(v);
       auto w_spat = sht_w.synthesize(w);
       SpectralCoeffs vw_ref = sht_v.transform(v_spat + w_spat);
 
       auto diff = (vw_ref - vw).cwiseAbs().maxCoeff();
-      if (!small(diff)) {
+      if (!math::small(diff)) {
           return false;
       }
     }
