@@ -1,4 +1,5 @@
 #include <py_auto_interface.h>
+#include <pybind11/eigen.h>
 #include <scattering/eigen_tensor.h>
 #include <scattering/sht.h>
 #include <scattering/single_scattering_data.h>

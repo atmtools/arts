@@ -272,6 +272,9 @@ if (ENABLE_NETCDF)
   endif()
 endif (ENABLE_NETCDF)
 
+########## FFTW #########
+include(FindFFTW)
+
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)

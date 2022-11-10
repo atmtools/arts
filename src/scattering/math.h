@@ -14,6 +14,11 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
+#include <complex>
+
+#include <arts.h>
+#include <matpackI.h>
+#include <matpackVII.h>
 
 namespace scattering {
 namespace math {
@@ -642,6 +647,108 @@ Scalar save_acos(Scalar a, Scalar epsilon = 1e-6) {
 }
 
 }  // namespace math
+
+////////////////////////////////////////////////////////////////////////////////
+// Conversion between ARTS and Eigen
+////////////////////////////////////////////////////////////////////////////////
+
+using EigenVector = Eigen::Matrix<Numeric, 1, -1, Eigen::RowMajor>;
+using EigenVectorPtr = std::shared_ptr<EigenVector>;
+using EigenVectorMap = Eigen::Map<EigenVector>;
+using EigenConstVectorMap = Eigen::Map<const EigenVector>;
+
+inline EigenConstVectorMap to_eigen(const Vector &vector) {
+  return EigenConstVectorMap{vector.get_c_array(), vector.nelem()};
+}
+
+inline Vector to_arts(const EigenVector &vector) {
+  auto n = vector.size();
+  Vector result(n);
+  std::copy(vector.data(), vector.data() + n, result.get_c_array());
+  return result;
+}
+
+using EigenMatrix = Eigen::Matrix<Numeric, -1, -1, Eigen::RowMajor>;
+using EigenMatrixPtr = std::shared_ptr<EigenMatrix>;
+
+inline Matrix to_arts(const EigenMatrix &matrix) {
+    auto m = matrix.rows();
+    auto n = matrix.cols();
+    Matrix result(m, n);
+    std::copy(matrix.data(), matrix.data() + m * n, result.get_c_array());
+    return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Tensors
+////////////////////////////////////////////////////////////////////////////////
+
+template <int rank>
+using EigenTensor = Eigen::Tensor<Numeric, rank, Eigen::RowMajor>;
+template <int rank>
+using EigenComplexTensor = Eigen::Tensor<std::complex<Numeric>, rank, Eigen::RowMajor>;
+template <int rank>
+using EigenConstTensorMap = Eigen::TensorMap<const EigenTensor<rank>>;
+
+inline EigenConstTensorMap<7> to_eigen(const Tensor7 &tensor) {
+  std::array<Eigen::Index, 7> dimensions = {tensor.nlibraries(),
+                                            tensor.nvitrines(),
+                                            tensor.nshelves(),
+                                            tensor.nbooks(),
+                                            tensor.npages(),
+                                            tensor.nrows(),
+                                            tensor.ncols()};
+  return EigenConstTensorMap<7>{tensor.get_c_array(), dimensions};
+}
+
+inline EigenConstTensorMap<6> to_eigen(const Tensor6 &tensor) {
+    std::array<Eigen::Index, 6> dimensions = {tensor.nvitrines(),
+                                              tensor.nshelves(),
+                                              tensor.nbooks(),
+                                              tensor.npages(),
+                                              tensor.nrows(),
+                                              tensor.ncols()};
+    return EigenConstTensorMap<6>{tensor.get_c_array(), dimensions};
+}
+
+inline Tensor6 to_arts(const EigenTensor<6>& input) {
+    auto dimensions = input.dimensions();
+    Tensor6 result{dimensions[0], dimensions[1], dimensions[2],
+            dimensions[3], dimensions[4], dimensions[5],
+            };
+    std::copy(input.data(), input.data() + input.size(), result.get_c_array());
+    return result;
+}
+
+inline Tensor7 to_arts(const EigenTensor<7>& input) {
+    auto dimensions = input.dimensions();
+    Tensor7 result{dimensions[0], dimensions[1], dimensions[2],
+            dimensions[3], dimensions[4], dimensions[5], dimensions[6]
+            };
+    std::copy(input.data(), input.data() + input.size(), result.get_c_array());
+    return result;
+}
+
+
+inline EigenConstTensorMap<7> to_arts(const Tensor7 &tensor) {
+    std::array<Eigen::Index, 7> dimensions = {tensor.nlibraries(),
+                                              tensor.nvitrines(),
+                                              tensor.nshelves(),
+                                              tensor.nbooks(),
+                                              tensor.npages(),
+                                              tensor.nrows(),
+                                              tensor.ncols()};
+    return EigenConstTensorMap<7>{tensor.get_c_array(), dimensions};
+}
+
+inline EigenConstTensorMap<5> const to_eigen(const Tensor5 &tensor) {
+  std::array<Eigen::Index, 5> dimensions = {tensor.nshelves(),
+                                            tensor.nbooks(),
+                                            tensor.npages(),
+                                            tensor.nrows(),
+                                            tensor.ncols()};
+  return EigenConstTensorMap<5>{tensor.get_c_array(), dimensions};
+}
 }  // namespace scattering
 
 #endif
