@@ -645,6 +645,26 @@ Scalar save_acos(Scalar a, Scalar epsilon = 1e-6) {
   return acos(a);
 }
 
+/*** Indirect sorting of a vector.
+ *
+ * Indirectly sorts elements in a vector and returns a vector of
+ * sorted indices.
+ *
+ * @param v: The vector to sort.
+ * @return A vector containing the indices that sort the given
+ *    vector into ascending order.
+ */
+template <typename Scalar>
+    math::Vector<Eigen::Index> indirect_sort(const math::Vector<Scalar>& v) {
+    math::Vector<Eigen::Index> indices;
+    indices.setLinSpaced(v.size(), 0, v.size() - 1);
+
+    auto comp = [&v](size_t i, size_t j) { return v[i] < v[j]; };
+    std::sort(indices.begin(), indices.end(), comp);
+    return indices;
+}
+
+
 }  // namespace math
 
 ////////////////////////////////////////////////////////////////////////////////

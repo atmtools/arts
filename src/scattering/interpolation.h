@@ -177,26 +177,6 @@ struct Interpolator<Eigen::Map<Derived>, 1, 1> {
 //////////////////////////////////////////////////////////////////////
 // Interpolation-weight calculation
 //////////////////////////////////////////////////////////////////////
-
-/*** Indirect sorting of a vector.
- *
- * Indirectly sorts elements in a vector and returns a vector of
- * sorted indices.
- *
- * @param v: The vector to sort.
- * @return A vector containing the indices that sort the given
- *    vector into ascending order.
- */
-template <typename Scalar>
-math::Vector<Eigen::Index> indirect_sort(const math::Vector<Scalar>& v) {
-  math::Vector<Eigen::Index> indices;
-  indices.setLinSpaced(v.size(), 0, v.size() - 1);
-
-  auto comp = [&v](size_t i, size_t j) { return v[i] < v[j]; };
-  std::sort(indices.begin(), indices.end(), comp);
-  return indices;
-}
-
 /*** In-place calculation of interpolation weights.
  *
  * @param weights Vector into which to write the interpolation weights.
