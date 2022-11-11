@@ -208,3 +208,7 @@ ArrayOfIndex Workspace::wsvs(const Workspace::wsv_data_type &wsv_data) {
   }
   return out;
 }
+
+std::shared_ptr<Workspace> Workspace::create() {
+  return std::shared_ptr<Workspace>{new Workspace{}};
+}

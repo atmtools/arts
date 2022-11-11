@@ -37,7 +37,7 @@ void py_workspace(py::module_& m,
                   py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
                   py::class_<WorkspaceVariable>& wsv) {
   ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
-           auto* w = new Workspace{};
+           auto w = Workspace::create();
            w->push_move(w->WsvMap_ptr->at("verbosity"),
                    std::make_shared<Verbosity>(agenda_verbosity, verbosity, 0));
            return w;
@@ -259,7 +259,7 @@ void py_workspace(py::module_& m,
                            "Mismatch between Workspace Variable Groups"
                            " at time of pickling and unpickling the workspace")
 
-        auto out = std::shared_ptr<Workspace>(new Workspace{});
+        auto out = Workspace::create();
 
         const auto aoi = out->wsvs(t[1].cast<Workspace::wsv_data_type>());
         auto value = t[0].cast<std::vector<py::object>>();

@@ -51,6 +51,12 @@ struct WorkspaceBorrowGuard final {
  * Manages the workspace variables.
  */
 class Workspace final : public std::enable_shared_from_this<Workspace> {
+  /** Construct a new workspace
+   *
+   * Create the stacks for the WSVs.
+   */
+  Workspace();
+
  public:
   /** Workspace variable container. */
   Array<WorkspaceVariable> ws;
@@ -63,11 +69,8 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
 
   Workspace* original_workspace;
 
-  /** Construct a new workspace
-   *
-   * Create the stacks for the WSVs.
-   */
-  Workspace();
+  //! Creates a new Workspace, it has to be created as a shared pointer
+  [[nodiscard]] static std::shared_ptr<Workspace> create();
 
   /** Workspace copy constructor.
    *
