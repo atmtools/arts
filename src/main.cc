@@ -804,7 +804,7 @@ int main(int argc, char** argv) {
   // Initialize memory handler.
   global_data::workspace_memory_handler.initialize();
 
-  auto workspace_shared = std::make_shared<Workspace>();
+  auto workspace_shared = Workspace::create();
 
   Workspace& workspace=*workspace_shared;
 

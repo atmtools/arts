@@ -785,7 +785,7 @@ Both agendas must be defined on the same workspace)--"),
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
-            std::shared_ptr<Workspace> workspace{new Workspace{}};
+            std::shared_ptr<Workspace> workspace=Workspace::create();
             auto* val = new Agenda{*workspace};
 
             val->set_name(t[0].cast<String>());
