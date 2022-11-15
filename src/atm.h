@@ -10,6 +10,7 @@
 #include <utility>
 #include <variant>
 
+#include "arts_constants.h"
 #include "debug.h"
 #include "enums.h"
 #include "gridded_fields.h"
@@ -198,12 +199,40 @@ class Point {
       return true;
   }
 
+  [[nodiscard]] Numeric mean_mass() const;
+
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
 
 //! All the field data; if these types grow too much we might want to reconsider...
 using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
 using FieldData = std::variant<GriddedField3, Tensor3, Numeric, FunctionalData>;
+
+ENUMCLASS(Extrapolation, char, None, Zero, Nearest, Linear, Hydrostatic)
+
+struct FunctionalDataAlwaysThrow {
+  std::string error{"Undefined data"};
+  Numeric operator()(Numeric, Numeric, Numeric) const { ARTS_USER_ERROR(error) }
+};
+
+//! Hold all atmospheric data
+struct Data {
+  FieldData data{FunctionalData{FunctionalDataAlwaysThrow{"You touched the field but did not set any data"}}};
+  Extrapolation alt_upp{Extrapolation::None};
+  Extrapolation alt_low{Extrapolation::None};
+  Extrapolation lat_upp{Extrapolation::None};
+  Extrapolation lat_low{Extrapolation::None};
+  Extrapolation lon_upp{Extrapolation::None};
+  Extrapolation lon_low{Extrapolation::None};
+
+  [[nodiscard]] constexpr bool need_hydrostatic() const {
+    return alt_low == Extrapolation::Hydrostatic or
+           alt_upp == Extrapolation::Hydrostatic;
+  }
+};
+
+template <typename T>
+concept isData = std::is_same_v<std::remove_cvref_t<T>, Data>;
 
 template <typename T>
 concept isGriddedField3 = std::is_same_v<std::remove_cvref_t<T>, GriddedField3>;
@@ -226,14 +255,17 @@ template <typename T>
 concept DataType = RawDataType<T> or isTensor3<T>;
 
 class Field {
-  std::map<Key, FieldData> other{};
-  std::map<ArrayOfSpeciesTag, FieldData> specs{};
-  std::map<QuantumIdentifier, FieldData> nlte{};
+  std::map<Key, Data> other{};
+  std::map<ArrayOfSpeciesTag, Data> specs{};
+  std::map<QuantumIdentifier, Data> nlte{};
   std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
 
   //! The below only exist if regularized is true
   bool regularized{false};
-  Vector pre{}, lat{}, lon{};
+  Vector alt{}, lat{}, lon{};
+
+  //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this altitude)
+  Numeric space_alt{std::numeric_limits<Numeric>::lowest()};
 
   template <typename... Ts>
   void internal_set(KeyType auto&& lhs, RawDataType auto&& rhs, Ts&&... ts) {
@@ -250,6 +282,18 @@ class Field {
       return has_this;
   }
 
+  Data& get(KeyType auto&& x) {
+    using T = decltype(x);
+
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      return specs[std::forward<T>(x)];
+    } else if constexpr (isQuantumIdentifier<T>) {
+      return nlte[std::forward<T>(x)];
+    } else {
+      return other[std::forward<T>(x)];
+    }
+  }
+
  public:
   template <typename... Ts>
   Field(Ts&&... ts) {
@@ -257,50 +301,73 @@ class Field {
     if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
   }
 
+  void top_of_atmosphere(Numeric x) {space_alt = x;}
+  [[nodiscard]] Numeric top_of_atmosphere() const {return space_alt;}
+
   [[nodiscard]] Shape<3> regularized_shape() const {
-    return {pre.nelem(), lat.nelem(), lon.nelem()};
+    return {alt.nelem(), lat.nelem(), lon.nelem()};
   }
 
-  void set(KeyType auto&& x, DataType auto&& y) {
+  void set(KeyType auto &&x, DataType auto &&y) {
     using T = decltype(x);
     using U = decltype(y);
 
-    if constexpr (isTensor3<U>) {
-      ARTS_USER_ERROR_IF(not regularized,
-                         "Field needs to be regularized to set Tensor3 data")
-      ARTS_USER_ERROR_IF(y.shape() not_eq regularized_shape(),
-                         "The shape is wrong.  The input field is shape ",
-                         y.shape(),
-                         " but we have a regularized shape of ",
-                         regularized_shape())
+    if constexpr (isData<U>) {
+      set_altitude_limits(x, y.alt_low, y.alt_upp);
+      set_latitude_limits(x, y.lat_low, y.lat_upp);
+      set_longitude_limits(x, y.lon_low, y.lon_upp);
+      set(x, std::move(y.data));
     } else {
-      ARTS_USER_ERROR_IF(
-          regularized,
-          "Expects a regularized field (i.e., Tensor3-style gridded)")
-    }
+      if constexpr (isTensor3<U>) {
+          ARTS_USER_ERROR_IF(
+              not regularized,
+              "Field needs to be regularized to set Tensor3 data")
+          ARTS_USER_ERROR_IF(y.shape() not_eq regularized_shape(),
+                             "The shape is wrong.  The input field is shape ",
+                             y.shape(), " but we have a regularized shape of ",
+                             regularized_shape())
+      } else {
+          ARTS_USER_ERROR_IF(
+              regularized,
+              "Expects a regularized field (i.e., Tensor3-style gridded)")
+      }
 
-    if constexpr (isGriddedField3<U>) {
-      ARTS_USER_ERROR_IF(
-              "Pressure" not_eq y.get_grid_name(0) or
-              "Latitude" not_eq y.get_grid_name(1) or
-              "Longitude" not_eq y.get_grid_name(2),
-          "The grids should be [Pressure x Latitude x Longitude] but it is [",
-          y.get_grid_name(0),
-          " x ",
-          y.get_grid_name(1),
-          " x ",
-          y.get_grid_name(2),
-          ']')
-    }
+      if constexpr (isGriddedField3<U>) {
+          ARTS_USER_ERROR_IF("Pressure" not_eq y.get_grid_name(0) or
+                                 "Latitude" not_eq y.get_grid_name(1) or
+                                 "Longitude" not_eq y.get_grid_name(2),
+                             "The grids should be [Pressure x Latitude x "
+                             "Longitude] but it is [",
+                             y.get_grid_name(0), " x ", y.get_grid_name(1),
+                             " x ", y.get_grid_name(2), ']')
+      }
 
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      specs[std::forward<T>(x)] = std::move(y);
-    } else if constexpr (isQuantumIdentifier<T>) {
-      nlte[std::forward<T>(x)] = std::move(y);
-    } else {
-      ARTS_USER_ERROR_IF(x == Key::pressure, "Cannot set pressure (it is still a grid)")
-      other[std::forward<T>(x)] = std::move(y);
+      get(std::forward<T>(x)).data = std::move(y);
     }
+  }
+
+  void set_altitude_limits(KeyType auto &&x, Extrapolation low,
+                           Extrapolation upp) {
+    using T = decltype(x);
+    auto &y = get(std::forward<T>(x));
+    y.alt_low = low;
+    y.alt_upp = upp;
+  }
+
+  void set_latitude_limits(KeyType auto &&x, Extrapolation low,
+                           Extrapolation upp) {
+    using T = decltype(x);
+    auto &y = get(std::forward<T>(x));
+    y.lat_low = low;
+    y.lat_upp = upp;
+  }
+
+  void set_longitude_limits(KeyType auto &&x, Extrapolation low,
+                            Extrapolation upp) {
+    using T = decltype(x);
+    auto &y = get(std::forward<T>(x));
+    y.lon_low = low;
+    y.lon_upp = upp;
   }
 
   // FIXME: This data should be elsewhere???
@@ -323,7 +390,7 @@ class Field {
   Field &regularize(const Vector &, const Vector &, const Vector &);
 
   //! Compute the values at a single point
-  [[nodiscard]] Point at(Numeric, Numeric, Numeric) const;
+  [[nodiscard]] Point at(Numeric, Numeric, Numeric, const FunctionalData& g=FunctionalDataAlwaysThrow{}) const;
 
   bool has(KeyType auto &&key) const {
     using T = decltype(key);
@@ -377,7 +444,22 @@ GriddedField3 fix(const GriddedField2&);
  * @return GriddedField3 in the Field format
  */
 GriddedField3 fix(const GriddedField1&);
-}  // namespace Atm
+
+class SimpleHydrostaticExpansion {
+  Numeric x0;
+  Numeric h0;
+  Numeric H;
+
+public:
+  SimpleHydrostaticExpansion(Numeric x, Numeric h, Numeric T, Numeric mu,
+                             Numeric g)
+      : x0(x), h0(h), H(Constant::R * T / (mu * g)) {}
+
+  Numeric operator()(Numeric alt) const {
+    return x0 * std::exp(-(alt - h0) / H);
+  }
+};
+} // namespace Atm
 
 using AtmField = Atm::Field;
 using AtmPoint = Atm::Point;
