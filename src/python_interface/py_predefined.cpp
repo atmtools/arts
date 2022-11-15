@@ -52,7 +52,7 @@ void internalCKDMT400(
           }));
 
   m.def(
-      "get_foreign_h2oCKDMT400",
+      "get_foreign_h2o_ckdmt400",
       [](const Vector& f,
          Numeric p,
          Numeric t,
@@ -89,7 +89,7 @@ Parameters:
 )--"));
 
   m.def(
-      "get_self_h2oCKDMT400",
+      "get_self_h2o_ckdmt400",
       [](const Vector& f,
          Numeric p,
          Numeric t,
