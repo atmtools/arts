@@ -931,49 +931,56 @@ void cloudbox_fieldInterp2Azimuth(
 
   //---------------------------------------------------------------------------
 
-  Index nf = cloudbox_field.nlibraries();
-  Index np = cloudbox_field.nvitrines();
-  Index nla= cloudbox_field.nshelves();
-  Index nlo= cloudbox_field.nbooks();
-  Index nz = cloudbox_field.npages();
-  Index na = cloudbox_field.nrows();
-  Index ns = cloudbox_field.ncols();
+  if (cloudbox_field.nrows()>1 && aa_grid.nelem()==cloudbox_field.nrows()){
+    Index nf = cloudbox_field.nlibraries();
+    Index np = cloudbox_field.nvitrines();
+    Index nla= cloudbox_field.nshelves();
+    Index nlo= cloudbox_field.nbooks();
+    Index nz = cloudbox_field.npages();
+    Index na = cloudbox_field.nrows();
+    Index ns = cloudbox_field.ncols();
 
-  Vector aa_grid_new=aa_grid;
-  for (Index ja = 0; ja<na; ja++){
-    if (aa_grid_new[ja]>180) {
-      aa_grid_new[ja] -= 360.;
+    Vector aa_grid_new=aa_grid;
+    for (Index ja = 0; ja<na; ja++){
+      if (aa_grid_new[ja]>180) {
+        aa_grid_new[ja] -= 360.;
+      }
     }
-  }
 
-  const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
-  const Numeric sensor_los_za = sensor_los(0,0);
+    const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
+    const Numeric sensor_los_za = sensor_los(0,0);
+    const Numeric azimuth_los = sensor_los(0,1);
+    sensor_los.resize(1,1);
+    sensor_los(0,0)=sensor_los_za;
 
-  const Numeric azimuth_los = sensor_los(0,1);
-  sensor_los.resize(1,1);
-  sensor_los(0,0)=sensor_los_za;
+    cloudbox_field.resize(nf,np,1,1,nz,1,ns);
 
-  cloudbox_field.resize(nf,np,1,1,nz,1,ns);
+    // define interpolations compute cyclic for a azimuth grid [-180, 180]
+    const auto lag_aa = LagrangeInterpolation(0, azimuth_los, aa_grid_new, aa_interp_order, false, Interpolation::GridType::Cyclic, {-180, 180});
 
-  // define interpolations compute cyclic for a azimuth grid [-180, 180]
-  const auto lag_aa = LagrangeInterpolation(0, azimuth_los, aa_grid_new, aa_interp_order, false, Interpolation::GridType::Cyclic, {-180, 180});
+    // Corresponding interpolation weights
+    const auto itw_aa=interpweights(lag_aa);
 
-  // Corresponding interpolation weights
-  const auto itw_aa=interpweights(lag_aa);
-
-  for (Index jf = 0; jf < nf; jf++) {
-    for (Index jp = 0; jp < np; jp++) {
-      for (Index jla = 0; jla < nla; jla++) {
-        for (Index jlo = 0; jlo < nlo; jlo++) {
-          for (Index jz = 0; jz < nz; jz++) {
-            for (Index js = 0; js < ns; js++) {
-              cloudbox_field(jf, jp, jla, jlo, jz, 0, js) = interp(
-                  cloudbox_field_in(jf, jp, jla, jlo, jz, joker, js), itw_aa, lag_aa);
+    for (Index jf = 0; jf < nf; jf++) {
+      for (Index jp = 0; jp < np; jp++) {
+        for (Index jla = 0; jla < nla; jla++) {
+          for (Index jlo = 0; jlo < nlo; jlo++) {
+            for (Index jz = 0; jz < nz; jz++) {
+              for (Index js = 0; js < ns; js++) {
+                cloudbox_field(jf, jp, jla, jlo, jz, 0, js) = interp(
+                    cloudbox_field_in(jf, jp, jla, jlo, jz, joker, js), itw_aa, lag_aa);
+              }
             }
           }
         }
       }
     }
+  }
+
+  if (sensor_los.ncols()==2){
+    const Numeric sensor_los_za = sensor_los(0,0);
+    sensor_los.resize(1,1);
+    sensor_los(0,0)=sensor_los_za;
   }
 }
 
