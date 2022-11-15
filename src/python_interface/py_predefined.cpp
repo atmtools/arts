@@ -7,35 +7,43 @@
 #include "py_macros.h"
 
 namespace Python {
-void internalMTCKD(
+void internalCKDMT400(
     py::module_& m,
-    py::class_<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>& c) {
+    py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>& c) {
   c.def(py::init([]() {
-     return new Absorption::PredefinedModel::Hitran::MTCKD::WaterData{};
+     return new Absorption::PredefinedModel::MT_CKD400::WaterData{};
    }))
       .def_readonly_static(
-          "key", &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::key)
-      .def_readwrite("self_absco_ref",
-                     &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::
-                         self_absco_ref)
+          "key", &Absorption::PredefinedModel::MT_CKD400::WaterData::key)
+      .def_readwrite(
+          "ref_temp",
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp)
+      .def_readwrite(
+          "ref_press",
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press)
+      .def_readwrite(
+          "ref_h2o_vmr",
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr)
+      .def_readwrite(
+          "self_absco_ref",
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref)
       .def_readwrite(
           "for_absco_ref",
-          &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::for_absco_ref)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref)
       .def_readwrite(
           "wavenumbers",
-          &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::wavenumbers)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers)
       .def_readwrite(
           "self_texp",
-          &Absorption::PredefinedModel::Hitran::MTCKD::WaterData::self_texp)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp)
       .def(py::pickle(
-          [](const Absorption::PredefinedModel::Hitran::MTCKD::WaterData& t) {
-            return py::make_tuple(
-                t.self_absco_ref, t.for_absco_ref, t.wavenumbers, t.self_texp);
+          [](const Absorption::PredefinedModel::MT_CKD400::WaterData &t) {
+            return py::make_tuple(t.self_absco_ref, t.for_absco_ref,
+                                  t.wavenumbers, t.self_texp);
           },
-          [](const py::tuple& t) {
+          [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            auto* out =
-                new Absorption::PredefinedModel::Hitran::MTCKD::WaterData{};
+            auto *out = new Absorption::PredefinedModel::MT_CKD400::WaterData{};
             out->self_absco_ref = t[0].cast<std::vector<double>>();
             out->for_absco_ref = t[1].cast<std::vector<double>>();
             out->wavenumbers = t[2].cast<std::vector<double>>();
@@ -44,20 +52,20 @@ void internalMTCKD(
           }));
 
   m.def(
-      "get_foreign_h2oHitranMTCKD",
+      "get_foreign_h2oCKDMT400",
       [](const Vector& f,
          Numeric p,
          Numeric t,
          Numeric x,
          PredefinedModelData& data) -> Vector {
         PropagationMatrix pm(f.nelem());
-        Absorption::PredefinedModel::Hitran::MTCKD::compute_foreign_h2o(
+        Absorption::PredefinedModel::MT_CKD400::compute_foreign_h2o(
             pm,
             f,
             p,
             t,
             x,
-            data.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>());
+            data.get<Absorption::PredefinedModel::MT_CKD400::WaterData>());
         return std::move(pm.Data()).flatten();
       },
       py::arg("f_grid"),
@@ -81,20 +89,20 @@ Parameters:
 )--"));
 
   m.def(
-      "get_self_h2oHitranMTCKD",
+      "get_self_h2oCKDMT400",
       [](const Vector& f,
          Numeric p,
          Numeric t,
          Numeric x,
          PredefinedModelData& data) -> Vector {
         PropagationMatrix pm(f.nelem());
-        Absorption::PredefinedModel::Hitran::MTCKD::compute_self_h2o(
+        Absorption::PredefinedModel::MT_CKD400::compute_self_h2o(
             pm,
             f,
             p,
             t,
             x,
-            data.get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>());
+            data.get<Absorption::PredefinedModel::MT_CKD400::WaterData>());
         return std::move(pm.Data()).flatten();
       },
       py::arg("f_grid"),
@@ -571,7 +579,7 @@ Parameters:
 
 void internalCKDMT350(py::module_& m) {
   m.def(
-      "get_self_h2oCKDMT350",
+      "get_self_h2o_ckdmt350",
       [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
         PropagationMatrix pm(f.nelem());
         Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, p, t, x);
@@ -595,7 +603,7 @@ Parameters:
 )--"));
 
   m.def(
-      "get_foreign_h2oCKDMT350",
+      "get_foreign_h2o_ckdmt350",
       [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
         PropagationMatrix pm(f.nelem());
         Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(
@@ -620,8 +628,28 @@ Parameters:
 )--"));
 }
 
+struct PyInternalClasses {
+  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData> mod1;
+};
+
+PyInternalClasses internalNamedClasses(py::module_& predef) {
+  auto mtckd400 = predef.def_submodule("MTCKD400");
+  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>
+      mtckd400_water_data(mtckd400, "WaterData");
+
+    return {mtckd400_water_data};
+}
+
 void py_predefined(py::module_& m) {
-  py::class_<PredefinedModelDataKey>(m, "PredefinedModelDataKey")
+  //! The predef python namespace where all INTERNAL data lives
+  auto predef = m.def_submodule("predef");
+  predef.doc() = "Contains predefined absorption models";
+
+  //! Must name internal classes first as PredefinedModelData can return them
+  auto [mtckd400_water_data] = internalNamedClasses(predef);
+
+  //! A predefined model key
+  py::class_<PredefinedModelDataKey>(predef, "PredefinedModelDataKey")
       .def(py::init([]() { return new PredefinedModelDataKey{}; }))
       .def(py::init([](const std::string& c) {
         return Absorption::PredefinedModel::toDataKeyOrThrow(c);
@@ -641,6 +669,7 @@ void py_predefined(py::module_& m) {
           }));
   py::implicitly_convertible<std::string, PredefinedModelDataKey>();
 
+  //! ARTS Workspace class, must live on the main (m) namespace
   py::class_<PredefinedModelData>(m, "PredefinedModelData")
       .def(py::init([]() { return new PredefinedModelData{}; }))
       .PythonInterfaceWorkspaceVariableConversion(PredefinedModelData)
@@ -649,13 +678,13 @@ void py_predefined(py::module_& m) {
       .PythonInterfaceBasicRepresentation(PredefinedModelData)
       .def("set",
            [](PredefinedModelData& x,
-              Absorption::PredefinedModel::Hitran::MTCKD::WaterData d) {
+              Absorption::PredefinedModel::MT_CKD400::WaterData d) {
              x.set(std::move(d));
            })
-      .def("get_hitran_mtckd_water_data",
+      .def("get_h2o_data_mtckd400",
            [](PredefinedModelData& x) {
              return x
-                 .get<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>();
+                 .get<Absorption::PredefinedModel::MT_CKD400::WaterData>();
            })
       .def(py::pickle(
           [](const PredefinedModelData& t) { return py::make_tuple(t.data); },
@@ -666,17 +695,12 @@ void py_predefined(py::module_& m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(PredefinedModelData);
-
-  auto predef = m.def_submodule("predef");
-  predef.doc() = "Contains predefined absorption models";
-
-  py::class_<Absorption::PredefinedModel::Hitran::MTCKD::WaterData>
-      hitran_mtckd_data(predef, "WaterData");
-
+  
+  //! All internal functionality, included methods of named classes go on the predef namespace
   internalCKDMT350(predef);
   internalCKDMT252(predef);
   internalCKDMT100(predef);
-  internalMTCKD(predef, hitran_mtckd_data);
+  internalCKDMT400(predef, mtckd400_water_data);
   internalMPM89(predef);
   internalPWR98(predef);
   internalTRE05(predef);
