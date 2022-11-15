@@ -1,6 +1,7 @@
 #include "atm.h"
 
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <ostream>
 #include <variant>
@@ -48,98 +49,227 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
   };
   os << "Regularized Field: " << (atm.regularized ? "true " : "false");
   if (atm.regularized) {
-    os << ",\nPressure: [" << atm.pre << "]";
+    os << ",\nAltitude: [" << atm.alt << "]";
     os << ",\nLatitude: [" << atm.lat << "]";
     os << ",\nLongitude: [" << atm.lon << "]";
   }
 
   for (auto& vals : atm.other) {
     os << ",\n" << vals.first << ":\n";
-    std::visit(printer, vals.second);
+    std::visit(printer, vals.second.data);
   }
 
   for (auto& vals : atm.specs) {
     os << ",\n" << vals.first << ":\n";
-    std::visit(printer, vals.second);
+    std::visit(printer, vals.second.data);
   }
 
   for (auto& vals : atm.nlte) {
     os << ",\n" << vals.first << ":";
     if (atm.nlte_energy and atm.nlte_energy->size())
       os << " " << atm.nlte_energy->at(vals.first) << " J\n";
-    std::visit(printer, vals.second);
+    std::visit(printer, vals.second.data);
   }
 
   return os;
 }
 
-Numeric field_interp(Numeric x, Numeric, Numeric, Numeric) noexcept {
+Numeric Point::mean_mass() const {
+  Numeric out = 0;
+  Numeric total_vmr = 0;
+  for (auto& x: species_content) {
+    Numeric this_mass_sum = 0.0;
+
+    for (auto& spec: x.first) {
+      this_mass_sum += spec.Mass();
+    }
+
+    if (x.first.nelem()) this_mass_sum *= x.second / static_cast<Numeric>(x.first.nelem());
+    out += this_mass_sum;
+    total_vmr += x.second;
+  }
+
+  if (total_vmr not_eq 0) out /= total_vmr;
+  return out;
+}
+
+namespace detail {
+constexpr Numeric field_interp(Numeric x, Numeric, Numeric, Numeric) noexcept {
   return x;
 }
 
-Numeric field_interp(const Tensor3&, Numeric, Numeric, Numeric){
-    ARTS_USER_ERROR("Cannot field interp a tensor4")}
-
-Numeric field_interp(const FunctionalData& f,
-                     Numeric pre_point,
-                     Numeric lat_point,
-                     Numeric lon_point) {
-  return f(pre_point, lat_point, lon_point);
+Numeric field_interp(const Tensor3 &, Numeric, Numeric, Numeric) {
+  ARTS_USER_ERROR("Cannot field interp a Tensor3")
 }
 
-Numeric field_interp(const GriddedField3& x,
-                     Numeric pre_point,
-                     Numeric lat_point,
-                     Numeric lon_point) {
-  const auto pre_lagr =
-      Interpolation::FixedLagrange<0>(0, pre_point, x.get_numeric_grid(0), false, Interpolation::GridType::Log);
-  const auto lat_lagr =
-      Interpolation::FixedLagrange<0>(0, lat_point, x.get_numeric_grid(1));
-  const auto lon_lagr =
-      Interpolation::FixedLagrange<0>(0, lon_point, x.get_numeric_grid(2));
-
-  const auto iww =
-      Interpolation::interpweights(pre_lagr, lat_lagr, lon_lagr);
-
-  return Interpolation::interp(
-      x.data, iww, pre_lagr, lat_lagr, lon_lagr);
+Numeric field_interp(const FunctionalData &f, Numeric alt_point,
+                     Numeric lat_point, Numeric lon_point) {
+  return f(alt_point, lat_point, lon_point);
 }
 
-Point Field::at(Numeric pre_point,
-                Numeric lat_point,
-                Numeric lon_point) const {
-  Point atm{Key::pressure, pre_point};
+template <std::size_t NALT, std::size_t NLAT, std::size_t NLON>
+struct InterpCapture {
+  Interpolation::FixedLagrange<NALT> alt;
+  Interpolation::FixedLagrange<NLAT> lat;
+  Interpolation::FixedLagrange<NLON> lon;
+  FixedGrid<Numeric, NALT + 1, NLAT + 1, NLON + 1> iw;
+
+  InterpCapture(const Vector &alt_grid, const Vector &lat_grid,
+                const Vector &lon_grid, Numeric alt_point, Numeric lat_point,
+                Numeric lon_point)
+      : alt(0, alt_point, alt_grid), lat(0, lat_point, lat_grid),
+        lon(0, lon_point, lon_grid, false, Interpolation::GridType::Cyclic,
+            {-180, 180}),
+        iw(Interpolation::interpweights(alt, lat, lon)) {}
+};
+
+using LinearInterpolation = detail::InterpCapture<1, 1, 1>;
+
+Numeric field_interp(const GriddedField3 &x, Numeric alt_point,
+                     Numeric lat_point, Numeric lon_point) {
+  auto [alt, lat, lon, iw] = LinearInterpolation(
+      x.get_numeric_grid(0), x.get_numeric_grid(1), x.get_numeric_grid(2),
+      alt_point, lat_point, lon_point);
+
+  return Interpolation::interp(x.data, iw, alt, lat, lon);
+}
+
+bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, const char* type) {
+  using enum Extrapolation;
+  switch (low) {
+  case Zero:
+    if (x < r.front()) {
+      x = 0;
+      return true;
+    }
+    break;
+  case Hydrostatic: [[fallthrough]];
+  case Nearest:
+    x = std::max(x, r.front());
+    break;
+  case None:
+    ARTS_USER_ERROR_IF(x < r.front(), "The ", type, " value ", x,
+                       " is below the range of ", r)
+    break;
+  case Linear:
+    break;
+  case FINAL: {
+  }
+  }
+
+  switch (upp) {
+  case Zero:
+    if (x > r.back()) {
+      x = 0;
+      return true;
+    }
+    break;
+  case Hydrostatic: [[fallthrough]];
+  case Nearest:
+    x = std::min(x, r.back());
+    break;
+  case None:
+    ARTS_USER_ERROR_IF(x > r.back(), "The ", type, "value ", x, " is below the range of ",
+                       r)
+    break;
+  case Linear:
+    break;
+  case FINAL: {
+  }
+  }
+
+  return false;
+}
+
+Numeric compute_value(const Data& data, Numeric alt, Numeric lat, Numeric lon) {
+  auto compute = [&](auto& x) -> Numeric {
+    using T = decltype(x);
+
+    if constexpr (isGriddedField3<T>) {
+      const Vector& alts = x.get_numeric_grid(0);
+      const Vector& lats = x.get_numeric_grid(1);
+      const Vector& lons = x.get_numeric_grid(2);
+
+      if (limits(alt, alts, data.alt_low, data.alt_upp, "altitude")) return alt;
+      if (limits(lat, lats, data.lat_low, data.lat_upp, "latitude")) return lat;
+      if (limits(lon, lons, data.lon_low, data.lon_upp, "longitude")) return lon;
+    }
+
+    return field_interp(x, alt, lat, lon);
+  };
+
+  return std::visit(compute, data.data);
+}
+
+Numeric fix_hydrostatic(Numeric x0, const Point& atm, const Data& data, Numeric g, Numeric alt) {
+  const auto need_fixing = [&](auto& x) {
+    using T = decltype(x);
+
+    if constexpr (isGriddedField3<T>) {
+      const Vector& alts =  x.get_numeric_grid(0);
+      if (data.alt_low == Extrapolation::Hydrostatic and alt < alts.front())
+      return SimpleHydrostaticExpansion{x0, alts.front(), atm.T(), atm.mean_mass(), g}(alt);
+
+      if (data.alt_upp == Extrapolation::Hydrostatic and alt > alts.back())
+      return SimpleHydrostaticExpansion{x0, alts.front(), atm.T(), atm.mean_mass(), g}(alt);
+    }
+
+    return x0;
+  };
+
+  return std::visit(need_fixing, data.data);
+}
+} // namespace detail
+
+Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point, const FunctionalData& g) const {
+  Point atm;
+
+  if (alt_point > space_alt)
+    return atm;
 
   if (not regularized) {
-    const auto get_value = [&](auto& xs) {
-      return std::visit(
-          [&](auto& x) {
-            return field_interp(x, pre_point, lat_point, lon_point);
-          },
-          xs);
+    const auto get_value = [alt = alt_point, lat = lat_point,
+                            lon = lon_point](auto &x) {
+      return detail::compute_value(x, alt, lat, lon);
     };
 
-    for (auto& vals : specs) atm.set(vals.first, get_value(vals.second));
-    for (auto& vals : other) atm.set(vals.first, get_value(vals.second));
-    for (auto& vals : nlte) atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : specs) atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : other) atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : nlte)  atm.set(vals.first, get_value(vals.second));
+    
+    // Fix for hydrostatic equilibrium
+    for (auto &vals : specs) {
+      if (vals.second.need_hydrostatic()) {
+        atm.set(vals.first, detail::fix_hydrostatic(
+                                atm[vals.first], atm, vals.second,
+                                g(alt_point, lat_point, lon_point), alt_point));
+      }
+    }
+    for (auto &vals : other) {
+      if (vals.second.need_hydrostatic()) {
+        atm.set(vals.first, detail::fix_hydrostatic(
+                                atm[vals.first], atm, vals.second,
+                                g(alt_point, lat_point, lon_point), alt_point));
+      }
+    }
+    for (auto &vals : nlte) {
+      if (vals.second.need_hydrostatic()) {
+        atm.set(vals.first, detail::fix_hydrostatic(
+                                atm[vals.first], atm, vals.second,
+                                g(alt_point, lat_point, lon_point), alt_point));
+      }
+    }
   } else {
-    const auto pre_lagr = Interpolation::FixedLagrange<0>(0, pre_point, pre, false, Interpolation::GridType::Log);
-    const auto lat_lagr = Interpolation::FixedLagrange<0>(0, lat_point, lat);
-    const auto lon_lagr = Interpolation::FixedLagrange<0>(0, lon_point, lon);
-    const auto iww =
-        Interpolation::interpweights(pre_lagr, lat_lagr, lon_lagr);
+    const auto get_value =
+        [v = detail::LinearInterpolation(alt, lat, lon, alt_point, lat_point,
+                                         lon_point)](auto &x) {
+          return Interpolation::interp(*std::get_if<Tensor3>(&x.data), v.iw,
+                                       v.alt, v.lat, v.lon);
+        };
 
-    const auto get_value = [&](auto& x) {
-      return Interpolation::interp(*std::get_if<Tensor3>(&x),
-                                   iww,
-                                   pre_lagr,
-                                   lat_lagr,
-                                   lon_lagr);
-    };
-
-    for (auto& vals : specs) atm.set(vals.first, get_value(vals.second));
-    for (auto& vals : other) atm.set(vals.first, get_value(vals.second));
-    for (auto& vals : nlte) atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : specs) atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : other) atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : nlte)  atm.set(vals.first, get_value(vals.second));
   }
 
   atm.set_energy_level(nlte_energy);
@@ -147,25 +277,25 @@ Point Field::at(Numeric pre_point,
 }
 
 //! Regularizes the calculations so that all data is on a single grid
-Field& Field::regularize(const Vector& pressures,
+Field& Field::regularize(const Vector& altitudes,
                          const Vector& latitudes,
                          const Vector& longitudes) {
   ARTS_USER_ERROR_IF(regularized, "Cannot re-regularize a regularized grid")
   ArrayOfTensor3 specs_data(
       specs.size(),
-      Tensor3(pressures.size(), latitudes.size(), longitudes.size()));
+      Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
   ArrayOfTensor3 other_data(
       other.size(),
-      Tensor3(pressures.size(), latitudes.size(), longitudes.size()));
+      Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
   ArrayOfTensor3 nlte_data(
       nlte.size(),
-      Tensor3(pressures.size(), latitudes.size(), longitudes.size()));
+      Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
 
 #pragma omp parallel for collapse(3) if (!arts_omp_in_parallel())
-  for (Index i2 = 0; i2 < pressures.size(); i2++) {
+  for (Index i2 = 0; i2 < altitudes.size(); i2++) {
     for (Index i3 = 0; i3 < latitudes.size(); i3++) {
       for (Index i4 = 0; i4 < longitudes.size(); i4++) {
-        const auto pnt = at(pressures[i2], latitudes[i3], longitudes[i4]);
+        const auto pnt = at(altitudes[i2], latitudes[i3], longitudes[i4]);
 
         for (Index i0{0}; auto &vals : specs)
           specs_data[i0++](i2, i3, i4) = pnt[vals.first];
@@ -178,7 +308,7 @@ Field& Field::regularize(const Vector& pressures,
   }
 
   regularized = true;
-  pre = pressures;
+  alt = altitudes;
   lat = latitudes;
   lon = longitudes;
 

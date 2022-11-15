@@ -22,12 +22,17 @@ void point() {
   ARTS_USER_ERROR_IF( not atm.has_data(wind_u, mag_v), "should have fields")
   ARTS_USER_ERROR_IF( not atm.has(ArrayOfSpeciesTag{"O2-66"}), "should have O2-66")
   ARTS_USER_ERROR_IF( atm.has(ArrayOfSpeciesTag{"N2-44"}), "should not have N2-44")
+
+  std::cout << "Mean mass (only O2 and Water): " << atm.mean_mass() << '\n';
+  atm.set(ArrayOfSpeciesTag{"N2-44"}, 0.78);
+  std::cout << "Mean mass (added N2): " << atm.mean_mass() << '\n';
 }
 
 void field() {
   using namespace Atm;
   using enum Key;
   Field atm{temperature, 250.0, ArrayOfSpeciesTag{"O2-66"}, 0.21};
+  atm.top_of_atmosphere(100e3);
   std::cout << atm << '\n' << '\n';
 
   atm.set(ArrayOfSpeciesTag{"H2O-161"}, 0.01);
