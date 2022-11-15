@@ -80,7 +80,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
             const Numeric t,
             const Numeric o2,
             const Numeric h2o);
-}  // namespace PWR98
+}  // namespace Standard
 
 namespace MT_CKD100 {
 void oxygen_cia(PropagationMatrix& propmat_clearsky,
@@ -142,7 +142,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                          const Numeric& vmrh2o) noexcept;
 }  // namespace CKDMT350
 
-namespace Hitran::MTCKD {
+namespace MT_CKD400 {
 void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                          const Vector& f_grid,
                          const Numeric& P,
@@ -156,6 +156,6 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const Numeric& T,
                       const Numeric& vmrh2o,
                       const WaterData& data);
-}  // namespace Hitran::MTCKD
+}  // namespace MT_CKD400
 
 }  // namespace Absorption::PredefinedModel

@@ -15,11 +15,14 @@
 
 namespace Absorption::PredefinedModel {
   ENUMCLASS(DataKey, char, 
-  HITRANMTCKDWATER
+  water_mt_ckd_4d0
   )
-namespace Hitran::MTCKD {
+namespace MT_CKD400 {
 struct WaterData {
-  static constexpr DataKey key = DataKey::HITRANMTCKDWATER;
+  static constexpr DataKey key = DataKey::water_mt_ckd_4d0;
+  double ref_press;
+  double ref_temp;
+  double ref_h2o_vmr;
   std::vector<double> self_absco_ref;
   std::vector<double> for_absco_ref;
   std::vector<double> wavenumbers;
@@ -33,10 +36,10 @@ struct WaterData {
   friend std::ostream& operator<<(std::ostream&, const WaterData&);
   friend std::istream& operator>>(std::istream&, WaterData&);
 };
-}  // namespace Hitran::MTCKD
+}  // namespace MT_CKD400
 
 struct Model {
-  using DataHolder = std::variant<std::monostate, Hitran::MTCKD::WaterData>;
+  using DataHolder = std::variant<std::monostate, MT_CKD400::WaterData>;
   using DataMap = std::map<DataKey, DataHolder>;
 
   DataMap data;

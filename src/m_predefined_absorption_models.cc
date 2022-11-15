@@ -25,10 +25,10 @@
  */
 
 #include <algorithm>
+#include <predef_data.h>
 
 #include "debug.h"
 #include "logic.h"
-#include "predefined/predef_data.h"
 #include "predefined_absorption_models.h"
 
 void predefined_model_dataInit(PredefinedModelData& predefined_model_data,
@@ -36,8 +36,11 @@ void predefined_model_dataInit(PredefinedModelData& predefined_model_data,
   predefined_model_data = PredefinedModelData{};
 }
 
-void predefined_model_dataAddHitranMTCKD(
+void predefined_model_dataAddWaterMTCKD400(
     PredefinedModelData& predefined_model_data,
+    const Numeric& ref_temp,
+    const Numeric& ref_press,
+    const Numeric& ref_h2o_vmr,
     const Vector& self_absco_ref,
     const Vector& for_absco_ref,
     const Vector& wavenumbers,
@@ -53,7 +56,10 @@ void predefined_model_dataAddHitranMTCKD(
   ARTS_USER_ERROR_IF(not is_regularly_increasing_within_epsilon(wavenumbers),
                      "The wavenumbers must be increasing in a regular manner")
 
-  Absorption::PredefinedModel::Hitran::MTCKD::WaterData x;
+  Absorption::PredefinedModel::MT_CKD400::WaterData x;
+  x.ref_temp = ref_temp;
+  x.ref_press = ref_press;
+  x.ref_h2o_vmr = ref_h2o_vmr;
   x.self_absco_ref.resize(sz);
   x.for_absco_ref.resize(sz);
   x.wavenumbers.resize(sz);

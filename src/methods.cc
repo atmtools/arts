@@ -2737,8 +2737,8 @@ if they are defined.  Otherwise some values are just selected
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("predefined_model_dataAddHitranMTCKD"),
-      DESCRIPTION(R"--(Sets the data for Hitran MTCKD
+      NAME("predefined_model_dataAddWaterMTCKD400"),
+      DESCRIPTION(R"--(Sets the data for MT CKD 4.0 Water model
 
 Note that the vectors must have the same length, and that wavenumbers must be growing
 at a constant rate.  The minimum length is 4.
@@ -2746,19 +2746,18 @@ at a constant rate.  The minimum length is 4.
 Note also that as this is predefined model data, the units of the values of the vectors
 must be as described by each vector.
 )--"),
-      AUTHORS("Richard Larsson"),
-      OUT("predefined_model_data"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("predefined_model_data"),
-      GIN("self_absco_ref", "for_absco_ref", "wavenumbers", "self_texp"),
-      GIN_TYPE("Vector", "Vector", "Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
-      GIN_DESC("Self absorption [1/(cm-1 molecules/cm^2]",
+      AUTHORS("Richard Larsson"), OUT("predefined_model_data"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(), IN("predefined_model_data"),
+      GIN("ref_temp", "ref_press", "ref_h2o_vmr", "self_absco_ref",
+          "for_absco_ref", "wavenumbers", "self_texp"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Vector", "Vector", "Vector",
+               "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("Reference temperature", "Reference pressure",
+               "Reference volume mixing ratio of water",
+               "Self absorption [1/(cm-1 molecules/cm^2]",
                "Foreign absorption [1/(cm-1 molecules/cm^2)]",
-               "Wavenumbers [cm-1]",
-               "Self temperature exponent [-]")));
+               "Wavenumbers [cm-1]", "Self temperature exponent [-]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddPredefined"),
@@ -2789,7 +2788,7 @@ Available models:
         Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
         http://www.rtweb.aer.com/continuum_frame.html
 
-    H2O-SelfContHitranMTCKD:
+    H2O-SelfContCKDMT400:
         Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
         Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
@@ -2797,9 +2796,9 @@ Available models:
         Note that this model comes with the copyright statement [1].
 
         Note also that this model requires *predefined_model_data* to contain relevant data set either using
-        *predefined_model_dataAddHitranMTCKD* or via some file reading routine.
+        *predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
 
-    H2O-ForeignContHitranMTCKD:
+    H2O-ForeignContCKDMT400:
         Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
         Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
@@ -2807,7 +2806,7 @@ Available models:
         Note that this model comes with the copyright statement [1].
 
         Note also that this model requires *predefined_model_data* to contain relevant data set either using
-        *predefined_model_dataAddHitranMTCKD* or via some file reading routine.
+        *predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
 
     H2O-ForeignContStandardType:
         Water microwave continua

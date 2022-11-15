@@ -3,6 +3,7 @@ if (ARTS_CAT_DATA_DIR)
 else()
     list(APPEND DOWNLOAD_CATDATA
         lines/O2-66.xml
+        model/mt_ckd_4.0/H2O.xml
     )
 endif()
 

@@ -1,21 +1,19 @@
-#include <interpolation_lagrange.h>
-#include <propagationmatrix.h>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <iterator>
 
 #include <arts_conversions.h>
-
-#include "debug.h"
+#include <debug.h>
+#include <interpolation_lagrange.h>
+#include <propagationmatrix.h>
 
 #include "predef_data.h"
 
 /*!  This code is ported from Fortran90 code that contains the following statement:
 
 !  --------------------------------------------------------------------------
-! |  Copyright �, Atmospheric and Environmental Research, Inc., 2022         |
+! |  Copyright ©, Atmospheric and Environmental Research, Inc., 2022         |
 ! |                                                                          |
 ! |  All rights reserved. This source code was developed as part of the      |
 ! |  LBLRTM software and is designed for scientific and research purposes.   |
@@ -33,7 +31,7 @@
 !  --------------------------------------------------------------------------
 */
 
-namespace Absorption::PredefinedModel::Hitran::MTCKD {
+namespace Absorption::PredefinedModel::MT_CKD400 {
 Numeric RADFN_FUN(const Numeric XVI, const Numeric XKT) noexcept {
   // ---------------------------------------------------------------------- B18060
   //              LAST MODIFICATION:    12 AUGUST 1991                      B17940
@@ -115,8 +113,6 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
 
   // Constants
   constexpr Numeric RADCN2 = 1.4387752;
-  constexpr Numeric P0 = 101300;
-  constexpr Numeric T0 = 296;
 
   // Data constants
   const Numeric last_wavenumber = data.wavenumbers.back();
@@ -125,6 +121,8 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   const auto data_size = Index(data.wavenumbers.size());
 
   // Level constants
+  const Numeric P0 = Conversion::bar2pa(1e-3 * data.ref_press);
+  const Numeric T0 = data.ref_temp;
   const Numeric xkt = T / RADCN2;
   const Numeric rho_rat = (P / P0) * (T0 / T);
   const Numeric num_den_cm2 = 1e-6 * vmrh2o * P / (Constant::k * T);
@@ -143,6 +141,8 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric* v = data.wavenumbers.data() + cur;
   const Numeric* y = data.for_absco_ref.data() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
+
+  //! Follow the Fortran idea (and old MT CKD implementations in ARTS to mirror the zero-frequency values)
   for (auto i = -1; i < 3 and cur + i < data_size; i++) {
     if (i < 0 and cur == 0)
       k[i + 1] = scl(*(y + i + 2), *(v + i + 2));
@@ -157,7 +157,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
     if (x > last_wavenumber) return;
 
     while (x > *(v + 1)) {
-      std::rotate(k.begin(), k.begin() + 1, k.end());
+      std::shift_left(k.begin(), k.end(), 1);
 
       k.back() = data_size > cur + 3 ? scl(*(y + 3), *(v + 3)) : 0;
 
@@ -188,8 +188,6 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
 
   // Constants
   constexpr Numeric RADCN2 = 1.4387752;
-  constexpr Numeric P0 = 101300;
-  constexpr Numeric T0 = 296;
 
   // Data constants
   const Numeric last_wavenumber = data.wavenumbers.back();
@@ -198,6 +196,8 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   const auto data_size = Index(data.wavenumbers.size());
 
   // Level constants
+  const Numeric P0 = Conversion::bar2pa(1e-3 * data.ref_press);
+  const Numeric T0 = data.ref_temp;
   const Numeric xkt = T / RADCN2;
   const Numeric rho_rat = (P / P0) * (T0 / T);
   const Numeric num_den_cm2 = 1e-6 * vmrh2o * P / (Constant::k * T);
@@ -219,6 +219,8 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
   const Numeric* y = data.self_absco_ref.data() + cur;
   const Numeric* e = data.self_texp.data() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
+
+  //! Follow the Fortran idea (and old MT CKD implementations in ARTS to mirror the zero-frequency values)
   for (auto i = -1; i < 3 and cur + i < data_size; i++) {
     if (i < 0 and cur == 0)
       k[i + 1] = scl(*(y + i + 2), *(e + i + 2), *(v + i + 2));
@@ -233,9 +235,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
     if (x > last_wavenumber) return;
 
     while (x > *(v + 1)) {
-      std::rotate(k.begin(), k.begin() + 1, k.end());
-
-      k.back() = data_size > cur + 3 ? scl(*(y + 3), *(e + 3), *(v + 3)) : 0;
+      *std::shift_left(k.begin(), k.end(), 1) = data_size > cur + 3 ? scl(*(y + 3), *(e + 3), *(v + 3)) : 0;
 
       cur++;
       v++;
@@ -247,4 +247,4 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
     propmat_clearsky.Kjj()[s] += out >= 0 ? out : 0;
   }
 }
-}  // namespace Absorption::PredefinedModel::Hitran::MTCKD
+}  // namespace Absorption::PredefinedModel::MT_CKD400

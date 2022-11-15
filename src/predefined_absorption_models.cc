@@ -28,6 +28,7 @@
 #include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
 #include <iomanip>
+#include <predef.h>
 
 #include "debug.h"
 #include "jacobian.h"
@@ -35,7 +36,6 @@
 #include "linescaling.h"
 #include "matpack.h"
 #include "matpackI.h"
-#include "predefined/predef.h"
 #include "predefined/predef_data.h"
 #include "propagationmatrix.h"
 #include "quantum_numbers.h"
@@ -68,11 +68,11 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
                        const PredefinedModelData& predefined_model_data
                        [[maybe_unused]]) {
   switch (Species::find_species_index(model)) {
-    case find_species_index(Species::Species::Water, "ForeignContHitranMTCKD"):
-      if constexpr (not check_exist) Hitran::MTCKD::compute_foreign_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<Hitran::MTCKD::WaterData>());
+    case find_species_index(Species::Species::Water, "ForeignContCKDMT400"):
+      if constexpr (not check_exist) MT_CKD400::compute_foreign_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD400::WaterData>());
       return true;
-    case find_species_index(Species::Species::Water, "SelfContHitranMTCKD"):
-      if constexpr (not check_exist) Hitran::MTCKD::compute_self_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<Hitran::MTCKD::WaterData>());
+    case find_species_index(Species::Species::Water, "SelfContCKDMT400"):
+      if constexpr (not check_exist) MT_CKD400::compute_self_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD400::WaterData>());
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
