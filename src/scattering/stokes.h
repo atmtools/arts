@@ -454,6 +454,7 @@ template <typename Base>
   using typename Base::Matrix;
   using typename Base::Vector;
   using typename Base::VectorPtr;
+  using ConstLatitudeGridPtr = std::shared_ptr<const LatitudeGrid<typename Base::Scalar>>;
 
   using Base::coeff_dim;
   using Base::data_;
@@ -566,7 +567,7 @@ template <typename Base>
    */
   PhaseMatrix to_lab_frame(VectorPtr lat_inc_new,
                            VectorPtr lon_scat_new,
-                           std::shared_ptr<LatitudeGrid<Scalar>> lat_scat_new,
+                           ConstLatitudeGridPtr lat_scat_new,
                            Index stokes_dim) const {
     if ((n_lat_inc_ > 1) || (n_lon_scat_ > 1)) {
         return copy();

@@ -74,11 +74,11 @@ class SingleScatteringData {
    * coefficients.
    */
   SingleScatteringData(
-      scattering::math::VectorPtr<double> f_grid,
-      scattering::math::VectorPtr<double> t_grid,
-      scattering::math::VectorPtr<double> lon_inc,
-      scattering::math::VectorPtr<double> lat_inc,
-      scattering::math::VectorPtr<double> lon_scat,
+      scattering::math::ConstVectorPtr<double> f_grid,
+      scattering::math::ConstVectorPtr<double> t_grid,
+      scattering::math::ConstVectorPtr<double> lon_inc,
+      scattering::math::ConstVectorPtr<double> lat_inc,
+      scattering::math::ConstVectorPtr<double> lon_scat,
       std::shared_ptr<LatitudeGrid<double>> lat_scat,
       scattering::math::TensorPtr<double, 7> phase_matrix,
       scattering::math::TensorPtr<double, 7> extinction_matrix,
@@ -635,7 +635,7 @@ class SingleScatteringData {
   }
   // pxx :: hide
   SingleScatteringData interpolate_frequency(
-      std::shared_ptr<math::Vector<double>> frequencies) const {
+      math::ConstVectorPtr<double>  frequencies) const {
       auto result = data_->interpolate_frequency(frequencies);
       return SingleScatteringData(std::move(result));
   }
@@ -656,7 +656,7 @@ class SingleScatteringData {
 
   // pxx :: hide
   SingleScatteringData interpolate_temperature(
-      std::shared_ptr<math::Vector<double>> temperatures,
+      math::ConstVectorPtr<double> temperatures,
       bool extrapolate=false) const {
       auto result = data_->interpolate_temperature(temperatures, extrapolate);
       return SingleScatteringData(std::move(result));
@@ -682,10 +682,10 @@ class SingleScatteringData {
   }
 
   // pxx :: hide
-  SingleScatteringData interpolate_angles(std::shared_ptr<math::Vector<double>> lon_inc,
-                                          std::shared_ptr<math::Vector<double>> lat_inc,
-                                          std::shared_ptr<math::Vector<double>> lon_scat,
-                                          std::shared_ptr<LatitudeGrid<double>> lat_scat) const {
+  SingleScatteringData interpolate_angles(math::ConstVectorPtr<double> lon_inc,
+                                          math::ConstVectorPtr<double> lat_inc,
+                                          math::ConstVectorPtr<double> lon_scat,
+                                          std::shared_ptr<const LatitudeGrid<double>> lat_scat) const {
       auto result = data_->interpolate_angles(lon_inc,
                                               lat_inc,
                                               lon_scat,
@@ -714,8 +714,8 @@ class SingleScatteringData {
 
   // pxx :: hide
   SingleScatteringData downsample_scattering_angles(
-      std::shared_ptr<math::Vector<double>> lon_scat,
-      std::shared_ptr<LatitudeGrid<double>> lat_scat) const {
+      math::ConstVectorPtr<double> lon_scat,
+      std::shared_ptr<const LatitudeGrid<double>> lat_scat) const {
     auto result =
         data_->downsample_scattering_angles(lon_scat, lat_scat);
     return SingleScatteringData(std::move(result));
@@ -723,7 +723,7 @@ class SingleScatteringData {
 
   // pxx :: hide
   SingleScatteringData downsample_lon_scat(
-      std::shared_ptr<math::Vector<double>> lon_scat) const {
+      math::ConstVectorPtr<double> lon_scat) const {
       auto result =
           data_->downsample_lon_scat(lon_scat);
       return SingleScatteringData(std::move(result));
@@ -810,9 +810,9 @@ class SingleScatteringData {
                                           Index n_lat) const;
 
   // pxx :: hide
-  SingleScatteringData to_lab_frame(std::shared_ptr<math::Vector<double>> lat_inc,
-                                    std::shared_ptr<math::Vector<double>> lon_scat,
-                                    std::shared_ptr<LatitudeGrid<double>> lat_scat,
+  SingleScatteringData to_lab_frame(math::ConstVectorPtr<double> lat_inc,
+                                    math::ConstVectorPtr<double> lon_scat,
+                                    std::shared_ptr<const LatitudeGrid<double>> lat_scat,
                                     Index stokes_dim) const {
       return data_->to_lab_frame(lat_inc, lon_scat, lat_scat, stokes_dim);
   }

@@ -47,6 +47,8 @@ using VectorFixedSize = Eigen::Matrix<Scalar, 1, N, Eigen::RowMajor>;
 template <typename Scalar>
 using VectorPtr = std::shared_ptr<Vector<Scalar>>;
 template <typename Scalar>
+using ConstVectorPtr = std::shared_ptr<const Vector<Scalar>>;
+template <typename Scalar>
 using VectorMap = Eigen::Map<Vector<Scalar>>;
 template <typename Scalar>
 using VectorMapDynamic =

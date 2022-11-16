@@ -393,7 +393,7 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
    * frequency grid.
    */
   ScatteringDataFieldGridded interpolate_frequency(
-      std::shared_ptr<Vector> frequencies) const {
+      VectorPtr frequencies) const {
     using Regridder = RegularRegridder<Scalar, 0>;
     Regridder regridder({*f_grid_}, {*frequencies});
     auto dimensions_new = data_->dimensions();
@@ -426,7 +426,7 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
    * temperature grid.
    */
   ScatteringDataFieldGridded interpolate_temperature(
-      std::shared_ptr<Vector> temperatures,
+      VectorPtr temperatures,
       bool extrapolate=false) const {
     using Regridder = RegularRegridder<Scalar, 1>;
     Regridder regridder({*t_grid_}, {*temperatures}, extrapolate);
@@ -1117,7 +1117,7 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
    */
   // pxx :: hide
   ScatteringDataFieldSpectral interpolate_frequency(
-      std::shared_ptr<Vector> frequencies) const {
+      VectorPtr frequencies) const {
     using Regridder = RegularRegridder<Scalar, 0>;
     Regridder regridder({*f_grid_}, {*frequencies});
     auto dimensions_new = data_->dimensions();
@@ -1149,7 +1149,7 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
    * to the given temperatures.
    */
   ScatteringDataFieldSpectral interpolate_temperature(
-      std::shared_ptr<Vector> temperatures,
+      VectorPtr temperatures,
       bool extrapolate=false) const {
     using Regridder = RegularRegridder<Scalar, 1>;
     Regridder regridder({*t_grid_}, {*temperatures}, extrapolate);
@@ -1547,7 +1547,7 @@ class ScatteringDataFieldFullySpectral : public ScatteringDataFieldBase {
 
   using Vector = math::Vector<Scalar>;
   using VectorMap = math::VectorMap<Scalar>;
-  using VectorPtr = const std::shared_ptr<const math::Vector<Scalar>>;
+  using VectorPtr = std::shared_ptr<const math::Vector<Scalar>>;
   using ConstVectorMap = math::ConstVectorMap<Scalar>;
   using Matrix = math::Matrix<Scalar>;
   using MatrixMap = math::MatrixMap<Scalar>;
@@ -1767,7 +1767,7 @@ class ScatteringDataFieldFullySpectral : public ScatteringDataFieldBase {
    * to the given frequencies.
    */
   ScatteringDataFieldFullySpectral interpolate_frequency(
-      std::shared_ptr<Vector> frequencies) const {
+      VectorPtr frequencies) const {
     using Regridder = RegularRegridder<Scalar, 0>;
     Regridder regridder({*f_grid_}, {*frequencies});
     auto dimensions_new = data_->dimensions();
@@ -1798,7 +1798,7 @@ class ScatteringDataFieldFullySpectral : public ScatteringDataFieldBase {
    * to the given temperatures.
    */
   ScatteringDataFieldFullySpectral interpolate_temperature(
-      std::shared_ptr<Vector> temperatures,
+      VectorPtr temperatures,
       bool extrapolate=false) const {
     using Regridder = RegularRegridder<Scalar, 1>;
     Regridder regridder({*t_grid_}, {*temperatures}, extrapolate);

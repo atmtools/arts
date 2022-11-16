@@ -7,11 +7,11 @@ namespace scattering {
 //
 
 SingleScatteringData::SingleScatteringData(
-    math::VectorPtr<double> f_grid,
-    math::VectorPtr<double> t_grid,
-    math::VectorPtr<double> lon_inc,
-    math::VectorPtr<double> lat_inc,
-    math::VectorPtr<double> lon_scat,
+    math::ConstVectorPtr<double> f_grid,
+    math::ConstVectorPtr<double> t_grid,
+    math::ConstVectorPtr<double> lon_inc,
+    math::ConstVectorPtr<double> lat_inc,
+    math::ConstVectorPtr<double> lon_scat,
     std::shared_ptr<LatitudeGrid<double>> lat_scat,
     math::TensorPtr<double, 7> phase_matrix,
     math::TensorPtr<double, 7> extinction_matrix,
