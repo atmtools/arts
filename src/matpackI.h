@@ -96,7 +96,6 @@
 #define matpackI_h
 
 #include <algorithm>
-#include <type_traits>
 #include <utility>
 
 #include "array.h"
