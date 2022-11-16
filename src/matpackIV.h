@@ -132,6 +132,8 @@ class Tensor4;
     which also allocates storage. */
 class ConstTensor4View {
  public:
+  static constexpr bool matpack_type{true};
+  
   constexpr ConstTensor4View(const ConstTensor4View&) = default;
   constexpr ConstTensor4View(ConstTensor4View&&) = default;
   ConstTensor4View& operator=(const ConstTensor4View&) = default;
@@ -440,6 +442,23 @@ class Tensor4 : public Tensor4View {
   Tensor4(const Tensor4& v);
   Tensor4(Tensor4&& v) noexcept : Tensor4View(std::forward<Tensor4View>(v)) {
     v.mdata = nullptr;
+  }
+
+  /** Initialization from a tensor type. */
+  explicit Tensor4(const matpack::tensor4_like_not_tensor4 auto &init)
+      : Tensor4(matpack::book_size(init), matpack::page_size(init),
+                matpack::row_size(init), matpack::column_size(init)) {
+    auto [I, J, K, L] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        for (Index k = 0; k < K; k++)
+          for (Index x = 0; x < L; x++)
+            operator()(i, j, k, x) = init(i, j, k, x);
+  }
+
+  /** Initialization from a matrix type. */
+   Tensor4& operator=(const matpack::tensor4_like_not_tensor4 auto& init) {
+    return *this = Tensor4(init);
   }
 
   /*! Construct from known data

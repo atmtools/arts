@@ -31,6 +31,7 @@
 #include <utility>
 
 #include "matpackV.h"
+#include "matpack_concepts.h"
 
 #define CHECK(x)       \
   ARTS_ASSERT(0 <= x); \
@@ -1103,6 +1104,8 @@ class Tensor6View : public ConstTensor6View {
     3. Resize function. */
 class Tensor6 : public Tensor6View {
  public:
+  static constexpr bool matpack_type{true};
+  
   // Constructors:
   Tensor6() = default;
   Tensor6(Index v, Index s, Index b, Index p, Index r, Index c);
@@ -1111,6 +1114,26 @@ class Tensor6 : public Tensor6View {
   Tensor6(const Tensor6& v);
   Tensor6(Tensor6&& v) noexcept : Tensor6View(std::forward<Tensor6View>(v)) {
     v.mdata = nullptr;
+  }
+
+  /** Initialization from a tensor type. */
+  explicit Tensor6(const matpack::tensor6_like_not_tensor6 auto &init)
+      : Tensor6(matpack::vitrine_size(init), matpack::shelf_size(init),
+                matpack::book_size(init), matpack::page_size(init),
+                matpack::row_size(init), matpack::column_size(init)) {
+    auto [I, J, K, L, M, N] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        for (Index k = 0; k < K; k++)
+          for (Index x = 0; x < L; x++)
+            for (Index m = 0; m < M; m++)
+              for (Index n = 0; n < N; n++)
+                operator()(i, j, k, x, m, n) = init(i, j, k, x, m, n);
+  }
+
+  /** Initialization from a matrix type. */
+   Tensor6& operator=(const matpack::tensor6_like_not_tensor6 auto& init) {
+    return *this = Tensor6(init);
   }
 
   /*! Construct from known data

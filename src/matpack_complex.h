@@ -28,6 +28,7 @@
 
 #include "lapack.h"
 #include "matpackI.h"
+#include "matpack_concepts.h"
 #include "nonstd.h"
 #include <complex>
 #include <utility>
@@ -283,6 +284,8 @@ class ComplexMatrixView;
  case of a ComplexVectorView which also allocates storage. */
 class ConstComplexVectorView {
  public:
+  static constexpr bool matpack_type{true};
+  
   constexpr ConstComplexVectorView(const ConstComplexVectorView&) = default;
   constexpr ConstComplexVectorView(ConstComplexVectorView&&) = default;
   ConstComplexVectorView& operator=(const ConstComplexVectorView&) = default;
@@ -612,7 +615,7 @@ class ComplexVector : public ComplexVectorView {
   }
 
   /** Initialization from a vector type. */
-  explicit ComplexVector(const matpack::vector_like_not_vector auto& init) : ComplexVector(init.size()) {
+  explicit ComplexVector(const matpack::vector_like_not_vector auto& init) : ComplexVector(matpack::column_size(init)) {
     for (Index i=0; i<size(); i++) operator[](i) = init[i];
   }
 
@@ -620,11 +623,10 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector& operator=(const ComplexVector& v);
   ComplexVector& operator=(const Array<Complex>& v);
   ComplexVector& operator=(Complex x);
-  ComplexVector& operator=(const matpack::vector_like_not_vector auto& init) {
-    auto sz = init.size();
-    if (sz not_eq size()) resize(sz);
-    for (Index i = 0; i < sz; i++) operator[](i) = init[i];
-    return *this;
+
+  /** Initialization from a matrix type. */
+   ComplexVector& operator=(const matpack::vector_like_not_vector auto& init) {
+    return *this = ComplexVector(init);
   }
 
   ComplexVector& operator=(ComplexVector&& v) ARTS_NOEXCEPT {
@@ -663,6 +665,8 @@ class ComplexMatrix;
  which also allocates storage. */
 class ConstComplexMatrixView {
  public:
+  static constexpr bool matpack_type{true};
+  
   constexpr ConstComplexMatrixView(const ConstComplexMatrixView&) = default;
   constexpr ConstComplexMatrixView(ConstComplexMatrixView&&) = default;
   ConstComplexMatrixView& operator=(const ConstComplexMatrixView&) = default;
@@ -919,12 +923,9 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix& operator=(Complex x);
   ComplexMatrix& operator=(const ConstComplexVectorView& v);
 
-  ComplexMatrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
-    const auto nr = matpack::row_size(init);
-    const auto nc = matpack::column_size(init);
-    if (nrows() not_eq nr or ncols() not_eq nc) resize(nr, nc);
-    for (Index i=0; i<nr; i++) for (Index j=0; j<nc; j++) operator()(i, j) = init(i, j);
-    return *this;
+  /** Initialization from a matrix type. */
+   ComplexMatrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
+    return *this = ComplexMatrix(init);
   }
   
   // Inverse in place

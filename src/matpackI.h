@@ -520,6 +520,8 @@ class MatrixView;
     case of a VectorView which also allocates storage. */
 class ConstVectorView {
  public:
+  static constexpr bool matpack_type{true};
+
   constexpr ConstVectorView(const ConstVectorView&) = default;
   constexpr ConstVectorView(ConstVectorView&&) = default;
   ConstVectorView& operator=(const ConstVectorView&) = default;
@@ -914,7 +916,7 @@ class Vector : public VectorView {
   Vector(std::initializer_list<Numeric> init);
 
   /** Initialization from a vector type. */
-  explicit Vector(const matpack::vector_like_not_vector auto& init) : Vector(init.size()) {
+  explicit Vector(const matpack::vector_like_not_vector auto& init) : Vector(matpack::column_size(init)) {
     for (Index i=0; i<size(); i++) operator[](i) = init[i];
   }
 
@@ -997,10 +999,7 @@ class Vector : public VectorView {
   Vector& operator=(std::initializer_list<Numeric> v);
 
   Vector& operator=(const matpack::vector_like_not_vector auto& init) {
-    auto sz = init.size();
-    if (sz not_eq size()) resize(sz);
-    for (Index i = 0; i < sz; i++) operator[](i) = init[i];
-    return *this;
+    return *this = Vector(init);
   }
 
   /** Assignment operator from Array<Numeric>.
@@ -1058,6 +1057,8 @@ class Matrix;
     which also allocates storage. */
 class ConstMatrixView {
  public:
+  static constexpr bool matpack_type{true};
+
   constexpr ConstMatrixView(const ConstMatrixView&) = default;
   constexpr ConstMatrixView(ConstMatrixView&&) = default;
   ConstMatrixView& operator=(const ConstMatrixView&) = default;
@@ -1287,8 +1288,12 @@ class Matrix : public MatrixView {
   }
 
   /** Initialization from a vector type. */
-  explicit Matrix(const matpack::matrix_like_not_matrix auto& init) : Matrix(matpack::row_size(init), matpack::column_size(init)) {
-    for (Index i=0; i<nrows(); i++) for (Index j=0; j<ncols(); j++) operator()(i, j) = init(i, j);
+  explicit Matrix(const matpack::matrix_like_not_matrix auto &init)
+      : Matrix(matpack::row_size(init), matpack::column_size(init)) {
+    auto [I, J] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        operator()(i, j) = init(i, j);
   }
 
   /*! Construct from known data
@@ -1312,13 +1317,9 @@ class Matrix : public MatrixView {
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
 
-  /** Initialization from a vector type. */
+  /** Initialization from a matrix type. */
    Matrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
-    const auto nr = matpack::row_size(init);
-    const auto nc = matpack::column_size(init);
-    if (nrows() not_eq nr or ncols() not_eq nc) resize(nr, nc);
-    for (Index i=0; i<nr; i++) for (Index j=0; j<nc; j++) operator()(i, j) = init(i, j);
-    return *this;
+    return *this = Matrix(init);
   }
 
   // Resize function:

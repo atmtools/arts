@@ -1826,6 +1826,18 @@ void test_pow_negative_one() {
   for (auto& i: x) std::cout << "-1^" << i << '=' << pow_negative_one(i) << '\n';
 }
 
+void test_concepts() {
+  static_assert(ComplexVector::matpack_type);
+  static_assert(ComplexMatrix::matpack_type);
+  static_assert(Vector::matpack_type);
+  static_assert(Matrix::matpack_type);
+  static_assert(Tensor3::matpack_type);
+  static_assert(Tensor4::matpack_type);
+  static_assert(Tensor5::matpack_type);
+  static_assert(Tensor6::matpack_type);
+  static_assert(Tensor7::matpack_type);
+}
+
 int main() {
   //   test1();
   //   test2();
@@ -1877,7 +1889,8 @@ int main() {
   //  test47();
   //test48();
   //test_wigner_error();
-  test_pow_negative_one();
+  //test_pow_negative_one();
+  test_concepts();
 
   //    const double tolerance = 1e-9;
   //    double error;

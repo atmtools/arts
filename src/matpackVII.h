@@ -32,6 +32,7 @@ USA. */
 #include <utility>
 
 #include "matpackVI.h"
+#include "matpack_concepts.h"
 
 /** The outermost iterator class for rank 7 tensors. This takes into
     account the defined strided. */
@@ -146,6 +147,8 @@ The class Tensor7 is just a special case of a Tensor7View
 which also allocates storage. */
 class ConstTensor7View {
  public:
+  static constexpr bool matpack_type{true};
+  
   constexpr ConstTensor7View(const ConstTensor7View&) = default;
   constexpr ConstTensor7View(ConstTensor7View&&) = default;
   ConstTensor7View& operator=(const ConstTensor7View&) = default;
@@ -2418,6 +2421,28 @@ class Tensor7 : public Tensor7View {
   Tensor7(const Tensor7& v);
   Tensor7(Tensor7&& v) noexcept : Tensor7View(std::forward<Tensor7View>(v)) {
     v.mdata = nullptr;
+  }
+
+  /** Initialization from a tensor type. */
+  explicit Tensor7(const matpack::tensor7_like_not_tensor7 auto &init)
+      : Tensor7(matpack::library_size(init), matpack::vitrine_size(init),
+                matpack::shelf_size(init), matpack::book_size(init),
+                matpack::page_size(init), matpack::row_size(init),
+                matpack::column_size(init)) {
+    auto [I, J, K, L, M, N, O] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        for (Index k = 0; k < K; k++)
+          for (Index x = 0; x < L; x++)
+            for (Index m = 0; m < M; m++)
+              for (Index n = 0; n < N; n++)
+                for (Index o = 0; o < O; o++)
+                  operator()(i, j, k, x, m, n, o) = init(i, j, k, x, m, n, o);
+  }
+
+  /** Initialization from a matrix type. */
+   Tensor7& operator=(const matpack::tensor7_like_not_tensor7 auto& init) {
+    return *this = Tensor7(init);
   }
 
   // Assignment operators:
