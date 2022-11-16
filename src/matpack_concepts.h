@@ -248,48 +248,4 @@ concept tensor7_like = requires(T a) {
 //! A concept precluding Arts types but allowing the tensor-like object
 template <typename T>
 concept tensor7_like_not_tensor7 = tensor7_like<T> and not matpack_type<T>;
-
-constexpr auto shape(tensor7_like auto &&x) -> std::array<decltype(column_size(x)), 7> {
-  using T = decltype(x);
-  return {library_size(std::forward<T>(x)), vitrine_size(std::forward<T>(x)),
-          shelf_size(std::forward<T>(x)),   book_size(std::forward<T>(x)),
-          page_size(std::forward<T>(x)),    row_size(std::forward<T>(x)),
-          column_size(std::forward<T>(x))};
-}
-
-constexpr auto shape(tensor6_like auto &&x) -> std::array<decltype(column_size(x)), 6> {
-  using T = decltype(x);
-  return {vitrine_size(std::forward<T>(x)), shelf_size(std::forward<T>(x)),
-          book_size(std::forward<T>(x)),    page_size(std::forward<T>(x)),
-          row_size(std::forward<T>(x)),     column_size(std::forward<T>(x))};
-}
-
-constexpr auto shape(tensor5_like auto &&x) -> std::array<decltype(column_size(x)), 5> {
-  using T = decltype(x);
-  return {shelf_size(std::forward<T>(x)), book_size(std::forward<T>(x)),
-          page_size(std::forward<T>(x)), row_size(std::forward<T>(x)),
-          column_size(std::forward<T>(x))};
-}
-
-constexpr auto shape(tensor4_like auto &&x) -> std::array<decltype(column_size(x)), 4> {
-  using T = decltype(x);
-  return {book_size(std::forward<T>(x)), page_size(std::forward<T>(x)),
-          row_size(std::forward<T>(x)), column_size(std::forward<T>(x))};
-}
-
-constexpr auto shape(tensor3_like auto &&x) -> std::array<decltype(column_size(x)), 3> {
-  using T = decltype(x);
-  return {page_size(std::forward<T>(x)), row_size(std::forward<T>(x)),
-          column_size(std::forward<T>(x))};
-}
-
-constexpr auto shape(matrix_like auto &&x) -> std::array<decltype(column_size(x)), 2> {
-  using T = decltype(x);
-  return {row_size(std::forward<T>(x)), column_size(std::forward<T>(x))};
-}
-
-constexpr auto shape(vector_like auto &&x) -> std::array<decltype(column_size(x)), 2> {
-  using T = decltype(x);
-  return {column_size(std::forward<T>(x))};
-}
 }  // namespace matpack

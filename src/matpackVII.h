@@ -2434,7 +2434,16 @@ class Tensor7 : public Tensor7View {
 
   /** Set from a tensor type. */
   Tensor7 &operator=(const matpack::tensor7_like_not_tensor7 auto &init) {
-    if (const auto s = matpack::shape(init); shape().data not_eq s)
+    if (const auto s =
+            std::array<Index, 7>{
+                static_cast<Index>(matpack::library_size(init)),
+                static_cast<Index>(matpack::vitrine_size(init)),
+                static_cast<Index>(matpack::shelf_size(init)),
+                static_cast<Index>(matpack::book_size(init)),
+                static_cast<Index>(matpack::page_size(init)),
+                static_cast<Index>(matpack::row_size(init)),
+                static_cast<Index>(matpack::column_size(init))};
+        shape().data not_eq s)
       resize(s[0], s[1], s[2], s[3], s[4], s[5], s[6]);
 
     auto [I, J, K, L, M, N, O] = shape().data;

@@ -543,7 +543,13 @@ class Tensor5 : public Tensor5View {
 
   /** Set from a tensor type. */
   Tensor5 &operator=(const matpack::tensor5_like_not_tensor5 auto &init) {
-    if (const auto s = matpack::shape(init); shape().data not_eq s)
+    if (const auto s =
+            std::array<Index, 5>{static_cast<Index>(matpack::shelf_size(init)),
+                                 static_cast<Index>(matpack::book_size(init)),
+                                 static_cast<Index>(matpack::page_size(init)),
+                                 static_cast<Index>(matpack::row_size(init)),
+                                 static_cast<Index>(matpack::column_size(init))};
+        shape().data not_eq s)
       resize(s[0], s[1], s[2], s[3], s[4]);
 
     auto [I, J, K, L, M] = shape().data;

@@ -370,7 +370,11 @@ class Tensor3 : public Tensor3View {
 
   /** Set from a tensor type. */
   Tensor3 &operator=(const matpack::tensor3_like_not_tensor3 auto &init) {
-    if (const auto s = matpack::shape(init); shape().data not_eq s)
+    if (const auto s =
+            std::array<Index, 3>{static_cast<Index>(matpack::page_size(init)),
+                                 static_cast<Index>(matpack::row_size(init)),
+                                 static_cast<Index>(matpack::column_size(init))};
+        shape().data not_eq s)
       resize(s[0], s[1], s[2]);
 
     auto [I, J, K] = shape().data;

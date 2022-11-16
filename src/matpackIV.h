@@ -453,7 +453,12 @@ class Tensor4 : public Tensor4View {
 
   /** Set from a tensor type. */
   Tensor4 &operator=(const matpack::tensor4_like_not_tensor4 auto &init) {
-    if (const auto s = matpack::shape(init); shape().data not_eq s)
+    if (const auto s =
+            std::array<Index, 4>{static_cast<Index>(matpack::book_size(init)),
+                                 static_cast<Index>(matpack::page_size(init)),
+                                 static_cast<Index>(matpack::row_size(init)),
+                                 static_cast<Index>(matpack::column_size(init))};
+        shape().data not_eq s)
       resize(s[0], s[1], s[2], s[3]);
 
     auto [I, J, K, L] = shape().data;
