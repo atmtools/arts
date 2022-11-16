@@ -225,10 +225,12 @@ struct Data {
   Extrapolation lon_upp{Extrapolation::None};
   Extrapolation lon_low{Extrapolation::None};
 
-  [[nodiscard]] constexpr bool need_hydrostatic() const {
+  [[nodiscard]] constexpr bool need_hydrostatic() const noexcept {
     return alt_low == Extrapolation::Hydrostatic or
-           alt_upp == Extrapolation::Hydrostatic;
+        alt_upp == Extrapolation::Hydrostatic;
   }
+
+  [[nodiscard]] std::tuple<Numeric, Numeric, Numeric> hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const;
 };
 
 template <typename T>
@@ -410,6 +412,10 @@ class Field {
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Field &atm);
+
+private:
+  //! Fits an atmospheric point without hydrostatic balance
+  friend Point main_fitting(const Field& field, Numeric alt_point, Numeric lat_point, Numeric lon_point);
 };
 
 /** A wrapper to fix the input field to the expected format for Field
