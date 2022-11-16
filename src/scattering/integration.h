@@ -5,21 +5,24 @@
  * @author Simon Pfreundschuh, 2020
  */
 #include <map>
-
+#include <numbers>
 #include "fftw3.h"
-
 #include "scattering/maths.h"
 
 #pragma once
 
 namespace scattering {
+
+using std::numbers::pi_v;
+
 namespace detail {
 
+
 ////////////////////////////////////////////////////////////////////////////////
-/// Type trait storing the desired precision for different precisions.
+/// Type trait storing the desired precision for different FP types.
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 struct Precision {
   static constexpr Scalar value = 1e-16;
 };
@@ -57,7 +60,7 @@ enum class QuadratureType {
  * This class implements a Gauss-Legendre quadrature for the integration
  * of functions over the interval [-1, 1].
  */
-template <typename Scalar>
+template <std::floating_point Scalar>
 class GaussLegendreQuadrature {
  private:
   /** Find Gauss-Legendre nodes and weights.
@@ -74,7 +77,7 @@ class GaussLegendreQuadrature {
     Scalar x, x_old, p_l, p_l_1, p_l_2, dp_dx;
 
     for (int i = 1; i <= n_half_nodes; ++i) {
-      p_l = M_PI;
+      p_l = pi_v<Scalar>;
       p_l_1 = 2 * n;
       //
       // Initial guess.
@@ -184,7 +187,7 @@ class DoubleGaussQuadrature {
  print(weights, weights_ref)
  *
  */
-template <typename Scalar>
+template <std::floating_point Scalar>
 class LobattoQuadrature {
 
  private:
@@ -205,7 +208,7 @@ class LobattoQuadrature {
       // Initial guess.
       //
       Scalar d_i = ((n % 2) == 0) ? 0.5 : 0.0;
-      x = sin(M_PI * (i + d_i) / (n - 0.5));
+      x = sin(pi_v<Scalar> * (i + d_i) / (n - 0.5));
 
       //
       // Evaluate Legendre Polynomial and its derivative at node.
@@ -274,7 +277,7 @@ class LobattoQuadrature {
  *  $x_i = arccos(2 * \pi * i / N)$ for $i = 0,\dots, N$.
  *  as integration nodes.
  */
-template <typename Scalar>
+template <std::floating_point Scalar>
 class ClenshawCurtisQuadrature {
  private:
   // pxx :: hide
@@ -306,7 +309,7 @@ class ClenshawCurtisQuadrature {
 
     // Calculate nodes.
     for (long int i = 0; i <= n; i++) {
-      nodes_[i] = -cos((M_PI * i) / n);
+      nodes_[i] = -cos((pi_v<Scalar> * i) / n);
     }
   }
 
@@ -340,7 +343,7 @@ class ClenshawCurtisQuadrature {
  *  $x_i = arccos(2 * \pi * (i + 0.5) / N)$ for $i = 0,\dots, N-1$.
  * as integration nodes.
  */
-template <typename Scalar>
+template <std::floating_point Scalar>
 class FejerQuadrature {
  private:
 
@@ -358,7 +361,7 @@ class FejerQuadrature {
                                   FFTW_ESTIMATE);
       // Calculate DFT input.
       for (int i = 0; i < n / 2 + 1; ++i) {
-          Scalar x = (M_PI * i) / static_cast<Scalar>(n);
+          Scalar x = (pi_v<Scalar> * i) / static_cast<Scalar>(n);
           coeffs[i] = std::complex<double>(cos(x), sin(x));
           coeffs[i] *= 2.0 / (1.0 - 4.0 * i * i);
       }
@@ -374,7 +377,7 @@ class FejerQuadrature {
 
       // Calculate nodes.
       for (long int i = 0; i < n; i++) {
-          nodes_[i] = -cos(M_PI * (static_cast<double>(i) + 0.5) / static_cast<double>(n));
+          nodes_[i] = -cos(pi_v<Scalar> * (static_cast<double>(i) + 0.5) / static_cast<double>(n));
       }
   }
 
@@ -397,7 +400,7 @@ class FejerQuadrature {
   math::Vector<Scalar> weights_;
 };
 
-template <typename Scalar, template<typename> typename Quadrature>
+template <std::floating_point Scalar, template<typename> typename Quadrature>
 class QuadratureProvider {
  public:
   QuadratureProvider() {}
@@ -423,7 +426,7 @@ class QuadratureProvider {
  * in addition to that, the integration weights of the corresponding
  * quadrature.
  */
-template <typename Scalar>
+template <std::floating_point Scalar>
 class LatitudeGrid : public math::Vector<Scalar> {
  public:
   LatitudeGrid() : math::Vector<Scalar>() {}
@@ -443,11 +446,11 @@ class LatitudeGrid : public math::Vector<Scalar> {
   virtual QuadratureType get_type() = 0;
 };
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 using LatitudeGridPtr = std::shared_ptr<LatitudeGrid<Scalar>>;
 
 // pxx :: instance(["double"])
-template <typename Scalar>
+template <std::floating_point Scalar>
 class IrregularLatitudeGrid : public LatitudeGrid<Scalar> {
 
  public:
@@ -492,7 +495,7 @@ class IrregularLatitudeGrid : public LatitudeGrid<Scalar> {
 // pxx :: instance("GaussLegendreLatitudeGrid", ["scattering::GaussLegendreQuadrature<double>", "double"])
 // pxx :: instance("DoubleGaussLatitudeGrid", ["scattering::DoubleGaussQuadrature<double>", "double"])
 // pxx :: instance("LobattoLatitudeGrid", ["scattering::LobattoQuadrature<double>", "double"])
-template <typename Quadrature, typename Scalar>
+template <typename Quadrature, std::floating_point Scalar>
 class QuadratureLatitudeGrid : public LatitudeGrid<Scalar>
 {
 public:
@@ -530,13 +533,13 @@ public:
 
 };
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 using GaussLegendreGrid = QuadratureLatitudeGrid<GaussLegendreQuadrature<Scalar>, Scalar>;
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 using DoubleGaussGrid = QuadratureLatitudeGrid<DoubleGaussQuadrature<Scalar>, Scalar>;
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 using LobattoGrid = QuadratureLatitudeGrid<LobattoQuadrature<Scalar>, Scalar>;
 
 
@@ -546,14 +549,14 @@ using LobattoGrid = QuadratureLatitudeGrid<LobattoQuadrature<Scalar>, Scalar>;
 
 static QuadratureProvider<double, FejerQuadrature> quadratures = QuadratureProvider<double, FejerQuadrature>();
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 Scalar integrate_latitudes(math::ConstVectorRef<Scalar> data,
                            const LatitudeGrid<Scalar>& grid) {
   auto weights = grid.get_weights();
   return weights.dot(data);
 }
 
-template <typename Scalar>
+template <std::floating_point Scalar>
 Scalar integrate_angles(math::ConstMatrixRef<Scalar> data,
                         math::ConstVectorRef<Scalar> longitudes,
                         const LatitudeGrid<Scalar>& latitude_grid) {
@@ -572,7 +575,7 @@ Scalar integrate_angles(math::ConstMatrixRef<Scalar> data,
     latitude_integral_left = latitude_integral_right;
   }
 
-  Scalar dl = 2.0 * M_PI + longitudes[0] - longitudes[n - 1];
+  Scalar dl = 2.0 * pi_v<Scalar> + longitudes[0] - longitudes[n - 1];
   result += 0.5 * (latitude_integral_first + latitude_integral_right) * dl;
 
   return result;
