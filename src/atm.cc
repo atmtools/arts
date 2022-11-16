@@ -92,7 +92,6 @@ Numeric Point::mean_mass() const {
   if (total_vmr not_eq 0) out /= total_vmr;
   return out;
 }
-
 namespace detail {
 constexpr Numeric field_interp(Numeric x, Numeric, Numeric, Numeric) noexcept {
   return x;
@@ -221,58 +220,101 @@ Numeric fix_hydrostatic(Numeric x0, const Point& atm, const Data& data, Numeric 
 }
 } // namespace detail
 
-Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point, const FunctionalData& g) const {
+std::tuple<Numeric, Numeric, Numeric>
+Data::hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const {
+  if (const auto *ptr = std::get_if<GriddedField3>(&data); ptr) {
+    detail::limits(alt, ptr->get_numeric_grid(0), alt_low, alt_upp, "altitude");
+    detail::limits(lat, ptr->get_numeric_grid(1), lat_low, lat_upp, "latitude");
+    detail::limits(lon, ptr->get_numeric_grid(2), lon_low, lon_upp,
+                   "longitude");
+  }
+  return {alt, lat, lon};
+}
+
+Point main_fitting(const Field &field, Numeric alt_point, Numeric lat_point,
+                   Numeric lon_point) {
   Point atm;
 
-  if (alt_point > space_alt)
+  if (alt_point > field.space_alt)
     return atm;
 
-  if (not regularized) {
+  if (not field.regularized) {
     const auto get_value = [alt = alt_point, lat = lat_point,
                             lon = lon_point](auto &x) {
       return detail::compute_value(x, alt, lat, lon);
     };
 
-    for (auto &vals : specs) atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : other) atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : nlte)  atm.set(vals.first, get_value(vals.second));
-    
-    // Fix for hydrostatic equilibrium
-    for (auto &vals : specs) {
-      if (vals.second.need_hydrostatic()) {
-        atm.set(vals.first, detail::fix_hydrostatic(
-                                atm[vals.first], atm, vals.second,
-                                g(alt_point, lat_point, lon_point), alt_point));
-      }
-    }
-    for (auto &vals : other) {
-      if (vals.second.need_hydrostatic()) {
-        atm.set(vals.first, detail::fix_hydrostatic(
-                                atm[vals.first], atm, vals.second,
-                                g(alt_point, lat_point, lon_point), alt_point));
-      }
-    }
-    for (auto &vals : nlte) {
-      if (vals.second.need_hydrostatic()) {
-        atm.set(vals.first, detail::fix_hydrostatic(
-                                atm[vals.first], atm, vals.second,
-                                g(alt_point, lat_point, lon_point), alt_point));
-      }
-    }
+    for (auto &vals : field.specs)
+      atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : field.other)
+      atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : field.nlte)
+      atm.set(vals.first, get_value(vals.second));
   } else {
-    const auto get_value =
-        [v = detail::LinearInterpolation(alt, lat, lon, alt_point, lat_point,
-                                         lon_point)](auto &x) {
-          return Interpolation::interp(*std::get_if<Tensor3>(&x.data), v.iw,
-                                       v.alt, v.lat, v.lon);
-        };
+    const auto get_value = [v = detail::LinearInterpolation(
+                                field.alt, field.lat, field.lon, alt_point,
+                                lat_point, lon_point)](auto &x) {
+      return Interpolation::interp(*std::get_if<Tensor3>(&x.data), v.iw, v.alt,
+                                   v.lat, v.lon);
+    };
 
-    for (auto &vals : specs) atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : other) atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : nlte)  atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : field.specs)
+      atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : field.other)
+      atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : field.nlte)
+      atm.set(vals.first, get_value(vals.second));
   }
 
-  atm.set_energy_level(nlte_energy);
+  atm.set_energy_level(field.nlte_energy);
+  return atm;
+}
+
+Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
+                const FunctionalData &g) const {
+  Point atm = main_fitting(*this, alt_point, lat_point, lon_point);
+
+  // Fix for hydrostatic equilibrium
+  for (auto &vals : specs) {
+    if (vals.second.need_hydrostatic()) {
+      const auto [base_alt, base_lat, base_lon] =
+          vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
+      if (base_alt not_eq alt_point) {
+        auto base_atm = main_fitting(*this, base_alt, base_lat, base_lon);
+        auto base_gra = g(base_alt, base_lat, base_lon);
+        atm.set(vals.first,
+                detail::fix_hydrostatic(base_atm[vals.first], base_atm,
+                                        vals.second, base_gra, alt_point));
+      }
+    }
+  }
+  for (auto &vals : other) {
+    if (vals.second.need_hydrostatic()) {
+      const auto [base_alt, base_lat, base_lon] =
+          vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
+      if (base_alt not_eq alt_point) {
+        auto base_atm = main_fitting(*this, base_alt, base_lat, base_lon);
+        auto base_gra = g(base_alt, base_lat, base_lon);
+        atm.set(vals.first,
+                detail::fix_hydrostatic(base_atm[vals.first], base_atm,
+                                        vals.second, base_gra, alt_point));
+      }
+    }
+  }
+  for (auto &vals : nlte) {
+    if (vals.second.need_hydrostatic()) {
+      const auto [base_alt, base_lat, base_lon] =
+          vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
+      if (base_alt not_eq alt_point) {
+        auto base_atm = main_fitting(*this, base_alt, base_lat, base_lon);
+        auto base_gra = g(base_alt, base_lat, base_lon);
+        atm.set(vals.first,
+                detail::fix_hydrostatic(base_atm[vals.first], base_atm,
+                                        vals.second, base_gra, alt_point));
+      }
+    }
+  }
+
   return atm;
 }
 
