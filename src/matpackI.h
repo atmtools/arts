@@ -96,6 +96,7 @@
 #define matpackI_h
 
 #include <algorithm>
+#include <type_traits>
 #include <utility>
 
 #include "array.h"
@@ -916,8 +917,9 @@ class Vector : public VectorView {
   Vector(std::initializer_list<Numeric> init);
 
   /** Initialization from a vector type. */
-  explicit Vector(const matpack::vector_like_not_vector auto& init) : Vector(matpack::column_size(init)) {
-    for (Index i=0; i<size(); i++) operator[](i) = init[i];
+  explicit Vector(const matpack::vector_like_not_vector auto &init)
+      : Vector(matpack::column_size(init)) {
+    *this = init;
   }
 
   /** Constructor setting size. */
@@ -999,8 +1001,13 @@ class Vector : public VectorView {
   Vector& operator=(std::initializer_list<Numeric> v);
 
   /** Set from a vector type. */
-  Vector& operator=(const matpack::vector_like_not_vector auto& init) {
-    return *this = Vector(init);
+  Vector &operator=(const matpack::vector_like_not_vector auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s) resize(s[0]);
+
+    for (Index i = 0; i < size(); i++)
+      operator[](i) = init[i];
+
+    return *this;
   }
 
   /** Assignment operator from Array<Numeric>.
@@ -1291,10 +1298,7 @@ class Matrix : public MatrixView {
   /** Initialization from a vector type. */
   explicit Matrix(const matpack::matrix_like_not_matrix auto &init)
       : Matrix(matpack::row_size(init), matpack::column_size(init)) {
-    auto [I, J] = shape().data;
-    for (Index i = 0; i < I; i++)
-      for (Index j = 0; j < J; j++)
-        operator()(i, j) = init(i, j);
+    *this = init;
   }
 
   /*! Construct from known data
@@ -1319,8 +1323,16 @@ class Matrix : public MatrixView {
   Matrix& operator=(const ConstVectorView& v);
 
   /** Set from a matrix type. */
-   Matrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
-    return *this = Matrix(init);
+  Matrix &operator=(const matpack::matrix_like_not_matrix auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0], s[1]);
+
+    auto [I, J] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        operator()(i, j) = init(i, j);
+
+    return *this;
   }
 
   // Resize function:

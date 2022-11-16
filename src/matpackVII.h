@@ -2429,6 +2429,14 @@ class Tensor7 : public Tensor7View {
                 matpack::shelf_size(init), matpack::book_size(init),
                 matpack::page_size(init), matpack::row_size(init),
                 matpack::column_size(init)) {
+    *this = init;
+  }
+
+  /** Set from a tensor type. */
+  Tensor7 &operator=(const matpack::tensor7_like_not_tensor7 auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0], s[1], s[2], s[3], s[4], s[5], s[6]);
+
     auto [I, J, K, L, M, N, O] = shape().data;
     for (Index i = 0; i < I; i++)
       for (Index j = 0; j < J; j++)
@@ -2438,11 +2446,8 @@ class Tensor7 : public Tensor7View {
               for (Index n = 0; n < N; n++)
                 for (Index o = 0; o < O; o++)
                   operator()(i, j, k, x, m, n, o) = init(i, j, k, x, m, n, o);
-  }
 
-  /** Set from a tensor type. */
-   Tensor7& operator=(const matpack::tensor7_like_not_tensor7 auto& init) {
-    return *this = Tensor7(init);
+    return *this;
   }
 
   // Assignment operators:

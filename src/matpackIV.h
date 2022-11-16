@@ -448,17 +448,22 @@ class Tensor4 : public Tensor4View {
   explicit Tensor4(const matpack::tensor4_like_not_tensor4 auto &init)
       : Tensor4(matpack::book_size(init), matpack::page_size(init),
                 matpack::row_size(init), matpack::column_size(init)) {
+    *this = init;
+  }
+
+  /** Set from a tensor type. */
+  Tensor4 &operator=(const matpack::tensor4_like_not_tensor4 auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0], s[1], s[2], s[3]);
+
     auto [I, J, K, L] = shape().data;
     for (Index i = 0; i < I; i++)
       for (Index j = 0; j < J; j++)
         for (Index k = 0; k < K; k++)
           for (Index x = 0; x < L; x++)
             operator()(i, j, k, x) = init(i, j, k, x);
-  }
 
-  /** Set from a tensor type. */
-   Tensor4& operator=(const matpack::tensor4_like_not_tensor4 auto& init) {
-    return *this = Tensor4(init);
+    return *this;
   }
 
   /*! Construct from known data

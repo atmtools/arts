@@ -365,16 +365,21 @@ class Tensor3 : public Tensor3View {
   explicit Tensor3(const matpack::tensor3_like_not_tensor3 auto &init)
       : Tensor3(matpack::page_size(init), matpack::row_size(init),
                 matpack::column_size(init)) {
+    *this = init;
+  }
+
+  /** Set from a tensor type. */
+  Tensor3 &operator=(const matpack::tensor3_like_not_tensor3 auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0], s[1], s[2]);
+
     auto [I, J, K] = shape().data;
     for (Index i = 0; i < I; i++)
       for (Index j = 0; j < J; j++)
         for (Index k = 0; k < K; k++)
           operator()(i, j, k) = init(i, j, k);
-  }
 
-  /** Set from a tensor type. */
-   Tensor3& operator=(const matpack::tensor3_like_not_tensor3 auto& init) {
-    return *this = Tensor3(init);
+    return *this;
   }
 
   /*! Construct from known data

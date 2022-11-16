@@ -1121,6 +1121,14 @@ class Tensor6 : public Tensor6View {
       : Tensor6(matpack::vitrine_size(init), matpack::shelf_size(init),
                 matpack::book_size(init), matpack::page_size(init),
                 matpack::row_size(init), matpack::column_size(init)) {
+    *this = init;
+  }
+
+  /** Set from a tensor type. */
+  Tensor6 &operator=(const matpack::tensor6_like_not_tensor6 auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0], s[1], s[2], s[3], s[4], s[5]);
+
     auto [I, J, K, L, M, N] = shape().data;
     for (Index i = 0; i < I; i++)
       for (Index j = 0; j < J; j++)
@@ -1129,11 +1137,8 @@ class Tensor6 : public Tensor6View {
             for (Index m = 0; m < M; m++)
               for (Index n = 0; n < N; n++)
                 operator()(i, j, k, x, m, n) = init(i, j, k, x, m, n);
-  }
 
-  /** Set from a tensor type. */
-   Tensor6& operator=(const matpack::tensor6_like_not_tensor6 auto& init) {
-    return *this = Tensor6(init);
+    return *this;
   }
 
   /*! Construct from known data

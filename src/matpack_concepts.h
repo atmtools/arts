@@ -81,8 +81,8 @@ constexpr auto column_size(column_keeper auto&& x) {
   else return std::forward<internal_type>(x).ncols();
 }
 
-//! Checks if the type has any accepted types of rows
-template <typename T> concept row_keeper = has_nrows<T> or external_class::has_rows<T>;
+//! Checks if the type has any accepted types of rows as well as previous sizes
+template <typename T> concept row_keeper = column_keeper<T> and (has_nrows<T> or external_class::has_rows<T>);
 
 //! Get a row size from x
 constexpr auto row_size(row_keeper auto&& x) {
@@ -91,8 +91,8 @@ constexpr auto row_size(row_keeper auto&& x) {
   else return std::forward<internal_type>(x).nrows();
 }
 
-//! Checks if the type has any accepted types of pages
-template <typename T> concept page_keeper = has_npages<T>;
+//! Checks if the type has any accepted types of pages as well as previous sizes
+template <typename T> concept page_keeper = row_keeper<T> and (has_npages<T>);
 
 //! Get a page size from x
 constexpr auto page_size(page_keeper auto&& x) {
@@ -100,8 +100,8 @@ constexpr auto page_size(page_keeper auto&& x) {
   return std::forward<internal_type>(x).npages();
 }
 
-//! Checks if the type has any accepted types of books
-template <typename T> concept book_keeper = has_nbooks<T>;
+//! Checks if the type has any accepted types of books as well as previous sizes
+template <typename T> concept book_keeper = page_keeper<T> and (has_nbooks<T>);
 
 //! Get a book size from x
 constexpr auto book_size(book_keeper auto&& x) {
@@ -109,8 +109,8 @@ constexpr auto book_size(book_keeper auto&& x) {
   return std::forward<internal_type>(x).nbooks();
 }
 
-//! Checks if the type has any accepted types of shelves
-template <typename T> concept shelf_keeper = has_nshelves<T>;
+//! Checks if the type has any accepted types of shelves as well as previous sizes
+template <typename T> concept shelf_keeper = book_keeper<T> and (has_nshelves<T>);
 
 //! Get a shelf size from x
 constexpr auto shelf_size(shelf_keeper auto&& x) {
@@ -118,8 +118,8 @@ constexpr auto shelf_size(shelf_keeper auto&& x) {
   return std::forward<internal_type>(x).nshelves();
 }
 
-//! Checks if the type has any accepted types of vitrines
-template <typename T> concept vitrine_keeper = has_nvitrines<T>;
+//! Checks if the type has any accepted types of vitrines as well as previous sizes
+template <typename T> concept vitrine_keeper = shelf_keeper<T> and (has_nvitrines<T>);
 
 //! Get a vitrine size from x
 constexpr auto vitrine_size(vitrine_keeper auto&& x) {
@@ -127,8 +127,8 @@ constexpr auto vitrine_size(vitrine_keeper auto&& x) {
   return std::forward<internal_type>(x).nvitrines();
 }
 
-//! Checks if the type has any accepted types of libraries
-template <typename T> concept library_keeper = has_nlibraries<T>;
+//! Checks if the type has any accepted types of libraries as well as previous sizes
+template <typename T> concept library_keeper = vitrine_keeper<T> and (has_nlibraries<T>);
 
 //! Get a library size from x
 constexpr auto library_size(library_keeper auto&& x) {
@@ -173,7 +173,6 @@ concept vector_like_not_vector = vector_like<T> and not matpack_type<T>;
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept matrix_like = requires(T a) {
-  { column_size(a) } -> std::integral;
   { row_size(a) } -> std::integral;
   { a(0, 0) } -> complex_or_real;
 };
@@ -198,8 +197,6 @@ concept matrix_or_vector = matrix<T> or vector<T>;
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept tensor3_like = requires(T a) {
-  { column_size(a) } -> std::integral;
-  { row_size(a) } -> std::integral;
   { page_size(a) } -> std::integral;
   { a(0, 0, 0) } -> complex_or_real;
 };
@@ -211,9 +208,6 @@ concept tensor3_like_not_tensor3 = tensor3_like<T> and not matpack_type<T>;
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept tensor4_like = requires(T a) {
-  { column_size(a) } -> std::integral;
-  { row_size(a) } -> std::integral;
-  { page_size(a) } -> std::integral;
   { book_size(a) } -> std::integral;
   { a(0, 0, 0, 0) } -> complex_or_real;
 };
@@ -225,10 +219,6 @@ concept tensor4_like_not_tensor4 = tensor4_like<T> and not matpack_type<T>;
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept tensor5_like = requires(T a) {
-  { column_size(a) } -> std::integral;
-  { row_size(a) } -> std::integral;
-  { page_size(a) } -> std::integral;
-  { book_size(a) } -> std::integral;
   { shelf_size(a) } -> std::integral;
   { a(0, 0, 0, 0, 0) } -> complex_or_real;
 };
@@ -240,11 +230,6 @@ concept tensor5_like_not_tensor5 = tensor5_like<T> and not matpack_type<T>;
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept tensor6_like = requires(T a) {
-  { column_size(a) } -> std::integral;
-  { row_size(a) } -> std::integral;
-  { page_size(a) } -> std::integral;
-  { book_size(a) } -> std::integral;
-  { shelf_size(a) } -> std::integral;
   { vitrine_size(a) } -> std::integral;
   { a(0, 0, 0, 0, 0, 0) } -> complex_or_real;
 };
@@ -256,12 +241,6 @@ concept tensor6_like_not_tensor6 = tensor6_like<T> and not matpack_type<T>;
 //! A concept for an Arts matrix-like type with access operations
 template <typename T>
 concept tensor7_like = requires(T a) {
-  { column_size(a) } -> std::integral;
-  { row_size(a) } -> std::integral;
-  { page_size(a) } -> std::integral;
-  { book_size(a) } -> std::integral;
-  { shelf_size(a) } -> std::integral;
-  { vitrine_size(a) } -> std::integral;
   { library_size(a) } -> std::integral;
   { a(0, 0, 0, 0, 0, 0, 0) } -> complex_or_real;
 };
@@ -269,4 +248,48 @@ concept tensor7_like = requires(T a) {
 //! A concept precluding Arts types but allowing the tensor-like object
 template <typename T>
 concept tensor7_like_not_tensor7 = tensor7_like<T> and not matpack_type<T>;
+
+constexpr auto shape(tensor7_like auto &&x) -> std::array<decltype(column_size(x)), 7> {
+  using T = decltype(x);
+  return {library_size(std::forward<T>(x)), vitrine_size(std::forward<T>(x)),
+          shelf_size(std::forward<T>(x)),   book_size(std::forward<T>(x)),
+          page_size(std::forward<T>(x)),    row_size(std::forward<T>(x)),
+          column_size(std::forward<T>(x))};
+}
+
+constexpr auto shape(tensor6_like auto &&x) -> std::array<decltype(column_size(x)), 6> {
+  using T = decltype(x);
+  return {vitrine_size(std::forward<T>(x)), shelf_size(std::forward<T>(x)),
+          book_size(std::forward<T>(x)),    page_size(std::forward<T>(x)),
+          row_size(std::forward<T>(x)),     column_size(std::forward<T>(x))};
+}
+
+constexpr auto shape(tensor5_like auto &&x) -> std::array<decltype(column_size(x)), 5> {
+  using T = decltype(x);
+  return {shelf_size(std::forward<T>(x)), book_size(std::forward<T>(x)),
+          page_size(std::forward<T>(x)), row_size(std::forward<T>(x)),
+          column_size(std::forward<T>(x))};
+}
+
+constexpr auto shape(tensor4_like auto &&x) -> std::array<decltype(column_size(x)), 4> {
+  using T = decltype(x);
+  return {book_size(std::forward<T>(x)), page_size(std::forward<T>(x)),
+          row_size(std::forward<T>(x)), column_size(std::forward<T>(x))};
+}
+
+constexpr auto shape(tensor3_like auto &&x) -> std::array<decltype(column_size(x)), 3> {
+  using T = decltype(x);
+  return {page_size(std::forward<T>(x)), row_size(std::forward<T>(x)),
+          column_size(std::forward<T>(x))};
+}
+
+constexpr auto shape(matrix_like auto &&x) -> std::array<decltype(column_size(x)), 2> {
+  using T = decltype(x);
+  return {row_size(std::forward<T>(x)), column_size(std::forward<T>(x))};
+}
+
+constexpr auto shape(vector_like auto &&x) -> std::array<decltype(column_size(x)), 2> {
+  using T = decltype(x);
+  return {column_size(std::forward<T>(x))};
+}
 }  // namespace matpack

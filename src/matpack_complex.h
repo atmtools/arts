@@ -615,9 +615,12 @@ class ComplexVector : public ComplexVectorView {
   }
 
   /** Initialization from a vector type. */
-  explicit ComplexVector(const matpack::vector_like_not_vector auto& init) : ComplexVector(matpack::column_size(init)) {
-    for (Index i=0; i<size(); i++) operator[](i) = init[i];
+  explicit ComplexVector(const matpack::vector_like_not_vector auto &init)
+      : ComplexVector(matpack::column_size(init)) {
+    *this = init;
   }
+
+  [[nodiscard]] Shape<1> shape() const { return {nelem()}; }
 
   // Assignment operators:
   ComplexVector& operator=(const ComplexVector& v);
@@ -625,8 +628,14 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector& operator=(Complex x);
 
   /** Set from a vector type. */
-   ComplexVector& operator=(const matpack::vector_like_not_vector auto& init) {
-    return *this = ComplexVector(init);
+  ComplexVector &operator=(const matpack::vector_like_not_vector auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0]);
+
+    for (Index i = 0; i < size(); i++)
+      operator[](i) = init[i];
+
+    return *this;
   }
 
   ComplexVector& operator=(ComplexVector&& v) ARTS_NOEXCEPT {
@@ -914,9 +923,12 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix(const ComplexMatrix& v);
 
   /** Initialization from a vector type. */
-  explicit ComplexMatrix(const matpack::matrix_like_not_matrix auto& init) : ComplexMatrix(matpack::row_size(init), matpack::column_size(init)) {
-    for (Index i=0; i<nrows(); i++) for (Index j=0; j<ncols(); j++) operator()(i, j) = init(i, j);
+  explicit ComplexMatrix(const matpack::matrix_like_not_matrix auto &init)
+      : ComplexMatrix(matpack::row_size(init), matpack::column_size(init)) {
+    *this = init;
   }
+
+  [[nodiscard]] Shape<2> shape() const { return {nrows(), ncols()}; }
 
   // Assignment operators:
   ComplexMatrix& operator=(ComplexMatrix x);
@@ -924,10 +936,18 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix& operator=(const ConstComplexVectorView& v);
 
   /** Set from a matrix type. */
-   ComplexMatrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
-    return *this = ComplexMatrix(init);
+  ComplexMatrix &operator=(const matpack::matrix_like_not_matrix auto &init) {
+    if (const auto s = matpack::shape(init); shape().data not_eq s)
+      resize(s[0], s[1]);
+
+    auto [I, J] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        operator()(i, j) = init(i, j);
+
+    return *this;
   }
-  
+
   // Inverse in place
   ComplexMatrix& inv(const lapack_help::Inverse<Complex>& help=lapack_help::Inverse<Complex>{0});
 
