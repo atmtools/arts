@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug.h"
 #include <complex>
 #include <concepts>
 #include <type_traits>
@@ -248,4 +249,69 @@ concept tensor7_like = requires(T a) {
 //! A concept precluding Arts types but allowing the tensor-like object
 template <typename T>
 concept tensor7_like_not_tensor7 = tensor7_like<T> and not matpack_type<T>;
+
+template <typename T>
+concept matpack_like = tensor7_like<T> or tensor6_like<T> or tensor5_like<T> or tensor4_like<T> or tensor3_like<T> or matrix_like<T> or vector_like<T>;
+
+template <matpack_like T> constexpr std::size_t dim() {
+  return tensor7_like<T> + tensor6_like<T> + tensor5_like<T> + tensor4_like<T> +
+         tensor3_like<T> + matrix_like<T> + vector_like<T>;
+}
+
+//! Creates a shape array (note that this might create compile time errors if N is larger than x allows for)
+template <class IndexType, std::size_t N>
+constexpr std::array<IndexType, N> shape(matpack_like auto &&x) {
+  using T = decltype(x);
+  static_assert(N > 0 and N < 8, "Out of range");
+
+  static_assert((N == 1 and dim<T>() == 2) or (N == dim<T>()),
+                "Dimensions must agree, or a matrix-like that is runtime "
+                "defined as vector be used");
+
+  if constexpr (N == 7)
+    return {static_cast<IndexType>(library_size(std::forward<T>(x))),
+            static_cast<IndexType>(vitrine_size(std::forward<T>(x))),
+            static_cast<IndexType>(shelf_size(std::forward<T>(x))),
+            static_cast<IndexType>(book_size(std::forward<T>(x))),
+            static_cast<IndexType>(page_size(std::forward<T>(x))),
+            static_cast<IndexType>(row_size(std::forward<T>(x))),
+            static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  else if constexpr (N == 6)
+    return {static_cast<IndexType>(vitrine_size(std::forward<T>(x))),
+            static_cast<IndexType>(shelf_size(std::forward<T>(x))),
+            static_cast<IndexType>(book_size(std::forward<T>(x))),
+            static_cast<IndexType>(page_size(std::forward<T>(x))),
+            static_cast<IndexType>(row_size(std::forward<T>(x))),
+            static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  else if constexpr (N == 5)
+    return {static_cast<IndexType>(shelf_size(std::forward<T>(x))),
+            static_cast<IndexType>(book_size(std::forward<T>(x))),
+            static_cast<IndexType>(page_size(std::forward<T>(x))),
+            static_cast<IndexType>(row_size(std::forward<T>(x))),
+            static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  else if constexpr (N == 4)
+    return {static_cast<IndexType>(book_size(std::forward<T>(x))),
+            static_cast<IndexType>(page_size(std::forward<T>(x))),
+            static_cast<IndexType>(row_size(std::forward<T>(x))),
+            static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  else if constexpr (N == 3)
+    return {static_cast<IndexType>(page_size(std::forward<T>(x))),
+            static_cast<IndexType>(row_size(std::forward<T>(x))),
+            static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  else if constexpr (N == 2)
+    return {static_cast<IndexType>(row_size(std::forward<T>(x))),
+            static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  else if constexpr (N == 1) {
+    if constexpr (matrix_like<T>) {
+      ARTS_USER_ERROR_IF(
+          static_cast<IndexType>(std::min(column_size(std::forward<T>(x)),
+                                          row_size(std::forward<T>(x)))) not_eq
+              static_cast<IndexType>(1),
+          "Cannot perform vector conversion for matrix: ", x)
+      return {static_cast<IndexType>(std::max(column_size(std::forward<T>(x)),
+                                              row_size(std::forward<T>(x))))};
+    } else
+      return {static_cast<IndexType>(column_size(std::forward<T>(x)))};
+  }
+}
 }  // namespace matpack

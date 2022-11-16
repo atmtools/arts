@@ -1126,15 +1126,7 @@ class Tensor6 : public Tensor6View {
 
   /** Set from a tensor type. */
   Tensor6 &operator=(const matpack::tensor6_like_not_tensor6 auto &init) {
-    if (const auto s =
-            std::array<Index, 6>{
-                static_cast<Index>(matpack::vitrine_size(init)),
-                static_cast<Index>(matpack::shelf_size(init)),
-                static_cast<Index>(matpack::book_size(init)),
-                static_cast<Index>(matpack::page_size(init)),
-                static_cast<Index>(matpack::row_size(init)),
-                static_cast<Index>(matpack::column_size(init))};
-        shape().data not_eq s)
+    if (const auto s = matpack::shape<Index, 6>(init); shape().data not_eq s)
       resize(s[0], s[1], s[2], s[3], s[4], s[5]);
 
     auto [I, J, K, L, M, N] = shape().data;

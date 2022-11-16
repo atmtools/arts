@@ -1001,10 +1001,7 @@ class Vector : public VectorView {
 
   /** Set from a vector type. */
   Vector &operator=(const matpack::vector_like_not_vector auto &init) {
-    if (const auto s = std::array<Index, 1>{static_cast<Index>(
-            matpack::column_size(init))};
-        shape().data not_eq s)
-      resize(s[0]);
+    if (const auto s = matpack::shape<Index, 1>(init); shape().data not_eq s) resize(s[0]);
 
     for (Index i = 0; i < size(); i++)
       operator[](i) = init[i];
@@ -1326,10 +1323,8 @@ class Matrix : public MatrixView {
 
   /** Set from a matrix type. */
   Matrix &operator=(const matpack::matrix_like_not_matrix auto &init) {
-    if (const auto s =
-            std::array<Index, 2>{static_cast<Index>(matpack::row_size(init)),
-                                 static_cast<Index>(matpack::column_size(init))};
-        shape().data not_eq s)
+    if (const auto s = matpack::shape<Index, 2>(init); 
+    shape().data not_eq s)
       resize(s[0], s[1]);
 
     auto [I, J] = shape().data;
@@ -1373,7 +1368,7 @@ class Matrix : public MatrixView {
   void transform_elementwise(F&& func) {
     std::transform(mdata, mdata + size(), mdata, func);
   }
-  };
+};
 
 // Function declarations:
 // ----------------------
