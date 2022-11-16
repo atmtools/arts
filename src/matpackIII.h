@@ -372,7 +372,7 @@ class Tensor3 : public Tensor3View {
           operator()(i, j, k) = init(i, j, k);
   }
 
-  /** Initialization from a matrix type. */
+  /** Set from a tensor type. */
    Tensor3& operator=(const matpack::tensor3_like_not_tensor3 auto& init) {
     return *this = Tensor3(init);
   }

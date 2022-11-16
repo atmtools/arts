@@ -547,7 +547,7 @@ class Tensor5 : public Tensor5View {
               operator()(i, j, k, x, m) = init(i, j, k, x, m);
   }
 
-  /** Initialization from a matrix type. */
+  /** Set from a tensor type. */
    Tensor5& operator=(const matpack::tensor5_like_not_tensor5 auto& init) {
     return *this = Tensor5(init);
   }

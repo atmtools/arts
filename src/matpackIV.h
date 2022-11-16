@@ -456,7 +456,7 @@ class Tensor4 : public Tensor4View {
             operator()(i, j, k, x) = init(i, j, k, x);
   }
 
-  /** Initialization from a matrix type. */
+  /** Set from a tensor type. */
    Tensor4& operator=(const matpack::tensor4_like_not_tensor4 auto& init) {
     return *this = Tensor4(init);
   }

@@ -2440,7 +2440,7 @@ class Tensor7 : public Tensor7View {
                   operator()(i, j, k, x, m, n, o) = init(i, j, k, x, m, n, o);
   }
 
-  /** Initialization from a matrix type. */
+  /** Set from a tensor type. */
    Tensor7& operator=(const matpack::tensor7_like_not_tensor7 auto& init) {
     return *this = Tensor7(init);
   }

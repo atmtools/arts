@@ -624,7 +624,7 @@ class ComplexVector : public ComplexVectorView {
   ComplexVector& operator=(const Array<Complex>& v);
   ComplexVector& operator=(Complex x);
 
-  /** Initialization from a matrix type. */
+  /** Set from a vector type. */
    ComplexVector& operator=(const matpack::vector_like_not_vector auto& init) {
     return *this = ComplexVector(init);
   }
@@ -923,7 +923,7 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix& operator=(Complex x);
   ComplexMatrix& operator=(const ConstComplexVectorView& v);
 
-  /** Initialization from a matrix type. */
+  /** Set from a matrix type. */
    ComplexMatrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
     return *this = ComplexMatrix(init);
   }

@@ -1131,7 +1131,7 @@ class Tensor6 : public Tensor6View {
                 operator()(i, j, k, x, m, n) = init(i, j, k, x, m, n);
   }
 
-  /** Initialization from a matrix type. */
+  /** Set from a tensor type. */
    Tensor6& operator=(const matpack::tensor6_like_not_tensor6 auto& init) {
     return *this = Tensor6(init);
   }

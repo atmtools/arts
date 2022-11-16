@@ -998,6 +998,7 @@ class Vector : public VectorView {
   //! Assignment from an initializatoin list.
   Vector& operator=(std::initializer_list<Numeric> v);
 
+  /** Set from a vector type. */
   Vector& operator=(const matpack::vector_like_not_vector auto& init) {
     return *this = Vector(init);
   }
@@ -1317,7 +1318,7 @@ class Matrix : public MatrixView {
   Matrix& operator=(Numeric x);
   Matrix& operator=(const ConstVectorView& v);
 
-  /** Initialization from a matrix type. */
+  /** Set from a matrix type. */
    Matrix& operator=(const matpack::matrix_like_not_matrix auto& init) {
     return *this = Matrix(init);
   }
