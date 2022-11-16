@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-#include <scattering/math.h>
+#include <scattering/maths.h>
 
 namespace scattering {
 namespace detail {

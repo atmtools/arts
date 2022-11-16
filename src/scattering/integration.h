@@ -7,9 +7,8 @@
 #include <map>
 
 #include "fftw3.h"
-#include "math.h"
 
-#include "scattering/math.h"
+#include "scattering/maths.h"
 
 #pragma once
 

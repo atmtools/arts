@@ -14,7 +14,7 @@
 
 #include "netcdf.hpp"
 
-#include <scattering/math.h>
+#include <scattering/maths.h>
 #include <scattering/array.h>
 #include <scattering/particle.h>
 #include <scattering/particle_habit.h>

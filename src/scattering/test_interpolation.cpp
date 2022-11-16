@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <scattering/math.h>
+#include <scattering/maths.h>
 #include <scattering/interpolation.h>
 
 namespace scattering {

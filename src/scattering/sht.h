@@ -39,7 +39,7 @@
 
 #include "Eigen/Dense"
 
-#include <scattering/math.h>
+#include <scattering/maths.h>
 #include <scattering/integration.h>
 
 using GridCoeffs = scattering::math::Matrix<double>;

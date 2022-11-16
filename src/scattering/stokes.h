@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "scattering/math.h"
+#include "scattering/maths.h"
 #include "scattering/scattering_data_field.h"
 
 namespace scattering {

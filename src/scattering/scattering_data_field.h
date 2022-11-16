@@ -25,7 +25,7 @@
  */
 #pragma once
 
-#include <scattering/math.h>
+#include <scattering/maths.h>
 #include <scattering/integration.h>
 #include <scattering/interpolation.h>
 #include <scattering/sht.h>
