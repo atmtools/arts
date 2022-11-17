@@ -246,7 +246,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
   // Wrapper function output parameters
   const ArrayOfIndex& ago = agr.Out();
   ofs << "        // Output\n";
-  for (long long j : ago) {
+  for (auto j : ago) {
     ofs << "        ";
     ofs << wsv_groups[global_data::wsv_data[j].Group()] << "& ";
     ofs << global_data::wsv_data[j].Name() << ",\n";
@@ -255,7 +255,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
   // Wrapper function input parameters
   const ArrayOfIndex& agi = agr.In();
   ofs << "        // Input\n";
-  for (long long j : agi) {
+  for (auto j : agi) {
     // Ignore Input parameters that are also output
     auto it = ago.begin();
     while (it != ago.end() && *it != j) it++;
