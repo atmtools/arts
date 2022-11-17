@@ -34,6 +34,7 @@
 #include <utility>
 
 #include "matpackIV.h"
+#include "matpack_concepts.h"
 
 /** The outermost iterator class for rank 5 tensors. This takes into
     account the defined strided. */
@@ -142,6 +143,8 @@ class Tensor5;
     which also allocates storage. */
 class ConstTensor5View {
  public:
+  static constexpr bool matpack_type{true};
+  
   constexpr ConstTensor5View(const ConstTensor5View&) = default;
   constexpr ConstTensor5View(ConstTensor5View&&) = default;
   ConstTensor5View& operator=(const ConstTensor5View&) = default;
@@ -528,6 +531,30 @@ class Tensor5 : public Tensor5View {
   Tensor5(const Tensor5& v);
   Tensor5(Tensor5&& v) noexcept : Tensor5View(std::forward<Tensor5View>(v)) {
     v.mdata = nullptr;
+  }
+
+  /** Initialization from a tensor type. */
+  explicit Tensor5(const matpack::tensor5_like_not_tensor5 auto &init)
+      : Tensor5(matpack::shelf_size(init), matpack::book_size(init),
+                matpack::page_size(init), matpack::row_size(init),
+                matpack::column_size(init)) {
+    *this = init;
+  }
+
+  /** Set from a tensor type. */
+  Tensor5 &operator=(const matpack::tensor5_like_not_tensor5 auto &init) {
+    if (const auto s = matpack::shape<Index, 5>(init); shape().data not_eq s)
+      resize(s[0], s[1], s[2], s[3], s[4]);
+
+    auto [I, J, K, L, M] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        for (Index k = 0; k < K; k++)
+          for (Index x = 0; x < L; x++)
+            for (Index m = 0; m < M; m++)
+              operator()(i, j, k, x, m) = init(i, j, k, x, m);
+
+    return *this;
   }
 
   /*! Construct from known data

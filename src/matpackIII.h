@@ -30,6 +30,7 @@
 #include <utility>
 
 #include "matpackI.h"
+#include "matpack_concepts.h"
 
 /** The outermost iterator class for rank 3 tensors. This takes into
     account the defined strided. */
@@ -131,6 +132,8 @@ class Tensor3;
     which also allocates storage. */
 class ConstTensor3View {
  public:
+  static constexpr bool matpack_type{true};
+
   constexpr ConstTensor3View(const ConstTensor3View&) = default;
   constexpr ConstTensor3View(ConstTensor3View&&) = default;
   ConstTensor3View& operator=(const ConstTensor3View&) = default;
@@ -356,6 +359,27 @@ class Tensor3 : public Tensor3View {
   Tensor3(const Tensor3& v);
   Tensor3(Tensor3&& v) noexcept : Tensor3View(std::forward<Tensor3View>(v)) {
     v.mdata = nullptr;
+  }
+
+  /** Initialization from a tensor type. */
+  explicit Tensor3(const matpack::tensor3_like_not_tensor3 auto &init)
+      : Tensor3(matpack::page_size(init), matpack::row_size(init),
+                matpack::column_size(init)) {
+    *this = init;
+  }
+
+  /** Set from a tensor type. */
+  Tensor3 &operator=(const matpack::tensor3_like_not_tensor3 auto &init) {
+    if (const auto s = matpack::shape<Index, 3>(init); shape().data not_eq s)
+      resize(s[0], s[1], s[2]);
+
+    auto [I, J, K] = shape().data;
+    for (Index i = 0; i < I; i++)
+      for (Index j = 0; j < J; j++)
+        for (Index k = 0; k < K; k++)
+          operator()(i, j, k) = init(i, j, k);
+
+    return *this;
   }
 
   /*! Construct from known data
