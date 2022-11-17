@@ -534,6 +534,21 @@ void define_agenda_data() {
             "rtp_temperature")));
 
   agenda_data.push_back(AgRecord(
+     NAME("pnd_agenda"),
+     DESCRIPTION(
+         "Returns particle number density data a scattering species.\n"
+         "\n"
+         "This variable is used to  mapping data in *pbp_field*\n"
+         "to *pnd_data*.\n"
+         "\n"),
+     OUTPUT("pnd_data", "dpnd_data_dx"),
+     INPUT("scat_meta",
+           "pnd_agenda_input_t",
+           "pnd_agenda_input",
+           "pnd_agenda_input_names",
+           "dpnd_data_dx_names")));
+
+  agenda_data.push_back(AgRecord(
       NAME("pnd_agenda_array"),
       DESCRIPTION(
           "Returns particle number density data for each scattering species.\n"

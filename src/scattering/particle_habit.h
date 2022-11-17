@@ -66,6 +66,10 @@ public:
       return result;
   }
 
+  const std::vector<scattering::Particle> & get_particles() const {
+      return particles_;
+  }
+
   /// The minimum stokes dimension in the data.
   Index get_stokes_dim() const {
       auto stokes_dim = [](const scattering::Particle &p) -> Index {

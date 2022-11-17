@@ -37,6 +37,7 @@ int main() {
 #include "timer_struct.h"
 #include "transmissionmatrix.h"
 #include "xsec_fit.h"
+#include "scattering_species.h"
 
 #include <predefined/predef_data.h>
 

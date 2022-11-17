@@ -1638,6 +1638,35 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== ArrayOfScatteringSpecies===========================================
+
+//! Reads ArrayOfScatteringMetaData from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param asmdata  ArrayOfScatteringMetaData return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfScatteringSpecies& asmdata,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+    throw runtime_error("ArrayOfScatteringSpecies can't be saved to XML.");
+}
+
+//! Writes ArrayOfScatteringMetaData to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param asmdata  ArrayOfScatteringMetaData
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfScatteringSpecies& asmdata,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+    throw runtime_error("ArrayOfScatteringSpecies can't be read from XML.");
+}
 //=== ArrayOfScatteringMetaData===========================================
 
 //! Reads ArrayOfScatteringMetaData from XML input stream

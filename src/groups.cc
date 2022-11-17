@@ -168,6 +168,8 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfScatteringMetaData",
                           "A list of *ScatteringMetaData*");
+  wsv_groups.emplace_back("ArrayOfScatteringSpecies",
+                          "A list of *ScatteringSpecies*");
 
   wsv_groups.emplace_back("ArrayOfSingleScatteringData",
                           "A list of *SingleScatteringData*");
@@ -387,6 +389,9 @@ about the vector absorption/emission)--");
 
   wsv_groups.emplace_back("SingleScatteringData",
                           "Holds single scattering data");
+
+  wsv_groups.emplace_back("ScatteringSpecies",
+                          "Represents atmospheric species that scatter radiation.");
 
   wsv_groups.emplace_back("Sparse", "A sparse version of *Matrix*");
 

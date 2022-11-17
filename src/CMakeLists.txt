@@ -4,6 +4,8 @@ include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
                       ${ARTS_SOURCE_DIR}/3rdparty/cdisort
                       ${ARTS_SOURCE_DIR}/3rdparty/Eigen
+                      ${ARTS_SOURCE_DIR}/3rdparty/Eigen/unsupported/
+                      ${ARTS_SOURCE_DIR}/3rdparty/shtns/
                     )
 
 if (NETCDF_FOUND)
@@ -286,6 +288,7 @@ add_library (artscore STATIC
   rng.cc
   rt4.cc
   rte.cc
+  scattering.cc
   sensor.cc
   sourcetext.cc
   special_interp.cc

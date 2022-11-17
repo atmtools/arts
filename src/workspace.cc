@@ -2900,6 +2900,12 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "See further *pnd_agenda_input* and associated variables.\n"),
       GROUP("ArrayOfAgenda")));
 
+    wsv_data.push_back(WsvRecord(
+      NAME("pnd_agenda"),
+      DESCRIPTION(
+          "Mapping of particle bulk properties to number density data.\n"),
+      GROUP("Agenda")));
+
   wsv_data.push_back(WsvRecord(
       NAME("pnd_agenda_input"),
       DESCRIPTION(
@@ -3990,7 +3996,6 @@ Can currently only contain data for new MT CKD models of water.
           "Example: [''IWC-MH97'', ''LWC-H98_STCO'', ...]\n"),
       GROUP("ArrayOfString"),
       ArrayOfString{}));
-
   wsv_data.push_back(WsvRecord(
       NAME("scat_species_a"),
       DESCRIPTION(
@@ -4031,6 +4036,19 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Dimension:  [number of scattering elements]\n"),
       GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("scattering_species"),
+      DESCRIPTION(
+          "An Array of scattering species (*ScatteringSpecies*).\n"
+          "\n"
+          "The array holds species that scatter radiation."
+          "\n"
+          "Each entry in the array defines an abstract scattering species \n"
+          "and defines how bulk properties in *pbp_field* are translated \n"
+          "to the scattering properties required to simulate the radiatve \n"
+          "transfer. \n"),
+      GROUP("ArrayOfScatteringSpecies")));
 
   wsv_data.push_back(
       WsvRecord(NAME("select_abs_species"),

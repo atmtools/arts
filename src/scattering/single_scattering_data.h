@@ -337,7 +337,8 @@ class SingleScatteringData {
   /** Extract phase function.
    *
    * Converts scattering data to gridded format (if necessary) and returns
-   * rank-6 tensor containing only the first component of the scattering data.
+   * rank-6 tensor containing only the upper-left element of the phase
+   * matrix.
    *
    * @return Rank-6 tensor containing the first coefficient of gridded
    * phase-matrix data.
