@@ -73,6 +73,8 @@
 */
 
 struct Sparse {
+  static constexpr bool matpack_type{true};
+
   // Constructors:
   Sparse();
   Sparse(Index r, Index c);

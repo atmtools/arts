@@ -251,11 +251,13 @@ template <typename T>
 concept tensor7_like_not_tensor7 = tensor7_like<T> and not matpack_type<T>;
 
 template <typename T>
-concept matpack_like = tensor7_like<T> or tensor6_like<T> or tensor5_like<T> or tensor4_like<T> or tensor3_like<T> or matrix_like<T> or vector_like<T>;
+concept matpack_like =
+    tensor7_like<T> or tensor6_like<T> or tensor5_like<T> or tensor4_like<T> or
+    tensor3_like<T> or matrix_like<T> or vector_like<T>;
 
 template <matpack_like T> constexpr std::size_t dim() {
-  return tensor7_like<T> + tensor6_like<T> + tensor5_like<T> + tensor4_like<T> +
-         tensor3_like<T> + matrix_like<T> + vector_like<T>;
+  return library_keeper<T> + vitrine_keeper<T> + shelf_keeper<T> +
+         book_keeper<T> + page_keeper<T> + row_keeper<T> + column_keeper<T>;
 }
 
 //! Creates a shape array (note that this might create compile time errors if N is larger than x allows for)
@@ -302,7 +304,7 @@ constexpr std::array<IndexType, N> shape(matpack_like auto &&x) {
     return {static_cast<IndexType>(row_size(std::forward<T>(x))),
             static_cast<IndexType>(column_size(std::forward<T>(x)))};
   else if constexpr (N == 1) {
-    if constexpr (matrix_like<T>) {
+    if constexpr (dim<T>() == 2) {
       ARTS_USER_ERROR_IF(
           static_cast<IndexType>(std::min(column_size(std::forward<T>(x)),
                                           row_size(std::forward<T>(x)))) not_eq
