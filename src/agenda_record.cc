@@ -30,8 +30,8 @@
 #include "debug.h"
 #include "groups.h"
 #include "messages.h"
-#include "workspace_ng.h"
 #include "workspace_global_data.h"
+#include "workspace_ng.h"
 #include "wsv_aux.h"
 
 namespace global_data {
@@ -75,7 +75,11 @@ AgRecord::AgRecord(const char* name,
 
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
-    moutput[j] = global_data::WsvMap.at(output[j]);
+    auto wsv_ptr = global_data::WsvMap.find(output[j]);
+    ARTS_USER_ERROR_IF(wsv_ptr == global_data::WsvMap.end(), "The ", mname,
+                       " agenda fails.\nOutput #", j + 1, " named ", output[j],
+                       " is not a WSV")
+    moutput[j] = wsv_ptr->second;
     if (moutput[j] == -1) {
       ostringstream os;
 
@@ -86,7 +90,11 @@ AgRecord::AgRecord(const char* name,
 
   minput.resize(input.nelem());
   for (Index j = 0; j < input.nelem(); ++j) {
-    minput[j] = global_data::WsvMap.at(input[j]);
+    auto wsv_ptr = global_data::WsvMap.find(input[j]);
+    ARTS_USER_ERROR_IF(wsv_ptr == global_data::WsvMap.end(), "The ", mname,
+                       " agenda fails.\nInput #", j + 1, " named ", input[j],
+                       " is not a WSV")
+    minput[j] = wsv_ptr->second;
     if (minput[j] == -1) {
       ostringstream os;
 
@@ -238,22 +246,22 @@ void write_agenda_wrapper_header(ofstream& ofs,
   // Wrapper function output parameters
   const ArrayOfIndex& ago = agr.Out();
   ofs << "        // Output\n";
-  for (ArrayOfIndex::const_iterator j = ago.begin(); j != ago.end(); j++) {
+  for (auto j : ago) {
     ofs << "        ";
-    ofs << wsv_groups[global_data::wsv_data[*j].Group()] << "& ";
-    ofs << global_data::wsv_data[*j].Name() << ",\n";
+    ofs << wsv_groups[global_data::wsv_data[j].Group()] << "& ";
+    ofs << global_data::wsv_data[j].Name() << ",\n";
   }
 
   // Wrapper function input parameters
   const ArrayOfIndex& agi = agr.In();
   ofs << "        // Input\n";
-  for (ArrayOfIndex::const_iterator j = agi.begin(); j != agi.end(); j++) {
+  for (auto j : agi) {
     // Ignore Input parameters that are also output
-    ArrayOfIndex::const_iterator it = ago.begin();
-    while (it != ago.end() && *it != *j) it++;
+    auto it = ago.begin();
+    while (it != ago.end() && *it != j) it++;
 
     if (it == ago.end()) {
-      String group_name = wsv_groups[global_data::wsv_data[*j].Group()].name;
+      String group_name = wsv_groups[global_data::wsv_data[j].Group()].name;
 
       ofs << "        const ";
       ofs << group_name;
@@ -262,7 +270,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
       if (group_name != "Index" && group_name != "Numeric") {
         ofs << "&";
       }
-      ofs << " " << global_data::wsv_data[*j].Name() << ",\n";
+      ofs << " " << global_data::wsv_data[j].Name() << ",\n";
     }
   }
 
