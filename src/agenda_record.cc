@@ -30,8 +30,8 @@
 #include "debug.h"
 #include "groups.h"
 #include "messages.h"
-#include "workspace_ng.h"
 #include "workspace_global_data.h"
+#include "workspace_ng.h"
 #include "wsv_aux.h"
 
 namespace global_data {
@@ -246,22 +246,22 @@ void write_agenda_wrapper_header(ofstream& ofs,
   // Wrapper function output parameters
   const ArrayOfIndex& ago = agr.Out();
   ofs << "        // Output\n";
-  for (ArrayOfIndex::const_iterator j = ago.begin(); j != ago.end(); j++) {
+  for (long long j : ago) {
     ofs << "        ";
-    ofs << wsv_groups[global_data::wsv_data[*j].Group()] << "& ";
-    ofs << global_data::wsv_data[*j].Name() << ",\n";
+    ofs << wsv_groups[global_data::wsv_data[j].Group()] << "& ";
+    ofs << global_data::wsv_data[j].Name() << ",\n";
   }
 
   // Wrapper function input parameters
   const ArrayOfIndex& agi = agr.In();
   ofs << "        // Input\n";
-  for (ArrayOfIndex::const_iterator j = agi.begin(); j != agi.end(); j++) {
+  for (long long j : agi) {
     // Ignore Input parameters that are also output
-    ArrayOfIndex::const_iterator it = ago.begin();
-    while (it != ago.end() && *it != *j) it++;
+    auto it = ago.begin();
+    while (it != ago.end() && *it != j) it++;
 
     if (it == ago.end()) {
-      String group_name = wsv_groups[global_data::wsv_data[*j].Group()].name;
+      String group_name = wsv_groups[global_data::wsv_data[j].Group()].name;
 
       ofs << "        const ";
       ofs << group_name;
@@ -270,7 +270,7 @@ void write_agenda_wrapper_header(ofstream& ofs,
       if (group_name != "Index" && group_name != "Numeric") {
         ofs << "&";
       }
-      ofs << " " << global_data::wsv_data[*j].Name() << ",\n";
+      ofs << " " << global_data::wsv_data[j].Name() << ",\n";
     }
   }
 

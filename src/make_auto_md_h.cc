@@ -73,8 +73,8 @@
 #include "global_data.h"
 #include "methods.h"
 #include "workspace.h"
-#include "workspace_ng.h"
 #include "workspace_global_data.h"
+#include "workspace_ng.h"
 #include <stdexcept>
 
 /* Adds commas and indentation to parameter lists. */
@@ -97,7 +97,7 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
 void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
   const Array<WsvRecord>& wsv_data = global_data::wsv_data;
 
-  String fullname = mdd.Name();
+  const String& fullname = mdd.Name();
 
   // This is needed to flag the first function parameter, which
   // needs no line break before being written:
@@ -115,8 +115,8 @@ void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
   // write.
   ArrayOfIndex vo = mdd.Out();            // Output
   const ArrayOfIndex& vi = mdd.InOnly();  // Input
-  ArrayOfIndex vgo = mdd.GOutType();      // Generic Output
-  ArrayOfIndex vgi = mdd.GInType();       // Generic Input
+  const ArrayOfIndex& vgo = mdd.GOutType();      // Generic Output
+  const ArrayOfIndex& vgi = mdd.GInType();       // Generic Input
   // vo and vi contain handles of workspace variables,
   // vgo and vgi handles of workspace variable groups.
 
@@ -276,7 +276,7 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
   //     fullname = os.str();
   //   }
 
-  String fullname = mdd.Name();
+  const String& fullname = mdd.Name();
 
   // This is needed to flag the first function parameter, which
   // needs no line break before being written:
@@ -294,8 +294,8 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
   // write.
   ArrayOfIndex vo = mdd.Out();            // Output
   const ArrayOfIndex& vi = mdd.InOnly();  // Input
-  ArrayOfIndex vgo = mdd.GOutType();      // Generic Output
-  ArrayOfIndex vgi = mdd.GInType();       // Generic Input
+  const ArrayOfIndex& vgo = mdd.GOutType();      // Generic Output
+  const ArrayOfIndex& vgi = mdd.GInType();       // Generic Input
   // vo and vi contain handles of workspace variables,
   // vgo and vgi handles of workspace variable groups.
 
@@ -524,10 +524,10 @@ bool md_sanity_checks(const Array<MdRecord>& md_data) {
   ostringstream os;
 
   bool is_sane = true;
-  for (Array<MdRecord>::const_iterator i = md_data.begin(); i < md_data.end();
+  for (auto i = md_data.begin(); i < md_data.end();
        ++i) {
     bool invalid_author = false;
-    for (ArrayOfString::const_iterator j = i->Authors().begin();
+    for (auto j = i->Authors().begin();
          !invalid_author && j < i->Authors().end();
          ++j) {
       if (*j == "" || *j == "unknown") invalid_author = true;

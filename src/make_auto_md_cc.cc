@@ -23,8 +23,8 @@
 #include "global_data.h"
 #include "methods.h"
 #include "workspace.h"
-#include "workspace_ng.h"
 #include "workspace_global_data.h"
+#include "workspace_ng.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
