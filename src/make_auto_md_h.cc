@@ -68,12 +68,14 @@
 #include "agenda_record.h"
 #include "array.h"
 #include "arts.h"
+#include "debug.h"
 #include "file.h"
 #include "global_data.h"
 #include "methods.h"
 #include "workspace.h"
 #include "workspace_ng.h"
 #include "workspace_global_data.h"
+#include <stdexcept>
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
@@ -673,9 +675,11 @@ int main() {
     using global_data::agenda_data;
     const Array<WsvRecord>& wsv_data = global_data::wsv_data;
     for (Index i = 0; i < agenda_data.nelem(); i++) {
-      bool is_agenda_array =
-          wsv_data[global_data::WsvMap.at(agenda_data[i].Name())].Group() ==
-          get_wsv_group_id("ArrayOfAgenda");
+      auto wsv_ptr = global_data::WsvMap.find(agenda_data[i].Name());
+      ARTS_USER_ERROR_IF(wsv_ptr == global_data::WsvMap.end(), "The ",
+                         agenda_data[i].Name(), " agenda fails");
+      bool is_agenda_array = wsv_data[wsv_ptr->second].Group() ==
+                             get_wsv_group_id("ArrayOfAgenda");
       write_agenda_wrapper_header(ofs, agenda_data[i], is_agenda_array);
 
       ofs << ";\n\n";

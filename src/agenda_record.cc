@@ -75,7 +75,11 @@ AgRecord::AgRecord(const char* name,
 
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
-    moutput[j] = global_data::WsvMap.at(output[j]);
+    auto wsv_ptr = global_data::WsvMap.find(output[j]);
+    ARTS_USER_ERROR_IF(wsv_ptr == global_data::WsvMap.end(), "The ", mname,
+                       " agenda fails.\nOutput #", j + 1, " named ", output[j],
+                       " is not a WSV")
+    moutput[j] = wsv_ptr->second;
     if (moutput[j] == -1) {
       ostringstream os;
 
@@ -86,7 +90,11 @@ AgRecord::AgRecord(const char* name,
 
   minput.resize(input.nelem());
   for (Index j = 0; j < input.nelem(); ++j) {
-    minput[j] = global_data::WsvMap.at(input[j]);
+    auto wsv_ptr = global_data::WsvMap.find(input[j]);
+    ARTS_USER_ERROR_IF(wsv_ptr == global_data::WsvMap.end(), "The ", mname,
+                       " agenda fails.\nInput #", j + 1, " named ", input[j],
+                       " is not a WSV")
+    minput[j] = wsv_ptr->second;
     if (minput[j] == -1) {
       ostringstream os;
 
