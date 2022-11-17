@@ -57,7 +57,7 @@ void test_col_and_row_vec(TestDiag &tests) {
     Eigen::VectorXd eigen(5);
     eigen << 1, 2, 3, 4, 5;
     tests.run_test("Real    eigen == row_vec(arts)", eigen == row_vec(arts));
-    tests.run_test("Real    eigen == col_vec(arts)", eigen == col_vec(arts));
+    tests.run_test("Real    eigen == col_vec(arts).transpose()", eigen == col_vec(arts).transpose());
   }
 
   {
@@ -67,7 +67,7 @@ void test_col_and_row_vec(TestDiag &tests) {
     eigen << Complex{1, 2}, Complex{3, 4}, Complex{5, 6}, Complex{7, 8},
         Complex{9, 10};
     tests.run_test("Complex eigen == row_vec(arts)", eigen == row_vec(arts));
-    tests.run_test("Complex eigen == col_vec(arts)", eigen == col_vec(arts));
+    tests.run_test("Complex eigen == col_vec(arts).transpose()", eigen == col_vec(arts).transpose());
   }
 }
 
