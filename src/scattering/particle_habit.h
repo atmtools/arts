@@ -99,7 +99,7 @@ public:
    * @return A new particle habit with the data interpolated to the given
    * frequency grid.
    */
-  ParticleHabit interpolate_frequency(math::VectorPtr<double> f_grid) {
+  ParticleHabit interpolate_frequency(math::ConstVectorPtr<double> f_grid) {
       std::vector<scattering::Particle> new_data{};
       new_data.reserve(particles_.size());
       for (size_t i = 0; i < particles_.size(); ++i) {
@@ -157,10 +157,10 @@ public:
 
 
     // pxx :: hide
-    ParticleHabit to_gridded(math::VectorPtr<double> lon_inc,
-                             math::VectorPtr<double> lat_inc,
-                             math::VectorPtr<double> lon_scat,
-                             LatitudeGridPtr<double> lat_scat) {
+    ParticleHabit to_gridded(math::ConstVectorPtr<double> lon_inc,
+                             math::ConstVectorPtr<double> lat_inc,
+                             math::ConstVectorPtr<double> lon_scat,
+                             ConstLatitudeGridPtr<double> lat_scat) {
       std::vector<scattering::Particle> new_particles{};
       new_particles.reserve(particles_.size());
       for (size_t i = 0; i < particles_.size(); ++i) {
@@ -184,9 +184,9 @@ public:
     }
 
     // pxx :: hide
-    ParticleHabit to_lab_frame(math::VectorPtr<double> lat_inc,
-                               math::VectorPtr<double> lon_scat,
-                               LatitudeGridPtr<double> lat_scat,
+    ParticleHabit to_lab_frame(math::ConstVectorPtr<double> lat_inc,
+                               math::ConstVectorPtr<double> lon_scat,
+                               ConstLatitudeGridPtr<double> lat_scat,
                                Index stokes_dim) {
         std::vector<scattering::Particle> new_particles{};
         new_particles.reserve(particles_.size());
@@ -216,8 +216,8 @@ public:
     }
 
     // pxx :: hide
-    ParticleHabit downsample_scattering_angles(math::VectorPtr<double> lon_scat,
-                                               std::shared_ptr<LatitudeGrid<double>> lat_scat) const {
+    ParticleHabit downsample_scattering_angles(math::ConstVectorPtr<double> lon_scat,
+                                               ConstLatitudeGridPtr<double> lat_scat) const {
         std::vector<scattering::Particle> new_particles{};
         new_particles.reserve(particles_.size());
         for (size_t i = 0; i < particles_.size(); ++i) {

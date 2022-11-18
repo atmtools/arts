@@ -41,10 +41,11 @@
 #include "jacobian.h"
 #include "matpackI.h"
 #include "rng.h"
-#include "agenda_class.h"
 #include "scattering/single_scattering_data.h"
 
 using std::numbers::pi_v;
+
+class Workspace;
 
 enum class Format {Gridded, Spectral};
 enum class ReferenceFrame {ScatteringPlane, Lab};
@@ -66,7 +67,7 @@ struct ScatteringPropertiesSpec {
                              ReferenceFrame frame_,
                              Index n_stokes_,
                              scattering::math::ConstVectorPtr<Numeric> lon_scat_,
-                             scattering::LatitudeGridPtr<Numeric> lat_scat_,
+                             scattering::ConstLatitudeGridPtr<Numeric> lat_scat_,
                              Numeric phase_function_norm=1.0);
     ScatteringPropertiesSpec(const Vector& f_grid,
                              ReferenceFrame frame_,
@@ -85,7 +86,7 @@ struct ScatteringPropertiesSpec {
                              Index n_stokes_,
                              scattering::math::ConstVectorPtr<Numeric> lat_inc_,
                              scattering::math::ConstVectorPtr<Numeric> lon_scat_,
-                             scattering::LatitudeGridPtr<Numeric> lat_scat_,
+                             scattering::ConstLatitudeGridPtr<Numeric> lat_scat_,
                              Numeric phase_function_norm_=1.0);
     ScatteringPropertiesSpec(const Vector& f_grid_,
                              ReferenceFrame frame_,
@@ -108,11 +109,11 @@ struct ScatteringPropertiesSpec {
     Index l_max = 0;
     Index m_max = 0;
     Numeric phase_function_norm = 1.0;
-    std::shared_ptr<scattering::math::Vector<Numeric>> lon_inc = nullptr;
-    std::shared_ptr<scattering::math::Vector<Numeric>> lat_inc = nullptr;
-    std::shared_ptr<scattering::math::Vector<Numeric>> lon_scat = nullptr;
-    std::shared_ptr<scattering::LatitudeGrid<Numeric>> lat_scat = nullptr;
-    std::shared_ptr<scattering::math::Vector<Numeric>> f_grid = nullptr;
+    scattering::math::ConstVectorPtr<Numeric> lon_inc = nullptr;
+    scattering::math::ConstVectorPtr<Numeric> lat_inc = nullptr;
+    scattering::math::ConstVectorPtr<Numeric> lon_scat = nullptr;
+    scattering::ConstLatitudeGridPtr<Numeric> lat_scat = nullptr;
+    scattering::math::ConstVectorPtr<Numeric> f_grid = nullptr;
     Index n_angs_frame_conversion = 32;
 };
 

@@ -621,8 +621,8 @@ class SingleScatteringDataBase {
 
  protected:
   size_t n_freqs_, n_temps_;
-  ConstVectorPtr f_grid_;
-  ConstVectorPtr t_grid_;
+  math::ConstVectorPtr<Numeric> f_grid_;
+  math::ConstVectorPtr<Numeric> t_grid_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -775,8 +775,6 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
  public:
   using Vector = math::Vector<Scalar>;
   using VectorPtr = math::VectorPtr<Scalar>;
-  using ConstVectorPtr = math::ConstVectorPtr<Scalar>;
-  using LatitudeGridPtr = std::shared_ptr<const LatitudeGrid<Scalar>>;
   using DataTensor = math::Tensor<Scalar, 7>;
   using DataPtr = std::shared_ptr<DataTensor>;
   using ScatteringCoeff = math::Tensor<Scalar, 4>;
@@ -799,8 +797,8 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
    * @param forward_scattering_coeff The forward scattering coefficient data.
    */
   SingleScatteringDataGridded(
-      ConstVectorPtr f_grid,
-      ConstVectorPtr t_grid,
+      math::ConstVectorPtr<Numeric> f_grid,
+      math::ConstVectorPtr<Numeric> t_grid,
       ScatteringDataFieldGridded<Scalar> phase_matrix,
       ScatteringDataFieldGridded<Scalar> extinction_matrix,
       ScatteringDataFieldGridded<Scalar> absorption_vector,
@@ -834,12 +832,12 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
    * @param forward_scattering_coeff Tensor containing the forward scattering
    * coeff. data.
    */
-  SingleScatteringDataGridded(ConstVectorPtr f_grid,
-                              ConstVectorPtr t_grid,
-                              ConstVectorPtr lon_inc,
-                              ConstVectorPtr lat_inc,
-                              ConstVectorPtr lon_scat,
-                              LatitudeGridPtr lat_scat,
+SingleScatteringDataGridded(math::ConstVectorPtr<Numeric> f_grid,
+                            math::ConstVectorPtr<Numeric> t_grid,
+                            math::ConstVectorPtr<Numeric> lon_inc,
+                            math::ConstVectorPtr<Numeric> lat_inc,
+                            math::ConstVectorPtr<Numeric> lon_scat,
+                            LatitudeGridPtr<Numeric> lat_scat,
                               DataPtr phase_matrix,
                               DataPtr extinction_matrix,
                               DataPtr absorption_vector,
@@ -1041,7 +1039,7 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
   }
 
   SingleScatteringDataImpl *interpolate_frequency(
-      ConstVectorPtr frequencies) const {
+      math::ConstVectorPtr<Numeric> frequencies) const {
     auto phase_matrix = ScatteringDataFieldGridded<Scalar>(
         phase_matrix_.interpolate_frequency(frequencies));
     auto extinction_matrix = ScatteringDataFieldGridded<Scalar>(
@@ -1063,7 +1061,7 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
   }
 
   SingleScatteringDataImpl *interpolate_temperature(
-      ConstVectorPtr temperatures,
+      math::ConstVectorPtr<Numeric> temperatures,
       bool extrapolate=false) const {
     auto phase_matrix = ScatteringDataFieldGridded<Scalar>(
         phase_matrix_.interpolate_temperature(temperatures, extrapolate));
@@ -1086,10 +1084,10 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
   }
 
   SingleScatteringDataImpl *interpolate_angles(
-      ConstVectorPtr lon_inc,
-      ConstVectorPtr lat_inc,
-      ConstVectorPtr lon_scat,
-      LatitudeGridPtr lat_scat) const {
+      math::ConstVectorPtr<Numeric> lon_inc,
+      math::ConstVectorPtr<Numeric> lat_inc,
+      math::ConstVectorPtr<Numeric> lon_scat,
+      ConstLatitudeGridPtr<Numeric> lat_scat) const {
     auto phase_matrix = ScatteringDataFieldGridded<Scalar>(
         phase_matrix_.interpolate_angles(lon_inc, lat_inc, lon_scat, lat_scat));
     auto extinction_matrix = ScatteringDataFieldGridded<Scalar>(
@@ -1123,8 +1121,8 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
   }
 
   SingleScatteringDataImpl *downsample_scattering_angles(
-      ConstVectorPtr lon_scat,
-      LatitudeGridPtr lat_scat) const {
+      math::ConstVectorPtr<Numeric> lon_scat,
+      ConstLatitudeGridPtr<Numeric> lat_scat) const {
     auto phase_matrix = ScatteringDataFieldGridded<Scalar>(
         phase_matrix_.downsample_scattering_angles(lon_scat, lat_scat));
 
@@ -1138,7 +1136,7 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
   }
 
   SingleScatteringDataImpl *downsample_lon_scat(
-      ConstVectorPtr lon_scat) const {
+      math::ConstVectorPtr<Numeric> lon_scat) const {
     auto phase_matrix = ScatteringDataFieldGridded<Scalar>(
         phase_matrix_.downsample_lon_scat(lon_scat));
 
@@ -1209,8 +1207,8 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
       Index n_lon,
       Index n_lat) const;
 
-  SingleScatteringDataImpl *to_lab_frame(ConstVectorPtr lat_inc,
-                                         ConstVectorPtr lon_scat,
+  SingleScatteringDataImpl *to_lab_frame(math::ConstVectorPtr<Numeric> lat_inc,
+                                         math::ConstVectorPtr<Numeric> lon_scat,
                                          std::shared_ptr<const LatitudeGrid<double>> lat_scat,
                                          Index stokes_dim) const {
       auto phase_matrix =
@@ -1278,8 +1276,8 @@ class SingleScatteringDataGridded : public SingleScatteringDataBase<Scalar>,
   }
 
  private:
-  ConstVectorPtr dummy_grid_ = std::make_shared<Vector>(Vector::Constant(1, 1));
-  LatitudeGridPtr dummy_lat_grid_ = std::make_shared<IrregularLatitudeGrid<double>>(Vector::Constant(1, 0.5 * M_PI));
+  math::ConstVectorPtr<Numeric> dummy_grid_ = std::make_shared<Vector>(Vector::Constant(1, 1));
+  LatitudeGridPtr<Numeric> dummy_lat_grid_ = std::make_shared<IrregularLatitudeGrid<double>>(Vector::Constant(1, 0.5 * M_PI));
   stokes::PhaseMatrix<ScatteringDataFieldGridded<Scalar>> phase_matrix_;
   stokes::ExtinctionMatrix<ScatteringDataFieldGridded<Scalar>> extinction_matrix_;
   stokes::AbsorptionVector<ScatteringDataFieldGridded<Scalar>> absorption_vector_;

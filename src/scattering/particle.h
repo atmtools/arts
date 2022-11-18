@@ -140,7 +140,7 @@ class Particle {
    * given frequencies.
    */
   Particle interpolate_frequency(
-      std::shared_ptr<math::Vector<double>> f_grid) const {
+      math::ConstVectorPtr<double> f_grid) const {
     return Particle(properties_, data_.interpolate_frequency(f_grid));
   }
 
@@ -199,8 +199,8 @@ class Particle {
    * @param lat_scat The scattering-angle latitude grid to downsample the data to.
    */
   Particle downsample_scattering_angles(
-      std::shared_ptr<math::Vector<double>> lon_scat,
-      std::shared_ptr<LatitudeGrid<double>> lat_scat) const {
+      math::ConstVectorPtr<double> lon_scat,
+      ConstLatitudeGridPtr<double> lat_scat) const {
     auto data = data_.downsample_scattering_angles(lon_scat, lat_scat);
     return Particle(properties_, data);
   }
@@ -229,10 +229,10 @@ class Particle {
    * @return A new scattering particle with the scattering data converted to gridded
    * format with the given angular grids.
    */
-  Particle to_gridded(std::shared_ptr<math::Vector<double>> lon_inc,
-                      std::shared_ptr<math::Vector<double>> lat_inc,
-                      std::shared_ptr<math::Vector<double>> lon_scat,
-                      std::shared_ptr<LatitudeGrid<double>> lat_scat) const {
+  Particle to_gridded(math::ConstVectorPtr<double> lon_inc,
+                      math::ConstVectorPtr<double> lat_inc,
+                      math::ConstVectorPtr<double> lon_scat,
+                      ConstLatitudeGridPtr<double> lat_scat) const {
     auto gridded = data_.to_gridded().interpolate_angles(lon_inc,
                                                          lat_inc,
                                                          lon_scat,
@@ -253,9 +253,9 @@ class Particle {
    * @return A new scattering particle with the scattering data transformed to lab
    * frame on the given angular grids.
    */
-  Particle to_lab_frame(std::shared_ptr<math::Vector<double>> lat_inc_ptr,
-                        std::shared_ptr<math::Vector<double>> lon_scat_ptr,
-                        std::shared_ptr<LatitudeGrid<double>> lat_scat_ptr,
+  Particle to_lab_frame(math::ConstVectorPtr<double> lat_inc_ptr,
+                        math::ConstVectorPtr<double> lon_scat_ptr,
+                        ConstLatitudeGridPtr<double> lat_scat_ptr,
                         Index stokes_dim) const {
     auto data =
         data_.to_lab_frame(lat_inc_ptr, lon_scat_ptr, lat_scat_ptr, stokes_dim);

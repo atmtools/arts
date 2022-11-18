@@ -448,6 +448,8 @@ class LatitudeGrid : public math::Vector<Scalar> {
 
 template <std::floating_point Scalar>
 using LatitudeGridPtr = std::shared_ptr<LatitudeGrid<Scalar>>;
+template <std::floating_point Scalar>
+using ConstLatitudeGridPtr = std::shared_ptr<const LatitudeGrid<Scalar>>;
 
 // pxx :: instance(["double"])
 template <std::floating_point Scalar>
