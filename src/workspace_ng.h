@@ -203,9 +203,6 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
     outstream << (*wsv_data_ptr)[i].Name() << "(" << i << ") ";
   }
 
-  //! Get a shared pointer to the object
-  std::shared_ptr<Workspace> shared_ptr() {return shared_from_this();}
-
   //! Gets a full copy that owns all the data (only gets the top of the stack)
   std::shared_ptr<Workspace> deepcopy();
 

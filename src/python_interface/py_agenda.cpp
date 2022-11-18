@@ -279,8 +279,8 @@ void py_agenda(py::module_& m) {
                 self.Id(),
                 self.Tasks(),
                 self.SetValue(),
-                self.Tasks().workspace().wsvs(self.Out()),
-                self.Tasks().workspace().wsvs(self.In()),
+                self.Tasks().workspace()->wsvs(self.Out()),
+                self.Tasks().workspace()->wsvs(self.In()),
                 global_data::md_data[self.Id()].Name(),
                 global_data::md_data[self.Id()].Description(),
                 global_data::md_data[self.Id()].Authors(),
@@ -408,8 +408,8 @@ void py_agenda(py::module_& m) {
                 "Method state not same as on construction; are you using a different Arts version?")
 
             return new MRecord{id,
-                               ag.workspace().wsvs(out_wsv),
-                               ag.workspace().wsvs(in_wsv),
+                               ag.workspace()->wsvs(out_wsv),
+                               ag.workspace()->wsvs(in_wsv),
                                tv,
                                ag};
           }));
@@ -462,7 +462,7 @@ void py_agenda(py::module_& m) {
            py::keep_alive<0, 1>())
       .def_property_readonly("workspace",
                              py::cpp_function(
-                                 [](Agenda& a) -> Workspace& {
+                                 [](Agenda& a) {
                                    //FIXME: Is there a way to return the pyarts.workspace.Workspace instead?
                                    return a.workspace();
                                  },
@@ -485,7 +485,7 @@ void py_agenda(py::module_& m) {
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a) {
              a.set_outputs_to_push_and_dup(
-                 *a.workspace().get<Verbosity>("verbosity"));
+                 *a.workspace()->get<Verbosity>("verbosity"));
            })
       .def(
           "add_workspace_method",
@@ -493,7 +493,7 @@ void py_agenda(py::module_& m) {
              const char* name,
              const py::args& args,
              const py::kwargs& kwargs) {
-            auto& ws = a.workspace();
+            auto ws = a.workspace();
 
             const Index nargs = args.size();
 
@@ -508,7 +508,7 @@ void py_agenda(py::module_& m) {
                                "\" method found")
 
             // The method input and output lists in one long list
-            Array<AgendaMethodVariable> var_order = sorted_mdrecord(ws, ptr);
+            Array<AgendaMethodVariable> var_order = sorted_mdrecord(*ws, ptr);
 
             // Generic checker
             const bool generic_function =
@@ -530,11 +530,11 @@ void py_agenda(py::module_& m) {
               try {
                 if (i < nargs) {
                   var.ws_pos =
-                      WorkspaceVariable(ws, var.group, args[i], var.input).pos;
+                      WorkspaceVariable(*ws, var.group, args[i], var.input).pos;
                 } else if (const auto* key = var.name.c_str();
                            kwargs.contains(key)) {
                   var.ws_pos =
-                      WorkspaceVariable(ws, var.group, kwargs[key], var.input)
+                      WorkspaceVariable(*ws, var.group, kwargs[key], var.input)
                           .pos;
                 }
               } catch (std::exception& e) {
@@ -547,18 +547,18 @@ void py_agenda(py::module_& m) {
                       ptr == global_data::md_data.end() or
                           ptr->Name() not_eq name,
                       "Cannot find matching workspace method:\n",
-                      error_msg(name, ws, var_order),
+                      error_msg(name, *ws, var_order),
                       "\n"
                       "The generic variable \"",
                       var.name,
                       "\" cannot be converted to a type that matches any available workspace method signatures (note that the signature above is therefore potentially extra weird)")
 
                   // We have a new variable order but previous variables must be respected
-                  auto new_var_order = sorted_mdrecord(ws, ptr);
+                  auto new_var_order = sorted_mdrecord(*ws, ptr);
                   for (Index j = 0; j < i; j++) {
                     if (var_order[j].ws_pos >= 0 and
                         new_var_order[j].group not_eq
-                            WorkspaceVariable(ws, var_order[j].ws_pos)
+                            WorkspaceVariable(*ws, var_order[j].ws_pos)
                                 .group()) {
                       goto increment_ptr;
                     }
@@ -569,7 +569,7 @@ void py_agenda(py::module_& m) {
                   goto try_to_set_workspace_position;
                 } else {
                   ARTS_USER_ERROR("\nCannot add workspace method:\n",
-                                  error_msg(name, ws, var_order),
+                                  error_msg(name, *ws, var_order),
                                   "\n"
                                   "with the following reason for variable \"",
                                   var.name,
@@ -585,7 +585,7 @@ void py_agenda(py::module_& m) {
                                  "Must set ",
                                  var.name,
                                  " in agenda method:\n",
-                                 error_msg(name, ws, var_order))
+                                 error_msg(name, *ws, var_order))
             }
 
             // Adjust pointer to the correct one given the current args and kwargs if we are generic
@@ -593,7 +593,7 @@ void py_agenda(py::module_& m) {
               // Ensure we have GIN and GOUT for all of the generic types
               for (Index i = 0; i < var_order.nelem(); i++) {
                 auto& var = var_order[i];
-                var.group = ws.wsv_data_ptr->operator[](var.ws_pos).Group();
+                var.group = ws->wsv_data_ptr->operator[](var.ws_pos).Group();
               }
 
               // Loop until all generic GIN and GOUT fits a known method
@@ -613,7 +613,7 @@ void py_agenda(py::module_& m) {
               ARTS_USER_ERROR_IF(
                   ptr == global_data::md_data.end() or ptr->Name() not_eq name,
                   "Cannot find a matching generic function signature for call to:\n",
-                  error_msg(name, ws, var_order),
+                  error_msg(name, *ws, var_order),
                   "\n"
                   "Please check documentation of the function for correct signatures\n\n"
                   "If you think we should have deduced a correct signature from your\n"
@@ -626,18 +626,18 @@ void py_agenda(py::module_& m) {
                       var_order.begin(),
                       var_order.end(),
                       [&](auto& var) {
-                        return WorkspaceVariable(ws, var.ws_pos).group() not_eq
+                        return WorkspaceVariable(*ws, var.ws_pos).group() not_eq
                                var.group;
                       }),
                   "Mismatching signature.  Got:\n",
-                  error_msg(name, ws, var_order),
+                  error_msg(name, *ws, var_order),
                   "\n"
                   "But this does not match a signature in Arts")
             }
 
             // Set the actual values using automatic set methods
             for (auto& var : var_order) {
-              WorkspaceVariable val(ws, var.ws_pos);
+              WorkspaceVariable val(*ws, var.ws_pos);
               if (std::strncmp(val.name(), "::anon::", 8) == 0) {
                 a.push_back(simple_set_method(val));
               }
@@ -648,7 +648,7 @@ void py_agenda(py::module_& m) {
             const auto m_id = std::distance(global_data::md_data.begin(), ptr);
             if (ptr->SetMethod() and in.nelem()) {
               ARTS_USER_ERROR_IF(
-                  ws.is_initialized(in.back()),
+                  ws->is_initialized(in.back()),
                   "Can only set values, use Copy to copy workspace variables")
 
               // The previous value will be the GIN set value as the last value
@@ -665,12 +665,12 @@ void py_agenda(py::module_& m) {
                   out,
                   in,
                   {},
-                  Agenda{ws}));
+                  Agenda{*ws}));
             }
 
             // Clean up the value
             for (auto& var : var_order) {
-              WorkspaceVariable val(ws, var.ws_pos);
+              WorkspaceVariable val(*ws, var.ws_pos);
               if (std::strncmp(val.name(), "::anon::", 8) == 0) {
                 a.push_back(simple_delete_method(val));
               }
@@ -690,25 +690,25 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "add_callback_method",
           [](Agenda& a, const CallbackFunction& f) mutable {
-            auto& ws = a.workspace();
+            auto ws = a.workspace();
 
             const Index group_index = get_wsv_group_id("CallbackFunction");
             ARTS_USER_ERROR_IF(group_index < 0,
                                "Cannot recognize CallbackFunction")
 
-            const auto counter = a.workspace().nelem();
+            const auto counter = ws->nelem();
             const String name = var_string("::callback::", counter);
 
-            Index in = ws.add_wsv(WsvRecord(
+            Index in = ws->add_wsv(WsvRecord(
                 name.c_str(), "Callback created by pybind11 API", group_index));
-            ws.push_move(in, std::make_shared<CallbackFunction>(f));
+            ws->push_move(in, std::make_shared<CallbackFunction>(f));
 
             auto method_ptr =
                 global_data::MdMap.find("CallbackFunctionExecute");
             ARTS_USER_ERROR_IF(method_ptr == global_data::MdMap.end(),
                                "Cannot find CallbackFunctionExecute")
 
-            WorkspaceVariable val(ws, in);
+            WorkspaceVariable val(*ws, in);
             a.push_back(simple_set_method(val));
             a.push_back(MRecord(
                 method_ptr->second,
@@ -732,7 +732,7 @@ Parameters
       .def(
           "append_agenda_methods",
           [](Agenda& self, const Agenda& other) {
-            ARTS_USER_ERROR_IF(not self.has_same_origin(other.workspace()), "Agendas on different workspaces")
+            ARTS_USER_ERROR_IF(not self.has_same_origin(*other.workspace()), "Agendas on different workspaces")
             const Index n = other.Methods().nelem();  // if other==self
             for (Index i = 0; i < n; i++) self.push_back(other.Methods()[i]);
           },
