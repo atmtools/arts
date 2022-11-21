@@ -1221,7 +1221,7 @@ void run_cdisort(Workspace& ws,
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
     Status tries = Status::FIRST_TRY;
-    const Numeric eps = 1e-4;
+    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
     do {
       try {
         c_disort(&ds, &out);
@@ -1238,8 +1238,8 @@ void run_cdisort(Workspace& ws,
 
           const Numeric shift =
               abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
-          CREATE_OUT1;
-          out1
+          CREATE_OUT0;
+          out0
               << "Solar zenith angle coincided with one of the quadrature angles\n"
               << "We needed to shift the solar sun angle by " << shift
               << "deg.\n";
