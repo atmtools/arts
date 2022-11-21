@@ -1238,8 +1238,8 @@ void run_cdisort(Workspace& ws,
 
           const Numeric shift =
               abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
-          CREATE_OUT0;
-          out0
+          CREATE_OUT1;
+          out1
               << "Solar zenith angle coincided with one of the quadrature angles\n"
               << "We needed to shift the solar sun angle by " << shift
               << "deg.\n";
