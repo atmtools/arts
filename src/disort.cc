@@ -808,18 +808,17 @@ void c_errmsg(const char* messag, int type) {
 
   if (type == DS_ERROR) {
     CREATE_OUT0;
-    out0 << "  ******* ERROR >>>>>>  " << messag << "\n";
-    arts_exit(1);
+    ARTS_USER_ERROR("DISORT ERROR >>>  ", messag);
   }
 
   if (warning_limit) return;
 
   if (++num_warnings <= MAX_WARNINGS) {
     CREATE_OUT1;
-    out1 << "  ******* WARNING >>>>>>  " << messag << "\n";
+    out1 << "DISORT WARNING >>>  " << messag << "\n";
   } else {
     CREATE_OUT1;
-    out1 << "  >>>>>>  TOO MANY WARNING MESSAGES --  They will no longer be "
+    out1 << "DISORT TOO MANY WARNING MESSAGES --  They will no longer be "
             "printed  <<<<<<<\n\n";
     warning_limit = TRUE;
   }
