@@ -24,6 +24,7 @@
 
 #include "workspace_ng.h"
 #include "debug.h"
+#include "tokval.h"
 #include "workspace_global_data.h"
 #include <memory>
 
@@ -88,6 +89,23 @@ Workspace::Workspace(const Workspace &workspace)
   }
 }
 
+void Workspace::claim_agenda_ownership() {
+  for (Index i=0; i<nelem(); i++) {
+    if (is_initialized(i)) {
+      auto group = wsv_data_ptr->at(i).Group();
+
+      if (group == WorkspaceGroupIndexValue<Agenda>) {
+        Agenda& ag = *static_cast<Agenda*>((*this)[i].get());
+        ag.set_workspace(*this);
+      } else if (group == WorkspaceGroupIndexValue<ArrayOfAgenda>) {
+        for (auto& ag: *static_cast<ArrayOfAgenda*>((*this)[i].get())) {
+          ag.set_workspace(*this);
+        }
+      }
+    }
+  }
+}
+
 void Workspace::pop(Index i) {
   ws[i].pop(); }
 
@@ -96,6 +114,10 @@ void Workspace::swap(Workspace &other) noexcept {
   wsv_data_ptr.swap(other.wsv_data_ptr);
   WsvMap_ptr.swap(other.WsvMap_ptr);
   std::swap(original_workspace, other.original_workspace);
+
+  // Must also claim Agenda ownership
+  claim_agenda_ownership();
+  other.claim_agenda_ownership();
 }
 
 bool Workspace::is_initialized(Index i) const {
@@ -211,4 +233,8 @@ ArrayOfIndex Workspace::wsvs(const Workspace::wsv_data_type &wsv_data) {
 
 std::shared_ptr<Workspace> Workspace::create() {
   return std::shared_ptr<Workspace>{new Workspace{}};
+}
+
+std::shared_ptr<Workspace> Workspace::shallowcopy() const {
+  return std::shared_ptr<Workspace>{new Workspace{*this}};
 }

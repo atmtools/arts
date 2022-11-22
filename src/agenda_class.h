@@ -107,6 +107,8 @@ class Agenda final {
 
   [[nodiscard]] std::shared_ptr<Workspace> workspace() const;
 
+  void set_workspace(Workspace& x);
+
   //! Creates a deep copy of the agenda if necessary (i.e., different workspace)!
   Agenda deepcopy_if(Workspace&) const;
 
@@ -209,6 +211,8 @@ class MRecord {
   void print(ostream& os, const String& indent) const;
 
   friend ostream& operator<<(ostream& os, const MRecord& a);
+
+  void set_workspace(Workspace& x);
 
  private:
   /** Method id. */

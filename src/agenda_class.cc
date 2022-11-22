@@ -781,13 +781,13 @@ Agenda& Agenda::operator=(const Agenda& x) {
 bool Agenda::has_same_origin(const Workspace& ws2) const {return workspace()->original_workspace == ws2.original_workspace;}
 
 std::shared_ptr<Workspace> Agenda::workspace() const {
-    auto workspace = ws.lock();
-    ARTS_USER_ERROR_IF(workspace == nullptr,
-                       "This agenda does not contain a valid Workspace.\n"
-                       "The workspace might have gotten deleted, or\n"
-                       "you're accessing a default-constructed agenda.");
-    return workspace;
-  }
+  auto workspace = ws.lock();
+  ARTS_USER_ERROR_IF(workspace == nullptr,
+                     "This agenda does not contain a valid Workspace.\n"
+                     "The workspace might have gotten deleted, or\n"
+                     "you're accessing a default-constructed agenda.");
+  return workspace;
+}
 
 //! Output operator for Agenda.
 /*! 
@@ -975,4 +975,24 @@ std::pair<ArrayOfIndex, ArrayOfIndex> Agenda::get_global_inout() const {
     ain = agr.In();
   }
   return {ain, aout};
+}
+
+void Agenda::set_workspace(Workspace& x) {
+  ws = x.shared_from_this();
+  for (auto& mr: mml) {
+    mr.set_workspace(x);
+  }
+}
+
+void MRecord::set_workspace(Workspace& x) {
+  mtasks.set_workspace(x);
+  if (msetvalue.holdsAgenda()) {
+    Agenda a = msetvalue;
+    a.set_workspace(x);
+    msetvalue = a;
+  } else if (msetvalue.holdsArrayOfAgenda()) {
+    ArrayOfAgenda a = msetvalue;
+    for (auto& b: a) b.set_workspace(x);
+    msetvalue = a;
+  }
 }

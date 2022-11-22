@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <global_data.h>
 #include <parameters.h>
 #include <parser.h>
 #include <pybind11/attr.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 #include <pybind11/stl/filesystem.h>
 #include <memory>
 #include <type_traits>
@@ -272,147 +274,7 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("input", &MRecord::In)
       .def_property_readonly("value", &MRecord::SetValue)
       .def_property_readonly("tasks", &MRecord::Tasks)
-      .PythonInterfaceBasicRepresentation(MRecord)
-      .def(py::pickle(
-          [](const MRecord& self) {
-            return py::make_tuple(
-                self.Id(),
-                self.Tasks(),
-                self.SetValue(),
-                self.Tasks().workspace()->wsvs(self.Out()),
-                self.Tasks().workspace()->wsvs(self.In()),
-                global_data::md_data[self.Id()].Name(),
-                global_data::md_data[self.Id()].Description(),
-                global_data::md_data[self.Id()].Authors(),
-                global_data::md_data[self.Id()].Out(),
-                global_data::md_data[self.Id()].GOut(),
-                global_data::md_data[self.Id()].GOutType(),
-                global_data::md_data[self.Id()].GOutSpecType(),
-                global_data::md_data[self.Id()].GOutDescription(),
-                global_data::md_data[self.Id()].In(),
-                global_data::md_data[self.Id()].GIn(),
-                global_data::md_data[self.Id()].GInType(),
-                global_data::md_data[self.Id()].GInSpecType(),
-                global_data::md_data[self.Id()].GInDefault(),
-                global_data::md_data[self.Id()].GInDescription(),
-                global_data::md_data[self.Id()].InOnly(),
-                global_data::md_data[self.Id()].InOut(),
-                global_data::md_data[self.Id()].OutOnly(),
-                global_data::md_data[self.Id()].SetMethod(),
-                global_data::md_data[self.Id()].AgendaMethod(),
-                global_data::md_data[self.Id()].Supergeneric(),
-                global_data::md_data[self.Id()].UsesTemplates(),
-                global_data::md_data[self.Id()].PassWorkspace(),
-                global_data::md_data[self.Id()].PassWsvNames(),
-                global_data::md_data[self.Id()].ActualGroups());
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 29, "Invalid state!")
-            auto id = t[0].cast<Index>();
-            auto ag = t[1].cast<Agenda>();
-            auto tv = t[2].cast<TokVal>();
-            auto out_wsv = t[3].cast<Workspace::wsv_data_type>();
-            auto in_wsv = t[4].cast<Workspace::wsv_data_type>();
-
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].Name() not_eq t[5].cast<String>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].Description() not_eq
-                    t[6].cast<String>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].Authors() not_eq
-                    t[7].cast<ArrayOfString>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].Out() not_eq t[8].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GOut() not_eq
-                    t[9].cast<ArrayOfString>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GOutType() not_eq
-                    t[10].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GOutSpecType() not_eq
-                    t[11].cast<ArrayOfArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GOutDescription() not_eq
-                    t[12].cast<Array<String>>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].In() not_eq t[13].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GIn() not_eq
-                    t[14].cast<ArrayOfString>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GInType() not_eq
-                    t[15].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GInSpecType() not_eq
-                    t[16].cast<ArrayOfArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GInDefault() not_eq
-                    t[17].cast<Array<String>>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].GInDescription() not_eq
-                    t[18].cast<Array<String>>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].InOnly() not_eq
-                    t[19].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].InOut() not_eq
-                    t[20].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].OutOnly() not_eq
-                    t[21].cast<ArrayOfIndex>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].SetMethod() not_eq t[22].cast<bool>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].AgendaMethod() not_eq
-                    t[23].cast<bool>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].Supergeneric() not_eq
-                    t[24].cast<bool>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].UsesTemplates() not_eq
-                    t[25].cast<bool>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].PassWorkspace() not_eq
-                    t[26].cast<bool>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].PassWsvNames() not_eq
-                    t[27].cast<bool>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-            ARTS_USER_ERROR_IF(
-                global_data::md_data[id].ActualGroups() not_eq
-                    t[28].cast<String>(),
-                "Method state not same as on construction; are you using a different Arts version?")
-
-            return new MRecord{id,
-                               ag.workspace()->wsvs(out_wsv),
-                               ag.workspace()->wsvs(in_wsv),
-                               tv,
-                               ag};
-          }));
+      .PythonInterfaceBasicRepresentation(MRecord);
 
   py::class_<Array<MRecord>>(m, "ArrayOfMRecord")
       .PythonInterfaceArrayDefault(MRecord)
@@ -476,7 +338,6 @@ void py_agenda(py::module_& m) {
                                  *w.get<Verbosity>("verbosity"));
            }),
            py::keep_alive<0, 1>())
-      .PythonInterfaceCopyValue(Agenda)
       .PythonInterfaceFileIO(Agenda)
       .def_property_readonly("main", &Agenda::is_main_agenda)
       .def_property("name", &Agenda::name, &Agenda::set_name)
@@ -777,35 +638,6 @@ Both agendas must be defined on the same workspace)--"),
            })
       .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
       .def("has_same_origin", &Agenda::has_same_origin)
-      .def(py::pickle(
-          [](const Agenda& self) {
-            return py::make_tuple(
-                self.name(), self.Methods(), self.is_main_agenda());
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
-
-            std::shared_ptr<Workspace> workspace=Workspace::create();
-            auto* val = new Agenda{*workspace};
-
-            val->set_name(t[0].cast<String>());
-            auto methods = t[1].cast<Array<MRecord>>();
-            std::transform(methods.begin(),
-                           methods.end(),
-                           methods.begin(),
-                           [&workspace](auto& met) {
-                             return met.deepcopy_if(*workspace);
-                           });
-            val->set_methods(methods);
-            val->set_outputs_to_push_and_dup(Verbosity{});
-
-            if (t[2].cast<bool>())
-              val->set_main_agenda();
-            else
-              val->check(*workspace, Verbosity{});
-
-            return val;
-          }))
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")

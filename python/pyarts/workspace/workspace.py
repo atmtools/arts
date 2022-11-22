@@ -377,16 +377,21 @@ class Workspace(InternalWorkspace):
             raise AttributeError("You cannot delete __class__")
 
         getattr(self, attr).delete_level()
-    
+
     def __copy__(self):
-        return Workspace(super().__copy__())
-    
+        x = super().__copy__()
+        out = Workspace()
+        out.swap(x)
+        return out
+
     def __deepcopy__(self, *args):
-        return Workspace(super().__deepcopy__(*args))
-    
+        x = super().__deepcopy__(*args)
+        out = Workspace()
+        out.swap(x)
+        return out
+
     def __getstate__(self):
         return {"Workspace": super().__getstate__()}
-    
+
     def __setstate__(self, d):
         super().__setstate__(d["Workspace"])
-        

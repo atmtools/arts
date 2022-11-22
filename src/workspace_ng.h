@@ -57,6 +57,17 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
    */
   Workspace();
 
+  /** Workspace copy constructor.
+   *
+   * Make a copy of a workspace. The copy constructor will only copy the topmost
+   * layer of the workspace variable stacks.
+   *
+   * @param[in] workspace The workspace to be copied
+   */
+  Workspace(const Workspace &workspace);
+
+  void claim_agenda_ownership();
+
  public:
   /** Workspace variable container. */
   Array<WorkspaceVariable> ws;
@@ -72,14 +83,8 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
   //! Creates a new Workspace, it has to be created as a shared pointer
   [[nodiscard]] static std::shared_ptr<Workspace> create();
 
-  /** Workspace copy constructor.
-   *
-   * Make a copy of a workspace. The copy constructor will only copy the topmost
-   * layer of the workspace variable stacks.
-   *
-   * @param[in] workspace The workspace to be copied
-   */
-  Workspace(const Workspace &workspace);
+  //! Shallow copy of a Workspace, it has to be created as a shared pointer
+  [[nodiscard]] std::shared_ptr<Workspace> shallowcopy() const;
 
   /** Delete WSV.
    *
@@ -210,7 +215,23 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
   ArrayOfIndex wsvs(const wsv_data_type&);
 };
 
-template <class T>
+template <typename T>
+concept CopyConstructor = requires(const T& a) {{ T{a} };};
+
+template <typename T>
+concept ShallowCopyConstructor = requires(const T& a) {a.shallowcopy();};
+
+template <typename T>
+concept CanCopy = CopyConstructor<T> or ShallowCopyConstructor<T>;
+
+
+template <typename T>
+std::shared_ptr<T> get_shallow_copy(const T& x) {
+  if constexpr (ShallowCopyConstructor<T>) return x.shallowcopy();
+  else return new T{x};
+}
+
+template <CanCopy T>
 class OmpParallelCopyGuard {
   T &orig;
   bool do_copy;
@@ -228,7 +249,7 @@ class OmpParallelCopyGuard {
   OmpParallelCopyGuard(const OmpParallelCopyGuard &cp)
     : orig(cp.orig),
       do_copy(cp.do_copy),
-      copy(do_copy ? new T{orig} : nullptr) {}
+      copy(do_copy ? get_shallow_copy(orig) : nullptr) {}
 
   operator T &() { return copy ? *copy : orig; }
 
