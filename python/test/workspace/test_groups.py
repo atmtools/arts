@@ -1002,8 +1002,10 @@ class TestGroups:
         for i in range(len(x)):
             if x[i] == "CallbackFunction":
                 continue
-            if x[i] == "Agenda":
-                exec(f"ws.v{i} = cxx.{x[i]}(ws)")
+            elif x[i] == "Agenda":
+                continue  # Cannot unpickle a standalone Agenda
+            elif x[i] == "ArrayOfAgenda":
+                continue  # Cannot unpickle a standalone ArrayOfAgenda
             else:
                 exec(f"ws.v{i} = cxx.{x[i]}()")
 

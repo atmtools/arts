@@ -61,10 +61,9 @@ MRecord::MRecord(const Index id,
       minternal(internal) {
 }
 
-Agenda::Agenda() : ws(nullptr), mname(), mml(), moutput_push(), moutput_dup() {}
 
 Agenda::Agenda(Workspace& workspace)
-    : ws(workspace.shared_ptr()),
+    : ws(workspace.weak_from_this()),
       mname(),
       mml(),
       moutput_push(),
@@ -98,7 +97,7 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   // Find explicit method id in MdMap.
   ArrayOfIndex input = md_data[id].InOnly();
 
-  mml.push_back(MRecord(id, output, input, keywordvalue, Agenda(*ws)));
+  mml.push_back(MRecord(id, output, input, keywordvalue, Agenda(*workspace())));
   mchecked = false;
 }
 
@@ -109,7 +108,7 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
 */
 void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
   // Check that this agenda has a default workspace
-  if (not ws.get()) {
+  if (not workspace().get()) {
     mchecked = false;
     return;
   }
@@ -355,7 +354,7 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
         method.Id() == WsmAgendaExecuteExclIndex) {
       for (Index j = 0; j < md_data[method.Id()].GInType().nelem(); j++) {
         if (md_data[method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
-          const String& agenda_name = (*ws->wsv_data_ptr)[gins[j]].Name();
+          const String& agenda_name = (*workspace()->wsv_data_ptr)[gins[j]].Name();
           const auto agenda_it =
               AgendaMap.find(agenda_name);
           // The executed agenda must not be a user created agenda
@@ -499,28 +498,28 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
   out3 << "  [Agenda::pushpop]                 : " << name() << "\n";
   out3 << "  [Agenda::pushpop] - # Funcs in Ag : " << mml.nelem() << "\n";
   out3 << "  [Agenda::pushpop] - AgOut         : ";
-  PrintWsvNames(out3, *ws, aout);
+  PrintWsvNames(out3, *workspace(), aout);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - AgIn          : ";
-  PrintWsvNames(out3, *ws, ain);
+  PrintWsvNames(out3, *workspace(), ain);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - All WSM output: ";
-  PrintWsvNames(out3, *ws, outputs);
+  PrintWsvNames(out3, *workspace(), outputs);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - All WSM input : ";
-  PrintWsvNames(out3, *ws, inputs);
+  PrintWsvNames(out3, *workspace(), inputs);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Output WSVs push     : ";
-  PrintWsvNames(out3, *ws, moutput_push);
+  PrintWsvNames(out3, *workspace(), moutput_push);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Output WSVs dup      : ";
-  PrintWsvNames(out3, *ws, moutput_dup);
+  PrintWsvNames(out3, *workspace(), moutput_dup);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Ag inp dup    : ";
-  PrintWsvNames(out3, *ws, agenda_only_in_wsm_out);
+  PrintWsvNames(out3, *workspace(), agenda_only_in_wsm_out);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Ag out dup    : ";
-  PrintWsvNames(out3, *ws, agenda_only_out_wsm_in);
+  PrintWsvNames(out3, *workspace(), agenda_only_out_wsm_in);
   out3 << "\n";
 }
 
@@ -653,7 +652,7 @@ bool Agenda::is_output(Index var) const {
              j++) {
           if (md_data[this_method.Id()].GInType()[j] == WsvAgendaGroupIndex) {
             const String& agenda_name =
-                (*ws->wsv_data_ptr)[this_method.In()[j]].Name();
+                (*workspace()->wsv_data_ptr)[this_method.In()[j]].Name();
             const auto agenda_it =
                 AgendaMap.find(agenda_name);
             // The executed agenda must not be a user created agenda
@@ -779,6 +778,17 @@ Agenda& Agenda::operator=(const Agenda& x) {
   return *this;
 }
 
+bool Agenda::has_same_origin(const Workspace& ws2) const {return workspace()->original_workspace == ws2.original_workspace;}
+
+std::shared_ptr<Workspace> Agenda::workspace() const {
+  auto workspace = ws.lock();
+  ARTS_USER_ERROR_IF(workspace == nullptr,
+                     "This agenda does not contain a valid Workspace.\n"
+                     "The workspace might have gotten deleted, or\n"
+                     "you're accessing a default-constructed agenda.");
+  return workspace;
+}
+
 //! Output operator for Agenda.
 /*! 
   This is useful for debugging.
@@ -843,7 +853,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << mtasks.workspace().wsv_data_ptr -> operator[](Out()[i]).Name();
+      os << mtasks.workspace()->wsv_data_ptr->operator[](Out()[i]).Name();
     }
 
     for (Index i = 0; i < In().nelem(); ++i) {
@@ -852,7 +862,7 @@ void MRecord::print(ostream& os, const String& indent) const {
       else
         os << ",";
 
-      os << mtasks.workspace().wsv_data_ptr -> operator[](In()[i]).Name();
+      os << mtasks.workspace()->wsv_data_ptr->operator[](In()[i]).Name();
     }
 
     os << ")";
@@ -930,8 +940,8 @@ MRecord MRecord::deepcopy_if(Workspace& workspace) const {
   MRecord out(workspace);
   
   out.mid = mid;
-  out.moutput = make_same_wsvs(workspace, mtasks.workspace(), moutput);
-  out.minput = make_same_wsvs(workspace, mtasks.workspace(), minput);
+  out.moutput = make_same_wsvs(workspace, *mtasks.workspace(), moutput);
+  out.minput = make_same_wsvs(workspace, *mtasks.workspace(), minput);
   out.msetvalue = msetvalue;
   out.mtasks = mtasks.deepcopy_if(workspace);
   out.minternal = minternal;
@@ -945,8 +955,8 @@ Agenda Agenda::deepcopy_if(Workspace& workspace) const {
   Agenda out(workspace);
   out.mname = mname;
   for (auto& method : mml) out.mml.push_back(method.deepcopy_if(workspace));
-  out.moutput_push = make_same_wsvs(workspace, *ws, moutput_push);
-  out.moutput_dup = make_same_wsvs(workspace, *ws, moutput_dup);
+  out.moutput_push = make_same_wsvs(workspace, *this->workspace(), moutput_push);
+  out.moutput_dup = make_same_wsvs(workspace, *this->workspace(), moutput_dup);
   out.main_agenda = main_agenda;
   out.mchecked = mchecked;
 
@@ -965,4 +975,24 @@ std::pair<ArrayOfIndex, ArrayOfIndex> Agenda::get_global_inout() const {
     ain = agr.In();
   }
   return {ain, aout};
+}
+
+void Agenda::set_workspace(Workspace& x) {
+  ws = x.shared_from_this();
+  for (auto& mr: mml) {
+    mr.set_workspace(x);
+  }
+}
+
+void MRecord::set_workspace(Workspace& x) {
+  mtasks.set_workspace(x);
+  if (msetvalue.holdsAgenda()) {
+    Agenda a = msetvalue;
+    a.set_workspace(x);
+    msetvalue = a;
+  } else if (msetvalue.holdsArrayOfAgenda()) {
+    ArrayOfAgenda a = msetvalue;
+    for (auto& b: a) b.set_workspace(x);
+    msetvalue = a;
+  }
 }

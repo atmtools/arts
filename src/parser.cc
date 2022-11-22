@@ -40,7 +40,7 @@ ArtsParser::ArtsParser(Agenda& tasklist,
                        String controlfile,
                        const Verbosity& rverbosity)
     : mtasklist(tasklist),
-      ws(tasklist.workspace().shared_ptr()),
+      ws(tasklist.workspace()),
       mcfile(std::move(controlfile)),
       mcfile_version(1),
       verbosity(rverbosity) {

@@ -68,7 +68,7 @@ class MRecord;
 */
 class Agenda final {
  public:
-  Agenda();
+  Agenda() = default;
   explicit Agenda(Workspace& workspace);
 
   /*! 
@@ -103,10 +103,11 @@ class Agenda final {
 
   friend ostream& operator<<(ostream& os, const Agenda& a);
 
-  [[nodiscard]] bool has_same_origin(const Workspace& ws2) const {return ws->original_workspace == ws2.original_workspace;}
-  
-  [[nodiscard]] Workspace& workspace() {return *ws;}
-  [[nodiscard]] const Workspace& workspace() const {return *ws;}
+  [[nodiscard]] bool has_same_origin(const Workspace& ws2) const;
+
+  [[nodiscard]] std::shared_ptr<Workspace> workspace() const;
+
+  void set_workspace(Workspace& x);
 
   //! Creates a deep copy of the agenda if necessary (i.e., different workspace)!
   Agenda deepcopy_if(Workspace&) const;
@@ -115,7 +116,7 @@ class Agenda final {
   [[nodiscard]] std::pair<ArrayOfIndex, ArrayOfIndex> get_global_inout() const;
 
  private:
-  std::shared_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
+  std::weak_ptr<Workspace> ws;      /*!< The workspace upon which this Agenda lives. */
   String mname;       /*!< Agenda name. */
   Array<MRecord> mml; /*!< The actual list of methods to execute. */
 
@@ -210,6 +211,8 @@ class MRecord {
   void print(ostream& os, const String& indent) const;
 
   friend ostream& operator<<(ostream& os, const MRecord& a);
+
+  void set_workspace(Workspace& x);
 
  private:
   /** Method id. */

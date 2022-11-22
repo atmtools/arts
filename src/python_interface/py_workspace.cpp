@@ -1,4 +1,6 @@
 #include <global_data.h>
+#include <memory>
+#include <mutex>
 #include <parameters.h>
 #include <wsv_aux_operator.h>
 
@@ -11,9 +13,179 @@
 #include "py_auto_interface.h"
 #include "py_macros.h"
 #include "python_interface.h"
+#include "tokval.h"
 
 extern Parameters parameters;
 namespace Python {
+py::tuple pickle_agenda(const Agenda &ag);
+Agenda unpickle_agenda(Workspace &ws, const py::tuple &t);
+
+py::tuple pickle_mrecord(const MRecord &mr) {
+  return py::make_tuple(
+      mr.Id(), pickle_agenda(mr.Tasks()), mr.SetValue(),
+      mr.Tasks().workspace()->wsvs(mr.Out()),
+      mr.Tasks().workspace()->wsvs(mr.In()),
+      global_data::md_data[mr.Id()].Name(),
+      global_data::md_data[mr.Id()].Description(),
+      global_data::md_data[mr.Id()].Authors(),
+      global_data::md_data[mr.Id()].Out(), global_data::md_data[mr.Id()].GOut(),
+      global_data::md_data[mr.Id()].GOutType(),
+      global_data::md_data[mr.Id()].GOutSpecType(),
+      global_data::md_data[mr.Id()].GOutDescription(),
+      global_data::md_data[mr.Id()].In(), global_data::md_data[mr.Id()].GIn(),
+      global_data::md_data[mr.Id()].GInType(),
+      global_data::md_data[mr.Id()].GInSpecType(),
+      global_data::md_data[mr.Id()].GInDefault(),
+      global_data::md_data[mr.Id()].GInDescription(),
+      global_data::md_data[mr.Id()].InOnly(),
+      global_data::md_data[mr.Id()].InOut(),
+      global_data::md_data[mr.Id()].OutOnly(),
+      global_data::md_data[mr.Id()].SetMethod(),
+      global_data::md_data[mr.Id()].AgendaMethod(),
+      global_data::md_data[mr.Id()].Supergeneric(),
+      global_data::md_data[mr.Id()].UsesTemplates(),
+      global_data::md_data[mr.Id()].PassWorkspace(),
+      global_data::md_data[mr.Id()].PassWsvNames(),
+      global_data::md_data[mr.Id()].ActualGroups());
+}
+
+MRecord unpickle_mrecord(Workspace &ws, const py::tuple &t) {
+  ARTS_USER_ERROR_IF(t.size() != 29, "Invalid state!")
+
+  auto id = t[0].cast<Index>();
+  auto ag_tup = t[1].cast<py::tuple>();
+  auto tv = t[2].cast<TokVal>();
+  auto out_wsv = t[3].cast<Workspace::wsv_data_type>();
+  auto in_wsv = t[4].cast<Workspace::wsv_data_type>();
+
+  ARTS_USER_ERROR_IF(global_data::md_data[id].Name() not_eq t[5].cast<String>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].Description() not_eq
+                         t[6].cast<String>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].Authors() not_eq
+                         t[7].cast<ArrayOfString>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].Out() not_eq
+                         t[8].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GOut() not_eq
+                         t[9].cast<ArrayOfString>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GOutType() not_eq
+                         t[10].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GOutSpecType() not_eq
+                         t[11].cast<ArrayOfArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GOutDescription() not_eq
+                         t[12].cast<Array<String>>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].In() not_eq
+                         t[13].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GIn() not_eq
+                         t[14].cast<ArrayOfString>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GInType() not_eq
+                         t[15].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GInSpecType() not_eq
+                         t[16].cast<ArrayOfArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GInDefault() not_eq
+                         t[17].cast<Array<String>>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].GInDescription() not_eq
+                         t[18].cast<Array<String>>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].InOnly() not_eq
+                         t[19].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].InOut() not_eq
+                         t[20].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].OutOnly() not_eq
+                         t[21].cast<ArrayOfIndex>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].SetMethod() not_eq
+                         t[22].cast<bool>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].AgendaMethod() not_eq
+                         t[23].cast<bool>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].Supergeneric() not_eq
+                         t[24].cast<bool>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].UsesTemplates() not_eq
+                         t[25].cast<bool>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].PassWorkspace() not_eq
+                         t[26].cast<bool>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].PassWsvNames() not_eq
+                         t[27].cast<bool>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+  ARTS_USER_ERROR_IF(global_data::md_data[id].ActualGroups() not_eq
+                         t[28].cast<String>(),
+                     "Method state not same as on construction; are you using "
+                     "a different Arts version?")
+
+  return MRecord{id, ws.wsvs(out_wsv), ws.wsvs(in_wsv), tv,
+                 unpickle_agenda(ws, ag_tup)};
+}
+
+py::tuple pickle_agenda(const Agenda &ag) {
+  std::vector<py::tuple> methods(ag.Methods().size());
+  std::transform(ag.Methods().begin(), ag.Methods().end(), methods.begin(),
+                 [](auto &in) { return pickle_mrecord(in); });
+  return py::make_tuple(ag.name(), methods, ag.is_main_agenda());
+}
+
+Agenda unpickle_agenda(Workspace &ws, const py::tuple &t) {
+  ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
+
+  auto val = Agenda{ws};
+
+  val.set_name(t[0].cast<String>());
+  auto mr_tup = t[1].cast<std::vector<py::tuple>>();
+  Array<MRecord> methods(mr_tup.size());
+  std::transform(mr_tup.begin(), mr_tup.end(), methods.begin(),
+                 [&ws](auto &met) { return unpickle_mrecord(ws, met); });
+  val.set_methods(methods);
+  val.set_outputs_to_push_and_dup(Verbosity{});
+
+  if (t[2].cast<bool>())
+    val.set_main_agenda();
+  else
+    val.check(ws, Verbosity{});
+
+  return val;
+}
+
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
@@ -44,10 +216,10 @@ void py_workspace(py::module_& m,
          }),
          py::arg("verbosity") = 0,
          py::arg("agenda_verbosity") = 0)
-      .def(py::init([](Workspace& w) {return new Workspace{w};}))
+      .def(py::init([](Workspace& w) {return w.shallowcopy();}))
       .def(
           "__copy__",
-          [](Workspace& w) -> Workspace { return w; },
+          [](Workspace& w) { return w.shallowcopy(); },
           py::is_operator())
       .def(
           "__deepcopy__",
@@ -134,8 +306,6 @@ void py_workspace(py::module_& m,
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
 
-  ws.PythonInterfaceCopyValue(Workspace);
-
   wsv.def(py::init([](WorkspaceVariable& w) { return w; }))
       .def(
           "__copy__",
@@ -209,26 +379,39 @@ void py_workspace(py::module_& m,
 
   ws.def(py::pickle(
       [](Workspace& w) {
-        std::vector<py::object> value;
-        value.reserve(w.nelem());
+        std::map<String, py::object> value;
+        std::map<String, py::tuple> agenda;
+        std::map<String, std::vector<py::tuple>> array_agenda;
 
         for (Index i = 0; i < w.nelem(); i++) {
-          auto& wsv_data = w.wsv_data_ptr->operator[](i);
+          auto &wsv_data = w.wsv_data_ptr->operator[](i);
 
           ARTS_USER_ERROR_IF(
               wsv_data.Group() == WorkspaceGroupIndexValue<CallbackFunction>,
               "Cannot pickle a workspace that contains a CallbackFunction")
+          if (w.is_initialized(i)) {
+            const String &name = wsv_data.Name();
 
-          if (not w.is_initialized(i)) {
-            value.push_back(py::none{});
-          } else {
-            value.push_back(
-                py::type::of<WorkspaceVariable>()(WorkspaceVariable{w, i})
-                    .attr("value"));
+            if (wsv_data.Group() == WorkspaceGroupIndexValue<Agenda>) {
+              agenda[name] = pickle_agenda(WorkspaceVariable{w, i});
+            } else if (wsv_data.Group() ==
+                       WorkspaceGroupIndexValue<ArrayOfAgenda>) {
+              const ArrayOfAgenda &ags = WorkspaceVariable{w, i};
+              std::vector<py::tuple> &ags_tup = array_agenda[name];
+              ags_tup.resize(ags.size());
+              std::transform(ags.begin(), ags.end(), ags_tup.begin(),
+                             [](auto &in) { return pickle_agenda(in); });
+            } else {
+              value[name] =
+                  py::type::of<WorkspaceVariable>()(WorkspaceVariable{w, i})
+                      .attr("value");
+            }
           }
         }
 
         return py::make_tuple(value,
+                              agenda,
+                              array_agenda,
                               *w.wsv_data_ptr,
                               global_data::AgendaMap,
                               global_data::MdMap,
@@ -237,56 +420,64 @@ void py_workspace(py::module_& m,
                               get_group_types());
       },
       [](const py::tuple& t) {
-        ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+        auto out = Workspace::create();
 
-        ARTS_USER_ERROR_IF((t[2].cast<std::map<String, Index>>() not_eq
+        ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
+
+        ARTS_USER_ERROR_IF((t[4].cast<std::map<String, Index>>() not_eq
                             global_data::AgendaMap),
                            "Mismatch between Agendas"
                            " at time of pickling and unpickling the workspace")
         ARTS_USER_ERROR_IF(
-            (t[3].cast<std::map<String, Index>>() not_eq global_data::MdMap),
+            (t[5].cast<std::map<String, Index>>() not_eq global_data::MdMap),
             "Mismatch between Methods"
             " at time of pickling and unpickling the workspace")
         ARTS_USER_ERROR_IF(
-            (t[4].cast<std::map<String, Index>>() not_eq global_data::WsvMap),
+            (t[6].cast<std::map<String, Index>>() not_eq global_data::WsvMap),
             "Mismatch between Workspace Variable Names"
             " at time of pickling and unpickling the workspace")
-        ARTS_USER_ERROR_IF((t[5].cast<std::map<String, Index>>() not_eq
+        ARTS_USER_ERROR_IF((t[7].cast<std::map<String, Index>>() not_eq
                             global_data::WsvGroupMap),
                            "Mismatch between Groups"
                            " at time of pickling and unpickling the workspace")
-        ARTS_USER_ERROR_IF((t[6].cast<ArrayOfIndex>() not_eq get_group_types()),
+        ARTS_USER_ERROR_IF((t[8].cast<ArrayOfIndex>() not_eq get_group_types()),
                            "Mismatch between Workspace Variable Groups"
                            " at time of pickling and unpickling the workspace")
 
-        auto out = Workspace::create();
+        auto value = t[0].cast<std::map<String, py::object>>();
+        auto agenda = t[1].cast<std::map<String, py::tuple>>();
+        auto array_agenda = t[2].cast<std::map<String, std::vector<py::tuple>>>();
+        out->wsvs(t[3].cast<Workspace::wsv_data_type>());
 
-        const auto aoi = out->wsvs(t[1].cast<Workspace::wsv_data_type>());
-        auto value = t[0].cast<std::vector<py::object>>();
-
-        for (auto i : aoi) {
-          if (py::isinstance<Agenda>(value[i])) continue;
-          if (py::isinstance<ArrayOfAgenda>(value[i])) continue;
-          if (py::isinstance<py::none>(value[i])) continue;
-          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
-              .attr("value") = value[i];
+        for (auto &x : value) {
+          auto wsv_ptr = out->WsvMap_ptr->find(x.first);
+          ARTS_USER_ERROR_IF(wsv_ptr == out->WsvMap_ptr->end(),
+                             "Cannot find WSV ", x.first)
+          py::type::of<WorkspaceVariable>()(
+              WorkspaceVariable{*out, wsv_ptr->second})
+              .attr("value") = x.second;
         }
 
-        for (auto i : aoi) {
-          if (not py::isinstance<Agenda>(value[i]) or
-              py::isinstance<py::none>(value[i]))
-            continue;
-          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
-              .attr("value") = value[i].cast<Agenda>().deepcopy_if(*out);
+        for (auto &x : agenda) {
+          auto wsv_ptr = out->WsvMap_ptr->find(x.first);
+          ARTS_USER_ERROR_IF(wsv_ptr == out->WsvMap_ptr->end(),
+                             "Cannot find WSV ", x.first)
+          py::type::of<WorkspaceVariable>()(
+              WorkspaceVariable{*out, wsv_ptr->second})
+              .attr("value") = unpickle_agenda(*out, x.second);
         }
 
-        for (auto i : aoi) {
-          if (not py::isinstance<ArrayOfAgenda>(value[i]) or
-              py::isinstance<py::none>(value[i]))
-            continue;
-          py::type::of<WorkspaceVariable>()(WorkspaceVariable{*out, i})
-              .attr("value") =
-              deepcopy_if(*out, value[i].cast<ArrayOfAgenda>());
+        for (auto &x : array_agenda) {
+          auto wsv_ptr = out->WsvMap_ptr->find(x.first);
+          ARTS_USER_ERROR_IF(wsv_ptr == out->WsvMap_ptr->end(),
+                             "Cannot find WSV ", x.first)
+          ArrayOfAgenda agendas(x.second.size());
+          std::transform(
+              x.second.begin(), x.second.end(), agendas.begin(),
+              [&out](auto &in) { return unpickle_agenda(*out, in); });
+          py::type::of<WorkspaceVariable>()(
+              WorkspaceVariable{*out, wsv_ptr->second})
+              .attr("value") = agendas;
         }
 
         return out;
