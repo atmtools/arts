@@ -2439,7 +2439,7 @@ void iyMC(Workspace& ws,
   if (nf) {
     WorkspaceOmpParallelCopyGuard wss{ws};
 
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(ws)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(wss)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) continue;
 
