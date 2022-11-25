@@ -940,23 +940,26 @@ void cloudbox_fieldInterp2Azimuth(
     Index na = cloudbox_field.nrows();
     Index ns = cloudbox_field.ncols();
 
-    Vector aa_grid_new=aa_grid;
-    for (Index ja = 0; ja<na; ja++){
-      if (aa_grid_new[ja]>180) {
-        aa_grid_new[ja] -= 360.;
-      }
-    }
-
     const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
     const Numeric sensor_los_za = sensor_los(0,0);
-    const Numeric azimuth_los = sensor_los(0,1);
+    Numeric azimuth_los = sensor_los(0,1);
+
+    //Convert azimuth from -180,180 to 0,360 convention, as aa_grid is defined in 0,360
+    if (azimuth_los<0) azimuth_los+=360;
+
     sensor_los.resize(1,1);
     sensor_los(0,0)=sensor_los_za;
 
     cloudbox_field.resize(nf,np,1,1,nz,1,ns);
 
-    // define interpolations compute cyclic for a azimuth grid [-180, 180]
-    const auto lag_aa = LagrangeInterpolation(0, azimuth_los, aa_grid_new, aa_interp_order, false, Interpolation::GridType::Cyclic, {-180, 180});
+    // define interpolations compute cyclic for a azimuth grid [0, 360]
+    const auto lag_aa = LagrangeInterpolation(0,
+                                              azimuth_los,
+                                              aa_grid,
+                                              aa_interp_order,
+                                              false,
+                                              Interpolation::GridType::Cyclic,
+                                              {0, 360});
 
     // Corresponding interpolation weights
     const auto itw_aa=interpweights(lag_aa);
@@ -967,8 +970,10 @@ void cloudbox_fieldInterp2Azimuth(
           for (Index jlo = 0; jlo < nlo; jlo++) {
             for (Index jz = 0; jz < nz; jz++) {
               for (Index js = 0; js < ns; js++) {
-                cloudbox_field(jf, jp, jla, jlo, jz, 0, js) = interp(
-                    cloudbox_field_in(jf, jp, jla, jlo, jz, joker, js), itw_aa, lag_aa);
+                cloudbox_field(jf, jp, jla, jlo, jz, 0, js) =
+                    interp(cloudbox_field_in(jf, jp, jla, jlo, jz, joker, js),
+                           itw_aa,
+                           lag_aa);
               }
             }
           }
