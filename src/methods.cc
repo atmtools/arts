@@ -18271,6 +18271,59 @@ where N>=0 and the species name is something line "H2O".
                "Threshold for allowed albedo deviation.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("scattering_speciesAddBulkParticleHabit"),
+      DESCRIPTION(
+          "Adds scattering species of type bulk particle habit to \n"
+          "*scattering_species*\n"
+          "\n"
+          "A bulk particle habit combines a particle habit with a PND agenda\n"
+          "and thus provides a way to map bulk properties in *pbp_field* to the\n"
+          "scattering properties required by the RT routines.\n"
+          ),
+      AUTHORS("Simon Pfreundschuh"),
+      OUT("scattering_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("name", "scattering_data", "scattering_meta_data", "pnd_agenda", "pnd_agenda_input"),
+      GIN_TYPE("String", "ArrayOfSingleScatteringData", "ArrayOfScatteringMetaData", "Agenda", "ArrayOfString"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("The name of scattering species.",
+               "The single scattering data of all particles in the habit.",
+               "The scattering meta data of all particles in the habit.",
+               "Agenda that computes the particle number density (PND) of the habit.",
+               "The column-names of *pbp_field* that serve as input for the pnd_agenda"
+               )));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("scattering_speciesAddBulkParticleHabitPND"),
+      DESCRIPTION(
+          "Adds scattering species of type bulk particle habit to \n"
+          "*scattering_species*\n"
+          "\n"
+          "This methods adds a bulk particle habit whose PND values are \n"
+          "directly provided through the pbf_field instead through a PSD.\n"
+          "The range of the column range of pbf_field that are interpreted\n"
+          "as the PND of the habit are given by the *index_start* and\n"
+          "*index_end* GINs.\n"
+          ),
+      AUTHORS("Simon Pfreundschuh"),
+      OUT("scattering_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("name", "scattering_data", "index_start", "index_end"),
+      GIN_TYPE("String", "ArrayOfSingleScatteringData", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("The name of scattering species.",
+               "The single scattering data of all particles in the habit.",
+               "The index of the first column in *pbp_field* that contains the PND data.",
+               "The index of the last column in *pbp_field* that contains the PND data."
+               )));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesSizeMassInfo"),
       DESCRIPTION(
           "Derives size and mass information for a scattering species."

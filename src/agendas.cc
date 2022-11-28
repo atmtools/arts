@@ -538,7 +538,7 @@ void define_agenda_data() {
      DESCRIPTION(
          "Returns particle number density data a scattering species.\n"
          "\n"
-         "This variable is used to  mapping data in *pbp_field*\n"
+         "This variable is used to  mapping data in particle_bulkprop_field\n"
          "to *pnd_data*.\n"
          "\n"),
      OUTPUT("pnd_data", "dpnd_data_dx"),
