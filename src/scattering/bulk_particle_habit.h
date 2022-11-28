@@ -187,7 +187,7 @@ class BulkParticleHabit : public ScatteringSpeciesImpl {
   /// Extra meta data and conver to ARTS legacy format.
   ArrayOfScatteringMetaData get_meta_data() const {
       auto extract_meta = [](const scattering::Particle &particle){
-          return ScatteringMetaData(
+          return ScatteringMetaData{
               particle.get_name(),
               particle.get_source(),
               particle.get_refractive_index(),
@@ -195,7 +195,7 @@ class BulkParticleHabit : public ScatteringSpeciesImpl {
               particle.get_d_max(),
               particle.get_d_eq(),
               particle.get_d_aero()
-              );
+              };
       };
       ArrayOfScatteringMetaData result{};
       std::transform(
