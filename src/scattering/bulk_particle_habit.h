@@ -40,6 +40,7 @@
 #include <iostream>
 #include <memory>
 
+#include "agenda_class.h"
 #include "optproperties.h"
 #include "scattering/maths.h"
 #include "scattering.h"
