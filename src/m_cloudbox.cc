@@ -915,6 +915,7 @@ void cloudbox_fieldInterp2Azimuth(
                            Matrix& sensor_los,
                            const Index& cloudbox_on,
                            const Vector& aa_grid,
+                           const Numeric& local_los_azimuth_angle,
                            const Index& aa_interp_order,
                            const Verbosity&) {
   //--- Check input -----------------------------------------------------------
@@ -929,6 +930,9 @@ void cloudbox_fieldInterp2Azimuth(
                      "Interpolation to azimuth works only for measurement\n"
                      "blocks of size 1.");
 
+  ARTS_USER_ERROR_IF( sensor_los.ncols()>1,
+                     "sensor_los must not have an azimth component.");
+
   //---------------------------------------------------------------------------
 
   if (cloudbox_field.nrows()>1 && aa_grid.nelem()==cloudbox_field.nrows()){
@@ -941,14 +945,12 @@ void cloudbox_fieldInterp2Azimuth(
     Index ns = cloudbox_field.ncols();
 
     const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
-    const Numeric sensor_los_za = sensor_los(0,0);
-    Numeric azimuth_los = sensor_los(0,1);
+    Numeric azimuth_los = local_los_azimuth_angle;
 
     //Convert azimuth from -180,180 to 0,360 convention, as aa_grid is defined in 0,360
     if (azimuth_los<0) azimuth_los+=360;
 
     sensor_los.resize(1,1);
-    sensor_los(0,0)=sensor_los_za;
 
     cloudbox_field.resize(nf,np,1,1,nz,1,ns);
 

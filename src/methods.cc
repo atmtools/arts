@@ -4841,20 +4841,30 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldInterp2Azimuth"),
       DESCRIPTION(
-          "Interps an *cloudbox_field* with azimuthal dependency to a *cloudbox_field*"
+          "Interpolate a *cloudbox_field* with azimuthal dependency to a *cloudbox_field*"
           "without azimuthal dependency.\n"
           "\n"
-          "TBD.....\n"),
+          "Intended use: Call directly after DisortCalc if sun is present and yCalc should be\n"
+          "should be run afterwards."
+          "\n"
+          "In ARTS a 1D atmosphere cannot have a azimuth dependency, but if a \n"
+          "collimated source like a sun is present even a 1D atmosphere has an \n"
+          "azimuth dependency. To overcome this constraint, the user must set an \n"
+          "additional local sensor line of sight azimuth angle for the true\n"
+          "geopgraphical location of the atmosphere. For this angle the \n"
+          "*cloudbox_field* with azimuthal dependency is interpolated to a \n"
+          "*cloudbox_field* without azimuthal dependency\n"),
       AUTHORS("Manfred Brath"),
       OUT("cloudbox_field","sensor_los"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("cloudbox_field","sensor_los","cloudbox_on", "aa_grid"),
-      GIN("aa_interp_order"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Azimuth angle interpolation order.")));
+      GIN("local_azimuth_angle","aa_interp_order"),
+      GIN_TYPE("Numeric","Index"),
+      GIN_DEFAULT(NODEF,"1"),
+      GIN_DESC("Local line of sight azimuth angle",
+               "Azimuth angle interpolation order.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetFromPrecalc"),
