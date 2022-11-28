@@ -244,6 +244,7 @@ add_library (artscore STATIC
   m_ppath.cc
   m_psd.cc
   m_quantum.cc
+  m_scattering_species.cc
   m_radiation_field.cc
   m_raw.cc
   m_refraction.cc
@@ -289,6 +290,7 @@ add_library (artscore STATIC
   rt4.cc
   rte.cc
   scattering.cc
+  scattering_species.cc
   sensor.cc
   sourcetext.cc
   special_interp.cc
