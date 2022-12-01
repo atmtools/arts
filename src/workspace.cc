@@ -4045,7 +4045,7 @@ Can currently only contain data for new MT CKD models of water.
           "The array holds species that scatter radiation."
           "\n"
           "Each entry in the array defines an abstract scattering species \n"
-          "and defines how bulk properties in *pbp_field* are translated \n"
+          "and defines how bulk properties in pbp_field are translated \n"
           "to the scattering properties required to simulate the radiatve \n"
           "transfer. \n"),
       GROUP("ArrayOfScatteringSpecies")));
