@@ -61,6 +61,73 @@ Jacobian::Line select_derivativeLineShape(const String& var,
  * line mixing Hartman-Tran profiles
  */
 namespace LineShape {
+/** Type of line shape to compute */
+ENUMCLASS(Type, char,
+  DP,         // Doppler
+  LP,         // Lorentz
+  VP,         // Voigt
+  SDVP,       // Speed-dependent Voigt
+  HTP,        // Hartmann-Tran
+  SplitLP,    // Lorentz split by broadening species
+  SplitVP,    // Voigt split by broadening species
+  SplitSDVP,  // Speed-dependent Voigt split by broadening species
+  SplitHTP    // Hartmann-Tran split by broadening species
+)
+
+/** Turns selected Type into a human readable string
+ * 
+ * This function takes the input Type
+ * and returns it as a string
+ *  
+ * @param[in] type The Type
+ * 
+ * @return std::string_view of Type
+ */
+constexpr std::string_view shapetype2metadatastring(Type type) noexcept {
+  switch (type) {
+    case Type::DP:
+      return "The line shape type is the Doppler profile\n";
+    case Type::LP:
+      return "The line shape type is the Lorentz profile.\n";
+    case Type::VP:
+      return "The line shape type is the Voigt profile.\n";
+    case Type::SDVP:
+      return "The line shape type is the speed-dependent Voigt profile.\n";
+    case Type::HTP:
+      return "The line shape type is the Hartmann-Tran profile.\n";
+    case Type::SplitLP:
+      return "The line shape type is the Lorentz profile per broadener.\n";
+    case Type::SplitVP:
+      return "The line shape type is the Voigt profile per broadener.\n";
+    case Type::SplitSDVP:
+      return "The line shape type is the speed-dependent Voigt profile per broadener.\n";
+    case Type::SplitHTP:
+      return "The line shape type is the Hartmann-Tran profile per broadener.\n";
+    case Type::FINAL: {}
+  }
+  return "There's an error.\n";
+}
+
+/** Is the Type independent per broadener?
+ * 
+ * If it is, the line shape is computed as F_1(...) + F_2(...) + /// + F_N(...)
+ * If it is not, then it is computed as F(avg(..._1 + ..._2 + /// + ..._N))
+ *
+ * Where F is the lineshape, the subindex is the line parameter (such as pressure broadening)
+ * and avg(///) is an averaging function
+ *  
+ * @param[in] type The LineShape::Type
+ * 
+ * @return true If we compute the line shape per broadener and then sum it up
+ * @return false If we average line parameters for all broadeners and then compute the line shape
+ */
+constexpr bool independent_per_broadener(Type in) {
+  using enum Type;
+  constexpr std::array data{SplitLP, SplitVP, SplitSDVP, SplitHTP};
+  static_assert(std::is_sorted(data.begin(), data.end()), "Not sorted");
+  return std::binary_search(data.begin(), data.end(), in);
+}
+
 
 /** Temperature models
  * 
@@ -439,44 +506,6 @@ class SingleSpeciesModel {
 
   friend std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
 };
-
-/** Type of line shape to compute */
-ENUMCLASS(Type, char,
-  DP,    // Doppler
-  LP,    // Lorentz
-  VP,    // Voigt
-  SDVP,  // Speed-dependent Voigt
-  HTP    // Hartmann-Tran
-)
-
-/** Turns selected Type into a human readable string
- * 
- * This function takes the input Type
- * and returns it as a string
- *  
- * @param[in] type The Type
- * 
- * @return std::string_view of Type
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
-constexpr std::string_view shapetype2metadatastring(Type type) noexcept {
-  switch (type) {
-    case Type::DP:
-      return "The line shape type is the Doppler profile\n";
-    case Type::LP:
-      return "The line shape type is the Lorentz profile.\n";
-    case Type::VP:
-      return "The line shape type is the Voigt profile.\n";
-    case Type::SDVP:
-      return "The line shape type is the speed-dependent Voigt profile.\n";
-    case Type::HTP:
-      return "The line shape type is the Hartmann-Tran profile.\n";
-    case Type::FINAL: {}
-  }
-  return "There's an error.\n";
-}
-#pragma GCC diagnostic pop
 
 /** Main output of Model */
 struct Output {

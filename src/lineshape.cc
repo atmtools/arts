@@ -2392,16 +2392,20 @@ Calculator::Calculator(const Type type, const Numeric F0, const Output &X,
     case Type::DP:
       ls = Doppler(F0, DC, DZ);
       break;
-    case Type::LP:
+    case Type::LP: [[fallthrough]];
+    case Type::SplitLP:
       ls = Lorentz(F0, X);
       break;
-    case Type::VP:
+    case Type::VP: [[fallthrough]];
+    case Type::SplitVP:
       ls = Voigt(F0, X, DC, DZ);
       break;
-    case Type::SDVP:
+    case Type::SDVP: [[fallthrough]];
+    case Type::SplitSDVP:
       ls = SpeedDependentVoigt(F0, X, DC, DZ);
       break;
-    case Type::HTP:
+    case Type::HTP: [[fallthrough]];
+    case Type::SplitHTP:
       ls = HartmannTran(F0, X, DC, DZ);
       break;
     case Type::FINAL: { /*leave last*/

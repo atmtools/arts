@@ -50,7 +50,9 @@
 #include "wigner_functions.h"
 
 LineShape::Output Absorption::Lines::ShapeParameters(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
+    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
+
   auto x = lines[k].lineshape.GetParams(T, T0, P, vmrs);
 
   if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
@@ -61,12 +63,16 @@ LineShape::Output Absorption::Lines::ShapeParameters(
 LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
                                                      Numeric T,
                                                      Numeric P,
-                                                     size_t m) const noexcept {
+                                                     size_t m) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
+
   return lines[k].lineshape.GetParams(T, T0, P, m);
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
+    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
+
   auto x = lines[k].lineshape.GetTemperatureDerivs(T, T0, P, vmrs);
 
   if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
@@ -100,6 +106,8 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     Numeric T,
     Numeric P,
     const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
+
   const Index pos = LineShapePos(vmr_qid);
   if (pos >= 0) return lines[k].lineshape.GetVMRDerivs(T, T0, P, pos);
   return LineShape::Output{};
@@ -111,6 +119,8 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(
     Numeric P,
     const Vector& vmrs,
     const RetrievalQuantity& derivative) const ARTS_NOEXCEPT {
+  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
+
   const auto self = derivative.Mode() == LineShape::self_broadening;
   const auto bath = derivative.Mode() == LineShape::bath_broadening;
   const auto& ls = lines[k].lineshape;
@@ -2530,20 +2540,32 @@ AbsorptionLineShapeTagTypeStatus::AbsorptionLineShapeTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.lineshapetype) {
-        case LineShape::Type::VP:
-          VP = true;
-          break;
         case LineShape::Type::DP:
           DP = true;
           break;
         case LineShape::Type::LP:
           LP = true;
           break;
+        case LineShape::Type::VP:
+          VP = true;
+          break;
         case LineShape::Type::SDVP:
           SDVP = true;
           break;
         case LineShape::Type::HTP:
           HTP = true;
+          break;
+        case LineShape::Type::SplitLP:
+          SplitLP = true;
+          break;
+        case LineShape::Type::SplitVP:
+          SplitVP = true;
+          break;
+        case LineShape::Type::SplitSDVP:
+          SplitSDVP = true;
+          break;
+        case LineShape::Type::SplitHTP:
+          SplitHTP = true;
           break;
         case LineShape::Type::FINAL: { /* leave list */
         }
@@ -2781,7 +2803,23 @@ std::ostream& operator<<(std::ostream& os,
          << '\n';
       [[fallthrough]];
     case LineShapeType::HTP:
-      os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP;
+      os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitLP:
+      os << "    SplitLP:" << spaces(req_spaces(LineShapeType::LP)) << val.SplitLP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitVP:
+      os << "    VP:" << spaces(req_spaces(LineShapeType::VP)) << val.SplitVP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitSDVP:
+      os << "    SplitSDVP:" << spaces(req_spaces(LineShapeType::SDVP)) << val.SplitSDVP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitHTP:
+      os << "    SplitHTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.SplitHTP;
   }
   return os;
 }

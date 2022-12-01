@@ -59,8 +59,6 @@ ENUMCLASS(MirroringType, char,
   Manual            // Mirror by having a line in the array of line record with negative F0
 )  // MirroringType
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexcept {
   switch (in) {
     case MirroringType::None:
@@ -75,7 +73,6 @@ constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexce
   }
   return "There's an error";
 }
-#pragma GCC diagnostic pop
 
 /** Describes the type of normalization line effects
  *
@@ -89,8 +86,6 @@ ENUMCLASS(NormalizationType, char,
   SFS                  // Renormalize using simple frequency scaling of the line strength
 )  // NormalizationType
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view normalizationtype2metadatastring(NormalizationType in) {
   switch (in) {
     case NormalizationType::None:
@@ -111,7 +106,6 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
   }
   return "There's an error";
 }
-#pragma GCC diagnostic pop
 
 /** Describes the type of population level counter
  *
@@ -127,8 +121,6 @@ ENUMCLASS(PopulationType, char,
   ByRovibLinearDipoleLineMixing   // Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 )  // PopulationType
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::LTE:
@@ -149,7 +141,6 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
   }
   return "There's an error";
 }
-#pragma GCC diagnostic pop
 
 constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
   return in == PopulationType::ByHITRANFullRelmat or
@@ -592,7 +583,7 @@ struct Lines {
    * @param[in] vmrs Line broadener species's volume mixing ratio
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
   
   /** Line shape parameters
    * 
@@ -602,7 +593,7 @@ struct Lines {
    * @param[in] m Line broadening species position
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const noexcept;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const ARTS_NOEXCEPT;
   
   /** Line shape parameters temperature derivatives
    * 
@@ -612,7 +603,7 @@ struct Lines {
    * @param[in] vmrs Line broadener's volume mixing ratio
    * @return Line shape parameters temperature derivatives
    */
-  [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
+  [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
   
   /** Position among broadening species or -1
    * 
@@ -1029,9 +1020,11 @@ struct AbsorptionCutoffTagTypeStatus {
 };
 
 struct AbsorptionLineShapeTagTypeStatus {
-  bool DP{false}, LP{false}, VP{false}, SDVP{false}, HTP{false};
-  AbsorptionLineShapeTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
-  friend std::ostream& operator<<(std::ostream&, AbsorptionLineShapeTagTypeStatus);
+  bool DP{false}, LP{false}, VP{false}, SDVP{false}, HTP{false}, SplitLP{false},
+      SplitVP{false}, SplitSDVP{false}, SplitHTP{false};
+  AbsorptionLineShapeTagTypeStatus(const ArrayOfArrayOfAbsorptionLines &);
+  friend std::ostream &operator<<(std::ostream &,
+                                  AbsorptionLineShapeTagTypeStatus);
 };
 
 struct AbsorptionTagTypesStatus {
