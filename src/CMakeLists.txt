@@ -417,6 +417,7 @@ add_library (methods STATIC
 
 set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
 target_link_libraries(methods PUBLIC predef species)
+target_include_directories(methods PUBLIC ${FFTW_INCLUDE_DIR})
 
 ########### next target ###############
 
