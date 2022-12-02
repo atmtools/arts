@@ -18277,7 +18277,7 @@ where N>=0 and the species name is something line "H2O".
           "*scattering_species*\n"
           "\n"
           "A bulk particle habit combines a particle habit with a PND agenda\n"
-          "and thus provides a way to map bulk properties in *pbp_field* to the\n"
+          "and thus provides a way to map bulk properties in pbp_field to the\n"
           "scattering properties required by the RT routines.\n"
           ),
       AUTHORS("Simon Pfreundschuh"),
@@ -18293,7 +18293,7 @@ where N>=0 and the species name is something line "H2O".
                "The single scattering data of all particles in the habit.",
                "The scattering meta data of all particles in the habit.",
                "Agenda that computes the particle number density (PND) of the habit.",
-               "The column-names of *pbp_field* that serve as input for the pnd_agenda"
+               "The column-names of pbp_field that serve as input for the pnd_agenda"
                )));
 
   md_data_raw.push_back(create_mdrecord(
@@ -18319,8 +18319,8 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
       GIN_DESC("The name of scattering species.",
                "The single scattering data of all particles in the habit.",
-               "The index of the first column in *pbp_field* that contains the PND data.",
-               "The index of the last column in *pbp_field* that contains the PND data."
+               "The index of the first column in pbp_field that contains the PND data.",
+               "The index of the last column in pbp_field that contains the PND data."
                )));
 
   md_data_raw.push_back(create_mdrecord(
