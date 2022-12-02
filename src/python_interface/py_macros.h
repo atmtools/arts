@@ -96,7 +96,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       py::is_operator())                               \
       .def(                                            \
           "__repr__",                                  \
-          [](const Type& x) { return var_string(x); }, \
+          [](const Type&) { return #Type; }, \
           py::is_operator())
 
 #define PythonInterfaceCopyValue(Type)                                  \
