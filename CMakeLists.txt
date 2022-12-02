@@ -274,6 +274,9 @@ endif (ENABLE_NETCDF)
 
 ########## FFTW #########
 include(FindFFTW)
+if (NOT NO_FFTW AND NOT FFTW_FOUND)
+  message (FATAL_ERROR "fftw library not found.")
+endif ()
 
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
