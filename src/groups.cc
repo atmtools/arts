@@ -168,6 +168,7 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfScatteringMetaData",
                           "A list of *ScatteringMetaData*");
+  
   wsv_groups.emplace_back("ArrayOfScatteringSpecies",
                           "A list of *ScatteringSpecies*");
 

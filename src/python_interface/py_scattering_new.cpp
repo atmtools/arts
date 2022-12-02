@@ -1,5 +1,7 @@
+#include "py_macros.h"
 #include <py_auto_interface.h>
 #include <pybind11/eigen.h>
+#include <pybind11/pybind11.h>
 #include <scattering/eigen_tensor.h>
 #include <scattering/sht.h>
 #include <scattering/single_scattering_data.h>
@@ -240,6 +242,7 @@ void py_scattering_new(py::module_& bindings_module) {
 ;
 
 
-
+py::class_<ScatteringSpecies>(bindings_module, "ScatteringSpecies");
+py::class_<ArrayOfScatteringSpecies>(bindings_module, "ArrayOfScatteringSpecies");
 }
-}
+}  // namespace Python
