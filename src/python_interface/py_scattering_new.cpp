@@ -242,18 +242,18 @@ void py_scattering_new(py::module_& bindings_module) {
       .def("get_backward_scattering_coeff", &scattering::Particle::get_backward_scattering_coeff);
   // Data members
 
-  py::class_<ScatteringSpecies>(m, "ScatteringSpecies")
+  py::class_<ScatteringSpecies>(bindings_module, "ScatteringSpecies")
       .def(py::init([]() { return new ScatteringSpecies{}; }))
       .PythonInterfaceCopyValue(ScatteringSpecies)
       .PythonInterfaceWorkspaceVariableConversion(ScatteringSpecies)
       .PythonInterfaceFileIO(ScatteringSpecies)
       .PythonInterfaceBasicRepresentation(ScatteringSpecies);
 
-  py::class_<Array<ScatteringSpecies>>(m, "ArrayOfScatteringSpeciesInternal")
+  py::class_<Array<ScatteringSpecies>>(bindings_module, "ArrayOfScatteringSpeciesInternal")
       .PythonInterfaceBasicRepresentation(Array<ScatteringSpecies>)
       .PythonInterfaceArrayDefault(ScatteringSpecies);
 
-  py::class_<ArrayOfScatteringSpecies, Array<ScatteringSpecies>>(m, "ArrayOfScatteringSpecies")
+  py::class_<ArrayOfScatteringSpecies, Array<ScatteringSpecies>>(bindings_module, "ArrayOfScatteringSpecies")
       .PythonInterfaceFileIO(ArrayOfScatteringSpecies)
       .PythonInterfaceCopyValue(ArrayOfScatteringSpecies)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfScatteringSpecies)
@@ -291,6 +291,5 @@ void py_scattering_new(py::module_& bindings_module) {
           }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfScatteringSpecies);
   py::implicitly_convertible<std::vector<ScatteringSpecies>, ArrayOfScatteringSpecies>();
-}
 }
 }  // namespace Python
