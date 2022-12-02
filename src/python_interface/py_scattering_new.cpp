@@ -8,6 +8,8 @@
 #include <scattering/particle.h>
 #include <scattering/particle_habit.h>
 
+#include "py_macros.h"
+
 namespace Python {
 void py_scattering_new(py::module_& bindings_module) {
 
@@ -237,12 +239,58 @@ void py_scattering_new(py::module_& bindings_module) {
     .def("get_absorption_vector", (scattering::math::Tensor<double, 7>(scattering::Particle::*)(Eigen::Index)const ) &scattering::Particle::get_absorption_vector)
     .def("get_absorption_vector", (scattering::math::Vector<double>(scattering::Particle::*)(double, double, double, double, Eigen::Index)) &scattering::Particle::get_absorption_vector)
   .def("get_forward_scattering_coeff", &scattering::Particle::get_forward_scattering_coeff)
-  .def("get_backward_scattering_coeff", &scattering::Particle::get_backward_scattering_coeff)
+      .def("get_backward_scattering_coeff", &scattering::Particle::get_backward_scattering_coeff);
   // Data members
-;
 
+  py::class_<ScatteringSpecies>(m, "ScatteringSpecies")
+      .def(py::init([]() { return new ScatteringSpecies{}; }))
+      .PythonInterfaceCopyValue(ScatteringSpecies)
+      .PythonInterfaceWorkspaceVariableConversion(ScatteringSpecies)
+      .PythonInterfaceFileIO(ScatteringSpecies)
+      .PythonInterfaceBasicRepresentation(ScatteringSpecies);
 
-py::class_<ScatteringSpecies>(bindings_module, "ScatteringSpecies");
-py::class_<ArrayOfScatteringSpecies>(bindings_module, "ArrayOfScatteringSpecies");
+  py::class_<Array<ScatteringSpecies>>(m, "ArrayOfScatteringSpeciesInternal")
+      .PythonInterfaceBasicRepresentation(Array<ScatteringSpecies>)
+      .PythonInterfaceArrayDefault(ScatteringSpecies);
+
+  py::class_<ArrayOfScatteringSpecies, Array<ScatteringSpecies>>(m, "ArrayOfScatteringSpecies")
+      .PythonInterfaceFileIO(ArrayOfScatteringSpecies)
+      .PythonInterfaceCopyValue(ArrayOfScatteringSpecies)
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOfScatteringSpecies)
+      .PythonInterfaceBasicRepresentation(ArrayOfScatteringSpecies)
+      .PythonInterfaceIndexItemAccess(ArrayOfScatteringSpecies)
+      .def(py::self == py::self)
+      .def(py::init([]() { return new ArrayOfScatteringSpecies{}; }))
+      .def(py::init(
+          [](Index a, ScatteringSpecies b) { return new ArrayOfScatteringSpecies(a, b); }))
+      .def(py::init([](const std::vector<ScatteringSpecies>& v) {
+        return new ArrayOfScatteringSpecies{v};
+      }))
+      .def(
+          "append",
+          [](ArrayOfScatteringSpecies& x, ScatteringSpecies y) { x.emplace_back(y); },
+          py::doc("Appends a ScatteringSpecies at the end of the Array"))
+      .def(
+          "pop",
+          [](ArrayOfScatteringSpecies& x) {
+            ScatteringSpecies y = x.back();
+            x.pop_back();
+            return y;
+          },
+          py::doc("Pops a ScatteringSpecies from the end of the Array"))
+      .def(py::pickle(
+          [](const ArrayOfScatteringSpecies& v) {
+            auto n = v.size();
+            std::vector<ScatteringSpecies> out(n);
+            std::copy(v.begin(), v.end(), out.begin());
+            return py::make_tuple(std::move(out));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return new ArrayOfScatteringSpecies{t[0].cast<std::vector<ScatteringSpecies>>()};
+          }))
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfScatteringSpecies);
+  py::implicitly_convertible<std::vector<ScatteringSpecies>, ArrayOfScatteringSpecies>();
+}
 }
 }  // namespace Python

@@ -150,6 +150,12 @@ class ScatteringSpecies {
           );
   }
 
+  bool operator==(const ScatteringSpecies &other) const {
+      if (impl_) {
+          return impl_.get() == other.impl_.get();
+      }
+      return false;
+  }
 
   friend std::ostream& operator<<(std::ostream& out, const ScatteringSpecies&);
 
@@ -167,11 +173,17 @@ class ScatteringSpecies {
  * essentially extends the functions required to calculate bulk scattering
  * properties to an array containing multiple ScatteringSpecies objects.
  */
-class ArrayOfScatteringSpecies : public Array<ScatteringSpecies> {
+class ArrayOfScatteringSpecies final : public Array<ScatteringSpecies> {
  public:
 
-  ArrayOfScatteringSpecies() = default;
+  ArrayOfScatteringSpecies() noexcept = default;
   ArrayOfScatteringSpecies(size_t n) : Array<ScatteringSpecies>(n) {}
+  ArrayOfScatteringSpecies(Index n, const ScatteringSpecies value)
+      : Array<ScatteringSpecies>(n, value) {}
+  ArrayOfScatteringSpecies(const Array<ScatteringSpecies> &arr)
+      : Array<ScatteringSpecies>(arr) {}
+  ArrayOfScatteringSpecies(Array<ScatteringSpecies>&& arr)
+      : Array<ScatteringSpecies>(std::move(arr)) {}
 
   /** Prepare scattering data to calculate expected properties.
    *
