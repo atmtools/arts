@@ -1,3 +1,4 @@
+#include "lineshapemodel.h"
 #include "partfun.h"
 
 #include <algorithm>
@@ -3313,76 +3314,161 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
   // Doppler constant
   const Numeric DC = band.DopplerConstant(T);
 
-  for (Index i = 0; i < nl; i++) {
-    // Pre-compute the derivatives
-    for (Index ij = 0; ij < nj; ij++) {
-      const auto &deriv = jacobian_quantities[ij];
-      derivs[ij].jac_pos = -1;
-      derivs[ij].deriv = nullptr;
+  if (not independent_per_broadener(band.lineshapetype)) {
+    for (Index i = 0; i < nl; i++) {
+      // Pre-compute the derivatives
+      for (Index ij = 0; ij < nj; ij++) {
+        const auto &deriv = jacobian_quantities[ij];
+        derivs[ij].jac_pos = -1;
+        derivs[ij].deriv = nullptr;
 
-      if (not deriv.propmattype())
-        continue;
-      derivs[ij].jac_pos = ij;
-      derivs[ij].deriv = &deriv;
+        if (not deriv.propmattype())
+          continue;
+        derivs[ij].jac_pos = ij;
+        derivs[ij].deriv = &deriv;
 
-      if (deriv == Jacobian::Atm::Temperature) {
-        derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);
-      } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
-        if (not(deriv == self_tag)) { // Remove if its not good
-          derivs[ij].jac_pos = -1;
-          derivs[ij].deriv = nullptr;
-        }
-      } else if (deriv.Target().needQuantumIdentity()) {
-        if (deriv == Jacobian::Line::VMR) {
-          derivs[ij].value.o =
-              band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity());
-        } else {
-          auto &lt = derivs[ij].target = {deriv.Target().qid,
-                                          band.lines[i].localquanta,
-                                          band.quantumidentity};
-          if (lt == Quantum::Number::StateMatchType::Full) {
-            if constexpr (false) { /*skip so the rest can be a else-if block*/
+        if (deriv == Jacobian::Atm::Temperature) {
+          derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);
+        } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+          if (not(deriv == self_tag)) { // Remove if its not good
+            derivs[ij].jac_pos = -1;
+            derivs[ij].deriv = nullptr;
+          }
+        } else if (deriv.Target().needQuantumIdentity()) {
+          if (deriv == Jacobian::Line::VMR) {
+            derivs[ij].value.o =
+                band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity());
+          } else {
+            auto &lt = derivs[ij].target = {deriv.Target().qid,
+                                            band.lines[i].localquanta,
+                                            band.quantumidentity};
+            if (lt == Quantum::Number::StateMatchType::Full) {
+              if constexpr (false) { /*skip so the rest can be a else-if block*/
+              }
+              // All line shape derivatives
+              InternalDerivativesSetup(G0) InternalDerivativesSetup(D0)
+                  InternalDerivativesSetup(G2) InternalDerivativesSetup(D2)
+                      InternalDerivativesSetup(ETA)
+                          InternalDerivativesSetup(FVC)
+                              InternalDerivativesSetup(Y)
+                                  InternalDerivativesSetup(G)
+                                      InternalDerivativesSetup(DV)
             }
-            // All line shape derivatives
-            InternalDerivativesSetup(G0) InternalDerivativesSetup(D0)
-                InternalDerivativesSetup(G2) InternalDerivativesSetup(D2)
-                    InternalDerivativesSetup(ETA) InternalDerivativesSetup(FVC)
-                        InternalDerivativesSetup(Y) InternalDerivativesSetup(G)
-                            InternalDerivativesSetup(DV)
           }
         }
       }
-    }
-    std::remove_if(derivs.begin(), derivs.end(),
-                   [](Derivatives &dd) { return dd.deriv == nullptr; });
+      std::remove_if(derivs.begin(), derivs.end(),
+                     [](Derivatives &dd) { return dd.deriv == nullptr; });
 
-    // Call cut off loop with or without sparsity
-    switch (speedup_type) {
-    case Options::LblSpeedup::None:
-      cutoff_loop(com, Normalizer(band.normalization, band.lines[i].F0, T),
-                  IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT,
-                                      nlte, band, i),
-                  band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, DC,
-                  i, zeeman_polarization);
-      break;
-    case Options::LblSpeedup::QuadraticIndependent:
-      cutoff_loop_sparse_triple(
-          com, sparse_com, Normalizer(band.normalization, band.lines[i].F0, T),
-          IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
-                              band, i),
-          band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-          DC, i, zeeman_polarization);
-      break;
-    case Options::LblSpeedup::LinearIndependent:
-      cutoff_loop_sparse_linear(
-          com, sparse_com, Normalizer(band.normalization, band.lines[i].F0, T),
-          IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
-                              band, i),
-          band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
-          DC, i, zeeman_polarization);
-      break;
-    case Options::LblSpeedup::FINAL: { /* Leave last */
+      // Call cut off loop with or without sparsity
+      switch (speedup_type) {
+      case Options::LblSpeedup::None:
+        cutoff_loop(com, Normalizer(band.normalization, band.lines[i].F0, T),
+                    IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT,
+                                        nlte, band, i),
+                    band, derivs, band.ShapeParameters(i, T, P, vmrs, -1), T, H, DC,
+                    i, zeeman_polarization);
+        break;
+      case Options::LblSpeedup::QuadraticIndependent:
+        cutoff_loop_sparse_triple(
+            com, sparse_com,
+            Normalizer(band.normalization, band.lines[i].F0, T),
+            IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
+                                band, i),
+            band, derivs, band.ShapeParameters(i, T, P, vmrs, -1), T, H, sparse_lim,
+            DC, i, zeeman_polarization);
+        break;
+      case Options::LblSpeedup::LinearIndependent:
+        cutoff_loop_sparse_linear(
+            com, sparse_com,
+            Normalizer(band.normalization, band.lines[i].F0, T),
+            IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
+                                band, i),
+            band, derivs, band.ShapeParameters(i, T, P, vmrs, -1), T, H, sparse_lim,
+            DC, i, zeeman_polarization);
+        break;
+      case Options::LblSpeedup::FINAL: { /* Leave last */
+      }
+      }
     }
+  } else {
+    for (Index ib=0; ib<band.NumBroadeners(); ib++) {
+      for (Index i = 0; i < nl; i++) {
+        // Pre-compute the derivatives
+        for (Index ij = 0; ij < nj; ij++) {
+          const auto &deriv = jacobian_quantities[ij];
+          derivs[ij].jac_pos = -1;
+          derivs[ij].deriv = nullptr;
+
+          if (not deriv.propmattype())
+            continue;
+          derivs[ij].jac_pos = ij;
+          derivs[ij].deriv = &deriv;
+
+          if (deriv == Jacobian::Atm::Temperature) {
+            derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, vmrs);
+          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+            if (not(deriv == self_tag)) { // Remove if its not good
+              derivs[ij].jac_pos = -1;
+              derivs[ij].deriv = nullptr;
+            }
+          } else if (deriv.Target().needQuantumIdentity()) {
+            if (deriv == Jacobian::Line::VMR) {
+              derivs[ij].value.o =
+                  band.ShapeParameters_dVMR(i, T, P, deriv.QuantumIdentity());
+            } else {
+              auto &lt = derivs[ij].target = {deriv.Target().qid,
+                                              band.lines[i].localquanta,
+                                              band.quantumidentity};
+              if (lt == Quantum::Number::StateMatchType::Full) {
+                if constexpr (false) { /*skip so the rest can be a else-if block*/
+                }
+                // All line shape derivatives
+                InternalDerivativesSetup(G0) InternalDerivativesSetup(D0)
+                    InternalDerivativesSetup(G2) InternalDerivativesSetup(D2)
+                        InternalDerivativesSetup(ETA)
+                            InternalDerivativesSetup(FVC)
+                                InternalDerivativesSetup(Y)
+                                    InternalDerivativesSetup(G)
+                                        InternalDerivativesSetup(DV)
+              }
+            }
+          }
+        }
+        std::remove_if(derivs.begin(), derivs.end(),
+                      [](Derivatives &dd) { return dd.deriv == nullptr; });
+
+        // Call cut off loop with or without sparsity
+        switch (speedup_type) {
+        case Options::LblSpeedup::None:
+          cutoff_loop(com, Normalizer(band.normalization, band.lines[i].F0, T),
+                      IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT,
+                                          nlte, band, i),
+                      band, derivs, band.ShapeParameters(i, T, P, vmrs, ib), T, H, DC,
+                      i, zeeman_polarization);
+          break;
+        case Options::LblSpeedup::QuadraticIndependent:
+          cutoff_loop_sparse_triple(
+              com, sparse_com,
+              Normalizer(band.normalization, band.lines[i].F0, T),
+              IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
+                                  band, i),
+              band, derivs, band.ShapeParameters(i, T, P, vmrs, ib), T, H, sparse_lim,
+              DC, i, zeeman_polarization);
+          break;
+        case Options::LblSpeedup::LinearIndependent:
+          cutoff_loop_sparse_linear(
+              com, sparse_com,
+              Normalizer(band.normalization, band.lines[i].F0, T),
+              IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
+                                  band, i),
+              band, derivs, band.ShapeParameters(i, T, P, vmrs, ib), T, H, sparse_lim,
+              DC, i, zeeman_polarization);
+          break;
+        case Options::LblSpeedup::FINAL: { /* Leave last */
+        }
+        }
+      }
     }
   }
 }

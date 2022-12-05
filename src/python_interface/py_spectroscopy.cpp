@@ -538,7 +538,7 @@ void py_spectroscopy(py::module_& m) {
                 band.broadeningspecies)
             band.lines.at(line);
 
-            return band.ShapeParameters(line, T, P, VMR);
+            return band.ShapeParameters(line, T, P, VMR, -1);
           },
           py::doc(
               R"--(Computes the line shape paramters for the given atmospheric state
@@ -589,7 +589,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
                        const Vector& VMR,
                        Zeeman::Polarization zeeman,
                        Numeric H,
-                       Index iz) {
+                       Index iz,
+                       Index broadener) {
              ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
              ARTS_USER_ERROR_IF(not(T > 0) or not(P >= 0) or not(H >= 0),
                                 "Bad atmospheric state (T P H): ",
@@ -600,11 +601,15 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
                  VMR,
                  "\nSpecies: ",
                  band.broadeningspecies)
+            ARTS_USER_ERROR_IF(broadener >= VMR.size(),
+                 "Mismatch between VMRs and broadening species indexing.\nVMR has: ",
+                 VMR.size(),
+                 "elements only.  \nSpecies Index: ", broadener)
              auto F0 = band.lines.at(line).F0;
              auto DC = band.DopplerConstant(T);
              auto mirror = band.mirroring;
              auto type = band.lineshapetype;
-             auto X = band.ShapeParameters(line, T, P, VMR);
+             auto X = band.ShapeParameters(line, T, P, VMR, broadener);
              auto DZ = band.ZeemanSplitting(line, zeeman, iz) * H;
 
              if (mirror == AbsorptionMirroringType::Manual)
@@ -618,7 +623,8 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
            py::arg("VMR"),
            py::arg("zeeman") = Zeeman::Polarization::None,
            py::arg("H") = 0,
-           py::arg("iz") = 0)
+           py::arg("iz") = 0,
+           py::arg("broadener") = -1)
       .PythonInterfaceCopyValue(LineShape::Calculator)
       .def("dFdT",
            [](LineShape::Calculator& LS,

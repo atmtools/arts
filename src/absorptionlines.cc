@@ -50,10 +50,8 @@
 #include "wigner_functions.h"
 
 LineShape::Output Absorption::Lines::ShapeParameters(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
-
-  auto x = lines[k].lineshape.GetParams(T, T0, P, vmrs);
+    size_t k, Numeric T, Numeric P, const Vector& vmrs, Index pos) const ARTS_NOEXCEPT {
+  auto x = pos<0 ? lines[k].lineshape.GetParams(T, T0, P, vmrs) : lines[k].lineshape[pos].at(T, T0, P);
 
   if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
 
@@ -64,8 +62,6 @@ LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
                                                      Numeric T,
                                                      Numeric P,
                                                      size_t m) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
-
   return lines[k].lineshape.GetParams(T, T0, P, m);
 }
 
@@ -106,8 +102,6 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     Numeric T,
     Numeric P,
     const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
-
   const Index pos = LineShapePos(vmr_qid);
   if (pos >= 0) return lines[k].lineshape.GetVMRDerivs(T, T0, P, pos);
   return LineShape::Output{};
@@ -119,8 +113,6 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(
     Numeric P,
     const Vector& vmrs,
     const RetrievalQuantity& derivative) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
-
   const auto self = derivative.Mode() == LineShape::self_broadening;
   const auto bath = derivative.Mode() == LineShape::bath_broadening;
   const auto& ls = lines[k].lineshape;

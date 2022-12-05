@@ -945,6 +945,69 @@ bofstream & SingleSpeciesModel::write(bofstream& bof) const {
   return bof;
 }
 
+#define FUNC at
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
+#define FUNC dX0
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
+#define FUNC dX1
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
+#define FUNC dX2
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
+#define FUNC dX3
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
+#define FUNC dT
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
+#define FUNC dT0
+Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
+          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
+          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+}
+#undef FUNC
+
 std::pair<bool, bool> SingleSpeciesModel::MatchTypes(const SingleSpeciesModel& other) const noexcept {
   bool match=true, nullable=true;
   for (Index i=0; i<nVars; i++) {

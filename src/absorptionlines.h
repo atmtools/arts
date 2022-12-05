@@ -581,9 +581,10 @@ struct Lines {
    * @param[in] T Atmospheric temperature
    * @param[in] P Atmospheric pressure
    * @param[in] vmrs Line broadener species's volume mixing ratio
+   * @param[in] pos The position of the broadener (< 0 means all broadeners)
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs, Index pos) const ARTS_NOEXCEPT;
   
   /** Line shape parameters
    * 
@@ -601,6 +602,7 @@ struct Lines {
    * @param[in] T Atmospheric temperature
    * @param[in] P Atmospheric pressure
    * @param[in] vmrs Line broadener's volume mixing ratio
+   * @param[in] pos The position of the broadener (< 0 means all broadeners)
    * @return Line shape parameters temperature derivatives
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;

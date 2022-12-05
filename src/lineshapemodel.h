@@ -288,7 +288,7 @@ struct ModelParameters {
   
   [[nodiscard]] Numeric at(Numeric T, Numeric T0) const noexcept;
   
-  [[nodiscard]] [[nodiscard]] Numeric dX0(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dX0(Numeric T, Numeric T0) const noexcept;
   
   [[nodiscard]] Numeric dX1(Numeric T, Numeric T0) const noexcept;
   
@@ -405,6 +405,45 @@ constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept
 /** Current max number of line shape variables */
 constexpr Index nVars = Index(Variable::FINAL);
 
+/** Main output of Model */
+struct Output {
+  Numeric G0{0}, // Pressure broadening speed-independent
+      D0{0},     // Pressure f-shifting speed-independent
+      G2{0},     // Pressure broadening speed-dependent
+      D2{0},     // Pressure f-shifting speed-dependent
+      FVC{0},    // Frequency of velocity-changing collisions
+      ETA{0},    // Correlation
+      Y{0},      // First order line mixing coefficient
+      G{0},      // Second order line mixing coefficient
+      DV{0};     // Second order line mixing f-shifting
+  constexpr Output() noexcept = default;
+  constexpr Output(Numeric g0, Numeric d0, Numeric g2, Numeric d2, Numeric fvc,
+                   Numeric eta, Numeric y, Numeric g, Numeric dv) noexcept
+      : G0(g0), D0(d0), G2(g2), D2(d2), FVC(fvc), ETA(eta), Y(y), G(g), DV(dv) {
+  }
+  constexpr Output(const Output &) noexcept = default;
+  constexpr Output(Output &&) noexcept = default;
+  constexpr Output &operator=(const Output &) noexcept = default;
+  constexpr Output &operator=(Output &&) noexcept = default;
+  constexpr friend Output operator*(Numeric x, const Output &y) noexcept {
+      static_assert(nVars == 9);
+      return {x * y.G0,  x * y.D0, x * y.G2, x * y.D2, x * y.FVC,
+              x * y.ETA, x * y.Y,  x * y.G,  x * y.DV};
+  }
+  constexpr friend Output operator*(const Output &y, Numeric x) noexcept {
+      static_assert(nVars == 9);
+      return x * y;
+  }
+  constexpr friend Output operator+(const Output &x, const Output &y) noexcept {
+      static_assert(nVars == 9);
+      return {x.G0 + y.G0, x.D0 + y.D0,   x.G2 + y.G2,
+              x.D2 + y.D2, x.FVC + y.FVC, x.ETA + y.ETA,
+              x.Y + y.Y,   x.G + y.G,     x.DV + y.DV};
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, Output x);
+};
+
 /** Compute the line shape parameters for a single broadening species */
 class SingleSpeciesModel {
  private:
@@ -505,30 +544,20 @@ class SingleSpeciesModel {
   friend std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm);
 
   friend std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
-};
 
-/** Main output of Model */
-struct Output {
-  Numeric G0{0},  // Pressure broadening speed-independent
-      D0{0},      // Pressure f-shifting speed-independent
-      G2{0},      // Pressure broadening speed-dependent
-      D2{0},      // Pressure f-shifting speed-dependent
-      FVC{0},     // Frequency of velocity-changing collisions
-      ETA{0},     // Correlation
-      Y{0},       // First order line mixing coefficient
-      G{0},       // Second order line mixing coefficient
-      DV{0};      // Second order line mixing f-shifting
-  constexpr Output() noexcept = default;
-  constexpr Output(Numeric g0, Numeric d0, Numeric g2,
-                   Numeric d2, Numeric fvc, Numeric eta,
-                   Numeric y, Numeric g, Numeric dv) noexcept :
-    G0(g0), D0(d0), G2(g2), D2(d2), FVC(fvc), ETA(eta), Y(y), G(g), DV(dv) {}
-  constexpr Output(const Output&) noexcept = default;
-  constexpr Output(Output&&) noexcept = default;
-  constexpr Output& operator=(const Output&) noexcept = default;
-  constexpr Output& operator=(Output&&) noexcept = default;
-
-  friend std::ostream& operator<<(std::ostream& os, Output x);
+  [[nodiscard]] Output at(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dX0(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dX1(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dX2(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dX3(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dT(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dT0(Numeric T, Numeric T0, Numeric P) const noexcept;
 };
 
 /** Output to be used by mirroring calls */
