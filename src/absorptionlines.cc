@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <numeric>
 #include <ostream>
 #include <string>
 
@@ -49,31 +50,47 @@
 #include "rational.h"
 #include "wigner_functions.h"
 
-LineShape::Output Absorption::Lines::ShapeParameters(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs, Index pos) const ARTS_NOEXCEPT {
-  auto x = pos<0 ? lines[k].lineshape.GetParams(T, T0, P, vmrs) : lines[k].lineshape[pos].at(T, T0, P);
+LineShape::Output
+Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P,
+                                   const Vector &vmrs) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape;
 
-  if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-
-  return x;
+  using namespace LineShape;
+  return Output{lineshape.G0(T, T0, P, vmrs),  lineshape.D0(T, T0, P, vmrs),
+                lineshape.G2(T, T0, P, vmrs),  lineshape.D2(T, T0, P, vmrs),
+                lineshape.FVC(T, T0, P, vmrs), lineshape.ETA(T, T0, P, vmrs),
+                lineshape.Y(T, T0, P, vmrs),   lineshape.G(T, T0, P, vmrs),
+                lineshape.DV(T, T0, P, vmrs)}
+      .no_linemixing(not DoLineMixing(P));
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
                                                      Numeric T,
                                                      Numeric P,
-                                                     size_t m) const ARTS_NOEXCEPT {
-  return lines[k].lineshape.GetParams(T, T0, P, m);
+                                                     size_t pos) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape[pos];
+
+  return lineshape.at(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
     size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(not LineShape::independent_per_broadener(lineshapetype))
+  auto &lineshape = lines[k].lineshape;
 
-  auto x = lines[k].lineshape.GetTemperatureDerivs(T, T0, P, vmrs);
+  using namespace LineShape;
+  return Output{lineshape.dG0dT(T, T0, P, vmrs),  lineshape.dD0dT(T, T0, P, vmrs),
+                lineshape.dG2dT(T, T0, P, vmrs),  lineshape.dD2dT(T, T0, P, vmrs),
+                lineshape.dFVCdT(T, T0, P, vmrs), lineshape.dETAdT(T, T0, P, vmrs),
+                lineshape.dYdT(T, T0, P, vmrs),   lineshape.dGdT(T, T0, P, vmrs),
+                lineshape.dDVdT(T, T0, P, vmrs)}
+      .no_linemixing(not DoLineMixing(P));
+}
 
-  if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
+LineShape::Output Absorption::Lines::ShapeParameters_dT(
+    size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape[pos];
 
-  return x;
+  return lineshape.dT(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
 Index Absorption::Lines::LineShapePos(
@@ -102,45 +119,11 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     Numeric T,
     Numeric P,
     const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
-  const Index pos = LineShapePos(vmr_qid);
-  if (pos >= 0) return lines[k].lineshape.GetVMRDerivs(T, T0, P, pos);
+  auto &lineshape = lines[k].lineshape;
+
+  const Index pos = LineShapePos(vmr_qid.Species());
+  if (pos >= 0) return lineshape[pos].at(T, T0, P);
   return LineShape::Output{};
-}
-
-Numeric Absorption::Lines::ShapeParameter_dInternal(
-    size_t k,
-    Numeric T,
-    Numeric P,
-    const Vector& vmrs,
-    const RetrievalQuantity& derivative) const ARTS_NOEXCEPT {
-  const auto self = derivative.Mode() == LineShape::self_broadening;
-  const auto bath = derivative.Mode() == LineShape::bath_broadening;
-  const auto& ls = lines[k].lineshape;
-
-  if (derivative.QuantumIdentity().Species() not_eq Species() or
-      derivative.QuantumIdentity().Isotopologue() not_eq Isotopologue())
-    return 0;
-  if (self and selfbroadening)
-    return ls.GetInternalDeriv(T, T0, P, 0, vmrs, derivative.LineType());
-  if (self)
-    return ls.GetInternalDeriv(
-        T,
-        T0,
-        P,
-        LineShapePos(derivative.QuantumIdentity().Species()),
-        vmrs,
-        derivative.LineType());
-  if (bath and bathbroadening)
-    return ls.GetInternalDeriv(
-        T, T0, P, ls.nelem() - 1, vmrs, derivative.LineType());
-  if (bath) return 0;
-  return ls.GetInternalDeriv(
-      T,
-      T0,
-      P,
-      LineShapePos(derivative.QuantumIdentity().Species()),
-      vmrs,
-      derivative.LineType());
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
@@ -2356,10 +2339,6 @@ bool Lines::AnyLinemixing() const noexcept {
     }
   }
   return false;
-}
-
-Index Lines::LineShapePos(const QuantumIdentifier &qid) const ARTS_NOEXCEPT {
-  return LineShapePos(qid.Species());
 }
 
 Index Lines::BroadeningSpeciesPosition(Species::Species spec) const noexcept {

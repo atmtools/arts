@@ -139,7 +139,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
         const Numeric DC = band.DopplerConstant(t_field(ip, 0, 0));
         const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
         for (Index k=0; k<band.NumLines(); k++) {
-          const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs, -1);
+          const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs);
           LineShape::Calculator ls(band.lineshapetype, band.lines[k].F0, X, DC, 0, false);
           for (Index iv=0; iv<f_grid.nelem(); iv++) {
             lineshapes[il][ip][iv] = ls(f_grid[iv]);

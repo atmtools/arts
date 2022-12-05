@@ -33,8 +33,10 @@
  **/
 
 #include "arts_conversions.h"
+#include "debug.h"
 #include "lineshapemodel.h"
 #include "matpackI.h"
+#include <limits>
 
 Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff) {
@@ -945,67 +947,104 @@ bofstream & SingleSpeciesModel::write(bofstream& bof) const {
   return bof;
 }
 
-#define FUNC at
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
+Output SingleSpeciesModel::at(Numeric T, Numeric T0, Numeric P) const noexcept {
   static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
+  return {P * G0().at(T, T0), P * D0().at(T, T0),    P * G2().at(T, T0),
+          P * D2().at(T, T0), P * FVC().at(T, T0),   ETA().at(T, T0),
+          P * Y().at(T, T0),  P * P * G().at(T, T0), P * P * DV().at(T, T0)};
 }
+
+Numeric SingleSpeciesModel::dX(Numeric T, Numeric T0, Numeric P,
+                               Jacobian::Line target) const noexcept {
+  static_assert(nVars == 9, "Only has support for 9 variables");
+  static_assert(ModelParameters::N == 4, "Only supports 4 targets per target");
+
+#define FourParams(A, B, p)                                                    \
+  case Shape##A##B:                                                            \
+    return p * A().d##B(T, T0)
+
+#define NineVars(A, p)                                                         \
+  FourParams(A, X0, p);                                                        \
+  FourParams(A, X1, p);                                                        \
+  FourParams(A, X2, p);                                                        \
+  FourParams(A, X3, p)
+
+  using enum Jacobian::Line;
+  switch (target) {
+    NineVars(G0, P);
+    NineVars(D0, P);
+    NineVars(G2, P);
+    NineVars(D2, P);
+    NineVars(FVC, P);
+    NineVars(ETA, 1);
+    NineVars(Y, P);
+    NineVars(G, P * P);
+    NineVars(DV, P * P);
+  default:
+    return std::numeric_limits<Numeric>::signaling_NaN();
+  }
+
+#undef NineVars
+#undef FourParams
+}
+
+Output SingleSpeciesModel::dT(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P * G0().dT(T, T0), P * D0().dT(T, T0),    P * G2().dT(T, T0),
+          P * D2().dT(T, T0), P * FVC().dT(T, T0),   ETA().dT(T, T0),
+          P * Y().dT(T, T0),  P * P * G().dT(T, T0), P * P * DV().dT(T, T0)};
+}
+
+Output SingleSpeciesModel::dT0(Numeric T, Numeric T0,
+                               Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P * G0().dT0(T, T0), P * D0().dT0(T, T0),    P * G2().dT0(T, T0),
+          P * D2().dT0(T, T0), P * FVC().dT0(T, T0),   ETA().dT0(T, T0),
+          P * Y().dT0(T, T0),  P * P * G().dT0(T, T0), P * P * DV().dT0(T, T0)};
+}
+
+#define FUNC(X, PVAR)                                                          \
+  Numeric Model::X(Numeric T, Numeric T0, Numeric P [[maybe_unused]],          \
+                   const Vector &vmrs) const ARTS_NOEXCEPT {                   \
+    ARTS_ASSERT(m.nelem() == vmrs.nelem())                                     \
+                                                                               \
+    return PVAR * std::transform_reduce(begin(), end(), vmrs.get_c_array(),    \
+                                        0.0, std::plus<>(),                    \
+                                        [T, T0](auto &ls, auto &xi) {          \
+                                          return xi * ls.X().at(T, T0);        \
+                                        });                                    \
+  }
+FUNC(G0, P)
+FUNC(D0, P)
+FUNC(G2, P)
+FUNC(D2, P)
+FUNC(ETA, 1)
+FUNC(FVC, P)
+FUNC(Y, P)
+FUNC(G, P *P)
+FUNC(DV, P *P)
 #undef FUNC
 
-#define FUNC dX0
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
-  static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
-}
-#undef FUNC
-
-#define FUNC dX1
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
-  static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
-}
-#undef FUNC
-
-#define FUNC dX2
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
-  static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
-}
-#undef FUNC
-
-#define FUNC dX3
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
-  static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
-}
-#undef FUNC
-
-#define FUNC dT
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
-  static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
-}
-#undef FUNC
-
-#define FUNC dT0
-Output SingleSpeciesModel::FUNC(Numeric T, Numeric T0, Numeric P) const noexcept {
-  static_assert(nVars == 9);
-  return {P*G0().FUNC(T, T0), P*D0().FUNC(T, T0),  P*G2().FUNC(T, T0),
-          P*D2().FUNC(T, T0), P*FVC().FUNC(T, T0), ETA().FUNC(T, T0),
-          P*Y().FUNC(T, T0),  P*P*G().FUNC(T, T0),   P*P*DV().FUNC(T, T0)};
-}
+#define FUNC(X, PVAR)                                                          \
+  Numeric Model::d##X##dT(Numeric T, Numeric T0, Numeric P [[maybe_unused]],   \
+                          const Vector &vmrs) const ARTS_NOEXCEPT {            \
+    ARTS_ASSERT(m.nelem() == vmrs.nelem())                                     \
+                                                                               \
+    return PVAR * std::transform_reduce(begin(), end(), vmrs.get_c_array(),    \
+                                        0.0, std::plus<>(),                    \
+                                        [T, T0](auto &ls, auto &xi) {          \
+                                          return xi * ls.X().dT(T, T0);        \
+                                        });                                    \
+  }
+FUNC(G0, P)
+FUNC(D0, P)
+FUNC(G2, P)
+FUNC(D2, P)
+FUNC(ETA, 1)
+FUNC(FVC, P)
+FUNC(Y, P)
+FUNC(G, P *P)
+FUNC(DV, P *P)
 #undef FUNC
 
 std::pair<bool, bool> SingleSpeciesModel::MatchTypes(const SingleSpeciesModel& other) const noexcept {
@@ -1137,228 +1176,6 @@ bool Model::OK(Type type, bool self, bool bath,
   Index m = Index(self) + Index(bath);
   bool needs_any = type not_eq Type::DP;
   return not (n not_eq Index(nspecies) or m > n or (needs_any and not n));
-}
-
-#define LSPC(XVAR, PVAR)                                  \
-  Numeric Model::XVAR(                                    \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]],  \
-      const ConstVectorView& vmrs)                        \
-      const noexcept {                                    \
-    return PVAR *                                         \
-           std::inner_product(                            \
-               mdata.cbegin(),                            \
-               mdata.cend(),                              \
-               vmrs.begin(),                              \
-               0.0,                                       \
-               std::plus<>(),                             \
-               [&](auto& x, auto vmr) -> Numeric {        \
-                 return vmr * x.XVAR().at(T, T0);         \
-               });                                        \
-  }
-  LSPC(G0, P)
-  LSPC(D0, P)
-  LSPC(G2, P)
-  LSPC(D2, P)
-  LSPC(FVC, P)
-  LSPC(ETA, 1)
-  LSPC(Y, P)
-  LSPC(G, P* P)
-  LSPC(DV, P* P)
-#undef LSPC
-
-#define LSPCV(XVAR, PVAR)                                         \
-  Numeric Model::d##XVAR##_dVMR(Numeric T,                        \
-                         Numeric T0,                              \
-                         Numeric P [[maybe_unused]],              \
-                         const Index deriv_pos) const noexcept {  \
-    if (deriv_pos not_eq -1)                                      \
-      return PVAR * mdata[deriv_pos].XVAR().at(T, T0);            \
-    return 0;                                                     \
-  }
-  LSPCV(G0, P)
-  LSPCV(D0, P)
-  LSPCV(G2, P)
-  LSPCV(D2, P)
-  LSPCV(FVC, P)
-  LSPCV(ETA, 1)
-  LSPCV(Y, P)
-  LSPCV(G, P* P)
-  LSPCV(DV, P* P)
-#undef LSPCV
-
-#define LSPCT(XVAR, PVAR)                                 \
-  Numeric Model::d##XVAR##_dT(                            \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]],  \
-      const ConstVectorView& vmrs)                        \
-      const noexcept {                                    \
-    return PVAR *                                         \
-           std::inner_product(                            \
-               mdata.cbegin(),                            \
-               mdata.cend(),                              \
-               vmrs.begin(),                              \
-               0.0,                                       \
-               std::plus<>(),                             \
-               [&](auto& x, auto vmr) -> Numeric {        \
-                 return vmr * x.XVAR().dT(T, T0);         \
-               });                                        \
-  }
-  LSPCT(G0, P)
-  LSPCT(D0, P)
-  LSPCT(G2, P)
-  LSPCT(D2, P)
-  LSPCT(FVC, P)
-  LSPCT(ETA, 1)
-  LSPCT(Y, P)
-  LSPCT(G, P* P)
-  LSPCT(DV, P* P)
-#undef LSPCT
-
-#define LSPDC(XVAR, DERIV, PVAR)                                        \
-  Numeric Model::d##XVAR##_##DERIV(Numeric T,                           \
-                         Numeric T0,                                    \
-                         Numeric P [[maybe_unused]],                    \
-                         Index deriv_pos,                               \
-                         const ConstVectorView& vmrs) const noexcept {  \
-    if (deriv_pos not_eq -1)                                            \
-      return vmrs[deriv_pos] * PVAR *                                   \
-             mdata[deriv_pos].XVAR().DERIV(T, T0);                      \
-    return 0;                                                           \
-  }
-  LSPDC(G0, dT0, P)
-  LSPDC(G0, dX0, P)
-  LSPDC(G0, dX1, P)
-  LSPDC(G0, dX2, P)
-  LSPDC(G0, dX3, P)
-  LSPDC(D0, dT0, P)
-  LSPDC(D0, dX0, P)
-  LSPDC(D0, dX1, P)
-  LSPDC(D0, dX2, P)
-  LSPDC(D0, dX3, P)
-  LSPDC(G2, dT0, P)
-  LSPDC(G2, dX0, P)
-  LSPDC(G2, dX1, P)
-  LSPDC(G2, dX2, P)
-  LSPDC(G2, dX3, P)
-  LSPDC(D2, dT0, P)
-  LSPDC(D2, dX0, P)
-  LSPDC(D2, dX1, P)
-  LSPDC(D2, dX2, P)
-  LSPDC(D2, dX3, P)
-  LSPDC(FVC, dT0, P)
-  LSPDC(FVC, dX0, P)
-  LSPDC(FVC, dX1, P)
-  LSPDC(FVC, dX2, P)
-  LSPDC(FVC, dX3, P)
-  LSPDC(ETA, dT0, 1)
-  LSPDC(ETA, dX0, 1)
-  LSPDC(ETA, dX1, 1)
-  LSPDC(ETA, dX2, 1)
-  LSPDC(ETA, dX3, 1)
-  LSPDC(Y, dT0, P)
-  LSPDC(Y, dX0, P)
-  LSPDC(Y, dX1, P)
-  LSPDC(Y, dX2, P)
-  LSPDC(Y, dX3, P)
-  LSPDC(G, dT0, P* P)
-  LSPDC(G, dX0, P* P)
-  LSPDC(G, dX1, P* P)
-  LSPDC(G, dX2, P* P)
-  LSPDC(G, dX3, P* P)
-  LSPDC(DV, dT0, P* P)
-  LSPDC(DV, dX0, P* P)
-  LSPDC(DV, dX1, P* P)
-  LSPDC(DV, dX2, P* P)
-  LSPDC(DV, dX3, P* P)
-#undef LSPDC
-
-Output Model::GetParams(Numeric T,
-                        Numeric T0,
-                        Numeric P,
-                        const ConstVectorView& vmrs) const noexcept {
-  return {G0(T, T0, P, vmrs),
-          D0(T, T0, P, vmrs),
-          G2(T, T0, P, vmrs),
-          D2(T, T0, P, vmrs),
-          FVC(T, T0, P, vmrs),
-          ETA(T, T0, P, vmrs),
-          Y(T, T0, P, vmrs),
-          G(T, T0, P, vmrs),
-          DV(T, T0, P, vmrs)};
-}
-
-Output Model::GetParams(Numeric T,
-                        Numeric T0,
-                        Numeric P,
-                        size_t k) const noexcept {
-  return {P * mdata[k].G0().at(T, T0),
-          P * mdata[k].D0().at(T, T0),
-          P * mdata[k].G2().at(T, T0),
-          P * mdata[k].D2().at(T, T0),
-          P * mdata[k].FVC().at(T, T0),
-          mdata[k].ETA().at(T, T0),
-          P * mdata[k].Y().at(T, T0),
-          P * P * mdata[k].G().at(T, T0),
-          P * P * mdata[k].DV().at(T, T0)};
-}
-
-Output Model::GetTemperatureDerivs(Numeric T,
-                                   Numeric T0,
-                                   Numeric P,
-                                   ConstVectorView vmrs) const noexcept {
-  return {dG0_dT(T, T0, P, vmrs),
-          dD0_dT(T, T0, P, vmrs),
-          dG2_dT(T, T0, P, vmrs),
-          dD2_dT(T, T0, P, vmrs),
-          dFVC_dT(T, T0, P, vmrs),
-          dETA_dT(T, T0, P, vmrs),
-          dY_dT(T, T0, P, vmrs),
-          dG_dT(T, T0, P, vmrs),
-          dDV_dT(T, T0, P, vmrs)};
-}
-
-Output Model::GetVMRDerivs(Numeric T, Numeric T0, Numeric P, const Index pos) const noexcept {
-  return {dG0_dVMR(T, T0, P, pos),
-    dD0_dVMR(T, T0, P, pos),
-    dG2_dVMR(T, T0, P, pos),
-    dD2_dVMR(T, T0, P, pos),
-    dFVC_dVMR(T, T0, P, pos),
-    dETA_dVMR(T, T0, P, pos),
-    dY_dVMR(T, T0, P, pos),
-    dG_dVMR(T, T0, P, pos),
-    dDV_dVMR(T, T0, P, pos)};
-}
-
-Numeric Model::GetInternalDeriv(Numeric T,
-                                Numeric T0,
-                                Numeric P,
-                                Index pos,
-                                const Vector& vmrs,
-                                Jacobian::Line deriv) const noexcept {
-  if (pos < 0) return 0;
-
-#define RETURNINTERNALDERIVATIVE(TYPE)         \
-  case Jacobian::Line::Shape##TYPE##X0:        \
-    return d##TYPE##_dX0(T, T0, P, pos, vmrs); \
-  case Jacobian::Line::Shape##TYPE##X1:        \
-    return d##TYPE##_dX1(T, T0, P, pos, vmrs); \
-  case Jacobian::Line::Shape##TYPE##X2:        \
-    return d##TYPE##_dX2(T, T0, P, pos, vmrs); \
-  case Jacobian::Line::Shape##TYPE##X3:        \
-    return d##TYPE##_dX3(T, T0, P, pos, vmrs)
-  switch (deriv) {
-    RETURNINTERNALDERIVATIVE(G0);
-    RETURNINTERNALDERIVATIVE(D0);
-    RETURNINTERNALDERIVATIVE(G2);
-    RETURNINTERNALDERIVATIVE(D2);
-    RETURNINTERNALDERIVATIVE(FVC);
-    RETURNINTERNALDERIVATIVE(ETA);
-    RETURNINTERNALDERIVATIVE(Y);
-    RETURNINTERNALDERIVATIVE(G);
-    RETURNINTERNALDERIVATIVE(DV);
-    default:
-      return std::numeric_limits<Numeric>::quiet_NaN();
-  }
-#undef RETURNINTERNALDERIVATIVE
 }
 
 void Model::Remove(Index i, ArrayOfSpeciesTag& specs) {

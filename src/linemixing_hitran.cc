@@ -28,9 +28,12 @@
 #include <Faddeeva/Faddeeva.hh>
 #include <cinttypes>
 #include <fstream>
+#include <functional>
+#include <numeric>
 
 #include "lin_alg.h"
 #include "linemixing.h"
+#include "lineshapemodel.h"
 #include "physics_funcs.h"
 
 #pragma GCC diagnostic push

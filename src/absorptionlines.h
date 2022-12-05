@@ -560,20 +560,19 @@ struct Lines {
    * @param[in] T Atmospheric temperature
    * @param[in] P Atmospheric pressure
    * @param[in] vmrs Line broadener species's volume mixing ratio
-   * @param[in] pos The position of the broadener (< 0 means all broadeners)
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs, Index pos) const ARTS_NOEXCEPT;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
   
   /** Line shape parameters
    * 
    * @param[in] k Line number (less than NumLines())
    * @param[in] T Atmospheric temperature
    * @param[in] P Atmospheric pressure
-   * @param[in] m Line broadening species position
+   * @param[in] pos Line broadening species position
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const ARTS_NOEXCEPT;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
   
   /** Line shape parameters temperature derivatives
    * 
@@ -581,10 +580,19 @@ struct Lines {
    * @param[in] T Atmospheric temperature
    * @param[in] P Atmospheric pressure
    * @param[in] vmrs Line broadener's volume mixing ratio
-   * @param[in] pos The position of the broadener (< 0 means all broadeners)
    * @return Line shape parameters temperature derivatives
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+  
+  /** Line shape parameters temperature derivatives
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] pos Line broadening species position
+   * @return Line shape parameters temperature derivatives
+   */
+  [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
   
   /** Position among broadening species or -1
    * 
@@ -592,13 +600,6 @@ struct Lines {
    * @return Position among broadening species or -1
    */
   [[nodiscard]] Index LineShapePos(const Species::Species spec) const ARTS_NOEXCEPT;
-  
-  /** Position among broadening species or -1
-   * 
-   * @param[in] An identity that might be among the broadener species
-   * @return Position among broadening species or -1
-   */
-  [[nodiscard]] Index LineShapePos(const QuantumIdentifier& qid) const ARTS_NOEXCEPT;
   
   /** Line shape parameters vmr derivative
    * 
@@ -610,19 +611,6 @@ struct Lines {
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dVMR(size_t k, Numeric T, Numeric P,
                                          const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT;
-  
-  /** Line shape parameter internal derivative
-   * 
-   * @param[in] k Line number (less than NumLines())
-   * @param[in] T Atmospheric temperature
-   * @param[in] P Atmospheric pressure
-   * @param[in] vmrs Line broadener's volume mixing ratio
-   * @param[in] derivative Type of line shape derivative
-   * @return Line shape parameter internal derivative
-   */
-  [[nodiscard]] Numeric ShapeParameter_dInternal(size_t k, Numeric T, Numeric P,
-                                   const Vector& vmrs,
-                                   const RetrievalQuantity& derivative) const ARTS_NOEXCEPT;
   
   /** Returns cutoff frequency or maximum value
    * 
