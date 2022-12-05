@@ -2221,7 +2221,11 @@ bofstream& SingleLine::write(bofstream& bof) const {
 void Lines::AppendSingleLine(SingleLine&& sl) {
   ARTS_USER_ERROR_IF(
       NumLines() not_eq 0 and NumLocalQuanta() not_eq sl.LocalQuantumElems(),
-      "Error calling appending function, bad size of quantum numbers");
+      "Error calling appending function, bad size of quantum numbers\n"
+      "Type of quantum numbers in band: ",
+      lines.front().localquanta.val,
+      "\nType of quantum numbers in new line:",
+      sl.localquanta.val);
 
   ARTS_USER_ERROR_IF(
       NumLines() not_eq 0 and
@@ -2232,20 +2236,7 @@ void Lines::AppendSingleLine(SingleLine&& sl) {
 }
 
 void Lines::AppendSingleLine(const SingleLine& sl) {
-  ARTS_USER_ERROR_IF(
-      NumLines() not_eq 0 and NumLocalQuanta() not_eq sl.LocalQuantumElems(),
-      "Error calling appending function, bad size of quantum numbers\n"
-      "Type of quantum numbers in band: ",
-      lines.front().localquanta.val,
-      "\nType of quantum numbers in new line:",
-      sl.localquanta.val);
-
-  ARTS_USER_ERROR_IF(
-      NumLines() not_eq 0 and
-          sl.LineShapeElems() not_eq lines.front().LineShapeElems(),
-      "Error calling appending function, bad size of broadening species");
-
-  lines.push_back(sl);
+  AppendSingleLine(SingleLine{sl});
 }
 
 bool Lines::MatchWithExternal(const SingleLineExternal& sle,
@@ -2323,6 +2314,60 @@ void Lines::sort_by_einstein() {
 
 String Lines::LineShapeMetaData() const noexcept {
   return NumLines() ? LineShape::ModelShape2MetaData(lines[0].lineshape) : "";
+}
+
+Species::Species Lines::Species() const noexcept {return quantumidentity.Species();}
+
+Species::IsotopeRecord Lines::Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+
+Index Lines::NumLines() const noexcept {return Index(lines.size());}
+
+Index Lines::NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.nelem());}
+
+Index Lines::NumLocalQuanta() const noexcept {
+  return lines.size() ? lines.front().localquanta.val.nelem() : 0;
+}
+
+bool Lines::OnTheFlyLineMixing() const noexcept {
+  return population == PopulationType::ByMakarovFullRelmat or
+         population == PopulationType::ByRovibLinearDipoleLineMixing;
+}
+
+bool Lines::DoLineMixing(Numeric P) const noexcept {
+  return linemixinglimit < 0 ? true : linemixinglimit > P;
+}
+
+bool Lines::DoVmrDerivative(const QuantumIdentifier &qid) const noexcept {
+  return qid.Isotopologue() == quantumidentity.Isotopologue() or
+         (qid.Isotopologue().joker() and
+          qid.Species() == quantumidentity.Species()) or
+         std::any_of(broadeningspecies.begin(), broadeningspecies.end(),
+                     [s = qid.Species()](auto &a) { return a == s; });
+}
+
+bool Lines::AnyLinemixing() const noexcept {
+  for (auto &line : lines) {
+    for (auto &shape : line.lineshape.Data()) {
+      if (shape.Y().type not_eq LineShape::TemperatureModel::None or
+          shape.G().type not_eq LineShape::TemperatureModel::None or
+          shape.DV().type not_eq LineShape::TemperatureModel::None) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+Index Lines::LineShapePos(const QuantumIdentifier &qid) const ARTS_NOEXCEPT {
+  return LineShapePos(qid.Species());
+}
+
+Index Lines::BroadeningSpeciesPosition(Species::Species spec) const noexcept {
+  if (auto ptr =
+          std::find(broadeningspecies.cbegin(), broadeningspecies.cend(), spec);
+      ptr not_eq broadeningspecies.cend())
+    return std::distance(broadeningspecies.cbegin(), ptr);
+  return -1;
 }
 
 const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns)
@@ -2864,5 +2909,24 @@ Rational Lines::max(QuantumNumberType x) const {
     out = std::max(std::max(val.low(), val.upp()), out);
   }
   return out;
+}
+
+/** Number of lines */
+Index nelem(const Lines &l) { return l.NumLines(); }
+
+/** Number of lines in list */
+Index nelem(const Array<Lines> &l) {
+  Index n = 0;
+  for (auto &x : l)
+    n += nelem(x);
+  return n;
+}
+
+/** Number of lines in lists */
+Index nelem(const Array<Array<Lines>> &l) {
+  Index n = 0;
+  for (auto &x : l)
+    n += nelem(x);
+  return n;
 }
 } // namespace Absorption

@@ -482,24 +482,23 @@ struct Lines {
   [[nodiscard]] String LineShapeMetaData() const noexcept;
   
   /** Species Enum */
-  [[nodiscard]] Species::Species Species() const noexcept {return quantumidentity.Species();}
+  [[nodiscard]] Species::Species Species() const noexcept;
   
   /** Isotopologue Index */
-  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
   
   /** Number of lines */
-  [[nodiscard]] Index NumLines() const noexcept {return Index(lines.size());}
-  
+  [[nodiscard]] Index NumLines() const noexcept;
+
   /** Make a common line shape if possible */
   void MakeLineShapeModelCommon();
   
   /** Number of broadening species */
-  [[nodiscard]] Index NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.nelem());}
-  
+  [[nodiscard]] Index NumBroadeners() const ARTS_NOEXCEPT;
+
   /** Number of broadening species */
-  [[nodiscard]] Index NumLocalQuanta() const noexcept {
-    return lines.size() ? lines.front().localquanta.val.nelem() : 0;}
-  
+  [[nodiscard]] Index NumLocalQuanta() const noexcept;
+
   /** Returns the number of Zeeman split lines
    * 
    * @param[in] k Line number (less than NumLines())
@@ -541,39 +540,19 @@ struct Lines {
   [[nodiscard]] Numeric F_mean(const ConstVectorView& wgts) const noexcept;
   
   /** On-the-fly line mixing */
-  [[nodiscard]] bool OnTheFlyLineMixing() const noexcept {
-    return population == PopulationType::ByMakarovFullRelmat or
-           population == PopulationType::ByRovibLinearDipoleLineMixing;
-  }
+  [[nodiscard]] bool OnTheFlyLineMixing() const noexcept;
   
   /** Returns if the pressure should do line mixing
    * 
    * @param[in] P Atmospheric pressure
    * @return true if no limit or P less than limit
    */
-  [[nodiscard]] bool DoLineMixing(Numeric P) const noexcept {
-    return linemixinglimit < 0 ? true : linemixinglimit > P;
-  }
+  [[nodiscard]] bool DoLineMixing(Numeric P) const noexcept;
 
-  [[nodiscard]] bool DoVmrDerivative(const QuantumIdentifier& qid) const noexcept {
-    return qid.Isotopologue() == quantumidentity.Isotopologue() or 
-    (qid.Isotopologue().joker() and qid.Species() == quantumidentity.Species()) or
-    std::any_of(broadeningspecies.begin(), broadeningspecies.end(), [s=qid.Species()](auto& a){return a == s;});
-  }
+  [[nodiscard]] bool DoVmrDerivative(const QuantumIdentifier& qid) const noexcept;
 
   /** @return Whether the band may require linemixing */
-  [[nodiscard]] bool AnyLinemixing() const noexcept {
-    for (auto& line : lines) {
-      for (auto& shape : line.lineshape.Data()) {
-        if (shape.Y().type not_eq LineShape::TemperatureModel::None or
-            shape.G().type not_eq LineShape::TemperatureModel::None or
-            shape.DV().type not_eq LineShape::TemperatureModel::None) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  [[nodiscard]] bool AnyLinemixing() const noexcept;
 
   /** Line shape parameters
    * 
@@ -619,9 +598,7 @@ struct Lines {
    * @param[in] An identity that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const QuantumIdentifier& qid) const ARTS_NOEXCEPT {
-    return LineShapePos(qid.Species());
-  }
+  [[nodiscard]] Index LineShapePos(const QuantumIdentifier& qid) const ARTS_NOEXCEPT;
   
   /** Line shape parameters vmr derivative
    * 
@@ -662,12 +639,7 @@ struct Lines {
   [[nodiscard]] Numeric CutoffFreqMinus(size_t k, Numeric shift=0) const noexcept;
   
   /** Position of species if available or -1 else */
-  [[nodiscard]] Index BroadeningSpeciesPosition(Species::Species spec) const noexcept {
-    if (auto ptr = std::find(broadeningspecies.cbegin(),
-      broadeningspecies.cend(), spec); ptr not_eq broadeningspecies.cend())
-      return std::distance(broadeningspecies.cbegin(), ptr);
-    return -1;
-  }
+  [[nodiscard]] Index BroadeningSpeciesPosition(Species::Species spec) const noexcept;
   
   /** Returns a printable statement about the lines */
   [[nodiscard]] String MetaData() const;
@@ -948,13 +920,13 @@ std::vector<Lines> split_list_of_external_lines(std::vector<SingleLineExternal>&
                                                 const std::vector<QuantumNumberType>& globalquantas={});
 
 /** Number of lines */
-inline Index nelem(const Lines& l) {return l.NumLines();}
+Index nelem(const Lines& l);
 
 /** Number of lines in list */
-inline Index nelem(const Array<Lines>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
+Index nelem(const Array<Lines>& l);
 
 /** Number of lines in lists */
-inline Index nelem(const Array<Array<Lines>>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
+Index nelem(const Array<Array<Lines>>& l);
 
 /** Compute the reduced rovibrational dipole moment
  * 
