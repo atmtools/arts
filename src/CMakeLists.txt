@@ -693,6 +693,7 @@ target_link_libraries(test_omp PUBLIC ${ALL_ARTS_LIBRARIES})
 add_executable(test_matpack_eigen test_matpack_eigen.cc)
 target_link_libraries(test_matpack_eigen PUBLIC matpack)
 add_test(NAME "arts.cpp.fast.test_matpack_eigen" COMMAND test_matpack_eigen)
+add_dependencies(check-deps test_matpack_eigen)
 ########################################################################################
 
 add_executable(run_partfun run_partfun.cc)
