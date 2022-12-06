@@ -1006,7 +1006,7 @@ Output SingleSpeciesModel::dT0(Numeric T, Numeric T0,
 #define FUNC(X, PVAR)                                                          \
   Numeric Model::X(Numeric T, Numeric T0, Numeric P [[maybe_unused]],          \
                    const Vector &vmrs) const ARTS_NOEXCEPT {                   \
-    ARTS_ASSERT(m.nelem() == vmrs.nelem())                                     \
+    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
                                                                                \
     return PVAR * std::transform_reduce(begin(), end(), vmrs.get_c_array(),    \
                                         0.0, std::plus<>(),                    \
@@ -1028,7 +1028,7 @@ FUNC(DV, P *P)
 #define FUNC(X, PVAR)                                                          \
   Numeric Model::d##X##dT(Numeric T, Numeric T0, Numeric P [[maybe_unused]],   \
                           const Vector &vmrs) const ARTS_NOEXCEPT {            \
-    ARTS_ASSERT(m.nelem() == vmrs.nelem())                                     \
+    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
                                                                                \
     return PVAR * std::transform_reduce(begin(), end(), vmrs.get_c_array(),    \
                                         0.0, std::plus<>(),                    \

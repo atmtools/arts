@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "enums.h"
 #include "lineshapemodel.h"
 #include "partfun.h"
 
@@ -7,6 +8,7 @@
 
 #include "lineshape.h"
 #include "physics_funcs.h"
+#include "species.h"
 
 #include <Faddeeva/Faddeeva.hh>
 
@@ -2433,7 +2435,7 @@ Numeric IntensityCalculator::dSdSELFVMR() const noexcept {
 }
 
 Numeric IntensityCalculator::dSdOTHERVMR_if() const noexcept {
-  return (self_species == scaling_species) ? 0 : std::visit([](auto &&S) { return S.S; }, ls_str);
+  return (self_species == scaling_species or not good_enum(scaling_species)) ? 0 : std::visit([](auto &&S) { return S.S; }, ls_str);
 }
 
 Numeric IntensityCalculator::N() const noexcept {
@@ -2465,7 +2467,7 @@ Numeric IntensityCalculator::dNdSELFVMR() const noexcept {
 }
 
 Numeric IntensityCalculator::dNdOTHERVMR_if() const noexcept {
-  return (self_species == scaling_species) ? 0 : std::visit([](auto &&S) { return S.N; }, ls_str);
+  return (self_species == scaling_species or not good_enum(scaling_species)) ? 0 : std::visit([](auto &&S) { return S.N; }, ls_str);
 }
 
 IntensityCalculator &

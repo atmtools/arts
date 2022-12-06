@@ -2823,19 +2823,19 @@ std::ostream& operator<<(std::ostream& os,
          << '\n';
       [[fallthrough]];
     case LineShapeType::SplitLP:
-      os << "    SplitLP:" << spaces(req_spaces(LineShapeType::LP)) << val.SplitLP
+      os << "    SplitLP:" << spaces(req_spaces(LineShapeType::SplitLP)) << val.SplitLP
          << '\n';
       [[fallthrough]];
     case LineShapeType::SplitVP:
-      os << "    VP:" << spaces(req_spaces(LineShapeType::VP)) << val.SplitVP
+      os << "    SplitVP:" << spaces(req_spaces(LineShapeType::SplitVP)) << val.SplitVP
          << '\n';
       [[fallthrough]];
     case LineShapeType::SplitSDVP:
-      os << "    SplitSDVP:" << spaces(req_spaces(LineShapeType::SDVP)) << val.SplitSDVP
+      os << "    SplitSDVP:" << spaces(req_spaces(LineShapeType::SplitSDVP)) << val.SplitSDVP
          << '\n';
       [[fallthrough]];
     case LineShapeType::SplitHTP:
-      os << "    SplitHTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.SplitHTP;
+      os << "    SplitHTP:" << spaces(req_spaces(LineShapeType::SplitHTP)) << val.SplitHTP;
   }
   return os;
 }
