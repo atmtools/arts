@@ -4842,7 +4842,7 @@ Available models:
       NAME("cloudbox_fieldInterp2Azimuth"),
       DESCRIPTION(
           "Interpolate a *cloudbox_field* with azimuthal dependency to a *cloudbox_field*"
-          "without azimuthal dependency.\n"
+          "with a specific azimuth angle.\n"
           "\n"
           "Intended use: Call directly after DisortCalc if sun is present and yCalc should be\n"
           "should be run afterwards."
@@ -4855,12 +4855,12 @@ Available models:
           "*cloudbox_field* with azimuthal dependency is interpolated to a \n"
           "*cloudbox_field* without azimuthal dependency\n"),
       AUTHORS("Manfred Brath"),
-      OUT("cloudbox_field","sensor_los"),
+      OUT("cloudbox_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("cloudbox_field","sensor_los","cloudbox_on", "aa_grid"),
-      GIN("local_azimuth_angle","aa_interp_order"),
+      IN("cloudbox_field","cloudbox_on", "aa_grid"),
+      GIN("local_los_azimuth_angle","aa_interp_order"),
       GIN_TYPE("Numeric","Index"),
       GIN_DEFAULT(NODEF,"1"),
       GIN_DESC("Local line of sight azimuth angle",

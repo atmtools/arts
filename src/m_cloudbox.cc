@@ -912,7 +912,6 @@ void iyInterpCloudboxField(Matrix& iy,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldInterp2Azimuth(
                            Tensor7& cloudbox_field,
-                           Matrix& sensor_los,
                            const Index& cloudbox_on,
                            const Vector& aa_grid,
                            const Numeric& local_los_azimuth_angle,
@@ -925,14 +924,6 @@ void cloudbox_fieldInterp2Azimuth(
                      "Azimuth angle interpolation order *aa_interp_order*"
                      " must be smaller\n"
                      "than number of angles in *aa_grid*.");
-
-  ARTS_USER_ERROR_IF( sensor_los.nrows()>1,
-                     "Interpolation to azimuth works only for measurement\n"
-                     "blocks of size 1.");
-
-  ARTS_USER_ERROR_IF( sensor_los.ncols()>1,
-                     "sensor_los must not have an azimth component.");
-
   //---------------------------------------------------------------------------
 
   if (cloudbox_field.nrows()>1 && aa_grid.nelem()==cloudbox_field.nrows()){
@@ -949,8 +940,6 @@ void cloudbox_fieldInterp2Azimuth(
 
     //Convert azimuth from -180,180 to 0,360 convention, as aa_grid is defined in 0,360
     if (azimuth_los<0) azimuth_los+=360;
-
-    sensor_los.resize(1,1);
 
     cloudbox_field.resize(nf,np,1,1,nz,1,ns);
 
@@ -982,12 +971,6 @@ void cloudbox_fieldInterp2Azimuth(
         }
       }
     }
-  }
-
-  if (sensor_los.ncols()==2){
-    const Numeric sensor_los_za = sensor_los(0,0);
-    sensor_los.resize(1,1);
-    sensor_los(0,0)=sensor_los_za;
   }
 }
 
