@@ -7,6 +7,7 @@
 #include "energylevelmap.h"
 #include "linescaling.h"
 #include "nonstd.h"
+#include "species.h"
 
 namespace LineShape {
 struct Noshape {
@@ -29,14 +30,14 @@ struct Noshape {
 };  // Noshape
 
 struct Doppler {
-  Complex F;
-  Numeric x;
+  Complex F{};
+  Numeric x{};
 
   Numeric mF0;
   Numeric invGD;
 
   constexpr Doppler(Numeric F0_noshift, Numeric DC, Numeric dZ) noexcept
-      : F(), x(), mF0(F0_noshift + dZ), invGD(1.0 / nonstd::abs(DC * mF0)) {}
+      : mF0(F0_noshift + dZ), invGD(1.0 / nonstd::abs(DC * mF0)) {}
 
   [[nodiscard]] constexpr Complex dFdT(const Output &,
                                        Numeric T) const noexcept {
@@ -301,11 +302,11 @@ struct VanVleckHuber {
 };  // VanVleckHuber
 
 struct VanVleckWeisskopf {
-  Numeric N;
+  Numeric N{1};
 
   Numeric invF0;
 
-  constexpr VanVleckWeisskopf(Numeric F0) noexcept : N(1), invF0(1.0 / F0) {}
+  constexpr VanVleckWeisskopf(Numeric F0) noexcept : invF0(1.0 / F0) {}
 
   static constexpr Numeric dNdT(Numeric, Numeric) noexcept { return 0; }
   [[nodiscard]] constexpr Numeric dNdf(Numeric f) const noexcept {
@@ -728,6 +729,10 @@ class IntensityCalculator {
                    FullNonLocalThermodynamicEquilibrium,
                    VibrationalTemperaturesNonLocalThermodynamicEquilibrium>;
   Variant ls_str;
+  
+  Numeric scale{1.0};
+  Species::Species self_species{Species::Species::Bath};
+  Species::Species scaling_species{Species::Species::FINAL};
 
  public:
   /** The line strength absorption */
@@ -751,6 +756,9 @@ class IntensityCalculator {
   /** The line strength derivative wrt the VMR of the band's species */
   [[nodiscard]] Numeric dSdSELFVMR() const noexcept;
 
+  /** The line strength derivative wrt the VMR of the rescaling species from adaptive_scaling (if self not_eq other) */
+  [[nodiscard]] Numeric dSdOTHERVMR_if() const noexcept;
+
   /** The line strength source offset */
   [[nodiscard]] Numeric N() const noexcept;
 
@@ -772,6 +780,9 @@ class IntensityCalculator {
   /** The line source offset derivative wrt the VMR of the band's species */
   [[nodiscard]] Numeric dNdSELFVMR() const noexcept;
 
+  /** The line source offset derivative wrt the VMR of the rescaling species from adaptive_scaling (if self not_eq other) */
+  [[nodiscard]] Numeric dNdOTHERVMR_if() const noexcept;
+
   /** Whether or not NLTE is possible with the selected intensity variant */
   [[nodiscard]] constexpr bool do_nlte() const noexcept {
     return std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
@@ -787,6 +798,20 @@ class IntensityCalculator {
                       const EnergyLevelMap &nlte,
                       const Absorption::Lines &band,
                       const Index line_index) noexcept;
+
+  /** Rescale the line strength parameters by x
+   *
+   * The derivatives are accounted for as if other is the rescaler
+   *
+   * The self parameter is used to determine if the derivatives are squared
+   *
+   * @param x Rescale factor
+   * @param self The species of which this intensity is computed
+   * @param other The species that rescales this intensity
+   * @return IntensityCalculator&
+   */
+  IntensityCalculator &adaptive_scaling(Numeric x, Species::Species self,
+                                        Species::Species other) noexcept;
 };  // IntensityCalculator
 
 /** Main computational data for the line shape and strength calculations */

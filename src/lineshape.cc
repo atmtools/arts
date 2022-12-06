@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "lineshapemodel.h"
 #include "partfun.h"
 
@@ -2009,79 +2010,6 @@ VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
               boltzman_ratio(Tu, T, Evu))(I0, QT0, QT, dQTdT, r, drdSELFVMR,
                                           drdT)) {}
 
-#define CutInternalDerivativesImpl(X, Y)                                       \
-  else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-    const Numeric d = value.n;                                                 \
-    const Complex dFm = std::conj(ls_mirr.dFd##X(d) - ls_mirr_cut.dFd##X(d));  \
-    const Complex dFls = ls.dFd##X(d) - ls_cut.dFd##X(d) + dFm;                \
-    com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;                              \
-    if (do_nlte) {                                                             \
-      com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;                           \
-    }                                                                          \
-  }
-
-#define CutInternalDerivatives(X)                                              \
-  CutInternalDerivativesImpl(X, X0) CutInternalDerivativesImpl(X, X1)          \
-      CutInternalDerivativesImpl(X, X2) CutInternalDerivativesImpl(X, X3)
-
-#define InternalDerivativesImpl(X, Y)                                          \
-  else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-    const Numeric d = value.n;                                                 \
-    const Complex dFm = std::conj(ls_mirr.dFd##X(d));                          \
-    const Complex dFls = ls.dFd##X(d) + dFm;                                   \
-    com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;                              \
-    if (do_nlte) {                                                             \
-      com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;                           \
-    }                                                                          \
-  }
-
-#define InternalDerivatives(X)                                                 \
-  InternalDerivativesImpl(X, X0) InternalDerivativesImpl(X, X1)                \
-      InternalDerivativesImpl(X, X2) InternalDerivativesImpl(X, X3)
-
-#define InternalDerivativesSetupImpl(X, Y)                                     \
-  else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
-    const Index pos =                                                          \
-        band.BroadeningSpeciesPosition(deriv.Target().species_id);             \
-    if (pos >= 0) {                                                            \
-      derivs[ij].value.n =                                                     \
-          vmrs[pos] * band.lines[i].lineshape[pos].dX(                         \
-                          T, band.T0, P, Jacobian::Line::Shape##X##Y);         \
-    } else {                                                                   \
-      derivs[ij].value.n = 0;                                                  \
-    }                                                                          \
-  }
-
-#define InternalDerivativesSetup(X)                                            \
-  InternalDerivativesSetupImpl(X, X0) InternalDerivativesSetupImpl(X, X1)      \
-      InternalDerivativesSetupImpl(X, X2) InternalDerivativesSetupImpl(X, X3)
-
-#define InternalDerivativesGImpl(X)                                            \
-  else if (deriv == Jacobian::Line::ShapeG##X) {                               \
-    const Numeric dLM = value.n;                                               \
-    com.dF[com.jac_pos(iv, ij)] += dLM * S * Fls;                              \
-    if (do_nlte) {                                                             \
-      com.dN[com.jac_pos(iv, ij)] += dLM * DS * Fls;                           \
-    }                                                                          \
-  }
-
-#define InternalDerivativesG                                                   \
-  InternalDerivativesGImpl(X0) InternalDerivativesGImpl(X1)                    \
-      InternalDerivativesGImpl(X2) InternalDerivativesGImpl(X3)
-
-#define InternalDerivativesYImpl(X)                                            \
-  else if (deriv == Jacobian::Line::ShapeY##X) {                               \
-    const Complex dLM = Complex(0, -value.n);                                  \
-    com.dF[com.jac_pos(iv, ij)] += dLM * S * Fls;                              \
-    if (do_nlte) {                                                             \
-      com.dN[com.jac_pos(iv, ij)] += dLM * DS * Fls;                           \
-    }                                                                          \
-  }
-
-#define InternalDerivativesY                                                   \
-  InternalDerivativesYImpl(X0) InternalDerivativesYImpl(X1)                    \
-      InternalDerivativesYImpl(X2) InternalDerivativesYImpl(X3)
-
 //! Struct to keep the cutoff limited range values
 struct CutoffRange {
   Index start, size;
@@ -2477,59 +2405,76 @@ Normalizer::Normalizer(const Absorption::NormalizationType type,
 }
 
 Numeric IntensityCalculator::S() const noexcept {
-  return std::visit([](auto &&S) { return S.S; }, ls_str);
+  return scale * std::visit([](auto &&S) { return S.S; }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdT() const noexcept {
-  return std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
+  return scale * std::visit([](auto &&LSN) { return LSN.dSdT(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdI0() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dSdI0(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdF0() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dSdF0(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdNLTEu() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dSdNLTEu(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdNLTEl() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dSdNLTEl(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdSELFVMR() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dSdSELFVMR(); }, ls_str);
+  return (self_species == scaling_species ? 2  : 1) * scale * std::visit([](auto &&LS) { return LS.dSdSELFVMR(); }, ls_str);
+}
+
+Numeric IntensityCalculator::dSdOTHERVMR_if() const noexcept {
+  return (self_species == scaling_species) ? 0 : std::visit([](auto &&S) { return S.S; }, ls_str);
 }
 
 Numeric IntensityCalculator::N() const noexcept {
-  return std::visit([](auto &&S) { return S.N; }, ls_str);
+  return scale * std::visit([](auto &&S) { return S.N; }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdT() const noexcept {
-  return std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
+  return scale * std::visit([](auto &&LSN) { return LSN.dNdT(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdI0() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dNdI0(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dNdI0(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdF0() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dNdF0(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdNLTEu() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dNdNLTEu(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dNdNLTEu(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdNLTEl() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dNdNLTEl(); }, ls_str);
+  return scale * std::visit([](auto &&LS) { return LS.dNdNLTEl(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdSELFVMR() const noexcept {
-  return std::visit([](auto &&LS) { return LS.dNdSELFVMR(); }, ls_str);
+  return (self_species == scaling_species ? 2  : 1) * std::visit([](auto &&LS) { return LS.dNdSELFVMR(); }, ls_str);
+}
+
+Numeric IntensityCalculator::dNdOTHERVMR_if() const noexcept {
+  return (self_species == scaling_species) ? 0 : std::visit([](auto &&S) { return S.N; }, ls_str);
+}
+
+IntensityCalculator &
+IntensityCalculator::adaptive_scaling(Numeric x, Species::Species self,
+                                      Species::Species other) noexcept {
+  scale = x;
+  self_species = self;
+  scaling_species = other;
+  return *this;
 }
 
 IntensityCalculator::IntensityCalculator(
@@ -2565,6 +2510,81 @@ IntensityCalculator::IntensityCalculator(
   }
   }
 }
+
+#define CutInternalDerivativesImpl(X, Y)                                       \
+  else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
+    const Numeric d = value.n;                                                 \
+    const Complex dFm = std::conj(ls_mirr.dFd##X(d) - ls_mirr_cut.dFd##X(d));  \
+    const Complex dFls = ls.dFd##X(d) - ls_cut.dFd##X(d) + dFm;                \
+    com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;                              \
+    if (do_nlte) {                                                             \
+      com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;                           \
+    }                                                                          \
+  }
+
+#define CutInternalDerivatives(X)                                              \
+  CutInternalDerivativesImpl(X, X0) CutInternalDerivativesImpl(X, X1)          \
+      CutInternalDerivativesImpl(X, X2) CutInternalDerivativesImpl(X, X3)
+
+#define InternalDerivativesImpl(X, Y)                                          \
+  else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
+    const Numeric d = value.n;                                                 \
+    const Complex dFm = std::conj(ls_mirr.dFd##X(d));                          \
+    const Complex dFls = ls.dFd##X(d) + dFm;                                   \
+    com.dF[com.jac_pos(iv, ij)] += S * LM * dFls;                              \
+    if (do_nlte) {                                                             \
+      com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls;                           \
+    }                                                                          \
+  }
+
+#define InternalDerivatives(X)                                                 \
+  InternalDerivativesImpl(X, X0) InternalDerivativesImpl(X, X1)                \
+      InternalDerivativesImpl(X, X2) InternalDerivativesImpl(X, X3)
+
+#define InternalDerivativesGImpl(X)                                            \
+  else if (deriv == Jacobian::Line::ShapeG##X) {                               \
+    const Numeric dLM = value.n;                                               \
+    com.dF[com.jac_pos(iv, ij)] += dLM * S * Fls;                              \
+    if (do_nlte) {                                                             \
+      com.dN[com.jac_pos(iv, ij)] += dLM * DS * Fls;                           \
+    }                                                                          \
+  }
+
+#define InternalDerivativesG                                                   \
+  InternalDerivativesGImpl(X0) InternalDerivativesGImpl(X1)                    \
+      InternalDerivativesGImpl(X2) InternalDerivativesGImpl(X3)
+
+#define InternalDerivativesYImpl(X)                                            \
+  else if (deriv == Jacobian::Line::ShapeY##X) {                               \
+    const Complex dLM = Complex(0, -value.n);                                  \
+    com.dF[com.jac_pos(iv, ij)] += dLM * S * Fls;                              \
+    if (do_nlte) {                                                             \
+      com.dN[com.jac_pos(iv, ij)] += dLM * DS * Fls;                           \
+    }                                                                          \
+  }
+
+#define InternalDerivativesY                                                   \
+  InternalDerivativesYImpl(X0) InternalDerivativesYImpl(X1)                    \
+      InternalDerivativesYImpl(X2) InternalDerivativesYImpl(X3)
+
+#define InternalDerivativesSetupImpl(X, Y, ...)                                \
+  else if (deriv == Jacobian::Line::Shape##X##Y) {                             \
+    const Index pos =                                                          \
+        band.BroadeningSpeciesPosition(deriv.Target().species_id);             \
+    if (pos >= 0 __VA_OPT__(and pos == __VA_ARGS__)) {                         \
+      derivs[ij].value.n =                                                     \
+          vmrs[pos] * band.lines[i].lineshape[pos].dX(                         \
+                          T, band.T0, P, Jacobian::Line::Shape##X##Y);         \
+    } else {                                                                   \
+      derivs[ij].value.n = 0;                                                  \
+    }                                                                          \
+  }
+
+#define InternalDerivativesSetup(X, ...)                                       \
+  InternalDerivativesSetupImpl(X, X0 __VA_OPT__(, __VA_ARGS__))                \
+      InternalDerivativesSetupImpl(X, X1 __VA_OPT__(, __VA_ARGS__))            \
+          InternalDerivativesSetupImpl(X, X2 __VA_OPT__(, __VA_ARGS__))        \
+              InternalDerivativesSetupImpl(X, X3 __VA_OPT__(, __VA_ARGS__))
 
 /** Cutoff frequency loop of the line shape call
  *
@@ -3390,6 +3410,89 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
         break;
       case Options::LblSpeedup::FINAL: { /* Leave last */
       }
+      }
+    }
+  } else {
+    for (Index i = 0; i < nl; i++) {
+      for (Index ib=0; ib<band.NumBroadeners(); ib++) {
+        ARTS_ASSERT(nj == 0, "No derivatives for split lineshapes yet")
+
+        // Pre-compute the derivatives
+        for (Index ij = 0; ij < nj; ij++) {
+          const auto &deriv = jacobian_quantities[ij];
+          derivs[ij].jac_pos = -1;
+          derivs[ij].deriv = nullptr;
+
+          if (not deriv.propmattype())
+            continue;
+          derivs[ij].jac_pos = ij;
+          derivs[ij].deriv = &deriv;
+
+          if (deriv == Jacobian::Atm::Temperature) {
+            derivs[ij].value.o = band.ShapeParameters_dT(i, T, P, ib);
+          } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+            if (not(deriv == self_tag)) { // Remove if its not good
+              derivs[ij].jac_pos = -1;
+              derivs[ij].deriv = nullptr;
+            }
+          } else if (deriv.Target().needQuantumIdentity()) {
+            if (deriv == Jacobian::Line::VMR) {
+              // The VMR goes into the line strength in this mode
+              derivs[ij].value.o = LineShape::Output{};
+            } else {
+              auto &lt = derivs[ij].target = {deriv.Target().qid,
+                                              band.lines[i].localquanta,
+                                              band.quantumidentity};
+              if (lt == Quantum::Number::StateMatchType::Full) {
+                if constexpr (false) { /*skip so the rest can be a else-if block*/
+                }
+                // All line shape derivatives
+                InternalDerivativesSetup(G0, ib)
+                    InternalDerivativesSetup(D0, ib)
+                        InternalDerivativesSetup(G2, ib)
+                            InternalDerivativesSetup(D2, ib)
+                                InternalDerivativesSetup(ETA, ib)
+                                    InternalDerivativesSetup(FVC, ib)
+                                        InternalDerivativesSetup(Y, ib)
+                                            InternalDerivativesSetup(G, ib)
+                                                InternalDerivativesSetup(DV, ib)
+              }
+            }
+          }
+        }
+        std::remove_if(derivs.begin(), derivs.end(),
+                      [](Derivatives &dd) { return dd.deriv == nullptr; });
+
+        // The line shape strength rescaled by VMR of the broadener
+        const auto ls_str = IntensityCalculator(T, QT, QT0, dQTdT, r,
+                                                drdSELFVMR, drdT, nlte, band, i)
+                                .adaptive_scaling(vmrs[ib], band.Species(),
+                                                  band.broadeningspecies[ib]);
+                                                  
+        // Call cut off loop with or without sparsity
+        switch (speedup_type) {
+        case Options::LblSpeedup::None:
+          cutoff_loop(com, Normalizer(band.normalization, band.lines[i].F0, T),
+                      ls_str, band, derivs, band.ShapeParameters(i, T, P, ib),
+                      T, H, DC, i, zeeman_polarization);
+          break;
+        case Options::LblSpeedup::QuadraticIndependent:
+          cutoff_loop_sparse_triple(
+              com, sparse_com,
+              Normalizer(band.normalization, band.lines[i].F0, T), ls_str, band,
+              derivs, band.ShapeParameters(i, T, P, ib), T, H, sparse_lim, DC,
+              i, zeeman_polarization);
+          break;
+        case Options::LblSpeedup::LinearIndependent:
+          cutoff_loop_sparse_linear(
+              com, sparse_com,
+              Normalizer(band.normalization, band.lines[i].F0, T), ls_str, band,
+              derivs, band.ShapeParameters(i, T, P, ib), T, H, sparse_lim, DC,
+              i, zeeman_polarization);
+          break;
+        case Options::LblSpeedup::FINAL: { /* Leave last */
+        }
+        }
       }
     }
   }

@@ -425,21 +425,6 @@ struct Output {
   constexpr Output(Output &&) noexcept = default;
   constexpr Output &operator=(const Output &) noexcept = default;
   constexpr Output &operator=(Output &&) noexcept = default;
-  constexpr friend Output operator*(Numeric x, const Output &y) noexcept {
-      static_assert(nVars == 9);
-      return {x * y.G0,  x * y.D0, x * y.G2, x * y.D2, x * y.FVC,
-              x * y.ETA, x * y.Y,  x * y.G,  x * y.DV};
-  }
-  constexpr friend Output operator*(const Output &y, Numeric x) noexcept {
-      static_assert(nVars == 9);
-      return x * y;
-  }
-  constexpr friend Output operator+(const Output &x, const Output &y) noexcept {
-      static_assert(nVars == 9);
-      return {x.G0 + y.G0, x.D0 + y.D0,   x.G2 + y.G2,
-              x.D2 + y.D2, x.FVC + y.FVC, x.ETA + y.ETA,
-              x.Y + y.Y,   x.G + y.G,     x.DV + y.DV};
-  }
 
   //! Turns of line mixing if true.  Return *this
   constexpr Output& no_linemixing(bool do_no_linemixing) {

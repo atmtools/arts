@@ -573,7 +573,7 @@ String ModelShape2MetaData(const Model& m) {
 }
 
 Model MetaData2ModelShape(const String& s) {
-  if (s.nelem() == 0) return Model();
+  if (s.nelem() == 0) return {};
 
   const auto& names = enumstrs::VariableNames;
 
