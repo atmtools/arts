@@ -932,7 +932,6 @@ void cloudbox_fieldInterp2Azimuth(
     Index nla= cloudbox_field.nshelves();
     Index nlo= cloudbox_field.nbooks();
     Index nz = cloudbox_field.npages();
-    Index na = cloudbox_field.nrows();
     Index ns = cloudbox_field.ncols();
 
     const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
