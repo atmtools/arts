@@ -806,10 +806,7 @@ void c_errmsg(const char* messag, int type) {
   Verbosity verbosity = disort_verbosity;
   static int warning_limit = FALSE, num_warnings = 0;
 
-  if (type == DS_ERROR) {
-    CREATE_OUT0;
-    ARTS_USER_ERROR("DISORT ERROR >>>  ", messag);
-  }
+  ARTS_USER_ERROR_IF(type == DS_ERROR, "DISORT ERROR >>>  ", messag);
 
   if (warning_limit) return;
 
