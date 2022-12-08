@@ -25,7 +25,7 @@
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
-#include "star.h"
+#include "sun.h"
 
 
 /*!

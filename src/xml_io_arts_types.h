@@ -58,7 +58,7 @@
 #include "ppath.h"
 #include "propagationmatrix.h"
 #include <predefined/predef_data.h>
-#include "star.h"
+#include "sun.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "transmissionmatrix.h"

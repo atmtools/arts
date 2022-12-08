@@ -249,7 +249,7 @@ add_library (artscore STATIC
   m_rte.cc
   m_retrieval.cc
   m_sensor.cc
-  m_star.cc
+        m_sun.cc
   m_surface.cc
   m_telsem.cc
   m_tessem.cc
@@ -290,7 +290,7 @@ add_library (artscore STATIC
   special_interp.cc
   species_info.cc
   species_tags.cc
-  star.cc
+        sun.cc
   surface.cc
   telsem.cc
   tessem.cc

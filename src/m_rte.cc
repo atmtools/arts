@@ -45,7 +45,7 @@
 #include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "star.h"
+#include "sun.h"
 #include "transmissionmatrix.h"
 #include <cmath>
 #include <stdexcept>

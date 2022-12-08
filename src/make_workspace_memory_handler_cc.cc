@@ -59,7 +59,7 @@ int main() {
         << "#include \"propagationmatrix.h\"\n"
         << "#include \"transmissionmatrix.h\"\n"
         << "#include \"covariance_matrix.h\"\n"
-        << "#include \"star.h\"\n"
+        << "#include \"sun.h\"\n"
         << "#include \"telsem.h\"\n"
         << "#include \"tessem.h\"\n"
         << "#include \"xsec_fit.h\"\n"

@@ -19,7 +19,7 @@
 */
 
 /*!
-  \file   star.h
+  \file   sun.h
   \author Jon Petersen <jon.petersen@studium.uni-hamburg.de>
           Manfred Brath  <manfred.brath@uni-hamburg.de>
   \date   2021-02-22
@@ -79,7 +79,7 @@ using ArrayOfSun = Array<Sun>;
 
 
 /*===========================================================================
-  === Functions in star.h
+  === Functions in sun.h
   ===========================================================================*/
 
 /** Calculates the radiance spectrum of sun which is scattered by the atmospheric gases.

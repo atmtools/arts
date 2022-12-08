@@ -33,7 +33,7 @@
 #include "matpackIV.h"
 #include "mystring.h"
 #include "optproperties.h"
-#include "star.h"
+#include "sun.h"
 
 
 /** add_normed_phase_functions

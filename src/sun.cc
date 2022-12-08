@@ -30,7 +30,7 @@
   \brief  Functions needed for radiative transfer with direct sources.
 */
 
-#include "star.h"
+#include "sun.h"
 #include "auto_md.h"
 #include "agenda_class.h"
 #include "arts_conversions.h"

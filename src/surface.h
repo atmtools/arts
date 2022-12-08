@@ -38,7 +38,7 @@
 #include "ppath.h"
 #include "energylevelmap.h"
 #include "optproperties.h"
-#include "star.h"
+#include "sun.h"
 
 class Agenda;
 class Workspace;
