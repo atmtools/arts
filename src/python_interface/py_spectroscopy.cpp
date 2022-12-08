@@ -477,7 +477,7 @@ void py_spectroscopy(py::module_& m) {
           py::arg("normalization") = AbsorptionNormalizationType::None,
           py::arg("lineshapetype") = LineShape::Type::DP, py::arg("T0") = 296,
           py::arg("cutofffreq") = -1, py::arg("linemixinglimit") = -1,
-          py::arg("quantumidentity") = QuantumIdentifier(),
+          py::arg("quantumidentity") = QuantumIdentifier("H2O-161"),
           py::arg("broadeningspecies") = ArrayOfSpecies{},
           py::arg("lines") = Array<AbsorptionSingleLine>{})
       .PythonInterfaceCopyValue(AbsorptionLines)
