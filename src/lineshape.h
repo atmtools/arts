@@ -1,6 +1,7 @@
 #ifndef lineshapes_h
 #define lineshapes_h
 
+#include <string_view>
 #include <variant>
 
 #include "arts_conversions.h"
@@ -11,6 +12,8 @@
 
 namespace LineShape {
 struct Noshape {
+  static constexpr std::string_view name = "Noshape";
+
   static constexpr Complex F = Complex(0, 0);
 
   static constexpr Complex dFdT(const Output &, Numeric) noexcept { return 0; }
@@ -30,6 +33,8 @@ struct Noshape {
 };  // Noshape
 
 struct Doppler {
+  static constexpr std::string_view name = "Doppler";
+
   Complex F{};
   Numeric x{};
 
@@ -65,6 +70,8 @@ struct Doppler {
 };  // Doppler
 
 struct Lorentz {
+  static constexpr std::string_view name = "Lorentz";
+
   Complex F;
   Complex dF;
 
@@ -110,6 +117,8 @@ struct Lorentz {
 };  // Lorentz
 
 struct Voigt {
+  static constexpr std::string_view name = "Voigt";
+
   Complex F;
   Complex dF;
 
@@ -161,6 +170,8 @@ struct Voigt {
 };  // Voigt
 
 struct SpeedDependentVoigt {
+  static constexpr std::string_view name = "SpeedDependentVoigt";
+
   enum struct CalcType : char {
     Voigt,
     LowXandHighY,
@@ -210,6 +221,8 @@ struct SpeedDependentVoigt {
 };  // SpeedDependentVoigt
 
 struct HartmannTran {
+  static constexpr std::string_view name = "HartmannTran";
+
   enum struct CalcType : char {
     Noc2tLowZ,
     Noc2tHighZ,
@@ -681,6 +694,11 @@ class Calculator {
 
   [[nodiscard]] Complex F() const noexcept;
 
+  /** Get the name in debugging */
+  [[nodiscard]] constexpr std::string_view name() const noexcept {
+    return std::visit([](auto &&S) { return S.name; }, ls);
+  }
+
   //! Call operator on frequency.  Must call this before any of the derivatives
   Complex operator()(Numeric f) noexcept;
 
@@ -786,6 +804,10 @@ class IntensityCalculator {
   /** Whether or not NLTE is possible with the selected intensity variant */
   [[nodiscard]] constexpr bool do_nlte() const noexcept {
     return std::visit([](auto &&S) { return S.do_nlte(); }, ls_str);
+  }
+
+  [[nodiscard]] Species::Species scaler() const noexcept {
+    return scaling_species;
   }
 
   IntensityCalculator(const Numeric T,

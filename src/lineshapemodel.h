@@ -425,6 +425,19 @@ struct Output {
   constexpr Output(Output &&) noexcept = default;
   constexpr Output &operator=(const Output &) noexcept = default;
   constexpr Output &operator=(Output &&) noexcept = default;
+  constexpr Output &operator-=(Output&& other) noexcept {
+    static_assert(nVars == 9, "Must update");
+    G0 -= other.G0;
+    D0 -= other.D0;
+    G2 -= other.G2;
+    D2 -= other.D2;
+    FVC -= other.FVC;
+    ETA -= other.ETA;
+    Y -= other.Y;
+    G -= other.G;
+    DV -= other.DV;
+    return *this;
+  }
 
   //! Turns of line mixing if true.  Return *this
   constexpr Output& no_linemixing(bool do_no_linemixing) {

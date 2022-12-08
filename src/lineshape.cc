@@ -2431,11 +2431,16 @@ Numeric IntensityCalculator::dSdNLTEl() const noexcept {
 }
 
 Numeric IntensityCalculator::dSdSELFVMR() const noexcept {
-  return (self_species == scaling_species ? 2  : 1) * scale * std::visit([](auto &&LS) { return LS.dSdSELFVMR(); }, ls_str);
+  return (self_species == scaling_species
+              ? std::visit([](auto &&S) { return S.S; }, ls_str)
+              : 0) +
+         scale * std::visit([](auto &&LS) { return LS.dSdSELFVMR(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dSdOTHERVMR_if() const noexcept {
-  return (self_species == scaling_species or not good_enum(scaling_species)) ? 0 : std::visit([](auto &&S) { return S.S; }, ls_str);
+  return self_species == scaling_species
+             ? 0
+             : std::visit([](auto &&S) { return S.S; }, ls_str);
 }
 
 Numeric IntensityCalculator::N() const noexcept {
@@ -2463,11 +2468,16 @@ Numeric IntensityCalculator::dNdNLTEl() const noexcept {
 }
 
 Numeric IntensityCalculator::dNdSELFVMR() const noexcept {
-  return (self_species == scaling_species ? 2  : 1) * std::visit([](auto &&LS) { return LS.dNdSELFVMR(); }, ls_str);
+  return (self_species == scaling_species
+              ? std::visit([](auto &&S) { return S.N; }, ls_str)
+              : 0) +
+         scale * std::visit([](auto &&LS) { return LS.dNdSELFVMR(); }, ls_str);
 }
 
 Numeric IntensityCalculator::dNdOTHERVMR_if() const noexcept {
-  return (self_species == scaling_species or not good_enum(scaling_species)) ? 0 : std::visit([](auto &&S) { return S.N; }, ls_str);
+  return self_species == scaling_species
+             ? 0
+             : std::visit([](auto &&S) { return S.N; }, ls_str);
 }
 
 IntensityCalculator &
@@ -2574,9 +2584,9 @@ IntensityCalculator::IntensityCalculator(
     const Index pos =                                                          \
         band.BroadeningSpeciesPosition(deriv.Target().species_id);             \
     if (pos >= 0 __VA_OPT__(and pos == __VA_ARGS__)) {                         \
-      derivs[ij].value.n =                                                     \
-          vmrs[pos] * band.lines[i].lineshape[pos].dX(                         \
-                          T, band.T0, P, Jacobian::Line::Shape##X##Y);         \
+      derivs[ij].value.n = (__VA_OPT__(1 ? 1 :) vmrs[pos]) *                   \
+                           band.lines[i].lineshape[pos].dX(                    \
+                               T, band.T0, P, Jacobian::Line::Shape##X##Y);    \
     } else {                                                                   \
       derivs[ij].value.n = 0;                                                  \
     }                                                                          \
@@ -2930,13 +2940,26 @@ void frequency_loop(ComputeValues &com, Calculator &ls, Calculator &ls_mirr,
           const Complex dLM(dXdVMR.G, -dXdVMR.Y);
           const Complex dFls = ls.dFdVMR(dXdVMR) + dFm;
           com.dF[com.jac_pos(iv, ij)] += S * LM * dFls + dLM * S * Fls;
-          if (self_species == deriv.QuantumIdentity().Species()) {
-            com.dF[com.jac_pos(iv, ij)] += ls_str.dSdSELFVMR() * LM * Fls;
+          
+          if (self_species == deriv.Target().species_id) {
+            com.dF[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dSdSELFVMR() * LM * Fls;
           }
+
+          if (ls_str.scaler() == deriv.Target().species_id) {
+            com.dF[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dSdOTHERVMR_if() * LM * Fls;
+          }
+
+          if (ls_str.scaler() == Species::Species::Bath) {
+            com.dF[com.jac_pos(iv, ij)] -= Sz * Sn * ls_str.dSdOTHERVMR_if() * LM * Fls;
+          }
+          
           if (do_nlte) {
             com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls + dLM * DS * Fls;
             if (self_species == deriv.QuantumIdentity().Species()) {
-              com.dN[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+              com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
+            }
+            if (ls_str.scaler() ==  deriv.QuantumIdentity().Species()) {
+              com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdOTHERVMR_if() * LM * Fls;
             }
           }
         } else {
@@ -3417,8 +3440,6 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
   } else {
     for (Index i = 0; i < nl; i++) {
       for (Index ib=0; ib<band.NumBroadeners(); ib++) {
-        ARTS_ASSERT(nj == 0, "No derivatives for split lineshapes yet")
-
         // Pre-compute the derivatives
         for (Index ij = 0; ij < nj; ij++) {
           const auto &deriv = jacobian_quantities[ij];

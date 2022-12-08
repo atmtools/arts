@@ -122,8 +122,16 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
   auto &lineshape = lines[k].lineshape;
 
   const Index pos = LineShapePos(vmr_qid.Species());
-  if (pos >= 0) return lineshape[pos].at(T, T0, P);
-  return LineShape::Output{};
+
+  LineShape::Output out{};
+  if (pos >= 0) {
+    out = lineshape[pos].at(T, T0, P);
+    const Index bath = lineshape.nelem() - 1;
+    if (bathbroadening and pos not_eq bath) {
+      out -= lineshape[bath].at(T, T0, P);
+    }
+  }
+  return out;
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
