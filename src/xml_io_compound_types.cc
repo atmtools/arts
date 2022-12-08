@@ -1729,22 +1729,22 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== Star =====================================================
+//=== Sun =====================================================
 
-//! Reads Star from XML input stream
+//! Reads Sun from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param star    Star return value
+  \param star    Sun return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void xml_read_from_stream(istream& is_xml,
-                          Star& star,
+                          Sun& star,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
   ArtsXMLTag tag(verbosity);
 
   tag.read_from_stream(is_xml);
-  tag.check_name("Star");
+  tag.check_name("Sun");
 
   xml_read_from_stream(is_xml, star.description, pbifs, verbosity);
   xml_read_from_stream(is_xml, star.spectrum, pbifs, verbosity);
@@ -1754,25 +1754,25 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, star.longitude, pbifs, verbosity);
 
   tag.read_from_stream(is_xml);
-  tag.check_name("/Star");
+  tag.check_name("/Sun");
 }
 
-//! Writes Star to XML output stream
+//! Writes Sun to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param star    Star
+  \param star    Sun
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
 void xml_write_to_stream(ostream& os_xml,
-                         const Star& star,
+                         const Sun& star,
                          bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity) {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name("Star");
+  open_tag.set_name("Sun");
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
@@ -1784,7 +1784,7 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(
       os_xml, star.longitude, pbofs, "StarLongitude", verbosity);
 
-  close_tag.set_name("/Star");
+  close_tag.set_name("/Sun");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }

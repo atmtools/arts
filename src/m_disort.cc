@@ -67,7 +67,7 @@ void DisortCalc(Workspace& ws,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    const ArrayOfStar& stars,
+                    const ArrayOfSun& stars,
                     const Vector& f_grid,
                     const Vector& za_grid,
                     const Vector& aa_grid,
@@ -158,8 +158,8 @@ void DisortCalc(Workspace& ws,
       N_aa = 1;
 
       CREATE_OUT0;
-      out0 << "Star is below the horizon\n";
-      out0 << "Star is ignored.\n";
+      out0 << "Sun is below the horizon\n";
+      out0 << "Sun is ignored.\n";
       out0 << "cloudbox_field will have no azimuthal dependency!\n";
     }
 
@@ -267,7 +267,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    const ArrayOfStar& stars,
+                    const ArrayOfSun& stars,
                     const Vector& f_grid,
                     const Vector& za_grid,
                     const Vector& aa_grid,
@@ -358,8 +358,8 @@ void DisortCalcWithARTSSurface(Workspace& ws,
       N_aa = 1;
 
       CREATE_OUT0;
-      out0 << "Star is below the horizon\n";
-      out0 << "Star is ignored.\n";
+      out0 << "Sun is below the horizon\n";
+      out0 << "Sun is ignored.\n";
       out0 << "cloudbox_field will have no azimuthal dependency!\n";
 
     }
@@ -477,7 +477,7 @@ void DisortCalcClearsky(Workspace& ws,
                     const Vector& lat_true,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
-                    const ArrayOfStar& stars,
+                    const ArrayOfSun& stars,
                     const Vector& f_grid,
                     const Vector& za_grid,
                     const Vector& aa_grid,
@@ -595,7 +595,7 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Vector& lon_true,
                 const Vector& refellipsoid,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const ArrayOfStar& stars,
+                const ArrayOfSun& stars,
                 const Vector& f_grid,
                 const Index& stokes_dim,
                 const Matrix& z_surface,
@@ -683,8 +683,8 @@ void DisortCalcIrradiance(Workspace& ws,
       star_on = 0;
 
       CREATE_OUT0;
-      out0 << "Star is below the horizon\n";
-      out0 << "Star is ignored.\n";
+      out0 << "Sun is below the horizon\n";
+      out0 << "Sun is ignored.\n";
     }
 
     //get the cloudbox top distance to earth center.

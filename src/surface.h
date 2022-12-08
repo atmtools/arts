@@ -276,7 +276,7 @@ void surface_get_incoming_direct(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& stars,
     const Numeric& rte_alonglos_v,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,

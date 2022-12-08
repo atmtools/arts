@@ -19662,7 +19662,7 @@ where N>=0 and the species name is something line "H2O".
                   "-1",
                   "0",
                   "0",
-                  "Star spectrum from Griddedfield."),
+                  "Sun spectrum from Griddedfield."),
       GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
                "The radius of the star in meter.\n"
                "Default is the radius of our sun.\n",

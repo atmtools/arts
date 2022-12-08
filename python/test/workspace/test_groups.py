@@ -491,7 +491,7 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfStar(self):
+    def testArrayOfSun(self):
         ws = Workspace()
         ws.stokes_dim = 1
         ws.f_grid = [1e9, 2e9, 3e9]
@@ -510,7 +510,7 @@ class TestGroups:
         assert np.isclose(star.spectrum[1, 0], 1.93040e-17, atol=1e-25)
         assert np.isclose(star.spectrum[2, 0], 4.34338e-17, atol=1e-25)
 
-        x = cxx.ArrayOfStar(1, cxx.Star())
+        x = cxx.ArrayOfSun(1, cxx.Sun())
         test.io(x, delete=True)
         test.array(x)
 

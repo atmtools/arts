@@ -266,7 +266,7 @@ void surface_get_incoming_direct(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& stars,
     const Numeric& rte_alonglos_v,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
@@ -318,7 +318,7 @@ void surface_get_incoming_direct(
   //line of sight, then iy_star_toa is simply zero and we are finished. No further
   //calculations needed.
   stars_visible=0;
-  get_star_background(iy_star_toa,
+  get_sun_background(iy_star_toa,
                       stars_visible,
                       stars,
                       ppath,

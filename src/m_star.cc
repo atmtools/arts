@@ -48,7 +48,7 @@ using Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsAddSingleBlackbody(ArrayOfStar &stars,
+void starsAddSingleBlackbody(ArrayOfSun &stars,
                          Index &stars_do,
                          // Inputs:
                          const Vector &f_grid,
@@ -65,7 +65,7 @@ void starsAddSingleBlackbody(ArrayOfStar &stars,
                       "The distance to the center of the star (",distance," m) \n"
                      " is smaller than the radius of the star (", radius," m )")
 
-  Star& new_star = stars.emplace_back();
+  Sun& new_star = stars.emplace_back();
 
   // spectrum
   new_star.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
@@ -85,7 +85,7 @@ void starsAddSingleBlackbody(ArrayOfStar &stars,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsAddSingleFromGrid(ArrayOfStar &stars,
+void starsAddSingleFromGrid(ArrayOfSun &stars,
                          Index &stars_do,
                          // Inputs:
                          const Vector &f_grid,
@@ -105,10 +105,10 @@ void starsAddSingleFromGrid(ArrayOfStar &stars,
                      " is smaller than the radius of the star (", radius," m )")
 
   // interpolate field
-  Matrix int_data = regrid_star_spectrum(star_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
+  Matrix int_data = regrid_sun_spectrum(star_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
 
   // create star
-  Star& new_star = stars.emplace_back();
+  Sun& new_star = stars.emplace_back();
 
   new_star.spectrum = int_data; // set spectrum
 
@@ -124,7 +124,7 @@ void starsAddSingleFromGrid(ArrayOfStar &stars,
 }
 
 void starsOff(Index &stars_do,
-             ArrayOfStar &stars,
+             ArrayOfSun &stars,
              const Verbosity &){
 
   // set flag to False (default)

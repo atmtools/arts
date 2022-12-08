@@ -4570,14 +4570,14 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 
   wsv_data.push_back(WsvRecord(
       NAME("stars"),
-      DESCRIPTION("Array of Star.\n"
+      DESCRIPTION("Array of Sun.\n"
                   "\n"
                   "This variable describes a list of stars.\n"
                   "Each star is described by a struct with its spectrum, radius,\n"
                   "distance from center of planet to center of star,\n"
                   "temperature (if possible), latitude in the sky of the planet,\n"
                   "longitude in the sky of the planet and the type\n"),
-      GROUP("ArrayOfStar"), ArrayOfStar{}));
+      GROUP("ArrayOfSun"), ArrayOfSun{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),

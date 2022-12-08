@@ -660,7 +660,7 @@ void iySurfaceFlatReflectivityDirect(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& stars,
     const Numeric& rte_alonglos_v,
     const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
@@ -972,7 +972,7 @@ void iySurfaceFlatRefractiveIndexDirect(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& stars,
     const Numeric& rte_alonglos_v,
     const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
@@ -1420,7 +1420,7 @@ void iySurfaceLambertianDirect(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& stars,
     const Numeric& rte_alonglos_v,
     const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
@@ -1459,7 +1459,7 @@ void iySurfaceLambertianDirect(
   //do something only if there is a star
   if (stars_do) {
     //get star ppaths
-    get_star_ppaths(ws,
+    get_sun_ppaths(ws,
                     star_ppaths,
                     stars_visible,
                     star_rte_los,

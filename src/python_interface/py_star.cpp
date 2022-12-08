@@ -5,20 +5,20 @@
 
 namespace Python {
 void py_star(py::module_& m) {
-  py::class_<Star>(m, "Star")
-      .def(py::init([]() { return new Star{}; }))
-      .PythonInterfaceCopyValue(Star)
-//      .PythonInterfaceWorkspaceVariableConversion(Star)
-      .PythonInterfaceBasicRepresentation(Star)
-      .PythonInterfaceFileIO(Star)
-      .def_readwrite("description", &Star::description)
-      .def_readwrite("spectrum", &Star::spectrum)
-      .def_readwrite("radius", &Star::radius)
-      .def_readwrite("distance", &Star::distance)
-      .def_readwrite("latitude", &Star::latitude)
-      .def_readwrite("longitude", &Star::longitude)
+  py::class_<Sun>(m, "Sun")
+      .def(py::init([]() { return new Sun{}; }))
+      .PythonInterfaceCopyValue(Sun)
+//      .PythonInterfaceWorkspaceVariableConversion(Sun)
+      .PythonInterfaceBasicRepresentation(Sun)
+      .PythonInterfaceFileIO(Sun)
+      .def_readwrite("description", &Sun::description)
+      .def_readwrite("spectrum", &Sun::spectrum)
+      .def_readwrite("radius", &Sun::radius)
+      .def_readwrite("distance", &Sun::distance)
+      .def_readwrite("latitude", &Sun::latitude)
+      .def_readwrite("longitude", &Sun::longitude)
       .def(py::pickle(
-          [](const Star& self) {
+          [](const Sun& self) {
             return py::make_tuple(self.description,
                                   self.spectrum,
                                   self.radius,
@@ -28,7 +28,7 @@ void py_star(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-            return new Star{t[0].cast<String>(),
+            return new Sun{t[0].cast<String>(),
                              t[1].cast<Matrix>(),
                              t[2].cast<Numeric>(),
                              t[3].cast<Numeric>(),
@@ -39,6 +39,6 @@ distance from center of planet to center of star,
 temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type )--";
 
-  PythonInterfaceWorkspaceArray(Star);
+  PythonInterfaceWorkspaceArray(Sun);
 }
 }  // namespace Python

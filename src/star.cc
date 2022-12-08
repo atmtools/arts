@@ -52,8 +52,8 @@ using Constant::pi;
   === The functions
   ===========================================================================*/
 
-std::ostream& operator<<(std::ostream& os, const Star& star) {
-  os << "Star: " << star.description;
+std::ostream& operator<<(std::ostream& os, const Sun& star) {
+  os << "Sun: " << star.description;
   os << " Radius: " << star.radius << "m ";
   os << " Distance: " << star.distance << "m \n";
   os << " Latitude: " << star.latitude << "° \n";
@@ -62,13 +62,13 @@ std::ostream& operator<<(std::ostream& os, const Star& star) {
   return os;
 }
 
-void get_scattered_starsource(Workspace& ws,
-                              RadiationVector& scattered_starlight,
+void get_scattered_sunsource(Workspace& ws,
+                              RadiationVector& scattered_sunlight,
                               const Vector& f_grid,
                               const Numeric& p,
                               const Numeric& T,
                               const Vector& vmr,
-                              const Matrix& transmitted_starlight,
+                              const Matrix& transmitted_sunlight,
                               const Vector& gas_scattering_los_in,
                               const Vector& gas_scattering_los_out,
                               const Agenda& gas_scattering_agenda) {
@@ -91,7 +91,7 @@ void get_scattered_starsource(Workspace& ws,
                                gas_scattering_agenda);
 
   //some basic quantities
-  Index ns = transmitted_starlight.ncols();
+  Index ns = transmitted_sunlight.ncols();
   Index nf = f_grid.nelem();
 
   //allocate and resize
@@ -100,12 +100,12 @@ void get_scattered_starsource(Workspace& ws,
   Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
-    mat_temp(0,joker) =  transmitted_starlight(i_f, joker);
-    scattered_starlight_temp = mat_temp;//transmitted_starlight(i_f, joker);
+    mat_temp(0,joker) =  transmitted_sunlight(i_f, joker);
+    scattered_starlight_temp = mat_temp;//transmitted_sunlight(i_f, joker);
     scattered_starlight_temp.leftMul(gas_scattering_mat);
 
     for (Index j = 0; j < ns; j++) {
-      scattered_starlight(i_f, j) =
+      scattered_sunlight(i_f, j) =
           scattered_starlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f] /(4*pi);
     }
   }
@@ -113,9 +113,9 @@ void get_scattered_starsource(Workspace& ws,
   //TODO: Include jacobian mechanism
 }
 
-void get_star_background(Matrix& iy,
-                         Index& stars_visible,
-                         const ArrayOfStar& stars,
+void get_sun_background(Matrix& iy,
+                         Index& suns_visible,
+                         const ArrayOfSun& suns,
                          const Ppath& ppath,
                          const Vector& f_grid,
                          const Index& stokes_dim,
@@ -124,7 +124,7 @@ void get_star_background(Matrix& iy,
   const Index np = ppath.np;
 
   //set visibilty flag to default
-  stars_visible = 0;
+  suns_visible = 0;
 
   //allocate iy and set it to zero
   iy.resize(f_grid.nelem(), stokes_dim);
@@ -137,21 +137,21 @@ void get_star_background(Matrix& iy,
   rtp_los = ppath.los(np - 1, joker);
 
   if (ppath_what_background(ppath) == 9 || ppath_what_background(ppath) == 1){
-    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-      get_star_radiation(iy, stars_visible, stars[i_star], rtp_pos, rtp_los, refellipsoid);
+    for (Index i_star = 0; i_star < suns.nelem(); i_star++) {
+      get_sun_radiation(iy, suns_visible, suns[i_star], rtp_pos, rtp_los, refellipsoid);
     }
   }
 }
 
-void get_star_radiation(Matrix& iy,
-                        Index& stars_visible,
-                         const Star& star,
+void get_sun_radiation(Matrix& iy,
+                        Index& suns_visible,
+                         const Sun& sun,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
                          const Vector& refellipsoid) {
 
   //Calculate earth centric radial component of star_pos and rtp_pos.
-  const Numeric R_star = star.distance;
+  const Numeric R_star = sun.distance;
   const Numeric R_rte = refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
 
   //Transform to cartesian coordinate system
@@ -160,7 +160,7 @@ void get_star_radiation(Matrix& iy,
   Numeric r_los_x, r_los_y, r_los_z;
 
   // r_star
-  sph2cart(r_star_x, r_star_y, r_star_z, R_star, star.latitude, star.longitude);
+  sph2cart(r_star_x, r_star_y, r_star_z, R_star, sun.latitude, sun.longitude);
 
   // r_rte, r_los
   poslos2cart(r_rte_x,
@@ -176,7 +176,7 @@ void get_star_radiation(Matrix& iy,
               rtp_los[1]);
 
   //Calculate vector of line of sight and unit vector pointing from
-  //ppath point to the star.
+  //ppath point to the sun.
   const Numeric r_ps_x = r_star_x - r_rte_x;
   const Numeric r_ps_y = r_star_y - r_rte_y;
   const Numeric r_ps_z = r_star_z - r_rte_z;
@@ -189,26 +189,26 @@ void get_star_radiation(Matrix& iy,
   const Numeric r_glos =
       sqrt(r_los_x * r_los_x + r_los_y * r_los_y + r_los_z * r_los_z);
 
-  //Calculate angle beta between line of sight and the line between ppath point and the star
+  //Calculate angle beta between line of sight and the line between ppath point and the sun
   //using scalar product
   const Numeric cos_beta =
       (r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_glos);
   const Numeric beta = acos(cos_beta);
 
-  // angular radius of star
-  const Numeric alpha = atan(star.radius / r_ps);
+  // angular radius of sun
+  const Numeric alpha = atan(sun.radius / r_ps);
 
-  //Check if we see the star. We see the star if the angle beta is smaller than
-  // the angular radius alpha of the star.
+  //Check if we see the sun. We see the sun if the angle beta is smaller than
+  // the angular radius alpha of the sun.
   if (beta <= alpha) {
-    //Here we assume that the star radiates isotropically.
-    Matrix star_radiance = star.spectrum;
+    //Here we assume that the sun radiates isotropically.
+    Matrix star_radiance = sun.spectrum;
     star_radiance /= pi;
 
     iy += star_radiance;
 
     // visibility flag
-    stars_visible = 1;
+    suns_visible = 1;
   }
 }
 
@@ -235,9 +235,9 @@ void get_direct_radiation(Workspace& ws,
                           const ArrayOfIndex& cloudbox_limits,
                           const Index& gas_scattering_do,
                           const Index& irradiance_flag,
-                          const ArrayOfPpath& star_ppaths,
-                          const ArrayOfStar& stars,
-                          const ArrayOfIndex& stars_visible,
+                          const ArrayOfPpath& sun_ppaths,
+                          const ArrayOfSun& suns,
+                          const ArrayOfIndex& suns_visible,
                           const Vector& refellipsoid,
                           const Tensor4& pnd_field,
                           const ArrayOfTensor4& dpnd_field_dx,
@@ -268,7 +268,7 @@ void get_direct_radiation(Workspace& ws,
   Tensor4 ppvar_trans_cumulat_dummy;
   Tensor4 ppvar_trans_partial_dummy;
 
-  direct_radiation.resize(stars.nelem(),Matrix(f_grid.nelem(), stokes_dim, 0.));
+  direct_radiation.resize(suns.nelem(),Matrix(f_grid.nelem(), stokes_dim, 0.));
 
   Matrix radiation_toa;
   Matrix radiation_trans;
@@ -276,13 +276,13 @@ void get_direct_radiation(Workspace& ws,
   Vector rtp_pos, rtp_los;
   Index np;
 
-  for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-    np = star_ppaths[i_star].np;
+  for (Index i_star = 0; i_star < suns.nelem(); i_star++) {
+    np = sun_ppaths[i_star].np;
 
-    if (stars_visible[i_star]) {
-      star_pos = {stars[i_star].distance,
-                  stars[i_star].latitude,
-                  stars[i_star].longitude};
+    if (suns_visible[i_star]) {
+      star_pos = {suns[i_star].distance,
+                  suns[i_star].latitude,
+                  suns[i_star].longitude};
 
       // we need the distance to the star relative to the surface
       star_pos[0] =
@@ -296,38 +296,38 @@ void get_direct_radiation(Workspace& ws,
 
         //get the TOA distance to earth center.
         Numeric R_TOA =
-            refell2r(refellipsoid, star_ppaths[i_star].pos(np - 1, 1)) +
-            star_ppaths[i_star].pos(np - 1, 0);
+            refell2r(refellipsoid, sun_ppaths[i_star].pos(np - 1, 1)) +
+            sun_ppaths[i_star].pos(np - 1, 0);
 
         //get the distance between sun and star_ppath at TOA
         Numeric R_Star2Toa;
         distance3D(R_Star2Toa,
                    R_TOA,
-                   star_ppaths[i_star].pos(np - 1, 1),
-                   star_ppaths[i_star].pos(np - 1, 2),
+                   sun_ppaths[i_star].pos(np - 1, 1),
+                   sun_ppaths[i_star].pos(np - 1, 2),
                    star_pos[0],
                    star_pos[1],
                    star_pos[2]);
 
         // Scale the incoming star_irradiance spectrum
-        radiation_toa = stars[i_star].spectrum;
-        radiation_toa *= stars[i_star].radius * stars[i_star].radius;
-        radiation_toa /= (stars[i_star].radius * stars[i_star].radius +
+        radiation_toa = suns[i_star].spectrum;
+        radiation_toa *= suns[i_star].radius * suns[i_star].radius;
+        radiation_toa /= (suns[i_star].radius * suns[i_star].radius +
                       R_Star2Toa * R_Star2Toa);
       } else {
         //Get the spectral radiance instead
 
         //Set star position
         rtp_pos.resize(atmosphere_dim);
-        rtp_pos = star_ppaths[i_star].pos(np - 1, Range(0, atmosphere_dim));
-        rtp_los.resize(star_ppaths[i_star].los.ncols());
-        rtp_los = star_ppaths[i_star].los(np - 1, joker);
+        rtp_pos = sun_ppaths[i_star].pos(np - 1, Range(0, atmosphere_dim));
+        rtp_los.resize(sun_ppaths[i_star].los.ncols());
+        rtp_los = sun_ppaths[i_star].los(np - 1, joker);
 
         radiation_toa.resize(f_grid.nelem(), stokes_dim);
         radiation_toa = 0;
 
         Index visible;
-        get_star_radiation(radiation_toa, visible, stars[i_star], rtp_pos, rtp_los, refellipsoid);
+        get_sun_radiation(radiation_toa, visible, suns[i_star], rtp_pos, rtp_los, refellipsoid);
       }
 
 
@@ -370,7 +370,7 @@ void get_direct_radiation(Workspace& ws,
                              iy_aux_vars_dummy,
                              jacobian_do,
                              jacobian_quantities,
-                             star_ppaths[i_star],
+                             sun_ppaths[i_star],
                              radiation_toa,
                              propmat_clearsky_agenda,
                              water_p_eq_agenda,
@@ -388,12 +388,12 @@ void get_direct_radiation(Workspace& ws,
   }
 }
 
-void get_star_ppaths(Workspace& ws,
-                     ArrayOfPpath& star_ppaths,
-                     ArrayOfIndex& stars_visible,
-                     ArrayOfVector& star_rte_los,
+void get_sun_ppaths(Workspace& ws,
+                     ArrayOfPpath& sun_ppaths,
+                     ArrayOfIndex& suns_visible,
+                     ArrayOfVector& sun_rte_los,
                      const Vector& rte_pos,
-                     const ArrayOfStar& stars,
+                     const ArrayOfSun& suns,
                      const Vector& f_grid,
                      const Index& atmosphere_dim,
                      const Vector& p_grid,
@@ -411,10 +411,10 @@ void get_star_ppaths(Workspace& ws,
   Numeric ppath_lraytrace2 = ppath_lraytrace;
   Ppath star_ppath;
 
-  for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-    star_pos = {stars[i_star].distance,
-                stars[i_star].latitude,
-                stars[i_star].longitude};
+  for (Index i_star = 0; i_star < suns.nelem(); i_star++) {
+    star_pos = {suns[i_star].distance,
+                suns[i_star].latitude,
+                suns[i_star].longitude};
 
     // we need the distance to the star relative to the surface
     star_pos[0] =
@@ -454,16 +454,16 @@ void get_star_ppaths(Workspace& ws,
                      0.5,
                      verbosity);
 
-    star_ppaths[i_star] = star_ppath;
-    star_rte_los[i_star] = star_rte_los_istar;
+    sun_ppaths[i_star] = star_ppath;
+    sun_rte_los[i_star] = star_rte_los_istar;
 
     // Check that star path hast more than 1 ppath points and that space is background
-    stars_visible[i_star] =
+    suns_visible[i_star] =
         star_ppath.np > 1 && ppath_what_background(star_ppath) == 9;
   }
 }
 
-Matrix regrid_star_spectrum(const GriddedField2 &star_spectrum_raw,
+Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
                           const Vector &f_grid,
                           const Index &stokes_dim,
                           const Numeric &temperature,                        
@@ -471,7 +471,7 @@ Matrix regrid_star_spectrum(const GriddedField2 &star_spectrum_raw,
   CREATE_OUTS;
   
   const Index nf = f_grid.nelem();
-  const Vector data_f_grid = star_spectrum_raw.get_numeric_grid(0);
+  const Vector data_f_grid = sun_spectrum_raw.get_numeric_grid(0);
   const Numeric data_fmin = data_f_grid[0];
   const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
 
@@ -561,7 +561,7 @@ Matrix regrid_star_spectrum(const GriddedField2 &star_spectrum_raw,
 
     for(int i=0; i < stokes_dim; i++){
       interp(int_data(Range(i_fstart, f_extent),i), itw, 
-        star_spectrum_raw.data(active_range, i), f_gp);
+        sun_spectrum_raw.data(active_range, i), f_gp);
     }
   }  
   
@@ -573,7 +573,7 @@ Matrix regrid_star_spectrum(const GriddedField2 &star_spectrum_raw,
       "Set temperature to zero to have a padding of "
       "0 or a fitting effective temperature"
       "For further information take a look at the "
-      "documentation for regrid_star_spectrum")
+      "documentation for regrid_sun_spectrum")
     }
     if (temperature > 0){
       for (int i=0; i < i_fstart; i++){

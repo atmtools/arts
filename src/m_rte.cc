@@ -208,7 +208,7 @@ void iyClearsky(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Ppath& ppath,
     const Vector& rte_pos2,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& stars,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const String& rt_integration_option,
@@ -470,7 +470,7 @@ This feature will be added in a future version.
             ArrayOfPpath star_ppaths(stars.nelem());
             ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
 
-            get_star_ppaths(wss,
+            get_sun_ppaths(wss,
                             star_ppaths,
                             stars_visible,
                             star_rte_los,
@@ -539,7 +539,7 @@ This feature will be added in a future version.
 
                 // here we calculate how much incoming star radiation is scattered
                 //into the direction of the ppath
-                get_scattered_starsource(wss,
+                get_scattered_sunsource(wss,
                                          scattered_starlight_istar,
                                          f_grid,
                                          ppvar_p[ip],
@@ -706,7 +706,7 @@ This feature will be added in a future version.
 
     // Get incoming star radiation at top of the atmosphere. if star is not visible
     // in los, iy_direct_toa will be zero
-    get_star_background(iy_direct_toa,
+    get_sun_background(iy_direct_toa,
                         stars_visible,
                         stars,
                         ppath,
