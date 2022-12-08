@@ -266,7 +266,7 @@ void surface_get_incoming_direct(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfSun& stars,
+    const ArrayOfSun& suns,
     const Numeric& rte_alonglos_v,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
@@ -276,7 +276,7 @@ void surface_get_incoming_direct(
 
   //Allocate
   Vector surface_normal;
-  Matrix iy_star_toa;
+  Matrix iy_sun_toa;
 
   //get specular line of sight
   specular_losCalc(specular_los,
@@ -314,13 +314,13 @@ void surface_get_incoming_direct(
              verbosity);
 
 
-  //get the incoming spectral radiance of the star at toa. If there is no in
-  //line of sight, then iy_star_toa is simply zero and we are finished. No further
+  //get the incoming spectral radiance of the sun at toa. If there is no in
+  //line of sight, then iy_sun_toa is simply zero and we are finished. No further
   //calculations needed.
   stars_visible=0;
-  get_sun_background(iy_star_toa,
+  get_sun_background(iy_sun_toa,
                       stars_visible,
-                      stars,
+                      suns,
                       ppath,
                       f_grid,
                       stokes_dim,
@@ -386,7 +386,7 @@ void surface_get_incoming_direct(
                            jacobian_do,
                            jacobian_quantities,
                            ppath,
-                           iy_star_toa,
+                           iy_sun_toa,
                            propmat_clearsky_agenda,
                            water_p_eq_agenda,
                            gas_scattering_agenda,

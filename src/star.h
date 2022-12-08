@@ -47,7 +47,7 @@ class Agenda;
 class Workspace;
 
 /*===========================================================================
-  === structs/classes  in star.h
+  === structs/classes  in sun.h
   ===========================================================================*/
 
 /** The structure to describe a propagation path and releated quantities.
@@ -58,7 +58,7 @@ class Workspace;
 struct Sun {
   /** Sun description */
   String description;
-  /** Sun spectrum, monochrmatic radiance spectrum at the surface of the star*/
+  /** Sun spectrum, monochrmatic radiance spectrum at the surface of the sun*/
   Matrix spectrum;
   /** Sun radius */
   Numeric radius;
@@ -69,12 +69,12 @@ struct Sun {
   /** longitude of the sun in the sky of the planet */
   Numeric longitude;
 
-  friend std::ostream& operator<<(std::ostream& os, const Sun& star);
+  friend std::ostream& operator<<(std::ostream& os, const Sun& sun);
 };
 
 
 
-/** An array of star. */
+/** An array of sun. */
 using ArrayOfSun = Array<Sun>;
 
 
@@ -82,21 +82,21 @@ using ArrayOfSun = Array<Sun>;
   === Functions in star.h
   ===========================================================================*/
 
-/** Calculates the radiance spectrum of star which is scattered by the atmospheric gases.
+/** Calculates the radiance spectrum of sun which is scattered by the atmospheric gases.
  *
  * @param[in,out] ws ARTS workspace.
  * @param[out] scattered_sunlight RadiationVector scattered monochromatic radiance
- *             spectrum of star.
+ *             spectrum of sun.
  * @param[in] f_grid Vector frequency grid.
  * @param[in] p Numeric pressure at location of scattering.
  * @param[in] T Numeric temperature at location of scattering.
  * @param[in] vmr Vector volume mixing ratios of absorption species at location
  *            of scattering.
  * @param[in] transmitted_sunlight Matrix transmitted monochromatic irradiance
- *             spectrum of star at location of scattering.
- * @param[in] gas_scattering_los_in Vector incoming direction of the transmitted star irradiance
+ *             spectrum of sun at location of scattering.
+ * @param[in] gas_scattering_los_in Vector incoming direction of the transmitted sun irradiance
  *            spectrum.
- * @param[in] gas_scattering_los_out outgoing direction of the transmitted star irradiance
+ * @param[in] gas_scattering_los_out outgoing direction of the transmitted sun irradiance
  *            spectrum.
  * @param[in] gas_scattering_agenda Agenda agenda calculating the gas scattering
  *            cross sectionand matrix.
@@ -112,9 +112,9 @@ void get_scattered_sunsource(Workspace& ws,
                               const Vector& gas_scattering_los_out,
                               const Agenda& gas_scattering_agenda);
 
-/** Gets the star background for a given ppath.
+/** Gets the sun background for a given ppath.
  *
- * iy is zero if there is no star in the line of sight at TOA.
+ * iy is zero if there is no sun in the line of sight at TOA.
  *
  * @param[out] iy Matrix radiance spectrum of suns.
  * @param[out] suns_visible Index indicating if suns are in los
@@ -150,13 +150,13 @@ void get_sun_radiation(Matrix& iy,
                          const Vector& rtp_los,
                          const Vector& refellipsoid);
 
-/** Calculates the transmitted star radiation at the end position of the ppath
+/** Calculates the transmitted sun radiation at the end position of the ppath
  *
  * @param[in,out] ws ARTS workspace.
  * @param[out] direct_radiation Matrix Transmitted monochromatic irradiance
- *             spectrum of star.
+ *             spectrum of sun.
  * @param[out] ddirect_radiation_dx Array of Tensor3 Jacobian of transmitted
- *              monochromatic irradiance spectrum of star.
+ *              monochromatic irradiance spectrum of sun.
  * @param[in] stokes_dim As the WSV.
  * @param[in] f_grid As the WSV.
  * @param[in] atmosphere_dim As the WSV.
@@ -179,9 +179,9 @@ void get_sun_radiation(Matrix& iy,
  * @param[in] irradiance_flag Index Flag indicating if the transmitted radiation
  *                            is spectral irradiance (1) or if it is spectral
  *                            radiance (0).
- * @param[in] sun_ppaths ArrayOfPpath Propagation path towards each star.
+ * @param[in] sun_ppaths ArrayOfPpath Propagation path towards each sun.
  * @param[in] suns As the WSV.
- * @param[in] suns_visible ArrayOfIndex Flag indicating if eah star is visible.
+ * @param[in] suns_visible ArrayOfIndex Flag indicating if eah sun is visible.
  * @param[in] refellipsoid As the WSV.
  * @param[in] pnd_field As the WSV.
  * @param[in] dpnd_field_dx As the WSV.
@@ -236,13 +236,13 @@ void get_direct_radiation(Workspace& ws,
                      const Verbosity& verbosity);
 
 /** Calculates the ppath towards the suns from a given position and indicates
- *  if star is visible or not.
+ *  if sun is visible or not.
  *
  * @param[in,out] ws ARTS workspace.
- * @param[out] sun_ppaths ArrayOfPpath Propagation path towards each star.
- * @param[out] suns_visible ArrayOfIndex Flag indicating if eah star is visible.
+ * @param[out] sun_ppaths ArrayOfPpath Propagation path towards each sun.
+ * @param[out] suns_visible ArrayOfIndex Flag indicating if eah sun is visible.
  * @param[out] sun_rte_los ArrayOfVector Incoming direction of the each
- *             transmitted star radiation.
+ *             transmitted sun radiation.
  * @param[in] rte_pos As the WSV.
  * @param[in] suns As the WSV.
  * @param[in] f_grid As the WSV.

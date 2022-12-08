@@ -136,8 +136,8 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
                                    refr_index_imag=[ComplexRefractiveIndex[1]])
     ws.Copy(ws.surface_complex_refr_index, ws.complex_refr_index)
 
-    # set star source
-    ws.starsAddSingleBlackbody(longitude=sun_longitude_pos)
+    # set sun source
+    ws.sunsAddSingleBlackbody(longitude=sun_longitude_pos)
 
     # =============================================================================
     # the calculation
@@ -166,8 +166,8 @@ def ARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_longitude_pos,
 
     ws.lbl_checkedCalc()
 
-    # Switch off stars
-    ws.IndexSet(ws.stars_do, 1)
+    # Switch off sun
+    ws.IndexSet(ws.suns_do, 1)
 
     ws.yCalc()
 

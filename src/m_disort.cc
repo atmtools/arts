@@ -67,7 +67,7 @@ void DisortCalc(Workspace& ws,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    const ArrayOfSun& stars,
+                    const ArrayOfSun& suns,
                     const Vector& f_grid,
                     const Vector& za_grid,
                     const Vector& aa_grid,
@@ -76,7 +76,7 @@ void DisortCalc(Workspace& ws,
                     const Numeric& surface_skin_t,
                     const Vector& surface_scalar_reflectivity,
                     const Index& gas_scattering_do,
-                    const Index& stars_do,
+                    const Index& suns_do,
                     const ArrayOfString& disort_aux_vars,
                     const Index& nstreams,
                     const Index& Npfct,
@@ -104,46 +104,46 @@ void DisortCalc(Workspace& ws,
                      za_grid,
                      nstreams);
 
-  //Check for number of stars
-  ARTS_USER_ERROR_IF(stars.nelem() > 1,
+  //Check for number of suns
+  ARTS_USER_ERROR_IF(suns.nelem() > 1,
                      "The simulation setup contains ",
-                     stars.nelem(),
-                     " stars. \n"
-                     "Disort can handle only one star.")
+                     suns.nelem(),
+                     " suns. \n"
+                     "Disort can handle only one sun.")
 
   //Check for aa_grid
   ARTS_USER_ERROR_IF(aa_grid.nelem() == 0,
                      "aa_grid has a size of 0.\n",
                      "aa_grid must have at least a size of one.")
 
-  //allocate Varibale for direct (star) source
-  Vector star_rte_los;
-  Vector star_pos(3);
+  //allocate Varibale for direct (sun) source
+  Vector sun_rte_los;
+  Vector sun_pos(3);
   Vector cloudboxtop_pos(3);
-  Index star_on = stars_do;
+  Index sun_on = suns_do;
   Numeric scale_factor;
   Index N_aa=aa_grid.nelem();
 
-  if (star_on){
+  if (sun_on){
 
     Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
     Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
 
-    //Position of star
-    star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
+    //Position of sun
+    sun_pos = {suns[0].distance, suns[0].latitude, suns[0].longitude};
 
     // Position of top of cloudbox
     cloudboxtop_pos = {
         z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
-    rte_losGeometricFromRtePosToRtePos2(star_rte_los,
+    rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
                                         3,
                                         lat_grid,
                                         lon_grid,
                                         refellipsoid,
                                         cloudboxtop_pos,
-                                        star_pos,
+                                        sun_pos,
                                         verbosity);
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
@@ -151,8 +151,8 @@ void DisortCalc(Workspace& ws,
     // because DISORT does not handle refraction at all.
 
     // Check if sun is above horizon, if not switch it off
-    if (star_rte_los[0] >= 90) {
-      star_on = 0;
+    if (sun_rte_los[0] >= 90) {
+      sun_on = 0;
 
       //set number of azimuth angle to 1
       N_aa = 1;
@@ -169,19 +169,19 @@ void DisortCalc(Workspace& ws,
                     cloudboxtop_pos[0];
 
     //get the distance between sun and cloudbox top
-    Numeric R_Star2CloudboxTop;
-    distance3D(R_Star2CloudboxTop,
+    Numeric R_Sun2CloudboxTop;
+    distance3D(R_Sun2CloudboxTop,
                R_TOA,
                lat_true[0],
                lon_true[0],
-               star_pos[0],
-               star_pos[1],
-               star_pos[2]);
+               sun_pos[0],
+               sun_pos[1],
+               sun_pos[2]);
 
-    // Geometric scaling factor, scales the star spectral irradiance at the surface
-    // of the star to the spectral irradiance of the star at cloubbox top.
-    scale_factor=stars[0].radius*stars[0].radius/
-                   (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
+    // Geometric scaling factor, scales the sun spectral irradiance at the surface
+    // of the sun to the spectral irradiance of the sun at cloubbox top.
+    scale_factor=suns[0].radius*suns[0].radius/
+                   (suns[0].radius*suns[0].radius+R_Sun2CloudboxTop*R_Sun2CloudboxTop);
 
 
 
@@ -219,7 +219,7 @@ void DisortCalc(Workspace& ws,
               vmr_field(joker, joker, 0, 0),
               pnd_field(joker, joker, 0, 0),
               scat_data,
-              stars,
+              suns,
               propmat_clearsky_agenda,
               gas_scattering_agenda,
               cloudbox_limits,
@@ -227,9 +227,9 @@ void DisortCalc(Workspace& ws,
               albedo,
               za_grid,
               aa_grid,
-              star_rte_los,
+              sun_rte_los,
               gas_scattering_do,
-              star_on,
+              sun_on,
               disort_aux_vars,
               scale_factor,
               nstreams,
@@ -267,14 +267,14 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    const ArrayOfSun& stars,
+                    const ArrayOfSun& suns,
                     const Vector& f_grid,
                     const Vector& za_grid,
                     const Vector& aa_grid,
                     const Index& stokes_dim,
                     const Matrix& z_surface,
                     const Index& gas_scattering_do,
-                    const Index& stars_do,
+                    const Index& suns_do,
                     const ArrayOfString& disort_aux_vars,
                     const Index& nstreams,
                     const Index& Npfct,
@@ -304,46 +304,46 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                      za_grid,
                      nstreams);
 
-  //Check for number of stars
-  ARTS_USER_ERROR_IF(stars.nelem() > 1,
+  //Check for number of suns
+  ARTS_USER_ERROR_IF(suns.nelem() > 1,
                      "The simulation setup contains ",
-                     stars.nelem(),
-                     " stars. \n"
-                     "Disort can handle only one star.")
+                     suns.nelem(),
+                     " suns. \n"
+                     "Disort can handle only one sun.")
 
   //Check for aa_grid
   ARTS_USER_ERROR_IF(aa_grid.nelem() == 0,
                      "aa_grid has a size of 0.\n",
                      "aa_grid must have at least a size of one.")
 
-  //allocate Varibale for direct (star) source
-  Vector star_rte_los;
-  Vector star_pos(3);
+  //allocate Varibale for direct (sun) source
+  Vector sun_rte_los;
+  Vector sun_pos(3);
   Vector cloudboxtop_pos(3);
-  Index star_on = stars_do;
+  Index sun_on = suns_do;
   Numeric scale_factor;
   Index N_aa=aa_grid.nelem();
 
-  if (star_on){
+  if (sun_on){
 
     Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
     Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
 
-    //Position of star
-    star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
+    //Position of sun
+    sun_pos = {suns[0].distance, suns[0].latitude, suns[0].longitude};
 
     // Position of top of cloudbox
     cloudboxtop_pos = {
         z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
-    rte_losGeometricFromRtePosToRtePos2(star_rte_los,
+    rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
                                         3,
                                         lat_grid,
                                         lon_grid,
                                         refellipsoid,
                                         cloudboxtop_pos,
-                                        star_pos,
+                                        sun_pos,
                                         verbosity);
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
@@ -351,8 +351,8 @@ void DisortCalcWithARTSSurface(Workspace& ws,
     // because DISORT does not handle refraction at all.
 
     // Check if sun is above horizon, if not switch it off
-    if (star_rte_los[0] >= 90) {
-      star_on = 0;
+    if (sun_rte_los[0] >= 90) {
+      sun_on = 0;
 
       // set number of azimuth angle to 1
       N_aa = 1;
@@ -370,19 +370,19 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     cloudboxtop_pos[0];
 
     //get the distance between sun and cloudbox top
-    Numeric R_Star2CloudboxTop;
-    distance3D(R_Star2CloudboxTop,
+    Numeric R_Sun2CloudboxTop;
+    distance3D(R_Sun2CloudboxTop,
                R_TOA,
                lat_true[0],
                lon_true[0],
-               star_pos[0],
-               star_pos[1],
-               star_pos[2]);
+               sun_pos[0],
+               sun_pos[1],
+               sun_pos[2]);
 
-    // Geometric scaling factor, scales the star spectral irradiance at the surface
-    // of the star to the spectral irradiance of the star at cloubbox top.
-    scale_factor=stars[0].radius*stars[0].radius/
-                   (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
+    // Geometric scaling factor, scales the sun spectral irradiance at the surface
+    // of the sun to the spectral irradiance of the sun at cloubbox top.
+    scale_factor=suns[0].radius*suns[0].radius/
+                   (suns[0].radius*suns[0].radius+R_Sun2CloudboxTop*R_Sun2CloudboxTop);
 
 
 
@@ -436,7 +436,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
               vmr_field(joker, joker, 0, 0),
               pnd_field(joker, joker, 0, 0),
               scat_data,
-              stars,
+              suns,
               propmat_clearsky_agenda,
               gas_scattering_agenda,
               cloudbox_limits,
@@ -444,9 +444,9 @@ void DisortCalcWithARTSSurface(Workspace& ws,
               albedo,
               za_grid,
               aa_grid,
-              star_rte_los,
+              sun_rte_los,
               gas_scattering_do,
-              star_on,
+              sun_on,
               disort_aux_vars,
               scale_factor,
               nstreams,
@@ -477,7 +477,7 @@ void DisortCalcClearsky(Workspace& ws,
                     const Vector& lat_true,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
-                    const ArrayOfSun& stars,
+                    const ArrayOfSun& suns,
                     const Vector& f_grid,
                     const Vector& za_grid,
                     const Vector& aa_grid,
@@ -486,7 +486,7 @@ void DisortCalcClearsky(Workspace& ws,
                     const Numeric& surface_skin_t,
                     const Vector& surface_scalar_reflectivity,
                     const Index& gas_scattering_do,
-                    const Index& stars_do,
+                    const Index& suns_do,
                     const ArrayOfString& disort_aux_vars,
                     const Index& nstreams,
                     const Index& cdisort_quiet,
@@ -553,7 +553,7 @@ void DisortCalcClearsky(Workspace& ws,
                  lon_true,
                  refellipsoid,
                  scat_data,
-                 stars,
+                 suns,
                  f_grid,
                  za_grid,
                  aa_grid,
@@ -562,7 +562,7 @@ void DisortCalcClearsky(Workspace& ws,
                  surface_skin_t,
                  surface_scalar_reflectivity,
                  gas_scattering_do,
-                 stars_do,
+                 suns_do,
                  disort_aux_vars,
                  nstreams,
                  181,
@@ -595,14 +595,14 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Vector& lon_true,
                 const Vector& refellipsoid,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const ArrayOfSun& stars,
+                const ArrayOfSun& suns,
                 const Vector& f_grid,
                 const Index& stokes_dim,
                 const Matrix& z_surface,
                 const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
                 const Index& gas_scattering_do,
-                const Index& stars_do,
+                const Index& suns_do,
                 const ArrayOfString& disort_aux_vars,
                 const Index& nstreams,
                 const Index& Npfct,
@@ -635,43 +635,43 @@ void DisortCalcIrradiance(Workspace& ws,
                                 scat_data,
                                 nstreams);
 
-  //Check for number of stars
-  ARTS_USER_ERROR_IF(stars.nelem() > 1,
+  //Check for number of suns
+  ARTS_USER_ERROR_IF(suns.nelem() > 1,
                      "The simulation setup contains ",
-                     stars.nelem(),
-                     " stars. \n"
-                     "Disort can handle only one star.")
+                     suns.nelem(),
+                     " suns. \n"
+                     "Disort can handle only one sun.")
 
-  //allocate Varibale for direct (star) source
-  Vector star_rte_los;
-  Vector star_pos(3);
+  //allocate Varibale for direct (sun) source
+  Vector sun_rte_los;
+  Vector sun_pos(3);
   Vector cloudboxtop_pos(3);
-  Index star_on = stars_do;
+  Index sun_on = suns_do;
   Numeric scale_factor;
 
   spectral_irradiance_field.resize(Nf, Np_cloud, 1, 1, 2);
   spectral_irradiance_field = NAN;
 
-  if (star_on){
+  if (sun_on){
 
     Vector lon_grid{lon_true[0] - 0.1, lon_true[0] + 0.1};
     Vector lat_grid{lat_true[0] - 0.1, lat_true[0] + 0.1};
 
-    //Position of star
-    star_pos = {stars[0].distance, stars[0].latitude, stars[0].longitude};
+    //Position of sun
+    sun_pos = {suns[0].distance, suns[0].latitude, suns[0].longitude};
 
     // Position of top of cloudbox
     cloudboxtop_pos = {
         z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
-    rte_losGeometricFromRtePosToRtePos2(star_rte_los,
+    rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
                                         3,
                                         lat_grid,
                                         lon_grid,
                                         refellipsoid,
                                         cloudboxtop_pos,
-                                        star_pos,
+                                        sun_pos,
                                         verbosity);
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
@@ -679,8 +679,8 @@ void DisortCalcIrradiance(Workspace& ws,
     // because DISORT does not handle refraction at all.
 
     // Check if sun is above horizon, if not switch it off
-    if (star_rte_los[0] >= 90) {
-      star_on = 0;
+    if (sun_rte_los[0] >= 90) {
+      sun_on = 0;
 
       CREATE_OUT0;
       out0 << "Sun is below the horizon\n";
@@ -693,19 +693,19 @@ void DisortCalcIrradiance(Workspace& ws,
                     cloudboxtop_pos[0];
 
     //get the distance between sun and cloudbox top
-    Numeric R_Star2CloudboxTop;
-    distance3D(R_Star2CloudboxTop,
+    Numeric R_Sun2CloudboxTop;
+    distance3D(R_Sun2CloudboxTop,
                R_TOA,
                lat_true[0],
                lon_true[0],
-               star_pos[0],
-               star_pos[1],
-               star_pos[2]);
+               sun_pos[0],
+               sun_pos[1],
+               sun_pos[2]);
 
-    // Geometric scaling factor, scales the star spectral irradiance at the surface
-    // of the star to the spectral irradiance of the star at cloubbox top.
-    scale_factor=stars[0].radius*stars[0].radius/
-                   (stars[0].radius*stars[0].radius+R_Star2CloudboxTop*R_Star2CloudboxTop);
+    // Geometric scaling factor, scales the sun spectral irradiance at the surface
+    // of the sun to the spectral irradiance of the sun at cloubbox top.
+    scale_factor=suns[0].radius*suns[0].radius/
+                   (suns[0].radius*suns[0].radius+R_Sun2CloudboxTop*R_Sun2CloudboxTop);
 
   }
 
@@ -726,15 +726,15 @@ void DisortCalcIrradiance(Workspace& ws,
                    vmr_field(joker, joker, 0, 0),
                    pnd_field(joker, joker, 0, 0),
                    scat_data,
-                   stars,
+                   suns,
                    propmat_clearsky_agenda,
                    gas_scattering_agenda,
                    cloudbox_limits,
                    btemp,
                    albedo,
-                   star_rte_los,
+                   sun_rte_los,
                    gas_scattering_do,
-                   star_on,
+                   sun_on,
                    disort_aux_vars,
                    scale_factor,
                    nstreams,

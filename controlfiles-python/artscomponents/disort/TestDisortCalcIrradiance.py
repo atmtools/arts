@@ -127,9 +127,9 @@ ws.surface_skin_t = ws.t_field.value[0, 0, 0]
 # set surface reflectivity
 ws.surface_scalar_reflectivity = [reflectivity]
 
-# set star source
-# ws.Touch(ws.stars)
-ws.starsAddSingleBlackbody(latitude=sun_pos[0], longitude=sun_pos[1])
+# set sun source
+# ws.Touch(ws.sun)
+ws.sunsAddSingleBlackbody(latitude=sun_pos[0], longitude=sun_pos[1])
 
 # set cloudbox to full atmosphere
 ws.cloudboxSetFullAtm()

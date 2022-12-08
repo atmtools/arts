@@ -201,14 +201,14 @@ void iyClearsky(
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const Index& gas_scattering_do,
-    const Index& stars_do,
+    const Index& suns_do,
     const String& iy_unit,
     const ArrayOfString& iy_aux_vars,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Ppath& ppath,
     const Vector& rte_pos2,
-    const ArrayOfSun& stars,
+    const ArrayOfSun& suns,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const String& rt_integration_option,
@@ -243,11 +243,11 @@ void iyClearsky(
                       "A secondary propagation path starting at the "
                       "surface and is going directly into the surface "
                       "is found. This is not allowed.");
-  ARTS_USER_ERROR_IF (iy_unit != "1" && stars_do,
-                     "If stars are present only iy_unit=\"1\" can be used.");
+  ARTS_USER_ERROR_IF (iy_unit != "1" && suns_do,
+                     "If suns are present only iy_unit=\"1\" can be used.");
 
-  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && (stars_do || gas_scattering_do) , R"--(
-Jacobian calculation are not supported when gas scattering or stars are included.
+  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && (suns_do || gas_scattering_do) , R"--(
+Jacobian calculation are not supported when gas scattering or suns are included.
 This feature will be added in a future version.
 )--");
 
@@ -398,7 +398,7 @@ This feature will be added in a future version.
     }
 
 
-   //allocate Varibale for direct (star) source, that is needed outside ppath loop.
+   //allocate Varibale for direct (sun) source, that is needed outside ppath loop.
 
     //dummy variables needed for the output and input of
     // gas_scattering_agenda
@@ -452,30 +452,30 @@ This feature will be added in a future version.
                                              j_analytical_do);
 
 
-        RadiationVector scattered_starlight(nf, ns);
+        RadiationVector scattered_sunlight(nf, ns);
 
         if (gas_scattering_do) {
 
-          ArrayOfIndex stars_visible(stars.nelem());
+          ArrayOfIndex suns_visible(suns.nelem());
 
           Numeric minP = min(ppvar_p);
 
-          if (stars_do && ppvar_p[ip] > minP) {
+          if (suns_do && ppvar_p[ip] > minP) {
             // We skip the uppermost altitude
             // level as there can be sometimes issue due
             // to the finite precision when calculating
-            // the (star-)ppath. The influence of the
+            // the (sun-)ppath. The influence of the
             // uppermost level in view of scattering
             // is negligible due to the low density.
-            ArrayOfPpath star_ppaths(stars.nelem());
-            ArrayOfVector star_rte_los(stars.nelem(), Vector(2));
+            ArrayOfPpath sun_ppaths(suns.nelem());
+            ArrayOfVector sun_rte_los(suns.nelem(), Vector(2));
 
             get_sun_ppaths(wss,
-                            star_ppaths,
-                            stars_visible,
-                            star_rte_los,
+                            sun_ppaths,
+                            suns_visible,
+                            sun_rte_los,
                             ppath.pos(ip, joker),
-                            stars,
+                            suns,
                             f_grid,
                             atmosphere_dim,
                             p_grid,
@@ -489,12 +489,12 @@ This feature will be added in a future version.
                             ppath_step_agenda,
                             verbosity);
 
-            ArrayOfMatrix transmitted_starlight;
-            ArrayOfArrayOfTensor3 dtransmitted_starlight_dummy(stars.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
+            ArrayOfMatrix transmitted_sunlight;
+            ArrayOfArrayOfTensor3 dtransmitted_sunlight_dummy(suns.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
             get_direct_radiation(wss,
-                                 transmitted_starlight,
-                                 dtransmitted_starlight_dummy,
+                                 transmitted_sunlight,
+                                 dtransmitted_sunlight_dummy,
                                  stokes_dim,
                                  f_grid,
                                  atmosphere_dim,
@@ -515,9 +515,9 @@ This feature will be added in a future version.
                                  cloudbox_limits_dummy,
                                  gas_scattering_do,
                                  1,
-                                 star_ppaths,
-                                 stars,
-                                 stars_visible,
+                                 sun_ppaths,
+                                 suns,
+                                 suns_visible,
                                  refellipsoid,
                                  pnd_field_dummy,
                                  dpnd_field_dx_dummy,
@@ -531,26 +531,26 @@ This feature will be added in a future version.
                                  rte_alonglos_v,
                                  verbosity);
 
-            //Loop over the different stars to get the total scattered starlight
-            RadiationVector scattered_starlight_istar(nf, ns);
+            //Loop over the different suns to get the total scattered starlight
+            RadiationVector scattered_sunlight_isun(nf, ns);
 
-            for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-              if (stars_visible[i_star]) {
+            for (Index i_sun = 0; i_sun < suns.nelem(); i_sun++) {
+              if (suns_visible[i_sun]) {
 
-                // here we calculate how much incoming star radiation is scattered
+                // here we calculate how much incoming sun radiation is scattered
                 //into the direction of the ppath
                 get_scattered_sunsource(wss,
-                                         scattered_starlight_istar,
+                                         scattered_sunlight_isun,
                                          f_grid,
                                          ppvar_p[ip],
                                          ppvar_t[ip],
                                          ppvar_vmr(joker, ip),
-                                         transmitted_starlight[i_star],
-                                         star_rte_los[i_star],
+                                         transmitted_sunlight[i_sun],
+                                         sun_rte_los[i_sun],
                                          ppath.los(ip, joker),
                                          gas_scattering_agenda);
 
-                scattered_starlight += scattered_starlight_istar;
+                scattered_sunlight += scattered_sunlight_isun;
               }
             }
           }
@@ -584,11 +584,11 @@ This feature will be added in a future version.
             FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
         }
 
-        // scattered_starlight is changed within
+        // scattered_sunlight is changed within
         // stepwise source.
         stepwise_source(src_rad[ip],
                         dsrc_rad[ip],
-                        scattered_starlight,
+                        scattered_sunlight,
                         K[ip],
                         a,
                         S,
@@ -698,17 +698,17 @@ This feature will be added in a future version.
   // Direct radiative background
   Matrix iy_direct(nf, ns, 0.);
 
-  if (stars_do) {
+  if (suns_do) {
     Matrix iy_direct_toa;
     Tensor3 total_transmission;
     total_transmission = tot_tra[np - 1];
     Index stars_visible;
 
-    // Get incoming star radiation at top of the atmosphere. if star is not visible
+    // Get incoming sun radiation at top of the atmosphere. if sun is not visible
     // in los, iy_direct_toa will be zero
     get_sun_background(iy_direct_toa,
                         stars_visible,
-                        stars,
+                        suns,
                         ppath,
                         f_grid,
                         stokes_dim,
@@ -722,7 +722,7 @@ This feature will be added in a future version.
              iy_direct_toa(iv, joker));
       }
 
-      //Add star background
+      //Add sun background
       iy += iy_direct_toa;
     }
   }

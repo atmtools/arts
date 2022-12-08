@@ -152,7 +152,7 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     ws.VectorSet(ws.surface_scalar_reflectivity, Reflectivity)
 
     # set a simple blackbody sun
-    ws.starsAddSingleBlackbody(latitude=sun_pos[0], longitude=sun_pos[1])
+    ws.sunsAddSingleBlackbody(latitude=sun_pos[0], longitude=sun_pos[1])
 
     # No jacobian calculations
     ws.jacobianOff()
@@ -181,8 +181,8 @@ def starARTS_clearsky(f_grid, sensor_pos, sensor_los, sun_pos, Reflectivity,
     # Switch on gas scattering
     ws.IndexSet(ws.gas_scattering_do, 1)
 
-    # Switch off stars
-    ws.IndexSet(ws.stars_do, 1)
+    # Switch off sun
+    ws.IndexSet(ws.suns_do, 1)
 
     # the actual simulation
     ws.yCalc()

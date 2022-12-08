@@ -926,45 +926,45 @@ temperature.
  quantity is attenuated by the factor $e^{-\tau}$ before it reaches the
  observation point.
 
-\section{Clear sky simulations with star like sources}
+\section{Clear sky simulations with sun like sources}
 \label{sec:rtetheory:ClearskyDirectSources}
 
-In this section we describe the radiative transfer in clearsky with star
+In this section we describe the radiative transfer in clearsky with sun
 like sources.
 In this context clear sky means that there is no scattering by liquid or
 solid matter but scattering by atoms and molecules (gas scattering, see also
 Sect.~\ref{sec:abs_theory:gas_scattering}).
 Fig.~\ref{fig:rtetheory:star_receiver_geometry} shows the geometry for a
 reciever outside of the atmosphere. The incoming direct radiation (yellow rays)
-from the star is attenuated by the atmosphere and scattered at the surface and
+from the sun is attenuated by the atmosphere and scattered at the surface and
 in the atmosphere (black dots) towards the receiver.
 
 \begin{figure}[t]
  \begin{center}
    \includegraphics*[width=0.6\hsize]{star_reciever_geometry}
-   \caption{Radiative transfer of direct radiation form a star to 
+   \caption{Radiative transfer of direct radiation form a sun to
    a nadir pointing receiver outside of the atmosphere assuming single
    scattering.}
   \label{fig:rtetheory:star_receiver_geometry}  
  \end{center}
 \end{figure}
 
- The star is assumed to be far away from the planet or to be more precise
+ The sun is assumed to be far away from the planet or to be more precise
  \begin{equation}
   r_{\astrosun}\ll d_{\astrosun p}
  \end{equation}
- with $r_{\astrosun}$ the star radius,
- and $d_{\astrosun p}$ the distance between star and TOA of the planet.
+ with $r_{\astrosun}$ the sun radius,
+ and $d_{\astrosun p}$ the distance between sun and TOA of the planet.
  This means that the angular variability of the direction of the  radiation
- from the star can be neglected (parallel beam or collimated  beam approximation)
+ from the sun can be neglected (parallel beam or collimated  beam approximation)
  and the incoming radiation at top of  the atmosphere (TOA) can be described as
  \begin{equation}
  I_{\astrosun,TOA}\left(\Omega\right)=F_{\astrosun}\delta\left(\Omega,\Omega'\right)\label{eq:rtetheory:directsource}
  \end{equation}
- with $\Omega'$ the direction of the star. We neglect polarization here and in the follwoing part of this section for
+ with $\Omega'$ the direction of the sun. We neglect polarization here and in the follwoing part of this section for
  the sake of simplicity.
 
-The flux of the incoming radiation from the star at the top of the atmosphere
+The flux of the incoming radiation from the sun at the top of the atmosphere
 $F_{\astrosun}$ is
 \begin{align}
 	F_{\astrosun} &=
@@ -972,15 +972,15 @@ $F_{\astrosun}$ is
 		\text{d}\theta\text{d}\phi\nonumber\\
 		&=\pi I_{\astrosun}\sin^{2}\alpha
 \end{align}
-with $I_{\astrosun}$ the star spectral radiance, which is assumed
-to be isotropic, and $\alpha$ the angular radius of the star seen
+with $I_{\astrosun}$ the sun spectral radiance, which is assumed
+to be isotropic, and $\alpha$ the angular radius of the sun seen
 from TOA of the planet. This is 
 \begin{equation}
 	\alpha=\arctan\frac{r_{\astrosun}}{d_{\astrosun p}}\,.
 \end{equation}
 
 As gas scattering is rather weak, multi scattering can be neglected and only
-single scattering of the incoming radiation from the star needs to be considered. 
+single scattering of the incoming radiation from the sun needs to be considered.
 With this and Eq.~\ref{eq:rtetheory:directsource}, Eq.~\ref{eq:rtetheory:VRTE}
 neglecting polarization simplifies to  
 \begin{align}
@@ -1005,11 +1005,11 @@ $s$ is
 		\exp\left(\int_{0}^{s'_{toa}}k\left(\nu,s'\right)\mathrm{d}s'\right)
 \end{equation}
 with $s'$ the position along the path from the position $s$ to the top of the
-atmosphere in the direction of the star (yellow rays in Fig.~\ref{fig:rtetheory:star_receiver_geometry}).
+atmosphere in the direction of the sun (yellow rays in Fig.~\ref{fig:rtetheory:star_receiver_geometry}).
  
 
 As in section \ref{sec:rte_theory:ClearskyDirectSources} described the radius $r_{\astrosun}$ of
-and distance $d_{\astrosun}$ to the star like object must be known. The position of this object
+and distance $d_{\astrosun}$ to the sun like object must be known. The position of this object
 in the sky of the planet is defined by the latitude and longitude where it stands at its zenith.
 The monochromatic irradiance spectra is definde as the blackbody spectrum, which is calculated
 with the Plank function and the surface temperature of the object $T_{astrosun}$.

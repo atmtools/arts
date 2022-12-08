@@ -34,8 +34,8 @@ void py_star(py::module_& m) {
                              t[3].cast<Numeric>(),
                              t[4].cast<Numeric>(),
                              t[5].cast<Numeric>()};
-          })).doc()=R"--(Each star is described by a struct with its spectrum, radius
-distance from center of planet to center of star,
+          })).doc()=R"--(Each sun is described by a struct with its spectrum, radius
+distance from center of planet to center of sun,
 temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type )--";
 
