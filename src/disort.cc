@@ -806,20 +806,16 @@ void c_errmsg(const char* messag, int type) {
   Verbosity verbosity = disort_verbosity;
   static int warning_limit = FALSE, num_warnings = 0;
 
-  if (type == DS_ERROR) {
-    CREATE_OUT0;
-    out0 << "  ******* ERROR >>>>>>  " << messag << "\n";
-    arts_exit(1);
-  }
+  ARTS_USER_ERROR_IF(type == DS_ERROR, "DISORT ERROR >>>  ", messag);
 
   if (warning_limit) return;
 
   if (++num_warnings <= MAX_WARNINGS) {
     CREATE_OUT1;
-    out1 << "  ******* WARNING >>>>>>  " << messag << "\n";
+    out1 << "DISORT WARNING >>>  " << messag << "\n";
   } else {
     CREATE_OUT1;
-    out1 << "  >>>>>>  TOO MANY WARNING MESSAGES --  They will no longer be "
+    out1 << "DISORT TOO MANY WARNING MESSAGES --  They will no longer be "
             "printed  <<<<<<<\n\n";
     warning_limit = TRUE;
   }
@@ -1220,7 +1216,37 @@ void run_cdisort(Workspace& ws,
                 pmom(f_index, joker, joker).get_c_array(),
                 sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
-    c_disort(&ds, &out);
+    enum class Status { FIRST_TRY, RETRY, SUCCESS };
+    Status tries = Status::FIRST_TRY;
+    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    do {
+      try {
+        c_disort(&ds, &out);
+        tries = Status::SUCCESS;
+      } catch (const std::runtime_error& e) {
+        //catch cases if solar zenith angle=quadrature angle
+        if (tries == Status::FIRST_TRY) {
+          // change angle
+          if (umu0 < 1 - eps) {
+            umu0 += eps;
+          } else if (umu0 > 1 - eps) {
+            umu0 -= eps;
+          }
+
+          const Numeric shift =
+              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+          CREATE_OUT1;
+          out1
+              << "Solar zenith angle coincided with one of the quadrature angles\n"
+              << "We needed to shift the solar sun angle by " << shift
+              << "deg.\n";
+
+          ds.bc.umu0 = umu0;
+          tries = Status::RETRY;
+        } else
+          throw e;
+      }
+    } while (tries != Status::SUCCESS);
 
     for (Index i = 0; i < ds.nphi; i++) {
       for (Index j = 0; j < ds.numu; j++) {

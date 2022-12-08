@@ -910,6 +910,70 @@ void iyInterpCloudboxField(Matrix& iy,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void cloudbox_fieldInterp2Azimuth(
+                           Tensor7& cloudbox_field,
+                           const Index& cloudbox_on,
+                           const Vector& aa_grid,
+                           const Numeric& local_los_azimuth_angle,
+                           const Index& aa_interp_order,
+                           const Verbosity&) {
+  //--- Check input -----------------------------------------------------------
+  ARTS_USER_ERROR_IF (!cloudbox_on,
+                     "No need to use this method with cloudbox=0.");
+  ARTS_USER_ERROR_IF (!(aa_interp_order < aa_grid.nelem()),
+                     "Azimuth angle interpolation order *aa_interp_order*"
+                     " must be smaller\n"
+                     "than number of angles in *aa_grid*.");
+  //---------------------------------------------------------------------------
+
+  if (cloudbox_field.nrows()>1 && aa_grid.nelem()==cloudbox_field.nrows()){
+    Index nf = cloudbox_field.nlibraries();
+    Index np = cloudbox_field.nvitrines();
+    Index nla= cloudbox_field.nshelves();
+    Index nlo= cloudbox_field.nbooks();
+    Index nz = cloudbox_field.npages();
+    Index ns = cloudbox_field.ncols();
+
+    const Tensor7 cloudbox_field_in = std::move(cloudbox_field);
+    Numeric azimuth_los = local_los_azimuth_angle;
+
+    //Convert azimuth from -180,180 to 0,360 convention, as aa_grid is defined in 0,360
+    if (azimuth_los<0) azimuth_los+=360;
+
+    cloudbox_field.resize(nf,np,1,1,nz,1,ns);
+
+    // define interpolations compute cyclic for a azimuth grid [0, 360]
+    const auto lag_aa = LagrangeInterpolation(0,
+                                              azimuth_los,
+                                              aa_grid,
+                                              aa_interp_order,
+                                              false,
+                                              Interpolation::GridType::Cyclic,
+                                              {0, 360});
+
+    // Corresponding interpolation weights
+    const auto itw_aa=interpweights(lag_aa);
+
+    for (Index jf = 0; jf < nf; jf++) {
+      for (Index jp = 0; jp < np; jp++) {
+        for (Index jla = 0; jla < nla; jla++) {
+          for (Index jlo = 0; jlo < nlo; jlo++) {
+            for (Index jz = 0; jz < nz; jz++) {
+              for (Index js = 0; js < ns; js++) {
+                cloudbox_field(jf, jp, jla, jlo, jz, 0, js) =
+                    interp(cloudbox_field_in(jf, jp, jla, jlo, jz, joker, js),
+                           itw_aa,
+                           lag_aa);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldCrop(Tensor7& cloudbox_field,
                         ArrayOfIndex& cloudbox_limits,
                         const Index& atmosphere_dim,

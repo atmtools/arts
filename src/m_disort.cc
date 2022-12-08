@@ -122,6 +122,7 @@ void DisortCalc(Workspace& ws,
   Vector cloudboxtop_pos(3);
   Index star_on = stars_do;
   Numeric scale_factor;
+  Index N_aa=aa_grid.nelem();
 
   if (star_on){
 
@@ -153,17 +154,14 @@ void DisortCalc(Workspace& ws,
     if (star_rte_los[0] >= 90) {
       star_on = 0;
 
+      //set number of azimuth angle to 1
+      N_aa = 1;
+
       CREATE_OUT0;
       out0 << "Star is below the horizon\n";
       out0 << "Star is ignored.\n";
+      out0 << "cloudbox_field will have no azimuthal dependency!\n";
     }
-
-    init_ifield(cloudbox_field,
-                f_grid,
-                cloudbox_limits,
-                za_grid.nelem(),
-                aa_grid.nelem(),
-                stokes_dim);
 
     //get the cloudbox top distance to earth center.
     Numeric R_TOA = refell2r(refellipsoid,
@@ -192,13 +190,17 @@ void DisortCalc(Workspace& ws,
     out3 << "Disort calculation encountered aa_grid size larger than 1 in a case when it\n";
     out3 << "does not use aa_grid. Calculations are performed as if there is no aa_grid.\n";
 
-    init_ifield(cloudbox_field,
+    // set number of azimuth angle to 1
+    N_aa = 1;
+  }
+
+  init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
                 za_grid.nelem(),
-                1,
+                N_aa,
                 stokes_dim);
-  }
+
 
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
@@ -320,6 +322,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
   Vector cloudboxtop_pos(3);
   Index star_on = stars_do;
   Numeric scale_factor;
+  Index N_aa=aa_grid.nelem();
 
   if (star_on){
 
@@ -351,17 +354,15 @@ void DisortCalcWithARTSSurface(Workspace& ws,
     if (star_rte_los[0] >= 90) {
       star_on = 0;
 
+      // set number of azimuth angle to 1
+      N_aa = 1;
+
       CREATE_OUT0;
       out0 << "Star is below the horizon\n";
       out0 << "Star is ignored.\n";
-    }
+      out0 << "cloudbox_field will have no azimuthal dependency!\n";
 
-    init_ifield(cloudbox_field,
-                f_grid,
-                cloudbox_limits,
-                za_grid.nelem(),
-                aa_grid.nelem(),
-                stokes_dim);
+    }
 
     //get the cloudbox top distance to earth center.
     Numeric R_TOA = refell2r(refellipsoid,
@@ -390,13 +391,17 @@ void DisortCalcWithARTSSurface(Workspace& ws,
     out3 << "Disort calculation encountered aa_grid size larger than 1 in a case when it\n";
     out3 << "does not use aa_grid. Calculations are performed as if there is no aa_grid.\n";
 
-    init_ifield(cloudbox_field,
+    // set number of azimuth angle to 1
+    N_aa = 1;
+  }
+
+  init_ifield(cloudbox_field,
                 f_grid,
                 cloudbox_limits,
                 za_grid.nelem(),
-                1,
+                N_aa,
                 stokes_dim);
-  }
+
 
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
