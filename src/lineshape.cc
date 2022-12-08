@@ -2741,13 +2741,32 @@ void cutoff_frequency_loop(ComputeValues &com, Calculator &ls,
           const Complex dLM(dXdVMR.G, -dXdVMR.Y);
           const Complex dFls = ls.dFdVMR(dXdVMR) - ls_cut.dFdVMR(dXdVMR) + dFm;
           com.dF[com.jac_pos(iv, ij)] += S * LM * dFls + dLM * S * Fls;
-          if (self_species == deriv.QuantumIdentity().Species()) {
-            com.dF[com.jac_pos(iv, ij)] += ls_str.dSdSELFVMR() * LM * Fls;
+          
+          if (self_species == deriv.Target().species_id) {
+            com.dF[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dSdSELFVMR() * LM * Fls;
           }
+
+          if (ls_str.scaler() == deriv.Target().species_id) {
+            com.dF[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dSdOTHERVMR_if() * LM * Fls;
+          }
+
+          if (ls_str.scaler() == Species::Species::Bath) {
+            com.dF[com.jac_pos(iv, ij)] -= Sz * Sn * ls_str.dSdOTHERVMR_if() * LM * Fls;
+          }
+          
           if (do_nlte) {
             com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls + dLM * DS * Fls;
+
             if (self_species == deriv.QuantumIdentity().Species()) {
-              com.dF[com.jac_pos(iv, ij)] += ls_str.dNdSELFVMR() * LM * Fls;
+              com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
+            }
+
+            if (ls_str.scaler() ==  deriv.QuantumIdentity().Species()) {
+              com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdOTHERVMR_if() * LM * Fls;
+            }
+
+            if (ls_str.scaler() == Species::Species::Bath) {
+              com.dN[com.jac_pos(iv, ij)] -= Sz * Sn * ls_str.dNdOTHERVMR_if() * LM * Fls;
             }
           }
         } else {
@@ -2955,11 +2974,17 @@ void frequency_loop(ComputeValues &com, Calculator &ls, Calculator &ls_mirr,
           
           if (do_nlte) {
             com.dN[com.jac_pos(iv, ij)] += DS * LM * dFls + dLM * DS * Fls;
+
             if (self_species == deriv.QuantumIdentity().Species()) {
               com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
             }
+
             if (ls_str.scaler() ==  deriv.QuantumIdentity().Species()) {
               com.dN[com.jac_pos(iv, ij)] += Sz * Sn * ls_str.dNdOTHERVMR_if() * LM * Fls;
+            }
+
+            if (ls_str.scaler() == Species::Species::Bath) {
+              com.dN[com.jac_pos(iv, ij)] -= Sz * Sn * ls_str.dNdOTHERVMR_if() * LM * Fls;
             }
           }
         } else {
