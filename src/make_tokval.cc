@@ -30,7 +30,7 @@ int main() {
 #include "matpackVII.h"
 #include "mc_antenna.h"
 #include "optproperties.h"
-#include "star.h"
+#include "sun.h"
 #include "supergeneric.h"
 #include "telsem.h"
 #include "tessem.h"

@@ -38,7 +38,7 @@
 #include "ppath.h"
 #include "energylevelmap.h"
 #include "optproperties.h"
-#include "star.h"
+#include "sun.h"
 
 class Agenda;
 class Workspace;
@@ -196,7 +196,7 @@ void dsurface_check(const ArrayOfString& surface_props_names,
  *
  * @param[in, out] ws ARTS workspace
  * @param[out] iy_incoming Matrix Incomming monochromatic radiance
- * @param[out] stars_visible Index Flag indicating if star(s) are in line of sight
+ * @param[out] stars_visible Index Flag indicating if sun(s) are in line of sight
  * @param[in] rtp_pos As the WVS with the same name.
  * @param[in] rtp_los As the WVS with the same name.
  * @param[in] stokes_dim As the WVS with the same name.
@@ -230,7 +230,7 @@ void dsurface_check(const ArrayOfString& surface_props_names,
  * @param[in] gas_scattering_do As the WVS with the same name.
  * @param[in] jacobian_do As the WVS with the same name.
  * @param[in] jacobian_quantities As the WVS with the same name.
- * @param[in] stars As the WVS with the same name.
+ * @param[in] suns As the WVS with the same name.
  * @param[in] rte_alonglos_v As the WVS with the same name.
  * @param[in] propmat_clearsky_agenda As the WVS with the same name.
  * @param[in] water_p_eq_agenda As the WVS with the same name.
@@ -276,7 +276,7 @@ void surface_get_incoming_direct(
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& suns,
     const Numeric& rte_alonglos_v,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,

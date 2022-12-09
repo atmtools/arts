@@ -5985,7 +5985,7 @@ Available models:
           " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
           "                               scattering albedo.\n"
           " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
-          "                               Zero, if no star is present \n"),
+          "                               Zero, if no sun is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -6009,7 +6009,7 @@ Available models:
          "lon_true",
          "refellipsoid",
          "scat_data",
-         "stars",
+         "suns",
          "f_grid",
          "za_grid",
          "aa_grid",
@@ -6018,7 +6018,7 @@ Available models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do",
+         "suns_do",
          "disort_aux_vars"),
       GIN("nstreams", "Npfct", "only_tro", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index"),
@@ -6060,7 +6060,7 @@ Available models:
           " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
           "                               scattering albedo.\n"
           " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
-          "                               Zero, if no star is present \n"),
+          "                               Zero, if no sun is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -6085,14 +6085,14 @@ Available models:
          "lon_true",
          "refellipsoid",
          "scat_data",
-         "stars",
+         "suns",
          "f_grid",
          "za_grid",
          "aa_grid",
          "stokes_dim",
          "z_surface",
          "gas_scattering_do",
-         "stars_do",
+         "suns_do",
          "disort_aux_vars"),
       GIN("nstreams", "Npfct", "only_tro", "quiet", "emission", "intensity_correction", "inc_angle"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index","Numeric"),
@@ -6134,7 +6134,7 @@ Available models:
           " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\n"
           "                               scattering albedo.\n"
           " \"Direct beam\": Matrix [f_grid, p_grid]. Level direct spectral radiance.\n"
-          "                               Zero, if no star is present \n"),
+          "                               Zero, if no sun is present \n"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
       OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
@@ -6152,7 +6152,7 @@ Available models:
          "lat_true",
          "lon_true",
          "refellipsoid",
-         "stars",
+         "suns",
          "f_grid",
          "za_grid",
          "aa_grid",
@@ -6161,7 +6161,7 @@ Available models:
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do",
+         "suns_do",
          "disort_aux_vars"),
       GIN("nstreams", "quiet", "emission", "intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
@@ -6205,7 +6205,7 @@ Available models:
           "                               scattering albedo.\n"
           " \"Direct downward spectral irradiance\": Matrix [f_grid, p_grid]. \n"
           "                               Direct downward spectral irradiance.\n"
-          "                               Zero, if no star is present. \n"
+          "                               Zero, if no sun is present. \n"
           " \"dFdtau\": Matrix [f_grid, p_grid]. Flux divergence in optical \n"
           "                               thickness space.\n"),
       AUTHORS("Manfred Brath"),
@@ -6228,14 +6228,14 @@ Available models:
          "lon_true",
          "refellipsoid",
          "scat_data",
-         "stars",
+         "suns",
          "f_grid",
          "stokes_dim",
          "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
-         "stars_do",
+         "suns_do",
          "disort_aux_vars"),
       GIN("nstreams", "Npfct", "only_tro", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index"),
@@ -8452,7 +8452,7 @@ Available models:
       NAME("iyClearsky"),
       DESCRIPTION(
           "Standard method for radiative transfer calculations with emission\n"
-          "and a direct (solar, star) source\n."
+          "and a direct (solar) source\n."
           "\n"
           "Designed to be part of *iy_main_agenda*. That is, only valid\n"
           "outside the cloudbox (no scattering). For details se the user guide.\n"
@@ -8489,7 +8489,7 @@ Available models:
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
           " \"Direct radiation\": Stokes vector of direct radiation. It dimensions\n"
-          "   are number of frequencies and *stokes_dim*. If no star is present \n"
+          "   are number of frequencies and *stokes_dim*. If no sun is present \n"
           "   in the line of sight, it is zero.\n"
           " \"Radiation Background\": Stokes vector of the radiation at start of\n"
           "   the propagation path. It dimensions are number of frequencies and\n"
@@ -8498,7 +8498,7 @@ Available models:
           "i.e. the column matching Stokes element I, while remaing columns are\n"
           "are filled with zeros.\n"
           "\n"
-          "IMPORTANT: No jacobian calculation is supported when stars or gas "
+          "IMPORTANT: No jacobian calculation is supported when suns or gas "
           "scattering is included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke", "Manfred Brath"),
       OUT("iy",
@@ -8542,14 +8542,14 @@ Available models:
          "ppath_lraytrace",
          "cloudbox_on",
          "gas_scattering_do",
-         "stars_do",
+         "suns_do",
          "iy_unit",
          "iy_aux_vars",
          "jacobian_do",
          "jacobian_quantities",
          "ppath",
          "rte_pos2",
-         "stars",
+         "suns",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
          "rt_integration_option",
@@ -9461,7 +9461,7 @@ Available models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
-         "stars_do",
+         "suns_do",
          "atmosphere_dim",
          "nlte_field",
          "cloudbox_on",
@@ -9495,7 +9495,7 @@ Available models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the scattering of the direct\n"
-          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "(sun) radiation. No diffuse incoming radiation is considered\n"
           "\n"
           "This method has no jacobian capability\n"),
       AUTHORS("Manfred Brath"),
@@ -9535,11 +9535,11 @@ Available models:
          "ppath_inside_cloudbox_do",
          "cloudbox_on",
          "cloudbox_limits",
-         "stars_do",
+         "suns_do",
          "gas_scattering_do",
          "jacobian_do",
          "jacobian_quantities",
-         "stars",
+         "suns",
          "rte_alonglos_v",
          "iy_unit",
          "propmat_clearsky_agenda",
@@ -9579,7 +9579,7 @@ Available models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
-         "stars_do",
+         "suns_do",
          "atmosphere_dim",
          "nlte_field",
          "cloudbox_on",
@@ -9613,7 +9613,7 @@ Available models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the scattering of the direct\n"
-          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "(sun) radiation. No diffuse incoming radiation is considered\n"
           "\n"
           "This method has no jacobian capability\n"),
       AUTHORS("Manfred Brath"),
@@ -9653,11 +9653,11 @@ Available models:
          "ppath_inside_cloudbox_do",
          "cloudbox_on",
          "cloudbox_limits",
-         "stars_do",
+         "suns_do",
          "gas_scattering_do",
          "jacobian_do",
          "jacobian_quantities",
-         "stars",
+         "suns",
          "rte_alonglos_v",
          "iy_unit",
          "propmat_clearsky_agenda",
@@ -9723,7 +9723,7 @@ Available models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
-         "stars_do",
+         "suns_do",
          "atmosphere_dim",
          "nlte_field",
          "cloudbox_on",
@@ -9757,7 +9757,7 @@ Available models:
           "This method is designed to be part of *iy_surface_agenda*\n"
           "\n"
           "Important this method calculates only the scattering of the direct\n"
-          "(star) radiation. No diffuse incoming radiation is considered\n"
+          "(sun) radiation. No diffuse incoming radiation is considered\n"
           "\n"
           "This method has no jacobian capability\n"),
       AUTHORS("Manfred Brath"),
@@ -9795,11 +9795,11 @@ Available models:
          "ppath_lraytrace",
          "cloudbox_on",
          "cloudbox_limits",
-         "stars_do",
+         "suns_do",
          "gas_scattering_do",
          "jacobian_do",
          "jacobian_quantities",
-         "stars",
+         "suns",
          "rte_alonglos_v",
          "iy_unit",
          "propmat_clearsky_agenda",
@@ -9836,7 +9836,7 @@ Available models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
-         "stars_do",
+         "suns_do",
          "atmosphere_dim",
          "nlte_field",
          "cloudbox_on",
@@ -9881,7 +9881,7 @@ Available models:
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
-         "stars_do",
+         "suns_do",
          "jacobian_quantities",
          "atmosphere_dim",
          "nlte_field",
@@ -19571,21 +19571,21 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starsAddSingleBlackbody"),
-      DESCRIPTION("Adds a single blackbody to *stars*\n"
+      NAME("sunsAddSingleBlackbody"),
+      DESCRIPTION("Adds a single blackbody to *suns*\n"
                   "\n"
                   "Important note:\n"
-                  "For a Sol-like star there are huge differences in the UV-range \n"
-                  "between the actual star spectrum and the blackbody spectrum"
-                  "with the effective temperature of the star. The blackbody star\""
+                  "For a Sol-like sun there are huge differences in the UV-range \n"
+                  "between the actual sun spectrum and the blackbody spectrum"
+                  "with the effective temperature of the sun. The blackbody sun\""
                   "strongly overestimates the UV radiation.\n"),
       AUTHORS("Jon Petersen"),
-      OUT("stars",
-          "stars_do"),
+      OUT("suns",
+          "suns_do"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stars",
+      IN("suns",
          "f_grid",
          "stokes_dim"),
       GIN("radius",
@@ -19603,24 +19603,24 @@ where N>=0 and the species name is something line "H2O".
                   "5772",
                   "0",
                   "0"),
-      GIN_DESC("The radius of the star in meter.\n"
+      GIN_DESC("The radius of the sun in meter.\n"
                "Default is the radius of our sun.\n",
-               "The average distance between the star and the planet in meter.\n"
+               "The average distance between the sun and the planet in meter.\n"
                "Default value is set to 1 a.u.\n",
-               "The effective temperature of the stars photosphere in Kelvin.\n"
+               "The effective temperature of the suns photosphere in Kelvin.\n"
                "Default is the temperature of our sun - 5772 Kelvin\n",
-               "The latitude or the zenith position of the star in the sky.\n",
-               "The longitude or azimuthal position of the star in the sky.\n")));
+               "The latitude or the zenith position of the sun in the sky.\n",
+               "The longitude or azimuthal position of the sun in the sky.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starsAddSingleFromGrid"),
+      NAME("sunsAddSingleFromGrid"),
       DESCRIPTION(
-          "Extracts a star spectrum from a field of such data and\n"
-          "adds it to *stars*.\n"
+          "Extracts a sun spectrum from a field of such data and\n"
+          "adds it to *suns*.\n"
           "\n"
-          "The method allows to obtain the star spectrum by\n"
+          "The method allows to obtain the sun spectrum by\n"
           "interpolation from a field of such data. \n"
-          "The star spectrum is expected to be stored as\n"
+          "The sun spectrum is expected to be stored as\n"
           "the irradiance at the suns photosphere.\n"
           "\n"
           "Unit:        GriddedField2: [W m-2 Hz-1]\n"
@@ -19634,15 +19634,15 @@ where N>=0 and the species name is something line "H2O".
           "are initialized according to planck's law of the temperature variable.\n"
           "Hence, a temperature of 0 means 0s the edges of the f_grid.\n"),
       AUTHORS("Jon Petersen"),
-      OUT("stars",
-          "stars_do"),
+      OUT("suns",
+          "suns_do"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stars",
+      IN("suns",
          "f_grid",
          "stokes_dim"),
-      GIN("star_spectrum_raw",
+      GIN("sun_spectrum_raw",
           "radius",
           "distance",
           "temperature",
@@ -19662,27 +19662,27 @@ where N>=0 and the species name is something line "H2O".
                   "-1",
                   "0",
                   "0",
-                  "Star spectrum from Griddedfield."),
+                  "Sun spectrum from Griddedfield."),
       GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
-               "The radius of the star in meter.\n"
+               "The radius of the sun in meter.\n"
                "Default is the radius of our sun.\n",
-               "The average distance between the center of the star and the \n"
+               "The average distance between the center of the sun and the \n"
                "center of the planet in meter.\n"
                "Default value is set to 1 a.u.\n",
                "The temperature of the padding if the f_grid is outside the \n"
-               "star spectrum data. Choose 0 for 0 at the edges or a effective\n"
+               "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"
                "temperature for a padding using plack's law.\n",
-               "The latitude or the zenith position of the star in the sky.\n",
-               "The longitude or azimuthal position of the star in the sky.\n",
-               "The description of the star.\n")));
+               "The latitude or the zenith position of the sun in the sky.\n",
+               "The longitude or azimuthal position of the sun in the sky.\n",
+               "The description of the sun.\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("starsOff"),
       DESCRIPTION(
-          "Turns all calculations with stars off \n"),
+          "Turns all calculations with suns off \n"),
       AUTHORS("Jon Petersen"),
-      OUT("stars_do",
-          "stars"),
+      OUT("suns_do",
+          "suns"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

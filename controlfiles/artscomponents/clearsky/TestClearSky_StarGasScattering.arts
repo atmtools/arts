@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration and test of a ARTS clear sky simulation with star (sun) 
+# Demonstration and test of a ARTS clear sky simulation with sun
 # including gas scattering and no refraction.
 #
 # Observation from the ground with one looking direction in the sun 
@@ -91,9 +91,9 @@ AtmFieldsCalcExpand1D
 
 
 
-# set star source
-Touch(stars)
-starsAddSingleBlackbody(distance=1.495978707e11, latitude=0., longitude=0.)
+# set sun source
+Touch(sun)
+sunsAddSingleBlackbody(distance=1.495978707e11, latitude=0., longitude=0.)
 
 # No jacobian calculations
 jacobianOff
@@ -125,8 +125,8 @@ VectorSet(surface_scalar_reflectivity,[0])
 #Switch on gas scattering
 IndexSet(gas_scattering_do,1)
 
-#Switch off stars
-IndexSet(stars_do,1)
+#Switch off sun
+IndexSet(suns_do,1)
 
 sensor_checkedCalc
 abs_xsec_agenda_checkedCalc

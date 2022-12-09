@@ -456,7 +456,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
-                         const Index& stars_do,
+                         const Index& suns_do,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,
                          const Index& cloudbox_on,
@@ -604,7 +604,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                       iy_transmittance,
                       iy_id,
                       jacobian_do,
-                      stars_do,
+                      suns_do,
                       jacobian_quantities,
                       atmosphere_dim,
                       nlte_field,
@@ -656,11 +656,11 @@ void iySurfaceFlatReflectivityDirect(
     const Index& ppath_inside_cloudbox_do,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& stars_do,
+    const Index& suns_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& suns,
     const Numeric& rte_alonglos_v,
     const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
@@ -669,21 +669,21 @@ void iySurfaceFlatReflectivityDirect(
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
   //Check for correct unit
-  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
-                     "If stars are present only iy_unit=\"1\" can be used.");
+  ARTS_USER_ERROR_IF(iy_unit != "1" && suns_do,
+                     "If suns are present only iy_unit=\"1\" can be used.");
 
   chk_size("iy", iy, f_grid.nelem(), stokes_dim);
 
-  if (stars_do) {
+  if (suns_do) {
     Matrix iy_incoming;
-    Index stars_visible;
+    Index suns_visible;
     Vector specular_los;
 
-    //Get incoming direct radiation, if no star is in line of sight, then
+    //Get incoming direct radiation, if no sun is in line of sight, then
     //iy_incoming is zero.
     surface_get_incoming_direct(ws,
                                 iy_incoming,
-                                stars_visible,
+                                suns_visible,
                                 specular_los,
                                 rtp_pos,
                                 rtp_los,
@@ -718,7 +718,7 @@ void iySurfaceFlatReflectivityDirect(
                                 gas_scattering_do,
                                 jacobian_do,
                                 jacobian_quantities,
-                                stars,
+                                suns,
                                 rte_alonglos_v,
                                 propmat_clearsky_agenda,
                                 water_p_eq_agenda,
@@ -726,7 +726,7 @@ void iySurfaceFlatReflectivityDirect(
                                 ppath_step_agenda,
                                 verbosity);
 
-    if (stars_visible) {
+    if (suns_visible) {
       Matrix surface_los;
       Tensor4 surface_rmatrix;
       Matrix surface_emission;
@@ -769,7 +769,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const Tensor3& iy_transmittance,
                                const Index& iy_id,
                                const Index& jacobian_do,
-                               const Index& stars_do,
+                               const Index& suns_do,
                                const Index& atmosphere_dim,
                                const EnergyLevelMap& nlte_field,
                                const Index& cloudbox_on,
@@ -916,7 +916,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                       iy_transmittance,
                       iy_id,
                       jacobian_do,
-                      stars_do,
+                      suns_do,
                       jacobian_quantities,
                       atmosphere_dim,
                       nlte_field,
@@ -968,11 +968,11 @@ void iySurfaceFlatRefractiveIndexDirect(
     const Index& ppath_inside_cloudbox_do,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& stars_do,
+    const Index& suns_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& suns,
     const Numeric& rte_alonglos_v,
     const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
@@ -981,21 +981,21 @@ void iySurfaceFlatRefractiveIndexDirect(
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
   //Check for correct unit
-  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
-                     "If stars are present only iy_unit=\"1\" can be used.");
+  ARTS_USER_ERROR_IF(iy_unit != "1" && suns_do,
+                     "If suns are present only iy_unit=\"1\" can be used.");
 
   chk_size("iy", iy, f_grid.nelem(), stokes_dim);
 
-  if (stars_do) {
+  if (suns_do) {
     Matrix iy_incoming;
-    Index stars_visible;
+    Index suns_visible;
     Vector specular_los;
 
-    //Get incoming direct radiation, if no star is in line of sight, then
+    //Get incoming direct radiation, if no sun is in line of sight, then
     //iy_incoming is zero.
     surface_get_incoming_direct(ws,
                                 iy_incoming,
-                                stars_visible,
+                                suns_visible,
                                 specular_los,
                                 rtp_pos,
                                 rtp_los,
@@ -1030,7 +1030,7 @@ void iySurfaceFlatRefractiveIndexDirect(
                                 gas_scattering_do,
                                 jacobian_do,
                                 jacobian_quantities,
-                                stars,
+                                suns,
                                 rte_alonglos_v,
                                 propmat_clearsky_agenda,
                                 water_p_eq_agenda,
@@ -1038,7 +1038,7 @@ void iySurfaceFlatRefractiveIndexDirect(
                                 ppath_step_agenda,
                                 verbosity);
 
-    if (stars_visible) {
+    if (suns_visible) {
       Matrix surface_los;
       Tensor4 surface_rmatrix;
       Matrix surface_emission;
@@ -1088,7 +1088,7 @@ void iySurfaceLambertian(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
-                         const Index& stars_do,
+                         const Index& suns_do,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,
                          const Index& cloudbox_on,
@@ -1177,7 +1177,7 @@ void iySurfaceLambertian(Workspace& ws,
 
 
   ArrayOfString iy_aux_var(0);
-  if (stars_do) {
+  if (suns_do) {
     iy_aux_var.resize(1);
     iy_aux_var[0] = "Direct radiation";
   }
@@ -1240,11 +1240,11 @@ void iySurfaceLambertian(Workspace& ws,
                             rte_pos2,
                             iy_main_agenda);
 
-      //For the case that a star is present and the los is towards a star, we
+      //For the case that a sun is present and the los is towards a sun, we
       //subtract the direct radiation, so that only the diffuse radiation is considered here.
-      //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+      //If sun is within los iy_aux[0] is the incoming and attenuated direct (sun)
       //radiation at the surface. Otherwise,  it is zero.
-      if (stars_do) {
+      if (suns_do) {
         iy_temp -= iy_aux[0];
       }
       iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
@@ -1303,11 +1303,11 @@ void iySurfaceLambertian(Workspace& ws,
                               rte_pos2,
                               iy_main_agenda);
 
-        //For the case that a star is present and the los is towards a star, we
+        //For the case that a sun is present and the los is towards a sun, we
         //subtract the direct radiation, so that only the diffuse radiation is considered here.
-        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //If sun is within los iy_aux[0] is the incoming and attenuated direct (sun)
         //radiation at the surface. Otherwise it is zero.
-        if (stars_do) {
+        if (suns_do) {
           iy_temp -= iy_aux[0];
         }
         iy_temp *= abs(cos(deg2rad(los[0])) * sin(deg2rad(los[0]))) *
@@ -1416,11 +1416,11 @@ void iySurfaceLambertianDirect(
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& stars_do,
+    const Index& suns_do,
     const Index& gas_scattering_do,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfStar& stars,
+    const ArrayOfSun& suns,
     const Numeric& rte_alonglos_v,
     const String& iy_unit,
     const Agenda& propmat_clearsky_agenda,
@@ -1429,15 +1429,15 @@ void iySurfaceLambertianDirect(
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
   //Allocate
-  ArrayOfVector star_rte_los(stars.nelem());
-  ArrayOfMatrix transmitted_starlight;
-  ArrayOfArrayOfTensor3 dtransmitted_starlight;
-  ArrayOfPpath star_ppaths(stars.nelem());
-  ArrayOfIndex stars_visible(stars.nelem());
+  ArrayOfVector sun_rte_los(suns.nelem());
+  ArrayOfMatrix transmitted_sunlight;
+  ArrayOfArrayOfTensor3 dtransmitted_sunlight;
+  ArrayOfPpath sun_ppaths(suns.nelem());
+  ArrayOfIndex suns_visible(suns.nelem());
 
   //Check for correct unit
-  ARTS_USER_ERROR_IF(iy_unit != "1" && stars_do,
-                     "If stars are present only iy_unit=\"1\" can be used.");
+  ARTS_USER_ERROR_IF(iy_unit != "1" && suns_do,
+                     "If suns are present only iy_unit=\"1\" can be used.");
   //Check size of iy
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
@@ -1456,15 +1456,15 @@ void iySurfaceLambertianDirect(
   chk_rte_pos(atmosphere_dim, rtp_pos);
 
 
-  //do something only if there is a star
-  if (stars_do) {
-    //get star ppaths
-    get_star_ppaths(ws,
-                    star_ppaths,
-                    stars_visible,
-                    star_rte_los,
+  //do something only if there is a sun
+  if (suns_do) {
+    //get sun ppaths
+    get_sun_ppaths(ws,
+                    sun_ppaths,
+                    suns_visible,
+                    sun_rte_los,
                     rtp_pos,
-                    stars,
+                    suns,
                     f_grid,
                     atmosphere_dim,
                     p_grid,
@@ -1479,8 +1479,8 @@ void iySurfaceLambertianDirect(
                     verbosity);
 
     get_direct_radiation(ws,
-                         transmitted_starlight,
-                         dtransmitted_starlight,
+                         transmitted_sunlight,
+                         dtransmitted_sunlight,
                          stokes_dim,
                          f_grid,
                          atmosphere_dim,
@@ -1501,9 +1501,9 @@ void iySurfaceLambertianDirect(
                          cloudbox_limits,
                          gas_scattering_do,
                          1,
-                         star_ppaths,
-                         stars,
-                         stars_visible,
+                         sun_ppaths,
+                         suns,
+                         suns_visible,
                          refellipsoid,
                          pnd_field,
                          dpnd_field_dx,
@@ -1517,15 +1517,15 @@ void iySurfaceLambertianDirect(
                          rte_alonglos_v,
                          verbosity);
 
-    //loop over stars
+    //loop over suns
     Vector specular_los, surface_normal;
 
-    for (Index i_star = 0; i_star < stars.nelem(); i_star++) {
-      if (stars_visible[i_star]) {
-        //star_rte_los is the direction toward the star, but we need from the star
+    for (Index i_sun = 0; i_sun < suns.nelem(); i_sun++) {
+      if (suns_visible[i_sun]) {
+        //sun_rte_los is the direction toward the sun, but we need from the sun
 
         Vector incoming_los;
-        mirror_los(incoming_los,star_rte_los[i_star], atmosphere_dim);
+        mirror_los(incoming_los,sun_rte_los[i_sun], atmosphere_dim);
 
         specular_losCalc(specular_los,
                          surface_normal,
@@ -1539,7 +1539,7 @@ void iySurfaceLambertianDirect(
                          0,
                          verbosity);
 
-        // Only the first component of transmitted_starlight is relevant.
+        // Only the first component of transmitted_sunlight is relevant.
         // Comment taken from surfaceLambertianSimple.
         // This follows VDISORT that refers to: K. L. Coulson, Polarization and Intensity of Light in
         // the Atmosphere (1989), page 229
@@ -1555,7 +1555,7 @@ void iySurfaceLambertianDirect(
             r = surface_scalar_reflectivity[i_freq];
           }
           iy_surface_direct[i_freq] = r / pi *
-                                      transmitted_starlight[i_star](i_freq, 0) *
+                                      transmitted_sunlight[i_sun](i_freq, 0) *
                                       cos(deg2rad(specular_los[0]));
         }
 
@@ -1579,7 +1579,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Tensor3& iy_transmittance,
                            const Index& iy_id,
                            const Index& jacobian_do,
-                           const Index& stars_do,
+                           const Index& suns_do,
                            const Index& atmosphere_dim,
                            const EnergyLevelMap& nlte_field,
                            const Index& cloudbox_on,
@@ -1637,7 +1637,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   Tensor3 I(nlos, nf, stokes_dim);
 
   ArrayOfString iy_aux_var(0);
-  if (stars_do) iy_aux_var.emplace_back("Direct radiation");
+  if (suns_do) iy_aux_var.emplace_back("Direct radiation");
 
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
@@ -1683,11 +1683,11 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                               rte_pos2,
                               iy_main_agenda);
 
-        //For the case that a star is present and the los is towards a star, we
+        //For the case that a sun is present and the los is towards a sun, we
         //subtract the direct radiation, so that only the diffuse radiation is considered here.
-        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //If sun is within los iy_aux[0] is the incoming and attenuated direct (sun)
         //radiation at the surface. Otherwise it is zero.
-        if (stars_do){
+        if (suns_do){
           iy-=iy_aux[0];
         }
 
@@ -1724,7 +1724,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
-                         const Index& stars_do,
+                         const Index& suns_do,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
                          const Index& atmosphere_dim,
                          const EnergyLevelMap& nlte_field,                         
@@ -1771,7 +1771,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
   Tensor3 I(nlos, nf, stokes_dim);
 
   ArrayOfString iy_aux_var(0);
-  if (stars_do) iy_aux_var.emplace_back("Direct radiation");
+  if (suns_do) iy_aux_var.emplace_back("Direct radiation");
 
   // Loop *surface_los*-es.
   if (nlos > 0) {
@@ -1816,11 +1816,11 @@ void iySurfaceRtpropCalc(Workspace& ws,
                               rte_pos2,
                               iy_main_agenda);
 
-        //For the case that a star is present and the los is towards a star, we
+        //For the case that a sun is present and the los is towards a sun, we
         //subtract the direct radiation, so that only the diffuse radiation is considered here.
-        //If star is within los iy_aux[0] is the incoming and attenuated direct (star)
+        //If sun is within los iy_aux[0] is the incoming and attenuated direct (sun)
         //radiation at the surface. Otherwise it is zero.
-        if (stars_do){
+        if (suns_do){
           iy-=iy_aux[0];
         }
 

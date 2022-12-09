@@ -33,7 +33,7 @@
 #include "matpackIV.h"
 #include "mystring.h"
 #include "optproperties.h"
-#include "star.h"
+#include "sun.h"
 
 
 /** add_normed_phase_functions
@@ -153,7 +153,7 @@ void get_disortsurf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity);
 
-/** Calculate doit_i_field with Disort including a star source.
+/** Calculate doit_i_field with Disort including a sun source.
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output
  * into cloudbox_field.
@@ -174,7 +174,7 @@ void get_disortsurf_props(  // Output
  * @param[in]     vmr_profiles VMR profiles.
  * @param[in]     pnd_profiles PND profiles.
  * @param[in]     scat_data Array of single scattering data.
- * @param[in]     stars Array of star(s).
+ * @param[in]     suns Array of sun(s).
  * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
                   matrix.
  * @param[in]     gas_scattering_agenda Agenda agenda calculating the gas scattering
@@ -184,13 +184,13 @@ void get_disortsurf_props(  // Output
  * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity.
  * @param[in]     za_grid Zenith angle grid.
  * @param[in]     aa_grid azimuth angle grid.
- * @param[in]     star_rte_los local position of the sun top of cloudbox.
+ * @param[in]     sun_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
- * @param[in]     stars_do Flag to activate the star(s).
+ * @param[in]     suns_do Flag to activate the sun(s).
  * @param[in]     disort_aux_vars Selection of quantities for disort_aux.
- * @param[in]     scale_factor Geometric scaling factor, scales the star spectral
- *                irradiance at the surface of the star to the spectral irradiance
- *                of the star at cloubbox top.
+ * @param[in]     scale_factor Geometric scaling factor, scales the sun spectral
+ *                irradiance at the surface of the sun to the spectral irradiance
+ *                of the sun at cloubbox top.
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function.
@@ -214,7 +214,7 @@ void run_cdisort(Workspace& ws,
                  ConstMatrixView vmr_profiles,
                  ConstMatrixView pnd_profiles,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const ArrayOfStar& stars,
+                 const ArrayOfSun& suns,
                  const Agenda& propmat_clearsky_agenda,
                  const Agenda& gas_scattering_agenda,
                  const ArrayOfIndex& cloudbox_limits,
@@ -222,9 +222,9 @@ void run_cdisort(Workspace& ws,
                  const Vector& surface_scalar_reflectivity,
                  ConstVectorView za_grid,
                  ConstVectorView aa_grid,
-                 ConstVectorView star_rte_los,
+                 ConstVectorView sun_rte_los,
                  const Index& gas_scattering_do,
-                 const Index& stars_do,
+                 const Index& suns_do,
                  const ArrayOfString& disort_aux_vars,
                  const Numeric& scale_factor,
                  const Index& nstreams,
@@ -235,7 +235,7 @@ void run_cdisort(Workspace& ws,
                  const Index& intensity_correction,
                  const Verbosity& verbosity);
 
-/** Calculate  spectral_irradiance_field with Disort including a star source.
+/** Calculate  spectral_irradiance_field with Disort including a sun source.
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output
  * into cloudbox_field.
@@ -256,7 +256,7 @@ void run_cdisort(Workspace& ws,
  * @param[in]     vmr_profiles VMR profiles.
  * @param[in]     pnd_profiles PND profiles.
  * @param[in]     scat_data Array of single scattering data.
- * @param[in]     stars Array of star(s).
+ * @param[in]     suns Array of sun(s).
  * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
                   matrix.
  * @param[in]     gas_scattering_agenda Agenda agenda calculating the gas scattering
@@ -264,13 +264,13 @@ void run_cdisort(Workspace& ws,
  * @param[in]     cloudbox_limits Cloudbox limits.
  * @param[in]     surface_skin_t Surface skin temperature.
  * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity.
- * @param[in]     star_rte_los local position of the sun top of cloudbox.
+ * @param[in]     sun_rte_los local position of the sun top of cloudbox.
  * @param[in]     gas_scattering_do Flag to activate gas scattering.
- * @param[in]     stars_do Flag to activate the star(s).
+ * @param[in]     suns_do Flag to activate the sun(s).
  * @param[in]     disort_aux_vars Selection of quantities for disort_aux.
- * @param[in]     scale_factor Geometric scaling factor, scales the star spectral
- *                irradiance at the surface of the star to the spectral irradiance
- *                of the star at cloubbox top.
+ * @param[in]     scale_factor Geometric scaling factor, scales the sun spectral
+ *                irradiance at the surface of the sun to the spectral irradiance
+ *                of the sun at cloubbox top.
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function.
@@ -294,15 +294,15 @@ void run_cdisort_flux(Workspace& ws,
                       ConstMatrixView vmr_profiles,
                       ConstMatrixView pnd_profiles,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
-                      const ArrayOfStar& stars,
+                      const ArrayOfSun& suns,
                       const Agenda& propmat_clearsky_agenda,
                       const Agenda& gas_scattering_agenda,
                       const ArrayOfIndex& cloudbox_limits,
                       const Numeric& surface_skin_t,
                       const Vector& surface_scalar_reflectivity,
-                      ConstVectorView star_rte_los,
+                      ConstVectorView sun_rte_los,
                       const Index& gas_scattering_do,
-                      const Index& stars_do,
+                      const Index& suns_do,
                       const ArrayOfString& disort_aux_vars,
                       const Numeric& scale_factor,
                       const Index& nstreams,

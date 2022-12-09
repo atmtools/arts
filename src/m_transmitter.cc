@@ -735,7 +735,7 @@ void iyTransmissionStandard(Workspace& ws,
   }
 
   ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && gas_scattering_do, R"--(
-Jacobian calculation are not supported when gas scattering or stars are included.
+Jacobian calculation are not supported when gas scattering or suns are included.
 This feature will be added in a future version.
 )--");
 

@@ -28,8 +28,8 @@ def main():
     ws.surface_skin_t = ws.t_field.value[0, 0, 0]
     ws.surface_scalar_reflectivity = [0.3]
     
-    ws.starsAddSingleFromGrid(
-        star_spectrum_raw=solar_spec,
+    ws.sunsAddSingleFromGrid(
+        sun_spectrum_raw=solar_spec,
         latitude=0.0,
         longitude=0.0,
     )
@@ -67,12 +67,12 @@ def main():
 
 def flux_sun2flux_toa(ws, irrad):
     """scales the irradiance at Suns photosphere to TOA (100km)."""
-    star_distance = ws.stars.value[0].distance
-    star_radius = ws.stars.value[0].radius
+    sun_distance = ws.suns.value[0].distance
+    sun_radius = ws.suns.value[0].radius
     earth_radius = ws.refellipsoid.value[0]
-    star_distance -= 100_000 + earth_radius
+    sun_distance -= 100_000 + earth_radius
 
-    factor = star_radius**2 / (star_radius**2 + star_distance**2)
+    factor = sun_radius**2 / (sun_radius**2 + sun_distance**2)
 
     return irrad * factor
 

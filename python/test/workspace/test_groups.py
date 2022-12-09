@@ -491,26 +491,26 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfStar(self):
+    def testArrayOfSun(self):
         ws = Workspace()
         ws.stokes_dim = 1
         ws.f_grid = [1e9, 2e9, 3e9]
 
-        ws.starsAddSingleBlackbody(
+        ws.sunsAddSingleBlackbody(
             radius=20, distance=2000, temperature=5000, latitude=10, longitude=45
         )
 
-        star = ws.stars.value[0]
+        sun = ws.suns.value[0]
 
-        assert star.radius == 20
-        assert star.distance == 2000
-        assert star.latitude == 10
-        assert star.longitude == 45
-        assert np.isclose(star.spectrum[0, 0], 4.82602e-18, atol=1e-25)
-        assert np.isclose(star.spectrum[1, 0], 1.93040e-17, atol=1e-25)
-        assert np.isclose(star.spectrum[2, 0], 4.34338e-17, atol=1e-25)
+        assert sun.radius == 20
+        assert sun.distance == 2000
+        assert sun.latitude == 10
+        assert sun.longitude == 45
+        assert np.isclose(sun.spectrum[0, 0], 4.82602e-18, atol=1e-25)
+        assert np.isclose(sun.spectrum[1, 0], 1.93040e-17, atol=1e-25)
+        assert np.isclose(sun.spectrum[2, 0], 4.34338e-17, atol=1e-25)
 
-        x = cxx.ArrayOfStar(1, cxx.Star())
+        x = cxx.ArrayOfSun(1, cxx.Sun())
         test.io(x, delete=True)
         test.array(x)
 

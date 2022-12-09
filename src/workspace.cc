@@ -2879,7 +2879,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "The sidereal rotation period of the planet.\n"
           "\n"
           "This is time that it takes for the planet to complete one revolution\n"
-          "around its axis of rotation relative to the stars. For Earth, this\n"
+          "around its axis of rotation relative to the suns. For Earth, this\n"
           "is a value roughly 4 min less than 24 h.\n"
           "\n"
           "A negative value signifies a retrograde rotation, i.e. opposite to\n"
@@ -4564,20 +4564,20 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("stars_do"),
-      DESCRIPTION("Flag to activate the star(s).\n"),
+      NAME("suns_do"),
+      DESCRIPTION("Flag to activate the sun(s).\n"),
       GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
-      NAME("stars"),
-      DESCRIPTION("Array of Star.\n"
+      NAME("suns"),
+      DESCRIPTION("Array of Sun.\n"
                   "\n"
-                  "This variable describes a list of stars.\n"
-                  "Each star is described by a struct with its spectrum, radius,\n"
-                  "distance from center of planet to center of star,\n"
+                  "This variable describes a list of suns.\n"
+                  "Each sun is described by a struct with its spectrum, radius,\n"
+                  "distance from center of planet to center of sun,\n"
                   "temperature (if possible), latitude in the sky of the planet,\n"
                   "longitude in the sky of the planet and the type\n"),
-      GROUP("ArrayOfStar"), ArrayOfStar{}));
+      GROUP("ArrayOfSun"), ArrayOfSun{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),

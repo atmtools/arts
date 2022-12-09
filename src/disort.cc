@@ -942,7 +942,7 @@ void run_cdisort(Workspace& ws,
                  ConstMatrixView vmr_profiles,
                  ConstMatrixView pnd_profiles,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const ArrayOfStar& stars,
+                 const ArrayOfSun& suns,
                  const Agenda& propmat_clearsky_agenda,
                  const Agenda& gas_scattering_agenda,
                  const ArrayOfIndex& cloudbox_limits,
@@ -950,9 +950,9 @@ void run_cdisort(Workspace& ws,
                  const Vector& surface_scalar_reflectivity,
                  ConstVectorView za_grid,
                  ConstVectorView aa_grid,
-                 ConstVectorView star_rte_los,
+                 ConstVectorView sun_rte_los,
                  const Index& gas_scattering_do,
-                 const Index& stars_do,
+                 const Index& suns_do,
                  const ArrayOfString& disort_aux_vars,
                  const Numeric& scale_factor,
                  const Index& nstreams,
@@ -1003,10 +1003,10 @@ void run_cdisort(Workspace& ws,
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
 
-  if (stars_do) {
+  if (suns_do) {
     nphi = aa_grid.nelem();
-    umu0 = Conversion::cosd(star_rte_los[0]);
-    phi0 = star_rte_los[1];
+    umu0 = Conversion::cosd(sun_rte_los[0]);
+    phi0 = sun_rte_los[1];
     if (phi0 < 0) {
       phi0 = phi0 + 360.;
     }
@@ -1206,8 +1206,8 @@ void run_cdisort(Workspace& ws,
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
 
     // Set irradiance of incident solar beam at top boundary
-    if (stars_do) {
-      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
+    if (suns_do) {
+      fbeam = suns[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
               (100 * SPEED_OF_LIGHT)*scale_factor;
     }
     ds.bc.fbeam = fbeam;
@@ -1298,10 +1298,10 @@ void run_cdisort(Workspace& ws,
     else if (disort_aux_vars[i] == "Direct beam") {
       cnt += 1;
       Matrix directbeam(nf, ds.nlyr + 1, 0);
-      if (stars_do) {
+      if (suns_do) {
         for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
           directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
-              stars[0].spectrum(f_index, 0)/PI;
+              suns[0].spectrum(f_index, 0)/PI;
 
           for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
             directbeam(f_index, k - 1 + ncboxremoved) =
@@ -1337,15 +1337,15 @@ void run_cdisort_flux(Workspace& ws,
                       ConstMatrixView vmr_profiles,
                       ConstMatrixView pnd_profiles,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
-                      const ArrayOfStar& stars,
+                      const ArrayOfSun& suns,
                       const Agenda& propmat_clearsky_agenda,
                       const Agenda& gas_scattering_agenda,
                       const ArrayOfIndex& cloudbox_limits,
                       const Numeric& surface_skin_t,
                       const Vector& surface_scalar_reflectivity,
-                      ConstVectorView star_rte_los,
+                      ConstVectorView sun_rte_los,
                       const Index& gas_scattering_do,
-                      const Index& stars_do,
+                      const Index& suns_do,
                       const ArrayOfString& disort_aux_vars,
                       const Numeric& scale_factor,
                       const Index& nstreams,
@@ -1394,9 +1394,9 @@ void run_cdisort_flux(Workspace& ws,
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
 
-  if (stars_do) {
-    umu0 = Conversion::cosd(star_rte_los[0]);
-    phi0 = star_rte_los[1];
+  if (suns_do) {
+    umu0 = Conversion::cosd(sun_rte_los[0]);
+    phi0 = sun_rte_los[1];
     if (phi0 < 0) {
       phi0 = phi0 + 360.;
     }
@@ -1580,7 +1580,7 @@ void run_cdisort_flux(Workspace& ws,
   Matrix deltatau(nf, ds.nlyr,0);
   Matrix snglsctalbedo(nf, ds.nlyr,0);
 
-  if (stars_do){
+  if (suns_do){
     //Resize direct field
     spectral_direct_irradiance_field.resize(nf, ds.nlyr+1);
     spectral_direct_irradiance_field = 0;
@@ -1605,8 +1605,8 @@ void run_cdisort_flux(Workspace& ws,
     ds.bc.albedo = surface_scalar_reflectivity[f_index];
 
     // Set irradiance of incident solar beam at top boundary
-    if (stars_do) {
-      fbeam = stars[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
+    if (suns_do) {
+      fbeam = suns[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
               (100 * SPEED_OF_LIGHT)*scale_factor;
     }
     ds.bc.fbeam = fbeam;
@@ -1621,7 +1621,7 @@ void run_cdisort_flux(Workspace& ws,
     const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
 
     for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-      if (stars_do){
+      if (suns_do){
         // downward direct flux
         spectral_direct_irradiance_field(f_index, k + ncboxremoved) =
             -out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
@@ -1659,7 +1659,7 @@ void run_cdisort_flux(Workspace& ws,
       spectral_irradiance_field(f_index, k, 0, 0, joker) =
           spectral_irradiance_field(f_index, k + 1, 0, 0, joker);
 
-      if (stars_do) {
+      if (suns_do) {
         spectral_direct_irradiance_field(f_index, k) =
             spectral_direct_irradiance_field(f_index, k + 1);
       }

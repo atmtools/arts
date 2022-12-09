@@ -25,7 +25,7 @@
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
-#include "star.h"
+#include "sun.h"
 
 
 /*!
@@ -48,8 +48,8 @@ using Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsAddSingleBlackbody(ArrayOfStar &stars,
-                         Index &stars_do,
+void sunsAddSingleBlackbody(ArrayOfSun &suns,
+                         Index &suns_do,
                          // Inputs:
                          const Vector &f_grid,
                          const Index &stokes_dim,
@@ -62,35 +62,35 @@ void starsAddSingleBlackbody(ArrayOfStar &stars,
 
   // some sanity checks
   ARTS_USER_ERROR_IF (distance<radius,
-                      "The distance to the center of the star (",distance," m) \n"
-                     " is smaller than the radius of the star (", radius," m )")
+                      "The distance to the center of the sun (",distance," m) \n"
+                     " is smaller than the radius of the sun (", radius," m )")
 
-  Star& new_star = stars.emplace_back();
+  Sun& new_sun = suns.emplace_back();
 
   // spectrum
-  new_star.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
+  new_sun.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
 
-  planck(new_star.spectrum(joker,0), f_grid, temperature);
-  new_star.spectrum *= pi ; // outgoing flux at the surface of the star.
+  planck(new_sun.spectrum(joker,0), f_grid, temperature);
+  new_sun.spectrum *= pi ; // outgoing flux at the surface of the sun.
 
 
-  new_star.description = "Blackbody star" ;
-  new_star.radius = radius;
-  new_star.distance = distance;
-  new_star.latitude = latitude;
-  new_star.longitude = longitude;
+  new_sun.description = "Blackbody sun" ;
+  new_sun.radius = radius;
+  new_sun.distance = distance;
+  new_sun.latitude = latitude;
+  new_sun.longitude = longitude;
 
   // set flag
-  stars_do = 1;
+  suns_do = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void starsAddSingleFromGrid(ArrayOfStar &stars,
-                         Index &stars_do,
+void sunsAddSingleFromGrid(ArrayOfSun &suns,
+                         Index &suns_do,
                          // Inputs:
                          const Vector &f_grid,
                          const Index &stokes_dim,
-                         const GriddedField2& star_spectrum_raw,
+                         const GriddedField2& sun_spectrum_raw,
                          const Numeric &radius,
                          const Numeric &distance,
                          const Numeric &temperature,
@@ -101,14 +101,14 @@ void starsAddSingleFromGrid(ArrayOfStar &stars,
 
   // some sanity checks
   ARTS_USER_ERROR_IF (distance<radius,
-                      "The distance to the center of the star (",distance," m) \n"
-                     " is smaller than the radius of the star (", radius," m )")
+                      "The distance to the center of the sun (",distance," m) \n"
+                     " is smaller than the radius of the sun (", radius," m )")
 
   // interpolate field
-  Matrix int_data = regrid_star_spectrum(star_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
+  Matrix int_data = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
 
-  // create star
-  Star& new_star = stars.emplace_back();
+  // create sun
+  Sun& new_star = suns.emplace_back();
 
   new_star.spectrum = int_data; // set spectrum
 
@@ -119,18 +119,18 @@ void starsAddSingleFromGrid(ArrayOfStar &stars,
   new_star.longitude = longitude;
 
   // set flag
-  stars_do = 1;
+  suns_do = 1;
 
 }
 
-void starsOff(Index &stars_do,
-             ArrayOfStar &stars,
+void starsOff(Index &suns_do,
+             ArrayOfSun &suns,
              const Verbosity &){
 
   // set flag to False (default)
-  stars_do = 0;
+  suns_do = 0;
 
-  // create empty Array of Matrix for the star_spectrum
-  stars.resize(0);
+  // create empty Array of Matrix for the sun_spectrum
+  suns.resize(0);
 
 }
