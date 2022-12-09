@@ -109,7 +109,7 @@ full_qid = qid + ' ' + lqid
 f0=100e9
 i0=1e-18
 
-for lineshapetype in ["DP", "LP", "VP", "HTP"]:
+for lineshapetype in ["DP", "LP", "VP", "HTP", "SplitLP", "SplitVP", "SplitSDVP", "SplitHTP"]:
     for spec in range(len(scales)):
         for var in pyarts.arts.options.LineShapeVariable.get_options_as_strings():
             for d in range(1, 5):

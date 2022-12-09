@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <numeric>
 #include <ostream>
 #include <string>
 
@@ -49,29 +50,47 @@
 #include "rational.h"
 #include "wigner_functions.h"
 
-LineShape::Output Absorption::Lines::ShapeParameters(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
-  auto x = lines[k].lineshape.GetParams(T, T0, P, vmrs);
+LineShape::Output
+Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P,
+                                   const Vector &vmrs) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape;
 
-  if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-
-  return x;
+  using namespace LineShape;
+  return Output{lineshape.G0(T, T0, P, vmrs),  lineshape.D0(T, T0, P, vmrs),
+                lineshape.G2(T, T0, P, vmrs),  lineshape.D2(T, T0, P, vmrs),
+                lineshape.FVC(T, T0, P, vmrs), lineshape.ETA(T, T0, P, vmrs),
+                lineshape.Y(T, T0, P, vmrs),   lineshape.G(T, T0, P, vmrs),
+                lineshape.DV(T, T0, P, vmrs)}
+      .no_linemixing(not DoLineMixing(P));
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
                                                      Numeric T,
                                                      Numeric P,
-                                                     size_t m) const noexcept {
-  return lines[k].lineshape.GetParams(T, T0, P, m);
+                                                     size_t pos) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape[pos];
+
+  return lineshape.at(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
-    size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
-  auto x = lines[k].lineshape.GetTemperatureDerivs(T, T0, P, vmrs);
+    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape;
 
-  if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
+  using namespace LineShape;
+  return Output{lineshape.dG0dT(T, T0, P, vmrs),  lineshape.dD0dT(T, T0, P, vmrs),
+                lineshape.dG2dT(T, T0, P, vmrs),  lineshape.dD2dT(T, T0, P, vmrs),
+                lineshape.dFVCdT(T, T0, P, vmrs), lineshape.dETAdT(T, T0, P, vmrs),
+                lineshape.dYdT(T, T0, P, vmrs),   lineshape.dGdT(T, T0, P, vmrs),
+                lineshape.dDVdT(T, T0, P, vmrs)}
+      .no_linemixing(not DoLineMixing(P));
+}
 
-  return x;
+LineShape::Output Absorption::Lines::ShapeParameters_dT(
+    size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT {
+  auto &lineshape = lines[k].lineshape[pos];
+
+  return lineshape.dT(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
 Index Absorption::Lines::LineShapePos(
@@ -100,45 +119,19 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     Numeric T,
     Numeric P,
     const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
-  const Index pos = LineShapePos(vmr_qid);
-  if (pos >= 0) return lines[k].lineshape.GetVMRDerivs(T, T0, P, pos);
-  return LineShape::Output{};
-}
+  auto &lineshape = lines[k].lineshape;
 
-Numeric Absorption::Lines::ShapeParameter_dInternal(
-    size_t k,
-    Numeric T,
-    Numeric P,
-    const Vector& vmrs,
-    const RetrievalQuantity& derivative) const ARTS_NOEXCEPT {
-  const auto self = derivative.Mode() == LineShape::self_broadening;
-  const auto bath = derivative.Mode() == LineShape::bath_broadening;
-  const auto& ls = lines[k].lineshape;
+  const Index pos = LineShapePos(vmr_qid.Species());
 
-  if (derivative.QuantumIdentity().Species() not_eq Species() or
-      derivative.QuantumIdentity().Isotopologue() not_eq Isotopologue())
-    return 0;
-  if (self and selfbroadening)
-    return ls.GetInternalDeriv(T, T0, P, 0, vmrs, derivative.LineType());
-  if (self)
-    return ls.GetInternalDeriv(
-        T,
-        T0,
-        P,
-        LineShapePos(derivative.QuantumIdentity().Species()),
-        vmrs,
-        derivative.LineType());
-  if (bath and bathbroadening)
-    return ls.GetInternalDeriv(
-        T, T0, P, ls.nelem() - 1, vmrs, derivative.LineType());
-  if (bath) return 0;
-  return ls.GetInternalDeriv(
-      T,
-      T0,
-      P,
-      LineShapePos(derivative.QuantumIdentity().Species()),
-      vmrs,
-      derivative.LineType());
+  LineShape::Output out{};
+  if (pos >= 0) {
+    out = lineshape[pos].at(T, T0, P);
+    const Index bath = lineshape.nelem() - 1;
+    if (bathbroadening and pos not_eq bath) {
+      out -= lineshape[bath].at(T, T0, P);
+    }
+  }
+  return out;
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
@@ -2219,7 +2212,11 @@ bofstream& SingleLine::write(bofstream& bof) const {
 void Lines::AppendSingleLine(SingleLine&& sl) {
   ARTS_USER_ERROR_IF(
       NumLines() not_eq 0 and NumLocalQuanta() not_eq sl.LocalQuantumElems(),
-      "Error calling appending function, bad size of quantum numbers");
+      "Error calling appending function, bad size of quantum numbers\n"
+      "Type of quantum numbers in band: ",
+      lines.front().localquanta.val,
+      "\nType of quantum numbers in new line:",
+      sl.localquanta.val);
 
   ARTS_USER_ERROR_IF(
       NumLines() not_eq 0 and
@@ -2230,20 +2227,7 @@ void Lines::AppendSingleLine(SingleLine&& sl) {
 }
 
 void Lines::AppendSingleLine(const SingleLine& sl) {
-  ARTS_USER_ERROR_IF(
-      NumLines() not_eq 0 and NumLocalQuanta() not_eq sl.LocalQuantumElems(),
-      "Error calling appending function, bad size of quantum numbers\n"
-      "Type of quantum numbers in band: ",
-      lines.front().localquanta.val,
-      "\nType of quantum numbers in new line:",
-      sl.localquanta.val);
-
-  ARTS_USER_ERROR_IF(
-      NumLines() not_eq 0 and
-          sl.LineShapeElems() not_eq lines.front().LineShapeElems(),
-      "Error calling appending function, bad size of broadening species");
-
-  lines.push_back(sl);
+  AppendSingleLine(SingleLine{sl});
 }
 
 bool Lines::MatchWithExternal(const SingleLineExternal& sle,
@@ -2321,6 +2305,56 @@ void Lines::sort_by_einstein() {
 
 String Lines::LineShapeMetaData() const noexcept {
   return NumLines() ? LineShape::ModelShape2MetaData(lines[0].lineshape) : "";
+}
+
+Species::Species Lines::Species() const noexcept {return quantumidentity.Species();}
+
+Species::IsotopeRecord Lines::Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+
+Index Lines::NumLines() const noexcept {return Index(lines.size());}
+
+Index Lines::NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.nelem());}
+
+Index Lines::NumLocalQuanta() const noexcept {
+  return lines.size() ? lines.front().localquanta.val.nelem() : 0;
+}
+
+bool Lines::OnTheFlyLineMixing() const noexcept {
+  return population == PopulationType::ByMakarovFullRelmat or
+         population == PopulationType::ByRovibLinearDipoleLineMixing;
+}
+
+bool Lines::DoLineMixing(Numeric P) const noexcept {
+  return linemixinglimit < 0 ? true : linemixinglimit > P;
+}
+
+bool Lines::DoVmrDerivative(const QuantumIdentifier &qid) const noexcept {
+  return qid.Isotopologue() == quantumidentity.Isotopologue() or
+         (qid.Isotopologue().joker() and
+          qid.Species() == quantumidentity.Species()) or
+         std::any_of(broadeningspecies.begin(), broadeningspecies.end(),
+                     [s = qid.Species()](auto &a) { return a == s; });
+}
+
+bool Lines::AnyLinemixing() const noexcept {
+  for (auto &line : lines) {
+    for (auto &shape : line.lineshape.Data()) {
+      if (shape.Y().type not_eq LineShape::TemperatureModel::None or
+          shape.G().type not_eq LineShape::TemperatureModel::None or
+          shape.DV().type not_eq LineShape::TemperatureModel::None) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+Index Lines::BroadeningSpeciesPosition(Species::Species spec) const noexcept {
+  if (auto ptr =
+          std::find(broadeningspecies.cbegin(), broadeningspecies.cend(), spec);
+      ptr not_eq broadeningspecies.cend())
+    return std::distance(broadeningspecies.cbegin(), ptr);
+  return -1;
 }
 
 const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns)
@@ -2530,20 +2564,32 @@ AbsorptionLineShapeTagTypeStatus::AbsorptionLineShapeTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.lineshapetype) {
-        case LineShape::Type::VP:
-          VP = true;
-          break;
         case LineShape::Type::DP:
           DP = true;
           break;
         case LineShape::Type::LP:
           LP = true;
           break;
+        case LineShape::Type::VP:
+          VP = true;
+          break;
         case LineShape::Type::SDVP:
           SDVP = true;
           break;
         case LineShape::Type::HTP:
           HTP = true;
+          break;
+        case LineShape::Type::SplitLP:
+          SplitLP = true;
+          break;
+        case LineShape::Type::SplitVP:
+          SplitVP = true;
+          break;
+        case LineShape::Type::SplitSDVP:
+          SplitSDVP = true;
+          break;
+        case LineShape::Type::SplitHTP:
+          SplitHTP = true;
           break;
         case LineShape::Type::FINAL: { /* leave list */
         }
@@ -2781,7 +2827,23 @@ std::ostream& operator<<(std::ostream& os,
          << '\n';
       [[fallthrough]];
     case LineShapeType::HTP:
-      os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP;
+      os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitLP:
+      os << "    SplitLP:" << spaces(req_spaces(LineShapeType::SplitLP)) << val.SplitLP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitVP:
+      os << "    SplitVP:" << spaces(req_spaces(LineShapeType::SplitVP)) << val.SplitVP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitSDVP:
+      os << "    SplitSDVP:" << spaces(req_spaces(LineShapeType::SplitSDVP)) << val.SplitSDVP
+         << '\n';
+      [[fallthrough]];
+    case LineShapeType::SplitHTP:
+      os << "    SplitHTP:" << spaces(req_spaces(LineShapeType::SplitHTP)) << val.SplitHTP;
   }
   return os;
 }
@@ -2834,5 +2896,24 @@ Rational Lines::max(QuantumNumberType x) const {
     out = std::max(std::max(val.low(), val.upp()), out);
   }
   return out;
+}
+
+/** Number of lines */
+Index nelem(const Lines &l) { return l.NumLines(); }
+
+/** Number of lines in list */
+Index nelem(const Array<Lines> &l) {
+  Index n = 0;
+  for (auto &x : l)
+    n += nelem(x);
+  return n;
+}
+
+/** Number of lines in lists */
+Index nelem(const Array<Array<Lines>> &l) {
+  Index n = 0;
+  for (auto &x : l)
+    n += nelem(x);
+  return n;
 }
 } // namespace Absorption

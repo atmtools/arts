@@ -14,6 +14,7 @@
 #include "absorptionlines.h"
 #include "cia.h"
 #include "debug.h"
+#include "isotopologues.h"
 #include "physics_funcs.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
@@ -442,55 +443,51 @@ void py_spectroscopy(py::module_& m) {
                              Array<AbsorptionSingleLine>>();
 
   py::class_<AbsorptionLines>(m, "AbsorptionLines")
-      .def(py::init([](bool a,
-                       bool b,
-                       AbsorptionCutoffType c,
-                       AbsorptionMirroringType d,
-                       AbsorptionPopulationType e,
-                       AbsorptionNormalizationType f,
-                       LineShape::Type g,
-                       Numeric h,
-                       Numeric i,
-                       Numeric j,
-                       QuantumIdentifier k,
-                       ArrayOfSpecies l,
-                       Array<AbsorptionSingleLine> n) {
-             return new AbsorptionLines{a,
-                                        b,
-                                        c,
-                                        d,
-                                        e,
-                                        f,
-                                        g,
-                                        h,
-                                        i,
-                                        j,
-                                        std::move(k),
-                                        std::move(l),
-                                        std::move(n)};
-           }),
-           py::arg("selfbroadening") = false,
-           py::arg("bathbroadening") = false,
-           py::arg("cutoff") = AbsorptionCutoffType::None,
-           py::arg("mirroring") = AbsorptionMirroringType::None,
-           py::arg("population") = AbsorptionPopulationType::LTE,
-           py::arg("normalization") = AbsorptionNormalizationType::None,
-           py::arg("lineshapetype") = LineShape::Type::DP,
-           py::arg("T0") = 296,
-           py::arg("cutofffreq") = -1,
-           py::arg("linemixinglimit") = -1,
-           py::arg("quantumidentity") = QuantumIdentifier(),
-           py::arg("broadeningspecies") = ArrayOfSpecies{},
-           py::arg("lines") = Array<AbsorptionSingleLine>{})
+      .def(
+          py::init([](bool a, bool b, AbsorptionCutoffType c,
+                      AbsorptionMirroringType d, AbsorptionPopulationType e,
+                      AbsorptionNormalizationType f, LineShape::Type g,
+                      Numeric h, Numeric i, Numeric j, QuantumIdentifier k,
+                      ArrayOfSpecies l, Array<AbsorptionSingleLine> n) {
+            ARTS_USER_ERROR_IF(not good_enum(k.Species()),
+                               "Bad quantumidentity, must specify species and "
+                               "isotoplogue, e.g., H2O-161")
+            ARTS_USER_ERROR_IF(
+                k.Isotopologue().joker() or
+                    Species::is_predefined_model(k.Isotopologue()),
+                "Bad quantumidentity, must specify isotopologue, e.g., H2O-161")
+            return new AbsorptionLines{a,
+                                       b,
+                                       c,
+                                       d,
+                                       e,
+                                       f,
+                                       g,
+                                       h,
+                                       i,
+                                       j,
+                                       std::move(k),
+                                       std::move(l),
+                                       std::move(n)};
+          }),
+          py::arg("selfbroadening") = false, py::arg("bathbroadening") = false,
+          py::arg("cutoff") = AbsorptionCutoffType::None,
+          py::arg("mirroring") = AbsorptionMirroringType::None,
+          py::arg("population") = AbsorptionPopulationType::LTE,
+          py::arg("normalization") = AbsorptionNormalizationType::None,
+          py::arg("lineshapetype") = LineShape::Type::DP, py::arg("T0") = 296,
+          py::arg("cutofffreq") = -1, py::arg("linemixinglimit") = -1,
+          py::arg("quantumidentity") = QuantumIdentifier("H2O-161"),
+          py::arg("broadeningspecies") = ArrayOfSpecies{},
+          py::arg("lines") = Array<AbsorptionSingleLine>{})
       .PythonInterfaceCopyValue(AbsorptionLines)
       .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
       .def(
-          "__str__",
-          [](const AbsorptionLines& x) { return var_string(x); },
+          "__str__", [](const AbsorptionLines &x) { return var_string(x); },
           py::is_operator())
       .def(
           "__repr__",
-          [](const AbsorptionLines& x) {
+          [](const AbsorptionLines &x) {
             return var_string("'",
                               x.quantumidentity,
                               "'-band of ",
@@ -513,19 +510,14 @@ void py_spectroscopy(py::module_& m) {
       .PythonInterfaceReadWriteData(AbsorptionLines, broadeningspecies)
       .PythonInterfaceReadWriteData(AbsorptionLines, lines)
       .def_property_readonly(
-          "ok",
-          &AbsorptionLines::OK,
+          "ok", &AbsorptionLines::OK,
           py::doc("If false, the catalog cannot be used for any calculations"))
-      .def_property_readonly("meta_data",
-                             &AbsorptionLines::MetaData,
+      .def_property_readonly("meta_data", &AbsorptionLines::MetaData,
                              py::doc("Catalog meta data string"))
       .def(
           "LineShapeOutput",
-          [](AbsorptionLines& band,
-             Index line,
-             Numeric T,
-             Numeric P,
-             const Vector& VMR) {
+          [](AbsorptionLines &band, Index line, Numeric T, Numeric P,
+             const Vector &VMR) {
             ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
             ARTS_USER_ERROR_IF(not(T > 0) or not(P >= 0),
                                "Bad atmospheric state (T P): ",
@@ -544,7 +536,7 @@ void py_spectroscopy(py::module_& m) {
               R"--(Computes the line shape paramters for the given atmospheric state
 Note that the normalization assumes sum(VMR) is 1 for good results but does not enforce it)--"))
       .def(py::pickle(
-          [](const AbsorptionLines& t) {
+          [](const AbsorptionLines &t) {
             return py::make_tuple(t.selfbroadening,
                                   t.bathbroadening,
                                   t.cutoff,
@@ -559,7 +551,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
                                   t.broadeningspecies,
                                   t.lines);
           },
-          [](const py::tuple& t) {
+          [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 13, "Invalid state!")
             return new AbsorptionLines{
                 t[0].cast<bool>(),

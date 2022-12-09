@@ -61,6 +61,73 @@ Jacobian::Line select_derivativeLineShape(const String& var,
  * line mixing Hartman-Tran profiles
  */
 namespace LineShape {
+/** Type of line shape to compute */
+ENUMCLASS(Type, char,
+  DP,         // Doppler
+  LP,         // Lorentz
+  VP,         // Voigt
+  SDVP,       // Speed-dependent Voigt
+  HTP,        // Hartmann-Tran
+  SplitLP,    // Lorentz split by broadening species
+  SplitVP,    // Voigt split by broadening species
+  SplitSDVP,  // Speed-dependent Voigt split by broadening species
+  SplitHTP    // Hartmann-Tran split by broadening species
+)
+
+/** Turns selected Type into a human readable string
+ * 
+ * This function takes the input Type
+ * and returns it as a string
+ *  
+ * @param[in] type The Type
+ * 
+ * @return std::string_view of Type
+ */
+constexpr std::string_view shapetype2metadatastring(Type type) noexcept {
+  switch (type) {
+    case Type::DP:
+      return "The line shape type is the Doppler profile\n";
+    case Type::LP:
+      return "The line shape type is the Lorentz profile.\n";
+    case Type::VP:
+      return "The line shape type is the Voigt profile.\n";
+    case Type::SDVP:
+      return "The line shape type is the speed-dependent Voigt profile.\n";
+    case Type::HTP:
+      return "The line shape type is the Hartmann-Tran profile.\n";
+    case Type::SplitLP:
+      return "The line shape type is the Lorentz profile per broadener.\n";
+    case Type::SplitVP:
+      return "The line shape type is the Voigt profile per broadener.\n";
+    case Type::SplitSDVP:
+      return "The line shape type is the speed-dependent Voigt profile per broadener.\n";
+    case Type::SplitHTP:
+      return "The line shape type is the Hartmann-Tran profile per broadener.\n";
+    case Type::FINAL: {}
+  }
+  return "There's an error.\n";
+}
+
+/** Is the Type independent per broadener?
+ * 
+ * If it is, the line shape is computed as F_1(...) + F_2(...) + /// + F_N(...)
+ * If it is not, then it is computed as F(avg(..._1 + ..._2 + /// + ..._N))
+ *
+ * Where F is the lineshape, the subindex is the line parameter (such as pressure broadening)
+ * and avg(///) is an averaging function
+ *  
+ * @param[in] type The LineShape::Type
+ * 
+ * @return true If we compute the line shape per broadener and then sum it up
+ * @return false If we average line parameters for all broadeners and then compute the line shape
+ */
+constexpr bool independent_per_broadener(Type in) {
+  using enum Type;
+  constexpr std::array data{SplitLP, SplitVP, SplitSDVP, SplitHTP};
+  static_assert(std::is_sorted(data.begin(), data.end()), "Not sorted");
+  return std::binary_search(data.begin(), data.end(), in);
+}
+
 
 /** Temperature models
  * 
@@ -221,7 +288,7 @@ struct ModelParameters {
   
   [[nodiscard]] Numeric at(Numeric T, Numeric T0) const noexcept;
   
-  [[nodiscard]] [[nodiscard]] Numeric dX0(Numeric T, Numeric T0) const noexcept;
+  [[nodiscard]] Numeric dX0(Numeric T, Numeric T0) const noexcept;
   
   [[nodiscard]] Numeric dX1(Numeric T, Numeric T0) const noexcept;
   
@@ -338,6 +405,51 @@ constexpr Numeric modelparameterFirstExponent(const ModelParameters mp) noexcept
 /** Current max number of line shape variables */
 constexpr Index nVars = Index(Variable::FINAL);
 
+/** Main output of Model */
+struct Output {
+  Numeric G0{0}, // Pressure broadening speed-independent
+      D0{0},     // Pressure f-shifting speed-independent
+      G2{0},     // Pressure broadening speed-dependent
+      D2{0},     // Pressure f-shifting speed-dependent
+      FVC{0},    // Frequency of velocity-changing collisions
+      ETA{0},    // Correlation
+      Y{0},      // First order line mixing coefficient
+      G{0},      // Second order line mixing coefficient
+      DV{0};     // Second order line mixing f-shifting
+  constexpr Output() noexcept = default;
+  constexpr Output(Numeric g0, Numeric d0, Numeric g2, Numeric d2, Numeric fvc,
+                   Numeric eta, Numeric y, Numeric g, Numeric dv) noexcept
+      : G0(g0), D0(d0), G2(g2), D2(d2), FVC(fvc), ETA(eta), Y(y), G(g), DV(dv) {
+  }
+  constexpr Output(const Output &) noexcept = default;
+  constexpr Output(Output &&) noexcept = default;
+  constexpr Output &operator=(const Output &) noexcept = default;
+  constexpr Output &operator=(Output &&) noexcept = default;
+  constexpr Output &operator-=(Output&& other) noexcept {
+    static_assert(nVars == 9, "Must update");
+    G0 -= other.G0;
+    D0 -= other.D0;
+    G2 -= other.G2;
+    D2 -= other.D2;
+    FVC -= other.FVC;
+    ETA -= other.ETA;
+    Y -= other.Y;
+    G -= other.G;
+    DV -= other.DV;
+    return *this;
+  }
+
+  //! Turns of line mixing if true.  Return *this
+  constexpr Output& no_linemixing(bool do_no_linemixing) {
+    if (do_no_linemixing) {
+      Y = G = DV = 0;
+    }
+    return *this;
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, Output x);
+};
+
 /** Compute the line shape parameters for a single broadening species */
 class SingleSpeciesModel {
  private:
@@ -438,68 +550,14 @@ class SingleSpeciesModel {
   friend std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm);
 
   friend std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
-};
 
-/** Type of line shape to compute */
-ENUMCLASS(Type, char,
-  DP,    // Doppler
-  LP,    // Lorentz
-  VP,    // Voigt
-  SDVP,  // Speed-dependent Voigt
-  HTP    // Hartmann-Tran
-)
-
-/** Turns selected Type into a human readable string
- * 
- * This function takes the input Type
- * and returns it as a string
- *  
- * @param[in] type The Type
- * 
- * @return std::string_view of Type
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
-constexpr std::string_view shapetype2metadatastring(Type type) noexcept {
-  switch (type) {
-    case Type::DP:
-      return "The line shape type is the Doppler profile\n";
-    case Type::LP:
-      return "The line shape type is the Lorentz profile.\n";
-    case Type::VP:
-      return "The line shape type is the Voigt profile.\n";
-    case Type::SDVP:
-      return "The line shape type is the speed-dependent Voigt profile.\n";
-    case Type::HTP:
-      return "The line shape type is the Hartmann-Tran profile.\n";
-    case Type::FINAL: {}
-  }
-  return "There's an error.\n";
-}
-#pragma GCC diagnostic pop
-
-/** Main output of Model */
-struct Output {
-  Numeric G0{0},  // Pressure broadening speed-independent
-      D0{0},      // Pressure f-shifting speed-independent
-      G2{0},      // Pressure broadening speed-dependent
-      D2{0},      // Pressure f-shifting speed-dependent
-      FVC{0},     // Frequency of velocity-changing collisions
-      ETA{0},     // Correlation
-      Y{0},       // First order line mixing coefficient
-      G{0},       // Second order line mixing coefficient
-      DV{0};      // Second order line mixing f-shifting
-  constexpr Output() noexcept = default;
-  constexpr Output(Numeric g0, Numeric d0, Numeric g2,
-                   Numeric d2, Numeric fvc, Numeric eta,
-                   Numeric y, Numeric g, Numeric dv) noexcept :
-    G0(g0), D0(d0), G2(g2), D2(d2), FVC(fvc), ETA(eta), Y(y), G(g), DV(dv) {}
-  constexpr Output(const Output&) noexcept = default;
-  constexpr Output(Output&&) noexcept = default;
-  constexpr Output& operator=(const Output&) noexcept = default;
-  constexpr Output& operator=(Output&&) noexcept = default;
-
-  friend std::ostream& operator<<(std::ostream& os, Output x);
+  [[nodiscard]] Output at(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Numeric dX(Numeric T, Numeric T0, Numeric P, Jacobian::Line) const noexcept;
+  
+  [[nodiscard]] Output dT(Numeric T, Numeric T0, Numeric P) const noexcept;
+  
+  [[nodiscard]] Output dT0(Numeric T, Numeric T0, Numeric P) const noexcept;
 };
 
 /** Output to be used by mirroring calls */
@@ -577,10 +635,10 @@ Vector mass(const ConstVectorView& atmospheric_vmrs,
             const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT;
 
 /** Name for bath broadening in printing and reading user input */
-static constexpr std::string_view bath_broadening = "AIR";
+inline constexpr std::string_view bath_broadening = "AIR";
 
 /** Name for self broadening in printing and reading user input */
-static constexpr std::string_view self_broadening = "SELF";
+inline constexpr std::string_view self_broadening = "SELF";
 
 /** Main line shape model class
  * 
@@ -635,177 +693,6 @@ class Model {
   [[nodiscard]] bool OK(Type type, bool self, bool bath,
           const std::size_t nspecies) const noexcept;
 
-#define LSPC(XVAR, PVAR)                                                       \
-  Numeric XVAR(                                                                \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const ConstVectorView& vmrs) \
-      const noexcept;
-  LSPC(G0, P)
-  LSPC(D0, P)
-  LSPC(G2, P)
-  LSPC(D2, P)
-  LSPC(FVC, P)
-  LSPC(ETA, 1)
-  LSPC(Y, P)
-  LSPC(G, P* P)
-  LSPC(DV, P* P)
-#undef LSPC
-
-#define LSPCV(XVAR, PVAR)                                            \
-  Numeric d##XVAR##_dVMR(Numeric T,                                  \
-                         Numeric T0,                                 \
-                         Numeric P [[maybe_unused]],                 \
-                         const Index deriv_pos) const noexcept;
-  LSPCV(G0, P)
-  LSPCV(D0, P)
-  LSPCV(G2, P)
-  LSPCV(D2, P)
-  LSPCV(FVC, P)
-  LSPCV(ETA, 1)
-  LSPCV(Y, P)
-  LSPCV(G, P* P)
-  LSPCV(DV, P* P)
-#undef LSPCV
-
-#define LSPCT(XVAR, PVAR)                                                       \
-  Numeric d##XVAR##_dT(                                                         \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const ConstVectorView& vmrs)  \
-      const noexcept;
-  LSPCT(G0, P)
-  LSPCT(D0, P)
-  LSPCT(G2, P)
-  LSPCT(D2, P)
-  LSPCT(FVC, P)
-  LSPCT(ETA, 1)
-  LSPCT(Y, P)
-  LSPCT(G, P* P)
-  LSPCT(DV, P* P)
-#undef LSPCT
-
-// All shape model derivatives
-#define LSPDC(XVAR, DERIV, PVAR)                                     \
-  Numeric d##XVAR##DERIV(Numeric T,                                  \
-                         Numeric T0,                                 \
-                         Numeric P [[maybe_unused]],                 \
-                         Index deriv_pos,                            \
-                         const ConstVectorView& vmrs) const noexcept;
-  LSPDC(G0, _dT0, P)
-  LSPDC(G0, _dX0, P)
-  LSPDC(G0, _dX1, P)
-  LSPDC(G0, _dX2, P)
-  LSPDC(G0, _dX3, P)
-  LSPDC(D0, _dT0, P)
-  LSPDC(D0, _dX0, P)
-  LSPDC(D0, _dX1, P)
-  LSPDC(D0, _dX2, P)
-  LSPDC(D0, _dX3, P)
-  LSPDC(G2, _dT0, P)
-  LSPDC(G2, _dX0, P)
-  LSPDC(G2, _dX1, P)
-  LSPDC(G2, _dX2, P)
-  LSPDC(G2, _dX3, P)
-  LSPDC(D2, _dT0, P)
-  LSPDC(D2, _dX0, P)
-  LSPDC(D2, _dX1, P)
-  LSPDC(D2, _dX2, P)
-  LSPDC(D2, _dX3, P)
-  LSPDC(FVC, _dT0, P)
-  LSPDC(FVC, _dX0, P)
-  LSPDC(FVC, _dX1, P)
-  LSPDC(FVC, _dX2, P)
-  LSPDC(FVC, _dX3, P)
-  LSPDC(ETA, _dT0, 1)
-  LSPDC(ETA, _dX0, 1)
-  LSPDC(ETA, _dX1, 1)
-  LSPDC(ETA, _dX2, 1)
-  LSPDC(ETA, _dX3, 1)
-  LSPDC(Y, _dT0, P)
-  LSPDC(Y, _dX0, P)
-  LSPDC(Y, _dX1, P)
-  LSPDC(Y, _dX2, P)
-  LSPDC(Y, _dX3, P)
-  LSPDC(G, _dT0, P* P)
-  LSPDC(G, _dX0, P* P)
-  LSPDC(G, _dX1, P* P)
-  LSPDC(G, _dX2, P* P)
-  LSPDC(G, _dX3, P* P)
-  LSPDC(DV, _dT0, P* P)
-  LSPDC(DV, _dX0, P* P)
-  LSPDC(DV, _dX1, P* P)
-  LSPDC(DV, _dX2, P* P)
-  LSPDC(DV, _dX3, P* P)
-#undef LSPDC
-
-  /** Compute all shape parameters
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] P The pressure
-   * @param[in] vmrs The VMR vector as derived by this.vmrs()
-   * 
-   * @return Shape parameters
-   */
-  [[nodiscard]] Output GetParams(Numeric T,
-                   Numeric T0,
-                   Numeric P,
-                   const ConstVectorView& vmrs) const noexcept;
-
-  /** Compute all shape parameters
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] P The pressure
-   * @param[in] k The position of the single species shape parameters
-   * 
-   * @return Shape parameters
-   */
-  [[nodiscard]] Output GetParams(Numeric T,
-                   Numeric T0,
-                   Numeric P,
-                   size_t k) const noexcept;
-
-  /** Derivative of GetParams(...) wrt T
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] P The pressure
-   * @param[in] vmrs The VMR vector as derived by this.vmrs()
-   * 
-   * @return Derivative of GetParams(...) wrt T
-   */
-  [[nodiscard]] Output GetTemperatureDerivs(Numeric T,
-                              Numeric T0,
-                              Numeric P,
-                              ConstVectorView vmrs) const noexcept;
-
-  /** Derivative of GetParams(...) wrt VMR
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] P The pressure
-   * @param[in] pos Position of species in mspecies
-   * 
-   * @return Derivative of GetParams(...) wrt VMR
-   */
-  [[nodiscard]] Output GetVMRDerivs(Numeric T, Numeric T0, Numeric P, const Index pos) const noexcept;
-  
-  /** Derivative of GetParams(...) wrt Coefficient
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] P The pressure
-   * @param[in] pos Position of species in mspecies
-   * @param[in] vmrs The VMR vector as derived by this.vmrs()
-   * @param[in] deriv The derivative
-   * 
-   * @return Derivative of GetParams(...) wrt Coefficient
-   */
-  [[nodiscard]] Numeric GetInternalDeriv(Numeric T,
-                           Numeric T0,
-                           Numeric P,
-                           Index pos,
-                           const Vector& vmrs,
-                           Jacobian::Line deriv) const noexcept;
-
   /** Number of species in Model */
   [[nodiscard]] Index nelem() const noexcept { return Index(mdata.size()); }
   
@@ -842,8 +729,14 @@ class Model {
    */
   const SingleSpeciesModel& operator[](Index i) const {return mdata[i];}
   
-  auto begin() { return mdata.begin(); }
-  auto end() { return mdata.end(); }
+  [[nodiscard]] auto begin() { return mdata.begin(); }
+  [[nodiscard]] auto end() { return mdata.end(); }
+  
+  [[nodiscard]] auto begin() const { return mdata.begin(); }
+  [[nodiscard]] auto end() const { return mdata.end(); }
+  
+  [[nodiscard]] auto cbegin() const { return mdata.cbegin(); }
+  [[nodiscard]] auto cend() const { return mdata.cend(); }
 
   /** The line shape model data */
   [[nodiscard]] const std::vector<SingleSpeciesModel>& Data() const noexcept { return mdata; }
@@ -901,8 +794,27 @@ class Model {
   
   /** Binary write for Model */
   bofstream& write(bofstream& bof) const;
-};  // Model;
 
+[[nodiscard]] Numeric G0(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric D0(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric G2(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric D2(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric ETA(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric FVC(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric Y(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric G(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric DV(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+
+[[nodiscard]] Numeric dG0dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dD0dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dG2dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dD2dT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dETAdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dFVCdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dYdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dGdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+[[nodiscard]] Numeric dDVdT(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+};  // Model;
 
 Model hitran_model(Numeric sgam,
                    Numeric nself,
