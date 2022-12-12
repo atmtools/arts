@@ -250,85 +250,6 @@ void InterpSurfaceFieldToPosition(Numeric& outvalue,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceCallAgendaX(Workspace& ws,
-                          Matrix& iy,
-                          ArrayOfTensor3& diy_dx,
-                          const String& iy_unit,
-                          const Tensor3& iy_transmittance,
-                          const Index& iy_id,
-                          const Index& cloudbox_on,
-                          const Index& jacobian_do,
-                          const Vector& f_grid,
-                          const Agenda& iy_main_agenda,
-                          const Vector& rtp_pos,
-                          const Vector& rtp_los,
-                          const Vector& rte_pos2,
-                          const ArrayOfAgenda& iy_surface_agenda_array,
-                          const ArrayOfIndex& surface_types,
-                          const Vector& surface_types_aux,
-                          const Vector& surface_types_weights,
-                          const Verbosity&) {
-  
-  const Index ntypes = surface_types.nelem();
-  if (ntypes < 1)
-    throw runtime_error("*surface_types* is empty!");
-
-  // Loop surface types and sum up
-  //
-  Numeric wtot = 0;
-  //
-  for (Index t=0; t<ntypes; t++ ) {
-
-    if (surface_types[t] < 0)
-      throw runtime_error(
-                  "No element in *surface_types* is allowed to be negative.");
-    if (surface_types[t] >= iy_surface_agenda_array.nelem()) {
-      ostringstream os;
-      os << "*iy_surface_agenda_array* has only "
-         << iy_surface_agenda_array.nelem()
-         << " elements,\n while you have selected element " << surface_types[t];
-      throw runtime_error(os.str());
-    }
-
-    Matrix iy1;
-    ArrayOfTensor3 diy_dx1;
-    
-    iy_surface_agenda_arrayExecute(ws,
-                                   iy1,
-                                   diy_dx1,
-                                   surface_types[t],
-                                   iy_unit,
-                                   iy_transmittance,
-                                   iy_id,
-                                   cloudbox_on,
-                                   jacobian_do,
-                                   iy_main_agenda,
-                                   f_grid,
-                                   rtp_pos,
-                                   rtp_los,
-                                   rte_pos2,
-                                   surface_types_aux[t],
-                                   iy_surface_agenda_array);
-
-    iy1 *= surface_types_weights[t];
-    for (Index i=0; diy_dx1.nelem(); i++ )
-      diy_dx1[i] *= surface_types_weights[t];
-    wtot += surface_types_weights[t];;
-      
-    if (t==0) {
-      iy     = iy1;
-      diy_dx = diy_dx1;
-    } else {
-      iy     += iy1;
-      for (Index i=0; diy_dx1.nelem(); i++ )
-        diy_dx[i] += diy_dx1[i];      
-    }
-  }
-  if (abs(wtot-1)>1e-4)
-    throw runtime_error("Sum of *surface_types_weights* deviates from 1.");  
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceFastem(Workspace& ws,
                      Matrix& iy,
                      ArrayOfTensor3& diy_dx,
@@ -2829,262 +2750,6 @@ void surfaceLambertianSimple(Matrix& surface_los,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceSemiSpecularBy3beams(Workspace& ws,
-                                 Numeric& surface_skin_t,
-                                 Matrix& surface_los,
-                                 Tensor4& surface_rmatrix,
-                                 Matrix& surface_emission,
-                                 const Index& atmosphere_dim,
-                                 const Vector& f_grid,
-                                 const Vector& rtp_pos,
-                                 const Vector& rtp_los,
-                                 const Agenda& surface_rtprop_sub_agenda,
-                                 const Numeric& specular_factor,
-                                 const Numeric& dza,
-                                 const Verbosity&) {
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-
-  // Checks of GIN variables
-  if (specular_factor > 1 || specular_factor < 1.0 / 3.0)
-    throw runtime_error("The valid range for *specular_factor* is [1/3,1].");
-  if (dza > 45 || dza <= 0)
-    throw runtime_error("The valid range for *dza* is ]0,45].");
-
-  // Obtain data for specular direction
-  //
-  Matrix los1, emission1;
-  Tensor4 rmatrix1;
-  //
-  surface_rtprop_sub_agendaExecute(ws,
-                                   surface_skin_t,
-                                   emission1,
-                                   los1,
-                                   rmatrix1,
-                                   f_grid,
-                                   rtp_pos,
-                                   rtp_los,
-                                   surface_rtprop_sub_agenda);
-  if (los1.nrows() != 1)
-    throw runtime_error(
-        "*surface_rtprop_sub_agenda* must return data "
-        "describing a specular surface.");
-
-  // Standard number of beams. Set to 2 if try/catch below fails
-  Index nbeams = 3;
-
-  // Test if some lower zenith angle works.
-  // It will fail if a higher za results in looking at the surface from below.
-  //
-  Matrix los2, emission2;
-  Tensor4 rmatrix2;
-  //
-  Numeric skin_t_dummy;
-  Numeric dza_try = dza;
-  bool failed = true;
-  while (failed && dza_try > 0) {
-    try {
-      Vector los_new = rtp_los;
-      los_new[0] -=
-          sign(rtp_los[0]) * dza_try;  // Sign to also handle 2D negative za
-      adjust_los(los_new, atmosphere_dim);
-      surface_rtprop_sub_agendaExecute(ws,
-                                       skin_t_dummy,
-                                       emission2,
-                                       los2,
-                                       rmatrix2,
-                                       f_grid,
-                                       rtp_pos,
-                                       los_new,
-                                       surface_rtprop_sub_agenda);
-      failed = false;
-    } catch (const runtime_error& e) {
-      dza_try -= 1.0;
-    }
-  }
-  if (failed) {
-    nbeams = 2;
-  }
-
-  // Allocate output WSVs
-  //
-  surface_emission.resize(emission1.nrows(), emission1.ncols());
-  surface_emission = 0;
-  surface_los.resize(nbeams, los1.ncols());
-  surface_rmatrix.resize(
-      nbeams, rmatrix1.npages(), rmatrix1.nrows(), rmatrix1.ncols());
-
-  // Put in specular direction at index 1
-  //
-  Numeric w;
-  if (nbeams == 3) {
-    w = specular_factor;
-  } else {
-    w = specular_factor + (1.0 - specular_factor) / 2.0;
-  }
-  //
-  surface_los(1, joker) = los1(0, joker);
-  for (Index p = 0; p < rmatrix1.npages(); p++) {
-    for (Index r = 0; r < rmatrix1.nrows(); r++) {
-      surface_emission(p, r) += w * emission1(p, r);
-      for (Index c = 0; c < rmatrix1.ncols(); c++) {
-        surface_rmatrix(1, p, r, c) = w * rmatrix1(0, p, r, c);
-      }
-    }
-  }
-
-  // Put in lower za as index 2, if worked
-  //
-  w = (1.0 - specular_factor) / 2.0;
-  //
-  if (nbeams == 3) {
-    surface_los(2, joker) = los2(0, joker);
-    for (Index p = 0; p < rmatrix2.npages(); p++) {
-      for (Index r = 0; r < rmatrix2.nrows(); r++) {
-        surface_emission(p, r) += w * emission2(p, r);
-        for (Index c = 0; c < rmatrix1.ncols(); c++) {
-          surface_rmatrix(2, p, r, c) = w * rmatrix2(0, p, r, c);
-        }
-      }
-    }
-  }
-
-  // Do higher za and put in as index 0 (reusing variables for beam 2)
-  //
-  Vector los_new = rtp_los;
-  los_new[0] += sign(rtp_los[0]) * dza;  // Sign to also handle 2D negative za
-  adjust_los(los_new, atmosphere_dim);
-  surface_rtprop_sub_agendaExecute(ws,
-                                   skin_t_dummy,
-                                   emission2,
-                                   los2,
-                                   rmatrix2,
-                                   f_grid,
-                                   rtp_pos,
-                                   los_new,
-                                   surface_rtprop_sub_agenda);
-  //
-  surface_los(0, joker) = los2(0, joker);
-  for (Index p = 0; p < rmatrix2.npages(); p++) {
-    for (Index r = 0; r < rmatrix2.nrows(); r++) {
-      surface_emission(p, r) += w * emission2(p, r);
-      for (Index c = 0; c < rmatrix1.ncols(); c++) {
-        surface_rmatrix(0, p, r, c) = w * rmatrix2(0, p, r, c);
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceSplitSpecularTo3beams(Matrix& surface_los,
-                                  Tensor4& surface_rmatrix,
-                                  const Index& atmosphere_dim,
-                                  const Vector& rtp_pos,
-                                  const Vector& rtp_los,
-                                  const Numeric& specular_factor,
-                                  const Numeric& dza,
-                                  const Verbosity&) {
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
-
-  // Check that input surface data are of specular type
-  if (surface_los.nrows() != 1)
-    throw runtime_error(
-        "Input surface data must be of specular type. That is, "
-        "*surface_los* must contain a single direction.");
-  if (surface_rmatrix.nbooks() != 1)
-    throw runtime_error(
-        "*surface_rmatrix* describes a different number of "
-        "directions than *surface_los*.");
-
-  // Checks of GIN variables
-  if (specular_factor > 1 || specular_factor < 1.0 / 3.0)
-    throw runtime_error("The valid range for *specular_factor* is [1/3,1].");
-  if (dza > 45 || dza <= 0)
-    throw runtime_error("The valid range for *dza* is ]0,45].");
-
-  // Make copies of input data
-  const Matrix los1 = surface_los;
-  const Tensor4 rmatrix1 = surface_rmatrix;
-
-  // Use abs(za) in all expressions below, to also handle 2D
-
-  // Calculate highest possible za for downwelling radiation, with 1 degree
-  // margin to the surface. This can be derived from za in rtp_los and surface_los.
-  // (The directions in surface_los are not allowed to point into the surface)
-  const Numeric za_max = 89 + (180 - abs(los1(0, 0)) - abs(rtp_los[0])) / 2.0;
-
-  // Number of downwelling beams
-  Index nbeams = 3;
-  if (abs(los1(0, 0)) > za_max) {
-    nbeams = 2;
-  }
-
-  // New los-s
-  //
-  surface_los.resize(nbeams, los1.ncols());
-  //
-  for (Index r = 0; r < nbeams; r++) {
-    surface_los(r, 0) = ((Numeric)r - 1.0) * dza + abs(los1(0, 0));
-    if (r == 2 && surface_los(r, 0) > za_max) {
-      surface_los(r, 0) = za_max;
-    }
-    for (Index c = 1; c < los1.ncols(); c++) {
-      surface_los(r, c) = los1(0, c);
-    }
-  }
-
-  // New rmatrix
-  //
-  surface_rmatrix.resize(
-      nbeams, rmatrix1.npages(), rmatrix1.nrows(), rmatrix1.ncols());
-  //
-  for (Index b = 0; b < nbeams; b++) {
-    Numeric w;
-    if (b == 1 && nbeams == 3)  // Specular direction with nbeams==3
-    {
-      w = specular_factor;
-    } else if (b == 1)  // Specular direction with nbeams==2
-    {
-      w = specular_factor + (1.0 - specular_factor) / 2.0;
-    } else  // Side directions
-    {
-      w = (1.0 - specular_factor) / 2.0;
-    }
-
-    for (Index p = 0; p < rmatrix1.npages(); p++) {
-      for (Index r = 0; r < rmatrix1.nrows(); r++) {
-        for (Index c = 0; c < rmatrix1.ncols(); c++) {
-          surface_rmatrix(b, p, r, c) = w * rmatrix1(0, p, r, c);
-        }
-      }
-    }
-  }
-
-  // Handle sign of za
-  if (atmosphere_dim == 1) {
-    // We only need to make sure that first direction has positive za
-    surface_los(0, 0) = abs(surface_los(0, 0));
-  } else if (atmosphere_dim == 2) {
-    // Change sign if specular direction has za < 0
-    if (los1(0, 0) < 0) {
-      for (Index r = 0; r < rmatrix1.nrows(); r++) {
-        surface_los(r, 0) = -surface_los(r, 0);
-      }
-    }
-  } else if (atmosphere_dim == 1) {
-    // We only need to make sure that first direction has positive za
-    if (surface_los(0, 0) < 0) {
-      surface_los(0, 0) = -surface_los(0, 0);
-      surface_los(0, 1) += 180;
-      if (surface_los(0, 1) > 180) {
-        surface_los(0, 1) -= 360;
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void surface_complex_refr_indexFromGriddedField5(
     GriddedField3& surface_complex_refr_index,
     const Index& atmosphere_dim,
@@ -3440,17 +3105,14 @@ void surface_scalar_reflectivityFromSurface_rmatrix(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_typeInterpTypeMask(ArrayOfIndex& surface_types,
-                                Vector& surface_types_aux,
-                                Vector& surface_types_weights,
-                                const Index& atmosphere_dim,
-                                const Vector& lat_grid,
-                                const Vector& lat_true,
-                                const Vector& lon_true,
-                                const Vector& rtp_pos,
-                                const GriddedField2& surface_type_mask,
-                                const String& method,
-                                const Verbosity&) {
+void InterpSurfaceTypeMask(Index& surface_type,
+                           const Index& atmosphere_dim,
+                           const Vector& lat_grid,
+                           const Vector& lat_true,
+                           const Vector& lon_true,
+                           const Vector& rtp_pos,
+                           const GriddedField2& surface_type_mask,
+                           const Verbosity&) {
   // Set expected order of grids
   Index gfield_latID = 0;
   Index gfield_lonID = 1;
@@ -3496,133 +3158,149 @@ void surface_typeInterpTypeMask(ArrayOfIndex& surface_types,
   gridpos(gp_lat, GFlat, lat[0]);
   gridpos(gp_lon, lon_shifted, lon[0]);
   
-  if (method == "nearest" ) {
-    // Extract closest point
-    Index ilat, ilon;
-    if (gp_lat.fd[0] < 0.5) {
-      ilat = gp_lat.idx;
-    } else {
-      ilat = gp_lat.idx + 1;
-    }
-    if (gp_lon.fd[0] < 0.5) {
-      ilon = gp_lon.idx;
-    } else {
-      ilon = gp_lon.idx + 1;
-    }
-    //
-    surface_types.resize(1);
-    surface_types_aux.resize(1);
-    surface_types_weights.resize(1);
-    surface_types[0] = (Index)floor(surface_type_mask.data(ilat, ilon));
-    surface_types_aux[0] = surface_type_mask.data(ilat, ilon) -
-                                              Numeric(surface_types[0]);
-    surface_types_weights[0] = 1.0;
+  // Extract closest point
+  Index ilat, ilon;
+  if (gp_lat.fd[0] < 0.5) {
+    ilat = gp_lat.idx;
+  } else {
+    ilat = gp_lat.idx + 1;
   }
-  
-  else if (method == "linear" ) {
-    // Determine types involved
-    ArrayOfIndex types0(4), types(4);
-    Index ntypes = 1;
-    //
-    types0[0] = (Index)floor(surface_type_mask.data(gp_lat.idx,gp_lon.idx));
-    types0[1] = (Index)floor(surface_type_mask.data(gp_lat.idx,gp_lon.idx+1));
-    types0[2] = (Index)floor(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx));
-    types0[3] = (Index)floor(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx+1));
-    //
-    types[0] = types0[0];
-    for (Index t=1; t<4; t++) {
-      bool unique = true;
-      for (Index n=0; n<ntypes && unique; n++) 
-        if (types0[t] == types[n] ) { unique = false; }
-      if (unique) {
-        types[ntypes] = types0[t];
-        ntypes += 1;
-      }
-    }
-    //
-    surface_types.resize(ntypes);
-    surface_types_aux.resize(ntypes);
-    surface_types_weights.resize(ntypes);
-    
-    // Interpolation weights
-    Vector itw(4);
-    interpweights(itw, gp_lat, gp_lon);
-
-    // Determine weight for each type, and make an interpolation of aux value
-    for (Index t=0; t<ntypes; t++ ) {
-      Numeric wtot = 0, auxtot = 0;
-      Numeric ntype = (Numeric)types[t];
-      if (types[t] == types0[0]) { wtot += itw[0];
-        auxtot += itw[0]*(surface_type_mask.data(gp_lat.idx,gp_lon.idx)-ntype);
-      };
-      if (types[t] == types0[1]) { wtot += itw[1];
-        auxtot += itw[1]*(surface_type_mask.data(gp_lat.idx,gp_lon.idx+1)-ntype);
-      };
-      if (types[t] == types0[2]) { wtot += itw[2];
-        auxtot += itw[2]*(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx)-ntype);
-      };
-      if (types[t] == types0[3]) { wtot += itw[3];
-        auxtot += itw[3]*(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx+1)-ntype);
-      };
-      //
-      surface_types[t] = types[t];
-      surface_types_aux[t] = auxtot / wtot;
-      surface_types_weights[t] = wtot;
-    }
+  if (gp_lon.fd[0] < 0.5) {
+    ilon = gp_lon.idx;
+  } else {
+    ilon = gp_lon.idx + 1;
   }
-
-  else {
-    ostringstream os;
-    os << "The allowed options for *method are: \"nearest\" and \"linear\",\n"
-       << "but you have selected: " << method;
-    throw runtime_error(os.str());
-  }
+  surface_type = (Index)round(surface_type_mask.data(ilat, ilon));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_rtpropCallAgendaX(Workspace& ws,
-                               Numeric& surface_skin_t,
-                               Matrix& surface_los,
-                               Tensor4& surface_rmatrix,
-                               Matrix& surface_emission,
-                               const Vector& f_grid,
-                               const Vector& rtp_pos,
-                               const Vector& rtp_los,
-                               const ArrayOfAgenda& surface_rtprop_agenda_array,
-                               const ArrayOfIndex& surface_types,
-                               const Vector& surface_types_aux,
-                               const Vector& surface_types_weights,
-                               const Verbosity&) {
-  if (surface_types.nelem() != 1) {
-    ostringstream os;
-    os << "This method requires that *surface_types* have length 1.\n"
-       << "If you are trying to apply a mixture model, you have to use\n"
-       << "a setup based on *iySurfaceCallAgendaX* instead.";
-    throw runtime_error(os.str());
-  }
-  if (surface_types[0] < 0)
-    throw runtime_error("*surface_type* is not allowed to be negative.");
-  if (surface_types[0] >= surface_rtprop_agenda_array.nelem()) {
-    ostringstream os;
-    os << "*surface_rtprop_agenda_array* has only "
-       << surface_rtprop_agenda_array.nelem()
-       << " elements,\n while you have selected element " << surface_types[0];
-    throw runtime_error(os.str());
-  }
-  if (abs(surface_types_weights[0]-1)>1e-4)
-    throw runtime_error("Sum of *surface_types_weights* deviates from 1.");  
+void surface_rtpropFromTypesManual(Workspace& ws,
+                                    Vector& surface_type_mix,
+                                    Numeric& surface_skin_t,
+                                    Matrix& surface_los,
+                                    Tensor4& surface_rmatrix,
+                                    Matrix& surface_emission,
+                                    const Vector& f_grid,
+                                    const Vector& rtp_pos,
+                                    const Vector& rtp_los,
+                                    const ArrayOfAgenda& surface_rtprop_agenda_array,
+                                    const Index& surface_type,
+                                    const Verbosity&)
+{
+  ARTS_USER_ERROR_IF(surface_type < 0 or
+     surface_type >= surface_rtprop_agenda_array.nelem(),
+     "Provided surface type index invalid (<0 or too high w.r.t. "
+     "length of *surface_rtprop_agenda_array*).");
+  
+  surface_type_mix.resize(surface_rtprop_agenda_array.nelem());
+  surface_type_mix = 0.0;
+  surface_type_mix[surface_type] = 1.0;
 
   surface_rtprop_agenda_arrayExecute(ws,
                                      surface_skin_t,
                                      surface_emission,
                                      surface_los,
                                      surface_rmatrix,
-                                     surface_types[0],
+                                     surface_type,
                                      f_grid,
                                      rtp_pos,
                                      rtp_los,
-                                     surface_types_aux[0],
                                      surface_rtprop_agenda_array);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_rtpropFromTypesNearest(Workspace& ws,
+                                    Vector& surface_type_mix,
+                                    Numeric& surface_skin_t,
+                                    Matrix& surface_los,
+                                    Tensor4& surface_rmatrix,
+                                    Matrix& surface_emission,
+                                    const Vector& f_grid,
+                                    const Index& atmosphere_dim,
+                                    const Vector& lat_grid,
+                                    const Vector& lat_true,
+                                    const Vector& lon_true,
+                                    const Vector& rtp_pos,
+                                    const Vector& rtp_los,
+                                    const GriddedField2& surface_type_mask,
+                                    const ArrayOfAgenda& surface_rtprop_agenda_array,
+                                    const Verbosity& verbosity)
+{
+  Index surface_type;
+  InterpSurfaceTypeMask(surface_type,
+                        atmosphere_dim,
+                        lat_grid,
+                        lat_true,
+                        lon_true,
+                        rtp_pos,
+                        surface_type_mask,
+                        verbosity);
+  ARTS_USER_ERROR_IF(surface_type < 0 or
+     surface_type >= surface_rtprop_agenda_array.nelem(),
+     "Interpolation gave invalid surface type index (<0 or too "
+     "high w.f.t. length of *surface_rtprop_agenda_array*).");
+
+  surface_type_mix.resize(surface_rtprop_agenda_array.nelem());
+  surface_type_mix = 0.0;
+  surface_type_mix[surface_type] = 1.0;
+
+  surface_rtprop_agenda_arrayExecute(ws,
+                                     surface_skin_t,
+                                     surface_emission,
+                                     surface_los,
+                                     surface_rmatrix,
+                                     surface_type,
+                                     f_grid,
+                                     rtp_pos,
+                                     rtp_los,
+                                     surface_rtprop_agenda_array);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_rtpropInterpFreq(Vector& f_grid,
+                              Tensor4& surface_rmatrix,
+                              Matrix& surface_emission,
+                              const Vector& f_new,
+                              const Verbosity&) {
+  const Index nf = f_grid.nelem();
+  const Index ns = surface_emission.ncols();
+  const Index nlos = surface_rmatrix.nbooks();
+  const Index nnew = f_new.nelem();
+
+  // Checks
+  ARTS_USER_ERROR_IF(surface_emission.nrows() not_eq nf,
+     "Different number of frequencies in *f_grid* and *surface_emission*.");
+  ARTS_USER_ERROR_IF(surface_rmatrix.npages() not_eq nf,
+     "Different number of frequencies in *f_grid* and *surface_rmatrix*.");
+  ARTS_USER_ERROR_IF(surface_rmatrix.ncols() not_eq ns,
+     "Different number of Stokes elements in *surface_emission* and *surface_rmatrix*.");
+
+  // Set up interpolation
+  chk_interpolation_grids("Frequency interpolation", f_grid, f_new);
+  ArrayOfGridPos gp(nnew);
+  Matrix itw(nnew, 2);
+  gridpos(gp, f_grid, f_new);
+  interpweights(itw, gp);
+
+  // Interpolate
+  Tensor4 rmatrix = surface_rmatrix;
+  Matrix emission = surface_emission;
+  surface_rmatrix.resize(nlos, nnew, ns, ns);
+  surface_emission.resize(nnew, ns);
+  //
+  for (Index is = 0; is < ns; ++is) {
+    interp(surface_emission(joker, is), itw, emission(joker, is), gp);
+    for (Index il = 0; il < nlos; ++il) {
+      for (Index is2 = 0; is2 < ns; ++is2) {
+        interp(surface_rmatrix(il, joker, is, is2),
+               itw,
+               rmatrix(il, joker, is, is2),
+               gp);
+      }
+    }
+  }
+  f_grid = f_new;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

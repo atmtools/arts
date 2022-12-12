@@ -111,13 +111,6 @@ void test_agendaSet(Workspace& ws,
   out = get_test_agenda(ws, option);
 }
 
-void surface_rtprop_sub_agendaSet(Workspace& ws,
-                  Agenda& out,
-                  const String& option,
-                  const Verbosity&) {
-  out = get_surface_rtprop_sub_agenda(ws, option);
-}
-
 void spt_calc_agendaSet(Workspace& ws,
                   Agenda& out,
                   const String& option,

@@ -8293,6 +8293,33 @@ Available models:
       GIN_DESC("Field to interpolate.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("InterpSurfaceTypeMask"),
+      DESCRIPTION(
+          "Interpolation of surface type mask.\n"
+          "\n"
+          "The method determines the surface type at the position of concern\n"
+          "(*rtp_pos*) from the provided type mask.\n"
+          "\n"
+          "The surface type is taken as the nearest value in *surface_type_mask*.\n"
+          "\n"
+          "The altitude in *rtp_pos* is ignored.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("surface_type"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Surface type index"),
+      IN("atmosphere_dim",
+         "lat_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "surface_type_mask"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricalWithAltitude"),
       DESCRIPTION(
           "Calculates the geometrical intersection with an altitude.\n"
@@ -9350,39 +9377,6 @@ Available models:
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("iySurfaceCallAgendaX"),
-      DESCRIPTION(
-          "Switch between the elements of *iy_surface_agenda_array*.\n"
-          "\n"
-          "This method calls the agendas matching *surface_types* and\n"
-          "sums up the iy-data of each type.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("iy", "diy_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_unit",
-         "iy_transmittance",
-         "iy_id",
-         "cloudbox_on",
-         "jacobian_do",
-         "f_grid",
-         "iy_main_agenda",
-         "rtp_pos",
-         "rtp_los",
-         "rte_pos2",
-         "iy_surface_agenda_array",
-         "surface_types",
-         "surface_types_aux",
-         "surface_types_weights" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
@@ -20017,91 +20011,6 @@ where N>=0 and the species name is something line "H2O".
                "angle grid. See above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceSemiSpecularBy3beams"),
-      DESCRIPTION(
-          "A simplistic treatment of semi-specular surfaces.\n"
-          "\n"
-          "This method has no strong physical basis but could be used for simpler\n"
-          "testing or as starting point for more advanced methods.\n"
-          "\n"
-          "This method assumes that the surface can be treated to have three facets,\n"
-          "all lacking surface roughness. One facet is assumed to give standard\n"
-          "specular reflection, while the two other facets are tilted with +dza\n"
-          "and -dza, respectively. The tilt is assumed to only affect the zenith\n"
-          "angle of the reflected direction (azimuth same as for specular direction).\n"
-          "The area ratio of the non-tilted facet is set by *specular_factor*.\n"
-          "That is, the specular beam is given weight w, while the other two beams\n"
-          "each get weight (1-w)/2.\n"
-          "\n"
-          "If a facet tilts away from the viewing direction in such way that\n"
-          "the surface is observed from below, the tilt of the facet is decreased\n"
-          "in steps of 1 degree until a successful calculation is obtained. If this\n"
-          "turns out to require a tilt of zero, this facete is merged with\n"
-          "the specular direction.\n"
-          "\n"
-          "The pure specular properties of the surface shall be described by\n"
-          "*surface_rtprop_sub_agenda*. That is, if you have specular surface\n"
-          "described and you want to make it semi-specular by this method, you\n"
-          "move the content of the existing *surface_rtprop_agenda* to\n"
-          "*surface_rtprop_sub_agenda* and instead fill *surface_rtprop_agenda*\n"
-          "with this method.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_skin_t",
-          "surface_los",
-          "surface_rmatrix",
-          "surface_emission"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "f_grid",
-         "rtp_pos",
-         "rtp_los",
-         "surface_rtprop_sub_agenda"),
-      GIN("specular_factor", "dza"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The weight given to the specular direction. Denoted as w above."
-               " A value between 1/3 and 1.",
-               "Zenith angle seperation to each secondary direction. A "
-               "between 0 and 45 degrees.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceSplitSpecularTo3beams"),
-      DESCRIPTION(
-          "A very simple approximation of a semi-specular surface.\n"
-          "\n"
-          "This method has no direct physical basis but could be used for simpler\n"
-          "testing or as starting point for more advanced methods.\n"
-          "\n"
-          "The method requires that the surface RT properties (e.g. *surface_los*)\n"
-          "have been set up to mimic a specular surface. This method splits the down-\n"
-          "welling radiation into three directions. The specular direction is given\n"
-          "weight w, while the other two beams each get weight (1-w)/2. The basic\n"
-          "polarised reflectivity from the specular calculations is maintained\n"
-          "for each beam. The beams are just separated in zenith angle, with a\n"
-          "separation of *dza*. The lowermost beam is not allowed to be closer to\n"
-          "the surface than 1 degree. If there is no room for the lowermost beam,\n"
-          "it is merged with the main beam.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_los", "surface_rmatrix"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("surface_los",
-         "surface_rmatrix",
-         "atmosphere_dim",
-         "rtp_pos",
-         "rtp_los"),
-      GIN("specular_factor", "dza"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The weight given to the specular direction. Denoted as w above."
-               " A value between 1/3 and 1.",
-               "Zenith angle seperation to each secondary direction. A "
-               "between 0 and 45 degrees.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceMapToLinearPolarisation"),
       DESCRIPTION(
           "Convert surface RT properties to a linear polarisation.\n"
@@ -20322,18 +20231,14 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("A field of surface reflectivities")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surface_rtpropCallAgendaX"),
+      NAME("surface_rtpropFromTypesManual"),
       DESCRIPTION(
-          "Switch between the elements of *surface_rtprop_agenda_array*.\n"
+          "Extracts surface RT properties by manual selection of surface type.\n"
           "\n"
-          "This method requires that *surface_types* have length 1, in\n"
-          "contrast to *iySurfaceCallAgendaX*\n"
-          "\n"
-          "This method obtains the surface properties as defined by the\n"
-          "agenda in *surface_rtprop_agenda_array* corresponding to\n"
-          "*surface_types*.\n"),
+          "The surface type to apply is selected by the GIN argument.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("surface_skin_t",
+      OUT("surface_type_mix",
+          "surface_skin_t",
           "surface_los",
           "surface_rmatrix",
           "surface_emission"),
@@ -20343,14 +20248,66 @@ where N>=0 and the species name is something line "H2O".
       IN("f_grid",
          "rtp_pos",
          "rtp_los",
-         "surface_rtprop_agenda_array",
-         "surface_types",
-         "surface_types_aux",
-         "surface_types_weights" ),
+         "surface_rtprop_agenda_array"),
+      GIN("surface_type"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Selected surface type")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_rtpropFromTypesNearest"),
+      DESCRIPTION(
+          "Extracts surface RT properties from nearest surface type.\n"
+          "\n"
+          "The surface type is set by nearest interpolation of *surface_type_mask*\n"
+          "and the corresponding agenda in *surface_rtprop_agenda_array* is\n"
+          "called to obtain the local radiative properties of the surface.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_type_mix",
+          "surface_skin_t",
+          "surface_los",
+          "surface_rmatrix",
+          "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "atmosphere_dim",
+         "lat_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "rtp_los",
+         "surface_type_mask",
+         "surface_rtprop_agenda_array"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_rtpropInterpFreq"),
+      DESCRIPTION(
+          "Interpolates surface RT properties in frequency.\n"
+          "\n"
+          "The WSVs *surface_rmatrix* and *surface_emission* are inter-\n"
+          "polated linearly in frequency. The original frequency is given\n"
+          "by *f_grid*, and there is an interpolation to new frequency grid.\n"
+          "The function resets *f_grid* to the new grid.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("f_grid",
+          "surface_rmatrix",
+          "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "surface_rmatrix",
+         "surface_emission"),
+      GIN("f_new"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("New frequency grid")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromGriddedField4"),
@@ -20416,47 +20373,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surface_typeInterpTypeMask"),
-      DESCRIPTION(
-          "Interpolation of surface type mask.\n"
-          "\n"
-          "The method determines the surface type(s) at the position of concern\n"
-          "(*rtp_pos*) from the provided type mask (*surface_type_mask*).\n"
-          "\n"
-          "For the default interpolation method, \"nearest\", the closest point\n"
-          "in the mask is selected. The surface type is set to the integer part\n"
-          "of the value at the found point, while *surface_types_aux* is set to\n"
-          "the reminder. For example, if the mask value at closest point is 2.23,\n"
-          "*surface_types* is set to 2 and *surface_type_aux* becomes 0.23.\n"
-          "*surface_types_weights* is set to 1. For this option, all output\n"
-          "arguments have length 1.\n"
-          "\n"
-          "With the interpolation set to \"linear\", the output arguments are\n"
-          "set up to describe a mixture of types. The mask values at the grid cell\n"
-          "corner points are determined, and type and aux values are extracted as\n"
-          "above. The weight associated with each type is calculated as for a\n"
-          "standard bi-linear interpolation. If *rte_pos* is exactly at the centre\n"
-          "of the grid cell, and three corner points match type 0 and one point\n"
-          "type 1, type 0 and 1 get weight 0.75 and 0.25 respectively.\n"
-          "\n"
-          "The altitude in *rtp_pos* is ignored.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_types", "surface_types_aux", "surface_types_weights"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "lat_grid",
-         "lat_true",
-         "lon_true",
-         "rtp_pos",
-         "surface_type_mask"),
-      GIN("method"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("nearest"),
-      GIN_DESC("Interpolation method (see above).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceBlackbody"),
@@ -20790,15 +20706,12 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "This method determines whether the position in *rtp_pos* is\n"
           "of type ocean or land depending on whether a corresponding\n"
-          "cell is contained in the provided TELSEM atlas.\n"
-          "In combination with the WSM *surface_rtpropCallAgendaX* this\n"
-          "can be used to used different methods to compute surface radiative\n"
-          "properties.\n"),
+          "cell is contained in the provided TELSEM atlas.\n"),
       AUTHORS("Simon Pfreundschuh"),
-      OUT("surface_type"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
+      OUT(),
+      GOUT("surface_type"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Surface type flag"),
       IN("atmosphere_dim", "lat_grid", "lat_true", "lon_true", "rtp_pos"),
       GIN("atlas"),
       GIN_TYPE("TelsemAtlas"),
@@ -21684,6 +21597,26 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start value.", "End value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorNLinSpaceVector"),
+      DESCRIPTION(
+          "As *VectorNLinSpace* but end points taken from a vector.\n"
+          "\n"
+          "The method gives a vector with equidistant spacing between\n"
+          "first and last element of the reference vector.\n"
+          "\n"
+          "The length (*nelem*) must be larger than 1.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("y"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Reference vector.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLogSpace"),
@@ -24164,28 +24097,6 @@ Options are:
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("surface_rtprop_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("surface_rtprop_sub_agendaSet"),
-                      DESCRIPTION(R"--(Sets *surface_rtprop_sub_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("surface_rtprop_sub_agenda"),
                       GOUT(),
                       GOUT_TYPE(),
                       GOUT_DESC(),

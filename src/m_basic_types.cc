@@ -1481,6 +1481,14 @@ void VectorNLinSpace(Vector& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorNLinSpaceVector(Vector& x,
+                     const Index& n,
+                     const Vector& y,
+                     const Verbosity& verbosity) {
+  VectorNLinSpace(x, n, y[0], last(y), verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfTimeNLinSpace(ArrayOfTime& x,
                           const Index& n,
                           const String& start,

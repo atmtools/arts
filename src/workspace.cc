@@ -1932,13 +1932,6 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("iy_surface_agenda_array"),
-      DESCRIPTION(
-          // FIXMEDOC
-          "Upwelling radiation from the surface, divided into surface types.\n"),
-      GROUP("ArrayOfAgenda")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("iy_transmittance"),
       DESCRIPTION(
           "Transmittance to be included in *iy*.\n"
@@ -4710,13 +4703,8 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
   wsv_data.push_back(WsvRecord(
       NAME("surface_rtprop_agenda_array"),
       DESCRIPTION(
-          "Description of surface radiative properties, divided into surface types.\n"),
+          "Description of surface radiative properties, for each surface type.\n"),
       GROUP("ArrayOfAgenda")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_rtprop_sub_agenda"),
-                DESCRIPTION("Sub-agenda to *surface_rtprop_agenda*.\n"),
-                GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_skin_t"),
@@ -4789,40 +4777,15 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Dimensions: [ f_grid or 1]\n"),
       GROUP("Vector")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_type"),
-                DESCRIPTION("Local, single surface type value.\n"
-                            "\n"
-                            "See *surface_type_mask* for details.\n"),
-                GROUP("Index")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_type_aux"),
-                DESCRIPTION("Auxiliary variable to *surface_type*.\n"
-                            "\n"
-                            "See *surface_type_mask* for details.\n"),
-                GROUP("Numeric")));
-
   wsv_data.push_back(WsvRecord(
       NAME("surface_type_mask"),
       DESCRIPTION(
           "Classification of the surface using a type coding.\n"
           "\n"
-          "This variable gives a description of the surface using a type class\n"
-          "coding. A common term for such a variable is \"surface mask\".\n"
-          "\n"
-          "The mask is a latitude and longtide field. The mask values are\n"
-          "floating numbers, where the integer part is the type and the remainder\n"
-          "can be used to provide auxilary information. In terms of the local\n"
-          "variables, the mask values equal *surface_type* + *surface_type_aux*.\n"
-          "\n"
           "There is no fixed type coding, it is up to the user to set up\n"
-          "a consistent system. The critical point is in the agendas\n"
-          "matching each surface type, that are denoted as iy_surface_sub_agendaX\n"
-          "where X is the *surface_type* index.\n"
-          "\n"
-          "The surface type can be any integer (>=0) for which a corresponding\n"
-          "agenda exists.\n"
+          "a system consistent with *surface_rtprop_agenda_array*. A value\n"
+          "of 0 in *surface_type_mask* means that element 0 in the agenda\n"
+          "array is valid for that position etc.\n"
           "\n"
           "Dimensions: \n"
           "   GriddedField2:\n"
@@ -4832,28 +4795,19 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("GriddedField2")));
 
   wsv_data.push_back(
-      WsvRecord(NAME("surface_types"),
+      WsvRecord(NAME("surface_type_mix"),
           DESCRIPTION(
-            "This and associated WSVs describe a mixture of surface types.\n"
+            "Gives the fraction of different surface types.\n"
             "\n"
-            "Holds a number of *surface_type*.\n"),
-          GROUP("ArrayOfIndex")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_types_aux"),
-          DESCRIPTION(
-            "Auxiliary variable to *surface_types*.\n"
-            "\n"
-            "Holds a number of *surface_type_aux*..\n"),
-           GROUP("Vector")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_types_weights"),
-          DESCRIPTION("Auxiliary variable to *surface_type*.\n"
-                      "\n"
-                      "Holds the relative weight of each surface type.\n"),
+            "For cases when the surface RT properties are taken from\n"
+            "*surface_rtprop_agenda_array*, this variabl specifies to\n"
+            "what extent each surface type has contributed to e.g.\n"
+            "*surface_emission*. The length of this vector fowllows\n"
+            "*surface_rtprop_agenda_array* and the sum of the elements\n"
+            "is 1. The first element in the vector matches the first"
+            "agenda element, and so on."),
           GROUP("Vector")));
-  
+
   wsv_data.push_back(WsvRecord(
       NAME("telsem_atlases"),
       DESCRIPTION(
