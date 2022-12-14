@@ -227,6 +227,29 @@ class SHT {
    */
   SHT(Index l_max);
 
+  /// Serialize SHT.
+  std::ostream& serialize(std::ostream &output)  const {
+      output.write(reinterpret_cast<const char *>(&l_max_), sizeof(Index));
+      output.write(reinterpret_cast<const char *>(&m_max_), sizeof(Index));
+      output.write(reinterpret_cast<const char *>(&n_lon_), sizeof(Index));
+      output.write(reinterpret_cast<const char *>(&n_lat_), sizeof(Index));
+  }
+
+  /// Deserialize SHT.
+  static SHT deserialize(std::istream &input) {
+      Index l_max, m_max, n_lon, n_lat;
+      input.read(reinterpret_cast<char *>(&l_max), sizeof(Index));
+      input.read(reinterpret_cast<char *>(&m_max), sizeof(Index));
+      input.read(reinterpret_cast<char *>(&n_lon), sizeof(Index));
+      input.read(reinterpret_cast<char *>(&n_lat), sizeof(Index));
+      return SHT(
+          l_max,
+          m_max,
+          n_lon,
+          n_lat
+          );
+  }
+
   /** Return latitude grid used by SHTns.
    * @return Eigen vector containing the latitude grid in radians.
    */

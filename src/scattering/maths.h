@@ -674,7 +674,7 @@ template <typename Scalar>
  * @return reference to the output stream.
  */
 template<typename Scalar>
-    std::ostream& serialize(std::ostream &output, Vector<Scalar> &input)  {
+    std::ostream& serialize(std::ostream &output, const Vector<Scalar> &input)  {
     Index size = input.size();
     output.write(reinterpret_cast<char const*>(&size), sizeof(Index));
     output.write(reinterpret_cast<char const*>(input.data()), input.size() * sizeof(Scalar));
@@ -703,7 +703,7 @@ template<typename Scalar>
  * @return reference to the output stream.
  */
 template<typename Scalar>
-    std::ostream& serialize(std::ostream &output, Matrix<Scalar> &input)  {
+    std::ostream& serialize(std::ostream &output, const Matrix<Scalar> &input)  {
     Index rows{input.rows()}, cols{input.cols()};
     output.write(reinterpret_cast<char const*>(&rows), sizeof(Index));
     output.write(reinterpret_cast<char const*>(&cols), sizeof(Index));
@@ -728,7 +728,7 @@ template<typename Scalar>
 }
 
 template<typename Scalar, int rank>
-    std::ostream& serialize(std::ostream &output, Tensor<Scalar, rank> &input)  {
+    std::ostream& serialize(std::ostream &output, const Tensor<Scalar, rank> &input)  {
     std::array<Index, rank> dims = input.dimensions();
     output.write(reinterpret_cast<char const*>(&dims), rank * sizeof(Index));
     output.write(reinterpret_cast<char const*>(input.data()), input.size() * sizeof(Scalar));

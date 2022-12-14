@@ -1,15 +1,15 @@
 /** \file scattering_data_field.h
  *
- * This files contains three classes used to represent scattering data fields in
- * three different formats. These classes are used as the basic container to
- * hold scattering data. The scattering data itself is typically multi-dimensional
- * (depending on the stokes dimension) and in general depends on frequency,
+ * This files contains three classes that represent scattering data fields in
+ * three different formats. The classes are used as the basic container to
+ * hold scattering data. The scattering data itself is  multi-dimensional
+ * (depending on the stokes dimension) and depends on frequency,
  * temperature, and incoming and scattering angles.
  *
  * The scattering data field classes differ in how the dependency w.r.t. to the
  * incoming and scattering angles is represented:
  *
- * The ScatteringDataGridded class represents the angle-dependencies using
+ * The ScatteringDataFieldGridded class represents the angle-dependencies using
  * two-dimensional grids over the  longitudinal and latitudinal components
  * of incoming and scattering angles.
  *
@@ -36,12 +36,18 @@
 
 namespace scattering {
 
+
 using math::Index;
 
 // pxx :: export
 enum class DataFormat {Gridded = 0, Spectral = 1, FullySpectral = 2 };
 // pxx :: export
 enum class ParticleType { Random = 0, AzimuthallyRandom = 1, General = 2 };
+
+std::ostream &operator<<(std::ostream &output,
+                         const DataFormat format);
+std::ostream &operator<<(std::ostream &output,
+                         const ParticleType format);
 
 // pxx :: hide
 template <typename Scalar>
@@ -86,7 +92,6 @@ class ScatteringDataFieldBase {
         n_lon_scat_(n_lon_scat),
         n_lat_scat_(n_lat_scat) {}
 
- protected:
   Index n_freqs_;
   Index n_temps_;
   Index n_lon_inc_;
@@ -159,10 +164,10 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
   /** Create gridded scattering data field.
    * @param f_grid The frequency grid.
    * @param t_grid The temperature grid.
-   * @lon_inc The incoming azimuth angle
-   * @lat_inc The incoming zenith angle
-   * @lon_scat The scattering zenith angle
-   * @lat_scat The scattering azimuth angle
+   * @lon_inc The incoming azimuth angles.
+   * @lat_inc The incoming zenith angles.
+   * @lon_scat The scattering azimuth angles.
+   * @lat_scat The scattering zenith angles.
    * @data The tensor containing the scattering data.
    */
   ScatteringDataFieldGridded(VectorPtr f_grid,
@@ -201,13 +206,15 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
    * @lat_scat The scattering azimuth angle
    * @data The tensor containing the scattering data.
    */
-  ScatteringDataFieldGridded(Vector f_grid,
-                             Vector t_grid,
-                             Vector &lon_inc,
-                             Vector &lat_inc,
-                             Vector &lon_scat,
-                             Vector &lat_scat,
-                             Tensor<7> &data)
+  ScatteringDataFieldGridded(
+      const Vector &f_grid,
+      const Vector &t_grid,
+      const Vector &lon_inc,
+      const Vector &lat_inc,
+      const Vector &lon_scat,
+      const Vector &lat_scat,
+      const Tensor<7>& data
+      )
       : ScatteringDataFieldBase(f_grid.size(),
                                 t_grid.size(),
                                 lon_inc.size(),
@@ -236,11 +243,11 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
    *
    * @param f_grid The frequency grid.
    * @param t_grid The temperature grid.
-   * @lon_inc The incoming azimuth angle
-   * @lat_inc The incoming zenith angle
-   * @lon_scat The scattering zenith angle
-   * @lat_scat The scattering azimuth angle
-   * @n_element The number of scattering-data elements, e.g.
+   * @param lon_inc The incoming azimuth angle
+   * @param lat_inc The incoming zenith angle
+   * @param lon_scat The scattering zenith angle
+   * @param lat_scat The scattering azimuth angle
+   * @param n_elements The number of scattering-data elements, e.g.
    * phase matrix components that need to be stored for this
    * data field.
    */
@@ -317,6 +324,42 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
                                       lon_scat_,
                                       lat_scat_,
                                       data_new);
+  }
+
+  /// Read scattering data field from output stream.
+  static ScatteringDataFieldGridded deserialize(std::istream &input) {
+      math::Vector<double> f_grid, t_grid, lon_inc, lat_inc, lon_scat, lat_scat;
+      math::Tensor<double, 7> data;
+
+      math::deserialize(input, f_grid);
+      math::deserialize(input, t_grid);
+      math::deserialize(input, lon_inc);
+      math::deserialize(input, lat_inc);
+      math::deserialize(input, lon_scat);
+      math::deserialize(input, lat_scat);
+      math::deserialize(input, data);
+
+      return ScatteringDataFieldGridded(
+          f_grid,
+          t_grid,
+          lon_inc,
+          lat_inc,
+          lon_scat,
+          lat_scat,
+          data
+      );
+  }
+
+  /// Write scattering data field to output stream.
+  std::ostream& serialize(std::ostream &output) const {
+      math::serialize(output, *f_grid_);
+      math::serialize(output, *t_grid_);
+      math::serialize(output, *lon_inc_);
+      math::serialize(output, *lat_inc_);
+      math::serialize(output, *lon_scat_);
+      math::serialize(output, *lat_scat_);
+      math::serialize(output, *data_);
+      return output;
   }
 
   /** Set scattering data for given frequency and temperature index.
@@ -1032,6 +1075,41 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
   /// The raw scattering data.
   const DataTensor &get_data() const { return *data_; }
 
+  /// Read scattering data field from output stream.
+  static ScatteringDataFieldSpectral deserialize(std::istream &input) {
+      math::Vector<double> f_grid, t_grid, lon_inc, lat_inc, lon_scat, lat_scat;
+      std::array<Index, 4> sht_params{};
+      math::Tensor<std::complex<double>, 6> data;
+
+      math::deserialize(input, f_grid);
+      math::deserialize(input, t_grid);
+      math::deserialize(input, lon_inc);
+      math::deserialize(input, lat_inc);
+      auto sht = sht::SHT::deserialize(input);
+      math::deserialize(input, data);
+
+      return ScatteringDataFieldSpectral(
+          f_grid,
+          t_grid,
+          lon_inc,
+          lat_inc,
+          sht,
+          data
+      );
+  }
+
+  /// Write scattering data field to output stream.
+  std::ostream& serialize(std::ostream &output) const {
+      std::array<Index, 4> sht_params = get_sht_scat_params();
+      math::serialize(output, *f_grid_);
+      math::serialize(output, *t_grid_);
+      math::serialize(output, *lon_inc_);
+      math::serialize(output, *lat_inc_);
+      sht_scat_->serialize(output);
+      math::serialize(output, *data_);
+      return output;
+  }
+
   /** Set scattering data for given frequency and temperature index.
    *
    * This function copies the data from the given scattering data field
@@ -1099,7 +1177,6 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
     auto n_stokes = data_->dimension(5);
     math::IndexArray<5> dimensions_loop = {1, 1, 1, 1, n_stokes};
 
-    using DataTensor = math::Tensor<Scalar, 7>;
     Vector results{n_stokes};
     for (math::DimensionCounter<5> i{dimensions_loop}; i; ++i) {
         auto synthesized = sht_scat_->evaluate(math::get_subvector<4>(data_interp, i.coordinates),
@@ -1749,6 +1826,36 @@ class ScatteringDataFieldFullySpectral : public ScatteringDataFieldBase {
     }
   }
 
+  /// Read scattering data field from output stream.
+  static ScatteringDataFieldFullySpectral deserialize(std::istream &input) {
+      math::Vector<double> f_grid, t_grid, lon_inc, lat_inc, lon_scat, lat_scat;
+      math::Tensor<std::complex<double>, 5> data;
+
+      math::deserialize(input, f_grid);
+      math::deserialize(input, t_grid);
+      auto sht_inc = sht::SHT::deserialize(input);
+      auto sht_scat = sht::SHT::deserialize(input);
+      math::deserialize(input, data);
+
+      return ScatteringDataFieldFullySpectral(
+          f_grid,
+          t_grid,
+          sht_inc,
+          sht_scat,
+          data
+      );
+  }
+
+  /// Write scattering data field to output stream.
+  std::ostream& serialize(std::ostream &output) const {
+      math::serialize(output, *f_grid_);
+      math::serialize(output, *t_grid_);
+      sht_inc_->serialize(output);
+      sht_scat_->serialize(output);
+      math::serialize(output, *data_);
+      return output;
+  }
+
   Vector interpolate(Scalar frequency,
                      Scalar temperature,
                      Scalar lon_inc,
@@ -2076,21 +2183,19 @@ ScatteringDataFieldSpectral<Scalar>::to_gridded() const {
                                          sht_scat_->get_n_longitudes(),
                                          sht_scat_->get_n_latitudes(),
                                          data_->dimension(5)};
-  using Vector = math::Vector<Scalar>;
-  using DataTensor = math::Tensor<Scalar, 7>;
-  auto data_new = std::make_shared<DataTensor>(dimensions_new);
+  auto data_new = std::make_shared<math::Tensor<Scalar, 7>>(dimensions_new);
   for (math::DimensionCounter<5> i{dimensions_loop}; i; ++i) {
       auto synthesized = sht_scat_->synthesize(math::get_subvector<4>(*data_, i.coordinates));
       math::get_submatrix<4, 5>(*data_new, i.coordinates) = synthesized;
   }
-  auto lon_scat_ = std::make_shared<Vector>(sht_scat_->get_longitude_grid());
-  auto lat_scat_ = std::make_shared<sht::SHT::LatGrid>(sht_scat_->get_latitude_grid());
+  auto lon_scat_new = std::make_shared<Vector>(sht_scat_->get_longitude_grid());
+  auto lat_scat_new = std::make_shared<sht::SHT::LatGrid>(sht_scat_->get_latitude_grid());
   return ScatteringDataFieldGridded<Scalar>(f_grid_,
                                             t_grid_,
                                             lon_inc_,
                                             lat_inc_,
-                                            lon_scat_,
-                                            lat_scat_,
+                                            lon_scat_new,
+                                            lat_scat_new,
                                             data_new);
 }
 
@@ -2141,14 +2246,13 @@ ScatteringDataFieldFullySpectral<Scalar>::to_spectral() const {
             math::get_subvector<2>(*data_, i.coordinates));
   }
 
-  auto lon_inc_ = std::make_shared<Vector>(sht_inc_->get_longitude_grid());
-  auto lat_inc_ = std::make_shared<sht::SHT::LatGrid>(sht_inc_->get_latitude_grid());
+  auto lon_inc_new = std::make_shared<Vector>(sht_inc_->get_longitude_grid());
+  auto lat_inc_new = std::make_shared<sht::SHT::LatGrid>(sht_inc_->get_latitude_grid());
 
   return ScatteringDataFieldSpectral<Scalar>(f_grid_,
                                              t_grid_,
-
-                                             lon_inc_,
-                                             lat_inc_,
+                                             lon_inc_new,
+                                             lat_inc_new,
                                              sht_scat_,
                                              data_new);
 }

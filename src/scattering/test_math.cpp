@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include <scattering/maths.h>
 
@@ -203,6 +204,7 @@ bool test_vector_io() {
 
         double delta = (vector - other_vector).cwiseAbs().maxCoeff();
         if (delta > 1e-6) return false;
+        std::filesystem::remove("test_math_vector.bin");
     }
     return true;
 }
@@ -224,6 +226,7 @@ bool test_matrix_io() {
 
         double delta = (matrix - other_matrix).cwiseAbs().maxCoeff();
         if (delta > 1e-6) return false;
+        std::filesystem::remove("test_math_matrix.bin");
     }
     return true;
 }
@@ -245,6 +248,7 @@ bool test_tensor_io() {
 
       scattering::math::Tensor<double, 0> delta = (tensor - other_tensor).abs().maximum();
       if (delta.coeff() > 1e-6) return false;
+      std::filesystem::remove("test_math_tensor.bin");
     }
     return true;
 }
