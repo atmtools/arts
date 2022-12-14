@@ -50,7 +50,13 @@ std::cout << "y\n";
 std::cout << type(y.begin()) << '\n';
 std::cout << type(*y.begin()) << '\n';
 
- for (auto v: z) {v(0,0) += 3; std::cout << type(v) << '\n';}
+for (auto v : z) {
+  v(0, 0) += 3;
+  for (auto t: v) {
+    t[1] += 5;
+    for (auto& s: t) s *= 2;
+  }
+}
   std::cout << "z\n";
   std::cout << z << '\n';
 
