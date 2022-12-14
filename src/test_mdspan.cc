@@ -54,6 +54,8 @@ std::cout << type(*y.begin()) << '\n';
   std::cout << "z\n";
   std::cout << z << '\n';
 
-  //for (auto& v: x) v+= 2;
+  for (auto& v: x) v+= 2;
+  std::cout << "x\n";
+  std::cout << x << '\n';
 }
 

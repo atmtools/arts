@@ -342,12 +342,12 @@ public:
   using const_iterator = mditer<0, true, const simple_data, const simple_view<T, N-1, true>>;
   using value_type = T;
   static constexpr auto rank() {return detail::exhaustive_mdspan<T, N>::rank();}
-  auto begin() {return iterator{*this};}
-  auto end() {return iterator{*this} + extent(0);}
-  auto begin() const {return const_iterator{*this};}
-  auto end() const {return const_iterator{*this} + extent(0);}
-  auto cbegin() const {return const_iterator{*this};}
-  auto cend() const {return const_iterator{*this} + extent(0);}
+  auto begin() {if constexpr(N==1) return data.begin(); else return iterator{*this};}
+  auto end() {if constexpr(N==1) return data.end(); else return iterator{*this} + extent(0);}
+  auto begin() const {if constexpr(N==1) return data.begin(); else return const_iterator{*this};}
+  auto end() const {if constexpr(N==1) return data.end(); else return const_iterator{*this} + extent(0);}
+  auto cbegin() const {if constexpr(N==1) return data.cbegin(); else return const_iterator{*this};}
+  auto cend() const {if constexpr(N==1) return data.cend(); else return const_iterator{*this} + extent(0);}
 
   //! access operator
   ACCESS_OPS
