@@ -698,3 +698,6 @@ add_dependencies(check-deps test_matpack_eigen)
 
 add_executable(run_partfun run_partfun.cc)
 target_link_libraries(run_partfun PRIVATE artscore)
+
+#####
+add_executable(test_mdspan test_mdspan.cc)

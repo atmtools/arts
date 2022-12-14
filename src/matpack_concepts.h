@@ -1,6 +1,8 @@
 #pragma once
 
 #include "debug.h"
+
+#include <array>
 #include <complex>
 #include <concepts>
 #include <type_traits>
