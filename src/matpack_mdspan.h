@@ -25,7 +25,7 @@ concept access_operator = std::integral<T> or std::is_same_v<std::remove_cvref_t
 namespace detail {
 using size_t = Index;
 
-template <std::size_t Rank>
+template <detail::size_t Rank>
 using rank = std::experimental::dextents<size_t, Rank>;
 
 using strided = std::experimental::layout_stride;
@@ -55,7 +55,7 @@ template <typename T, detail::size_t N, bool constant> class simple_view;
 template <typename T, detail::size_t N, bool constant> class strided_view;
 
 template <access_operator Access, typename... arguments>
-consteval detail::size_t get_access_size() noexcept {
+[[nodiscard]] consteval detail::size_t get_access_size() noexcept {
   constexpr bool index = std::integral<Access>;
   if constexpr (sizeof...(arguments)) {
     return index + get_access_size<arguments...>();
@@ -65,7 +65,7 @@ consteval detail::size_t get_access_size() noexcept {
 }
 
 template <access_operator T, access_operator ... Ts>
-bool check_index_sizes(auto&& arr, detail::size_t r, T first, Ts... rest) {
+[[nodiscard]] bool check_index_sizes(auto&& arr, detail::size_t r, T first, Ts... rest) {
   constexpr bool test = std::integral<T>;
   if constexpr (test) {
     if (first >= arr.extent(r)) return false;
@@ -78,10 +78,10 @@ bool check_index_sizes(auto&& arr, detail::size_t r, T first, Ts... rest) {
   }
 }
 
-template <std::size_t N>
-consteval std::array<Joker, N> jokers() {
+template <detail::size_t N>
+[[nodiscard]] consteval std::array<Joker, N> jokers() {
   std::array<Joker, N> out;
-  out.fill(joker);
+  // Is this necessary? out.fill(joker);
   return out;
 }
 
@@ -115,7 +115,7 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
 #define ACCESS_OPS                                                             \
   template <access_operator... access,                                         \
             detail::size_t M = get_access_size<access...>()>                   \
-  auto operator()(access... ind)                                               \
+  [[nodiscard]] auto operator()(access... ind)                                 \
       ->std::conditional_t<                                                    \
           M == N, T &,                                                         \
           std::conditional_t<                                                  \
@@ -132,7 +132,7 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
   }                                                                            \
   template <access_operator... access,                                         \
             detail::size_t M = get_access_size<access...>()>                   \
-  auto operator()(access... ind) const->std::conditional_t<                    \
+  [[nodiscard]] auto operator()(access... ind) const->std::conditional_t<      \
       M == N, const T &,                                                       \
       std::conditional_t<                                                      \
           detail::is_always_exhaustive_v<                                      \
@@ -148,7 +148,7 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
   }
 
 #define ITERATION_OPS                                                          \
-  auto operator[](detail::size_t i)                                            \
+  [[nodiscard]] auto operator[](detail::size_t i)                              \
       ->std::conditional_t<                                                    \
           N == 1, T &,                                                         \
           std::conditional_t<                                                  \
@@ -167,7 +167,7 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
       return sub<0, N>(view, i);                                               \
     }                                                                          \
   }                                                                            \
-  auto operator[](detail::size_t i) const->std::conditional_t<                 \
+  [[nodiscard]] auto operator[](detail::size_t i) const->std::conditional_t<   \
       N == 1, const T &,                                                       \
       std::conditional_t<detail::is_always_exhaustive_v<decltype(std::apply(   \
                              [&v = view](auto &&...ext) {                      \
@@ -186,26 +186,64 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
   }
 
 #define ARTS_SIZES                                                             \
-  auto size() const noexcept {return view.size();}                             \
-  auto extent(detail::size_t i) const noexcept {return view.extent(i);}        \
-  auto nelem() const noexcept requires(N==1) {return extent(0);}               \
-  auto ncols() const noexcept requires(N>=1) {return extent(0);}               \
-  auto nrows() const noexcept requires(N>=2) {return extent(1);}               \
-  auto npages() const noexcept requires(N>=3) {return extent(2);}              \
-  auto nbooks() const noexcept requires(N>=4) {return extent(3);}              \
-  auto nshelves() const noexcept requires(N>=5) {return extent(4);}            \
-  auto nvitrines() const noexcept requires(N>=6) {return extent(5);}           \
-  auto nlibraries() const noexcept requires(N>=7) {return extent(6);}
+  [[nodiscard]] auto size() const noexcept { return view.size(); }             \
+  [[nodiscard]] auto extent(detail::size_t i) const noexcept {                 \
+    return view.extent(i);                                                     \
+  }                                                                            \
+  [[nodiscard]] auto nelem() const noexcept                                    \
+    requires(N == 1)                                                           \
+  {                                                                            \
+    return extent(0);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto ncols() const noexcept                                    \
+    requires(N >= 1)                                                           \
+  {                                                                            \
+    return extent(0);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto nrows() const noexcept                                    \
+    requires(N >= 2)                                                           \
+  {                                                                            \
+    return extent(1);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto npages() const noexcept                                   \
+    requires(N >= 3)                                                           \
+  {                                                                            \
+    return extent(2);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto nbooks() const noexcept                                   \
+    requires(N >= 4)                                                           \
+  {                                                                            \
+    return extent(3);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto nshelves() const noexcept                                 \
+    requires(N >= 5)                                                           \
+  {                                                                            \
+    return extent(4);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto nvitrines() const noexcept                                \
+    requires(N >= 6)                                                           \
+  {                                                                            \
+    return extent(5);                                                          \
+  }                                                                            \
+  [[nodiscard]] auto nlibraries() const noexcept                               \
+    requires(N >= 7)                                                           \
+  {                                                                            \
+    return extent(6);                                                          \
+  }
 
-template <detail::size_t M, bool constant, class mdspan_type, class submdspan_type> class mditer {
+template <detail::size_t M, bool constant, class mdspan_type,
+          class submdspan_type>
+class mditer {
   static constexpr auto N = mdspan_type::rank();
-  using T = std::conditional_t<constant, const typename mdspan_type::value_type, typename mdspan_type::value_type>;
+  using T = std::conditional_t<constant, const typename mdspan_type::value_type,
+                               typename mdspan_type::value_type>;
 
   static_assert(N > 0, "Not for 0-rank mdspan");
   static_assert(M >= 0 and M < N, "Out-of-rank");
 
   detail::size_t pos{0};
   std::conditional_t<constant, const mdspan_type *, mdspan_type *> orig;
+
 public:
   using difference_type = detail::size_t;
   using value_type = std::conditional_t<N == 1, T, submdspan_type>;
@@ -219,34 +257,32 @@ public:
   mditer(mdspan_type &x) requires(not constant) : orig(&x) {}
   mditer(const mdspan_type &x) requires(constant) : orig(&x) {}
 
-  constexpr mditer& operator++() {pos++; return *this;}
-  constexpr mditer& operator--() {pos--; return *this;}
-  constexpr mditer operator++(int) const {mditer out(*this); ++out.pos; return out;}
-  constexpr mditer operator--(int) const {mditer out(*this); --out.pos; return out;}
+  constexpr mditer& operator++() noexcept {pos++; return *this;}
+  constexpr mditer& operator--() noexcept {pos--; return *this;}
+  [[nodiscard]] constexpr mditer operator++(int) const noexcept {mditer out(*this); ++out.pos; return out;}
+  [[nodiscard]] constexpr mditer operator--(int) const noexcept {mditer out(*this); --out.pos; return out;}
 
-  constexpr mditer& operator+=(detail::size_t i) {pos+=i; return *this;}
-  constexpr mditer& operator-=(detail::size_t i) {pos-=i; return *this;}
-  constexpr mditer operator+(detail::size_t i) const {mditer out(*this); out.pos+=i; return out;}
-  constexpr mditer operator-(detail::size_t i) const {mditer out(*this); out.pos-=i; return out;}
-  constexpr friend mditer operator+(detail::size_t i, const mditer& m) {return m + i;}
-  constexpr friend mditer operator-(detail::size_t i, const mditer& m) {return m - i;}
+  constexpr mditer& operator+=(detail::size_t i) noexcept {pos+=i; return *this;}
+  constexpr mditer& operator-=(detail::size_t i) noexcept {pos-=i; return *this;}
+  [[nodiscard]] constexpr mditer operator+(detail::size_t i) const noexcept {mditer out(*this); out.pos+=i; return out;}
+  [[nodiscard]] constexpr mditer operator-(detail::size_t i) const noexcept {mditer out(*this); out.pos-=i; return out;}
+  [[nodiscard]] constexpr friend mditer operator+(detail::size_t i, const mditer& m) noexcept {return m + i;}
+  [[nodiscard]] constexpr friend mditer operator-(detail::size_t i, const mditer& m) noexcept {return m - i;}
 
-  constexpr difference_type operator-(const mditer& other) const {return pos-other.pos;}
-  constexpr difference_type operator+(const mditer& other) const {return pos+other.pos;}
+  [[nodiscard]] constexpr difference_type operator-(const mditer& other) const noexcept {return pos-other.pos;}
+  [[nodiscard]] constexpr difference_type operator+(const mditer& other) const noexcept {return pos+other.pos;}
 
-  constexpr auto operator<=>(const mditer&) const = default;
+  [[nodiscard]] constexpr auto operator<=>(const mditer&) const noexcept = default;
 
-  auto operator*() const -> std::conditional_t<N == 1, std::add_lvalue_reference_t<T>, value_type> {
+  [[nodiscard]] auto operator*() const -> std::conditional_t<N == 1, std::add_lvalue_reference_t<T>, value_type> {
     if constexpr (N == 1) {
-      //return orig->operator[](pos);
-      static double x = 2.0;
-      return x;
+      return orig->operator[](pos);
     } else {
       return sub<M, N>(*orig, pos);
     }
   }
 
-  auto operator[](detail::size_t i) const -> std::conditional_t<N == 1, std::add_lvalue_reference_t<T>, value_type> {
+  [[nodiscard]] auto operator[](detail::size_t i) const -> std::conditional_t<N == 1, std::add_lvalue_reference_t<T>, value_type> {
     if constexpr (N == 1) {
       return orig->operator[](pos+i);
     } else {
@@ -254,22 +290,6 @@ public:
     }
   }
 };
-
-namespace static_tests {
-using T0 = mditer<0, false, detail::exhaustive_mdspan<double, 10>, detail::exhaustive_mdspan<double, 9>>;
-using T1 = mditer<0, false, detail::exhaustive_mdspan<double, 2>, detail::exhaustive_mdspan<double, 1>>;
-using T2 = mditer<0, false, detail::exhaustive_mdspan<double, 1>, detail::exhaustive_mdspan<double, 0>>;
-using T3 = mditer<0, true, detail::exhaustive_mdspan<double, 10>, detail::exhaustive_mdspan<double, 9>>;
-using T4 = mditer<0, true, detail::exhaustive_mdspan<double, 2>, detail::exhaustive_mdspan<double, 1>>;
-using T5 = mditer<0, true, detail::exhaustive_mdspan<double, 1>, detail::exhaustive_mdspan<double, 0>>;
-
-static_assert(std::random_access_iterator<T0>);
-static_assert(std::random_access_iterator<T1>);
-static_assert(std::random_access_iterator<T2>);
-static_assert(std::random_access_iterator<T3>);
-static_assert(std::random_access_iterator<T4>);
-static_assert(std::random_access_iterator<T5>);
-} // namespace static_tests
 
 template <typename T, detail::size_t N> class simple_data {
   static_assert(N >= 1, "Must be vector-like or of greater rank");
@@ -338,16 +358,16 @@ public:
                     defdata(std::forward<arguments>(args)...)) {
   }
 
-  using iterator = mditer<0, false, simple_data, simple_view<T, N-1, false>>;
-  using const_iterator = mditer<0, true, const simple_data, const simple_view<T, N-1, true>>;
+  using iterator = mditer<0, false, simple_data, simple_view<T, std::max<detail::size_t>(N-1, 1), false>>;
+  using const_iterator = mditer<0, true, const simple_data, const simple_view<T, std::max<detail::size_t>(N-1, 1), true>>;
   using value_type = T;
-  static constexpr auto rank() {return detail::exhaustive_mdspan<T, N>::rank();}
-  auto begin() {if constexpr(N==1) return data.begin(); else return iterator{*this};}
-  auto end() {if constexpr(N==1) return data.end(); else return iterator{*this} + extent(0);}
-  auto begin() const {if constexpr(N==1) return data.begin(); else return const_iterator{*this};}
-  auto end() const {if constexpr(N==1) return data.end(); else return const_iterator{*this} + extent(0);}
-  auto cbegin() const {if constexpr(N==1) return data.cbegin(); else return const_iterator{*this};}
-  auto cend() const {if constexpr(N==1) return data.cend(); else return const_iterator{*this} + extent(0);}
+  [[nodiscard]] static constexpr auto rank() {return N;}
+  [[nodiscard]] auto begin() {if constexpr(N==1) return data.begin(); else return iterator{*this};}
+  [[nodiscard]] auto end() {if constexpr(N==1) return data.end(); else return iterator{*this} + extent(0);}
+  [[nodiscard]] auto begin() const {if constexpr(N==1) return data.begin(); else return const_iterator{*this};}
+  [[nodiscard]] auto end() const {if constexpr(N==1) return data.end(); else return const_iterator{*this} + extent(0);}
+  [[nodiscard]] auto cbegin() const {if constexpr(N==1) return data.cbegin(); else return const_iterator{*this};}
+  [[nodiscard]] auto cend() const {if constexpr(N==1) return data.cend(); else return const_iterator{*this} + extent(0);}
 
   //! access operator
   ACCESS_OPS
@@ -370,20 +390,18 @@ template <typename T, detail::size_t N, bool constant> class simple_view {
 public:
   constexpr simple_view() = default;
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
-  constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
-  constexpr simple_view(const strided_view<T, N, true>& v) requires(constant) : view(v.view) {}
-  constexpr simple_view(const strided_view<T, N, false>& v) : view(v.view) {}
-
-  using iterator = mditer<0, false, simple_view, simple_view<T, N-1, false>>;
-  using const_iterator = mditer<0, true, const simple_view, const simple_view<T, N-1, true>>;
+  constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
+  
+  using iterator = mditer<0, false, simple_view, simple_view<T, std::max<detail::size_t>(N-1, 1), false>>;
+  using const_iterator = mditer<0, true, const simple_view, const simple_view<T, std::max<detail::size_t>(N-1, 1), true>>;
   using value_type = T;
-  static constexpr auto rank() {return detail::exhaustive_mdspan<T, N>::rank();}
-  auto begin() requires(not constant) {return iterator{*this};}
-  auto end() requires(not constant) {return iterator{*this} + extent(0);}
-  auto begin() const {return const_iterator{*this};}
-  auto end() const {return const_iterator{*this} + extent(0);}
-  auto cbegin() const {return const_iterator{*this};}
-  auto cend() const {return const_iterator{*this} + extent(0);}
+  [[nodiscard]] static constexpr auto rank() {return N;}
+  [[nodiscard]] auto begin() requires(not constant) {return iterator{*this};}
+  [[nodiscard]] auto end() requires(not constant) {return iterator{*this} + extent(0);}
+  [[nodiscard]] auto begin() const {return const_iterator{*this};}
+  [[nodiscard]] auto end() const {return const_iterator{*this} + extent(0);}
+  [[nodiscard]] auto cbegin() const {return const_iterator{*this};}
+  [[nodiscard]] auto cend() const {return const_iterator{*this} + extent(0);}
 
   //! access operator
   ACCESS_OPS
@@ -411,6 +429,17 @@ public:
   constexpr strided_view(const simple_view<T, N, true>& sv) requires(constant) : view(sv.view) {}
   constexpr strided_view(const simple_view<T, N, false>& sv) : view(sv.view) {}
 
+  using iterator = mditer<0, false, strided_view, strided_view<T, std::max<detail::size_t>(N-1, 1), false>>;
+  using const_iterator = mditer<0, true, const strided_view, const strided_view<T, std::max<detail::size_t>(N-1, 1), true>>;
+  using value_type = T;
+  [[nodiscard]] static constexpr auto rank() {return N;}
+  [[nodiscard]] auto begin() requires(not constant) {return iterator{*this};}
+  [[nodiscard]] auto end() requires(not constant) {return iterator{*this} + extent(0);}
+  [[nodiscard]] auto begin() const {return const_iterator{*this};}
+  [[nodiscard]] auto end() const {return const_iterator{*this} + extent(0);}
+  [[nodiscard]] auto cbegin() const {return const_iterator{*this};}
+  [[nodiscard]] auto cend() const {return const_iterator{*this} + extent(0);}
+
   //! access operator
   ACCESS_OPS
   ITERATION_OPS
@@ -422,9 +451,10 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const strided_view &sv) {
     constexpr char space = N == 1 ? ' ' : '\n';
 
-    for (detail::size_t i = 0; i < sv.view.extent(0); i++) {
-      if (i not_eq 0) os << space;
-      os << sv[i];
+    bool first = true;
+    for (auto&& v: sv) {
+      if (not first) os << space; else first = false;
+      os << std::forward<decltype(v)>(v);
     }
     return os;
   }
@@ -433,6 +463,38 @@ public:
 #undef ACCESS_OPS
 #undef ITERATION_OPS
 #undef ARTS_SIZES
+
+namespace static_tests {
+template <typename T> consteval bool test_random_access_iterator() {
+  static_assert(std::random_access_iterator<decltype(T{}.begin())>);
+  static_assert(std::random_access_iterator<decltype(T{}.end())>);
+  static_assert(std::random_access_iterator<decltype(T{}.cbegin())>);
+  static_assert(std::random_access_iterator<decltype(T{}.cend())>);
+  return true;
+}
+
+static_assert(test_random_access_iterator<std::vector<Numeric>>());
+static_assert(test_random_access_iterator<simple_data<Numeric, 1>>());
+static_assert(test_random_access_iterator<const simple_data<Numeric, 1>>());
+static_assert(test_random_access_iterator<simple_data<Numeric, 2>>());
+static_assert(test_random_access_iterator<const simple_data<Numeric, 2>>());
+static_assert(test_random_access_iterator<simple_view<Numeric, 1, true>>());
+static_assert(test_random_access_iterator<simple_view<Numeric, 1, false>>());
+static_assert(test_random_access_iterator<const simple_view<Numeric, 1, true>>());
+static_assert(test_random_access_iterator<const simple_view<Numeric, 1, false>>());
+static_assert(test_random_access_iterator<simple_view<Numeric, 2, true>>());
+static_assert(test_random_access_iterator<simple_view<Numeric, 2, false>>());
+static_assert(test_random_access_iterator<const simple_view<Numeric, 2, true>>());
+static_assert(test_random_access_iterator<const simple_view<Numeric, 2, false>>());
+static_assert(test_random_access_iterator<strided_view<Numeric, 1, true>>());
+static_assert(test_random_access_iterator<strided_view<Numeric, 1, false>>());
+static_assert(test_random_access_iterator<const strided_view<Numeric, 1, true>>());
+static_assert(test_random_access_iterator<const strided_view<Numeric, 1, false>>());
+static_assert(test_random_access_iterator<strided_view<Numeric, 2, true>>());
+static_assert(test_random_access_iterator<strided_view<Numeric, 2, false>>());
+static_assert(test_random_access_iterator<const strided_view<Numeric, 2, true>>());
+static_assert(test_random_access_iterator<const strided_view<Numeric, 2, false>>());
+} // namespace static_tests
 }  // namespace matpack::md
 
 using TMPVector = matpack::md::simple_data<Numeric, 1>;
