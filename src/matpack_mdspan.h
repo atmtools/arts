@@ -1,6 +1,7 @@
 #include "debug.h"
 #include "matpack.h"
 
+#include <algorithm>
 #include <mdspan/include/experimental/mdspan>
 
 #include <array>
@@ -237,6 +238,39 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
     return out;                                                                \
   }
 
+#define ITERATORS(IN, OUT, ...)                                                \
+  using iterator =                                                             \
+      mditer<0, false, IN, OUT<T, std::max<detail::size_t>(N - 1, 1), false>>; \
+  using const_iterator =                                                       \
+      mditer<0, true, const IN,                                                \
+             const OUT<T, std::max<detail::size_t>(N - 1, 1), true>>;          \
+  using value_type = T;                                                        \
+  [[nodiscard]] static constexpr auto rank() { return N; }                     \
+  [[nodiscard]] auto begin() {                                                 \
+    __VA_OPT__(if constexpr (N == 1) return data.begin(); else)                \
+    return iterator{*this};                                                    \
+  }                                                                            \
+  [[nodiscard]] auto end() {                                                   \
+    __VA_OPT__(if constexpr (N == 1) return data.end(); else)                  \
+    return iterator{*this} + extent(0);                                        \
+  }                                                                            \
+  [[nodiscard]] auto begin() const {                                           \
+    __VA_OPT__(if constexpr (N == 1) return data.begin(); else)                \
+    return const_iterator{*this};                                              \
+  }                                                                            \
+  [[nodiscard]] auto end() const {                                             \
+    __VA_OPT__(if constexpr (N == 1) return data.end(); else)                  \
+    return const_iterator{*this} + extent(0);                                  \
+  }                                                                            \
+  [[nodiscard]] auto cbegin() const {                                          \
+    __VA_OPT__(if constexpr (N == 1) return data.cbegin(); else)               \
+    return const_iterator{*this};                                              \
+  }                                                                            \
+  [[nodiscard]] auto cend() const {                                            \
+    __VA_OPT__(if constexpr (N == 1) return data.cend(); else)                 \
+    return const_iterator{*this} + extent(0);                                  \
+  }
+
 template <detail::size_t M, bool constant, class mdspan_type,
           class submdspan_type>
 class mditer {
@@ -342,6 +376,8 @@ template <typename T, detail::size_t N> class simple_data {
   }
 
   template <typename U, detail::size_t M> friend class simple_data;
+  template <typename U, detail::size_t M, bool c> friend class simple_view;
+  template <typename U, detail::size_t M, bool c> friend class strided_view;
 
 public:
   // Standard constructor
@@ -389,18 +425,33 @@ public:
   }
 
   template <std::integral... inds, detail::size_t M = sizeof...(inds)>
-  [[nodiscard]] simple_data<T, M> reshape(inds... ind) && requires(N not_eq M) {
-    simple_data<T, M> out;
-    out.data.swap(data);
-    out.view = detail::exhaustive_mdspan<T, M>{out.data.data(),
-                                               std::forward<inds>(ind)...};
-    view = detail::exhaustive_mdspan<T, N>{data.data(),
-                                           std::array<detail::size_t, N>{}};
-    return out;
+      [[nodiscard]] simple_data<T, M> reshape(inds... ind) &&
+      requires(N not_eq M) {
+        ARTS_ASSERT(static_cast<std::size_t>((ind * ...)) == view.size(),
+                    "Mismatch in reshape")
+        simple_data<T, M> out;
+        out.data.swap(data);
+        out.view = detail::exhaustive_mdspan<T, M>{out.data.data(),
+                                                   std::forward<inds>(ind)...};
+        view = detail::exhaustive_mdspan<T, N>{data.data(),
+                                               std::array<detail::size_t, N>{}};
+        return out;
+      }
+
+      [[nodiscard]] simple_data<T, 1> flatten() &&
+        requires(N > 1)
+  {
+    return std::move(*this).reshape(data.size());
   }
 
-  [[nodiscard]] simple_data<T, 1> flatten() && requires(N > 1) {
-    return std::move(*this).reshape(data.size());
+  template <bool c>
+  constexpr simple_data& operator=(const simple_view<T, N, c>& sv) {
+    if (view.data_handle() not_eq sv.view.data_handle()) {
+      simple_data out(sv.shape());
+      std::copy(sv.begin(), sv.end(), out.begin());
+      *this = std::move(out);
+    }
+    return *this;
   }
 
   operator simple_view<T, N, false>() noexcept {return view;}
@@ -408,21 +459,13 @@ public:
   operator strided_view<T, N, false>() noexcept {return view;}
   operator strided_view<T, N, true>() const noexcept {return view;}
 
-  using iterator = mditer<0, false, simple_data, simple_view<T, std::max<detail::size_t>(N-1, 1), false>>;
-  using const_iterator = mditer<0, true, const simple_data, const simple_view<T, std::max<detail::size_t>(N-1, 1), true>>;
-  using value_type = T;
-  [[nodiscard]] static constexpr auto rank() {return N;}
-  [[nodiscard]] auto begin() {if constexpr(N==1) return data.begin(); else return iterator{*this};}
-  [[nodiscard]] auto end() {if constexpr(N==1) return data.end(); else return iterator{*this} + extent(0);}
-  [[nodiscard]] auto begin() const {if constexpr(N==1) return data.begin(); else return const_iterator{*this};}
-  [[nodiscard]] auto end() const {if constexpr(N==1) return data.end(); else return const_iterator{*this} + extent(0);}
-  [[nodiscard]] auto cbegin() const {if constexpr(N==1) return data.cbegin(); else return const_iterator{*this};}
-  [[nodiscard]] auto cend() const {if constexpr(N==1) return data.cend(); else return const_iterator{*this} + extent(0);}
-
   //! access operator
   ACCESS_OPS
   ITERATION_OPS
   ARTS_SIZES
+  ITERATORS(simple_data, simple_view, OWNING)
+
+  [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
 
   friend std::ostream &operator<<(std::ostream &os, const simple_data &sd) {
     return os << simple_view<T, N, true>{sd.view};
@@ -434,29 +477,32 @@ template <typename T, detail::size_t N, bool constant> class simple_view {
 
   detail::exhaustive_mdspan<T, N> view;
 
-  friend class strided_view<T, N, true>;
-  friend class strided_view<T, N, false>;
+  template <typename U, detail::size_t M> friend class simple_data;
+  template <typename U, detail::size_t M, bool c> friend class simple_view;
+  template <typename U, detail::size_t M, bool c> friend class strided_view;
 
 public:
   constexpr simple_view() = default;
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
 
-  using iterator = mditer<0, false, simple_view, simple_view<T, std::max<detail::size_t>(N-1, 1), false>>;
-  using const_iterator = mditer<0, true, const simple_view, const simple_view<T, std::max<detail::size_t>(N-1, 1), true>>;
-  using value_type = T;
-  [[nodiscard]] static constexpr auto rank() {return N;}
-  [[nodiscard]] auto begin() requires(not constant) {return iterator{*this};}
-  [[nodiscard]] auto end() requires(not constant) {return iterator{*this} + extent(0);}
-  [[nodiscard]] auto begin() const {return const_iterator{*this};}
-  [[nodiscard]] auto end() const {return const_iterator{*this} + extent(0);}
-  [[nodiscard]] auto cbegin() const {return const_iterator{*this};}
-  [[nodiscard]] auto cend() const {return const_iterator{*this} + extent(0);}
+  template <bool c>
+  simple_view &operator=(const simple_view<T, N, c> &sv)
+    requires(not constant)
+  {
+    ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
+    if (view.data_handle() not_eq sv.view.data_handle())
+      std::copy(sv.begin(), sv.end(), begin());
+    return *this;
+  }
 
   //! access operator
   ACCESS_OPS
   ITERATION_OPS
   ARTS_SIZES
+  ITERATORS(simple_view, simple_view)
+
+  [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
 
   friend std::ostream &operator<<(std::ostream &os, const simple_view &sv) {
     return os << strided_view<T, N, true>{sv};
@@ -469,8 +515,9 @@ class strided_view {
 
   detail::strided_mdspan<T, N> view;
 
-  friend class simple_view<T, N, true>;
-  friend class simple_view<T, N, false>;
+  template <typename U, detail::size_t M> friend class simple_data;
+  template <typename U, detail::size_t M, bool c> friend class simple_view;
+  template <typename U, detail::size_t M, bool c> friend class strided_view;
 
 public:
   constexpr strided_view() = default;
@@ -479,21 +526,21 @@ public:
   constexpr strided_view(const simple_view<T, N, true>& sv) requires(constant) : view(sv.view) {}
   constexpr strided_view(const simple_view<T, N, false>& sv) : view(sv.view) {}
 
-  using iterator = mditer<0, false, strided_view, strided_view<T, std::max<detail::size_t>(N-1, 1), false>>;
-  using const_iterator = mditer<0, true, const strided_view, const strided_view<T, std::max<detail::size_t>(N-1, 1), true>>;
-  using value_type = T;
-  [[nodiscard]] static constexpr auto rank() {return N;}
-  [[nodiscard]] auto begin() requires(not constant) {return iterator{*this};}
-  [[nodiscard]] auto end() requires(not constant) {return iterator{*this} + extent(0);}
-  [[nodiscard]] auto begin() const {return const_iterator{*this};}
-  [[nodiscard]] auto end() const {return const_iterator{*this} + extent(0);}
-  [[nodiscard]] auto cbegin() const {return const_iterator{*this};}
-  [[nodiscard]] auto cend() const {return const_iterator{*this} + extent(0);}
+  template <bool c>
+  strided_view &operator=(const strided_view<T, N, c> &sv)
+    requires(not constant)
+  {
+    ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
+    if (view.data_handle() not_eq sv.view.data_handle())
+      std::copy(sv.begin(), sv.end(), begin());
+    return *this;
+  }
 
   //! access operator
   ACCESS_OPS
   ITERATION_OPS
   ARTS_SIZES
+  ITERATORS(strided_view, strided_view)
 
   [[nodiscard]] constexpr bool is_exhaustive() const noexcept {return view.is_exhaustive();}
 
