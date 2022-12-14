@@ -139,7 +139,7 @@ MatrixSet( antenna_dlos, [0] )
 #
 IndexSet( ndlos, 17 )
 VectorNLinSpace( dza, ndlos, -1.6, 1.6 )
-Print(dza,0)
+#Print(dza,0)
 VectorSetConstant( zeros, ndlos, 0 )
 Matrix1ColFromVector( mblock_dlos, dza )
 
@@ -185,7 +185,7 @@ Compare( y, y_ref, 0.01 )
 
 # Repeat with circular mblock_dlos
 #
-dlosUniformCircular( dlos=mblock_dlos, width=1.6, npoints = 9 )
+dlosUniform( dlos=mblock_dlos, width=3.3, npoints = 9, crop_circular=1 )
 sensor_responseInit
 sensor_responseAntenna(option_2d = "interp_response")
 sensor_checkedCalc
@@ -201,10 +201,10 @@ Compare( y, y_ref, 0.01 )
 Copy( y_ref, y )
 
 
-
 # Repeat with rectangular mblock_dlos
 #
-dlosUniformSquare( dlos=mblock_dlos, width=1.6, npoints = 9 )
+dlosUniform( dlos=mblock_dlos, width=3.3, npoints = 9 )
+Print(mblock_dlos, 0)
 sensor_responseInit
 sensor_responseAntenna(option_2d = "interp_response")
 sensor_checkedCalc

@@ -386,41 +386,12 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void dlosUniformCircular(Matrix& dlos,
-                         Vector& solid_angles,
-                         const Numeric& width,
-                         const Index& npoints,
-                         const Verbosity& verbosity) {
-  // Create rectangular set
-  dlosUniformSquare(dlos, solid_angles, width, npoints, verbosity);
-
-  // Pick out points inside radius
-  Matrix dlos_tmp;
-  Vector sa_tmp;
-  const Numeric r = width / 2.0;
-  //
-  Index n = 0;
-  for (Index i = 0; i < npoints * npoints; ++i) {
-    if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r*1.001) {
-        dlos_tmp(n, joker) = dlos(i, joker);
-        sa_tmp[n] = solid_angles[i];
-        ++n;
-    }
-  }
-
-  // Copy to output variables 
-  dlos = dlos_tmp(Range(0, n), joker);
-  solid_angles = sa_tmp[Range(0, n)];
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dlosUniformSquare(Matrix& dlos,
-                       Vector& solid_angles,
-                       const Numeric& width,
-                       const Index& npoints,
-                       const Verbosity&) {
+void dlosUniform(Matrix& dlos,
+                 Vector& solid_angles,
+                 const Numeric& width,
+                 const Index& npoints,
+                 const Index& crop_circular,
+                 const Verbosity&) {
   ARTS_USER_ERROR_IF(npoints < 1, "GIN npoints must be >= 1.");
 
   // Edges of angular grid
@@ -434,19 +405,41 @@ void dlosUniformSquare(Matrix& dlos,
   hwidth -= spacing / 2.0;
   nlinspace(grid, -hwidth, hwidth, npoints);
 
+  // Square set
   dlos.resize(npoints * npoints, 2);
-  solid_angles.resize(npoints);
-
+  solid_angles.resize(npoints * npoints);
+  //
   grid_edges *= DEG2RAD; 
   const Numeric fac = DEG2RAD * spacing;
-  for (Index z = 0; z < npoints; z++) {
+  for (Index z = 0; z < npoints; ++z) {
     const Numeric solid_angle = fac * (sin(grid_edges[z+1]) - sin(grid_edges[z])); 
-    for (Index a = 0; a < npoints; a++) {
+    for (Index a = 0; a < npoints; ++a) {
       const Index i = a * npoints + z;
       dlos(i, 0) = grid[z];
       dlos(i, 1) = grid[a];
       solid_angles[i] = solid_angle;  
     }
+  }
+
+  // Crop to circular?
+  if (crop_circular) {
+    // Pick out points inside radius
+    Matrix dlos_tmp(dlos.nrows(), 2);
+    Vector sa_tmp(solid_angles.nelem());
+    const Numeric r = width / 2.0;
+    //
+    Index n = 0;
+    for (Index i = 0; i < npoints * npoints; ++i) {
+      if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r*1.001) {
+        dlos_tmp(n, joker) = dlos(i, joker);
+        sa_tmp[n] = solid_angles[i];
+        ++n;
+      }
+    }
+
+    // Reset output variables 
+    dlos = dlos_tmp(Range(0, n), joker);
+    solid_angles = sa_tmp[Range(0, n)];
   }
 }
 
@@ -579,7 +572,6 @@ void f_gridFromSensorAMSU(  // WS Output:
   f_grid = f_grid_array;
 
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
-  //  cout << "f_grid: " << f_grid << "\n";
 }
 
 

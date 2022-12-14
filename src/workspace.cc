@@ -4331,7 +4331,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "A variable for communication between sensor response WSMs. Matches\n"
           "initially *mblock_dlos*, but is later adjusted according to the\n"
           "sensor specifications. Only defined when a common grid exists. Values\n"
-          "are here not repeated as in *sensor_response_dlos*\n"
+          "are here not repeated as in *sensor_response_dlos*.\n"
           "\n"
           "Usage: Set by sensor response methods.\n"
           "\n"

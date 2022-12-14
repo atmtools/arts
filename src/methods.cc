@@ -5913,29 +5913,7 @@ Available models:
                "Other line-of-sights (can be multiple los).")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("dlosUniformCircular"),
-      DESCRIPTION(
-          "Gives *dlos* a circular coverage, with uniform spacing.\n"
-          "\n"
-          "Works as *dlosUniformSquare*, but dlos-es at a radius outside\n"
-          "of width/2 are removed.\n"
-          "\n"
-          "The resulting number of dlos-directions is roughly\n"
-          "pi * npoints * npoints / 4.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("dlos", "solid_angles"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("width", "npoints"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The full width, in each dimension, in degrees.",
-               "Number of points over the width, in each dimension.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("dlosUniformSquare"),
+      NAME("dlosUniform"),
       DESCRIPTION(
           "Gives *dlos* a rectangular coverage, with uniform spacing.\n"
           "\n"
@@ -5943,20 +5921,27 @@ Available models:
           "With width = 1 and npoints = 5, the angular grid becomes\n"
           " [-0.4, -0.2, 0, 0.2, 0.4].\n"
           "\n"
-          "The inner loop in is the azimuth direction. That is, first comes\n"
-          "all relative azimuth angles for first relative zenith angle etc.\n"
-          "The resulting number of dlos-directions is npoints * npoints.\n"),
+          "The inner loop in is the zenith direction. That is, first comes\n"
+          "all relative zenith angles for first relative azimuth angle etc.\n"
+          "\n"
+          "For default settings, the resulting number of dlos-directions\n"
+          "is npoints * npoints.\n"
+          "\n"
+          "If GIN crop_circular is true, dlos-es at a radius outside of\n"
+          "width/2 are removed. The resulting number of dlos-directions\n"
+          "is then roughly pi * npoints * npoints / 4.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("dlos", "solid_angles"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("width", "npoints"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF),
+      GIN("width", "npoints", "crop_circular"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
       GIN_DESC("The full width, in each dimension, in degrees.",
-               "Number of points over the width, in each dimension.")));
+               "Number of points over the width, in each dimension.",
+               "Set to 1, to crop dlos-es to keep a circular pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalc"),
@@ -18552,15 +18537,15 @@ where N>=0 and the species name is something line "H2O".
           "in an error). A normalisation is always applied for 2D antennas (i.e.\n"
           "*sensor-norm* is ignored).\n"
           "\n"
-          "\"interp_response\""
+          "\"interp_response\"\n"
           "For this option, each direction defined by *mblock_dlos* is\n"
           "considered to represent the same size in terms of solid beam angle,\n"
           "and the antenna pattern is interpolated to these directions. There is\n"
           "no check on how well *mblock_dlos* covers the antenna response.\n"
-          "The response is treated to be zero outside the ranges of its  anular\n"
+          "The response is treated to be zero outside the ranges of the angular\n"
           "grids\n"
           "\n"
-          "\"gridded_dlos\""
+          "\"gridded_dlos\"\n"
           "This option is more similar to the 1D case. The radiances are treated\n"
           "as a bi-linear function, but the antenna response is treated as step-\n"
           "wise constant function (in contrast to 1D). For this option\n"
