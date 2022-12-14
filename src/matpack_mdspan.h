@@ -499,9 +499,10 @@ template <typename T, detail::size_t N, bool constant> class simple_view {
   template <typename U, detail::size_t M, bool c> friend class strided_view;
 
 public:
-  constexpr simple_view() = default;
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
+
+  constexpr simple_view() = default;
   constexpr simple_view(const simple_view&) = default;
   constexpr simple_view& operator=(const simple_view&) = default;
   constexpr simple_view(simple_view&&) noexcept = default;
@@ -550,9 +551,10 @@ class strided_view {
   template <typename U, detail::size_t M, bool c> friend class strided_view;
 
 public:
-  constexpr strided_view() = default;
   constexpr strided_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
   constexpr strided_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
+
+  constexpr strided_view() = default;
   constexpr strided_view(const strided_view&) = default;
   constexpr strided_view& operator=(const strided_view&) = default;
   constexpr strided_view(strided_view&&) noexcept = default;
