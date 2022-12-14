@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include <scattering/maths.h>
 
@@ -58,7 +59,7 @@ template<int rank>
 Tensor<double, rank> make_tensor(int fill_along) {
     std::array<long int, rank> dimensions{};
     for (int i = 0; i < rank; ++i) {
-        dimensions[i] = 1 + rand() % 10;
+        dimensions[i] = 2 + rand() % 10;
     }
     return make_tensor<rank>(dimensions, fill_along);
 }
@@ -185,6 +186,69 @@ bool test_dimension_iterator() {
     return true;
 }
 
+/// Serialization of vectors.
+bool test_vector_io() {
+    for (size_t i = 0; i < 10; ++i) {
+        scattering::math::Vector<double> vector = scattering::math::Vector<double>::Random(10);
+        scattering::math::Vector<double> other_vector{};
+
+        /// Binary
+        std::ofstream output("test_math_vector.bin");
+        scattering::math::serialize(output, vector);
+        output.close();
+
+        std::ifstream input("test_math_vector.bin");
+        scattering::math::deserialize(input, other_vector);
+        input.close();
+
+        double delta = (vector - other_vector).cwiseAbs().maxCoeff();
+        if (delta > 1e-6) return false;
+    }
+    return true;
+}
+
+/// Serialization of matrices.
+bool test_matrix_io() {
+    for (size_t i = 0; i < 10; ++i) {
+        scattering::math::Matrix<double> matrix = scattering::math::Matrix<double>::Random(10, 10);
+        scattering::math::Matrix<double> other_matrix{};
+
+        /// Binary
+        std::ofstream output("test_math_matrix.bin");
+        scattering::math::serialize(output, matrix);
+        output.close();
+        std::ifstream input("test_math_matrix.bin");
+
+        scattering::math::deserialize(input, other_matrix);
+        input.close();
+
+        double delta = (matrix - other_matrix).cwiseAbs().maxCoeff();
+        if (delta > 1e-6) return false;
+    }
+    return true;
+}
+
+/// Serialization of tensors.
+bool test_tensor_io() {
+    for (size_t i = 0; i < 10; ++i) {
+      auto tensor = scattering::make_tensor<4>(1);
+      scattering::math::Tensor<double, 4> other_tensor{};
+
+      /// Binary
+      std::ofstream output("test_math_tensor.bin");
+      scattering::math::serialize(output, tensor);
+      output.close();
+      std::ifstream input("test_math_tensor.bin");
+
+      scattering::math::deserialize(input, other_tensor);
+      input.close();
+
+      scattering::math::Tensor<double, 0> delta = (tensor - other_tensor).abs().maximum();
+      if (delta.coeff() > 1e-6) return false;
+    }
+    return true;
+}
+
 int main(int /*nargs*/, char **/*argv*/) {
 
     auto passed = test_tensor_indexing(10);
@@ -225,6 +289,33 @@ int main(int /*nargs*/, char **/*argv*/) {
 
     passed = test_dimension_iterator();
     std::cout << "test_dimension_iterator: ";
+    if (passed) {
+        std::cout << "PASSED" << std::endl;
+    } else {
+        std::cout << "FAILED" << std::endl;
+        return 1;
+    }
+
+    passed = test_tensor_io();
+    std::cout << "test_tensor_io: ";
+    if (passed) {
+        std::cout << "PASSED" << std::endl;
+    } else {
+        std::cout << "FAILED" << std::endl;
+        return 1;
+    }
+
+    passed = test_matrix_io();
+    std::cout << "test_matrix_io: ";
+    if (passed) {
+        std::cout << "PASSED" << std::endl;
+    } else {
+        std::cout << "FAILED" << std::endl;
+        return 1;
+    }
+
+    passed = test_vector_io();
+    std::cout << "test_vector_io: ";
     if (passed) {
         std::cout << "PASSED" << std::endl;
     } else {

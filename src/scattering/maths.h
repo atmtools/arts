@@ -18,6 +18,7 @@
 #include <arts.h>
 #include <matpackI.h>
 #include <matpackVII.h>
+#include <double_imanip.h>
 
 namespace scattering {
 namespace math {
@@ -666,6 +667,88 @@ template <typename Scalar>
     return indices;
 }
 
+/*** Write Eigen::Vector to output stream.
+ *
+ * @param output The output stream to write the vector to.
+ * @param vector The Eigen::Vector to serialize.
+ * @return reference to the output stream.
+ */
+template<typename Scalar>
+    std::ostream& serialize(std::ostream &output, Vector<Scalar> &input)  {
+    Index size = input.size();
+    output.write(reinterpret_cast<char const*>(&size), sizeof(Index));
+    output.write(reinterpret_cast<char const*>(input.data()), input.size() * sizeof(Scalar));
+    return output;
+}
+
+/*** Read Eigen::Vector from output stream.
+ *
+ * @param input The input stream from which to read the vector.
+ * @param output The vector object in which to store the results.
+ * @return reference to the input stream.
+ */
+template<typename Scalar>
+    std::istream& deserialize(std::istream &input, Vector<Scalar> &output)  {
+    Index size;
+    input.read(reinterpret_cast<char *>(&size), sizeof(Index));
+    output.resize(1, size);
+    input.read(reinterpret_cast<char *>(output.data()), output.size() * sizeof(Scalar));
+    return input;
+}
+
+/*** Write Eigen::Matrix to output stream.
+ *
+ * @param output The output stream to write the matrix to.
+ * @param input The Eigen::Matrix to serialize.
+ * @return reference to the output stream.
+ */
+template<typename Scalar>
+    std::ostream& serialize(std::ostream &output, Matrix<Scalar> &input)  {
+    Index rows{input.rows()}, cols{input.cols()};
+    output.write(reinterpret_cast<char const*>(&rows), sizeof(Index));
+    output.write(reinterpret_cast<char const*>(&cols), sizeof(Index));
+    output.write(reinterpret_cast<char const*>(input.data()), input.size() * sizeof(Scalar));
+    return output;
+}
+
+/*** Read Eigen::Matrix from input stream.
+ *
+ * @param input The input stream from which to read the matrix.
+ * @param output The matrix object in which to store the results.
+ * @return reference to the input stream.
+ */
+template<typename Scalar>
+    std::istream& deserialize(std::istream &input, Matrix<Scalar> &output)  {
+    Index rows, cols;
+    input.read(reinterpret_cast<char *>(&rows), sizeof(Index));
+    input.read(reinterpret_cast<char *>(&cols), sizeof(Index));
+    output.resize(rows, cols);
+    input.read(reinterpret_cast<char *>(output.data()), output.size() * sizeof(Scalar));
+    return input;
+}
+
+template<typename Scalar, int rank>
+    std::ostream& serialize(std::ostream &output, Tensor<Scalar, rank> &input)  {
+    std::array<Index, rank> dims = input.dimensions();
+    output.write(reinterpret_cast<char const*>(&dims), rank * sizeof(Index));
+    output.write(reinterpret_cast<char const*>(input.data()), input.size() * sizeof(Scalar));
+    return output;
+}
+
+/*** Read Eigen::Tensor from input stream.
+ *
+ * @param input The input stream from which to read the tensor.
+ * @param output The tensor object in which to store the results.
+ * @return reference to the input stream.
+ */
+template<typename Scalar, int rank>
+std::istream& deserialize(std::istream &input, Tensor<Scalar, rank> &output)  {
+    std::array<Index, rank> dims;
+    input.read(reinterpret_cast<char *>(&dims), rank * sizeof(Index));
+    output.resize(dims);
+    input.read(reinterpret_cast<char *>(output.data()), output.size() * sizeof(Scalar));
+    return input;
+}
 
 }  // namespace math
 
