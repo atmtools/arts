@@ -1,7 +1,6 @@
 #include "debug.h"
 #include "matpack.h"
 
-#include <mdspan/include/experimental/__p0009_bits/submdspan.hpp>
 #include <mdspan/include/experimental/mdspan>
 
 #include <array>
@@ -52,8 +51,8 @@ static_assert(not is_always_exhaustive_v<strided_mdspan<int, 4>>);
 } // namespace detail
 
 // Necessary for different operators to predefine these
-template <typename T, detail::size_t N> class simple_view;
-template <typename T, detail::size_t N> class strided_view;
+template <typename T, detail::size_t N, bool constant> class simple_view;
+template <typename T, detail::size_t N, bool constant> class strided_view;
 
 template <access_operator Access, typename... arguments>
 consteval detail::size_t get_access_size() noexcept {
@@ -79,88 +78,6 @@ bool check_index_sizes(auto&& arr, detail::size_t r, T first, Ts... rest) {
   }
 }
 
-#define ACCESS_OPS                                                             \
-  template <access_operator... access,                                         \
-            detail::size_t M = get_access_size<access...>()>                   \
-  auto operator()(access... ind)                                               \
-      ->std::conditional_t<                                                    \
-          M == N, T &,                                                         \
-          std::conditional_t<                                                  \
-              detail::is_always_exhaustive_v<                                  \
-                  decltype(std::experimental::submdspan(view, ind...))>,       \
-              simple_view<T, N - M>, strided_view<T, N - M>>>                  \
-    requires(sizeof...(access) == N)                                           \
-  {                                                                            \
-    ARTS_ASSERT(check_index_sizes(view, 0, ind...), "Out-of-bounds")           \
-    if constexpr (M == N)                                                      \
-      return view(ind...);                                                     \
-    else                                                                       \
-      return std::experimental::submdspan(view, ind...);                       \
-  }                                                                            \
-  template <access_operator... access,                                         \
-            detail::size_t M = get_access_size<access...>()>                   \
-  auto operator()(access... ind) const->std::conditional_t<                    \
-      M == N, T,                                                               \
-      std::conditional_t<                                                      \
-          detail::is_always_exhaustive_v<                                      \
-              decltype(std::experimental::submdspan(view, ind...))>,           \
-          simple_view<T, N - M>, strided_view<T, N - M>>>                      \
-    requires(sizeof...(access) == N)                                           \
-  {                                                                            \
-    ARTS_ASSERT(check_index_sizes(view, 0, ind...), "Out-of-bounds")           \
-    if constexpr (M == N)                                                      \
-      return view(ind...);                                                     \
-    else                                                                       \
-      return std::experimental::submdspan(view, ind...);                       \
-  }
-
-#define ITERATION_OPS                                                          \
-  auto operator[](detail::size_t i)                                            \
-      ->std::conditional_t<                                                    \
-          N == 1, T &,                                                         \
-          std::conditional_t<                                                  \
-              detail::is_always_exhaustive_v<decltype(std::apply(              \
-                  [&v = view](auto &&...ext) {                                 \
-                    return std::experimental::submdspan(v, 0, ext...);         \
-                  },                                                           \
-                  jokers<N - 1>()))>,                                          \
-              simple_view<T, N - 1>, strided_view<T, N - 1>>> {                \
-    ARTS_ASSERT(i < view.extent(0), "Out of bounds")                           \
-    if constexpr (N == 1)                                                      \
-      return view[i];                                                          \
-    else {                                                                     \
-      return sub<0, N>(view, 0);                                               \
-    }                                                                          \
-  }                                                                            \
-  auto operator[](detail::size_t i) const->std::conditional_t<                 \
-      N == 1, T &,                                                             \
-      std::conditional_t<detail::is_always_exhaustive_v<decltype(std::apply(   \
-                             [&v = view](auto &&...ext) {                      \
-                               return std::experimental::submdspan(v, 0,       \
-                                                                   ext...);    \
-                             },                                                \
-                             jokers<N - 1>()))>,                               \
-                         simple_view<T, N - 1>, strided_view<T, N - 1>>> {     \
-    ARTS_ASSERT(i < view.extent(0), "Out of bounds")                           \
-    if constexpr (N == 1)                                                      \
-      return view[i];                                                          \
-    else {                                                                     \
-      return sub<0, N>(view, 0);                                               \
-    }                                                                          \
-  }
-
-#define ARTS_SIZES                                                             \
-  auto size() const noexcept {return view.size();}                             \
-  auto extent(detail::size_t i) const noexcept {return view.extent(i);}        \
-  auto nelem() const noexcept requires(N==1) {return extent(0);}               \
-  auto ncols() const noexcept requires(N>=1) {return extent(0);}               \
-  auto nrows() const noexcept requires(N>=2) {return extent(1);}               \
-  auto npages() const noexcept requires(N>=3) {return extent(2);}              \
-  auto nbooks() const noexcept requires(N>=4) {return extent(3);}              \
-  auto nshelves() const noexcept requires(N>=5) {return extent(4);}            \
-  auto nvitrines() const noexcept requires(N>=6) {return extent(5);}           \
-  auto nlibraries() const noexcept requires(N>=7) {return extent(6);}
-
 template <std::size_t N>
 consteval std::array<Joker, N> jokers() {
   std::array<Joker, N> out;
@@ -182,7 +99,7 @@ template <detail::size_t M, detail::size_t N>
 }
 
 template <detail::size_t M, detail::size_t N, class mdspan_type>
-[[nodiscard]] auto sub(const mdspan_type &v, detail::size_t i) {
+[[nodiscard]] auto sub(mdspan_type &v, detail::size_t i) {
   using namespace std::experimental;
   return std::apply(
       [&v](auto &&...slices) {
@@ -195,7 +112,92 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
       tup<M, N>(i));
 }
 
-template <detail::size_t M, bool constant, class mdspan_type> class mditer {
+#define ACCESS_OPS                                                             \
+  template <access_operator... access,                                         \
+            detail::size_t M = get_access_size<access...>()>                   \
+  auto operator()(access... ind)                                               \
+      ->std::conditional_t<                                                    \
+          M == N, T &,                                                         \
+          std::conditional_t<                                                  \
+              detail::is_always_exhaustive_v<                                  \
+                  decltype(std::experimental::submdspan(view, ind...))>,       \
+              simple_view<T, N - M, false>, strided_view<T, N - M, false>>>    \
+    requires(sizeof...(access) == N and not constant)                          \
+  {                                                                            \
+    ARTS_ASSERT(check_index_sizes(view, 0, ind...), "Out-of-bounds")           \
+    if constexpr (M == N)                                                      \
+      return view(ind...);                                                     \
+    else                                                                       \
+      return std::experimental::submdspan(view, ind...);                       \
+  }                                                                            \
+  template <access_operator... access,                                         \
+            detail::size_t M = get_access_size<access...>()>                   \
+  auto operator()(access... ind) const->std::conditional_t<                    \
+      M == N, const T &,                                                       \
+      std::conditional_t<                                                      \
+          detail::is_always_exhaustive_v<                                      \
+              decltype(std::experimental::submdspan(view, ind...))>,           \
+          simple_view<T, N - M, true>, strided_view<T, N - M, true>>>          \
+    requires(sizeof...(access) == N)                                           \
+  {                                                                            \
+    ARTS_ASSERT(check_index_sizes(view, 0, ind...), "Out-of-bounds")           \
+    if constexpr (M == N)                                                      \
+      return view(ind...);                                                     \
+    else                                                                       \
+      return std::experimental::submdspan(view, ind...);                       \
+  }
+
+#define ITERATION_OPS                                                          \
+  auto operator[](detail::size_t i)                                            \
+      ->std::conditional_t<                                                    \
+          N == 1, T &,                                                         \
+          std::conditional_t<                                                  \
+              detail::is_always_exhaustive_v<decltype(std::apply(              \
+                  [&v = view](auto &&...ext) {                                 \
+                    return std::experimental::submdspan(v, 0, ext...);         \
+                  },                                                           \
+                  jokers<N - 1>()))>,                                          \
+              simple_view<T, N - 1, false>, strided_view<T, N - 1, false>>>    \
+    requires(not constant)                                                     \
+  {                                                                            \
+    ARTS_ASSERT(i < view.extent(0), "Out of bounds")                           \
+    if constexpr (N == 1)                                                      \
+      return view[i];                                                          \
+    else {                                                                     \
+      return sub<0, N>(view, i);                                               \
+    }                                                                          \
+  }                                                                            \
+  auto operator[](detail::size_t i) const->std::conditional_t<                 \
+      N == 1, const T &,                                                       \
+      std::conditional_t<detail::is_always_exhaustive_v<decltype(std::apply(   \
+                             [&v = view](auto &&...ext) {                      \
+                               return std::experimental::submdspan(v, 0,       \
+                                                                   ext...);    \
+                             },                                                \
+                             jokers<N - 1>()))>,                               \
+                         simple_view<T, N - 1, true>,                          \
+                         strided_view<T, N - 1, true>>> {                      \
+    ARTS_ASSERT(i < view.extent(0), "Out of bounds")                           \
+    if constexpr (N == 1)                                                      \
+      return view[i];                                                          \
+    else {                                                                     \
+      return sub<0, N>(view, i);                                               \
+    }                                                                          \
+  }
+
+#define ARTS_SIZES                                                             \
+  auto size() const noexcept {return view.size();}                             \
+  auto extent(detail::size_t i) const noexcept {return view.extent(i);}        \
+  auto nelem() const noexcept requires(N==1) {return extent(0);}               \
+  auto ncols() const noexcept requires(N>=1) {return extent(0);}               \
+  auto nrows() const noexcept requires(N>=2) {return extent(1);}               \
+  auto npages() const noexcept requires(N>=3) {return extent(2);}              \
+  auto nbooks() const noexcept requires(N>=4) {return extent(3);}              \
+  auto nshelves() const noexcept requires(N>=5) {return extent(4);}            \
+  auto nvitrines() const noexcept requires(N>=6) {return extent(5);}           \
+  auto nlibraries() const noexcept requires(N>=7) {return extent(6);}
+
+template <detail::size_t M, bool constant, class mdspan_type, class submdspan_type> class mditer {
   static constexpr auto N = mdspan_type::rank();
   using T = std::conditional_t<constant, const typename mdspan_type::value_type, typename mdspan_type::value_type>;
 
@@ -203,12 +205,10 @@ template <detail::size_t M, bool constant, class mdspan_type> class mditer {
   static_assert(M >= 0 and M < N, "Out-of-rank");
 
   detail::size_t pos{0};
-  const mdspan_type * orig;
-
-  using subspan = std::conditional_t<constant, const decltype(sub<M, N>(mdspan_type{}, 0)), decltype(sub<M, N>(mdspan_type{}, 0))> ;
+  std::conditional_t<constant, const mdspan_type *, mdspan_type *> orig;
 public:
   using difference_type = detail::size_t;
-  using value_type = std::conditional_t<N == 1, T, subspan>;
+  using value_type = std::conditional_t<N == 1, T, submdspan_type>;
 
   mditer() = default;
   mditer(mditer&&) noexcept = default;
@@ -238,7 +238,9 @@ public:
 
   auto operator*() const -> std::conditional_t<N == 1, std::add_lvalue_reference_t<T>, value_type> {
     if constexpr (N == 1) {
-      return orig->operator[](pos);
+      //return orig->operator[](pos);
+      static double x = 2.0;
+      return x;
     } else {
       return sub<M, N>(*orig, pos);
     }
@@ -254,12 +256,12 @@ public:
 };
 
 namespace static_tests {
-using T0 = mditer<0, false, detail::exhaustive_mdspan<double, 10>>;
-using T1 = mditer<0, false, detail::exhaustive_mdspan<double, 2>>;
-using T2 = mditer<0, false, detail::exhaustive_mdspan<double, 1>>;
-using T3 = mditer<0, true, detail::exhaustive_mdspan<double, 10>>;
-using T4 = mditer<0, true, detail::exhaustive_mdspan<double, 2>>;
-using T5 = mditer<0, true, detail::exhaustive_mdspan<double, 1>>;
+using T0 = mditer<0, false, detail::exhaustive_mdspan<double, 10>, detail::exhaustive_mdspan<double, 9>>;
+using T1 = mditer<0, false, detail::exhaustive_mdspan<double, 2>, detail::exhaustive_mdspan<double, 1>>;
+using T2 = mditer<0, false, detail::exhaustive_mdspan<double, 1>, detail::exhaustive_mdspan<double, 0>>;
+using T3 = mditer<0, true, detail::exhaustive_mdspan<double, 10>, detail::exhaustive_mdspan<double, 9>>;
+using T4 = mditer<0, true, detail::exhaustive_mdspan<double, 2>, detail::exhaustive_mdspan<double, 1>>;
+using T5 = mditer<0, true, detail::exhaustive_mdspan<double, 1>, detail::exhaustive_mdspan<double, 0>>;
 
 static_assert(std::random_access_iterator<T0>);
 static_assert(std::random_access_iterator<T1>);
@@ -271,6 +273,8 @@ static_assert(std::random_access_iterator<T5>);
 
 template <typename T, detail::size_t N> class simple_data {
   static_assert(N >= 1, "Must be vector-like or of greater rank");
+
+  static constexpr bool constant = false;
 
   std::vector<T> data;
   detail::exhaustive_mdspan<T, N> view;
@@ -334,8 +338,8 @@ public:
                     defdata(std::forward<arguments>(args)...)) {
   }
 
-  using iterator = mditer<0, false, simple_data>;
-  using const_iterator = mditer<0, true, const simple_data>;
+  using iterator = mditer<0, false, simple_data, simple_view<T, N-1, false>>;
+  using const_iterator = mditer<0, true, const simple_data, const simple_view<T, N-1, true>>;
   using value_type = T;
   static constexpr auto rank() {return detail::exhaustive_mdspan<T, N>::rank();}
   auto begin() {return iterator{*this};}
@@ -351,29 +355,31 @@ public:
   ARTS_SIZES
 
   friend std::ostream &operator<<(std::ostream &os, const simple_data &sd) {
-    return os << simple_view<T, N>{sd.view};
+    return os << simple_view<T, N, true>{sd.view};
   }
 };
 
-template <typename T, detail::size_t N> class simple_view {
+template <typename T, detail::size_t N, bool constant> class simple_view {
   static_assert(N >= 1, "Must be vector-like or of greater rank");
 
   detail::exhaustive_mdspan<T, N> view;
 
-  friend class strided_view<T, N>;
+  friend class strided_view<T, N, true>;
+  friend class strided_view<T, N, false>;
 
 public:
   constexpr simple_view() = default;
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
-  constexpr simple_view(const strided_view<T, N>& v) : view(v.view) {}
+  constexpr simple_view(const strided_view<T, N, true>& v) requires(constant) : view(v.view) {}
+  constexpr simple_view(const strided_view<T, N, false>& v) : view(v.view) {}
 
-  using iterator = mditer<0, false, simple_view>;
-  using const_iterator = mditer<0, true, const simple_view>;
+  using iterator = mditer<0, false, simple_view, simple_view<T, N-1, false>>;
+  using const_iterator = mditer<0, true, const simple_view, const simple_view<T, N-1, true>>;
   using value_type = T;
   static constexpr auto rank() {return detail::exhaustive_mdspan<T, N>::rank();}
-  auto begin() {return iterator{*this};}
-  auto end() {return iterator{*this} + extent(0);}
+  auto begin() requires(not constant) {return iterator{*this};}
+  auto end() requires(not constant) {return iterator{*this} + extent(0);}
   auto begin() const {return const_iterator{*this};}
   auto end() const {return const_iterator{*this} + extent(0);}
   auto cbegin() const {return const_iterator{*this};}
@@ -385,23 +391,25 @@ public:
   ARTS_SIZES
 
   friend std::ostream &operator<<(std::ostream &os, const simple_view &sv) {
-    return os << strided_view<T, N>{sv};
+    return os << strided_view<T, N, true>{sv};
   }
 };
 
-template<typename T, detail::size_t N>
+template<typename T, detail::size_t N, bool constant>
 class strided_view {
   static_assert(N >= 1, "Must be vector-like or of greater rank");
 
   detail::strided_mdspan<T, N> view;
 
-  friend class simple_view<T, N>;
+  friend class simple_view<T, N, true>;
+  friend class simple_view<T, N, false>;
 
 public:
   constexpr strided_view() = default;
   constexpr strided_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
   constexpr strided_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
-  constexpr strided_view(const simple_view<T, N>& sv) : view(sv.view) {}
+  constexpr strided_view(const simple_view<T, N, true>& sv) requires(constant) : view(sv.view) {}
+  constexpr strided_view(const simple_view<T, N, false>& sv) : view(sv.view) {}
 
   //! access operator
   ACCESS_OPS
@@ -430,5 +438,3 @@ public:
 using TMPVector = matpack::md::simple_data<Numeric, 1>;
 using TMPMatrix = matpack::md::simple_data<Numeric, 2>;
 using TMPTensor3 = matpack::md::simple_data<Numeric, 3>;
-using TMPTensor3ViewFast = matpack::md::simple_view<Numeric, 3>;
-using TMPTensor3ViewSlow = matpack::md::strided_view<Numeric, 3>;
