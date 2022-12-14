@@ -42,29 +42,18 @@ using namespace matpack::md;
 
  std::cout << z(1, 2, joker) << '\n';
 
- for (auto v: z) v(0, 0) += 5;
+std::cout << "z\n";
+std::cout << type(z.begin()) << '\n';
+std::cout << type(*z.begin()) << '\n';
+
+std::cout << "y\n";
+std::cout << type(y.begin()) << '\n';
+std::cout << type(*y.begin()) << '\n';
+
+ for (auto v: z) {v(0,0) += 3; std::cout << type(v) << '\n';}
   std::cout << "z\n";
   std::cout << z << '\n';
 
- // This really should not be working ///
- for (auto v: y) v[0] += 3;
-  std::cout << "y\n";
-  std::cout << y << '\n';
- std::cout << type(y.begin()) << '\n';
-
-  for (auto& v: x) v += 4;
-  std::cout << "x\n";
-  std::cout << x << '\n';
-
-  std::cout << type(z) << '\n';
-  for (auto a: z) {
-    std::cout << type(a) << '\n';
-    for (auto b: a) {
-      std::cout << type(b) << '\n';
-      for (auto& c: b) {
-        std::cout << type(c) << '\n';
-      }
-    }
-  }
+  //for (auto& v: x) v+= 2;
 }
 
