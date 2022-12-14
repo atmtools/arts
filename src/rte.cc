@@ -1505,7 +1505,7 @@ void iyb_calc_body(bool& failed,
                    const ConstMatrixView& sensor_pos,
                    const ConstMatrixView& sensor_los,
                    const ConstMatrixView& transmitter_pos,
-                   const ConstMatrixView& mblock_dlos_grid,
+                   const ConstMatrixView& mblock_dlos,
                    const String& iy_unit,
                    const Agenda& iy_main_agenda,
                    const Index& j_analytical_do,
@@ -1523,16 +1523,16 @@ void iyb_calc_body(bool& failed,
     Vector los(sensor_los.ncols());
     //
     los = sensor_los(mblock_index, joker);
-    if (mblock_dlos_grid.ncols() == 1) {
-      los[0] += mblock_dlos_grid(ilos, 0);
+    if (mblock_dlos.ncols() == 1) {
+      los[0] += mblock_dlos(ilos, 0);
       adjust_los(los, atmosphere_dim);
     } else {
       add_za_aa(los[0],
                 los[1],
                 los[0],
                 los[1],
-                mblock_dlos_grid(ilos, 0),
-                mblock_dlos_grid(ilos, 1));
+                mblock_dlos(ilos, 0),
+                mblock_dlos(ilos, 1));
     }
 
     //--- rtp_pos 1 and 2
@@ -1621,7 +1621,7 @@ void iyb_calc(Workspace& ws,
               const ConstMatrixView& sensor_pos,
               const ConstMatrixView& sensor_los,
               const ConstMatrixView& transmitter_pos,
-              const ConstMatrixView& mblock_dlos_grid,
+              const ConstMatrixView& mblock_dlos,
               const String& iy_unit,
               const Agenda& iy_main_agenda,
               const Index& j_analytical_do,
@@ -1633,7 +1633,7 @@ void iyb_calc(Workspace& ws,
 
   // Sizes
   const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos_grid.nrows();
+  const Index nlos = mblock_dlos.nrows();
   const Index niyb = nf * nlos * stokes_dim;
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
@@ -1686,7 +1686,7 @@ void iyb_calc(Workspace& ws,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
-                    mblock_dlos_grid,
+                    mblock_dlos,
                     iy_unit,
                     iy_main_agenda,
                     j_analytical_do,
@@ -1728,7 +1728,7 @@ void iyb_calc(Workspace& ws,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
-                    mblock_dlos_grid,
+                    mblock_dlos,
                     iy_unit,
                     iy_main_agenda,
                     j_analytical_do,
@@ -2163,7 +2163,7 @@ void yCalc_mblock_loop_body(bool& failed,
                             const Matrix& sensor_pos,
                             const Matrix& sensor_los,
                             const Matrix& transmitter_pos,
-                            const Matrix& mblock_dlos_grid,
+                            const Matrix& mblock_dlos,
                             const Sparse& sensor_response,
                             const Vector& sensor_response_f,
                             const ArrayOfIndex& sensor_response_pol,
@@ -2200,7 +2200,7 @@ void yCalc_mblock_loop_body(bool& failed,
              sensor_pos,
              sensor_los,
              transmitter_pos,
-             mblock_dlos_grid,
+             mblock_dlos,
              iy_unit,
              iy_main_agenda,
              j_analytical_do,

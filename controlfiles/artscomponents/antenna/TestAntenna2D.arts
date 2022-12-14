@@ -141,7 +141,7 @@ IndexSet( ndlos, 17 )
 VectorNLinSpace( dza, ndlos, -1.6, 1.6 )
 Print(dza,0)
 VectorSetConstant( zeros, ndlos, 0 )
-Matrix1ColFromVector( mblock_dlos_grid, dza )
+Matrix1ColFromVector( mblock_dlos, dza )
 
 
 # Calculate
@@ -158,14 +158,14 @@ Copy( y_ref, y )
 Compare( geo_ref, y_geo, 1e-5 )
 
 
-# Re-do with 2D antenna (but all azimuths in mblock_dlos_grid set to zero) 
+# Re-do with 2D antenna (but all azimuths in mblock_dlos set to zero) 
 #
 antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
                                  0.25, 5, 10e9, 40e9, 1 )
 #WriteXML("ascii",antenna_response,"A.xml",0)
 IndexSet( antenna_dim, 2 )
 #
-Matrix2ColFromVectors( mblock_dlos_grid, dza, zeros )
+Matrix2ColFromVectors( mblock_dlos, dza, zeros )
 
 
 # Calculate
@@ -183,9 +183,9 @@ Compare( geo_ref, y_geo, 1e-5 )
 Compare( y, y_ref, 0.01 )
 
 
-# Repeat with circular mblock_dlos_grid
+# Repeat with circular mblock_dlos
 #
-mblock_dlos_gridUniformCircular( spacing=0.2, width=1.6, centre=1 )
+dlosUniformCircular( dlos=mblock_dlos, width=1.6, npoints = 9 )
 sensor_responseInit
 sensor_responseAntenna(option_2d = "interp_response")
 sensor_checkedCalc
@@ -202,9 +202,9 @@ Copy( y_ref, y )
 
 
 
-# Repeat with rectangular mblock_dlos_grid
+# Repeat with rectangular mblock_dlos
 #
-mblock_dlos_gridUniformRectangular( spacing=0.2, za_width=1.6, aa_width=1.6, centre=1 )
+dlosUniformSquare( dlos=mblock_dlos, width=1.6, npoints = 9 )
 sensor_responseInit
 sensor_responseAntenna(option_2d = "interp_response")
 sensor_checkedCalc

@@ -74,7 +74,7 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaConstantGaussian1D(Index& antenna_dim,
-                               Matrix& mblock_dlos_grid,
+                               Matrix& mblock_dlos,
                                GriddedField4& r,
                                Matrix& antenna_dlos,
                                const Index& n_za_grid,
@@ -109,12 +109,12 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
   nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_za_grid);
 
   // Get mblock_za_grid by interpolation
-  mblock_dlos_grid.resize(n_za_grid, 1);
+  mblock_dlos.resize(n_za_grid, 1);
   ArrayOfGridPos gp(n_za_grid);
   gridpos(gp, cumtrapz, csp);
   Matrix itw(n_za_grid, 2);
   interpweights(itw, gp);
-  interp(mblock_dlos_grid(joker, 0), itw, r_za_grid, gp);
+  interp(mblock_dlos(joker, 0), itw, r_za_grid, gp);
 }
 
 
@@ -124,7 +124,7 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
                                     Matrix& sensor_los,
                                     Matrix& antenna_dlos,
                                     Index& antenna_dim,
-                                    Matrix& mblock_dlos_grid,
+                                    Matrix& mblock_dlos,
                                     const Index& atmosphere_dim,
                                     const Verbosity& verbosity) {
   // Sizes
@@ -180,7 +180,7 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
   }
 
   // Set other variables
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
   //
   antenna_dlos.resize(1, 1);
   antenna_dlos = 0;
@@ -190,16 +190,16 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaOff(Index& antenna_dim,
-                Matrix& mblock_dlos_grid,
+                Matrix& mblock_dlos,
                 const Verbosity& verbosity) {
   CREATE_OUT2;
 
   out2 << "  Sets the antenna dimensionality to 1.\n";
   antenna_dim = 1;
 
-  out2 << "  Sets *mblock_dlos_grid* to have one row with value 0.\n";
-  mblock_dlos_grid.resize(1, 1);
-  mblock_dlos_grid = 0;
+  out2 << "  Sets *mblock_dlos* to have one row with value 0.\n";
+  mblock_dlos.resize(1, 1);
+  mblock_dlos = 0;
 }
 
 
@@ -380,6 +380,73 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
     const Index n = y.nelem();
     r[i].data.resize(n);
     for (Index j = 0; j < n; j++) r[i].data[j] = y[j];
+  }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dlosUniformCircular(Matrix& dlos,
+                         Vector& solid_angles,
+                         const Numeric& width,
+                         const Index& npoints,
+                         const Verbosity& verbosity) {
+  // Create rectangular set
+  dlosUniformSquare(dlos, solid_angles, width, npoints, verbosity);
+
+  // Pick out points inside radius
+  Matrix dlos_tmp;
+  Vector sa_tmp;
+  const Numeric r = width / 2.0;
+  //
+  Index n = 0;
+  for (Index i = 0; i < npoints * npoints; ++i) {
+    if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r*1.001) {
+        dlos_tmp(n, joker) = dlos(i, joker);
+        sa_tmp[n] = solid_angles[i];
+        ++n;
+    }
+  }
+
+  // Copy to output variables 
+  dlos = dlos_tmp(Range(0, n), joker);
+  solid_angles = sa_tmp[Range(0, n)];
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void dlosUniformSquare(Matrix& dlos,
+                       Vector& solid_angles,
+                       const Numeric& width,
+                       const Index& npoints,
+                       const Verbosity&) {
+  ARTS_USER_ERROR_IF(npoints < 1, "GIN npoints must be >= 1.");
+
+  // Edges of angular grid
+  Vector grid_edges;
+  Numeric hwidth = width / 2.0;
+  nlinspace(grid_edges, -hwidth, hwidth, npoints + 1);
+
+  // Angular grid
+  const Numeric spacing = grid_edges[1] - grid_edges[0];
+  Vector grid;
+  hwidth -= spacing / 2.0;
+  nlinspace(grid, -hwidth, hwidth, npoints);
+
+  dlos.resize(npoints * npoints, 2);
+  solid_angles.resize(npoints);
+
+  grid_edges *= DEG2RAD; 
+  const Numeric fac = DEG2RAD * spacing;
+  for (Index z = 0; z < npoints; z++) {
+    const Numeric solid_angle = fac * (sin(grid_edges[z+1]) - sin(grid_edges[z])); 
+    for (Index a = 0; a < npoints; a++) {
+      const Index i = a * npoints + z;
+      dlos(i, 0) = grid[z];
+      dlos(i, 1) = grid[a];
+      solid_angles[i] = solid_angle;  
+    }
   }
 }
 
@@ -909,89 +976,6 @@ void f_gridMetMM(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mblock_dlos_gridUniformCircular(Matrix& mblock_dlos_grid,
-                                     const Numeric& spacing,
-                                     const Numeric& width,
-                                     const Index& centre,
-                                     const Verbosity&) {
-  // Create linear, equidistant grid (same in zenith and azimuth)
-  Vector x;
-  Numeric w;
-  if (centre) {
-    w = spacing * ceil(width / spacing);
-  } else {
-    w = spacing * (0.5 + floor(width / spacing));
-  }
-  linspace(x, -w, w, spacing);
-  //
-  const Index l = x.nelem();
-
-  Matrix dlos_try(l * l, 2, 0);
-  Index n_in = 0;
-  const Numeric c = width * width;
-
-  for (Index i = 0; i < l; i++) {
-    const Numeric a = x[i] * x[i];
-
-    for (Index j = 0; j < l; j++) {
-      if (a + x[j] * x[j] <= c) {
-        dlos_try(n_in, 0) = x[i];
-        dlos_try(n_in, 1) = x[j];
-        n_in++;
-      }
-    }
-  }
-
-  mblock_dlos_grid = dlos_try(Range(0, n_in), joker);
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void mblock_dlos_gridUniformRectangular(Matrix& mblock_dlos_grid,
-                                        const Numeric& spacing,
-                                        const Numeric& za_width,
-                                        const Numeric& aa_width,
-                                        const Index& centre,
-                                        const Verbosity&) {
-  // Create za-grid
-  Vector za;
-  Numeric w;
-  if (centre) {
-    w = spacing * ceil(za_width / spacing);
-  } else {
-    w = spacing * (0.5 + floor(za_width / spacing));
-  }
-  linspace(za, -w, w, spacing);
-
-  // Create aa-grid
-  Vector aa;
-  if (centre) {
-    w = spacing * ceil(aa_width / spacing);
-  } else {
-    w = spacing * (0.5 + floor(aa_width / spacing));
-  }
-  linspace(aa, -w, w, spacing);
-
-  const Index nza = za.nelem();
-  const Index naa = aa.nelem();
-
-  mblock_dlos_grid.resize(nza * naa, 2);
-
-  Index n = 0;
-
-  for (Index a = 0; a < naa; a++) {
-    for (Index z = 0; z < nza; z++) {
-      mblock_dlos_grid(n, 0) = za[z];
-      mblock_dlos_grid(n, 1) = aa[a];
-      n++;
-    }
-  }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseAntenna(Sparse& sensor_response,
                             Vector& sensor_response_f,
                             ArrayOfIndex& sensor_response_pol,
@@ -1135,7 +1119,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
           is_decreasing(sensor_response_dlos_grid(joker, 0)))) {
       os << "For 1D antennas, the zenith angles in *sensor_response_dlos_grid*\n"
          << "must be sorted, either in increasing or decreasing order.\n"
-         << "The original problem is probably found in *mblock_dlos_grid*.\n";
+         << "The original problem is probably found in *mblock_dlos*.\n";
       error_found = true;
     }
 
@@ -1153,14 +1137,14 @@ void sensor_responseAntenna(Sparse& sensor_response,
         os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
            << "It should be expanded with " << -za_dlow
            << " deg in the lower end.\n"
-           << "This change should be probably applied to *mblock_dlos_grid*.\n";
+           << "This change should be probably applied to *mblock_dlos*.\n";
         error_found = true;
       }
       if (za_dhigh < 0) {
         os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
            << "It should be expanded with " << -za_dhigh
            << " deg in the upper end.\n"
-           << "This change should be probably applied to *mblock_dlos_grid*.\n";
+           << "This change should be probably applied to *mblock_dlos*.\n";
         error_found = true;
       }
     }
@@ -1765,7 +1749,7 @@ void sensor_responseInit(Sparse& sensor_response,
                          ArrayOfIndex& sensor_response_pol_grid,
                          Matrix& sensor_response_dlos_grid,
                          const Vector& f_grid,
-                         const Matrix& mblock_dlos_grid,
+                         const Matrix& mblock_dlos,
                          const Index& antenna_dim,
                          const Index& atmosphere_dim,
                          const Index& stokes_dim,
@@ -1781,16 +1765,16 @@ void sensor_responseInit(Sparse& sensor_response,
   chk_if_in_range("antenna_dim", antenna_dim, 1, 2);
   chk_if_bool("sensor_norm", sensor_norm);
 
-  // mblock_dlos_grid
-  if (mblock_dlos_grid.empty())
-    throw runtime_error("*mblock_dlos_grid* is empty.");
-  if (mblock_dlos_grid.ncols() > 2)
+  // mblock_dlos
+  if (mblock_dlos.empty())
+    throw runtime_error("*mblock_dlos* is empty.");
+  if (mblock_dlos.ncols() > 2)
     throw runtime_error(
-        "The maximum number of columns in *mblock_dlos_grid* is two.");
+        "The maximum number of columns in *mblock_dlos* is two.");
   if (atmosphere_dim < 3) {
-    if (mblock_dlos_grid.ncols() != 1)
+    if (mblock_dlos.ncols() != 1)
       throw runtime_error(
-          "For 1D and 2D *mblock_dlos_grid* must have exactly one column.");
+          "For 1D and 2D *mblock_dlos* must have exactly one column.");
     if (antenna_dim == 2)
       throw runtime_error(
           "2D antennas (antenna_dim=2) can only be "
@@ -1799,7 +1783,7 @@ void sensor_responseInit(Sparse& sensor_response,
 
   // Set grid variables
   sensor_response_f_grid = f_grid;
-  sensor_response_dlos_grid = mblock_dlos_grid;
+  sensor_response_dlos_grid = mblock_dlos;
   //
   sensor_response_pol_grid.resize(stokes_dim);
   //
@@ -1836,13 +1820,13 @@ void sensorOff(Sparse& sensor_response,
                Vector& sensor_response_f_grid,
                ArrayOfIndex& sensor_response_pol_grid,
                Matrix& sensor_response_dlos_grid,
-               Matrix& mblock_dlos_grid,
+               Matrix& mblock_dlos,
                const Index& stokes_dim,
                const Vector& f_grid,
                const Verbosity& verbosity) {
   // Checks are done in sensor_responseInit.
   Index antenna_dim;
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   // Dummy variables (The method is independent of atmosphere_dim.
   // atmosphere_dim used below just for some checks when antenna is active, not
@@ -1857,7 +1841,7 @@ void sensorOff(Sparse& sensor_response,
                       sensor_response_pol_grid,
                       sensor_response_dlos_grid,
                       f_grid,
-                      mblock_dlos_grid,
+                      mblock_dlos,
                       antenna_dim,
                       atmosphere_dim,
                       stokes_dim,
@@ -2008,7 +1992,7 @@ void sensor_responseMixer(Sparse& sensor_response,
 void sensor_responseMetMM(
     // WS Output:
     Index& antenna_dim,
-    Matrix& mblock_dlos_grid,
+    Matrix& mblock_dlos,
     Sparse& sensor_response,
     Vector& sensor_response_f,
     ArrayOfIndex& sensor_response_pol,
@@ -2178,10 +2162,10 @@ void sensor_responseMetMM(
   }
 
   // mblock angle grids
-  mblock_dlos_grid = antenna_dlos_local;
+  mblock_dlos = antenna_dlos_local;
 
   // Set sensor response aux variables
-  sensor_response_dlos_grid = mblock_dlos_grid;
+  sensor_response_dlos_grid = mblock_dlos;
 
   // Set aux variables
   sensor_aux_vectors(sensor_response_f,
@@ -2741,7 +2725,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
 void sensor_responseGenericAMSU(  // WS Output:
     Vector& f_grid,
     Index& antenna_dim,
-    Matrix& mblock_dlos_grid,
+    Matrix& mblock_dlos,
     Sparse& sensor_response,
     Vector& sensor_response_f,
     ArrayOfIndex& sensor_response_pol,
@@ -2991,7 +2975,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       verbosity);
 
   // do some final work...
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   sensor_responseInit(
       // out
@@ -3004,7 +2988,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       sensor_response_dlos_grid,
       // in
       f_grid,
-      mblock_dlos_grid,
+      mblock_dlos,
       antenna_dim,
       atmosphere_dim,
       stokes_dim,
@@ -3100,7 +3084,7 @@ void sensor_responseGenericAMSU(  // WS Output:
 void sensor_responseSimpleAMSU(  // WS Output:
     Vector& f_grid,
     Index& antenna_dim,
-    Matrix& mblock_dlos_grid,
+    Matrix& mblock_dlos,
     Sparse& sensor_response,
     Vector& sensor_response_f,
     ArrayOfIndex& sensor_response_pol,
@@ -3197,7 +3181,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
                        spacing,
                        verbosity);
 
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   sensor_responseInit(sensor_response,
                       sensor_response_f,
@@ -3207,7 +3191,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
                       sensor_response_pol_grid,
                       sensor_response_dlos_grid,
                       f_grid,
-                      mblock_dlos_grid,
+                      mblock_dlos,
                       antenna_dim,
                       atmosphere_dim,
                       stokes_dim,
@@ -3463,11 +3447,11 @@ void ySimpleSpectrometer(Vector& y,
   //
   Index antenna_dim;
   Vector sensor_response_f, sensor_response_f_grid;
-  Matrix mblock_dlos_grid, sensor_response_dlos_grid, sensor_response_dlos;
+  Matrix mblock_dlos, sensor_response_dlos_grid, sensor_response_dlos;
   ArrayOfIndex sensor_response_pol, sensor_response_pol_grid;
   Sparse sensor_response;
   //
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   sensor_responseInit(sensor_response,
                       sensor_response_f,
@@ -3477,7 +3461,7 @@ void ySimpleSpectrometer(Vector& y,
                       sensor_response_pol_grid,
                       sensor_response_dlos_grid,
                       f_grid,
-                      mblock_dlos_grid,
+                      mblock_dlos,
                       antenna_dim,
                       atmosphere_dim,
                       stokes_dim,

@@ -3032,26 +3032,6 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AddZaAa"),
-      DESCRIPTION(
-          "Adds zenith and azimuth angles.\n"
-          "\n"
-          "Adds up line-of-sights (LOS). In short, *dlos* is added to *ref_los*,\n"
-          "assuming that a unit changes in zenith and azimuth are equal where\n"
-          "dlos=(0,0).\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("new_los"),
-      GOUT_TYPE("Matrix"),
-      GOUT_DESC("End line-of-sights."),
-      IN(),
-      GIN("ref_los", "dlos"),
-      GIN_TYPE("Vector", "Matrix"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Reference line-of-sight (a single LOS).",
-               "Change in line-of-sight (can be multiple LOS).")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("AgendaAppend"),
       DESCRIPTION(
           "Append methods to an agenda.\n"
@@ -3227,12 +3207,12 @@ Available models:
       NAME("AntennaConstantGaussian1D"),
       DESCRIPTION(
           "Sets up a 1D gaussian antenna response and a matching\n"
-          "*mblock_dlos_grid*.\n"
+          "*mblock_dlos*.\n"
           "\n"
-          "As *antenna_responseGaussian*, but also creates *mblock_dlos_grid*.\n"
+          "As *antenna_responseGaussian*, but also creates *mblock_dlos*.\n"
           "For returned antenna response, see *antenna_responseGaussian*.\n"
           "\n"
-          "The size of *mblock_dlos_grid* is determined by *n_za_grid*.\n"
+          "The size of *mblock_dlos* is determined by *n_za_grid*.\n"
           "The end points of the grid are set to be the same as for the\n"
           "antenna response. The spacing of the grid follows the magnitude of\n"
           "the response; the spacing is smaller where the response is high.\n"
@@ -3246,7 +3226,7 @@ Available models:
           "The antenna repsonse is not normalised.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "antenna_response",
           "antenna_dlos"),
       GOUT(),
@@ -3256,7 +3236,7 @@ Available models:
       GIN("n_za_grid", "fwhm", "xwidth_si", "dx_si"),
       GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, "3", "0.1"),
-      GIN_DESC("Number of points (>1) to include in *mblock_dlos_grid*.",
+      GIN_DESC("Number of points (>1) to include in *mblock_dlos*.",
                "Full width at half-maximum of antenna beam [deg].",
                "Half-width of response, in terms of std. dev.",
                "Grid spacing, in terms of std. dev.")));
@@ -3281,7 +3261,7 @@ Available models:
           "sensor_los",
           "antenna_dlos",
           "antenna_dim",
-          "mblock_dlos_grid"),
+          "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -3289,7 +3269,7 @@ Available models:
          "sensor_los",
          "antenna_dlos",
          "antenna_dim",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "atmosphere_dim"),
       GIN(),
       GIN_TYPE(),
@@ -3301,11 +3281,11 @@ Available models:
       DESCRIPTION(
           "Sets some antenna related variables\n"
           "\n"
-          "Use this method to set *antenna_dim* and *mblock_dlos_grid* to\n"
+          "Use this method to set *antenna_dim* and *mblock_dlos* to\n"
           "suitable values (1 and [0], respectively) for cases when a\n"
           "sensor is included, but the antenna pattern is neglected.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("antenna_dim", "mblock_dlos_grid"),
+      OUT("antenna_dim", "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5913,13 +5893,13 @@ Available models:
       GIN_DESC("The vector containing the diagonal elements.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DiffZaAa"),
+      NAME("dlosDiffOfLos"),
       DESCRIPTION(
           "Derives the difference betwenn zenith and azimuth angles.\n"
           "\n"
           "Determines the difference between a set of angles (*other_los*)\n"
           "and a reference direction (*ref_los*). This method reverses the\n"
-          "addition made by *AddZaAa*.\n"),
+          "addition made by *losAddLosAndDlos*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("dlos"),
@@ -5929,8 +5909,54 @@ Available models:
       GIN("ref_los", "other_los"),
       GIN_TYPE("Vector", "Matrix"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Reference line-of-sight (a single LOS).",
-               "Other line-of-sights (can be multiple LOS).")));
+      GIN_DESC("Reference line-of-sight (a single los).",
+               "Other line-of-sights (can be multiple los).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("dlosUniformCircular"),
+      DESCRIPTION(
+          "Gives *dlos* a circular coverage, with uniform spacing.\n"
+          "\n"
+          "Works as *dlosUniformSquare*, but dlos-es at a radius outside\n"
+          "of width/2 are removed.\n"
+          "\n"
+          "The resulting number of dlos-directions is roughly\n"
+          "pi * npoints * npoints / 4.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("dlos", "solid_angles"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("width", "npoints"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("The full width, in each dimension, in degrees.",
+               "Number of points over the width, in each dimension.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("dlosUniformSquare"),
+      DESCRIPTION(
+          "Gives *dlos* a rectangular coverage, with uniform spacing.\n"
+          "\n"
+          "The same angular grid is applied in both angular dimensions.\n"
+          "With width = 1 and npoints = 5, the angular grid becomes\n"
+          " [-0.4, -0.2, 0, 0.2, 0.4].\n"
+          "\n"
+          "The inner loop in is the azimuth direction. That is, first comes\n"
+          "all relative azimuth angles for first relative zenith angle etc.\n"
+          "The resulting number of dlos-directions is npoints * npoints.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("dlos", "solid_angles"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("width", "npoints"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("The full width, in each dimension, in degrees.",
+               "Number of points over the width, in each dimension.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalc"),
@@ -10825,7 +10851,7 @@ Available models:
          "yb",
          "stokes_dim",
          "f_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "jacobian_quantities"),
       GIN(),
@@ -10852,7 +10878,7 @@ Available models:
          "yb",
          "stokes_dim",
          "f_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_pol_grid",
          "sensor_response_f_grid",
@@ -10883,7 +10909,7 @@ Available models:
          "stokes_dim",
          "f_grid",
          "sensor_los",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_time",
          "jacobian_quantities"),
@@ -10917,7 +10943,7 @@ Available models:
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_time",
          "iy_unit",
@@ -11279,6 +11305,25 @@ Available models:
       GIN_TYPE("GriddedField3"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A raw atmospheric field.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("losAddLosAndDlos"),
+      DESCRIPTION(
+          "Adds zenith and azimuth angles.\n"
+          "\n"
+          "Adds up a line-of-sights (ref_los), with relative angle off-sets\n" 
+          "(dlos).\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("new_los"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("End line-of-sights."),
+      IN(),
+      GIN("ref_los", "dlos"),
+      GIN_TYPE("Vector", "Matrix"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Reference line-of-sight (a single los).",
+               "Change in line-of-sight (can be multiple dlos).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsCalc"),
@@ -11757,65 +11802,6 @@ Available models:
       GIN_DESC("The vector to be copied into the first row.",
                "The vector to be copied into the second row.",
                "The vector to be copied into the third row.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("mblock_dlos_gridUniformCircular"),
-      DESCRIPTION(
-          "Gives *mblock_dlos_grid* roughly circular coverage, with uniform spacing.\n"
-          "\n"
-          "The method considers points on a regular grid with a spacing set by\n"
-          "GIN *spacing*. All points inside a radius from (0,0) are included in\n"
-          "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
-          "a roughly circular domain, and cover the same solid beam angle.\n"
-          "The radius is adjusted according to *spacing' and *centre*, but is\n"
-          "ensured to be >= *width*.\n"
-          "\n"
-          "Note that the method assumes that width is small and the solid beam\n"
-          "angle does not change with distance from (0.0).\n"
-          "\n"
-          "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
-          "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
-          "*centre* from its default value.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("mblock_dlos_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("spacing", "width", "centre"),
-      GIN_TYPE("Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "0"),
-      GIN_DESC("The angular spacing between points.",
-               "The minimum distance from (0,0) to cover.",
-               "Set to 1 to place a point at (0,0).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("mblock_dlos_gridUniformRectangular"),
-      DESCRIPTION(
-          "Gives *mblock_dlos_grid* rectangular coverage, with uniform spacing.\n"
-          "\n"
-          "The method creates an equidistant rectangular grid. The width in zenith\n"
-          "and azimuth can differ. Note that selected widths are half-widths (i.e.\n"
-          "distance from (0,0), and refers to the mimumum value allowed. The actual\n"
-          "width depends on values selected for *spacing* and *centre*.\n"
-          "\n"
-          "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
-          "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
-          "*centre* from its default value.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("mblock_dlos_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("spacing", "za_width", "aa_width", "centre"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("The angular spacing between points.",
-               "Min value of half-width in zenith angle direction.",
-               "Min value of half-width in azimuth angle direction.",
-               "Set to 1 to place a point at (0,0).")));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussian"),
       DESCRIPTION(
@@ -18382,7 +18368,7 @@ where N>=0 and the species name is something line "H2O".
           "Checks consistency of the sensor variables.\n"
           "\n"
           "The following WSVs are examined: *f_grid*, *sensor_pos*, *sensor_los*,\n"
-          "*transmitter_pos*, *mblock_dlos_grid*, *antenna_dim*,\n"
+          "*transmitter_pos*, *mblock_dlos*, *antenna_dim*,\n"
           "*sensor_response*, *sensor_response_f*, *sensor_response_pol*,\n"
           "and *sensor_response_dlos*.\n"
           "\n"
@@ -18406,7 +18392,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_f",
          "sensor_response_pol",
@@ -18422,7 +18408,7 @@ where N>=0 and the species name is something line "H2O".
           "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
           "\n"
           "The variables are set as follows:\n"
-          "   mblock_dlos_grid        : One row with zero(s).\n"
+          "   mblock_dlos        : One row with zero(s).\n"
           "   sensor_response*        : As returned by *sensor_responseInit*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
@@ -18432,7 +18418,7 @@ where N>=0 and the species name is something line "H2O".
           "sensor_response_f_grid",
           "sensor_response_pol_grid",
           "sensor_response_dlos_grid",
-          "mblock_dlos_grid"),
+          "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -18551,14 +18537,14 @@ where N>=0 and the species name is something line "H2O".
           "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
           "details on how to specify the antenna response.\n"
           "\n"
-          "The text below refers to *mblock_dlos_grid* despite it is not an\n"
+          "The text below refers to *mblock_dlos* despite it is not an\n"
           "input to the method. The method instead uses *sensor_response_dlos_grid*\n"
-          "but the values in this WSV are likely coming from *mblock_dlos_grid*.\n"
+          "but the values in this WSV are likely coming from *mblock_dlos*.\n"
           "\n"
           "One dimensional antenna patterns are handled as other response\n"
           "functions. That is, both antenna response and radiances are treated\n"
           "as piece-wise linear functions, and the pencil beam calculations must\n"
-          "cover the full sensor response (i.e. *mblock_dlos_grid* must be\n"
+          "cover the full sensor response (i.e. *mblock_dlos* must be\n"
           "sufficiently broad).\n"
           "\n"
           "There exist different options for two dimensional (2D) antenna patterns,\n"
@@ -18567,10 +18553,10 @@ where N>=0 and the species name is something line "H2O".
           "*sensor-norm* is ignored).\n"
           "\n"
           "\"interp_response\""
-          "For this option, each direction defined by *mblock_dlos_grid* is\n"
+          "For this option, each direction defined by *mblock_dlos* is\n"
           "considered to represent the same size in terms of solid beam angle,\n"
           "and the antenna pattern is interpolated to these directions. There is\n"
-          "no check on how well *mblock_dlos_grid* covers the antenna response.\n"
+          "no check on how well *mblock_dlos* covers the antenna response.\n"
           "The response is treated to be zero outside the ranges of its  anular\n"
           "grids\n"
           "\n"
@@ -18578,7 +18564,7 @@ where N>=0 and the species name is something line "H2O".
           "This option is more similar to the 1D case. The radiances are treated\n"
           "as a bi-linear function, but the antenna response is treated as step-\n"
           "wise constant function (in contrast to 1D). For this option\n"
-          "*mblock_dlos_grid* must match a combination of zenith and azimuth\n"
+          "*mblock_dlos* must match a combination of zenith and azimuth\n"
           "grids, and this for a particular order. If the zenith and azimuth\n"
           "grids have 3 and 2 values, respectively, the order shall be:\n"
           "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2) ]\n"
@@ -18849,13 +18835,13 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The variables are set as follows:\n"
           "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
-          "                     *stokes_dim* and *mblock_dlos_grid*.\n"
+          "                     *stokes_dim* and *mblock_dlos*.\n"
           "   sensor_response_f       : Repeated values of *f_grid*.\n"
           "   sensor_response_pol     : Data matching *stokes_dim*.\n"
-          "   sensor_response_dlos    : Repeated values of *mblock_dlos_grid*.\n"
+          "   sensor_response_dlos    : Repeated values of *mblock_dlos*.\n"
           "   sensor_response_f_grid  : Equal to *f_grid*.\n"
           "   sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
-          "   sensor_response_dlos_grid : Equal to *mblock_dlos_grid*.\n"),
+          "   sensor_response_dlos_grid : Equal to *mblock_dlos*.\n"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -18868,7 +18854,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "antenna_dim",
          "atmosphere_dim",
          "stokes_dim",
@@ -18917,7 +18903,7 @@ where N>=0 and the species name is something line "H2O".
           "cover both sides of the swath.\n"),
       AUTHORS("Oliver Lemke", "Patrick Eriksson"),
       OUT("antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -19162,7 +19148,7 @@ where N>=0 and the species name is something line "H2O".
       AUTHORS("Stefan Buehler"),
       OUT("f_grid",
           "antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -19204,7 +19190,7 @@ where N>=0 and the species name is something line "H2O".
       AUTHORS("Oscar Isoz"),
       OUT("f_grid",
           "antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -22582,7 +22568,7 @@ where N>=0 and the species name is something line "H2O".
           "sensor_response_f_grid",
           "sensor_response_pol_grid",
           "sensor_response_dlos_grid",
-          "mblock_dlos_grid"),
+          "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -22595,7 +22581,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_response_f_grid",
          "sensor_response_pol_grid",
          "sensor_response_dlos_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "jacobian_quantities",
          "x",
          "sensor_response_agenda",
@@ -22982,7 +22968,7 @@ where N>=0 and the species name is something line "H2O".
           "and thus also several goe-positions, associated with each value of *y*.\n"
           "The geo-position assigned to a value in *y* is the *geo_pos* of the pencil\n"
           "beam related to the highest value in *sensor_response*. This means that\n"
-          "*mblock_dlos_grid* must contain the bore-sight direction (0,0), if you\n"
+          "*mblock_dlos* must contain the bore-sight direction (0,0), if you\n"
           "want *y_geo* to exactly match the bore-sight direction.\n"
           "\n"
           "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
@@ -23006,7 +22992,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_f",
          "sensor_response_pol",
@@ -23098,7 +23084,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_f",
          "sensor_response_pol",

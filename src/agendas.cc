@@ -620,7 +620,7 @@ void define_agenda_data() {
              "sensor_response_pol_grid",
              "sensor_response_dlos",
              "sensor_response_dlos_grid",
-             "mblock_dlos_grid"),
+             "mblock_dlos"),
       INPUT("f_backend")));
 
   agenda_data.push_back(AgRecord(

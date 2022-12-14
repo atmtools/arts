@@ -106,7 +106,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 
 //! antenna2d_interp_response
 /*!
-  For this option, each direction defined by *mblock_dlos_grid* is
+  For this option, each direction defined by *mblock_dlos* is
   considered to represent the same size in terms of solid beam angle,
   and the antenna pattern is interpolated to these directions. See also
   built-in doc.

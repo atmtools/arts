@@ -219,7 +219,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Decompose mblock_dlos into za and aa grids, including checking
   ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 2 ,
-                      "For the gridded_dlos option, *mblock_dlos_grid* "
+                      "For the gridded_dlos option, *mblock_dlos* "
                       "must have two columns.");
 
 
@@ -366,11 +366,11 @@ void antenna2d_gridded_dlos(Sparse& H,
           Vector zas = aresponse_za_grid;
           zas += antenna_dlos(ia, 0);
           ARTS_USER_ERROR_IF( zas[0] < za_grid[0],
-              "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The zenith angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended downwards with at least ",
               za_grid[0]-zas[0], " deg.")
           ARTS_USER_ERROR_IF( zas[n_ar_za-1] > za_grid[nza-1],
-              "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The zenith angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended upwards with at least ",
               zas[n_ar_za-1] - za_grid[nza-1], " deg.")
           
@@ -381,11 +381,11 @@ void antenna2d_gridded_dlos(Sparse& H,
           Vector aas = aresponse_aa_grid;
           if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
           ARTS_USER_ERROR_IF( aas[0] < aa_grid[0],
-              "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The azimuth angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended downwards with at least ",
               aa_grid[0]-aas[0], " deg.")
           ARTS_USER_ERROR_IF( aas[n_ar_aa-1] > aa_grid[naa-1],
-              "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The azimuth angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended upwards with at least ",
               aas[n_ar_aa-1] - aa_grid[naa-1], " deg.")
           

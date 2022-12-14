@@ -55,34 +55,10 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AddZaAa(Matrix& new_los,
-             const Vector& ref_los,
-             const Matrix& dlos,
-             const Verbosity&) {
-  ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
-                      "*ref_los* must have two columns.");
-  ARTS_USER_ERROR_IF (dlos.ncols() != 2,
-                      "*dlos* must have two columns.");
-
-  const Index nlos = dlos.nrows();
-
-  new_los.resize(nlos, 2);
-
-  for (Index i = 0; i < nlos; i++) {
-    add_za_aa(new_los(i, 0),
-              new_los(i, 1),
-              ref_los[0],
-              ref_los[1],
-              dlos(i, 0),
-              dlos(i, 1));
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void DiffZaAa(Matrix& dlos,
-              const Vector& ref_los,
-              const Matrix& other_los,
-              const Verbosity&) {
+void dlosDiffOfLos(Matrix& dlos,
+                   const Vector& ref_los,
+                   const Matrix& other_los,
+                   const Verbosity&) {
   ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
                       "*ref_los* must have two columns.");
   ARTS_USER_ERROR_IF (other_los.ncols() != 2,
@@ -99,6 +75,30 @@ void DiffZaAa(Matrix& dlos,
                ref_los[1],
                other_los(i, 0),
                other_los(i, 1));
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void losAddLosAndDlos(Matrix& new_los,
+                      const Vector& ref_los,
+                      const Matrix& dlos,
+                      const Verbosity&) {
+  ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
+                      "*ref_los* must have two columns.");
+  ARTS_USER_ERROR_IF (dlos.ncols() != 2,
+                      "*dlos* must have two columns.");
+
+  const Index nlos = dlos.nrows();
+
+  new_los.resize(nlos, 2);
+
+  for (Index i = 0; i < nlos; i++) {
+    add_za_aa(new_los(i, 0),
+              new_los(i, 1),
+              ref_los[0],
+              ref_los[1],
+              dlos(i, 0),
+              dlos(i, 1));
   }
 }
 
