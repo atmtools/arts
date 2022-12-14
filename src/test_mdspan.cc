@@ -19,52 +19,32 @@ template <class T> std::string type(const T &t) {
   return demangle(typeid(t).name());
 }
 
-int main () {
-using namespace matpack::md;
+int main() {
+  using namespace matpack::md;
 
   auto x = TMPVector(4);
   const auto y = TMPMatrix(4, 3, 4);
+  auto yc = TMPMatrix(4, 3, 4);
   auto z = TMPTensor3(4, 3, 2, 4);
 
-  z(1,2,1) += 1;
-  z(1,1,1) += 1;
+  z(1, 2, 1) += 1;
+  z(1, 1, 1) += 1;
 
-  std::cout << "x\n";
-  std::cout << x << '\n';
-  std::cout << "y\n";
-  std::cout << y << '\n';
-  std::cout << "z\n";
-  std::cout << z << '\n';
-
- std::cout << type((z(joker, joker, joker))) << '\n';
- std::cout << type((z(joker, joker, 1))) << '\n';
- std::cout << type(z(1, 1, 1)) << '\n';
-
- std::cout << z(1, 2, joker) << '\n';
-
-std::cout << "z\n";
-std::cout << type(z.begin()) << '\n';
-std::cout << type(*z.begin()) << '\n';
-
-std::cout << "y\n";
-std::cout << type(y.begin()) << '\n';
-std::cout << type(*y.begin()) << '\n';
-
-for (auto v : z) {
-  v(0, 0) += 3;
-  for (auto t: v) {
-    t[1] += 5;
-    for (auto& s: t) s *= 2;
+  for (auto v : z) {
+    v(0, 0) += 3;
+    for (auto t : v) {
+      t[1] += 5;
+      for (auto &s : t)
+        s *= 2;
+    }
   }
-}
-  std::cout << "z\n";
-  std::cout << z << '\n';
-
-  for (auto& v: x) v+= 2;
-  std::cout << "x\n";
-  std::cout << x << '\n';
+  for (auto &v : x)
+    v += 2;
 
   x = std::move(z).flatten();
+  std::cout << "SHOULD BE SAME (TOP IS STORED CONST CHAR *):\n14 18 8 18 8 18 "
+               "14 18 8 20 8 20 14 18 8 18 8 "
+               "18 14 18 8 18 8 18\n";
   std::cout << x << '\n';
   std::cout << z << '\n';
   z = std::move(std::move(x)).reshape(2, 3, 4);
@@ -73,5 +53,10 @@ for (auto v : z) {
   z = std::move(std::move(z).flatten()).reshape(4, 3, 2);
   std::cout << x << '\n';
   std::cout << z << '\n';
-}
+  yc = std::move(std::move(z).flatten()).reshape(4, 6);
+  std::cout << x << '\n';
+  std::cout << yc << '\n';
 
+  z = simple_view<double, 3, true>{std::move(yc).reshape(4,3,2)};
+  std::cout << z << '\n';
+}
