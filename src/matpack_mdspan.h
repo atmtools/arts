@@ -54,6 +54,17 @@ static_assert(not is_always_exhaustive_v<strided_mdspan<int, 4>>);
 // Necessary for different operators to predefine these
 template <typename T, detail::size_t N, bool constant> class simple_view;
 template <typename T, detail::size_t N, bool constant> class strided_view;
+template <typename T, detail::size_t N, typename U>
+concept mutable_view =
+    std::same_as<std::remove_cvref_t<U>, simple_view<T, N, false>> or
+    std::same_as<std::remove_cvref_t<U>, strided_view<T, N, false>>;
+template <typename T, detail::size_t N, typename U>
+concept const_view =
+    std::same_as<std::remove_cvref_t<U>, simple_view<T, N, true>> or
+    std::same_as<std::remove_cvref_t<U>, strided_view<T, N, true>>;
+template <typename T, detail::size_t N, typename U>
+concept any_view =
+    mutable_view<T, N, U> or const_view<T, N, U>;
 
 template <access_operator Access, typename... arguments>
 [[nodiscard]] consteval detail::size_t get_access_size() noexcept {
@@ -246,11 +257,15 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
              const OUT<T, std::max<detail::size_t>(N - 1, 1), true>>;          \
   using value_type = T;                                                        \
   [[nodiscard]] static constexpr auto rank() { return N; }                     \
-  [[nodiscard]] auto begin() {                                                 \
+  [[nodiscard]] auto begin()                                                   \
+    requires(not constant)                                                     \
+  {                                                                            \
     __VA_OPT__(if constexpr (N == 1) return data.begin(); else)                \
     return iterator{*this};                                                    \
   }                                                                            \
-  [[nodiscard]] auto end() {                                                   \
+  [[nodiscard]] auto end()                                                     \
+    requires(not constant)                                                     \
+  {                                                                            \
     __VA_OPT__(if constexpr (N == 1) return data.end(); else)                  \
     return iterator{*this} + extent(0);                                        \
   }                                                                            \
@@ -381,83 +396,85 @@ template <typename T, detail::size_t N> class simple_data {
 
 public:
   // Standard constructor
-  simple_data(const std::array<detail::size_t, N> &sz={}, const T &x={})
+  constexpr simple_data(const std::array<detail::size_t, N> &sz={}, const T &x={})
       : data(std::accumulate(sz.begin(), sz.end(), detail::size_t{1},
                              std::multiplies<>()),
              x),
       view(data.data(), sz) {}
 
-  // Create the type with no known starting value
+  // Create the type completely default constructed
   template <std::integral... inds>
-  simple_data(inds&&... ind)
+  constexpr simple_data(inds&&... ind)
     requires(sizeof...(inds) == N)
-      : simple_data(sz_data(std::forward<inds>(ind)...), 0.0) {
+      : simple_data(sz_data(std::forward<inds>(ind)...)) {
   }
 
-  // Create the type with no known starting value
+  // Create the type with known constant value
   template <typename... arguments>
-  simple_data(arguments... args)
+  constexpr simple_data(arguments... args)
     requires(sizeof...(args) == N + 1)
       : simple_data(sz_data(std::forward<arguments>(args)...),
                     defdata(std::forward<arguments>(args)...)) {
   }
 
-  simple_data(const simple_data& x) : data(x.data), view(data.data(), x.shape()) {}
-  simple_data& operator=(const simple_data& x) { data=x.data; view = detail::exhaustive_mdspan<T, N>{data.data(), x.shape()}; return *this; }
-  simple_data(simple_data&&) noexcept = default;
-  simple_data& operator=(simple_data&&) noexcept = default;
+  constexpr simple_data(const simple_data& x) : data(x.data), view(data.data(), x.shape()) {}
+  constexpr simple_data& operator=(const simple_data& x) { data=x.data; view = detail::exhaustive_mdspan<T, N>{data.data(), x.shape()}; return *this; }
+  constexpr simple_data(simple_data&&) noexcept = default;
+  constexpr simple_data& operator=(simple_data&&) noexcept = default;
+
+  constexpr operator simple_view<T, N, false>() {return view;}
+  constexpr operator simple_view<T, N, true>() const {return view;}
+  constexpr operator strided_view<T, N, false>() {return view;}
+  constexpr operator strided_view<T, N, true>() const {return view;}
 
   // Resize operation
-  void resize(std::array<detail::size_t, N> sz) {
+  constexpr void resize(std::array<detail::size_t, N> sz) {
     data.resize(std::accumulate(sz.begin(), sz.end(), detail::size_t{1},
                                 std::multiplies<>()));
-    view(data.data(), sz);
+    view = detail::exhaustive_mdspan<T, N>{data.data(), sz};
   }
 
   // Resize operation
-  template <std::integral... inds> void resize(inds &&...ind) {
+  template <std::integral... inds> constexpr void resize(inds &&...ind) {
     resize(std::array{detail::size_t(std::forward<inds>(ind))...});
   }
 
-  void swap(simple_data& other) noexcept {
+  // swap
+  constexpr void swap(simple_data& other) noexcept {
     data.swap(other.data);
     std::swap(view, other.view);
   }
 
+  // Reshape an rvalue
   template <std::integral... inds, detail::size_t M = sizeof...(inds)>
-      [[nodiscard]] simple_data<T, M> reshape(inds... ind) &&
-      requires(N not_eq M) {
-        ARTS_ASSERT(static_cast<std::size_t>((ind * ...)) == view.size(),
-                    "Mismatch in reshape")
-        simple_data<T, M> out;
-        out.data.swap(data);
-        out.view = detail::exhaustive_mdspan<T, M>{out.data.data(),
-                                                   std::forward<inds>(ind)...};
-        view = detail::exhaustive_mdspan<T, N>{data.data(),
-                                               std::array<detail::size_t, N>{}};
-        return out;
-      }
+  [[nodiscard]] constexpr simple_data<T, M> reshape(inds... ind) && requires(N not_eq M) {
+    ARTS_ASSERT(static_cast<std::size_t>((ind * ...)) == view.size(),
+                "Mismatch in reshape")
+    simple_data<T, M> out;
+    out.data.swap(data);
+    out.view = detail::exhaustive_mdspan<T, M>{out.data.data(), std::forward<inds>(ind)...};
+    view = detail::exhaustive_mdspan<T, N>{data.data(), std::array<detail::size_t, N>{}};
+    return out;
+  }
 
-      [[nodiscard]] simple_data<T, 1> flatten() &&
-        requires(N > 1)
-  {
+  // Flatten to a vector-like
+  [[nodiscard]] constexpr simple_data<T, 1> flatten() && requires(N > 1) {
     return std::move(*this).reshape(data.size());
   }
 
-  template <bool c>
-  constexpr simple_data& operator=(const simple_view<T, N, c>& sv) {
+  template <typename U>
+  constexpr simple_data& operator=(const U& sv) requires(any_view<T, N, U>) {
     if (view.data_handle() not_eq sv.view.data_handle()) {
-      simple_data out(sv.shape());
-      std::copy(sv.begin(), sv.end(), out.begin());
-      *this = std::move(out);
+      if (auto s = sv.shape(); shape() not_eq s) resize(s);
+      std::copy(sv.begin(), sv.end(), begin());
     }
     return *this;
   }
 
-  operator simple_view<T, N, false>() noexcept {return view;}
-  operator simple_view<T, N, true>() const noexcept {return view;}
-  operator strided_view<T, N, false>() noexcept {return view;}
-  operator strided_view<T, N, true>() const noexcept {return view;}
+  constexpr simple_data& operator=(const T& x) {
+    std::fill(begin(), end(), x);
+    return *this;
+  }
 
   //! access operator
   ACCESS_OPS
@@ -485,14 +502,27 @@ public:
   constexpr simple_view() = default;
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
+  constexpr simple_view(const simple_view&) = default;
+  constexpr simple_view& operator=(const simple_view&) = default;
+  constexpr simple_view(simple_view&&) noexcept = default;
+  constexpr simple_view& operator=(simple_view&&) noexcept = default;
 
-  template <bool c>
-  simple_view &operator=(const simple_view<T, N, c> &sv)
-    requires(not constant)
+  constexpr operator simple_view<T, N, true>() const requires(not constant) {return view;}
+  constexpr operator strided_view<T, N, constant>() {return view;}
+  constexpr operator strided_view<T, N, true>() const {return view;}
+
+  template <typename U>
+  constexpr simple_view &operator=(const U &sv)
+    requires(not constant and any_view<T, N, U>)
   {
     ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
     if (view.data_handle() not_eq sv.view.data_handle())
       std::copy(sv.begin(), sv.end(), begin());
+    return *this;
+  }
+
+  constexpr simple_view& operator=(const T& x) {
+    std::fill(begin(), end(), x);
     return *this;
   }
 
@@ -523,12 +553,16 @@ public:
   constexpr strided_view() = default;
   constexpr strided_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
   constexpr strided_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
-  constexpr strided_view(const simple_view<T, N, true>& sv) requires(constant) : view(sv.view) {}
-  constexpr strided_view(const simple_view<T, N, false>& sv) : view(sv.view) {}
+  constexpr strided_view(const strided_view&) = default;
+  constexpr strided_view& operator=(const strided_view&) = default;
+  constexpr strided_view(strided_view&&) noexcept = default;
+  constexpr strided_view& operator=(strided_view&&) noexcept = default;
 
-  template <bool c>
-  strided_view &operator=(const strided_view<T, N, c> &sv)
-    requires(not constant)
+  constexpr operator strided_view<T, N, true>() const requires(not constant) {return view;}
+
+  template <typename U>
+  strided_view &operator=(const U &sv)
+    requires(not constant and any_view<T, N, U>)
   {
     ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
     if (view.data_handle() not_eq sv.view.data_handle())
@@ -597,3 +631,22 @@ static_assert(test_random_access_iterator<const strided_view<Numeric, 2, false>>
 using TMPVector = matpack::md::simple_data<Numeric, 1>;
 using TMPMatrix = matpack::md::simple_data<Numeric, 2>;
 using TMPTensor3 = matpack::md::simple_data<Numeric, 3>;
+
+using Vec = matpack::md::simple_data<Numeric, 1>;
+using Mat = matpack::md::simple_data<Numeric, 2>;
+using Ten3 = matpack::md::simple_data<Numeric, 3>;
+
+using VecVF = matpack::md::simple_view<Numeric, 1, false>;
+using MatVF = matpack::md::simple_view<Numeric, 2, false>;
+using Ten3VF = matpack::md::simple_view<Numeric, 3, false>;
+using VecCVF = matpack::md::simple_view<Numeric, 1, true>;
+using MatCVF = matpack::md::simple_view<Numeric, 2, true>;
+using Ten3CVF = matpack::md::simple_view<Numeric, 3, true>;
+
+using VecVS = matpack::md::strided_view<Numeric, 1, false>;
+using MatVS = matpack::md::strided_view<Numeric, 2, false>;
+using Ten3VS = matpack::md::strided_view<Numeric, 3, false>;
+using VecCVS = matpack::md::strided_view<Numeric, 1, true>;
+using MatCVS = matpack::md::strided_view<Numeric, 2, true>;
+using Ten3CVS = matpack::md::strided_view<Numeric, 3, true>;
+
