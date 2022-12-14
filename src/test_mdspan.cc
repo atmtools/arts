@@ -63,5 +63,15 @@ for (auto v : z) {
   for (auto& v: x) v+= 2;
   std::cout << "x\n";
   std::cout << x << '\n';
+
+  x = std::move(z).flatten();
+  std::cout << x << '\n';
+  std::cout << z << '\n';
+  z = std::move(std::move(x)).reshape(2, 3, 4);
+  std::cout << x << '\n';
+  std::cout << z << '\n';
+  z = std::move(std::move(z).flatten()).reshape(4, 3, 2);
+  std::cout << x << '\n';
+  std::cout << z << '\n';
 }
 

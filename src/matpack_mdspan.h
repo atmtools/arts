@@ -229,6 +229,12 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
     requires(N >= 7)                                                           \
   {                                                                            \
     return extent(6);                                                          \
+  }                                                                            \
+  [[nodiscard]] std::array<detail::size_t, N> shape() const noexcept {         \
+    std::array<detail::size_t, N> out;                                         \
+    for (detail::size_t i = 0; i < N; i++)                                     \
+      out[i] = extent(i);                                                      \
+    return out;                                                                \
   }
 
 template <detail::size_t M, bool constant, class mdspan_type,
@@ -335,6 +341,8 @@ template <typename T, detail::size_t N> class simple_data {
     }
   }
 
+  template <typename U, detail::size_t M> friend class simple_data;
+
 public:
   // Standard constructor
   simple_data(const std::array<detail::size_t, N> &sz={}, const T &x={})
@@ -357,6 +365,48 @@ public:
       : simple_data(sz_data(std::forward<arguments>(args)...),
                     defdata(std::forward<arguments>(args)...)) {
   }
+
+  simple_data(const simple_data& x) : data(x.data), view(data.data(), x.shape()) {}
+  simple_data& operator=(const simple_data& x) { data=x.data; view = detail::exhaustive_mdspan<T, N>{data.data(), x.shape()}; return *this; }
+  simple_data(simple_data&&) noexcept = default;
+  simple_data& operator=(simple_data&&) noexcept = default;
+
+  // Resize operation
+  void resize(std::array<detail::size_t, N> sz) {
+    data.resize(std::accumulate(sz.begin(), sz.end(), detail::size_t{1},
+                                std::multiplies<>()));
+    view(data.data(), sz);
+  }
+
+  // Resize operation
+  template <std::integral... inds> void resize(inds &&...ind) {
+    resize(std::array{detail::size_t(std::forward<inds>(ind))...});
+  }
+
+  void swap(simple_data& other) noexcept {
+    data.swap(other.data);
+    std::swap(view, other.view);
+  }
+
+  template <std::integral... inds, detail::size_t M = sizeof...(inds)>
+  [[nodiscard]] simple_data<T, M> reshape(inds... ind) && requires(N not_eq M) {
+    simple_data<T, M> out;
+    out.data.swap(data);
+    out.view = detail::exhaustive_mdspan<T, M>{out.data.data(),
+                                               std::forward<inds>(ind)...};
+    view = detail::exhaustive_mdspan<T, N>{data.data(),
+                                           std::array<detail::size_t, N>{}};
+    return out;
+  }
+
+  [[nodiscard]] simple_data<T, 1> flatten() && requires(N > 1) {
+    return std::move(*this).reshape(data.size());
+  }
+
+  operator simple_view<T, N, false>() noexcept {return view;}
+  operator simple_view<T, N, true>() const noexcept {return view;}
+  operator strided_view<T, N, false>() noexcept {return view;}
+  operator strided_view<T, N, true>() const noexcept {return view;}
 
   using iterator = mditer<0, false, simple_data, simple_view<T, std::max<detail::size_t>(N-1, 1), false>>;
   using const_iterator = mditer<0, true, const simple_data, const simple_view<T, std::max<detail::size_t>(N-1, 1), true>>;
@@ -391,7 +441,7 @@ public:
   constexpr simple_view() = default;
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
-  
+
   using iterator = mditer<0, false, simple_view, simple_view<T, std::max<detail::size_t>(N-1, 1), false>>;
   using const_iterator = mditer<0, true, const simple_view, const simple_view<T, std::max<detail::size_t>(N-1, 1), true>>;
   using value_type = T;
