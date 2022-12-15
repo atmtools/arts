@@ -33,7 +33,6 @@
 #include <complex>
 #include <utility>
 
-using Complex = std::complex<Numeric>;
 struct ComplexLayout {Numeric real, imag;};
 
 /** Return a reference to the real value of c */

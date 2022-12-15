@@ -600,7 +600,6 @@ class ConstVectorView {
   friend class ConstTensor6View;
   friend class ConstTensor7View;
   friend class ConstComplexVectorView;
-  friend int poly_root_solve(Matrix& roots, Vector& coeffs);
   friend void mult(VectorView, const ConstMatrixView&, const ConstVectorView&);
   friend void mult(VectorView, const Sparse&, ConstVectorView);
   friend void transpose_mult(VectorView, const Sparse&, ConstVectorView);
@@ -1132,7 +1131,6 @@ class ConstMatrixView {
   friend class ConstTensor7View;
   friend class ConstComplexMatrixView;
   friend ConstMatrixView transpose(ConstMatrixView m) ARTS_NOEXCEPT;
-  friend int poly_root_solve(Matrix& roots, Vector& coeffs);
   friend void mult(VectorView, const ConstMatrixView&, const ConstVectorView&);
   friend void mult(MatrixView, const ConstMatrixView&, const ConstMatrixView&);
   friend void mult(MatrixView, const Sparse&, const ConstMatrixView&);

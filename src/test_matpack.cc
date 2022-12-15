@@ -1838,6 +1838,111 @@ void test_concepts() {
   static_assert(Tensor7::matpack_type);
 }
 
+Matrix build_test_matrix(Index rows, Index cols) {
+  Matrix a(rows, cols);
+  for (Index i = 0; i < rows; i++) {
+    for (Index j = 0; j < cols; j++) {
+      a(i, j) = static_cast<Numeric>(10 * i + j + 1);
+    }
+  }
+  return a;
+}
+
+void test_mult() {
+  std::cout << "# MULT TEST ######################################\n";
+  {
+    std::cout << "TEST 1 (y = A * x; NOT STRIDED):\n";
+    Vector y(3);
+    Vector x(std::vector<Numeric>{1, 2, 3});
+    Matrix A (3, 3, 1);
+    mult(y, A, x);
+    std::cout << "A (in):\n" << A << '\n'
+              << "x (in):\n" << x << '\n'
+              << "y (out):\n" << y << '\n';
+  }
+  {
+    std::cout << "TEST 2 (y = A * x; NOT STRIDED):\n";
+    Vector y(3);
+    Vector x(std::vector<Numeric>{1, 2, 3});
+    Matrix A = build_test_matrix(3, 3);
+    mult(y, A, x);
+    std::cout << "A (in):\n" << A << '\n'
+              << "x (in):\n" << x << '\n'
+              << "y (out):\n" << y << '\n';
+  }
+  {
+    std::cout << "TEST 3 (y = A * x; NOT STRIDED):\n";
+    Vector y(3);
+    Vector x(std::vector<Numeric>{1, 2});
+    Matrix A = build_test_matrix(3, 2);
+    mult(y, A, x);
+    std::cout << "A (in):\n" << A << '\n'
+              << "x (in):\n" << x << '\n'
+              << "y (out):\n" << y << '\n';
+  }
+    {
+    std::cout << "TEST 4 (y = A * x; STRIDED):\n";
+    Vector y(3);
+    Vector x(std::vector<Numeric>{1, 2, 3});
+    Matrix A (3, 3, 1);
+    mult_general(y, A, x);
+    std::cout << "A (in):\n" << A << '\n'
+              << "x (in):\n" << x << '\n'
+              << "y (out):\n" << y << '\n';
+  }
+  {
+    std::cout << "TEST 5 (y = A * x; STRIDED):\n";
+    Vector y(3);
+    Vector x(std::vector<Numeric>{1, 2, 3});
+    Matrix A = build_test_matrix(3, 3);
+    mult_general(y, A, x);
+    std::cout << "A (in):\n" << A << '\n'
+              << "x (in):\n" << x << '\n'
+              << "y (out):\n" << y << '\n';
+  }
+  {
+    std::cout << "TEST 6 (y = A * x; STRIDED):\n";
+    Vector y(3);
+    Vector x(std::vector<Numeric>{1, 2});
+    Matrix A = build_test_matrix(3, 2);
+    mult_general(y, A, x);
+    std::cout << "A (in):\n" << A << '\n'
+              << "x (in):\n" << x << '\n'
+              << "y (out):\n" << y << '\n';
+  }
+  {
+    std::cout << "TEST 7 (C = A * B; NON STRIDED):\n";
+    Matrix C(3, 3);
+    Matrix B(3, 3, 1);
+    Matrix A (3, 3, 1);
+    mult(C, A, B);
+    std::cout << "A (in):\n" << A << '\n'
+              << "B (in):\n" << B << '\n'
+              << "C (out):\n" << C << '\n';
+  }
+  {
+    std::cout << "TEST 8 (C = A * B; NON STRIDED):\n";
+    Matrix C(3, 4);
+    Matrix A (3, 2, 1);
+    Matrix B(2, 4, 1);
+    mult(C, A, B);
+    std::cout << "A (in):\n" << A << '\n'
+              << "B (in):\n" << B << '\n'
+              << "C (out):\n" << C << '\n';
+  }
+  {
+    std::cout << "TEST 9 (C = A * B; NON STRIDED):\n";
+    Matrix C(3, 4);
+    Matrix A = build_test_matrix(3, 2);
+    Matrix B = build_test_matrix(2, 4);
+    mult(C, A, B);
+    std::cout << "A (in):\n" << A << '\n'
+              << "B (in):\n" << B << '\n'
+              << "C (out):\n" << C << '\n';
+  }
+  std::cout << "#/MULT TEST ######################################\n";
+}
+
 int main() {
   //   test1();
   //   test2();
@@ -1890,7 +1995,8 @@ int main() {
   //test48();
   //test_wigner_error();
   //test_pow_negative_one();
-  test_concepts();
+  //test_concepts();
+  test_mult();
 
   //    const double tolerance = 1e-9;
   //    double error;
