@@ -23,6 +23,8 @@
 #ifndef matpack_h
 #define matpack_h
 
+#include <complex>
+
 #include "config.h"
 #include "debug.h"
 
@@ -37,5 +39,11 @@ using Numeric = NUMERIC;
     use int, long, or size_t explicitly, unless you have a very good
     reason. Always use this type instead.  */
 using Index = INDEX;
+
+//--------------------< Set complex floating point type >--------------------
+/** The type to use for all complex floating point numbers. You should never
+    use std::complex explicitly, unless you have a very good
+    reason. Always use this type instead.  */
+using Complex = std::complex<Numeric>;
 
 #endif  // matpackI_h

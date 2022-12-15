@@ -1,9 +1,10 @@
 #include "debug.h"
 #include "matpack.h"
 
-#include <algorithm>
+#include <mdspan/include/experimental/__p0009_bits/layout_stride.hpp>
 #include <mdspan/include/experimental/mdspan>
 
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <functional>
@@ -21,7 +22,10 @@ using Joker = std::experimental::full_extent_t;
 inline constexpr Joker joker = std::experimental::full_extent;
 
 template <typename T>
-concept access_operator = std::integral<T> or std::is_same_v<std::remove_cvref_t<Joker>, T>;
+concept integral = std::integral<std::remove_cvref_t<T>>;
+
+template <typename T>
+concept access_operator = integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker>;
 
 namespace detail {
 using size_t = Index;
@@ -71,7 +75,7 @@ concept any_md = any_view<T, N, U> or std::same_as<std::remove_cvref_t<U>, simpl
 
 template <access_operator Access, typename... arguments>
 [[nodiscard]] consteval detail::size_t get_access_size() noexcept {
-  constexpr bool index = std::integral<Access>;
+  constexpr bool index = integral<Access>;
   if constexpr (sizeof...(arguments)) {
     return index + get_access_size<arguments...>();
   } else {
@@ -81,7 +85,7 @@ template <access_operator Access, typename... arguments>
 
 template <access_operator T, access_operator ... Ts>
 [[nodiscard]] bool check_index_sizes(auto&& arr, detail::size_t r, T first, Ts... rest) {
-  constexpr bool test = std::integral<T>;
+  constexpr bool test = integral<T>;
   if constexpr (test) {
     if (first >= arr.extent(r)) return false;
   }
@@ -96,7 +100,7 @@ template <access_operator T, access_operator ... Ts>
 template <detail::size_t N>
 [[nodiscard]] consteval std::array<Joker, N> jokers() {
   std::array<Joker, N> out;
-  // Is this necessary? out.fill(joker);
+  out.fill(joker);  // I do not know if this is necessary, but it is just a pure compile-time cost
   return out;
 }
 
@@ -202,6 +206,9 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
 
 #define ARTS_SIZES                                                             \
   [[nodiscard]] auto size() const noexcept { return view.size(); }             \
+  [[nodiscard]] auto stride(detail::size_t i) const noexcept {                 \
+    return view.stride(i);                                                     \
+  }                                                                            \
   [[nodiscard]] auto extent(detail::size_t i) const noexcept {                 \
     return view.extent(i);                                                     \
   }                                                                            \
@@ -213,37 +220,37 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
   [[nodiscard]] auto ncols() const noexcept                                    \
     requires(N >= 1)                                                           \
   {                                                                            \
-    return extent(0);                                                          \
+    return extent(N - 1);                                                      \
   }                                                                            \
   [[nodiscard]] auto nrows() const noexcept                                    \
     requires(N >= 2)                                                           \
   {                                                                            \
-    return extent(1);                                                          \
+    return extent(N - 2);                                                      \
   }                                                                            \
   [[nodiscard]] auto npages() const noexcept                                   \
     requires(N >= 3)                                                           \
   {                                                                            \
-    return extent(2);                                                          \
+    return extent(N - 3);                                                      \
   }                                                                            \
   [[nodiscard]] auto nbooks() const noexcept                                   \
     requires(N >= 4)                                                           \
   {                                                                            \
-    return extent(3);                                                          \
+    return extent(N - 4);                                                      \
   }                                                                            \
   [[nodiscard]] auto nshelves() const noexcept                                 \
     requires(N >= 5)                                                           \
   {                                                                            \
-    return extent(4);                                                          \
+    return extent(N - 5);                                                      \
   }                                                                            \
   [[nodiscard]] auto nvitrines() const noexcept                                \
     requires(N >= 6)                                                           \
   {                                                                            \
-    return extent(5);                                                          \
+    return extent(N - 6);                                                      \
   }                                                                            \
   [[nodiscard]] auto nlibraries() const noexcept                               \
     requires(N >= 7)                                                           \
   {                                                                            \
-    return extent(6);                                                          \
+    return extent(N - 7);                                                      \
   }                                                                            \
   [[nodiscard]] std::array<detail::size_t, N> shape() const noexcept {         \
     std::array<detail::size_t, N> out;                                         \
@@ -354,6 +361,8 @@ template <typename T, detail::size_t N, bool constant> class simple_view {
 public:
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
+  constexpr simple_view(T* data, std::array<detail::size_t, N> sz) : view(data, sz) {}
+  template <integral ... inds, detail::size_t M = sizeof...(inds)> simple_view(T* data, inds ... ind) requires(M == N) : view(data, ind...) {}
 
   constexpr simple_view() = default;
   constexpr simple_view(const simple_view&) = default;
@@ -400,10 +409,12 @@ public:
   [[nodiscard]] constexpr T operator*(const U&x) const
     requires(N == 1 and any_md<T, 1, U>)
   {
+    ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
   }
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
+  [[nodiscard]] T * data_handle() const noexcept {return view.data_handle();}
 
   friend std::ostream &operator<<(std::ostream &os, const simple_view &sv) {
     return os << strided_view<T, N, true>{sv};
@@ -430,6 +441,8 @@ public:
   constexpr strided_view(strided_view&&) noexcept = default;
   constexpr strided_view& operator=(strided_view&&) noexcept = default;
 
+  explicit constexpr operator simple_view<T, N, false>() const requires(not constant) {return view;}
+  explicit constexpr operator simple_view<T, N, true>() const requires(constant) {return view;}
   constexpr operator strided_view<T, N, true>() const requires(not constant) {return view;}
 
   template <typename U>
@@ -440,6 +453,17 @@ public:
     if (view.data_handle() not_eq sv.view.data_handle())
       std::copy(sv.begin(), sv.end(), begin());
     return *this;
+  }
+
+  [[nodiscard]] constexpr strided_view transpose() const
+    requires(N == 2)
+  {
+    using mapping_type = typename detail::strided_mdspan<T, N>::mapping_type;
+    mapping_type transposed_map{
+        std::array<detail::size_t, 2>{extent(1), extent(0)},
+        std::array<detail::size_t, 2>{stride(1), stride(0)}};
+    auto out = detail::strided_mdspan<T, N>{view.data_handle(), transposed_map};
+    return out;
   }
 
   //! access operator
@@ -460,10 +484,12 @@ public:
   [[nodiscard]] constexpr T operator*(const U&x) const
     requires(N == 1 and any_md<T, 1, U>)
   {
+    ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
   }
 
   [[nodiscard]] constexpr bool is_exhaustive() const noexcept {return view.is_exhaustive();}
+  [[nodiscard]] auto data_handle() const noexcept {return simple_view<T, N, constant>{view}.data_handle();}
 
   //! A common output operator
   friend std::ostream &operator<<(std::ostream &os, const strided_view &sv) {
@@ -497,7 +523,7 @@ template <typename T, detail::size_t N> class simple_data {
   template <typename... arguments>
   static constexpr void
   sz_data_impl(std::array<detail::size_t, N> &out,
-                         std::integral auto &&x,
+                         integral auto &&x,
                          arguments&&... args [[maybe_unused]])
     requires(sizeof...(arguments) <= N)
   {
@@ -533,10 +559,10 @@ public:
       : data(std::reduce(sz.begin(), sz.end(), detail::size_t{1},
                          std::multiplies<>()),
              x),
-        view(detail::exhaustive_mdspan<T, N>{data.data(), sz}) {}
+        view(data.data(), sz) {}
 
   // Create the type completely default constructed
-  template <std::integral... inds>
+  template <integral... inds>
   constexpr simple_data(inds&&... ind)
     requires(sizeof...(inds) == N)
       : simple_data(sz_data(std::forward<inds>(ind)...)) {
@@ -553,10 +579,10 @@ public:
   constexpr simple_data(std::vector<T> &&x) noexcept
     requires(N == 1)
       : data(std::move(x)),
-        view(detail::exhaustive_mdspan<T, N>{data.data(), data.size()}) {}
+        view(data.data(), data.size()) {}
 
   constexpr simple_data(const simple_data& x) : data(x.data), view(data.data(), x.shape()) {}
-  constexpr simple_data& operator=(const simple_data& x) { data=x.data; view = detail::exhaustive_mdspan<T, N>{data.data(), x.shape()}; return *this; }
+  constexpr simple_data& operator=(const simple_data& x) { data=x.data; view=simple_view<T, N, false>{data.data(), x.shape()}; return *this; }
   constexpr simple_data(simple_data&&) noexcept = default;
   constexpr simple_data& operator=(simple_data&&) noexcept = default;
 
@@ -569,11 +595,11 @@ public:
   constexpr void resize(std::array<detail::size_t, N> sz) {
     data.resize(std::reduce(sz.begin(), sz.end(), detail::size_t{1},
                             std::multiplies<>()));
-    view = detail::exhaustive_mdspan<T, N>{data.data(), sz};
+    view = simple_view<T, N, false>{data.data(), sz};
   }
 
   // Resize operation
-  template <std::integral... inds> constexpr void resize(inds &&...ind) {
+  template <integral... inds> constexpr void resize(inds &&...ind) {
     resize(std::array{detail::size_t(std::forward<inds>(ind))...});
   }
 
@@ -584,14 +610,14 @@ public:
   }
 
   // Reshape an rvalue
-  template <std::integral... inds, detail::size_t M = sizeof...(inds)>
+  template <integral... inds, detail::size_t M = sizeof...(inds)>
   [[nodiscard]] constexpr simple_data<T, M> reshape(inds... ind) && requires(N not_eq M) {
     ARTS_ASSERT(static_cast<std::size_t>((ind * ...)) == view.size(),
                 "Mismatch in reshape")
     simple_data<T, M> out;
     out.data.swap(data);
-    out.view = detail::exhaustive_mdspan<T, M>{out.data.data(), std::forward<inds>(ind)...};
-    view = detail::exhaustive_mdspan<T, N>{data.data(), std::array<detail::size_t, N>{}};
+    out.view = simple_view<T, M, false>{out.data.data(), std::forward<inds>(ind)...};
+    view = simple_view<T, N, false>{data.data(), std::array<detail::size_t, N>{}};
     return out;
   }
 
@@ -616,8 +642,8 @@ public:
 
   //! access operator
   ARTS_SIZES
-  template<access_operator ... access> [[nodiscard]] constexpr auto operator()(access&&... ind) -> decltype(view(access{}...)) {return view(std::forward<access>(ind)...);}
-  template<access_operator ... access> [[nodiscard]] constexpr auto operator()(access&&... ind) const -> decltype(view(access{}...)) {return view(std::forward<access>(ind)...);}
+  template<access_operator ... access> [[nodiscard]] constexpr auto operator()(access... ind) -> decltype(view(access{}...)) {return view(std::forward<access>(ind)...);}
+  template<access_operator ... access> [[nodiscard]] constexpr auto operator()(access... ind) const -> decltype(view(access{}...)) {return view(std::forward<access>(ind)...);}
   [[nodiscard]] constexpr auto operator[](detail::size_t i) -> decltype(view[0]) {return view[i];}
   [[nodiscard]] constexpr auto operator[](detail::size_t i) const -> decltype(view[0]) {return view[i];}
   using iterator = std::conditional_t<N==1, decltype(data.begin()), decltype(view.begin())>;
@@ -641,10 +667,12 @@ public:
   [[nodiscard]] constexpr T operator*(const U &x) const
     requires(N == 1 and any_md<T, 1, U>)
   {
+    ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
   }
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
+  [[nodiscard]] auto data_handle() const noexcept {return view.data_handle();}
 
   friend std::ostream &operator<<(std::ostream &os, const simple_data &sd) {
     return os << simple_view<T, N, true>{sd.view};
@@ -688,25 +716,181 @@ static_assert(test_random_access_iterator<const strided_view<Numeric, 2, false>>
 } // namespace static_tests
 }  // namespace matpack::md
 
-using TMPVector = matpack::md::simple_data<Numeric, 1>;
-using TMPMatrix = matpack::md::simple_data<Numeric, 2>;
-using TMPTensor3 = matpack::md::simple_data<Numeric, 3>;
+inline constexpr matpack::md::Joker joker = matpack::md::joker;
 
-using Vec = matpack::md::simple_data<Numeric, 1>;
-using Mat = matpack::md::simple_data<Numeric, 2>;
-using Ten3 = matpack::md::simple_data<Numeric, 3>;
+// Vectors
+using Vector = matpack::md::simple_data<Numeric, 1>;
+using FastVectorView = matpack::md::simple_view<Numeric, 1, false>;
+using FastConstVectorView = matpack::md::simple_view<Numeric, 1, true>;
+using VectorView = matpack::md::strided_view<Numeric, 1, false>;
+using ConstVectorView = matpack::md::strided_view<Numeric, 1, true>;
 
-using VecVF = matpack::md::simple_view<Numeric, 1, false>;
-using MatVF = matpack::md::simple_view<Numeric, 2, false>;
-using Ten3VF = matpack::md::simple_view<Numeric, 3, false>;
-using VecCVF = matpack::md::simple_view<Numeric, 1, true>;
-using MatCVF = matpack::md::simple_view<Numeric, 2, true>;
-using Ten3CVF = matpack::md::simple_view<Numeric, 3, true>;
+// Matrices
+using Matrix = matpack::md::simple_data<Numeric, 2>;
+using FastMatrixView = matpack::md::simple_view<Numeric, 2, false>;
+using FastConstMatrixView = matpack::md::simple_view<Numeric, 2, true>;
+using MatrixView = matpack::md::strided_view<Numeric, 2, false>;
+using ConstMatrixView = matpack::md::strided_view<Numeric, 2, true>;
 
-using VecVS = matpack::md::strided_view<Numeric, 1, false>;
-using MatVS = matpack::md::strided_view<Numeric, 2, false>;
-using Ten3VS = matpack::md::strided_view<Numeric, 3, false>;
-using VecCVS = matpack::md::strided_view<Numeric, 1, true>;
-using MatCVS = matpack::md::strided_view<Numeric, 2, true>;
-using Ten3CVS = matpack::md::strided_view<Numeric, 3, true>;
+// Tensor3(s)
+using Tensor3 = matpack::md::simple_data<Numeric, 3>;
+using FastTensor3View = matpack::md::simple_view<Numeric, 3, false>;
+using FastConstTensor3View = matpack::md::simple_view<Numeric, 3, true>;
+using Tensor3View = matpack::md::strided_view<Numeric, 3, false>;
+using ConstTensor3View = matpack::md::strided_view<Numeric, 3, true>;
 
+// Tensor4(s)
+using Tensor4 = matpack::md::simple_data<Numeric, 4>;
+using FastTensor4View = matpack::md::simple_view<Numeric, 4, false>;
+using FastConstTensor4View = matpack::md::simple_view<Numeric, 4, true>;
+using Tensor4View = matpack::md::strided_view<Numeric, 4, false>;
+using ConstTensor4View = matpack::md::strided_view<Numeric, 4, true>;
+
+// Tensor5(s)
+using Tensor5 = matpack::md::simple_data<Numeric, 5>;
+using FastTensor5View = matpack::md::simple_view<Numeric, 5, false>;
+using FastConstTensor5View = matpack::md::simple_view<Numeric, 5, true>;
+using Tensor5View = matpack::md::strided_view<Numeric, 5, false>;
+using ConstTensor5View = matpack::md::strided_view<Numeric, 5, true>;
+
+// Tensor6(s)
+using Tensor6 = matpack::md::simple_data<Numeric, 6>;
+using FastTensor6View = matpack::md::simple_view<Numeric, 6, false>;
+using FastConstTensor6View = matpack::md::simple_view<Numeric, 6, true>;
+using Tensor6View = matpack::md::strided_view<Numeric, 6, false>;
+using ConstTensor6View = matpack::md::strided_view<Numeric, 6, true>;
+
+// Tensor7(s)
+using Tensor7 = matpack::md::simple_data<Numeric, 7>;
+using FastTensor7View = matpack::md::simple_view<Numeric, 7, false>;
+using FastConstTensor7View = matpack::md::simple_view<Numeric, 7, true>;
+using Tensor7View = matpack::md::strided_view<Numeric, 7, false>;
+using ConstTensor7View = matpack::md::strided_view<Numeric, 7, true>;
+
+// Complex vectors
+using ComplexVector = matpack::md::simple_data<Complex, 1>;
+using FastComplexVectorView = matpack::md::simple_view<Complex, 1, false>;
+using FastConstComplexVectorView = matpack::md::simple_view<Complex, 1, true>;
+using ComplexVectorView = matpack::md::strided_view<Complex, 1, false>;
+using ConstComplexVectorView = matpack::md::strided_view<Complex, 1, true>;
+
+// Complex matrices
+using ComplexMatrix = matpack::md::simple_data<Complex, 2>;
+using FastComplexMatrixView = matpack::md::simple_view<Complex, 2, false>;
+using FastConstComplexMatrixView = matpack::md::simple_view<Complex, 2, true>;
+using ComplexMatrixView = matpack::md::strided_view<Complex, 2, false>;
+using ConstComplexMatrixView = matpack::md::strided_view<Complex, 2, true>;
+
+/** Compute y = alpha * A * x + beta * y
+ *
+ * Uses LAPACK for speedy computations, note that the defaults of the last
+ * two elements makes y = A * x
+ *
+ * @param[out] y A vector view that has the size of N
+ * @param[in] A A matrix view that has the size of M x N
+ * @param[in] x A vector view that has the size of M
+ * @param[in] alpha A constant (default 1.0)
+ * @param[in] beta A constant (default 0.0)
+ */
+void mult_fast(matpack::md::simple_view<Numeric, 1, false> y,
+          const matpack::md::simple_view<Numeric, 2, true> &A,
+          const matpack::md::simple_view<Numeric, 1, true> &x,
+          Numeric alpha = 1.0, Numeric beta = 0.0);
+
+/** Compute y = A * x
+ *
+ * @param[out] y A vector view that has the size of N
+ * @param[in] A A matrix view that has the size of M x N
+ * @param[in] x A vector view that has the size of M
+ */
+void mult(matpack::md::strided_view<Numeric, 1, false> y,
+          const matpack::md::strided_view<Numeric, 2, true> &A,
+          const matpack::md::strided_view<Numeric, 1, true> &x);
+
+/** Compute C = alpha * A * B + beta * C
+ *
+ * Uses LAPACK for speedy computations, note that the defaults of the last
+ * two elements makes C = A * B
+ *
+ * @param[out] C A matrix view that has the size of N x M
+ * @param[in] A A matrix view that has the size of N x K
+ * @param[in] B A matrix view that has the size of K x M
+ * @param[in] alpha A constant (default 1.0)
+ * @param[in] beta A constant (default 0.0)
+ */
+void mult_fast(matpack::md::simple_view<Numeric, 2, false> C,
+          const matpack::md::simple_view<Numeric, 2, true> &A,
+          const matpack::md::simple_view<Numeric, 2, true> &B,
+          Numeric alpha = 1.0, Numeric beta = 0.0);
+
+/** Compute C = A * B
+ *
+ * @param[out] C A matrix view that has the size of N x M
+ * @param[in] A A matrix view that has the size of N x K
+ * @param[in] B A matrix view that has the size of K x M
+ */
+void mult(matpack::md::strided_view<Numeric, 2, false> C,
+          const matpack::md::strided_view<Numeric, 2, true> &A,
+          const matpack::md::strided_view<Numeric, 2, true> &B);
+
+/** Compute y = alpha * A * x + beta * y
+ *
+ * Uses LAPACK for speedy computations, note that the defaults of the last
+ * two elements makes y = A * x
+ *
+ * @param[out] y A vector view that has the size of N
+ * @param[in] A A matrix view that has the size of M x N
+ * @param[in] x A vector view that has the size of M
+ * @param[in] alpha A constant (default 1.0)
+ * @param[in] beta A constant (default 0.0)
+ */
+void mult_fast(matpack::md::simple_view<Complex, 1, false> y,
+          const matpack::md::simple_view<Complex, 2, true> &A,
+          const matpack::md::simple_view<Complex, 1, true> &x,
+          Complex alpha = 1.0, Complex beta = 0.0);
+
+/** Compute y = A * x
+ *
+ * @param[out] y A vector view that has the size of N
+ * @param[in] A A matrix view that has the size of M x N
+ * @param[in] x A vector view that has the size of M
+ */
+void mult(matpack::md::strided_view<Complex, 1, false> y,
+          const matpack::md::strided_view<Complex, 2, true> &A,
+          const matpack::md::strided_view<Complex, 1, true> &x);
+
+/** Compute C = alpha * A * B + beta * C
+ *
+ * Uses LAPACK for speedy computations, note that the defaults of the last
+ * two elements makes C = A * B
+ *
+ * @param[out] C A matrix view that has the size of N x M
+ * @param[in] A A matrix view that has the size of N x K
+ * @param[in] B A matrix view that has the size of K x M
+ * @param[in] alpha A constant (default 1.0)
+ * @param[in] beta A constant (default 0.0)
+ */
+void mult_fast(matpack::md::simple_view<Complex, 2, false> C,
+          const matpack::md::simple_view<Complex, 2, true> &A,
+          const matpack::md::simple_view<Complex, 2, true> &B,
+          Complex alpha = 1.0, Complex beta = 0.0);
+
+/** Compute C = A * B
+ *
+ * @param[out] C A matrix view that has the size of N x M
+ * @param[in] A A matrix view that has the size of N x K
+ * @param[in] B A matrix view that has the size of K x M
+ */
+void mult(matpack::md::strided_view<Complex, 2, false> C,
+          const matpack::md::strided_view<Complex, 2, true> &A,
+          const matpack::md::strided_view<Complex, 2, true> &B);
+
+/** Returns a view that transposes a matrix by effectively changing its strides
+ * 
+ * @param[in] A A matrix view that has the size of N x K
+ * @return A transposed view of the matrix with the size K x N
+ */
+template <typename T, bool constant>
+[[nodiscard]] constexpr matpack::md::strided_view<Numeric, 2, true> transpose(const matpack::md::strided_view<T, 2, constant> & A) {
+  return A.transpose();
+}
