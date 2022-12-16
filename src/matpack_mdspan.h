@@ -1,7 +1,7 @@
 #include "debug.h"
 #include "matpack.h"
 
-#include <mdspan/include/experimental/__p0009_bits/layout_stride.hpp>
+#include <c++/v1/concepts>
 #include <mdspan/include/experimental/mdspan>
 
 #include <algorithm>
@@ -18,15 +18,6 @@
 #include <vector>
 
 namespace matpack::md {
-using Joker = std::experimental::full_extent_t;
-inline constexpr Joker joker = std::experimental::full_extent;
-
-template <typename T>
-concept integral = std::integral<std::remove_cvref_t<T>>;
-
-template <typename T>
-concept access_operator = integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker>;
-
 namespace detail {
 using size_t = Index;
 
@@ -55,6 +46,91 @@ static_assert(is_always_exhaustive_v<exhaustive_mdspan<int, 4>>);
 static_assert(not is_always_exhaustive_v<strided_mdspan<int, 4>>);
 } // namespace detail
 
+using Joker = std::experimental::full_extent_t;
+inline constexpr Joker joker = std::experimental::full_extent;
+
+//! A strided accessor to get the range of a type
+struct strided_access {
+  detail::size_t offset{0};
+  detail::size_t extent{-1};
+  detail::size_t stride{1};
+  constexpr strided_access(detail::size_t i0=0, detail::size_t len=-1, detail::size_t d=1) noexcept : offset(i0), extent(len), stride(d) {}
+  constexpr strided_access(detail::size_t i0, Joker, detail::size_t d=1) noexcept : offset(i0), stride(d) {}
+  constexpr strided_access(Joker, detail::size_t d=1) noexcept : stride(d) {}
+  constexpr strided_access(detail::size_t max_size, const strided_access& r)  ARTS_NOEXCEPT
+      : offset(r.offset),
+        extent(r.extent),
+        stride(r.stride) {
+    // Start must be >= 0:
+    ARTS_ASSERT(0 <= offset);
+    // ... and < max_size:
+    ARTS_ASSERT(offset < max_size);
+
+    // Stride must be != 0:
+    ARTS_ASSERT(0 != stride);
+
+    // Convert negative extent (joker) to explicit extent
+    if (extent < 0) {
+      if (0 < stride)
+        extent = 1 + (max_size - 1 - offset) / stride;
+      else
+        extent = 1 + (0 - offset) / stride;
+    } else {
+      // Check that extent is ok:
+      ARTS_ASSERT(0 <= (offset + (extent - 1) * stride));
+      ARTS_ASSERT((offset + (extent - 1) * stride) < max_size);
+    }
+  }
+  constexpr strided_access(const strided_access& p, const strided_access& n) ARTS_NOEXCEPT
+      : offset(p.offset + n.offset * p.stride),
+        extent(n.extent),
+        stride(p.stride* n.stride) {
+    // We have to juggle here a bit with previous, new, and resulting
+    // quantities. I.e.;
+    // p.mstride: Previous stride
+    // n.mstride: New stride (as specified)
+    // mstride:   Resulting stride (old*new)
+
+    // Get the previous final element:
+    Index const prev_fin = p.offset + (p.extent - 1) * p.stride;
+
+    // Resulting start must be >= previous start:
+    ARTS_ASSERT(p.offset <= offset);
+    // and <= prev_fin, except for Joker:
+    ARTS_ASSERT(offset <= prev_fin || extent == -1);
+
+    // Resulting stride must be != 0:
+    ARTS_ASSERT(0 != stride,
+                "Problem: stride==",
+                stride,
+                " for offset==",
+                offset,
+                " and extent==",
+                extent);
+
+    // Convert negative extent (joker) to explicit extent
+    if (extent < 0) {
+      if (0 < stride)
+        extent = 1 + (prev_fin - offset) / stride;
+      else
+        extent = 1 + (p.offset - offset) / stride;
+    } else {
+      ARTS_ASSERT(p.offset <= (offset + (extent - 1) * stride));
+      ARTS_ASSERT((offset + (extent - 1) * stride) <= prev_fin);
+    }
+  }
+
+  constexpr operator Joker() const noexcept {return joker;}
+  constexpr operator Joker() noexcept {return joker;}
+};
+
+template <typename T>
+concept integral = std::integral<std::remove_cvref_t<T>>;
+
+template <typename T>
+concept access_operator = integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker> or std::is_same_v<std::remove_cvref_t<T>, strided_access>;
+
+
 // Necessary for different operators to predefine these
 template <typename T, detail::size_t N> class simple_data;
 template <typename T, detail::size_t N, bool constant> class simple_view;
@@ -68,10 +144,27 @@ concept const_view =
     std::same_as<std::remove_cvref_t<U>, simple_view<T, N, true>> or
     std::same_as<std::remove_cvref_t<U>, strided_view<T, N, true>>;
 template <typename T, detail::size_t N, typename U>
-concept any_view =
-    mutable_view<T, N, U> or const_view<T, N, U>;
+concept any_view = mutable_view<T, N, U> or const_view<T, N, U>;
 template <typename T, detail::size_t N, typename U>
-concept any_md = any_view<T, N, U> or std::same_as<std::remove_cvref_t<U>, simple_data<T, N>>;
+concept any_md = any_view<T, N, U> or
+                 std::same_as<std::remove_cvref_t<U>, simple_data<T, N>>;
+template <detail::size_t N, typename U>
+concept any_same_view = any_view<typename U::value_type, N, U>;
+template <detail::size_t N, typename U>
+concept any_same_md = any_md<typename U::value_type, N, U>;
+template <typename U>
+concept any_1D_md = any_same_md<1, U>;
+template <typename U>
+concept any_2D_md = any_same_md<2, U>;
+
+template <typename T>
+concept complex_type = requires(T a) {
+  { a.real() };
+  { a.imag() };
+};
+
+template <complex_type T>
+using complex_subtype = std::remove_cvref_t<decltype(T{}.real())>;
 
 template <access_operator Access, typename... arguments>
 [[nodiscard]] consteval detail::size_t get_access_size() noexcept {
@@ -82,6 +175,13 @@ template <access_operator Access, typename... arguments>
     return index;
   }
 }
+
+template <access_operator first, access_operator... access, detail::size_t N=sizeof...(access)>
+consteval bool any_range() {
+  if constexpr (std::same_as<strided_access, std::remove_cvref_t<first>>) return true;
+  else if constexpr (N not_eq 0) return any_range<access...>();
+  else return false;
+};
 
 template <access_operator T, access_operator ... Ts>
 [[nodiscard]] bool check_index_sizes(auto&& arr, detail::size_t r, T first, Ts... rest) {
@@ -138,14 +238,19 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
       ->std::conditional_t<                                                    \
           M == N, T &,                                                         \
           std::conditional_t<                                                  \
-              detail::is_always_exhaustive_v<                                  \
-                  decltype(std::experimental::submdspan(view, ind...))>,       \
+              not any_range<access...>() and                                   \
+                  detail::is_always_exhaustive_v<                              \
+                      decltype(std::experimental::submdspan(view, ind...))>,   \
               simple_view<T, N - M, false>, strided_view<T, N - M, false>>>    \
     requires(sizeof...(access) == N and not constant)                          \
   {                                                                            \
     ARTS_ASSERT(check_index_sizes(view, 0, ind...), "Out-of-bounds")           \
     if constexpr (M == N)                                                      \
       return view(ind...);                                                     \
+    else if constexpr (any_range<access...>())                                 \
+      return strided_view<T, N - M, false>{                                    \
+          std::experimental::submdspan(view, ind...)}                          \
+          .range_adaptor(std::forward<access>(ind)...);                        \
     else                                                                       \
       return std::experimental::submdspan(view, ind...);                       \
   }                                                                            \
@@ -154,14 +259,19 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
   [[nodiscard]] auto operator()(access... ind) const->std::conditional_t<      \
       M == N, const T &,                                                       \
       std::conditional_t<                                                      \
-          detail::is_always_exhaustive_v<                                      \
-              decltype(std::experimental::submdspan(view, ind...))>,           \
+          not any_range<access...>() and                                       \
+              detail::is_always_exhaustive_v<                                  \
+                  decltype(std::experimental::submdspan(view, ind...))>,       \
           simple_view<T, N - M, true>, strided_view<T, N - M, true>>>          \
     requires(sizeof...(access) == N)                                           \
   {                                                                            \
     ARTS_ASSERT(check_index_sizes(view, 0, ind...), "Out-of-bounds")           \
     if constexpr (M == N)                                                      \
       return view(ind...);                                                     \
+    else if constexpr (any_range<access...>())                                 \
+      return strided_view<T, N - M, true>{                                     \
+          std::experimental::submdspan(view, ind...)}                          \
+          .range_adaptor(std::forward<access>(ind)...);                        \
     else                                                                       \
       return std::experimental::submdspan(view, ind...);                       \
   }
@@ -202,6 +312,16 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
     else {                                                                     \
       return sub<0, N>(view, i);                                               \
     }                                                                          \
+  }                                                                            \
+  [[nodiscard]] auto operator[](strided_access range) {                        \
+    strided_view<T, N, constant> out{view};                                    \
+    out.template strided_dimension<0>(range);                                  \
+    return out;                                                                \
+  }                                                                            \
+  [[nodiscard]] auto operator[](strided_access range) const {                  \
+    strided_view<T, N, true> out{view};                                        \
+    out.template strided_dimension<0>(range);                                  \
+    return out;                                                                \
   }
 
 #define ARTS_SIZES                                                             \
@@ -362,7 +482,8 @@ public:
   constexpr simple_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr simple_view(T* data, std::array<detail::size_t, N> sz) : view(data, sz) {}
-  template <integral ... inds, detail::size_t M = sizeof...(inds)> simple_view(T* data, inds ... ind) requires(M == N) : view(data, ind...) {}
+  template <integral ... inds, detail::size_t M = sizeof...(inds)>
+  simple_view(T* data, inds ... ind) requires(M == N) : view(data, ind...) {}
 
   constexpr simple_view() = default;
   constexpr simple_view(const simple_view&) = default;
@@ -376,16 +497,16 @@ public:
 
   template <typename U>
   constexpr simple_view &operator=(const U &sv)
-    requires(not constant and any_md<T, N, U>)
+    requires(not constant and any_same_md<N, U>)
   {
     ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
-    if (view.data_handle() not_eq sv.view.data_handle())
-      std::copy(sv.begin(), sv.end(), begin());
+    if (view.data_handle() not_eq sv.view.data_handle()) {
+      std::copy(sv.begin(), sv.end(), begin());}
     return *this;
   }
 
   constexpr simple_view& operator=(const T& x) {
-    std::fill(begin(), end(), x);
+    std::fill(data_handle(), data_handle()+size(), x);
     return *this;
   }
 
@@ -396,21 +517,26 @@ public:
   ITERATORS(simple_view, simple_view)
 
   //! ARTS Helper functions
-
-  //! ARTS Helper functions
   [[nodiscard]] constexpr T sum() const {
-    if constexpr (N == 1) {
-      return std::reduce(begin(), end(), T{});
-    } else {
-      return std::reduce(begin(), end(), T{}, [](auto& v) {return v.sum();});
-    }
+    return std::reduce(data_handle(), data_handle()+size(), T{});
   }
-  template <typename U>
-  [[nodiscard]] constexpr T operator*(const U&x) const
-    requires(N == 1 and any_md<T, 1, U>)
+  
+  [[nodiscard]] constexpr T operator*(const any_1D_md auto&x) const
   {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
+  }
+
+  [[nodiscard]] constexpr auto transpose() const { return strided_view<T, N, true>{*this}.transpose(); }
+  [[nodiscard]] constexpr auto transpose() { return strided_view<T, N, constant>{*this}.transpose(); }
+  [[nodiscard]] constexpr auto real() const {return strided_view<T, N, true>{*this}.real();}
+  [[nodiscard]] constexpr auto real() {return strided_view<T, N, constant>{*this}.real();}
+  [[nodiscard]] constexpr auto imag() const {return strided_view<T, N, true>{*this}.imag();}
+  [[nodiscard]] constexpr auto imag() {return strided_view<T, N, constant>{*this}.imag();}
+
+  constexpr simple_view& operator*=(T x) {
+    std::transform(data_handle(), data_handle()+size(), data_handle(), [x](auto& y){return x * y;});
+    return *this;
   }
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
@@ -431,6 +557,32 @@ class strided_view {
   template <typename U, detail::size_t M, bool c> friend class simple_view;
   template <typename U, detail::size_t M, bool c> friend class strided_view;
 
+  template<detail::size_t dim>
+  constexpr void strided_dimension(strided_access range) requires(dim >= 0 and dim < N) {
+    range = strided_access(extent(dim), range);
+    auto* d = view.data_handle() + stride(dim) * range.offset;
+    std::array<detail::size_t, N> extmap, strmap;
+    for (detail::size_t i=0; i<N; i++) {
+      extmap[i] = extent(i);
+      strmap[i] = stride(i);
+    }
+    std::get<dim>(extmap) = range.extent < 0 ? std::get<dim>(extmap) : range.extent;
+    std::get<dim>(strmap) *= range.stride;
+    view = detail::strided_mdspan<T, N>{d, {extmap, strmap}};
+  }
+
+  template <access_operator first, access_operator ... access, detail::size_t M = sizeof...(access)>
+  constexpr void adapt_strided_dimension(first&& maybe_range, access&& ... rest) {
+   if constexpr (std::same_as<std::remove_cvref_t<first>, strided_access>) strided_dimension<M>(std::forward<first>(maybe_range));
+   if constexpr (M not_eq 0) adapt_strided_dimension(std::forward<access>(rest)...);
+  }
+  
+  template <access_operator ... access> 
+  constexpr strided_view& range_adaptor(access&& ... ind) {
+    adapt_strided_dimension(std::forward<access>(ind)...);
+    return *this;
+  }
+
 public:
   constexpr strided_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
   constexpr strided_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
@@ -447,7 +599,7 @@ public:
 
   template <typename U>
   strided_view &operator=(const U &sv)
-    requires(not constant and any_md<T, N, U>)
+    requires(not constant and any_same_md<N, U>)
   {
     ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
     if (view.data_handle() not_eq sv.view.data_handle())
@@ -455,15 +607,96 @@ public:
     return *this;
   }
 
-  [[nodiscard]] constexpr strided_view transpose() const
+  constexpr strided_view& operator=(const T& x) {
+    if constexpr (N == 1)
+      std::fill(begin(), end(), x);
+    else
+      for (auto y: *this) y = x;
+    return *this;
+  }
+
+  [[nodiscard]] constexpr strided_view<T, N, true> transpose() const
     requires(N == 2)
   {
     using mapping_type = typename detail::strided_mdspan<T, N>::mapping_type;
     mapping_type transposed_map{
         std::array<detail::size_t, 2>{extent(1), extent(0)},
         std::array<detail::size_t, 2>{stride(1), stride(0)}};
-    auto out = detail::strided_mdspan<T, N>{view.data_handle(), transposed_map};
-    return out;
+    return detail::strided_mdspan<T, N>{view.data_handle(), transposed_map};
+  }
+
+  [[nodiscard]] constexpr strided_view transpose()
+    requires(N == 2)
+  {
+    using mapping_type = typename detail::strided_mdspan<T, N>::mapping_type;
+    mapping_type transposed_map{
+        std::array<detail::size_t, 2>{extent(1), extent(0)},
+        std::array<detail::size_t, 2>{stride(1), stride(0)}};
+    return detail::strided_mdspan<T, N>{view.data_handle(), transposed_map};
+  }
+
+  [[nodiscard]] constexpr auto real() const
+    requires(complex_type<T>)
+  {
+    using mapping_type =
+        typename detail::strided_mdspan<complex_subtype<T>, N>::mapping_type;
+    std::array<detail::size_t, N> extmap, strmap;
+    for (detail::size_t i = 0; i < N; i++) {
+      extmap[i] = extent(i);
+      strmap[i] = 2 * stride(i);
+    }
+    return strided_view<complex_subtype<T>, N, true>{
+        detail::strided_mdspan<complex_subtype<T>, N>{
+            &reinterpret_cast<complex_subtype<T> *>(view.data_handle())[0],
+            mapping_type{extmap, strmap}}};
+  }
+
+  [[nodiscard]] constexpr auto real()
+    requires(complex_type<T>)
+  {
+    using mapping_type =
+        typename detail::strided_mdspan<complex_subtype<T>, N>::mapping_type;
+    std::array<detail::size_t, N> extmap, strmap;
+    for (detail::size_t i = 0; i < N; i++) {
+      extmap[i] = extent(i);
+      strmap[i] = 2 * stride(i);
+    }
+    return strided_view<complex_subtype<T>, N, constant>{
+        detail::strided_mdspan<complex_subtype<T>, N>{
+            &reinterpret_cast<complex_subtype<T> *>(view.data_handle())[0],
+            mapping_type{extmap, strmap}}};
+  }
+
+  [[nodiscard]] constexpr auto imag() const
+    requires(complex_type<T>)
+  {
+    using mapping_type =
+        typename detail::strided_mdspan<complex_subtype<T>, N>::mapping_type;
+    std::array<detail::size_t, N> extmap, strmap;
+    for (detail::size_t i = 0; i < N; i++) {
+      extmap[i] = extent(i);
+      strmap[i] = 2 * stride(i);
+    }
+    return strided_view<complex_subtype<T>, N, true>{
+        detail::strided_mdspan<complex_subtype<T>, N>{
+            &reinterpret_cast<complex_subtype<T> *>(view.data_handle())[1],
+            mapping_type{extmap, strmap}}};
+  }
+
+  [[nodiscard]] constexpr auto imag()
+    requires(complex_type<T>)
+  {
+    using mapping_type =
+        typename detail::strided_mdspan<complex_subtype<T>, N>::mapping_type;
+    std::array<detail::size_t, N> extmap, strmap;
+    for (detail::size_t i = 0; i < N; i++) {
+      extmap[i] = extent(i);
+      strmap[i] = 2 * stride(i);
+    }
+    return strided_view<complex_subtype<T>, N, constant>{
+        detail::strided_mdspan<complex_subtype<T>, N>{
+            &reinterpret_cast<complex_subtype<T> *>(view.data_handle())[1],
+            mapping_type{extmap, strmap}}};
   }
 
   //! access operator
@@ -480,12 +713,18 @@ public:
       return std::reduce(begin(), end(), T{}, [](auto& v) {return v.sum();});
     }
   }
-  template <typename U>
-  [[nodiscard]] constexpr T operator*(const U&x) const
-    requires(N == 1 and any_md<T, 1, U>)
+  [[nodiscard]] constexpr T operator*(const any_1D_md auto&x) const
   {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
+  }
+
+  constexpr strided_view& operator*=(T x) {
+    if constexpr (N == 1)
+      std::transform(begin(), end(), begin(), [x](auto& y){return x * y;});
+    else
+      for (auto y: *this) y *= x;
+    return *this;
   }
 
   [[nodiscard]] constexpr bool is_exhaustive() const noexcept {return view.is_exhaustive();}
@@ -591,6 +830,22 @@ public:
   constexpr operator strided_view<T, N, false>() {return view;}
   constexpr operator strided_view<T, N, true>() const {return view;}
 
+  template <typename U>
+  constexpr simple_data(const U &sv)
+    requires(any_same_view<N, U>)
+      : data(sv.size()), view(data.data(), sv.shape()) {
+    std::copy(sv.begin(), sv.end(), begin());
+  }
+
+  template <typename U>
+  constexpr simple_data& operator=(const U& sv) requires(any_same_view<N, U>) {
+    if (view.view.data_handle() not_eq sv.view.data_handle()) {
+      if (auto s = sv.shape(); shape() not_eq s) resize(s);
+      std::copy(sv.begin(), sv.end(), begin());
+    }
+    return *this;
+  }
+
   // Resize operation
   constexpr void resize(std::array<detail::size_t, N> sz) {
     data.resize(std::reduce(sz.begin(), sz.end(), detail::size_t{1},
@@ -626,17 +881,13 @@ public:
     return std::move(*this).reshape(data.size());
   }
 
-  template <typename U>
-  constexpr simple_data& operator=(const U& sv) requires(any_view<T, N, U>) {
-    if (view.view.data_handle() not_eq sv.view.data_handle()) {
-      if (auto s = sv.shape(); shape() not_eq s) resize(s);
-      std::copy(sv.begin(), sv.end(), begin());
-    }
+  constexpr simple_data& operator=(const T& x) {
+    std::fill(data.begin(), data.end(), x);
     return *this;
   }
 
-  constexpr simple_data& operator=(const T& x) {
-    std::fill(data.begin(), data.end(), x);
+  constexpr simple_data& operator*=(T x) {
+    std::transform(data.begin(), data.end(), data.begin(), [x](auto& y){return x * y;});
     return *this;
   }
 
@@ -646,8 +897,11 @@ public:
   template<access_operator ... access> [[nodiscard]] constexpr auto operator()(access... ind) const -> decltype(view(access{}...)) {return view(std::forward<access>(ind)...);}
   [[nodiscard]] constexpr auto operator[](detail::size_t i) -> decltype(view[0]) {return view[i];}
   [[nodiscard]] constexpr auto operator[](detail::size_t i) const -> decltype(view[0]) {return view[i];}
+  [[nodiscard]] constexpr auto operator[](strided_access i) {return view[i];}
+  [[nodiscard]] constexpr auto operator[](strided_access i) const {return view[i];}
   using iterator = std::conditional_t<N==1, decltype(data.begin()), decltype(view.begin())>;
   using const_iterator = std::conditional_t<N==1, decltype(data.cbegin()), decltype(view.cbegin())>;
+  using value_type = T;
   [[nodiscard]] iterator end() {if constexpr (N==1) return data.end(); else return view.end();}
   [[nodiscard]] const_iterator end() const {if constexpr (N==1) return data.end(); else return view.end();}
   [[nodiscard]] const_iterator cend() const {if constexpr (N==1) return data.cend(); else return view.cend();}
@@ -662,13 +916,21 @@ public:
   [[nodiscard]] auto crbegin() const requires(N == 1) {return data.crbegin();}
 
   //! ARTS Helper functions
-  [[nodiscard]] constexpr T sum() const {return std::reduce(data.begin(), data.end(), T{});}
-  template <typename U>
-  [[nodiscard]] constexpr T operator*(const U &x) const
-    requires(N == 1 and any_md<T, 1, U>)
-  {
+  [[nodiscard]] constexpr T operator*(const any_1D_md auto &x) const {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
+  }
+  [[nodiscard]] constexpr T sum() const {return std::reduce(data.begin(), data.end(), T{});}
+  [[nodiscard]] constexpr auto transpose() const { return view.transpose(); }
+  [[nodiscard]] constexpr auto transpose() { return view.transpose(); }
+  [[nodiscard]] constexpr auto real() {return view.real();}
+  [[nodiscard]] constexpr auto real() const {return view.real();}
+  [[nodiscard]] constexpr auto imag() {return view.imag();}
+  [[nodiscard]] constexpr auto imag() const {return view.imag();}
+
+  template <class F>
+  void transform_elementwise(F&& func) {
+    std::transform(data.begin(), data.end(), data.begin(), func);
   }
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
@@ -716,6 +978,7 @@ static_assert(test_random_access_iterator<const strided_view<Numeric, 2, false>>
 } // namespace static_tests
 }  // namespace matpack::md
 
+using Range = matpack::md::strided_access;
 inline constexpr matpack::md::Joker joker = matpack::md::joker;
 
 // Vectors
@@ -783,10 +1046,9 @@ using ConstComplexMatrixView = matpack::md::strided_view<Complex, 2, true>;
 
 /** Compute y = alpha * A * x + beta * y
  *
- * Uses LAPACK for speedy computations, note that the defaults of the last
- * two elements makes y = A * x
+ * Uses LAPACK for speedy computations
  *
- * @param[out] y A vector view that has the size of N
+ * @param[inout] y A vector view that has the size of N
  * @param[in] A A matrix view that has the size of M x N
  * @param[in] x A vector view that has the size of M
  * @param[in] alpha A constant (default 1.0)
@@ -809,10 +1071,9 @@ void mult(matpack::md::strided_view<Numeric, 1, false> y,
 
 /** Compute C = alpha * A * B + beta * C
  *
- * Uses LAPACK for speedy computations, note that the defaults of the last
- * two elements makes C = A * B
+ * Uses LAPACK for speedy computations
  *
- * @param[out] C A matrix view that has the size of N x M
+ * @param[inout] C A matrix view that has the size of N x M
  * @param[in] A A matrix view that has the size of N x K
  * @param[in] B A matrix view that has the size of K x M
  * @param[in] alpha A constant (default 1.0)
@@ -823,22 +1084,24 @@ void mult_fast(matpack::md::simple_view<Numeric, 2, false> C,
           const matpack::md::simple_view<Numeric, 2, true> &B,
           Numeric alpha = 1.0, Numeric beta = 0.0);
 
-/** Compute C = A * B
+/** Compute C = alpha * A * B + beta * C
  *
  * @param[out] C A matrix view that has the size of N x M
  * @param[in] A A matrix view that has the size of N x K
  * @param[in] B A matrix view that has the size of K x M
+ * @param[in] alpha A constant (default 1.0)
+ * @param[in] beta A constant (default 0.0)
  */
 void mult(matpack::md::strided_view<Numeric, 2, false> C,
           const matpack::md::strided_view<Numeric, 2, true> &A,
-          const matpack::md::strided_view<Numeric, 2, true> &B);
+          const matpack::md::strided_view<Numeric, 2, true> &B,
+          Numeric alpha = 1.0, Numeric beta = 0.0);
 
 /** Compute y = alpha * A * x + beta * y
  *
- * Uses LAPACK for speedy computations, note that the defaults of the last
- * two elements makes y = A * x
+ * Uses LAPACK for speedy computations
  *
- * @param[out] y A vector view that has the size of N
+ * @param[inout] y A vector view that has the size of N
  * @param[in] A A matrix view that has the size of M x N
  * @param[in] x A vector view that has the size of M
  * @param[in] alpha A constant (default 1.0)
@@ -861,10 +1124,9 @@ void mult(matpack::md::strided_view<Complex, 1, false> y,
 
 /** Compute C = alpha * A * B + beta * C
  *
- * Uses LAPACK for speedy computations, note that the defaults of the last
- * two elements makes C = A * B
+ * Uses LAPACK for speedy computations
  *
- * @param[out] C A matrix view that has the size of N x M
+ * @param[inout] C A matrix view that has the size of N x M
  * @param[in] A A matrix view that has the size of N x K
  * @param[in] B A matrix view that has the size of K x M
  * @param[in] alpha A constant (default 1.0)
@@ -875,22 +1137,30 @@ void mult_fast(matpack::md::simple_view<Complex, 2, false> C,
           const matpack::md::simple_view<Complex, 2, true> &B,
           Complex alpha = 1.0, Complex beta = 0.0);
 
-/** Compute C = A * B
+/** Compute C = alpha * A * B + beta * C
  *
  * @param[out] C A matrix view that has the size of N x M
  * @param[in] A A matrix view that has the size of N x K
  * @param[in] B A matrix view that has the size of K x M
+ * @param[in] alpha A constant (default 1.0)
+ * @param[in] beta A constant (default 0.0)
  */
 void mult(matpack::md::strided_view<Complex, 2, false> C,
           const matpack::md::strided_view<Complex, 2, true> &A,
-          const matpack::md::strided_view<Complex, 2, true> &B);
+          const matpack::md::strided_view<Complex, 2, true> &B,
+          Complex alpha = 1.0, Complex beta = 0.0);
 
-/** Returns a view that transposes a matrix by effectively changing its strides
- * 
+template<typename T>
+concept transposable_matrix = requires(T a) {
+  { a.transpose() } -> matpack::md::any_2D_md;
+};
+
+/** Returns a view of the transpose of some object
+ *
  * @param[in] A A matrix view that has the size of N x K
- * @return A transposed view of the matrix with the size K x N
+ * @return A const-correct matrix view of size K x N
  */
-template <typename T, bool constant>
-[[nodiscard]] constexpr matpack::md::strided_view<Numeric, 2, true> transpose(const matpack::md::strided_view<T, 2, constant> & A) {
-  return A.transpose();
+constexpr auto transpose(transposable_matrix auto &&A) noexcept
+{
+  return std::forward<decltype(A)>(A).transpose();
 }
