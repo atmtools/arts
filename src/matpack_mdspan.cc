@@ -66,12 +66,24 @@ void mult_fast(matpack::md::simple_view<Numeric, 2, false> C,
 
 void mult(matpack::md::strided_view<Numeric, 2, false> C,
           const matpack::md::strided_view<Numeric, 2, true> &A,
-          const matpack::md::strided_view<Numeric, 2, true> &B) {
+          const matpack::md::strided_view<Numeric, 2, true> &B, Numeric alpha,
+          Numeric beta) {
   const auto [N, M] = C.shape();
+  const auto K = A.ncols();
 
+  ARTS_ASSERT(C.shape() == (std::array<Index, 2>{N, M}), C.nrows(), ", ",
+              C.ncols(), " != ", N, ", ", M);
+  ARTS_ASSERT(A.shape() == (std::array<Index, 2>{N, K}), A.nrows(), ", ",
+              A.ncols(), " != ", N, ", ", K);
+  ARTS_ASSERT(B.shape() == (std::array<Index, 2>{K, M}), B.nrows(), ", ",
+              B.ncols(), " != ", K, ", ", M);
+
+  C *= beta;
   for (Index i = 0; i < N; i++) {
-    for (Index j = 0; j < M; j++) {
-      C(i, j) = A[i] * B(joker, j);
+    for (Index k = 0; k < K; k++) {
+      for (Index j = 0; j < M; j++) {
+        C(i, j) = C(i, j) + alpha * A(i, k) * B(k, j);
+      }
     }
   }
 }
@@ -140,12 +152,24 @@ void mult_fast(matpack::md::simple_view<Complex, 2, false> C,
 
 void mult(matpack::md::strided_view<Complex, 2, false> C,
           const matpack::md::strided_view<Complex, 2, true> &A,
-          const matpack::md::strided_view<Complex, 2, true> &B) {
+          const matpack::md::strided_view<Complex, 2, true> &B, Complex alpha,
+          Complex beta) {
   const auto [N, M] = C.shape();
+  const auto K = A.ncols();
 
+  ARTS_ASSERT(C.shape() == (std::array<Index, 2>{N, M}), C.nrows(), ", ",
+              C.ncols(), " != ", N, ", ", M);
+  ARTS_ASSERT(A.shape() == (std::array<Index, 2>{N, K}), A.nrows(), ", ",
+              A.ncols(), " != ", N, ", ", K);
+  ARTS_ASSERT(B.shape() == (std::array<Index, 2>{K, M}), B.nrows(), ", ",
+              B.ncols(), " != ", K, ", ", M);
+
+  C *= beta;
   for (Index i = 0; i < N; i++) {
-    for (Index j = 0; j < M; j++) {
-      C(i, j) = A[i] * B(joker, j);
+    for (Index k = 0; k < K; k++) {
+      for (Index j = 0; j < M; j++) {
+        C(i, j) = C(i, j) + alpha * A(i, k) * B(k, j);
+      }
     }
   }
 }

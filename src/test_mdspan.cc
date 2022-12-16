@@ -1,23 +1,99 @@
 #include "debug.h"
 #include "matpack_mdspan.h"
+
 #include <iostream>
+#include <vector>
 
-#include <cstdlib>
-#include <cxxabi.h>
-#include <memory>
-#include <typeinfo>
-std::string demangle(const char *name) {
-  int status = -4; // some arbitrary value to eliminate the compiler warning
+using std::cout;
+using std::endl;
+using std::runtime_error;
 
-  // enable c++11 by passing the flag -std=c++11 to g++
-  std::unique_ptr<char, void (*)(void *)> res{
-      abi::__cxa_demangle(name, nullptr, nullptr, &status), std::free};
+Numeric by_reference(const Numeric& x) { return x + 1; }
 
-  return (status == 0) ? res.get() : name;
-}
+Numeric by_value(Numeric x) { return x + 1; }
 
-template <class T> std::string type(const T &t) {
-  return demangle(typeid(t).name());
+void fill_with_junk(VectorView x) { x = 999; }
+
+void fill_with_junk(MatrixView x) { x = 888; }int test1() {
+  Vector v(20);
+
+  cout << "v.nelem() = " << v.nelem() << "\n";
+
+  for (Index i = 0; i < v.nelem(); ++i) v[i] = (Numeric)i;
+
+  cout << "v.begin() = " << *v.begin() << "\n";
+
+  cout << "v = \n" << v << "\n";
+
+  fill_with_junk(v[Range(1, 8, 2)][Range(2, joker)]);
+  //  fill_with_junk(v);
+
+  Vector v2 = v[Range(2, 4)];
+
+  cout << "v2 = \n" << v2 << "\n";
+
+  for (Index i = 0; i < 1000; ++i) {
+    Vector v3(1000);
+    v3 = (Numeric)i;
+  }
+
+  v2[Range(joker)] = 88;
+
+  v2[Range(0, 2)] = 77;
+
+  cout << "v = \n" << v << "\n";
+  cout << "v2 = \n" << v2 << "\n";
+  cout << "v2.nelem() = \n" << v2.nelem() << "\n";
+
+  Vector v3;
+  v3.resize(v2.nelem());
+  v3 = v2;
+
+  cout << "\nv3 = \n" << v3 << "\n";
+  fill_with_junk((VectorView)v2);
+  cout << "\nv3 after junking v2 = \n" << v3 << "\n";
+  v3 *= 2;
+  cout << "\nv3 after *2 = \n" << v3 << "\n";
+
+  Matrix M(10, 15);
+  {
+    Numeric n = 0;
+    for (Index i = 0; i < M.nrows(); ++i)
+      for (Index j = 0; j < M.ncols(); ++j) M(i, j) = ++n;
+  }
+
+  cout << "\nM =\n" << M << "\n";
+
+  cout << "\nM(Range(2,4),Range(2,4)) =\n"
+       << M(Range(2, 4), Range(2, 4)) << "\n";
+
+  cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
+       << M(Range(2, 4), Range(2, 4))(Range(1, 2), Range(1, 2)) << "\n";
+
+  cout << "\nM(1,Range(joker)) =\n" << M(1, Range(joker)) << "\n";
+
+  cout << "\nFilling M(1,Range(1,2)) with junk.\n";
+  fill_with_junk(M(1, Range(1, 2)));
+
+  cout << "\nM(Range(0,4),Range(0,4)) =\n"
+       << M(Range(0, 4), Range(0, 4)) << "\n";
+
+  cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
+
+  MatrixView s = M(Range(4, 2, 2), Range(6, 3));
+  fill_with_junk(s);
+
+  cout << "\nM =\n" << M << "\n";
+
+  const Matrix C = M;
+
+  cout << "\nC(Range(3,4,2),Range(2,3,3)) =\n"
+       << C(Range(3, 4, 2), Range(2, 3, 3)) << "\n";
+
+  cout << "\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n"
+       << transpose(C(Range(3, 4, 2), Range(2, 3, 3))) << "\n";
+
+  return 0;
 }
 
 Matrix build_test_matrix(Index rows, Index cols) {
@@ -367,15 +443,15 @@ void test_transpose() {
     std::cout << A << '\n';
     ConstMatrixView X=A;
     std::cout << X.transpose() << '\n';
-    std::cout << transpose(X).transpose() << '\n';
+    std::cout << A.transpose() << '\n';
   }
   {
     std::cout << "TEST 2:\n";
-    auto A = build_test_matrix(2, 3);
+    Matrix A = build_test_matrix(2, 3);
     std::cout << A << '\n';
     ConstMatrixView X=A;
     std::cout << X.transpose() << '\n';
-    std::cout << transpose(X).transpose() << '\n';
+    std::cout << A.transpose() << '\n';
   }
   {
     std::cout << "TEST 3:\n";
@@ -383,14 +459,65 @@ void test_transpose() {
     std::cout << A << '\n';
     ConstMatrixView X=A;
     std::cout << X.transpose() << '\n';
-    std::cout << transpose(X).transpose() << '\n';
+    std::cout << X.transpose().transpose() << '\n';
+  }
+  {
+    std::cout << "TEST 3:\n";
+    auto A = build_test_matrix(4, 3);
+    ConstMatrixView X=A;
+    std::cout << X.transpose() << '\n';
+    std::cout << transpose(X) << '\n';
+    std::cout << FastConstMatrixView{X.transpose().transpose()} << '\n';
   }
   std::cout << "#/TRANSPOSE TEST ######################################\n";
 }
 
-int main() {
-  using namespace matpack::md;
+void test_complex_view() {
+  std::cout << "# COMPLEX VIEWS TEST ######################################\n";
+  {
+    ComplexMatrix A = build_test_complex_matrix(3, 2);
+    std::cout << A << '\n';
+    std::cout << FastComplexMatrixView{A}.real() << '\n';
+    std::cout << FastConstComplexMatrixView{A}.real() << '\n';
+    std::cout << FastComplexMatrixView{A}.imag() << '\n';
+    std::cout << FastConstComplexMatrixView{A}.imag() << '\n';
+    std::cout << '\n';
+    std::cout << A.transpose() << '\n';
+    std::cout << FastComplexMatrixView{A}.real().transpose() << '\n';
+    std::cout << FastConstComplexMatrixView{A}.real().transpose() << '\n';
+    std::cout << FastComplexMatrixView{A}.imag().transpose() << '\n';
+    std::cout << FastConstComplexMatrixView{A}.imag().transpose() << '\n';
+  }
+  {
+    ComplexMatrix A = build_test_complex_matrix(3, 2);
+    std::cout << A << '\n';
+    std::cout << ComplexMatrixView{A}.real() << '\n';
+    std::cout << ConstComplexMatrixView{A}.real() << '\n';
+    std::cout << ComplexMatrixView{A}.imag() << '\n';
+    std::cout << ConstComplexMatrixView{A}.imag() << '\n';
+    std::cout << '\n';
+    std::cout << A.transpose() << '\n';
+    std::cout << ComplexMatrixView{A}.real().transpose() << '\n';
+    std::cout << ConstComplexMatrixView{A}.real().transpose() << '\n';
+    std::cout << ComplexMatrixView{A}.imag().transpose() << '\n';
+    std::cout << ConstComplexMatrixView{A}.imag().transpose() << '\n';
+    std::cout << '\n';
+    std::cout << A << '\n';
+    std::cout << ComplexMatrixView{A.transpose()}.real().transpose() << '\n';
+    std::cout << ConstComplexMatrixView{A.transpose()}.real().transpose() << '\n';
+    std::cout << ComplexMatrixView{A.transpose()}.imag().transpose() << '\n';
+    std::cout << ConstComplexMatrixView{A.transpose()}.imag().transpose() << '\n';
+    std::cout << '\n';
+    std::cout << A.transpose() << '\n';
+    std::cout << ComplexMatrixView{A.transpose()}.real() << '\n';
+    std::cout << ConstComplexMatrixView{A.transpose()}.real() << '\n';
+    std::cout << ComplexMatrixView{A.transpose()}.imag() << '\n';
+    std::cout << ConstComplexMatrixView{A.transpose()}.imag() << '\n';
+  }
+  std::cout << "#/COMPLEX VIEWS TEST ######################################\n";
+}
 
+int main() {
   auto x = Vector(4);
   const auto y = Matrix(4, 3, 4);
   auto yc = Matrix{};
@@ -426,7 +553,7 @@ int main() {
   std::cout << x << '\n';
   std::cout << yc << '\n';
 
-  z = simple_view<double, 3, true>{std::move(yc).reshape(4,3,2)};
+  z = std::move(yc).reshape(4,3,2);
   std::cout << z << '\n';
 
   x = std::move(z).flatten();
@@ -462,4 +589,32 @@ int main() {
   test_mult();
   test_complex_mult();
   test_transpose();
+  test_complex_view();
+
+  {
+    Vector VEC{std::vector<double>{0, 1,2,3,4,5}};
+    std::cout << "VEC\n";
+    std::cout << VEC << '\n';
+    std::cout << VEC[Range(0, 2, 2)] << '\n';
+    std::cout << VEC[Range(0, 3, 2)] << '\n';
+    std::cout << VEC[Range(1, 2, 2)] << '\n';
+    std::cout << VEC[Range(3, 2, 2)] << '\n';
+    std::cout << VEC[Range(1, joker)] << '\n';
+    std::cout << VEC[Range(1, joker, 2)] << '\n';
+
+    Matrix MAT=build_test_matrix(6, 5);
+    std::cout << "MAT\n";
+    std::cout << MAT << '\n';
+    std::cout << MAT[Range(0, 2, 2)] << '\n';
+    std::cout << MAT[Range(0, 3, 2)] << '\n';
+    std::cout << MAT[Range(1, 2, 2)] << '\n';
+    std::cout << MAT[Range(3, 2, 2)] << '\n';
+
+    std::cout << MAT(0, Range(0, 2, 2)) << '\n';
+    std::cout << MAT(1, Range(0, 3, 2)) << '\n';
+    std::cout << MAT(2, Range(1, 2, 2)) << '\n';
+    std::cout << MAT(3, Range(3, 2, 1)) << '\n';
+
+    std::cout << MAT(Range(0, 2, 2), Range(0, 2, 2)) << '\n';
+  }
 }
