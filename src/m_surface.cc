@@ -3174,18 +3174,141 @@ void InterpSurfaceTypeMask(Index& surface_type,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void surface_rtpropFromTypesAverageUniform(
+       Workspace& ws,
+       Vector& surface_type_mix,
+       Numeric& surface_skin_t,
+       Matrix& surface_los,
+       Tensor4& surface_rmatrix,
+       Matrix& surface_emission,
+       const Vector& f_grid,
+       const Index& stokes_dim,
+       const Index& atmosphere_dim,
+       const Vector& lat_grid,
+       const Vector& lon_grid,
+       const Vector& lat_true,
+       const Vector& lon_true,
+       const Vector& rtp_pos,
+       const Vector& rtp_los,
+       const Vector& refellipsoid,
+       const GriddedField2& surface_type_mask,
+       const ArrayOfAgenda& surface_rtprop_agenda_array,
+       const Numeric& z_sensor,
+       const Numeric& width,
+       const Index& npoints,
+       const Index& crop_circular,
+       const Verbosity& verbosity)
+{
+  ARTS_USER_ERROR_IF(atmosphere_dim != 3, "This method only works for 3D.");
+
+  // Determine satellite sensor_pos and sensor_los
+  Vector sat_pos = rtp_pos;
+  Vector sat_los = rtp_los;
+  rte_pos_losBackwardToAltitude(sat_pos,
+                                sat_los,
+                                atmosphere_dim,
+                                lat_grid,
+                                lon_grid,
+                                refellipsoid,
+                                z_sensor,
+                                0,
+                                verbosity);
+  
+  // Obtain dlos-es to apply
+  Matrix dlos;
+  Vector solid_angles;
+  dlosUniform(dlos, solid_angles, width, npoints, crop_circular, verbosity);
+
+  // Some sizes
+  const Index nf = f_grid.nelem();
+  const Index ntypes = surface_rtprop_agenda_array.nelem();
+  const Index nlos = dlos.nrows();
+
+  // Find ground sample positions
+  Matrix ground_pos, ground_los, sensor_pos(nlos, 3), sensor_los;
+  //
+  sensor_pos(joker, 0) = sat_pos[0];
+  sensor_pos(joker, 1) = sat_pos[1];
+  sensor_pos(joker, 2) = sat_pos[2];
+  losAddLosAndDlos(sensor_los, sat_los, dlos, verbosity);
+  //
+  IntersectionGeometricalWithAltitude(ground_pos,
+                                      ground_los,
+                                      sensor_pos,
+                                      sensor_los,
+                                      refellipsoid,
+                                      lat_grid,
+                                      lon_grid,
+                                      rtp_pos[0],
+                                      verbosity);
+
+  // Prepare output variables
+  surface_type_mix.resize(ntypes);
+  surface_type_mix = 0.;
+  surface_skin_t = 0.;
+  surface_los.resize(1,2);
+  surface_los = 0.;
+  surface_rmatrix.resize(1, nf, stokes_dim, stokes_dim);
+  surface_rmatrix = 0.;
+  surface_emission.resize(nf, stokes_dim);
+  surface_emission = 0.;
+
+  // Help variables
+  const Numeric solid_angles_sum = solid_angles.sum();
+  Numeric tmp_skin_t;
+  Vector tmp_type_mix;
+  Matrix tmp_emission, tmp_los;
+  Tensor4 tmp_rmatrix;
+  
+  // Loop los-es to sample
+  for (Index i=0; i<nlos; ++i) {
+    surface_rtpropFromTypesNearest(ws,
+                                   tmp_type_mix,
+                                   tmp_skin_t,
+                                   tmp_los,
+                                   tmp_rmatrix,
+                                   tmp_emission,
+                                   f_grid,
+                                   atmosphere_dim,
+                                   lat_grid,
+                                   lat_true,
+                                   lon_true,
+                                   ground_pos(i, joker),
+                                   ground_los(i, joker),
+                                   surface_type_mask,
+                                   surface_rtprop_agenda_array,
+                                   verbosity);
+    ARTS_USER_ERROR_IF(tmp_los.nrows() != 1,
+                       "This method requires that all surface types "
+                       "returns a *surface_los* with one row.");
+
+    // Sum up
+    const Numeric weight = solid_angles[i] / solid_angles_sum;
+    tmp_type_mix *= weight;
+    surface_type_mix += tmp_type_mix;
+    surface_skin_t += weight * tmp_skin_t;
+    tmp_los *= weight;
+    surface_los += tmp_los;
+    tmp_rmatrix *= weight;
+    surface_rmatrix += tmp_rmatrix;
+    tmp_emission *= weight;
+    surface_emission += tmp_emission;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surface_rtpropFromTypesManual(Workspace& ws,
-                                    Vector& surface_type_mix,
-                                    Numeric& surface_skin_t,
-                                    Matrix& surface_los,
-                                    Tensor4& surface_rmatrix,
-                                    Matrix& surface_emission,
-                                    const Vector& f_grid,
-                                    const Vector& rtp_pos,
-                                    const Vector& rtp_los,
-                                    const ArrayOfAgenda& surface_rtprop_agenda_array,
-                                    const Index& surface_type,
-                                    const Verbosity&)
+                                   Vector& surface_type_mix,
+                                   Numeric& surface_skin_t,
+                                   Matrix& surface_los,
+                                   Tensor4& surface_rmatrix,
+                                   Matrix& surface_emission,
+                                   const Vector& f_grid,
+                                   const Vector& rtp_pos,
+                                   const Vector& rtp_los,
+                                   const ArrayOfAgenda& surface_rtprop_agenda_array,
+                                   const Index& surface_type,
+                                   const Verbosity&)
 {
   ARTS_USER_ERROR_IF(surface_type < 0 or
      surface_type >= surface_rtprop_agenda_array.nelem(),
@@ -3207,7 +3330,6 @@ void surface_rtpropFromTypesManual(Workspace& ws,
                                      rtp_los,
                                      surface_rtprop_agenda_array);
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_rtpropFromTypesNearest(Workspace& ws,

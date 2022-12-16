@@ -4823,12 +4823,13 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
             "Gives the fraction of different surface types.\n"
             "\n"
             "For cases when the surface RT properties are taken from\n"
-            "*surface_rtprop_agenda_array*, this variabl specifies to\n"
-            "what extent each surface type has contributed to e.g.\n"
-            "*surface_emission*. The length of this vector fowllows\n"
-            "*surface_rtprop_agenda_array* and the sum of the elements\n"
-            "is 1. The first element in the vector matches the first"
-            "agenda element, and so on."),
+            "*surface_rtprop_agenda_array*, this variable specifies to\n"
+            "what extent each surface type has contributed to the surface\n"
+            "RT variables, such as *surface_emission* and *surface_skin_t*.\n" 
+            "\n"
+            "The length of this vector follows *surface_rtprop_agenda_array*\n"
+            "and the sum of the elements is 1. The first element in the\n" 
+            "vector matches the first agenda element, and so on."),
           GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(

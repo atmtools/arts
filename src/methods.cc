@@ -5917,9 +5917,11 @@ Available models:
       DESCRIPTION(
           "Gives *dlos* a rectangular coverage, with uniform spacing.\n"
           "\n"
-          "The same angular grid is applied in both angular dimensions.\n"
-          "With width = 1 and npoints = 5, the angular grid becomes\n"
-          " [-0.4, -0.2, 0, 0.2, 0.4].\n"
+          "The directions described by *dlos* are uniform with respect\n"
+          "to relative zenith and azimuth (and thus are NOT uniform in\n"
+          "solid angle). The same angular grid is applied in both angular\n"
+          "dimensions. With width = 1 and npoints = 5, the angular grids\n"
+          "both are [-0.4, -0.2, 0, 0.2, 0.4].\n"
           "\n"
           "The inner loop in is the zenith direction. That is, first comes\n"
           "all relative zenith angles for first relative azimuth angle etc.\n"
@@ -8346,7 +8348,10 @@ Available models:
           "an altitude is determined. The intersections are described by the\n"
           "GOUT *pos* and *los.\n"
           "\n"
-          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"),
+          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"
+          "\n"
+          "The WSM *rte_pos_losForwardToAltitude* performs the same operation\n"
+          "with *rte_pos* and *rte_los* as input.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -17596,7 +17601,54 @@ where N>=0 and the species name is something line "H2O".
                "Longitude of sensor position.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("rte_pos_losMoveToStartOfPpath"),
+      NAME("rte_pos_losBackwardToAltitude"),
+      DESCRIPTION(
+          "Moves *rte_pos* and *rte_los* backwards to the target altitude.\n"
+          "\n"
+          "The method gives the *rte_pos* and *rte_los* at the target altitude\n"
+          "to reach the original *rte_pos* and *rte_los* with a geometrical ppath.\n"
+          "That is, the movement is backwards in terms of viewing direction.\n"
+          "\n"
+          "If the original *rte_los* is reversed with respect to the line-of-sight\n"
+          "direction, then set the GIN los_reversed to 1. One such case is that\n"
+          "if *rte_los* represents surface incidence angles, i.e. holds the\n"
+          "zenith and nadir angle towards the sensor.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos", "rte_los", "atmosphere_dim", "lat_grid", "lon_grid", "refellipsoid"),
+      GIN("altitude", "los_is_reversed"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("Target altitude.",
+               "Set to 1 if *rte_los* is valid for the reversed direction.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_pos_losForwardToAltitude"),
+      DESCRIPTION(
+          "Moves *rte_pos* and *rte_los* forward to the target altitude.\n"
+          "\n"
+          "The method gives the *rte_pos* and *rte_los* at the target altitude\n"
+          "when forward-propagating the original *rte_pos* and *rte_los*\n"
+          "geometrically.\n"
+          "\n"
+          "The WSM *IntersectionGeometricalWithAltitude* performs the same\n"
+          "operation with *sensor_pos* and *sensor_los* as input.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos", "rte_los", "atmosphere_dim", "lat_grid", "lon_grid", "refellipsoid"),
+      GIN("altitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Target altitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_pos_losStartOfPpath"),
       DESCRIPTION(
           "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
           "\n"
@@ -17613,7 +17665,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
@@ -20200,6 +20251,50 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("GriddedField6"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of surface reflectivities")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_rtpropFromTypesAverageUniform"),
+      DESCRIPTION(
+          "Extracts surface RT properties by local averaging.\n"
+          "\n"
+          "This method allows to let one pencil beam calculation represent\n"
+          "a solid angle when it comes to surface RT properties. The surface\n"
+          "is sampled at a set of positions. This sampling is defined by\n"
+          "a set of relative angles at the sensor. The actual sampling angles\n"
+          "are obtained by *dlosUniform*, and see that WSM for the distribution\n"
+          "of angles.\n"
+          "\n"
+          "All the output variables are a weighted average between the surface\n"
+          "types inside the area sampled. The weighting considers the solid\n"
+          "angle of each sample direction.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_type_mix",
+          "surface_skin_t",
+          "surface_los",
+          "surface_rmatrix",
+          "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "stokes_dim",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "rtp_los",
+         "refellipsoid",
+         "surface_type_mask",
+         "surface_rtprop_agenda_array"),
+      GIN("z_sensor", "width", "npoints", "crop_circular"),
+      GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Sensor altitude.",
+               "As same GIN in *dlosUniform*.",
+               "As same GIN in *dlosUniform*.",
+               "As same GIN in *dlosUniform*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesManual"),

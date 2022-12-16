@@ -1986,9 +1986,77 @@ void rte_posSet(Vector& rte_pos,
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_losBackwardToAltitude(Vector& rte_pos,
+                                   Vector& rte_los,
+                                   const Index& atmosphere_dim,
+                                   const Vector& lat_grid,
+                                   const Vector& lon_grid,
+                                   const Vector& refellipsoid,
+                                   const Numeric& altitude,
+                                   const Index& los_is_reversed,
+                                   const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(atmosphere_dim != 3, "This method only works for 3D.");
+
+  // Find los to apply in next step
+  Vector los2use;
+  if (los_is_reversed) {
+    los2use = rte_los;
+  } else {
+    mirror_los(los2use, rte_los, atmosphere_dim);
+  }
+
+  // Move in altitude
+  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
+  start_pos(0, joker) = rte_pos;
+  start_los(0, joker) = los2use;
+  IntersectionGeometricalWithAltitude(end_pos,
+                                      end_los,
+                                      start_pos,
+                                      start_los,
+                                      refellipsoid,
+                                      lat_grid,
+                                      lon_grid,
+                                      altitude,
+                                      verbosity);
+
+  // Extract final values
+  rte_pos = end_pos(0, joker);
+  mirror_los(rte_los, end_los(0, joker), atmosphere_dim);
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losMoveToStartOfPpath(Vector& rte_pos,
+void rte_pos_losForwardToAltitude(Vector& rte_pos,
+                                   Vector& rte_los,
+                                   const Index& atmosphere_dim,
+                                   const Vector& lat_grid,
+                                   const Vector& lon_grid,
+                                   const Vector& refellipsoid,
+                                   const Numeric& altitude,
+                                   const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(atmosphere_dim != 3, "This method only works for 3D.");
+
+  // Move in altitude
+  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
+  start_pos(0, joker) = rte_pos;
+  start_los(0, joker) = rte_los;
+  IntersectionGeometricalWithAltitude(end_pos,
+                                      end_los,
+                                      start_pos,
+                                      start_los,
+                                      refellipsoid,
+                                      lat_grid,
+                                      lon_grid,
+                                      altitude,
+                                      verbosity);
+
+  // Extract final values
+  rte_pos = end_pos(0, joker);
+  rte_los = end_los(0, joker);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_losStartOfPpath(Vector& rte_pos,
                                    Vector& rte_los,
                                    const Index& atmosphere_dim,
                                    const Ppath& ppath,
