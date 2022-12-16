@@ -616,5 +616,9 @@ int main() {
     std::cout << MAT(3, Range(3, 2, 1)) << '\n';
 
     std::cout << MAT(Range(0, 2, 2), Range(0, 2, 2)) << '\n';
+    std::cout << MAT(Range(0, 2, 2), Range(0, 3, 2)) << '\n';
+    std::cout << MAT(Range(0, 3, 2), Range(0, 2, 2)) << '\n';
+
+    std::cout << MAT(Range(0, 2, 2), 1) << '\n';
   }
 }

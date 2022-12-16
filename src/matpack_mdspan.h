@@ -571,15 +571,15 @@ class strided_view {
     view = detail::strided_mdspan<T, N>{d, {extmap, strmap}};
   }
 
-  template <access_operator first, access_operator ... access, detail::size_t M = sizeof...(access)>
+  template <detail::size_t i, access_operator first, access_operator ... access>
   constexpr void adapt_strided_dimension(first&& maybe_range, access&& ... rest) {
-   if constexpr (std::same_as<std::remove_cvref_t<first>, strided_access>) strided_dimension<M>(std::forward<first>(maybe_range));
-   if constexpr (M not_eq 0) adapt_strided_dimension(std::forward<access>(rest)...);
+   if constexpr (std::same_as<std::remove_cvref_t<first>, strided_access>) strided_dimension<i>(std::forward<first>(maybe_range));
+   if constexpr (sizeof...(access) not_eq 0) adapt_strided_dimension<i - not integral<first>>(std::forward<access>(rest)...);
   }
   
   template <access_operator ... access> 
   constexpr strided_view& range_adaptor(access&& ... ind) {
-    adapt_strided_dimension(std::forward<access>(ind)...);
+    adapt_strided_dimension<N-1>(std::forward<access>(ind)...);
     return *this;
   }
 
