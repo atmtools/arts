@@ -1948,7 +1948,7 @@ int main() {
   //   test2();
   //   test3();
   //   test4();
-  //   test5();
+     test5();
   //   test6();
   //   test7();
   //   test8();
@@ -1996,7 +1996,7 @@ int main() {
   //test_wigner_error();
   //test_pow_negative_one();
   //test_concepts();
-  test_mult();
+  //test_mult();
 
   //    const double tolerance = 1e-9;
   //    double error;

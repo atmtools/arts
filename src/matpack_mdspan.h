@@ -2,6 +2,7 @@
 #include "matpack.h"
 
 #include <c++/v1/concepts>
+#include <limits>
 #include <mdspan/include/experimental/mdspan>
 
 #include <algorithm>
@@ -494,6 +495,17 @@ public:
   constexpr operator simple_view<T, N, true>() const requires(not constant) {return view;}
   constexpr operator strided_view<T, N, constant>() {return view;}
   constexpr operator strided_view<T, N, true>() const {return view;}
+  template <detail::size_t M>
+  explicit constexpr operator simple_view<T, M, constant>() const requires(M > N) {
+    std::array<detail::size_t, M> sz;
+    for (detail::size_t i=N; i<M; i++) sz[N] = 1;
+    for (detail::size_t i=0; i<N; i++) sz[i] = extent(i);
+    return simple_view<T, M, constant> {view.data_handle(), sz};
+  }
+  template <detail::size_t M>
+  explicit constexpr operator strided_view<T, M, constant>() const requires(M > N) {
+    return simple_view<T, M, constant>{*this};
+  }
 
   template <typename U>
   constexpr simple_view &operator=(const U &sv)
@@ -557,29 +569,30 @@ class strided_view {
   template <typename U, detail::size_t M, bool c> friend class simple_view;
   template <typename U, detail::size_t M, bool c> friend class strided_view;
 
-  template<detail::size_t dim>
-  constexpr void strided_dimension(strided_access range) requires(dim >= 0 and dim < N) {
+  template <detail::size_t dim>
+  constexpr void strided_dimension(strided_access range)
+    requires(dim >= 0 and dim < N)
+  {
     range = strided_access(extent(dim), range);
-    auto* d = view.data_handle() + stride(dim) * range.offset;
+    auto *d = view.data_handle() + stride(dim) * range.offset;
     std::array<detail::size_t, N> extmap, strmap;
-    for (detail::size_t i=0; i<N; i++) {
+    for (detail::size_t i = 0; i < N; i++) {
       extmap[i] = extent(i);
       strmap[i] = stride(i);
     }
-    std::get<dim>(extmap) = range.extent < 0 ? std::get<dim>(extmap) : range.extent;
+    std::get<dim>(extmap) =
+        range.extent < 0 ? std::get<dim>(extmap) : range.extent;
     std::get<dim>(strmap) *= range.stride;
     view = detail::strided_mdspan<T, N>{d, {extmap, strmap}};
   }
 
-  template <detail::size_t i, access_operator first, access_operator ... access>
-  constexpr void adapt_strided_dimension(first&& maybe_range, access&& ... rest) {
-   if constexpr (std::same_as<std::remove_cvref_t<first>, strided_access>) strided_dimension<i>(std::forward<first>(maybe_range));
-   if constexpr (sizeof...(access) not_eq 0) adapt_strided_dimension<i - not integral<first>>(std::forward<access>(rest)...);
-  }
-  
-  template <access_operator ... access> 
-  constexpr strided_view& range_adaptor(access&& ... ind) {
-    adapt_strided_dimension<N-1>(std::forward<access>(ind)...);
+  template <detail::size_t i = 0, access_operator first,
+            access_operator... access>
+  constexpr strided_view &range_adaptor(first &&maybe_range, access &&...rest) {
+    if constexpr (std::same_as<std::remove_cvref_t<first>, strided_access>)
+      strided_dimension<i>(std::forward<first>(maybe_range));
+    if constexpr (sizeof...(access) not_eq 0)
+      range_adaptor<i + not integral<first>>(std::forward<access>(rest)...);
     return *this;
   }
 
@@ -596,6 +609,16 @@ public:
   explicit constexpr operator simple_view<T, N, false>() const requires(not constant) {return view;}
   explicit constexpr operator simple_view<T, N, true>() const requires(constant) {return view;}
   constexpr operator strided_view<T, N, true>() const requires(not constant) {return view;}
+  template <detail::size_t M>
+  explicit constexpr operator strided_view<T, M, constant>() const requires(M > N) {
+    std::array<detail::size_t, M> sz, st;
+    std::cerr << "OI\n";
+    for (detail::size_t i=N; i<M; i++) sz[i] = 1;
+    for (detail::size_t i=N; i<M; i++) st[i] = 1;
+    for (detail::size_t i=0; i<N; i++) sz[i] = extent(i);
+    for (detail::size_t i=0; i<N; i++) st[i] = stride(i);
+    return strided_view<T, M, constant> {view.data_handle(), {sz, st}};
+  }
 
   template <typename U>
   strided_view &operator=(const U &sv)
@@ -829,6 +852,22 @@ public:
   constexpr operator simple_view<T, N, true>() const {return view;}
   constexpr operator strided_view<T, N, false>() {return view;}
   constexpr operator strided_view<T, N, true>() const {return view;}
+  template <detail::size_t M>
+  explicit constexpr operator simple_view<T, M, true>() const requires(M > N) {
+    return simple_view<T, M, true>{view};
+  }
+  template <detail::size_t M>
+  explicit constexpr operator strided_view<T, M, true>() const requires(M > N) {
+    return strided_view<T, M, true>{simple_view<T, M, true>{view}};
+  }
+  template <detail::size_t M>
+  explicit constexpr operator simple_view<T, M, false>() requires(M > N) {
+    return simple_view<T, M, false>{view};
+  }
+  template <detail::size_t M>
+  explicit constexpr operator strided_view<T, M, false>() requires(M > N) {
+    return strided_view<T, M, false>{simple_view<T, M, false>{view}};
+  }
 
   template <typename U>
   constexpr simple_data(const U &sv)
