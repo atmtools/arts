@@ -79,26 +79,60 @@ void dlosDiffOfLos(Matrix& dlos,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void losAddLosAndDlos(Matrix& new_los,
-                      const Vector& ref_los,
-                      const Matrix& dlos,
-                      const Verbosity&) {
-  ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
-                      "*ref_los* must have two columns.");
-  ARTS_USER_ERROR_IF (dlos.ncols() != 2,
-                      "*dlos* must have two columns.");
+void dlosUniform(Matrix& dlos,
+                 Vector& dlos_weight_vector,
+                 const Numeric& width,
+                 const Index& npoints,
+                 const Index& crop_circular,
+                 const Verbosity&) {
+  ARTS_USER_ERROR_IF(npoints < 1, "GIN npoints must be >= 1.");
 
-  const Index nlos = dlos.nrows();
+  // Edges of angular grid
+  Vector grid_edges;
+  Numeric hwidth = width / 2.0;
+  nlinspace(grid_edges, -hwidth, hwidth, npoints + 1);
 
-  new_los.resize(nlos, 2);
+  // Angular grid
+  const Numeric spacing = grid_edges[1] - grid_edges[0];
+  Vector grid;
+  hwidth -= spacing / 2.0;
+  nlinspace(grid, -hwidth, hwidth, npoints);
 
-  for (Index i = 0; i < nlos; i++) {
-    add_za_aa(new_los(i, 0),
-              new_los(i, 1),
-              ref_los[0],
-              ref_los[1],
-              dlos(i, 0),
-              dlos(i, 1));
+  // Square set
+  dlos.resize(npoints * npoints, 2);
+  dlos_weight_vector.resize(npoints * npoints);
+  //
+  grid_edges *= DEG2RAD; 
+  const Numeric fac = DEG2RAD * spacing;
+  for (Index z = 0; z < npoints; ++z) {
+    const Numeric solid_angle = fac * (sin(grid_edges[z+1]) - sin(grid_edges[z])); 
+    for (Index a = 0; a < npoints; ++a) {
+      const Index i = a * npoints + z;
+      dlos(i, 0) = grid[z];
+      dlos(i, 1) = grid[a];
+      dlos_weight_vector[i] = solid_angle;  
+    }
+  }
+
+  // Crop to circular?
+  if (crop_circular) {
+    // Pick out points inside radius
+    Matrix dlos_tmp(dlos.nrows(), 2);
+    Vector sa_tmp(dlos_weight_vector.nelem());
+    const Numeric r = width / 2.0;
+    //
+    Index n = 0;
+    for (Index i = 0; i < npoints * npoints; ++i) {
+      if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r*1.001) {
+        dlos_tmp(n, joker) = dlos(i, joker);
+        sa_tmp[n] = dlos_weight_vector[i];
+        ++n;
+      }
+    }
+
+    // Reset output variables 
+    dlos = dlos_tmp(Range(0, n), joker);
+    dlos_weight_vector = sa_tmp[Range(0, n)];
   }
 }
 
@@ -190,6 +224,30 @@ void geo_posWherePpathPassesZref(Vector& geo_pos,
 
   CREATE_OUT2;
   out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void losAddLosAndDlos(Matrix& new_los,
+                      const Vector& ref_los,
+                      const Matrix& dlos,
+                      const Verbosity&) {
+  ARTS_USER_ERROR_IF (ref_los.nelem() != 2,
+                      "*ref_los* must have two columns.");
+  ARTS_USER_ERROR_IF (dlos.ncols() != 2,
+                      "*dlos* must have two columns.");
+
+  const Index nlos = dlos.nrows();
+
+  new_los.resize(nlos, 2);
+
+  for (Index i = 0; i < nlos; i++) {
+    add_za_aa(new_los(i, 0),
+              new_los(i, 1),
+              ref_los[0],
+              ref_los[1],
+              dlos(i, 0),
+              dlos(i, 1));
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2057,10 +2115,10 @@ void rte_pos_losForwardToAltitude(Vector& rte_pos,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losStartOfPpath(Vector& rte_pos,
-                                   Vector& rte_los,
-                                   const Index& atmosphere_dim,
-                                   const Ppath& ppath,
-                                   const Verbosity&) {
+                             Vector& rte_los,
+                             const Index& atmosphere_dim,
+                             const Ppath& ppath,
+                             const Verbosity&) {
   const Index np = ppath.np;
 
   // Check input
@@ -2132,6 +2190,69 @@ void sensor_losReverse(
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
+                                      Matrix& sensor_los,
+                                      const Index& atmosphere_dim,
+                                      const Vector& lat_grid,
+                                      const Vector& lon_grid,
+                                      const Vector& refellipsoid,
+                                      const Numeric& altitude,
+                                      const Index& los_is_reversed,
+                                      const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(atmosphere_dim != 3, "This method only works for 3D.");
+
+  // Find los to apply in next step
+  Matrix los2use = sensor_los;
+  if (!los_is_reversed) {
+    sensor_losReverse(los2use, atmosphere_dim, verbosity);
+  }
+
+  // Move in altitude
+  Matrix end_pos, end_los;
+  IntersectionGeometricalWithAltitude(end_pos,
+                                      end_los,
+                                      sensor_pos,
+                                      los2use,
+                                      refellipsoid,
+                                      lat_grid,
+                                      lon_grid,
+                                      altitude,
+                                      verbosity);
+
+  // Extract final values
+  sensor_pos = end_pos;
+  sensor_los = end_los;
+  sensor_losReverse(sensor_los, atmosphere_dim, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
+                                     Matrix& sensor_los,
+                                     const Index& atmosphere_dim,
+                                     const Vector& lat_grid,
+                                     const Vector& lon_grid,
+                                     const Vector& refellipsoid,
+                                     const Numeric& altitude,
+                                     const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(atmosphere_dim != 3, "This method only works for 3D.");
+
+  // Move in altitude
+  Matrix end_pos, end_los;
+  IntersectionGeometricalWithAltitude(end_pos,
+                                      end_los,
+                                      sensor_pos,
+                                      sensor_los,
+                                      refellipsoid,
+                                      lat_grid,
+                                      lon_grid,
+                                      altitude,
+                                      verbosity);
+
+  // Extract final values
+  sensor_pos = end_pos;
+  sensor_los = end_los;
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void TangentPointExtract(Vector& tan_pos,

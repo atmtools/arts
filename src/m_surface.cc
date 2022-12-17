@@ -3174,7 +3174,7 @@ void InterpSurfaceTypeMask(Index& surface_type,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_rtpropFromTypesAverageUniform(
+void surface_rtpropFromTypesAverage(
        Workspace& ws,
        Vector& surface_type_mix,
        Numeric& surface_skin_t,
@@ -3194,9 +3194,8 @@ void surface_rtpropFromTypesAverageUniform(
        const GriddedField2& surface_type_mask,
        const ArrayOfAgenda& surface_rtprop_agenda_array,
        const Numeric& z_sensor,
-       const Numeric& width,
-       const Index& npoints,
-       const Index& crop_circular,
+       const Matrix& dlos,
+       const Vector& dlos_weight_vector,
        const Verbosity& verbosity)
 {
   ARTS_USER_ERROR_IF(atmosphere_dim != 3, "This method only works for 3D.");
@@ -3213,11 +3212,6 @@ void surface_rtpropFromTypesAverageUniform(
                                 z_sensor,
                                 0,
                                 verbosity);
-  
-  // Obtain dlos-es to apply
-  Matrix dlos;
-  Vector solid_angles;
-  dlosUniform(dlos, solid_angles, width, npoints, crop_circular, verbosity);
 
   // Some sizes
   const Index nf = f_grid.nelem();
@@ -3241,7 +3235,7 @@ void surface_rtpropFromTypesAverageUniform(
                                       lon_grid,
                                       rtp_pos[0],
                                       verbosity);
-
+  
   // Prepare output variables
   surface_type_mix.resize(ntypes);
   surface_type_mix = 0.;
@@ -3254,7 +3248,7 @@ void surface_rtpropFromTypesAverageUniform(
   surface_emission = 0.;
 
   // Help variables
-  const Numeric solid_angles_sum = solid_angles.sum();
+  const Numeric weight_sum = dlos_weight_vector.sum();
   Numeric tmp_skin_t;
   Vector tmp_type_mix;
   Matrix tmp_emission, tmp_los;
@@ -3283,7 +3277,7 @@ void surface_rtpropFromTypesAverageUniform(
                        "returns a *surface_los* with one row.");
 
     // Sum up
-    const Numeric weight = solid_angles[i] / solid_angles_sum;
+    const Numeric weight = dlos_weight_vector[i] / weight_sum;
     tmp_type_mix *= weight;
     surface_type_mix += tmp_type_mix;
     surface_skin_t += weight * tmp_skin_t;

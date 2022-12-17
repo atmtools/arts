@@ -5933,7 +5933,7 @@ Available models:
           "width/2 are removed. The resulting number of dlos-directions\n"
           "is then roughly pi * npoints * npoints / 4.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("dlos", "solid_angles"),
+      OUT("dlos", "dlos_weight_vector"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -8350,8 +8350,10 @@ Available models:
           "\n"
           "For cases with no intersection, *pos* and *los* are filled with NaN.\n"
           "\n"
-          "The WSM *rte_pos_losForwardToAltitude* performs the same operation\n"
-          "with *rte_pos* and *rte_los* as input.\n"),
+          "The GOUT *pos* and *los* can NOT be *sensor_pos* and *sensor_los*.\n"
+          "If you want to store the intersections in *sensor_pos* and *sensor_los*\n"
+          "use *sensor_pos_losForwardToAltitude*. For *rte_pos* and *rte_los*\n"
+          "you have *rte_pos_losForwardToAltitude*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -17612,7 +17614,9 @@ where N>=0 and the species name is something line "H2O".
           "If the original *rte_los* is reversed with respect to the line-of-sight\n"
           "direction, then set the GIN los_reversed to 1. One such case is that\n"
           "if *rte_los* represents surface incidence angles, i.e. holds the\n"
-          "zenith and nadir angle towards the sensor.\n"),
+          "zenith and nadir angle towards the sensor.\n"
+          "\n"
+          "There is also *sensor_pos_losBackwardToAltitude*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos", "rte_los"),
       GOUT(),
@@ -17634,8 +17638,9 @@ where N>=0 and the species name is something line "H2O".
           "when forward-propagating the original *rte_pos* and *rte_los*\n"
           "geometrically.\n"
           "\n"
-          "The WSM *IntersectionGeometricalWithAltitude* performs the same\n"
-          "operation with *sensor_pos* and *sensor_los* as input.\n"),
+          "There is also *sensor_pos_losForwardToAltitude*. The WSM\n"
+          "*IntersectionGeometricalWithAltitude* performs the same operation\n"
+          "with *sensor_pos* and *sensor_los* as input.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos", "rte_los"),
       GOUT(),
@@ -18498,7 +18503,7 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "Reverses the direction in *sensor_los*.\n"
           "\n"
-          "The method updates *sensor_los* to have angles matching the reversed\n"
+          "The method updates *sensor_los* to have angles of the reversed\n"
           "direction.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
@@ -18558,6 +18563,66 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_pos_losBackwardToAltitude"),
+      DESCRIPTION(
+          "Moves *sensor_pos* and *sensor_los* backwards to the target altitude.\n"
+          "\n"
+          "The method gives the *sensor_pos* and *sensor_los* at the target altitude\n"
+          "to reach the original *sensor_pos* and *sensor_los* with a geometrical\n"
+          "ppath. That is, the movement is backwards in terms of viewing direction.\n"
+          "\n"
+          "If the original *sensor_los* is reversed with respect to the line-of-sight\n"
+          "direction, then set the GIN los_reversed to 1. One such case is that\n"
+          "if *sensor_los* represents surface incidence angles, i.e. holds the\n"
+          "zenith and nadir angle towards the sensor.\n"
+          "\n"
+          "There is also *rte_pos_losBackwardToAltitude*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos",
+         "sensor_los",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "refellipsoid"),
+      GIN("altitude", "los_is_reversed"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("Target altitude.",
+               "Set to 1 if *rte_los* is valid for the reversed direction.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_pos_losForwardToAltitude"),
+      DESCRIPTION(
+          "Moves *sensor_pos* and *sensor_los* forward to the target altitude.\n"
+          "\n"
+          "The method gives the *sensor_pos* and *sensor_los* at the target altitude\n"
+          "when forward-propagating the original *sensor_pos* and *sensor_los*\n"
+          "geometrically.\n"
+          "\n"
+          "The WSM *IntersectionGeometricalWithAltitude* performs the same operation\n"
+          "but allows to store the new pos and los as other variables. There is\n"
+          "also *rte_pos_losForwardToAltitude*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos",
+         "sensor_los", 
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid", 
+         "refellipsoid"),
+      GIN("altitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Target altitude.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseAntenna"),
@@ -20253,20 +20318,22 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("A field of surface reflectivities")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surface_rtpropFromTypesAverageUniform"),
+      NAME("surface_rtpropFromTypesAverage"),
       DESCRIPTION(
-          "Extracts surface RT properties by local averaging.\n"
+          "Extracts surface RT properties by averaging.\n"
           "\n"
           "This method allows to let one pencil beam calculation represent\n"
-          "a solid angle when it comes to surface RT properties. The surface\n"
-          "is sampled at a set of positions. This sampling is defined by\n"
-          "a set of relative angles at the sensor. The actual sampling angles\n"
-          "are obtained by *dlosUniform*, and see that WSM for the distribution\n"
-          "of angles.\n"
+          "an area when it comes to surface RT properties. The surface is\n"
+          "sampled at a set of positions. The sampling is defined as a set\n"
+          "of angles by the WSV *dlos*.\n"
+          "\n"
+          "A weight must be specified for each angle by *dlos_weight_vector*.\n"
+          "These weights should represent the solid angle each *dlos* covers,\n"
+          "but can also include other weighting factors such as antenna pattern.\n" 
+          "The sum of *dlos_weight_vector* is internally normalised to 1.\n"
           "\n"
           "All the output variables are a weighted average between the surface\n"
-          "types inside the area sampled. The weighting considers the solid\n"
-          "angle of each sample direction.\n"),
+          "types inside the area sampled.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_type_mix",
           "surface_skin_t",
@@ -20287,14 +20354,14 @@ where N>=0 and the species name is something line "H2O".
          "rtp_los",
          "refellipsoid",
          "surface_type_mask",
-         "surface_rtprop_agenda_array"),
-      GIN("z_sensor", "width", "npoints", "crop_circular"),
-      GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Sensor altitude.",
-               "As same GIN in *dlosUniform*.",
-               "As same GIN in *dlosUniform*.",
-               "As same GIN in *dlosUniform*.")));
+         "surface_rtprop_agenda_array",
+         "z_sensor",
+         "dlos",
+         "dlos_weight_vector"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesManual"),

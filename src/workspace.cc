@@ -1063,11 +1063,20 @@ void define_wsv_data() {
           "\n"
           "Let us say that you add relative angles to a line-of-sight of za = 90\n"
           "and aa=0. Then adding the following (dza,daa) gives los of (za,aa):\n"
-          "   (1,0) -> (89,0)\n"
+          "   (1,0) -> (91,0)\n"
           "   (0,1) -> (90,1)\n"
-          "   (-90,45) -> (180,undefined)\n"),
+          "   (-90,45) -> (0,undefined)\n"),
       GROUP("Matrix")));
 
+  wsv_data.push_back(WsvRecord(
+      NAME("dlos_weight_vector"),
+      DESCRIPTION(
+          "A weight associated with each direction *dlos*.\n"
+          "\n"
+          "A standard application should be to store the solid angle each\n"
+          "row in *dlos* covers.\n"),
+      GROUP("Vector")));
+  
   wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
       DESCRIPTION(
@@ -4485,17 +4494,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("ArrayOfGriddedField1")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("solid_angles"),
-      DESCRIPTION(
-          "A set of solid angles.\n"
-          "\n"
-          "One application of the variable is give the solid angle matching\n"
-          "each row in *dlos*.\n"
-          "\n"
-          "Unit: steradian\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("spectral_irradiance_field"),
       DESCRIPTION(
           "Spectral irradiance field.\n"
@@ -5651,6 +5649,20 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("z_hse_accuracy"),
       DESCRIPTION(
           "Minimum accuracy for calculation of hydrostatic equilibrium.\n"
+          "\n"
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("z_sensor"),
+      DESCRIPTION(
+          "The altitude of the sensor.\n"
+          "\n"
+          "Please note that the sensor altitude actaully applied is in general\n"
+          "specified by *sensor_pos*. This WSV is only a help, to set other\n"
+          "workspace variables and to call methods in a consistent manner\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
