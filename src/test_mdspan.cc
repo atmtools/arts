@@ -820,6 +820,28 @@ void test5() {
   cout << "\nb^t = a^t * M = \n" << transpose((MatrixView)b) << "\n";
 }
 
+void test6() {
+  Index n = 5000;
+  Vector x(1, n, 1), y(n);
+  Matrix M(n, n);
+  M = 1;
+  //  cout << "x = \n" << x << "\n";
+
+  cout << "Transforming.\n";
+  //  transform(x,sin,x);
+  // transform(transpose(y),sin,transpose(x));
+  //  cout << "sin(x) =\n" << y << "\n";
+  for (Index i = 0; i < 1000; ++i) {
+    //      mult(y,M,x);
+    y = x;
+    y.transform_elementwise([](auto& x){return sin(x);});
+    x += 1;
+  }
+  //  cout << "y =\n" << y << "\n";
+
+  cout << "Done.\n";
+}
+
 int main() {
   // test_impl();
   // test_mult();
@@ -830,5 +852,6 @@ int main() {
   // test1();
   // test2();
   // test4();
-  test5();
+  // test5();
+  test6();
 }
