@@ -1,14 +1,13 @@
 #include "debug.h"
 #include "matpack.h"
 
-#include <c++/v1/concepts>
-#include <limits>
 #include <mdspan/include/experimental/mdspan>
 
 #include <algorithm>
 #include <array>
 #include <concepts>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <ostream>
@@ -129,8 +128,9 @@ template <typename T>
 concept integral = std::integral<std::remove_cvref_t<T>>;
 
 template <typename T>
-concept access_operator = integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker> or std::is_same_v<std::remove_cvref_t<T>, strided_access>;
-
+concept access_operator =
+    integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker> or
+    std::is_same_v<std::remove_cvref_t<T>, strided_access>;
 
 // Necessary for different operators to predefine these
 template <typename T, detail::size_t N> class simple_data;
@@ -140,6 +140,11 @@ template <typename U, typename T, detail::size_t N>
 concept mutable_view =
     std::same_as<std::remove_cvref_t<U>, simple_view<T, N, false>> or
     std::same_as<std::remove_cvref_t<U>, strided_view<T, N, false>>;
+template <typename U, typename T, detail::size_t N>
+concept any_mutable =
+    mutable_view<U, T, N> or
+    std::same_as<std::remove_volatile_t<std::remove_reference_t<U>>,
+                 simple_data<T, N>>;
 template <typename U, typename T, detail::size_t N>
 concept const_view =
     std::same_as<std::remove_cvref_t<U>, simple_view<T, N, true>> or
@@ -512,7 +517,7 @@ public:
     return *this;
   }
 
-  constexpr simple_view& operator=(const T& x) {
+  constexpr simple_view& operator=(const T& x) requires (not constant) {
     std::fill(data_handle(), data_handle()+size(), x);
     return *this;
   }
@@ -541,9 +546,19 @@ public:
   [[nodiscard]] constexpr auto imag() const {return strided_view<T, N, true>{*this}.imag();}
   [[nodiscard]] constexpr auto imag() {return strided_view<T, N, constant>{*this}.imag();}
 
-  constexpr simple_view& operator*=(T x) {
+  constexpr simple_view& operator*=(T x) requires(not constant) {
     std::transform(data_handle(), data_handle()+size(), data_handle(), [x](auto& y){return x * y;});
     return *this;
+  }
+
+  constexpr simple_view& operator+=(T x) requires(not constant) {
+    std::transform(data_handle(), data_handle()+size(), data_handle(), [x](auto& y){return x + y;});
+    return *this;
+  }
+
+  template <class F>
+  void transform_elementwise(F&& func) requires(not constant) {
+    std::transform(data_handle(), data_handle()+size(), data_handle(), func);
   }
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
@@ -615,7 +630,6 @@ public:
     return strided_view<T, M, constant> {view.data_handle(), {sz, st}};
   }
 
-  template <typename U>
   strided_view &operator=(const any_same_md<N> auto &sv)
     requires(not constant)
   {
@@ -625,7 +639,7 @@ public:
     return *this;
   }
 
-  constexpr strided_view& operator=(const T& x) {
+  constexpr strided_view& operator=(const T& x) requires(not constant) {
     if constexpr (N == 1)
       std::fill(begin(), end(), x);
     else
@@ -737,12 +751,28 @@ public:
     return std::transform_reduce(begin(), end(), x.begin(), T{});
   }
 
-  constexpr strided_view& operator*=(T x) {
+  constexpr strided_view& operator*=(T x) requires(not constant) {
     if constexpr (N == 1)
       std::transform(begin(), end(), begin(), [x](auto& y){return x * y;});
     else
       for (auto y: *this) y *= x;
     return *this;
+  }
+
+  constexpr strided_view& operator+=(T x) requires(not constant) {
+    if constexpr (N == 1)
+      std::transform(begin(), end(), begin(), [x](auto& y){return x * y;});
+    else
+      for (auto y: *this) y *= x;
+    return *this;
+  }
+
+  template <class F>
+  void transform_elementwise(F&& func) requires(not constant) {
+    if constexpr (N == 1)
+      std::transform(begin(), end(), begin(), func);
+    else
+      for (auto sv: *this) sv.transform_elementwise(func);
   }
 
   [[nodiscard]] constexpr bool is_exhaustive() const noexcept {return view.is_exhaustive();}
@@ -833,6 +863,12 @@ public:
                     defdata(std::forward<arguments>(args)...)) {
   }
 
+  // Create a linearly-spaced vector
+  simple_data(T x0, detail::size_t sz, T dx) requires(N == 1) : data(sz), view(data.data(), sz) {
+    auto gen = [x=x0, dx]() mutable {auto out=x; x+=dx; return out;};
+    std::generate(data.begin(), data.end(), gen);
+  }
+
   constexpr simple_data(std::vector<T> &&x) noexcept
     requires(N == 1)
       : data(std::move(x)),
@@ -869,7 +905,7 @@ public:
     std::copy(sv.begin(), sv.end(), begin());
   }
 
-  constexpr simple_data& operator=(const any_same_view<N> auto& sv) requires(not constant) {
+  constexpr simple_data& operator=(const any_same_view<N> auto& sv) {
     if (view.view.data_handle() not_eq sv.view.data_handle()) {
       if (auto s = sv.shape(); shape() not_eq s) resize(s);
       std::copy(sv.begin(), sv.end(), begin());
@@ -922,6 +958,11 @@ public:
     return *this;
   }
 
+  constexpr simple_data& operator+=(T x) {
+    std::transform(data.begin(), data.end(), data.begin(), [x](auto& y){return x * y;});
+    return *this;
+  }
+
   //! access operator
   ARTS_SIZES
   template<access_operator ... access> [[nodiscard]] constexpr auto operator()(access... ind) -> decltype(view(access{}...)) {return view(std::forward<access>(ind)...);}
@@ -947,7 +988,7 @@ public:
   [[nodiscard]] auto crbegin() const requires(N == 1) {return data.crbegin();}
 
   //! ARTS Helper functions
-  [[nodiscard]] constexpr T operator*(const any_same_md<1> auto &x) const requires(N==1) {
+  [[nodiscard]] constexpr T operator*(const any_same_md<N> auto &x) const requires(N==1) {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
   }
