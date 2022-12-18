@@ -136,27 +136,23 @@ concept access_operator = integral<T> or std::is_same_v<std::remove_cvref_t<T>, 
 template <typename T, detail::size_t N> class simple_data;
 template <typename T, detail::size_t N, bool constant> class simple_view;
 template <typename T, detail::size_t N, bool constant> class strided_view;
-template <typename T, detail::size_t N, typename U>
+template <typename U, typename T, detail::size_t N>
 concept mutable_view =
     std::same_as<std::remove_cvref_t<U>, simple_view<T, N, false>> or
     std::same_as<std::remove_cvref_t<U>, strided_view<T, N, false>>;
-template <typename T, detail::size_t N, typename U>
+template <typename U, typename T, detail::size_t N>
 concept const_view =
     std::same_as<std::remove_cvref_t<U>, simple_view<T, N, true>> or
     std::same_as<std::remove_cvref_t<U>, strided_view<T, N, true>>;
-template <typename T, detail::size_t N, typename U>
-concept any_view = mutable_view<T, N, U> or const_view<T, N, U>;
-template <typename T, detail::size_t N, typename U>
-concept any_md = any_view<T, N, U> or
+template <typename U, typename T, detail::size_t N>
+concept any_view = mutable_view<U, T, N> or const_view<U, T, N>;
+template <typename U, typename T, detail::size_t N>
+concept any_md = any_view<U, T, N> or
                  std::same_as<std::remove_cvref_t<U>, simple_data<T, N>>;
-template <detail::size_t N, typename U>
-concept any_same_view = any_view<typename U::value_type, N, U>;
-template <detail::size_t N, typename U>
-concept any_same_md = any_md<typename U::value_type, N, U>;
-template <typename U>
-concept any_1D_md = any_same_md<1, U>;
-template <typename U>
-concept any_2D_md = any_same_md<2, U>;
+template <typename U, detail::size_t N>
+concept any_same_view = any_view<U, typename U::value_type, N>;
+template <typename U, detail::size_t N>
+concept any_same_md = any_md<U, typename U::value_type, N>;
 
 template <typename T>
 concept complex_type = requires(T a) {
@@ -507,9 +503,8 @@ public:
     return simple_view<T, M, constant>{*this};
   }
 
-  template <typename U>
-  constexpr simple_view &operator=(const U &sv)
-    requires(not constant and any_same_md<N, U>)
+  constexpr simple_view &operator=(const any_same_md<N> auto &sv)
+    requires(not constant)
   {
     ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
     if (view.data_handle() not_eq sv.view.data_handle()) {
@@ -533,7 +528,7 @@ public:
     return std::reduce(data_handle(), data_handle()+size(), T{});
   }
   
-  [[nodiscard]] constexpr T operator*(const any_1D_md auto&x) const
+  [[nodiscard]] constexpr T operator*(const any_same_md<1> auto&x) const
   {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
@@ -621,8 +616,8 @@ public:
   }
 
   template <typename U>
-  strided_view &operator=(const U &sv)
-    requires(not constant and any_same_md<N, U>)
+  strided_view &operator=(const any_same_md<N> auto &sv)
+    requires(not constant)
   {
     ARTS_ASSERT(shape() == sv.shape(), "Mismatch shape")
     if (view.data_handle() not_eq sv.view.data_handle())
@@ -736,7 +731,7 @@ public:
       return std::reduce(begin(), end(), T{}, [](auto& v) {return v.sum();});
     }
   }
-  [[nodiscard]] constexpr T operator*(const any_1D_md auto&x) const
+  [[nodiscard]] constexpr T operator*(const any_same_md<1> auto &x) const requires(N == 1)
   {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
@@ -869,15 +864,12 @@ public:
     return strided_view<T, M, false>{simple_view<T, M, false>{view}};
   }
 
-  template <typename U>
-  constexpr simple_data(const U &sv)
-    requires(any_same_view<N, U>)
+  constexpr simple_data(const any_same_view<N> auto &sv)
       : data(sv.size()), view(data.data(), sv.shape()) {
     std::copy(sv.begin(), sv.end(), begin());
   }
 
-  template <typename U>
-  constexpr simple_data& operator=(const U& sv) requires(any_same_view<N, U>) {
+  constexpr simple_data& operator=(const any_same_view<N> auto& sv) requires(not constant) {
     if (view.view.data_handle() not_eq sv.view.data_handle()) {
       if (auto s = sv.shape(); shape() not_eq s) resize(s);
       std::copy(sv.begin(), sv.end(), begin());
@@ -955,7 +947,7 @@ public:
   [[nodiscard]] auto crbegin() const requires(N == 1) {return data.crbegin();}
 
   //! ARTS Helper functions
-  [[nodiscard]] constexpr T operator*(const any_1D_md auto &x) const {
+  [[nodiscard]] constexpr T operator*(const any_same_md<1> auto &x) const requires(N==1) {
     ARTS_ASSERT(size() == x.size())
     return std::transform_reduce(begin(), end(), x.begin(), T{});
   }
@@ -1191,7 +1183,7 @@ void mult(matpack::md::strided_view<Complex, 2, false> C,
 
 template<typename T>
 concept transposable_matrix = requires(T a) {
-  { a.transpose() } -> matpack::md::any_2D_md;
+  { a.transpose() } -> matpack::md::any_same_md<2>;
 };
 
 /** Returns a view of the transpose of some object
