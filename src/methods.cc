@@ -3206,24 +3206,20 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("AntennaConstantGaussian1D"),
       DESCRIPTION(
-          "Sets up a 1D gaussian antenna response and a matching\n"
-          "*mblock_dlos*.\n"
+          "Sets up a 1D gaussian antenna response and a matching *mblock_dlos*.\n"
           "\n"
           "As *antenna_responseGaussian*, but also creates *mblock_dlos*.\n"
-          "For returned antenna response, see *antenna_responseGaussian*.\n"
+          "For definition of the GINs *fwhm*, *grid_width* and *grid_npoints*,\n"
+          "see *antenna_responseGaussian*.\n"
           "\n"
-          "The size of *mblock_dlos* is determined by *n_za_grid*.\n"
+          "The length of *mblock_dlos* is determined by *n_mblock_dlos*.\n"
           "The end points of the grid are set to be the same as for the\n"
           "antenna response. The spacing of the grid follows the magnitude of\n"
           "the response; the spacing is smaller where the response is high.\n"
           "More precisely, the grid points are determined by dividing\n"
-          "the cumulative sum of the response in equal steps. This makes sense\n"
-          "if the representation error of the radiance (as a function of\n"
-          "zenith angle) increases linearly with the grid spacing.\n"
+          "the cumulative sum of the response in equal steps.\n"
           "\n"
-          "The WSV *antenna_dlos* is set to [0].\n"
-          "\n"
-          "The antenna repsonse is not normalised.\n"),
+          "The WSV *antenna_dlos* is set to [0].\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_dim",
           "mblock_dlos",
@@ -3233,13 +3229,13 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("n_za_grid", "fwhm", "xwidth_si", "dx_si"),
-      GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "3", "0.1"),
+      GIN("n_mblock_dlos", "fwhm", "grid_width", "grid_npoints"),
+      GIN_TYPE("Index", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "-1", "-1"),
       GIN_DESC("Number of points (>1) to include in *mblock_dlos*.",
-               "Full width at half-maximum of antenna beam [deg].",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.")));
+               "Full width at half-maximum of the Gaussian function.",
+               "Full width of grid.",
+               "Number of points to represent the grid.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AntennaMultiBeamsToPencilBeams"),
@@ -3298,49 +3294,53 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseGaussian"),
       DESCRIPTION(
-          "Sets up a gaussian antenna response.\n"
+          "Sets up a Gaussian antenna response.\n"
           "\n"
           "The method assumes that the response is the same for all\n"
-          "frequencies and polarisations, and that it can be modelled as\n"
-          "gaussian.\n"
+          "frequencies and polarisations, and that it can be modelled\n"
+          "as Gaussian. The width of the Gaussian is specified by its\n"
+          "full width at half maximum (FWHM).\n"
           "\n"
-          "The grid generated is approximately\n"
-          "   si * [-xwidth_si:dx_si:xwidth_si]\n"
-          "where si is the standard deviation corresponding to the FWHM.\n"
-          "That is, width and spacing of the grid is specified in terms of\n"
-          "number of standard deviations. If xwidth_si is set to 2, the\n"
-          "response will cover about 95% the complete response. For\n"
-          "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
-          "an integer, the end points of the grid are kept and the spacing\n"
-          "of the grid is reduced (ie. spacing is equal or smaller *dx_si*).\n"
+          "The grid generated has *grid_npoints* equidistant values, with\n"
+          "the first one at -grid_width/2 and the last one at grid_width/2.\n"
+          "\n"
+          "If *grid_width* is set to <= 0, a default of twice the FWMH is\n"
+          "applied. This gives a coverage of about 98\% of the response.\n"
+          "\n"
+          "Similarly, setting *grid_npoints* to <=0 activates a default of\n"
+          "21. When the grid width is 2*FWHM, this default gives an error\n"
+          "< 0.001 of the integrated response using trapezoidal integration.\n"
+          "The number of points is not allowed to be 1.\n"
           "\n"
           "If the 2D option is selected (*do_2d*), a circular antenna is\n"
-          "assumed and the response is any direction follows the 1D case.\n"
+          "assumed. The same grid and FWHM is applied in both dimensions.\n"
           "\n"
-          "The antenna repsonse is not normalised.\n"),
+          "If the grid has a sufficiently high width the integral of the\n"
+          "response is 1. Otherwise the integral is smaller than 1. That\n"
+          "is, no normalisation is applied.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("fwhm", "xwidth_si", "dx_si", "do_2d"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "3", "0.1", "0"),
-      GIN_DESC("Full width at half-maximum",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.",
+      GIN("fwhm", "grid_width", "grid_npoints", "do_2d"),
+      GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "-1.0", "-1", "0"),
+      GIN_DESC("Full width at half-maximum of the Gaussian function.",
+               "Full width of grid (negative value gives 2*fwhm).",
+               "Number of points to represent the grid, see above.",
                "Set to 1 to create a 2D antenna pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseVaryingGaussian"),
       DESCRIPTION(
-          "Sets up gaussian antenna responses.\n"
+          "Sets up Gaussian antenna responses.\n"
           "\n"
           "Similar to *antenna_responseGaussian* but allows to set up\n"
           "responses that varies with frequency. That is, the method assumes\n"
           "that the response is the same for all polarisations, and that it\n"
-          "can be modelled as a gaussian function varying with frequency.\n"
+          "can be modelled as a Gaussian function varying with frequency.\n"
           "\n"
           "The full width at half maximum (FWHM in radians) is calculated as:\n"
           "    fwhm = lambda / leff\n"
@@ -3352,34 +3352,28 @@ Available models:
           "range [*fstart*,*fstop*], with a logarithmic spacing. That is, the\n"
           "frequency grid of the responses is taken from *VectorNLogSpace*.\n"
           "\n"
-          "The responses have a common angular grid. The width, determined by\n"
-          "*xwidth_si*, is set for the lowest frequency, while the spacing\n"
-          "(*dx_si*) is set for the highest frequency. This ensures that both\n"
-          "the width and spacing are equal or better than *xwidth_si* and\n"
-          "*dx_si*, respectively, for all frequencies.\n"
-          "\n"
-          "If the 2D option is selected (*do_2d*), a circular antenna is\n"
-          "assumed and the response is any direction follows the 1D case.\n"
-          "\n"
-          "The antenna repsonse is not normalised.\n"),
+          "The responses have a common angular grid. The parameters to define\n"
+          "the grid are the same as for *antenna_responseGaussian*. If\n" 
+          "*grid_width* is <= 0, it is set to twice the FWHN at the lowest\n"
+          "frequency. Also the 2D option works as for *antenna_responseGaussian*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("leff", "xwidth_si", "dx_si", "nf", "fstart", "fstop", "do_2d"),
+      GIN("leff", "grid_width", "grid_npoints", "nf", "fstart", "fstop", "do_2d"),
       GIN_TYPE("Numeric",
                "Numeric",
-               "Numeric",
+               "Index",
                "Index",
                "Numeric",
                "Numeric",
                "Index"),
-      GIN_DEFAULT(NODEF, "3", "0.1", NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Effective size of the antenna",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.",
+      GIN_DEFAULT(NODEF, "-1.0", "-1", NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Effective size of the antenna,",
+               "Full width of grid.",
+               "Number of points to represent the grid.",
                "Number of points in frequency grid (must be >= 2)",
                "Start point of frequency grid",
                "End point of frequency grid",
@@ -4333,12 +4327,12 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
       DESCRIPTION(
-          "Sets up a rectangular channel response.\n"
+          "Sets up a rectangular channel response.\n" 
+          "\n"
+          "The method assumes that all channels have the same response.\n"
           "\n"
           "The response of the backend channels is hee assumed to be constant\n"
-          "inside the resolution width, and zero outside.\n"
-          "\n"
-          "The method assumes that all channels have the same response.\n"),
+          "inside the resolution width, and zero outside.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("backend_channel_response"),
       GOUT(),
@@ -4353,37 +4347,25 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseGaussian"),
       DESCRIPTION(
-          "Sets up a gaussian backend channel response.\n"
+          "Sets up a Gaussian backend channel response.\n"
           "\n"
-          "The method assumes that all channels can be modelled as gaussian.\n"
+          "The method assumes that all channels have the same response.\n"
           "\n"
-          "If *fwhm* has only one element, all channels are assumed to be equal.\n"
-          "If *fwhm* has multiple elements, *xwidth_si* and *dx_si* must have one\n"
-          "element or the same number of elements as *fwhm*. If one element is given,\n"
-          "this value will be used for all channels.\n"
-          "\n"
-          "The grid generated can be written as\n"
-          "   si * [-xwidth_si:dx_si:xwidth_si]\n"
-          "where si is the standard deviation corresponding to the FWHM.\n"
-          "That is, width and spacing of the grid is specified in terms of\n"
-          "number of standard deviations. If xwidth_si is set to 2, the\n"
-          "response will cover about 95% the complete response. For\n"
-          "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
-          "an integer, the end points of the grid are kept and the spacing\n"
-          "if the grid is adjusted in the downward direction (ie. spacing is.\n"
-          "is max *dx_si*).\n"),
+          "The GINs *fwhm*, *grid_width* and *grid_npoints* work in the\n"
+          "same way as for *antenna_responseGaussian*. This including how\n"
+          "negative *grid_width* and *grid_npoints* are treated.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("fwhm", "xwidth_si", "dx_si"),
-      GIN_TYPE("Vector", "Vector", "Vector"),
-      GIN_DEFAULT(NODEF, "[3]", "[0.1]"),
-      GIN_DESC("Full width at half-maximum",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.")));
+      GIN("fwhm", "grid_width", "grid_npoints"),
+      GIN_TYPE("Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "-1.0", "-1"),
+      GIN_DESC("Full width at half-maximum of the Gaussian function.",
+               "Full width of grid.",
+               "Number of points to represent the grid.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactAddConstant"),
@@ -11555,6 +11537,35 @@ Available models:
                GIN_TYPE("CovarianceMatrix"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Input covariance matrix.")));
+
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("MatrixGaussian"),
+      DESCRIPTION(
+          "Fills a matrix with a Gaussian function.\n"
+          "\n"
+          "Works as *VectorGaussian* but grid, mean and si/fwhm must be\n"
+          "specified for each dimension.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("Y"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Output Matrix."),
+      IN(),
+      GIN("x_row", "x0_row", "si_row", "fwhm_row",
+          "x_col", "x0_col", "si_col", "fwhm_col"),
+      GIN_TYPE("Vector", "Numeric", "Numeric", "Numeric",
+               "Vector", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "-1", "-1",
+                  NODEF, "0", "-1", "-1"),
+      GIN_DESC("Grid of the function for row dimension.",
+               "Centre/mean point of the function for row dimension.",
+               "Row standard deviation of the function, ignored if <=0.",
+               "Row full width at half-max of the function, ignored if <=0.",
+               "Grid of the function for column dimension.",
+               "Centre/mean point of the function for column dimension.",
+               "Column standard deviation of the function, ignored if <=0.",
+               "Column full width at half-max of the function, ignored if <=0.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixIdentity"),
@@ -21567,6 +21578,30 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Vector"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Input vector.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorGaussian"),
+      DESCRIPTION(
+          "Fills a vector with a Gaussian function.\n"
+          "\n"
+          "The width can be set in two ways, either by standard deviation or\n"
+          "the full width at half maximum. Only one of the corresponding GINs\n"
+          "can be >0 and that value will determine the width.\n"
+          "\n"
+          "The vectors *x* and *y* can be the same variable.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("y"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector."),
+      IN(),
+      GIN("x", "x0", "si", "fwhm"),
+      GIN_TYPE("Vector", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "-1", "-1"),
+      GIN_DESC("Grid of the function.",
+               "Centre/mean point of the function.",
+               "Standard deviation of the function, ignored if <=0.",
+               "Full width at half-max of the function, ignored if <=0.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorInsertGridPoints"),

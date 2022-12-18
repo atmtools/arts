@@ -67,6 +67,9 @@
 #include "quantum_numbers.h"
 #include "sorting.h"
 
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -187,6 +190,46 @@ void MatrixDivide(Matrix& out,
     out.resize(in.nrows(), in.ncols());
     out = in;
     out /= value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixGaussian(
+    Matrix& Y,
+    const Vector& x_row,
+    const Numeric& x0_row,
+    const Numeric& si_row,
+    const Numeric& fwhm_row,
+    const Vector& x_col,
+    const Numeric& x0_col,
+    const Numeric& si_col,
+    const Numeric& fwhm_col,
+    const Verbosity&)
+{
+  ARTS_USER_ERROR_IF ((si_row<=0 && fwhm_row<=0) ||
+                      (si_row>0 && fwhm_row>0),
+     "One of the GINs *si_row* and *fwhm_row* shall be >0, but just one.");
+  ARTS_USER_ERROR_IF ((si_col<=0 && fwhm_col<=0) ||
+                      (si_col>0 && fwhm_col>0),
+     "One of the GINs *si_col* and *fwhm_col* shall be >0, but just one.");
+
+  const Index nrow = x_row.nelem();
+  const Index ncol = x_col.nelem();
+  Y.resize(nrow, ncol);
+
+  const Numeric si4row = si_row > 0 ? si_row : fwhm_row / (2 * sqrt(2 * NAT_LOG_2));
+  const Numeric si4col = si_col > 0 ? si_col : fwhm_col / (2 * sqrt(2 * NAT_LOG_2));
+  Vector row_term(nrow);
+  for (Index r=0; r<nrow; ++r)
+    row_term[r] = pow((x_row[r] - x0_row) / si4row, 2.0);
+  Vector col_term(ncol);
+  for (Index c=0; c<ncol; ++c)
+    col_term[c] = pow((x_col[c] - x0_col) / si4col, 2.0);
+  const Numeric fac = 1 / (2 * PI * si4row * si4col);
+  for (Index r=0; r<nrow; ++r) {
+     for (Index c=0; c<ncol; ++c) {
+       Y(r,c) = fac * exp(-0.5 * (row_term[r] + col_term[c]));
+    }
   }
 }
 
@@ -1256,6 +1299,32 @@ void VectorFlip(Vector& out, const Vector& in, const Verbosity&) {
     // Out and in are different.
     out.resize(n);
     for (Index i = 0; i < n; i++) out[i] = in[n - 1 - i];
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorGaussian(
+    Vector& y,
+    const Vector& x,
+    const Numeric& x0,
+    const Numeric& si,
+    const Numeric& fwhm,
+    const Verbosity&)
+{
+  ARTS_USER_ERROR_IF ((si<=0 && fwhm<=0) || (si>0 && fwhm>0),
+     "One of the GINs *si* and *fwhm* shall be >0, but just one.");
+
+  const Index n = x.nelem();
+
+  // Note that y and x can be the same vector
+  if (&y != &x) {
+    y.resize(n);
+  }
+
+  const Numeric si2use = si > 0 ? si : fwhm / (2 * sqrt(2 * NAT_LOG_2));
+  const Numeric fac = 1 / (sqrt(2 * PI) * si2use);
+  for (Index i=0; i<n; ++i) {
+    y[i] = fac * exp(-0.5 * pow((x[i] - x0) / si2use, 2.0));
   }
 }
 

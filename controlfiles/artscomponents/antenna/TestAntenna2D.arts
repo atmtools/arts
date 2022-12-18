@@ -123,16 +123,16 @@ Copy( geo_ref, y_geo )
 
 # Define 1D antenna
 #
-NumericCreate( xwidth )
-NumericSet( xwidth, 3 )
 VectorCreate( dza )
 VectorCreate( zeros )
 IndexCreate( ndlos )
 #
-antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
-                                 0.25, 5, 10e9, 40e9, 0 )
-#WriteXML("ascii",antenna_response,"A.xml",0)
-# The generated antenna has a grid extening between about -1.46 and +1.46 deg
+antenna_responseVaryingGaussian( antenna_response=antenna_response,
+                                 leff=1.5,
+                                 nf=5,
+                                 fstart=10e9,
+                                 fstop=40e9 )
+
 IndexSet( sensor_norm, 1 )
 IndexSet( antenna_dim, 1 )
 MatrixSet( antenna_dlos, [0] )
@@ -160,8 +160,13 @@ Compare( geo_ref, y_geo, 1e-5 )
 
 # Re-do with 2D antenna (but all azimuths in mblock_dlos set to zero) 
 #
-antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
-                                 0.25, 5, 10e9, 40e9, 1 )
+antenna_responseVaryingGaussian( antenna_response=antenna_response,
+                                 leff=1.5,
+                                 nf=5,
+                                 fstart=10e9,
+                                 fstop=40e9,
+                                 do_2d=1 )
+
 #WriteXML("ascii",antenna_response,"A.xml",0)
 IndexSet( antenna_dim, 2 )
 #

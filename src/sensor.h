@@ -132,60 +132,6 @@ void antenna2d_interp_response(Sparse& H,
                                const Index n_pol);
 
 
-//! gaussian_response_autogrid
-/*!
-   Returns a 1D gaussian response with a suitable grid
-
-   First a grid is generated. The grid is si*[-xwidth_si:dx:xwidth_si],
-   where si is the "standard deviation" corresponding to the FWHM, and
-   dx is biggest possible value < dx_si, to enusre an symmetric grid wth end
-   points exactly at xwidth_si.
-   That is, width and spacing of the grid is specified in terms of number of 
-   standard deviations. If xwidth_si is set to 2, the response will cover
-   about 95% the complete response. For xwidth_si=3, about 99% is covered.
-
-   y is the gaussian function on grid x, with max at x0 and width following
-   fwhm.
-
-   \param   x           Grid generated.
-   \param   y           Calculated response.
-   \param   x0          The x-position of response centre/max.
-   \param   fwhm        The full width at half-maximum of the response
-   \param   xwidth_si   The one-sided width of x. See above.
-   \param   dx_si       The grid step size of x. See above.
-
-   \author Patrick Eriksson
-   \date   2009-09-20
-*/
-void gaussian_response_autogrid(Vector& x,
-                                Vector& y,
-                                const Numeric& x0,
-                                const Numeric& fwhm,
-                                const Numeric& xwidth_si,
-                                const Numeric& dx_si);
-
-
-//! gaussian_response
-/*!
-   Returns a 1D gaussian response
-
-   y is the gaussian function on grid x, with max at x0 and width following
-   fwhm.
-
-   \param   y           Calculated response.
-   \param   x           Grid.
-   \param   x0          The x-position of response centre/max.
-   \param   fwhm        The full width at half-maximum of the response
-
-   \author Patrick Eriksson
-   \date   2009-09-20
-*/
-void gaussian_response(Vector& y,
-                       const Vector& x,
-                       const Numeric& x0,
-                       const Numeric& fwhm);
-
-
 //! mixer_matrix
 /*!
    Sets up the sparse matrix that models the response from sideband filtering

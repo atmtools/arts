@@ -68,6 +68,8 @@ using GriddedFieldGrids::GFIELD4_ZA_GRID;
 using GriddedFieldGrids::GFIELD4_AA_GRID;
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
+const Index GAUSSIAN_NPOINTS_DEFAULT = 21;
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -77,21 +79,17 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
                                Matrix& mblock_dlos,
                                GriddedField4& r,
                                Matrix& antenna_dlos,
-                               const Index& n_za_grid,
+                               const Index& n_mblock_dlos,
                                const Numeric& fwhm,
-                               const Numeric& xwidth_si,
-                               const Numeric& dx_si,
+                               const Numeric& grid_width,
+                               const Index& grid_npoints,
                                const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(dx_si > xwidth_si, "It is demanded that dx_si <= xwidth_si.");
-
-  ARTS_USER_ERROR_IF(n_za_grid < 2, "It is demanded that n_za_grid > 1.");
-
   antenna_dim = 1;
 
   antenna_dlos.resize(1, 1);
   antenna_dlos(0, 0) = 0.0;
 
-  antenna_responseGaussian(r, fwhm, xwidth_si, dx_si, 0, verbosity);
+  antenna_responseGaussian(r, fwhm, grid_width, grid_npoints, 0, verbosity);
 
   // za grid for response
   ConstVectorView r_za_grid = r.get_numeric_grid(GFIELD4_ZA_GRID);
@@ -106,13 +104,13 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
 
   // Equally spaced vector between end points of cumulative sum
   Vector csp;
-  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_za_grid);
+  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_mblock_dlos);
 
   // Get mblock_za_grid by interpolation
-  mblock_dlos.resize(n_za_grid, 1);
-  ArrayOfGridPos gp(n_za_grid);
+  mblock_dlos.resize(n_mblock_dlos, 1);
+  ArrayOfGridPos gp(n_mblock_dlos);
   gridpos(gp, cumtrapz, csp);
-  Matrix itw(n_za_grid, 2);
+  Matrix itw(n_mblock_dlos, 2);
   interpweights(itw, gp);
   interp(mblock_dlos(joker, 0), itw, r_za_grid, gp);
 }
@@ -207,48 +205,44 @@ void AntennaOff(Index& antenna_dim,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_responseGaussian(GriddedField4& r,
                               const Numeric& fwhm,
-                              const Numeric& xwidth_si,
-                              const Numeric& dx_si,
+                              const Numeric& grid_width,
+                              const Index& grid_npoints,
                               const Index& do_2d,
-                              const Verbosity&) {
-  if (dx_si > xwidth_si)
-    throw runtime_error("It is demanded that dx_si <= xwidth_si.");
+                              const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
+  ARTS_USER_ERROR_IF (grid_npoints == 1, "*grid_npoints* can not be 1.");
 
-  Vector x, y;
-  gaussian_response_autogrid(x, y, 0, fwhm, xwidth_si, dx_si);
+  // Defaults
+  const Numeric gwidth = grid_width > 0 ? grid_width : 2 * fwhm;
+  const Index gnpoints = grid_npoints > 0 ? grid_npoints : GAUSSIAN_NPOINTS_DEFAULT;
 
+  // Grid
+  Vector grid;
+  nlinspace(grid, -gwidth/2, gwidth/2, gnpoints);
+
+  // Start to fill r
   r.set_name("Antenna response");
-
   r.set_grid_name(0, "Polarisation");
   r.set_grid(0, {"NaN"});
-
   r.set_grid_name(1, "Frequency");
   r.set_grid(1, Vector(1, -999));
-
   r.set_grid_name(2, "Zenith angle");
-  r.set_grid(2, x);
-
-  // common for 1D and 2D
+  r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
-  const Index n = y.nelem();
-  //
+  
+  const Index n = grid.nelem();
+
   if (do_2d) {
-    r.set_grid(3, x);
+    r.set_grid(3, grid);
     r.data.resize(1, 1, n, n);
-
-    // The code below follows the function *gaussian_response*
-    const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-    const Numeric a = 1 / (si * sqrt(2 * PI));
-
-    for (Index z = 0; z < n; z++) {
-      for (Index b = 0; b < n; b++) {
-        r.data(0, 0, z, b) =
-            a * exp(-0.5 * pow(sqrt(x[z] * x[z] + x[b] * x[b]) / si, 2.0));
-      }
-    }
+    Matrix Y;
+    MatrixGaussian(Y, grid, 0, -1.0, fwhm, grid, 0, -1.0, fwhm, verbosity);
+    r.data(0, 0, joker, joker) = Y;
   } else {
     r.set_grid(3, Vector(1, 0));
     r.data.resize(1, 1, n, 1);
+    Vector y;
+    VectorGaussian(y, grid, 0, -1.0, fwhm, verbosity);
     r.data(0, 0, joker, 0) = y;
   }
 }
@@ -258,65 +252,53 @@ void antenna_responseGaussian(GriddedField4& r,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_responseVaryingGaussian(GriddedField4& r,
                                      const Numeric& leff,
-                                     const Numeric& xwidth_si,
-                                     const Numeric& dx_si,
+                                     const Numeric& grid_width,
+                                     const Index& grid_npoints,
                                      const Index& nf,
                                      const Numeric& fstart,
                                      const Numeric& fstop,
                                      const Index& do_2d,
                                      const Verbosity& verbosity) {
-  if (dx_si > xwidth_si)
-    throw runtime_error("It is demanded that dx_si <= xwidth_si.");
+  Numeric gwidth = grid_width;
+  if (gwidth <= 0) {
+    gwidth = 2.0 * RAD2DEG * SPEED_OF_LIGHT / (leff * fstart);
+  }
+  const Index gnpoints = grid_npoints > 0 ? grid_npoints : GAUSSIAN_NPOINTS_DEFAULT;
 
-  // Calculate response for highest frequency, with xwidth_si scaled from
-  // fstart
-  Vector x, y;
-  Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * fstop);
-  gaussian_response_autogrid(
-      x, y, 0, fwhm, (fstop / fstart) * xwidth_si, dx_si);
+  // Angular grid
+  Vector grid;
+  nlinspace(grid, -gwidth/2, gwidth/2, gnpoints);
 
+  // Start to fill r
   r.set_name("Antenna response");
-
   r.set_grid_name(0, "Polarisation");
   r.set_grid(0, {"NaN"});
-
   Vector f_grid;
   VectorNLogSpace(f_grid, nf, fstart, fstop, verbosity);
   r.set_grid_name(1, "Frequency");
   r.set_grid(1, f_grid);
-
   r.set_grid_name(2, "Zenith angle");
-  r.set_grid(2, x);
-
-  // common for 1D and 2D
+  r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
-  const Index n = y.nelem();
-  //
+
+  const Index n = grid.nelem();
+  
   if (do_2d) {
-    r.set_grid(3, x);
+    r.set_grid(3, grid);
     r.data.resize(1, nf, n, n);
-
+    Matrix Y;
     for (Index i = 0; i < nf; i++) {
-      fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
-      const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-      const Numeric a = 1 / (si * sqrt(2 * PI));
-
-      for (Index z = 0; z < n; z++) {
-        for (Index b = 0; b < n; b++) {
-          r.data(0, i, z, b) =
-              a * exp(-0.5 * pow(sqrt(x[z] * x[z] + x[b] * x[b]) / si, 2.0));
-        }
-      }
+      const Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
+      MatrixGaussian(Y, grid, 0, -1.0, fwhm, grid, 0, -1.0, fwhm, verbosity);
+      r.data(0, i, joker, joker) = Y;
     }
   } else {
     r.set_grid(3, Vector(1, 0));
     r.data.resize(1, nf, n, 1);
-    //
-    r.data(0, nf - 1, joker, 0) = y;
-    //
-    for (Index i = 0; i < nf - 1; i++) {
-      fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
-      gaussian_response(y, x, 0, fwhm);
+    Vector y;
+    for (Index i = 0; i < nf; i++) {
+      const Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
+      VectorGaussian(y, grid, 0, -1.0, fwhm, verbosity);
       r.data(0, i, joker, 0) = y;
     }
   }
@@ -347,40 +329,31 @@ void backend_channel_responseFlat(ArrayOfGriddedField1& r,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
-                                      const Vector& fwhm,
-                                      const Vector& xwidth_si,
-                                      const Vector& dx_si,
-                                      const Verbosity&) {
-  if ((fwhm.nelem() != xwidth_si.nelem() && xwidth_si.nelem() != 1) ||
-      (fwhm.nelem() != dx_si.nelem() && dx_si.nelem() != 1)) {
-    std::ostringstream os;
-    os << "*xwidth_si* and *dx_si* must have one element or the same number of\n";
-    os << "elements as *fwhm*.";
-    throw std::runtime_error(os.str());
-  }
+                                      const Numeric& fwhm,
+                                      const Numeric& grid_width,
+                                      const Index& grid_npoints,
+                                      const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
+  ARTS_USER_ERROR_IF (grid_npoints == 1, "*grid_npoints* can not be 1.");
 
-  Index nchannels = fwhm.nelem();
-  r.resize(nchannels);
+  // Defaults
+  const Numeric gwidth = grid_width > 0 ? grid_width : 2 * fwhm;
+  const Index gnpoints = grid_npoints > 0 ? grid_npoints : GAUSSIAN_NPOINTS_DEFAULT;
+  
+  // Grid
+  Vector grid;
+  nlinspace(grid, -gwidth/2, gwidth/2, gnpoints);
 
-  Vector x, y;
-  Numeric this_xwidth_si = xwidth_si[0];
-  Numeric this_dx_si = dx_si[0];
-  for (Index i = 0; i < nchannels; i++) {
-    if (xwidth_si.nelem() > 1) this_xwidth_si = xwidth_si[i];
-
-    if (dx_si.nelem() > 1) this_dx_si = dx_si[i];
-
-    gaussian_response_autogrid(x, y, 0, fwhm[i], this_xwidth_si, this_dx_si);
-
-    r[i].set_name("Backend channel response function");
-
-    r[i].set_grid_name(0, "Frequency");
-    r[i].set_grid(0, x);
-
-    const Index n = y.nelem();
-    r[i].data.resize(n);
-    for (Index j = 0; j < n; j++) r[i].data[j] = y[j];
-  }
+  // Response
+  Vector y;
+  VectorGaussian(y, grid, 0, -1.0, fwhm, verbosity);
+  
+  // Fill r
+  r.resize(1);
+  r[0].set_name("Backend channel response function");
+  r[0].set_grid_name(0, "Frequency");
+  r[0].set_grid(0, grid);
+  r[0].data = y;
 }
 
 

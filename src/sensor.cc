@@ -37,6 +37,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "auto_md.h"
 #include "gridded_fields.h"
 #include "logic.h"
 #include "matpackI.h"
@@ -622,45 +623,6 @@ void antenna2d_interp_response(Sparse& H,
       }
     }
   }
-}
-
-
-
-void gaussian_response_autogrid(Vector& x,
-                                Vector& y,
-                                const Numeric& x0,
-                                const Numeric& fwhm,
-                                const Numeric& xwidth_si,
-                                const Numeric& dx_si) {
-  ARTS_ASSERT(dx_si <= xwidth_si);
-
-  const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-
-  // Number of points needed to enure that spacing is max dx_si
-  const Index n = (Index)floor(2 * xwidth_si / dx_si) + 1;
-
-  // Grid for response
-  const Numeric dd = si * xwidth_si;
-  nlinspace(x, -dd, dd, n);
-
-  // Calculate response
-  gaussian_response(y, x, x0, fwhm);
-}
-
-
-
-void gaussian_response(Vector& y,
-                       const Vector& x,
-                       const Numeric& x0,
-                       const Numeric& fwhm) {
-  const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-  const Numeric a = 1 / (si * sqrt(2 * PI));
-  const Index n = x.nelem();
-
-  y.resize(n);
-  //
-  for (Index i = 0; i < n; i++)
-    y[i] = a * exp(-0.5 * pow((x[i] - x0) / si, 2.0));
 }
 
 
