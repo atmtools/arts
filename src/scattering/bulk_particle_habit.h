@@ -55,8 +55,8 @@ using scattering::to_arts;
 typedef scattering::Particle ScatteringParticle;
 typedef Array<ScatteringParticle> ArrayOfScatteringParticle;
 
-std::ostream &operator<<(std::ostream &out, const ScatteringParticle &);
 std::ostream &operator<<(std::ostream &out, const ArrayOfScatteringParticle &);
+std::ostream &operator<<(std::ostream &out, const scattering::ParticleType &);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Conversion from legacy data.
@@ -164,6 +164,14 @@ class BulkParticleHabit : public ScatteringSpeciesImpl {
   BulkParticleHabit &operator=(BulkParticleHabit &&) = default;
 
   ~BulkParticleHabit();
+
+  const std::string& get_name() const {return name_;}
+  std::shared_ptr<const Agenda> get_pnd_agenda() const {return pnd_agenda_;}
+  const ArrayOfString& get_pnd_agenda_input() const {return pnd_agenda_input_;}
+  std::shared_ptr<const scattering::ParticleHabit> get_particle_habit() const {return particle_habit_;}
+  Index get_index_start() const {return index_start_;}
+  Index get_index_end() const {return index_end_;}
+
 
   /// The masses of the particles in the habit.
   Vector get_particle_mass() const {

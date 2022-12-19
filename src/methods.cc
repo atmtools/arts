@@ -23988,6 +23988,32 @@ Options are:
                       USES_TEMPLATES(false),
                       PASSWORKSPACE(true)));
 
+     md_data_raw.push_back(
+         create_mdrecord(NAME("pnd_agendaSet"),
+                         DESCRIPTION(R"--(Sets *pnd_agenda* to a default value
+
+   Options are:
+       There are currently no options, calling this function is an error.
+       It only exist to enforce defaultable options for future agendas
+       If you are copy-pasting this into methods.cc, dear author,
+       please add one default to help us use your agenda :)
+       If you do not foresee adding other options in the near-future, make this
+       default the GIN_DEFAULT
+   )--"),
+                         AUTHORS("Simon Pfreundschuh"),
+                         OUT("pnd_agenda"),
+                         GOUT(),
+                         GOUT_TYPE(),
+                         GOUT_DESC(),
+                         IN(),
+                         GIN("option"),
+                         GIN_TYPE("String"),
+                         GIN_DEFAULT(NODEF),
+                         GIN_DESC("Default agenda option (see description)"),
+                         SETMETHOD(false),
+                         AGENDAMETHOD(false),
+                         USES_TEMPLATES(false),
+                         PASSWORKSPACE(true)));
   md_data_raw.push_back(
       create_mdrecord(NAME("ppath_agendaSet"),
                       DESCRIPTION(R"--(Sets *ppath_agenda* to a default value

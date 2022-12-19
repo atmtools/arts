@@ -405,9 +405,9 @@ class RegularGridInterpolator {
         typename detail::InterpolationResult<Tensor, degree>::type;
     std::vector<ResultType> results;
 
-    int n_results = weights.rows();
+    auto n_results = weights.rows();
     results.resize(n_results);
-    for (int i = 0; i < n_results; ++i) {
+    for (decltype(n_results) i = 0; i < n_results; ++i) {
       results[i] = scattering::interpolate<Tensor, degree, Scalar>(
           t, weights.row(i), indices.row(i));
     }

@@ -468,7 +468,7 @@ class IrregularLatitudeGrid : public LatitudeGrid<Scalar> {
       colatitudes_(std::make_unique<math::Vector<Scalar>>(-Eigen::cos(latitudes.array()))),
         type_(QuadratureType::Trapezoidal) {
     weights_.setConstant(0.0);
-    int n = math::Vector<Scalar>::size();
+    int n = static_cast<int>(math::Vector<Scalar>::size());
     for (int i = 0; i < n - 1; ++i) {
         auto dx = 0.5 * (this->operator[](i + 1) - this->operator[](i));
         weights_[i] += dx;

@@ -7,13 +7,14 @@
 #include <scattering/single_scattering_data.h>
 #include <scattering/particle.h>
 #include <scattering/particle_habit.h>
+#include <scattering/bulk_particle_habit.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_scattering_new(py::module_& bindings_module) {
 
-  py::module m = bindings_module.def_submodule("single_scattering_data");
+  py::module m = bindings_module.def_submodule("scattering_new");
 
   py::enum_<scattering::DataFormat>(m, "DataFormat")
       .value("Gridded", scattering::DataFormat::Gridded)
@@ -101,10 +102,9 @@ void py_scattering_new(py::module_& bindings_module) {
       .def("get_stokes_dim", &scattering::SingleScatteringData::get_stokes_dim)
       .def("set_data", &scattering::SingleScatteringData::set_data)
       .def("interpolate_frequency",
-           (scattering::SingleScatteringData(
-               scattering::SingleScatteringData::*)(
+           (scattering::SingleScatteringData(scattering::SingleScatteringData::*)(
                scattering::math::Vector<double>) const) &
-               scattering::SingleScatteringData::interpolate_frequency)
+           scattering::SingleScatteringData::interpolate_frequency)
       .def("interpolate_temperature",
            (scattering::SingleScatteringData(
                scattering::SingleScatteringData::*)(
@@ -218,7 +218,7 @@ void py_scattering_new(py::module_& bindings_module) {
   .def("get_lon_scat", &scattering::Particle::get_lon_scat)
   .def("get_lat_scat", &scattering::Particle::get_lat_scat)
   .def("interpolate_temperature", (scattering::SingleScatteringData(scattering::Particle::*)(double)const ) &scattering::Particle::interpolate_temperature)
-  .def("to_spectral", &scattering::Particle::to_spectral)
+      .def("to_spectral", static_cast<scattering::Particle (scattering::Particle::*)() const>(&scattering::Particle::to_spectral))
   .def("to_lab_frame", (scattering::Particle(scattering::Particle::*)(Eigen::Index, Eigen::Index, Eigen::Index)const ) &scattering::Particle::to_lab_frame)
   .def("regrid", &scattering::Particle::regrid)
   .def("set_stokes_dim", &scattering::Particle::set_stokes_dim)
@@ -239,15 +239,110 @@ void py_scattering_new(py::module_& bindings_module) {
     .def("get_absorption_vector", (scattering::math::Tensor<double, 7>(scattering::Particle::*)(Eigen::Index)const ) &scattering::Particle::get_absorption_vector)
     .def("get_absorption_vector", (scattering::math::Vector<double>(scattering::Particle::*)(double, double, double, double, Eigen::Index)) &scattering::Particle::get_absorption_vector)
   .def("get_forward_scattering_coeff", &scattering::Particle::get_forward_scattering_coeff)
-      .def("get_backward_scattering_coeff", &scattering::Particle::get_backward_scattering_coeff);
-  // Data members
+      .def("get_backward_scattering_coeff", &scattering::Particle::get_backward_scattering_coeff)
+  .PythonInterfaceBasicRepresentation(scattering::Particle);
+
+  //
+  // Particle habit
+  //
+
+  py::class_<scattering::ParticleHabit>(m, "ParticleHabit")
+      .def_static("liquid_spheres", &scattering::ParticleHabit::liquid_spheres)
+      .def("from_ssdb", &scattering::ParticleHabit::from_ssdb)
+      .def(py::init([]() {return new scattering::ParticleHabit{}; }))
+      .PythonInterfaceBasicRepresentation(scattering::ParticleHabit)
+      .def("print", [](const scattering::ParticleHabit& ph) {
+          std::cout << "hio " << std::endl;
+          std::ostringstream os;
+          //os << ph << std::endl;
+          return os.str();
+      })
+      .def("print2", [](const scattering::ParticleHabit& ph) {
+          std::cout << "hio " << std::endl;
+          std::ostringstream os;
+          //os << ph << std::endl;
+          return os.str();
+      })
+  .def(py::pickle(
+           [](const scattering::ParticleHabit& v) {
+               std::stringstream buffer{};
+               v.serialize(buffer);
+               return py::make_tuple(py::bytes(buffer.str()));
+           },
+           [](const py::tuple& t) {
+               ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!");
+               std::istringstream input{t[0].cast<py::bytes>()};
+               return scattering::ParticleHabit::deserialize(input);
+           }));
+
+  py::class_<BulkParticleHabit>(m, "BulkParticleHabit")
+      .def(py::init([]() {return new BulkParticleHabit{}; }))
+      .def(py::init([](const String &name, const ArrayOfSingleScatteringData &scat_data, const ArrayOfScatteringMetaData &meta_data, const Agenda &agenda, const ArrayOfString &pnd_agenda_input){return new BulkParticleHabit{name, scat_data, meta_data, agenda, pnd_agenda_input};}))
+      .def(py::pickle(
+               [](const BulkParticleHabit& habit) {
+                   std::shared_ptr<const Agenda> agenda = habit.get_pnd_agenda();
+                   if (agenda.get()) {
+                       return py::make_tuple(
+                           habit.get_name(),
+                           *agenda,
+                           habit.get_pnd_agenda_input(),
+                           *habit.get_particle_habit(),
+                           habit.get_index_start(),
+                           habit.get_index_end()
+                           );
+                   }
+                   return py::make_tuple(
+                       habit.get_name(),
+                       py::none(),
+                       habit.get_pnd_agenda_input(),
+                       *habit.get_particle_habit(),
+                       habit.get_index_start(),
+                       habit.get_index_end()
+                       );
+               },
+               [](const py::tuple& t) {
+                   ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!");
+                   if (t[1] == py::none()) {
+                       return BulkParticleHabit{
+                           t[0].cast<std::string>(),
+                           t[1].cast<Agenda>(),
+                           t[2].cast<ArrayOfString>(),
+                           std::make_shared<scattering::ParticleHabit>(t[3].cast<scattering::ParticleHabit>()),
+                           };
+                   }
+                   return BulkParticleHabit{
+                       t[0].cast<std::string>(),
+                       t[4].cast<Index>(),
+                       t[5].cast<Index>(),
+                       std::make_shared<scattering::ParticleHabit>(t[3].cast<scattering::ParticleHabit>()),
+                       };
+                    }));
+
+
 
   py::class_<ScatteringSpecies>(bindings_module, "ScatteringSpecies")
       .def(py::init([]() { return new ScatteringSpecies{}; }))
       .PythonInterfaceCopyValue(ScatteringSpecies)
       .PythonInterfaceWorkspaceVariableConversion(ScatteringSpecies)
       .PythonInterfaceFileIO(ScatteringSpecies)
-      .PythonInterfaceBasicRepresentation(ScatteringSpecies);
+      .PythonInterfaceBasicRepresentation(ScatteringSpecies)
+      .def(py::pickle(
+               [](const ScatteringSpecies& species) {
+                   auto impl_ptr = species.get();
+                   if (impl_ptr) {
+                       return py::make_tuple(species.get());
+                   } else {
+                       return py::make_tuple(py::none());
+                   }},
+               [](const py::tuple& t) {
+                   //ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+                   if (t[0] == py::none()) {
+                       return ScatteringSpecies{};
+                   }
+                   auto habit = std::make_shared<BulkParticleHabit>(t[0].cast<BulkParticleHabit>());
+                   return ScatteringSpecies{habit};
+               }))
+      .PythonInterfaceWorkspaceDocumentation(SingleScatteringData);
 
   py::class_<Array<ScatteringSpecies>>(bindings_module, "ArrayOfScatteringSpeciesInternal")
       .PythonInterfaceBasicRepresentation(Array<ScatteringSpecies>)

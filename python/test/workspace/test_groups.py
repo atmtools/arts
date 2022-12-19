@@ -480,6 +480,10 @@ class TestGroups:
         # test.io(x, delete=True)
         test.array(x)
 
+    def testArrayOfScatteringSpecies(self):
+        x = cxx.ArrayOfScatteringSpecies(1, cxx.ScatteringSpecies())
+        test.array(x)
+
     def testArrayOfSparse(self):
         x = cxx.ArrayOfSparse(1, cxx.Sparse())
         test.io(x, delete=True)
@@ -821,6 +825,9 @@ class TestGroups:
         cxx.SingleScatteringData()
         # test.io(x, delete=True)
 
+    def testScatteringSpecies(self):
+        cxx.ScatteringSpecies()
+
     def testSparse(self):
         x = cxx.Sparse()
         test.io(x, delete=True)
@@ -1042,7 +1049,6 @@ class TestGroups:
         ws2.testing = 2
         ws.test_agenda.value.execute(ws)
         ws2.test_agenda.value.execute(ws2)
-
 
 if __name__ == "__main__":
     x = TestGroups()

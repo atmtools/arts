@@ -222,3 +222,10 @@ void doit_conv_test_agendaSet(Workspace& ws,
                   const Verbosity&) {
   out = get_doit_conv_test_agenda(ws, option);
 }
+
+void pnd_agendaSet(Workspace& ws,
+                   Agenda& out,
+                   const String& option,
+                   const Verbosity&) {
+    out = get_pnd_agenda(ws, option);
+}

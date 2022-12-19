@@ -506,7 +506,7 @@ template <typename Base>
       }
       return 1;
     } else {
-      return sqrt(n_coeffs);
+      return static_cast<Index>(sqrt(n_coeffs));
     }
   }
 

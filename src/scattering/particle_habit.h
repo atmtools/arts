@@ -1,7 +1,8 @@
 /** \file particle_habit.h
  *
- * Contains the ParticleHabit class which represents a habit of a scattering particle,
- * which consists of a collection of scattering data for different particle sizes.
+ * Contains the ParticleHabit class which represents a habit of particles that
+ * scattering radiation. The habit is represented by  a collection of scattering
+ * data for different particle sizes.
  *
  * @author Simon Pfreundschuh, 2020
  */
@@ -32,6 +33,41 @@ public:
   /// Create a ParticleHabit from given particles
   ParticleHabit(const std::vector<scattering::Particle> &particles)
       : particles_(particles) {}
+
+  static ParticleHabit liquid_spheres(
+      math::Vector<double> f_grid,
+      math::Vector<double> t_grid,
+      math::Vector<double> lat_scat,
+      math::Vector<double> radii
+      ) {
+      std::vector<Particle> particles;
+      particles.reserve(radii.size());
+      for (double radius : radii) {
+          particles.emplace_back(
+              Particle::liquid_sphere(f_grid, t_grid, lat_scat, radius)
+              );
+      }
+      return ParticleHabit(particles);
+  }
+
+  static ParticleHabit deserialize(std::istream &input) {
+      size_t n_particles;
+      input.read(reinterpret_cast<char*>(&n_particles), sizeof(size_t));
+      std::vector<Particle> particles{};
+      particles.reserve(n_particles);
+      for (size_t i = 0; i < n_particles; ++i) {
+          particles.emplace_back(Particle::deserialize(input));
+      }
+      return ParticleHabit(particles);
+  }
+
+  std::ostream& serialize(std::ostream &output) const {
+      size_t n_particles = size();
+      output.write(reinterpret_cast<const char*>(&n_particles), sizeof(size_t));
+      for (const Particle &part : particles_) {
+          part.serialize(output);
+      }
+  }
 
   /// The number of particle that make up the particle habit.
   size_t size() const {
@@ -142,6 +178,15 @@ public:
         new_particles.reserve(particles_.size());
         for (size_t i = 0; i < particles_.size(); ++i) {
             new_particles.push_back(particles_[i].to_spectral(l_max, m_max));
+        }
+        return ParticleHabit(new_particles);
+    }
+
+    ParticleHabit to_spectral() {
+        std::vector<scattering::Particle> new_particles{};
+        new_particles.reserve(particles_.size());
+        for (size_t i = 0; i < particles_.size(); ++i) {
+            new_particles.push_back(particles_[i].to_spectral());
         }
         return ParticleHabit(new_particles);
     }
@@ -283,7 +328,6 @@ public:
                 lon_inc, lat_inc, lon_scat, lat_scat,
                 stokes_dim
                 );
-              std::cout << "Intermediate: " << data << std::endl;
             result += data * pnd[i];
         }
         return result;
@@ -383,7 +427,7 @@ public:
                 );
         }
 
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        auto seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::default_random_engine generator{seed};
         std::uniform_real_distribution<double> lon_dist(0, 2 * M_PI);
         std::uniform_real_distribution<double> lat_dist(-1.0, 1.0);
@@ -414,7 +458,6 @@ public:
                     );
             }
             double r = r_dist(generator);
-            std::cout << r * norm << " / " << pha_mat(0, 0) << std::endl;
             if (r * norm < pha_mat(0, 0)) found = true;
         }
         return std::make_pair(lon, lat);
@@ -438,7 +481,7 @@ public:
                 );
         }
 
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        auto seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::default_random_engine generator{seed};
         std::uniform_real_distribution<double> lon_dist(0, 2.0 * M_PI);
         std::uniform_real_distribution<double> lat_dist(-1.0, 1.0);
@@ -473,10 +516,12 @@ public:
         return std::make_pair(lon, lat);
     }
 
+    friend std::ostream& operator<<(std::ostream& out, const ParticleHabit&);
 
 private:
 
     std::vector<scattering::Particle> particles_;
 };
+
 
 }

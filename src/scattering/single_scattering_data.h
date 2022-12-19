@@ -13,6 +13,7 @@
 #pragma once
 
 #include <scattering/single_scattering_data_impl.h>
+#include <scattering/mie.h>
 #include <cassert>
 #include <memory>
 
@@ -23,12 +24,12 @@ namespace scattering {
 ////////////////////////////////////////////////////////////////////////////////
 
 // pxx :: export
-/** Format-agnostic interface and container for single-scattering data.
+/** Format-agnostic container for single-scattering data.
  *
- * This class provides a format-agnostic interface and container for single
- * scattering data. This means that it can store scattering data in any format
- * and allows manipulating and combining this data with any other single
- * scattering data in any other format.
+ * This class provides a format-agnostic container for single
+ * scattering data. This means that it can store scattering data in both
+ * gridded and spectral format and allows manipulating and combining this
+ * data with single scattering data in any other format.
  *
  * Note that SingleScatteringData objects are lightweight object, i.e. when
  * copy-constructed the resulting object will share the scattering data with
@@ -45,7 +46,8 @@ class SingleScatteringData {
   /** Create from existing pointer to implementation object.
    * @param data Pointer to existing format-specific scattering data object.
    */
-  SingleScatteringData(SingleScatteringDataImpl *data) : data_(data) {}
+  SingleScatteringData(std::shared_ptr<SingleScatteringDataImpl> data) : data_(data) {}
+  SingleScatteringData(SingleScatteringDataImpl* data) : data_(data) {}
 
   SingleScatteringData() {}
 
@@ -273,8 +275,71 @@ class SingleScatteringData {
                        Index l_max,
                        ParticleType type);
 
+    static SingleScatteringData liquid_sphere(
+        math::Vector<double> f_grid,
+        math::Vector<double> t_grid,
+        IrregularLatitudeGrid<double> lat_scat,
+        double radius
+        ) {
+
+        math::Vector<double> lon_inc{1}; lon_inc << 0.0;
+        math::Vector<double> lat_inc{1}; lat_inc << 0.0;
+        math::Vector<double> lon_scat{1}; lon_scat << 0.0;
+        math::Vector<double> lon_scat_dummy{1}; lon_scat << 0.0;
+
+        std::array<math::Index, 7> dims_pm{
+            f_grid.size(), t_grid.size(), 1, 1, 1, lat_scat.size(), 6
+                };
+        std::array<math::Index, 7> dims{
+            f_grid.size(), t_grid.size(), 1, 1, 1, 1, 1
+                };
+
+        math::Tensor<double, 7> phase_mat{dims_pm}, ext_mat{dims}, abs_vec{dims}, c_fw{dims}, c_bw{dims};
+
+        for (math::Index i_f = 0; i_f < f_grid.size(); ++i_f) {
+            for (math::Index i_t = 0; i_t < t_grid.size(); ++i_t) {
+                MieSphere<double> sphere = MieSphere<double>::Liquid(
+                    f_grid[i_f], t_grid[i_t], radius, lat_scat
+                    );
+
+                // Assign scattering matrix
+                auto scat_mat = sphere.get_scattering_matrix_compact();
+                for (math::Index i_a = 0; i_a < lat_scat.size(); ++i_a) {
+                    for (math::Index i_s = 0; i_s < 6; ++i_s) {
+                        phase_mat.coeffRef({i_f, i_t, 0, 0, 0, i_a, i_s}) = scat_mat(i_a, i_s);
+                    }
+                }
+
+                // Assign absorption coeff
+                double abs_coeff = sphere.get_absorption_coeff();
+                phase_mat.coeffRef(i_f, i_t, 0, 0, 0, 0, 0) = abs_coeff;
+                double ext_coeff = sphere.get_extinction_coeff();
+                ext_mat.coeffRef(i_f, i_t, 0, 0, 0, 0, 0) = ext_coeff;
+                c_fw.coeffRef(i_f, i_t, 0, 0, 0, 0, 0) = phase_mat.coeff({i_f, i_t, 0, 0, 0, 0, 0});
+                c_bw.coeffRef(i_f, i_t, 0, 0, 0, 0, 0) = sphere.get_backscattering_coeff();
+            }
+        }
+
+
+        math::ConstVectorPtr<double> f_grid_ptr = std::make_shared<const math::Vector<double>>(f_grid);
+        math::ConstVectorPtr<double> t_grid_ptr = std::make_shared<const math::Vector<double>>(t_grid);
+        math::ConstVectorPtr<double> lon_inc_ptr = std::make_shared<const math::Vector<double>>(lon_inc);
+        math::ConstVectorPtr<double> lat_inc_ptr = std::make_shared<const math::Vector<double>>(lat_inc);
+        math::ConstVectorPtr<double> lon_scat_ptr = std::make_shared<const math::Vector<double>>(lon_scat);
+        LatitudeGridPtr<double> lat_scat_ptr = std::make_shared<IrregularLatitudeGrid<double>>(static_cast<math::Vector<double>>(lat_scat));
+        math::TensorPtr<double, 7> phase_mat_ptr = std::make_shared<math::Tensor<double, 7>>(phase_mat);
+        math::TensorPtr<double, 7> abs_vec_ptr = std::make_shared<math::Tensor<double, 7>>(abs_vec);
+        math::TensorPtr<double, 7> ext_mat_ptr = std::make_shared<math::Tensor<double, 7>>(ext_mat);
+        math::TensorPtr<double, 7> c_fw_ptr = std::make_shared<math::Tensor<double, 7>>(c_fw);
+        math::TensorPtr<double, 7> c_bw_ptr = std::make_shared<math::Tensor<double, 7>>(c_bw);
+
+        std::shared_ptr<SingleScatteringDataGridded<double>> data = std::make_shared<SingleScatteringDataGridded<double>>(f_grid_ptr, t_grid_ptr, lon_inc_ptr, lat_inc_ptr, lon_scat_ptr, lat_scat_ptr, phase_mat_ptr, ext_mat_ptr, abs_vec_ptr, c_bw_ptr, c_fw_ptr);
+
+        return SingleScatteringData(data);
+    }
+
   /// Perform a deep copy of the scattering data object.
-  SingleScatteringData copy() const {return SingleScatteringData(data_->copy());}
+    SingleScatteringData copy() const {return SingleScatteringData(std::shared_ptr<SingleScatteringDataImpl>(data_->copy()));}
 
   //
   // Getters and setters.
@@ -317,6 +382,7 @@ class SingleScatteringData {
   /// The data format: Gridded, spectral or fully spectral.
   DataFormat get_data_format() const { return data_->get_data_format(); }
 
+
   /** Copies data from existing single scattering data object into this object.
    *
    * @param f_index Index along the frequency grid for which to set the data.
@@ -328,6 +394,32 @@ class SingleScatteringData {
                 Index t_index,
                 const SingleScatteringData &other) {
       data_->set_data(f_index, t_index, *other.data_);
+  }
+
+  static SingleScatteringData deserialize(std::istream &input) {
+      DataFormat format;
+      input.read(reinterpret_cast<char *>(&format), sizeof(format));
+
+      if (format == DataFormat::Gridded) {
+          return SingleScatteringData(std::make_shared<SingleScatteringDataGridded<double>>(
+              SingleScatteringDataGridded<double>::deserialize(input)
+                                          ));
+      } else if (format == DataFormat::Spectral) {
+          return SingleScatteringData(std::make_shared<SingleScatteringDataSpectral<double>>(
+              SingleScatteringDataSpectral<double>::deserialize(input)
+                                          ));
+      }
+      throw std::runtime_error(
+          "Encountered unknown data format when trying to deserialize the"
+          " scattering data."
+          );
+  }
+
+  std::ostream& serialize(std::ostream &output) const {
+      DataFormat format = get_data_format();
+      output.write(reinterpret_cast<const char *>(&format), sizeof(format));
+      data_->serialize(output);
+      return output;
   }
 
   //
@@ -823,6 +915,8 @@ class SingleScatteringData {
                                     Index stokes_dim) const {
     return data_->to_lab_frame(n_lat_inc, n_lon_scat, stokes_dim);
   }
+
+  friend std::ostream& operator<<(std::ostream&, const SingleScatteringData&);
 
  private:
   std::shared_ptr<SingleScatteringDataImpl> data_;

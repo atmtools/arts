@@ -159,6 +159,10 @@ class ScatteringSpecies {
 
   friend std::ostream& operator<<(std::ostream& out, const ScatteringSpecies&);
 
+  const ScatteringSpeciesImpl * get() const {
+      return impl_.get();
+  }
+
  private:
   std::shared_ptr<ScatteringSpeciesImpl> impl_ = nullptr;
 };

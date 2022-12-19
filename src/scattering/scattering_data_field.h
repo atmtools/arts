@@ -13,10 +13,10 @@
  * two-dimensional grids over the  longitudinal and latitudinal components
  * of incoming and scattering angles.
  *
- * The ScatteringDataFieldSpectral represents the scattering-angle dpendency
- * using spherical harmonics, whereas the ScatteringDataFieldFullySpectral
- * also uses a spherical-harmonics transform to encode the dependency on
- * incoming angle.
+ * The ScatteringDataFieldSpectral represents the scattering-angle dependency
+ * using spherical harmonics, whereas the incoming-angle-dependency remains
+ * represented using a two-dimensional grid over the azimuthal and zenith
+ * angles.
  *
  * Finally, ScatteringDataFieldFullySpectral represents both the incoming
  * and scattering angle dependencies using spherical harmonics.
@@ -303,8 +303,10 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
   }
   /// The frequency grid.
   const math::Vector<double> &get_f_grid() const { return *f_grid_; }
+  const VectorPtr &get_f_grid_ptr() const { return f_grid_; }
   /// The temperature grid.
   const math::Vector<double>& get_t_grid() const { return *t_grid_; }
+  const VectorPtr &get_t_grid_ptr() const { return t_grid_; }
   /// The incoming-angle longitude grid.
   math::Vector<double> get_lon_inc() const { return *lon_inc_; }
   /// The incoming-angle latitude grid.
@@ -398,6 +400,19 @@ class ScatteringDataFieldGridded : public ScatteringDataFieldBase {
         math::tensor_index(regridded, input_index);
   }
 
+  /** Extract scattering data.
+   *
+   * Extracts the scattering data for given frequency, temperature
+   * incoming and scattering angles.
+   *
+   * @param frequency The frequency
+   * @param temperature The temperature
+   * @param lon_inc The azimuthal component of the incoming angle
+   * @param lat_inc The zenith component of the incoming angle
+   * @param lon_scat The azimuthal component of the scattering angle
+   * @param lat_scat The zenith component of the scattering angle
+   * @return A vector containing the extracted scattering data.
+   */
   Vector interpolate(Scalar frequency,
                      Scalar temperature,
                      Scalar lon_inc,
@@ -1053,8 +1068,10 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
       return sht::SHT::get_params(n_lon_inc_, n_lat_inc_);
   }
   const math::Vector<double>& get_f_grid() const { return *f_grid_; }
+  const VectorPtr &get_f_grid_ptr() const { return f_grid_; }
   /// The temperature grid.
   const math::Vector<double>& get_t_grid() const { return *t_grid_; }
+  const VectorPtr &get_t_grid_ptr() const { return t_grid_; }
   /// The incoming-angle longitude grid.
   math::Vector<double> get_lon_inc() const { return *lon_inc_; }
   /// The incoming-angle latitude grid.
@@ -1078,7 +1095,6 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
   /// Read scattering data field from output stream.
   static ScatteringDataFieldSpectral deserialize(std::istream &input) {
       math::Vector<double> f_grid, t_grid, lon_inc, lat_inc, lon_scat, lat_scat;
-      std::array<Index, 4> sht_params{};
       math::Tensor<std::complex<double>, 6> data;
 
       math::deserialize(input, f_grid);
@@ -1100,7 +1116,6 @@ class ScatteringDataFieldSpectral : public ScatteringDataFieldBase {
 
   /// Write scattering data field to output stream.
   std::ostream& serialize(std::ostream &output) const {
-      std::array<Index, 4> sht_params = get_sht_scat_params();
       math::serialize(output, *f_grid_);
       math::serialize(output, *t_grid_);
       math::serialize(output, *lon_inc_);
@@ -1768,8 +1783,10 @@ class ScatteringDataFieldFullySpectral : public ScatteringDataFieldBase {
   }
   /// The frequency grid.
   const math::Vector<double>& get_f_grid() { return *f_grid_; }
+  const VectorPtr &get_f_grid_ptr() const { return f_grid_; }
   /// The temperature grid.
   const math::Vector<double>& get_t_grid() { return *t_grid_; }
+  const VectorPtr &get_t_grid_ptr() const { return t_grid_; }
   /// The incoming-angle longitude grid.
   math::Vector<double> get_lon_inc() { return sht_inc_->get_longitude_grid(); }
   /// The incoming-angle latitude grid.

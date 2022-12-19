@@ -218,4 +218,15 @@ SingleScatteringData::SingleScatteringData(
                                    1,
               1))) {}
 
+    std::ostream& operator<<(std::ostream &output, const SingleScatteringData& sd) {
+        output << "SingleScatteringData:" << std::endl;
+
+        auto f_grid = sd.get_f_grid();
+        output << "\tFrequencies: " << f_grid << std::endl;
+        auto t_grid = sd.get_t_grid();
+        output << "\tTemperatures: " << t_grid << std::endl;
+        output << "\tFormat: " << sd.get_data_format() << std::endl;
+        return output;
+    }
+
 }

@@ -7,11 +7,31 @@
  */
 #pragma once
 
+#include <numbers>
+
 #include <scattering/single_scattering_data.h>
 
 namespace scattering {
 
 using math::Index;
+using std::numbers::pi_v;
+
+namespace detail {
+    inline std::ostream& write_string(std::ostream &output, const std::string &str) {
+        size_t size = str.size();
+        output.write(reinterpret_cast<const char *>(&size), sizeof(size_t));
+        output.write(str.data(), size * sizeof(char));
+        return output;
+    }
+
+    inline std::string read_string(std::istream &input) {
+        size_t size = 0;
+        input.read(reinterpret_cast<char *>(&size), sizeof(size_t));
+        std::string str{size};
+        input.read(str.data(), size * sizeof(char));
+        return str;
+    }
+}
 
 /** Properties of scattering particles.
  *
@@ -27,6 +47,29 @@ struct ParticleProperties {
   double d_eq = 0.0;
   double d_max = 0.0;
   double d_aero = 0.0;
+
+    static ParticleProperties deserialize(std::istream& input) {
+        ParticleProperties props{};
+        props.name = detail::read_string(input);
+        props.source = detail::read_string(input);
+        props.refractive_index = detail::read_string(input);
+        input.read(reinterpret_cast<char *>(&props.mass), sizeof(props.mass));
+        input.read(reinterpret_cast<char *>(&props.d_eq), sizeof(props.d_eq));
+        input.read(reinterpret_cast<char *>(&props.d_max), sizeof(props.d_max));
+        input.read(reinterpret_cast<char *>(&props.d_aero), sizeof(props.d_aero));
+        return props;
+    }
+
+    std::ostream& serialize(std::ostream& output) const {
+        detail::write_string(output, name);
+        detail::write_string(output, source);
+        detail::write_string(output, refractive_index);
+        output.write(reinterpret_cast<const char *>(&mass), sizeof(mass));
+        output.write(reinterpret_cast<const char *>(&d_eq), sizeof(d_eq));
+        output.write(reinterpret_cast<const char *>(&d_max), sizeof(d_max));
+        output.write(reinterpret_cast<const char *>(&d_aero), sizeof(d_aero));
+        return output;
+    }
 };
 
 // pxx :: export
@@ -44,42 +87,65 @@ class Particle {
         math::Vector<double>
         >;
 
- public:
+public:
 
-  /// Load particle from ARTS SSDB file.
-  static Particle from_ssdb(std::string path);
+    /// Load particle from ARTS SSDB file.
+    static Particle from_ssdb(std::string path);
 
-  Particle() {}
+    Particle() {}
 
-  /** Create particle from given properties and single-scattering data.
-   *
-   * @param ParticleProperties struct containing the particle meta data.
-   * @param data SingleScatteringData object containing the single scattering
-   *     data describing the particle.
-   */
-  Particle(ParticleProperties properties,
-           SingleScatteringData data)
-      : data_(data), properties_(properties) {}
+    /** Create particle from given properties and single-scattering data.
+     *
+     * @param ParticleProperties struct containing the particle meta data.
+     * @param data SingleScatteringData object containing the single scattering
+     *     data describing the particle.
+     */
+Particle(ParticleProperties properties,
+         SingleScatteringData data)
+    : data_(data), properties_(properties) {}
 
-  /** Create particle without minimum required meta information.
-   *
-   * This creates a particle with the minimum information required to use it is
-   * a radiative transfer simulation.
-   *
-   * @param mass The mass of the particle in kg.
-   * @param d_eq The volume-equivalent diameter of the particle in m.
-   * @param d_max The maximum-diameter of the particle in m.
-   * @param data SingleScatteringData object containing the single scattering
-   *     data describing the particle.
-   */
-  Particle(double mass, double d_eq, double d_max, SingleScatteringData data)
-      : data_(data),
+    /** Create particle without minimum required meta information.
+     *
+     * This creates a particle with the minimum information required to use it is
+     * a radiative transfer simulation.
+     *
+     * @param mass The mass of the particle in kg.
+     * @param d_eq The volume-equivalent diameter of the particle in m.
+     * @param d_max The maximum-diameter of the particle in m.
+     * @param data SingleScatteringData object containing the single scattering
+     *     data describing the particle.
+     */
+Particle(double mass, double d_eq, double d_max, SingleScatteringData data)
+    : data_(data),
         properties_(ParticleProperties{"", "", "", mass, d_eq, d_max, 0.0}) {}
 
-  Particle(const Particle&) = default;
-  Particle& operator=(const Particle&) = default;
+    Particle(const Particle&) = default;
+    Particle& operator=(const Particle&) = default;
 
-  Particle copy() const { return Particle(properties_, data_.copy()); }
+    Particle copy() const { return Particle(properties_, data_.copy()); }
+
+    static Particle liquid_sphere(
+        math::Vector<double> f_grid,
+        math::Vector<double> t_grid,
+        math::Vector<double> lat_scat,
+        double radius
+        ) {
+
+        ParticleProperties props{
+            "Liquid sphere",
+                "ARTS Mie calculation",
+                "Water (Ellison 07)",
+                997.0 * pi_v<double> * pow(radius, 3) * 4.0 / 3.0,
+              2 * radius,
+              2 * radius,
+              2 * radius
+              };
+      auto data = SingleScatteringData::liquid_sphere(f_grid, t_grid, lat_scat, radius);
+      return Particle(
+          props,
+          data
+          );
+  }
 
   //
   // Particle meta data.
@@ -125,6 +191,25 @@ class Particle {
   math::Vector<double> get_lon_scat() const { return data_.get_lon_scat(); }
   /// Latitudinal component of the scattering (outgoing) angle.
   math::Vector<double> get_lat_scat() const { return data_.get_lat_scat(); }
+
+  //
+  // Serialization
+  //
+
+  static Particle deserialize(std::istream &input) {
+      auto properties = ParticleProperties::deserialize(input);
+      auto data = SingleScatteringData::deserialize(input);
+      return Particle(
+          properties,
+          data
+          );
+  }
+
+  std::ostream& serialize(std::ostream &output) const {
+      properties_.serialize(output);
+      data_.serialize(output);
+      return output;
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   // Manipulation of scattering data
@@ -215,6 +300,9 @@ class Particle {
    */
   Particle to_spectral(Index l_max, Index m_max) const {
     return Particle(properties_, data_.to_spectral(l_max, m_max));
+  }
+  Particle to_spectral() const {
+      return Particle(properties_, data_.to_spectral());
   }
 
   // pxx :: hide
@@ -603,6 +691,8 @@ class Particle {
   math::Tensor<double, 7> get_backward_scattering_coeff() const {
     return data_.get_backward_scattering_coeff();
   }
+
+  friend std::ostream& operator<<(std::ostream& out, const Particle&);
 
  private:
   SingleScatteringData data_;

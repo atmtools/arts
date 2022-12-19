@@ -233,6 +233,7 @@ class SHT {
       output.write(reinterpret_cast<const char *>(&m_max_), sizeof(Index));
       output.write(reinterpret_cast<const char *>(&n_lon_), sizeof(Index));
       output.write(reinterpret_cast<const char *>(&n_lat_), sizeof(Index));
+      return output;
   }
 
   /// Deserialize SHT.

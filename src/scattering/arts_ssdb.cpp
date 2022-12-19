@@ -630,7 +630,6 @@ void HabitFolder::parse_files() {
 
 HabitFolder::operator ParticleHabit() {
   std::vector<Particle> particles;
-  std::cout << "files :: " << files_.size() << std::endl;
   particles.reserve(files_.size());
 
   ParticleProperties properties{};
@@ -644,7 +643,6 @@ HabitFolder::operator ParticleHabit() {
     properties.d_max = d_max_[i];
     properties.d_aero = 0.0;
     particles.push_back(Particle(properties, ParticleFile(files_[d_eq_[i]])));
-    std::cout << "PARTICLE " << i << std::endl;
   }
   return ParticleHabit(particles);
 }

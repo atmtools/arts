@@ -92,5 +92,6 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(AbsorptionNormalizationType, Absorption, NormalizationType)
   DeclareOptionRenamed(LineShapeType, LineShape, Type)
   DeclareOptionRenamed(LineShapeVariable, LineShape, Variable)
+  DeclareOption(Options, pnd_agendaDefaultOptions)
 }
 }  // namespace Python

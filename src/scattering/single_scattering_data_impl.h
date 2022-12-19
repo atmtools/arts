@@ -387,6 +387,8 @@ class SingleScatteringDataImpl {
    */
   virtual math::Tensor<double, 7> get_backward_scattering_coeff() const = 0;
 
+  virtual std::ostream& serialize(std::ostream &output) const = 0;
+
   /** Deep copy of scattering data.
    *
    * Return new scattering data object with the data copied from this
@@ -1028,6 +1030,34 @@ SingleScatteringDataGridded(math::ConstVectorPtr<Numeric> f_grid,
       return forward_scattering_coeff_.get_data();
   }
 
+  static SingleScatteringDataGridded deserialize(std::istream &input) {
+      auto phase_matrix = ScatteringDataFieldGridded<Scalar>::deserialize(input);
+      auto extinction_matrix = ScatteringDataFieldGridded<Scalar>::deserialize(input);
+      auto absorption_vector = ScatteringDataFieldGridded<Scalar>::deserialize(input);
+      auto backward_scattering_coeff = ScatteringDataFieldGridded<Scalar>::deserialize(input);
+      auto forward_scattering_coeff = ScatteringDataFieldGridded<Scalar>::deserialize(input);
+      auto f_grid = phase_matrix.get_f_grid_ptr();
+      auto t_grid = phase_matrix.get_t_grid_ptr();
+      return SingleScatteringDataGridded{
+          f_grid,
+          t_grid,
+          phase_matrix,
+          extinction_matrix,
+          absorption_vector,
+          backward_scattering_coeff,
+          forward_scattering_coeff
+      };
+  }
+
+  std::ostream& serialize(std::ostream &output) const {
+      phase_matrix_.serialize(output);
+      extinction_matrix_.serialize(output);
+      absorption_vector_.serialize(output);
+      backward_scattering_coeff_.serialize(output);
+      forward_scattering_coeff_.serialize(output);
+      return output;
+  }
+
   SingleScatteringDataGridded *copy() const {
     return new SingleScatteringDataGridded(f_grid_,
                                            t_grid_,
@@ -1642,6 +1672,34 @@ math::Matrix<double> get_extinction_matrix(
                                             absorption_vector_.copy(),
                                             backward_scattering_coeff_.copy(),
                                             forward_scattering_coeff_.copy());
+  }
+
+  static SingleScatteringDataSpectral deserialize(std::istream &input) {
+      auto phase_matrix = ScatteringDataFieldSpectral<Scalar>::deserialize(input);
+      auto extinction_matrix = ScatteringDataFieldSpectral<Scalar>::deserialize(input);
+      auto absorption_vector = ScatteringDataFieldSpectral<Scalar>::deserialize(input);
+      auto backward_scattering_coeff = ScatteringDataFieldSpectral<Scalar>::deserialize(input);
+      auto forward_scattering_coeff = ScatteringDataFieldSpectral<Scalar>::deserialize(input);
+      auto f_grid = phase_matrix.get_f_grid_ptr();
+      auto t_grid = phase_matrix.get_t_grid_ptr();
+      return SingleScatteringDataSpectral{
+          f_grid,
+          t_grid,
+          phase_matrix,
+          extinction_matrix,
+          absorption_vector,
+          backward_scattering_coeff,
+          forward_scattering_coeff
+      };
+  }
+
+  std::ostream& serialize(std::ostream &output) const {
+      phase_matrix_.serialize(output);
+      extinction_matrix_.serialize(output);
+      absorption_vector_.serialize(output);
+      backward_scattering_coeff_.serialize(output);
+      forward_scattering_coeff_.serialize(output);
+      return output;
   }
 
   SingleScatteringDataImpl *interpolate_frequency(

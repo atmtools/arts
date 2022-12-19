@@ -775,4 +775,16 @@ Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option) {
   
   return agenda.finalize();
 }
+
+Agenda get_pnd_agenda(Workspace& ws, const String& option) {
+  AgendaCreator agenda(ws, "pnd_agenda");
+  using enum Options::pnd_agendaDefaultOptions;
+  switch (Options::topnd_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+  return agenda.finalize();
+}
+
+
 }  // namespace AgendaManip

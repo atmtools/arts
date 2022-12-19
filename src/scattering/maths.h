@@ -116,6 +116,8 @@ using Tensor = Eigen::Tensor<Scalar, rank, Eigen::RowMajor>;
 template <typename Scalar, int rank>
 using TensorPtr = std::shared_ptr<Eigen::Tensor<Scalar, rank, Eigen::RowMajor>>;
 template <typename Scalar, int rank>
+using ConstTensorPtr = std::shared_ptr<const Eigen::Tensor<Scalar, rank, Eigen::RowMajor>>;
+template <typename Scalar, int rank>
 using TensorMap =
     Eigen::TensorMap<Eigen::Tensor<Scalar, rank, Eigen::RowMajor>>;
 template <typename Scalar, int rank>

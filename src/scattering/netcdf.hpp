@@ -292,12 +292,12 @@ class Variable {
 
   // Parses dimensions of this variable.
   void parse_dimensions() {
-    int n_dims = dimensions_.capacity();
+    auto n_dims = dimensions_.capacity();
     auto dim_ids = std::make_unique<int[]>(n_dims);
     int error = nc_inq_vardimid(parent_id_, id_, dim_ids.get());
     detail::handle_error("Error inquiring dimension IDs of variable:", error);
 
-    for (int i = 0; i < n_dims; ++i) {
+    for (decltype(n_dims) i = 0; i < n_dims; ++i) {
       int dim_id = dim_ids[i];
       Dimension dim{dim_id};
       error = nc_inq_dim(parent_id_, dim_id, dim.name, &dim.size);
@@ -663,10 +663,10 @@ public:
                         std::vector<std::string> dimensions,
                         Type type) {
     assert_define_mode();
-    int n_dims = dimensions.size();
+    auto n_dims = dimensions.size();
     std::vector<int> dim_ids;
     dim_ids.reserve(n_dims);
-    for (int i = 0; i < n_dims; ++i) {
+    for (decltype(n_dims) i = 0; i < n_dims; ++i) {
       auto& d = dimensions[i];
       auto search = dimensions_.find(d);
       if (search == dimensions_.end()) {
