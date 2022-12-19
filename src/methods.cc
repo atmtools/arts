@@ -3292,9 +3292,36 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("antenna_responseGaussianConstant"),
+      NAME("antenna_responseGaussian"),
       DESCRIPTION(
           "Sets up a Gaussian antenna response.\n"
+          "\n"
+          "This method works as *antenna_responseGaussianConstant* but allows\n"
+          "to inlude a frequency variation of the antenna width. Here the FWHM\n" 
+          "is specified at a set of frequencies. These frequencies will also be\n"
+          "the frequency grid of *antenna_response*.\n"
+          "\n"
+          "If *grid_width* is set to <=0, the grid width will be twice the max\n"
+          "value if *fwhm*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("antenna_response"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("f_points", "fwhm", "grid_width", "grid_npoints", "do_2d"),
+      GIN_TYPE("Vector", "Vector", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "-1.0", "21", "0"),
+      GIN_DESC("Frequencies at which FWHM is defined.",
+               "Full width at half-maximum of the Gaussian function.",
+               "Full width of grid (negative value gives 2*fwhm).",
+               "Number of points to represent the grid, see above.",
+               "Set to 1 to create a 2D antenna pattern.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("antenna_responseGaussianConstant"),
+      DESCRIPTION(
+          "Sets up a Gaussian antenna response, with no frequency variation.\n"
           "\n"
           "The method assumes that the response is the same for all\n"
           "frequencies and polarisations, and that it can be modelled\n"
@@ -3307,10 +3334,9 @@ Available models:
           "If *grid_width* is set to <= 0, a default of twice the FWMH is\n"
           "applied. This gives a coverage of about 98\% of the response.\n"
           "\n"
-          "Similarly, setting *grid_npoints* to <=0 activates a default of\n"
-          "21. When the grid width is 2*FWHM, this default gives an error\n"
-          "< 0.001 of the integrated response using trapezoidal integration.\n"
-          "The number of points is not allowed to be 1.\n"
+          "The default for *grid_npoints* is 21. When the grid width is 2*FWHM,\n"
+          "that default value gives an error < 0.001 of the integrated response\n"
+          "using trapezoidal integration. *grid_npoints* must be > 1.\n"
           "\n"
           "If the 2D option is selected (*do_2d*), a circular antenna is\n"
           "assumed. The same grid and FWHM is applied in both dimensions.\n"
@@ -3326,7 +3352,7 @@ Available models:
       IN(),
       GIN("fwhm", "grid_width", "grid_npoints", "do_2d"),
       GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "-1.0", "-1", "0"),
+      GIN_DEFAULT(NODEF, "-1.0", "21", "0"),
       GIN_DESC("Full width at half-maximum of the Gaussian function.",
                "Full width of grid (negative value gives 2*fwhm).",
                "Number of points to represent the grid, see above.",
@@ -3370,7 +3396,7 @@ Available models:
                "Numeric",
                "Numeric",
                "Index"),
-      GIN_DEFAULT(NODEF, "-1.0", "-1", NODEF, NODEF, NODEF, "0"),
+      GIN_DEFAULT(NODEF, "-1.0", "21", NODEF, NODEF, NODEF, "0"),
       GIN_DESC("Effective size of the antenna,",
                "Full width of grid.",
                "Number of points to represent the grid.",
@@ -4345,15 +4371,42 @@ Available models:
       GIN_DESC("The spectrometer resolution.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("backend_channel_responseGaussianConstant"),
+      NAME("backend_channel_responseGaussian"),
       DESCRIPTION(
           "Sets up a Gaussian backend channel response.\n"
           "\n"
           "The method assumes that all channels have the same response.\n"
           "\n"
-          "The GINs *fwhm*, *grid_width* and *grid_npoints* work in the\n"
-          "same way as for *antenna_responseGaussianConstant*. This including\n"
-          "how negative *grid_width* and *grid_npoints* are treated.\n"),
+          "This method works as *backend_channel_responseGaussianConstant*\n"
+          "but handles the case where the response of each channel must be\n"
+          "described. Here the FWHM is specified for each *f_backend*.\n" 
+          "\n"
+          "The GINs *fwhm* and *grid_npoints* work in the same way as for\n"
+          "*antenna_responseGaussianConstant*. A negative *grid_width*\n"
+          "gives a grid that is twice the FWHM of each channel.\n"),
+      AUTHORS("Patrick Eriksson, Oliver Lemke"),
+      OUT("backend_channel_response"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_backend"),
+      GIN("fwhm", "grid_width", "grid_npoints"),
+      GIN_TYPE("Vector", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "-1.0", "21"),
+      GIN_DESC("Full width at half-maximum of the Gaussian function.",
+               "Full width of grid.",
+               "Number of points to represent the grid.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("backend_channel_responseGaussianConstant"),
+      DESCRIPTION(
+          "Sets up a single Gaussian backend channel response.\n"
+          "\n"
+          "The method assumes that all channels have the same response.\n"
+          "\n"
+          "The GINs *fwhm* and *grid_npoints* work in the same way as for\n"
+          "*antenna_responseGaussianConstant*. A negative *grid_width*\n"
+          "gives a grid that is twice the FWHM.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
       GOUT(),
@@ -4362,7 +4415,7 @@ Available models:
       IN(),
       GIN("fwhm", "grid_width", "grid_npoints"),
       GIN_TYPE("Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "-1.0", "-1"),
+      GIN_DEFAULT(NODEF, "-1.0", "21"),
       GIN_DESC("Full width at half-maximum of the Gaussian function.",
                "Full width of grid.",
                "Number of points to represent the grid.")));

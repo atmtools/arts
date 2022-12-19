@@ -68,7 +68,6 @@ using GriddedFieldGrids::GFIELD4_ZA_GRID;
 using GriddedFieldGrids::GFIELD4_AA_GRID;
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
-const Index GAUSSIAN_NPOINTS_DEFAULT = 21;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -202,30 +201,34 @@ void AntennaOff(Index& antenna_dim,
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseGaussianConstant(GriddedField4& r,
-                                      const Numeric& fwhm,
-                                      const Numeric& grid_width,
-                                      const Index& grid_npoints,
-                                      const Index& do_2d,
-                                      const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
-  ARTS_USER_ERROR_IF (grid_npoints == 1, "*grid_npoints* can not be 1.");
+ /* Workspace method: Doxygen documentation will be auto-generated */
+void antenna_responseGaussian(GriddedField4& r,
+                              const Vector& f_points,
+                              const Vector& fwhm,
+                              const Numeric& grid_width,
+                              const Index& grid_npoints,
+                              const Index& do_2d,
+                              const Verbosity& verbosity) {
+  const Index nf = f_points.nelem();
+  ARTS_USER_ERROR_IF (nf == 0, "*f_points* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() == 0, "*fwhm* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() != nf,
+                      "*f_points* and *fwhm* must have the same length.");  
+  ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
 
   // Defaults
-  const Numeric gwidth = grid_width > 0 ? grid_width : 2 * fwhm;
-  const Index gnpoints = grid_npoints > 0 ? grid_npoints : GAUSSIAN_NPOINTS_DEFAULT;
+  const Numeric gwidth = grid_width > 0 ? grid_width : 2 * max(fwhm);
 
   // Grid
   Vector grid;
-  nlinspace(grid, -gwidth/2, gwidth/2, gnpoints);
+  nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
 
   // Start to fill r
   r.set_name("Antenna response");
   r.set_grid_name(0, "Polarisation");
   r.set_grid(0, {"NaN"});
   r.set_grid_name(1, "Frequency");
-  r.set_grid(1, Vector(1, -999));
+  r.set_grid(1, f_points);
   r.set_grid_name(2, "Zenith angle");
   r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
@@ -234,17 +237,46 @@ void antenna_responseGaussianConstant(GriddedField4& r,
 
   if (do_2d) {
     r.set_grid(3, grid);
-    r.data.resize(1, 1, n, n);
-    Matrix Y;
-    MatrixGaussian(Y, grid, 0, -1.0, fwhm, grid, 0, -1.0, fwhm, verbosity);
-    r.data(0, 0, joker, joker) = Y;
+    r.data.resize(1, nf, n, n);
+    for (Index i=0; i<nf; ++i) {
+      ARTS_USER_ERROR_IF (fwhm[i] <= 0,
+                          "All values in *fwhm* must be >= 0.");  
+      Matrix Y;
+      MatrixGaussian(Y, grid, 0, -1.0, fwhm[i],
+                        grid, 0, -1.0, fwhm[i], verbosity);
+      r.data(0, i, joker, joker) = Y;
+    }
   } else {
     r.set_grid(3, Vector(1, 0));
-    r.data.resize(1, 1, n, 1);
-    Vector y;
-    VectorGaussian(y, grid, 0, -1.0, fwhm, verbosity);
-    r.data(0, 0, joker, 0) = y;
+    r.data.resize(1, nf, n, 1);
+    for (Index i=0; i<nf; ++i) {
+      ARTS_USER_ERROR_IF (fwhm[i] <= 0,
+                          "All values in *fwhm* must be >= 0.");  
+      Vector y;
+      VectorGaussian(y, grid, 0, -1.0, fwhm[i], verbosity);
+      r.data(0, i, joker, 0) = y;
+    }
   }
+}
+
+
+
+ /* Workspace method: Doxygen documentation will be auto-generated */
+void antenna_responseGaussianConstant(GriddedField4& r,
+                                      const Numeric& fwhm,
+                                      const Numeric& grid_width,
+                                      const Index& grid_npoints,
+                                      const Index& do_2d,
+                                      const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
+
+  antenna_responseGaussian(r,
+                           Vector(1, 0.0),
+                           Vector(1, fwhm),
+                           grid_width,
+                           grid_npoints,
+                           do_2d,
+                           verbosity);
 }
 
 
@@ -259,15 +291,16 @@ void antenna_responseGaussianEffectiveSize(GriddedField4& r,
                                            const Numeric& fstop,
                                            const Index& do_2d,
                                            const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
+
   Numeric gwidth = grid_width;
   if (gwidth <= 0) {
     gwidth = 2.0 * RAD2DEG * SPEED_OF_LIGHT / (leff * fstart);
   }
-  const Index gnpoints = grid_npoints > 0 ? grid_npoints : GAUSSIAN_NPOINTS_DEFAULT;
 
   // Angular grid
   Vector grid;
-  nlinspace(grid, -gwidth/2, gwidth/2, gnpoints);
+  nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
 
   // Start to fill r
   r.set_name("Antenna response");
@@ -328,32 +361,54 @@ void backend_channel_responseFlat(ArrayOfGriddedField1& r,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
+                                      const Vector& f_backend,
+                                      const Vector& fwhm,
+                                      const Numeric& grid_width,
+                                      const Index& grid_npoints,
+                                      const Verbosity& verbosity) {
+  const Index nf = f_backend.nelem();
+  ARTS_USER_ERROR_IF (nf == 0, "*f_backend* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() == 0, "*fwhm* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() != nf,
+                      "*f_backend* and *fwhm* must have the same length.");  
+  ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
+  
+  // Fill r
+  r.resize(nf);
+  for (Index i=0; i<nf; ++i) {
+    ARTS_USER_ERROR_IF (fwhm[i] <= 0, "All values in *fwhm* must be >= 0.");  
+
+    const Numeric gwidth = grid_width > 0 ? grid_width : 2 * fwhm[i];
+    Vector grid;
+    nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
+
+    Vector y;
+    VectorGaussian(y, grid, 0, -1.0, fwhm[i], verbosity);
+  
+    r[i].set_name("Backend channel response function");
+    r[i].set_grid_name(0, "Frequency");
+    r[i].set_grid(0, grid);
+    r[i].data = y;
+  }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussianConstant(ArrayOfGriddedField1& r,
                                               const Numeric& fwhm,
                                               const Numeric& grid_width,
                                               const Index& grid_npoints,
                                               const Verbosity& verbosity) {
   ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
-  ARTS_USER_ERROR_IF (grid_npoints == 1, "*grid_npoints* can not be 1.");
 
-  // Defaults
-  const Numeric gwidth = grid_width > 0 ? grid_width : 2 * fwhm;
-  const Index gnpoints = grid_npoints > 0 ? grid_npoints : GAUSSIAN_NPOINTS_DEFAULT;
-  
-  // Grid
-  Vector grid;
-  nlinspace(grid, -gwidth/2, gwidth/2, gnpoints);
-
-  // Response
-  Vector y;
-  VectorGaussian(y, grid, 0, -1.0, fwhm, verbosity);
-  
-  // Fill r
-  r.resize(1);
-  r[0].set_name("Backend channel response function");
-  r[0].set_grid_name(0, "Frequency");
-  r[0].set_grid(0, grid);
-  r[0].data = y;
+  backend_channel_responseGaussian(r,
+                                   Vector(1, 0.0),
+                                   Vector(1, fwhm),
+                                   grid_width,
+                                   grid_npoints,
+                                   verbosity);
 }
 
 
