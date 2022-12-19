@@ -127,7 +127,7 @@ VectorLinSpace( f_backend, f_start, f_end, f_resolution )
 
 # Assume a Gaussian channel response
 #
-backend_channel_responseGaussian( fwhm=1 )
+backend_channel_responseGaussianConstant( fwhm=1 )
 
 
 # With a frequency shift retrieval, we must use sensor_response_agenda

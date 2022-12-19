@@ -3208,9 +3208,9 @@ Available models:
       DESCRIPTION(
           "Sets up a 1D gaussian antenna response and a matching *mblock_dlos*.\n"
           "\n"
-          "As *antenna_responseGaussian*, but also creates *mblock_dlos*.\n"
+          "As *antenna_responseGaussianConstant*, but also creates *mblock_dlos*.\n"
           "For definition of the GINs *fwhm*, *grid_width* and *grid_npoints*,\n"
-          "see *antenna_responseGaussian*.\n"
+          "see *antenna_responseGaussianConstant*.\n"
           "\n"
           "The length of *mblock_dlos* is determined by *n_mblock_dlos*.\n"
           "The end points of the grid are set to be the same as for the\n"
@@ -3292,7 +3292,7 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("antenna_responseGaussian"),
+      NAME("antenna_responseGaussianConstant"),
       DESCRIPTION(
           "Sets up a Gaussian antenna response.\n"
           "\n"
@@ -3333,11 +3333,11 @@ Available models:
                "Set to 1 to create a 2D antenna pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("antenna_responseVaryingGaussian"),
+      NAME("antenna_responseGaussianEffectiveSize"),
       DESCRIPTION(
           "Sets up Gaussian antenna responses.\n"
           "\n"
-          "Similar to *antenna_responseGaussian* but allows to set up\n"
+          "Similar to *antenna_responseGaussianConstant* but allows to set up\n"
           "responses that varies with frequency. That is, the method assumes\n"
           "that the response is the same for all polarisations, and that it\n"
           "can be modelled as a Gaussian function varying with frequency.\n"
@@ -3353,9 +3353,9 @@ Available models:
           "frequency grid of the responses is taken from *VectorNLogSpace*.\n"
           "\n"
           "The responses have a common angular grid. The parameters to define\n"
-          "the grid are the same as for *antenna_responseGaussian*. If\n" 
-          "*grid_width* is <= 0, it is set to twice the FWHN at the lowest\n"
-          "frequency. Also the 2D option works as for *antenna_responseGaussian*.\n"),
+          "the grid are the same as for *antenna_responseGaussianConstant*. If\n" 
+          "*grid_width* is <= 0, it is set to twice the FWHM at the lowest\n"
+          "frequency.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
@@ -4345,15 +4345,15 @@ Available models:
       GIN_DESC("The spectrometer resolution.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("backend_channel_responseGaussian"),
+      NAME("backend_channel_responseGaussianConstant"),
       DESCRIPTION(
           "Sets up a Gaussian backend channel response.\n"
           "\n"
           "The method assumes that all channels have the same response.\n"
           "\n"
           "The GINs *fwhm*, *grid_width* and *grid_npoints* work in the\n"
-          "same way as for *antenna_responseGaussian*. This including how\n"
-          "negative *grid_width* and *grid_npoints* are treated.\n"),
+          "same way as for *antenna_responseGaussianConstant*. This including\n"
+          "how negative *grid_width* and *grid_npoints* are treated.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
       GOUT(),

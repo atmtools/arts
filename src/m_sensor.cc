@@ -89,7 +89,7 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
   antenna_dlos.resize(1, 1);
   antenna_dlos(0, 0) = 0.0;
 
-  antenna_responseGaussian(r, fwhm, grid_width, grid_npoints, 0, verbosity);
+  antenna_responseGaussianConstant(r, fwhm, grid_width, grid_npoints, 0, verbosity);
 
   // za grid for response
   ConstVectorView r_za_grid = r.get_numeric_grid(GFIELD4_ZA_GRID);
@@ -203,12 +203,12 @@ void AntennaOff(Index& antenna_dim,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseGaussian(GriddedField4& r,
-                              const Numeric& fwhm,
-                              const Numeric& grid_width,
-                              const Index& grid_npoints,
-                              const Index& do_2d,
-                              const Verbosity& verbosity) {
+void antenna_responseGaussianConstant(GriddedField4& r,
+                                      const Numeric& fwhm,
+                                      const Numeric& grid_width,
+                                      const Index& grid_npoints,
+                                      const Index& do_2d,
+                                      const Verbosity& verbosity) {
   ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
   ARTS_USER_ERROR_IF (grid_npoints == 1, "*grid_npoints* can not be 1.");
 
@@ -250,15 +250,15 @@ void antenna_responseGaussian(GriddedField4& r,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseVaryingGaussian(GriddedField4& r,
-                                     const Numeric& leff,
-                                     const Numeric& grid_width,
-                                     const Index& grid_npoints,
-                                     const Index& nf,
-                                     const Numeric& fstart,
-                                     const Numeric& fstop,
-                                     const Index& do_2d,
-                                     const Verbosity& verbosity) {
+void antenna_responseGaussianEffectiveSize(GriddedField4& r,
+                                           const Numeric& leff,
+                                           const Numeric& grid_width,
+                                           const Index& grid_npoints,
+                                           const Index& nf,
+                                           const Numeric& fstart,
+                                           const Numeric& fstop,
+                                           const Index& do_2d,
+                                           const Verbosity& verbosity) {
   Numeric gwidth = grid_width;
   if (gwidth <= 0) {
     gwidth = 2.0 * RAD2DEG * SPEED_OF_LIGHT / (leff * fstart);
@@ -328,11 +328,11 @@ void backend_channel_responseFlat(ArrayOfGriddedField1& r,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
-                                      const Numeric& fwhm,
-                                      const Numeric& grid_width,
-                                      const Index& grid_npoints,
-                                      const Verbosity& verbosity) {
+void backend_channel_responseGaussianConstant(ArrayOfGriddedField1& r,
+                                              const Numeric& fwhm,
+                                              const Numeric& grid_width,
+                                              const Index& grid_npoints,
+                                              const Verbosity& verbosity) {
   ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
   ARTS_USER_ERROR_IF (grid_npoints == 1, "*grid_npoints* can not be 1.");
 

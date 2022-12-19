@@ -184,7 +184,7 @@ NumericSet( f_resolution, 500e3 )
 # Size of frequency throw
 NumericSet( f_switch, 10e6 )
 
-backend_channel_responseGaussian( backend_channel_response, f_resolution )
+backend_channel_responseGaussianConstant( backend_channel_response, f_resolution )
 
 # Calculate where first channel can start (considering f_switch and 
 # channel widths)
