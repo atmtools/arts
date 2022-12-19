@@ -74,49 +74,6 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaConstantGaussian1D(Index& antenna_dim,
-                               Matrix& mblock_dlos,
-                               GriddedField4& r,
-                               Matrix& antenna_dlos,
-                               const Index& n_mblock_dlos,
-                               const Numeric& fwhm,
-                               const Numeric& grid_width,
-                               const Index& grid_npoints,
-                               const Verbosity& verbosity) {
-  antenna_dim = 1;
-
-  antenna_dlos.resize(1, 1);
-  antenna_dlos(0, 0) = 0.0;
-
-  antenna_responseGaussianConstant(r, fwhm, grid_width, grid_npoints, 0, verbosity);
-
-  // za grid for response
-  ConstVectorView r_za_grid = r.get_numeric_grid(GFIELD4_ZA_GRID);
-  const Index nr = r_za_grid.nelem();
-
-  // Cumulative integral of response (factor /2 skipped, but does not matter)
-  Vector cumtrapz(nr);
-  cumtrapz[0] = 0;
-  for (Index i = 1; i < nr; i++) {
-    cumtrapz[i] = cumtrapz[i - 1] + r.data(0, 0, i - 1, 0) + r.data(0, 0, i, 0);
-  }
-
-  // Equally spaced vector between end points of cumulative sum
-  Vector csp;
-  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_mblock_dlos);
-
-  // Get mblock_za_grid by interpolation
-  mblock_dlos.resize(n_mblock_dlos, 1);
-  ArrayOfGridPos gp(n_mblock_dlos);
-  gridpos(gp, cumtrapz, csp);
-  Matrix itw(n_mblock_dlos, 2);
-  interpweights(itw, gp);
-  interp(mblock_dlos(joker, 0), itw, r_za_grid, gp);
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
                                     Matrix& sensor_los,
                                     Matrix& antenna_dlos,
@@ -931,6 +888,42 @@ void f_gridMetMM(
       i++;
     }
   }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void mblock_dlosFrom1dAntenna(Matrix& mblock_dlos,
+                              const GriddedField4& antenna_response,
+                              const Index& n_mblock_dlos,
+                              const Verbosity&) {
+  ARTS_USER_ERROR_IF (antenna_response.data.ncols() != 1,
+                      "The input antenna response must be 1D.");  
+  ARTS_USER_ERROR_IF (n_mblock_dlos < 3, "*n_mblock_dlos*must be > 2.");
+
+  // za grid for response
+  ConstVectorView r_za_grid = antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+  const Index nr = r_za_grid.nelem();
+
+  // Cumulative integral of response (factor /2 skipped, but does not matter)
+  Vector cumtrapz(nr);
+  cumtrapz[0] = 0;
+  for (Index i = 1; i < nr; i++) {
+    cumtrapz[i] = cumtrapz[i - 1] + antenna_response.data(0, 0, i - 1, 0) +
+                                    antenna_response.data(0, 0, i, 0);
+  }
+
+  // Equally spaced vector between end points of cumulative sum
+  Vector csp;
+  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_mblock_dlos);
+
+  // Get mblock_za_grid by interpolation
+  mblock_dlos.resize(n_mblock_dlos, 1);
+  ArrayOfGridPos gp(n_mblock_dlos);
+  gridpos(gp, cumtrapz, csp);
+  Matrix itw(n_mblock_dlos, 2);
+  interpweights(itw, gp);
+  interp(mblock_dlos(joker, 0), itw, r_za_grid, gp);
 }
 
 

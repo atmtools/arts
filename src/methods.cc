@@ -3204,40 +3204,6 @@ Available models:
                AGENDAMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AntennaConstantGaussian1D"),
-      DESCRIPTION(
-          "Sets up a 1D gaussian antenna response and a matching *mblock_dlos*.\n"
-          "\n"
-          "As *antenna_responseGaussianConstant*, but also creates *mblock_dlos*.\n"
-          "For definition of the GINs *fwhm*, *grid_width* and *grid_npoints*,\n"
-          "see *antenna_responseGaussianConstant*.\n"
-          "\n"
-          "The length of *mblock_dlos* is determined by *n_mblock_dlos*.\n"
-          "The end points of the grid are set to be the same as for the\n"
-          "antenna response. The spacing of the grid follows the magnitude of\n"
-          "the response; the spacing is smaller where the response is high.\n"
-          "More precisely, the grid points are determined by dividing\n"
-          "the cumulative sum of the response in equal steps.\n"
-          "\n"
-          "The WSV *antenna_dlos* is set to [0].\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("antenna_dim",
-          "mblock_dlos",
-          "antenna_response",
-          "antenna_dlos"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("n_mblock_dlos", "fwhm", "grid_width", "grid_npoints"),
-      GIN_TYPE("Index", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "-1", "-1"),
-      GIN_DESC("Number of points (>1) to include in *mblock_dlos*.",
-               "Full width at half-maximum of the Gaussian function.",
-               "Full width of grid.",
-               "Number of points to represent the grid.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("AntennaMultiBeamsToPencilBeams"),
       DESCRIPTION(
           "Maps a multi-beam case to a matching pencil beam case.\n"
@@ -11858,6 +11824,29 @@ Available models:
       GIN_DESC("The vector to be copied into the first row.",
                "The vector to be copied into the second row.",
                "The vector to be copied into the third row.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("mblock_dlosFrom1dAntenna"),
+      DESCRIPTION(
+          "Sets *mblock_dlos* based on a 1D gaussian antenna response.\n"
+          "\n"
+          "The length of *mblock_dlos* is determined by *n_mblock_dlos*.\n"
+          "The end points of the grid are set to be the same as for the\n"
+          "antenna response. The spacing of the grid follows the magnitude of\n"
+          "the response; the spacing is smaller where the response is high.\n"
+          "More precisely, the grid points are determined by dividing\n"
+          "the cumulative sum of the response in equal steps.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("mblock_dlos"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("antenna_response"),
+      GIN("n_mblock_dlos"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Number of points (>1) to include in *mblock_dlos*.")));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussian"),
       DESCRIPTION(
