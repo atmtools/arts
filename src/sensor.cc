@@ -281,7 +281,8 @@ void antenna2d_gridded_dlos(Sparse& H,
   ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
   ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
 
-  // Include cos(za)-term in response
+  // Going from solid angle to (zz,aa) involves weighting with a cos(za)-term
+  // Here we take that term into account by weighting of the antenna response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
   for(Index i3=0; i3<n_ar_za; i3++) {
     const Numeric t = cos(DEG2RAD * aresponse_za_grid[i3]);
@@ -306,9 +307,6 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
-
-  // If you find a bug or change something, likely also change other 2D antenna
-  // function(s) as they are similar
   
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
