@@ -390,6 +390,7 @@ template <detail::size_t M, detail::size_t N, class mdspan_type>
              const OUT<T, std::max<detail::size_t>(N - 1, 1), true>>;          \
   using value_type = T;                                                        \
   [[nodiscard]] static constexpr auto rank() { return N; }                     \
+  [[nodiscard]] static constexpr auto is_const() { return constant; }          \
   [[nodiscard]] auto begin()                                                   \
     requires(not constant)                                                     \
   {                                                                            \
@@ -556,10 +557,17 @@ public:
     return *this;
   }
 
+  constexpr simple_view& operator-=(T x) requires(not constant) {
+    std::transform(data_handle(), data_handle()+size(), data_handle(), [x](auto& y){return y - x;});
+    return *this;
+  }
+
   template <class F>
   void transform_elementwise(F&& func) requires(not constant) {
     std::transform(data_handle(), data_handle()+size(), data_handle(), func);
   }
+  [[nodiscard]] T max() const {return *std::max_element(data_handle(), data_handle()+size());}
+  [[nodiscard]] T min() const {return *std::min_element(data_handle(), data_handle()+size());}
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
   [[nodiscard]] T * data_handle() const noexcept {return view.data_handle();}
@@ -622,12 +630,11 @@ public:
   template <detail::size_t M>
   explicit constexpr operator strided_view<T, M, constant>() const requires(M > N) {
     std::array<detail::size_t, M> sz, st;
-    std::cerr << "OI\n";
     for (detail::size_t i=N; i<M; i++) sz[i] = 1;
     for (detail::size_t i=N; i<M; i++) st[i] = 1;
     for (detail::size_t i=0; i<N; i++) sz[i] = extent(i);
     for (detail::size_t i=0; i<N; i++) st[i] = stride(i);
-    return strided_view<T, M, constant> {view.data_handle(), {sz, st}};
+    return detail::strided_mdspan<T, M>{view.data_handle(), {sz, st}};
   }
 
   strided_view &operator=(const any_same_md<N> auto &sv)
@@ -761,7 +768,15 @@ public:
 
   constexpr strided_view& operator+=(T x) requires(not constant) {
     if constexpr (N == 1)
-      std::transform(begin(), end(), begin(), [x](auto& y){return x * y;});
+      std::transform(begin(), end(), begin(), [x](auto& y){return x + y;});
+    else
+      for (auto y: *this) y *= x;
+    return *this;
+  }
+
+  constexpr strided_view& operator-=(T x) requires(not constant) {
+    if constexpr (N == 1)
+      std::transform(begin(), end(), begin(), [x](auto& y){return y - x;});
     else
       for (auto y: *this) y *= x;
     return *this;
@@ -773,6 +788,26 @@ public:
       std::transform(begin(), end(), begin(), func);
     else
       for (auto sv: *this) sv.transform_elementwise(func);
+  }
+  [[nodiscard]] T max() const {
+    if constexpr (N == 1)
+      return *std::max_element(begin(), end());
+    else {
+      T out = std::numeric_limits<T>::lowest();
+      for (auto &sv : *this)
+        out = std::max(out, sv.max());
+      return out;
+    }
+  }
+  [[nodiscard]] T min() const {
+    if constexpr (N == 1)
+      return *std::min_element(begin(), end());
+    else {
+      T out = std::numeric_limits<T>::max();
+      for (auto &sv : *this)
+        out = std::min(out, sv.max());
+      return out;
+    }
   }
 
   [[nodiscard]] constexpr bool is_exhaustive() const noexcept {return view.is_exhaustive();}
@@ -959,7 +994,12 @@ public:
   }
 
   constexpr simple_data& operator+=(T x) {
-    std::transform(data.begin(), data.end(), data.begin(), [x](auto& y){return x * y;});
+    std::transform(data.begin(), data.end(), data.begin(), [x](auto& y){return x + y;});
+    return *this;
+  }
+
+  constexpr simple_data& operator-=(T x) {
+    std::transform(data.begin(), data.end(), data.begin(), [x](auto& y){return y - x;});
     return *this;
   }
 
@@ -974,6 +1014,8 @@ public:
   using iterator = std::conditional_t<N==1, decltype(data.begin()), decltype(view.begin())>;
   using const_iterator = std::conditional_t<N==1, decltype(data.cbegin()), decltype(view.cbegin())>;
   using value_type = T;
+  [[nodiscard]] static constexpr auto rank() { return N; }
+  [[nodiscard]] static constexpr auto is_const() { return constant; }
   [[nodiscard]] iterator end() {if constexpr (N==1) return data.end(); else return view.end();}
   [[nodiscard]] const_iterator end() const {if constexpr (N==1) return data.end(); else return view.end();}
   [[nodiscard]] const_iterator cend() const {if constexpr (N==1) return data.cend(); else return view.cend();}
@@ -1004,6 +1046,8 @@ public:
   void transform_elementwise(F&& func) {
     std::transform(data.begin(), data.end(), data.begin(), func);
   }
+  [[nodiscard]] T max() const {return *std::max_element(data.begin(), data.end());}
+  [[nodiscard]] T min() const {return *std::min_element(data.begin(), data.end());}
 
   [[nodiscard]] static constexpr bool is_exhaustive() noexcept {return true;}
   [[nodiscard]] auto data_handle() const noexcept {return view.data_handle();}
@@ -1222,17 +1266,90 @@ void mult(matpack::md::strided_view<Complex, 2, false> C,
           const matpack::md::strided_view<Complex, 2, true> &B,
           Complex alpha = 1.0, Complex beta = 0.0);
 
+namespace detail {
+//! Help deduce if we can transpose a matrix
 template<typename T>
 concept transposable_matrix = requires(T a) {
   { a.transpose() } -> matpack::md::any_same_md<2>;
 };
+}  // namespace detail
 
 /** Returns a view of the transpose of some object
  *
  * @param[in] A A matrix view that has the size of N x K
  * @return A const-correct matrix view of size K x N
  */
-constexpr auto transpose(transposable_matrix auto &&A) noexcept
+constexpr auto transpose(detail::transposable_matrix auto &&A) noexcept
 {
   return std::forward<decltype(A)>(A).transpose();
 }
+
+namespace detail {
+//! Implement a transform functionality
+template <typename T, Index N, typename Function>
+void transform_impl(matpack::md::any_mutable<T, N> auto& out, Function&& f, const matpack::md::any_md<T, N> auto& in) {
+  out = in;
+  out.transform_elementwise(std::forward<Function>(f));
+}
+
+//! A concept to say wheter or not we can call transform_impl
+template <typename T>
+concept transform_implable = requires(T a) {
+  { a.rank() } -> std::integral;
+  { a.is_const() } -> std::same_as<bool>;
+};
+} // namespace detail
+
+
+/** Transforms the out variable by applying f on all in
+ * 
+ * @tparam OUTPUT An outputable multi-dimensional array
+ * @tparam INPUT An inputable multi-dimensional array
+ * @tparam Function Some function 
+ */
+template <typename OUTPUT, typename INPUT, typename Function>
+void transform(OUTPUT &out, Function &&f, const INPUT &in)
+  requires(
+      detail::transform_implable<OUTPUT> and
+      detail::transform_implable<INPUT> and
+      not OUTPUT::is_const() and
+      INPUT::rank() == OUTPUT::rank() and
+      std::same_as<typename INPUT::value_type, typename OUTPUT::value_type> and
+      requires(OUTPUT a, Function g) {a.transform_elementwise(g);})
+{
+  detail::transform_impl<typename INPUT::value_type, INPUT::rank()>(
+      out, std::forward<Function>(f), in);
+}
+
+namespace detail {
+//! The type has max()
+template <typename T>
+concept maxable = requires(T a) {
+  a.max();
+};
+
+//! The type has min()
+template <typename T>
+concept minable = requires(T a) {
+  a.min();
+};
+}  // namespace detail
+
+/** Returns the maximum
+ * 
+ * @param in Some type that has a max() member function
+ * @return auto The return of said max() member function call
+ */
+auto max(const detail::maxable auto& in) {
+  return in.max();
+}
+
+/** Returns the minimum
+ * 
+ * @param in Some type that has a min() member function
+ * @return auto The return of said max() member function call
+ */
+auto min(const detail::minable auto& in) {
+  return in.min();
+}
+

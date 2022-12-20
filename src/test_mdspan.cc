@@ -833,13 +833,43 @@ void test6() {
   //  cout << "sin(x) =\n" << y << "\n";
   for (Index i = 0; i < 1000; ++i) {
     //      mult(y,M,x);
-    y = x;
-    y.transform_elementwise([](auto& x){return sin(x);});
+    auto tmp = static_cast<MatrixView>(y);  // FIXME: I have to have a temporary!
+    transform(tmp, [](auto a){return sin(a);}, static_cast<MatrixView>(x));
     x += 1;
   }
   //  cout << "y =\n" << y << "\n";
 
   cout << "Done.\n";
+}
+
+void test7() {
+  Vector x(1, 20000000, 1);
+  Vector y(x.nelem());
+  transform(y, [](auto a){return sin(a);}, x);
+  cout << "min(sin(x)), max(sin(x)) = " << min(y) << ", " << max(y) << "\n";
+}
+
+void test8() {
+  Vector x(80000000);
+  for (Index i = 0; i < x.nelem(); ++i) x[i] = (Numeric)i;
+  cout << "Done."
+       << "\n";
+}
+
+void test9() {
+  // Initialization of Matrix with view of other Matrix:
+  Matrix A(4, 8);
+  Matrix B(A(Range(joker), Range(0, 3)));
+  cout << "B = " << B << "\n";
+}
+
+
+void test10() {
+  // Initialization of Matrix with a vector (giving a 1 column Matrix).
+
+  Vector v(1, 8, 1);
+  Matrix M((MatrixView)v);  //FIXME: You have to view the vector as (MatrixView)
+  cout << "M = " << M << "\n";
 }
 
 int main() {
@@ -853,5 +883,9 @@ int main() {
   // test2();
   // test4();
   // test5();
-  test6();
+  // test6();
+  // test7();
+  // test8();
+  // test9();
+  test10();
 }
