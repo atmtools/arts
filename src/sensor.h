@@ -82,14 +82,13 @@ void antenna1d_matrix(Sparse& H,
   is treated as step-wise constant function (in contrast to 1D). See also
   built-in doc.
 
-   \param   H            The antenna transfer matrix
-   \param   antenna_dim  As the WSV with the same name
-   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
+   \param   H                 The antenna transfer matrix
+   \param   antenna_dim       As the WSV with the same name
+   \param   antenna_dlos      As the WSV with the same name
    \param   antenna_response  As the WSV with the same name
-   \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   f_grid       Frequency grid for monochromatic calculations
-   \param   n_pol        Number of polarisation states
-   \param   do_norm      Flag whether response should be normalised
+   \param   mblock_dlos       As the WSV with the same name
+   \param   f_grid            Frequency grid for monochromatic calculations
+   \param   n_pol             Number of polarisation states
 
    \author  Patrick Eriksson
    \date   2020-09-01
@@ -106,19 +105,17 @@ void antenna2d_gridded_dlos(Sparse& H,
 
 //! antenna2d_interp_response
 /*!
-  For this option, each direction defined by *mblock_dlos* is
-  considered to represent the same size in terms of solid beam angle,
-  and the antenna pattern is interpolated to these directions. See also
-  built-in doc.
+  The antenna pattern is interpolated to the dlos directions and solid
+  beam angles are applied. See also built-in doc.
 
-   \param   H            The antenna transfer matrix
-   \param   antenna_dim  As the WSV with the same name
-   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
+   \param   H                 The antenna transfer matrix
+   \param   antenna_dim       As the WSV with the same name
+   \param   antenna_dlos      As the WSV with the same name
    \param   antenna_response  As the WSV with the same name
-   \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   f_grid       Frequency grid for monochromatic calculations
-   \param   n_pol        Number of polarisation states
-   \param   do_norm      Flag whether response should be normalised
+   \param   mblock_dlos       As the WSV with the same name
+   \param   solid_angles      The solid angle of each dlos
+   \param   f_grid            Frequency grid for monochromatic calculations
+   \param   n_pol             Number of polarisation states
 
    \author  Patrick Eriksson
    \date   2018-09-12
@@ -128,6 +125,7 @@ void antenna2d_interp_response(Sparse& H,
                                ConstMatrixView antenna_dlos,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,
+                               ConstVectorView solid_angles,
                                ConstVectorView f_grid,
                                const Index n_pol);
 

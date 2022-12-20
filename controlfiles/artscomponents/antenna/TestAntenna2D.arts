@@ -172,11 +172,15 @@ IndexSet( antenna_dim, 2 )
 #
 Matrix2ColFromVectors( mblock_dlos, dza, zeros )
 
+# Here we assume that antenna response includes cos(za) term and
+# all directions represent the same solid angle
+VectorSetConstant( dlos_weight_vector, ndlos, 1 ) 
 
 # Calculate
 #
 sensor_responseInit
-sensor_responseAntenna(option_2d = "interp_response")
+sensor_responseAntenna( option_2d = "interp_response",
+                        solid_angles=dlos_weight_vector )
 sensor_checkedCalc
 #
 yCalc
@@ -192,7 +196,8 @@ Compare( y, y_ref, 0.01 )
 #
 dlosUniform( dlos=mblock_dlos, width=3.3, npoints = 9, crop_circular=1 )
 sensor_responseInit
-sensor_responseAntenna(option_2d = "interp_response")
+sensor_responseAntenna( option_2d = "interp_response",
+                        solid_angles=dlos_weight_vector )
 sensor_checkedCalc
 #
 yCalc
@@ -211,7 +216,8 @@ Copy( y_ref, y )
 dlosUniform( dlos=mblock_dlos, width=3.3, npoints = 9 )
 Print(mblock_dlos, 0)
 sensor_responseInit
-sensor_responseAntenna(option_2d = "interp_response")
+sensor_responseAntenna( option_2d = "interp_response",
+                        solid_angles = dlos_weight_vector )
 sensor_checkedCalc
 #
 yCalc

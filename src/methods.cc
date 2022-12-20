@@ -18691,28 +18691,28 @@ where N>=0 and the species name is something line "H2O".
           "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
           "details on how to specify the antenna response.\n"
           "\n"
-          "The text below refers to *mblock_dlos* despite it is not an\n"
-          "input to the method. The method instead uses *sensor_response_dlos_grid*\n"
+          "The text below refers to *mblock_dlos* despite it is not an input\n"
+          "to the method. The method instead uses *sensor_response_dlos_grid*\n"
           "but the values in this WSV are likely coming from *mblock_dlos*.\n"
           "\n"
           "One dimensional antenna patterns are handled as other response\n"
           "functions. That is, both antenna response and radiances are treated\n"
-          "as piece-wise linear functions, and the pencil beam calculations must\n"
-          "cover the full sensor response (i.e. *mblock_dlos* must be\n"
+          "as piece-wise linear functions, and the pencil beam calculations\n"
+          "must cover the full sensor response (i.e. *mblock_dlos* shall be\n"
           "sufficiently broad).\n"
           "\n"
-          "There exist different options for two dimensional (2D) antenna patterns,\n"
-          "see below (if 2D, the GIN *option_2d* must be set, the default results\n"
-          "in an error). A normalisation is always applied for 2D antennas (i.e.\n"
-          "*sensor-norm* is ignored).\n"
+          "There exist different options for two dimensional antenna patterns.\n"
+          "(If 2D, the GIN *option_2d* must be set, the default setting results\n"
+          "in an error). A normalisation is always applied for 2D antennas.\n"
           "\n"
           "\"interp_response\"\n"
-          "For this option, each direction defined by *mblock_dlos* is\n"
-          "considered to represent the same size in terms of solid beam angle,\n"
-          "and the antenna pattern is interpolated to these directions. There is\n"
-          "no check on how well *mblock_dlos* covers the antenna response.\n"
-          "The response is treated to be zero outside the ranges of the angular\n"
-          "grids\n"
+          "Both radiances and the antenna pattern are treated as step-wise\n"
+          "constant functions. The antenna pattern is interpolated to the\n"
+          "*mblock_dlos* directions. At extrapolation, the antenna response\n"
+          "is set to zero. This option considers GIN *solid_angles*, that\n"
+          "shall be a vector with length matching the rows of *mblock_dlos*.\n"
+          "The values going into *sensor_response* are the interpolated antenna\n"
+          "values times the corresponding solid angle.\n"
           "\n"
           "\"gridded_dlos\"\n"
           "This option is more similar to the 1D case. The radiances are treated\n"
@@ -18721,7 +18721,7 @@ where N>=0 and the species name is something line "H2O".
           "*mblock_dlos* must match a combination of zenith and azimuth\n"
           "grids, and this for a particular order. If the zenith and azimuth\n"
           "grids have 3 and 2 values, respectively, the order shall be:\n"
-          "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2) ]\n"
+          "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2)]\n"
           "Both these grids must be strictly increasing and as for 1D must cover\n"
           "the antenna response completely.\n"),
       AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
@@ -18745,10 +18745,12 @@ where N>=0 and the species name is something line "H2O".
          "antenna_dlos",
          "antenna_response",
          "sensor_norm"),
-      GIN( "option_2d" ),
-      GIN_TYPE( "String" ),
-      GIN_DEFAULT( "-" ),
-      GIN_DESC( "Calculation option for 2D antenna cases. See above for details." )));
+      GIN("option_2d", "solid_angles"),
+      GIN_TYPE("String", "Vector"),
+      GIN_DEFAULT("-", "[]"),
+      GIN_DESC("Calculation option for 2D antenna cases. See above for details.",
+               "The solid angle of each *mblock_dlos* direction. Only considered "
+               "for 2D with \"interp_response\".")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackend"),

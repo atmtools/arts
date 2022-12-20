@@ -942,6 +942,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
                             const GriddedField4& antenna_response,
                             const Index& sensor_norm,
                             const String& option_2d,
+                            const Vector& solid_angles,
                             const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1129,12 +1130,15 @@ void sensor_responseAntenna(Sparse& sensor_response,
   else {
 
     if (option_2d == "interp_response" ) {
+      ARTS_USER_ERROR_IF (solid_angles.nelem() != sensor_response_dlos_grid.nrows(),
+          "Length of *solid_angles* not matching number of dlos.");  
       antenna2d_interp_response(hantenna,
                                 antenna_dim,
                                 antenna_dlos,
                                 antenna_response,
                                 sensor_response_dlos_grid,
-                                sensor_response_f_grid,
+                                solid_angles,
+                                sensor_response_f_grid,                                
                                 npol);
     }
     else if (option_2d == "gridded_dlos" ) {

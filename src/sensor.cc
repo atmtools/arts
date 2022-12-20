@@ -455,6 +455,7 @@ void antenna2d_interp_response(Sparse& H,
                                ConstMatrixView antenna_dlos,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,
+                               ConstVectorView solid_angles,
                                ConstVectorView f_grid,
                                const Index n_pol)
 {  
@@ -469,6 +470,7 @@ void antenna2d_interp_response(Sparse& H,
   ARTS_ASSERT(antenna_dim == 2);
   ARTS_ASSERT(n_dlos >= 1);
   ARTS_ASSERT(n_pol >= 1);
+  ARTS_ASSERT(n_dlos == solid_angles.nelem());
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -516,7 +518,7 @@ void antenna2d_interp_response(Sparse& H,
 
   // Storage vectors for response weights
   Vector hrow(H.ncols(), 0.0);
-  Vector hza(n_dlos, 0.0);
+  Vector hdlos(n_dlos, 0.0);
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
@@ -543,10 +545,10 @@ void antenna2d_interp_response(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = aresponse_with_cos(ip, 0, joker, joker);
+            aresponse = antenna_response.data(ip, 0, joker, joker);
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = aresponse_with_cos(0, 0, joker, joker);
+            aresponse = antenna_response.data(0, 0, joker, joker);
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -563,7 +565,7 @@ void antenna2d_interp_response(Sparse& H,
             Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
             interp(aresponse_matrix,
                    itw,
-                   aresponse_with_cos(ip, joker, joker, joker),
+                   antenna_response.data(ip, joker, joker, joker),
                    gp_f,
                    gp_za,
                    gp_aa);
@@ -592,7 +594,7 @@ void antenna2d_interp_response(Sparse& H,
                 za > aresponse_za_grid[n_ar_za - 1] ||
                 aa < aresponse_aa_grid[0] ||
                 aa > aresponse_aa_grid[n_ar_aa - 1]) {
-              hza[l] = 0;
+              hdlos[l] = 0;
             }
             // Otherwise we make an (blue) interpolation
             else {
@@ -603,19 +605,19 @@ void antenna2d_interp_response(Sparse& H,
               interpweights(itw, gp_za, gp_aa);
               Vector value(1);
               interp(value, itw, aresponse, gp_za, gp_aa);
-              hza[l] = value[0];
+              hdlos[l] = solid_angles[l] * value[0];
             }
           }
 
           // For 2D antennas we always normalise
-          hza /= hza.sum();
+          hdlos /= hdlos.sum();
         }
 
         // Put weights into H
         //
         const Index ii = f * n_pol + ip;
         //
-        hrow[Range(ii, n_dlos, nfpol)] = hza;
+        hrow[Range(ii, n_dlos, nfpol)] = hdlos;
         //
         H.insert_row(ia * nfpol + ii, hrow);
         //
