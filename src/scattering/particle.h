@@ -27,7 +27,7 @@ namespace detail {
     inline std::string read_string(std::istream &input) {
         size_t size = 0;
         input.read(reinterpret_cast<char *>(&size), sizeof(size_t));
-        std::string str{size};
+        std::string str(size, '\0');
         input.read(str.data(), size * sizeof(char));
         return str;
     }

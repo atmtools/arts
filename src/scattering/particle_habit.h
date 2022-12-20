@@ -428,7 +428,7 @@ public:
         }
 
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator{seed};
+        std::default_random_engine generator{static_cast<std::default_random_engine::result_type>(seed)};
         std::uniform_real_distribution<double> lon_dist(0, 2 * M_PI);
         std::uniform_real_distribution<double> lat_dist(-1.0, 1.0);
         std::uniform_real_distribution<double> r_dist(0, 1.0);
@@ -482,7 +482,7 @@ public:
         }
 
         auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator{seed};
+        std::default_random_engine generator{static_cast<std::default_random_engine::result_type>(seed)};
         std::uniform_real_distribution<double> lon_dist(0, 2.0 * M_PI);
         std::uniform_real_distribution<double> lat_dist(-1.0, 1.0);
         std::uniform_real_distribution<double> r_dist(0, 1.0);

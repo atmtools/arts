@@ -143,7 +143,7 @@ std::complex<Scalar> refr_index_water_ellison07(
             (1. / (1. + pow2(two_pi * tau5 * (f1 + frequency))) +
              1. / (1. + pow2(two_pi * tau5 * (f1 - frequency))));
 
-    return sqrt(std::complex<Scalar>({epsilon_real, epsilon_imag}));
+    return sqrt(std::complex<Scalar>{epsilon_real, epsilon_imag});
 }
 
 /** Calculates the refractive index of water following [4].
