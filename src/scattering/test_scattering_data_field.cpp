@@ -101,7 +101,6 @@ bool test_io() {
 
     data_other = sdf_other_spectral.to_gridded().get_data();
     delta = (data - data_other).abs().maximum();
-    std::cout << "DELTA :: " << delta << std::endl;
     if (delta.coeff() > 1e-6) return false;
 
     // Write and read fully spectral data.
@@ -122,7 +121,6 @@ bool test_io() {
 
     data_other = sdf_other_fully_spectral.to_spectral().to_gridded().get_data();
     delta = (data - data_other).abs().maximum();
-    std::cout << "DELTA :: " << delta << std::endl;
     if (delta.coeff() > 1e-6) return false;
 
     return true;
@@ -130,7 +128,6 @@ bool test_io() {
 
 
 int main(int /*nargs*/, char **/*argv*/) {
-
     bool passed;
 
     passed = test_io();
@@ -141,5 +138,4 @@ int main(int /*nargs*/, char **/*argv*/) {
         std::cout << "FAILED" << std::endl;
         return 1;
     }
-
 }

@@ -69,19 +69,19 @@ struct ScatteringPropertiesSpec {
                              scattering::math::ConstVectorPtr<Numeric> lon_scat_,
                              scattering::ConstLatitudeGridPtr<Numeric> lat_scat_,
                              Numeric phase_function_norm=1.0);
-    ScatteringPropertiesSpec(const Vector& f_grid,
+    ScatteringPropertiesSpec(const Vector& f_grid_,
                              ReferenceFrame frame_,
                              Index n_stokes_,
                              const Vector& lon_scat_,
                              const Vector& lat_scat_,
                              Numeric phase_function_norm_=1.0)
-        : ScatteringPropertiesSpec(std::make_shared<scattering::math::Vector<Numeric>>(scattering::to_eigen(f_grid)),
-                               frame,
-                               n_stokes_,
+        : ScatteringPropertiesSpec(std::make_shared<scattering::math::Vector<Numeric>>(scattering::to_eigen(f_grid_)),
+                                   frame_,
+                                   n_stokes_,
                                    std::make_shared<scattering::math::Vector<Numeric>>(scattering::to_eigen(lon_scat_)),
                                    std::make_shared<scattering::IrregularLatitudeGrid<Numeric>>(scattering::to_eigen(lat_scat_)),
                                phase_function_norm_) {}
-    ScatteringPropertiesSpec(scattering::math::ConstVectorPtr<Numeric> f_grid,
+    ScatteringPropertiesSpec(scattering::math::ConstVectorPtr<Numeric> f_grid_,
                              ReferenceFrame frame_,
                              Index n_stokes_,
                              scattering::math::ConstVectorPtr<Numeric> lat_inc_,
@@ -223,7 +223,7 @@ class BulkScatteringProperties {
   Tensor7 get_phase_matrix(Index stokes_dim) const;
 
   BulkScatteringProperties &operator+=(const BulkScatteringProperties &other) {
-    for (Index i = 0; i < data_.size(); ++i) {
+    for (size_t i = 0; i < data_.size(); ++i) {
       data_[i] += other.data_[i];
     }
     return *this;
@@ -252,7 +252,7 @@ class BulkScatteringProperties {
    */
   void downsample_lon_scat(const Vector &lon_scat) {
       auto lon_scat_ptr = std::make_shared<scattering::math::Vector<Numeric>>(scattering::to_eigen(lon_scat));
-    for (Index i = 0; i < data_.size(); ++i) {
+    for (size_t i = 0; i < data_.size(); ++i) {
       data_[i] = data_[i].downsample_lon_scat(lon_scat_ptr);
     }
   }

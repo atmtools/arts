@@ -38,10 +38,10 @@
 
 #include <fast_float/fast_float.h>
 
-/** Input manipulator class for doubles to enable nan and inf parsing. */
-class double_imanip {
+template<std::floating_point Scalar>
+class fp_imanip {
  public:
-  const double_imanip& operator>>(double& x) const {
+  const fp_imanip& operator>>(Scalar& x) const {
     std::istream& is = *in;
     std::string buf;
 
@@ -59,8 +59,8 @@ class double_imanip {
                        buf,
                        R"--('
 
-is not convertible to a valid double.  At the very least it
-cannot be converted to one using the standard string-to-double
+is not convertible to a valid floating point number.  At the very least
+it cannot be converted to one using the standard string-to-floating-point
 routine
 )--")
 
@@ -71,19 +71,24 @@ routine
     return *this;
   }
 
-  std::istream& operator>>(const double_imanip&) const { return *in; }
+  std::istream& operator>>(const fp_imanip&) const { return *in; }
 
-  friend const double_imanip& operator>>(std::istream& in,
-                                         const double_imanip& dm);
+  template<std::floating_point Scalar2>
+  friend const fp_imanip<Scalar2>& operator>>(std::istream& in,
+                                             const fp_imanip<Scalar2>& dm);
 
  private:
   mutable std::istream* in;
 };
 
-inline const double_imanip& operator>>(std::istream& in,
-                                       const double_imanip& dm) {
+template<std::floating_point Scalar> 
+inline const fp_imanip<Scalar>& operator>>(std::istream& in,
+                                           const fp_imanip<Scalar>& dm) {
   dm.in = &in;
   return dm;
 }
+
+//class double_imanip : public fp_imanip<double> {};
+using double_imanip = fp_imanip<double>;
 
 #endif

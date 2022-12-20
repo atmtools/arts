@@ -37,6 +37,8 @@ else()
         planets/Earth/Fascod/tropical/tropical.O2.xml
         planets/Earth/Fascod/tropical/tropical.N2.xml
         star/Sun/solar_spectrum_May_2004.xml
+        scattering/H2O_ice
+        scattering/H2O_frozen
     )
 endif()
 
@@ -59,4 +61,25 @@ if(DOWNLOAD_XMLDATA_DEPS)
     #
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES arts-xml-data)
 
+
+
+endif()
+
+
+
+list(APPEND DOWNLOAD_SSDBDATA
+  Ice/SingleCrystals/Pristine/ThinPlate_Id16/TotallyRandom/Dmax00025um_Dveq00010um_Mass4.79983e-13kg.nc
+  Ice/SingleCrystals/Pristine/ThinPlate_Id16/TotallyRandom/Dmax00367um_Dveq00145um_Mass1.46402e-09kg.nc
+  Liquid/SingleCrystals/Pristine/LiquidSphere_Id25/TotallyRandom/Dmax00010um_Dveq00010um_Mass4.94568e-13kg.nc Liquid/SingleCrystals/Pristine/LiquidSphere_Id25/TotallyRandom/Dmax00023um_Dveq00023um_Mass6.72428e-12kg.nc
+  Liquid/SingleCrystals/Pristine/LiquidSphere_Id25/TotallyRandom/Dmax01459um_Dveq01459um_Mass1.62701e-06kg.nc
+)
+string(REGEX REPLACE ";" " " DOWNLOAD_SSDBDATA_DEPS "${DOWNLOAD_SSDBDATA}")
+
+if(DOWNLOAD_SSDBDATA_DEPS)
+  add_custom_command(
+    OUTPUT ${DOWNLOAD_SSDBDATA_DEPS}
+    COMMAND ${Python3_EXECUTABLE} ${ARTS_SOURCE_DIR}/tests/testdata/get_testdata.py ${CMAKE_CURRENT_BINARY_DIR} ssdb ${DOWNLOAD_SSDBDATA}
+    DEPENDS get_testdata.py
+    )
+  add_custom_target(arts_testdata_folder_download_ssdb DEPENDS ${DOWNLOAD_SSDBDATA_DEPS})
 endif()

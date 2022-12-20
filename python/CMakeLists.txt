@@ -56,7 +56,7 @@ add_custom_target(python_tests
 add_custom_target(pyarts_tests
   COMMAND ${Python3_EXECUTABLE} -m pytest -v test
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS pyarts
+  DEPENDS pyarts arts_testdata_folder_download_ssdb
   COMMENT "Run PyARTS tests")
 
 file(COPY test/plots/reference DESTINATION test/plots/)
