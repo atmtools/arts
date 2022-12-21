@@ -211,7 +211,7 @@ ENUMCLASS(planetDefaultOptions,
           Mars,
           Venus)
 /** Options for setting pnd_agenda --- CHANGE TO ENUMCLASS WHEN ADDING ANY OPTIONS AND REMOVE THIS PART OF THE COMMENT */
-ENUMCLASS_EMPTY(pnd_agendaDefaultOptions, char)
+ENUMCLASS(pnd_agendaDefaultOptions, char)
 }  // namespace Options
 
 
