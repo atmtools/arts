@@ -67,6 +67,9 @@ void nlogspace(Vector& x,
 Numeric trapz(ConstVectorView x,
               ConstVectorView y);
 
+void cumsum(VectorView csum,
+            ConstVectorView x);
+
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid);

@@ -301,6 +301,28 @@ Numeric trapz(ConstVectorView x,
   return sum/2.0;
 }
 
+//! cumsum
+/*! 
+    Cumulative sum of a vector
+
+    csum[0] becomes x[0] and last value in csum equals the full sum of x
+
+    \param csum  Vector with cumulative values
+    \param x     Input vector
+
+    \author Patrick Eriksson
+    \date 2022-12-22
+*/
+void cumsum(VectorView csum,
+            ConstVectorView x)
+{
+  const Index n = x.nelem();
+  ARTS_ASSERT(csum.nelem() == n);
+  csum[0] = x[0];
+  for (Index i=1; i<n; ++i)
+    csum[i] += csum[i-1] + x[i];
+}
+
 //! AngIntegrate_trapezoid
 /*! 
     Performs an integration of a matrix over all directions defined in angular
