@@ -79,6 +79,50 @@ void dlosDiffOfLos(Matrix& dlos,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void dlosGauss(Matrix& dlos,
+               Vector& dlos_weight_vector,
+               const Numeric& fwhm_deg,
+               const Index& n_target,
+               const Index& include_gauss_in_weight,
+               const Verbosity&) {
+  const Index n_per_layer = 3;
+  
+  // Convert FWHM to radians to get solid angles right
+  Numeric fwhm = DEG2RAD *fwhm_deg;
+
+  // Cumulative distribution of response weighted area, as a function of radius
+  Vector xp, cx;
+  {
+    VectorLinSpace(xp, 0, 1.3*fwhm, 0.0002, Verbosity());
+    Vector gx;
+    VectorGaussian(gx, xp, 0, -1.0, fwhm, Verbosity());
+    gx *= xp;
+    const Index np = gx.nelem();
+    cx.resize(np);
+    cumsum(cx, gx);
+    cx /= cx[np-1];
+  }
+    
+  // Number of layers (not including (0,0)), and total number of points
+  const Index nlayers = (Index) round((n_target - 1) / n_per_layer);
+  const Index npoints = 1 + nlayers * n_per_layer;
+
+  // Distribution of the layers w.r.t. cumulative distribution
+  Vector cp(nlayers);
+  {
+    const Numeric ninv = 1 / (Numeric) npoints;
+    for (Index i=0; i < nlayers; ++i)
+      cp[i] = ninv + (1 - ninv) * ((Numeric)i-0.5)/(Numeric)nlayers;
+  }
+
+  // Radii of layers
+  Vector r(nlayers);
+  {
+    
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void dlosUniform(Matrix& dlos,
                  Vector& dlos_weight_vector,
                  const Numeric& width,
