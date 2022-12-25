@@ -49,6 +49,8 @@
 
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -83,20 +85,22 @@ void dlosGauss(Matrix& dlos,
                Vector& dlos_weight_vector,
                const Numeric& fwhm_deg,
                const Index& n_target,
-               const Index& include_gauss_in_weight,
+               const Index& include_response_in_weight,
                const Verbosity&) {
   const Index n_per_layer = 3;
   
-  // Convert FWHM to radians to get solid angles right
-  Numeric fwhm = DEG2RAD *fwhm_deg;
+  // Use FWHM and sigma in radians to get solid angles right
+  const Numeric fwhm = DEG2RAD *fwhm_deg;
+  const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
 
-  // Cumulative distribution of response weighted area, as a function of radius
+  // Cumulative distribution of Gauss weighted area, as a function of radius x
   Vector xp, cx;
   {
-    VectorLinSpace(xp, 0, 1.3*fwhm, 0.0002, Verbosity());
+    // 
+    VectorLinSpace(xp, 0, 1.5*fwhm, 0.02*fwhm, Verbosity());
     Vector gx;
     VectorGaussian(gx, xp, 0, -1.0, fwhm, Verbosity());
-    gx *= xp;
+    gx *= xp;  // Weight with radius, no need to include pi
     const Index np = gx.nelem();
     cx.resize(np);
     cumsum(cx, gx);
@@ -110,16 +114,61 @@ void dlosGauss(Matrix& dlos,
   // Distribution of the layers w.r.t. cumulative distribution
   Vector cp(nlayers);
   {
-    const Numeric ninv = 1 / (Numeric) npoints;
+    const Numeric nterm = 1 / (Numeric) npoints;
     for (Index i=0; i < nlayers; ++i)
-      cp[i] = ninv + (1 - ninv) * ((Numeric)i-0.5)/(Numeric)nlayers;
+      cp[i] = nterm + (1 - nterm) * ((Numeric)i+0.5)/(Numeric)nlayers;
   }
-
-  // Radii of layers
+  
+  // Radii of layers, obtained by interpolating xp(cx) to cp
   Vector r(nlayers);
   {
-    
+    ArrayOfGridPos gp(nlayers);
+    gridpos(gp, cx, cp);
+    Matrix itw(nlayers, 2);
+    interpweights(itw, gp);
+    interp(r, itw, xp, gp);
   }
+
+  // Factor to rescale Gauss(x) from 1D to 2D (along y=0)
+  const Numeric scfac = 1 / (sqrt(2 * PI) * si);
+  
+  // Calculate dlos and weights
+  dlos.resize(npoints, 2);
+  dlos(0, joker) = 0.0;
+  //
+  dlos_weight_vector.resize(npoints);
+  dlos_weight_vector = 1.0 / (Numeric) npoints;
+  // If include_response_in_weight, all weights equal.
+  // Otherwise, we need to divide with value of 2D Gauss for radius:
+  Vector gv(1);
+  if (!include_response_in_weight) {
+    VectorGaussian(gv, Vector(1, 0.0), 0, -1.0, fwhm, Verbosity());
+    dlos_weight_vector[0] = dlos_weight_vector[0] / (scfac * gv[0]);
+    gv.resize(nlayers);
+    VectorGaussian(gv, r, 0, -1.0, fwhm, Verbosity());
+  }
+  //
+  const Numeric dalpha = 2 * PI / (Numeric) n_per_layer;
+  const ArrayOfIndex shift = {0, 2, 4, 1, 3};
+  //
+  Index n = 0;
+  for (Index i=0; i<nlayers; ++i) {
+    Numeric alpha0;
+    if (nlayers <= 3)
+      alpha0 = dalpha * ((Numeric)(i%2) / 2.0);
+    else
+      alpha0 = dalpha * ((Numeric) shift[i%5] / 5.0);
+    for (Index angle=0; angle<n_per_layer; ++angle) {
+      const Numeric alpha = alpha0 + (Numeric) angle * dalpha;
+      ++n;
+      dlos(n, 0) = r[i] * cos(alpha);
+      dlos(n, 1) = r[i] * sin(alpha);
+      if (!include_response_in_weight) {
+        dlos_weight_vector[n] = dlos_weight_vector[n] / (scfac * gv[i]);
+      }
+    }
+  }
+  dlos *= RAD2DEG;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

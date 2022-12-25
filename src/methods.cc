@@ -5914,6 +5914,39 @@ Available models:
                "Other line-of-sights (can be multiple los).")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("dlosGauss"),
+      DESCRIPTION(
+          "Gives *dlos* suitable for a circular Gaussian response.\n"
+          "\n"
+          "The method generates a *dlos* where each direction has an equal\n"
+          "weight in terms of the product of solid angle and a circular Gaussian\n"
+          "response. That is, the FWHM of the response is equal in zenith and\n"
+          "azimuth directions.\n"
+          "\n"
+          "One dlos is always placed at (0,0). Remaining points are placed in\n"
+          "radial layers, with three dlos in each layer. The number of layers\n"
+          "is selected to match *n-target* as close as possble. The final number\n"
+          "of points is 1+3*n_layers. If n_layers is <= 3, the dlos directions\n"
+          "are at 0, +-60, +-120 and 180 deg in polar angle (from dza=0). If the\n"
+          "number of layers is higher, the angular step size is instead 24 deg.\n"
+          "\n"
+          "Default is to let *dlos_weight_vector* respresent the solid angle of\n"
+          "each dlos direction. With *include_response_in_weight* set to 1, all\n"
+          "elements of *dlos_weight_vector* are equal and their sum is 1.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("dlos", "dlos_weight_vector"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("fwhm", "n_target", "include_response_in_weight"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
+      GIN_DESC("The full width at half maximum of the Gaussian response.",
+               "Number of dlos-directions to target.",
+               "Set to 1 to include the response values in *dlos_weight_vector*.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("dlosUniform"),
       DESCRIPTION(
           "Gives *dlos* a rectangular coverage, with uniform spacing.\n"
