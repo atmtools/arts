@@ -3268,7 +3268,7 @@ Available models:
           "the frequency grid of *antenna_response*.\n"
           "\n"
           "If *grid_width* is set to <=0, the grid width will be twice the max\n"
-          "value if *fwhm*.\n"),
+          "value in *fwhm*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),

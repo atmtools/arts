@@ -189,23 +189,24 @@ void antenna_responseGaussian(GriddedField4& r,
   r.set_grid_name(2, "Zenith angle");
   r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
-  
-  const Index n = grid.nelem();
 
   if (do_2d) {
     r.set_grid(3, grid);
-    r.data.resize(1, nf, n, n);
+    r.data.resize(1, nf, grid_npoints, grid_npoints);
     for (Index i=0; i<nf; ++i) {
       ARTS_USER_ERROR_IF (fwhm[i] <= 0,
                           "All values in *fwhm* must be >= 0.");  
       Matrix Y;
       MatrixGaussian(Y, grid, 0, -1.0, fwhm[i],
                         grid, 0, -1.0, fwhm[i], verbosity);
+      // Apply 1/cos(za) to get correct result after integration
+      for (Index z=0; z<grid_npoints; ++z) 
+          Y(z, joker) /= cos(DEG2RAD * grid[z]);
       r.data(0, i, joker, joker) = Y;
     }
   } else {
     r.set_grid(3, Vector(1, 0));
-    r.data.resize(1, nf, n, 1);
+    r.data.resize(1, nf, grid_npoints, 1);
     for (Index i=0; i<nf; ++i) {
       ARTS_USER_ERROR_IF (fwhm[i] <= 0,
                           "All values in *fwhm* must be >= 0.");  
@@ -270,21 +271,22 @@ void antenna_responseGaussianEffectiveSize(GriddedField4& r,
   r.set_grid_name(2, "Zenith angle");
   r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
-
-  const Index n = grid.nelem();
   
   if (do_2d) {
     r.set_grid(3, grid);
-    r.data.resize(1, nf, n, n);
+    r.data.resize(1, nf, grid_npoints, grid_npoints);
     Matrix Y;
     for (Index i = 0; i < nf; i++) {
       const Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
       MatrixGaussian(Y, grid, 0, -1.0, fwhm, grid, 0, -1.0, fwhm, verbosity);
+      // Apply 1/cos(za) to get correct result after integration
+      for (Index z=0; z<grid_npoints; ++z) 
+          Y(z, joker) /= cos(DEG2RAD * grid[z]);
       r.data(0, i, joker, joker) = Y;
     }
   } else {
     r.set_grid(3, Vector(1, 0));
-    r.data.resize(1, nf, n, 1);
+    r.data.resize(1, nf, grid_npoints, 1);
     Vector y;
     for (Index i = 0; i < nf; i++) {
       const Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
