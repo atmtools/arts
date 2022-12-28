@@ -23481,6 +23481,88 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("y_geo_seriesFromY_geo"),
+      DESCRIPTION(
+          "Fills *y_geo_series* with data from *y_geo*.\n"
+          "\n"
+          "The geo-position is taken from the first channel. There is no check\n"
+          "that the other channels have identical data in *y_geo*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_geo_series"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y_geo", "sensor_response_f_grid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_geo_swathFromY_geo"),
+      DESCRIPTION(
+          "Fills *y_geo_series* with data from *y_geo*.\n"
+          "\n"
+          "The geo-position is taken from the first channel. There is no check\n"
+          "that the other channels have identical data in *y_geo*.\n"
+          "\n"
+          "The method assumes the same order in *y* as *y_swathFromY*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_geo_swath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y_geo", "sensor_response_f_grid"),
+      GIN("npixel"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Number of pixels per swath.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_seriesFromY"),
+      DESCRIPTION(
+          "Fills *y_series* with data from *y*.\n"
+          "\n"
+          "The method basically reshapes *y* to fit *y_series*.\n"
+          "\n"
+          "Default is to check that *y_f* does not change between posistions,\n"
+          "i.e. that the channel frequencies do not vary.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_series"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y", "y_f", "sensor_response_f_grid"),
+      GIN("safe"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag for checking that channels do not vary in frequency.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_swathFromY"),
+      DESCRIPTION(
+          "Fills *y_swath* with data from *y*.\n"
+          "\n"
+          "The method basically reshapes *y* to fit *y_swath*. It is assumed\n"
+          "that swath forms the outermost loop in *y*. That is, first in *y*\n"
+          "are the data for the first swath etc. The number of pixels per swath\n"
+          "must be specified manually by a GIN parameter.\n"
+          "\n"
+          "Default is to check that *y_f* does not change between posistions,\n"
+          "i.e. that the channel frequencies do not vary.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_swath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y", "y_f", "sensor_response_f_grid"),
+      GIN("npixel", "safe"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC("Number of pixels per swath.",
+               "Flag for checking that channels do not vary in frequency.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),
       DESCRIPTION(
           "Force altitudes to fulfil hydrostatic equilibrium.\n"

@@ -5388,12 +5388,32 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
   wsv_data.push_back(WsvRecord(
       NAME("y_geo"),
       DESCRIPTION(
-          "The geo-positioning associated with *y*.\n"
+          "The geo-position assigned to each element of  *y*.\n"
           "\n"
           "The columns of this matrix matches the elements of *geo_pos*.\n"
           "\n"
           "Unit:  [ m, deg, deg, deg, deg ]\n"),
       GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_geo_series"),
+      DESCRIPTION(
+          "The geo-positioning assigned to each row of *y_series*.\n"
+          "\n"
+          "All channels are assumed to have the same geo-position.\n"
+          "\n"
+          "Otherwise as *y_geo*.\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_geo_swath"),
+      DESCRIPTION(
+          "The geo-positioning assigned to each pixel of *y_swath*.\n"
+          "\n"
+          "All channels are assumed to have the same geo-position.\n"
+          "\n"
+          "Otherwise as *y_geo*.\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("y_los"),
@@ -5442,6 +5462,29 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Unit:  [ m, deg, deg ]\n"),
       GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_series"),
+      DESCRIPTION(
+          "Two-dimensional version of the measurement vector.\n"
+          "\n"
+          "This WSV can be used for storing *y* reshaped when all measurement\n"
+          "blocks have the same set of channels.\n"
+          "\n"
+          "Dimesion:  [ position, channel ]\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_swath"),
+      DESCRIPTION(
+          "Three-dimensional version of the measurement vector.\n"
+          "\n"
+          "This WSV can be used for storing *y* reshaped when all measurement\n"
+          "blocks have the same set of channels, and that the data constitutes\n"
+          "a part of a swath.\n"
+          "\n"
+          "Dimesion:  [ scan, pixel, channel ]\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("yb"),
