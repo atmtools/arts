@@ -11702,6 +11702,25 @@ Available models:
                "The value to be multiplied with the matrix.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("MatrixReshapeTensor3"),
+      DESCRIPTION(
+          "Creates a matrix as reshaped version of a tenor3.\n"
+          "\n"
+          "If the size of the tensor is [npages, nrows, ncols], the created\n"
+          "matrix gets size [npages*nrows, ncols]. The matrix is filled with\n"
+          "the tensor's page dimension as the outermost loop.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Matrix to fill."),
+      IN(),
+      GIN("in"),
+      GIN_TYPE("Tensor3"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Tensor3 to copy.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSetConstant"),
       DESCRIPTION(
           "Creates a matrix and sets all elements to the specified value.\n"
@@ -23547,6 +23566,9 @@ where N>=0 and the species name is something line "H2O".
           "that swath forms the outermost loop in *y*. That is, first in *y*\n"
           "are the data for the first swath etc. The number of pixels per swath\n"
           "must be specified manually by a GIN parameter.\n"
+          "\n"
+          "To set *sensor_pos* and *sensor_los* having data organised in swath\n"
+          "format, use *MatrixReshapeTensor3*.\n"
           "\n"
           "Default is to check that *y_f* does not change between posistions,\n"
           "i.e. that the channel frequencies do not vary.\n"),

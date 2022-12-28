@@ -464,6 +464,26 @@ void MatrixIdentity(Matrix& out,
   }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixReshapeTensor3(Matrix& m,
+                          const Tensor3& t,
+                          const Verbosity&)
+{
+  const Index npages = t.npages();
+  const Index nrows = t.nrows();
+  const Index ncols = t.ncols();
+
+  m.resize(npages * nrows, ncols);
+
+  Index i = 0;
+  for (Index p=0; p<npages; ++p) { 
+    for (Index r=0; r<nrows; ++r) {
+        m(i++, joker) = t(p, r, joker);
+    }
+  }
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixSetConstant(Matrix& x,
                        const Index& nrows,
