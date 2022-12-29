@@ -22260,15 +22260,39 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("VMR value to apply for each abs_species.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("vmr_fieldSetRh"),
+      DESCRIPTION(
+          "Sets the first H2O species to have a constant relative humidity (RH).\n"
+          "\n"
+          "The water vapour saturation pressure is obtained by *water_p_eq_agenda*\n"
+          "and the setytings in this agenda determines if the RH is e.g. defined\n"
+          "with respect to liquid, or a combination of liquid and ice.\n"
+          "\n"
+          "Only the first H2O species is modified.\n"
+          "\n"
+          "The default value of *vmr_threshold* aims at avoiding changing VMRs\n"
+          "above the tropopause.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("vmr_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("vmr_field", "abs_species", "t_field", "p_grid", "water_p_eq_agenda"),
+      GIN("rh", "vmr_threshold"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("1.0", "15.0e-6"),
+      GIN_DESC("Relative humidity to set.",
+               "Don't change H2O VMR values below this value.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("water_p_eq_fieldMK05"),
       DESCRIPTION(
           "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
           "\n"
-          "Default is to set the saturation pressure is set to the one with\n"
-          "respect to water at temperatures >= 0C, and to the one with\n"
-          "respect to ice for <0C. The GIN *only_liquid* allows you to apply\n"
-          "the liquid value at all temperatures.\n"
-          "\n"
+          "Default is setting the saturation pressure to the one with respect\n"
+          "to water at temperatures >= 0C, and to the one with respect to ice\n"
+          "for <0C. The GIN *only_liquid* allows you to apply the liquid value\n"
+          "at all temperatures.\n"
           "\n"
           "The saturation pressure with respect to liquid and ice water is\n"
           "calculated according to Eq. 10 and 7, respectively, of:\n"

@@ -30,6 +30,9 @@ AtmRawRead( basename = "testdata/midlatitude-winter" )
 #
 AtmFieldsCalc
 
+# Set 90% RH
+vmr_fieldSetRh( rh = 0.9 )
+
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
 
