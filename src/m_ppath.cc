@@ -2039,6 +2039,18 @@ void ppath_stepRefractionBasic(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losReverse(
+    Vector& rte_los,
+    const Index& atmosphere_dim,
+    const Verbosity&) {
+
+  Vector los;
+  Index l = rte_los.nelem();
+  mirror_los(los, rte_los, atmosphere_dim);
+  rte_los = los[Range(0,l)];
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(Vector& rte_los,
                 const Index& atmosphere_dim,
                 const Numeric& za,

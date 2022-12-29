@@ -17628,6 +17628,24 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_losReverse"),
+      DESCRIPTION(
+          "Reverses the direction in *rte_los*.\n"
+          "\n"
+          "The method updates *rte_los* to have angles of the reversed\n"
+          "direction.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_los", "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
   md_data_raw.push_back(
       create_mdrecord(NAME("rte_losSet"),
                DESCRIPTION("Sets *rte_los* to the given angles.\n"
