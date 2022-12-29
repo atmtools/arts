@@ -84,7 +84,7 @@ void dlosDiffOfLos(Matrix& dlos,
 void dlosGauss(Matrix& dlos,
                Vector& dlos_weight_vector,
                const Numeric& fwhm_deg,
-               const Index& n_target,
+               const Index& ntarget,
                const Index& include_response_in_weight,
                const Verbosity&) {
   const Index n_per_layer = 3;
@@ -107,7 +107,7 @@ void dlosGauss(Matrix& dlos,
   }
     
   // Number of layers (not including (0,0)), and total number of points
-  const Index nlayers = (Index) round((n_target - 1) / n_per_layer);
+  const Index nlayers = (Index) round((ntarget - 1) / n_per_layer);
   const Index npoints = 1 + nlayers * n_per_layer;
 
   // Distribution of the layers w.r.t. cumulative distribution

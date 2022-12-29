@@ -897,11 +897,11 @@ void f_gridMetMM(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void mblock_dlosFrom1dAntenna(Matrix& mblock_dlos,
                               const GriddedField4& antenna_response,
-                              const Index& n_mblock_dlos,
+                              const Index& npoints,
                               const Verbosity&) {
   ARTS_USER_ERROR_IF (antenna_response.data.ncols() != 1,
                       "The input antenna response must be 1D.");  
-  ARTS_USER_ERROR_IF (n_mblock_dlos < 3, "*n_mblock_dlos*must be > 2.");
+  ARTS_USER_ERROR_IF (npoints < 3, "*npoints* must be > 2.");
 
   // za grid for response
   ConstVectorView r_za_grid = antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
@@ -917,13 +917,13 @@ void mblock_dlosFrom1dAntenna(Matrix& mblock_dlos,
 
   // Equally spaced vector between end points of cumulative sum
   Vector csp;
-  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_mblock_dlos);
+  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], npoints);
 
   // Get mblock_za_grid by interpolation
-  mblock_dlos.resize(n_mblock_dlos, 1);
-  ArrayOfGridPos gp(n_mblock_dlos);
+  mblock_dlos.resize(npoints, 1);
+  ArrayOfGridPos gp(npoints);
   gridpos(gp, cumtrapz, csp);
-  Matrix itw(n_mblock_dlos, 2);
+  Matrix itw(npoints, 2);
   interpweights(itw, gp);
   interp(mblock_dlos(joker, 0), itw, r_za_grid, gp);
 }

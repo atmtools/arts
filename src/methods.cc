@@ -5939,7 +5939,7 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("fwhm", "n_target", "include_response_in_weight"),
+      GIN("fwhm", "ntarget", "include_response_in_weight"),
       GIN_TYPE("Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, "0"),
       GIN_DESC("The full width at half maximum of the Gaussian response.",
@@ -11882,19 +11882,19 @@ Available models:
       DESCRIPTION(
           "Sets *mblock_dlos* based on a 1D gaussian antenna response.\n"
           "\n"
-          "The length of *mblock_dlos* is determined by *n_mblock_dlos*.\n"
-          "The end points of the grid are set to be the same as for the\n"
-          "antenna response. The spacing of the grid follows the magnitude of\n"
-          "the response; the spacing is smaller where the response is high.\n"
-          "More precisely, the grid points are determined by dividing\n"
-          "the cumulative sum of the response in equal steps.\n"),
+          "The length of *mblock_dlos* is determined by *npoints*. The end\n"
+          "points of the grid are set to be the same as for the antenna\n"
+          "response. The spacing of the grid follows the magnitude of the\n"
+          "response; the spacing is smaller where the response is high.\n"
+          "More precisely, the grid points are determined by dividing the\n"
+          "cumulative sum of the response in equal steps.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("antenna_response"),
-      GIN("n_mblock_dlos"),
+      GIN("npoints"),
       GIN_TYPE("Index"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Number of points (>1) to include in *mblock_dlos*.")));
