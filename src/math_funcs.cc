@@ -320,7 +320,7 @@ void cumsum(VectorView csum,
   ARTS_ASSERT(csum.nelem() == n);
   csum[0] = x[0];
   for (Index i=1; i<n; ++i)
-    csum[i] += csum[i-1] + x[i];
+    csum[i] = csum[i-1] + x[i];
 }
 
 //! AngIntegrate_trapezoid

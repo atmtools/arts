@@ -96,7 +96,6 @@ void dlosGauss(Matrix& dlos,
   // Cumulative distribution of Gauss weighted area, as a function of radius x
   Vector xp, cx;
   {
-    // 
     VectorLinSpace(xp, 0, 1.5*fwhm, 0.02*fwhm, Verbosity());
     Vector gx;
     VectorGaussian(gx, xp, 0, -1.0, fwhm, Verbosity());
