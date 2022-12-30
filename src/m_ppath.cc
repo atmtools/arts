@@ -177,7 +177,7 @@ void dlosUniform(Matrix& dlos,
                  const Index& npoints,
                  const Index& crop_circular,
                  const Verbosity&) {
-  ARTS_USER_ERROR_IF(npoints < 1, "GIN npoints must be >= 1.");
+  ARTS_USER_ERROR_IF(npoints < 2, "GIN npoints must be > 1.");
 
   // Edges of angular grid
   Vector grid_edges;
@@ -208,14 +208,14 @@ void dlosUniform(Matrix& dlos,
 
   // Crop to circular?
   if (crop_circular) {
-    // Pick out points inside radius
+    // Pick out points inside radius (with special treatment of npoints=3)
     Matrix dlos_tmp(dlos.nrows(), 2);
     Vector sa_tmp(dlos_weight_vector.nelem());
-    const Numeric r = width / 2.0;
+    const Numeric r = width / 2.0 * (npoints != 3 ? 1 : 0.8);
     //
     Index n = 0;
     for (Index i = 0; i < npoints * npoints; ++i) {
-      if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r*1.001) {
+      if (sqrt(pow(dlos(i,0), 2.0) + pow(dlos(i,1), 2.0)) <= r) {
         dlos_tmp(n, joker) = dlos(i, joker);
         sa_tmp[n] = dlos_weight_vector[i];
         ++n;

@@ -5963,9 +5963,12 @@ Available models:
           "For default settings, the resulting number of dlos-directions\n"
           "is npoints * npoints.\n"
           "\n"
-          "If GIN crop_circular is true, dlos-es at a radius outside of\n"
-          "width/2 are removed. The resulting number of dlos-directions\n"
-          "is then roughly pi * npoints * npoints / 4.\n"),
+          "If GIN *crop_circular* is true, dlos-es at a radius outside of\n"
+          "width/2 are removed. The resulting number of directions then\n"
+          "approaches pi*npoints*npoints/4, for high values of *npoints*.\n"
+          "There is no effect of *crop_circular* for npoints=2, while for\n"
+          "npoints=3 the corner points are removed (despite being inside\n"
+          "the radius limit) and the number of directions becomes five.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("dlos", "dlos_weight_vector"),
       GOUT(),
@@ -5976,8 +5979,8 @@ Available models:
       GIN_TYPE("Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, "0"),
       GIN_DESC("The full width, in each dimension, in degrees.",
-               "Number of points over the width, in each dimension.",
-               "Set to 1, to crop dlos-es to keep a circular pattern.")));
+               "Number of points over the width, in each dimension (>1).",
+               "Set to 1, to crop dlos-es to obtain a pseudo-circular pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalc"),
