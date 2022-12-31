@@ -104,14 +104,13 @@ void HydrotableCalc(Workspace& ws,
 
   // Allocate *hydrotable*
   hydrotable.set_name("Table of particle optical properties");
-  hydrotable.data.resize(5, nf, nt, nw);
+  hydrotable.data.resize(4, nf, nt, nw);
   //
   hydrotable.set_grid_name(0, "Quantity");
   hydrotable.set_grid(0, {"Extinction [m-1]",
                           "Single scattering albedo [-]",
                           "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]",
-                          "Test [-]"});
+                          "Radar reflectivity [m2]"});
   hydrotable.set_grid_name(1, "Frequency [Hz]");
   hydrotable.set_grid(1, f_grid);
   hydrotable.set_grid_name(2, "Temperature [K]");
