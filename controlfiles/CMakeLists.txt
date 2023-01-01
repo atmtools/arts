@@ -43,12 +43,9 @@ arts_test_run_ctlfile(slow
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
 arts_test_run_ctlfile(fast artscomponents/geodetic/TestBasicGeodeticAccuracy.arts)
-arts_test_run_ctlfile(fast artscomponents/geodetic/TestGeocentric.arts)
 arts_test_run_ctlfile(fast artscomponents/geodetic/TestIntersections.arts)
 
-arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath1D.arts)
-arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath2D.arts)
-arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath3D.arts)
+arts_test_run_ctlfile(fast artscomponents/ppath/TestPpathGeometric.arts)
 
 arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
