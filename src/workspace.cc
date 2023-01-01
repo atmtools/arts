@@ -4148,43 +4148,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Size:  [ number of measurement blocks, 1 or 2 ]\n"),
       GROUP("Matrix")));
-
-    wsv_data.push_back(WsvRecord(
-      NAME("sensor_los_geodetic"),
-      DESCRIPTION(
-          "As *sensor_los* but matching geodetic coordinates.\n"
-          "\n"
-          "For this version zenith is defined as the normal of the reference\n"
-          "ellipsoid, in contrast to *sensor_los* zenith is along the direction\n"
-          "towards the planets centre.\n" 
-          "\n"
-          "Probably only useful for 3D.\n"
-          "\n"          
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  [ degrees, degrees ]\n"
-          "\n"
-          "Size:  [ number of measurement blocks, 2 ]\n"),
-      GROUP("Matrix")));
-
-    wsv_data.push_back(WsvRecord(
-      NAME("sensor_los_ecef"),
-      DESCRIPTION(
-          "As *sensor_los* but matching ECEF coordinates.\n"
-          "\n"
-          "For this version of sensor_los, each row shall hold [dx,dy,dz],\n"
-          "where dx, dy and dz are the x, y and z components if the line-of-sight\n"
-          "directions in ECEF coordinates. [dx,dy,dz] must form a unit vector (i.e.\n" 
-          "its 2-norm shall be 1).\n"
-          "\n"
-          "Probably only useful for 3D.\n"
-          "\n"          
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  [ m, m, m ]\n"
-          "\n"
-          "Size:  [ number of measurement blocks, 3 ]\n"),
-      GROUP("Matrix")));
     
   wsv_data.push_back(WsvRecord(
       NAME("sensor_norm"),
@@ -4257,46 +4220,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  [ m, degrees, degrees ]\n"
-          "\n"
-          "Size:  [ number of measurement blocks, atmosphere_dim ]\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("sensor_pos_geodetic"),
-      DESCRIPTION(
-          "As *sensor_pos* but using geodetic coordinates.\n"
-          "\n"
-          "For this version the second column shall hold geodetic latitudes,\n"
-          "in contrast to *sensor_pos* where the geocentric system us used.\n"
-          "Please note that also the altitude (column 1) differs between\n"
-          "the two versions of the variables. Here the altitude is with\n"
-          "taken along the local nadir, while for *sensor_pos* it is taken\n"  
-          "along the direction towards the planets centre.\n" 
-          "\n"
-          "Probably only useful for 3D.\n"
-          "\n"          
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  [ m, degrees, degrees ]\n"
-          "\n"
-          "Size:  [ number of measurement blocks, atmosphere_dim ]\n"),
-      GROUP("Matrix")));
-  
-  wsv_data.push_back(WsvRecord(
-      NAME("sensor_pos_ecef"),
-      DESCRIPTION(
-          "As *sensor_pos* but using ECEF coordinates.\n"
-          "\n"
-          "The sensor position is here specified as earth-centered, earth-fixed\n"
-          "(ECEF) coordinates (using standard definition of ECEF).\n"
-          "\n"
-          "Probably only useful for 3D.\n"
-          "\n"
-          "Column 1, 2 and 3 shall hold x, y and z coordinate, respectively.\n"
-          "\n"          
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  [ m, m, m ]\n"
           "\n"
           "Size:  [ number of measurement blocks, atmosphere_dim ]\n"),
       GROUP("Matrix")));
