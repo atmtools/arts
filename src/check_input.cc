@@ -1671,71 +1671,6 @@ void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los) {
   }
 }
 
-//! chk_sensor_pos
-/*! 
-    Performs all needed checks of sensor_pos
-    \param   sensor_pos   As the WSV with the same name.
-    \author Patrick Eriksson 
-    \date   2021-07-30
-*/
-void chk_sensor_pos(ConstMatrixView sensor_pos) {
-  ARTS_USER_ERROR_IF (sensor_pos.ncols() != 3,
-                      "*sensor_pos* must have three columns.");
-  ARTS_USER_ERROR_IF (sensor_pos.nrows() == 0,
-                      "*sensor_pos* must have at least one row.");
-  for (Index i=0; i<sensor_pos.nrows(); i++) {
-    ARTS_USER_ERROR_IF (sensor_pos(i,1) < -90 || sensor_pos(i,1) > 90,
-                        "Unvalid latitude in *sensor_pos*.\n"
-                        "Latitudes must be inside [-90,90],\n"
-                        "but sensor_pos(",i,",1) is ", sensor_pos(i,1));
-    ARTS_USER_ERROR_IF (sensor_pos(i,2) < -180 || sensor_pos(i,1) > 360,
-                        "Unvalid longitude in *sensor_pos*.\n"
-                        "Longitudes must be inside [-1800,360],\n"
-                        "but sensor_pos(",i,",2) is ", sensor_pos(i,2));
-  }
-}
-
-//! chk_sensor_los
-/*! 
-    Performs all needed checks of sensor_los
-    \param   sensor_los   As the WSV with the same name.
-    \author Patrick Eriksson 
-    \date   2021-07-30
-*/
-void chk_sensor_los(ConstMatrixView sensor_los) {
-  ARTS_USER_ERROR_IF (sensor_los.ncols() != 2,
-                      "*sensor_los* must have two columns.");
-  ARTS_USER_ERROR_IF (sensor_los.nrows() == 0,
-                      "*sensor_los* must have at least one row.");
-  for (Index i=0; i<sensor_los.nrows(); i++) {
-    ARTS_USER_ERROR_IF (sensor_los(i,0) < 0 || sensor_los(i,0) > 180,
-                        "Unvalid zenith angle in *sensor_los*.\n"
-                        "Latitudes must be inside [0,180],\n"
-                        "but sensor_los(",i,",0) is ", sensor_los(i,0));
-    ARTS_USER_ERROR_IF (sensor_los(i,1) < -180 || sensor_los(i,1) > 180,
-                        "Unvalid azimuth angle in *sensor_los*.\n"
-                        "Latitudes must be inside [-180,180],\n"
-                        "but sensor_los(",i,",1) is ", sensor_los(i,1));
-  }
-}
-
-//! chk_sensor_poslos
-/*! 
-    Performs all needed checks of sensor_pos and sensor_los
-    If you use this function, there is no need to call chk_sensor_pos or
-    chk_sensor_los
-    \param   sensor_los   As the WSV with the same name.
-    \author Patrick Eriksson 
-    \date   2021-07-30
-*/
-void chk_sensor_poslos(ConstMatrixView sensor_pos,
-                       ConstMatrixView sensor_los) {
-  chk_sensor_pos(sensor_pos);
-  chk_sensor_los(sensor_los);
-  ARTS_USER_ERROR_IF (sensor_los.nrows() != sensor_pos.nrows(),
-      "*sensor_los* and *sensor_pos* must have the same number of rows.");
-}
-
 //! chk_refellipsoid
 /*! 
     Performs all needed checks of refellipsoid
@@ -1745,24 +1680,6 @@ void chk_sensor_poslos(ConstMatrixView sensor_pos,
     \date   2021-07-30
 */
 void chk_refellipsoid(ConstVectorView refellipsoid) {
-  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
-                      "*refellipsoid* must have two elements.");
-  ARTS_USER_ERROR_IF (refellipsoid[0] <= 0 || refellipsoid[1] <= 0,
-                      "All elements of *refellipsoid* must be > 0.");
-  ARTS_USER_ERROR_IF (abs(refellipsoid[1]/refellipsoid[0]-1) > 0.5,
-      "The ratio of the two radii in *refellipsoid* is outisde of [0.5,1.5].\n"
-      "Do you really want to have such a flat reference ellipsoid?");
-}
-
-//! chk_refellipsoid
-/*! 
-    Performs all needed checks of refellipsoid
-    The function gives an error message if this is not the case.
-    \param   refellipsoid   As the WSV with the same name.
-    \author Patrick Eriksson 
-    \date   2021-07-30
-*/
-void chk_refellipsoidZZZ(ConstVectorView refellipsoid) {
   ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
                       "*refellipsoid* must have two elements.");
   ARTS_USER_ERROR_IF (refellipsoid[0] <= 0 || refellipsoid[1] <= 0,

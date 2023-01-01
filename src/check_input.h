@@ -340,10 +340,6 @@ void chk_rte_pos(const Index& atmosphere_dim,
 
 void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los);
 
-void chk_sensor_pos(ConstMatrixView sensor_pos);
-void chk_sensor_los(ConstMatrixView sensor_los);
-void chk_sensor_poslos(ConstMatrixView sensor_pos,
-                       ConstMatrixView sensor_los);
 void chk_refellipsoid(ConstVectorView refellipsoid);
 void chk_refellipsoidZZZ(ConstVectorView refellipsoid);
 void chk_surface_elevation(const Index atmosphere_dim,

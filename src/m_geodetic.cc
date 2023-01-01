@@ -76,19 +76,6 @@ void refellipsoidOrbitPlane(Vector& refellipsoid,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidSet(Vector& refellipsoid,
-                     const Numeric& re,
-                     const Numeric& e,
-                     const Verbosity&) {
-  refellipsoid.resize(2);
-
-  refellipsoid[0] = re;
-  refellipsoid[1] = e;
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_poslosFromECEF(Vector& rte_pos,
                         Vector& rte_los,
                         const Matrix& sensor_pos_ecef,

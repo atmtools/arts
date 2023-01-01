@@ -232,6 +232,18 @@ void refellipsoidVenus(Vector& refellipsoid,
     throw runtime_error("Unknown selection for input argument *model*.");
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidSet(Vector& refellipsoid,
+                     const Numeric& re,
+                     const Numeric& e,
+                     const Verbosity&) {
+  refellipsoid.resize(2);
+
+  refellipsoid[0] = re;
+  refellipsoid[1] = e;
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidEarthZZZ(Vector& refellipsoid,
                        const String& model,
@@ -377,6 +389,19 @@ void refellipsoidVenusZZZ(Vector& refellipsoid,
     throw runtime_error("Unknown selection for input argument *model*.");
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void refellipsoidSetZZZ(Vector& refellipsoid,
+                     const Numeric& r_equatorial,
+                     const Numeric& r_polar,
+                     const Verbosity&)
+{
+  refellipsoid.resize(2);
+  refellipsoid[0] = r_equatorial;
+  refellipsoid[1] = r_polar;
+  chk_refellipsoidZZZ(refellipsoid);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void PlanetSet(Workspace& ws,
                Agenda& g0_agenda,
                Vector& refellipsoid,
