@@ -38,6 +38,26 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ppathAddGridCrossings(Ppath& ppath,
+                           const Vector& refellipsoid,
+                           const Numeric& l_step_max,
+                           const Vector& z_grid,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
+                           const Verbosity&)
+{
+  chk_if_positive("l_step_max", l_step_max);
+  
+  ppath_add_grid_crossings(ppath,
+                           refellipsoid,
+                           z_grid,
+                           lat_grid,
+                           lon_grid,
+                           l_step_max);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCheckEndPoint(const Ppath& ppath,
                         const Index& background,
                         const Index& np,

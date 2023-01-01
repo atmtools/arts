@@ -46,6 +46,7 @@ arts_test_run_ctlfile(fast artscomponents/geodetic/TestBasicGeodeticAccuracy.art
 arts_test_run_ctlfile(fast artscomponents/geodetic/TestIntersections.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpathGeometric.arts)
+arts_test_run_ctlfile(fast artscomponents/ppath/TestPpathAddGridCrossings.arts)
 
 arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
