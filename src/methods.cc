@@ -9525,11 +9525,11 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceElevationInterp"),
       DESCRIPTION(
-          "Interpolates *surface_interpolation* to the selected position.\n"
+          "Interpolates *surface_elevation* to the selected position.\n"
           "\n"
           "An interface to the internal function for this interpolation.\n"
-          "See description of *surface_interpolation* of allowed grids\n"
-          "and inter- and extrapolation applied.\n"),
+          "See description of *surface_elevation* of allowed grids and\n"
+          "inter- and extrapolation applied.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("elevation"),
@@ -13899,63 +13899,6 @@ Available models:
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, "0.5"),
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathCheckEndPoint"),
-      DESCRIPTION(
-         "Allows to check that a propagation path ends as expected.\n"
-         "\n"
-         "Please note that ppaths are stored in observation direction and the \"end\"\n"
-         "is at the radiative background.\n"
-         "\n"
-         "For example, to check the end altitude, set the GIN *altitude* to the\n"
-         "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
-         "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
-         "\n"
-         "A check is done as soon the tolerance value is >= 0. Don't forget to set\n"
-         "the expected value, otherwise 0 will be applied. \n"
-         "\n"
-         "The radiative background and number of points can be checked in the same\n"
-         "way, but here there are no tolarance values and the expected values are\n"
-         "integers. The following coding is used for the radiative background\n"
-         "  0: Undefined\n"
-         "  1: Space\n"
-         "  2: The surface\n"
-         "  3: The cloudbox\n"
-         "  4: A transmitter\n"
-         "  9: Start point determined by overall length criterion\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppathZZZ"),
-      GIN("background", "np",
-          "altitude", "daltitude",
-          "latitude", "dlatitude",
-          "longitude", "dlongitude",
-          "zenith_angle", "dzenith_angle",
-          "azimuth_angle", "dazimuth_angle"),
-      GIN_TYPE("Index", "Index",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric",
-               "Numeric", "Numeric"),
-      GIN_DEFAULT("-1", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
-      GIN_DESC("Expected radiative background. See above.",
-               "Expected number of path points.",
-               "Expected altitude.",
-               "Allowed deviation for altitude.",
-               "Expected latitude.",
-               "Allowed deviation for latitude.",
-               "Expected longitude.",
-               "Allowed deviation for longitude.",
-               "Expected zenith angle.",
-               "Allowed deviation for zenith angle.",
-               "Expected azimuth angle.",
-               "Allowed deviation for azimuth angle.")));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFixedLstep"),
       DESCRIPTION(
@@ -14238,6 +14181,103 @@ Available models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  // New ppath methods, starting here
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppathCheckEndPoint"),
+      DESCRIPTION(
+         "Allows to check that a propagation path ends as expected.\n"
+         "\n"
+         "Please note that ppaths are stored in observation direction and the \"end\"\n"
+         "is at the radiative background.\n"
+         "\n"
+         "For example, to check the end altitude, set the GIN *altitude* to the\n"
+         "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
+         "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
+         "\n"
+         "A check is done as soon the tolerance value is >= 0. Don't forget to set\n"
+         "the expected value, otherwise 0 will be applied. \n"
+         "\n"
+         "The radiative background and number of points can be checked in the same\n"
+         "way, but here there are no tolarance values and the expected values are\n"
+         "integers. The following coding is used for the radiative background\n"
+         "  0: Undefined\n"
+         "  1: Space\n"
+         "  2: The surface\n"
+         "  3: The cloudbox\n"
+         "  4: A transmitter\n"
+         "  9: Start point determined by overall length criterion\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppath"),
+      GIN("background", "np",
+          "altitude", "daltitude",
+          "latitude", "dlatitude",
+          "longitude", "dlongitude",
+          "zenith_angle", "dzenith_angle",
+          "azimuth_angle", "dazimuth_angle"),
+      GIN_TYPE("Index", "Index",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric",
+               "Numeric", "Numeric"),
+      GIN_DEFAULT("-1", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
+      GIN_DESC("Expected radiative background. See above.",
+               "Expected number of path points.",
+               "Expected altitude.",
+               "Allowed deviation for altitude.",
+               "Expected latitude.",
+               "Allowed deviation for latitude.",
+               "Expected longitude.",
+               "Allowed deviation for longitude.",
+               "Expected zenith angle.",
+               "Allowed deviation for zenith angle.",
+               "Expected azimuth angle.",
+               "Allowed deviation for azimuth angle.")));
+
+    md_data_raw.push_back(create_mdrecord(
+      NAME("ppathGeometric"),
+      DESCRIPTION(
+         "Geometric propagation path (ppath) with fixed step length.\n"
+         "\n"
+         "The propagation path (ppath) from *rte_pos* in the direction of\n"
+         "*rte_los* is determined. Refraction is ignored and the ppath is\n"
+         "denoted as geometrical. With default settings, the ppath ends\n"
+         "either at the surface or in space, depending on the observation\n"
+         "geometry. The points describing the ppath have an equidistant\n"
+         "spacing, that is the highest possible value satisfying *l_step_max*.\n"
+         "\n"
+         "Possible intersections with the surface are determined following\n"
+         "*IntersectionGeometricSurface*.\n"
+         "\n"
+         "It is possible to set a maximum length of the ppath (for the part\n"
+         "inside the atmosphere) by the GIN *l_total_max*. When the length\n"
+         "of the ppath is governed by this GIN, the end point of the ppath\n"
+         "is a point inside the atmosphere. A negative value (as default)\n"
+         "means to not apply a max length criterion.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos", "rte_los", "refellipsoid", "surface_elevation"),
+      GIN("z_toa",
+          "l_step_max",
+          "l_total_max",
+          "surface_search_accuracy",
+          "surface_search_safe"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "-1", "1", "0"),
+      GIN_DESC("Top-of-the-atmosphere altitude.",
+               "Maximum length between points in *ppath*.",
+               "Max length of the path (inside of the atmosphere).",
+               "As GIN with same name of *IntersectionGeometricSurface*.",
+               "As GIN with same name of *IntersectionGeometricSurface*.")));
+  // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
@@ -21717,7 +21757,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "A random position and line-of-sights is generated and the conversion are\n"
           "made. The change of position is calculated as a distance. If the distance\n"
-          "exceeds *max_allowed_dl* an error is issued. Otherwise a new test is made."
+          "exceeds *max_allowed_dl* an error is issued. Otherwise a new test is made.\n"
           "This is repeated *ntests* times. The maximum error is returned as *max_dl*.\n"
           "The position the maximum error is returned as *rte_pos*.\n"
           "\n"

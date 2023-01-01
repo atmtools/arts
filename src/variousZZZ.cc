@@ -91,8 +91,8 @@ void chk_rte_los(const String& name,
 {
   ARTS_USER_ERROR_IF(los.nelem() != 2,
                       "The vector *", name, "* must have length 2.")
-  ARTS_USER_ERROR_IF(los[0] < -90 || los[0] > 90,
-      "The zenith angle in *", name, "* must be in the range [-90,90].")
+  ARTS_USER_ERROR_IF(los[0] < 0 || los[0] > 180,
+      "The zenith angle in *", name, "* must be in the range [0,180].")
   ARTS_USER_ERROR_IF(los[1] < -180 || los[1] > 180,
       "The azimuth angle in *", name, "* must be in the range [-180,180].")
 }

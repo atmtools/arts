@@ -3052,37 +3052,11 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
   wsv_data.push_back(WsvRecord(
       NAME("ppath"),
       DESCRIPTION(
-          "The propagation path for one line-of-sight.\n"
-          "\n"
-          "This variable describes the total (pencil beam) propagation path for\n"
-          "a given combination of starting point and line-of-sight. The path is\n"
-          "described by a data structure of type Ppath. This structure contains\n"
-          "also additional fields to faciliate the calculation of spectra and\n"
-          "interpolation of the atmospheric fields.\n"
-          "\n"
-          "The data struture is too extensive to be described here, but it is\n"
-          "described carefully in the ARTS user guide (AUG). Use the index to\n"
-          "find where the data structure, Ppath, for propagation paths is \n"
-          "discussed. It is listed as a subentry to \"data structures\".\n"
-          "\n"
-          "Usage: Output from *ppath_agenda*.\n"),
-      GROUP("Ppath")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppathZZZ"),
-      DESCRIPTION(
           "The propagation path for one observation.\n"
           "\n"
           "This variable describes the total (pencil beam) propagation path for\n"
           "a given combination of starting point and line-of-sight. The path is\n"
-          "described by a data structure of type Ppath. This structure contains\n"
-          "also additional fields to faciliate the calculation of spectra and\n"
-          "interpolation of the atmospheric fields.\n"
-          "\n"
-          "The data struture is too extensive to be described here, but it is\n"
-          "described carefully in the ARTS user guide (AUG). Use the index to\n"
-          "find where the data structure, Ppath, for propagation paths is \n"
-          "discussed. It is listed as a subentry to \"data structures\".\n"
+          "described by a data structure of type Ppath.\n"
           "\n"
           "Two important things about ARTS propagation paths are:\n"
           "  - The points are stored in backward order, i.e. the first point\n"
