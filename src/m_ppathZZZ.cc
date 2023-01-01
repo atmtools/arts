@@ -27,9 +27,10 @@
   === External declarations
   ===========================================================================*/
 
+#include "check_input.h"
 #include "geodeticZZZ.h"
-#include "math_funcs.h"
 #include "ppathZZZ.h"
+#include "variousZZZ.h"
 
 
 /*===========================================================================
@@ -50,158 +51,183 @@ void ppathCheckEndPoint(const Ppath& ppath,
                         const Numeric& dzenith_angle,
                         const Numeric& azimuth_angle,
                         const Numeric& dazimuth_angle,
-                        const Verbosity&) {
+                        const Verbosity&)
+{
   // pos and los to check
   ConstVectorView pos = ppath.end_pos, los = ppath.end_los;
 
-  if (background >= 0 && ppath.backgroundZZZ != background) {
-    ARTS_USER_ERROR(
-        "Radiative background not as expected!\n"
-        "  background in ppath: ",
-        ppath.backgroundZZZ,
-        "\n  background expected: ",
-        background);
-  }
-  if (np >= 0 && ppath.np != np) {
-    ARTS_USER_ERROR(
-        "Number of ppath points not as expected!\n"
-        "  number in ppath: ",
-        ppath.np,
-        "\n  number expected: ",
-        np);
-  }
-  if (daltitude >= 0 && abs(pos[0] - altitude) > daltitude) {
-    ARTS_USER_ERROR(
-        "Start altitude not as expected!\n"
-        "  altitude in ppath: ",
-        pos[0],
-        "\n  altitude expected: ",
-        altitude,
-        "\n         difference: ",
-        abs(pos[0] - altitude),
-        "\n      set tolarance: ",
-        daltitude);
-  }
-  if (dlatitude >= 0 && abs(pos[1] - latitude) > dlatitude) {
-    ARTS_USER_ERROR(
-        "Start latitude not as expected!\n"
-        "  latitude in ppath: ",
-        pos[1],
-        "\n  latitude expected: ",
-        latitude,
-        "\n         difference: ",
-        abs(pos[1] - latitude),
-        "\n      set tolarance: ",
-        dlatitude);
-  }
-  if (dlongitude >= 0 && abs(pos[2] - longitude) > dlongitude) {
-    ARTS_USER_ERROR(
-        "Start longitude not as expected!\n"
-        "  longitude in ppath: ",
-        pos[2],
-        "\n  longitude expected: ",
-        longitude,
-        "\n          difference: ",
-        abs(pos[2] - longitude),
-        "\n       set tolarance: ",
-        dlongitude);
-  }
-  if (dzenith_angle >= 0 && abs(los[0] - zenith_angle) > dzenith_angle) {
-    ARTS_USER_ERROR(
-        "Start zenith angle not as expected!\n"
-        "  zenith angle in ppath: ",
-        los[0],
-        "\n  zenith angle expected: ",
-        zenith_angle,
-        "\n             difference: ",
-        abs(los[0] - zenith_angle),
-        "\n          set tolarance: ",
-        dzenith_angle);
-  }
-  if (dazimuth_angle >= 0 && abs(los[1] - azimuth_angle) > dazimuth_angle) {
-    ARTS_USER_ERROR(
-        "Start azimuth angle not as expected!\n"
-        "  azimuth angle in ppath: ",
-        los[1],
-        "\n  azimuth angle expected: ",
-        azimuth_angle,
-        "\n              difference: ",
-        abs(los[1] - azimuth_angle),
-        "\n           set tolarance: ",
-        dazimuth_angle);
-  }
+  ARTS_USER_ERROR_IF(background >= 0 && ppath.backgroundZZZ != background,
+                     "Radiative background not as expected!\n"
+                     "  background in ppath: ", ppath.backgroundZZZ,
+                     "\n  background expected: ", background);
+ 
+  ARTS_USER_ERROR_IF(np >= 0 && ppath.np != np,
+                     "Number of ppath points not as expected!\n"
+                     "  number in ppath: ", ppath.np,
+                     "\n  number expected: ", np);
+
+  ARTS_USER_ERROR_IF(daltitude >= 0 && abs(pos[0] - altitude) > daltitude,
+                     "End altitude not as expected!\n"
+                     "  altitude in ppath: ", pos[0],
+                     "\n  altitude expected: ", altitude,
+                     "\n         difference: ", abs(pos[0] - altitude),
+                     "\n      set tolarance: ", daltitude);
+  ARTS_USER_ERROR_IF(dlatitude >= 0 && abs(pos[1] - latitude) > dlatitude,
+                     "End latitude not as expected!\n"
+                     "  latitude in ppath: ", pos[1],
+                     "\n  latitude expected: ", latitude,
+                     "\n         difference: ", abs(pos[1] - latitude),
+                     "\n      set tolarance: ", dlatitude);
+  
+  ARTS_USER_ERROR_IF(dlongitude >= 0 && abs(pos[2] - longitude) > dlongitude,
+                     "End longitude not as expected!\n"
+                     "  longitude in ppath: ", pos[2],
+                     "\n  longitude expected: ", longitude,
+                     "\n          difference: ", abs(pos[2] - longitude),
+                     "\n       set tolarance: ", dlongitude);
+
+  ARTS_USER_ERROR_IF(dzenith_angle >= 0 && abs(los[0] - zenith_angle) > dzenith_angle,
+                     "End zenith angle not as expected!\n"
+                     "  zenith angle in ppath: ", los[0],
+                     "\n  zenith angle expected: ", zenith_angle,
+                     "\n             difference: ", abs(los[0] - zenith_angle),
+                     "\n          set tolarance: ", dzenith_angle);
+  ARTS_USER_ERROR_IF(dazimuth_angle >= 0 && abs(los[1] - azimuth_angle) > dazimuth_angle,
+                     "End azimuth angle not as expected!\n"
+                     "  azimuth angle in ppath: ", los[1],
+                     "\n  azimuth angle expected: ", azimuth_angle,
+                     "\n              difference: ", abs(los[1] - azimuth_angle),
+                     "\n           set tolarance: ", dazimuth_angle);
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathPassive(Ppath& ppath,
-                  const Vector& rte_pos,
-                  const Vector& rte_los,
-                  const Index& atmosphere_dim,
-                  const Vector& refellipsoid,
-                  const Vector& z_grid,
-                  const Vector& lat_grid,
-                  const Vector& lon_grid,
-                  const Index& cloudbox_on,
-                  const ArrayOfIndex& cloudbox_limits,
-                  const GriddedField2& surface_elevation,
-                  const Index& refraction_do,
-                  const Index& add_grid_crossings,
-                  const Numeric& l_step_max,
-                  const Numeric& l_total_max,
-                  const Numeric& l_raytrace_geom,
-                  const Numeric& l_raytrace_refr,
-                  const Numeric& l_accuracy,
-                  const Index& safe_surface_search,
-                  const Index& do_not_calc_gps,
-                  const Verbosity&) {
-  // Check lengths always used
-  if (l_step_max <= 0) {
-    ARTS_USER_ERROR("GIN l_step_max must be > 0.\n");
-  }
-  if (l_accuracy <= 0) {
-    ARTS_USER_ERROR("GIN l_accuracy must be > 0.\n");
-  }
+void ppathGeometric(Ppath& ppath,
+                    const Vector& rte_pos,
+                    const Vector& rte_los,
+                    const Vector& refellipsoid,
+                    const GriddedField2& surface_elevation,
+                    const Numeric& z_toa,
+                    const Numeric& l_step_max,
+                    const Numeric& l_total_max,
+                    const Numeric& surface_search_accuracy,
+                    const Index& surface_search_safe,
+                    const Verbosity&)
+{
+  chk_rte_pos("rte_pos", rte_pos);
+  chk_rte_los("rte_los", rte_los);
+  chk_refellipsoidZZZ(refellipsoid);
+  chk_surface_elevation(surface_elevation);
+  chk_if_positive("z_toa", z_toa);
+  chk_if_positive("l_step_max", l_step_max);
+  chk_if_positive("surface_search_accuracy", surface_search_accuracy);
+  chk_if_bool("surface_search_safe", surface_search_safe);
 
-  // Step 1, with refraction
-  if (refraction_do) {
-    if (l_raytrace_refr <= 0 || l_raytrace_refr > l_step_max / 4) {
-      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0 and < l_step_max/4.\n");
-    }
-    ARTS_USER_ERROR("Refraction not yet implemented\n", l_raytrace_refr);
+  // Convert rte_pos/los to ECEF
+  Vector ecef(3), decef(3);
+  geodetic_los2ecef(ecef, decef, rte_pos, rte_los, refellipsoid);
 
-    // Step 1, geometrical
+  // Number of points in ppath and radiative background
+  Index np = -1;  // -1 flags not yet known
+  enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
+
+  // Relate rte_pos to TOA
+  Numeric l_outside, l_inside = -1;
+  const bool start_in_space = ppath_l2toa_from_above(l_outside,
+                                                     rte_pos,
+                                                     rte_los,
+                                                     ecef,
+                                                     decef,
+                                                     refellipsoid,
+                                                     z_toa);
+
+  // No ppath if above and looking outside of atmosphere
+  if (start_in_space && l_outside < 0) {
+    np = 0;
+    background = PPATH_BACKGROUND_SPACE;
+
+  // We have a path! 
   } else {
-    if (l_raytrace_geom <= 0) {
-      ARTS_USER_ERROR("GIN l_raytrace_geom must be > 0.\n");
+    // Distance to the surface (negative if no intersection)
+    // This is from TOA if sensor outside
+    // The function also checks that rte_pos is above the surface
+    l_inside = find_crossing_with_surface_z(rte_pos,
+                                            rte_los,
+                                            ecef,
+                                            decef,
+                                            refellipsoid,
+                                            surface_elevation,
+                                            surface_search_accuracy,
+                                            surface_search_safe);
+    l_inside -= l_outside;
+
+    // If intersection with surface, we have found end
+    if (l_inside > 0) {
+      background = PPATH_BACKGROUND_SURFACE;
+    // If not, end must be TOA, but
+    } else {
+      if (start_in_space) {
+        // We have a limb sounding from space.
+        // We need to calculate from where ppath enters the atmosphere
+        Vector ecef_toa(3);
+        ecef_at_distance(ecef_toa, ecef, decef, l_outside);
+        // Ignore lengths < 1m to find exit point, and not the entrance point
+        // from which we start
+        l_inside = intersection_altitude(ecef_toa, decef, refellipsoid, z_toa, 1.0);
+      } else {
+        // We have upward or limb, both from within the atmosphere
+        l_inside = intersection_altitude(ecef, decef, refellipsoid, z_toa);
+      }
+      background = PPATH_BACKGROUND_SPACE;
     }
-    ppath_geom_const_lstep(ppath,
-                           rte_pos,
-                           rte_los,
-                           atmosphere_dim,
-                           refellipsoid,
-                           z_grid,
-                           lat_grid,
-                           lon_grid,
-                           cloudbox_on,
-                           cloudbox_limits,
-                           surface_elevation,
-                           add_grid_crossings ? l_raytrace_geom : l_step_max,
-                           l_total_max,
-                           l_accuracy,
-                           safe_surface_search,
-                           do_not_calc_gps && !add_grid_crossings);
+
+    // Consider l_total_max
+    if (l_total_max > 0 && l_inside > l_total_max) {
+      l_inside = l_total_max;
+      background = PPATH_BACKGROUND_STOP_DISTANCE;
+    }
+
+    // Determine np and l_step
+    ARTS_ASSERT(l_inside > 0);
+    np = 1 + Index(ceil(l_inside / l_step_max));
   }
 
-  // Add grid crossings?
-  if (add_grid_crossings) {
-    ppath_grid_crossings(ppath,
-                         atmosphere_dim,
+  // Fill ppath
+  ppath.np = np;
+  ppath.backgroundZZZ = background;
+  ppath.start_lstep = 0;
+  ppath.start_pos = rte_pos;
+  ppath.start_los = rte_los;
+  ppath.start_lstep = l_outside;
+  ppath.end_lstep = 0.0;
+  ppath.nreal = Vector(np, 1.0);
+  ppath.ngroup = Vector(np, 1.0);
+  ppath.pos.resize(np, 3);
+  ppath.los.resize(np, 2);
+  //
+  if (np == 0) {
+    ppath.lstep.resize(0);
+  } else {
+    // Create an equidistant length vector and fill pos and los
+    Vector l;
+    nlinspace(l, l_outside, l_outside + l_inside, np);
+    for (Index i = 0; i < np; i++) {
+      poslos_at_distance(ppath.pos(i, joker),
+                         ppath.los(i, joker),
+                         ecef,
+                         decef,
                          refellipsoid,
-                         z_grid,
-                         lat_grid,
-                         lon_grid,
-                         l_step_max,
-                         l_accuracy,
-                         do_not_calc_gps);
+                         l[i]);
+    }
+    ppath.lstep.resize(np - 1);
+    ppath.lstep = l[1] - l[0];
+  }
+  if (np == 0) {
+    ppath.end_pos = ppath.start_pos;
+    ppath.end_los = ppath.start_los;
+  } else {
+    ppath.end_pos = ppath.pos(ppath.np - 1, joker);
+    ppath.end_los = ppath.los(ppath.np - 1, joker);
   }
 }
+

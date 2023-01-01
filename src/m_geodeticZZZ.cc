@@ -185,19 +185,16 @@ void IntersectionGeometricSurface(Matrix& pos,
                                   Matrix& los,
                                   const Matrix& sensor_pos,
                                   const Matrix& sensor_los,
-                                  const Index& atmosphere_dim,
                                   const Vector& refellipsoid,
                                   const GriddedField2& surface_elevation,
-                                  const Numeric& l_accuracy,
-                                  const Index& safe_search,
-                                  const Verbosity&)
-{
+                                  const Numeric& surface_search_accuracy,
+                                  const Index& surface_search_safe,
+                                  const Verbosity&) {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_refellipsoidZZZ(refellipsoid);
-  chk_surface_elevation(atmosphere_dim, surface_elevation);
-  chk_if_positive("l_accuracy", l_accuracy);
-  chk_if_bool("safe_search", safe_search);
+  chk_refellipsoid(refellipsoid);
+  chk_surface_elevation(surface_elevation);
+  chk_if_positive("surface_search_accuracy", surface_search_accuracy);
+  chk_if_bool("surface_search_safe", surface_search_safe);
 
   const Index n = sensor_pos.nrows();
   pos.resize(n, 3);
@@ -214,11 +211,10 @@ void IntersectionGeometricSurface(Matrix& pos,
                                                    sensor_los(i,joker),
                                                    ecef,
                                                    decef,
-                                                   atmosphere_dim,
                                                    refellipsoid,
                                                    surface_elevation,
-                                                   l_accuracy,
-                                                   safe_search);
+                                                   surface_search_accuracy,
+                                                   surface_search_safe);
     if (l<0) {
       pos(i,joker) = NAN;
       los(i,joker) = NAN;
@@ -227,6 +223,7 @@ void IntersectionGeometricSurface(Matrix& pos,
     }
   }
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void TestBasicGeodeticAccuracy(Vector& rte_pos,

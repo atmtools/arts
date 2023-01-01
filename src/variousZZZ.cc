@@ -36,6 +36,41 @@ using GriddedFieldGrids::GFIELD2_LAT_GRID;
 using GriddedFieldGrids::GFIELD2_LON_GRID;
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_elevationSet(GriddedField2& surface_elevation,
+                          const Vector& latitude_grid,
+                          const Vector& longitude_grid,
+                          const Matrix& elevations,          
+                          const Verbosity&) {
+  surface_elevation.set_name("Surface elevation map");
+
+  surface_elevation.set_grid_name(GFIELD2_LAT_GRID, "Latitude");
+  surface_elevation.set_grid(GFIELD2_LAT_GRID, latitude_grid);
+
+  surface_elevation.set_grid_name(GFIELD2_LON_GRID, "Longitude");
+  surface_elevation.set_grid(GFIELD2_LON_GRID, longitude_grid);
+
+  surface_elevation.data = elevations;
+
+  // To not be too restrictive, we check assuming 3D
+  chk_surface_elevation(surface_elevation);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_elevationSetConstant(GriddedField2& surface_elevation,
+                                  const Numeric& elevation,
+                                  const Verbosity&) {
+  surface_elevation.set_name("Surface elevation map");
+
+  surface_elevation.set_grid_name(GFIELD2_LAT_GRID, "Latitude");
+  surface_elevation.set_grid(GFIELD2_LAT_GRID, Vector(1, 0));
+
+  surface_elevation.set_grid_name(GFIELD2_LON_GRID, "Longitude");
+  surface_elevation.set_grid(GFIELD2_LON_GRID, Vector(1, 0));
+
+  surface_elevation.data.resize(1,1);
+  surface_elevation.data(0,0) = elevation;
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SurfaceElevationInterp(Numeric& elevation,
@@ -138,25 +173,34 @@ void chk_sensor_poslos(const String& name1,
 }
 
 
+void chk_surface_elevation(const GriddedField2& surface_elevation) {
+  const Vector& lat_grid = surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
+  ARTS_USER_ERROR_IF(surface_elevation.data.nrows() != lat_grid.nelem(),
+                     "Inconsistent latitude size in *surface_elevation*\n"
+                     "Length of latitude grid: ", lat_grid.nelem(), "\n"
+                     "Latitude size of data: ", surface_elevation.data.nrows());
+  const Vector& lon_grid = surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
+  ARTS_USER_ERROR_IF(surface_elevation.data.ncols() != lon_grid.nelem(),
+                     "Inconsistent longitude size in *surface_elevation*\n"
+                     "Length of longitude grid: ", lon_grid.nelem(), "\n"
+                     "Longitude size of data: ", surface_elevation.data.ncols());
+  ARTS_USER_ERROR_IF(surface_elevation.data.empty(),
+                     "The data in *surface_elevation* are empty. Not allowed!");
+}
+
+
 Numeric find_crossing_with_surface_z(const Vector rte_pos,
                                      const Vector rte_los,
                                      const Vector ecef,
                                      const Vector decef,
-                                     const Index& atmosphere_dim,
                                      const Vector& refellipsoid,
                                      const GriddedField2& surface_elevation,
                                      const Numeric& surface_search_accuracy,
                                      const Index& surface_search_safe)
 {
   // Find min and max surface altitude
-  Numeric z_min, z_max;
-  if (atmosphere_dim == 1) {
-    z_min = surface_elevation.data(0, 0);
-    z_max = surface_elevation.data(0, 0);
-  } else {
-    z_min = min(surface_elevation.data);
-    z_max = max(surface_elevation.data);
-  }
+  const Numeric z_min = min(surface_elevation.data);
+  const Numeric z_max = max(surface_elevation.data);
 
   // Catch upward looking cases that can not have a surface intersection
   if (rte_pos[0] >= z_max && rte_los[0] <= 90) {
@@ -169,21 +213,13 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     if (rte_pos[0] < z_surf - surface_search_accuracy)
       ARTS_USER_ERROR(
           "The sensor is below the surface. Not allowed!\n"
-          "The sensor altitude is at ",
-          rte_pos[0],
-          " m\n"
-          "The surface altitude is ",
-          z_surf,
-          " m\n"
-          "The position is (lat,lon): (",
-          rte_pos[1],
-          ",",
-          rte_pos[2],
-          ")");
+          "The sensor altitude is at ", rte_pos[0], " m\n"
+          "The surface altitude is ", z_surf, " m\n"
+          "The position is (lat,lon): (", rte_pos[1], ",", rte_pos[2], ")");
   }
 
   // Constant surface altitude (in comparison to *surface_search_accuracy*)
-  if (atmosphere_dim == 1 || z_max - z_min < surface_search_accuracy / 100) {
+  if (z_max - z_min < surface_search_accuracy / 100) {
     // Catch cases with position on the ground, as they can fail if
     // intersection_altitude is used
     if (rte_pos[0] <= z_max) {
@@ -194,8 +230,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 
     // The general case
   } else {
-    // Find max distance that is guaranteed above or at surface
-    // This is the minimum distance to the surface
+    // Find a distance that is guaranteed above or at surface
     // If below z_max, this distance is 0. Otherwise given by z_max
     Numeric l_min;
     if (rte_pos[0] <= z_max)
