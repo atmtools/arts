@@ -1,0 +1,73 @@
+Overall considerations and decisions:
+---
+* Elevation is main altitude coordinate
+* Positions and directions always in 3D
+* Geodetic latitudes and zenith angles used throughout
+* Atmosphere covers complete atmosphere
+  - There is no atmosphere_dim
+  - Make WSMs to check that path inside certain region
+* The surface elevation is also global
+  - Extrapolation as planned for atmosphere
+* There are no master atmospheric grids
+  - Grid positions removed from ppath
+  - But ppaths can still be forced to include certain z, lat and lon
+    > Optional to include all, could just be set of z
+* The above means that basic version now is equidistant step length
+* Ppath lengths are GINs
+* Introduce max total length of ppath, l_total_max
+* Scattering domain:
+  - Ignored when ppath calculated
+    > MC can use l_total_max
+  - Make WSMs to crop at cloudbox boundary
+    > Include feature now handeled by path_inside_cloudbox_do
+  - and according to scattering mass criterion (also extinction?) 
+  - ppath_step now limited to DOIT
+    > that is, start at a grid crossing demanded
+* Longitudes must now be inside [-180,360].
+  - Internally is [-180,180] default
+  - See if old shift lon functions can be replaced
+* refellipsoid is now [equatorial radius, polar radius]
+
+Agendas:
+---
+ppath_agenda
+  - What should be input?
+ppath_step_agenda
+
+WSMs:
+---
+ppathGeometric
+ppathRefracted
+ppathAddGridCrossings
+-
+IntersectionGeometricalWithAltitude
+IntersectionGeometricalWithLongitude
+IntersectionGeometricalWithLatitude
+IntersectionGeometricalWithSurface
+-
+rte_losGeometricPathToPosition
+  - ppath is also output
+sensor_losGeometricPathToPosition
+sensor_losGeometricPathToPositions
+rte_losRefractedPathToPosition
+  - latest ppath is also output
+sensor_losRefractedPathToPosition
+sensor_losRefractedPathToPositions
+-
+ppathCropDomain 
+-
+ppathCheckEndPoint
+ppathCheckInsideDomain
+-
+ppath_stepGeometric
+ppath_stepRefracted
+
+
+
+Other ideas:
+---
+* Cloudbox should be called scattering domain: scat_domain
+* Make dedicated "iyHybrid" versions of DISORT and RT4
+  - This main way to use RT4 in the future?
+    > Allows to use fewer streams?
+
