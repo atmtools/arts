@@ -361,8 +361,6 @@ void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los);
 
 void chk_refellipsoid(ConstVectorView refellipsoid);
 void chk_refellipsoidZZZ(ConstVectorView refellipsoid);
-void chk_surface_elevation(const Index atmosphere_dim,
-                           const GriddedField2& surface_elevation);
                            
 void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,

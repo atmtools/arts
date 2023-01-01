@@ -1708,34 +1708,6 @@ void chk_refellipsoid(ConstVectorView refellipsoid) {
       "Do you really want to have such a flat reference ellipsoid?");
 }
 
-//! chk_surface_elevation
-/*! 
-    Performs all needed checks of surface_elevation
-    \param   surface_elevation   As the WSV with the same name.
-    \author Patrick Eriksson 
-    \date   2021-08-08
-*/
-void chk_surface_elevation(const Index atmosphere_dim,
-                           const GriddedField2& surface_elevation) {
-  const Vector& lat_grid = surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
-  ARTS_USER_ERROR_IF (surface_elevation.data.nrows()!=lat_grid.nelem(),
-                      "Inconsistent latitude size in *surface_elevation*\n"
-                      "Length of latitude grid: ", lat_grid.nelem(), "\n"
-                      "Latitude size of data: ", surface_elevation.data.nrows());
-  const Vector& lon_grid = surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
-  ARTS_USER_ERROR_IF (surface_elevation.data.ncols()!=lon_grid.nelem(),
-                      "Inconsistent longitude size in *surface_elevation*\n"
-                      "Length of longitude grid: ", lon_grid.nelem(), "\n"
-                      "Longitude size of data: ", surface_elevation.data.ncols());
-  ARTS_USER_ERROR_IF (surface_elevation.data.empty(),
-                      "The data in *surface_elevation* are empty. Not allowed!");
-  ARTS_USER_ERROR_IF (atmosphere_dim==1 && lat_grid.nelem()!=1,
-                      "For 1D, the latitude size in *surface_elevation* "
-                      "must be one.");
-  ARTS_USER_ERROR_IF (atmosphere_dim==1 && lat_grid.nelem()!=1,
-                      "For 1D and 2D, the longitude size in *surface_elevation* "
-                      "must be one.");
-}
 
 /*===========================================================================
  === Functions related to GriddedFields.

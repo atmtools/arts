@@ -94,6 +94,18 @@ void chk_sensor_poslos(const String& name1,
                        const String& name2,
                        ConstMatrixView sensor_los);
 
+/** Checks WSV *surface_elevation*
+
+    It is NOT checked that grids are strictly increasing, as
+    relatively costly.
+
+    @param[in]   surface_elevation   As the WSV with the same name.
+
+    @author Patrick Eriksson 
+    @date   2021-08-08
+ */
+void chk_surface_elevation(const GriddedField2& surface_elevation);
+
 /** Calculates the geometrical length to the surface
 
    A negative length is returned if the geomtrical path has no intersection
@@ -106,7 +118,6 @@ void chk_sensor_poslos(const String& name1,
    @param[in] rte_los           As the WSV with the same name.
    @param[in] ecef              rte_pos in ECEF.
    @param[in] decef             rte_los in ECEF.
-   @param[in] atmosphere_dim    As the WSV with the same name.
    @param[in] refellipsoid      As the WSV with same name.
    @param[in] surface_elevation As the WSV with same name.
    @param[in] surface_search_accuracy See WSM IntersectionGeometricalWithSurface.
@@ -121,7 +132,6 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
                                      const Vector rte_los,
                                      const Vector ecef,
                                      const Vector decef,
-                                     const Index& atmosphere_dim,
                                      const Vector& refellipsoid,
                                      const GriddedField2& surface_elevation,
                                      const Numeric& surface_search_accuracy,
