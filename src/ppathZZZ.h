@@ -187,27 +187,4 @@ void ppath_grid_crossings(Ppath& ppath,
                           const Numeric& l_step_max,
                           const Numeric& l_accuracy,
                           const Index& do_not_calc_gps);
-
-/** Returns surface elevation at lat and lon of a position
-
-   Length one grids and infinite extrapolation applied. That is, surface grids
-   work as the retrieval grids.
-
-   Can also be used for other GriddedField2 that are defined in the same way.
-
-   ZZZ Move to file for surface stuff ZZZ
-
-   @param[in]   pos               Position vector.
-   @param[in]   atmosphere_dim    As the WSV with the same name.
-   @param[in]   surface_elevation As the WSV with the same name.
-
-   @return   Elevation.
-
-   @author Patrick Eriksson
-   @date   2021-07-28
- */
-Numeric surface_z_at_pos(const Vector pos,
-                         const Index& atmosphere_dim,
-                         const GriddedField2& surface_elevation);
-
 #endif  // ppathZZZ_h
