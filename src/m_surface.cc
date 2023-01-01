@@ -3266,15 +3266,13 @@ void surface_rtpropFromTypesAverage(
   sensor_pos(joker, 2) = sat_pos[2];
   losAddLosAndDlos(sensor_los, sat_los, dlos, verbosity);
   //
-  IntersectionGeometricalWithAltitude(ground_pos,
-                                      ground_los,
-                                      sensor_pos,
-                                      sensor_los,
-                                      refellipsoid,
-                                      lat_grid,
-                                      lon_grid,
-                                      rtp_pos[0],
-                                      verbosity);
+  IntersectionGeometricAltitude(ground_pos,
+                                ground_los,
+                                sensor_pos,
+                                sensor_los,
+                                refellipsoid,
+                                rtp_pos[0],
+                                verbosity);
   
   // Prepare output variables
   surface_type_mix.resize(ntypes);

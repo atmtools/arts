@@ -33,15 +33,9 @@
 #include <algorithm>
 
 #include "geodeticZZZ.h"
-#include "interpolation.h"
-#include "jacobian.h"
-#include "math_funcs.h"
 #include "ppathZZZ.h"
 #include "variousZZZ.h"
 
-using GriddedFieldGrids::GFIELD2_LAT_GRID;
-using GriddedFieldGrids::GFIELD2_LON_GRID;
-inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 
 /*===========================================================================
   === Internal functions, in alphabetical order

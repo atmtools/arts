@@ -2158,15 +2158,13 @@ void rte_pos_losBackwardToAltitude(Vector& rte_pos,
   Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
   start_pos(0, joker) = rte_pos;
   start_los(0, joker) = los2use;
-  IntersectionGeometricalWithAltitude(end_pos,
-                                      end_los,
-                                      start_pos,
-                                      start_los,
-                                      refellipsoid,
-                                      lat_grid,
-                                      lon_grid,
-                                      altitude,
-                                      verbosity);
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                start_pos,
+                                start_los,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
 
   // Extract final values
   rte_pos = end_pos(0, joker);
@@ -2188,15 +2186,13 @@ void rte_pos_losForwardToAltitude(Vector& rte_pos,
   Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
   start_pos(0, joker) = rte_pos;
   start_los(0, joker) = rte_los;
-  IntersectionGeometricalWithAltitude(end_pos,
-                                      end_los,
-                                      start_pos,
-                                      start_los,
-                                      refellipsoid,
-                                      lat_grid,
-                                      lon_grid,
-                                      altitude,
-                                      verbosity);
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                start_pos,
+                                start_los,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
 
   // Extract final values
   rte_pos = end_pos(0, joker);
@@ -2300,15 +2296,13 @@ void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
 
   // Move in altitude
   Matrix end_pos, end_los;
-  IntersectionGeometricalWithAltitude(end_pos,
-                                      end_los,
-                                      sensor_pos,
-                                      los2use,
-                                      refellipsoid,
-                                      lat_grid,
-                                      lon_grid,
-                                      altitude,
-                                      verbosity);
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                sensor_pos,
+                                los2use,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
 
   // Extract final values
   sensor_pos = end_pos;
@@ -2329,15 +2323,13 @@ void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
 
   // Move in altitude
   Matrix end_pos, end_los;
-  IntersectionGeometricalWithAltitude(end_pos,
-                                      end_los,
-                                      sensor_pos,
-                                      sensor_los,
-                                      refellipsoid,
-                                      lat_grid,
-                                      lon_grid,
-                                      altitude,
-                                      verbosity);
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                sensor_pos,
+                                sensor_los,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
 
   // Extract final values
   sensor_pos = end_pos;
