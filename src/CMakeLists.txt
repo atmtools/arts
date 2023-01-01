@@ -299,6 +299,7 @@ add_library (artscore STATIC
   tmatrix.cc
   tokval_io.cc
   transmissionmatrix.cc
+  variousZZZ.cc
   wigner_functions.cc
   workspace_ng.cc
   workspace_memory_handler.cc

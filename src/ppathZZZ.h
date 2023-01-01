@@ -75,39 +75,6 @@ Numeric find_crossing_cloudbox(const Vector rte_pos,
                                const ArrayOfIndex& cloudbox_limits,
                                const bool& is_outside);
 
-/** Calculates the geometrical length to the surface
-
-   A negative length is returned if the geomtrical path has no intersection
-   with the surface.
-
-   The function also check that the observation position is actually above the
-   surface. 
-
-   @param[in]   rte_pos           As the WSV with the same name.
-   @param[in]   rte_los           As the WSV with the same name.
-   @param[in]   ecef              rte_pos in ECEF.
-   @param[in]   decef             rte_los in ECEF.
-   @param[in]   atmosphere_dim    As the WSV with the same name.
-   @param[in]   refellipsoid      As the WSV with same name.
-   @param[in]   surface_elevation As the WSV with same name.
-   @param[in]   l_accuracy        See WSM IntersectionGeometricalWithSurface.
-   @param[in]   safe_search       See WSM IntersectionGeometricalWithSurface.
-
-   @return   Length to the surface.
-
-   @author Patrick Eriksson
-   @date   2021-08-06
- */
-Numeric find_crossing_with_surface_z(const Vector rte_pos,
-                                     const Vector rte_los,
-                                     const Vector ecef,
-                                     const Vector decef,
-                                     const Index& atmosphere_dim,
-                                     const Vector& refellipsoid,
-                                     const GriddedField2& surface_elevation,
-                                     const Numeric& l_accuracy,
-                                     const Index& safe_search);
-
 /** Checks if a position is outside of the atmosphere.
 
    For the return value, this coding is used:

@@ -40,6 +40,7 @@
 #include "check_input.h"
 #include "geodeticZZZ.h"
 #include "ppathZZZ.h"
+#include "variousZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
@@ -54,9 +55,10 @@ void IntersectionGeometricalWithAltitude(Matrix& pos,
                                          const Matrix& sensor_los,
                                          const Vector& refellipsoid,
                                          const Numeric& altitude,
-                                         const Verbosity&) {
-  chk_sensor_poslos(sensor_pos, sensor_los);
-  chk_refellipsoid(refellipsoid);
+                                         const Verbosity&)
+{
+  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
+  chk_refellipsoidZZZ(refellipsoid);
 
   const Index n = sensor_pos.nrows();
   pos.resize(n, 3);
@@ -102,9 +104,10 @@ void IntersectionGeometricalWithLatitude(Matrix& pos,
                                          const Matrix& sensor_los,
                                          const Vector& refellipsoid,
                                          const Numeric& latitude,
-                                         const Verbosity&) {
-  chk_sensor_poslos(sensor_pos, sensor_los);
-  chk_refellipsoid(refellipsoid);
+                                         const Verbosity&)
+{
+  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
+  chk_refellipsoidZZZ(refellipsoid);
   chk_if_in_range("latitude", latitude, -90, 90);
 
   const Index n = sensor_pos.nrows();
@@ -144,9 +147,10 @@ void IntersectionGeometricalWithLongitude(Matrix& pos,
                                           const Matrix& sensor_los,
                                           const Vector& refellipsoid,
                                           const Numeric& longitude,
-                                          const Verbosity&) {
-  chk_sensor_poslos(sensor_pos, sensor_los);
-  chk_refellipsoid(refellipsoid);
+                                          const Verbosity&)
+{
+  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
+  chk_refellipsoidZZZ(refellipsoid);
   chk_if_in_range("longitude", longitude, -180, 360);
 
   const Index n = sensor_pos.nrows();
@@ -189,10 +193,11 @@ void IntersectionGeometricalWithSurface(Matrix& pos,
                                         const GriddedField2& surface_elevation,
                                         const Numeric& l_accuracy,
                                         const Index& safe_search,
-                                        const Verbosity&) {
-  chk_sensor_poslos(sensor_pos, sensor_los);
+                                        const Verbosity&)
+{
+  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_refellipsoid(refellipsoid);
+  chk_refellipsoidZZZ(refellipsoid);
   chk_surface_elevation(atmosphere_dim, surface_elevation);
   chk_if_positive("l_accuracy", l_accuracy);
   chk_if_bool("safe_search", safe_search);
@@ -227,22 +232,12 @@ void IntersectionGeometricalWithSurface(Matrix& pos,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidSetZZZ(Vector& refellipsoid,
-                     const Numeric& r_equatorial,
-                     const Numeric& r_polar,
-                     const Verbosity&) {
-  refellipsoid.resize(2);
-  refellipsoid[0] = r_equatorial;
-  refellipsoid[1] = r_polar;
-  chk_refellipsoidZZZ(refellipsoid);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_posGeodeticToGeocentric(Matrix& sensor_pos,
                                     const Vector& refellipsoid,
-                                    const Verbosity&) {
-  chk_sensor_pos(sensor_pos);
-  chk_refellipsoid(refellipsoid);
+                                    const Verbosity&)
+{
+  chk_sensor_pos("sensor_pos", sensor_pos);
+  chk_refellipsoidZZZ(refellipsoid);
 
   Vector ecef(3);
   for (Index i=0; i<sensor_pos.nrows(); i++) {
@@ -256,9 +251,10 @@ void sensor_posGeodeticToGeocentric(Matrix& sensor_pos,
 void sensor_poslosGeodeticToGeocentric(Matrix& sensor_pos,
                                        Matrix& sensor_los,
                                        const Vector& refellipsoid,
-                                       const Verbosity&) {
-  chk_sensor_poslos(sensor_pos, sensor_los);
-  chk_refellipsoid(refellipsoid);
+                                       const Verbosity&)
+{
+  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
+  chk_refellipsoidZZZ(refellipsoid);
 
   Vector ecef(3), decef(3);  
   for (Index i=0; i<sensor_pos.nrows(); i++) {
@@ -272,9 +268,10 @@ void sensor_poslosGeodeticToGeocentric(Matrix& sensor_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_posGeocentricToGeodetic(Matrix& sensor_pos,
                                     const Vector& refellipsoid,
-                                    const Verbosity&) {
-  chk_sensor_pos(sensor_pos);
-  chk_refellipsoid(refellipsoid);
+                                    const Verbosity&)
+{
+  chk_sensor_pos("sensor_pos", sensor_pos);
+  chk_refellipsoidZZZ(refellipsoid);
 
   Vector ecef(3);
   for (Index i=0; i<sensor_pos.nrows(); i++) {
@@ -288,9 +285,10 @@ void sensor_posGeocentricToGeodetic(Matrix& sensor_pos,
 void sensor_poslosGeocentricToGeodetic(Matrix& sensor_pos,
                                        Matrix& sensor_los,
                                        const Vector& refellipsoid,
-                                       const Verbosity&) {
-  chk_sensor_poslos(sensor_pos, sensor_los);
-  chk_refellipsoid(refellipsoid);
+                                       const Verbosity&)
+{
+  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
+  chk_refellipsoidZZZ(refellipsoid);
 
   Vector ecef(3), decef(3);  
   for (Index i=0; i<sensor_pos.nrows(); i++) {
