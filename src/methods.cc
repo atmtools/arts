@@ -8430,21 +8430,21 @@ Available models:
           "analytically. Otherwise a search in terms of distance from the sensor\n"
           "is applied. The default is to use a bisection algorithm. This option\n"
           "should suffice in general, but it can fail if the elevation varies\n"
-          "strongly and/or the incidence angle is high. The path can then cross the\n"
-          "surface at several positions and the bisection search does not guarantee\n"
-          "that the correct intersection is found. To avoid this, set\n"
-          "*safe_surface_search* to 1 and a safe, but more slow option, is used.\n"
-          "In this case the path is sampled backwards until the surface is found.\n"
+          "strongly and/or the incidence angle is high. The path can then cross\n"
+          "the surface at several positions and the bisection search does not\n"
+          "guarantee that the correct intersection is found. To avoid this, set\n"
+          "*surface_search_safe* to 1 and a safe, but much more slow option, is\n"
+          "used. In this case the path is sampled backwards until the surface is\n"
+          "found.\n"
           "\n"
           "To be clear, the faster bisection algorith can fail if the path goes\n"
           "through a mountain top. For an upward observation inside a valley, the\n"
           "bisection can also miss if the path touches the side of the valley.\n"
           "\n"
-          "For both algorithms *l_accuracy* governs the accuracy. In the first\n"
-          "case, the bisection is stopped when *l_accuracy* has been reached, while\n"
-          "in the safe option *l_accuracy* is the step length used. The error (in\n"
-          "terms of length from sensor) of the intersection will not exceed\n"
-          "*l_accuracy*.\n"),
+          "For both algorithms *surface_search_accuracy* governs the accuracy. In\n"
+          "the first case, the bisection is stopped when the set accuracy has\n"
+          "been reached, while in the safe option *surface_search_accuracy* is\n"
+          "the step length used.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -8453,14 +8453,13 @@ Available models:
                 "Line-of-sight at intersections."),
       IN("sensor_pos",
          "sensor_los",
-         "atmosphere_dim",
          "refellipsoidZZZ",
          "surface_elevation"),
-      GIN("l_accuracy", "safe_surface_search"),
+      GIN("surface_search_accuracy", "surface_search_safe"),
       GIN_TYPE("Numeric", "Index"),
       GIN_DEFAULT("1","0"),
-      GIN_DESC("Required accuracy in terms of length from sensor",
-               "Set to 1 to active safe, but slow, search algorithm")));
+      GIN_DESC("Required accuracy in terms of length from sensor.",
+               "Set to 1 to active safe, but slow, search algorithm.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
@@ -13924,83 +13923,6 @@ Available models:
                "Allowed deviation for zenith angle.",
                "Expected azimuth angle.",
                "Allowed deviation for azimuth angle.")));
-
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathPassive"),
-      DESCRIPTION(
-        "Propagation path (ppath) determination for passive observatrions.\n"
-        "\n"
-        "ZZZ Update when method finished ZZZ\n"
-        "\n"
-        "A propagation path is primarily defined by the observation geometry (real or\n"
-        "imagainary) described by *rte_pos* and *rte_los*. That is, a ppath describes\n"
-        "the propagation of the radiation observed in the backward direction. The other\n"
-        "end point of a single ppath is the intersection with the surface, the top of\n"
-        "the atmosphere (TOA) or the cloudbox (if active). If there are several such\n"
-        "intersections, the first one sets the end point. The exception is if the GIN\n"
-        "stop_distance is set and this distance is shorther than the one to the first\n"
-        "intersection with a atmospheric boundary. For observations from outside of\n"
-        "the atmosphere, the effective starting point of the ppath is at TOA.\n"
-        "\n"
-        "If refraction is ignored (refraction_do=0), the ppath is determined in two\n"
-        "parts:\n"
-        "   1: The ppath is described with equidistant steps between the end points.\n"
-        "      The distance is as high as possibly without exceeding GIN l_max.\n"
-        "   2: If GIN add_grid_crossings set to true, the crossings with the active\n"
-        "      atmospheric grids (just z_grid for 1D, as example) are taken as\n"
-        "      primary ppath points. Points from 1 are included if needed to fulfill\n"
-        "      the criterion set by l_max. Please note that a high value of l_max\n"
-        "      can in some conditions resukt in that grid crossings are missed. The\n"
-        "      main examples where this can happen should be limb sounding or any\n"
-        "      case having a ppath close the north or south pole.\n"
-        "\n"
-        "With GIN refraction_do set to true the same basic scheme applies, except\n"
-        "that in part 1 the distnces will be l_max except the last one that is\n"
-        "simply the remaining length to the end point. Please note that the step\n"
-        "length of the ray tracing performed is l_max/refraction_factor. That is,\n"
-        "refraction_factor ray tracing steps are taken before a new point is added\n"
-        "in part 1. \n"
-        "\n"
-        "The path is mainly calculated using fully analytical expressions. The\n"
-        "exception is to find intersections with the surface, that requires a\n"
-        "search procedure. The two last GIN are  settings for this search. See\n"
-        "*IntersectionGeometricSurface* for details.\n"), 
-      AUTHORS("Patrick Eriksson"),
-      OUT("ppathZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("rte_pos",
-         "rte_los",
-         "atmosphere_dim",
-         "refellipsoidZZZ",
-         "z_grid",
-         "lat_grid",
-         "lon_grid",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "surface_elevation"),
-      GIN("refraction_do",
-          "add_grid_crossings",
-          "l_step_max",
-          "l_total_max",
-          "l_raytrace_geom",
-          "l_raytrace_refr",
-          "l_accuracy", 
-          "safe_surface_search",
-          "do_not_calc_gps"),
-      GIN_TYPE("Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Index", "Index"),
-      GIN_DEFAULT("0", "0", "10e3", "-1.0", "10e3", "2e3", "0.1", "0","0"),
-      GIN_DESC("Flag to consider refraction or not.",
-               "Flag to include crossings with z, lat and lon grids as ppath points.",
-               "If set to >0, sets the maximum distance between ppath points.",
-               "If set to >0, sets the maximum total length of the ppath calculated.",
-               "If refraction_do false, the ray tracing step length to apply.",
-               "If refraction_do true, the ray tracing step length to apply.",
-               "See *IntersectionGeometricSurface*.",
-               "See *IntersectionGeometricSurface*.",
-               "If true, grid position members of *ppath* will not be calculated.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFixedLstep"),

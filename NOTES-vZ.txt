@@ -40,10 +40,10 @@ ppathGeometric
 ppathRefracted
 ppathAddGridCrossings
 -
-IntersectionGeometricalWithAltitude
-IntersectionGeometricalWithLongitude
-IntersectionGeometricalWithLatitude
-IntersectionGeometricalWithSurface
+IntersectionGeometricAltitude
+IntersectionGeometricLongitude
+IntersectionGeometricLatitude
+IntersectionGeometricSurface
 -
 rte_losGeometricPathToPosition
   - ppath is also output
