@@ -35,27 +35,24 @@
   === External declarations
   ===========================================================================*/
 
-#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodeticZZZ.h"
-#include "ppathZZZ.h"
 #include "variousZZZ.h"
 
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IntersectionGeometricalWithAltitude(Matrix& pos,
-                                         Matrix& los,
-                                         const Matrix& sensor_pos,
-                                         const Matrix& sensor_los,
-                                         const Vector& refellipsoid,
-                                         const Numeric& altitude,
-                                         const Verbosity&)
+void IntersectionGeometricAltitude(Matrix& pos,
+                                   Matrix& los,
+                                   const Matrix& sensor_pos,
+                                   const Matrix& sensor_los,
+                                   const Vector& refellipsoid,
+                                   const Numeric& altitude,
+                                   const Verbosity&)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoidZZZ(refellipsoid);
@@ -98,13 +95,13 @@ void IntersectionGeometricalWithAltitude(Matrix& pos,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IntersectionGeometricalWithLatitude(Matrix& pos,
-                                         Matrix& los,
-                                         const Matrix& sensor_pos,
-                                         const Matrix& sensor_los,
-                                         const Vector& refellipsoid,
-                                         const Numeric& latitude,
-                                         const Verbosity&)
+void IntersectionGeometricLatitude(Matrix& pos,
+                                   Matrix& los,
+                                   const Matrix& sensor_pos,
+                                   const Matrix& sensor_los,
+                                   const Vector& refellipsoid,
+                                   const Numeric& latitude,
+                                   const Verbosity&)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoidZZZ(refellipsoid);
@@ -141,13 +138,13 @@ void IntersectionGeometricalWithLatitude(Matrix& pos,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IntersectionGeometricalWithLongitude(Matrix& pos,
-                                          Matrix& los,
-                                          const Matrix& sensor_pos,
-                                          const Matrix& sensor_los,
-                                          const Vector& refellipsoid,
-                                          const Numeric& longitude,
-                                          const Verbosity&)
+void IntersectionGeometricLongitude(Matrix& pos,
+                                    Matrix& los,
+                                    const Matrix& sensor_pos,
+                                    const Matrix& sensor_los,
+                                    const Vector& refellipsoid,
+                                    const Numeric& longitude,
+                                    const Verbosity&)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoidZZZ(refellipsoid);
@@ -184,16 +181,16 @@ void IntersectionGeometricalWithLongitude(Matrix& pos,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IntersectionGeometricalWithSurface(Matrix& pos,
-                                        Matrix& los,
-                                        const Matrix& sensor_pos,
-                                        const Matrix& sensor_los,
-                                        const Index& atmosphere_dim,
-                                        const Vector& refellipsoid,
-                                        const GriddedField2& surface_elevation,
-                                        const Numeric& l_accuracy,
-                                        const Index& safe_search,
-                                        const Verbosity&)
+void IntersectionGeometricSurface(Matrix& pos,
+                                  Matrix& los,
+                                  const Matrix& sensor_pos,
+                                  const Matrix& sensor_los,
+                                  const Index& atmosphere_dim,
+                                  const Vector& refellipsoid,
+                                  const GriddedField2& surface_elevation,
+                                  const Numeric& l_accuracy,
+                                  const Index& safe_search,
+                                  const Verbosity&)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);

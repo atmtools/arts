@@ -8374,7 +8374,7 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("IntersectionGeometricalWithAltitude"),
+      NAME("IntersectionGeometricAltitude"),
       DESCRIPTION(
           "Calculates the geometrical intersection with an altitude.\n"
           "\n"
@@ -8402,7 +8402,7 @@ Available models:
       GIN_DESC("Target altitude.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("IntersectionGeometricalWithLatitude"),
+      NAME("IntersectionGeometricLatitude"),
       DESCRIPTION(
           "Calculates the geometrical intersection with a latitude.\n"
           "\n"
@@ -8425,7 +8425,7 @@ Available models:
       GIN_DESC("Target latitude.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("IntersectionGeometricalWithLongitude"),
+      NAME("IntersectionGeometricLongitude"),
       DESCRIPTION(
           "Calculates the geometrical intersection with a longitude.\n"
           "\n"
@@ -8448,7 +8448,7 @@ Available models:
       GIN_DESC("Target longitude.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("IntersectionGeometricalWithSurface"),
+      NAME("IntersectionGeometricSurface"),
       DESCRIPTION(
           "Calculates the geometrical intersection with the surface.\n"
           "\n"
@@ -13997,7 +13997,7 @@ Available models:
         "The path is mainly calculated using fully analytical expressions. The\n"
         "exception is to find intersections with the surface, that requires a\n"
         "search procedure. The two last GIN are  settings for this search. See\n"
-        "*IntersectionGeometricalWithSurface* for details.\n"), 
+        "*IntersectionGeometricSurface* for details.\n"), 
       AUTHORS("Patrick Eriksson"),
       OUT("ppathZZZ"),
       GOUT(),
@@ -14030,8 +14030,8 @@ Available models:
                "If set to >0, sets the maximum total length of the ppath calculated.",
                "If refraction_do false, the ray tracing step length to apply.",
                "If refraction_do true, the ray tracing step length to apply.",
-               "See *IntersectionGeometricalWithSurface*.",
-               "See *IntersectionGeometricalWithSurface*.",
+               "See *IntersectionGeometricSurface*.",
+               "See *IntersectionGeometricSurface*.",
                "If true, grid position members of *ppath* will not be calculated.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -18164,7 +18164,7 @@ where N>=0 and the species name is something line "H2O".
           "geometrically.\n"
           "\n"
           "There is also *sensor_pos_losForwardToAltitude*. The WSM\n"
-          "*IntersectionGeometricalWithAltitude* performs the same operation\n"
+          "*IntersectionGeometricAltitude* performs the same operation\n"
           "with *sensor_pos* and *sensor_los* as input.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos", "rte_los"),
@@ -19082,7 +19082,7 @@ where N>=0 and the species name is something line "H2O".
           "when forward-propagating the original *sensor_pos* and *sensor_los*\n"
           "geometrically.\n"
           "\n"
-          "The WSM *IntersectionGeometricalWithAltitude* performs the same operation\n"
+          "The WSM *IntersectionGeometricAltitude* performs the same operation\n"
           "but allows to store the new pos and los as other variables. There is\n"
           "also *rte_pos_losForwardToAltitude*.\n"),
       AUTHORS("Patrick Eriksson"),
