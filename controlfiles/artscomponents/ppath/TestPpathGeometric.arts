@@ -1,0 +1,91 @@
+#DEFINITIONS:  -*-sh-*-
+#
+#   Checks that ppathGeometric runs  as expected for different situations.
+#
+Arts2 {
+
+# Start with WGS84 Earth and constant 0m surface elevation
+refellipsoidEarthZZZ( model = "WGS84" )
+Copy( refellipsoid, refellipsoidZZZ )  # Temporary fix
+surface_elevationSetConstant( elevation=0 )
+
+# Assumed TOA altitude
+NumericCreate( z_toa )
+NumericSet( z_toa, 99.9e3 )
+
+
+# Sensor in space and looking out
+VectorSet(rte_pos, [600e3, 12, 67])
+VectorSet(rte_los, [88, 123])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 2e3 )
+ppathCheckEndPoint( background = 1,
+                    np = 0 )
+
+# Sensor in space and looking down, but still missing atmosphere
+VectorSet(rte_los, [111, 123])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 2e3 )
+ppathCheckEndPoint( background = 1,
+                    np = 0 )
+
+
+# Sensor in space and looking down into the surface with huge step length
+VectorSet(rte_los, [177, 12])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 2000e3 )
+ppathCheckEndPoint( background = 2,
+                    np = 2 )
+
+# As above but l_total_max set
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 2000e3,
+                l_total_max = 12e3 )
+ppathCheckEndPoint( background = 9,
+                    np = 2 )
+
+# Sensor in space and doing limb sounding
+VectorSet(rte_los, [113, 12])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 20e3 )
+ppathCheckEndPoint( background = 1 )
+
+
+# Sensor inside the atmosphere and looking up with huge step length
+VectorSet(rte_pos, [6, 12, 67])
+VectorSet(rte_los, [8, 123])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 200e3 )
+ppathCheckEndPoint( background = 1,
+                    np = 2 )
+
+# Sensor inside the atmosphere and looking into the surface
+VectorSet(rte_pos, [6, 12, 67])
+VectorSet(rte_los, [108, 123])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 25 )
+ppathCheckEndPoint( background = 2 )
+
+
+# Airborne limb sounding
+VectorSet(rte_pos, [12e3, 1, -67])
+VectorSet(rte_los, [93, 1])
+#
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 12e3 )
+ppathCheckEndPoint( background = 1 )
+
+
+# As above but l_total_max set
+ppathGeometric( z_toa = z_toa,
+                l_step_max = 12e3,
+                l_total_max = 20e3 )
+ppathCheckEndPoint( background = 9 )
+
+}

@@ -36,6 +36,39 @@
   ===========================================================================*/
 
 
+
+/** Adding grid crossings to a ppath
+
+  When called the variable ppath shall contain a description of the propagation 
+  path fine enough that it can be treated as piecewise linear. In addition, the
+  spacing of the input ppath must be fine enough that altitudes, latitudes and 
+  longitides vary monotonically over each ppaths step. The function will not catch
+  deviations from these criteria, neither crash, but the result will not be ideal. 
+   
+  The output ppath contains all found grid crossings and other points added to meet
+  l_step_max. Set a grid to be empty, to not add points for that dimension.
+
+   @param[in,out]  ppath        As the WSV with the same name.
+   @param[in]   atmosphere_dim  As the WSV with the same name.
+   @param[in]   refellipsoid    As the WSV with same name.
+   @param[in]   z_grid          As the WSV with same name.
+   @param[in]   lat_grid        As the WSV with same name.
+   @param[in]   lon_grid        As the WSV with same name.
+   @param[in]   l_step_max      Max distance between points of ppath.
+
+   @author Patrick Eriksson
+   @date   2022-09-29
+ */
+/* Just started
+void ppath_add_grid_crossings(Ppath& ppath,
+                              const Index& atmosphere_dim,
+                              const Vector& refellipsoid,
+                              const Vector& z_grid,
+                              const Vector& lat_grid,
+                              const Vector& lon_grid,
+                              const Numeric& l_step_max);
+*/
+
 /** Locates rte_pos with respect to the top of the atmosphere
 
    @param[out]  l2toa         Length to TOA. Set to zero if sensor is
