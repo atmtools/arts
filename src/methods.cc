@@ -14152,6 +14152,44 @@ Available models:
 
   // New ppath methods, starting here
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppathAddGridCrossings"),
+      DESCRIPTION(
+         "Adds grids crossings to an existing *ppath*.\n"
+         "\n"
+         "This method allows including certain altitudes, latitudes and\n"
+         "longitudes in *ppath*, if they are passed. These additional points\n"
+         "to consider should in general constitute  one or several merged\n"
+         "atmospheric grids. By including the grid of e.g. a species, it is\n"
+         "ensured that min and max values get represented when interpolating\n"
+         "the atmosphere to the path.\n"
+         "\n"
+         "You can set one or several of the grids to be non-empty.\n"
+         "\n"
+         "The input *ppath* shall contain enough points that it can be treated\n"
+         "as a straight line between the points. For pure geometrical cases,\n" 
+         "the end points of the path are sufficient, as long as altitudes,\n"
+         "latitudes and longitudes are stictly increasing or decreasing along\n"
+         "the path. If the later not is valid, such as when passing a tangent\n"
+         "point or one of the geographical poles, more input path points are\n"
+         "required (max 10 km distance?).\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppath", "refellipsoid"),
+      GIN("l_step_max",
+          "z_grid",
+          "lat_grid",
+          "lon_grid"),
+      GIN_TYPE("Numeric", "Vector", "Vector", "Vector"),
+      GIN_DEFAULT(NODEF, "[]", "[]", "[]"),
+      GIN_DESC("Maximum length between points in *ppath*.",
+               "Grid/set of altitudes to include, if passed.",
+               "Grid/set of latitudes to include, if passed.",
+               "Grid/set of longitudes to include, if passed.")));
+
+    md_data_raw.push_back(create_mdrecord(
       NAME("ppathCheckEndPoint"),
       DESCRIPTION(
          "Allows to check that a propagation path ends as expected.\n"
