@@ -35,8 +35,6 @@
   === Functions
   ===========================================================================*/
 
-
-
 /** Adding grid crossings to a ppath
 
   When called the variable ppath shall contain a description of the propagation 
@@ -49,7 +47,6 @@
   l_step_max. Set a grid to be empty, to not add points for that dimension.
 
    @param[in,out]  ppath        As the WSV with the same name.
-   @param[in]   atmosphere_dim  As the WSV with the same name.
    @param[in]   refellipsoid    As the WSV with same name.
    @param[in]   z_grid          As the WSV with same name.
    @param[in]   lat_grid        As the WSV with same name.
@@ -59,15 +56,12 @@
    @author Patrick Eriksson
    @date   2022-09-29
  */
-/* Just started
 void ppath_add_grid_crossings(Ppath& ppath,
-                              const Index& atmosphere_dim,
                               const Vector& refellipsoid,
                               const Vector& z_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
                               const Numeric& l_step_max);
-*/
 
 /** Locates rte_pos with respect to the top of the atmosphere
 

@@ -36,22 +36,41 @@
 #include "ppathZZZ.h"
 #include "variousZZZ.h"
 
-/* Just started
+
 void ppath_add_grid_crossings(Ppath& ppath,
-                              const Index& atmosphere_dim,
                               const Vector& refellipsoid,
                               const Vector& z_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
                               const Numeric& l_step_max)
 {
-  const bool do_z = z_grid.nelem() > 0;
-  const bool do_lat = lat_grid.nelem() > 0;
-  const bool do_lon = lon_grid.nelem() > 0;
+  const Index nz = z_grid.nelem();
+  const Index nlat = lat_grid.nelem();
+  const Index nlon = lon_grid.nelem();
 
   // Nothing to do if there is no ppath step, or all grids empty
-  if (ppath.np < 2  || !(do_z || do_lat || do_lon)) {
+  if (ppath.np < 2  || !(nz || nlat || nlon)) {
     return;
+  }
+
+  // Extend grids to make sure they cover all points of ppath
+  Vector zgrid2(nz ? nz + 2 : 0);
+  if (nz) {
+    zgrid2[0] = -9e6;
+    zgrid2[Range(1, nz)] = z_grid;
+    zgrid2[nz + 1] = 9e6;
+  }
+  Vector latgrid2(nlat ? nlat + 2 : 0);
+  if (nlat) {
+    latgrid2[0] = -91;
+    latgrid2[Range(1, nlat)] = lat_grid;
+    latgrid2[nlat + 1] = 91;
+  }
+  Vector longrid2(nlon ? nlon + 2 : 0);
+  if (nlon) {
+    longrid2[0] = -190;
+    longrid2[Range(1, nlon)] = lon_grid;
+    longrid2[nlon + 1] = 370;
   }
   
   // l means distance from ppath pos[0]
@@ -59,20 +78,20 @@ void ppath_add_grid_crossings(Ppath& ppath,
   // Excpetion: l_step_max is still a local length
   
   // Process ppath to set up some help variables
-  Vector l_acc_ppath(ppath.np);      // Accumulated length along ppath
-  Vector ngp_z(do_z ? ppath.np : 0); // Grid positions as Numeric, i.e. idx+fd[0]
-  Vector ngp_lat(do_lat ? ppath.np : 0);
-  Vector ngp_lon(do_lat ? ppath.np : 0);
+  Vector l_acc_ppath(ppath.np);     // Accumulated length along ppath
+  Vector ngp_z(nz ? ppath.np : 0);  // Grid positions as Numeric, i.e. idx+fd[0]
+  Vector ngp_lat(nlat ? ppath.np : 0);
+  Vector ngp_lon(nlat ? ppath.np : 0);
   //
   ArrayOfGridPos gp_z(ngp_z.nelem());
-  if (do_z)
-    gridpos(gp_z, z_grid, ppath.pos(joker, 0));
+  if (nz)
+    gridpos(gp_z, zgrid2, ppath.pos(joker, 0));
   ArrayOfGridPos gp_lat(ngp_lat.nelem());
-  if (do_lat)
-    gridpos(gp_lat, lat_grid, ppath.pos(joker, 1));
+  if (nlat)
+    gridpos(gp_lat, latgrid2, ppath.pos(joker, 1));
   ArrayOfGridPos gp_lon(ngp_lon.nelem());
-  if (do_lon)
-    gridpos(gp_lon, lon_grid, ppath.pos(joker, 2));
+  if (nlon)
+    gridpos(gp_lon, longrid2, ppath.pos(joker, 2));
   //              
   for (Index ip = 0; ip < ppath.np; ++ip) {
     if (ip == 0) {
@@ -80,22 +99,17 @@ void ppath_add_grid_crossings(Ppath& ppath,
     } else {
       l_acc_ppath[ip] = l_acc_ppath[ip - 1] + ppath.lstep[ip - 1];
     }
-    if (do_z)
+    if (nz)
       ngp_z[ip] = Numeric(gp_z[ip].idx) + gp_z[ip].fd[0];
-    if (do_lat)
+    if (nlat)
       ngp_lat[ip] = Numeric(gp_lat[ip].idx) + gp_lat[ip].fd[0];
-    if (do_lon)
+    if (nlon)
       ngp_lon[ip] = Numeric(gp_lon[ip].idx) + gp_lon[ip].fd[0];
   }
 
-  // Fixes to handle numerical inaccuracy:
-  // Make sure that start ngp_z is inside the atmosphere
-  if (gp_z[0] >= Numeric(z_grid.nelem() - 1)) {
-    gp_z[0] = Numeric(z_grid.nelem() - 1) - 1e-9;
-  }
   // Total length of ppath, minus a small distance to avoid that end point gets repeated
-  const Numeric l2end = l_acc_ppath[ppath.np - 1] - l_accuracy / 100.0;
-
+  const Numeric l2end = l_acc_ppath[ppath.np - 1] - 1.0e-3;
+  
   // Containers for new ppath points (excluding start and end points, that
   // always are taken from original ppath)
   ArrayOfIndex istart_array(0);
@@ -104,15 +118,17 @@ void ppath_add_grid_crossings(Ppath& ppath,
   // Loop ppath steps to find grid crossings
   Numeric l_last_inserted = 0;
   for (Index ip = 0; ip < ppath.np - 1; ++ip) {
+    
     // Length to grid crossings inside ppath step
     ArrayOfNumeric dl_from_ip(0);
 
     // Change in integer grid position for each dimension
-    const Index dgp_z = n_int_between(gp_z[ip], gp_z[ip + 1]);
+    const Index dgp_z =
+      nz ? n_int_between(ngp_z[ip], ngp_z[ip + 1]) : 0;
     const Index dgp_lat =
-        atmosphere_dim < 2 ? 0 : n_int_between(gp_lat[ip], gp_lat[ip + 1]);
+      nlat ? n_int_between(ngp_lat[ip], ngp_lat[ip + 1]) : 0;
     const Index dgp_lon =
-        atmosphere_dim < 3 ? 0 : n_int_between(gp_lon[ip], gp_lon[ip + 1]);
+      nlon ? n_int_between(ngp_lon[ip], ngp_lon[ip + 1]) : 0;
 
     if (dgp_z || dgp_lat || dgp_lon) {
       // ECEF at start end of ppath step
@@ -125,11 +141,12 @@ void ppath_add_grid_crossings(Ppath& ppath,
 
       // Crossing(s) of z_grid
       for (Index i = 1; i <= abs(dgp_z); ++i) {
+        
         const Numeric dl_test = intersection_altitude(
             ecef,
             decef,
             refellipsoid,
-            z_grid[int_at_step(gp_z[ip], sign(dgp_z) * i)]);
+            zgrid2[int_at_step(ngp_z[ip], sign(dgp_z) * i)]);
         if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l2end) {
           dl_from_ip.push_back(dl_test);
         }
@@ -143,7 +160,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
             ppath.pos(ip, joker),
             ppath.los(ip, joker),
             refellipsoid,
-            lat_grid[int_at_step(gp_lat[ip], sign(dgp_lat) * i)]);
+            latgrid2[int_at_step(ngp_lat[ip], sign(dgp_lat) * i)]);
         if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l2end) {
           dl_from_ip.push_back(dl_test);
         }
@@ -156,7 +173,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
             decef,
             ppath.pos(ip, joker),
             ppath.los(ip, joker),
-            lon_grid[int_at_step(gp_lon[ip], sign(dgp_lon) * i)]);
+            longrid2[int_at_step(ngp_lon[ip], sign(dgp_lon) * i)]);
         if (dl_test > 0 && l_acc_ppath[ip] + dl_test < l2end) {
           dl_from_ip.push_back(dl_test);
         }
@@ -274,7 +291,6 @@ void ppath_add_grid_crossings(Ppath& ppath,
     }
   }
 }
-*/
 
 
 bool ppath_l2toa_from_above(Numeric& l2toa,
