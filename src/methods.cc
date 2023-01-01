@@ -9492,6 +9492,25 @@ Available models:
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
   md_data_raw.push_back(create_mdrecord(
+      NAME("SurfaceElevationInterp"),
+      DESCRIPTION(
+          "Interpolates *surface_interpolation* to the selected position.\n"
+          "\n"
+          "An interface to the internal function for this interpolation.\n"
+          "See description of *surface_interpolation* of allowed grids\n"
+          "and inter- and extrapolation applied.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("elevation"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Obtained elevation"),
+      IN("surface_elevation"),
+      GIN("pos"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Position for which elevation shall be determined.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
           "Usage of FASTEM for emissivity and reflectivity of water surfaces.\n"
