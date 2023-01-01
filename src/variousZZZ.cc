@@ -74,6 +74,7 @@ void chk_rte_pos(const String& name,
       "The longitude in *", name, "* must be in the range [-180,360].")
 }
 
+
 void chk_refellipsoidZZZ(ConstVectorView refellipsoid)
 {
   ARTS_USER_ERROR_IF(refellipsoid.nelem() != 2,
@@ -84,6 +85,8 @@ void chk_refellipsoidZZZ(ConstVectorView refellipsoid)
       "The ratio of the two radii in *refellipsoid* is outisde of [0.5,1.5].\n"
       "Do you really want to have such a flat reference ellipsoid?");
 }
+
+
 void chk_sensor_pos(const String& name,
                     ConstMatrixView sensor_pos)
 {
@@ -102,6 +105,7 @@ void chk_sensor_pos(const String& name,
                        "but ", name, "(", i, ",2) is ", sensor_pos(i,2));
   }
 }
+
 
 void chk_sensor_los(const String& name,
                     ConstMatrixView sensor_los)
@@ -284,7 +288,9 @@ Numeric surface_z_at_pos(const Vector& pos,
   ARTS_ASSERT(surface_elevation.data.nrows() == nlat);
   ARTS_ASSERT(surface_elevation.data.ncols() == nlon);
 
-  // Handle the case of data are (1, 1)
+  // There should be special functions for this interpolation
+  
+  // Handle the case of data size (1, 1)
   if (nlat == 1 && nlon == 1) {
     return surface_elevation.data(0, 0);
   }
@@ -296,7 +302,7 @@ Numeric surface_z_at_pos(const Vector& pos,
   else if (lat > lat_grid[nlat - 1])
     lat = lat_grid[nlat - 1];
 
-  // Handle the case data(nlat, 1)
+  // Data size is (nlat, 1)
   if (nlon == 1) {
     ArrayOfGridPos gp_lat(1);
     gridpos(gp_lat, lat_grid, lat);
@@ -312,7 +318,7 @@ Numeric surface_z_at_pos(const Vector& pos,
   else if (lon > lon_grid[nlon])
     lon = lon_grid[nlon - 1];
 
-  // data are (1, nlon)
+  // Data size is (1, nlon)
   if (nlat == 1) {
     ArrayOfGridPos gp_lon(1);
     gridpos(gp_lon, lon_grid, lon);
@@ -320,7 +326,7 @@ Numeric surface_z_at_pos(const Vector& pos,
     interpweights(itw, gp_lon[0]);
     return interp(itw, surface_elevation.data(0, joker), gp_lon[0]);
     
-  // data are (nlat, nlon)
+  // Data size is (nlat, nlon)
   } else {
     ArrayOfGridPos gp_lat(1);
     gridpos(gp_lat, lat_grid, lat);
