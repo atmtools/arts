@@ -8489,7 +8489,7 @@ Available models:
          "surface_elevation"),
       GIN("surface_search_accuracy", "surface_search_safe"),
       GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT("1","0"),
+      GIN_DEFAULT("1.0", "0"),
       GIN_DESC("Required accuracy in terms of length from sensor.",
                "Set to 1 to active safe, but slow, search algorithm.")));
 
@@ -14309,13 +14309,34 @@ Available models:
           "surface_search_accuracy",
           "surface_search_safe"),
       GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "-1", "1", "0"),
+      GIN_DEFAULT(NODEF, NODEF, "-1.0", "1.0", "0"),
       GIN_DESC("Top-of-the-atmosphere altitude.",
                "Maximum length between points in *ppath*.",
                "Max length of the path (inside of the atmosphere).",
                "As GIN with same name of *IntersectionGeometricSurface*.",
                "As GIN with same name of *IntersectionGeometricSurface*.")));
-  // New ppath methods, end here
+
+    md_data_raw.push_back(create_mdrecord(
+      NAME("ppathRefracted"),
+      DESCRIPTION(
+         "Refracted propagation path (ppath) with ...\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos", "rte_los", "refellipsoid", "surface_elevation"),
+      GIN("z_toa",
+          "l_step_max",
+          "l_total_max",
+          "l_raytrace"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, "-1.0", "-1.0"),
+      GIN_DESC("Top-of-the-atmosphere altitude.",
+               "Maximum length between points in *ppath*.",
+               "Max length of the path (inside of the atmosphere).",
+               "Ray tracing step length.")));
+    // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
