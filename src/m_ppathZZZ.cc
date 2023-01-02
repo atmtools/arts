@@ -147,10 +147,6 @@ void ppathGeometric(Ppath& ppath,
   Vector ecef(3), decef(3);
   geodetic_los2ecef(ecef, decef, rte_pos, rte_los, refellipsoid);
 
-  // Number of points in ppath and radiative background
-  Index np = -1;  // -1 flags not yet known
-  enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
-
   // Relate rte_pos to TOA
   Numeric l_outside, l_inside = -1;
   const bool start_in_space = ppath_l2toa_from_above(l_outside,
@@ -161,6 +157,10 @@ void ppathGeometric(Ppath& ppath,
                                                      refellipsoid,
                                                      z_toa);
 
+  // Number of points in ppath and radiative background
+  Index np = -1;  // -1 flags not yet known
+  enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
+  
   // No ppath if above and looking outside of atmosphere
   if (start_in_space && l_outside < 0) {
     np = 0;
@@ -214,11 +214,12 @@ void ppathGeometric(Ppath& ppath,
 
   // Fill ppath
   ppath.np = np;
+  ARTS_ASSERT(background != PPATH_BACKGROUND_UNDEFINED);
   ppath.backgroundZZZ = background;
   ppath.start_lstep = 0;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
-  ppath.start_lstep = l_outside;
+  ppath.start_lstep = l_outside > 0 ? l_outside : 0;
   ppath.end_lstep = 0.0;
   ppath.nreal = Vector(np, 1.0);
   ppath.ngroup = Vector(np, 1.0);
@@ -241,6 +242,198 @@ void ppathGeometric(Ppath& ppath,
     }
     ppath.lstep.resize(np - 1);
     ppath.lstep = l[1] - l[0];
+  }
+  if (np == 0) {
+    ppath.end_pos = ppath.start_pos;
+    ppath.end_los = ppath.start_los;
+  } else {
+    ppath.end_pos = ppath.pos(ppath.np - 1, joker);
+    ppath.end_los = ppath.los(ppath.np - 1, joker);
+  }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathRefracted(Ppath& ppath,
+                    const Vector& rte_pos,
+                    const Vector& rte_los,
+                    const Vector& refellipsoid,
+                    const GriddedField2& surface_elevation,
+                    const Numeric& z_toa,
+                    const Numeric& l_step_max,
+                    const Numeric& l_total_max,
+                    const Numeric& l_raytrace,
+                    const Verbosity&)
+{
+  chk_rte_pos("rte_pos", rte_pos);
+  chk_rte_los("rte_los", rte_los);
+  chk_refellipsoidZZZ(refellipsoid);
+  chk_surface_elevation(surface_elevation);
+  chk_if_positive("z_toa", z_toa);
+  chk_if_positive("l_step_max", l_step_max);
+
+  // Convert rte_pos/los to ECEF
+  Vector ecef(3), decef(3);
+  geodetic_los2ecef(ecef, decef, rte_pos, rte_los, refellipsoid);
+
+  // Relate rte_pos to TOA
+  Numeric l_outside;
+  const bool start_in_space = ppath_l2toa_from_above(l_outside,
+                                                     rte_pos,
+                                                     rte_los,
+                                                     ecef,
+                                                     decef,
+                                                     refellipsoid,
+                                                     z_toa);
+
+  // Number of points in ppath and radiative background
+  Index np = -1;  // -1 flags not yet known
+  enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
+
+  // Containers for found pos, los and lstep
+  Array<Vector> pos_a;
+  Array<Vector> los_a;
+  Array<Numeric> lstep_a;
+
+  // No ppath if above and looking outside of atmosphere
+  if (start_in_space && l_outside < 0) {
+    np = 0;
+    background = PPATH_BACKGROUND_SPACE;
+
+  // We have a path! 
+  } else {
+    // Variables representing latest known position of ppath 
+    Vector pos0(3), los0(2), ecef0(3);
+
+    // Init these variables
+    if (start_in_space) {
+        // We need to calculate from where ppath enters the atmosphere
+        ecef_at_distance(ecef0, ecef, decef, l_outside);
+        ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+    } else {
+      pos0 = rte_pos;
+      los0 = rte_los;
+      ecef0 = ecef;
+    }
+
+    // Append pos0 and los0 to array variables (no lstep to add yet)
+    np = 1;
+    pos_a.push_back(pos0);
+    los_a.push_back(los0);
+
+    // Actual ray tracing length
+    const Index n_rt_per_step =
+      l_raytrace > 0 ? Index(ceil(l_step_max / l_raytrace)) : 1;
+    const Numeric l_rt = l_step_max / Numeric(n_rt_per_step);
+    
+    // Variables for next ray tracing step
+    Vector pos_try(3), los_try(2), ecef_try(3);
+    Numeric l2pos0;  // Actual length of step
+
+    // Help length variables
+    Numeric l_from_start = 0.0;
+    Numeric l_this_step = 0.0;
+    Index n_this_step = 0;
+    
+    // Loop as long we are inside the atmosphere
+    //
+    bool inside = true;
+    //
+    while (inside) {
+      
+      // Move forward with l_rt
+      ecef_at_distance(ecef_try, ecef0, decef, l_rt);
+      l2pos0 = l_rt;  // Can be changed below
+      ecef2geodetic_los(pos_try, los_try, ecef_try, decef, refellipsoid);
+
+      // Check if we still are inside. If not, determine end point
+      // Above TOA?
+      if (pos_try[0] >= z_toa) {
+        inside = false;
+        background = PPATH_BACKGROUND_SPACE;
+        l2pos0 = intersection_altitude(ecef0, decef, refellipsoid, z_toa);
+        ecef_at_distance(ecef0, ecef0, decef, l2pos0);
+        ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+      }
+
+      // Passed active l_total_max?
+      else if (l_total_max > 0 && l_total_max <= l_from_start + l2pos0) {
+        // Fill and extend if condition
+        inside = false;
+        background = PPATH_BACKGROUND_STOP_DISTANCE;
+        l2pos0 = l_total_max - l_from_start;
+        ecef_at_distance(ecef0, ecef0, decef, l2pos0);
+        ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+
+        // Below surface?
+      } else {
+        const Numeric z_surface = surface_z_at_pos(pos_try, surface_elevation);
+        if (pos_try[0] <= z_surface) {
+          inside = false;
+          background = PPATH_BACKGROUND_SURFACE;
+          l2pos0 = find_crossing_with_surface_z(pos0,
+                                                los0,
+                                                ecef0,
+                                                decef,
+                                                refellipsoid,
+                                                surface_elevation,
+                                                l_raytrace/100,
+                                                0);
+          ecef_at_distance(ecef0, ecef0, decef, l2pos0);
+          ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+        }
+      }  
+
+      // If inside, then we take try values
+      if (inside) {
+        pos0 = pos_try;
+        los0 = los_try;
+        ecef0 = ecef_try;
+        l2pos0 = l_rt;
+      }
+
+      // Update step variables
+      l_this_step += l2pos0;
+      n_this_step++;
+
+      // Add to arrays if ready with either full path or step
+      if (!inside || n_this_step == n_rt_per_step) {
+        pos_a.push_back(pos0);
+        los_a.push_back(los0);
+        lstep_a.push_back(l_this_step);
+        ++np;
+        l_this_step = 0.0;
+        n_this_step = 0;
+      }
+    }
+  }
+
+  // Fill ppath
+  ppath.np = np;
+  ARTS_ASSERT(background != PPATH_BACKGROUND_UNDEFINED);
+  ppath.backgroundZZZ = background;
+  ppath.start_lstep = 0;
+  ppath.start_pos = rte_pos;
+  ppath.start_los = rte_los;
+  ppath.start_lstep = l_outside > 0 ? l_outside : 0;
+  ppath.end_lstep = 0.0;
+  ppath.nreal = Vector(np, 1.0);  // !!!
+  ppath.ngroup = Vector(np, 1.0); // !!!
+  ppath.pos.resize(np, 3);
+  ppath.los.resize(np, 2);
+  //
+  if (np == 0) {
+    ppath.lstep.resize(0);
+  } else {
+    ppath.lstep.resize(np - 1);
+    for (Index i=0; i<np; ++i) {
+      ppath.pos(i, joker) = pos_a[i];
+      ppath.los(i, joker) = los_a[i];
+      if (i < np - 1)
+        ppath.lstep[i] = lstep_a[i];
+    }
   }
   if (np == 0) {
     ppath.end_pos = ppath.start_pos;
