@@ -19677,7 +19677,7 @@ where N>=0 and the species name is something line "H2O".
                "The description of the sun.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starsOff"),
+      NAME("sunsOff"),
       DESCRIPTION(
           "Turns all calculations with suns off \n"),
       AUTHORS("Jon Petersen"),

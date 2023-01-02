@@ -29,7 +29,7 @@
 
 
 /*!
-  \file   m_star.cc
+  \file   m_sun.cc
   \author Jon Petersen  <jon.petersen@studium.uni-hamburg.de>
           Manfred Brath  <manfred.brath@.uni-hamburg.de>
   \date   2021-02-08
@@ -108,22 +108,22 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
   Matrix int_data = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
 
   // create sun
-  Sun& new_star = suns.emplace_back();
+  Sun& new_sun = suns.emplace_back();
 
-  new_star.spectrum = int_data; // set spectrum
+  new_sun.spectrum = int_data; // set spectrum
 
-  new_star.description = description;
-  new_star.radius = radius;
-  new_star.distance = distance;
-  new_star.latitude = latitude;
-  new_star.longitude = longitude;
+  new_sun.description = description;
+  new_sun.radius = radius;
+  new_sun.distance = distance;
+  new_sun.latitude = latitude;
+  new_sun.longitude = longitude;
 
   // set flag
   suns_do = 1;
 
 }
 
-void starsOff(Index &suns_do,
+void sunsOff(Index &suns_do,
              ArrayOfSun &suns,
              const Verbosity &){
 
