@@ -86,7 +86,7 @@ void AltLatLonFieldSetConstant(GriddedField3& gfield3,
   gfield3.set_name(name);
 
   gfield3.set_grid_name(0, "altitude");
-  gfield3.set_grid(0, Vector(1, 0));
+  gfield3.set_grid(0, Vector(0, 0));
   gfield3.set_grid_name(1, "Latitude");
   gfield3.set_grid(1, Vector(1, 0));
   gfield3.set_grid_name(2, "Longitude");
@@ -126,8 +126,8 @@ void LatLonFieldSet(GriddedField2& gfield2,
   gfield2.set_grid_name(0, "Latitude");
   gfield2.set_grid(0, latitude_grid);
 
-  gfield2.set_grid_name(0, "Longitude");
-  gfield2.set_grid(0, longitude_grid);
+  gfield2.set_grid_name(1, "Longitude");
+  gfield2.set_grid(1, longitude_grid);
 
   gfield2.data = data;
 }
