@@ -1,5 +1,5 @@
 /* Copyright (C) 2021 Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-                            
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -18,7 +18,7 @@
 /**
  * @file   m_ppath.cc
  * @author Patrick Eriksson <patrick.eriksson@chalmers.se>
- * @date   2021-08-11 
+ * @date   2021-08-11
  *
  * @brief  Workspace functions releated to calculation of propagation paths.
  */
@@ -47,7 +47,7 @@ void ppathAddGridCrossings(Ppath& ppath,
                            const Verbosity&)
 {
   chk_if_positive("l_step_max", l_step_max);
-  
+
   ppath_add_grid_crossings(ppath,
                            refellipsoid,
                            z_grid,
@@ -80,7 +80,7 @@ void ppathCheckEndPoint(const Ppath& ppath,
                      "Radiative background not as expected!\n"
                      "  background in ppath: ", ppath.backgroundZZZ,
                      "\n  background expected: ", background);
- 
+
   ARTS_USER_ERROR_IF(np >= 0 && ppath.np != np,
                      "Number of ppath points not as expected!\n"
                      "  number in ppath: ", ppath.np,
@@ -98,7 +98,7 @@ void ppathCheckEndPoint(const Ppath& ppath,
                      "\n  latitude expected: ", latitude,
                      "\n         difference: ", abs(pos[1] - latitude),
                      "\n      set tolarance: ", dlatitude);
-  
+
   ARTS_USER_ERROR_IF(dlongitude >= 0 && abs(pos[2] - longitude) > dlongitude,
                      "End longitude not as expected!\n"
                      "  longitude in ppath: ", pos[2],
@@ -118,6 +118,42 @@ void ppathCheckEndPoint(const Ppath& ppath,
                      "\n  azimuth angle expected: ", azimuth_angle,
                      "\n              difference: ", abs(los[1] - azimuth_angle),
                      "\n           set tolarance: ", dazimuth_angle);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathCheckInsideDomain(const Ppath& ppath,
+                            const Numeric& lat_min,
+                            const Numeric& lat_max,
+                            const Numeric& lon_min,
+                            const Numeric& lon_max,
+                            const Verbosity&)
+{
+  // Start from end, as end point likely most outside
+  for (Index i=ppath.np - 1; i>=0; --i)
+    ARTS_USER_ERROR_IF(ppath.pos(i, 1) < lat_min ||
+                       ppath.pos(i, 1) > lat_max ||
+                       ppath.pos(i, 2) < lon_min ||
+                       ppath.pos(i, 2) > lon_max,
+        "At least one point of propagation path outside of specified domain!\n",
+        "     latitude limits of domain: [", lat_min, ", ", lat_max, "]\n"
+        "    longitude limits of domain: [", lon_min, ", ", lon_max, "]\n"
+        "  point found at (z, lat, lon): (", ppath.pos(i, 0), ", ",
+                       ppath.pos(i, 1), ", ", ppath.pos(i, 2), ")\n");
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathCheckInsideGrids(const Ppath& ppath,
+                           const Vector& latitude_grid,
+                           const Vector& longitude_grid,
+                           const Verbosity& verbosity)
+{
+  ppathCheckInsideDomain(ppath,
+                         latitude_grid[0],
+                         last(latitude_grid),
+                         longitude_grid[0],
+                         last(longitude_grid),
+                         verbosity);
 }
 
 
@@ -160,13 +196,13 @@ void ppathGeometric(Ppath& ppath,
   // Number of points in ppath and radiative background
   Index np = -1;  // -1 flags not yet known
   enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
-  
+
   // No ppath if above and looking outside of atmosphere
   if (start_in_space && l_outside < 0) {
     np = 0;
     background = PPATH_BACKGROUND_SPACE;
 
-  // We have a path! 
+  // We have a path!
   } else {
     // Distance to the surface (negative if no intersection)
     // This is from TOA if sensor outside
@@ -253,10 +289,10 @@ void ppathGeometric(Ppath& ppath,
 }
 
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathRefracted(Ppath& ppath,
+void ppathRefracted(Workspace& ws,
+                    Ppath& ppath,
+                    const Agenda& refr_index_air_ZZZ_agenda,
                     const Vector& rte_pos,
                     const Vector& rte_los,
                     const Vector& refellipsoid,
@@ -265,6 +301,7 @@ void ppathRefracted(Ppath& ppath,
                     const Numeric& l_step_max,
                     const Numeric& l_total_max,
                     const Numeric& l_raytrace,
+                    const Numeric& surface_search_accuracy,
                     const Verbosity&)
 {
   chk_rte_pos("rte_pos", rte_pos);
@@ -302,9 +339,9 @@ void ppathRefracted(Ppath& ppath,
     np = 0;
     background = PPATH_BACKGROUND_SPACE;
 
-  // We have a path! 
+  // We have a path!
   } else {
-    // Variables representing latest known position of ppath 
+    // Variables representing latest known position of ppath
     Vector pos0(3), los0(2), ecef0(3);
 
     // Init these variables
@@ -327,7 +364,7 @@ void ppathRefracted(Ppath& ppath,
     const Index n_rt_per_step =
       l_raytrace > 0 ? Index(ceil(l_step_max / l_raytrace)) : 1;
     const Numeric l_rt = l_step_max / Numeric(n_rt_per_step);
-    
+
     // Variables for next ray tracing step
     Vector pos_try(3), los_try(2), ecef_try(3);
     Numeric l2pos0;  // Actual length of step
@@ -336,18 +373,26 @@ void ppathRefracted(Ppath& ppath,
     Numeric l_from_start = 0.0;
     Numeric l_this_step = 0.0;
     Index n_this_step = 0;
-    
+
     // Loop as long we are inside the atmosphere
     //
     bool inside = true;
     //
     while (inside) {
-      
+
       // Move forward with l_rt
       ecef_at_distance(ecef_try, ecef0, decef, l_rt);
       l2pos0 = l_rt;  // Can be changed below
       ecef2geodetic_los(pos_try, los_try, ecef_try, decef, refellipsoid);
 
+      /*
+      refr_index_air_ZZZ_agendaExecute(ws,
+                                       n1,
+                                       n2,
+                                       pos_try,
+                                       refr_index_air_ZZZ_agenda);
+      */
+      
       // Check if we still are inside. If not, determine end point
       // Above TOA?
       if (pos_try[0] >= z_toa) {
@@ -380,12 +425,12 @@ void ppathRefracted(Ppath& ppath,
                                                 decef,
                                                 refellipsoid,
                                                 surface_elevation,
-                                                l_raytrace/100,
+                                                surface_search_accuracy,
                                                 0);
           ecef_at_distance(ecef0, ecef0, decef, l2pos0);
           ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
         }
-      }  
+      }
 
       // If inside, then we take try values
       if (inside) {
@@ -396,6 +441,7 @@ void ppathRefracted(Ppath& ppath,
       }
 
       // Update step variables
+      l_from_start += l2pos0;
       l_this_step += l2pos0;
       n_this_step++;
 
@@ -444,4 +490,3 @@ void ppathRefracted(Ppath& ppath,
     ppath.end_los = ppath.los(ppath.np - 1, joker);
   }
 }
-
