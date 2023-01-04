@@ -3137,6 +3137,45 @@ Available models:
       USES_TEMPLATES(false),
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("AltLatLonFieldSet"),
+      DESCRIPTION(
+          "Fills an altitude-latitude-longitude field with given input.\n"
+          "\n"
+          "Grids and data must match in size.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("gfield3"),
+      GOUT_TYPE("GriddedField3"),
+      GOUT_DESC("Field to set."),
+      IN(),
+      GIN("altitude_grid", "latitude_grid", "longitude_grid", "data", "name"),
+      GIN_TYPE("Vector", "Vector", "Vector", "Tensor3", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, ""),
+      GIN_DESC("The altitude grid of *data*.",
+               "The latitude grid of *data*.",
+               "The longitude grid of *data*.",
+               "The data of the field (will become gfield2.data).",
+               "The name of the field (will become gfield2.name).")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("AltLatLonFieldSetConstant"),
+      DESCRIPTION(
+          "Sets an altitude-latitude-longitude field to have a constant data value.\n"
+          "\n"
+          "All three grids grids are set to have length one, with the value 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("gfield3"),
+      GOUT_TYPE("GriddedField3"),
+      GOUT_DESC("Field to set."),
+      IN(),
+      GIN("value", "name"),
+      GIN_TYPE("Numeric", "String"),
+      GIN_DEFAULT(NODEF, ""),
+      GIN_DESC("The value (to place in gfield3.data).",
+               "The name of the field (will become gfield3.name).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AngularGridsSetFluxCalc"),
@@ -9491,25 +9530,6 @@ Available models:
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
   md_data_raw.push_back(create_mdrecord(
-      NAME("SurfaceElevationInterp"),
-      DESCRIPTION(
-          "Interpolates *surface_elevation* to the selected position.\n"
-          "\n"
-          "An interface to the internal function for this interpolation.\n"
-          "See description of *surface_elevation* of allowed grids and\n"
-          "inter- and extrapolation applied.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("elevation"),
-      GOUT_TYPE("Numeric"),
-      GOUT_DESC("Obtained elevation"),
-      IN("surface_elevation"),
-      GIN("pos"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Position for which elevation shall be determined.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
           "Usage of FASTEM for emissivity and reflectivity of water surfaces.\n"
@@ -11345,6 +11365,45 @@ Available models:
                "Upper limit of z.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("LatLonFieldSet"),
+      DESCRIPTION(
+          "Fills a latitude-longitude field with given input.\n"
+          "\n"
+          "Grids and data must match in size.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("gfield2"),
+      GOUT_TYPE("GriddedField2"),
+      GOUT_DESC("Field to set."),
+      IN(),
+      GIN("latitude_grid", "longitude_grid", "data", "name"),
+      GIN_TYPE("Vector", "Vector", "Matrix", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
+      GIN_DESC("The latitude grid of *data*.",
+               "The longitude grid of *data*.",
+               "The data of the field (will become gfield2.data).",
+               "The name of the field (will become gfield2.name).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("LatLonFieldSetConstant"),
+      DESCRIPTION(
+          "Sets a latitude-longitude field to have a constant data value.\n"
+          "\n"
+          "Both latitude and longitude grids are set to have length one,\n"
+          "with the value 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("gfield2"),
+      GOUT_TYPE("GriddedField2"),
+      GOUT_DESC("Field to set."),
+      IN(),
+      GIN("value", "name"),
+      GIN_TYPE("Numeric", "String"),
+      GIN_DEFAULT(NODEF, ""),
+      GIN_DESC("The value (to place in gfield2.data).",
+               "The name of the field (will become gfield2.name).")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("lat_gridFromRawField"),
       DESCRIPTION(
           "Sets *lat_grid* according to given raw atmospheric field's lat_grid.\n"
@@ -12363,6 +12422,46 @@ Available models:
       GIN_TYPE("Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Selected operation.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("NumericInterpAltLatLonField"),
+      DESCRIPTION(
+          "Interpolates an altitude-latitude-longitiude field.\n"
+          "\n"
+          "The gridded field must have \"Altitude\", \"Latitude\" and\n"
+          "\"Longitude\" as dimensions.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("value"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Result of interpolation"),
+      IN(),
+      GIN("gfield3", "pos"),
+      GIN_TYPE("GriddedField3", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Gridded field to be interpolated.", 
+               "Interpolate to this position [z, lat, lon].")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("NumericInterpLatLonField"),
+      DESCRIPTION(
+          "Interpolates a latitude-longitiude field to the selected position.\n"
+          "\n"
+          "The gridded field must have \"Latitude\" and \"Longitude\" as dimensions.\n"
+          "\n"
+          "The position shall be given as a full atmospheric position. The altitude\n"
+          "in *pos* is ignored.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("value"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Result of interpolation"),
+      IN(),
+      GIN("gfield2", "pos"),
+      GIN_TYPE("GriddedField2", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Gridded field to be interpolated.",
+               "Interpolate to this position [z, lat, lon].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericMultiply"),
@@ -20809,43 +20908,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("GriddedField5"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of complex refractive index.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surface_elevationSet"),
-      DESCRIPTION(
-          "Sets *surface_elevation* based on GIN arguments.\n"
-          "\n"
-          "Grids and elevation data must match in size.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_elevation"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("latitude_grid", "longitude_grid", "elevations"),
-      GIN_TYPE("Vector", "Vector", "Matrix"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("The latitude grid of *elevations*",
-               "The longitude grid of *elevations*",
-               "The elevation map")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surface_elevationSetConstant"),
-      DESCRIPTION(
-          "Sets *surface_elevation* to a constant value.\n"
-          "\n"
-          "Both the latitude and longituide grids are set to have length one,\n"
-          "with the value 0.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_elevation"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("elevation"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("The elevation to apply.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_reflectivityFromGriddedField6"),
