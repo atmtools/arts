@@ -583,12 +583,18 @@ void define_agenda_data() {
           "\n"
           "This agenda should calculate the summed refractive index for all\n"
           "relevant atmospheric constituents, with respect to both phase and\n"
-          "group velocity.\n"
-          "\n"
-          "The include file 'agendas.arts' predefines several agendas that\n"
-          "may either be used directly, or serve as inspiration.\n"),
+          "group velocity.\n"),
       OUTPUT("refr_index_air", "refr_index_air_group"),
       INPUT("rtp_pressure", "rtp_temperature", "rtp_vmr", "f_grid")));
+  
+  agenda_data.push_back(AgRecord(
+      NAME("refr_index_air_ZZZ_agenda"),
+      DESCRIPTION(
+          "Calculation of the refractive index of air.\n"
+          "\n"
+          "This agenda shall the refractive index for given atmospheric position.\n"),
+      OUTPUT("refr_index_air", "refr_index_air_group"),
+      INPUT("rtp_pos")));
 
   agenda_data.push_back(AgRecord(
       NAME("sensor_response_agenda"),

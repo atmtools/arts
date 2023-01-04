@@ -85,7 +85,7 @@ void AltLatLonFieldSetConstant(GriddedField3& gfield3,
                                const Verbosity&) {
   gfield3.set_name(name);
 
-  gfield3.set_grid_name(0, "altitude");
+  gfield3.set_grid_name(0, "Altitude");
   gfield3.set_grid(0, Vector(0, 0));
   gfield3.set_grid_name(1, "Latitude");
   gfield3.set_grid(1, Vector(1, 0));

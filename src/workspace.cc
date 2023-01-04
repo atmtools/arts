@@ -3458,6 +3458,11 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("refr_index_air_ZZZ_agenda"),
+      DESCRIPTION("Agenda calculating the refractive index of air.\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("refr_index_air_group"),
       DESCRIPTION(
           "Group index of refractivity.\n"
