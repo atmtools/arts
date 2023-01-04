@@ -369,7 +369,8 @@ void ppathRefracted(Ppath& ppath,
 
         // Below surface?
       } else {
-        const Numeric z_surface = surface_z_at_pos(pos_try, surface_elevation);
+        const Numeric z_surface = interp_gfield2(surface_elevation,
+                                                 pos_try[Range(1, 2)]);
         if (pos_try[0] <= z_surface) {
           inside = false;
           background = PPATH_BACKGROUND_SURFACE;

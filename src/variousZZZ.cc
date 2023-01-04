@@ -27,74 +27,174 @@
 #include "geodeticZZZ.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "logic.h"
 #include "messages.h"
 #include "variousZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
-using GriddedFieldGrids::GFIELD2_LAT_GRID;
-using GriddedFieldGrids::GFIELD2_LON_GRID;
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_elevationSet(GriddedField2& surface_elevation,
-                          const Vector& latitude_grid,
-                          const Vector& longitude_grid,
-                          const Matrix& elevations,          
-                          const Verbosity&) {
-  surface_elevation.set_name("Surface elevation map");
+void AltLatLonFieldSet(GriddedField3& gfield3,
+                       const Vector& altitude_grid,
+                       const Vector& latitude_grid,
+                       const Vector& longitude_grid,
+                       const Tensor3& data,
+                       const String& name,
+                       const Verbosity&) {
+  ARTS_USER_ERROR_IF(!is_increasing(altitude_grid),
+                     "*altitude_grid* must be strictly increasing.");
+  ARTS_USER_ERROR_IF(!is_increasing(latitude_grid),
+                     "*latitude_grid* must be strictly increasing.");
+  ARTS_USER_ERROR_IF(min(latitude_grid) < -90 || max(latitude_grid) > 90,
+                     "All values in *latitude_grid* must be inside [-90,90].");
+  ARTS_USER_ERROR_IF(!is_increasing(longitude_grid),
+                     "*longitude_grid* must be strictly increasing.");
+  ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) > 360,
+                     "All values in *latitude_grid* must be inside [-180,360].");
+  ARTS_USER_ERROR_IF(data.npages() != altitude_grid.nelem(),
+                     "Inconsistent altitude size!\n"
+                     "Length of altitude grid: ", altitude_grid.nelem(), "\n"
+                     "Altitude size of data: ", data.npages());
+  ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.nelem(),
+                     "Inconsistent latitude size!\n"
+                     "Length of latitude grid: ", latitude_grid.nelem(), "\n"
+                     "Latitude size of data: ", data.nrows());
+  ARTS_USER_ERROR_IF(data.ncols() != longitude_grid.nelem(),
+                     "Inconsistent longitude size!\n"
+                     "Length of longitude grid: ", longitude_grid.nelem(), "\n"
+                     "Longitude size of data: ", data.ncols());
 
-  surface_elevation.set_grid_name(GFIELD2_LAT_GRID, "Latitude");
-  surface_elevation.set_grid(GFIELD2_LAT_GRID, latitude_grid);
+  gfield3.set_name(name);
 
-  surface_elevation.set_grid_name(GFIELD2_LON_GRID, "Longitude");
-  surface_elevation.set_grid(GFIELD2_LON_GRID, longitude_grid);
+  gfield3.set_grid_name(0, "altitude");
+  gfield3.set_grid(0, altitude_grid);
+  gfield3.set_grid_name(1, "Latitude");
+  gfield3.set_grid(1, latitude_grid);
+  gfield3.set_grid_name(2, "Longitude");
+  gfield3.set_grid(2, longitude_grid);
 
-  surface_elevation.data = elevations;
-
-  // To not be too restrictive, we check assuming 3D
-  chk_surface_elevation(surface_elevation);
+  gfield3.data = data;
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_elevationSetConstant(GriddedField2& surface_elevation,
-                                  const Numeric& elevation,
-                                  const Verbosity&) {
-  surface_elevation.set_name("Surface elevation map");
+void AltLatLonFieldSetConstant(GriddedField3& gfield3,
+                               const Numeric& value,
+                               const String& name,
+                               const Verbosity&) {
+  gfield3.set_name(name);
 
-  surface_elevation.set_grid_name(GFIELD2_LAT_GRID, "Latitude");
-  surface_elevation.set_grid(GFIELD2_LAT_GRID, Vector(1, 0));
+  gfield3.set_grid_name(0, "altitude");
+  gfield3.set_grid(0, Vector(1, 0));
+  gfield3.set_grid_name(1, "Latitude");
+  gfield3.set_grid(1, Vector(1, 0));
+  gfield3.set_grid_name(2, "Longitude");
+  gfield3.set_grid(2, Vector(1, 0));
 
-  surface_elevation.set_grid_name(GFIELD2_LON_GRID, "Longitude");
-  surface_elevation.set_grid(GFIELD2_LON_GRID, Vector(1, 0));
-
-  surface_elevation.data.resize(1,1);
-  surface_elevation.data(0,0) = elevation;
+  gfield3.data.resize(1, 1, 1);
+  gfield3.data(0, 0, 0) = value;
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void SurfaceElevationInterp(Numeric& elevation,
-                            const GriddedField2& surface_elevation,
-                            const Vector& pos,
-                            const Verbosity&)
+void LatLonFieldSet(GriddedField2& gfield2,
+                    const Vector& latitude_grid,
+                    const Vector& longitude_grid,
+                    const Matrix& data,
+                    const String& name,
+                    const Verbosity&) {
+  ARTS_USER_ERROR_IF(!is_increasing(latitude_grid),
+                     "*latitude_grid* must be strictly increasing.");
+  ARTS_USER_ERROR_IF(min(latitude_grid) < -90 || max(latitude_grid) > 90,
+                     "All values in *latitude_grid* must be inside [-90,90].");
+  ARTS_USER_ERROR_IF(!is_increasing(longitude_grid),
+                     "*longitude_grid* must be strictly increasing.");
+  ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) > 360,
+                     "All values in *latitude_grid* must be inside [-180,360].");
+  ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.nelem(),
+                     "Inconsistent latitude size!\n"
+                     "Length of latitude grid: ", latitude_grid.nelem(), "\n"
+                     "Latitude size of data: ", data.nrows());
+  ARTS_USER_ERROR_IF(data.ncols() != longitude_grid.nelem(),
+                     "Inconsistent longitude size!\n"
+                     "Length of longitude grid: ", longitude_grid.nelem(), "\n"
+                     "Longitude size of data: ", data.ncols());
+
+  gfield2.set_name(name);
+
+  gfield2.set_grid_name(0, "Latitude");
+  gfield2.set_grid(0, latitude_grid);
+
+  gfield2.set_grid_name(0, "Longitude");
+  gfield2.set_grid(0, longitude_grid);
+
+  gfield2.data = data;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void LatLonFieldSetConstant(GriddedField2& gfield2,
+                            const Numeric& value,
+                            const String& name,
+                            const Verbosity&) {
+  gfield2.set_name(name);
+
+  gfield2.set_grid_name(0, "Latitude");
+  gfield2.set_grid(0, Vector(1, 0));
+  gfield2.set_grid_name(1, "Longitude");
+  gfield2.set_grid(1, Vector(1, 0));
+
+  gfield2.data.resize(1, 1);
+  gfield2.data(0, 0) = value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void NumericInterpAltLatLonField(Numeric& value,
+                                 const GriddedField3& gfield3,
+                                 const Vector& pos,
+                                 const Verbosity&)
 {
-  surface_elevation.checksize_strict();
+  ARTS_USER_ERROR_IF(gfield3.get_grid_name(0) != "Altitude",
+                     "Name of first grid must be \"Altitude\".");
+  ARTS_USER_ERROR_IF(gfield3.get_grid_name(1) != "Latitude",
+                     "Name of second grid must be \"Latitude\".");
+  ARTS_USER_ERROR_IF(gfield3.get_grid_name(2) != "Longitude",
+                     "Name of third grid must be \"Longitude\".");
+  gfield3.checksize_strict();
   chk_rte_pos("pos", pos);
   
-  elevation = surface_z_at_pos(pos, surface_elevation);
+  value = interp_gfield3(gfield3, pos);
 }                  
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void NumericInterpLatLonField(Numeric& value,
+                              const GriddedField2& gfield2,
+                              const Vector& pos,
+                              const Verbosity&)
+{
+  ARTS_USER_ERROR_IF(gfield2.get_grid_name(0) != "Latitude",
+                     "Name of first grid must be \"Latitude\".");
+  ARTS_USER_ERROR_IF(gfield2.get_grid_name(1) != "Longitude",
+                     "Name of second grid must be \"Longitude\".");
+  gfield2.checksize_strict();
+  chk_rte_pos("pos", pos);
+  
+  value = interp_gfield2(gfield2, pos[Range(1, 2)]);
+}                  
 
 
 void chk_rte_los(const String& name,
                  ConstVectorView los)
 {
   ARTS_USER_ERROR_IF(los.nelem() != 2,
-                      "The vector *", name, "* must have length 2.")
+                     "The vector *", name, "* must have length 2.");
   ARTS_USER_ERROR_IF(los[0] < 0 || los[0] > 180,
-      "The zenith angle in *", name, "* must be in the range [0,180].")
+      "The zenith angle in *", name, "* must be in the range [0,180].");
   ARTS_USER_ERROR_IF(los[1] < -180 || los[1] > 180,
-      "The azimuth angle in *", name, "* must be in the range [-180,180].")
+      "The azimuth angle in *", name, "* must be in the range [-180,180].");
 }
 
 
@@ -174,12 +274,16 @@ void chk_sensor_poslos(const String& name1,
 
 
 void chk_surface_elevation(const GriddedField2& surface_elevation) {
-  const Vector& lat_grid = surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
+  ARTS_USER_ERROR_IF(surface_elevation.get_grid_name(0) != "Latitude",
+                     "Name of first grid must be \"Latitude\".");
+  ARTS_USER_ERROR_IF(surface_elevation.get_grid_name(1) != "Longitude",
+                     "Name of second grid must be \"Longitude\".");
+  const Vector& lat_grid = surface_elevation.get_numeric_grid(0);
   ARTS_USER_ERROR_IF(surface_elevation.data.nrows() != lat_grid.nelem(),
                      "Inconsistent latitude size in *surface_elevation*\n"
                      "Length of latitude grid: ", lat_grid.nelem(), "\n"
                      "Latitude size of data: ", surface_elevation.data.nrows());
-  const Vector& lon_grid = surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
+  const Vector& lon_grid = surface_elevation.get_numeric_grid(1);
   ARTS_USER_ERROR_IF(surface_elevation.data.ncols() != lon_grid.nelem(),
                      "Inconsistent longitude size in *surface_elevation*\n"
                      "Length of longitude grid: ", lon_grid.nelem(), "\n"
@@ -209,7 +313,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 
   // Check that observation position is above ground
   if (rte_pos[0] < z_max) {
-    Numeric z_surf = surface_z_at_pos(rte_pos, surface_elevation);
+    Numeric z_surf = interp_gfield2(surface_elevation, rte_pos[Range(1, 2)]);
     if (rte_pos[0] < z_surf - surface_search_accuracy)
       ARTS_USER_ERROR(
           "The sensor is below the surface. Not allowed!\n"
@@ -272,7 +376,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
         l_test += surface_search_accuracy;
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
-        Numeric z_surf = surface_z_at_pos(pos, surface_elevation);
+        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
         if (pos[0] < z_surf) above_surface = false;
       }
       if (above_surface) {
@@ -290,7 +394,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
       if (l_max_could_be_above_surface) {
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_max);
-        Numeric z_surf = surface_z_at_pos(pos, surface_elevation);
+        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
         if (pos[0] > z_surf) return -1;
       }
       // Start bisection
@@ -298,8 +402,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
         const Numeric l_test = (l_min + l_max) / 2;
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
-        Numeric z_surf =
-            surface_z_at_pos(pos, surface_elevation);
+        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
         if (pos[0] >= z_surf)
           l_min = l_test;
         else
@@ -310,65 +413,126 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
   }
 }
 
+//
+// These two so far kept local
+//
+void gridpos_new(ArrayOfGridPos& gp,
+                 ConstVectorView grid, 
+                 ConstVectorView points) {
+  const Index n = points.nelem();
+  ARTS_ASSERT(gp.nelem() == n);
 
-Numeric surface_z_at_pos(const Vector& pos,
-                         const GriddedField2& surface_elevation)
-{
-  // Lat and lon grids
-  const Vector& lat_grid = surface_elevation.get_numeric_grid(GFIELD2_LAT_GRID);
-  const Vector& lon_grid = surface_elevation.get_numeric_grid(GFIELD2_LON_GRID);
-  const Index& nlat = lat_grid.nelem();
-  const Index& nlon = lon_grid.nelem();
-  //
-  ARTS_ASSERT(surface_elevation.data.nrows() == nlat);
-  ARTS_ASSERT(surface_elevation.data.ncols() == nlon);
-
-  // There should be special functions for this interpolation
-  
-  // Handle the case of data size (1, 1)
-  if (nlat == 1 && nlon == 1) {
-    return surface_elevation.data(0, 0);
+  // To save time in case of grid length 1
+  const Index l = grid.nelem();
+  if (l == 1) {
+    gp4length1grid(gp);
+    return;
   }
-  
-  // Extract latitude, handling extrapolation on the same time
-  Numeric lat = pos[1];
-  if (lat < lat_grid[0])
-    lat = lat_grid[0];
-  else if (lat > lat_grid[nlat - 1])
-    lat = lat_grid[nlat - 1];
-
-  // Data size is (nlat, 1)
-  if (nlon == 1) {
-    ArrayOfGridPos gp_lat(1);
-    gridpos(gp_lat, lat_grid, lat);
-    Vector itw(2);
-    interpweights(itw, gp_lat[0]);
-    return interp(itw, surface_elevation.data(joker, 0), gp_lat[0]);
-  }
-  
-  // Extract longitude, handling extrapolation and [-180,180] vs [0,360]
-  Numeric lon = move_lon_to_range(pos[2], lon_grid[0], lon_grid[nlon - 1]);
-  if (lon < lon_grid[0])
-    lon = lon_grid[0];
-  else if (lon > lon_grid[nlon])
-    lon = lon_grid[nlon - 1];
-
-  // Data size is (1, nlon)
-  if (nlat == 1) {
-    ArrayOfGridPos gp_lon(1);
-    gridpos(gp_lon, lon_grid, lon);
-    Vector itw(2);
-    interpweights(itw, gp_lon[0]);
-    return interp(itw, surface_elevation.data(0, joker), gp_lon[0]);
     
-  // Data size is (nlat, nlon)
-  } else {
-    ArrayOfGridPos gp_lat(1);
-    gridpos(gp_lat, lat_grid, lat);
-    ArrayOfGridPos gp_lon(1);
-    gridpos(gp_lon, lon_grid, lon);
-    Vector itw(4);
-    interpweights(itw, gp_lat[0], gp_lon[0]);
-    return interp(itw, surface_elevation.data, gp_lat[0], gp_lon[0]);
+  for (Index i=0; i<n; ++i) {
+    Numeric x = points[i];
+    
+    // Handle nearest extrapolation
+    if (x < grid[0])
+      x = grid[0];
+    else if (x > grid[l - 1])
+      x = grid[l - 1];
+
+    gridpos(gp[i], grid, x);
   }
+}
+void gridpos_lon(ArrayOfGridPos& gp,
+                 ConstVectorView grid, 
+                 ConstVectorView points) {
+  const Index n = points.nelem();
+  ARTS_ASSERT(gp.nelem() == n);
+  
+  // To save time in case of grid length 1
+  const Index l = grid.nelem();
+  if (l == 1) {
+    gp4length1grid(gp);
+    return;
+  }
+    
+  for (Index i=0; i<n; ++i) {
+    // Extract longitude, handling [-180,180] vs [0,360]
+    Numeric x = move_lon_to_range(points[i], grid[0], grid[l - 1]);
+    
+    // Handle nearest extrapolation
+    // Can nearest and cyclic view be combined?
+    if (x < grid[0])
+      x = grid[0];
+    else if (x > grid[l - 1])
+      x = grid[l - 1];
+
+    gridpos(gp[i], grid, x);
+  }
+}
+
+
+Numeric interp_gfield2(const GriddedField2& G,
+                       const Vector& pos)
+{
+  ARTS_ASSERT(pos.nelem() == 2);
+  ARTS_ASSERT(G.checksize());
+
+  // Sizes
+  const Index ncols = G.data.ncols();
+  const Index nrows = G.data.nrows();
+
+  // To save time in case of data size (1, 1)
+  if (nrows == 1 && ncols == 1) {
+    return G.data(0, 0);
+  }
+
+  // Do we have longitudes?
+  const bool col_dim_is_lon = G.get_grid_name(1) == "Longitude";
+  
+  // Get grid positions
+  ArrayOfGridPos gp_row(1), gp_col(1);
+  gridpos_new(gp_row, G.get_numeric_grid(0), Vector(1, pos[0]));
+  if (col_dim_is_lon)
+    gridpos_lon(gp_col, G.get_numeric_grid(1), Vector(1, pos[1]));
+  else
+    gridpos_new(gp_col, G.get_numeric_grid(1), Vector(1, pos[1]));
+
+  // Interpolate
+  Vector itw(4);
+  interpweights(itw, gp_row[0], gp_col[0]);
+  return interp(itw, G.data, gp_row[0], gp_col[0]);  
+}
+
+
+Numeric interp_gfield3(const GriddedField3& G,
+                       const Vector& pos)
+{
+  ARTS_ASSERT(pos.nelem() == 3);
+  ARTS_ASSERT(G.checksize());
+
+  // Sizes
+  const Index npages = G.data.npages();
+  const Index ncols = G.data.ncols();
+  const Index nrows = G.data.nrows();
+
+  // To save time in case of data size (1, 1)
+  if (npages == 1 && nrows == 1 && ncols == 1) {
+    return G.data(0, 0, 0);
+  }
+
+  // Do we have longitudes?
+  const bool col_dim_is_lon = G.get_grid_name(2) == "Longitude";
+  
+  // Get grid positions
+  ArrayOfGridPos gp_pages(1), gp_row(1), gp_col(1);
+  gridpos_new(gp_pages, G.get_numeric_grid(0), Vector(1, pos[0]));
+  gridpos_new(gp_row, G.get_numeric_grid(1), Vector(1, pos[1]));
+  if (col_dim_is_lon)
+    gridpos_lon(gp_col, G.get_numeric_grid(2), Vector(1, pos[2]));
+  else
+    gridpos_new(gp_col, G.get_numeric_grid(2), Vector(1, pos[2]));
+
+  // Interpolate
+  Vector itw(8);
+  interpweights(itw, gp_pages[0], gp_row[0], gp_col[0]);
+  return interp(itw, G.data, gp_pages[0], gp_row[0], gp_col[0]);  
 }
