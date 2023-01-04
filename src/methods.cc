@@ -14323,7 +14323,7 @@ Available models:
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathCheckEndPoint"),
       DESCRIPTION(
-         "Allows to check that a propagation path ends as expected.\n"
+         "Checks that a propagation path ends as expected.\n"
          "\n"
          "Please note that ppaths are stored in observation direction and the \"end\"\n"
          "is at the radiative background.\n"
@@ -14377,6 +14377,50 @@ Available models:
                "Allowed deviation for azimuth angle.")));
 
     md_data_raw.push_back(create_mdrecord(
+      NAME("ppathCheckInsideDomain"),
+      DESCRIPTION(
+         "Checks that propagation path is fully inside specified domain.\n"
+         "\n"
+         "An error is issued if a point in *ppath* is outside of ranges\n"
+         "[lat_min, lat_max] and [lon_min, lon_max], in latitude and\n"
+         "longitude, respectively. The path is checked starting at the end\n"
+         "furthest away from the sensor and an error is given as soon an\n"
+         "incorrect point is found. This is not guaranteed to be the point\n"
+         "most outside of the domain.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppath"),
+      GIN("lat_min", "lat_max", "lon_min", "lon_max"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT("-90.0", "90.0", "-180.0", "360.0"),
+      GIN_DESC("Lowest allowed latitude.\n",
+               "Highest allowed latitude.\n",
+               "Lowest allowed longitude.\n",
+               "Highest allowed longitude.\n")));
+
+    md_data_raw.push_back(create_mdrecord(
+      NAME("ppathCheckInsideGrids"),
+      DESCRIPTION(
+         "Checks that propagation path is fully inside grid ranges.\n"
+         "\n"
+         "As *ppathCheckInsideDomain* but with the domain specified by a\n"
+         "combination of latitude and longitude grids.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppath"),
+      GIN("latitude_grid", "longitude_grid"),
+      GIN_TYPE("Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Latitude grid to not exceed.\n",
+               "Longitude grid to not exceed.\n")));
+
+    md_data_raw.push_back(create_mdrecord(
       NAME("ppathGeometric"),
       DESCRIPTION(
          "Geometric propagation path (ppath) with fixed step length.\n"
@@ -14418,23 +14462,34 @@ Available models:
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathRefracted"),
       DESCRIPTION(
-         "Refracted propagation path (ppath) with ...\n"),
+         "Refracted propagation path (ppath) with ...\n"
+         "\n"
+         "Surface intersections throughout found in manner matching setting\n"
+         "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
+         "This for efficiency reasons, but also as the ray tracing largely\n"
+         "removes the need for a \"safe\" search.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_pos", "rte_los", "refellipsoid", "surface_elevation"),
+      IN("refr_index_air_ZZZ_agenda",
+         "rte_pos",
+         "rte_los",
+         "refellipsoid",
+         "surface_elevation"),
       GIN("z_toa",
           "l_step_max",
           "l_total_max",
-          "l_raytrace"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "-1.0", "-1.0"),
+          "l_raytrace",
+          "surface_search_accuracy"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, "-1.0", "-1.0", "1.0"),
       GIN_DESC("Top-of-the-atmosphere altitude.",
                "Maximum length between points in *ppath*.",
                "Max length of the path (inside of the atmosphere).",
-               "Ray tracing step length.")));
+               "Ray tracing step length.",
+               "As GIN with same name of *IntersectionGeometricSurface*.")));
     // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(
