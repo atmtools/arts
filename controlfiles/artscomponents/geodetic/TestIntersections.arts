@@ -14,7 +14,6 @@ MatrixCreate( pos )
 MatrixCreate( los )
 
 
-
 # Intersection with an altitude
 # -------------------------------------------------------------------------
 
@@ -40,7 +39,6 @@ refellipsoidEarthZZZ( model = "Sphere" )
 IntersectionGeometricAltitude( pos=pos, los=los, altitude=0 )
 
 
-
 # Intersection with the surface
 # -------------------------------------------------------------------------
 
@@ -56,7 +54,7 @@ MatrixSet( sensor_pos, [800e3,12,0] )
 MatrixSet( sensor_los, [135,78] )
 
 # Constant elevation 
-surface_elevationSetConstant( elevation=0 )
+LatLonFieldSetConstant( gfield2=surface_elevation, value=0 )
 IntersectionGeometricSurface( pos=pos, los=los )
 #Print(pos,0)
 #Print(los,0)
@@ -66,9 +64,10 @@ IndexSet( atmosphere_dim, 3 )
 VectorSet( latitude_grid, [0,45,45.1,90] )
 VectorSet( longitude_grid, [0] )
 MatrixSet( elevations, [0;0;100;7e3] )
-surface_elevationSet( latitude_grid = latitude_grid,
-                     longitude_grid = longitude_grid,
-                         elevations = elevations)
+LatLonFieldSet( gfield2=surface_elevation,
+                latitude_grid=latitude_grid,
+                longitude_grid=longitude_grid,
+                data=elevations)
 IntersectionGeometricSurface( pos=pos,
                               los=los,
                               surface_search_accuracy=0.1,

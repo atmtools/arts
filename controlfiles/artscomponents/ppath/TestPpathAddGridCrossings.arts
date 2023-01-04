@@ -7,7 +7,8 @@ Arts2 {
 # WGS84 Earth and constant 0m surface elevation
 refellipsoidEarthZZZ( model = "WGS84" )
 Copy( refellipsoid, refellipsoidZZZ )  # Temporary fix
-surface_elevationSetConstant( elevation=0 )
+LatLonFieldSetConstant( gfield2 = surface_elevation,
+                        value = 0 )
 
 # Assumed TOA altitude
 NumericCreate( z_toa )
