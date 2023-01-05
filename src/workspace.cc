@@ -3111,13 +3111,39 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
   wsv_data.push_back(WsvRecord(
       NAME("ppath_lraytrace"),
       DESCRIPTION(
-          "Maximum length of ray tracing steps when determining propagation\n"
-          "paths.\n"
+          "Ray tracing step length when determining refracted propagation paths.\n"
           "\n"
-          "See *ppath_stepRefractionBasic* for a description of this variable.\n"
+          "The variable sets an upper limit for the length of each ray tracing\n"
+          "step. Workspace methods can apply a somewhat smaller value to split\n"
+          "*ppath_lstep* in sections of equal length.\n"
           "\n"
-          "Usage: Refraction ppath methods such as *ppath_stepRefractionBasic*.\n"),
-      GROUP("Numeric"), Numeric{1e3}));
+          "Unit:  m\n"),
+      GROUP("Numeric"), Numeric{1e2}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppath_lstep"),
+      DESCRIPTION(
+          "Length between points describing propagation paths.\n"
+          "\n"
+          "The variable sets an upper limit for the length between the points.\n"
+          "step. Workspace methods can apply a somewhat smaller value to split\n"
+          "the total propagation path in sections of equal length.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppath_ltotal"),
+      DESCRIPTION(
+          "Sets a maximum length of propagation paths.\n"
+          "\n"
+          "Default is to calculate propagation paths until the surface or the\n"
+          "top of the atmosphere is reached. If *ppath_ltotal* is set to be >0,\n"
+          "then the selected value gives a third constrain for ending paths.\n"
+          "If reached, the propagation path ends exactly at the maximum length.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Numeric"), Numeric{-1}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_step"),
@@ -4699,6 +4725,29 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       DESCRIPTION(
           "Description of surface radiative properties, for each surface type.\n"),
       GROUP("ArrayOfAgenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("surface_search_accuracy"),
+      DESCRIPTION(
+          "Accuracy of length to surface intersections.\n"
+          "\n"
+          "The surface elevation can not be expressed analytically and inter-\n"
+          "section between the propagation path and the surface must be found\n"
+          "by some search algorithm. This variable specifies the accuracy to\n"
+          "meet by these algorithms.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Numeric"), Numeric{1}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("surface_search_safe"),
+      DESCRIPTION(
+          "Selection of algorithm for finding intersections with the surface.\n"
+          "\n"
+          "See *IntersectionGeometricSurface* for details.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_skin_t"),

@@ -46,12 +46,12 @@
   The output ppath contains all found grid crossings and other points added to meet
   l_step_max. Set a grid to be empty, to not add points for that dimension.
 
-   @param[in,out]  ppath        As the WSV with the same name.
-   @param[in]   refellipsoid    As the WSV with same name.
-   @param[in]   z_grid          As the WSV with same name.
-   @param[in]   lat_grid        As the WSV with same name.
-   @param[in]   lon_grid        As the WSV with same name.
-   @param[in]   l_step_max      Max distance between points of ppath.
+   @param[in,out]  ppath         As the WSV with the same name.
+   @param[in]      refellipsoid  As the WSV with same name.
+   @param[in]      z_grid        A set of sorted altitudes.
+   @param[in]      lat_grid      A set of sorted latitudes.
+   @param[in]      lon_grid      A set of sorted longitudes.
+   @param[in]      ppath_lstep   As the WSV with same name.
 
    @author Patrick Eriksson
    @date   2022-09-29

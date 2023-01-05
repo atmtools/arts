@@ -42,7 +42,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
                               const Vector& z_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
-                              const Numeric& l_step_max)
+                              const Numeric& ppath_lstep)
 {
   const Index nz = z_grid.nelem();
   const Index nlat = lat_grid.nelem();
@@ -75,7 +75,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
   
   // l means distance from ppath pos[0]
   // dl means distance from some other ppath point
-  // Excpetion: l_step_max is still a local length
+  // Excpetion: ppath_lstep is still a local length
   
   // Process ppath to set up some help variables
   Vector l_acc_ppath(ppath.np);     // Accumulated length along ppath
@@ -182,14 +182,14 @@ void ppath_add_grid_crossings(Ppath& ppath,
       // Sort dl_from_ip
       std::sort(dl_from_ip.begin(), dl_from_ip.end());
 
-      // Move to overall arrays and add points if l_step_max that requires
+      // Move to overall arrays and add points if ppath_lstep that requires
       for (Index i = 0; i < dl_from_ip.nelem(); ++i) {
         // Some useful lengths
         const Numeric l_next = l_acc_ppath[ip] + dl_from_ip[i];
         const Numeric dl = l_next - l_last_inserted;
-        // Number of points needed to fulfill l_step_max
-        if (dl > l_step_max) {
-          const Index n_extra = Index(std::floor(dl / l_step_max));
+        // Number of points needed to fulfill ppath_lstep
+        if (dl > ppath_lstep) {
+          const Index n_extra = Index(std::floor(dl / ppath_lstep));
           const Numeric dl_step = dl / Numeric(n_extra + 1);
           for (Index extra = 0; extra < n_extra; ++extra) {
             const Numeric l_extra = l_last_inserted + dl_step;
@@ -206,11 +206,11 @@ void ppath_add_grid_crossings(Ppath& ppath,
     }  // if dgp_p
   }    // ip loop
 
-  // The distance between last grid crossing and end point can exceed l_step_max
+  // The distance between last grid crossing and end point can exceed ppath_lstep
   // Fix (largely same code as above)!
   const Numeric dl = l_acc_ppath[ppath.np - 1] - l_last_inserted;
-  if (dl > l_step_max) {
-    const Index n_extra = Index(std::floor(dl / l_step_max));
+  if (dl > ppath_lstep) {
+    const Index n_extra = Index(std::floor(dl / ppath_lstep));
     const Numeric dl_step = dl / Numeric(n_extra + 1);
     for (Index extra = 0; extra < n_extra; ++extra) {
       const Numeric l_extra = l_last_inserted + dl_step;

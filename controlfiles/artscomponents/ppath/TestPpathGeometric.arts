@@ -20,7 +20,7 @@ VectorSet(rte_pos, [600e3, 12, 67])
 VectorSet(rte_los, [88, 123])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 2e3 )
+                ppath_lstep = 2e3 )
 ppathCheckEndPoint( background = 1,
                     np = 0 )
 
@@ -28,7 +28,7 @@ ppathCheckEndPoint( background = 1,
 VectorSet(rte_los, [111, 123])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 2e3 )
+                ppath_lstep = 2e3 )
 ppathCheckEndPoint( background = 1,
                     np = 0 )
 
@@ -37,14 +37,14 @@ ppathCheckEndPoint( background = 1,
 VectorSet(rte_los, [177, 12])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 2000e3 )
+                ppath_lstep = 2000e3 )
 ppathCheckEndPoint( background = 2,
                     np = 2 )
 
-# As above but l_total_max set
+# As above but ppath_ltotal set
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 2000e3,
-                l_total_max = 12e3 )
+                ppath_lstep = 2000e3,
+                ppath_ltotal = 12e3 )
 ppathCheckEndPoint( background = 9,
                     np = 2 )
 
@@ -52,7 +52,7 @@ ppathCheckEndPoint( background = 9,
 VectorSet(rte_los, [113, 12])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 20e3 )
+                ppath_lstep = 20e3 )
 ppathCheckEndPoint( background = 1 )
 
 
@@ -61,7 +61,7 @@ VectorSet(rte_pos, [6, 12, 67])
 VectorSet(rte_los, [8, 123])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 200e3 )
+                ppath_lstep = 200e3 )
 ppathCheckEndPoint( background = 1,
                     np = 2 )
 
@@ -70,7 +70,7 @@ VectorSet(rte_pos, [6, 12, 67])
 VectorSet(rte_los, [108, 123])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 25 )
+                ppath_lstep = 25 )
 ppathCheckEndPoint( background = 2 )
 
 
@@ -79,14 +79,14 @@ VectorSet(rte_pos, [12e3, 1, -67])
 VectorSet(rte_los, [93, 1])
 #
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 12e3 )
+                ppath_lstep = 12e3 )
 ppathCheckEndPoint( background = 1 )
 
 
-# As above but l_total_max set
+# As above but ppath_ltotal set
 ppathGeometric( z_toa = z_toa,
-                l_step_max = 12e3,
-                l_total_max = 20e3 )
+                ppath_lstep = 12e3,
+                ppath_ltotal = 20e3 )
 ppathCheckEndPoint( background = 9 )
 
 }
