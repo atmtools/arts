@@ -13,7 +13,6 @@ Overall considerations and decisions:
   - But ppaths can still be forced to include certain z, lat and lon
     > Optional to include all, could just be set of z
 * The above means that basic version now is equidistant step length
-* Ppath lengths are GINs
 * Introduce max total length of ppath, l_total_max
 * Scattering domain:
   - Ignored when ppath calculated
@@ -31,8 +30,12 @@ Overall considerations and decisions:
 Agendas:
 ---
 ppath_agenda
-  - What should be input?
+  - Out: ppath
+  - In: rte_pos, rte_los, ppath_lstep, ppath_ltotal, ppath_lraytrace
+    (lengths input as there could be reason to vary them, by eg MC)
 ppath_step_agenda
+  - Out: ppath
+  - In: ?
 
 WSMs:
 ---
