@@ -39,21 +39,21 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathAddGridCrossings(Ppath& ppath,
+                           const Numeric& ppath_lstep,
                            const Vector& refellipsoid,
-                           const Numeric& l_step_max,
                            const Vector& z_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
                            const Verbosity&)
 {
-  chk_if_positive("l_step_max", l_step_max);
+  chk_if_positive("ppath_lstep", ppath_lstep);
 
   ppath_add_grid_crossings(ppath,
                            refellipsoid,
                            z_grid,
                            lat_grid,
                            lon_grid,
-                           l_step_max);
+                           ppath_lstep);
 }
 
 
@@ -161,13 +161,13 @@ void ppathCheckInsideGrids(const Ppath& ppath,
 void ppathGeometric(Ppath& ppath,
                     const Vector& rte_pos,
                     const Vector& rte_los,
+                    const Numeric& ppath_lstep,
+                    const Numeric& ppath_ltotal,
                     const Vector& refellipsoid,
                     const GriddedField2& surface_elevation,
-                    const Numeric& z_toa,
-                    const Numeric& l_step_max,
-                    const Numeric& l_total_max,
                     const Numeric& surface_search_accuracy,
                     const Index& surface_search_safe,
+                    const Numeric& z_toa,
                     const Verbosity&)
 {
   chk_rte_pos("rte_pos", rte_pos);
@@ -175,7 +175,7 @@ void ppathGeometric(Ppath& ppath,
   chk_refellipsoidZZZ(refellipsoid);
   chk_surface_elevation(surface_elevation);
   chk_if_positive("z_toa", z_toa);
-  chk_if_positive("l_step_max", l_step_max);
+  chk_if_positive("ppath_lstep", ppath_lstep);
   chk_if_positive("surface_search_accuracy", surface_search_accuracy);
   chk_if_bool("surface_search_safe", surface_search_safe);
 
@@ -237,15 +237,15 @@ void ppathGeometric(Ppath& ppath,
       background = PPATH_BACKGROUND_SPACE;
     }
 
-    // Consider l_total_max
-    if (l_total_max > 0 && l_inside > l_total_max) {
-      l_inside = l_total_max;
+    // Consider ppath_ltotal
+    if (ppath_ltotal > 0 && l_inside > ppath_ltotal) {
+      l_inside = ppath_ltotal;
       background = PPATH_BACKGROUND_STOP_DISTANCE;
     }
 
     // Determine np and l_step
     ARTS_ASSERT(l_inside > 0);
-    np = 1 + Index(ceil(l_inside / l_step_max));
+    np = 1 + Index(ceil(l_inside / ppath_lstep));
   }
 
   // Fill ppath
@@ -295,13 +295,13 @@ void ppathRefracted(Workspace& ws,
                     const Agenda& refr_index_air_ZZZ_agenda,
                     const Vector& rte_pos,
                     const Vector& rte_los,
+                    const Numeric& ppath_lstep,
+                    const Numeric& ppath_ltotal,
+                    const Numeric& ppath_lraytrace,
                     const Vector& refellipsoid,
                     const GriddedField2& surface_elevation,
-                    const Numeric& z_toa,
-                    const Numeric& l_step_max,
-                    const Numeric& l_total_max,
-                    const Numeric& l_raytrace,
                     const Numeric& surface_search_accuracy,
+                    const Numeric& z_toa,
                     const Verbosity&)
 {
   chk_rte_pos("rte_pos", rte_pos);
@@ -309,7 +309,7 @@ void ppathRefracted(Workspace& ws,
   chk_refellipsoidZZZ(refellipsoid);
   chk_surface_elevation(surface_elevation);
   chk_if_positive("z_toa", z_toa);
-  chk_if_positive("l_step_max", l_step_max);
+  chk_if_positive("ppath_lstep", ppath_lstep);
 
   // Convert rte_pos/los to ECEF
   Vector ecef(3), decef(3);
@@ -362,8 +362,8 @@ void ppathRefracted(Workspace& ws,
 
     // Actual ray tracing length
     const Index n_rt_per_step =
-      l_raytrace > 0 ? Index(ceil(l_step_max / l_raytrace)) : 1;
-    const Numeric l_rt = l_step_max / Numeric(n_rt_per_step);
+      ppath_lraytrace > 0 ? Index(ceil(ppath_lstep / ppath_lraytrace)) : 1;
+    const Numeric l_rt = ppath_lstep / Numeric(n_rt_per_step);
 
     // Variables for next ray tracing step
     Vector pos_try(3), los_try(2), ecef_try(3);
@@ -403,12 +403,12 @@ void ppathRefracted(Workspace& ws,
         ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
       }
 
-      // Passed active l_total_max?
-      else if (l_total_max > 0 && l_total_max <= l_from_start + l2pos0) {
+      // Passed active ppath_ltotal?
+      else if (ppath_ltotal > 0 && ppath_ltotal <= l_from_start + l2pos0) {
         // Fill and extend if condition
         inside = false;
         background = PPATH_BACKGROUND_STOP_DISTANCE;
-        l2pos0 = l_total_max - l_from_start;
+        l2pos0 = ppath_ltotal - l_from_start;
         ecef_at_distance(ecef0, ecef0, decef, l2pos0);
         ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
 

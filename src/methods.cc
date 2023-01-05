@@ -8473,8 +8473,8 @@ Available models:
           "the surface at several positions and the bisection search does not\n"
           "guarantee that the correct intersection is found. To avoid this, set\n"
           "*surface_search_safe* to 1 and a safe, but much more slow option, is\n"
-          "used. In this case the path is sampled backwards until the surface is\n"
-          "found.\n"
+          "used. In this case the path is simple sampled in a step-by-step\n"
+          "fashion.\n"
           "\n"
           "To be clear, the faster bisection algorith can fail if the path goes\n"
           "through a mountain top. For an upward observation inside a valley, the\n"
@@ -8493,12 +8493,13 @@ Available models:
       IN("sensor_pos",
          "sensor_los",
          "refellipsoidZZZ",
-         "surface_elevation"),
-      GIN("surface_search_accuracy", "surface_search_safe"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT("1.0", "0"),
-      GIN_DESC("Required accuracy in terms of length from sensor.",
-               "Set to 1 to active safe, but slow, search algorithm.")));
+         "surface_elevation",
+         "surface_search_accuracy",
+         "surface_search_safe"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
@@ -14257,7 +14258,7 @@ Available models:
          "\n"
          "This method allows including certain altitudes, latitudes and\n"
          "longitudes in *ppath*, if they are passed. These additional points\n"
-         "to consider should in general constitute  one or several merged\n"
+         "to consider should in general constitute one or several merged\n"
          "atmospheric grids. By including the grid of e.g. a species, it is\n"
          "ensured that min and max values get represented when interpolating\n"
          "the atmosphere to the path.\n"
@@ -14276,15 +14277,13 @@ Available models:
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("ppath", "refellipsoid"),
-      GIN("l_step_max",
-          "z_grid",
+      IN("ppath", "ppath_lstep", "refellipsoid"),
+      GIN("z_grid",
           "lat_grid",
           "lon_grid"),
-      GIN_TYPE("Numeric", "Vector", "Vector", "Vector"),
-      GIN_DEFAULT(NODEF, "[]", "[]", "[]"),
-      GIN_DESC("Maximum length between points in *ppath*.",
-               "Grid/set of altitudes to include, if passed.",
+      GIN_TYPE("Vector", "Vector", "Vector"),
+      GIN_DEFAULT("[]", "[]", "[]"),
+      GIN_DESC("Grid/set of altitudes to include, if passed.",
                "Grid/set of latitudes to include, if passed.",
                "Grid/set of longitudes to include, if passed.")));
 
@@ -14398,41 +14397,39 @@ Available models:
          "denoted as geometrical. With default settings, the ppath ends\n"
          "either at the surface or in space, depending on the observation\n"
          "geometry. The points describing the ppath have an equidistant\n"
-         "spacing, that is the highest possible value satisfying *l_step_max*.\n"
+         "spacing, that is the highest possible value satisfying *ppath_lstep*.\n"
          "\n"
          "Possible intersections with the surface are determined following\n"
          "*IntersectionGeometricSurface*.\n"
          "\n"
          "It is possible to set a maximum length of the ppath (for the part\n"
-         "inside the atmosphere) by the GIN *l_total_max*. When the length\n"
-         "of the ppath is governed by this GIN, the end point of the ppath\n"
-         "is a point inside the atmosphere. A negative value (as default)\n"
-         "means to not apply a max length criterion.\n"),
+         "inside the atmosphere) by *ppath_ltotal*. When the length of the\n"
+         "ppath is governed by this variable, the end point of the ppath\n"
+         "is a point inside the atmosphere.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_pos", "rte_los", "refellipsoid", "surface_elevation"),
-      GIN("z_toa",
-          "l_step_max",
-          "l_total_max",
-          "surface_search_accuracy",
-          "surface_search_safe"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "-1.0", "1.0", "0"),
-      GIN_DESC("Top-of-the-atmosphere altitude.",
-               "Maximum length between points in *ppath*.",
-               "Max length of the path (inside of the atmosphere).",
-               "As GIN with same name of *IntersectionGeometricSurface*.",
-               "As GIN with same name of *IntersectionGeometricSurface*.")));
+      IN("rte_pos",
+         "rte_los",
+         "ppath_lstep",
+         "ppath_ltotal",
+         "refellipsoid",
+         "surface_elevation",
+         "surface_search_accuracy",
+         "surface_search_safe"),
+      GIN("z_toa"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Top-of-the-atmosphere altitude.")));
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathRefracted"),
       DESCRIPTION(
          "Refracted propagation path (ppath) with ...\n"
          "\n"
-         "Surface intersections throughout found in manner matching setting\n"
+         "Surface intersections are found in manner matching setting\n"
          "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
          "This for efficiency reasons, but also as the ray tracing largely\n"
          "removes the need for a \"safe\" search.\n"),
@@ -14444,20 +14441,16 @@ Available models:
       IN("refr_index_air_ZZZ_agenda",
          "rte_pos",
          "rte_los",
+         "ppath_lstep",
+         "ppath_ltotal",
+         "ppath_lraytrace",
          "refellipsoid",
-         "surface_elevation"),
-      GIN("z_toa",
-          "l_step_max",
-          "l_total_max",
-          "l_raytrace",
-          "surface_search_accuracy"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "-1.0", "-1.0", "1.0"),
-      GIN_DESC("Top-of-the-atmosphere altitude.",
-               "Maximum length between points in *ppath*.",
-               "Max length of the path (inside of the atmosphere).",
-               "Ray tracing step length.",
-               "As GIN with same name of *IntersectionGeometricSurface*.")));
+         "surface_elevation",
+         "surface_search_accuracy"),
+      GIN("z_toa"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Top-of-the-atmosphere altitude.")));
     // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(
