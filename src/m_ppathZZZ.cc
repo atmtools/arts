@@ -30,6 +30,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodeticZZZ.h"
+#include "lin_alg.h"
 #include "ppathZZZ.h"
 #include "variousZZZ.h"
 
@@ -467,14 +468,35 @@ void ppathRefracted(Workspace& ws,
                                      do_twosided_perturb);
         //
         // Update LOS angles
-        // (Tried to use mean n and dndz over the step, but got
-        // basically identical result (as dndz is constant in each layer))
+        //
+        // Tried to use mean n and dndz over the step, but got basically
+        // identical result (as dndz is constant in each layer)
+        //
+        // The expressions below are found in ARTS theory document, but
+        // are also commented below this function
+        //
         if (do_horizontal_gradients) {
-          ARTS_USER_ERROR("Option *do_horizontal_gradients* not yet implemented.");
+          const Numeric sinza = sin(DEG2RAD * los0[0]);
+          const Numeric cosza = cos(DEG2RAD * los0[0]);
+          const Numeric sinaa = sin(DEG2RAD * los0[1]);
+          const Numeric cosaa = cos(DEG2RAD * los0[1]);
+          const Numeric r = norm2( ecef0 );
+          const Numeric dndlatp =  dndlat / r;
+          const Numeric dndlonp =  dndlon / (r * cos(DEG2RAD * pos0[1]));
+          //cout << dndz << " " << dndlatp << " " << dndlonp << endl;
+          const Numeric fac = (RAD2DEG * l_rt / n_real);
+          //
+          los0[0] += fac * (-sinza * dndz +
+                            cosza * (cosaa * dndlatp + sinaa * dndlonp));
+          los0[1] += fac * sinza * (-sinaa * dndlatp + cosaa * dndlonp);
+          
         } else {
-          los0[0] -= RAD2DEG * l_rt * sin(DEG2RAD * los0[0]) *dndz / n_real;
-          geodetic_los2ecef(ecef0, decef0, pos0, los0, refellipsoid);
+          const Numeric sinza = sin(DEG2RAD * los0[0]);
+          //
+          los0[0] -= (RAD2DEG * l_rt / n_real) * (sinza * dndz);
         }
+        // Don't firget to update decef0! (efecf0 recalculated)
+        geodetic_los2ecef(ecef0, decef0, pos0, los0, refellipsoid);
         
       // If not inside, we just need to determine refractive index
       } else {
@@ -542,3 +564,36 @@ void ppathRefracted(Workspace& ws,
     ppath.end_los = ppath.los(ppath.np - 1, joker);
   }
 }
+// Comments on expressions for effect of refraction:
+//
+// The expressions used are an extension of Eq 9.33 in Rodgers book
+// "Inverse methods for atmospheric sounding". That equation deals
+// with dza/dl for a 2D geometry. Here we assume that all angles are
+// in radians and we don't care about DEG2RAD and RAD2DEG terms.
+// l, r, za and aa are used for length radius, zenith angle and
+// azimuth angle, respectively.
+//
+// Without horizontal gradients, the expressiuon applied comes
+// directly from Rodgers equation.
+//
+// A first consideration for horizontal gradients is to convert them
+// from change per angle to change per meter. If we denote the
+// converted gradients with prime, these conversions are:
+//   dn/dlat' = dn/dlat / r 
+//   dn/dlon' = dn/dlon / (r * cos(lat))
+//
+// The rest is just about applying angles correctly (note that n is
+// placed on left side to keep expressions more clean):
+//
+// n * dza/dl = -sin(za) * dn/dz + 
+//               cos(za) * cos(aa) * dn/dlat' +
+//               cos(za) * sin(aa) * dn/dlon'
+// 
+// n * daa/dl = -sin(za) * sin(aa) * dn/dlat' +
+//               sin(za) * cos(aa) * dn/dlon'
+//
+// Hopefully I have got it right! The expression for dza/dl agrees
+// with Rodgers equation for aa=0. And some tests made and deviations
+// from geomtrical path had at least the correct sign.
+//
+// Patrick 230106
