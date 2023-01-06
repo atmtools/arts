@@ -105,14 +105,9 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
                       "The distance to the center of the sun (",distance," m) \n"
                      " is smaller than the radius of the sun (", radius," m )")
 
-  // interpolate field
-  Matrix int_data = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
-
-  // create sun
+  // init sun
   Sun& new_sun = suns.emplace_back();
-
-  new_sun.spectrum = int_data; // set spectrum
-
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity); // set spectrum
   new_sun.description = description;
   new_sun.radius = radius;
   new_sun.distance = distance;
@@ -168,7 +163,7 @@ void sunsAddSingleFromGridAtLocation(
   Numeric scale_factor = (radius*radius + distance_sun_loc*distance_sun_loc)/
                          (radius*radius);
 
-  // create and init sun
+  // init sun
   Sun& new_sun = suns.emplace_back();
 
   new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
