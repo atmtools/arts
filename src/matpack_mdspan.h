@@ -457,10 +457,7 @@ public:
   constexpr simple_view& operator=(simple_view&&) noexcept = default;
 
   template <matpack_convertible U>
-  simple_view(U&& v) {
-    auto sz = shape(v);
-    view = detail::exhaustive_mdspan<T, N>{data(std::forward<U>(v), sz)};
-  }
+  simple_view& operator=(const U& v) {return *this = strided_view<T, N, true>(v);}
 
   constexpr operator simple_view<T, N, true>() const requires(not constant) {return view;}
   constexpr operator strided_view<T, N, false>() {return view;}
@@ -675,6 +672,14 @@ public:
   constexpr strided_view(detail::strided_mdspan<T, N> v) : view(std::move(v)) {} 
   constexpr strided_view(detail::exhaustive_mdspan<T, N> v) : view(std::move(v)) {}
   constexpr strided_view(T& x) : view(detail::exhaustive_mdspan<T, N>{&x, ones<N>()}) {}
+
+  template <matpack_convertible U>
+  explicit strided_view(const U& v) :
+    view(const_cast<T*>(mddata(v)), {mdshape(v), mdstride(v)}) {
+  }
+
+  template <matpack_convertible U>
+  strided_view& operator=(const U& v) {return *this = strided_view(v);}
 
   constexpr strided_view() = default;
   constexpr strided_view(const strided_view&) = default;
@@ -1044,9 +1049,8 @@ public:
   }
 
   template <matpack_convertible U>
-  explicit simple_data(U&& v) requires (N == rank<U>()) {
-    auto sz = shape(v);
-    *this = simple_view<T, N, true>(data(std::forward<U>(v), sz));
+  explicit simple_data(const U& v) requires (N == rank<U>()) {
+    *this = strided_view<T, N, true>(v);
   }
 
   constexpr simple_data(std::vector<T> &&x) noexcept
@@ -1061,6 +1065,9 @@ public:
   constexpr simple_data& operator=(const simple_data& x) { data=x.data; view=simple_view<T, N, false>{data.data(), x.shape()}; return *this; }
   constexpr simple_data(simple_data&&) noexcept = default;
   constexpr simple_data& operator=(simple_data&&) noexcept = default;
+
+  template <matpack_convertible U>
+  simple_data& operator=(const U& v) {return *this = strided_view<T, N, true>(v);}
 
   constexpr operator simple_view<T, N, false>&() {return view;}
   constexpr operator simple_view<T, N, true>() const {return view;}

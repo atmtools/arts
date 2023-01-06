@@ -1902,6 +1902,130 @@ void test_eigen_complex_conv() {
   }
 }
 
+void test_eigen_base_set() {
+  {
+    Vector a = {1,2,3,4,5};
+    std::cout << a << '\n';
+
+    auto b = matpack::eigen::row_vec(a);
+    std::cout << b << '\n';
+    std::cout << Vector(b) << '\n';
+
+    auto c = matpack::eigen::col_vec(a);
+    std::cout << c << '\n';
+    std::cout << Vector(c) << '\n';
+  }
+
+  {
+    ComplexVector a = {{1,2},{2,3},{3,4},{4,5},{5,6}};
+    std::cout << a << '\n';
+
+    auto b = matpack::eigen::row_vec(a);
+    std::cout << b << '\n';
+    std::cout << ComplexVector(b) << '\n';
+
+    auto c = matpack::eigen::col_vec(a);
+    std::cout << c << '\n';
+    std::cout << ComplexVector(c) << '\n';
+  }
+
+  {
+    Matrix a = build_test_matrix(3, 4);
+    std::cout << a << '\n';
+
+    auto b = matpack::eigen::mat(a);
+    std::cout << b << '\n';
+    std::cout << Matrix(b) << '\n';
+
+    auto c = matpack::eigen::mat(a.transpose());
+    std::cout << c << '\n';
+    std::cout << Matrix(c) << '\n';
+  }
+
+  {
+    ComplexMatrix a = build_test_complex_matrix(3, 4);
+    std::cout << a << '\n';
+
+    auto b = matpack::eigen::mat(a);
+    std::cout << b << '\n';
+    std::cout << ComplexMatrix(b) << '\n';
+
+    auto c = matpack::eigen::mat(a.transpose());
+    std::cout << c << '\n';
+    std::cout << ComplexMatrix(c) << '\n';
+
+    auto d = matpack::eigen::mat(a.real());
+    std::cout << d << '\n';
+    std::cout << Matrix(d) << '\n';
+
+    auto e = matpack::eigen::mat(a.imag());
+    std::cout << e << '\n';
+    std::cout << Matrix(e) << '\n';
+
+    auto f = matpack::eigen::mat(a.transpose().real());
+    std::cout << f << '\n';
+    std::cout << Matrix(f) << '\n';
+
+    auto g = matpack::eigen::mat(a.transpose().imag());
+    std::cout << g << '\n';
+    std::cout << Matrix(g) << '\n';
+
+    auto h = matpack::eigen::mat(a.real().transpose());
+    std::cout << h << '\n';
+    std::cout << Matrix(h) << '\n';
+
+    auto i = matpack::eigen::mat(a.imag().transpose());
+    std::cout << i << '\n';
+    std::cout << Matrix(i) << '\n';
+  }
+}
+
+void test_eigen_base_equal() {
+  {
+    Vector a = {1,2,3,4,5}, b, c;
+    b = a;
+    auto d = matpack::eigen::row_vec(a);
+    c = d;
+    std::cout << a << '\n';
+    std::cout << b << '\n';
+    std::cout << c << '\n';
+    std::cout << d << '\n';
+  }
+
+  {
+    Vector a = {1,2,3,4,5}, b, c;
+    b = a;
+    auto d = matpack::eigen::col_vec(a);
+    c = d;
+    std::cout << a << '\n';
+    std::cout << b << '\n';
+    std::cout << c << '\n';
+    std::cout << d << '\n';
+  }
+
+  {
+    Matrix a = build_test_matrix(3, 4), b, c;
+    b = a;
+    auto d = matpack::eigen::mat(a);
+    c = d;
+    std::cout << a << '\n';
+    std::cout << b << '\n';
+    std::cout << c << '\n';
+    std::cout << d << '\n';
+  }
+
+  {
+    ComplexMatrix a = build_test_complex_matrix(3, 4), b, c;
+    b = a;
+    auto d = matpack::eigen::mat(a);
+    c = d;
+    std::cout << a << '\n';
+    std::cout << b << '\n';
+    std::cout << c << '\n';
+    std::cout << d << '\n';
+  }
+}
+
 int main() {
   // test_impl();
   // test_mult();
@@ -1944,6 +2068,8 @@ int main() {
   // test46();
   // test47();
   // test48();
-  test_eigen_conv();
-  test_eigen_complex_conv();
+  // test_eigen_conv();
+  // test_eigen_complex_conv();
+  // test_eigen_base_set();
+  test_eigen_base_equal();
 }
