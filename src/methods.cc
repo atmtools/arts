@@ -14426,7 +14426,7 @@ Available models:
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathGeometric"),
       DESCRIPTION(
-         "Geometric propagation path (ppath) with fixed step length.\n"
+         "Geometric propagation path with fixed step length.\n"
          "\n"
          "The propagation path (ppath) from *rte_pos* in the direction of\n"
          "*rte_los* is determined. Refraction is ignored and the ppath is\n"
@@ -14463,24 +14463,29 @@ Available models:
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathRefracted"),
       DESCRIPTION(
-         "Refracted propagation path (ppath) with ...\n"
-         "\n"
-         "Surface intersections are found in manner matching setting\n"
-         "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
-         "This for efficiency reasons, but also as the ray tracing largely\n"
-         "removes the need for a \"safe\" search.\n"
-         "\n"
-         "For more accurate calculations, but slower, consider the two GIN\n"
-         "parameters *do_vertical_gradients* and *do_twosided_perturb*\n"
-         "\n"
-         "Default is to only determine the altitude gradients of the refractive\n"
-         "index, as in general this is the dominating term. To also calculate\n"
-         "and consider the latitude and longitude gradients, set\n"
-         "*do_vertical_gradients* to true.\n"
-         "\n"
-         "The gradients of the refractive index are obtained by perturbing the\n"
-         "position of concern with small positive values. With *do_twosided_perturb*\n"
-         "set to true, there is also a perturbation in the negative direction.\n"),
+          "Calculates a propagation path, including refraction by basic approach.\n"
+          "\n"
+          "Refraction is taken into account by probably the simplest approach\n"
+          "possible. The ray tracing is made by piece-wise geometric steps.\n"
+          "At the end of each step, the zenith and azimuth propagation angles\n"
+          "are updated following the local gradients of the refractive index.\n" 
+          "\n"
+          "Surface intersections are found in manner matching setting\n"
+          "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
+          "This for efficiency reasons, but also as the ray tracing largely\n"
+          "removes the need for a \"safe\" search.\n"
+          "\n"
+          "For more accurate calculations, but slower, consider the two GIN\n"
+          "parameters *do_horizontal_gradients* and *do_twosided_perturb*\n"
+          "\n"
+          "Default is to only determine the altitude gradients of the refractive\n"
+          "index, as this is in general the only relevant term. To also calculate\n"
+          "and consider the latitude and longitude gradients, set\n"
+          "*do_horizontal_gradients* to true.\n"
+          "\n"
+          "The gradients of the refractive index are obtained by perturbing the\n"
+          "position of concern with small positive values. With *do_twosided_perturb*\n"
+          "set to true, there is also a perturbation in the negative direction.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -14495,11 +14500,11 @@ Available models:
          "refellipsoid",
          "surface_elevation",
          "surface_search_accuracy"),
-      GIN("z_toa", "do_vertical_gradients", "do_twosided_perturb"),
+      GIN("z_toa", "do_horizontal_gradients", "do_twosided_perturb"),
       GIN_TYPE("Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, "0", "0"),
       GIN_DESC("Top-of-the-atmosphere altitude.",
-               "Consider horisontal gradients in refractive index.",
+               "Consider horisontal gradients of refractive index.",
                "Perform double-sided perturbations when calculating "
                "refractive index gradients.")));
     // New ppath methods, end here
