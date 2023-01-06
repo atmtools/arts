@@ -2026,6 +2026,24 @@ void test_eigen_base_equal() {
   }
 }
 
+void test_eigen_math() {
+  {
+    Matrix A = build_test_matrix(3, 4);
+    Vector x = {1, 2, 3, 4};
+    std::cout << (A * x) << '\n';
+    std::cout << x << '\n';
+    std::cout << 2.5*x << '\n';
+  }
+
+  {
+    Matrix A = build_test_matrix(3, 4);
+    Matrix B = build_test_matrix(4, 2);
+    std::cout << (A * B) << '\n';
+    std::cout << A << '\n';
+    std::cout << 2.5*A << '\n';
+  }
+}
+
 int main() {
   // test_impl();
   // test_mult();
@@ -2071,5 +2089,6 @@ int main() {
   // test_eigen_conv();
   // test_eigen_complex_conv();
   // test_eigen_base_set();
-  test_eigen_base_equal();
+  // test_eigen_base_equal();
+  test_eigen_math();
 }
