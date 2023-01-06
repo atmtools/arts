@@ -193,74 +193,7 @@ concept has_rows = requires(T a) {
 template <typename T>
 concept has_size = requires(T a) {
   { a.size() } -> integral;
-} and not has_ncols<T> and not has_nelem<T>;
-
-//! Checks if the type has any accepted types of columns
-template <typename T> concept column_keeper = has_ncols<T> or has_nelem<T> or has_size<T> or has_cols<T>;
-
-//! Get a column size from x
-constexpr auto column_size(column_keeper auto&& x) {
-  using internal_type = decltype(x);
-  if constexpr (has_cols<internal_type>) return std::forward<internal_type>(x).cols();
-  else if constexpr (has_size<internal_type>) return std::forward<internal_type>(x).size();
-  else if constexpr (has_nelem<internal_type>) return std::forward<internal_type>(x).nelem();
-  else return std::forward<internal_type>(x).ncols();
-}
-
-//! Checks if the type has any accepted types of rows as well as previous sizes
-template <typename T> concept row_keeper = column_keeper<T> and (has_nrows<T> or has_rows<T>);
-
-//! Get a row size from x
-constexpr auto row_size(row_keeper auto&& x) {
-  using internal_type = decltype(x);
-  if constexpr (has_rows<internal_type>) return std::forward<internal_type>(x).rows();
-  else return std::forward<internal_type>(x).nrows();
-}
-
-//! Checks if the type has any accepted types of pages as well as previous sizes
-template <typename T> concept page_keeper = row_keeper<T> and (has_npages<T>);
-
-//! Get a page size from x
-constexpr auto page_size(page_keeper auto&& x) {
-  using internal_type = decltype(x);
-  return std::forward<internal_type>(x).npages();
-}
-
-//! Checks if the type has any accepted types of books as well as previous sizes
-template <typename T> concept book_keeper = page_keeper<T> and (has_nbooks<T>);
-
-//! Get a book size from x
-constexpr auto book_size(book_keeper auto&& x) {
-  using internal_type = decltype(x);
-  return std::forward<internal_type>(x).nbooks();
-}
-
-//! Checks if the type has any accepted types of shelves as well as previous sizes
-template <typename T> concept shelf_keeper = book_keeper<T> and (has_nshelves<T>);
-
-//! Get a shelf size from x
-constexpr auto shelf_size(shelf_keeper auto&& x) {
-  using internal_type = decltype(x);
-  return std::forward<internal_type>(x).nshelves();
-}
-
-//! Checks if the type has any accepted types of vitrines as well as previous sizes
-template <typename T> concept vitrine_keeper = shelf_keeper<T> and (has_nvitrines<T>);
-
-//! Get a vitrine size from x
-constexpr auto vitrine_size(vitrine_keeper auto&& x) {
-  using internal_type = decltype(x);
-  return std::forward<internal_type>(x).nvitrines();
-}
-
-//! Checks if the type has any accepted types of libraries as well as previous sizes
-template <typename T> concept library_keeper = vitrine_keeper<T> and (has_nlibraries<T>);
-
-//! Get a library size from x
-constexpr auto library_size(library_keeper auto&& x) {
-  using internal_type = decltype(x);
-  return std::forward<internal_type>(x).nlibraries();
-}
+} and not has_ncols<T> and not has_nelem<T> and not has_cols<T>;
 
 //! The multidimensional array has a rank
 template <typename T>
@@ -274,18 +207,101 @@ concept has_NumIndices = requires(T) {
   { T::NumIndices } -> integral;
 };
 
+//! The multidimensional array has IsVectorAtCompileTime to indicate (if true)
+//! if it is a vector or (if false) if it is a matrix
+template <typename T>
+concept has_IsVectorAtCompileTime = requires(T) {
+  { T::IsVectorAtCompileTime } -> std::convertible_to<Index>;
+};
+
+//! Checks if the type has any accepted types of columns
+template <typename T> concept column_keeper = has_ncols<T> or has_nelem<T> or has_size<T> or has_cols<T>;
+
+//! Get a column size from x
+template<column_keeper U>
+constexpr auto column_size(const U& x) {
+  if constexpr (has_cols<U>) {
+      // Special Eigen::Matrix workaround for vectors
+    if constexpr (has_IsVectorAtCompileTime<U>) {
+      if constexpr (U::IsVectorAtCompileTime) {
+        return std::max(x.rows(), x.cols());
+      }
+    }
+    return x.cols();
+  }
+  else if constexpr (has_size<U>) return x.size();
+  else if constexpr (has_nelem<U>) return x.nelem();
+  else return x.ncols();
+}
+
+//! Checks if the type has any accepted types of rows as well as previous sizes
+template <typename T> concept row_keeper = column_keeper<T> and (has_nrows<T> or has_rows<T>);
+
+//! Get a row size from x
+template<row_keeper U>
+constexpr auto row_size(const U& x) {
+  if constexpr (has_rows<U>) return x.rows();
+  else return x.nrows();
+}
+
+//! Checks if the type has any accepted types of pages as well as previous sizes
+template <typename T> concept page_keeper = row_keeper<T> and (has_npages<T>);
+
+//! Get a page size from x
+template<page_keeper U>
+constexpr auto page_size(const U& x) {
+  return x.npages();
+}
+
+//! Checks if the type has any accepted types of books as well as previous sizes
+template <typename T> concept book_keeper = page_keeper<T> and (has_nbooks<T>);
+
+//! Get a book size from x
+template<book_keeper U>
+constexpr auto book_size(const U&& x) {
+  return x.nbooks();
+}
+
+//! Checks if the type has any accepted types of shelves as well as previous sizes
+template <typename T> concept shelf_keeper = book_keeper<T> and (has_nshelves<T>);
+
+//! Get a shelf size from x
+template<shelf_keeper U>
+constexpr auto shelf_size(const U& x) {
+  return x.nshelves();
+}
+
+//! Checks if the type has any accepted types of vitrines as well as previous sizes
+template <typename T> concept vitrine_keeper = shelf_keeper<T> and (has_nvitrines<T>);
+
+//! Get a vitrine size from x
+template<shelf_keeper U>
+constexpr auto vitrine_size(const U& x) {
+  return x.nvitrines();
+}
+
+//! Checks if the type has any accepted types of libraries as well as previous sizes
+template <typename T> concept library_keeper = vitrine_keeper<T> and (has_nlibraries<T>);
+
+//! Get a library size from x
+template<library_keeper U>
+constexpr auto library_size(const U& x) {
+  return x.nlibraries();
+}
+
 //! A rankable multidimensional array
-template <typename T> concept rankable = has_rank<T> or has_NumIndices<T>;
+template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has_IsVectorAtCompileTime<T>;
 
 //! Get the rank of the multidimensional array at compile time
 template <rankable T>
 consteval auto rank() {
   if constexpr (has_NumIndices<T>) return T::NumIndices;
+  else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - T::IsVectorAtCompileTime;
   else if constexpr (has_size<T>) return 1;
   else return T::rank();
 }
 
-template <rankable T, auto dim = rank<T>()> integral auto dimsize(const T& v, integral auto ind) {
+template <rankable T, auto dim = rank<T>()> Index dimsize(const T& v, integral auto ind) {
   if constexpr (has_extent<T>) {
     return v.extent(ind);
   } else if constexpr (has_dimension<T>) {
@@ -320,19 +336,19 @@ concept has_shape = rankable<T> and requires(T a) {
 
 //! Get the shape
 template <rankable T, auto dim = rank<T>()>
-constexpr std::array<Index, dim> shape(const T& v) {
+constexpr std::array<Index, dim> mdshape(const T& v) {
   if constexpr (has_shape<T, dim>) {
     return v.shape();
   } else {
     std::array<Index, dim> out;
-    for (decltype(dim) i=0; i<dim; i++) out[i] = dimsize(v, i);
+    for (Index i=0; i<dim; i++) out[i] = static_cast<Index>(dimsize(v, i));
     return out;
   }
 }
 
 //! Checks that a type is a pointer to a math_type
 template <typename T>
-concept math_type_ptr = math_type<std::remove_pointer_t<T>> and std::is_pointer_v<T>;
+concept math_type_ptr = math_type<std::remove_cvref_t<std::remove_pointer_t<T>>> and std::is_pointer_v<T>;
 
 //! Checks that a type has a data_handle
 template <typename T>
@@ -352,15 +368,57 @@ concept has_data_pointer = has_data_handle<T> or has_data<T>;
 
 //! Get the data pointer
 template <has_data_pointer T>
-constexpr auto data(T&& v) {
-  if constexpr (has_data<T>) return std::forward<T>(v).data();
-  else return std::forward<T>(v).data_handle();
+constexpr auto mddata(const T& v) {
+  if constexpr (has_data<T>) return v.data();
+  else return v.data_handle();
+}
+
+//! The type's stride can be had with stride()
+template <typename T>
+concept has_stride = requires(T a) {
+  { a.stride(0) } -> integral;
+};
+
+//! The type's stride can be had with stride()
+template <typename T>
+concept has_innerStride = requires(T a) {
+  { a.innerStride() } -> integral;
+  { a.outerStride() } -> integral;
+};
+
+//! Get the stride sizes of some index
+template <rankable T, auto dim = rank<T>()>
+constexpr Index stridesize(const T& v, integral auto ind) {
+  if constexpr (has_stride<T>) return v.stride(ind);
+  else if constexpr (has_size<T>) return 1;
+  else if constexpr (has_innerStride<T>) {
+    static_assert(dim < 3 and dim > 0);
+    
+    if constexpr (dim == 1) {
+      return v.innerStride();
+    } else {
+      const bool t = true; // TRANSPOSE AND false
+      if (ind == 1) {
+        return t ? v.innerStride() : v.outerStride();
+      } else {
+        return t ? v.outerStride() : v.innerStride();
+      }
+    }
+  }
+  else return 0;
+}
+
+template <rankable T, auto dim = rank<T>()>
+constexpr std::array<Index, dim> mdstride(const T& v) {
+  std::array<Index, dim> out;
+  for (decltype(dim) i=0; i<dim; i++) out[i] = static_cast<Index>(stridesize(v, i));
+  return out;
 }
 
 template <typename T>
 concept matpack_convertible = rankable<T> and requires (T a) {
-  data(a);
-  shape(a);
+  { mddata(a) } -> math_type_ptr;
+  { mdshape(a) } -> integral_array<rank<T>()>;
 } and not any_same_md<T, rank<T>()>;
 }  // namespace matpack::md
 #pragma GCC diagnostic pop
