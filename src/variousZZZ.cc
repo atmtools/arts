@@ -24,6 +24,7 @@
  */
 
 #include "arts_conversions.h"
+#include "auto_md.h"
 #include "geodeticZZZ.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
@@ -67,7 +68,7 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
 
   gfield3.set_name(name);
 
-  gfield3.set_grid_name(0, "altitude");
+  gfield3.set_grid_name(0, "Altitude");
   gfield3.set_grid(0, altitude_grid);
   gfield3.set_grid_name(1, "Latitude");
   gfield3.set_grid(1, latitude_grid);
@@ -535,4 +536,102 @@ Numeric interp_gfield3(const GriddedField3& G,
   Vector itw(8);
   interpweights(itw, gp_pages[0], gp_row[0], gp_col[0]);
   return interp(itw, G.data, gp_pages[0], gp_row[0], gp_col[0]);  
+}
+
+
+void refr_index_and_its_gradients(Numeric& refr_index_air,
+                                  Numeric& refr_index_air_group,
+                                  Numeric& dndz,
+                                  Numeric& dndlat,
+                                  Numeric& dndlon,
+                                  Workspace& ws,
+                                  const Agenda& refr_index_air_agenda,
+                                  ConstVectorView pos,
+                                  const bool& do_horizontal_gradients,
+                                  const bool& do_twosided_perturb)
+{
+  // n at pos itself
+  refr_index_air_ZZZ_agendaExecute(ws,
+                                   refr_index_air,
+                                   refr_index_air_group,
+                                   pos,
+                                   refr_index_air_agenda);
+
+  // Altitude gradient
+  Numeric n, dummy;
+  {
+    const Numeric dz = 1;
+    Vector pos_shifted = pos;
+    pos_shifted[0] += dz;
+    refr_index_air_ZZZ_agendaExecute(ws,
+                                     n,
+                                     dummy,
+                                     pos_shifted,
+                                     refr_index_air_agenda);
+    if (do_twosided_perturb) {
+      pos_shifted[0] = pos[0] - dz;
+      Numeric n2;
+      refr_index_air_ZZZ_agendaExecute(ws,
+                                       n2,
+                                       dummy,
+                                       pos_shifted,
+                                       refr_index_air_agenda);
+      dndz = (n - n2) / (2 * dz);
+    } else {
+      dndz = (n - refr_index_air) / dz;
+    }
+  }
+
+  // Latitude and longitide gradients
+  if (do_horizontal_gradients) {
+    // Latitude
+    {
+      const Numeric dlat = 1e-4;
+      Vector pos_shifted = pos;
+      pos_shifted[1] += dlat;
+      refr_index_air_ZZZ_agendaExecute(ws,
+                                       n,
+                                       dummy,
+                                       pos_shifted,
+                                       refr_index_air_agenda);
+      if (do_twosided_perturb) {
+        pos_shifted[1] = pos[1] - dlat;
+        Numeric n2;
+        refr_index_air_ZZZ_agendaExecute(ws,
+                                         n2,
+                                         dummy,
+                                         pos_shifted,
+                                         refr_index_air_agenda);
+        dndlat = (n - n2) / (2 * dlat);
+      } else {
+        dndlat = (n - refr_index_air) / dlat;
+      }
+    }
+    // Longitude
+    { 
+      const Numeric dlon = 1e-4;
+      Vector pos_shifted = pos;
+      pos_shifted[2] += dlon;
+      refr_index_air_ZZZ_agendaExecute(ws,
+                                       n,
+                                       dummy,
+                                       pos_shifted,
+                                       refr_index_air_agenda);
+      if (do_twosided_perturb) {
+        pos_shifted[2] = pos[2] - dlon;
+        Numeric n2;
+        refr_index_air_ZZZ_agendaExecute(ws,
+                                         n2,
+                                         dummy,
+                                         pos_shifted,
+                                         refr_index_air_agenda);
+        dndlon = (n - n2) / (2 * dlon);
+      } else {
+        dndlon = (n - refr_index_air) / dlon;
+      }
+    }
+  } else {
+    dndlat = 0.0;
+    dndlon = 0.0;
+  }
 }
