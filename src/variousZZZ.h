@@ -181,4 +181,43 @@ Numeric interp_gfield2(const GriddedField2& G,
 Numeric interp_gfield3(const GriddedField3& G,
                        const Vector& pos);
 
+/** Calls refr_index_air_agenda to get n and its gradients
+
+    For more accurate calculations, but slower, consider the two bool
+    parameters.
+
+    Default is to only determine the altitude gradients, as in general
+    this is the dominating term. The latitude and longitude gradients
+    are returned as zero. To calculate all three gradients, set 
+    *do_vertical_gradients* to true.
+
+    The gradients are obtained by shifting *pos* with small positive
+    values. With *do_twosided_perturb* set to true, there is also a
+    perturbation in the negative direction.
+
+   @param[out]  refr_index_air           As the WSV with same name
+   @param[out]  refr_index_air_group     As the WSV with same name
+   @param[out]  dndz                     Altitude gradient of n
+   @param[out]  dndlat                   Latitude gradient of n
+   @param[out]  dndlon                   Longitude gradient of n
+   @param[in]   ws                       The workspace
+   @param[in]   refr_index_air_agenda    As the WSV with same name
+   @param[in]   pos                      Position vector
+   @param[in]   do_horizontal_gradients  See above
+   @param[in]   do_twosided_perturb      See above
+
+   @author Patrick Eriksson
+   @date   2023-01-05
+ */
+void refr_index_and_its_gradients(Numeric& refr_index_air,
+                                  Numeric& refr_index_air_group,
+                                  Numeric& dndz,
+                                  Numeric& dndlat,
+                                  Numeric& dndlon,
+                                  Workspace& ws,
+                                  const Agenda& refr_index_air_agenda,
+                                  ConstVectorView pos,
+                                  const bool& do_horizontal_gradients,
+                                  const bool& do_twosided_perturb);
+
 #endif  // variousZZZ_h
