@@ -221,11 +221,13 @@ void geo_posEndOfPpath(Vector& geo_pos,
   geo_pos.resize(5);
   geo_pos = NAN;
 
-  geo_pos[Range(0, ppath.pos.ncols())] =
+  if (ppath.np) {
+    geo_pos[Range(0, ppath.pos.ncols())] =
       ppath.pos(ppath.np - 1, Range(0, ppath.pos.ncols()));
-  geo_pos[Range(3, ppath.los.ncols())] =
+    geo_pos[Range(3, ppath.los.ncols())] =
       ppath.los(ppath.np - 1, Range(0, ppath.los.ncols()));
-
+  }
+  
   CREATE_OUT2;
   out2 << "  Sets geo-position to:\n" << geo_pos;
 }
@@ -237,18 +239,20 @@ void geo_posLowestAltitudeOfPpath(Vector& geo_pos,
   geo_pos.resize(5);
   geo_pos = NAN;
 
-  // Take first point of ppath as first guess
-  geo_pos[Range(0, ppath.pos.ncols())] =
+  if (ppath.np) {
+    // Take first point of ppath as first guess
+    geo_pos[Range(0, ppath.pos.ncols())] =
       ppath.pos(0, Range(0, ppath.pos.ncols()));
-  geo_pos[Range(3, ppath.los.ncols())] =
+    geo_pos[Range(3, ppath.los.ncols())] =
       ppath.los(0, Range(0, ppath.los.ncols()));
 
-  for (Index i = 1; i < ppath.np; i++) {
-    if (ppath.pos(i, 0) < geo_pos[0]) {
-      geo_pos[Range(0, ppath.pos.ncols())] =
+    for (Index i = 1; i < ppath.np; i++) {
+      if (ppath.pos(i, 0) < geo_pos[0]) {
+        geo_pos[Range(0, ppath.pos.ncols())] =
           ppath.pos(i, Range(0, ppath.pos.ncols()));
-      geo_pos[Range(3, ppath.los.ncols())] =
+        geo_pos[Range(3, ppath.los.ncols())] =
           ppath.los(i, Range(0, ppath.los.ncols()));
+      }
     }
   }
 
@@ -264,42 +268,44 @@ void geo_posWherePpathPassesZref(Vector& geo_pos,
   geo_pos.resize(5);
   geo_pos = NAN;
 
-  bool found = false;
-  Index ihit = 0;
-  bool above = false;
+  if (ppath.np) {
+    bool found = false;
+    Index ihit = 0;
+    bool above = false;
 
-  if (ppath.pos(0, 0) >= z_ref) {
-    above = true;
-  }
-
-  while (!found && ihit < ppath.np - 1) {
-    ihit += 1;
-    if (above && ppath.pos(ihit, 0) < z_ref) {
-      found = true;
-    } else if (!above && ppath.pos(ihit, 0) >= z_ref) {
-      found = true;
+    if (ppath.pos(0, 0) >= z_ref) {
+      above = true;
     }
-  }
 
-  if (found) {
-    geo_pos[0] = z_ref;
+    while (!found && ihit < ppath.np - 1) {
+      ihit += 1;
+      if (above && ppath.pos(ihit, 0) < z_ref) {
+        found = true;
+      } else if (!above && ppath.pos(ihit, 0) >= z_ref) {
+        found = true;
+      }
+    }
+    
+    if (found) {
+      geo_pos[0] = z_ref;
+      
+      // Make a simple linear interpolation to determine lat and lon
+      const Numeric w = (z_ref - ppath.pos(ihit - 1, 0)) /
+        (ppath.pos(ihit, 0) - ppath.pos(ihit - 1, 0));
+      
+      geo_pos[3] = w * ppath.los(ihit, 0) + (1 - w) * ppath.los(ihit - 1, 0);
+      
+      if (ppath.pos.ncols() > 1) {
+        geo_pos[1] = w * ppath.pos(ihit, 1) + (1 - w) * ppath.pos(ihit - 1, 1);
 
-    // Make a simple linear interpolation to determine lat and lon
-    const Numeric w = (z_ref - ppath.pos(ihit - 1, 0)) /
-                      (ppath.pos(ihit, 0) - ppath.pos(ihit - 1, 0));
-
-    geo_pos[3] = w * ppath.los(ihit, 0) + (1 - w) * ppath.los(ihit - 1, 0);
-
-    if (ppath.pos.ncols() > 1) {
-      geo_pos[1] = w * ppath.pos(ihit, 1) + (1 - w) * ppath.pos(ihit - 1, 1);
-
-      if (ppath.pos.ncols() > 2) {
-        geo_pos[2] = w * ppath.pos(ihit, 2) + (1 - w) * ppath.pos(ihit - 1, 2);
-        geo_pos[4] = w * ppath.los(ihit, 1) + (1 - w) * ppath.los(ihit - 1, 1);
+        if (ppath.pos.ncols() > 2) {
+          geo_pos[2] = w * ppath.pos(ihit, 2) + (1 - w) * ppath.pos(ihit - 1, 2);
+          geo_pos[4] = w * ppath.los(ihit, 1) + (1 - w) * ppath.los(ihit - 1, 1);
+        }
       }
     }
   }
-
+  
   CREATE_OUT2;
   out2 << "  Sets geo-position to:\n" << geo_pos;
 }
