@@ -7799,12 +7799,12 @@ Available models:
 
   md_data_raw.push_back(create_mdrecord(
       NAME("geo_posEndOfPpath"),
-      DESCRIPTION("Sets geo-position based on *ppath*.\n"
-                  "\n"
-                  "The geo-position is set to the position of the last point\n"
-                  "of the present propagation path. This will be the surface,\n"
-                  "top-of-the atmosphere or cloudbox position, depending of\n"
-                  "observation geometry and if the cloudbox is active.\n"),
+      DESCRIPTION(
+          "Sets geo-position based on *ppath*.\n"
+          "\n"
+          "The geo-position is set to the position of the last point in *ppath*.\n"
+          "\n"
+          "NaN is returned if *ppath* is totally outside of the atmosphere.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
       GOUT(),
@@ -7821,8 +7821,10 @@ Available models:
       DESCRIPTION(
           "Sets geo-position based on *ppath*.\n"
           "\n"
-          "The geo-position is set to the position of the last point\n"
-          "of the present propagation path having the lowest altitude.\n"),
+          "The geo-position is set to the position of the point in *ppath*\n"
+          "having the lowest altitude.\n"
+          "\n"
+          "NaN is returned if *ppath* is totally outside of the atmosphere.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
       GOUT(),
@@ -7840,10 +7842,12 @@ Available models:
           "Sets geo-position based on *ppath*.\n"
           "\n"
           "The geo-position is set to the position where the propagation\n"
-          "path passes the reference altitude. If this altitude is passes\n"
+          "path passes the reference altitude. If this altitude is passed\n"
           "more than once, the passing closest to the sensor is selected.\n"
           "If the reference altitude is not passed at all, *geo_pos* is\n"
-          "set to NaN.\n"),
+          "set to NaN.\n"
+          "\n"
+          "NaN is also returned if *ppath* is totally outside of the atmosphere.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
       GOUT(),
@@ -14432,7 +14436,19 @@ Available models:
          "Surface intersections are found in manner matching setting\n"
          "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
          "This for efficiency reasons, but also as the ray tracing largely\n"
-         "removes the need for a \"safe\" search.\n"),
+         "removes the need for a \"safe\" search.\n"
+         "\n"
+         "For more accurate calculations, but slower, consider the two GIN\n"
+         "parameters *do_vertical_gradients* and *do_twosided_perturb*\n"
+         "\n"
+         "Default is to only determine the altitude gradients of the refractive\n"
+         "index, as in general this is the dominating term. To also calculate\n"
+         "and consider the latitude and longitude gradients, set\n"
+         "*do_vertical_gradients* to true.\n"
+         "\n"
+         "The gradients of the refractive index are obtained by perturbing the\n"
+         "position of concern with small positive values. With *do_twosided_perturb*\n"
+         "set to true, there is also a perturbation in the negative direction.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -14447,10 +14463,13 @@ Available models:
          "refellipsoid",
          "surface_elevation",
          "surface_search_accuracy"),
-      GIN("z_toa"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Top-of-the-atmosphere altitude.")));
+      GIN("z_toa", "do_vertical_gradients", "do_twosided_perturb"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "0", "0"),
+      GIN_DESC("Top-of-the-atmosphere altitude.",
+               "Consider horisontal gradients in refractive index.",
+               "Perform double-sided perturbations when calculating "
+               "refractive index gradients.")));
     // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(

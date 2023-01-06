@@ -27,10 +27,14 @@
   === External declarations
   ===========================================================================*/
 
+#include "auto_md.h"
 #include "check_input.h"
 #include "geodeticZZZ.h"
 #include "ppathZZZ.h"
 #include "variousZZZ.h"
+
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 
 /*===========================================================================
@@ -302,6 +306,8 @@ void ppathRefracted(Workspace& ws,
                     const GriddedField2& surface_elevation,
                     const Numeric& surface_search_accuracy,
                     const Numeric& z_toa,
+                    const Index& do_horizontal_gradients,
+                    const Index& do_twosided_perturb,
                     const Verbosity&)
 {
   chk_rte_pos("rte_pos", rte_pos);
@@ -329,10 +335,10 @@ void ppathRefracted(Workspace& ws,
   Index np = -1;  // -1 flags not yet known
   enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
 
-  // Containers for found pos, los and lstep
+  // Containers for found pos, los, lstep and refractive indices
   Array<Vector> pos_a;
   Array<Vector> los_a;
-  Array<Numeric> lstep_a;
+  Array<Numeric> lstep_a, nreal_a, ngroup_a;
 
   // No ppath if above and looking outside of atmosphere
   if (start_in_space && l_outside < 0) {
@@ -342,24 +348,41 @@ void ppathRefracted(Workspace& ws,
   // We have a path!
   } else {
     // Variables representing latest known position of ppath
-    Vector pos0(3), los0(2), ecef0(3);
+    Vector pos0(3), los0(2), ecef0(3), decef0(3);
 
     // Init these variables
     if (start_in_space) {
         // We need to calculate from where ppath enters the atmosphere
         ecef_at_distance(ecef0, ecef, decef, l_outside);
-        ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+        decef0 = decef;
+        ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
     } else {
       pos0 = rte_pos;
       los0 = rte_los;
       ecef0 = ecef;
+      decef0 = decef;
     }
 
+    // Refractive index and its gradients at pos0
+    Numeric n_real, n_group, dndz, dndlat, dndlon;
+    refr_index_and_its_gradients(n_real,
+                                 n_group,
+                                 dndz,
+                                 dndlat,
+                                 dndlon,
+                                 ws,
+                                 refr_index_air_ZZZ_agenda,
+                                 pos0,
+                                 do_horizontal_gradients,
+                                 do_twosided_perturb);
+    
     // Append pos0 and los0 to array variables (no lstep to add yet)
     np = 1;
     pos_a.push_back(pos0);
     los_a.push_back(los0);
-
+    nreal_a.push_back(n_real);
+    ngroup_a.push_back(n_group);
+    
     // Actual ray tracing length
     const Index n_rt_per_step =
       ppath_lraytrace > 0 ? Index(ceil(ppath_lstep / ppath_lraytrace)) : 1;
@@ -381,26 +404,18 @@ void ppathRefracted(Workspace& ws,
     while (inside) {
 
       // Move forward with l_rt
-      ecef_at_distance(ecef_try, ecef0, decef, l_rt);
+      ecef_at_distance(ecef_try, ecef0, decef0, l_rt);
       l2pos0 = l_rt;  // Can be changed below
-      ecef2geodetic_los(pos_try, los_try, ecef_try, decef, refellipsoid);
-
-      /*
-      refr_index_air_ZZZ_agendaExecute(ws,
-                                       n1,
-                                       n2,
-                                       pos_try,
-                                       refr_index_air_ZZZ_agenda);
-      */
+      ecef2geodetic_los(pos_try, los_try, ecef_try, decef0, refellipsoid);
       
       // Check if we still are inside. If not, determine end point
       // Above TOA?
       if (pos_try[0] >= z_toa) {
         inside = false;
         background = PPATH_BACKGROUND_SPACE;
-        l2pos0 = intersection_altitude(ecef0, decef, refellipsoid, z_toa);
-        ecef_at_distance(ecef0, ecef0, decef, l2pos0);
-        ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+        l2pos0 = intersection_altitude(ecef0, decef0, refellipsoid, z_toa);
+        ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
+        ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
       }
 
       // Passed active ppath_ltotal?
@@ -409,8 +424,8 @@ void ppathRefracted(Workspace& ws,
         inside = false;
         background = PPATH_BACKGROUND_STOP_DISTANCE;
         l2pos0 = ppath_ltotal - l_from_start;
-        ecef_at_distance(ecef0, ecef0, decef, l2pos0);
-        ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+        ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
+        ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
 
         // Below surface?
       } else {
@@ -422,22 +437,53 @@ void ppathRefracted(Workspace& ws,
           l2pos0 = find_crossing_with_surface_z(pos0,
                                                 los0,
                                                 ecef0,
-                                                decef,
+                                                decef0,
                                                 refellipsoid,
                                                 surface_elevation,
                                                 surface_search_accuracy,
                                                 0);
-          ecef_at_distance(ecef0, ecef0, decef, l2pos0);
-          ecef2geodetic_los(pos0, los0, ecef0, decef, refellipsoid);
+          ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
+          ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
         }
       }
 
-      // If inside, then we take try values
+      // If inside, then we take try values and apply refraction
       if (inside) {
         pos0 = pos_try;
         los0 = los_try;
         ecef0 = ecef_try;
         l2pos0 = l_rt;
+        //
+        // Calculate n and its gradients for new pos0
+        refr_index_and_its_gradients(n_real,
+                                     n_group,
+                                     dndz,
+                                     dndlat,
+                                     dndlon,
+                                     ws,
+                                     refr_index_air_ZZZ_agenda,
+                                     pos0,
+                                     do_horizontal_gradients,
+                                     do_twosided_perturb);
+        //
+        // Update LOS angles
+        // (Tried to use mean n and dndz over the step, but got
+        // basically identical result (as dndz is constant in each layer))
+        if (do_horizontal_gradients) {
+          ARTS_USER_ERROR("Option *do_horizontal_gradients* not yet implemented.");
+        } else {
+          los0[0] -= RAD2DEG * l_rt * sin(DEG2RAD * los0[0]) *dndz / n_real;
+          geodetic_los2ecef(ecef0, decef0, pos0, los0, refellipsoid);
+        }
+        
+      // If not inside, we just need to determine refractive index
+      } else {
+        refr_index_air_ZZZ_agendaExecute(ws,
+                                         n_real,
+                                         n_group,
+                                         pos0,
+                                         refr_index_air_ZZZ_agenda);
+
       }
 
       // Update step variables
@@ -447,9 +493,13 @@ void ppathRefracted(Workspace& ws,
 
       // Add to arrays if ready with either full path or step
       if (!inside || n_this_step == n_rt_per_step) {
+        //
         pos_a.push_back(pos0);
         los_a.push_back(los0);
         lstep_a.push_back(l_this_step);
+        nreal_a.push_back(n_real);
+        ngroup_a.push_back(n_group);
+        //
         ++np;
         l_this_step = 0.0;
         n_this_step = 0;
@@ -466,8 +516,8 @@ void ppathRefracted(Workspace& ws,
   ppath.start_los = rte_los;
   ppath.start_lstep = l_outside > 0 ? l_outside : 0;
   ppath.end_lstep = 0.0;
-  ppath.nreal = Vector(np, 1.0);  // !!!
-  ppath.ngroup = Vector(np, 1.0); // !!!
+  ppath.nreal = Vector(np);  
+  ppath.ngroup = Vector(np);
   ppath.pos.resize(np, 3);
   ppath.los.resize(np, 2);
   //
@@ -478,6 +528,8 @@ void ppathRefracted(Workspace& ws,
     for (Index i=0; i<np; ++i) {
       ppath.pos(i, joker) = pos_a[i];
       ppath.los(i, joker) = los_a[i];
+      ppath.nreal[i] = nreal_a[i];
+      ppath.ngroup[i] = ngroup_a[i];
       if (i < np - 1)
         ppath.lstep[i] = lstep_a[i];
     }
