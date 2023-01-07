@@ -293,6 +293,60 @@ void ppath_add_grid_crossings(Ppath& ppath,
 }
 
 
+void ppath_extend(Ppath& ppath,
+                  const Ppath& ppath2)
+{
+  // A crude check that last point in ppath is first in ppath2
+  ARTS_ASSERT(fabs(ppath.pos(ppath.np-1, 0) - ppath2.pos(0, 0)) < 0.1);
+  ARTS_ASSERT(fabs(ppath.pos(ppath.np-1, 1) - ppath2.pos(0, 1)) < 0.01);
+  ARTS_ASSERT(fabs(ppath.pos(ppath.np-1, 2) - ppath2.pos(0, 2)) < 0.01);
+  
+  // Make partial copy of ppath
+  Ppath ppath1;
+  ppath1.np = ppath.np;
+  ppath1.nreal = ppath.nreal;
+  ppath1.ngroup = ppath.ngroup;
+  ppath1.pos = ppath.pos;
+  ppath1.los = ppath.los;
+  ppath1.lstep = ppath.lstep;
+
+  // Ranges for extended ppath
+  Range part1 = Range(0, ppath1.np);
+  Range part2 = Range(ppath1.np, ppath2.np);
+  
+  // Create extended ppath
+  ppath.np = ppath1.np + ppath2.np;
+  ppath.backgroundZZZ = ppath2.backgroundZZZ;
+  // Start pos/los_lstep kept as given
+  // but end pos/los_lstep should be taken from ppath2
+  ppath.end_pos = ppath2.end_pos;
+  ppath.end_los = ppath2.end_los;
+  ppath.end_lstep = ppath2.end_lstep;
+  //
+  ppath.pos.resize(ppath.np, 3);
+  ppath.pos(part1, joker) = ppath1.pos;
+  ppath.pos(part2, joker) = ppath2.pos;
+  //
+  ppath.los.resize(ppath.np, 2);
+  ppath.los(part1, joker) = ppath1.los;
+  ppath.los(part2, joker) = ppath2.los;
+  //
+  ppath.nreal.resize(ppath.np);
+  ppath.nreal[part1] = ppath1.nreal;
+  ppath.nreal[part2] = ppath2.nreal;
+  //
+  ppath.ngroup.resize(ppath.np);
+  ppath.ngroup[part1] = ppath1.ngroup;
+  ppath.ngroup[part2] = ppath2.ngroup;
+  //
+  // ppath.lstep is a special case
+  ppath.lstep.resize(ppath.np-1);
+  ppath.lstep[Range(0,ppath1.np-1)] = ppath1.lstep;
+  ppath.lstep[ppath1.np-1] = 0;
+  ppath.lstep[Range(ppath1.np,ppath2.np-1)] = ppath2.lstep;  
+}
+
+
 bool ppath_l2toa_from_above(Numeric& l2toa,
                             ConstVectorView rte_pos,
                             ConstVectorView rte_los,
@@ -318,3 +372,28 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
     return true;
   }
 }
+
+
+void specular_los(VectorView new_los,
+                  const Vector& refellipsoid,
+                  const GriddedField2& surface_elevation,
+                  ConstVectorView pos,
+                  ConstVectorView los,
+                  const bool& ignore_topography)
+{
+  ARTS_ASSERT(new_los.nelem() == 2); 
+  ARTS_ASSERT(pos.nelem() == 2); 
+  ARTS_ASSERT(los.nelem() == 2); 
+
+  // Ignore surface tilt if told so or surface_elevation.data has size (1,1)
+  if (ignore_topography || (surface_elevation.data.nrows() == 1 &&
+                            surface_elevation.data.ncols() == 1)) {
+    new_los[0] = 180 - los[0];
+    new_los[1] = los[1];
+
+  } else {
+    Vector normal(2);
+    surface_normal(normal, refellipsoid, surface_elevation, pos);
+  }
+}
+                  

@@ -33,6 +33,7 @@
 #include "variousZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -634,4 +635,26 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
     dndlat = 0.0;
     dndlon = 0.0;
   }
+}
+
+
+void surface_normal(VectorView normal,
+                    const Vector& refellipsoid,
+                    const GriddedField2& surface_elevation,
+                    ConstVectorView pos)
+{
+  ARTS_ASSERT(normal.nelem() == 2); 
+
+  // Determine altitude and radius of the surface at pos
+  const Numeric z0 = interp_gfield2(surface_elevation, pos);
+  const Numeric r = z0 + prime_vertical_radius(refellipsoid, pos[0]);
+  
+  // Determine S to N and W to E slope (directions match ENU)
+  // This done by shifts of 1 m
+  Vector pos2 = pos;
+  pos2[0] += RAD2DEG * 1 / r;
+  const Numeric dzdlat = interp_gfield2(surface_elevation, pos2) - z0;
+  pos2 = pos;
+  pos2[1] += RAD2DEG * 1 / (r * cos(DEG2RAD * pos[0]));
+  const Numeric dzdlon = interp_gfield2(surface_elevation, pos2) - z0;
 }

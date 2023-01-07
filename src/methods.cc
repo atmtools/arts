@@ -14441,7 +14441,13 @@ Available models:
          "It is possible to set a maximum length of the ppath (for the part\n"
          "inside the atmosphere) by *ppath_ltotal*. When the length of the\n"
          "ppath is governed by this variable, the end point of the ppath\n"
-         "is a point inside the atmosphere.\n"),
+         "is then a point inside the atmosphere.\n"
+         "\n"
+         "With *include_specular_ppath* set to true, the propagation path is\n"
+         "continued at an intersection with the surface. The additional section\n"
+         "is calculated for the specular direction, with surface topography\n" 
+         "considered. The surface intersection point will appear twice in\n"
+         " *ppath*. The case of multiple surface intersections is handled.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -14455,10 +14461,11 @@ Available models:
          "surface_elevation",
          "surface_search_accuracy",
          "surface_search_safe"),
-      GIN("z_toa"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Top-of-the-atmosphere altitude.")));
+      GIN("z_toa", "include_specular_ppath"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("Top-of-the-atmosphere altitude.",
+               "Flag to continue path after surface intersection.")));
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathRefracted"),
@@ -14469,6 +14476,11 @@ Available models:
           "possible. The ray tracing is made by piece-wise geometric steps.\n"
           "At the end of each step, the zenith and azimuth propagation angles\n"
           "are updated following the local gradients of the refractive index.\n" 
+          "\n"
+          "Otherwise works largely as *ppathGeometric*. The spacing between path\n"
+          "points will here in general exactly be *ppath_lstep*. The exception\n"
+          "is the last ppath step, where the length is adjusted to the remaining\n"
+          "distance of the path.\n"
           "\n"
           "Surface intersections are found in manner matching setting\n"
           "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
@@ -14500,13 +14512,17 @@ Available models:
          "refellipsoid",
          "surface_elevation",
          "surface_search_accuracy"),
-      GIN("z_toa", "do_horizontal_gradients", "do_twosided_perturb"),
-      GIN_TYPE("Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "0", "0"),
+      GIN("z_toa",
+          "do_horizontal_gradients",
+          "do_twosided_perturb",
+          "include_specular_ppath"),
+      GIN_TYPE("Numeric", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "0", "0", "0"),
       GIN_DESC("Top-of-the-atmosphere altitude.",
                "Consider horisontal gradients of refractive index.",
                "Perform double-sided perturbations when calculating "
-               "refractive index gradients.")));
+               "refractive index gradients.",
+               "See *ppathGeometric*.")));
     // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(
