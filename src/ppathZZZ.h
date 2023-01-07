@@ -65,6 +65,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
                               const Vector& lon_grid,
                               const Numeric& l_step_max);
 
+
 /** Extends a ppath with another one
 
     The propagation path described by *ppath2* is appended to *ppath*.
@@ -81,6 +82,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
 */
 void ppath_extend(Ppath& ppath,
                   const Ppath& ppath2);
+
 
 /** Locates rte_pos with respect to the top of the atmosphere
 
@@ -107,16 +109,17 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
                             const Vector& refellipsoid,
                             const Numeric& z_toa);
 
+
 /** Direction of specular reflection
 
     The surface is assumed to have no roughness, but topography is
     considered. That is, the local tilt of the surface due to
     variation in elevation is allowed to affect the specular direction.
 
-    @param[out]  
+    @param[out]  los_new            Specular direction as LOS vector
     @param[in]   refellipsoid       As the WSV with same name.
     @param[in]   surface_elevation  As the WSV with same name.
-    @param[in]   pos                Vector with latitude and longitude
+    @param[in]   pos2D              Vector with latitude and longitude
     @param[in]   los                Line-of-sight vector
     @param[in]   ignore_topography  Set to true to ignore possible
                                     surface tilt
@@ -124,10 +127,10 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
     @author Patrick Eriksson
     @date   2023-01-07
 */
-void specular_los(VectorView new_los,
+void specular_los(VectorView los_new,
                   const Vector& refellipsoid,
                   const GriddedField2& surface_elevation,
-                  ConstVectorView pos,
+                  ConstVectorView pos2D,
                   ConstVectorView los,
                   const bool& ignore_topography = false);
 
