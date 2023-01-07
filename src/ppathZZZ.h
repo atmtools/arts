@@ -35,6 +35,25 @@
   === Functions
   ===========================================================================*/
 
+/** To be written ...
+*/
+void find_refracted_path_between_points(Workspace& ws,
+                                        Ppath& ppath,
+                                        const Agenda& refr_index_air_ZZZ_agenda,
+                                        const Numeric& ppath_lstep,
+                                        const Numeric& ppath_lraytrace,
+                                        const Vector& refellipsoid,
+                                        const GriddedField2& surface_elevation,
+                                        const Numeric& surface_search_accuracy,
+                                        const Numeric& z_toa,
+                                        const Index& do_horizontal_gradients,
+                                        const Index& do_twosided_perturb,
+                                        const Vector& start_pos,
+                                        const Vector& target_pos,
+                                        const Numeric& target_dl,
+                                        const Index& max_iterations);
+
+
 /** Adding grid crossings to a ppath
 
     When called the variable ppath shall contain a description of the

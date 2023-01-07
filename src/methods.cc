@@ -14491,6 +14491,40 @@ Available models:
                "Perform double-sided perturbations when calculating "
                "refractive index gradients.",
                "See *ppathGeometric*.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppathRefractedToPosition"),
+      DESCRIPTION(
+          "The refracted propagation path between two points.\n"
+          "\n"
+          "...\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppath", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refr_index_air_ZZZ_agenda",
+         "ppath_lstep",
+         "ppath_lraytrace",
+         "refellipsoid",
+         "surface_elevation",
+         "surface_search_accuracy",
+         "rte_pos"),
+      GIN("target_pos",
+          "target_dl",
+          "max_iterations",
+          "z_toa",
+          "do_horizontal_gradients",
+          "do_twosided_perturb"),
+      GIN_TYPE("Vector", "Numeric", "Index", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "10", NODEF, "0", "0"),
+      GIN_DESC("The atmospheric position that *ppath* shall reach.",
+               "Max allowed deviation to *target_pos*.",
+               "Max number of iterations before giving up.",
+               "Top-of-the-atmosphere altitude.",
+               "Consider horisontal gradients of refractive index.",
+               "Perform double-sided perturbations when calculating "
+               "refractive index gradients.")));
     // New ppath methods, end here
 
   md_data_raw.push_back(create_mdrecord(
@@ -18256,7 +18290,9 @@ where N>=0 and the species name is something line "H2O".
           "The line-of-sight angles from *rte_pos* to *target_pos* are calculated\n"
           "ignoring refraction. This can be done analytically. The angles are set\n"
           "without any consideration of the surface. The corresponding propagation\n"
-          "path can thus end with a surface intersection.\n"),
+          "path can thus end with a surface intersection.\n"
+          "\n"
+          "The corresponding method with refraction is *ppathRefractedToPosition*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_los"),
       GOUT(),
