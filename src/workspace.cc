@@ -3142,6 +3142,9 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "then the selected value gives a third constrain for ending paths.\n"
           "If reached, the propagation path ends exactly at the maximum length.\n"
           "\n"
+          "This criterion refers to the length of the propagation path inside\n"
+          "the atmosphere.\n"
+          "\n"
           "Unit:  m\n"),
       GROUP("Numeric"), Numeric{-1}));
 

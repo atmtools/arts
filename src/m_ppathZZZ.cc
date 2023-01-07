@@ -16,12 +16,12 @@
    USA. */
 
 /**
- * @file   m_ppath.cc
- * @author Patrick Eriksson <patrick.eriksson@chalmers.se>
- * @date   2021-08-11
- *
- * @brief  Workspace functions releated to calculation of propagation paths.
- */
+    @file    m_ppath.cc
+    @author  Patrick Eriksson <patrick.eriksson@chalmers.se>
+    @date    2021-08-11
+ 
+    @brief   Workspace functions releated to calculation of propagation paths.
+*/
 
 /*===========================================================================
   === External declarations
@@ -173,7 +173,8 @@ void ppathGeometric(Ppath& ppath,
                     const Numeric& surface_search_accuracy,
                     const Index& surface_search_safe,
                     const Numeric& z_toa,
-                    const Verbosity&)
+                    const Index& include_specular_ppath,
+                    const Verbosity& verbosity)
 {
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
@@ -257,7 +258,6 @@ void ppathGeometric(Ppath& ppath,
   ppath.np = np;
   ARTS_ASSERT(background != PPATH_BACKGROUND_UNDEFINED);
   ppath.backgroundZZZ = background;
-  ppath.start_lstep = 0;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
   ppath.start_lstep = l_outside > 0 ? l_outside : 0;
@@ -291,6 +291,34 @@ void ppathGeometric(Ppath& ppath,
     ppath.end_pos = ppath.pos(ppath.np - 1, joker);
     ppath.end_los = ppath.los(ppath.np - 1, joker);
   }
+
+  // If surface intersection, include part beyond?
+  if (include_specular_ppath && ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+
+    Vector pos = ppath.pos(ppath.np-1, joker);
+    Vector los(2);
+    specular_los(los,
+                 refellipsoid,
+                 surface_elevation,
+                 pos[Range(1, 2)],
+                 ppath.los(ppath.np-1, joker));
+    
+    Ppath ppath2;
+    ppathGeometric(ppath2,
+                   pos,
+                   los,
+                   ppath_lstep,
+                   ppath_ltotal - ppath.lstep.sum(),
+                   refellipsoid,
+                   surface_elevation,
+                   surface_search_accuracy,
+                   surface_search_safe,
+                   z_toa,
+                   include_specular_ppath,
+                   verbosity);
+
+    ppath_extend(ppath, ppath2);
+  }  
 }
 
 
@@ -309,7 +337,8 @@ void ppathRefracted(Workspace& ws,
                     const Numeric& z_toa,
                     const Index& do_horizontal_gradients,
                     const Index& do_twosided_perturb,
-                    const Verbosity&)
+                    const Index& include_specular_ppath,
+                    const Verbosity& verbosity)
 {
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
@@ -533,7 +562,6 @@ void ppathRefracted(Workspace& ws,
   ppath.np = np;
   ARTS_ASSERT(background != PPATH_BACKGROUND_UNDEFINED);
   ppath.backgroundZZZ = background;
-  ppath.start_lstep = 0;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
   ppath.start_lstep = l_outside > 0 ? l_outside : 0;
@@ -562,6 +590,38 @@ void ppathRefracted(Workspace& ws,
   } else {
     ppath.end_pos = ppath.pos(ppath.np - 1, joker);
     ppath.end_los = ppath.los(ppath.np - 1, joker);
+  }
+
+  // If surface intersection, include part beyond?
+  if (include_specular_ppath && ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+
+    Vector pos = ppath.pos(ppath.np-1, joker);
+    Vector los(2);
+    specular_los(los,
+                 refellipsoid,
+                 surface_elevation,
+                 pos[Range(1, 2)],
+                 ppath.los(ppath.np-1, joker));
+    
+    Ppath ppath2;
+    ppathRefracted(ws,
+                   ppath2,
+                   refr_index_air_ZZZ_agenda,
+                   pos,
+                   los,
+                   ppath_lstep,
+                   ppath_ltotal - ppath.lstep.sum(),
+                   ppath_lraytrace,
+                   refellipsoid,
+                   surface_elevation,
+                   surface_search_accuracy,
+                   z_toa,
+                   do_horizontal_gradients,
+                   do_twosided_perturb,
+                   include_specular_ppath,
+                   verbosity);
+
+    ppath_extend(ppath, ppath2);
   }
 }
 // Comments on expressions for effect of refraction:
