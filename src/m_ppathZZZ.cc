@@ -673,6 +673,44 @@ void ppathRefracted(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ppathRefractedToPosition(Workspace& ws,
+                              Ppath& ppath,
+                              Vector& rte_los,
+                              const Agenda& refr_index_air_ZZZ_agenda,
+                              const Numeric& ppath_lstep,
+                              const Numeric& ppath_lraytrace,
+                              const Vector& refellipsoid,
+                              const GriddedField2& surface_elevation,
+                              const Numeric& surface_search_accuracy,
+                              const Vector& rte_pos,
+                              const Vector& target_pos,
+                              const Numeric& target_dl,
+                              const Index& max_iterations,
+                              const Numeric& z_toa,
+                              const Index& do_horizontal_gradients,
+                              const Index& do_twosided_perturb,
+                              const Verbosity&)
+{
+  find_refracted_path_between_points(ws,
+                                     ppath,
+                                     refr_index_air_ZZZ_agenda,
+                                     ppath_lstep,
+                                     ppath_lraytrace,
+                                     refellipsoid,
+                                     surface_elevation,
+                                     surface_search_accuracy,
+                                     z_toa,
+                                     do_horizontal_gradients,
+                                     do_twosided_perturb,
+                                     rte_pos,
+                                     target_pos,
+                                     target_dl,
+                                     max_iterations);
+  rte_los = ppath.start_los;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losGeometricToPosition(Vector& rte_los,
                                 const Vector& refellipsoid,
                                 const Vector& rte_pos,
