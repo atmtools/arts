@@ -60,7 +60,6 @@ void ecef2geocentric(VectorView pos,
 }
 
 
-
 void ecef2geocentric_los(VectorView pos,
                          VectorView los,
                          ConstVectorView ecef,
@@ -99,7 +98,6 @@ void ecef2geocentric_los(VectorView pos,
 }
 
 
-
 void ecef2geodetic(VectorView pos,
                    ConstVectorView ecef,
                    ConstVectorView refellipsoid) {
@@ -135,7 +133,6 @@ void ecef2geodetic(VectorView pos,
 }
 
 
-
 void ecef2geodetic_los(VectorView pos,
                        VectorView los,
                        ConstVectorView ecef,
@@ -165,7 +162,6 @@ void ecef2geodetic_los(VectorView pos,
 }
 
 
-
 void ecef_at_distance(VectorView ecef,
                       ConstVectorView ecef0,
                       ConstVectorView decef,
@@ -174,7 +170,6 @@ void ecef_at_distance(VectorView ecef,
   ecef[1] = ecef0[1] + l * decef[1];
   ecef[2] = ecef0[2] + l * decef[2];
 }
-
 
 
 Numeric ecef_distance(ConstVectorView ecef1,
@@ -186,7 +181,6 @@ Numeric ecef_distance(ConstVectorView ecef1,
 }
 
 
-
 void ecef_vector_distance(VectorView ecef,
                           ConstVectorView ecef0,
                           ConstVectorView ecef1) {
@@ -196,17 +190,15 @@ void ecef_vector_distance(VectorView ecef,
 }
 
 
-
 void enu2los(VectorView los,
              ConstVectorView enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
-  const Numeric n = norm2(enu);
-  ARTS_ASSERT(fabs(n - 1.0) < 1e-9);
-  los[0] = RAD2DEG * acos( enu[2]/n );
+  const Numeric twonorm = norm2(enu);
+  ARTS_ASSERT(fabs(twonorm - 1.0) < 1e-6);
+  los[0] = RAD2DEG * acos( enu[2]/twonorm );
   los[1] = RAD2DEG * atan2( enu[0], enu[1] );
 }
-
 
 
 void geocentric2ecef(VectorView ecef,
@@ -218,7 +210,6 @@ void geocentric2ecef(VectorView ecef,
   ecef[0] = ecef[0] * cos(lonrad);
   ecef[2] = pos[0] * sin(latrad);
 }
-
 
 
 void geocentric_los2ecef(VectorView ecef,
@@ -271,7 +262,6 @@ void geocentric_los2ecef(VectorView ecef,
     decef[1] = coslat * sinlon * dr - sinlat * sinlon * dlat + coslat * coslon * dlon;
   }
 }
-
 
 
 void approx_geometrical_tangent_point(VectorView ecef_tan,
@@ -328,7 +318,6 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
 }
 
 
-
 void geodetic2ecef(VectorView ecef,
                    ConstVectorView pos,
                    ConstVectorView refellipsoid ) {
@@ -341,7 +330,8 @@ void geodetic2ecef(VectorView ecef,
     }
   else
     {
-      // See https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
+      // See https://en.wikipedia.org/wiki/
+      // Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
       const Numeric latrad = DEG2RAD * pos[1];
       const Numeric lonrad = DEG2RAD * pos[2];
       const Numeric sinlat = sin(latrad);
@@ -355,7 +345,6 @@ void geodetic2ecef(VectorView ecef,
       ecef[2] = ((b2/a2)*N + pos[0]) * sinlat;
     }
 }
-
 
 
 void geodetic_los2ecef(VectorView ecef,
@@ -402,7 +391,6 @@ void geodetic_los2ecef(VectorView ecef,
 }
 
 
-
 Numeric intersection_altitude(ConstVectorView ecef,
                               ConstVectorView decef,
                               ConstVectorView refellipsoid,
@@ -430,7 +418,8 @@ Numeric intersection_altitude(ConstVectorView ecef,
 
   // Ellipsoid case
   else {
-    // Based on https://medium.com/@stephenhartzell/satellite-line-of-sight-intersection-with-earth-d786b4a6a9b6
+    // Based on https://medium.com/@stephenhartzell/
+    // satellite-line-of-sight-intersection-with-earth-d786b4a6a9b6
     const Numeric a = ellipsoid[0];
     const Numeric b = ellipsoid[0];
     const Numeric c = ellipsoid[1];
@@ -443,13 +432,15 @@ Numeric intersection_altitude(ConstVectorView ecef,
     const Numeric dx2 = decef[0]*decef[0];
     const Numeric dy2 = decef[1]*decef[1];
     const Numeric dz2 = decef[2]*decef[2];
-    const Numeric rad = a2*b2*dz2 + a2*c2*dy2 - a2*dy2*z2 + 2*a2*decef[1]*decef[2]*ecef[1]*ecef[2] -
-                        a2*dz2*y2 + b2*c2*dx2 - b2*dx2*z2 + 2*b2*decef[0]*decef[2]*ecef[0]*ecef[2] -
-                        b2*dz2*x2 - c2*dx2*y2 + 2*c2*decef[0]*decef[1]*ecef[0]*ecef[1] - c2*dy2*x2;
+    const Numeric rad =
+      a2*b2*dz2 + a2*c2*dy2 - a2*dy2*z2 + 2*a2*decef[1]*decef[2]*ecef[1]*ecef[2] -
+      a2*dz2*y2 + b2*c2*dx2 - b2*dx2*z2 + 2*b2*decef[0]*decef[2]*ecef[0]*ecef[2] -
+      b2*dz2*x2 - c2*dx2*y2 + 2*c2*decef[0]*decef[1]*ecef[0]*ecef[1] - c2*dy2*x2;
     if (rad<0)
       l = -1.0;
     else {
-      const Numeric val = -a2*b2*decef[2]*ecef[2] - a2*c2*decef[1]*ecef[1] - b2*c2*decef[0]*ecef[0];
+      const Numeric val =
+        -a2*b2*decef[2]*ecef[2] - a2*c2*decef[1]*ecef[1] - b2*c2*decef[0]*ecef[0];
       const Numeric mag = a2*b2*dz2 + a2*c2*dy2 + b2*c2*dx2;
       const Numeric abc = a*b*c*sqrt(rad);
       l = min_geq((val-abc)/mag, (val+abc)/mag, l_min);
@@ -457,8 +448,6 @@ Numeric intersection_altitude(ConstVectorView ecef,
   }
   return l;
 }
-
-
 
 
 Numeric intersection_latitude(ConstVectorView ecef,
@@ -574,7 +563,6 @@ Numeric intersection_latitude(ConstVectorView ecef,
 }
 
 
-
 Numeric intersection_longitude(ConstVectorView ecef,
                                ConstVectorView decef,
                                ConstVectorView pos,
@@ -594,14 +582,12 @@ Numeric intersection_longitude(ConstVectorView ecef,
 }
 
 
-
 bool is_ellipsoid_spherical(ConstVectorView ellipsoid) {
   if (fabs(ellipsoid[0]-ellipsoid[1]) < ellipsoid_radii_threshold)
     return true;
   else
     return false;
 }
-
 
 
 bool is_lon_in_range(const Numeric& lon,
@@ -614,7 +600,6 @@ bool is_lon_in_range(const Numeric& lon,
   else
     return true;
 }
-
 
 
 void los2enu(VectorView enu,
@@ -637,7 +622,6 @@ Numeric move_lon_to_range(const Numeric& lon,
 }
 
 
-
 void poslos_at_distance(VectorView pos,
                         VectorView los,
                         ConstVectorView ecef,
@@ -650,7 +634,6 @@ void poslos_at_distance(VectorView pos,
 }
 
 
-
 void pos_at_distance(VectorView pos,
                      ConstVectorView ecef,
                      ConstVectorView decef,
@@ -660,7 +643,6 @@ void pos_at_distance(VectorView pos,
   ecef_at_distance(ecef_new, ecef, decef, l);
   ecef2geodetic(pos, ecef_new, refellipsoid);
 }
-
 
 
 Numeric prime_vertical_radius(ConstVectorView refellipsoid,
@@ -678,11 +660,7 @@ Numeric shift_lon_to_pm180(const Numeric& lon) {
 }
 
 
-
 Numeric shift_lon_to_0to360(const Numeric& lon) {
   ARTS_ASSERT (lon >= -180 && lon <= 360);
   return lon >= 0 ? lon : lon+360;
 }
-
-
-

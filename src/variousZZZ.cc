@@ -28,6 +28,7 @@
 #include "geodeticZZZ.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "lin_alg.h"
 #include "logic.h"
 #include "messages.h"
 #include "variousZZZ.h"
@@ -263,6 +264,7 @@ void chk_sensor_los(const String& name,
   }
 }
 
+
 void chk_sensor_poslos(const String& name1,
                        ConstMatrixView sensor_pos,
                        const String& name2,
@@ -473,9 +475,9 @@ void gridpos_lon(ArrayOfGridPos& gp,
 
 
 Numeric interp_gfield2(const GriddedField2& G,
-                       const Vector& pos)
+                       const Vector& pos2D)
 {
-  ARTS_ASSERT(pos.nelem() == 2);
+  ARTS_ASSERT(pos2D.nelem() == 2);
   ARTS_ASSERT(G.checksize());
 
   // Sizes
@@ -492,11 +494,11 @@ Numeric interp_gfield2(const GriddedField2& G,
   
   // Get grid positions
   ArrayOfGridPos gp_row(1), gp_col(1);
-  gridpos_new(gp_row, G.get_numeric_grid(0), Vector(1, pos[0]));
+  gridpos_new(gp_row, G.get_numeric_grid(0), Vector(1, pos2D[0]));
   if (col_dim_is_lon)
-    gridpos_lon(gp_col, G.get_numeric_grid(1), Vector(1, pos[1]));
+    gridpos_lon(gp_col, G.get_numeric_grid(1), Vector(1, pos2D[1]));
   else
-    gridpos_new(gp_col, G.get_numeric_grid(1), Vector(1, pos[1]));
+    gridpos_new(gp_col, G.get_numeric_grid(1), Vector(1, pos2D[1]));
 
   // Interpolate
   Vector itw(4);
@@ -590,13 +592,17 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
       const Numeric dlat = 1e-4;
       Vector pos_shifted = pos;
       pos_shifted[1] += dlat;
-      refr_index_air_ZZZ_agendaExecute(ws,
+      if (pos_shifted[1] > 90)  // We simply cut at 90 deg, will underestimate 
+        pos_shifted[1] = 90;    // gradient but should not be of any practical
+      refr_index_air_ZZZ_agendaExecute(ws,    // consequence
                                        n,
                                        dummy,
                                        pos_shifted,
                                        refr_index_air_agenda);
       if (do_twosided_perturb) {
         pos_shifted[1] = pos[1] - dlat;
+        if (pos_shifted[1] < -90)  // As above, but -90 deg
+          pos_shifted[1] = -90;    
         Numeric n2;
         refr_index_air_ZZZ_agendaExecute(ws,
                                          n2,
@@ -613,6 +619,8 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
       const Numeric dlon = 1e-4;
       Vector pos_shifted = pos;
       pos_shifted[2] += dlon;
+      if (pos_shifted[2] > 360)  // We can't go above 360 deg
+        pos_shifted[2] -= 360;
       refr_index_air_ZZZ_agendaExecute(ws,
                                        n,
                                        dummy,
@@ -620,6 +628,8 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
                                        refr_index_air_agenda);
       if (do_twosided_perturb) {
         pos_shifted[2] = pos[2] - dlon;
+        if (pos_shifted[2] < -180)  // We can't go below -180 deg
+          pos_shifted[2] += 360;
         Numeric n2;
         refr_index_air_ZZZ_agendaExecute(ws,
                                          n2,
@@ -638,23 +648,81 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
 }
 
 
-void surface_normal(VectorView normal,
+void surface_normal(VectorView pos,
+                    VectorView ecef,
+                    VectorView decef,
                     const Vector& refellipsoid,
                     const GriddedField2& surface_elevation,
-                    ConstVectorView pos)
+                    ConstVectorView pos2D)
 {
-  ARTS_ASSERT(normal.nelem() == 2); 
-
-  // Determine altitude and radius of the surface at pos
-  const Numeric z0 = interp_gfield2(surface_elevation, pos);
-  const Numeric r = z0 + prime_vertical_radius(refellipsoid, pos[0]);
+  ARTS_ASSERT(pos.nelem() == 3); 
+  ARTS_ASSERT(ecef.nelem() == 3); 
+  ARTS_ASSERT(decef.nelem() == 3); 
+  ARTS_ASSERT(pos2D.nelem() == 2);
   
-  // Determine S to N and W to E slope (directions match ENU)
-  // This done by shifts of 1 m
-  Vector pos2 = pos;
-  pos2[0] += RAD2DEG * 1 / r;
-  const Numeric dzdlat = interp_gfield2(surface_elevation, pos2) - z0;
-  pos2 = pos;
-  pos2[1] += RAD2DEG * 1 / (r * cos(DEG2RAD * pos[0]));
-  const Numeric dzdlon = interp_gfield2(surface_elevation, pos2) - z0;
+  // We need two orthogonal vectors inside the surface plane. We
+  // follow ENU and the first one should be towards E and the second
+  // towards N. We obtain the vectors quite easily by dl shifts,
+  // except when we are are very close to the North or South pole. To
+  // be sure that a dl shift does not pass any of the poles, we
+  // consider here that all positions inside a distance 5*dl on the
+  // side. These points are shifted to be at the pole.
+  //
+  const Numeric dl = 1.0;  
+  const Numeric lat_limit = 90.0 - RAD2DEG * 5 * dl / refellipsoid[1];
+
+  // Determine 3D pos at pos
+  Numeric lat = pos2D[0];
+  if (lat > lat_limit)
+    lat = 90.0;
+  else if (lat < -lat_limit)
+    lat = -90.0;
+  //
+  pos[1] = lat;
+  pos[2] = pos2D[1];
+  pos[0] = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+
+  // Radius at pos0
+  const Numeric r = pos[0] + prime_vertical_radius(refellipsoid, lat);
+
+  // Shifted positions
+  Vector posWE = pos, posSN = pos;
+  //
+  // North pole case
+  if (lat > lat_limit) {
+    posSN[1] -= RAD2DEG * dl / r;  
+    posSN[2] = 90; 
+    posWE[1] = posSN[1];
+    posWE[2] = 0; 
+  // South pole case
+  } else if (lat < -lat_limit) {
+    posSN[1] += RAD2DEG * dl / r;  
+    posSN[2] = 0; 
+    posWE[1] = posSN[1];
+    posWE[2] = 90; 
+  // A general case 
+  } else {
+    posSN[1] += RAD2DEG * dl / r;  
+    posWE[2] += RAD2DEG * dl / (r * cos(DEG2RAD * posWE[1]));
+    if (posWE[2] > 360)
+      posWE[2] -= 360;
+  }
+  //
+  posSN[0] = interp_gfield2(surface_elevation, posSN[Range(1, 2)]);
+  posWE[0] = interp_gfield2(surface_elevation, posWE[Range(1, 2)]);
+  
+  // Convert all three positions to ECEF
+  Vector ecefSN(3), ecefWE(3);
+  geodetic2ecef(ecef, pos, refellipsoid);
+  geodetic2ecef(ecefSN, posSN, refellipsoid);
+  geodetic2ecef(ecefWE, posWE, refellipsoid);
+
+  // Directional vectors to shifted positions
+  Vector decefSN(3), decefWE(3);
+  ecef_vector_distance(decefSN, ecef, ecefSN);
+  ecef_vector_distance(decefWE, ecef, ecefWE);
+
+  // Normal is cross product of the two decef (
+  cross3(decef, decefWE, decefSN);
+  decef /= norm2(decef);
 }

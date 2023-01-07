@@ -18249,6 +18249,27 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("rte_losGeometricToPosition"),
+      DESCRIPTION(
+          "The geometric line-of-sight between two points.\n"
+          "\n"
+          "The line-of-sight angles from *rte_pos* to *target_pos* are calculated\n"
+          "ignoring refraction. This can be done analytically. The angles are set\n"
+          "without any consideration of the surface. The corresponding propagation\n"
+          "path can thus end with a surface intersection.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refellipsoid",
+         "rte_pos"),
+      GIN("target_pos"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The atmospheric position that *rte_los* shall match.")));
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_losReverse"),
       DESCRIPTION(
           "Reverses the direction in *rte_los*.\n"
@@ -18265,7 +18286,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  
+
   md_data_raw.push_back(
       create_mdrecord(NAME("rte_losSet"),
                DESCRIPTION("Sets *rte_los* to the given angles.\n"
@@ -19199,6 +19220,49 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(NODEF),
       GIN_DESC("Target position, for each position in *sensor_pos*.")));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_losGeometricToPosition"),
+      DESCRIPTION(
+          "The geometric line-of-sight to a point.\n"
+          "\n"
+          "Works as *rte_losGeometricToPosition*, but sets *sensor_los*.\n"
+          "\n"
+          "This method handles the case of a single target position. For\n"
+          "multiple target positions, use: *sensor_losGeometricToPositions*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refellipsoid",
+         "sensor_pos"),
+      GIN("target_pos"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The atmospheric position that *sensor_los* shall match.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_losGeometricToPositions"),
+      DESCRIPTION(
+          "The geometric line-of-sight to multiple point.\n"
+          "\n"
+          "Works as *rte_losGeometricToPosition*, but sets *sensor_los*. The\n"
+          "number of rows in *sensor_pos* and *target_pos* must be equal.\n"
+          "\n"
+          "This method handles the case of mutiple target positions. For\n"
+          "a single target positions, use: *sensor_losGeometricToPosition*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refellipsoid",
+         "sensor_pos"),
+      GIN("target_pos"),
+      GIN_TYPE("Matrix"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The atmospheric positions that *sensor_los* shall match.")));
+  
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losReverse"),
       DESCRIPTION(
