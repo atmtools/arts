@@ -37,18 +37,20 @@
 
 
 /** Threshold for non-spherical ellipsoid
- *
- * If the two radii of an ellipsoid differ with less than this value, it is
- * treated as spherical for efficiency reasons.
- */
+  
+    If the two radii of an ellipsoid differ with less than this value, it is
+    treated as spherical for efficiency reasons.
+*/
 const Numeric ellipsoid_radii_threshold = 1e-3;
 
+
 /** Size of north and south poles
- * 
- * Latitudes with an absolute value > POLELAT are considered to be on
- * the south or north pole. This is needed for definition of azimuth.
- */
+  
+    Latitudes with an absolute value > POLELAT are considered to be on
+    the south or north pole. This is needed for definition of azimuth.
+*/
 const Numeric POLELATZZZ = 90 - 1e-8;   // Rename to POLELAT when other one removed
+
 
 /** Conversion from ECEF to geocentric coordinates
 
@@ -60,6 +62,7 @@ const Numeric POLELATZZZ = 90 - 1e-8;   // Rename to POLELAT when other one remo
 */
 void ecef2geocentric(VectorView pos,
                      ConstVectorView ecef);
+
 
 /** Conversion from ECEF to geocentric coordinates including a LOS
 
@@ -76,6 +79,7 @@ void ecef2geocentric_los(VectorView pos,
                          ConstVectorView ecef,
                          ConstVectorView decef);
 
+
 /** Conversion from ECEF to geodetic coordinates
 
     @param[out]  pos           Geodetic position (h,lat,lon)
@@ -88,6 +92,7 @@ void ecef2geocentric_los(VectorView pos,
 void ecef2geodetic(VectorView pos,
                    ConstVectorView ecef,
                    ConstVectorView refellipsoid);
+
 
 /** Conversion from ECEF to geodetic coordinates including a LOS
 
@@ -105,6 +110,7 @@ void ecef2geodetic_los(VectorView pos,
                        ConstVectorView ecef,
                        ConstVectorView decef,
                        ConstVectorView refellipsoid);
+
 
 /** ECEF position at a given distance 
 
@@ -124,6 +130,7 @@ void ecef_at_distance(VectorView ecef,
                       ConstVectorView decef,
                       const Numeric l);
 
+
 /** The distance between two ECEF positions
 
    @param[in]  ecef1  A first ECEF position (x,y,z)
@@ -136,6 +143,7 @@ void ecef_at_distance(VectorView ecef,
 */
 Numeric ecef_distance(ConstVectorView ecef1,
                       ConstVectorView ecef2);
+
 
 /** The vector between two ECEF positions
 
@@ -152,6 +160,7 @@ void ecef_vector_distance(VectorView ecef,
                           ConstVectorView ecef0,
                           ConstVectorView ecef1);
 
+
 /** Converts ENU unit vector vector to local zenith and azimuth
 
     This function and the sister function los2enu handles transformation of
@@ -167,6 +176,7 @@ void ecef_vector_distance(VectorView ecef,
 void enu2los(VectorView los,
              ConstVectorView enu);
 
+
 /** Conversion from geocentric to ECEF coordinates
 
    @param[out]  ecef  ECEF position (x,y,z)
@@ -177,6 +187,7 @@ void enu2los(VectorView los,
 */
 void geocentric2ecef(VectorView ecef,
                      ConstVectorView pos);
+
 
 /** Conversion from geocentric to ECEF coordinates including a LOS
 
@@ -193,6 +204,7 @@ void geocentric_los2ecef(VectorView ecef,
                          ConstVectorView pos,
                          ConstVectorView los);
 
+
 /** Conversion from geodetic to ECEF coordinates.
  
     @param[out]  ecef          ECEF position (x,y,z)
@@ -205,6 +217,7 @@ void geocentric_los2ecef(VectorView ecef,
 void geodetic2ecef(VectorView ecef,
                    ConstVectorView pos,
                    ConstVectorView refellipsoid);
+
 
 /** Conversion from geodetic to ECEF coordinates including a LOS
  
@@ -222,6 +235,7 @@ void geodetic_los2ecef(VectorView ecef,
                        ConstVectorView pos,
                        ConstVectorView los,
                        ConstVectorView refellipsoid);
+
 
 /** Calculates the geometrical tangent point, approximately
 
@@ -249,6 +263,7 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
                                       ConstVectorView decef,
                                       ConstVectorView refellipsoid);
 
+
 /** Finds the distance to the intersection between an ECEF line and an ellipsoid
 
     A negative distance is returned if there is no intersection. 
@@ -275,6 +290,7 @@ Numeric intersection_altitude(ConstVectorView ecef,
                               const Numeric& altitude,
                               const Numeric& l_min = 0);
 
+
 /** Finds the distance to the intersection between an ECEF line and a latitude
 
     A negative distance is returned if there is no intersection.
@@ -297,6 +313,7 @@ Numeric intersection_latitude(ConstVectorView ecef,
                               ConstVectorView los,
                               ConstVectorView refellipsoid,
                               const Numeric& lat);
+
 
 /** Finds the distance to the intersection between an ECEF line and a longitude
 
@@ -322,6 +339,7 @@ Numeric intersection_longitude(ConstVectorView ecef,
                                ConstVectorView pos,
                                ConstVectorView los,
                                const Numeric& lon);
+
 
 /** Determines if an ellipsoid can be treated as a sphere
 
@@ -355,6 +373,7 @@ bool is_lon_in_range(const Numeric& lon,
                      const Numeric& lon_min,
                      const Numeric& lon_max);
 
+
 /** Converts local zenith and azimuth angles to ENU unit vector.
 
     This function and the sister function enu2los handles transformation of
@@ -369,6 +388,7 @@ bool is_lon_in_range(const Numeric& lon,
 */
 void los2enu(VectorView enu,
              ConstVectorView los);
+
 
 /** Shifts a longitude to match range [lon_min,lon_max]
 
@@ -390,6 +410,7 @@ Numeric move_lon_to_range(const Numeric& lon,
                           const Numeric& lon_min,
                           const Numeric& lon_max);
 
+
 /** Geodetic position and line-of-sightat a given distance
 
     @param[out]  pos           Geodetic position (h,lat,lon)
@@ -409,6 +430,7 @@ void poslos_at_distance(VectorView pos,
                         ConstVectorView refellipsoid,
                         const Numeric l);
 
+
 /** Geodetic position at a given distance
 
     @param[out]  pos           Geodetic position (h,lat,lon)
@@ -425,6 +447,7 @@ void pos_at_distance(VectorView pos,
                      ConstVectorView decef,
                      ConstVectorView refellipsoid,
                      const Numeric l);
+
 
 /** The prime vertical radius
 
@@ -444,6 +467,7 @@ void pos_at_distance(VectorView pos,
 Numeric prime_vertical_radius(ConstVectorView refellipsoid,
                               const Numeric& lat);
 
+
 /** Shifts a longitude to be inside [-180,180]
 
     @param[in]  lon  Original longitude [-180,360]
@@ -454,6 +478,7 @@ Numeric prime_vertical_radius(ConstVectorView refellipsoid,
     @date    2021-08-12
 */
 Numeric shift_lon_to_pm180(const Numeric& lon);
+
 
 /** Shifts a longitude to be inside [0,360]
 

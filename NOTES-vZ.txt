@@ -40,7 +40,7 @@ ppath_step_agenda
 WSMs:
 ---
 ppathGeometric (x)
-ppathRefracted
+ppathRefracted (x)
 ppathAddGridCrossings (x)
 -
 IntersectionGeometricAltitude  (x)
@@ -48,22 +48,19 @@ IntersectionGeometricLongitude  (x)
 IntersectionGeometricLatitude  (x)
 IntersectionGeometricSurface  (x)
 -
-rte_losGeometricPathToPosition
-  - ppath is also output
-sensor_losGeometricPathToPosition
-sensor_losGeometricPathToPositions
-rte_losRefractedPathToPosition
+rte_losGeometricToPosition  (x)
+sensor_losGeometricToPosition  (x)
+sensor_losGeometricToPositions  (x)
+rte_losRefractedToPosition
   - latest ppath is also output
-sensor_losRefractedPathToPosition
-sensor_losRefractedPathToPositions
+sensor_losRefractedToPosition
+sensor_losRefractedToPositions
 -
 ppathCropDomain
 -
 ppathCheckEndPoint  (x)
 ppathCheckInsideDomain  (x)
-  - lat_min, lat_max ...
 ppathCheckInsideGrids  (x)
-  - As above but checks against latitude and longitude grids
 -
 ppath_stepGeometric
 ppath_stepRefracted
