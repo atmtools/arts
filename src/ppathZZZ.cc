@@ -299,7 +299,8 @@ void ppath_extend(Ppath& ppath,
   // A crude check that last point in ppath is first in ppath2
   ARTS_ASSERT(fabs(ppath.pos(ppath.np-1, 0) - ppath2.pos(0, 0)) < 0.1);
   ARTS_ASSERT(fabs(ppath.pos(ppath.np-1, 1) - ppath2.pos(0, 1)) < 0.01);
-  ARTS_ASSERT(fabs(ppath.pos(ppath.np-1, 2) - ppath2.pos(0, 2)) < 0.01);
+  // We don't assert longitude, as we can have shifts of 360 deg and
+  // longitude is undefined at the poles
   
   // Make partial copy of ppath
   Ppath ppath1;
@@ -374,26 +375,51 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
 }
 
 
-void specular_los(VectorView new_los,
+void specular_los(VectorView los_new,
                   const Vector& refellipsoid,
                   const GriddedField2& surface_elevation,
-                  ConstVectorView pos,
+                  ConstVectorView pos2D,
                   ConstVectorView los,
                   const bool& ignore_topography)
 {
-  ARTS_ASSERT(new_los.nelem() == 2); 
-  ARTS_ASSERT(pos.nelem() == 2); 
+  ARTS_ASSERT(los_new.nelem() == 2); 
+  ARTS_ASSERT(pos2D.nelem() == 2); 
   ARTS_ASSERT(los.nelem() == 2); 
 
   // Ignore surface tilt if told so or surface_elevation.data has size (1,1)
   if (ignore_topography || (surface_elevation.data.nrows() == 1 &&
                             surface_elevation.data.ncols() == 1)) {
-    new_los[0] = 180 - los[0];
-    new_los[1] = los[1];
+    los_new[0] = 180 - los[0];
+    los_new[1] = los[1];
 
   } else {
-    Vector normal(2);
-    surface_normal(normal, refellipsoid, surface_elevation, pos);
+    // Determine surface normal
+    Vector pos(3), ecef(3), decef(3);
+    surface_normal(pos, ecef, decef, refellipsoid, surface_elevation, pos2D);
+
+    // Convert los to ECEF direction (ECEF recalculated!)
+    Vector decef_los(3);
+    geodetic_los2ecef(ecef, decef_los, pos, los, refellipsoid);
+
+    // Dot product between normal and los should be negative.
+    ARTS_USER_ERROR_IF(decef * decef_los > 0,
+        "The incoming direction is from below the surface!");
+    
+    // If v is incoming los, n is the normal and the reflected
+    // direction, w; is: w = v - 2 * (v * n) * n 
+    // See e.g.
+    // http://www.sunshine2k.de/articles/coding/vectorreflection/
+    // vectorreflection.html
+    Vector change = decef;
+    change *= -2.0 * (decef_los * decef);
+    Vector decef_new_los = decef_los;
+    decef_new_los += change;
+    
+    // Convert to LOS (pos recalculated and we use this for a rough assert)
+    ecef2geodetic_los(pos, los_new, ecef, decef_new_los, refellipsoid);
+    ARTS_ASSERT(fabs(pos[1] - pos2D[0]) < 0.01);
+    // We don't assert longitude to avoid problems at lat=90 and
+    // possible shifts of 360 deg
   }
 }
                   

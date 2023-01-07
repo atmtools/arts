@@ -20,7 +20,6 @@
 
 #include "gridded_fields.h"
 
-
 /** Checks if a vector is a valid line-of-sight (direction vector)
 
     The function gives an error message if this is not the case.
@@ -33,6 +32,7 @@
 */
 void chk_rte_los(const String& name,
                  ConstVectorView los);
+
 
 /** Checks if a vector is a valid position
 
@@ -47,6 +47,7 @@ void chk_rte_los(const String& name,
 void chk_rte_pos(const String& name,
                  ConstVectorView pos);
 
+
 /** Performs all needed checks of refellipsoid
 
     @param[in]  refellipsoid  As the WSV with the same name.
@@ -55,6 +56,7 @@ void chk_rte_pos(const String& name,
     @date    2021-07-30
 */
 void chk_refellipsoidZZZ(ConstVectorView refellipsoid);
+
 
 /** Checks if a matrix is a valid sensor_pos
 
@@ -79,6 +81,7 @@ void chk_sensor_pos(const String& name,
 void chk_sensor_los(const String& name,
                     ConstMatrixView sensor_los);
 
+
 /** Checks if two matrices are valid combination of sensor_posLlos
 
     @param[in]  name1       Name of the pos variable, if there is an error
@@ -94,6 +97,7 @@ void chk_sensor_poslos(const String& name1,
                        const String& name2,
                        ConstMatrixView sensor_los);
 
+
 /** Checks WSV *surface_elevation*
 
     It is NOT checked that grids are strictly increasing, as
@@ -105,6 +109,7 @@ void chk_sensor_poslos(const String& name1,
     @date    2021-08-08
 */
 void chk_surface_elevation(const GriddedField2& surface_elevation);
+
 
 /** Calculates the geometrical length to the surface
 
@@ -137,6 +142,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
                                      const Numeric& surface_search_accuracy,
                                      const Index& surface_search_safe);
 
+
 /** Interpolates a GriddedField2 to a position
 
     Interpolating a gridded 2D field allowing length 1 grids and
@@ -148,8 +154,8 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     This is handled automatically, but longitude can only be the
     last (column) dimension.
 
-    @param[in]  G    Gridded field to interpolate
-    @param[in]  pos  Position vector, length 2
+    @param[in]  G      Gridded field to interpolate
+    @param[in]  pos2D  Vector with latitude and longitude
 
     @return  Result of interpolation
 
@@ -157,7 +163,8 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     @date   2023-01-03
 */
 Numeric interp_gfield2(const GriddedField2& G,
-                       const Vector& pos);
+                       const Vector& pos2D);
+
 
 /** Interpolates a GriddedField3 to a position
 
@@ -180,6 +187,7 @@ Numeric interp_gfield2(const GriddedField2& G,
 */
 Numeric interp_gfield3(const GriddedField3& G,
                        const Vector& pos);
+
 
 /** Calls refr_index_air_agenda to get n and its gradients
 
@@ -220,22 +228,24 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
                                   const bool& do_horizontal_gradients,
                                   const bool& do_twosided_perturb);
 
+
 /** Determines the normal vector of the surface
 
-    ...
-
-    @param[out]  normal             ???
+    @param[out]  pos                Surface point in geodetic coordinates
+    @param[out]  ecef               Surface point in ECEF coordinates
+    @param[out]  decef              Normal as ECEF direction vector
     @param[in]   refellipsoid       As the WSV with same name.
     @param[in]   surface_elevation  As the WSV with same name.
-    @param[in]   pos                Vector with latitude and longitude
-
+    @param[in]   pos2D              Vector with latitude and longitude
 
     @author  Patrick Eriksson
     @date    2023-01-07
 */
-void surface_normal(VectorView normal,
+void surface_normal(VectorView pos,
+                    VectorView ecef,
+                    VectorView decef,
                     const Vector& refellipsoid,
                     const GriddedField2& surface_elevation,
-                    ConstVectorView pos);
+                    ConstVectorView pos2D);
 
 #endif  // variousZZZ_h

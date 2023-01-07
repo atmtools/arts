@@ -511,20 +511,33 @@ void ppathRefracted(Workspace& ws,
           const Numeric cosaa = cos(DEG2RAD * los0[1]);
           const Numeric r = norm2( ecef0 );
           const Numeric dndlatp =  dndlat / r;
-          const Numeric dndlonp =  dndlon / (r * cos(DEG2RAD * pos0[1]));
-          //cout << dndz << " " << dndlatp << " " << dndlonp << endl;
+          // Make sure that we don't divide with zero (if lat = +-90)
+          const Numeric dndlonp =  dndlon / (r * max(cos(DEG2RAD * pos0[1]), 1e-6));
           const Numeric fac = (RAD2DEG * l_rt / n_real);
           //
           los0[0] += fac * (-sinza * dndz +
                             cosza * (cosaa * dndlatp + sinaa * dndlonp));
           los0[1] += fac * sinza * (-sinaa * dndlatp + cosaa * dndlonp);
-          
+          // Make sure we are inside [0,180] and [-180,180]
+          if (los0[0] < 0) {
+            los0[0] = -los0[0];
+            los0[1] += 180;
+          } else if (los0[0] > 180) {
+            los0[0] = 360 - los0[0];
+            los0[1] += 180;
+          }
+          if (los0[1] < -180)
+            los0[1] += 360;
+          else if (los0[1] > 180)
+            los0[1] -= 360;
+
+        // Just vertical gradient to consider:
         } else {
           const Numeric sinza = sin(DEG2RAD * los0[0]);
           //
           los0[0] -= (RAD2DEG * l_rt / n_real) * (sinza * dndz);
         }
-        // Don't firget to update decef0! (efecf0 recalculated)
+        // Don't forget to update decef0! (efecf0 recalculated)
         geodetic_los2ecef(ecef0, decef0, pos0, los0, refellipsoid);
         
       // If not inside, we just need to determine refractive index
@@ -657,3 +670,74 @@ void ppathRefracted(Workspace& ws,
 // from geomtrical path had at least the correct sign.
 //
 // Patrick 230106
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losGeometricToPosition(Vector& rte_los,
+                                const Vector& refellipsoid,
+                                const Vector& rte_pos,
+                                const Vector& target_pos,
+                                const Verbosity&)
+{
+    chk_rte_pos("rte_pos", rte_pos);
+    chk_rte_pos("target_pos", target_pos);
+
+    Vector ecef(3), ecef_target(3), decef(3), dummy(3);
+    rte_los.resize(2);
+    
+    geodetic2ecef(ecef, rte_pos, refellipsoid);
+    geodetic2ecef(ecef_target, target_pos, refellipsoid);
+    ecef_vector_distance(decef, ecef, ecef_target);
+    decef /= norm2(decef);
+    ecef2geodetic_los(dummy, rte_los, ecef, decef, refellipsoid);    
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losGeometricToPosition(Matrix& sensor_los,
+                                   const Vector& refellipsoid,
+                                   const Matrix& sensor_pos,
+                                   const Vector& target_pos,
+                                   const Verbosity&)
+{
+    chk_sensor_pos("sensor_pos", sensor_pos);
+    chk_rte_pos("target_pos", target_pos);
+    const Index n = sensor_pos.nrows();
+
+    Vector ecef(3), ecef_target(3), decef(3), dummy(3);
+    sensor_los.resize(n, 2);
+    geodetic2ecef(ecef_target, target_pos, refellipsoid);
+
+    for (Index i=0; i<n; ++i) {
+      geodetic2ecef(ecef, sensor_pos(i, joker), refellipsoid);
+      ecef_vector_distance(decef, ecef, ecef_target);
+      decef /= norm2(decef);
+      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, refellipsoid);
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losGeometricToPositions(Matrix& sensor_los,
+                                    const Vector& refellipsoid,
+                                    const Matrix& sensor_pos,
+                                    const Matrix& target_pos,
+                                    const Verbosity&)
+{
+    chk_sensor_pos("sensor_pos", sensor_pos);
+    chk_sensor_pos("target_pos", target_pos);
+    const Index n = sensor_pos.nrows();
+    ARTS_USER_ERROR_IF(target_pos.nrows() != n,
+        "*sensor_pos* and *target_pos* must have the same number of rows.");
+
+    Vector ecef(3), ecef_target(3), decef(3), dummy(3);
+    sensor_los.resize(n, 2);
+
+    for (Index i=0; i<n; ++i) {
+      geodetic2ecef(ecef, sensor_pos(i, joker), refellipsoid);
+      geodetic2ecef(ecef_target, target_pos(i, joker), refellipsoid);
+      ecef_vector_distance(decef, ecef, ecef_target);
+      decef /= norm2(decef);
+      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, refellipsoid);
+    }
+}
