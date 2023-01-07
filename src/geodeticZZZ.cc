@@ -41,6 +41,9 @@
 #include "lin_alg.h"
 #include "math_funcs.h"
 
+#include "arts_constexpr_math.h"
+using Math::pow2;
+
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
@@ -660,17 +663,11 @@ void pos_at_distance(VectorView pos,
 
 
 
-Numeric radius_ellipsoid_geocentric_lat(const Numeric& lat,
-                                        ConstVectorView ellipsoid) {
-  if (is_ellipsoid_spherical(ellipsoid)) {
-    return ellipsoid[0];
-  }  else {
-    // r = ab/sqrt(b^2*cos(lat)^2+a^2*sin(lat)^2)
-    const Numeric latrad = DEG2RAD * lat;
-    const Numeric bcoslat = ellipsoid[1]*cos(latrad);
-    const Numeric asinlat = ellipsoid[0]*sin(latrad);
-    return ellipsoid[0]*(ellipsoid[1]/sqrt(bcoslat*bcoslat+asinlat*asinlat));
-  }   
+Numeric prime_vertical_radius(ConstVectorView refellipsoid,
+                              const Numeric& lat) {
+  return refellipsoid[0] * (refellipsoid[0] /
+    sqrt(pow2(refellipsoid[0] * cos(DEG2RAD * lat)) +
+         pow2(refellipsoid[1] * sin(DEG2RAD * lat))));
 }
 
 
