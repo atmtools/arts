@@ -17,9 +17,10 @@ Overall considerations and decisions:
 * Scattering domain:
   - Ignored when ppath calculated
     > MC can use l_total_max
-  - Make WSMs to crop at cloudbox boundary
-    > Include feature now handeled by path_inside_cloudbox_do
-  - and according to scattering mass criterion (also extinction?) 
+  - Make WSM to crop at cloudbox boundary
+    > Include feature now handled by path_inside_cloudbox_do
+  - and another WSM for scattering mass criterion (also extinction?)
+    > that is, crop when e.g. TWC exceeeds a limit
   - ppath_step now limited to DOIT
     > that is, start at a grid crossing demanded
 * Longitudes must now be inside [-180,360].
@@ -48,7 +49,7 @@ IntersectionGeometricLongitude  (x)
 IntersectionGeometricLatitude  (x)
 IntersectionGeometricSurface  (x)
 -
-rte_losGeometricToPosition  (x)
+rte_losGeometricToPositiongit  (x)
 sensor_losGeometricToPosition  (x)
 sensor_losGeometricToPositions  (x)
 rte_losRefractedToPosition
@@ -56,14 +57,18 @@ rte_losRefractedToPosition
 sensor_losRefractedToPosition
 sensor_losRefractedToPositions
 -
-ppathCropDomain
--
 ppathCheckEndPoint  (x)
 ppathCheckInsideDomain  (x)
 ppathCheckInsideGrids  (x)
 -
+
+WSMS to do later
+---
+-
+ppathCropDomain: To stop at boundary of scattering box 
+-
 ppath_stepGeometric
-ppath_stepRefracted
+ppath_stepRefracted: To support DOIT
 
 
 

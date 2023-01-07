@@ -114,8 +114,8 @@ void ecef2geodetic_los(VectorView pos,
 
 /** ECEF position at a given distance 
 
-    *ecef* is *ecef0* is mowed the distance *l* in the direction
-    *specified by decef*
+    *ecef* is *ecef0* is moved the distance *l* in the direction
+    *specified by decef*. *ecef* and *ecef0* can be the argument.
 
     @param[in]  ecef   New position
     @param[in]  ecef0  Start ECEF position (x,y,z)
