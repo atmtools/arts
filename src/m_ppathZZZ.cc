@@ -685,28 +685,40 @@ void ppathRefractedToPosition(Workspace& ws,
                               const Vector& rte_pos,
                               const Vector& target_pos,
                               const Numeric& target_dl,
+                              const String& algorithm,
                               const Index& max_iterations,
+                              const Index& robust,
                               const Numeric& z_toa,
                               const Index& do_horizontal_gradients,
                               const Index& do_twosided_perturb,
                               const Verbosity&)
 {
-  find_refracted_path_between_points(ws,
-                                     ppath,
-                                     refr_index_air_ZZZ_agenda,
-                                     ppath_lstep,
-                                     ppath_lraytrace,
-                                     refellipsoid,
-                                     surface_elevation,
-                                     surface_search_accuracy,
-                                     z_toa,
-                                     do_horizontal_gradients,
-                                     do_twosided_perturb,
-                                     rte_pos,
-                                     target_pos,
-                                     target_dl,
-                                     max_iterations);
-  rte_los = ppath.start_los;
+    chk_rte_pos("rte_pos", rte_pos);
+    chk_rte_pos("target_pos", target_pos);
+
+    if (algorithm == "basic") {
+      refracted_link_basic(ws,
+                           ppath,
+                           refr_index_air_ZZZ_agenda,
+                           ppath_lstep,
+                           ppath_lraytrace,
+                           refellipsoid,
+                           surface_elevation,
+                           surface_search_accuracy,
+                           z_toa,
+                           do_horizontal_gradients,
+                           do_twosided_perturb,
+                           rte_pos,
+                           target_pos,
+                           target_dl,
+                           max_iterations,
+                           robust);
+    
+    } else {
+      ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
+    }
+  
+    rte_los = ppath.start_los;
 }
 
 
@@ -740,10 +752,11 @@ void sensor_losGeometricToPosition(Matrix& sensor_los,
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_rte_pos("target_pos", target_pos);
+    
     const Index n = sensor_pos.nrows();
+    sensor_los.resize(n, 2);
 
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
-    sensor_los.resize(n, 2);
     geodetic2ecef(ecef_target, target_pos, refellipsoid);
 
     for (Index i=0; i<n; ++i) {
@@ -764,12 +777,13 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_sensor_pos("target_pos", target_pos);
+    
     const Index n = sensor_pos.nrows();
     ARTS_USER_ERROR_IF(target_pos.nrows() != n,
         "*sensor_pos* and *target_pos* must have the same number of rows.");
+    sensor_los.resize(n, 2);
 
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
-    sensor_los.resize(n, 2);
 
     for (Index i=0; i<n; ++i) {
       geodetic2ecef(ecef, sensor_pos(i, joker), refellipsoid);
@@ -778,4 +792,114 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
       decef /= norm2(decef);
       ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, refellipsoid);
     }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losRefractedToPosition(Workspace& ws,
+                                   Matrix& sensor_los,
+                                   const Agenda& refr_index_air_ZZZ_agenda,
+                                   const Numeric& ppath_lstep,
+                                   const Numeric& ppath_lraytrace,
+                                   const Vector& refellipsoid,
+                                   const GriddedField2& surface_elevation,
+                                   const Numeric& surface_search_accuracy,
+                                   const Matrix& sensor_pos,
+                                   const Vector& target_pos,
+                                   const Numeric& target_dl,
+                                   const String& algorithm,
+                                   const Index& max_iterations,
+                                   const Index& robust,
+                                   const Numeric& z_toa,
+                                   const Index& do_horizontal_gradients,
+                                   const Index& do_twosided_perturb,
+                                   const Verbosity&)
+{
+    chk_sensor_pos("sensor_pos", sensor_pos);
+    chk_rte_pos("target_pos", target_pos);
+    
+    const Index n = sensor_pos.nrows();
+    sensor_los.resize(n, 2);
+
+    if (algorithm == "basic") {
+      for (Index i=0; i<n; ++i) {
+        Ppath ppath;
+        refracted_link_basic(ws,
+                             ppath,
+                             refr_index_air_ZZZ_agenda,
+                             ppath_lstep,
+                             ppath_lraytrace,
+                             refellipsoid,
+                             surface_elevation,
+                             surface_search_accuracy,
+                             z_toa,
+                             do_horizontal_gradients,
+                             do_twosided_perturb,
+                             sensor_pos(i, joker),
+                             target_pos,
+                             target_dl,
+                             max_iterations,
+                             robust);
+        sensor_los(i, joker) = ppath.start_los;
+      }
+      
+  } else {
+    ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losRefractedToPositions(Workspace& ws,
+                                    Matrix& sensor_los,
+                                    const Agenda& refr_index_air_ZZZ_agenda,
+                                    const Numeric& ppath_lstep,
+                                    const Numeric& ppath_lraytrace,
+                                    const Vector& refellipsoid,
+                                    const GriddedField2& surface_elevation,
+                                    const Numeric& surface_search_accuracy,
+                                    const Matrix& sensor_pos,
+                                    const Matrix& target_pos,
+                                    const Numeric& target_dl,
+                                    const String& algorithm,
+                                    const Index& max_iterations,
+                                    const Index& robust,
+                                    const Numeric& z_toa,
+                                    const Index& do_horizontal_gradients,
+                                    const Index& do_twosided_perturb,
+                                    const Verbosity&)
+{
+    chk_sensor_pos("sensor_pos", sensor_pos);
+    chk_sensor_pos("target_pos", target_pos);
+    
+    const Index n = sensor_pos.nrows();
+    ARTS_USER_ERROR_IF(target_pos.nrows() != n,
+        "*sensor_pos* and *target_pos* must have the same number of rows.");
+    sensor_los.resize(n, 2);
+
+    if (algorithm == "basic") {
+      for (Index i=0; i<n; ++i) {
+        Ppath ppath;
+        refracted_link_basic(ws,
+                             ppath,
+                             refr_index_air_ZZZ_agenda,
+                             ppath_lstep,
+                             ppath_lraytrace,
+                             refellipsoid,
+                             surface_elevation,
+                             surface_search_accuracy,
+                             z_toa,
+                             do_horizontal_gradients,
+                             do_twosided_perturb,
+                             sensor_pos(i, joker),
+                             target_pos(i, joker),
+                             target_dl,
+                             max_iterations,
+                             robust);
+        sensor_los(i, joker) = ppath.start_los;
+      }
+      
+  } else {
+    ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
+  }
 }
