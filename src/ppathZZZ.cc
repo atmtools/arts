@@ -39,143 +39,6 @@
 #include "variousZZZ.h"
 
 
-void find_refracted_path_between_points(Workspace& ws,
-                                        Ppath& ppath,
-                                        const Agenda& refr_index_air_ZZZ_agenda,
-                                        const Numeric& ppath_lstep,
-                                        const Numeric& ppath_lraytrace,
-                                        const Vector& refellipsoid,
-                                        const GriddedField2& surface_elevation,
-                                        const Numeric& surface_search_accuracy,
-                                        const Numeric& z_toa,
-                                        const Index& do_horizontal_gradients,
-                                        const Index& do_twosided_perturb,
-                                        const Vector& start_pos,
-                                        const Vector& target_pos,
-                                        const Numeric& target_dl,
-                                        const Index& max_iterations)
-{
-  // Start and target positions as ECEF
-  Vector ecef_start(3), ecef_target(3);
-  geodetic2ecef(ecef_start, start_pos, refellipsoid);
-  geodetic2ecef(ecef_target, target_pos, refellipsoid);
-
-  // The estimated geometric "false" target position
-  // We take target_pos as first guess
-  Vector target_false = target_pos;
-  Vector ecef_false = ecef_target;
-
-  // Surface elevation to use if downward looking
-  GriddedField2 surface_elevation_m10km;
-  LatLonFieldSetConstant(surface_elevation_m10km, -10e3, "", Verbosity());
-
-  Numeric l2false;
-  Vector rte_los(2);
-  Vector ecef(3), decef(3);  // Used for several purposes
-  bool ready = false;
-  bool downward = false;
-  Index iteration = 0;
-  while (!ready) {
-
-    // Geometric LOS to false target
-    Vector dummy(3);
-    ecef_vector_distance(decef, ecef_start, ecef_false);
-    decef /= norm2(decef);
-    ecef2geodetic_los(dummy, rte_los, ecef_start, decef, refellipsoid);
-
-    // Geometric distance to false target
-    l2false = ecef_distance(ecef_start, ecef_false);
-
-    // If iteration 0, check if risk for downward view. If yes we
-    // iterate with surface at -10 km, and if convergence check
-    // afterwards if there is an intersection
-    if (!iteration && rte_los[0] > 90)
-      downward = true;
-    
-    // Refracted with same los and ltotal
-    ppathRefracted(ws,
-                   ppath,
-                   refr_index_air_ZZZ_agenda,
-                   start_pos,
-                   rte_los,
-                   ppath_lstep,
-                   l2false,
-                   ppath_lraytrace,
-                   refellipsoid,
-                   downward ? surface_elevation_m10km : surface_elevation,
-                   surface_search_accuracy,
-                   z_toa,
-                   do_horizontal_gradients,
-                   do_twosided_perturb,
-                   0,
-                   Verbosity());
-
-    // Intersection with surface?
-    ARTS_USER_ERROR_IF(ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE,
-                       "Ended up with surface intersection during iteration!\n"
-                       "Target position seems to be behind the horizon\n"
-                       "Giving up ....");
-
-    // Extend ppath into space?
-    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SPACE) {
-      const Numeric l2end = l2false - ppath.start_lstep - ppath.lstep.sum();
-      if (l2end > 0) {
-        geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
-        ecef_at_distance(ecef, ecef, decef, l2end);
-        ecef2geodetic_los(ppath.end_pos, ppath.end_los, ecef, decef, refellipsoid);
-        ppath.end_lstep = l2end;
-      }
-    }
-
-    // Distance to target
-    geodetic2ecef(ecef, ppath.end_pos, refellipsoid);
-    ecef_vector_distance(decef, ecef_target, ecef);
-    Numeric dl = norm2(decef);
-    cout << dl << endl;
-    if (iteration && dl < target_dl)
-      ready = true;
-
-    // Update target_geom by moving it with negative miss vector
-    if (!ready) {
-      decef *= -1.0;
-      ecef_false += decef;
-
-      iteration++;
-      ARTS_USER_ERROR_IF(iteration > max_iterations,
-                         "Maximum number of iterations reached!\n"
-                         "Giving up ....");
-    }
-  }
-
-  // If we have worked with negaive surface elevation, redo with
-  // correct surface elevation.
-  if (downward) {
-    ppathRefracted(ws,
-                   ppath,
-                   refr_index_air_ZZZ_agenda,
-                   start_pos,
-                   rte_los,
-                   ppath_lstep,
-                   l2false,
-                   ppath_lraytrace,
-                   refellipsoid,
-                   surface_elevation,
-                   surface_search_accuracy,
-                   z_toa,
-                   do_horizontal_gradients,
-                   do_twosided_perturb,
-                   0,
-                   Verbosity());
-    
-    ARTS_USER_ERROR_IF(ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE,
-        "Target position can not be reached due to surface intersection!\n");
-  }
-  
-  // Set background
-  ppath.backgroundZZZ = PPATH_BACKGROUND_OTHER_POS;
-}
-
-
 void ppath_add_grid_crossings(Ppath& ppath,
                               const Vector& refellipsoid,
                               const Vector& z_grid,
@@ -510,6 +373,183 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
       l2toa = intersection_altitude(ecef, decef, refellipsoid, z_toa);
     }
     return true;
+  }
+}
+
+
+void refracted_link_basic(Workspace& ws,
+                          Ppath& ppath,
+                          const Agenda& refr_index_air_ZZZ_agenda,
+                          const Numeric& ppath_lstep,
+                          const Numeric& ppath_lraytrace,
+                          const Vector& refellipsoid,
+                          const GriddedField2& surface_elevation,
+                          const Numeric& surface_search_accuracy,
+                          const Numeric& z_toa,
+                          const Index& do_horizontal_gradients,
+                          const Index& do_twosided_perturb,
+                          const Vector& start_pos,
+                          const Vector& target_pos,
+                          const Numeric& target_dl,
+                          const Index& max_iterations,
+                          const Index& robust)
+{
+  // Start and target positions as ECEF
+  Vector ecef_start(3), ecef_target(3);
+  geodetic2ecef(ecef_start, start_pos, refellipsoid);
+  geodetic2ecef(ecef_target, target_pos, refellipsoid);
+
+  // The estimated geometric "false" target position
+  // We take target_pos as first guess
+  Vector target_false = target_pos;
+  Vector ecef_false = ecef_target;
+
+  // Surface elevation to use if downward looking
+  GriddedField2 surface_elevation_m10km;
+  LatLonFieldSetConstant(surface_elevation_m10km, -10e3, "", Verbosity());
+
+  // Various variables used below
+  Numeric l2false;
+  Vector rte_los(2);
+  Vector ecef(3), decef(3);  // Used for several purposes
+  bool downward = false;
+  Index iteration = 0;
+  bool ready = false;
+  bool any_failure = false;
+
+  // Loop until ready or any failure
+  while (!ready) {
+
+    // Geometric LOS to false target
+    Vector dummy(3);
+    ecef_vector_distance(decef, ecef_start, ecef_false);
+    decef /= norm2(decef);
+    ecef2geodetic_los(dummy, rte_los, ecef_start, decef, refellipsoid);
+
+    // Geometric distance to false target
+    l2false = ecef_distance(ecef_start, ecef_false);
+
+    // If iteration 0, check if risk for downward view. If yes we
+    // iterate with surface at -10 km, and if convergence check
+    // afterwards if there is an intersection
+    if (!iteration && rte_los[0] > 90)
+      downward = true;
+    
+    // Refracted with same los and ltotal
+    ppathRefracted(ws,
+                   ppath,
+                   refr_index_air_ZZZ_agenda,
+                   start_pos,
+                   rte_los,
+                   ppath_lstep,
+                   l2false,
+                   ppath_lraytrace,
+                   refellipsoid,
+                   downward ? surface_elevation_m10km : surface_elevation,
+                   surface_search_accuracy,
+                   z_toa,
+                   do_horizontal_gradients,
+                   do_twosided_perturb,
+                   0,
+                   Verbosity());
+
+    // Intersection with surface?
+    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+      if (robust) {
+        any_failure = true;
+        break;
+      } else {
+        ARTS_USER_ERROR("Ended up with surface intersection during iteration!\n"
+                        "Target position seems to be behind the horizon\n"
+                        "Giving up ....");
+      }
+    }
+    
+    // Extend ppath into space?
+    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SPACE) {
+      const Numeric l2end = l2false - ppath.start_lstep - ppath.lstep.sum();
+      if (l2end > 0) {
+        geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
+        ecef_at_distance(ecef, ecef, decef, l2end);
+        ecef2geodetic_los(ppath.end_pos, ppath.end_los, ecef, decef, refellipsoid);
+        ppath.end_lstep = l2end;
+      }
+    }
+
+    // Distance to target
+    geodetic2ecef(ecef, ppath.end_pos, refellipsoid);
+    ecef_vector_distance(decef, ecef_target, ecef);
+    Numeric dl = norm2(decef);
+    if (iteration && dl < target_dl)
+      ready = true;
+
+    // Update target_geom by moving it with negative miss vector
+    if (!ready) {
+      decef *= -1.0;
+      ecef_false += decef;
+
+      iteration++;
+
+      if (iteration > max_iterations) {
+        if (robust) {
+          any_failure = true;
+          break;
+        } else {
+          ARTS_USER_ERROR("Maximum number of iterations reached!\n"
+                          "Giving up ....");
+        }
+      }
+    }
+  }
+
+  // Post-processing part:
+  
+  // If we have worked with negative surface altitude, we now make a
+  // test if the path works with actual surface altitude
+  if (!any_failure && downward) {
+    ppathRefracted(ws,
+                   ppath,
+                   refr_index_air_ZZZ_agenda,
+                   start_pos,
+                   rte_los,
+                   ppath_lstep,
+                   l2false,
+                   ppath_lraytrace,
+                   refellipsoid,
+                   surface_elevation,
+                   surface_search_accuracy,
+                   z_toa,
+                   do_horizontal_gradients,
+                   do_twosided_perturb,
+                   0,
+                   Verbosity());
+    
+    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+      if (robust) {
+        any_failure = true;
+      } else {
+        ARTS_USER_ERROR("Target position can not be reached due to "
+                        "surface intersection!\n");
+      }
+    }
+  }
+  
+  if (!any_failure) {
+    // Just remains to set background
+    ppath.backgroundZZZ = PPATH_BACKGROUND_OTHER_POS;
+
+  } else {
+    // Set empty ppath
+    ppath.backgroundZZZ = PPATH_BACKGROUND_UNDEFINED;
+    ppath.np = 0;
+    ppath.pos.resize(0, 0);
+    ppath.los.resize(0, 0);
+    ppath.lstep.resize(0);
+    ppath.nreal.resize(0);
+    ppath.ngroup.resize(0);
+    ppath.end_pos = ppath.start_pos;
+    ppath.end_los = ppath.start_los;
+    ppath.end_lstep = 0;
   }
 }
 

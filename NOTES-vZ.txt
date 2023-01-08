@@ -52,10 +52,9 @@ IntersectionGeometricSurface  (x)
 rte_losGeometricToPositiongit  (x)
 sensor_losGeometricToPosition  (x)
 sensor_losGeometricToPositions  (x)
-rte_losRefractedToPosition
-  - latest ppath is also output
-sensor_losRefractedToPosition
-sensor_losRefractedToPositions
+ppathRefractedToPosition  (x)
+sensor_losRefractedToPosition  (x)
+sensor_losRefractedToPositions (x)
 -
 ppathCheckEndPoint  (x)
 ppathCheckInsideDomain  (x)
@@ -69,7 +68,6 @@ ppathCropDomain: To stop at boundary of scattering box
 -
 ppath_stepGeometric
 ppath_stepRefracted: To support DOIT
-
 
 
 Other ideas:
