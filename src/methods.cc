@@ -19712,8 +19712,8 @@ where N>=0 and the species name is something line "H2O".
           "radius",
           "distance",
           "temperature",
-          "latitude",
-          "longitude",
+          "zenith",
+          "azimuth",
           "description",
           "location_latitude",
           "location_longitude",
@@ -19747,8 +19747,8 @@ where N>=0 and the species name is something line "H2O".
                "The temperature of the padding if the f_grid is outside the \n"
                "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"
                "temperature for a padding using plack's law.\n",
-               "The latitude or the zenith position of the sun in the sky.\n",
-               "The longitude or azimuthal position of the sun in the sky.\n",
+               "Zenith angle of the sun in the sky.\n",
+               "Azimuthal angle of the sun in the sky.\n",
                "The description of the sun.\n",
                "The latitude of the sun spectrum measurement.\n",
                "The longitude of the sun spectrum measurement.\n",

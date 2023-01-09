@@ -21,12 +21,14 @@
   ===  File description
   ===========================================================================*/
 
+#include "matpack.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "geodetic.h"
 #include "sun.h"
+#include <iostream>
 
 
 /*!
@@ -131,8 +133,8 @@ void sunsAddSingleFromGridAtLocation(
                          const Numeric &radius,
                          const Numeric &distance,
                          const Numeric &temperature,
-                         const Numeric &latitude,
-                         const Numeric &longitude,
+                         const Numeric &zenith,
+                         const Numeric &azimuth,
                          const String &description,
                          const Numeric &location_latitude,
                          const Numeric &location_longitude,
@@ -147,7 +149,34 @@ void sunsAddSingleFromGridAtLocation(
                       "The altitude of the solar spectrum should be positiv,\n"
                       "but is ",location_altitude," m) ")
 
+  // from local position to global position
   Numeric toa_altitude = location_altitude + refell2r(refellipsoid, location_latitude);
+  
+  Numeric x, y, z, dx, dy, dz;
+  poslos2cart(x,
+              y,
+              z,
+              dx,
+              dy,
+              dz,
+              toa_altitude,
+              location_latitude,
+              location_longitude,
+              zenith,
+              azimuth);
+
+  Vector sun_pos_cart = {x+distance*dx, y+distance*dy, z+distance*dz};
+  Numeric altitude, latitude, longitude;
+  cart2sph(altitude, 
+          latitude,
+          longitude,
+          sun_pos_cart[0],
+          sun_pos_cart[1],
+          sun_pos_cart[2],
+          location_latitude,
+          location_longitude,
+          zenith, azimuth);
+
 
   Numeric distance_sun_loc;
   distance3D(distance_sun_loc,
@@ -157,6 +186,10 @@ void sunsAddSingleFromGridAtLocation(
               distance,
               latitude,
               longitude);
+
+  std::cout << "Distance Input:     " << distance;
+  std::cout << "Determent Distance: " << distance_sun_loc;
+  std::cout << "Sun position" << altitude << latitude << longitude;
 
   // Geometric scaling factor, scales the sun spectral irradiance at the given
   // location to the spectral irradiance of the suns surface.
