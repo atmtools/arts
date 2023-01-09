@@ -80,11 +80,14 @@ void ppathCheckEndPoint(const Ppath& ppath,
 {
   // pos and los to check
   ConstVectorView pos = ppath.end_pos, los = ppath.end_los;
+  PpathBackground ppath_background{background};
 
-  ARTS_USER_ERROR_IF(background >= 0 && ppath.backgroundZZZ != background,
-                     "Radiative background not as expected!\n"
-                     "  background in ppath: ", ppath.backgroundZZZ,
-                     "\n  background expected: ", background);
+  ARTS_USER_ERROR_IF(
+      ppath_background != PpathBackground::PPATH_BACKGROUND_UNDEFINED &&
+          ppath.backgroundZZZ != ppath_background,
+      "Radiative background not as expected!\n"
+      "  background in ppath: ",
+      ppath.backgroundZZZ, "\n  background expected: ", ppath_background);
 
   ARTS_USER_ERROR_IF(np >= 0 && ppath.np != np,
                      "Number of ppath points not as expected!\n"
@@ -201,12 +204,12 @@ void ppathGeometric(Ppath& ppath,
 
   // Number of points in ppath and radiative background
   Index np = -1;  // -1 flags not yet known
-  enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
+  PpathBackground background = PpathBackground::PPATH_BACKGROUND_UNDEFINED;
 
   // No ppath if above and looking outside of atmosphere
   if (start_in_space && l_outside < 0) {
     np = 0;
-    background = PPATH_BACKGROUND_SPACE;
+    background = PpathBackground::PPATH_BACKGROUND_SPACE;
 
   // We have a path!
   } else {
@@ -225,7 +228,7 @@ void ppathGeometric(Ppath& ppath,
 
     // If intersection with surface, we have found end
     if (l_inside > 0) {
-      background = PPATH_BACKGROUND_SURFACE;
+      background = PpathBackground::PPATH_BACKGROUND_SURFACE;
     // If not, end must be TOA, but
     } else {
       if (start_in_space) {
@@ -240,13 +243,13 @@ void ppathGeometric(Ppath& ppath,
         // We have upward or limb, both from within the atmosphere
         l_inside = intersection_altitude(ecef, decef, refellipsoid, z_toa);
       }
-      background = PPATH_BACKGROUND_SPACE;
+      background = PpathBackground::PPATH_BACKGROUND_SPACE;
     }
 
     // Consider ppath_ltotal
     if (ppath_ltotal > 0 && l_inside > ppath_ltotal) {
       l_inside = ppath_ltotal;
-      background = PPATH_BACKGROUND_STOP_DISTANCE;
+      background = PpathBackground::PPATH_BACKGROUND_STOP_DISTANCE;
     }
 
     // Determine np and l_step
@@ -256,7 +259,7 @@ void ppathGeometric(Ppath& ppath,
 
   // Fill ppath
   ppath.np = np;
-  ARTS_ASSERT(background != PPATH_BACKGROUND_UNDEFINED);
+  ARTS_ASSERT(background != PpathBackground::PPATH_BACKGROUND_UNDEFINED);
   ppath.backgroundZZZ = background;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
@@ -293,7 +296,7 @@ void ppathGeometric(Ppath& ppath,
   }
 
   // If surface intersection, include part beyond?
-  if (include_specular_ppath && ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+  if (include_specular_ppath && ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SURFACE) {
 
     Vector pos = ppath.pos(ppath.np-1, joker);
     Vector los(2);
@@ -363,7 +366,7 @@ void ppathRefracted(Workspace& ws,
 
   // Number of points in ppath and radiative background
   Index np = -1;  // -1 flags not yet known
-  enum PpathBackground background = PPATH_BACKGROUND_UNDEFINED;
+  PpathBackground background = PpathBackground::PPATH_BACKGROUND_UNDEFINED;
 
   // Containers for found pos, los, lstep and refractive indices
   Array<Vector> pos_a;
@@ -373,7 +376,7 @@ void ppathRefracted(Workspace& ws,
   // No ppath if above and looking outside of atmosphere
   if (start_in_space && l_outside < 0) {
     np = 0;
-    background = PPATH_BACKGROUND_SPACE;
+    background = PpathBackground::PPATH_BACKGROUND_SPACE;
 
   // We have a path!
   } else {
@@ -442,7 +445,7 @@ void ppathRefracted(Workspace& ws,
       // Above TOA?
       if (pos_try[0] >= z_toa) {
         inside = false;
-        background = PPATH_BACKGROUND_SPACE;
+        background = PpathBackground::PPATH_BACKGROUND_SPACE;
         l2pos0 = intersection_altitude(ecef0, decef0, refellipsoid, z_toa);
         ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
         ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
@@ -452,7 +455,7 @@ void ppathRefracted(Workspace& ws,
       else if (ppath_ltotal > 0 && ppath_ltotal <= l_from_start + l2pos0) {
         // Fill and extend if condition
         inside = false;
-        background = PPATH_BACKGROUND_STOP_DISTANCE;
+        background = PpathBackground::PPATH_BACKGROUND_STOP_DISTANCE;
         l2pos0 = ppath_ltotal - l_from_start;
         ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
         ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
@@ -463,7 +466,7 @@ void ppathRefracted(Workspace& ws,
                                                  pos_try[Range(1, 2)]);
         if (pos_try[0] <= z_surface) {
           inside = false;
-          background = PPATH_BACKGROUND_SURFACE;
+          background = PpathBackground::PPATH_BACKGROUND_SURFACE;
           l2pos0 = find_crossing_with_surface_z(pos0,
                                                 los0,
                                                 ecef0,
@@ -573,7 +576,7 @@ void ppathRefracted(Workspace& ws,
 
   // Fill ppath
   ppath.np = np;
-  ARTS_ASSERT(background != PPATH_BACKGROUND_UNDEFINED);
+  ARTS_ASSERT(background != PpathBackground::PPATH_BACKGROUND_UNDEFINED);
   ppath.backgroundZZZ = background;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
@@ -606,7 +609,7 @@ void ppathRefracted(Workspace& ws,
   }
 
   // If surface intersection, include part beyond?
-  if (include_specular_ppath && ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+  if (include_specular_ppath && ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SURFACE) {
 
     Vector pos = ppath.pos(ppath.np-1, joker);
     Vector los(2);
