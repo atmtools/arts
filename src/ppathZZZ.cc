@@ -36,6 +36,7 @@
 #include "geodeticZZZ.h"
 #include "lin_alg.h"
 #include "ppathZZZ.h"
+#include "ppath_struct.h"
 #include "variousZZZ.h"
 
 
@@ -454,7 +455,7 @@ void refracted_link_basic(Workspace& ws,
                    Verbosity());
 
     // Intersection with surface?
-    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+    if (ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SURFACE) {
       if (robust) {
         any_failure = true;
         break;
@@ -466,7 +467,7 @@ void refracted_link_basic(Workspace& ws,
     }
     
     // Extend ppath into space?
-    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SPACE) {
+    if (ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SPACE) {
       const Numeric l2end = l2false - ppath.start_lstep - ppath.lstep.sum();
       if (l2end > 0) {
         geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
@@ -524,7 +525,7 @@ void refracted_link_basic(Workspace& ws,
                    0,
                    Verbosity());
     
-    if (ppath.backgroundZZZ == PPATH_BACKGROUND_SURFACE) {
+    if (ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SURFACE) {
       if (robust) {
         any_failure = true;
       } else {
@@ -536,11 +537,11 @@ void refracted_link_basic(Workspace& ws,
   
   if (!any_failure) {
     // Just remains to set background
-    ppath.backgroundZZZ = PPATH_BACKGROUND_OTHER_POS;
+    ppath.backgroundZZZ = PpathBackground::PPATH_BACKGROUND_OTHER_POS;
 
   } else {
     // Set empty ppath
-    ppath.backgroundZZZ = PPATH_BACKGROUND_UNDEFINED;
+    ppath.backgroundZZZ = PpathBackground::PPATH_BACKGROUND_UNDEFINED;
     ppath.np = 0;
     ppath.pos.resize(0, 0);
     ppath.los.resize(0, 0);

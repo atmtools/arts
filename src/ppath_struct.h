@@ -2,17 +2,17 @@
 #define ppath_struct_h
 
 #include "matpack_data.h"
+#include "enums.h"
 #include "mystring.h"
 #include "interpolation.h"
 
-enum PpathBackground {
-  PPATH_BACKGROUND_UNDEFINED = 0,
-  PPATH_BACKGROUND_SPACE = 1,
-  PPATH_BACKGROUND_SURFACE = 2,
-  PPATH_BACKGROUND_CLOUDBOX = 3,
-  PPATH_BACKGROUND_OTHER_POS = 4,
-  PPATH_BACKGROUND_STOP_DISTANCE = 9  
-};
+ENUMCLASS(PpathBackground, Index,
+  PPATH_BACKGROUND_UNDEFINED,
+  PPATH_BACKGROUND_SPACE,
+  PPATH_BACKGROUND_SURFACE,
+  PPATH_BACKGROUND_CLOUDBOX,
+  PPATH_BACKGROUND_OTHER_POS,
+  PPATH_BACKGROUND_STOP_DISTANCE);
 
 /*===========================================================================
   === The Ppath structure
@@ -47,7 +47,7 @@ struct Ppath {
   Numeric constant;            // To be removed
   /** Radiative background */
   String background;
-  enum PpathBackground backgroundZZZ;   // New version
+  PpathBackground backgroundZZZ;   // New version
   /** Start position */
   Vector start_pos;
   /** Start line-of-sight */
