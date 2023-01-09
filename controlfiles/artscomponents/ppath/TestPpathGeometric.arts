@@ -45,7 +45,7 @@ ppathCheckEndPoint( background = 2,
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 2000e3,
                 ppath_ltotal = 12e3 )
-ppathCheckEndPoint( background = 9,
+ppathCheckEndPoint( background = 5,
                     np = 2 )
 
 # Sensor in space and doing limb sounding
@@ -87,6 +87,6 @@ ppathCheckEndPoint( background = 1 )
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 12e3,
                 ppath_ltotal = 20e3 )
-ppathCheckEndPoint( background = 9 )
+ppathCheckEndPoint( background = 5 )
 
 }
