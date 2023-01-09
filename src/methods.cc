@@ -19741,8 +19741,8 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
                "The radius of the sun in meter.\n"
                "Default is the radius of our Sun.\n",
-               "The average distance between the center of the sun and the \n"
-               "center of the planet in meter.\n"
+               "The distance between the location and the \n"
+               "center of the sun in meter.\n"
                "Default value is set to 1 a.u.\n",
                "The temperature of the padding if the f_grid is outside the \n"
                "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"

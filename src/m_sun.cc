@@ -152,48 +152,45 @@ void sunsAddSingleFromGridAtLocation(
   // from local position to global position
   Numeric toa_altitude = location_altitude + refell2r(refellipsoid, location_latitude);
   
+  Numeric sun_altitude, sun_latitude, sun_longitude;
+  if (zenith < ANGTOL){
+    sun_altitude = distance + toa_altitude;
+    sun_latitude = location_latitude;
+    sun_longitude = location_longitude;
+  } else if (zenith > 180 - ANGTOL) {
+    sun_altitude = distance - toa_altitude;
+    sun_latitude = -location_latitude;
+    sun_longitude = location_longitude + 180 - 360.0 * Numeric(round((location_longitude - 0.0) / 360.0));
+  } else {
   Numeric x, y, z, dx, dy, dz;
-  poslos2cart(x,
-              y,
-              z,
-              dx,
-              dy,
-              dz,
-              toa_altitude,
-              location_latitude,
-              location_longitude,
-              zenith,
-              azimuth);
+    poslos2cart(x,
+                y,
+                z,
+                dx,
+                dy,
+                dz,
+                toa_altitude,
+                location_latitude,
+                location_longitude,
+                zenith,
+                azimuth);
 
-  Vector sun_pos_cart = {x+distance*dx, y+distance*dy, z+distance*dz};
-  Numeric altitude, latitude, longitude;
-  cart2sph(altitude, 
-          latitude,
-          longitude,
-          sun_pos_cart[0],
-          sun_pos_cart[1],
-          sun_pos_cart[2],
-          location_latitude,
-          location_longitude,
-          zenith, azimuth);
+    Vector sun_pos_cart = {x+distance*dx, y+distance*dy, z+distance*dz};
+    cart2sph(sun_altitude, 
+            sun_latitude,
+            sun_longitude,
+            sun_pos_cart[0],
+            sun_pos_cart[1],
+            sun_pos_cart[2],
+            location_latitude,
+            location_longitude,
+            zenith, azimuth);
+  }
 
-
-  Numeric distance_sun_loc;
-  distance3D(distance_sun_loc,
-              toa_altitude,
-              location_latitude,
-              location_longitude,
-              distance,
-              latitude,
-              longitude);
-
-  std::cout << "Distance Input:     " << distance;
-  std::cout << "Determent Distance: " << distance_sun_loc;
-  std::cout << "Sun position" << altitude << latitude << longitude;
 
   // Geometric scaling factor, scales the sun spectral irradiance at the given
   // location to the spectral irradiance of the suns surface.
-  Numeric scale_factor = (radius*radius + distance_sun_loc*distance_sun_loc)/
+  Numeric scale_factor = (radius*radius + distance*distance)/
                          (radius*radius);
 
   // init sun
@@ -204,9 +201,9 @@ void sunsAddSingleFromGridAtLocation(
 
   new_sun.description = description;
   new_sun.radius = radius;
-  new_sun.distance = distance;
-  new_sun.latitude = latitude;
-  new_sun.longitude = longitude;
+  new_sun.distance = sun_altitude;
+  new_sun.latitude = sun_latitude;
+  new_sun.longitude = sun_longitude;
 
   // set flag
   suns_do = 1;
