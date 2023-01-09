@@ -987,7 +987,7 @@ void sensor_checkedCalc(Index& sensor_checked,
                         const Matrix& sensor_pos,
                         const Matrix& sensor_los,
                         const Matrix& transmitter_pos,
-                        const Matrix& mblock_dlos_grid,
+                        const Matrix& mblock_dlos,
                         const Sparse& sensor_response,
                         const Vector& sensor_response_f,
                         const ArrayOfIndex& sensor_response_pol,
@@ -995,7 +995,7 @@ void sensor_checkedCalc(Index& sensor_checked,
                         const Verbosity&) {
   // Some sizes
   const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos_grid.nrows();
+  const Index nlos = mblock_dlos.nrows();
   const Index n1y = sensor_response.nrows();
   const Index nmblock = sensor_pos.nrows();
   const Index niyb = nf * nlos * stokes_dim;
@@ -1051,15 +1051,15 @@ void sensor_checkedCalc(Index& sensor_checked,
           "2 for 1D/2D or 3 columns for 3D.");
   }
 
-  // mblock_dlos_grid
+  // mblock_dlos
   //
-  ARTS_USER_ERROR_IF (mblock_dlos_grid.empty(),
-        "*mblock_dlos_grid* is empty.");
-  ARTS_USER_ERROR_IF (mblock_dlos_grid.ncols() > 2,
-        "The maximum number of columns in *mblock_dlos_grid* is two.");
+  ARTS_USER_ERROR_IF (mblock_dlos.empty(),
+        "*mblock_dlos* is empty.");
+  ARTS_USER_ERROR_IF (mblock_dlos.ncols() > 2,
+        "The maximum number of columns in *mblock_dlos* is two.");
   if (atmosphere_dim < 3) {
-    ARTS_USER_ERROR_IF (mblock_dlos_grid.ncols() != 1,
-          "For 1D and 2D *mblock_dlos_grid* must have exactly one column.");
+    ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 1,
+          "For 1D and 2D *mblock_dlos* must have exactly one column.");
   }
 
   // Sensor

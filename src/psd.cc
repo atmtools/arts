@@ -653,8 +653,7 @@ void psd_mono_common(Matrix& psd_data,
     throw runtime_error("*pnd_agenda_input* must have one column.");
   if (nsi != 1)
     throw runtime_error(
-        "This method demands that length of "
-        "*psd_size_grid* is 1.");
+        "This method demands that length of *psd_size_grid* is 1.");
 
   // Extract particle mass
   Numeric pmass = 0;

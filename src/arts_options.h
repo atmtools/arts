@@ -154,9 +154,6 @@ ENUMCLASS(ybatch_calc_agendaDefaultOptions, char)
 /** Options for setting test_agenda */
 ENUMCLASS(test_agendaDefaultOptions, char)
 
-/** Options for setting surface_rtprop_sub_agenda */
-ENUMCLASS(surface_rtprop_sub_agendaDefaultOptions, char)
-
 /** Options for setting spt_calc_agenda */
 ENUMCLASS(spt_calc_agendaDefaultOptions, char)
 

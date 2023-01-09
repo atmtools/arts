@@ -2588,7 +2588,7 @@ void yCalc(Workspace& ws,
            const Matrix& sensor_pos,
            const Matrix& sensor_los,
            const Matrix& transmitter_pos,
-           const Matrix& mblock_dlos_grid,
+           const Matrix& mblock_dlos,
            const Sparse& sensor_response,
            const Vector& sensor_response_f,
            const ArrayOfIndex& sensor_response_pol,
@@ -2631,7 +2631,7 @@ void yCalc(Workspace& ws,
 
   // Some sizes
   const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos_grid.nrows();
+  const Index nlos = mblock_dlos.nrows();
   const Index n1y = sensor_response.nrows();
   const Index nmblock = sensor_pos.nrows();
   const Index niyb = nf * nlos * stokes_dim;
@@ -2708,7 +2708,7 @@ void yCalc(Workspace& ws,
                              sensor_pos,
                              sensor_los,
                              transmitter_pos,
-                             mblock_dlos_grid,
+                             mblock_dlos,
                              sensor_response,
                              sensor_response_f,
                              sensor_response_pol,
@@ -2751,7 +2751,7 @@ void yCalc(Workspace& ws,
                              sensor_pos,
                              sensor_los,
                              transmitter_pos,
-                             mblock_dlos_grid,
+                             mblock_dlos,
                              sensor_response,
                              sensor_response_f,
                              sensor_response_pol,
@@ -2830,7 +2830,7 @@ void yCalcAppend(Workspace& ws,
                  const Matrix& sensor_pos,
                  const Matrix& sensor_los,
                  const Matrix& transmitter_pos,
-                 const Matrix& mblock_dlos_grid,
+                 const Matrix& mblock_dlos,
                  const Sparse& sensor_response,
                  const Vector& sensor_response_f,
                  const ArrayOfIndex& sensor_response_pol,
@@ -2905,7 +2905,7 @@ void yCalcAppend(Workspace& ws,
         sensor_pos,
         sensor_los,
         transmitter_pos,
-        mblock_dlos_grid,
+        mblock_dlos,
         sensor_response,
         sensor_response_f,
         sensor_response_pol,
@@ -3231,6 +3231,118 @@ void yApplyUnit(Vector& y,
       // y (must be done last)
       apply_iy_unit(yv, iy_unit, y_f[i], 1, i_pol);
       y[i] = yv(0, 0);
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void y_geo_seriesFromY_geo(Matrix& y_geo_series,
+                           const Matrix& y_geo,
+                           const Vector& sensor_response_f_grid,
+                           const Verbosity&)
+{
+  // Sizes
+  const Index ly = y_geo.nrows();
+  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index lseries = ly / nchannel;
+  
+  ARTS_USER_ERROR_IF (nchannel * lseries != ly,
+    "Row size of *y_geo* not an even multiple of length of *sensor_response_f_grid*.")
+
+  y_geo_series.resize(lseries, y_geo.ncols());
+
+  Index i = 0;
+  for (Index s=0; s<lseries; ++s) {
+    y_geo_series(s, joker) = y_geo(i, joker);
+    i += nchannel;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void y_geo_swathFromY_geo(Tensor3& y_geo_swath,
+                          const Matrix& y_geo,
+                          const Vector& sensor_response_f_grid,
+                          const Index& npixel,
+                          const Verbosity&)
+{
+  // Sizes
+  const Index ly = y_geo.nrows();
+  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index nswath = ly / (nchannel * npixel);
+  
+  ARTS_USER_ERROR_IF (nchannel * npixel * nswath != ly,
+    "Row size of *y_geo* does not match given *npixel* and *sensor_response_f_grid*.")
+
+  y_geo_swath.resize(nswath, npixel, y_geo.ncols());
+
+  Index i = 0;
+  for (Index s=0; s<nswath; ++s) {
+    for (Index p=0; p<npixel; ++p) {
+      y_geo_swath(s, p, joker) = y_geo(i, joker);
+      i += nchannel;
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void y_seriesFromY(Matrix& y_series,
+                   const Vector& y,
+                   const Vector& y_f,
+                   const Vector& sensor_response_f_grid,
+                   const Index& safe,
+                   const Verbosity&)
+{
+  // Sizes
+  const Index ly = y.nelem();
+  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index lseries = ly / nchannel;
+  
+  ARTS_USER_ERROR_IF (nchannel * lseries != ly,
+    "Length of *y* not an even multiple of length of *sensor_response_f_grid*.")
+
+  y_series.resize(lseries, nchannel);
+
+  Index i = 0;
+  for (Index s=0; s<lseries; ++s) {
+    for (Index c=0; c<nchannel; ++c) {
+      if (safe && s > 0) {
+        ARTS_USER_ERROR_IF (fabs(y_f[i] - y_f[i-nchannel]) > 1,
+                          "At least one channel varies in frequency.")
+      }
+      y_series(s, c) = y[i++];
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void y_swathFromY(Tensor3& y_swath,
+                  const Vector& y,
+                  const Vector& y_f,
+                  const Vector& sensor_response_f_grid,
+                  const Index& npixel,
+                  const Index& safe,
+                  const Verbosity&)
+{
+  // Sizes
+  const Index ly = y.nelem();
+  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index nswath = ly / (nchannel * npixel);
+  
+  ARTS_USER_ERROR_IF (nchannel * npixel * nswath != ly,
+    "Length of *y* does not match given *npixel* and *sensor_response_f_grid*.")
+
+  y_swath.resize(nswath, npixel, nchannel);
+
+  Index i = 0;
+  for (Index s=0; s<nswath; ++s) {
+    for (Index p=0; p<npixel; ++p) {
+      for (Index c=0; c<nchannel; ++c) {
+        if (safe && (p > 0 || s > 0)) {
+          ARTS_USER_ERROR_IF (fabs(y_f[i] - y_f[i-nchannel]) > 1,
+                              "At least one channel varies in frequency.")
+        }
+        y_swath(s, p, c) = y[i++];
+      }
     }
   }
 }

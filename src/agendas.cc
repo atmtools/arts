@@ -439,33 +439,6 @@ void define_agenda_data() {
             "dsurface_names")));
 
   agenda_data.push_back(AgRecord(
-      NAME("iy_surface_agenda_array"),
-      DESCRIPTION(
-          "Upwelling radiation from the surface, divided into surface types.\n"
-          "\n"
-          "Each agenda element shall treat the radiative properties of a surface\n"
-          "type. The task of these agendas match directly *iy_surface_agenda*.\n"
-          "This with one exception, these agendas have one additional input:\n"
-          "*surface_type_aux*.\n"
-          "\n"
-          "See *surface_type_mask* for comments on the surface type coding\n"
-          "scheme.  Note the parallel agenda array: surface_rtprop_agenda_array.\n"),
-      OUTPUT("iy", "diy_dx"),
-      INPUT("agenda_array_index",
-            "diy_dx",
-            "iy_unit",
-            "iy_transmittance",
-            "iy_id",
-            "cloudbox_on",
-            "jacobian_do",
-            "iy_main_agenda",
-            "f_grid",
-            "rtp_pos",
-            "rtp_los",
-            "rte_pos2",
-            "surface_type_aux")));
-
-  agenda_data.push_back(AgRecord(
       NAME("jacobian_agenda"),
       DESCRIPTION(
           "Pure numerical Jacobian calculations.\n"
@@ -647,7 +620,7 @@ void define_agenda_data() {
              "sensor_response_pol_grid",
              "sensor_response_dlos",
              "sensor_response_dlos_grid",
-             "mblock_dlos_grid"),
+             "mblock_dlos"),
       INPUT("f_backend")));
 
   agenda_data.push_back(AgRecord(
@@ -693,15 +666,14 @@ void define_agenda_data() {
   agenda_data.push_back(AgRecord(
       NAME("surface_rtprop_agenda_array"),
       DESCRIPTION(
-          "Description of surface radiative properties, divided into surface types.\n"
+          "Description of surface radiative properties, for each surface type.\n"
           "\n"
           "Each of these agendas shall treat the radiative properties of a\n"
-          " surface type. The task of these agendas is equivalent to that of\n"
-          "*surface_rtprop_agenda*. This with one exception, these agendas\n"
-          "have one additional input: *surface_type_aux*.\n"
+          "surface type. The task of these agendas is equivalent to that of\n"
+          "*surface_rtprop_agenda*.\n"
           "\n"
-          "See *surface_type_mask* for comments on the surface type coding\n"
-          "scheme. Note the parallel agenda series: iy_surface_sub_agendaX.\n"),
+          "The order of the agendas shall match the coding used in\n"
+          "*surface_type_mask*.\n"),
       OUTPUT("surface_skin_t",
              "surface_emission",
              "surface_los",
@@ -709,24 +681,7 @@ void define_agenda_data() {
       INPUT("agenda_array_index",
             "f_grid",
             "rtp_pos",
-            "rtp_los",
-            "surface_type_aux")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("surface_rtprop_sub_agenda"),
-      DESCRIPTION(
-          "Has exact same functionality as *surface_rtprop_sub_agenda*.\n"
-          "\n"
-          "This agenda complements *surface_rtprop_sub_agenda*, to allow\n"
-          "specifying the surface properties using two levels of agendas.\n"
-          "For example, this agenda can describe the properties for pure specular\n"
-          "reflections, and *surface_rtprop_agenda* can call this agenda for several\n"
-          "angles to build up a more complex surface model.\n"),
-      OUTPUT("surface_skin_t",
-             "surface_emission",
-             "surface_los",
-             "surface_rmatrix"),
-      INPUT("f_grid", "rtp_pos", "rtp_los")));
+            "rtp_los")));
 
   agenda_data.push_back(
       AgRecord(NAME("test_agenda"),

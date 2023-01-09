@@ -510,6 +510,9 @@ void define_wsv_data() {
           "\n"
           "Usage: Set by the user.\n"
           "\n"
+          "Unit: The unit of the actual response is 1/sr. Properly normalised\n"
+          "      a 4pi integration shall shall give 1.\n"
+          "\n"
           "Dimensions: \n"
           "   GriddedField4:\n"
           "      ArrayOfString field_names[N_pol]\n"
@@ -1049,6 +1052,34 @@ void define_wsv_data() {
           "The possible choices vary between the Disort methods. See the WSM you select\n"),
       GROUP("ArrayOfString"), ArrayOfString{}));
 
+
+  wsv_data.push_back(WsvRecord(
+      NAME("dlos"),
+      DESCRIPTION(
+          "A set of relative angles.\n"
+          "\n"
+          "This variable is a matrix having two columns. The two columns hold\n"
+          "relative zenith angle and relative azimuth angle, respectively.\n"
+          "\n"
+          "These relative angles have zenith angle 90 deg as reference. This\n"
+          "means that dza and daa represent the same angle distance at dza=0.\n"
+          "\n"
+          "Let us say that you add relative angles to a line-of-sight of za = 90\n"
+          "and aa=0. Then adding the following (dza,daa) gives los of (za,aa):\n"
+          "   (1,0) -> (91,0)\n"
+          "   (0,1) -> (90,1)\n"
+          "   (-90,45) -> (0,undefined)\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("dlos_weight_vector"),
+      DESCRIPTION(
+          "A weight associated with each direction *dlos*.\n"
+          "\n"
+          "A standard application should be to store the solid angle each\n"
+          "row in *dlos* covers.\n"),
+      GROUP("Vector")));
+  
   wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
       DESCRIPTION(
@@ -1814,7 +1845,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "Unit:       W / (m^2 Hz sr) or transmittance.\n"
           "\n"
           "Dimensions: [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
-          "            mblock_dlos_grid, and nf is length of f_grid.\n"),
+          "            mblock_dlos, and nf is length of f_grid.\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -1883,7 +1914,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "   xxxyyycba\n"
           "where xxx identifies the row in sensorPos/los (i.e. the mblock_index),\n"
           "yyy identifies pencil beam direction inside measurement block (should\n"
-          "in general match a row in mblock_dlos_grid), and cba identies later legs\n"
+          "in general match a row in mblock_dlos), and cba identies later legs\n"
           "of total propagation paths, where a, b and c identifies secondary, tertiary\n"
           "and quaternary part, respectively. 1-based numbering is used. That is,\n"
           "the primary path of the first pencil beam of the first measurement block\n"
@@ -1930,13 +1961,6 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       DESCRIPTION(
           "Agenda providing the upwelling radiation from the surface.\n"),
       GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("iy_surface_agenda_array"),
-      DESCRIPTION(
-          // FIXMEDOC
-          "Upwelling radiation from the surface, divided into surface types.\n"),
-      GROUP("ArrayOfAgenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_transmittance"),
@@ -2309,25 +2333,18 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("mblock_dlos_grid"),
+      NAME("mblock_dlos"),
       DESCRIPTION(
           "The set of angular pencil beam directions for each measurement block.\n"
           "\n"
           "The relative angles in this variable are angular off-sets with\n"
-          "respect to the angles in *sensor_los*.\n"
+          "respect to the angles in *sensor_los*. Defined as *dlos* but is\n"
+          "allowed to only have a single column, as described below.\n"
           "\n"
           "The first column holds the relative zenith angle. This column is\n"
           "mandatory for all atmospheric dimensionalities. For 3D, there can\n"
           "also be a second column, giving relative azimuth angles. If this\n"
           "column is not present (for 3D) zero azimuth off-sets are assumed.\n"
-          "\n"
-          "This rule applies to all WSVs of dlos-type, while for WSVs holding\n"
-          "absolute angles (los-type, such as *sensor_los*), the second column\n"
-          "is mandatory for 3D.\n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
           "\n"
           "Usage: Set by the user or output of antenna WSMs.\n"
           "\n"
@@ -4307,7 +4324,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "The relative zenith and azimuth angles associated with the output of\n"
           "*sensor_response*.\n"
           "\n"
-          "Definition of angles match *mblock_dlos_grid*. Works otherwise as\n"
+          "Definition of angles match *mblock_dlos*. Works otherwise as\n"
           "*sensor_response_f*.\n"
           "\n"
           "The variable shall not be set manually, it will be set together with\n"
@@ -4324,9 +4341,9 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "The zenith and azimuth angles associated with *sensor_response*.\n"
           "\n"
           "A variable for communication between sensor response WSMs. Matches\n"
-          "initially *mblock_dlos_grid*, but is later adjusted according to the\n"
+          "initially *mblock_dlos*, but is later adjusted according to the\n"
           "sensor specifications. Only defined when a common grid exists. Values\n"
-          "are here not repeated as in *sensor_response_dlos*\n"
+          "are here not repeated as in *sensor_response_dlos*.\n"
           "\n"
           "Usage: Set by sensor response methods.\n"
           "\n"
@@ -4594,7 +4611,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "In more detail, if no antenna is included or a 1D antenna is used, and\n"
           "the rotation is applied before the antenna is included in \n"
           "*sensor_response*, there should be one angle for each row of\n"
-          "*mblock_dlos_grid*. After inclusion of an antenna response, the relevant\n"
+          "*mblock_dlos*. After inclusion of an antenna response, the relevant\n"
           "number of angles is determined by the rows of *antenna_dlos*.\n"
           "\n"
           "It is assumed that the rotation is common for all frequency elements.\n"
@@ -4710,13 +4727,8 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
   wsv_data.push_back(WsvRecord(
       NAME("surface_rtprop_agenda_array"),
       DESCRIPTION(
-          "Description of surface radiative properties, divided into surface types.\n"),
+          "Description of surface radiative properties, for each surface type.\n"),
       GROUP("ArrayOfAgenda")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_rtprop_sub_agenda"),
-                DESCRIPTION("Sub-agenda to *surface_rtprop_agenda*.\n"),
-                GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_skin_t"),
@@ -4789,40 +4801,15 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Dimensions: [ f_grid or 1]\n"),
       GROUP("Vector")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_type"),
-                DESCRIPTION("Local, single surface type value.\n"
-                            "\n"
-                            "See *surface_type_mask* for details.\n"),
-                GROUP("Index")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_type_aux"),
-                DESCRIPTION("Auxiliary variable to *surface_type*.\n"
-                            "\n"
-                            "See *surface_type_mask* for details.\n"),
-                GROUP("Numeric")));
-
   wsv_data.push_back(WsvRecord(
       NAME("surface_type_mask"),
       DESCRIPTION(
           "Classification of the surface using a type coding.\n"
           "\n"
-          "This variable gives a description of the surface using a type class\n"
-          "coding. A common term for such a variable is \"surface mask\".\n"
-          "\n"
-          "The mask is a latitude and longtide field. The mask values are\n"
-          "floating numbers, where the integer part is the type and the remainder\n"
-          "can be used to provide auxilary information. In terms of the local\n"
-          "variables, the mask values equal *surface_type* + *surface_type_aux*.\n"
-          "\n"
           "There is no fixed type coding, it is up to the user to set up\n"
-          "a consistent system. The critical point is in the agendas\n"
-          "matching each surface type, that are denoted as iy_surface_sub_agendaX\n"
-          "where X is the *surface_type* index.\n"
-          "\n"
-          "The surface type can be any integer (>=0) for which a corresponding\n"
-          "agenda exists.\n"
+          "a system consistent with *surface_rtprop_agenda_array*. A value\n"
+          "of 0 in *surface_type_mask* means that element 0 in the agenda\n"
+          "array is valid for that position etc.\n"
           "\n"
           "Dimensions: \n"
           "   GriddedField2:\n"
@@ -4832,28 +4819,20 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("GriddedField2")));
 
   wsv_data.push_back(
-      WsvRecord(NAME("surface_types"),
+      WsvRecord(NAME("surface_type_mix"),
           DESCRIPTION(
-            "This and associated WSVs describe a mixture of surface types.\n"
+            "Gives the fraction of different surface types.\n"
             "\n"
-            "Holds a number of *surface_type*.\n"),
-          GROUP("ArrayOfIndex")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_types_aux"),
-          DESCRIPTION(
-            "Auxiliary variable to *surface_types*.\n"
+            "For cases when the surface RT properties are taken from\n"
+            "*surface_rtprop_agenda_array*, this variable specifies to\n"
+            "what extent each surface type has contributed to the surface\n"
+            "RT variables, such as *surface_emission* and *surface_skin_t*.\n" 
             "\n"
-            "Holds a number of *surface_type_aux*..\n"),
-           GROUP("Vector")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_types_weights"),
-          DESCRIPTION("Auxiliary variable to *surface_type*.\n"
-                      "\n"
-                      "Holds the relative weight of each surface type.\n"),
+            "The length of this vector follows *surface_rtprop_agenda_array*\n"
+            "and the sum of the elements is 1. The first element in the\n" 
+            "vector matches the first agenda element, and so on."),
           GROUP("Vector")));
-  
+
   wsv_data.push_back(WsvRecord(
       NAME("telsem_atlases"),
       DESCRIPTION(
@@ -5409,12 +5388,32 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
   wsv_data.push_back(WsvRecord(
       NAME("y_geo"),
       DESCRIPTION(
-          "The geo-positioning associated with *y*.\n"
+          "The geo-position assigned to each element of  *y*.\n"
           "\n"
           "The columns of this matrix matches the elements of *geo_pos*.\n"
           "\n"
           "Unit:  [ m, deg, deg, deg, deg ]\n"),
       GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_geo_series"),
+      DESCRIPTION(
+          "The geo-positioning assigned to each row of *y_series*.\n"
+          "\n"
+          "All channels are assumed to have the same geo-position.\n"
+          "\n"
+          "Otherwise as *y_geo*.\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_geo_swath"),
+      DESCRIPTION(
+          "The geo-positioning assigned to each pixel of *y_swath*.\n"
+          "\n"
+          "All channels are assumed to have the same geo-position.\n"
+          "\n"
+          "Otherwise as *y_geo*.\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("y_los"),
@@ -5463,6 +5462,29 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Unit:  [ m, deg, deg ]\n"),
       GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_series"),
+      DESCRIPTION(
+          "Two-dimensional version of the measurement vector.\n"
+          "\n"
+          "This WSV can be used for storing *y* reshaped when all measurement\n"
+          "blocks have the same set of channels.\n"
+          "\n"
+          "Dimesion:  [ position, channel ]\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_swath"),
+      DESCRIPTION(
+          "Three-dimensional version of the measurement vector.\n"
+          "\n"
+          "This WSV can be used for storing *y* reshaped when all measurement\n"
+          "blocks have the same set of channels, and that the data constitutes\n"
+          "a part of a swath.\n"
+          "\n"
+          "Dimesion:  [ scan, pixel, channel ]\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("yb"),
@@ -5673,6 +5695,20 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("z_hse_accuracy"),
       DESCRIPTION(
           "Minimum accuracy for calculation of hydrostatic equilibrium.\n"
+          "\n"
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("z_sensor"),
+      DESCRIPTION(
+          "The altitude of the sensor.\n"
+          "\n"
+          "Please note that the sensor altitude actaully applied is in general\n"
+          "specified by *sensor_pos*. This WSV is only a help, to set other\n"
+          "workspace variables and to call methods in a consistent manner\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
