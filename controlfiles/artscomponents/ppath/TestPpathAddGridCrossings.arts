@@ -37,6 +37,6 @@ ppathAddGridCrossings( ppath_lstep = 250e3,
 # Print( ppath, 0 )
 
 # End points laways included so np shall end up as 7
-ppathCheckEndPoint( background = 1,
+ppathCheckEndPoint( background = "Space",
                     np = 7 )
 }
