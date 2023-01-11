@@ -455,7 +455,7 @@ void refracted_link_basic(Workspace& ws,
                    Verbosity());
 
     // Intersection with surface?
-    if (ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SURFACE) {
+    if (ppath.backgroundZZZ == PpathBackground::Surface) {
       if (robust) {
         any_failure = true;
         break;
@@ -467,7 +467,7 @@ void refracted_link_basic(Workspace& ws,
     }
     
     // Extend ppath into space?
-    if (ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SPACE) {
+    if (ppath.backgroundZZZ == PpathBackground::Space) {
       const Numeric l2end = l2false - ppath.start_lstep - ppath.lstep.sum();
       if (l2end > 0) {
         geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
@@ -525,7 +525,7 @@ void refracted_link_basic(Workspace& ws,
                    0,
                    Verbosity());
     
-    if (ppath.backgroundZZZ == PpathBackground::PPATH_BACKGROUND_SURFACE) {
+    if (ppath.backgroundZZZ == PpathBackground::Surface) {
       if (robust) {
         any_failure = true;
       } else {
@@ -537,11 +537,11 @@ void refracted_link_basic(Workspace& ws,
   
   if (!any_failure) {
     // Just remains to set background
-    ppath.backgroundZZZ = PpathBackground::PPATH_BACKGROUND_OTHER_POS;
+    ppath.backgroundZZZ = PpathBackground::Transmitter;
 
   } else {
     // Set empty ppath
-    ppath.backgroundZZZ = PpathBackground::PPATH_BACKGROUND_UNDEFINED;
+    ppath.backgroundZZZ = PpathBackground::Undefined;
     ppath.np = 0;
     ppath.pos.resize(0, 0);
     ppath.los.resize(0, 0);

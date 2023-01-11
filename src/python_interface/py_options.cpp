@@ -1,5 +1,6 @@
 #include <arts_options.h>
 #include <lineshapemodel.h>
+#include "ppath_struct.h"
 
 #include "py_macros.h"
 #include "py_auto_interface.h"
@@ -91,5 +92,8 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(AbsorptionNormalizationType, Absorption, NormalizationType)
   DeclareOptionRenamed(LineShapeType, LineShape, Type)
   DeclareOptionRenamed(LineShapeVariable, LineShape, Variable)
+
+  // Ppath
+  DeclareOption(Options, PpathBackground)
 }
 }  // namespace Python
