@@ -21,7 +21,7 @@ VectorSet(rte_los, [88, 123])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 2e3 )
-ppathCheckEndPoint( background = 1,
+ppathCheckEndPoint( background = "Space",
                     np = 0 )
 
 # Sensor in space and looking down, but still missing atmosphere
@@ -29,7 +29,7 @@ VectorSet(rte_los, [111, 123])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 2e3 )
-ppathCheckEndPoint( background = 1,
+ppathCheckEndPoint( background = "Space",
                     np = 0 )
 
 
@@ -38,14 +38,14 @@ VectorSet(rte_los, [177, 12])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 2000e3 )
-ppathCheckEndPoint( background = 2,
+ppathCheckEndPoint( background = "Surface",
                     np = 2 )
 
 # As above but ppath_ltotal set
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 2000e3,
                 ppath_ltotal = 12e3 )
-ppathCheckEndPoint( background = 5,
+ppathCheckEndPoint( background = "StopDistance",
                     np = 2 )
 
 # Sensor in space and doing limb sounding
@@ -53,7 +53,7 @@ VectorSet(rte_los, [113, 12])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 20e3 )
-ppathCheckEndPoint( background = 1 )
+ppathCheckEndPoint( background = "Space" )
 
 
 # Sensor inside the atmosphere and looking up with huge step length
@@ -62,7 +62,7 @@ VectorSet(rte_los, [8, 123])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 200e3 )
-ppathCheckEndPoint( background = 1,
+ppathCheckEndPoint( background = "Space",
                     np = 2 )
 
 # Sensor inside the atmosphere and looking into the surface
@@ -71,7 +71,7 @@ VectorSet(rte_los, [108, 123])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 25 )
-ppathCheckEndPoint( background = 2 )
+ppathCheckEndPoint( background = "Surface" )
 
 
 # Airborne limb sounding
@@ -80,13 +80,13 @@ VectorSet(rte_los, [93, 1])
 #
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 12e3 )
-ppathCheckEndPoint( background = 1 )
+ppathCheckEndPoint( background = "Space" )
 
 
 # As above but ppath_ltotal set
 ppathGeometric( z_toa = z_toa,
                 ppath_lstep = 12e3,
                 ppath_ltotal = 20e3 )
-ppathCheckEndPoint( background = 5 )
+ppathCheckEndPoint( background = "StopDistance" )
 
 }

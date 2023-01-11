@@ -3,16 +3,15 @@
 
 #include "matpack_data.h"
 #include "enums.h"
-#include "mystring.h"
 #include "interpolation.h"
+#include "mystring.h"
 
-ENUMCLASS(PpathBackground, Index,
-  PPATH_BACKGROUND_UNDEFINED,
-  PPATH_BACKGROUND_SPACE,
-  PPATH_BACKGROUND_SURFACE,
-  PPATH_BACKGROUND_CLOUDBOX,
-  PPATH_BACKGROUND_OTHER_POS,
-  PPATH_BACKGROUND_STOP_DISTANCE);
+namespace Options {
+ENUMCLASS(PpathBackground, char, Undefined, Space, Surface, Cloudbox,
+          Transmitter, StopDistance);
+} // namespace Options
+
+using Options::PpathBackground;
 
 /*===========================================================================
   === The Ppath structure
