@@ -14324,28 +14324,28 @@ Available models:
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathCheckEndPoint"),
-      DESCRIPTION(
-         "Checks that a propagation path ends as expected.\n"
-         "\n"
-         "Please note that ppaths are stored in observation direction and the \"end\"\n"
-         "is at the radiative background.\n"
-         "\n"
-         "For example, to check the end altitude, set the GIN *altitude* to the\n"
-         "expected value and *daltitude* to the allowed tolerance. Latitude,\n"
-         "longitude, zenith angle and azimuth angle can be checked in the same way.\n"
-         "\n"
-         "A check is done as soon the tolerance value is >= 0. Don't forget to set\n"
-         "the expected value, otherwise 0 will be applied. \n"
-         "\n"
-         "The radiative background and number of points can be checked in the same\n"
-         "way, but here there are no tolarance values and the expected values are\n"
-         "integers. The following coding is used for the radiative background\n"
-         "  0: Undefined\n"
-         "  1: Space\n"
-         "  2: The surface\n"
-         "  3: The cloudbox\n"
-         "  4: A transmitter\n"
-         "  5: Start point determined by overall length criterion\n"),
+      DESCRIPTION(R"--(Checks that a propagation path ends as expected.
+
+Please note that ppaths are stored in observation direction and the "end"
+is at the radiative background.
+
+For example, to check the end altitude, set the GIN *altitude* to the
+expected value and *daltitude* to the allowed tolerance. Latitude,
+longitude, zenith angle and azimuth angle can be checked in the same way.
+
+A check is done as soon the tolerance value is >= 0. Don't forget to set
+the expected value, otherwise 0 will be applied. 
+
+The radiative background and number of points can be checked in the same
+way, but here there are no tolarance values and the expected values are
+strings. The following coding is used for the radiative background:
+  "Undefined"
+  "Space"
+  "Surface"
+  "Cloudbox"
+  "Transmitter"
+  "StopDistance" - Start point determined by overall length criterion
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
@@ -14358,13 +14358,13 @@ Available models:
           "longitude", "dlongitude",
           "zenith_angle", "dzenith_angle",
           "azimuth_angle", "dazimuth_angle"),
-      GIN_TYPE("Index", "Index",
+      GIN_TYPE("String", "Index",
                "Numeric", "Numeric",
                "Numeric", "Numeric",
                "Numeric", "Numeric",
                "Numeric", "Numeric",
                "Numeric", "Numeric"),
-      GIN_DEFAULT("-1", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
+      GIN_DEFAULT("Undefined", "-1","0","-1","0","-1","0","-1","0","-1","0","-1"),
       GIN_DESC("Expected radiative background. See above.",
                "Expected number of path points.",
                "Expected altitude.",
