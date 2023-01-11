@@ -107,6 +107,11 @@ class ArtsParser {
                          ArrayOfIndex& auto_vars,
                          Array<TokVal>& auto_vars_values);
 
+  void use_default_method_args(const MdRecord *mdd, String &methodname,
+                               ArrayOfIndex &output, ArrayOfIndex &input,
+                               ArrayOfIndex &auto_vars,
+                               Array<TokVal> &auto_vars_values);
+
   String set_gin_to_default(const MdRecord* mdd,
                             ArrayOfIndex& auto_vars,
                             Array<TokVal>& auto_vars_values,
