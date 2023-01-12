@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matpack/matpack_concepts2.h>
+#include "matpack_concepts.h"
 
 namespace matpack {
 template <Index N> [[nodiscard]] consteval std::array<Joker, N> jokers() {
@@ -28,7 +28,7 @@ template <Index M, Index N, class mdspan_type>
 
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr auto sub(mdspan_type &v, Index i) {
-  using namespace std::experimental;
+  using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
         if constexpr (requires { v(slices...); }) {

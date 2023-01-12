@@ -1,10 +1,10 @@
 #pragma once
 
-#include "nonstd.h"
+#include <nonstd.h>
 
-#include "matpack/matpack_concepts2.h"
-#include "matpack/matpack_view2.h"
-#include <matpack/matpack_data2.h>
+#include "matpack_concepts.h"
+#include "matpack_data.h"
+#include "matpack_view.h"
 
 #include <algorithm>
 #include <numeric>

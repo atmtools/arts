@@ -43,7 +43,8 @@
 #include "arts_omp.h"
 #include "lapack.h"
 #include "logic.h"
-#include "matpackIII.h"
+#include "matpack_eigen.h"
+#include "matpack_math.h"
 
 //! LU decomposition.
 /*!
@@ -69,7 +70,7 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   n_int = (int)n;
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(&n_int, &n_int, LU.mdata, &n_int, ipiv.data(), &info);
+  lapack::dgetrf_(&n_int, &n_int, LU.data_handle(), &n_int, ipiv.data(), &info);
 
   // Copy pivot array to pivot vector.
   for (Index i = 0; i < n; i++) {
@@ -96,8 +97,8 @@ void lubacksub(VectorView x,
 
   /* Check if the dimensions of the input matrix and vectors agree and if LU
      is a quadratic matrix.*/
-  DEBUG_ONLY(Index column_stride = LU.mcr.get_stride());
-  DEBUG_ONLY(Index vec_stride = b.mrange.get_stride());
+  DEBUG_ONLY(Index column_stride = LU.stride(1));
+  DEBUG_ONLY(Index vec_stride = b.stride(0));
 
   ARTS_ASSERT(is_size(LU, n, n));
   ARTS_ASSERT(is_size(b, n));
@@ -118,7 +119,7 @@ void lubacksub(VectorView x,
   }
 
   lapack::dgetrs_(
-      &trans, &n_int, &one, LU.mdata, &n_int, ipiv.data(), rhs.data(), &n_int, &info);
+      &trans, &n_int, &one, LU.unsafe_data_handle(), &n_int, ipiv.data(), rhs.data(), &n_int, &info);
 
   for (Index i = 0; i < n; i++) {
     x[i] = rhs[i];
@@ -177,13 +178,13 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   n_int = (int)n;
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(&n_int, &n_int, LU.mdata, &n_int, ipiv.data(), &info);
+  lapack::dgetrf_(&n_int, &n_int, LU.data_handle(), &n_int, ipiv.data(), &info);
 
   // Invert matrix.
   int lwork = n_int;
   auto work = std::vector<double>(lwork);
 
-  lapack::dgetri_(&n_int, LU.mdata, &n_int, ipiv.data(), work.data(), &lwork, &info);
+  lapack::dgetri_(&n_int, LU.data_handle(), &n_int, ipiv.data(), work.data(), &lwork, &info);
 
   // Check for success.
   ARTS_USER_ERROR_IF(info not_eq 0,
@@ -205,9 +206,9 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
 
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::zgetrf_(
-      &n_int, &n_int, Ainv.get_c_array(), &n_int, ipiv.data(), &info);
+      &n_int, &n_int, Ainv.unsafe_data_handle(), &n_int, ipiv.data(), &info);
   lapack::zgetri_(&n_int,
-                  Ainv.get_c_array(),
+                  Ainv.unsafe_data_handle(),
                   &n_int,
                   ipiv.data(),
                   work.data(),
@@ -258,7 +259,7 @@ void diagonalize(MatrixView P,
   // Integers
   int LDA, LDA_L, LDA_R, n_int, info;
   n_int = (int)n;
-  LDA = LDA_L = LDA_R = (int)A.mcr.get_extent();
+  LDA = LDA_L = LDA_R = (int)A.extent(0);
 
   // We want to calculate RP not LP
   char l_eig = 'N', r_eig = 'V';
@@ -269,10 +270,10 @@ void diagonalize(MatrixView P,
   auto rwork = std::vector<double>(2 * n_int);
 
   // Memory references
-  double* adata = A_tmp.mdata;
-  double* rpdata = P2.mdata;
-  double* wrdata = WR2.mdata;
-  double* widata = WI2.mdata;
+  double* adata = A_tmp.data_handle();
+  double* rpdata = P2.data_handle();
+  double* wrdata = WR2.data_handle();
+  double* widata = WI2.data_handle();
 
   // Main calculations.  Note that errors in the output is ignored
   lapack::dgeev_(&l_eig,
@@ -324,8 +325,8 @@ void diagonalize(ComplexMatrixView P,
   ComplexMatrix A_tmp = A;
 
   // Integers
-  int LDA = int(A.get_column_extent()), LDA_L = int(A.get_column_extent()),
-      LDA_R = int(A.get_column_extent()), n_int = int(n), info;
+  int LDA = int(A.ncols()), LDA_L = int(A.ncols()),
+      LDA_R = int(A.ncols()), n_int = int(n), info;
 
   // We want to calculate RP not LP
   char l_eig = 'N', r_eig = 'V';
@@ -340,16 +341,16 @@ void diagonalize(ComplexMatrixView P,
   lapack::zgeev_(&l_eig,
                  &r_eig,
                  &n_int,
-                 A_tmp.get_c_array(),
+                 A_tmp.data_handle(),
                  &LDA,
-                 W.get_c_array(),
-                 lpdata.get_c_array(),
+                 W.unsafe_data_handle(),
+                 lpdata.data_handle(),
                  &LDA_L,
-                 P.get_c_array(),
+                 P.unsafe_data_handle(),
                  &LDA_R,
-                 work.get_c_array(),
+                 work.data_handle(),
                  &lwork,
-                 rwork.get_c_array(),
+                 rwork.data_handle(),
                  &info);
 
   for (Index i = 0; i < n; i++)

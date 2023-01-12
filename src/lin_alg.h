@@ -28,8 +28,9 @@
 #ifndef linalg_h
 #define linalg_h
 
+#include "array.h"
 #include "matpack_complex.h"
-#include "matpackIII.h"
+#include "matpack_data.h"
 
 // LU decomposition
 void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A);

@@ -60,7 +60,7 @@
 #pragma GCC diagnostic pop
 
 #include "array.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 //! The Sparse class.
 /*!
@@ -141,16 +141,6 @@ struct Sparse {
 
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
-  friend void abs(Sparse& A, const Sparse& B);
-  friend void mult(VectorView y, const Sparse& M, ConstVectorView x);
-  friend void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x);
-  friend void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C);
-  friend void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C);
-  friend void mult(Sparse& A, const Sparse& B, const Sparse& C);
-  friend void add(Sparse& A, const Sparse& B, const Sparse& C);
-  friend void sub(Sparse& A, const Sparse& B, const Sparse& C);
-  friend void transpose(Sparse& A, const Sparse& B);
-  friend void id_mat(Sparse& A);
   
   //! The actual matrix.
   Eigen::SparseMatrix<Numeric, Eigen::RowMajor> matrix;

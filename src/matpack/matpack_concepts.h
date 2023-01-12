@@ -2,13 +2,15 @@
 
 #include "debug.h"
 
-#include <mdspan/include/experimental/mdspan>
+#include <experimental/mdspan>
 
 #include <array>
 #include <complex>
 #include <concepts>
 #include <cstdint>
 #include <type_traits>
+
+namespace stdx = std::experimental;
 
 using Numeric = double;
 
@@ -17,10 +19,10 @@ using Index = std::int64_t;
 using Complex = std::complex<Numeric>;
 
 //! A type that denotes all values should be accessed
-using Joker = std::experimental::full_extent_t;
+using Joker = stdx::full_extent_t;
 
 //! A value to denote that all values should be accessed
-inline constexpr Joker joker = std::experimental::full_extent;
+inline constexpr Joker joker = stdx::full_extent;
 
 namespace matpack {
 
@@ -410,13 +412,13 @@ concept any_matpack_type = any_matpack_data<T> or any_matpack_view<T>;
 template <typename U, typename T, Index N>
 concept matpack_convertible = not sized_matpack_data<U, T, N> and has_mdshape<U> and has_mdvalue<U> and rank<U>() == N;
 
-template <Index N> using ranking = std::experimental::dextents<Index, N>;
+template <Index N> using ranking = stdx::dextents<Index, N>;
 
-using strided = std::experimental::layout_stride;
-
-template <typename T, Index N>
-using exhaustive_mdspan = std::experimental::mdspan<T, ranking<N>>;
+using strided = stdx::layout_stride;
 
 template <typename T, Index N>
-using strided_mdspan = std::experimental::mdspan<T, ranking<N>, strided>;
+using exhaustive_mdspan = stdx::mdspan<T, ranking<N>>;
+
+template <typename T, Index N>
+using strided_mdspan = stdx::mdspan<T, ranking<N>, strided>;
 }  // namespace matpack

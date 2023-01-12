@@ -1,1 +1,5 @@
-add_library(matpack_reimpl STATIC matpack_math2.cc)
+add_library(matpack_reimpl STATIC matpack_math.cc matpack_sparse.cc)
+target_include_directories(matpack_reimpl PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(matpack_reimpl PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_include_directories(matpack_reimpl PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/Eigen")
+target_include_directories(matpack_reimpl PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")

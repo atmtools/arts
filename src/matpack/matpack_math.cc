@@ -1,5 +1,5 @@
-#include "matpack/matpack_eigen2.h"
-#include "matpack/matpack_math2.h"
+#include "matpack_eigen.h"
+#include "matpack_math.h"
 
 #include <algorithm>
 

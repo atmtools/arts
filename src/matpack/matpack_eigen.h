@@ -1,7 +1,7 @@
 #pragma once
 
-#include "matpack/matpack_concepts2.h"
-#include "matpack/matpack_view2.h"
+#include "matpack_concepts.h"
+#include "matpack_view.h"
 
 #pragma GCC diagnostic push
 #if defined(__clang__)

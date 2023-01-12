@@ -34,8 +34,9 @@
 #ifndef propagationmatrix_h
 #define propagationmatrix_h
 
+#include "array.h"
 #include "matpack_complex.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
 
 /** Class to help with hidden temporary variables for operations of type Numeric times Class
  * 
