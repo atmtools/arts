@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matpack/matpack_data2.h"
 #include <matpack/matpack_iter2.h>
 
 #include <algorithm>
@@ -8,6 +9,7 @@
 #include <functional>
 #include <numeric>
 #include <ostream>
+#include <string>
 #include <type_traits>
 
 namespace matpack {
@@ -189,6 +191,14 @@ constexpr std::array<Index, N> constant_array() {
   return x;
 }
 
+template <Index N, Index M>
+std::array<Index, N> upview(const std::array<Index, M> &low) {
+  std::array<Index, N> sz = constant_array<N, 1>();
+  for (Index i = 0; i < M; i++)
+  sz[i] = low[i];
+  return sz;
+}
+
 template <typename T, Index N, bool constant, bool strided>
 class matpack_view {
   static_assert(N > 0);
@@ -268,13 +278,25 @@ public:
   constexpr matpack_view() = default;
   constexpr matpack_view(exhaustive_view x) : view(std::move(x)) {}
   constexpr matpack_view(strided_view x) : view(std::move(x)) {}
-  constexpr matpack_view(T* ptr, std::array<Index, N> sz) : view(ptr, sz) {}
+  constexpr matpack_view(T* ptr, std::array<Index, N> sz) : matpack_view(exhaustive_view{ptr, sz}) {}
 
   constexpr matpack_view(const me_view& x) : view(x.view) {}
   constexpr matpack_view(const ce_view& x) requires(constant) : view(x.view) {}
   constexpr matpack_view(const ms_view& x) requires(strided) : view(x.view) {}
   constexpr matpack_view(const cs_view& x) requires(constant and strided) : view(x.view) {}
   constexpr matpack_view(const matpack_data<T, N>& x) noexcept : matpack_view(x.view) {}
+
+  template <Index M> explicit constexpr matpack_view(const matpack_data<T, M>& x) requires(N > M) : matpack_view(x.data_handle(), upview<N, M>(x.shape())) {}
+  template <Index M> explicit matpack_view(const matpack_view<T, M, constant, strided>& x) requires(N > M) {
+    using map_t = typename view_type::mapping_type;
+    if constexpr (not strided) {
+      view = view_type{x.data_handle(), map_t{upview<N, M>(x.shape())}};
+    } else {
+      view = view_type{x.unsafe_data_handle(), map_t{upview<N, M>(x.shape()), upview<N, M>(x.strides())}};
+    }
+  }
+  explicit constexpr matpack_view(T& x) requires(not constant) : matpack_view(&x, constant_array<N, 1>()) {}
+  explicit constexpr matpack_view(const T& x) : matpack_view(const_cast<T*>(&x), constant_array<N, 1>()) {}
 
   constexpr matpack_view& operator=(const me_view& x) requires (constant) = delete;
   constexpr matpack_view& operator=(const ce_view& x) requires (constant) = delete;
@@ -620,3 +642,16 @@ public:
   constexpr void swap(matpack_view& other) noexcept requires(not constant) { std::swap(view, other.view); }
 };
 }  // namespace matpack
+
+template <typename T, Index N, bool constant, bool strided>
+std::string describe(const matpack::matpack_view<T, N, constant, strided>& m) {
+  using namespace matpack;
+  if constexpr (constant and strided)
+    return var_string("constant and strided matpack_view of rank ", N, " of shape ", shape_help<N>(m.shape()));
+  else if constexpr (constant)
+    return var_string("constant and exhaustive matpack_view of rank ", N, " of shape ", shape_help<N>(m.shape()));
+  else if constexpr (strided)
+    return var_string("strided matpack_view of rank ", N, " of shape ", shape_help<N>(m.shape()));
+  else
+    return var_string("exhaustive matpack_view of rank ", N, " of shape ", shape_help<N>(m.shape()));
+}
