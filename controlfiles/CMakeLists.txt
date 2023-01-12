@@ -216,5 +216,6 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
 endif (ARTS_XML_DATA_DIR)
 
-
-
+####################
+### Syntax tests ###
+arts_test_run_ctlfile(fast artscomponents/syntax/TestWSMCalls.arts)

@@ -759,29 +759,23 @@ String ArtsParser::set_gin_to_default(const MdRecord* mdd,
   \author Oliver Lemke
   \date   2008-03-05
 */
-void ArtsParser::parse_method_args(const MdRecord*& mdd,
-                                   Index& id,
-                                   String& methodname,
-                                   ArrayOfIndex& output,
-                                   ArrayOfIndex& input,
-                                   ArrayOfIndex& auto_vars,
-                                   Array<TokVal>& auto_vars_values) {
+void ArtsParser::parse_method_args(const MdRecord *&mdd, Index &id,
+                                   String &methodname, ArrayOfIndex &output,
+                                   ArrayOfIndex &input, ArrayOfIndex &auto_vars,
+                                   Array<TokVal> &auto_vars_values) {
   using global_data::md_data;
   using global_data::md_data_raw;
   using global_data::MdMap;
   using global_data::MdRawMap;
 
-  bool still_supergeneric = true;  // Flag that our MdRecord still is
+  bool still_supergeneric = true; // Flag that our MdRecord still is
   // from md_data_raw, not from
   // md_data.
 
   // Find method raw id in raw map:
-  const auto md_raw_id =
-      MdRawMap.find(methodname);
+  const auto md_raw_id = MdRawMap.find(methodname);
   if (md_raw_id == MdRawMap.end())
-    throw UnknownMethod(methodname,
-                        msource.File(),
-                        msource.MarkedLine(),
+    throw UnknownMethod(methodname, msource.File(), msource.MarkedLine(),
                         msource.MarkedColumn());
 
   id = md_raw_id->second;
@@ -814,162 +808,160 @@ void ArtsParser::parse_method_args(const MdRecord*& mdd,
 
     msource.AdvanceChar();
     eat_whitespace();
+    if (msource.Current() != ')') {
+      // Peak at the first method argument to determine if the method
+      // is called with positional or named arguments
+      if (isalpha(msource.Current())) {
+        Index line = msource.LineRaw();
+        Index column = msource.ColumnRaw();
+        String name = "";
 
-    // Peak at the first method argument to determine if the method
-    // is called with positional or named arguments
-    if (isalpha(msource.Current())) {
-      Index line = msource.LineRaw();
-      Index column = msource.ColumnRaw();
-      String name = "";
-
-      read_name(name);
-      eat_whitespace();
-
-      if (msource.Current() == '=') {
-        msource.AdvanceChar();
+        read_name(name);
         eat_whitespace();
 
+        if (msource.Current() == '=') {
+          msource.AdvanceChar();
+          eat_whitespace();
+
+          msource.SetPosition(line, column);
+          find_named_arguments(named_arguments);
+
+          call_by_name = true;
+
+          this_method_end_line = msource.LineRaw();
+          this_method_end_column = msource.ColumnRaw();
+        }
+
         msource.SetPosition(line, column);
-        find_named_arguments(named_arguments);
-
-        call_by_name = true;
-
-        this_method_end_line = msource.LineRaw();
-        this_method_end_column = msource.ColumnRaw();
       }
 
-      msource.SetPosition(line, column);
-    }
+      bool is_first_arg = true;
+      parse_specific_output(mdd, output, is_first_arg, named_arguments,
+                            call_by_name);
 
-    bool is_first_arg = true;
-    parse_specific_output(
-        mdd, output, is_first_arg, named_arguments, call_by_name);
+      parse_generic_output(mdd, id, methodname, output, is_first_arg,
+                           still_supergeneric, supergeneric_args,
+                           supergeneric_index, named_arguments, call_by_name);
 
-    parse_generic_output(mdd,
-                         id,
-                         methodname,
-                         output,
-                         is_first_arg,
-                         still_supergeneric,
-                         supergeneric_args,
-                         supergeneric_index,
-                         named_arguments,
-                         call_by_name);
+      parse_specific_input(mdd, input, auto_vars, auto_vars_values,
+                           is_first_arg, named_arguments, call_by_name);
 
-    parse_specific_input(mdd,
-                         input,
-                         auto_vars,
-                         auto_vars_values,
-                         is_first_arg,
-                         named_arguments,
-                         call_by_name);
+      parse_generic_input(mdd, id, methodname, input, auto_vars,
+                          auto_vars_values, is_first_arg, still_supergeneric,
+                          supergeneric_args, supergeneric_index,
+                          named_arguments, call_by_name);
 
-    parse_generic_input(mdd,
-                        id,
-                        methodname,
-                        input,
-                        auto_vars,
-                        auto_vars_values,
-                        is_first_arg,
-                        still_supergeneric,
-                        supergeneric_args,
-                        supergeneric_index,
-                        named_arguments,
-                        call_by_name);
+      // Named arguments are not parsed in order. We have to set the cursor
+      // to the end of the method call after all named arguments have been
+      // parsed.
+      if (call_by_name)
+        msource.SetPosition(this_method_end_line, this_method_end_column);
 
-    // Named arguments are not parsed in order. We have to set the cursor
-    // to the end of the method call after all named arguments have been parsed.
-    if (call_by_name)
-      msource.SetPosition(this_method_end_line, this_method_end_column);
+      // If we're here and still have named arguments left means that
+      // the user specified too many for this method
+      if (call_by_name && named_arguments.size()) {
+        ostringstream os;
 
-    // If we're here and still have named arguments left means that
-    // the user specified too many for this method
-    if (call_by_name && named_arguments.size()) {
-      ostringstream os;
-
-      os << "Error in arguments passed to " << mdd->Name() << ":\n";
-      for (auto& argument_name : named_arguments) {
-        if (std::find(mdd->GIn().begin(),
-                      mdd->GIn().end(),
-                      argument_name.name) == mdd->GIn().end() &&
-            std::find(mdd->GOut().begin(),
-                      mdd->GOut().end(),
-                      argument_name.name) == mdd->GOut().end())
-          os << "  Unkown argument: ";
-        else
-          os << "  Duplicate argument: ";
-        os << argument_name.name << std::endl;
+        os << "Error in arguments passed to " << mdd->Name() << ":\n";
+        for (auto &argument_name : named_arguments) {
+          if (std::find(mdd->GIn().begin(), mdd->GIn().end(),
+                        argument_name.name) == mdd->GIn().end() &&
+              std::find(mdd->GOut().begin(), mdd->GOut().end(),
+                        argument_name.name) == mdd->GOut().end())
+            os << "  Unkown argument: ";
+          else
+            os << "  Duplicate argument: ";
+          os << argument_name.name << std::endl;
+        }
+        throw ParseError(os.str(), msource.File(), msource.Line(),
+                         msource.Column());
       }
-      throw ParseError(
-          os.str(), msource.File(), msource.Line(), msource.Column());
+      ARTS_ASSERT(!still_supergeneric);
+    } else {
+      // Method call contains empty set of parenthesis
+      use_default_method_args(mdd, methodname, output, input, auto_vars,
+                              auto_vars_values);
     }
-
-    ARTS_ASSERT(!still_supergeneric);
     assertain_character(')');
   } else {
-    if (mdd->GOut().nelem()) {
-      ostringstream os;
-      os << "This method has generic output. "
-         << "You have to pass a variable!";
-      throw ParseError(os.str(),
-                       msource.File(),
-                       msource.MarkedLine(),
-                       msource.MarkedColumn());
-    }
+    // Method call without parenthesis
+    use_default_method_args(mdd, methodname, output, input, auto_vars,
+                            auto_vars_values);
+  }
+}
 
-    // If the parenthesis were omitted we still have to add the implicit
-    // outputs and inputs to the methods input and output variable lists
-    ArrayOfIndex vo = mdd->Out();
-    for (auto outs = vo.begin(); outs < vo.end();
-         ++outs) {
-      output.push_back(*outs);
-    }
+//! Set defaults if method is called without any arguments.
+/**
+  \param[in]  mdd        Method
+  \param[out] methodname Name of the WSM
+  \param[out] output     Output WSVs
+  \param[out] input      Input WSVs
+  \param[out] auto_vars  Indexes of automatically created variables.
+  \param[out] auto_vars_values    Values of automatically created variables.
 
-    const ArrayOfIndex& vi = mdd->InOnly();
-    for (auto ins = vi.begin(); ins < vi.end(); ++ins) {
-      input.push_back(*ins);
-    }
+  \author Oliver Lemke
+  \date   2023-01-11
+*/
+void ArtsParser::use_default_method_args(const MdRecord *mdd,
+                                         String &methodname,
+                                         ArrayOfIndex &output,
+                                         ArrayOfIndex &input,
+                                         ArrayOfIndex &auto_vars,
+                                         Array<TokVal> &auto_vars_values) {
+  if (mdd->GOut().nelem()) {
+    ostringstream os;
+    os << "This method has generic output. "
+       << "You have to pass a variable!";
+    throw ParseError(os.str(), msource.File(), msource.MarkedLine(),
+                     msource.MarkedColumn());
+  }
 
-    {
-      // Make sure all keywords have default values, otherwise the
-      // user has to specify them in the controlfile.
-      bool all_gin_have_defaults = true;
-      for (Index gin = 0; all_gin_have_defaults && gin < mdd->GIn().nelem();
-           ++gin) {
-        Index wsvid;  // Workspace variable id, is used to
-        // access data in wsv_data.
+  // If all arguments were omitted we still have to add the implicit
+  // outputs and inputs to the methods input and output variable lists
+  ArrayOfIndex vo = mdd->Out();
+  for (auto outs = vo.begin(); outs < vo.end(); ++outs) {
+    output.push_back(*outs);
+  }
 
-        if (mdd->GInDefault()[gin] == NODEF)
-          all_gin_have_defaults = false;
-        else {
-          String wsvname;
-          wsvname = set_gin_to_default(mdd, auto_vars, auto_vars_values, gin);
-          {
-            // Find Wsv id:
-            const auto wsvit =
-                ws->WsvMap_ptr->find(wsvname);
-            if (wsvit == ws->WsvMap_ptr->end()) {
-              throw UnknownWsv(wsvname,
-                               msource.File(),
-                               msource.MarkedLine(),
-                               msource.MarkedColumn());
-            }
+  const ArrayOfIndex &vi = mdd->InOnly();
+  for (auto ins = vi.begin(); ins < vi.end(); ++ins) {
+    input.push_back(*ins);
+  }
 
-            wsvid = wsvit->second;
+  {
+    // Make sure all keywords have default values, otherwise the
+    // user has to specify them in the controlfile.
+    bool all_gin_have_defaults = true;
+    for (Index gin = 0; all_gin_have_defaults && gin < mdd->GIn().nelem();
+         ++gin) {
+      Index wsvid; // Workspace variable id, is used to
+      // access data in wsv_data.
+
+      if (mdd->GInDefault()[gin] == NODEF)
+        all_gin_have_defaults = false;
+      else {
+        String wsvname;
+        wsvname = set_gin_to_default(mdd, auto_vars, auto_vars_values, gin);
+        {
+          // Find Wsv id:
+          const auto wsvit = ws->WsvMap_ptr->find(wsvname);
+          if (wsvit == ws->WsvMap_ptr->end()) {
+            throw UnknownWsv(wsvname, msource.File(), msource.MarkedLine(),
+                             msource.MarkedColumn());
           }
-          input.push_back(wsvid);
-        }
-      }
 
-      if (!all_gin_have_defaults) {
-        ostringstream os;
-        os << "Not all generic inputs of the method *" << methodname
-           << "* have default values, you have to specify them!";
-        throw ParseError(os.str(),
-                         msource.File(),
-                         msource.MarkedLine(),
-                         msource.MarkedColumn());
+          wsvid = wsvit->second;
+        }
+        input.push_back(wsvid);
       }
+    }
+
+    if (!all_gin_have_defaults) {
+      ostringstream os;
+      os << "Not all generic inputs of the method *" << methodname
+         << "* have default values, you have to specify them!";
+      throw ParseError(os.str(), msource.File(), msource.MarkedLine(),
+                       msource.MarkedColumn());
     }
   }
 }
