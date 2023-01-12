@@ -162,7 +162,7 @@ void sunsAddSingleFromGridAtLocation(
     sun_latitude = -location_latitude;
     sun_longitude = location_longitude + 180 - 360.0 * Numeric(round((location_longitude - 0.0) / 360.0));
   } else {
-  Numeric x, y, z, dx, dy, dz;
+    Numeric x, y, z, dx, dy, dz;
     poslos2cart(x,
                 y,
                 z,
@@ -175,13 +175,12 @@ void sunsAddSingleFromGridAtLocation(
                 zenith,
                 azimuth);
 
-    Vector sun_pos_cart = {x+distance*dx, y+distance*dy, z+distance*dz};
     cart2sph(sun_altitude, 
             sun_latitude,
             sun_longitude,
-            sun_pos_cart[0],
-            sun_pos_cart[1],
-            sun_pos_cart[2],
+            x+distance*dx,
+            y+distance*dy,
+            z+distance*dz,
             location_latitude,
             location_longitude,
             zenith, azimuth);
