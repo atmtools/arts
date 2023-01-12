@@ -1,45 +1,17 @@
 #pragma once
 
-#include "matpack.h"
-#include "matpack_concepts.h"
-
 #include <mdspan/include/experimental/mdspan>
 
-#include <concepts>
+#include <array>
+#include <complex>
+#include <cstdint>
 #include <type_traits>
 
-#pragma GCC diagnostic push
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wdeprecated-comma-subscript"
-#else
-#pragma GCC diagnostic ignored "-Wcomma-subscript"
-#endif
-namespace matpack::md {
-//! The type has basic arithmetic properties
-template <typename T>
-concept arithmetic = std::is_arithmetic_v<std::remove_cvref_t<T>>;
+using Numeric = double;
 
-//! The type is complex
-template <typename T>
-concept complex_type = requires(T a) {
-  { a.real() } -> arithmetic;
-  { a.imag() } -> arithmetic;
-};
+using Index = std::int64_t;
 
-//! The type is arithmetic or complex (for interface reasons, this cannot be const, volatile, reference, or any combination)
-template <typename T>
-concept math_type = (arithmetic<T> or complex_type<T>) and 
-    std::same_as<T, std::remove_cvref_t<T>>;
-
-//! The core data owning type
-template <math_type T, Index N> class simple_data;
-
-//! A continous view of the data held by simple_data
-template <math_type T, Index N, bool constant> class simple_view;
-
-//! A strided view of the data help by simple_data
-template <math_type T, Index N, bool constant> class strided_view;
-
+namespace matpack {
 //! A type that denotes all values should be accessed
 using Joker = std::experimental::full_extent_t;
 
@@ -47,7 +19,20 @@ using Joker = std::experimental::full_extent_t;
 inline constexpr Joker joker = std::experimental::full_extent;
 
 //! A type that denotes some values should be accessed
-struct strided_access;
+struct matpack_strided_access;
+
+//! The basic view type
+template <typename T, Index N, bool constant, bool strided>
+class matpack_view;
+
+//! The basic data type
+template <typename T, Index N>
+class matpack_data;
+
+//! Helper bool
+template <typename T>
+inline constexpr bool is_matpack_strided_access =
+    std::is_same_v<std::remove_cvref_t<T>, matpack_strided_access>;
 
 //! The type is an integer
 template <typename T>
@@ -57,65 +42,27 @@ concept integral = std::integral<std::remove_cvref_t<T>>;
 template <typename T>
 concept access_operator =
     integral<T> or std::is_same_v<std::remove_cvref_t<T>, Joker> or
-    std::is_same_v<std::remove_cvref_t<T>, strided_access>;
+    is_matpack_strided_access<T>;
 
-//! A view that can be mutated
-template <typename U, typename T, Index N>
-concept mutable_view =
-    std::same_as<std::remove_cvref_t<U>, simple_view<T, N, false>> or
-    std::same_as<std::remove_cvref_t<U>, strided_view<T, N, false>>;
+//! Holds true for mdspan(s) that are always continuous in memory, i.e., exhaustive_mdspan and not strided_mdspan
+template <typename T>
+concept is_always_exhaustive_v = T::is_always_exhaustive();
 
-//! A view or a non-const of the original data
-template <typename U, typename T, Index N>
-concept any_mutable =
-    mutable_view<U, T, N> or
-    std::same_as<std::remove_volatile_t<std::remove_reference_t<U>>,
-                 simple_data<T, N>>;
+//! The type has basic arithmetic properties
+template <typename T>
+concept arithmetic = std::is_arithmetic_v<std::remove_cvref_t<T>>;
 
-//! A view that cannot be mutated
-template <typename U, typename T, Index N>
-concept const_view =
-    std::same_as<std::remove_cvref_t<U>, simple_view<T, N, true>> or
-    std::same_as<std::remove_cvref_t<U>, strided_view<T, N, true>>;
-
-//! Any view of the data of a specific type and size
-template <typename U, typename T, Index N>
-concept any_view = mutable_view<U, T, N> or const_view<U, T, N>;
-
-//! Any matpack data type of a specific type of a specific size
-template <typename U, typename T, Index N>
-concept any_md = any_view<U, T, N> or
-                 std::same_as<std::remove_cvref_t<U>, simple_data<T, N>>;
-
-//! Any view of the data with a derived type of a specific size
-template <typename U, Index N>
-concept any_same_view = any_view<U, typename U::value_type, N>;
-
-//! Any matpack data type with a derived type of a specific size
-template <typename U, Index N>
-concept any_same_md = any_md<U, typename U::value_type, N>;
-
-//! Any strided data with a derived type of a specific size
-template <typename U, Index N>
-concept any_strided = std::same_as<std::remove_cvref_t<U>, strided_view<typename U::value_type, N, true>> or 
-                      std::same_as<std::remove_cvref_t<U>, strided_view<typename U::value_type, N, false>>;
-
-//! Any continous view with a derived type of a specific size
-template <typename U, Index N>
-concept any_exhaustive = any_md<U, typename U::value_type, N> and not any_strided<U, N>;
+template <typename T>
+concept complex_type = requires(T a) {
+  sizeof(decltype(1.0 * a.real())) * 2 == sizeof(T);
+  sizeof(decltype(1.0 * a.imag())) * 2 == sizeof(T);
+  { a.real() } -> arithmetic;
+  { a.imag() } -> arithmetic;
+};
 
 //! Helper to get the subtype of a complex type (e.g., Numeric from std::complex<Numeric>)
 template <complex_type T>
 using complex_subtype = std::remove_cvref_t<decltype(T{}.real())>;
-
-//! A vector or view thereof
-template <typename U> concept matpack_vector = any_same_md<U, 1>;
-
-//! A matrix or view thereof
-template <typename U> concept matpack_matrix = any_same_md<U, 2>;
-
-//! A matrix or vector, or view of either
-template <typename U> concept matpack_matrix_or_vector = matpack_matrix<U> or matpack_vector<U>;
 
 //! Checks if the type has some extent
 template <typename T>
@@ -289,16 +236,23 @@ constexpr auto library_size(const U& x) {
   return x.nlibraries();
 }
 
+//! Returns the 1D size of a given shape
+template <Index N>
+constexpr Index mdsize(const std::array<Index, N>& shape) {
+  return std::reduce(shape.begin(), shape.end(), Index{1}, std::multiplies<>());
+}
+
 //! A rankable multidimensional array
-template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has_IsVectorAtCompileTime<T>;
+template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has_IsVectorAtCompileTime<T> or has_size<T>;
 
 //! Get the rank of the multidimensional array at compile time
 template <rankable T>
 consteval auto rank() {
   if constexpr (has_NumIndices<T>) return T::NumIndices;
   else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - T::IsVectorAtCompileTime;
+  else if constexpr (has_rank<T>) return T::rank();
   else if constexpr (has_size<T>) return 1;
-  else return T::rank();
+  else return -1;
 }
 
 template <rankable T, auto dim = rank<T>()> Index dimsize(const T& v, integral auto ind) {
@@ -320,6 +274,11 @@ template <rankable T, auto dim = rank<T>()> Index dimsize(const T& v, integral a
     return 0;
   }
 }
+
+template <typename T>
+concept has_dimsize = requires(T a) {
+  { dimsize(a, 0) } -> std::same_as<Index>;
+};
 
 //! Ensure that T is of the type std::array<integral, N>
 template <typename T, Index N>
@@ -346,6 +305,11 @@ constexpr std::array<Index, dim> mdshape(const T& v) {
   }
 }
 
+template <typename T>
+concept has_mdshape = rankable<T> and requires(T a) {
+  { mdshape(a) } -> std::same_as<std::array<Index, rank<T>()>>;
+};
+
 //! Get a positional value
 template <rankable T, auto dim = rank<T>()>
 constexpr auto mdvalue(const T& v, const std::array<Index, dim>& pos) {
@@ -353,22 +317,81 @@ constexpr auto mdvalue(const T& v, const std::array<Index, dim>& pos) {
   else return std::apply([&v](auto... inds){return v(inds...);}, pos);
 }
 
-template<Index N>
-constexpr void mdindup(std::array<Index, N>& ind, const std::array<Index, N>& sh) {
-  ++ind.back();
-  if constexpr (N > 1) {
-    if (ind.back() == sh.back()) {
-      ind.back() = 0;
-      for (auto I = N - 2; I<N and I>=0; I--) {
-        ++ind[I];
-        if (ind[I] == sh[I] and I not_eq 0) ind[I] = 0;
-        else break;
-      }
-    }
-  }
-}
+//! The type is arithmetic or complex (for interface reasons, this cannot be const, volatile, reference, or any combination)
+template <typename T>
+concept math_type = arithmetic<T> or complex_type<T>;
 
 template <typename T>
-concept matpack_convertible = not any_same_md<T, rank<T>()>;
-}  // namespace matpack::md
-#pragma GCC diagnostic pop
+concept has_mdvalue = has_mdshape<T> and requires(T a) {
+  { mdvalue(a, mdshape(a)) } -> math_type;
+};
+
+template <typename T, Index N, bool constant, bool strided>
+class matpack_view;
+
+template <typename U, typename T, Index N, bool constant, bool strided>
+concept exact_matpack_view = std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, constant, strided>>;
+
+template <typename U, typename T, Index N, bool constant>
+concept strided_matpack_view = exact_matpack_view<U, T, N, constant, true>;
+
+template <typename U, typename T, Index N, bool strided>
+concept constant_matpack_view = exact_matpack_view<U, T, N, true, strided>;
+
+template <typename U, typename T, Index N, bool constant>
+concept contiguous_matpack_view = exact_matpack_view<U, T, N, constant, false>;
+
+template <typename U, typename T, Index N, bool strided>
+concept mutable_matpack_view = exact_matpack_view<U, T, N, false, strided>;
+
+template <typename U, typename T, Index N>
+concept sized_matpack_view = exact_matpack_view<U, T, N, false, false> or
+                             exact_matpack_view<U, T, N, false, true> or
+                             exact_matpack_view<U, T, N, true, false> or
+                             exact_matpack_view<U, T, N, true, true>;
+
+template <typename U, typename T>
+concept typed_matpack_view = rankable<U> and sized_matpack_view<U, T, rank<U>()>;
+
+template <typename T>
+concept has_value_type = requires(T) {
+  typename T::value_type{};
+};
+
+template <has_value_type T>
+using matpack_value_type = typename T::value_type;
+
+template <typename T, Index N>
+concept strict_size_matpack_view = has_value_type<T> and sized_matpack_view<T, matpack_value_type<T>, N>;
+
+template <typename T>
+concept any_matpack_view = has_value_type<T> and rankable<T> and sized_matpack_view<T, matpack_value_type<T>, rank<T>()>;
+
+template <typename U, typename T, Index N>
+concept sized_matpack_data = std::same_as<std::remove_cvref_t<U>, matpack_data<T, N>>;
+
+template <typename T, Index N>
+concept strict_size_matpack_data = has_value_type<T> and sized_matpack_data<T, matpack_value_type<T>, N>;
+
+template <typename T>
+concept any_matpack_data = has_value_type<T> and rankable<T> and sized_matpack_data<T, matpack_value_type<T>, rank<T>()>;
+
+template<typename T, Index N>
+concept strict_size_matpack_type = strict_size_matpack_data<T, N> or strict_size_matpack_view<T, N>;
+
+template <typename U, Index N>
+concept strict_sized_matpack_type = strict_size_matpack_data<U, N> or strict_size_matpack_view<U, N>;
+
+template <typename U, typename T, Index N>
+concept matpack_convertible = not sized_matpack_data<U, T, N> and has_mdshape<U> and has_mdvalue<U> and rank<U>() == N;
+
+template <Index N> using ranking = std::experimental::dextents<Index, N>;
+
+using strided = std::experimental::layout_stride;
+
+template <typename T, Index N>
+using exhaustive_mdspan = std::experimental::mdspan<T, ranking<N>>;
+
+template <typename T, Index N>
+using strided_mdspan = std::experimental::mdspan<T, ranking<N>, strided>;
+}  // namespace matpack

@@ -1,13 +1,15 @@
-#include "debug.h"
-#include "matpack_mdspan.h"
-#include "matpack_mdspan_eigen.h"
-
+#include <algorithm>
+#include <complex>
 #include <iostream>
+#include <numeric>
 #include <vector>
 
+#include "matpack/matpack_data2.h"
+#include "matpack/matpack_eigen2.h"
+#include "matpack/matpack_math2.h"
+#include "matpack/matpack_view2.h"
+
 using std::cout;
-using std::endl;
-using std::runtime_error;
 
 Numeric by_reference(const Numeric &x) { return x + 1; }
 
@@ -33,7 +35,7 @@ int test1() {
   //  fill_with_junk(v);
 
   Vector v2 = v[Range(2, 4)];
-
+  
   cout << "v2 = \n" << v2 << "\n";
 
   for (Index i = 0; i < 1000; ++i) {
@@ -113,669 +115,6 @@ void test2() {
   cout << "Done\n";
 }
 
-Matrix build_test_matrix(Index rows, Index cols) {
-  Matrix a(rows, cols);
-  for (Index i = 0; i < rows; i++) {
-    for (Index j = 0; j < cols; j++) {
-      a(i, j) = static_cast<Numeric>(10 * i + j + 1);
-    }
-  }
-  return a;
-}
-
-void test_mult() {
-  std::cout << "# MULT TEST ######################################\n";
-  {
-    std::cout << "TEST 1 (y = A * x; NOT STRIDED):\n";
-    Vector y(3);
-    Vector x(std::vector<Numeric>{1, 2, 3});
-    Matrix A(3, 3, 1);
-    mult_fast(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "6 6 6", "Bad mult")
-  }
-  {
-    std::cout << "TEST 2 (y = A * x; NOT STRIDED):\n";
-    Vector y(3);
-    Vector x(std::vector<Numeric>{1, 2, 3});
-    Matrix A = build_test_matrix(3, 3);
-    mult_fast(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "14 74 134", "Bad mult")
-  }
-  {
-    std::cout << "TEST 3 (y = A * x; NOT STRIDED):\n";
-    Vector y(3);
-    Vector x(std::vector<Numeric>{1, 2});
-    Matrix A = build_test_matrix(3, 2);
-    mult_fast(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "5 35 65", "Bad mult")
-  }
-  {
-    std::cout << "TEST 4 (y = A * x; STRIDED):\n";
-    Vector y(3);
-    Vector x(std::vector<Numeric>{1, 2, 3});
-    Matrix A(3, 3, 1);
-    mult(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "6 6 6", "Bad mult")
-  }
-  {
-    std::cout << "TEST 5 (y = A * x; STRIDED):\n";
-    Vector y(3);
-    Vector x(std::vector<Numeric>{1, 2, 3});
-    Matrix A = build_test_matrix(3, 3);
-    mult(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "14 74 134", "Bad mult")
-  }
-  {
-    std::cout << "TEST 6 (y = A * x; STRIDED):\n";
-    Vector y(3);
-    Vector x(std::vector<Numeric>{1, 2});
-    Matrix A = build_test_matrix(3, 2);
-    mult(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "5 35 65", "Bad mult")
-  }
-  {
-    std::cout << "TEST 7 (C = A * B; NON STRIDED):\n";
-    Matrix C(3, 3);
-    Matrix B(3, 3, 1);
-    Matrix A(3, 3, 1);
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq "3 3 3\n3 3 3\n3 3 3", "Bad mult")
-  }
-  {
-    std::cout << "TEST 8 (C = A * B; NON STRIDED):\n";
-    Matrix C(3, 4);
-    Matrix A(3, 2, 1);
-    Matrix B(2, 4, 1);
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq "2 2 2 2\n2 2 2 2\n2 2 2 2",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 9 (C = A * B; NON STRIDED):\n";
-    Matrix C(3, 4);
-    Matrix A = build_test_matrix(3, 2);
-    Matrix B = build_test_matrix(2, 4);
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "23 26 29 32\n143 166 189 212\n263 306 349 392",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 10 (C = A * B; NON STRIDED):\n";
-    Matrix C(4, 3);
-    Matrix A = build_test_matrix(4, 2);
-    Matrix B = build_test_matrix(2, 3);
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "23 26 29\n143 166 189\n263 306 349\n383 446 509",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 11 (C = A * B; STRIDED):\n";
-    Matrix C(3, 3);
-    Matrix B(3, 3, 1);
-    Matrix A(3, 3, 1);
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq "3 3 3\n3 3 3\n3 3 3", "Bad mult")
-  }
-  {
-    std::cout << "TEST 12 (C = A * B; STRIDED):\n";
-    Matrix C(3, 4);
-    Matrix A(3, 2, 1);
-    Matrix B(2, 4, 1);
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq "2 2 2 2\n2 2 2 2\n2 2 2 2",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 13 (C = A * B; STRIDED):\n";
-    Matrix C(3, 4);
-    Matrix A = build_test_matrix(3, 2);
-    Matrix B = build_test_matrix(2, 4);
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "23 26 29 32\n143 166 189 212\n263 306 349 392",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 14 (C = A * B; STRIDED):\n";
-    Matrix C(4, 3);
-    Matrix A = build_test_matrix(4, 2);
-    Matrix B = build_test_matrix(2, 3);
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "23 26 29\n143 166 189\n263 306 349\n383 446 509",
-                       "Bad mult")
-  }
-  std::cout << "#/MULT TEST ######################################\n";
-}
-
-ComplexMatrix build_test_complex_matrix(Index rows, Index cols) {
-  ComplexMatrix a(rows, cols);
-  for (Index i = 0; i < rows; i++) {
-    for (Index j = 0; j < cols; j++) {
-      auto n = static_cast<Numeric>(10 * i + j + 1);
-      a(i, j) = Complex{n, 2 * n};
-    }
-  }
-  return a;
-}
-
-void test_complex_mult() {
-  std::cout << "# COMPLEX MULT TEST ######################################\n";
-  {
-    std::cout << "TEST 1 (y = A * x; NOT STRIDED):\n";
-    ComplexVector y(3);
-    ComplexVector x(
-        std::vector<Complex>{Complex{1, 1}, Complex{2, 2}, Complex{3, 3}});
-    ComplexMatrix A(3, 3, Complex{1, 1});
-    mult_fast(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "(0,12) (0,12) (0,12)", "Bad mult")
-  }
-  {
-    std::cout << "TEST 2 (y = A * x; NOT STRIDED):\n";
-    ComplexVector y(3);
-    ComplexVector x(
-        std::vector<Complex>{Complex{1, 1}, Complex{2, 2}, Complex{3, 3}});
-    ComplexMatrix A = build_test_complex_matrix(3, 3);
-    mult_fast(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "(-14,42) (-74,222) (-134,402)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 3 (y = A * x; NOT STRIDED):\n";
-    ComplexVector y(3);
-    ComplexVector x(std::vector<Complex>{Complex{1, 1}, Complex{2, 2}});
-    ComplexMatrix A = build_test_complex_matrix(3, 2);
-    mult_fast(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "(-5,15) (-35,105) (-65,195)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 4 (y = A * x; STRIDED):\n";
-    ComplexVector y(3);
-    ComplexVector x(
-        std::vector<Complex>{Complex{1, 1}, Complex{2, 2}, Complex{3, 3}});
-    ComplexMatrix A(3, 3, Complex{1, 1});
-    mult(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "(0,12) (0,12) (0,12)", "Bad mult")
-  }
-  {
-    std::cout << "TEST 5 (y = A * x; STRIDED):\n";
-    ComplexVector y(3);
-    ComplexVector x(
-        std::vector<Complex>{Complex{1, 1}, Complex{2, 2}, Complex{3, 3}});
-    ComplexMatrix A = build_test_complex_matrix(3, 3);
-    mult(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "(-14,42) (-74,222) (-134,402)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 6 (y = A * x; STRIDED):\n";
-    ComplexVector y(3);
-    ComplexVector x(std::vector<Complex>{Complex{1, 1}, Complex{2, 2}});
-    ComplexMatrix A = build_test_complex_matrix(3, 2);
-    mult(y, A, x);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "x (in):\n"
-              << x << '\n'
-              << "y (out):\n"
-              << y << '\n';
-    ARTS_USER_ERROR_IF(var_string(y) not_eq "(-5,15) (-35,105) (-65,195)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 7 (C = A * B; NON STRIDED):\n";
-    ComplexMatrix C(3, 3);
-    ComplexMatrix B(3, 3, Complex{1, 1});
-    ComplexMatrix A(3, 3, Complex{1, 1});
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(
-        var_string(C) not_eq
-            "(0,6) (0,6) (0,6)\n(0,6) (0,6) (0,6)\n(0,6) (0,6) (0,6)",
-        "Bad mult")
-  }
-  {
-    std::cout << "TEST 8 (C = A * B; NON STRIDED):\n";
-    ComplexMatrix C(3, 4);
-    ComplexMatrix A(3, 2, Complex{1, 1});
-    ComplexMatrix B(2, 4, Complex{1, 1});
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "(0,4) (0,4) (0,4) (0,4)\n(0,4) (0,4) (0,4) "
-                           "(0,4)\n(0,4) (0,4) (0,4) (0,4)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 9 (C = A * B; NON STRIDED):\n";
-    ComplexMatrix C(3, 4);
-    ComplexMatrix A = build_test_complex_matrix(3, 2);
-    ComplexMatrix B = build_test_complex_matrix(2, 4);
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "(-69,92) (-78,104) (-87,116) (-96,128)\n(-429,572) "
-                           "(-498,664) (-567,756) (-636,848)\n(-789,1052) "
-                           "(-918,1224) (-1047,1396) (-1176,1568)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 10 (C = A * B; NON STRIDED):\n";
-    ComplexMatrix C(4, 3);
-    ComplexMatrix A = build_test_complex_matrix(4, 2);
-    ComplexMatrix B = build_test_complex_matrix(2, 3);
-    mult_fast(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(
-        var_string(C) not_eq
-            "(-69,92) (-78,104) (-87,116)\n(-429,572) (-498,664) "
-            "(-567,756)\n(-789,1052) (-918,1224) (-1047,1396)\n(-1149,1532) "
-            "(-1338,1784) (-1527,2036)",
-        "Bad mult")
-  }
-  {
-    std::cout << "TEST 11 (C = A * B; STRIDED):\n";
-    ComplexMatrix C(3, 3);
-    ComplexMatrix B(3, 3, Complex{1, 1});
-    ComplexMatrix A(3, 3, Complex{1, 1});
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(
-        var_string(C) not_eq
-            "(0,6) (0,6) (0,6)\n(0,6) (0,6) (0,6)\n(0,6) (0,6) (0,6)",
-        "Bad mult")
-  }
-  {
-    std::cout << "TEST 12 (C = A * B; STRIDED):\n";
-    ComplexMatrix C(3, 4);
-    ComplexMatrix A(3, 2, Complex{1, 1});
-    ComplexMatrix B(2, 4, Complex{1, 1});
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "(0,4) (0,4) (0,4) (0,4)\n(0,4) (0,4) (0,4) "
-                           "(0,4)\n(0,4) (0,4) (0,4) (0,4)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 13 (C = A * B; STRIDED):\n";
-    ComplexMatrix C(3, 4);
-    ComplexMatrix A = build_test_complex_matrix(3, 2);
-    ComplexMatrix B = build_test_complex_matrix(2, 4);
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(var_string(C) not_eq
-                           "(-69,92) (-78,104) (-87,116) (-96,128)\n(-429,572) "
-                           "(-498,664) (-567,756) (-636,848)\n(-789,1052) "
-                           "(-918,1224) (-1047,1396) (-1176,1568)",
-                       "Bad mult")
-  }
-  {
-    std::cout << "TEST 14 (C = A * B; STRIDED):\n";
-    ComplexMatrix C(4, 3);
-    ComplexMatrix A = build_test_complex_matrix(4, 2);
-    ComplexMatrix B = build_test_complex_matrix(2, 3);
-    mult(C, A, B);
-    std::cout << "A (in):\n"
-              << A << '\n'
-              << "B (in):\n"
-              << B << '\n'
-              << "C (out):\n"
-              << C << '\n';
-    ARTS_USER_ERROR_IF(
-        var_string(C) not_eq
-            "(-69,92) (-78,104) (-87,116)\n(-429,572) (-498,664) "
-            "(-567,756)\n(-789,1052) (-918,1224) (-1047,1396)\n(-1149,1532) "
-            "(-1338,1784) (-1527,2036)",
-        "Bad mult")
-  }
-  std::cout << "#/COMPLEX MULT TEST ######################################\n";
-}
-
-void test_transpose() {
-  std::cout << "# TRANSPOSE TEST ######################################\n";
-  {
-    std::cout << "TEST 1:\n";
-    auto A = build_test_matrix(3, 3);
-    std::cout << A << '\n';
-    ConstMatrixView X = A;
-    std::cout << X.transpose() << '\n';
-    std::cout << A.transpose() << '\n';
-  }
-  {
-    std::cout << "TEST 2:\n";
-    Matrix A = build_test_matrix(2, 3);
-    std::cout << A << '\n';
-    ConstMatrixView X = A;
-    std::cout << X.transpose() << '\n';
-    std::cout << A.transpose() << '\n';
-  }
-  {
-    std::cout << "TEST 3:\n";
-    auto A = build_test_matrix(4, 3);
-    std::cout << A << '\n';
-    ConstMatrixView X = A;
-    std::cout << X.transpose() << '\n';
-    std::cout << X.transpose().transpose() << '\n';
-  }
-  {
-    std::cout << "TEST 3:\n";
-    auto A = build_test_matrix(4, 3);
-    ConstMatrixView X = A;
-    std::cout << X.transpose() << '\n';
-    std::cout << transpose(X) << '\n';
-    std::cout << FastConstMatrixView{X.transpose().transpose()} << '\n';
-  }
-  std::cout << "#/TRANSPOSE TEST ######################################\n";
-}
-
-void test_complex_view() {
-  std::cout << "# COMPLEX VIEWS TEST ######################################\n";
-  {
-    ComplexMatrix A = build_test_complex_matrix(3, 2);
-    std::cout << A << '\n';
-    std::cout << FastComplexMatrixView{A}.real() << '\n';
-    std::cout << FastConstComplexMatrixView{A}.real() << '\n';
-    std::cout << FastComplexMatrixView{A}.imag() << '\n';
-    std::cout << FastConstComplexMatrixView{A}.imag() << '\n';
-    std::cout << '\n';
-    std::cout << A.transpose() << '\n';
-    std::cout << FastComplexMatrixView{A}.real().transpose() << '\n';
-    std::cout << FastConstComplexMatrixView{A}.real().transpose() << '\n';
-    std::cout << FastComplexMatrixView{A}.imag().transpose() << '\n';
-    std::cout << FastConstComplexMatrixView{A}.imag().transpose() << '\n';
-  }
-  {
-    ComplexMatrix A = build_test_complex_matrix(3, 2);
-    std::cout << A << '\n';
-    std::cout << ComplexMatrixView{A}.real() << '\n';
-    std::cout << ConstComplexMatrixView{A}.real() << '\n';
-    std::cout << ComplexMatrixView{A}.imag() << '\n';
-    std::cout << ConstComplexMatrixView{A}.imag() << '\n';
-    std::cout << '\n';
-    std::cout << A.transpose() << '\n';
-    std::cout << ComplexMatrixView{A}.real().transpose() << '\n';
-    std::cout << ConstComplexMatrixView{A}.real().transpose() << '\n';
-    std::cout << ComplexMatrixView{A}.imag().transpose() << '\n';
-    std::cout << ConstComplexMatrixView{A}.imag().transpose() << '\n';
-    std::cout << '\n';
-    std::cout << A << '\n';
-    std::cout << ComplexMatrixView{A.transpose()}.real().transpose() << '\n';
-    std::cout << ConstComplexMatrixView{A.transpose()}.real().transpose()
-              << '\n';
-    std::cout << ComplexMatrixView{A.transpose()}.imag().transpose() << '\n';
-    std::cout << ConstComplexMatrixView{A.transpose()}.imag().transpose()
-              << '\n';
-    std::cout << '\n';
-    std::cout << A.transpose() << '\n';
-    std::cout << ComplexMatrixView{A.transpose()}.real() << '\n';
-    std::cout << ConstComplexMatrixView{A.transpose()}.real() << '\n';
-    std::cout << ComplexMatrixView{A.transpose()}.imag() << '\n';
-    std::cout << ConstComplexMatrixView{A.transpose()}.imag() << '\n';
-  }
-  std::cout << "#/COMPLEX VIEWS TEST ######################################\n";
-}
-
-void test_range_view() {
-  Vector VEC{std::vector<double>{0, 1, 2, 3, 4, 5}};
-  std::cout << "VEC\n";
-  std::cout << VEC << '\n';
-  std::cout << VEC[Range(0, 2, 2)] << '\n';
-  std::cout << VEC[Range(0, 3, 2)] << '\n';
-  std::cout << VEC[Range(1, 2, 2)] << '\n';
-  std::cout << VEC[Range(3, 2, 2)] << '\n';
-  std::cout << VEC[Range(1, joker)] << '\n';
-  std::cout << VEC[Range(1, joker, 2)] << '\n';
-
-  Matrix MAT = build_test_matrix(6, 5);
-  std::cout << "MAT\n";
-  std::cout << MAT << '\n';
-  std::cout << MAT[Range(0, 2, 2)] << '\n';
-  std::cout << MAT[Range(0, 3, 2)] << '\n';
-  std::cout << MAT[Range(1, 2, 2)] << '\n';
-  std::cout << MAT[Range(3, 2, 2)] << '\n';
-
-  std::cout << MAT(0, Range(0, 2, 2)) << '\n';
-  std::cout << MAT(1, Range(0, 3, 2)) << '\n';
-  std::cout << MAT(2, Range(1, 2, 2)) << '\n';
-  std::cout << MAT(3, Range(3, 2, 1)) << '\n';
-
-  std::cout << MAT(Range(0, 2, 2), Range(0, 2, 2)) << '\n';
-  std::cout << MAT(Range(0, 2, 2), Range(0, 3, 2)) << '\n';
-  std::cout << MAT(Range(0, 3, 2), Range(0, 2, 2)) << '\n';
-
-  std::cout << MAT(Range(0, 2, 2), 1) << '\n';
-
-  std::cout << MAT << '\n';
-  std::cout << MAT[Range(joker)] << '\n';
-  std::cout << MAT[joker] << '\n';
-  std::cout << MAT[Range(1, 2)] << '\n';
-  std::cout << MAT(Range(1, 2), joker) << '\n';
-}
-
-void test_impl() {
-  auto x = Vector(4);
-  const auto y = Matrix(4, 3, 4);
-  auto yc = Matrix{};
-  auto z = Tensor3(4, 3, 2, 4);
-
-  z(1, 2, 1) += 1;
-  z(1, 1, 1) += 1;
-
-  for (auto v : z) {
-    v(0, 0) += 3;
-    for (auto t : v) {
-      t[1] += 5;
-      for (auto &s : t)
-        s *= 2;
-    }
-  }
-  for (auto &v : x)
-    v += 2;
-
-  x = std::move(z).flatten();
-  std::cout << "SHOULD BE SAME (TOP IS STORED CONST CHAR *):\n14 18 8 18 8 18 "
-               "14 18 8 20 8 20 14 18 8 18 8 "
-               "18 14 18 8 18 8 18\n";
-  std::cout << x << '\n';
-  std::cout << z << '\n';
-  z = std::move(std::move(x)).reshape(2, 3, 4);
-  std::cout << x << '\n';
-  std::cout << z << '\n';
-  z = std::move(std::move(z).flatten()).reshape(4, 3, 2);
-  std::cout << x << '\n';
-  std::cout << z << '\n';
-  yc = std::move(std::move(z).flatten()).reshape(4, 6);
-  std::cout << x << '\n';
-  std::cout << yc << '\n';
-
-  z = std::move(yc).reshape(4, 3, 2);
-  std::cout << z << '\n';
-
-  x = std::move(z).flatten();
-  std::cout << x.sum() << ' ' << x * x << '\n';
-
-  std::cout << ConstVectorView{x} * x << ' ' << x * ConstVectorView{x} << '\n';
-
-  Matrix G{4, 5};
-  for (Index i = 0; i < 4; i++)
-    for (Index j = 0; j < 5; j++)
-      G(i, j) = static_cast<Numeric>(10 * i + j);
-  VectorView a = G(matpack::md::joker, 0);
-  FastVectorView b = G(0, matpack::md::joker);
-  std::cout << "THE NEXT TWO ROWS SHOULD BE IDENTICAL (STRIDED):\n"
-            << a << '\n'
-            << "0 10 20 30\n";
-  std::cout << "THE NEXT TWO ROWS SHOULD BE IDENTICAL (NON-STRIDED):\n"
-            << b << '\n'
-            << "0 1 2 3 4\n";
-  std::cout << "TEST GOOD (IF 6-LINES ABOVE LOOKS GOOD): Could get strided and "
-               "non-strided data\n";
-  try {
-    auto f = FastVectorView{a};
-    std::cout << "THE NEXT TWO ROWS SHOULD BE IDENTICAL:\n"
-              << f << '\n'
-              << "0 10 20 30\n";
-    std::cout << "ERROR: You should not be able to do this" << '\n';
-    std::exit(1);
-  } catch (...) {
-    std::cout << "TEST GOOD: Could not convert between non-strided and strided "
-                 "view\n";
-  }
-}
-
 void test4() {
   Vector a(10);
   Vector b(a.nelem());
@@ -795,12 +134,14 @@ void test4() {
 
   B = 2;
   C = 3;
-  mult(A(Range(1, joker), Range(1, joker)), B, C);
+  //mult(A(Range(1, joker), Range(1, joker)), B, C);
 
   //  cout << "\nB =\n" << B << "\n";
   //  cout << "\nC =\n" << C << "\n";
   cout << "\nB*C =\n" << A << "\n";
 }
+
+/*
 
 void test5() {
   Vector a(10);
@@ -822,23 +163,15 @@ void test5() {
 }
 
 void test6() {
-  Index n = 5000;
+  Index n = 5;
   Vector x(1, n, 1), y(n);
   Matrix M(n, n);
   M = 1;
-  //  cout << "x = \n" << x << "\n";
+  std::cout << "x = \n" << x << "\n";
 
-  cout << "Transforming.\n";
-  //  transform(x,sin,x);
-  // transform(transpose(y),sin,transpose(x));
-  //  cout << "sin(x) =\n" << y << "\n";
-  for (Index i = 0; i < 1000; ++i) {
-    //      mult(y,M,x);
-    auto tmp = static_cast<MatrixView>(y);  // FIXME: I have to have a temporary!
-    transform(tmp, [](auto a){return sin(a);}, static_cast<MatrixView>(x));
-    x += 1;
-  }
-  //  cout << "y =\n" << y << "\n";
+  std::cout << "Transforming.\n";
+  transform(y,[](auto a){return sin(a);},x);
+  std::cout << "sin(x) =\n" << y << "\n";
 
   cout << "Done.\n";
 }
@@ -1977,6 +1310,14 @@ void test_eigen_base_set() {
     auto i = matpack::eigen::mat(a.imag().transpose());
     std::cout << i << '\n';
     std::cout << Matrix(i) << '\n';
+
+    std::cout << a << '\n';
+    std::cout << a.real() << '\n';
+    std::cout << a.imag() << '\n';
+    a.real() = a.imag();
+    std::cout << a << '\n';
+    std::cout << a.real() << '\n';
+    std::cout << a.imag() << '\n';
   }
 }
 
@@ -2043,7 +1384,9 @@ void test_eigen_math() {
     std::cout << 2.5*A << '\n';
   }
 }
+*/
 
+  /*
 int main() {
   // test_impl();
   // test_mult();
@@ -2090,5 +1433,258 @@ int main() {
   // test_eigen_complex_conv();
   // test_eigen_base_set();
   // test_eigen_base_equal();
-  test_eigen_math();
+  // test_eigen_math();
+}
+  */
+
+
+void test_view() {
+  //! Simply test that some standard operators work
+  {
+    std::vector<Numeric> x{1,2,3,4,5, 6, 7, 8};
+    ConstTensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    for (Index i=0; i<2; i++) {
+      [[maybe_unused]] auto g = y(i, matpack::joker, matpack::matpack_strided_access{matpack::joker})(i, i);
+      [[maybe_unused]] auto h = y[i][i][i];
+      static_assert(std::same_as<decltype(g), decltype(h)>);
+      static_assert(std::same_as<decltype(g), Numeric>);
+    }
+    
+    Numeric d=1.0;
+    for (auto a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+  }
+
+  //! Simply test that some standard operators work
+  {
+    std::vector<Numeric> x{1,2,3,4,5, 6, 7, 8};
+    Tensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    for (Index i=0; i<2; i++) {
+      [[maybe_unused]] auto& g = y(i, matpack::joker, matpack::matpack_strided_access{matpack::joker})(i, i);
+      [[maybe_unused]] auto& h = y[i][i][i];
+      static_assert(std::same_as<decltype(g), decltype(h)>);
+      static_assert(std::same_as<decltype(g), Numeric&>);
+    }
+    
+    Numeric d=1.0;
+    for (const auto& a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+  }
+
+  //! Simply test that some standard operators work
+  {
+    std::vector<Numeric> x{1,2,3,4,5, 6, 7, 8};
+    ExhaustiveConstTensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    for (Index i=0; i<2; i++) {
+      [[maybe_unused]] auto g = y(i, matpack::joker, matpack::matpack_strided_access{matpack::joker})(i, i);
+      [[maybe_unused]] auto h = y[i][i][i];
+      static_assert(std::same_as<decltype(g), decltype(h)>);
+      static_assert(std::same_as<decltype(g), Numeric>);
+    }
+    
+    Numeric d=1.0;
+    for (auto a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+  }
+
+  //! Simply test that some standard operators work
+  {
+    std::vector<Numeric> x{1,2,3,4,5, 6, 7, 8};
+    ExhaustiveTensor3View y{matpack::exhaustive_mdspan<Numeric, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    for (Index i=0; i<2; i++) {
+      [[maybe_unused]] auto& g = y(i, matpack::joker, matpack::matpack_strided_access{matpack::joker})(i, i);
+      [[maybe_unused]] auto& h = y[i][i][i];
+      static_assert(std::same_as<decltype(g), decltype(h)>);
+      static_assert(std::same_as<decltype(g), Numeric&>);
+    }
+    
+    Numeric d=1.0;
+    for (const auto& a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+  }
+
+  //! Allow assignment between views
+  {
+    std::vector<std::complex<Numeric>> x{1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<Numeric> xr{1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<Numeric> xi{0, 0, 0, 0, 0, 0, 0, 0};
+    ExhaustiveComplexTensor3View y{matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    const ExhaustiveTensor3View yr{matpack::exhaustive_mdspan<Numeric, 3>{xr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    const ExhaustiveTensor3View yi{matpack::exhaustive_mdspan<Numeric, 3>{xi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+
+    ARTS_ASSERT(yr != yi)
+    ARTS_ASSERT(y.real() != y.imag())
+    ARTS_ASSERT(y.real() == yr)
+    ARTS_ASSERT(y.imag() == yi)
+    ARTS_ASSERT(y.imag() != yr)
+
+    y.imag() = y.real();
+    
+    ARTS_ASSERT(yr != yi)
+    ARTS_ASSERT(y.real() == y.imag())
+    ARTS_ASSERT(y.real() == yr)
+    ARTS_ASSERT(y.imag() != yi)
+    ARTS_ASSERT(y.imag() == yr)
+  }
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    std::vector<Numeric> xr{1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<Numeric> xi{0, 0, 0, 0, 0, 0, 0, 0};
+    ExhaustiveComplexTensor3View y{matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    const ExhaustiveTensor3View yr{matpack::exhaustive_mdspan<Numeric, 3>{xr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    const ExhaustiveTensor3View yi{matpack::exhaustive_mdspan<Numeric, 3>{xi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    auto z = y(matpack::joker, matpack::matpack_strided_access(0,-1,2), matpack::joker);
+
+    std::vector<Numeric> reszr{1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<Numeric> reszi{1, 2, 0, 0, 5, 6, 0, 0};
+    const ExhaustiveTensor3View zr{matpack::exhaustive_mdspan<Numeric, 3>{reszr.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    const ExhaustiveTensor3View zi{matpack::exhaustive_mdspan<Numeric, 3>{reszi.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+
+    ARTS_ASSERT(yr != yi)
+    ARTS_ASSERT(y.real() != y.imag())
+    ARTS_ASSERT(z.real() != z.imag())
+    ARTS_ASSERT(y.real() == yr)
+    ARTS_ASSERT(y.imag() == yi)
+    ARTS_ASSERT(y.real() == zr)
+    ARTS_ASSERT(y.imag() != zi)
+
+    z.imag() = z.real();
+
+    ARTS_ASSERT(yr != yi)
+    ARTS_ASSERT(y.real() != y.imag())
+    ARTS_ASSERT(z.real() == z.imag())
+    ARTS_ASSERT(y.real() == yr)
+    ARTS_ASSERT(y.imag() != yi)
+    ARTS_ASSERT(y.real() == zr)
+    ARTS_ASSERT(y.imag() == zi)
+  }
+
+  //! Test basic +=, -=, *=, /=, = for arithmetic change or assignment
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    ExhaustiveComplexTensor3View y{matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{x.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+    
+    std::vector<std::complex<Numeric>> copy = x;
+    const ExhaustiveComplexTensor3View test{matpack::exhaustive_mdspan<std::complex<Numeric>, 3>{copy.data(), std::array{Index{2}, Index{2}, Index{2}}}};
+
+    ARTS_ASSERT(y == test)
+
+    y += 3;
+    for (auto& a: copy) a += 3;
+    ARTS_ASSERT(y == test)
+
+    y /= 3;
+    for (auto& a: copy) a /= 3;
+    ARTS_ASSERT(y == test)
+
+    y.imag() -= 2;
+    for (auto& a: copy) a -= std::complex<Numeric>(0, 2);
+    ARTS_ASSERT(y == test)
+
+    y -= 5;
+    for (auto& a: copy) a -= 5;
+    ARTS_ASSERT(y == test)
+
+    y *= 5;
+    for (auto& a: copy) a *= 5;
+    ARTS_ASSERT(y == test)
+
+    y = 42;
+    for (auto& a: copy) a = 42;
+    ARTS_ASSERT(y == test)
+  }
+
+  //! Test external assignment
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    ComplexVectorView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{x.data(), 8}};
+    std::vector<std::complex<Numeric>> copy = x;
+    const ComplexVectorView test{matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{copy.data(), 8}};
+
+    for(auto& a: copy) a+=std::complex<Numeric>(3, 2);
+
+    ARTS_ASSERT(y != test)
+    
+    y = copy;
+
+    ARTS_ASSERT(y == test)
+  }
+}
+
+void test_eigen() {
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    ComplexMatrixView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{x.data(), std::array{Index{2}, Index{4}}}};
+    std::vector<std::complex<Numeric>> copy = x;
+    const ComplexMatrixView test{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
+
+    ARTS_ASSERT(y == test)
+
+    y = 2 * matpack::eigen::as_eigen(y);
+
+    ARTS_ASSERT(y != test)
+    for (auto& a: copy) a *= 2;
+    ARTS_ASSERT(y == test)
+  }
+
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    ComplexVectorView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{x.data(), 8}};
+
+    const std::complex<Numeric> z = y * y;
+    ARTS_ASSERT(z == std::transform_reduce(x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}))
+  }
+
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    ComplexMatrixView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{x.data(), std::array{Index{2}, Index{4}}}};
+    std::vector<std::complex<Numeric>> copy = x;
+    const ComplexMatrixView test{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
+
+    ARTS_ASSERT(y == test)
+
+    y = 2 * matpack::eigen::as_eigen(y) + y;
+
+    ARTS_ASSERT(y != test)
+    for (auto& a: copy) a = 2.0 * a + a;
+    ARTS_ASSERT(y == test)
+  }
+
+  {
+    std::vector<std::complex<Numeric>> x{1,2,3,4,5, 6, 7, 8};
+    ComplexMatrixView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{x.data(), std::array{Index{2}, Index{4}}}};
+    std::vector<std::complex<Numeric>> copy = x;
+    const ComplexMatrixView test{matpack::exhaustive_mdspan<std::complex<Numeric>, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
+
+    ARTS_ASSERT(y == test)
+
+    y = 2 * matpack::eigen::as_eigen(y) - y;
+    
+    ARTS_ASSERT(y == test)
+  }
+}
+
+void test_data() {
+  matpack::matpack_data<Numeric, 3> x(4, 2, 3, 2.1);
+  std::cout << x << '\n' << '\n';
+  std::cout << x[0]  << '\n' << '\n';
+  std::cout << x[0][0]  << '\n' << '\n';
+  std::cout << x[0][0][0]  << '\n' << '\n';
+  x[0][0][0] += 1;
+  std::cout << x << '\n' << '\n';
+
+  auto y = std::move(x).flatten();
+  std::cout << y << '\n';
+  std::cout << x << '\n';
+
+  matpack::matpack_data<Numeric, 1> z;
+  z.swap(y);
+}
+
+int main() {
+  test_view();
+  test_eigen();
+  test_data();
+
+  test1();
+  test2();
+  test4();
+
+  std::cout<<matpack::is_always_exhaustive_v<Vector> << '\n';
 }
