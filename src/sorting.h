@@ -35,7 +35,7 @@
 #include <functional>
 
 #include "array.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 
 /** get_sorted_indexes

@@ -15,7 +15,7 @@
 #include <complex>
 #include <vector>
 
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 namespace lapack_help {
   

@@ -27,7 +27,7 @@
 #define logic_h
 
 #include "arts.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 
 bool is_bool(const Index& x);
 

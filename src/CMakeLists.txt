@@ -355,14 +355,6 @@ add_library (matpack STATIC
         lin_alg.cc
         logic.cc
         rational.cc
-        matpackI.cc
-        matpackII.cc
-        matpackIII.cc
-        matpackIV.cc
-        matpackV.cc
-        matpackVI.cc
-        matpackVII.cc
-        matpack_complex.cc
         propagationmatrix.cc
         )
         
@@ -370,7 +362,7 @@ include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
 if (ENABLE_PCH)
   target_precompile_headers(matpack PRIVATE pch_matpack.h)
 endif()
-target_link_libraries( matpack ${LAPACK_LIBRARIES} )
+target_link_libraries( matpack ${LAPACK_LIBRARIES} matpack_reimpl)
 
 ########### next target ###############
 
@@ -701,5 +693,5 @@ target_link_libraries(run_partfun PRIVATE artscore)
 
 #####
 add_subdirectory(matpack)
-add_executable(test_mdspan test_mdspan.cc matpack_mdspan.cc)
+add_executable(test_mdspan test_mdspan.cc)
 target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack_reimpl)

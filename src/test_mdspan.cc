@@ -4,11 +4,12 @@
 #include <numeric>
 #include <vector>
 
-#include "matpack/matpack_concepts2.h"
-#include "matpack/matpack_data2.h"
-#include "matpack/matpack_eigen2.h"
-#include "matpack/matpack_math2.h"
-#include "matpack/matpack_view2.h"
+#include "matpack/matpack_concepts.h"
+#include "matpack/matpack_data.h"
+#include "matpack/matpack_eigen.h"
+#include "matpack/matpack_math.h"
+#include "matpack/matpack_view.h"
+#include "matpack_complex.h"
 
 using std::cout;
 using std::endl;
@@ -381,9 +382,9 @@ void test31() {
   cout << max(a) << "\n";
 }
 
-void junk4(Tensor4View a) { cout << "Describe a: " << describe(a) << "\n"; }
+void junk4(Tensor4View&& a) { cout << "Describe a: " << describe(a) << "\n"; }
 
-void junk2(ConstVectorView a) { cout << "Describe a: " << describe(a) << "\n"; }
+void junk2(ConstVectorView&& a) { cout << "Describe a: " << describe(a) << "\n"; }
 
 void test34() {
   cout << "Test, if dimension expansion works implicitly.\n";
@@ -799,6 +800,77 @@ void test_data() {
   z.swap(y);
 }
 
+void test_complex() {
+  {
+    Complex x{0, 0};
+    const Complex y{0, 0};
+    ARTS_ASSERT(x == y)
+    ARTS_ASSERT(real_val(x) == real_val(y))
+    ARTS_ASSERT(imag_val(x) == imag_val(y))
+  }
+  
+  {
+    Complex x{1, 1};
+    x = 2. + x;
+    ARTS_ASSERT(x == (Complex{3, 1}))
+    x = 2. - x;
+    ARTS_ASSERT(x == (Complex{-1, -1}))
+    x = 2. * x;
+    ARTS_ASSERT(x == (Complex{-2, -2}))
+    x = 2. / x;
+    ARTS_ASSERT(x == (Complex{-0.5, 0.5}))
+  }
+
+  {
+    Complex x{1, 1};
+    x = x + 2.;
+    ARTS_ASSERT(x == (Complex{3, 1}))
+    x = x - 2.;
+    ARTS_ASSERT(x == (Complex{1, 1}))
+    x = x * 2.;
+    ARTS_ASSERT(x == (Complex{2, 2}))
+    x = x / 2.;
+    ARTS_ASSERT(x == (Complex{1, 1}))
+  }
+
+  {
+    Complex x{1, 1};
+    x = 2 + x;
+    ARTS_ASSERT(x == (Complex{3, 1}))
+    x = 2 - x;
+    ARTS_ASSERT(x == (Complex{-1, -1}))
+    x = 2 * x;
+    ARTS_ASSERT(x == (Complex{-2, -2}))
+    x = 2 / x;
+    ARTS_ASSERT(x == (Complex{-0.5, 0.5}))
+  }
+
+  {
+    Complex x{1, 1};
+    x = x + 2;
+    ARTS_ASSERT(x == (Complex{3, 1}))
+    x = x - 2;
+    ARTS_ASSERT(x == (Complex{1, 1}))
+    x = x * 2;
+    ARTS_ASSERT(x == (Complex{2, 2}))
+    x = x / 2;
+    ARTS_ASSERT(x == (Complex{1, 1}))
+  }
+
+  {
+    Complex x{3, 3};
+    const std::complex<int> y{3, 3};
+    x = x + y;
+    ARTS_ASSERT(x == (Complex{6, 6}))
+    x = x - y;
+    ARTS_ASSERT(x == (Complex{3, 3}))
+    x = x * y;
+    ARTS_ASSERT(x == (Complex{0, 18}))
+    x = x / y;
+    ARTS_ASSERT(x == (Complex{3, 3}))
+  }
+}
+
 #define EXECUTE_TEST(X) \
 std::cout << "#########################################################\n";\
 std::cout << "Executing test: " #X << '\n'; \
@@ -810,7 +882,7 @@ int main() {
   test_view();
   test_eigen();
   test_data();
-
+  test_complex();return 0;
   EXECUTE_TEST(test1)
   EXECUTE_TEST(test2)
   EXECUTE_TEST(test4)

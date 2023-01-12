@@ -1,7 +1,6 @@
 #pragma once
 
-#include "matpack/matpack_data2.h"
-#include <matpack/matpack_iter2.h>
+#include "matpack_iter.h"
 
 #include <algorithm>
 #include <array>
@@ -341,10 +340,9 @@ public:
   constexpr matpack_view& operator=(cs_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(matpack_data<T, N>&& x) = delete;
 
-  [[nodiscard]] constexpr auto size() const { return view.size(); }
-  [[nodiscard]] constexpr auto ssize() const { return static_cast<Index>(view.size()); }
-  [[nodiscard]] constexpr Index extent(Index i) const { return view.extent(i); }
-  [[nodiscard]] constexpr Index stride(Index i) const { return view.stride(i); }
+  [[nodiscard]] constexpr auto size() const { return static_cast<Index>(view.size()); }
+  [[nodiscard]] constexpr auto extent(Index i) const { return view.extent(i); }
+  [[nodiscard]] constexpr auto stride(Index i) const { return view.stride(i); }
   [[nodiscard]] constexpr std::array<Index, N> shape() const {
     std::array<Index, N> out;
     for (Index i=0; i<N; i++) out[i] = extent(i);
@@ -400,10 +398,10 @@ public:
     if constexpr (N == M)
       return view(ind...);
     else if constexpr (has_any_range<access...>)
-      return ret_t{std::experimental::submdspan(view, ind...)}.range_adaptor(
+      return ret_t{stdx::submdspan(view, ind...)}.range_adaptor(
           std::forward<access>(ind)...);
     else
-      return std::experimental::submdspan(view, ind...);
+      return stdx::submdspan(view, ind...);
   }
 
   template <access_operator... access,
@@ -417,10 +415,10 @@ public:
     if constexpr (N == M)
       return view(ind...);
     else if constexpr (has_any_range<access...>)
-      return ret_t{std::experimental::submdspan(view, ind...)}.range_adaptor(
+      return ret_t{stdx::submdspan(view, ind...)}.range_adaptor(
           std::forward<access>(ind)...);
     else
-      return std::experimental::submdspan(view, ind...);
+      return stdx::submdspan(view, ind...);
   }
 
   template <access_operator access, Index M = num_access_operators<access>,
@@ -496,7 +494,7 @@ private:
 
 public:
   [[nodiscard]] constexpr T& elem_at(Index ind) requires(not constant) {
-    ARTS_ASSERT(ind < ssize(), ind, " vs ", ssize())
+    ARTS_ASSERT(ind < size(), ind, " vs ", size())
     if constexpr (is_always_exhaustive_v<view_type>) {
       return view.accessor().access(view.data_handle(), ind);
     } else {
@@ -505,7 +503,7 @@ public:
   }
 
   [[nodiscard]] constexpr T elem_at(Index ind) const {
-    ARTS_ASSERT(ind < ssize(), ind, " vs ", ssize())
+    ARTS_ASSERT(ind < size(), ind, " vs ", size())
     if constexpr (is_always_exhaustive_v<view_type>) {
       return view.accessor().access(view.data_handle(), ind);
     } else {
@@ -635,7 +633,7 @@ public:
   constexpr matpack_view& operator=(const U& x) requires(not constant) {
     const auto ext_sh = mdshape(x);
     ARTS_ASSERT(shape() == ext_sh, shape_help<N>(shape()), " vs ", shape_help<N>(ext_sh))
-    for (Index i=0; i<ssize(); i++) elem_at(i) = mdvalue(x, mdpos(ext_sh, i));
+    for (Index i=0; i<size(); i++) elem_at(i) = mdvalue(x, mdpos(ext_sh, i));
     return *this;
   }
 

@@ -31,7 +31,7 @@ USA. */
 #include "bifstream.h"
 #include "bofstream.h"
 #include "math_funcs.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 #include <numeric>
 #include <ostream>

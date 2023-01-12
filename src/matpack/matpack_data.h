@@ -1,7 +1,8 @@
 #pragma once
 
-#include "matpack/matpack_concepts2.h"
-#include "matpack/matpack_view2.h"
+#include "matpack_complex.h"
+#include "matpack_concepts.h"
+#include "matpack_view.h"
 
 namespace matpack {
 namespace detail {
@@ -15,7 +16,7 @@ void front_array_impl(std::array<T, N> &out, value &&v, rest &&...x) {
 } // namespace detail
 
 template <typename T, Index N, typename... input,
-          std::size_t M = sizeof...(input)>
+          Index M = sizeof...(input)>
 constexpr std::array<T, N> front_array(input... in)
   requires(N <= M and N > 0)
 {
@@ -25,7 +26,7 @@ constexpr std::array<T, N> front_array(input... in)
   return out;
 }
 
-template<typename first, typename... rest, std::size_t N=sizeof...(rest)>
+template<typename first, typename... rest, Index N=sizeof...(rest)>
 auto get_last(first&& f [[maybe_unused]], rest&&... r [[maybe_unused]]) {
   if constexpr (N == 0) return std::forward<first>(f);
   else return get_last(std::forward<rest>(r)...);
@@ -51,7 +52,7 @@ public:
       : data(mdsize<N>(sz), x),
         view(data.data(), sz) {}
 
-  template<integral... inds, std::size_t M = sizeof...(inds)>
+  template<integral... inds, Index M = sizeof...(inds)>
   constexpr matpack_data(inds... sz) requires(M == N) : matpack_data(std::array<Index, N>{std::forward<inds>(sz)...}) {}
 
   template <typename... arguments>
@@ -69,8 +70,7 @@ public:
 
   template<Index M> explicit constexpr matpack_data(const matpack::matpack_data<T, M>& x) requires(M < N) : matpack_data(upview<N, M>(x.shape())) { view = view_type{x}; }
 
-  [[nodiscard]] constexpr auto size() const noexcept { return data.size(); }
-  [[nodiscard]] constexpr auto ssize() const { return view.ssize(); }
+  [[nodiscard]] constexpr auto size() const noexcept { return view.size(); }
   [[nodiscard]] constexpr auto extent(Index i) const { return view.extent(i); }
   [[nodiscard]] constexpr auto stride(Index i) const { return view.stride(i); }
   [[nodiscard]] constexpr auto shape() const { return view.shape(); }
@@ -90,12 +90,12 @@ public:
 
   constexpr void resize(const std::array<Index, N>& sz) { if (shape() not_eq sz) *this = matpack_data(sz); }
 
-  template<integral... inds, std::size_t M = sizeof...(inds)> constexpr void resize(inds&&... sz) requires(M == N) {resize(std::array<Index, N>{static_cast<Index>(std::forward<inds>(sz))...});}
+  template<integral... inds, Index M = sizeof...(inds)> constexpr void resize(inds&&... sz) requires(M == N) {resize(std::array<Index, N>{static_cast<Index>(std::forward<inds>(sz))...});}
   
   template<Index M> constexpr matpack_data<T, M> reshape(const std::array<Index, M>& sz) && {
     using other_view_type = typename matpack_data<T, M>::view_type;
 
-    ARTS_ASSERT(ssize() == mdsize<M>(sz), ssize(), " vs ", mdsize<M>(sz))
+    ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
     
     matpack_data<T, M> out;
     out.data = std::move(data);
@@ -105,9 +105,9 @@ public:
     return out;
   }
 
-  template<integral... inds, std::size_t M = sizeof...(inds)> constexpr auto reshape(inds&&... sz) && { return std::move(*this).template reshape<M>(std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...}); }
+  template<integral... inds, Index M = sizeof...(inds)> constexpr auto reshape(inds&&... sz) && { return std::move(*this).template reshape<M>(std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...}); }
 
-  constexpr matpack_data<T, 1> flatten() && { return std::move(*this).reshape(ssize()); }
+  constexpr matpack_data<T, 1> flatten() && { return std::move(*this).reshape(size()); }
 
   constexpr matpack_data& operator=(const matpack_data& x) {
     resize(x.shape());

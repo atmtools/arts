@@ -129,7 +129,7 @@ class layout_right::mapping {
         * other.required_span_size() is a representable value of type index_type
         */
        #ifndef __CUDA_ARCH__
-       size_t stride = 1;
+       decltype(other.stride(0)) stride = 1;
        for(rank_type r=__extents.rank(); r>0; r--) {
          if(stride != other.stride(r-1))
            throw std::runtime_error("Assigning layout_stride to layout_right with invalid strides.");

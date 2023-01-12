@@ -40,7 +40,8 @@
   the same as S.ro(3,4).
 */
 
-#include "matpackII.h"
+#include "matpack_eigen.h"
+#include "matpack_sparse.h"
 
 #include <algorithm>
 #include <cmath>
@@ -419,19 +420,7 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
   ARTS_ASSERT(y.nelem() == M.nrows());
   ARTS_ASSERT(M.ncols() == x.nelem());
 
-  // Typedefs for Eigen interface
-  typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
-      EigenColumnVector;
-  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
-
-  Numeric* data;
-  data = x.mdata + x.mrange.get_start();
-  ColumnMap x_map(data, x.nelem(), Stride(1, x.mrange.get_stride()));
-  data = y.mdata + y.mrange.get_start();
-  ColumnMap y_map(data, y.nelem(), Stride(1, y.mrange.get_stride()));
-
-  y_map = M.matrix * x_map;
+  matpack::eigen::as_eigen(y).noalias() = M.matrix * matpack::eigen::as_eigen(x);
 }
 
 //! Sparse matrix - Vector multiplication.
@@ -454,19 +443,7 @@ void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
   ARTS_ASSERT(y.nelem() == M.ncols());
   ARTS_ASSERT(M.nrows() == x.nelem());
 
-  // Typedefs for Eigen interface
-  typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
-      EigenColumnVector;
-  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
-
-  Numeric* data;
-  data = x.mdata + x.mrange.get_start();
-  ColumnMap x_map(data, x.nelem(), Stride(1, x.mrange.get_stride()));
-  data = y.mdata + y.mrange.get_start();
-  ColumnMap y_map(data, y.nelem(), Stride(1, y.mrange.get_stride()));
-
-  y_map = x_map * M.matrix;
+  matpack::eigen::as_eigen(y).noalias() = matpack::eigen::col_vec(x) * M.matrix;
 }
 
 //! SparseMatrix - Matrix multiplication.
@@ -493,29 +470,7 @@ void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
   ARTS_ASSERT(A.ncols() == C.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  // Typedefs for Eigen interface
-  typedef Eigen::
-      Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-          EigenMatrix;
-  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
-
-  Index row_stride, column_stride;
-  row_stride = C.mrr.get_stride();
-  column_stride = C.mcr.get_stride();
-
-  Numeric* data;
-  data = C.mdata + C.mrr.get_start() + C.mcr.get_start();
-  Stride c_stride(row_stride, column_stride);
-  MatrixMap C_map(data, C.nrows(), C.ncols(), c_stride);
-
-  row_stride = A.mrr.get_stride();
-  column_stride = A.mcr.get_stride();
-  data = A.mdata + A.mrr.get_start() + A.mcr.get_start();
-  Stride a_stride(row_stride, column_stride);
-  MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
-
-  A_map = B.matrix * C_map;
+  matpack::eigen::as_eigen(A).noalias() = B.matrix * matpack::eigen::as_eigen(C);
 }
 
 //! Matrix - SparseMatrix multiplication.
@@ -542,29 +497,7 @@ void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C) {
   ARTS_ASSERT(A.ncols() == C.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  // Typedefs for Eigen interface.
-  typedef Eigen::
-      Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-          EigenMatrix;
-  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> Stride;
-  typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
-
-  Index row_stride, column_stride;
-  row_stride = B.mrr.get_stride();
-  column_stride = B.mcr.get_stride();
-
-  Numeric* data;
-  data = B.mdata + B.mrr.get_start() + B.mcr.get_start();
-  Stride b_stride(row_stride, column_stride);
-  MatrixMap B_map(data, B.nrows(), B.ncols(), b_stride);
-
-  row_stride = A.mrr.get_stride();
-  column_stride = A.mcr.get_stride();
-  data = A.mdata + A.mrr.get_start() + A.mcr.get_start();
-  Stride a_stride(row_stride, column_stride);
-  MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
-
-  A_map = B_map * C.matrix;
+  matpack::eigen::as_eigen(A).noalias() = matpack::eigen::as_eigen(B) * C.matrix;
 }
 
 //! Transpose of sparse matrix

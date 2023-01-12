@@ -39,7 +39,7 @@
 
 #include "array.h"
 #include "debug.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 /**
    The implementation for String, the ARTS string class. 
