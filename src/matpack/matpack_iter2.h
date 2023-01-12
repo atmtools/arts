@@ -22,6 +22,11 @@ template <Index M, Index N> [[nodiscard]] constexpr auto tup(Index i) {
 }
 
 template <Index M, Index N, class mdspan_type>
+[[nodiscard]] constexpr auto sub(mdspan_type &v, Joker) {
+  return v;
+}
+
+template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr auto sub(mdspan_type &v, Index i) {
   using namespace std::experimental;
   return std::apply(

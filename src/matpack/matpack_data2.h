@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matpack/matpack_concepts2.h"
 #include "matpack/matpack_view2.h"
 
 namespace matpack {
@@ -53,11 +54,10 @@ public:
   template<integral... inds, std::size_t M = sizeof...(inds)>
   constexpr matpack_data(inds... sz) requires(M == N) : matpack_data(std::array<Index, N>{std::forward<inds>(sz)...}) {}
 
-  template <typename... arguments, std::size_t M = sizeof...(arguments)>
-  constexpr matpack_data(arguments&& ... args)
-    requires(M == N + 1)
-      : matpack_data(front_array<Index, N>(std::forward<arguments>(args)...),
-                     get_last(std::forward<arguments>(args)...)) {
+  template <typename... arguments>
+  constexpr matpack_data(integral auto dim0, arguments ... args)
+    requires(sizeof...(arguments) == N)
+      : matpack_data(front_array<Index, N>(dim0, args...), get_last(args...)) {
   }
 
   matpack_data(const matpack_data& x) : data(x.data), view(data.data(), x.shape()) {}
@@ -66,6 +66,8 @@ public:
   explicit constexpr matpack_data(const ce_view& x) : matpack_data(x.shape()) {view = x;}
   explicit constexpr matpack_data(const ms_view& x) : matpack_data(x.shape()) {view = x;}
   explicit constexpr matpack_data(const cs_view& x) : matpack_data(x.shape()) {view = x;}
+
+  template<Index M> explicit constexpr matpack_data(const matpack::matpack_data<T, M>& x) requires(M < N) : matpack_data(upview<N, M>(x.shape())) { view = view_type{x}; }
 
   [[nodiscard]] constexpr auto size() const noexcept { return data.size(); }
   [[nodiscard]] constexpr auto ssize() const { return view.ssize(); }
@@ -87,7 +89,9 @@ public:
   [[nodiscard]] constexpr auto empty() const noexcept { return data.empty(); }
 
   constexpr void resize(const std::array<Index, N>& sz) { if (shape() not_eq sz) *this = matpack_data(sz); }
+
   template<integral... inds, std::size_t M = sizeof...(inds)> constexpr void resize(inds&&... sz) requires(M == N) {resize(std::array<Index, N>{static_cast<Index>(std::forward<inds>(sz))...});}
+  
   template<Index M> constexpr matpack_data<T, M> reshape(const std::array<Index, M>& sz) && {
     using other_view_type = typename matpack_data<T, M>::view_type;
 
@@ -100,7 +104,9 @@ public:
     view.secret_set(view_type{nullptr, constant_array<N, 0>()});
     return out;
   }
+
   template<integral... inds, std::size_t M = sizeof...(inds)> constexpr auto reshape(inds&&... sz) && { return std::move(*this).template reshape<M>(std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...}); }
+
   constexpr matpack_data<T, 1> flatten() && { return std::move(*this).reshape(ssize()); }
 
   constexpr matpack_data& operator=(const matpack_data& x) {
@@ -134,6 +140,7 @@ public:
   constexpr matpack_data& operator=(matpack_data&& x) noexcept {
     data = std::move(x.data);
     view.secret_set(view_type(data.data(), x.shape()));
+    x.view.secret_set(view_type{nullptr, constant_array<N, 0>()});
     return *this;
   }
 
@@ -154,8 +161,8 @@ public:
   [[nodiscard]] constexpr auto cbegin() const {return begin();}
   [[nodiscard]] constexpr auto cend() const {return end();}
 
-  [[nodiscard]] constexpr T& elem_at(Index ind) { return view.elem_at(ind); }
-  [[nodiscard]] constexpr T elem_at(Index ind) const { return view.elem_at(ind); }
+  [[nodiscard]] constexpr T& elem_at(Index ind) { return data[ind]; }
+  [[nodiscard]] constexpr T elem_at(Index ind) const { return data[ind]; }
   [[nodiscard]] constexpr T& elem_at(const std::array<Index, N>& pos) { return view.elem_at(pos); }
   [[nodiscard]] constexpr T elem_at(const std::array<Index, N>& pos) const { return view.elem_at(pos); }
    
@@ -170,10 +177,10 @@ public:
     return os << md.view;
   }
 
-  [[nodiscard]] constexpr auto real() { return view.real(); }
-  [[nodiscard]] constexpr auto imag() { return view.imag(); }
-  [[nodiscard]] constexpr auto real() const { return view.real(); }
-  [[nodiscard]] constexpr auto imag() const { return view.imag(); }
+  [[nodiscard]] constexpr auto real() requires(complex_type<T>) { return view.real(); }
+  [[nodiscard]] constexpr auto imag() requires(complex_type<T>) { return view.imag(); }
+  [[nodiscard]] constexpr auto real() const requires(complex_type<T>) { return view.real(); }
+  [[nodiscard]] constexpr auto imag() const requires(complex_type<T>) { return view.imag(); }
 
   constexpr matpack_data& operator=(T x) {view = x; return *this;}
   constexpr matpack_data& operator+=(T x) {view += x; return *this;}
@@ -210,11 +217,19 @@ public:
     return *this;
   }
 
+  constexpr matpack_data(std::vector<T>&& a) requires(N == 1) : data(std::move(a)), view(data.data(), std::array<Index, N>{static_cast<Index>(data.size())}) {}
+  constexpr matpack_data(std::initializer_list<T> a) requires(N == 1) : matpack_data(std::vector<T>{a}) {}
+
   static constexpr bool is_always_exhaustive() noexcept { return true; }
 };
 } // namespace matpack
 
-inline constexpr auto joker = matpack::joker;
+template <typename T, Index N>
+std::string describe(const matpack::matpack_data<T, N>& m) {
+  using namespace matpack;
+  return var_string("matpack_data of rank ", N, " of shape ", shape_help<N>(m.shape()));
+}
+
 using Range = matpack::matpack_strided_access;
 
 using Vector = matpack::matpack_data<Numeric, 1>;
@@ -256,8 +271,6 @@ using ExhaustiveConstTensor4View = matpack::matpack_view<Numeric, 4, true, false
 using ExhaustiveConstTensor5View = matpack::matpack_view<Numeric, 5, true, false>;
 using ExhaustiveConstTensor6View = matpack::matpack_view<Numeric, 6, true, false>;
 using ExhaustiveConstTensor7View = matpack::matpack_view<Numeric, 7, true, false>;
-
-using Complex = std::complex<Numeric>;
 
 using ComplexVector = matpack::matpack_data<Complex, 1>;
 using ComplexMatrix = matpack::matpack_data<Complex, 2>;

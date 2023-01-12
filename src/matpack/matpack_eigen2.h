@@ -127,6 +127,18 @@ constexpr auto operator*(const CONST &a, const VEC &b) {
   return a * eigen::as_eigen(b);
 }
 
+//! Perform the math and return a lazy object; b * a
+template <arithmetic CONST, strict_sized_matpack_type<2> MAT>
+constexpr auto operator*(const MAT &b, const CONST &a) {
+  return eigen::as_eigen(b) * a;
+}
+
+//! Perform the math and return a lazy object; b * a
+template <arithmetic CONST, strict_sized_matpack_type<1> VEC>
+constexpr auto operator*(const VEC &b, const CONST &a) {
+  return eigen::as_eigen(b) * a;
+}
+
 //! Perform the math and return a lazy object; x + y
 template <strict_sized_matpack_type<2> ONE, strict_sized_matpack_type<2> TWO>
 constexpr auto operator+(const ONE &x, const TWO &y) {

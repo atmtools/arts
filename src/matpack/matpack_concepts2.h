@@ -1,9 +1,12 @@
 #pragma once
 
+#include "debug.h"
+
 #include <mdspan/include/experimental/mdspan>
 
 #include <array>
 #include <complex>
+#include <concepts>
 #include <cstdint>
 #include <type_traits>
 
@@ -11,12 +14,15 @@ using Numeric = double;
 
 using Index = std::int64_t;
 
-namespace matpack {
+using Complex = std::complex<Numeric>;
+
 //! A type that denotes all values should be accessed
 using Joker = std::experimental::full_extent_t;
 
 //! A value to denote that all values should be accessed
 inline constexpr Joker joker = std::experimental::full_extent;
+
+namespace matpack {
 
 //! A type that denotes some values should be accessed
 struct matpack_strided_access;
@@ -46,7 +52,7 @@ concept access_operator =
 
 //! Holds true for mdspan(s) that are always continuous in memory, i.e., exhaustive_mdspan and not strided_mdspan
 template <typename T>
-concept is_always_exhaustive_v = T::is_always_exhaustive();
+concept is_always_exhaustive_v = std::remove_cvref_t<T>::is_always_exhaustive();
 
 //! The type has basic arithmetic properties
 template <typename T>
@@ -145,20 +151,20 @@ concept has_size = requires(T a) {
 //! The multidimensional array has a rank
 template <typename T>
 concept has_rank = requires(T) {
-  { T::rank() } -> integral;
+  { std::remove_cvref_t<T>::rank() } -> integral;
 };
 
 //! The multidimensional array has a NumIndices
 template <typename T>
 concept has_NumIndices = requires(T) {
-  { T::NumIndices } -> integral;
+  { std::remove_cvref_t<T>::NumIndices } -> integral;
 };
 
 //! The multidimensional array has IsVectorAtCompileTime to indicate (if true)
 //! if it is a vector or (if false) if it is a matrix
 template <typename T>
 concept has_IsVectorAtCompileTime = requires(T) {
-  { T::IsVectorAtCompileTime } -> std::convertible_to<Index>;
+  { std::remove_cvref_t<T>::IsVectorAtCompileTime } -> std::convertible_to<Index>;
 };
 
 //! Checks if the type has any accepted types of columns
@@ -248,9 +254,9 @@ template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has
 //! Get the rank of the multidimensional array at compile time
 template <rankable T>
 consteval auto rank() {
-  if constexpr (has_NumIndices<T>) return T::NumIndices;
-  else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - T::IsVectorAtCompileTime;
-  else if constexpr (has_rank<T>) return T::rank();
+  if constexpr (has_NumIndices<T>) return std::remove_cvref_t<T>::NumIndices;
+  else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - std::remove_cvref_t<T>::IsVectorAtCompileTime;
+  else if constexpr (has_rank<T>) return std::remove_cvref_t<T>::rank();
   else if constexpr (has_size<T>) return 1;
   else return -1;
 }
@@ -355,11 +361,27 @@ concept typed_matpack_view = rankable<U> and sized_matpack_view<U, T, rank<U>()>
 
 template <typename T>
 concept has_value_type = requires(T) {
-  typename T::value_type{};
+  typename std::remove_cvref_t<T>::value_type{};
 };
 
 template <has_value_type T>
-using matpack_value_type = typename T::value_type;
+using matpack_value_type = typename std::remove_cvref_t<T>::value_type;
+
+template <has_value_type first, has_value_type second, has_value_type... rest>
+class same_value_type {
+static consteval bool same() {
+  using L = matpack_value_type<first>;
+  using R = matpack_value_type<second>;
+  if constexpr (sizeof...(rest) == 0) return std::same_as<L, R>;
+  else return std::same_as<L, R> and same_value_type<second, rest...>::value;
+}
+
+public:
+  static constexpr bool value = same();
+};
+
+template <has_value_type first, has_value_type second, has_value_type... rest>
+inline constexpr bool same_value_type_v = same_value_type<first, second, rest...>::value;
 
 template <typename T, Index N>
 concept strict_size_matpack_view = has_value_type<T> and sized_matpack_view<T, matpack_value_type<T>, N>;
@@ -381,6 +403,9 @@ concept strict_size_matpack_type = strict_size_matpack_data<T, N> or strict_size
 
 template <typename U, Index N>
 concept strict_sized_matpack_type = strict_size_matpack_data<U, N> or strict_size_matpack_view<U, N>;
+
+template <typename T>
+concept any_matpack_type = any_matpack_data<T> or any_matpack_view<T>;
 
 template <typename U, typename T, Index N>
 concept matpack_convertible = not sized_matpack_data<U, T, N> and has_mdshape<U> and has_mdvalue<U> and rank<U>() == N;
