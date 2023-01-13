@@ -21,15 +21,18 @@
   ===  File description
   ===========================================================================*/
 
+#include "matpack.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
+#include "geodetic.h"
 #include "sun.h"
+#include <iostream>
 
 
 /*!
-  \file   m_star.cc
+  \file   m_sun.cc
   \author Jon Petersen  <jon.petersen@studium.uni-hamburg.de>
           Manfred Brath  <manfred.brath@.uni-hamburg.de>
   \date   2021-02-08
@@ -104,26 +107,109 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
                       "The distance to the center of the sun (",distance," m) \n"
                      " is smaller than the radius of the sun (", radius," m )")
 
-  // interpolate field
-  Matrix int_data = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
-
-  // create sun
-  Sun& new_star = suns.emplace_back();
-
-  new_star.spectrum = int_data; // set spectrum
-
-  new_star.description = description;
-  new_star.radius = radius;
-  new_star.distance = distance;
-  new_star.latitude = latitude;
-  new_star.longitude = longitude;
+  // init sun
+  Sun& new_sun = suns.emplace_back();
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity); // set spectrum
+  new_sun.description = description;
+  new_sun.radius = radius;
+  new_sun.distance = distance;
+  new_sun.latitude = latitude;
+  new_sun.longitude = longitude;
 
   // set flag
   suns_do = 1;
 
 }
 
-void starsOff(Index &suns_do,
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sunsAddSingleFromGridAtLocation(
+                         ArrayOfSun &suns,
+                         Index &suns_do,
+                         // Inputs:
+                         const Vector &f_grid,
+                         const Index &stokes_dim,
+                         const Vector &refellipsoid,
+                         const GriddedField2 &sun_spectrum_raw,
+                         const Numeric &radius,
+                         const Numeric &distance,
+                         const Numeric &temperature,
+                         const Numeric &zenith,
+                         const Numeric &azimuth,
+                         const String &description,
+                         const Numeric &location_latitude,
+                         const Numeric &location_longitude,
+                         const Numeric &location_altitude,
+                         const Verbosity &verbosity) {
+
+  // some sanity checks
+  ARTS_USER_ERROR_IF (distance<radius,
+                      "The distance to the center of the sun (",distance," m) \n"
+                      "is smaller than the radius of the sun (", radius," m )")
+  ARTS_USER_ERROR_IF (location_altitude<0.,
+                      "The altitude of the solar spectrum should be positiv,\n"
+                      "but is ",location_altitude," m) ")
+
+  // from local position to global position
+  Numeric toa_altitude = location_altitude + refell2r(refellipsoid, location_latitude);
+  
+  Numeric sun_altitude, sun_latitude, sun_longitude;
+  if (zenith < ANGTOL){
+    sun_altitude = distance + toa_altitude;
+    sun_latitude = location_latitude;
+    sun_longitude = location_longitude;
+  } else if (zenith > 180 - ANGTOL) {
+    sun_altitude = distance - toa_altitude;
+    sun_latitude = -location_latitude;
+    sun_longitude = location_longitude + 180 - 360.0 * Numeric(round((location_longitude - 0.0) / 360.0));
+  } else {
+    Numeric x, y, z, dx, dy, dz;
+    poslos2cart(x,
+                y,
+                z,
+                dx,
+                dy,
+                dz,
+                toa_altitude,
+                location_latitude,
+                location_longitude,
+                zenith,
+                azimuth);
+
+    cart2sph(sun_altitude, 
+            sun_latitude,
+            sun_longitude,
+            x+distance*dx,
+            y+distance*dy,
+            z+distance*dz,
+            location_latitude,
+            location_longitude,
+            zenith, azimuth);
+  }
+
+
+  // Geometric scaling factor, scales the sun spectral irradiance at the given
+  // location to the spectral irradiance of the suns surface.
+  Numeric scale_factor = (radius*radius + distance*distance)/
+                         (radius*radius);
+
+  // init sun
+  Sun& new_sun = suns.emplace_back();
+
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
+  new_sun.spectrum *= scale_factor; // scale to sun surface
+
+  new_sun.description = description;
+  new_sun.radius = radius;
+  new_sun.distance = sun_altitude;
+  new_sun.latitude = sun_latitude;
+  new_sun.longitude = sun_longitude;
+
+  // set flag
+  suns_do = 1;
+
+}
+
+void sunsOff(Index &suns_do,
              ArrayOfSun &suns,
              const Verbosity &){
 

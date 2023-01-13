@@ -19886,7 +19886,85 @@ where N>=0 and the species name is something line "H2O".
                "The description of the sun.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starsOff"),
+      NAME("sunsAddSingleFromGridAtLocation"),
+      DESCRIPTION(
+          "Extracts a sun spectrum measured at the given location\n"
+          "adds it to *suns*.\n"
+          "\n"
+          "The method allows to obtain the sun spectrum by\n"
+          "interpolation from a field of such data. \n"
+          "The sun spectrum is expected to be stored as\n"
+          "irradiance.\n"
+          "It is coverted to the irradiance at the suns photosphere.\n"
+          "\n"
+          "Unit:        GriddedField2: [W m-2 Hz-1]\n"
+          "                 Vector *f_grid*[Hz]\n"
+          "                 Vector *stokes_dim*[1]\n"
+          "\n"
+          "Dimensions: [f_grid, stokes_dim]\n"
+          "\n"
+          "This method performs an interpolation onto the f_grid.\n"
+          "The point of *f_grid* that are outside the data frequency grid\n"
+          "are initialized according to planck's law of the temperature variable.\n"
+          "Hence, a temperature of 0 means 0s the edges of the f_grid.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("suns",
+          "suns_do"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("suns",
+          "f_grid",
+          "stokes_dim",
+          "refellipsoid"),
+      GIN("sun_spectrum_raw",
+          "radius",
+          "distance",
+          "temperature",
+          "zenith",
+          "azimuth",
+          "description",
+          "location_latitude",
+          "location_longitude",
+          "location_altitude"),
+      GIN_TYPE("GriddedField2",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "String",
+               "Numeric",
+               "Numeric",
+               "Numeric"),
+      GIN_DEFAULT(NODEF,
+                  "6.963242e8",
+                  "1.495978707e11",
+                  "-1",
+                  "0",
+                  "0",
+                  "Sun spectrum from Griddedfield.",
+                  "0",
+                  "0",
+                  "1e5"),
+      GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
+               "The radius of the sun in meter.\n"
+               "Default is the radius of our Sun.\n",
+               "The distance between the location and the \n"
+               "center of the sun in meter.\n"
+               "Default value is set to 1 a.u.\n",
+               "The temperature of the padding if the f_grid is outside the \n"
+               "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"
+               "temperature for a padding using plack's law.\n",
+               "Zenith angle of the sun in the sky.\n",
+               "Azimuthal angle of the sun in the sky.\n",
+               "The description of the sun.\n",
+               "The latitude of the sun spectrum measurement.\n",
+               "The longitude of the sun spectrum measurement.\n",
+               "The altitude of the sun spectrum measurement.\n")));  
+      
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sunsOff"),
       DESCRIPTION(
           "Turns all calculations with suns off \n"),
       AUTHORS("Jon Petersen"),
