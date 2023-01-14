@@ -452,11 +452,11 @@ void ppathGeometric(Ppath& ppath,
 
     Vector pos = ppath.pos(ppath.np-1, joker);
     Vector los(2);
-    specular_los(los,
-                 refellipsoid,
-                 surface_elevation,
-                 pos[Range(1, 2)],
-                 ppath.los(ppath.np-1, joker));
+    specular_los_calc(los,
+                      refellipsoid,
+                      surface_elevation,
+                      pos[Range(1, 2)],
+                      ppath.los(ppath.np-1, joker));
     
     Ppath ppath2;
     ppathGeometric(ppath2,
@@ -765,11 +765,11 @@ void ppathRefracted(Workspace& ws,
 
     Vector pos = ppath.pos(ppath.np-1, joker);
     Vector los(2);
-    specular_los(los,
-                 refellipsoid,
-                 surface_elevation,
-                 pos[Range(1, 2)],
-                 ppath.los(ppath.np-1, joker));
+    specular_los_calc(los,
+                      refellipsoid,
+                      surface_elevation,
+                      pos[Range(1, 2)],
+                      ppath.los(ppath.np-1, joker));
     
     Ppath ppath2;
     ppathRefracted(ws,

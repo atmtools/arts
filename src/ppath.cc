@@ -18,7 +18,131 @@
 #include "lin_alg.h"
 #include "ppath.h"
 #include "ppath_struct.h"
+#include "surface.h"
 #include "variousZZZ.h"
+
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+
+
+Numeric find_crossing_with_surface_z(const Vector rte_pos,
+                                     const Vector rte_los,
+                                     const Vector ecef,
+                                     const Vector decef,
+                                     const Vector& refellipsoid,
+                                     const GriddedField2& surface_elevation,
+                                     const Numeric& surface_search_accuracy,
+                                     const Index& surface_search_safe)
+{
+  // Find min and max surface altitude
+  const Numeric z_min = min(surface_elevation.data);
+  const Numeric z_max = max(surface_elevation.data);
+
+  // Catch upward looking cases that can not have a surface intersection
+  if (rte_pos[0] >= z_max && rte_los[0] <= 90) {
+    return -1;
+  }
+
+  // Check that observation position is above ground
+  if (rte_pos[0] < z_max) {
+    Numeric z_surf = interp_gfield2(surface_elevation, rte_pos[Range(1, 2)]);
+    if (rte_pos[0] < z_surf - surface_search_accuracy)
+      ARTS_USER_ERROR(
+          "The sensor is below the surface. Not allowed!\n"
+          "The sensor altitude is at ", rte_pos[0], " m\n"
+          "The surface altitude is ", z_surf, " m\n"
+          "The position is (lat,lon): (", rte_pos[1], ",", rte_pos[2], ")");
+  }
+
+  // Constant surface altitude (in comparison to *surface_search_accuracy*)
+  if (z_max - z_min < surface_search_accuracy / 100) {
+    // Catch cases with position on the ground, as they can fail if
+    // intersection_altitude is used
+    if (rte_pos[0] <= z_max) {
+      return 0.0;
+    } else {
+      return intersection_altitude(ecef, decef, refellipsoid, z_min);
+    }
+
+    // The general case
+  } else {
+    // Find a distance that is guaranteed above or at surface
+    // If below z_max, this distance is 0. Otherwise given by z_max
+    Numeric l_min;
+    if (rte_pos[0] <= z_max)
+      l_min = 0;
+    else {
+      l_min = intersection_altitude(ecef, decef, refellipsoid, z_max);
+      // No intersection if not even z_max is reached
+      if (l_min < 0) return -1;
+    }
+    // Find max distance for search.
+    // If below z_max and upward, given by z_max
+    // Otherwise in general given by z_min. If z_min not reached, the distance
+    // is instead given by tangent point
+    Numeric l_max;
+    bool l_max_could_be_above_surface = false;
+    if (rte_pos[0] <= z_max && rte_los[0] <= 90) {
+      l_max = intersection_altitude(ecef, decef, refellipsoid, z_max);
+      l_max_could_be_above_surface = true;
+    } else {
+      l_max = intersection_altitude(ecef, decef, refellipsoid, z_min);
+    }
+    if (l_max < 0) {
+      Vector ecef_tan(3);
+      approx_geometrical_tangent_point(ecef_tan, ecef, decef, refellipsoid);
+      l_max = ecef_distance(ecef, ecef_tan);
+      // To not miss intersections just after the tangent point, we add a
+      // a distance that depends om planet radius (for Earth 111 km).
+      l_max += refellipsoid[0] * sin(DEG2RAD);
+      l_max_could_be_above_surface = true;
+    }
+
+    // Safe but slow approach
+    // ----------------------
+    if (surface_search_safe) {
+      Numeric l_test =
+          l_min - surface_search_accuracy / 2;  // Remove l/2 to get exact result
+      bool above_surface = true;   // if true l_test is 0
+      while (above_surface && l_test < l_max) {
+        l_test += surface_search_accuracy;
+        Vector pos(3);
+        pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
+        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+        if (pos[0] < z_surf) above_surface = false;
+      }
+      if (above_surface) {
+        return -1;
+      } else {
+        return l_test - surface_search_accuracy / 2;
+      }
+
+      // Bisection search
+      // ----------------------
+    } else {
+      // If l_max matches a point above the surface, we have no intersection
+      // according to this search algorithm. And the search fails. So we need
+      // to check that point if status unclear
+      if (l_max_could_be_above_surface) {
+        Vector pos(3);
+        pos_at_distance(pos, ecef, decef, refellipsoid, l_max);
+        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+        if (pos[0] > z_surf) return -1;
+      }
+      // Start bisection
+      while (l_max - l_min > 2 * surface_search_accuracy) {
+        const Numeric l_test = (l_min + l_max) / 2;
+        Vector pos(3);
+        pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
+        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+        if (pos[0] >= z_surf)
+          l_min = l_test;
+        else
+          l_max = l_test;
+      }
+      return (l_min + l_max) / 2;
+    }
+  }
+}
 
 
 void ppath_add_grid_crossings(Ppath& ppath,
@@ -536,12 +660,12 @@ void refracted_link_basic(Workspace& ws,
 }
 
 
-void specular_los(VectorView los_new,
-                  const Vector& refellipsoid,
-                  const GriddedField2& surface_elevation,
-                  ConstVectorView pos2D,
-                  ConstVectorView los,
-                  const bool& ignore_topography)
+void specular_los_calc(VectorView los_new,
+                       const Vector& refellipsoid,
+                       const GriddedField2& surface_elevation,
+                       ConstVectorView pos2D,
+                       ConstVectorView los,
+                       const bool& ignore_topography)
 {
   ARTS_ASSERT(los_new.nelem() == 2);
   ARTS_ASSERT(pos2D.nelem() == 2);

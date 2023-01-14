@@ -266,4 +266,24 @@ void surface_get_incoming_direct(
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity);
 
+
+/** Determines the normal vector of the surface
+
+    @param[out]  pos                Surface point in geodetic coordinates
+    @param[out]  ecef               Surface point in ECEF coordinates
+    @param[out]  decef              Normal as ECEF direction vector
+    @param[in]   refellipsoid       As the WSV with same name.
+    @param[in]   surface_elevation  As the WSV with same name.
+    @param[in]   pos2D              Vector with latitude and longitude
+
+    @author  Patrick Eriksson
+    @date    2023-01-07
+*/
+void surface_normal(VectorView pos,
+                    VectorView ecef,
+                    VectorView decef,
+                    const Vector& refellipsoid,
+                    const GriddedField2& surface_elevation,
+                    ConstVectorView pos2D);
+
 #endif  // surface_h
