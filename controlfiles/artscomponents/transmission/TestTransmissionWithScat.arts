@@ -108,8 +108,8 @@ NumericSet( ppath_lraytrace, 500 )
 # 
 #VectorSet( rte_pos, [ 0, 5.1, -13.82 ] )
 #VectorSet( rte_los, [ 80, 24 ] )
-rte_losSet( rte_los, atmosphere_dim, 70., 180 )
-rte_posSet( rte_pos, atmosphere_dim, 8000., 0, 0 )
+rte_losSet( rte_los, 70., 180 )
+rte_posSet( rte_pos, 8000., 0, 0 )
 VectorSet( rte_pos2, [] )                  # No transmitter position defined
 
 

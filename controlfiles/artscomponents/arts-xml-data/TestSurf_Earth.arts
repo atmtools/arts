@@ -183,7 +183,7 @@ Copy( y_3D_fixRef, y )
 #####
 
 AgendaSet( surface_rtprop_agenda ){
-   specular_losCalc
+   specular_losCalcOld
    InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )

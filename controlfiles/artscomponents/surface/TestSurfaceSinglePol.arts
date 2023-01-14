@@ -97,7 +97,7 @@ NumericSet( wdir, 45 )
 VectorSet( trv, [1] )
 #
 AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
+  specular_losCalcOld
   Copy( surface_skin_t, sst )
   surfaceFastem( wind_speed=wspeed,
                  wind_direction=wdir, 
@@ -147,7 +147,7 @@ sensorOff
 sensor_checkedCalc
 
 AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
+  specular_losCalcOld
   Copy( surface_skin_t, sst )
   surfaceFastem( stokes_dim=local_stokes_dim,
                  wind_speed=wspeed,

@@ -102,7 +102,7 @@ MatrixSetConstant( z_surface, 1, 1, 500 )
 #
 VectorCreate( n_t_grid )
 AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
+  specular_losCalcOld
   InterpAtmFieldToPosition( 
     out   = surface_skin_t, 
     field = t_field )
