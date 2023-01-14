@@ -84,7 +84,7 @@ ArrayOfStringSet( surface_props_names, [ "Skin temperature",
 # Surface agenda
 #
 AgendaSet( iy_surface_agenda ){
-  specular_losCalc
+  specular_losCalcOld
   SurfaceFlatScalarReflectivity(f_reflectivities=f_reflectivities)
   iySurfaceRtpropCalc
 }

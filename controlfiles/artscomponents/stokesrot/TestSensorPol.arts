@@ -68,7 +68,7 @@ complex_refr_indexWaterLiebe93( surface_complex_refr_index,
 #
 AgendaSet( surface_rtprop_agenda ){
   NumericSet( surface_skin_t, 300 )
-  specular_losCalc
+  specular_losCalcOld
   surfaceFlatRefractiveIndex
 } 
 

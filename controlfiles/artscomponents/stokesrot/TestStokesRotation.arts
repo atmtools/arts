@@ -80,7 +80,7 @@ VectorNLinSpace( data_T_grid, 5, 270, 310 )
 complex_refr_indexWaterLiebe93( surface_complex_refr_index, 
                                 data_f_grid, data_T_grid )
 AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
+  specular_losCalcOld
   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
   surfaceFlatRefractiveIndex
 } 
