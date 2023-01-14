@@ -28,7 +28,7 @@
 #include "messages.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
-#include "ppath.h"
+#include "ppath_OLD.h"
 #include "refraction.h"
 #include "rng.h"
 #include "rte.h"

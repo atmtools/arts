@@ -21,7 +21,7 @@
 #include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 #include "arts.h"
 #include "workspace_ng.h"
 

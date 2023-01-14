@@ -14,7 +14,7 @@
 #include "lineshape.h"
 #include "logic.h"
 #include "physics_funcs.h"
-#include "ppath.h"
+#include "ppath_OLD.h"
 #include "propmat_field.h"
 #include "radiation_field.h"
 

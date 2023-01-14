@@ -19,7 +19,7 @@
 #include "interpolation.h"
 #include "matpack_data.h"
 #include "optproperties.h"
-#include "ppath.h"
+#include "ppath_OLD.h"
 
 /** A 2D sequential linear interpolation (SLI) lookup table
  * This class holds the gridded for 2D SLI as well as the
