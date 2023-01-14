@@ -715,6 +715,8 @@ void iy_transmittance_mult(Matrix& iy_new,
 
 /** Determines the backward direction for a given line-of-sight.
 
+    ZZZ Use los_reverse in geodetic.h ZZZ
+
     This function can be used to get the LOS to apply for extracting single
     scattering properties, if the propagation path LOS is given.
 
