@@ -171,26 +171,6 @@ on the step length (\builtindoc{ppath\_lmax}) shall be applied for this
 purpose.
 
 
-\section{Tangent points}
-%===================
-The term ``\textindex{tangent point}'' refers to the point of a limb sounding
-path with the lowest altitude. For 1D cases this definition is clear, but for
-2D and 3D calculations there are complications. First of all, there are two
-different possible definitions: the point having the lowest radius (ie.\
-distance to the planets centre) or the point with the lowest altitude (ie.\
-vertical distance to the reference ellipsoid). The later is the more important
-with respect to optical thickness of the path, but the point of the highest
-pressure would be an even more relevant definition in this context. Another
-complication is that with refraction there can in principle exist more than one
-tangent point.
-
-Up to ARTS-2.0 minimum-radius tangent points were added as extra points to the
-propagation paths (a reminiscent from ARTS-1), but this feature has now been
-removed following the discussion in the paragraph above. However, many internal
-functions make use of the concept of tangent point (as the minimum-radius
-one). The altitude-based tangent point for a propagation path can be determined
-with the method \wsmindex{TangentPointExtract}.
-
 
 
 \section{The propagation path data structure}
