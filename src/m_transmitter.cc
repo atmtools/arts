@@ -38,7 +38,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "auto_md.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 #include "jacobian.h"
 #include "lin_alg.h"
 #include "logic.h"

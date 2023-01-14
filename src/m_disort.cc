@@ -41,7 +41,7 @@
 #include "m_general.h"
 #include "math_funcs.h"
 #include "messages.h"
- #include "geodetic.h"
+ #include "geodetic_OLD.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,

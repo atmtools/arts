@@ -25,7 +25,7 @@
 
 #include "arts_conversions.h"
 #include "auto_md.h"
-#include "geodeticZZZ.h"
+#include "geodetic.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "lin_alg.h"

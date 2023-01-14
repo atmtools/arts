@@ -33,7 +33,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "auto_md.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 #include "mc_interp.h"
 #include "montecarlo.h"
 

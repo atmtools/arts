@@ -30,7 +30,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

@@ -187,7 +187,7 @@ add_library (artscore STATIC
   gas_abs_lookup.cc
   gas_scattering.cc
   geodetic.cc
-  geodeticZZZ.cc
+  geodetic_OLD.cc
   gridded_fields.cc
   gui_propmat.cc
   hitran_species.cc
@@ -224,8 +224,8 @@ add_library (artscore STATIC
   m_propmat.cc
   m_gas_scattering.cc
   m_general.cc
+  m_geodetic_OLD.cc
   m_geodetic.cc
-  m_geodeticZZZ.cc
   m_xsec_fit.cc
   m_jacobian.cc
   m_linemixing.cc
@@ -237,8 +237,9 @@ add_library (artscore STATIC
   m_partfun.cc
   m_physics.cc
   m_planets.cc
+  m_poslos.cc
   m_ppath.cc
-  m_ppathZZZ.cc
+  m_ppath_OLD.cc
   m_psd.cc
   m_quantum.cc
   m_radiation_field.cc
@@ -249,7 +250,7 @@ add_library (artscore STATIC
   m_rte.cc
   m_retrieval.cc
   m_sensor.cc
-        m_sun.cc
+  m_sun.cc
   m_surface.cc
   m_telsem.cc
   m_tessem.cc
@@ -274,8 +275,8 @@ add_library (artscore STATIC
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
+  ppath_OLD.cc
   ppath_struct.cc
-  ppathZZZ.cc
   propmat_field.cc
   psd.cc
   quantum_numbers.cc
@@ -291,7 +292,7 @@ add_library (artscore STATIC
   special_interp.cc
   species_info.cc
   species_tags.cc
-        sun.cc
+  sun.cc
   surface.cc
   telsem.cc
   tessem.cc
