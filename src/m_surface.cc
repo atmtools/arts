@@ -3224,7 +3224,7 @@ void surface_rtpropFromTypesAverage(
   sensor_pos(joker, 0) = sat_pos[0];
   sensor_pos(joker, 1) = sat_pos[1];
   sensor_pos(joker, 2) = sat_pos[2];
-  losAddLosAndDlos(sensor_los, sat_los, dlos, verbosity);
+  sensor_losAddLosAndDlos(sensor_los, sat_los, dlos, verbosity);
   //
   IntersectionGeometricAltitude(ground_pos,
                                 ground_los,

@@ -5939,7 +5939,7 @@ Available models:
           "\n"
           "Determines the difference between a set of angles (*other_los*)\n"
           "and a reference direction (*ref_los*). This method reverses the\n"
-          "addition made by *losAddLosAndDlos*.\n"),
+          "addition made by *sensor_losAddLosAndDlos*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("dlos"),
@@ -11507,25 +11507,6 @@ Available models:
       GIN_TYPE("GriddedField3"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A raw atmospheric field.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("losAddLosAndDlos"),
-      DESCRIPTION(
-          "Adds zenith and azimuth angles.\n"
-          "\n"
-          "Adds up a line-of-sights (ref_los), with relative angle off-sets\n" 
-          "(dlos).\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("new_los"),
-      GOUT_TYPE("Matrix"),
-      GOUT_DESC("End line-of-sights."),
-      IN(),
-      GIN("ref_los", "dlos"),
-      GIN_TYPE("Vector", "Matrix"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Reference line-of-sight (a single los).",
-               "Change in line-of-sight (can be multiple dlos).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsCalc"),
@@ -18114,6 +18095,8 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "The geometric line-of-sight between two points.\n"
           "\n"
+          "Old! Use *rte_losGeometricToPosition* ZZZ\n"
+          "\n"
           "The method sets *rte_los* to the line-of-sight, at *rte_pos*,\n"
           "that matches the geometrical propagation path between *rte_pos*\n"
           "and *rte_pos2*.\n"
@@ -18305,6 +18288,25 @@ where N>=0 and the species name is something line "H2O".
                "Set to 1 if *rte_los* is valid for the reversed direction.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("rte_pos_losEndOfPpath"),
+      DESCRIPTION(
+          "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
+          "\n"
+          "For example, if the propagation path intersects with the surface,\n"
+          "this method gives you the position and angle of *ppath* at the\n"
+          "surface.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ppath"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_pos_losForwardToAltitude"),
       DESCRIPTION(
           "Moves *rte_pos* and *rte_los* forward to the target altitude.\n"
@@ -18326,25 +18328,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Target altitude.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("rte_pos_losStartOfPpath"),
-      DESCRIPTION(
-          "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
-          "\n"
-          "For example, if the propagation path intersects with the surface,\n"
-          "this method gives you the position and angle of *ppath* at the\n"
-          "surface.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("rte_pos", "rte_los"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim", "ppath"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
@@ -19145,33 +19128,23 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("sensor_losGeometricFromSensorPosToOtherPositions"),
+      NAME("sensor_losAddLosAndDlos"),
       DESCRIPTION(
-          "The geometric line-of-sight between pair of points.\n"
+          "Adds zenith and azimuth angles.\n"
           "\n"
-          "The method sets *sensor_los* to the line-of-sights, that matches the\n"
-          "geometrical propagation path from *sensor_pos* to *target_pos*. This\n"
-          "is done for pair of positions, i.e. the two matrices shall have the same\n"
-          "number of rows. The number of columns in *target_pos* shall be two for\n"
-          "1D and 2D and two for 3D, exactly as for *rte_pos2*.\n"
-          "\n"
-          "See also *rte_losGeometricFromRtePosToRtePos2*. This method calls that\n"
-          "method for each pair of positions, where values in *sensor_pos* matches\n"
-          "*rte_pos and values in *target_pos* matches *rte_pos2*.\n"),
+          "Adds up a line-of-sights (ref_los), with relative angle off-sets\n" 
+          "(dlos).\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("atmosphere_dim",
-         "lat_grid",
-         "lon_grid",
-         "refellipsoid",
-         "sensor_pos"),
-      GIN("target_pos"),
-      GIN_TYPE("Matrix"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Target position, for each position in *sensor_pos*.")));
+      IN(),
+      GIN("ref_los", "dlos"),
+      GIN_TYPE("Vector", "Matrix"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Reference line-of-sight (a single los).",
+               "Change in line-of-sight (can be multiple dlos).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losGeometricToPosition"),
