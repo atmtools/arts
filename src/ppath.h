@@ -93,7 +93,7 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
                             const Numeric& z_toa);
 
 
-/** Basic algorithm for find refracted path between two points
+/** Basic algorithm for finding refracted path between two points
 
     This is the implementation of the basic option of
     *ppathRefractedToPosition* and see built-in doc of that WSM for a

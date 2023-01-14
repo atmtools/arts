@@ -7837,12 +7837,12 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("geo_posWherePpathPassesZref"),
+      NAME("geo_posWhereAltitudeIsPassed"),
       DESCRIPTION(
           "Sets geo-position based on *ppath*.\n"
           "\n"
           "The geo-position is set to the position where the propagation\n"
-          "path passes the reference altitude. If this altitude is passed\n"
+          "path passes the stated altitude. If this altitude is passed\n"
           "more than once, the passing closest to the sensor is selected.\n"
           "If the reference altitude is not passed at all, *geo_pos* is\n"
           "set to NaN.\n"
@@ -7854,10 +7854,10 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ppath"),
-      GIN("z_ref"),
+      GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Reference altitude.")));
+      GIN_DESC("Altitude defining *geo_pos*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("GetEnvironmentVariable"),
@@ -14349,82 +14349,6 @@ strings. The following coding is used for the radiative background:
                "Perform double-sided perturbations when calculating "
                "refractive index gradients.",
                "See *ppathGeometric*.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathRefractedToPosition"),
-      DESCRIPTION(
-          "The refracted propagation path between two points.\n"
-          "\n"
-          "Tries to find the propagation path between two points by repeated calls\n"
-          "of *ppathRefractedToPosition*. See that method for details about the ray\n"
-          "tracing approach, including further information on some of the GINs.\n"
-          "\n"
-          "General remarks: The method assumes geometrical optics. It can fail for\n"
-          "various reasons, especially if there are sharp or multiple gradients in\n"
-          "refractive index. In multi-path situations, the method finds (in best\n"
-          "case) only a single solution. Default is to consider an intersection\n"
-          "with the surface as a failure and give an error about it. To instead\n"
-          "return an empty ppath when the target appears to be behind the horizon,\n"
-          "set GIN *robust* to 1.\n"
-          "\n"
-          "This task consists basically of determining *rte_los*, that is also a\n"
-          "method output. The LOS cannot be determined analytically and a search\n"
-          "algorithm is needed. The algorithm options are:\n"
-          "\n"
-          "\"basic\":\n"
-          "A simple iteration scheme with no safety measures. In short, the search\n"
-          "is done by trying to establish the geometric target point that gives the\n"
-          "same path length and a *rte_los* that gives a hit when doing a refracted\n"
-          "path. In each iteration, the geometric target is moved according to the\n"
-          "deviation to *target_pos* of the latest refracted path. The convergence\n"
-          "can fail for long distances or with strong refractine index gradients.\n"
-          "Accordingly, the algorithm tends to fail for limb sounding below about\n"
-          "6 km, but should be applicable for other observation geometries (but\n"
-          "notice the general remarks).\n"
-          "\n"
-          "Yes, so far only one option! Hopefully there will be more as the basic\n"
-          "option does not handle all cases properly.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("ppath", "rte_los"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("refr_index_air_ZZZ_agenda",
-         "ppath_lstep",
-         "ppath_lraytrace",
-         "refellipsoid",
-         "surface_elevation",
-         "surface_search_accuracy",
-         "rte_pos"),
-      GIN("target_pos",
-          "target_dl",
-          "algorithm",
-          "max_iterations",
-          "robust",
-          "z_toa",
-          "do_horizontal_gradients",
-          "do_twosided_perturb"),
-      GIN_TYPE("Vector",
-               "Numeric",
-               "String",
-               "Index",
-               "Index",
-               "Numeric",
-               "Index",
-               "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "basic", "10", "0", NODEF, "0", "0"),
-      GIN_DESC("The atmospheric position that *ppath* shall reach.",
-               "The end point of *ppath* shall be inside this distance "
-               "from *target_pos* (deviation can be in any direction).",
-               "Search algorithm to use.",
-               "Max number of iterations before giving up.",
-               "Set to 1 to not give errors, but return empty *ppath* "
-               "when a path can not be established.",
-               "Top-of-the-atmosphere altitude.",
-               "Consider horisontal gradients of refractive index.",
-               "Perform double-sided perturbations when calculating "
-               "refractive index gradients.")));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
       DESCRIPTION(
@@ -18188,9 +18112,7 @@ where N>=0 and the species name is something line "H2O".
           "The line-of-sight angles from *rte_pos* to *target_pos* are calculated\n"
           "ignoring refraction. This can be done analytically. The angles are set\n"
           "without any consideration of the surface. The corresponding propagation\n"
-          "path can thus end with a surface intersection.\n"
-          "\n"
-          "The corresponding method with refraction is *ppathRefractedToPosition*.\n"),
+          "path can thus end with a surface intersection.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_los"),
       GOUT(),
@@ -18202,6 +18124,76 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Vector"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("The atmospheric position that *rte_los* shall match.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_losRefractedToPosition"),
+      DESCRIPTION(
+          "The refracted line-of-sight and propagation path between two positions.\n"
+          "\n"
+          "General remarks: The method assumes geometrical optics. It can fail for\n"
+          "various reasons, especially if there are sharp or multiple gradients in\n"
+          "refractive index. In multi-path situations, the method finds (in best\n"
+          "case) only a single solution. Default is to consider an intersection\n"
+          "with the surface as a failure and give an error about it. To instead\n"
+          "return an empty ppath when the target appears to be behind the horizon,\n"
+          "set GIN *robust* to 1.\n"
+          "\n"
+          "The line-of-sight connecting the two points cannot be determined\n"
+          "analytically and a search algorithm is needed. The algorithm options are:\n"
+          "\n"
+          "\"basic\":\n"
+          "A simple iteration scheme with no safety measures. In short, the search\n"
+          "is done by trying to establish the geometric target point that gives the\n"
+          "same path length and a *rte_los* that gives a hit when doing a refracted\n"
+          "path. In each iteration, the geometric target is moved according to the\n"
+          "deviation to *target_pos* of the latest refracted path. The convergence\n"
+          "can fail for long distances or with strong refractine index gradients.\n"
+          "Accordingly, the algorithm tends to fail for limb sounding below about\n"
+          "6 km, but should be applicable for other observation geometries (but\n"
+          "notice the general remarks).\n"
+          "\n"
+          "Yes, so far only one option! Hopefully there will be more as the basic\n"
+          "option does not handle all cases properly.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_los", "ppath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refr_index_air_ZZZ_agenda",
+         "ppath_lstep",
+         "ppath_lraytrace",
+         "refellipsoid",
+         "surface_elevation",
+         "surface_search_accuracy",
+         "rte_pos"),
+      GIN("target_pos",
+          "target_dl",
+          "algorithm",
+          "max_iterations",
+          "robust",
+          "z_toa",
+          "do_horizontal_gradients",
+          "do_twosided_perturb"),
+      GIN_TYPE("Vector",
+               "Numeric",
+               "String",
+               "Index",
+               "Index",
+               "Numeric",
+               "Index",
+               "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "basic", "10", "0", NODEF, "0", "0"),
+      GIN_DESC("The atmospheric position that *ppath* shall reach.",
+               "The end point of *ppath* shall be inside this distance "
+               "from *target_pos* (deviation can be in any direction).",
+               "Search algorithm to use.",
+               "Max number of iterations before giving up.",
+               "Set to 1 to not give errors, but return empty *ppath* "
+               "when a path can not be established.",
+               "Top-of-the-atmosphere altitude.",
+               "Consider horisontal gradients of refractive index.",
+               "Perform double-sided perturbations when calculating "
+               "refractive index gradients.")));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losReverse"),
@@ -19202,7 +19194,7 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "The refracted line-of-sight to a point.\n"
           "\n"
-          "Works as *ppathRefractedToPosition*, but sets *sensor_los*.\n"
+          "Works as *rte_losRefractedToPosition*, but sets *sensor_los*.\n"
           "\n"
           "This method handles the case of a single target position. For\n"
           "multiple target positions, use: *sensor_losRefractedToPositions*.\n"),
@@ -19252,7 +19244,7 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "The refracted line-of-sight to multiple points.\n"
           "\n"
-          "Works as *ppathRefractedToPosition*, but sets *sensor_los*.\n"
+          "Works as *rte_losRefractedToPosition*, but sets *sensor_los*.\n"
           "\n"
           "This method handles the case of multiple target positions. For\n"
           "a single target position, use: *sensor_losRefractedToPosition*.\n"),

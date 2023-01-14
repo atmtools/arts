@@ -27,6 +27,98 @@ inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void geo_posEndOfPpath(Vector& geo_pos,
+                       const Ppath& ppath,
+                       const Verbosity& verbosity) {
+  geo_pos.resize(5);
+
+  if (ppath.np) {
+    geo_pos[Range(0, 3)] = ppath.pos(ppath.np - 1, joker);
+    geo_pos[Range(3, 2)] = ppath.los(ppath.np - 1, joker);
+
+  } else {
+    geo_pos = NAN;
+  }
+  
+  CREATE_OUT2;
+  out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void geo_posLowestAltitudeOfPpath(Vector& geo_pos,
+                                  const Ppath& ppath,
+                                  const Verbosity& verbosity) {
+  geo_pos.resize(5);
+
+  if (ppath.np) {
+    // Take first point of ppath as first guess
+    geo_pos[Range(0, 3)] = ppath.pos(0, joker);
+    geo_pos[Range(3, 2)] = ppath.los(0, joker);
+
+    for (Index i = 1; i < ppath.np; i++) {
+      if (ppath.pos(i, 0) < geo_pos[0]) {
+        geo_pos[Range(0, 3)] = ppath.pos(i, joker);
+        geo_pos[Range(3, 2)] = ppath.los(i, joker);
+      }
+    }
+
+  } else {
+    geo_pos = NAN;
+  }
+
+  CREATE_OUT2;
+  out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void geo_posWhereAltitudeIsPassed(Vector& geo_pos,
+                                  const Ppath& ppath,
+                                  const Numeric& altitude,
+                                  const Verbosity& verbosity) {
+  geo_pos.resize(5);
+  geo_pos = NAN;
+
+  if (ppath.np) {
+    bool found = false;
+    Index ihit = 0;
+    bool above = false;
+
+    if (ppath.pos(0, 0) >= altitude) {
+      above = true;
+    }
+
+    while (!found && ihit < ppath.np - 1) {
+      ihit += 1;
+      if (above && ppath.pos(ihit, 0) < altitude) {
+        found = true;
+      } else if (!above && ppath.pos(ihit, 0) >= altitude) {
+        found = true;
+      }
+    }
+    
+    if (found) {
+      geo_pos[0] = altitude;
+      
+      // Make a simple linear interpolation to determine lat, lon, za and aa
+      const Numeric w = (altitude - ppath.pos(ihit - 1, 0)) /
+        (ppath.pos(ihit, 0) - ppath.pos(ihit - 1, 0));
+      
+      geo_pos[1] = w * ppath.pos(ihit, 1) + (1 - w) * ppath.pos(ihit - 1, 1);
+      geo_pos[2] = w * ppath.pos(ihit, 2) + (1 - w) * ppath.pos(ihit - 1, 2);
+      geo_pos[3] = w * ppath.los(ihit, 0) + (1 - w) * ppath.los(ihit - 1, 0);
+      geo_pos[4] = w * ppath.los(ihit, 1) + (1 - w) * ppath.los(ihit - 1, 1);
+    }
+  }
+  
+  CREATE_OUT2;
+  out2 << "  Sets geo-position to:\n" << geo_pos;
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathAddGridCrossings(Ppath& ppath,
                            const Numeric& ppath_lstep,
@@ -733,54 +825,3 @@ void ppathRefracted(Workspace& ws,
 // from geomtrical path had at least the correct sign.
 //
 // Patrick 230106
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppathRefractedToPosition(Workspace& ws,
-                              Ppath& ppath,
-                              Vector& rte_los,
-                              const Agenda& refr_index_air_ZZZ_agenda,
-                              const Numeric& ppath_lstep,
-                              const Numeric& ppath_lraytrace,
-                              const Vector& refellipsoid,
-                              const GriddedField2& surface_elevation,
-                              const Numeric& surface_search_accuracy,
-                              const Vector& rte_pos,
-                              const Vector& target_pos,
-                              const Numeric& target_dl,
-                              const String& algorithm,
-                              const Index& max_iterations,
-                              const Index& robust,
-                              const Numeric& z_toa,
-                              const Index& do_horizontal_gradients,
-                              const Index& do_twosided_perturb,
-                              const Verbosity&)
-{
-    chk_rte_pos("rte_pos", rte_pos);
-    chk_rte_pos("target_pos", target_pos);
-
-    if (algorithm == "basic") {
-      refracted_link_basic(ws,
-                           ppath,
-                           refr_index_air_ZZZ_agenda,
-                           ppath_lstep,
-                           ppath_lraytrace,
-                           refellipsoid,
-                           surface_elevation,
-                           surface_search_accuracy,
-                           z_toa,
-                           do_horizontal_gradients,
-                           do_twosided_perturb,
-                           rte_pos,
-                           target_pos,
-                           target_dl,
-                           max_iterations,
-                           robust);
-    
-    } else {
-      ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
-    }
-  
-    rte_los = ppath.start_los;
-}
-

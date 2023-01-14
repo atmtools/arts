@@ -63,6 +63,56 @@ void rte_losGeometricToPosition(Vector& rte_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losRefractedToPosition(Workspace& ws,
+                                Vector& rte_los,
+                                Ppath& ppath,
+                                const Agenda& refr_index_air_ZZZ_agenda,
+                                const Numeric& ppath_lstep,
+                                const Numeric& ppath_lraytrace,
+                                const Vector& refellipsoid,
+                                const GriddedField2& surface_elevation,
+                                const Numeric& surface_search_accuracy,
+                                const Vector& rte_pos,
+                                const Vector& target_pos,
+                                const Numeric& target_dl,
+                                const String& algorithm,
+                                const Index& max_iterations,
+                                const Index& robust,
+                                const Numeric& z_toa,
+                                const Index& do_horizontal_gradients,
+                                const Index& do_twosided_perturb,
+                                const Verbosity&)
+{
+    chk_rte_pos("rte_pos", rte_pos);
+    chk_rte_pos("target_pos", target_pos);
+
+    if (algorithm == "basic") {
+      refracted_link_basic(ws,
+                           ppath,
+                           refr_index_air_ZZZ_agenda,
+                           ppath_lstep,
+                           ppath_lraytrace,
+                           refellipsoid,
+                           surface_elevation,
+                           surface_search_accuracy,
+                           z_toa,
+                           do_horizontal_gradients,
+                           do_twosided_perturb,
+                           rte_pos,
+                           target_pos,
+                           target_dl,
+                           max_iterations,
+                           robust);
+    
+    } else {
+      ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
+    }
+  
+    rte_los = ppath.start_los;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losGeometricToPosition(Matrix& sensor_los,
                                    const Vector& refellipsoid,
                                    const Matrix& sensor_pos,

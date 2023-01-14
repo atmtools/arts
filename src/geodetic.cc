@@ -55,9 +55,14 @@ void ecef2geocentric_los(VectorView pos,
   const Numeric coslon = cos(lonrad);
   const Numeric sinlon = sin(lonrad);
 
-  const Numeric dr = coslat*coslon*decef[0] + sinlat*decef[2] + coslat*sinlon*decef[1];
-  const Numeric dlat = -sinlat*coslon/pos[0]*decef[0] + coslat/pos[0]*decef[2] - sinlat*sinlon/pos[0]*decef[1];
-  const Numeric dlon = -sinlon/coslat/pos[0]*decef[0] + coslon/coslat/pos[0]*decef[1];
+  const Numeric dr = coslat*coslon*decef[0] +
+                     sinlat*decef[2] +
+                     coslat*sinlon*decef[1];
+  const Numeric dlat = -sinlat*coslon/pos[0]*decef[0] +
+                       coslat/pos[0]*decef[2] -
+                       sinlat*sinlon/pos[0]*decef[1];
+  const Numeric dlon = -sinlon/coslat/pos[0]*decef[0] +
+                       coslon/coslat/pos[0]*decef[1];
 
   los[0] = acos( dr );  // Conersion to deg below
 
