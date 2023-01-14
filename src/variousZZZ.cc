@@ -53,8 +53,8 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
                      "All values in *latitude_grid* must be inside [-90,90].");
   ARTS_USER_ERROR_IF(!is_increasing(longitude_grid),
                      "*longitude_grid* must be strictly increasing.");
-  ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) > 360,
-                     "All values in *latitude_grid* must be inside [-180,360].");
+  ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) >= 180,
+                     "All values in *latitude_grid* must be inside [-180,180[.");
   ARTS_USER_ERROR_IF(data.npages() != altitude_grid.nelem(),
                      "Inconsistent altitude size!\n"
                      "Length of altitude grid: ", altitude_grid.nelem(), "\n"
@@ -113,8 +113,8 @@ void LatLonFieldSet(GriddedField2& gfield2,
                      "All values in *latitude_grid* must be inside [-90,90].");
   ARTS_USER_ERROR_IF(!is_increasing(longitude_grid),
                      "*longitude_grid* must be strictly increasing.");
-  ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) > 360,
-                     "All values in *latitude_grid* must be inside [-180,360].");
+  ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) >= 180,
+                     "All values in *latitude_grid* must be inside [-180,180[.");
   ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.nelem(),
                      "Inconsistent latitude size!\n"
                      "Length of latitude grid: ", latitude_grid.nelem(), "\n"
@@ -208,8 +208,8 @@ void chk_rte_pos(const String& name,
                       "The vector *", name, "* must have length 3.")
   ARTS_USER_ERROR_IF(pos[1] < -90 || pos[1] > 90,
       "The latitude in *", name, "* must be in the range [-90,90].")
-  ARTS_USER_ERROR_IF(pos[2] < -180 || pos[2] > 360,
-      "The longitude in *", name, "* must be in the range [-180,360].")
+  ARTS_USER_ERROR_IF(pos[2] < -180 || pos[2] >= 180,
+      "The longitude in *", name, "* must be in the range [-180,180[].")
 }
 
 
@@ -237,9 +237,9 @@ void chk_sensor_pos(const String& name,
                        "Unvalid latitude in *", name, "*.\n",
                        "Latitudes must be inside the range [-90,90],\n",
                        "but ", name, "(", i, ",1) is ", sensor_pos(i,1));
-    ARTS_USER_ERROR_IF(sensor_pos(i,2) < -180 || sensor_pos(i,1) > 360,
+    ARTS_USER_ERROR_IF(sensor_pos(i,2) < -180 || sensor_pos(i,1) >= 180,
                        "Unvalid longitude in *", name, "*.\n",
-                       "Longitudes must be inside the range [-180,360],\n",
+                       "Longitudes must be inside the range [-180,180[,\n",
                        "but ", name, "(", i, ",2) is ", sensor_pos(i,2));
   }
 }
@@ -418,9 +418,9 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 }
 
 //
-// These two so far kept local
+// So far a local solution 
 //
-void gridpos_new(ArrayOfGridPos& gp,
+void gridpos_local(ArrayOfGridPos& gp,
                  ConstVectorView grid, 
                  ConstVectorView points) {
   const Index n = points.nelem();
@@ -445,33 +445,6 @@ void gridpos_new(ArrayOfGridPos& gp,
     gridpos(gp[i], grid, x);
   }
 }
-void gridpos_lon(ArrayOfGridPos& gp,
-                 ConstVectorView grid, 
-                 ConstVectorView points) {
-  const Index n = points.nelem();
-  ARTS_ASSERT(gp.nelem() == n);
-  
-  // To save time in case of grid length 1
-  const Index l = grid.nelem();
-  if (l == 1) {
-    gp4length1grid(gp);
-    return;
-  }
-    
-  for (Index i=0; i<n; ++i) {
-    // Extract longitude, handling [-180,180] vs [0,360]
-    Numeric x = move_lon_to_range(points[i], grid[0], grid[l - 1]);
-    
-    // Handle nearest extrapolation
-    // Can nearest and cyclic view be combined?
-    if (x < grid[0])
-      x = grid[0];
-    else if (x > grid[l - 1])
-      x = grid[l - 1];
-
-    gridpos(gp[i], grid, x);
-  }
-}
 
 
 Numeric interp_gfield2(const GriddedField2& G,
@@ -488,17 +461,11 @@ Numeric interp_gfield2(const GriddedField2& G,
   if (nrows == 1 && ncols == 1) {
     return G.data(0, 0);
   }
-
-  // Do we have longitudes?
-  const bool col_dim_is_lon = G.get_grid_name(1) == "Longitude";
   
   // Get grid positions
   ArrayOfGridPos gp_row(1), gp_col(1);
-  gridpos_new(gp_row, G.get_numeric_grid(0), Vector(1, pos2D[0]));
-  if (col_dim_is_lon)
-    gridpos_lon(gp_col, G.get_numeric_grid(1), Vector(1, pos2D[1]));
-  else
-    gridpos_new(gp_col, G.get_numeric_grid(1), Vector(1, pos2D[1]));
+  gridpos_local(gp_row, G.get_numeric_grid(0), Vector(1, pos2D[0]));
+  gridpos_local(gp_col, G.get_numeric_grid(1), Vector(1, pos2D[1]));
 
   // Interpolate
   Vector itw(4);
@@ -523,17 +490,11 @@ Numeric interp_gfield3(const GriddedField3& G,
     return G.data(0, 0, 0);
   }
 
-  // Do we have longitudes?
-  const bool col_dim_is_lon = G.get_grid_name(2) == "Longitude";
-  
   // Get grid positions
   ArrayOfGridPos gp_pages(1), gp_row(1), gp_col(1);
-  gridpos_new(gp_pages, G.get_numeric_grid(0), Vector(1, pos[0]));
-  gridpos_new(gp_row, G.get_numeric_grid(1), Vector(1, pos[1]));
-  if (col_dim_is_lon)
-    gridpos_lon(gp_col, G.get_numeric_grid(2), Vector(1, pos[2]));
-  else
-    gridpos_new(gp_col, G.get_numeric_grid(2), Vector(1, pos[2]));
+  gridpos_local(gp_pages, G.get_numeric_grid(0), Vector(1, pos[0]));
+  gridpos_local(gp_row, G.get_numeric_grid(1), Vector(1, pos[1]));
+  gridpos_local(gp_col, G.get_numeric_grid(2), Vector(1, pos[2]));
 
   // Interpolate
   Vector itw(8);
@@ -619,8 +580,8 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
       const Numeric dlon = 1e-4;
       Vector pos_shifted = pos;
       pos_shifted[2] += dlon;
-      if (pos_shifted[2] > 360)  // We can't go above 360 deg
-        pos_shifted[2] -= 360;
+      if (pos_shifted[2] >= 180)  // We can't go above 180 deg
+        pos_shifted[2] -= 180;
       refr_index_air_ZZZ_agendaExecute(ws,
                                        n,
                                        dummy,
@@ -704,7 +665,7 @@ void surface_normal(VectorView pos,
   } else {
     posSN[1] += RAD2DEG * dl / r;  
     posWE[2] += RAD2DEG * dl / (r * cos(DEG2RAD * posWE[1]));
-    if (posWE[2] > 360)
+    if (posWE[2] >= 180)
       posWE[2] -= 360;
   }
   //
