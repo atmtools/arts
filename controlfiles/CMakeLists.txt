@@ -42,12 +42,6 @@ arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
 arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
-arts_test_run_ctlfile(fast artscomponents/geodetic/TestBasicGeodeticAccuracy.arts)
-arts_test_run_ctlfile(fast artscomponents/geodetic/TestIntersections.arts)
-
-arts_test_run_ctlfile(fast artscomponents/ppath/TestPpathGeometric.arts)
-arts_test_run_ctlfile(fast artscomponents/ppath/TestPpathAddGridCrossings.arts)
-
 arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)

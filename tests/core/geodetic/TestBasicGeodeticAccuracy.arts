@@ -1,0 +1,24 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Runs TestBasicGeodeticAccuracy
+#
+
+Arts2 {
+    # Test with WGS84
+    refellipsoidEarthZZZ(model="WGS84")
+
+    NumericCreate(max_dl)
+    VectorCreate(max_dpos)
+    VectorCreate(max_dlos)
+
+    TestBasicGeodeticAccuracy(rte_pos,
+                              max_dl,
+                              max_dpos,
+                              max_dlos,
+                              refellipsoidZZZ,
+                              10000,
+                              0.1)
+    Print(rte_pos)
+    Print(max_dpos)
+    Print(max_dlos)
+}

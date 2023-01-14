@@ -1587,6 +1587,127 @@ void chk_atm_surface(const String& x_name,
   === Functions related to specif WSV
   ===========================================================================*/
 
+void chk_rte_los(const String& name,
+                 ConstVectorView los)
+{
+  ARTS_USER_ERROR_IF(los.nelem() != 2,
+                     "The vector *", name, "* must have length 2.");
+  ARTS_USER_ERROR_IF(los[0] < 0 || los[0] > 180,
+      "The zenith angle in *", name, "* must be in the range [0,180].");
+  ARTS_USER_ERROR_IF(los[1] < -180 || los[1] > 180,
+      "The azimuth angle in *", name, "* must be in the range [-180,180].");
+}
+
+
+void chk_rte_pos(const String& name,
+                 ConstVectorView pos)
+{
+  ARTS_USER_ERROR_IF(pos.nelem() != 3,
+                      "The vector *", name, "* must have length 3.")
+  ARTS_USER_ERROR_IF(pos[1] < -90 || pos[1] > 90,
+      "The latitude in *", name, "* must be in the range [-90,90].")
+  ARTS_USER_ERROR_IF(pos[2] < -180 || pos[2] >= 180,
+      "The longitude in *", name, "* must be in the range [-180,180[].")
+}
+
+
+void chk_refellipsoidZZZ(ConstVectorView refellipsoid)
+{
+  ARTS_USER_ERROR_IF(refellipsoid.nelem() != 2,
+                     "*refellipsoid* must have two elements.");
+  ARTS_USER_ERROR_IF(refellipsoid[0] <= 0 || refellipsoid[1] <= 0,
+                     "All elements of *refellipsoid* must be > 0.");
+  ARTS_USER_ERROR_IF(abs(refellipsoid[1]/refellipsoid[0]-1) > 0.5,
+      "The ratio of the two radii in *refellipsoid* is outisde of [0.5,1.5].\n"
+      "Do you really want to have such a flat reference ellipsoid?");
+}
+
+
+void chk_sensor_pos(const String& name,
+                    ConstMatrixView sensor_pos)
+{
+  ARTS_USER_ERROR_IF(sensor_pos.ncols() != 3,
+                     "*", name, "* must have three columns.");
+  ARTS_USER_ERROR_IF(sensor_pos.nrows() == 0,
+                     "*", name, "*must have at least one row.");
+  for (Index i=0; i<sensor_pos.nrows(); i++) {
+    ARTS_USER_ERROR_IF(sensor_pos(i,1) < -90 || sensor_pos(i,1) > 90,
+                       "Unvalid latitude in *", name, "*.\n",
+                       "Latitudes must be inside the range [-90,90],\n",
+                       "but ", name, "(", i, ",1) is ", sensor_pos(i,1));
+    ARTS_USER_ERROR_IF(sensor_pos(i,2) < -180 || sensor_pos(i,1) >= 180,
+                       "Unvalid longitude in *", name, "*.\n",
+                       "Longitudes must be inside the range [-180,180[,\n",
+                       "but ", name, "(", i, ",2) is ", sensor_pos(i,2));
+  }
+}
+
+
+void chk_sensor_los(const String& name,
+                    ConstMatrixView sensor_los)
+{
+  ARTS_USER_ERROR_IF(sensor_los.ncols() != 2,
+                     "*", name, "* must have two columns.");
+  ARTS_USER_ERROR_IF(sensor_los.nrows() == 0,
+                     "*", name, "* must have at least one row.");
+  for (Index i=0; i<sensor_los.nrows(); i++) {
+    ARTS_USER_ERROR_IF(sensor_los(i,0) < 0 || sensor_los(i,0) > 180,
+                       "Unvalid zenith angle in *", name, "*.\n",
+                       "Zenith angles must be inside the range [0,180],\n"
+                       "but ", name, "(", i, ",0) is ", sensor_los(i,0));
+    ARTS_USER_ERROR_IF(sensor_los(i,1) < -180 || sensor_los(i,1) > 180,
+                       "Unvalid azimuth angle in *", name, "*.\n",
+                       "Azimuth angles must be inside the range [-180,180],\n"
+                       "but ", name, "(", i, ",1) is ", sensor_los(i,1));
+  }
+}
+
+
+void chk_sensor_poslos(const String& name1,
+                       ConstMatrixView sensor_pos,
+                       const String& name2,
+                       ConstMatrixView sensor_los) {
+  chk_sensor_pos(name1, sensor_pos);
+  chk_sensor_los(name2, sensor_los);
+  ARTS_USER_ERROR_IF(sensor_los.nrows() != sensor_pos.nrows(),
+                     "*", name1, "* and *", name2,
+                     "* must have the same number of rows.");
+}
+
+
+void chk_surface_elevation(const GriddedField2& surface_elevation)
+{
+  ARTS_USER_ERROR_IF(surface_elevation.get_grid_name(0) != "Latitude",
+                     "Name of first grid must be \"Latitude\".");
+  ARTS_USER_ERROR_IF(surface_elevation.get_grid_name(1) != "Longitude",
+                     "Name of second grid must be \"Longitude\".");
+  const Vector& lat_grid = surface_elevation.get_numeric_grid(0);
+  ARTS_USER_ERROR_IF(surface_elevation.data.nrows() != lat_grid.nelem(),
+                     "Inconsistent latitude size in *surface_elevation*\n"
+                     "Length of latitude grid: ", lat_grid.nelem(), "\n"
+                     "Latitude size of data: ", surface_elevation.data.nrows());
+  const Vector& lon_grid = surface_elevation.get_numeric_grid(1);
+  ARTS_USER_ERROR_IF(surface_elevation.data.ncols() != lon_grid.nelem(),
+                     "Inconsistent longitude size in *surface_elevation*\n"
+                     "Length of longitude grid: ", lon_grid.nelem(), "\n"
+                     "Longitude size of data: ", surface_elevation.data.ncols());
+  ARTS_USER_ERROR_IF(surface_elevation.data.empty(),
+                     "The data in *surface_elevation* are empty. Not allowed!");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// The ones below should be deleted ZZZ
+
 //! chk_rte_pos
 /*! 
     Performs all needed checks of rte_pos and rte_pos2.
