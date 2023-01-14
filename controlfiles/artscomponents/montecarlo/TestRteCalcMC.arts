@@ -71,9 +71,9 @@ propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 #### Define viewing position and line of sight #########################
 
-rte_losSet( rte_los, atmosphere_dim, 99.7841941981, 180 )
+rte_losSet( rte_los, 99.7841941981, 180 )
 
-rte_posSet( rte_pos, atmosphere_dim, 95000.1, 7.61968838781, 0 )
+rte_posSet( rte_pos, 95000.1, 7.61968838781, 0 )
 
 Matrix1RowFromVector( sensor_pos, rte_pos )
 Matrix1RowFromVector( sensor_los, rte_los )
