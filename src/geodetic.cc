@@ -577,18 +577,6 @@ bool is_ellipsoid_spherical(ConstVectorView ellipsoid) {
 }
 
 
-bool is_lon_in_range(const Numeric& lon,
-                     const Numeric& lon_min,
-                     const Numeric& lon_max) {
-  // All lons are asserted in *move_lon_to_range*
-  const Numeric lon_adjusted = move_lon_to_range(lon, lon_min, lon_max);
-  if (lon_adjusted < lon_min || lon_adjusted > lon_max)
-    return false;
-  else
-    return true;
-}
-
-
 void los2enu(VectorView enu,
              ConstVectorView los) {
   const Numeric zarad = DEG2RAD * los[0];
@@ -597,15 +585,6 @@ void los2enu(VectorView enu,
   enu[0] = st * sin(aarad);
   enu[1] = st * cos(aarad);
   enu[2] = cos(zarad);
-}
-
-
-Numeric move_lon_to_range(const Numeric& lon,
-                          const Numeric& lon_min,
-                          const Numeric& lon_max) {
-  ARTS_ASSERT(lon_max >= lon_min);
-  ARTS_ASSERT(lon_max-lon_min <= 360);
-  return lon_max <= 180 ? shift_lon_to_pm180(lon) : shift_lon_to_0to360(lon);
 }
 
 
@@ -647,16 +626,4 @@ void reverse_los(VectorView los_new,
     los_new[1] = los[1] + 180;
   else
     los_new[1] = los[1] - 180;
-}
-
-
-Numeric shift_lon_to_pm180(const Numeric& lon) {
-  ARTS_ASSERT (lon >= -180 && lon <= 360);
-  return lon <= 180 ? lon : lon-360;
-}
-
-
-Numeric shift_lon_to_0to360(const Numeric& lon) {
-  ARTS_ASSERT (lon >= -180 && lon <= 360);
-  return lon >= 0 ? lon : lon+360;
 }

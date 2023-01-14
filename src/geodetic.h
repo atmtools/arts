@@ -335,27 +335,6 @@ Numeric intersection_longitude(ConstVectorView ecef,
 bool is_ellipsoid_spherical(ConstVectorView ellipsoid);
 
 
-/** Checks if a longitude is inside the range [lon_min,lon_max]
-
-    If needed, *lon* is shifted to be consistent with the defined longitude
-    range.
-
-    *lon_max*-*lon_min* can not exceed 360
-
-    @param[in]  lon      Longitude to check [-180,360]
-    @param[in]  lon_min  Start longitude of range [-180,360]
-    @param[in]  lon_max  End longitude of range [-180,360]
-
-    @return  True or false
-
-    @author  Patrick Eriksson
-    @date    2021-08-12
-*/
-bool is_lon_in_range(const Numeric& lon,
-                     const Numeric& lon_min,
-                     const Numeric& lon_max);
-
-
 /** Converts local zenith and azimuth angles to ENU unit vector.
 
     This function and the sister function enu2los handles transformation of
@@ -384,27 +363,6 @@ void los2enu(VectorView enu,
 */
 void reverse_los(VectorView los_new,
                  ConstVectorView los);
-
-
-/** Shifts a longitude to match range [lon_min,lon_max]
-
-    *lon_min* and *lon_max* are checked to be inside [-180,180] or [0,360] and
-    **lon* is shifted if necessary to have a consistent longitude.
-
-    *lon_max*-*lon_min* can not exceed 360
-
-    @param[in]  lon      Longitude to check [-180,360]
-    @param[in]  lon_min  Start longitude of range [-180,360]
-    @param[in]  lon_max  End longitude of range [-180,360]
-
-    @return  *lon*, possibly shifted
-
-    @author  Patrick Eriksson
-    @date    2021-08-16
-*/
-Numeric move_lon_to_range(const Numeric& lon,
-                          const Numeric& lon_min,
-                          const Numeric& lon_max);
 
 
 /** Geodetic position and line-of-sightat a given distance
@@ -462,29 +420,5 @@ void pos_at_distance(VectorView pos,
 */
 Numeric prime_vertical_radius(ConstVectorView refellipsoid,
                               const Numeric& lat);
-
-
-/** Shifts a longitude to be inside [-180,180]
-
-    @param[in]  lon  Original longitude [-180,360]
-
-    @return  Potentially shifted longitude
-
-    @author  Patrick Eriksson
-    @date    2021-08-12
-*/
-Numeric shift_lon_to_pm180(const Numeric& lon);
-
-
-/** Shifts a longitude to be inside [0,360]
-
-    @param[in]  lon  Original longitude [-180,360]
-
-    @return  Potentially shifted longitude
-
-    @author  Patrick Eriksson
-    @date    2021-08-12
-*/
-Numeric shift_lon_to_0to360(const Numeric& lon);
 
 #endif  // geodetic_h
