@@ -20,38 +20,6 @@
 
 #include "gridded_fields.h"
 
-/** Calculates the geometrical length to the surface
-
-    A negative length is returned if the geomtrical path has no intersection
-    with the surface.
-
-    The function also check that the observation position is actually above the
-    surface. 
-
-    @param[in]  rte_pos                  As the WSV with the same name.
-    @param[in]  rte_los                  As the WSV with the same name.
-    @param[in]  ecef                     rte_pos in ECEF.
-    @param[in]  decef                    rte_los in ECEF.
-    @param[in]  refellipsoid             As the WSV with same name.
-    @param[in]  surface_elevation        As the WSV with same name.
-    @param[in]  surface_search_accuracy  See WSM IntersectionGeometricalWithSurface.
-                surface_search_safe      See WSM IntersectionGeometricalWithSurface.
-
-    @return  Length to the surface.
-
-    @author  Patrick Eriksson
-    @date    2021-08-06
-*/
-Numeric find_crossing_with_surface_z(const Vector rte_pos,
-                                     const Vector rte_los,
-                                     const Vector ecef,
-                                     const Vector decef,
-                                     const Vector& refellipsoid,
-                                     const GriddedField2& surface_elevation,
-                                     const Numeric& surface_search_accuracy,
-                                     const Index& surface_search_safe);
-
-
 /** Interpolates a GriddedField2 to a position
 
     Interpolating a gridded 2D field allowing length 1 grids and
@@ -136,25 +104,5 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
                                   ConstVectorView pos,
                                   const bool& do_horizontal_gradients,
                                   const bool& do_twosided_perturb);
-
-
-/** Determines the normal vector of the surface
-
-    @param[out]  pos                Surface point in geodetic coordinates
-    @param[out]  ecef               Surface point in ECEF coordinates
-    @param[out]  decef              Normal as ECEF direction vector
-    @param[in]   refellipsoid       As the WSV with same name.
-    @param[in]   surface_elevation  As the WSV with same name.
-    @param[in]   pos2D              Vector with latitude and longitude
-
-    @author  Patrick Eriksson
-    @date    2023-01-07
-*/
-void surface_normal(VectorView pos,
-                    VectorView ecef,
-                    VectorView decef,
-                    const Vector& refellipsoid,
-                    const GriddedField2& surface_elevation,
-                    ConstVectorView pos2D);
 
 #endif  // variousZZZ_h

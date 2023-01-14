@@ -20333,6 +20333,28 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "Calculates the specular direction of surface reflections.\n"
           "\n"
+          "The default is to consider surface topography when calculating the\n"
+          "specular direction. That is, the variation of *surface_elevation*\n"
+          "is allowed to affect the angles of *speculöar_los*. This impact can\n"
+          "be deactivated by setting *ignore_topography* to 1. In this case,\n"
+          "the zenith angle of the specular direction is simply 180-rtp_los[0]\n" 
+          "and the azimuth angle is the same as the one in *rtp_los*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("specular_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refellipsoid", "surface_elevation", "rtp_pos", "rtp_los"),
+      GIN("ignore_topography"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag to control if surface slope is considered or not.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("specular_losCalcOld"),
+      DESCRIPTION(
+          "Calculates the specular direction of surface reflections.\n"
+          "\n"
           "A help method to set up the surface properties. This method\n"
           "calculates *specular_los*, that is required in several methods\n"
           "to convert zenith angles to incidence angles.\n"
@@ -20365,12 +20387,12 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Flag to control if surface slope is consdered or not.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("specular_losCalcNoTopography"),
+      NAME("specular_losCalcOldNoTopography"),
       DESCRIPTION(
           "Calculates the specular direction of surface reflections for horisontal\n"
           "surfaces.\n"
           "\n"
-          "In contrast to *specular_losCalc*, this method ignores the topography\n"
+          "In contrast to *specular_losCalcOld*, this method ignores the topography\n"
           "implied by *z_surface*. That is, any slope of the surface is ignored.\n"
           "\n"
           "The typical application of this WSM should be water surfaces (lakes and\n"
@@ -25067,29 +25089,29 @@ Options are:
                            to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Specular_NoPol_ReflFix_SurfTFromt_surface:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *specular_losCalcOld* to set *specular_los*, and *surface_normal*
         Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
                                         to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Specular_NoPol_ReflFix_SurfTFromt_field:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *specular_losCalcOld* to set *specular_los*, and *surface_normal*
         Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
         Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
                                         to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
     Specular_WithPol_ReflFix_SurfTFromt_surface:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *specular_losCalcOld* to set *specular_los*, and *surface_normal*
         Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceFlatReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 
     lambertian_ReflFix_SurfTFromt_surface:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *specular_losCalcOld* to set *specular_los*, and *surface_normal*
         Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
         Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 
     lambertian_ReflFix_SurfTFromt_field:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+        Uses *specular_losCalcOld* to set *specular_los*, and *surface_normal*
         Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
         Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 )--"),
