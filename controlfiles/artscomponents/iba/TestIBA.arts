@@ -64,7 +64,7 @@ VectorCreate( trv )
 nelemGet( v=f_grid )
 VectorSetConstant( trv, nelem, 0.9 )
 AgendaSet( surface_rtprop_agenda ){
-  specular_losCalc
+  specular_losCalcOld
   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
   surfaceFastem( wind_speed=5, wind_direction=45, fastem_version=5,
                  transmittance=trv )
