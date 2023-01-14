@@ -1,3 +1,9 @@
+ToDo:
+---
+* Start adding tests
+* Go to longitudes [-180,180[?
+
+
 Overall considerations and decisions:
 ---
 * Elevation is main altitude coordinate
