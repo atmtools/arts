@@ -37,11 +37,18 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "matpack_complex.h"
+#include "geodetic.h"
 #include "geodetic_OLD.h"
+#include "lin_alg.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
+#include "variousZZZ.h"
 #include "workspace_ng.h"
+
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -279,7 +286,7 @@ void surface_get_incoming_direct(
   Matrix iy_sun_toa;
 
   //get specular line of sight
-  specular_losCalc(specular_los,
+  specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -399,4 +406,84 @@ void surface_get_incoming_direct(
     iy_incoming.resize(f_grid.nelem(),stokes_dim);
     iy_incoming=0;
   }
+}
+
+
+void surface_normal(VectorView pos,
+                    VectorView ecef,
+                    VectorView decef,
+                    const Vector& refellipsoid,
+                    const GriddedField2& surface_elevation,
+                    ConstVectorView pos2D)
+{
+  ARTS_ASSERT(pos.nelem() == 3); 
+  ARTS_ASSERT(ecef.nelem() == 3); 
+  ARTS_ASSERT(decef.nelem() == 3); 
+  ARTS_ASSERT(pos2D.nelem() == 2);
+  
+  // We need two orthogonal vectors inside the surface plane. We
+  // follow ENU and the first one should be towards E and the second
+  // towards N. We obtain the vectors quite easily by dl shifts,
+  // except when we are are very close to the North or South pole. To
+  // be sure that a dl shift does not pass any of the poles, we
+  // consider here that all positions inside a distance 5*dl on the
+  // side. These points are shifted to be at the pole.
+  //
+  const Numeric dl = 1.0;  
+  const Numeric lat_limit = 90.0 - RAD2DEG * 5 * dl / refellipsoid[1];
+
+  // Determine 3D pos at pos
+  Numeric lat = pos2D[0];
+  if (lat > lat_limit)
+    lat = 90.0;
+  else if (lat < -lat_limit)
+    lat = -90.0;
+  //
+  pos[1] = lat;
+  pos[2] = pos2D[1];
+  pos[0] = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+
+  // Radius at pos0
+  const Numeric r = pos[0] + prime_vertical_radius(refellipsoid, lat);
+
+  // Shifted positions
+  Vector posWE = pos, posSN = pos;
+  //
+  // North pole case
+  if (lat > lat_limit) {
+    posSN[1] -= RAD2DEG * dl / r;  
+    posSN[2] = 90; 
+    posWE[1] = posSN[1];
+    posWE[2] = 0; 
+  // South pole case
+  } else if (lat < -lat_limit) {
+    posSN[1] += RAD2DEG * dl / r;  
+    posSN[2] = 0; 
+    posWE[1] = posSN[1];
+    posWE[2] = 90; 
+  // A general case 
+  } else {
+    posSN[1] += RAD2DEG * dl / r;  
+    posWE[2] += RAD2DEG * dl / (r * cos(DEG2RAD * posWE[1]));
+    if (posWE[2] >= 180)
+      posWE[2] -= 360;
+  }
+  //
+  posSN[0] = interp_gfield2(surface_elevation, posSN[Range(1, 2)]);
+  posWE[0] = interp_gfield2(surface_elevation, posWE[Range(1, 2)]);
+  
+  // Convert all three positions to ECEF
+  Vector ecefSN(3), ecefWE(3);
+  geodetic2ecef(ecef, pos, refellipsoid);
+  geodetic2ecef(ecefSN, posSN, refellipsoid);
+  geodetic2ecef(ecefWE, posWE, refellipsoid);
+
+  // Directional vectors to shifted positions
+  Vector decefSN(3), decefWE(3);
+  ecef_vector_distance(decefSN, ecef, ecefSN);
+  ecef_vector_distance(decefWE, ecef, ecefWE);
+
+  // Normal is cross product of the two decef (
+  cross3(decef, decefWE, decefSN);
+  decef /= norm2(decef);
 }

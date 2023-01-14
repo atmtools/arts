@@ -1,0 +1,36 @@
+#DEFINITIONS:  -*-sh-*-
+#
+#   Checks that ppathAddGridCrossings runs as expected for a dummy case
+#
+Arts2 {
+
+# Test pos and los
+VectorSet(rtp_pos, [0, 0.05, 3])  # Altitude does not matter
+VectorSet(rtp_los, [135, 34])
+    
+# WGS84 Earth
+refellipsoidEarthZZZ(model = "WGS84")
+Copy(refellipsoid, refellipsoidZZZ)  # Temporary fix
+
+# Start with no topography
+LatLonFieldSetConstant(gfield2 = surface_elevation,
+                       value = 0)
+specular_losCalc
+VectorSet(rte_los, [45, 34])  # rte_los here used as expected value
+Compare(specular_los, rte_los, 1e-3)
+
+# Surface slope in latitude direction, but ignore it
+LatLonFieldSet(gfield2 = surface_elevation,
+               latitude_grid = [0, 0.1],
+               longitude_grid = [0],
+               data = [0; 967.5])   # Adjusted to get a surface slope of 5 deg
+specular_losCalc(ignore_topography = 1)
+Compare(specular_los, rte_los, 1e-3)
+
+# Now consider topography, when looking north
+VectorSet(rtp_los, [135, 0])
+VectorSet(rte_los, [35, 0]) 
+specular_losCalc
+Compare(specular_los, rte_los, 1e-3) 
+
+}

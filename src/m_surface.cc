@@ -51,6 +51,7 @@
 #include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
+#include "ppath.h"
 #include "ppath_OLD.h"
 #include "rte.h"
 #include "special_interp.h"
@@ -277,13 +278,13 @@ void iySurfaceFastem(Workspace& ws,
                      const Numeric& wind_direction,
                      const Index& fastem_version,
                      const Verbosity& verbosity) {
-  // Most obvious input checks are performed in specular_losCalc and surfaceFastem
+  // Most obvious input checks are performed in specular_losCalcOld and surfaceFastem
 
   // Obtain radiance and transmission for specular direction
 
   // Determine specular direction
   Vector specular_los, surface_normal;
-  specular_losCalcNoTopography(specular_los,
+  specular_losCalcOldNoTopography(specular_los,
                                surface_normal,
                                rtp_pos,
                                rtp_los,
@@ -456,7 +457,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   }
 
   //get specular line of sight
-  specular_losCalc(specular_los,
+  specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -768,7 +769,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
   }
 
   //get specular line of sight
-  specular_losCalc(specular_los,
+  specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -1244,7 +1245,7 @@ void iySurfaceLambertian(Workspace& ws,
   }
 
   Vector specular_los, surface_normal;
-  specular_losCalc(specular_los,
+  specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -1453,7 +1454,7 @@ void iySurfaceLambertianDirect(
         Vector incoming_los;
         mirror_los(incoming_los,sun_rte_los[i_sun], atmosphere_dim);
 
-        specular_losCalc(specular_los,
+        specular_losCalcOld(specular_los,
                          surface_normal,
                          rtp_pos,
                          incoming_los,
@@ -1812,7 +1813,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalcNoTopography(Vector& specular_los,
+void specular_losCalcOldNoTopography(Vector& specular_los,
                                   Vector& surface_normal,
                                   const Vector& rtp_pos,
                                   const Vector& rtp_los,
@@ -1849,7 +1850,7 @@ void specular_losCalcNoTopography(Vector& specular_los,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalc(Vector& specular_los,
+void specular_losCalcOld(Vector& specular_los,
                       Vector& surface_normal,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
@@ -1867,7 +1868,7 @@ void specular_losCalc(Vector& specular_los,
 
   // Use special function if there is no slope, or it is ignored
   if (atmosphere_dim == 1 || ignore_surface_slope) {
-    specular_losCalcNoTopography(specular_los,
+    specular_losCalcOldNoTopography(specular_los,
                                  surface_normal,
                                  rtp_pos,
                                  rtp_los,
@@ -2022,7 +2023,7 @@ void surfaceFastem(Matrix& surface_los,
 
   // Determine specular direction
   Vector specular_los, surface_normal;
-  specular_losCalcNoTopography(specular_los,
+  specular_losCalcOldNoTopography(specular_los,
                                surface_normal,
                                rtp_pos,
                                rtp_los,
@@ -2299,7 +2300,7 @@ void surfaceTessem(Matrix& surface_los,
 
   // Determine specular direction
   Vector specular_los, surface_normal;
-  specular_losCalcNoTopography(specular_los,
+  specular_losCalcOldNoTopography(specular_los,
                                surface_normal,
                                rtp_pos,
                                rtp_los,
@@ -4077,11 +4078,35 @@ void SurfaceTessem(Matrix& surface_los,
   }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void specular_losCalc(Vector& specular_los,
+                      const Vector& refellipsoid,
+                      const GriddedField2& surface_elevation,
+                      const Vector& rtp_pos,
+                      const Vector& rtp_los,
+                      const Index& ignore_topography,
+                      const Verbosity&)
+{
+  chk_rte_pos("rtp_pos", rtp_pos);
+  chk_rte_los("rtp_los", rtp_los);
+  
+  specular_los.resize(2);
+  specular_los_calc(specular_los,
+                    refellipsoid,
+                    surface_elevation,
+                    rtp_pos[Range(1, 2)],
+                    rtp_los,
+                    ignore_topography);
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void transmittanceFromIy_aux(Vector& transmittance,
                              const ArrayOfString& iy_aux_vars,
                              const ArrayOfMatrix& iy_aux,
-                             const Verbosity&) {
+                             const Verbosity&)
+{
   Index ihit = -1;
 
   for (Index i = 0; i < iy_aux_vars.nelem(); i++) {

@@ -480,20 +480,20 @@ Agenda get_surface_rtprop_agenda(Workspace& ws, const String& option) {
       agenda.add("surfaceBlackbody");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_surface:
-      agenda.add("specular_losCalc");
+      agenda.add("specular_losCalcOld");
       agenda.add("InterpSurfaceFieldToPosition",
                  "out=surface_skin_t",
                  "field=t_surface");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_field:
-      agenda.add("specular_losCalc");
+      agenda.add("specular_losCalcOld");
       agenda.add(
           "InterpAtmFieldToPosition", "out=surface_skin_t", "field=t_field");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_WithPol_ReflFix_SurfTFromt_surface:
-      agenda.add("specular_losCalc");
+      agenda.add("specular_losCalcOld");
       agenda.add("InterpSurfaceFieldToPosition",
                  "out=surface_skin_t",
                  "field=t_surface");
@@ -503,13 +503,13 @@ Agenda get_surface_rtprop_agenda(Workspace& ws, const String& option) {
       agenda.add("InterpSurfaceFieldToPosition",
                  "out=surface_skin_t",
                  "field=t_surface");
-      agenda.add("specular_losCalc");
+      agenda.add("specular_losCalcOld");
       agenda.add("surfaceLambertianSimple");
       break;
     case lambertian_ReflFix_SurfTFromt_field:
       agenda.add(
           "InterpAtmFieldToPosition", "out=surface_skin_t", "field=t_field");
-      agenda.add("specular_losCalc");
+      agenda.add("specular_losCalcOld");
       agenda.add("surfaceLambertianSimple");
       break;
     case FINAL:

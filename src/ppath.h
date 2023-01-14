@@ -35,6 +35,38 @@
   === Functions
   ===========================================================================*/
 
+/** Calculates the geometrical length to the surface
+
+    A negative length is returned if the geomtrical path has no intersection
+    with the surface.
+
+    The function also check that the observation position is actually above the
+    surface. 
+
+    @param[in]  rte_pos                  As the WSV with the same name.
+    @param[in]  rte_los                  As the WSV with the same name.
+    @param[in]  ecef                     rte_pos in ECEF.
+    @param[in]  decef                    rte_los in ECEF.
+    @param[in]  refellipsoid             As the WSV with same name.
+    @param[in]  surface_elevation        As the WSV with same name.
+    @param[in]  surface_search_accuracy  See WSM IntersectionGeometricalWithSurface.
+                surface_search_safe      See WSM IntersectionGeometricalWithSurface.
+
+    @return  Length to the surface.
+
+    @author  Patrick Eriksson
+    @date    2021-08-06
+*/
+Numeric find_crossing_with_surface_z(const Vector rte_pos,
+                                     const Vector rte_los,
+                                     const Vector ecef,
+                                     const Vector decef,
+                                     const Vector& refellipsoid,
+                                     const GriddedField2& surface_elevation,
+                                     const Numeric& surface_search_accuracy,
+                                     const Index& surface_search_safe);
+
+
 /** Adding grid crossings to a ppath
 
     When called the variable ppath shall contain a description of the
@@ -171,11 +203,11 @@ void refracted_link_basic(Workspace& ws,
     @author Patrick Eriksson
     @date   2023-01-07
 */
-void specular_los(VectorView los_new,
-                  const Vector& refellipsoid,
-                  const GriddedField2& surface_elevation,
-                  ConstVectorView pos2D,
-                  ConstVectorView los,
-                  const bool& ignore_topography = false);
+void specular_los_calc(VectorView los_new,
+                       const Vector& refellipsoid,
+                       const GriddedField2& surface_elevation,
+                       ConstVectorView pos2D,
+                       ConstVectorView los,
+                       const bool& ignore_topography = false);
 
 #endif  // ppath_h
