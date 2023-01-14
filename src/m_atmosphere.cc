@@ -49,7 +49,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 #include "global_data.h"
 #include "gridded_fields.h"
 #include "igrf13.h"

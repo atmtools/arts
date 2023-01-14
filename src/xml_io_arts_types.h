@@ -54,7 +54,7 @@
 #include "messages.h"
 #include "optproperties.h"
 #include "template_partfun.h"
-#include "ppath.h"
+#include "ppath_OLD.h"
 #include "propagationmatrix.h"
 #include <predefined/predef_data.h>
 #include "sun.h"

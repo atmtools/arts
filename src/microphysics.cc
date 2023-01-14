@@ -52,7 +52,7 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 #include "mc_antenna.h"
 #include "messages.h"
 #include "physics_funcs.h"
-#include "ppath.h"
+#include "ppath_OLD.h"
 #include "psd.h"
 #include "rng.h"
 #include "sorting.h"
