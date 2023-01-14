@@ -19,9 +19,9 @@
     @file    m_poslos.cc
     @author  Patrick Eriksson <patrick.eriksson@chalmers.se>
     @date    2023-01-14
- 
-    @brief   Workspace methods for setting and extracting positions (pos)
-             and line-of-sights (los).  
+
+    @brief   Workspace methods for setting and extracting positions (pos),
+             line-of-sights (los) and relative los (dlos).
 */
 
 
@@ -53,12 +53,12 @@ void rte_losGeometricToPosition(Vector& rte_los,
 
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
     rte_los.resize(2);
-    
+
     geodetic2ecef(ecef, rte_pos, refellipsoid);
     geodetic2ecef(ecef_target, target_pos, refellipsoid);
     ecef_vector_distance(decef, ecef, ecef_target);
     decef /= norm2(decef);
-    ecef2geodetic_los(dummy, rte_los, ecef, decef, refellipsoid);    
+    ecef2geodetic_los(dummy, rte_los, ecef, decef, refellipsoid);
 }
 
 
@@ -103,12 +103,107 @@ void rte_losRefractedToPosition(Workspace& ws,
                            target_dl,
                            max_iterations,
                            robust);
-    
+
     } else {
       ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
     }
-  
+
     rte_los = ppath.start_los;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losReverse(Vector& rte_los,
+                    const Verbosity&)
+{
+  reverse_los(rte_los, rte_los);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losSet(Vector& rte_los,
+                const Numeric& za,
+                const Numeric& aa,
+                const Verbosity&)
+{
+  rte_los.resize(2);
+  rte_los[0] = za;
+  rte_los[1] = aa;
+  chk_rte_los("rte_los", rte_los);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_posSet(Vector& rte_pos,
+                const Numeric& z,
+                const Numeric& lat,
+                const Numeric& lon,
+                const Verbosity&)
+{
+  rte_pos.resize(3);
+  rte_pos[0] = z;
+  rte_pos[1] = lat;
+  rte_pos[2] = lon;
+  chk_rte_pos("rte_pos", rte_pos);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_losBackwardToAltitude(Vector& rte_pos,
+                                   Vector& rte_los,
+                                   const Vector& refellipsoid,
+                                   const Numeric& altitude,
+                                   const Index& los_is_reversed,
+                                   const Verbosity& verbosity)
+{
+  // Find los to apply in next step
+  Vector los2use;
+  if (los_is_reversed) {
+    los2use = rte_los;
+  } else {
+    reverse_los(los2use, rte_los);
+  }
+
+  // Move in altitude
+  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
+  start_pos(0, joker) = rte_pos;
+  start_los(0, joker) = los2use;
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                start_pos,
+                                start_los,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
+
+  // Extract final values
+  rte_pos = end_pos(0, joker);
+  reverse_los(rte_los, end_los(0, joker));
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_losForwardToAltitude(Vector& rte_pos,
+                                   Vector& rte_los,
+                                   const Vector& refellipsoid,
+                                   const Numeric& altitude,
+                                   const Verbosity& verbosity)
+{
+  // Move in altitude
+  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
+  start_pos(0, joker) = rte_pos;
+  start_los(0, joker) = rte_los;
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                start_pos,
+                                start_los,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
+
+  // Extract final values
+  rte_pos = end_pos(0, joker);
+  rte_los = end_los(0, joker);
 }
 
 
@@ -121,7 +216,7 @@ void sensor_losGeometricToPosition(Matrix& sensor_los,
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_rte_pos("target_pos", target_pos);
-    
+
     const Index n = sensor_pos.nrows();
     sensor_los.resize(n, 2);
 
@@ -146,7 +241,7 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_sensor_pos("target_pos", target_pos);
-    
+
     const Index n = sensor_pos.nrows();
     ARTS_USER_ERROR_IF(target_pos.nrows() != n,
         "*sensor_pos* and *target_pos* must have the same number of rows.");
@@ -186,7 +281,7 @@ void sensor_losRefractedToPosition(Workspace& ws,
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_rte_pos("target_pos", target_pos);
-    
+
     const Index n = sensor_pos.nrows();
     sensor_los.resize(n, 2);
 
@@ -211,7 +306,7 @@ void sensor_losRefractedToPosition(Workspace& ws,
                              robust);
         sensor_los(i, joker) = ppath.start_los;
       }
-      
+
   } else {
     ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
   }
@@ -240,7 +335,7 @@ void sensor_losRefractedToPositions(Workspace& ws,
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_sensor_pos("target_pos", target_pos);
-    
+
     const Index n = sensor_pos.nrows();
     ARTS_USER_ERROR_IF(target_pos.nrows() != n,
         "*sensor_pos* and *target_pos* must have the same number of rows.");
@@ -267,8 +362,71 @@ void sensor_losRefractedToPositions(Workspace& ws,
                              robust);
         sensor_los(i, joker) = ppath.start_los;
       }
-      
+
   } else {
     ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
   }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losReverse(
+    Matrix& sensor_los,
+    const Verbosity&)
+{
+  for (Index i = 0; i < sensor_los.nrows(); i++)
+    reverse_los(sensor_los(i, joker), sensor_los(i, joker));
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
+                                      Matrix& sensor_los,
+                                      const Vector& refellipsoid,
+                                      const Numeric& altitude,
+                                      const Index& los_is_reversed,
+                                      const Verbosity& verbosity)
+{
+  // Find los to apply in next step
+  Matrix los2use = sensor_los;
+  if (!los_is_reversed) {
+    sensor_losReverse(los2use, verbosity);
+  }
+
+  // Move in altitude
+  Matrix end_pos, end_los;
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                sensor_pos,
+                                los2use,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
+
+  // Extract final values
+  sensor_pos = end_pos;
+  sensor_los = end_los;
+  sensor_losReverse(sensor_los, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
+                                     Matrix& sensor_los,
+                                     const Vector& refellipsoid,
+                                     const Numeric& altitude,
+                                     const Verbosity& verbosity)
+{
+  // Move in altitude
+  Matrix end_pos, end_los;
+  IntersectionGeometricAltitude(end_pos,
+                                end_los,
+                                sensor_pos,
+                                sensor_los,
+                                refellipsoid,
+                                altitude,
+                                verbosity);
+
+  // Extract final values
+  sensor_pos = end_pos;
+  sensor_los = end_los;
 }

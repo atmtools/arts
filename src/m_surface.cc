@@ -3209,7 +3209,6 @@ void surface_rtpropFromTypesAverage(
   Vector sat_los = rtp_los;
   rte_pos_losBackwardToAltitude(sat_pos,
                                 sat_los,
-                                atmosphere_dim,
                                 refellipsoid,
                                 z_sensor,
                                 0,
