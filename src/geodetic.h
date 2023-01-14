@@ -390,6 +390,20 @@ void los2enu(VectorView enu,
              ConstVectorView los);
 
 
+/** Reverses a line-of-sight
+
+    The new LOS is the one for going in the beckward direction.
+
+    @param[out]  los_new  The line-of-sight for reversed direction.
+    @param[in]   los      A line-of-sight
+
+    @author  Patrick Eriksson 
+    @date    2023-01-14
+*/
+void reverse_los(VectorView los_new,
+                 ConstVectorView los);
+
+
 /** Shifts a longitude to match range [lon_min,lon_max]
 
     *lon_min* and *lon_max* are checked to be inside [-180,180] or [0,360] and

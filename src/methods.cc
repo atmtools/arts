@@ -18239,7 +18239,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_los", "atmosphere_dim"),
+      IN("rte_los"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -18247,40 +18247,35 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(
       create_mdrecord(NAME("rte_losSet"),
-               DESCRIPTION("Sets *rte_los* to the given angles.\n"
-                           "\n"
-                           "The azimuth angle is ignored for 1D and 2D.\n"),
+               DESCRIPTION("Sets *rte_los* to the given angles.\n"),
                AUTHORS("Patrick Eriksson"),
                OUT("rte_los"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("atmosphere_dim"),
+               IN(),
                GIN("za", "aa"),
                GIN_TYPE("Numeric", "Numeric"),
                GIN_DEFAULT(NODEF, NODEF),
-               GIN_DESC("Zenith angle of sensor line-of-sight.",
-                        "Azimuth angle of sensor line-of-sight.")));
+               GIN_DESC("Zenith angle [0, 180]",
+                        "Azimuth angle [-180, 180]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_posSet"),
       DESCRIPTION(
-          "Sets *rte_pos* to the given co-ordinates.\n"
-          "\n"
-          "The longitude is ignored for 1D and 2D, and the latitude is also \n"
-          "ignored for 1D.\n"),
+          "Sets *rte_pos* to the given coordinates.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("atmosphere_dim"),
+      IN(),
       GIN("z", "lat", "lon"),
       GIN_TYPE("Numeric", "Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Geometrical altitude of sensor position.",
-               "Latitude of sensor position.",
-               "Longitude of sensor position.")));
+      GIN_DESC("Altitude",
+               "Latitude [-90, 90]",
+               "Longitude [-180, 360]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_pos_losBackwardToAltitude"),
@@ -18302,7 +18297,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_pos", "rte_los", "atmosphere_dim", "refellipsoid"),
+      IN("rte_pos", "rte_los", "refellipsoid"),
       GIN("altitude", "los_is_reversed"),
       GIN_TYPE("Numeric", "Index"),
       GIN_DEFAULT(NODEF, "0"),
@@ -18326,7 +18321,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_pos", "rte_los", "atmosphere_dim", "refellipsoid"),
+      IN("rte_pos", "rte_los", "refellipsoid"),
       GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -19324,7 +19319,7 @@ where N>=0 and the species name is something line "H2O".
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losReverse"),
       DESCRIPTION(
-          "Reverses the direction in *sensor_los*.\n"
+          "Reverses the directions in *sensor_los*.\n"
           "\n"
           "The method updates *sensor_los* to have angles of the reversed\n"
           "direction.\n"),
@@ -19333,7 +19328,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("sensor_los", "atmosphere_dim"),
+      IN("sensor_los"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -19359,10 +19354,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("sensor_pos",
-         "sensor_los",
-         "atmosphere_dim",
-         "refellipsoid"),
+      IN("sensor_pos", "sensor_los", "refellipsoid"),
       GIN("altitude", "los_is_reversed"),
       GIN_TYPE("Numeric", "Index"),
       GIN_DEFAULT(NODEF, "0"),
@@ -19386,10 +19378,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("sensor_pos",
-         "sensor_los", 
-         "atmosphere_dim",
-         "refellipsoid"),
+      IN("sensor_pos", "sensor_los", "refellipsoid"),
       GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),

@@ -658,6 +658,15 @@ Numeric prime_vertical_radius(ConstVectorView refellipsoid,
 }
 
 
+void reverse_los(VectorView los_new,
+                 ConstVectorView los) {
+  los_new[0] = 180 - los[0];
+  if (los[1] < 0)
+    los_new[1] = los[1] + 180;
+  else
+    los_new[1] = los[1] - 180;
+}
+
 
 Numeric shift_lon_to_pm180(const Numeric& lon) {
   ARTS_ASSERT (lon >= -180 && lon <= 360);
