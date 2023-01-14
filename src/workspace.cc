@@ -4533,11 +4533,11 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "The specular direction (for reflection by a flat surface).\n"
           "\n"
           "The specular direction as a standard line-of-sight vector, consisting\n"
-          "of a zenith and azimuth angle (the later only for 3D).\n"
+          "of a zenith and azimuth angle.\n"
           "\n"
           "Units: degrees\n"
           "\n"
-          "Size:  [ 1 or 2 ]\n"),
+          "Size:  [ 2 ]\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -4660,14 +4660,14 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       DESCRIPTION(
           "The normal vector for a point at the surface.\n"
           "\n"
-          "The vector is given as a zenith and azimuth (the later only for 3D)\n"
-          "angle, following the definition of line-of-sights. For example,\n"
-          "this vector is always [0] for 1D, as there is no surface topography\n"
-          "for this atmospheric dimensionality.\n"
+          "Should be removed? ZZZ\n"
+          "\n"
+          "The vector is given as a zenith and azimuth angle following the\n"
+          "definition of line-of-sights.\n"
           "\n"
           "Units: degrees\n"
           "\n"
-          "Size:  [ 1 or 2 ]\n"),
+          "Size:  [ 2 ]\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
