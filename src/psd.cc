@@ -48,7 +48,7 @@
 #include "mc_antenna.h"
 #include "messages.h"
 #include "physics_funcs.h"
-#include "ppath.h"
+#include "ppath_OLD.h"
 #include "rng.h"
 #include "sorting.h"
 

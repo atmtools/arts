@@ -36,7 +36,7 @@
 #include "arts_constants.h"
 #include "auto_md.h"
 #include "matpack_complex.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 #include "interpolation.h"
 #include "special_interp.h"
 #include "check_input.h"
