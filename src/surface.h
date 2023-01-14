@@ -21,13 +21,13 @@
   ===========================================================================*/
 
 /**
-   @file   surface.h
-   @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-   @date   2012-02-06 
+    @file   surface.h
+    @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+    @date   2012-02-06 
 
-   This file contains definitions of internal functions associated with 
-   the surface.
- */
+    This file contains definitions of internal functions associated with 
+    the surface.
+*/
 
 #ifndef surface_h
 #define surface_h
