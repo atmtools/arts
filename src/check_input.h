@@ -353,6 +353,99 @@ void chk_atm_surface(const String& x_name,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid);
 
+
+/** Checks if a vector is a valid line-of-sight (direction vector)
+
+    The function gives an error message if this is not the case.
+
+    @param[in]  name  Name of the variable, if there is an error
+    @param[in]  los   The vector
+
+    @author  Patrick Eriksson 
+    @date    2022-12-31
+*/
+void chk_rte_los(const String& name,
+                 ConstVectorView los);
+
+
+/** Checks if a vector is a valid position
+
+    The function gives an error message if this is not the case.
+
+    @param[in]  name  Name of the variable, if there is an error
+    @param[in]  pos   The vector
+
+    @author  Patrick Eriksson 
+    @date    2022-12-31
+*/
+void chk_rte_pos(const String& name,
+                 ConstVectorView pos);
+
+
+/** Performs all needed checks of refellipsoid
+
+    @param[in]  refellipsoid  As the WSV with the same name.
+
+    @author  Patrick Eriksson 
+    @date    2021-07-30
+*/
+void chk_refellipsoidZZZ(ConstVectorView refellipsoid);
+
+
+/** Checks if a matrix is a valid sensor_pos
+
+    @param[in]  name        Name of the variable, if there is an error
+    @param[in]  sensor_pos  The matrix
+
+    @author  Patrick Eriksson 
+    @date    2021-07-30
+*/
+void chk_sensor_pos(const String& name,
+                    ConstMatrixView sensor_pos);
+
+
+/** Checks if a matrix is a valid sensor_los
+
+    @param[in]  name        Name of the variable, if there is an error
+    @param[in]  sensor_pos  The matrix
+
+    @author  Patrick Eriksson 
+    @date    2021-07-30
+*/
+void chk_sensor_los(const String& name,
+                    ConstMatrixView sensor_los);
+
+
+/** Checks if two matrices are valid combination of sensor_posLlos
+
+    @param[in]  name1       Name of the pos variable, if there is an error
+    @param[in]  sensor_pos  A first matrix
+    @param[in]  name2       Name of the los variable, if there is an error
+    @param[in]  sensor_los  A second matrix
+
+    @author  Patrick Eriksson 
+    @date    2021-07-30
+*/
+void chk_sensor_poslos(const String& name1,
+                       ConstMatrixView sensor_pos,
+                       const String& name2,
+                       ConstMatrixView sensor_los);
+
+
+/** Checks WSV *surface_elevation*
+
+    It is NOT checked that grids are strictly increasing, as
+    relatively costly.
+
+    @param[in]  surface_elevation  As the WSV with the same name.
+
+    @author  Patrick Eriksson 
+    @date    2021-08-08
+*/
+void chk_surface_elevation(const GriddedField2& surface_elevation);
+
+
+
 void chk_rte_pos(const Index& atmosphere_dim,
                  ConstVectorView rte_pos,
                  const bool& is_rte_pos2 = false);
