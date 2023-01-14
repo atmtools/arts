@@ -13940,121 +13940,6 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("ppath_fieldCalc"),
-      DESCRIPTION(
-          "Stand-alone calculation of propagation path field from sensors.\n"
-          "\n"
-          "Uses *ppathCalc* internally.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("ppath_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppath_agenda",
-         "ppath_lmax",
-         "ppath_lraytrace",
-         "atmgeom_checked",
-         "f_grid",
-         "cloudbox_on",
-         "cloudbox_checked",
-         "ppath_inside_cloudbox_do",
-         "sensor_pos",
-         "sensor_los",
-         "rte_pos2"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathCalcFromAltitude"),
-      DESCRIPTION(
-          "Moves *rte_pos* forwards to near altitude before calling *ppathCalc*\n"
-          "to compute a different *ppath*.  The accuracy-variable gives minimum\n"
-          "distance before the input altitude.\n"
-          "\n"
-          "The forward-moving algorithm calls *ppathCalc* several\n"
-          "times at reduced maximum distances.  The intention is to maintain\n"
-          "the correct *rte_los* for a given *rte_pos* at all altitudes.  The\n"
-          "method is thus relatively slow, and VERY memory intense at low\n"
-          "accuracy.\n"
-          "\n"
-          "Intended to be used with \"tropospheric corrections\" from ground\n"
-          "geometry.  Not well-tested\n"
-          "\n"
-          "Throws error if no altitude is in line of sight.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("ppath"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppath_agenda",
-         "ppath_lmax",
-         "ppath_lraytrace",
-         "atmgeom_checked",
-         "f_grid",
-         "cloudbox_on",
-         "cloudbox_checked",
-         "ppath_inside_cloudbox_do",
-         "rte_pos",
-         "rte_los",
-         "rte_pos2"),
-      GIN("altitude", "accuracy"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0.5"),
-      GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathFixedLstep"),
-      DESCRIPTION(
-          "Full propagation path calculation with fixed step length.\n"
-          "\n"
-          "Restrictions:\n"
-          "1. An active cloudbox is not handled (causes an error).\n"
-          "2. Observations of limb sounding type not handled. That is, zenith\n"
-          "   angles between 90 and about 120 deg will cause an error.\n"
-          "3. Unsuitable for downward observation from within the atmosphere.\n"
-          "\n"
-          "The method determines the lowest point of the propagation path and\n"
-          "applies a fixed step length from that point. This point can be the\n"
-          "surface intersection or the sensor position depending on observation\n"
-          "geometry.\n"
-          "\n"
-          "There is no adjustment at the high altitude end, neither to the top\n"
-          "of the atmosphere altitude nor the sensor's altitude.\n"
-          "\n"
-          "Default is to apply a step length of *ppath_lmax* everywhere.\n"
-          "By setting *za_scale* to 1, the step length is scaled with zenith\n"
-          "angle and the steps are rather constant in altitude spacing.\n"
-          "\n"
-          "With *z_coarse* and *l_coarse* you can introduce another step length\n"
-          "at higher altitudes. If *z_coarse* is > 0, then *l_coarse* is applied\n"
-          "above *z_coarse*, instead of *ppath_lmax*. *za_scale* is considered\n"
-          "also for *l_coarse*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("ppath"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmfields_checked",
-         "atmgeom_checked",
-         "atmosphere_dim",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
-         "refellipsoid",
-         "z_surface",
-         "cloudbox_on",
-         "rte_pos",
-         "rte_los",
-         "ppath_lmax"),
-      GIN("za_scale", "z_coarse", "l_coarse"),
-      GIN_TYPE("Index","Numeric","Numeric"),
-      GIN_DEFAULT("0","-1","1e3"),
-      GIN_DESC("Scale step length with 1/abs(cos(za)).",
-               "Altitude for switching to coarse step length",
-               "Coarse step length.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
       DESCRIPTION(
           "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
@@ -14179,33 +14064,6 @@ Available models:
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathWriteXMLPartial"),
-      DESCRIPTION(
-          "WSM to only write a reduced Ppath, omitting grid positions.\n"
-          "\n"
-          "The following fields are set to be empty: gp_p, gp_lat and gp_lon.\n"
-          "This cam drastically decrease the time for reading the structure\n"
-          "by some external software.\n"
-          "\n"
-          "If *file_index is >= 0, the variable is written to a file with name:\n"
-          "   <filename>.<file_index>.xml.\n"
-          "where <file_index> is the value of *file_index*.\n"
-          "\n"
-          "This means that *filename* shall here not include the .xml\n"
-          "extension. Omitting filename works as for *WriteXML*.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("output_file_format", "ppath"),
-      GIN("filename", "file_index"),
-      GIN_TYPE("String", "Index"),
-      GIN_DEFAULT("", "-1"),
-      GIN_DESC("File name. See above.",
-               "Optional file index to append to filename.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepGeometric"),
@@ -21730,51 +21588,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("TangentPointExtract"),
-      DESCRIPTION(
-          "Finds the tangent point of a propagation path.\n"
-          "\n"
-          "The tangent point is here defined as the point with the lowest\n"
-          "altitude (which differes from the definition used in the code\n"
-          "where it is the point with the lowest radius, or equally the point\n"
-          "with a zenith angle of 90 deg.)\n"
-          "\n"
-          "The tangent point is returned as a vector, with columns matching\n"
-          "e.g. *rte_pos*. If the propagation path has no tangent point, the\n"
-          "vector is set to NaN.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("tan_pos"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("The position vector of the tangent point."),
-      IN("ppath"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("TangentPointPrint"),
-      DESCRIPTION(
-          "Prints information about the tangent point of a propagation path.\n"
-          "\n"
-          "The tangent point is here defined as the point with the lowest\n"
-          "altitude (which differes from the definition used in the code\n"
-          "where it is the point with the lowest radius, or equally the point\n"
-          "with a zenith angle of 90 deg.)\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppath"),
-      GIN("level"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Output level to use.")));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("telsemStandalone"),
       DESCRIPTION(
@@ -22935,54 +22748,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Vector", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Vector to be subtracted.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("VectorZtanToZaRefr1D"),
-      DESCRIPTION(
-          "Converts a set of true tangent altitudes to zenith angles.\n"
-          "\n"
-          "The tangent altitudes are given to the function as a vector, which\n"
-          "are converted to a generic vector of zenith angles. The position of\n"
-          "the sensor is given by the WSV *sensor_pos*. The function works\n"
-          "only for 1D. The zenith angles are always set to be positive.\n"),
-      AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
-      OUT(),
-      GOUT("v_za"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Vector with zenith angles."),
-      IN("refr_index_air_agenda",
-         "sensor_pos",
-         "p_grid",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "refellipsoid",
-         "atmosphere_dim",
-         "f_grid"),
-      GIN("v_ztan"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vector with tangent altitudes.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("VectorZtanToZa1D"),
-      DESCRIPTION(
-          "Converts a set of geometrical tangent altitudes to zenith angles.\n"
-          "\n"
-          "The tangent altitudes are given to the function as a vector, which\n"
-          "are converted to a generic vector of zenith angles. The position of\n"
-          "the sensor is given by the WSV *sensor_pos*. The function works\n"
-          "only for 1D. The zenith angles are always set to be positive.\n"),
-      AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
-      OUT(),
-      GOUT("v_za"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Vector with zenith angles."),
-      IN("sensor_pos", "refellipsoid", "atmosphere_dim"),
-      GIN("v_ztan"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vector with tangent altitudes.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("verbosityInit"),
