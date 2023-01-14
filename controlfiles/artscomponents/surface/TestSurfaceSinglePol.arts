@@ -44,7 +44,7 @@ ppath_step_agendaSet( option="GeometricPath" )
 AgendaSet( iy_main_agenda ) {
   ppathCalc
   iyEmissionStandard
-  geo_posEndOfPpath
+  geo_posEndOfPpath   # Now only works for 3D (PE 230114)
 }
 
 
