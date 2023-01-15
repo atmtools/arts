@@ -12480,6 +12480,25 @@ Available models:
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Gridded field to be interpolated.",
                "Interpolate to this position [z, lat, lon].")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("NumericInterpVector"),
+      DESCRIPTION(
+          "Interpolates a vector to the selected position.\n"
+          "\n"
+          "Returns y(xv) given y(x).\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("value"),
+      GOUT_TYPE("Numeric"),
+      GOUT_DESC("Result of interpolation"),
+      IN(),
+      GIN("x", "y", "xv"),
+      GIN_TYPE("Vector", "Vector", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("Positions (grid) where *y* given.",
+               "Values of function to interpolate.",
+               "Interpolate to this value.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericMultiply"),
