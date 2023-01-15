@@ -1,0 +1,119 @@
+#DEFINITIONS:  -*-sh-*-
+#
+#   Checks that ppathRefracted runs and a limb sound observation gets
+#   a correct tangent altitude. The later is checked using that the
+#   product c = n*sin(za)*r is constant in a spherical 1D atmosphere.
+#
+Arts2 {
+
+# Spherical Earth and constant 0m surface elevation
+refellipsoidEarthZZZ(model = "Sphere")
+Copy(refellipsoid, refellipsoidZZZ)  # Temporary fix
+LatLonFieldSetConstant(gfield2 = surface_elevation,
+                       value = 0)
+
+# Agenda to get refractivity (n)
+GriddedField3Create(n_field)
+AgendaSet(refr_index_air_ZZZ_agenda) {
+    NumericInterpAltLatLonField(refr_index_air,
+                                n_field,
+                                rtp_pos)
+    Copy(refr_index_air_group, refr_index_air)
+}
+
+# pos and los
+NumericCreate(z_plat)
+NumericSet(z_plat, 99e3)
+#
+rte_posSet(z = z_plat,
+           lat = 11,
+           lon = 43)
+rte_losSet(za = 99.8,
+           aa = -11)
+
+# Observation geometry
+NumericSet(ppath_lstep, 1e3)
+NumericSet(ppath_lraytrace, 200)
+NumericCreate(z_toa)
+NumericSet(z_toa, 35e3)
+
+# Planet radius
+NumericCreate(re)
+Extract(re, refellipsoid, 0)
+
+
+#
+# Start with n = 1
+#
+
+AltLatLonFieldSetConstant(gfield3 = n_field,
+                          value = 1,
+                          name = "Refraction")
+
+# Calculate ppath and extract tangent altitude
+#
+ppathRefracted(z_toa = z_toa)
+#
+geo_posLowestAltitudeOfPpath
+NumericCreate(z_tan)
+Extract(z_tan, geo_pos, 0)
+
+# c constant of observation
+NumericCreate(sinza)
+NumericSet(sinza, 0.985407898483490)  # sin of 99.8
+NumericCreate(c)
+NumericAdd(c, re, z_plat)
+NumericMultiply(c, c, sinza) 
+
+# Compare to value implied by tangent altitude
+NumericCreate(c_test)
+NumericAdd(c_test, re, z_tan)
+Compare(c_test, c, 0.01)  # Deviation represents error in tangent altitude
+Print(z_tan,0)
+
+#
+# Repeat with more or less realistic profile of n
+#
+
+Tensor3Create(n_data)
+VectorCreate(n_profile)
+VectorCreate(z_grid)
+#
+IndexSet(nelem, 301)
+VectorNLinSpace(z_grid, nelem, 0, 30e3)
+VectorNLogSpace(n_profile, nelem, 500e-6, 0.1e-6)
+VectorAdd(n_profile, n_profile, 1.0)
+#
+Tensor3FromVector(n_data, n_profile)
+AltLatLonFieldSet(gfield3 = n_field,
+                  altitude_grid = z_grid, 
+                  latitude_grid = [0],
+                  longitude_grid = [0],
+                  data = n_data,
+                  name = "Refraction")
+
+# Calculate ppath and extract tangent altitude
+#
+ppathRefracted(z_toa = z_toa)
+#
+geo_posLowestAltitudeOfPpath
+NumericCreate(z_tan)
+Extract(z_tan, geo_pos, 0)
+
+# Compare to value implied by tangent altitude
+NumericCreate(n_value)
+NumericInterpVector(n_value, z_grid, n_profile, z_tan)
+#
+NumericAdd(c_test, re, z_tan)
+NumericMultiply(c_test, c_test, n_value)
+Compare(c_test, c, 1)  # Here we are satisfied with 1 m difference.
+                       # That we don't get an exact value depends
+                       # partly on that n is not 0 at TOA.
+                       # Anyhow the tangent altitude is shifted more
+                       # than 1km downwards from geomtrical case, and
+                       # then 1m accuracy seems fine
+
+# To print difference tangent altitude
+#NumericSubtract(c, c, c_test)
+#Print(c, 0)
+}
