@@ -297,11 +297,11 @@ void surface_get_incoming_direct(
     @author  Patrick Eriksson
     @date    2023-01-07
 */
-void surface_normal(VectorView pos,
-                    VectorView ecef,
-                    VectorView decef,
-                    const Vector& refellipsoid,
-                    const GriddedField2& surface_elevation,
-                    ConstVectorView pos2D);
+void surface_normal_calc(VectorView pos,
+                         VectorView ecef,
+                         VectorView decef,
+                         const Vector& refellipsoid,
+                         const GriddedField2& surface_elevation,
+                         ConstVectorView pos2D);
 
 #endif  // surface_h
