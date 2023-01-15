@@ -1,36 +1,55 @@
 #DEFINITIONS:  -*-sh-*-
 #
-#   Checks that ppathAddGridCrossings runs as expected for a dummy case
+#   Performs some tests of calculations of specular_los and surface_normal
 #
 Arts2 {
 
-# Test pos and los
-VectorSet(rtp_pos, [0, 0.05, 3])  # Altitude does not matter
-VectorSet(rtp_los, [135, 34])
-    
 # WGS84 Earth
 refellipsoidEarthZZZ(model = "WGS84")
 Copy(refellipsoid, refellipsoidZZZ)  # Temporary fix
 
-# Start with no topography
+
+# Start with no topography and some test values for rtp_pos/los
 LatLonFieldSetConstant(gfield2 = surface_elevation,
                        value = 0)
+VectorSet(rtp_pos, [0, 0.05, 3])  # Altitude does not matter
+VectorSet(rtp_los, [135, 34])
+#
+surface_normalCalc
+VectorSet(rte_los, [0, 0])  # rte_los here used as expected value
+Compare(surface_normal, rte_los, 1e-3)
+#
 specular_losCalc
-VectorSet(rte_los, [45, 34])  # rte_los here used as expected value
+VectorSet(rte_los, [45, 34])
 Compare(specular_los, rte_los, 1e-3)
 
-# Surface slope in latitude direction, but ignore it
+
+# Introduce surface slope in latitude direction
 LatLonFieldSet(gfield2 = surface_elevation,
                latitude_grid = [0, 0.1],
                longitude_grid = [0],
-               data = [0; 967.5])   # Adjusted to get a surface slope of 5 deg
+               data = [0; 967.5])   # Adjusted to get a slope close to 5 deg
+
+# Redo as above with ignoring topography
+#
+surface_normalCalc(ignore_topography = 1)
+VectorSet(rte_los, [0, 0])
+Compare(surface_normal, rte_los, 1e-3)
+#
 specular_losCalc(ignore_topography = 1)
+VectorSet(rte_los, [45, 34])
 Compare(specular_los, rte_los, 1e-3)
 
-# Now consider topography, when looking north
-VectorSet(rtp_los, [135, 0])
-VectorSet(rte_los, [35, 0]) 
+
+# Now consider topography, but change to loo north for easier testing
+VectorSet(rtp_los, [135, 0]) 
+#
+surface_normalCalc
+VectorSet(rte_los, [5, 180])  # Can we be sure that aa not comes out as -180?
+Compare(surface_normal, rte_los, 1e-3)
+#
 specular_losCalc
-Compare(specular_los, rte_los, 1e-3) 
+VectorSet(rte_los, [35, 0])
+Compare(specular_los, rte_los, 1e-3)
 
 }

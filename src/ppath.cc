@@ -688,7 +688,7 @@ void specular_los_calc(VectorView los_new,
   ARTS_ASSERT(pos2D.nelem() == 2);
   ARTS_ASSERT(los.nelem() == 2);
 
-  // Ignore surface tilt if told so or surface_elevation.data has size (1,1)
+  // No surface tilt if told so or surface_elevation.data has size (1,1)
   if (ignore_topography || (surface_elevation.data.nrows() == 1 &&
                             surface_elevation.data.ncols() == 1)) {
     los_new[0] = 180 - los[0];
@@ -697,7 +697,7 @@ void specular_los_calc(VectorView los_new,
   } else {
     // Determine surface normal
     Vector pos(3), ecef(3), decef(3);
-    surface_normal(pos, ecef, decef, refellipsoid, surface_elevation, pos2D);
+    surface_normal_calc(pos, ecef, decef, refellipsoid, surface_elevation, pos2D);
 
     // Convert los to ECEF direction (ECEF recalculated!)
     Vector decef_los(3);

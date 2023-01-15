@@ -1,0 +1,47 @@
+#DEFINITIONS:  -*-sh-*-
+#
+#   Basic testing of some options for surface_rtprop_agenda
+#
+#   Will be extended when new interpolation WSMs ready
+#
+Arts2 {
+
+# Spherical Earth and constant 0m surface elevation
+refellipsoidEarthZZZ(model = "WGS84")
+Copy(refellipsoid, refellipsoidZZZ)  # Temporary fix
+LatLonFieldSetConstant(gfield2 = surface_elevation,
+                       value = 0)
+
+# Set test input for surface_rtprop_agenda
+VectorSet(f_grid, [31e9, 89e9])
+VectorSet(rtp_pos, [0, -6, -97])
+VectorSet(rtp_los, [150, 156])
+
+# Some test variables
+NumericCreate(t_surf)
+NumericSet(t_surf, 288)
+
+# General WSVs needed below
+IndexSet(atmosphere_dim, 3)   # Temporary fix
+IndexSet(stokes_dim, 2)
+
+# Variables needed used for testing
+NumericCreate(testnum)
+MatrixCreate(testmat)MatrixCreate(testmat)
+
+
+
+# Scalar reflectivity
+VectorSet(surface_scalar_reflectivity, [0.05])
+AgendaSet(surface_rtprop_agenda) {
+    specular_losCalc
+    Copy(surface_skin_t, t_surf)
+    surfaceFlatScalarReflectivity
+}
+AgendaExecute(surface_rtprop_agenda)
+#
+Compare(surface_skin_t, t_surf, 1e-3)
+MatrixSet(testmat, [30, 156])
+Compare(surface_los, testmat, 1e-3)
+
+}
