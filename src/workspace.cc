@@ -4641,8 +4641,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       DESCRIPTION(
           "The normal vector for a point at the surface.\n"
           "\n"
-          "Should be removed? ZZZ\n"
-          "\n"
           "The vector is given as a zenith and azimuth angle following the\n"
           "definition of line-of-sights.\n"
           "\n"

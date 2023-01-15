@@ -25,6 +25,7 @@
 #include "check_input.h"
 #include "matpack_complex.h"
 #include "fastem.h"
+#include "geodetic.h"
 #include "geodetic_OLD.h"
 #include "interpolation.h"
 #include "math_funcs.h"
@@ -4078,6 +4079,37 @@ void specular_losCalc(Vector& specular_los,
                     rtp_pos[Range(1, 2)],
                     rtp_los,
                     ignore_topography);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surface_normalCalc(Vector& surface_normal,
+                        const Vector& refellipsoid,
+                        const GriddedField2& surface_elevation,
+                        const Vector& rtp_pos,
+                        const Index& ignore_topography,
+                        const Verbosity&)
+{
+  chk_rte_pos("rtp_pos", rtp_pos);
+
+  surface_normal.resize(2);
+  
+  // No surface tilt if told so or surface_elevation.data has size (1,1)
+  if (ignore_topography || (surface_elevation.data.nrows() == 1 &&
+                            surface_elevation.data.ncols() == 1)) {
+    surface_normal = 0;
+
+  } else {
+    Vector pos(3), ecef(3), decef(3);
+    surface_normal_calc(pos,
+                        ecef,
+                        decef,
+                        refellipsoid,
+                        surface_elevation,
+                        rtp_pos[Range(1, 2)]);
+  
+    ecef2geodetic_los(pos, surface_normal, ecef, decef, refellipsoid);
+  }
 }
 
 

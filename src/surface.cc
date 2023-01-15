@@ -391,12 +391,12 @@ void surface_get_incoming_direct(
 }
 
 
-void surface_normal(VectorView pos,
-                    VectorView ecef,
-                    VectorView decef,
-                    const Vector& refellipsoid,
-                    const GriddedField2& surface_elevation,
-                    ConstVectorView pos2D)
+void surface_normal_calc(VectorView pos,
+                         VectorView ecef,
+                         VectorView decef,
+                         const Vector& refellipsoid,
+                         const GriddedField2& surface_elevation,
+                         ConstVectorView pos2D)
 {
   ARTS_ASSERT(pos.nelem() == 3); 
   ARTS_ASSERT(ecef.nelem() == 3); 
