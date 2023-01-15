@@ -20354,7 +20354,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The default is to consider surface topography when calculating the\n"
           "specular direction. That is, the variation of *surface_elevation*\n"
-          "is allowed to affect the angles of *speculöar_los*. This impact can\n"
+          "is allowed to affect the angles of *specular_los*. This impact can\n"
           "be deactivated by setting *ignore_topography* to 1. In this case,\n"
           "the zenith angle of the specular direction is simply 180-rtp_los[0]\n" 
           "and the azimuth angle is the same as the one in *rtp_los*.\n"),
@@ -20671,6 +20671,27 @@ where N>=0 and the species name is something line "H2O".
                "Input text string.",
                "Input text string.",
                "Input text string.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_normalCalc"),
+      DESCRIPTION(
+          "Calculates the surface's local normal.\n"
+          "\n"
+          "The default is to consider surface topography when calculating the\n"
+          "normal direction. That is, the variation of *surface_elevation*\n"
+          "is allowed to affect the angles of *surface_normal*. This impact can\n"
+          "be deactivated by setting *ignore_topography* to 1. In this case,\n"
+          "the zenith angle of *surface_normal* becomes 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_normal"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("refellipsoid", "surface_elevation", "rtp_pos"),
+      GIN("ignore_topography"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag to control if surface slope is considered or not.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceFromFileAndGrid"),
