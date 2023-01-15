@@ -190,9 +190,6 @@ void NumericInterpLatLonField(Numeric& value,
 }                  
 
 
-
-
-
 //
 // So far a local solution 
 //
@@ -220,6 +217,21 @@ void gridpos_local(ArrayOfGridPos& gp,
 
     gridpos(gp[i], grid, x);
   }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void NumericInterpVector(Numeric& value,
+                         const Vector& x,
+                         const Vector& y,
+                         const Numeric& xv,
+                         const Verbosity&)
+{
+  ArrayOfGridPos gp(1);
+  gridpos_local(gp, x, Vector(1, xv));
+  Vector itw(2);
+  interpweights(itw, gp[0]);
+  value = interp(itw, y, gp[0]);
 }
 
 
