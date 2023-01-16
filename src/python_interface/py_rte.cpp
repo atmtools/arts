@@ -158,12 +158,10 @@ void py_rte(py::module_& m) {
                                    s.Data().npages() not_eq d.npages() or
                                    s.Data().nrows() not_eq d.nrows() or
                                    s.Data().ncols() not_eq d.ncols(),
-                               "Expect shape: (",
-                               s.Data().shape(),
-                               ')',
-                               "\nGot shape: (",
-                               d.shape(),
-                               ')')
+                               "Expect shape: ",
+                               matpack::shape_help<4>{s.Data().shape()},
+                               "\nGot shape: ",
+                               matpack::shape_help<4>{d.shape()})
             s.Data() = d;
           })
       .def(py::pickle(
@@ -215,10 +213,10 @@ void py_rte(py::module_& m) {
                                    s.Data().nrows() not_eq d.nrows() or
                                    s.Data().ncols() not_eq d.ncols(),
                                "\nExpect shape: (",
-                               s.Data().shape(),
+                               matpack::shape_help<4>{s.Data().shape()},
                                ')',
                                "\nGot shape: (",
-                               d.shape(),
+                               matpack::shape_help<4>{d.shape()},
                                ')')
             s.Data() = d;
           })

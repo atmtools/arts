@@ -1,6 +1,7 @@
 #include <py_auto_interface.h>
 
-#include "matpackI.h"
+#include <matpack_data.h>
+
 #include "py_macros.h"
 
 namespace Python {

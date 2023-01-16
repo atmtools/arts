@@ -87,6 +87,12 @@ struct matpack_strided_access {
 
   constexpr operator Joker() const noexcept {return joker;}
   constexpr operator Joker() noexcept {return joker;}
+  
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const matpack_strided_access &msa) {
+    return os << "Range(" << msa.offset << ", " << msa.extent << ", "
+              << msa.stride << ")";
+  }
 };
 
 template <access_operator... access, Index N=sizeof...(access)>
