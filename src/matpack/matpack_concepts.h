@@ -257,7 +257,7 @@ template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has
 
 //! Get the rank of the multidimensional array at compile time
 template <rankable T>
-consteval auto rank() {
+constexpr auto rank() {
   if constexpr (has_NumIndices<T>) return std::remove_cvref_t<T>::NumIndices;
   else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - std::remove_cvref_t<T>::IsVectorAtCompileTime;
   else if constexpr (has_rank<T>) return std::remove_cvref_t<T>::rank();
@@ -385,7 +385,7 @@ using matpack_value_type = typename std::remove_cvref_t<T>::value_type;
 
 template <typename first, typename second, typename... rest>
 class same_value_type {
-static consteval bool same() {
+static constexpr bool same() {
   using L = matpack_value_type<first>;
   using R = matpack_value_type<second>;
   if constexpr (sizeof...(rest) == 0) return std::same_as<L, R>;

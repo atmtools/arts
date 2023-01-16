@@ -96,7 +96,7 @@ struct matpack_strided_access {
 };
 
 template <access_operator... access, Index N=sizeof...(access)>
-[[nodiscard]] consteval Index index_access_operator_count() noexcept {
+[[nodiscard]] constexpr Index index_access_operator_count() noexcept {
   constexpr std::array<bool, N> indices{integral<access>...};
   return std::reduce(indices.begin(), indices.end(), Index{0});
 }
@@ -105,7 +105,7 @@ template <access_operator... access>
 inline constexpr Index num_index = index_access_operator_count<access...>();
 
 template <access_operator... access, Index N=sizeof...(access)>
-consteval bool any_range() {
+constexpr bool any_range() {
   constexpr std::array<bool, N> ranges{is_matpack_strided_access<access>...};
   return std::any_of(ranges.begin(), ranges.end(), [](auto b){return b;});
 };
@@ -114,7 +114,7 @@ template <access_operator... access>
 inline constexpr bool has_any_range = any_range<access...>();
 
 template <access_operator... access, Index N=sizeof...(access)>
-consteval bool all_index_left() {
+constexpr bool all_index_left() {
   constexpr std::array<bool, N> integrals{not integral<access>...};
   return std::is_sorted(integrals.begin(), integrals.end());
 }
