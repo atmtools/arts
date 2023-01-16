@@ -12,9 +12,6 @@ add_library(predef STATIC
     standard.cc
 )
 
-if (ENABLE_PCH)
-    target_precompile_headers(predef PRIVATE <pch_matpack.h>)
-endif()
 target_link_libraries(predef PUBLIC matpack)
 target_include_directories(predef PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)
 target_include_directories(predef PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
