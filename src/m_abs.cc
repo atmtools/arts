@@ -1218,7 +1218,7 @@ void WriteMolTau(  //WS Input
                   (z_field(z_field.npages() - 1 - iz, 0, 0) -
                    z_field(z_field.npages() - 2 - iz, 0, 0));
 
-    if ((retval = nc_put_var_double(ncid, tau_varid, tau.get_c_array())))
+    if ((retval = nc_put_var_double(ncid, tau_varid, tau.unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
 
     // Close the file

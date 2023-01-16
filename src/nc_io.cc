@@ -481,7 +481,7 @@ void nca_get_data(const int ncid, const String &name, Vector &v,
   Index nelem = nca_get_dim(ncid, name + "_nelem", noerror);
   v.resize(nelem);
   if (nelem)
-    nca_get_data(ncid, name, v.get_c_array());
+    nca_get_data(ncid, name, v.unsafe_data_handle());
 }
 
 //! Read variable of type Matrix from NetCDF file.
@@ -500,7 +500,7 @@ void nca_get_data(const int ncid, const String &name, Matrix &m,
   Index ncols = nca_get_dim(ncid, name + "_ncols", noerror);
   m.resize(nrows, ncols);
   if (nrows && ncols)
-    nca_get_data(ncid, name, m.get_c_array());
+    nca_get_data(ncid, name, m.unsafe_data_handle());
 }
 
 //! Read variable of type Tensor4 from NetCDF file.
@@ -521,7 +521,7 @@ void nca_get_data(const int ncid, const String &name, Tensor4 &t,
   Index ncols = nca_get_dim(ncid, name + "_ncols", noerror);
   t.resize(nbooks, npages, nrows, ncols);
   if (nbooks && npages && nrows && ncols)
-    nca_get_data(ncid, name, t.get_c_array());
+    nca_get_data(ncid, name, t.unsafe_data_handle());
 }
 
 //! Write variable of type long* to NetCDF file.
@@ -585,7 +585,7 @@ bool nca_put_var(const int ncid, const int varid, const Vector &v) {
   bool fail = true;
   if (v.nelem()) {
     int retval;
-    if ((retval = nc_put_var_double(ncid, varid, v.get_c_array())))
+    if ((retval = nc_put_var_double(ncid, varid, v.unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
     fail = false;
   }
@@ -605,7 +605,7 @@ bool nca_put_var(const int ncid, const int varid, const Matrix &m) {
   bool fail = true;
   if (m.nrows() && m.ncols()) {
     int retval;
-    if ((retval = nc_put_var_double(ncid, varid, m.get_c_array())))
+    if ((retval = nc_put_var_double(ncid, varid, m.unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
     fail = false;
   }
@@ -625,7 +625,7 @@ bool nca_put_var(const int ncid, const int varid, const Tensor4 &t) {
   bool fail = true;
   if (t.nbooks() && t.npages() && t.nrows() && t.ncols()) {
     int retval;
-    if ((retval = nc_put_var_double(ncid, varid, t.get_c_array())))
+    if ((retval = nc_put_var_double(ncid, varid, t.unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
     fail = false;
   }
