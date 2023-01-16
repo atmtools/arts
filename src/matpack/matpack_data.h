@@ -4,6 +4,9 @@
 #include "matpack_concepts.h"
 #include "matpack_view.h"
 
+#include <exception>
+#include <tuple>
+
 namespace matpack {
 namespace detail {
 template <Index I, typename T, Index N, typename value, typename... rest>
@@ -26,10 +29,9 @@ constexpr std::array<T, N> front_array(input... in)
   return out;
 }
 
-template<typename first, typename... rest, Index N=sizeof...(rest)>
-auto get_last(first&& f [[maybe_unused]], rest&&... r [[maybe_unused]]) {
-  if constexpr (N == 0) return std::forward<first>(f);
-  else return get_last(std::forward<rest>(r)...);
+template<typename... rest, Index N=sizeof...(rest)>
+auto get_last(rest&&... r) requires(N>0) {
+  return std::get<N-1>(std::tuple{std::forward<rest>(r)...});
 }
 
 template <typename T, Index N>
@@ -53,7 +55,7 @@ public:
         view(data.data(), sz) {}
 
   template<integral... inds, Index M = sizeof...(inds)>
-  constexpr matpack_data(inds... sz) requires(M == N) : matpack_data(std::array<Index, N>{std::forward<inds>(sz)...}) {}
+  constexpr matpack_data(inds... sz) requires(M == N) : matpack_data(std::array<Index, N>{static_cast<Index>(std::forward<inds>(sz))...}) {}
 
   template <typename... arguments>
   constexpr matpack_data(integral auto dim0, arguments ... args)
@@ -63,10 +65,10 @@ public:
 
   matpack_data(const matpack_data& x) : data(x.data), view(data.data(), x.shape()) {}
 
-  explicit constexpr matpack_data(const me_view& x) : matpack_data(x.shape()) {view = x;}
-  explicit constexpr matpack_data(const ce_view& x) : matpack_data(x.shape()) {view = x;}
-  explicit constexpr matpack_data(const ms_view& x) : matpack_data(x.shape()) {view = x;}
-  explicit constexpr matpack_data(const cs_view& x) : matpack_data(x.shape()) {view = x;}
+  constexpr matpack_data(const me_view& x) : matpack_data(x.shape()) {view = x;}
+  constexpr matpack_data(const ce_view& x) : matpack_data(x.shape()) {view = x;}
+  constexpr matpack_data(const ms_view& x) : matpack_data(x.shape()) {view = x;}
+  constexpr matpack_data(const cs_view& x) : matpack_data(x.shape()) {view = x;}
 
   template<Index M> explicit constexpr matpack_data(const matpack::matpack_data<T, M>& x) requires(M < N) : matpack_data(upview<N, M>(x.shape())) { view = view_type{x}; }
 
@@ -79,7 +81,7 @@ public:
   [[nodiscard]] constexpr auto inner_strides() const { return view.inner_strides(); }
   [[nodiscard]] constexpr auto inner_map() const { return view.inner_map(); }
   [[nodiscard]] constexpr auto nelem() const requires(N == 1) { return view.nelem(); }
-  [[nodiscard]] constexpr auto ncols() const requires(N >= 1) { return view.ncols(); }
+  [[nodiscard]] constexpr auto ncols() const requires(N >= 2) { return view.ncols(); }
   [[nodiscard]] constexpr auto nrows() const requires(N >= 2) { return view.nrows(); }
   [[nodiscard]] constexpr auto npages() const requires(N >= 3) { return view.npages(); }
   [[nodiscard]] constexpr auto nbooks() const requires(N >= 4) { return view.nbooks(); }
@@ -95,6 +97,7 @@ public:
   template<Index M> constexpr matpack_data<T, M> reshape(const std::array<Index, M>& sz) && {
     using other_view_type = typename matpack_data<T, M>::view_type;
 
+    if (size() != mdsize<M>(sz)) std::terminate();
     ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
     
     matpack_data<T, M> out;
@@ -107,31 +110,15 @@ public:
 
   template<integral... inds, Index M = sizeof...(inds)> constexpr auto reshape(inds&&... sz) && { return std::move(*this).template reshape<M>(std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...}); }
 
+  template<Index... inds> constexpr auto reduce_rank() && requires(sizeof...(inds) < N ) { return std::move(*this).reshape(extent(inds)...); }
+
   constexpr matpack_data<T, 1> flatten() && { return std::move(*this).reshape(size()); }
 
   constexpr matpack_data& operator=(const matpack_data& x) {
-    resize(x.shape());
-    view = x.view;
-    return *this;
-  }
-  constexpr matpack_data& operator=(const me_view& x) {
-    resize(x.shape());
-    view = x;
-    return *this;
-  }
-  constexpr matpack_data& operator=(const ce_view& x) {
-    resize(x.shape());
-    view = x;
-    return *this;
-  }
-  constexpr matpack_data& operator=(const ms_view& x) {
-    resize(x.shape());
-    view = x;
-    return *this;
-  }
-  constexpr matpack_data& operator=(const cs_view& x) {
-    resize(x.shape());
-    view = x;
+    if (this not_eq &x) {
+      resize(x.shape());
+      view = x.view;
+    }
     return *this;
   }
 
@@ -153,6 +140,7 @@ public:
   [[nodiscard]] static constexpr auto rank() { return N; }
   [[nodiscard]] static constexpr auto is_const() { return false; }
   [[nodiscard]] constexpr auto data_handle() const { return view.data_handle(); }
+  [[nodiscard]] constexpr auto unsafe_data_handle() const { return view.unsafe_data_handle(); }
 
   [[nodiscard]] constexpr auto begin() {if constexpr (N == 1) return data.begin(); else return view.begin();}
   [[nodiscard]] constexpr auto end() {if constexpr (N == 1) return data.end(); else return view.end();}
@@ -162,9 +150,9 @@ public:
   [[nodiscard]] constexpr auto cend() const {return end();}
 
   [[nodiscard]] constexpr T& elem_at(Index ind) { return data[ind]; }
-  [[nodiscard]] constexpr T elem_at(Index ind) const { return data[ind]; }
+  [[nodiscard]] constexpr const T& elem_at(Index ind) const { return data[ind]; }
   [[nodiscard]] constexpr T& elem_at(const std::array<Index, N>& pos) { return view.elem_at(pos); }
-  [[nodiscard]] constexpr T elem_at(const std::array<Index, N>& pos) const { return view.elem_at(pos); }
+  [[nodiscard]] constexpr const T& elem_at(const std::array<Index, N>& pos) const { return view.elem_at(pos); }
    
   [[nodiscard]] constexpr auto elem_begin() { return data.begin(); }
   [[nodiscard]] constexpr auto elem_end() { return data.end(); }
@@ -181,12 +169,14 @@ public:
   [[nodiscard]] constexpr auto imag() requires(complex_type<T>) { return view.imag(); }
   [[nodiscard]] constexpr auto real() const requires(complex_type<T>) { return view.real(); }
   [[nodiscard]] constexpr auto imag() const requires(complex_type<T>) { return view.imag(); }
+  [[nodiscard]] constexpr auto diagonal() requires(N == 2) { return view.diagonal(); }
+  [[nodiscard]] constexpr auto diagonal() const requires(N == 2) { return matpack_view<T, 1, true, false>{view}.diagonal(); }
 
-  constexpr matpack_data& operator=(T x) {view = x; return *this;}
-  constexpr matpack_data& operator+=(T x) {view += x; return *this;}
-  constexpr matpack_data& operator-=(T x) {view -= x; return *this;}
-  constexpr matpack_data& operator*=(T x) {view *= x; return *this;}
-  constexpr matpack_data& operator/=(T x) {view /= x; return *this;}
+  constexpr matpack_data& operator=(std::convertible_to<T> auto x) {view = x; return *this;}
+  constexpr matpack_data& operator+=(std::convertible_to<T> auto x) {view += x; return *this;}
+  constexpr matpack_data& operator-=(std::convertible_to<T> auto x) {view -= x; return *this;}
+  constexpr matpack_data& operator*=(std::convertible_to<T> auto x) {view *= x; return *this;}
+  constexpr matpack_data& operator/=(std::convertible_to<T> auto x) {view /= x; return *this;}
   
   template <bool c, bool s> constexpr matpack_data& operator+=(const matpack_view<T, N, c, s>& x) {view += x; return *this;}
   template <bool c, bool s> constexpr matpack_data& operator-=(const matpack_view<T, N, c, s>& x) {view -= x; return *this;}
@@ -208,12 +198,11 @@ public:
   }
 
   template <matpack_convertible<T, N> U>
-  constexpr matpack_data(const U& x) : data(), view() { *this = x; }
+  constexpr matpack_data(const U& x) : matpack_data(mdshape(x)) { view = x; }
 
   template <matpack_convertible<T, N> U>
   constexpr matpack_data& operator=(const U& x) {
-    resize(mdshape(x));
-    view = x;
+    *this = matpack_data(x);
     return *this;
   }
 

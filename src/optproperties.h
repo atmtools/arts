@@ -34,7 +34,7 @@
 #define optproperties_h
 
 #include "gridded_fields.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "mystring.h"
 #include "propagationmatrix.h"
@@ -221,19 +221,6 @@ void pha_mat_1ScatElem(  //Output
     const Matrix& idir_array,
     const Index& f_start,
     const Index& t_interp_order = 1);
-
-void FouComp_1ScatElem(  //Output
-    Tensor7View pha_mat_fou,
-    Index& ptype,
-    VectorView t_ok,
-    //Input
-    const SingleScatteringData& ssd,
-    const Vector& T_array,
-    const Vector& pdir_array,
-    const Vector& idir_array,
-    const Index& f_start,
-    const Index& t_interp_order,
-    const Index& naa_totran);
 
 void abs_vecTransform(  //Output and Input
     StokesVector& abs_vec_lab,

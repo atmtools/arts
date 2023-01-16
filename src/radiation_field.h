@@ -27,7 +27,7 @@
 #ifndef radiation_field_h
 #define radiation_field_h
 
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "rte.h"
 

@@ -121,7 +121,7 @@ void xml_read_from_stream(istream& is_xml,
   matrix.resize(nrows, ncols);
 
   if (pbifs) {
-    pbifs->readDoubleArray(matrix.get_c_array(), nrows * ncols);
+    pbifs->readDoubleArray(matrix.data_handle(), nrows * ncols);
   } else {
     for (Index r = 0; r < nrows; r++) {
       for (Index c = 0; c < ncols; c++) {
@@ -333,7 +333,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("SparseData");
 
   if (pbifs) {
-    pbifs->readDoubleArray(data.get_c_array(), nnz);
+    pbifs->readDoubleArray(data.data_handle(), nnz);
   } else {
     for (Index i = 0; i < nnz; i++) {
       is_xml >> double_imanip() >> data[i];
@@ -561,7 +561,7 @@ void xml_read_from_stream(istream& is_xml,
   tensor.resize(npages, nrows, ncols);
 
   if (pbifs) {
-    pbifs->readDoubleArray(tensor.get_c_array(), npages * nrows * ncols);
+    pbifs->readDoubleArray(tensor.data_handle(), npages * nrows * ncols);
   } else {
     for (Index p = 0; p < npages; p++) {
       for (Index r = 0; r < nrows; r++) {
@@ -657,7 +657,7 @@ void xml_read_from_stream(istream& is_xml,
   tensor = Tensor4(nbooks, npages, nrows, ncols);
 
   if (pbifs) {
-    pbifs->readDoubleArray(tensor.get_c_array(),
+    pbifs->readDoubleArray(tensor.data_handle(),
                            nbooks * npages * nrows * ncols);
   } else {
     for (Index b = 0; b < nbooks; b++) {
@@ -760,7 +760,7 @@ void xml_read_from_stream(istream& is_xml,
   tensor.resize(nshelves, nbooks, npages, nrows, ncols);
 
   if (pbifs) {
-    pbifs->readDoubleArray(tensor.get_c_array(),
+    pbifs->readDoubleArray(tensor.data_handle(),
                            nshelves * nbooks * npages * nrows * ncols);
   } else {
     for (Index s = 0; s < nshelves; s++) {
@@ -871,7 +871,7 @@ void xml_read_from_stream(istream& is_xml,
 
   if (pbifs) {
     pbifs->readDoubleArray(
-        tensor.get_c_array(),
+        tensor.data_handle(),
         nvitrines * nshelves * nbooks * npages * nrows * ncols);
   } else {
     for (Index v = 0; v < nvitrines; v++) {
@@ -988,7 +988,7 @@ void xml_read_from_stream(istream& is_xml,
 
   if (pbifs) {
     pbifs->readDoubleArray(
-        tensor.get_c_array(),
+        tensor.data_handle(),
         nlibraries * nvitrines * nshelves * nbooks * npages * nrows * ncols);
   } else {
     for (Index l = 0; l < nlibraries; l++) {
@@ -1102,7 +1102,7 @@ void xml_parse_from_stream(istream& is_xml,
   vector.resize(nelem);
 
   if (pbifs) {
-    pbifs->readDoubleArray(vector.get_c_array(), vector.nelem());
+    pbifs->readDoubleArray(vector.data_handle(), vector.nelem());
   } else {
     for (Index n = 0; n < nelem; n++) {
       is_xml >> double_imanip() >> vector[n];

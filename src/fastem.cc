@@ -37,7 +37,7 @@
 #include "arts_conversions.h"
 #include "matpack_complex.h"
 #include "exceptions.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 using std::ostringstream;
 using std::runtime_error;
@@ -127,8 +127,8 @@ void fastem(  // Output:
                  temperature,
                  salinity * 1e3,
                  wind_speed,
-                 emissivity.get_c_array(),
-                 reflectivity.get_c_array(),
+                 emissivity.data_handle(),
+                 reflectivity.data_handle(),
                  transmittance,
                  rel_azimuth);
 }

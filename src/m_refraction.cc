@@ -41,7 +41,7 @@
 #include "arts.h"
 #include "check_input.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "refraction.h"

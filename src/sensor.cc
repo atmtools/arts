@@ -40,8 +40,7 @@
 #include "auto_md.h"
 #include "gridded_fields.h"
 #include "logic.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "rte.h"
 #include "sensor.h"
@@ -182,7 +181,7 @@ void antenna1d_matrix(Sparse& H,
 
           // Normalisation?
           if (do_norm) {
-            hza /= hza.sum();
+            hza /= sum(hza);
           }
         }
 
@@ -425,7 +424,7 @@ void antenna2d_gridded_dlos(Sparse& H,
           }
 
           // For 2D antennas we always normalise
-          hza /= hza.sum();
+          hza /= sum(hza);
         }
 
         // Put weights into H
@@ -608,7 +607,7 @@ void antenna2d_interp_response(Sparse& H,
           }
 
           // For 2D antennas we always normalise
-          hdlos /= hdlos.sum();
+          hdlos /= sum(hdlos);
         }
 
         // Put weights into H
@@ -710,7 +709,7 @@ void mixer_matrix(Sparse& H,
         row_temp, filter.data, filter_grid, if_grid, f_mixer[i], -f_mixer[i]);
 
     // Normalise if flag is set
-    if (do_norm) row_temp /= row_temp.sum();
+    if (do_norm) row_temp /= sum(row_temp);
 
     // Loop over number of polarisations
     for (Index p = 0; p < n_pol; p++) {
@@ -971,7 +970,7 @@ void spectrometer_matrix(Sparse& H,
         weights, ch_response[irp].data, ch_response_f, sensor_f);
 
     // Normalise if flag is set
-    if (do_norm) weights /= weights.sum();
+    if (do_norm) weights /= sum(weights);
 
     // Loop over polarisation and spectra (viewing directions)
     // Weights change only with frequency
@@ -1003,7 +1002,7 @@ void stokes2pol(VectorView w,
 
   ArrayOfVector s2p(10);
   //
-  s2p[0] = {1};              // I
+  s2p[0] = Vector{1};              // I
   s2p[1] = {0, 1};           // Q
   s2p[2] = {0, 0, 1};        // U
   s2p[3] = {0, 0, 0, 1};     // V
@@ -1562,21 +1561,21 @@ void summation_by_vecmult(VectorView h,
   // Determine grid positions for point 1 (both with respect to f and g grids)
   // and interpolate response function.
   ArrayOfGridPos gp1g(1), gp1f(1);
-  gridpos(gp1g, x_g, x1);
-  gridpos(gp1f, x_f, x1);
+  gridpos(gp1g, x_g, ExhaustiveConstVectorView{x1});
+  gridpos(gp1f, x_f, ExhaustiveConstVectorView{x1});
   Matrix itw1(1, 2);
   interpweights(itw1, gp1f);
   Numeric f1;
-  interp(f1, itw1, f, gp1f);
+  interp(ExhaustiveVectorView{f1}, itw1, f, gp1f);
 
   // Same for point 2
   ArrayOfGridPos gp2g(1), gp2f(1);
-  gridpos(gp2g, x_g, x2);
-  gridpos(gp2f, x_f, x2);
+  gridpos(gp2g, x_g, ExhaustiveConstVectorView{x2});
+  gridpos(gp2f, x_f, ExhaustiveConstVectorView{x2});
   Matrix itw2(1, 2);
   interpweights(itw2, gp2f);
   Numeric f2;
-  interp(f2, itw2, f, gp2f);
+  interp(ExhaustiveVectorView{f2}, itw2, f, gp2f);
 
   //Initialise h at zero and store calculated weighting components
   h = 0.0;

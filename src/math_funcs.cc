@@ -41,6 +41,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "logic.h"
+#include "matpack_eigen.h"
 #include "mystring.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

@@ -17,7 +17,7 @@
 #include "debug.h"
 #include "enums.h"
 #include "isotopologues.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "nonstd.h"
 #include "rational.h"
 

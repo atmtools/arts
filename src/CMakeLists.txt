@@ -1,9 +1,11 @@
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/matpack
                       ${ZLIB_INCLUDE_DIR}
                       ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
                       ${ARTS_SOURCE_DIR}/3rdparty/cdisort
                       ${ARTS_SOURCE_DIR}/3rdparty/Eigen
+                      ${ARTS_SOURCE_DIR}/3rdparty/mdspan/include()
                     )
 
 if (NETCDF_FOUND)
@@ -25,6 +27,7 @@ set (ALL_ARTS_LIBRARIES
   artscore
   methods
   matpack
+  matpack_reimpl
   cdisort
   species
   )

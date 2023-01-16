@@ -14,6 +14,7 @@
 #include "debug.h"
 #include "energylevelmap.h"
 #include "jacobian.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "propagationmatrix.h"
 #include "species_tags.h"
@@ -135,7 +136,7 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
   // Initialize values to something
   ArrayOfRetrievalQuantity jacobian_quantities{};
   ArrayOfSpeciesTag select_abs_species{};
-  Vector f_grid(1e9, 1000, 1e9);
+  Vector f_grid=uniform_grid(1e9, 1000, 1e9);
   Vector rtp_mag(3, 0);
   Vector rtp_los(2, 0);
   Numeric rtp_pressure{1000};

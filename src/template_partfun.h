@@ -6,8 +6,7 @@
 #include <cmath>
 
 #include "enums.h"
-#include "matpack.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 namespace PartitionFunctions {
 ENUMCLASS(Type, Index, Interp, Coeff, StaticInterp)

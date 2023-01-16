@@ -54,7 +54,7 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
  \param[in] verbosity   Standard verbosity object.
  */
 void cia_interpolation(VectorView result,
-                       ConstVectorView f_grid,
+                       const ConstVectorView& f_grid,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
@@ -182,7 +182,7 @@ void cia_interpolation(VectorView result,
       }
     }
   }
-  
+
   // Find frequency grid positions:
   const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid);
   
@@ -237,7 +237,7 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 }
 
 // Documentation in header file.
-void CIARecord::Extract(VectorView res, ConstVectorView f_grid,
+void CIARecord::Extract(VectorView res, const ConstVectorView& f_grid,
                         const Numeric &temperature,
                         const Numeric &T_extrapolfac, const Index &robust,
                         const Verbosity &verbosity) const {
@@ -322,7 +322,7 @@ void CIARecord::ReadFromCIA(const String& filename,
 
   // Frequency, temp and cia values for current dataset
   Vector freq;
-  ArrayOfNumeric temp;
+  std::vector<Numeric> temp;
   ArrayOfVector cia;
 
   // Keep track of current line in file
@@ -462,7 +462,7 @@ void CIARecord::ReadFromCIA(const String& filename,
 
 /** Append data dataset to mdata. */
 void CIARecord::AppendDataset(const Vector& freq,
-                              const ArrayOfNumeric& temp,
+                              const Vector& temp,
                               const ArrayOfVector& cia) {
   GriddedField2 dataset;
   dataset.resize(freq.nelem(), temp.nelem());

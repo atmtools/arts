@@ -1023,7 +1023,7 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                                atmosphere_dim,
                                cloudbox_limits);
       for (Index i = 0; i < pnd_field.nbooks(); i++) {
-        interp_atmfield_by_itw(ppath_pnd(i, ip),
+        interp_atmfield_by_itw(ExhaustiveVectorView{ppath_pnd(i, ip)},
                                atmosphere_dim,
                                pnd_field(i, joker, joker, joker),
                                gpc_p,
@@ -1040,7 +1040,7 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
             for (Index i = 0; i < pnd_field.nbooks();
                  i++)  // Scattering element
             {
-              interp_atmfield_by_itw(ppath_dpnd_dx[iq](i, ip),
+              interp_atmfield_by_itw(ExhaustiveVectorView{ppath_dpnd_dx[iq](i, ip)},
                                      atmosphere_dim,
                                      dpnd_field_dx[iq](i, joker, joker, joker),
                                      gpc_p,
@@ -2212,7 +2212,7 @@ void yCalc_mblock_loop_body(bool& failed,
     // Apply sensor response matrix on iyb, and put into y
     //
     const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-    const Index row0 = rowind.get_start();
+    const Index row0 = rowind.offset;
     //
     mult(yb, sensor_response, iyb);
     //

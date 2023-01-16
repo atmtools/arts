@@ -1,9 +1,11 @@
 #pragma once
 
+#include "matpack_concepts.h"
 #include "matpack_iter.h"
 
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <debug.h>
 #include <functional>
 #include <numeric>
@@ -87,34 +89,35 @@ struct matpack_strided_access {
   constexpr operator Joker() noexcept {return joker;}
 };
 
-template <access_operator Access, typename... arguments>
-[[nodiscard]] consteval Index ranged_access_operator_count() noexcept {
-  constexpr bool index = integral<Access>;
-  if constexpr (sizeof...(arguments)) {
-    return index + ranged_access_operator_count<arguments...>();
-  } else {
-    return index;
-  }
+template <access_operator... access, Index N=sizeof...(access)>
+[[nodiscard]] consteval Index index_access_operator_count() noexcept {
+  constexpr std::array<bool, N> indices{integral<access>...};
+  return std::reduce(indices.begin(), indices.end(), Index{0});
 }
 
 template <access_operator... access>
-inline constexpr Index num_access_operators = ranged_access_operator_count<access...>();
+inline constexpr Index num_index = index_access_operator_count<access...>();
 
-template <access_operator first, access_operator... access, Index N=sizeof...(access)>
+template <access_operator... access, Index N=sizeof...(access)>
 consteval bool any_range() {
-  if constexpr (is_matpack_strided_access<first>) return true;
-  else if constexpr (N not_eq 0) return any_range<access...>();
-  else return false;
+  constexpr std::array<bool, N> ranges{is_matpack_strided_access<access>...};
+  return std::any_of(ranges.begin(), ranges.end(), [](auto b){return b;});
 };
 
 template <access_operator... access>
 inline constexpr bool has_any_range = any_range<access...>();
 
+template <access_operator... access, Index N=sizeof...(access)>
+consteval bool all_index_left() {
+  constexpr std::array<bool, N> integrals{not integral<access>...};
+  return std::is_sorted(integrals.begin(), integrals.end());
+}
+
 template <access_operator T, access_operator ... Ts>
-[[nodiscard]] constexpr bool check_index_sizes(auto&& arr, Index r, T first, Ts... rest) {
+[[nodiscard]] constexpr bool check_index_sizes(const auto& arr, Index r, T first, Ts... rest) {
   constexpr bool test = integral<T>;
   if constexpr (test) {
-    if (first >= arr.extent(r)) return false;
+    if (static_cast<Index>(first) >= static_cast<Index>(arr.extent(r))) return false;
   }
 
   if constexpr (sizeof...(Ts) == 0) {
@@ -128,16 +131,17 @@ namespace access_retval {
 template <typename T, Index N, bool constant, bool strided,
           access_operator... access>
 struct helper {
-  static constexpr Index M = num_access_operators<access...>;
+  static constexpr Index M = num_index<access...>;
   static constexpr bool ranged = has_any_range<access...>;
+  static constexpr bool left_access = all_index_left<access...>();
 
   using mutable_type =
       std::conditional_t<M == N, T &,
-                         matpack_view<T, N - M, constant, ranged or strided>>;
+                         matpack_view<T, N - M, constant, ranged or strided or not left_access>>;
 
   using constant_type =
-      std::conditional_t<M == N, T,
-                         matpack_view<T, N - M, true, ranged or strided>>;
+      std::conditional_t<M == N, const T &,
+                         matpack_view<T, N - M, true, ranged or strided or not left_access>>;
 };
 
 template <typename T, Index N, bool constant, bool strided, access_operator access>
@@ -302,7 +306,7 @@ public:
   constexpr matpack_view& operator=(const ms_view& x) requires (constant) = delete;
   constexpr matpack_view& operator=(const cs_view& x) requires (constant) = delete;
 
-  constexpr matpack_view& operator=(const matpack_data<T, N>& x) {
+  constexpr matpack_view& operator=(const matpack_data<T, N>& x) requires(not constant) {
     *this = x.view;
     return *this;
   }
@@ -333,12 +337,13 @@ public:
   constexpr matpack_view& operator=(ce_view&& x) requires (constant) = delete;
   constexpr matpack_view& operator=(ms_view&& x) requires (constant) = delete;
   constexpr matpack_view& operator=(cs_view&& x) requires (constant) = delete;
+  constexpr matpack_view& operator=(matpack_data<T, N>&& x) requires (constant) = delete;
 
   constexpr matpack_view& operator=(me_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(ce_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(ms_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(cs_view&& x) requires (not constant) {*this = x; return *this;};
-  constexpr matpack_view& operator=(matpack_data<T, N>&& x) = delete;
+  constexpr matpack_view& operator=(matpack_data<T, N>&& x) requires (not constant) { *this = std::move(x.view); return *this; };
 
   [[nodiscard]] constexpr auto size() const { return static_cast<Index>(view.size()); }
   [[nodiscard]] constexpr auto extent(Index i) const { return view.extent(i); }
@@ -378,7 +383,7 @@ public:
     }
   }
   [[nodiscard]] constexpr Index nelem() const requires(N == 1) { return view.extent(N - 1); }
-  [[nodiscard]] constexpr Index ncols() const requires(N >= 1) { return view.extent(N - 1); }
+  [[nodiscard]] constexpr Index ncols() const requires(N >= 2) { return view.extent(N - 1); }
   [[nodiscard]] constexpr Index nrows() const requires(N >= 2) { return view.extent(N - 2); }
   [[nodiscard]] constexpr Index npages() const requires(N >= 3) { return view.extent(N - 3); }
   [[nodiscard]] constexpr Index nbooks() const requires(N >= 4) { return view.extent(N - 4); }
@@ -388,7 +393,7 @@ public:
   [[nodiscard]] constexpr bool empty() const { return view.empty(); }
 
   template <access_operator... access,
-            Index M = num_access_operators<access...>,
+            Index M = num_index<access...>,
             class ret_t = mutable_access<access...>>
   [[nodiscard]] constexpr auto operator()(access... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
@@ -405,7 +410,7 @@ public:
   }
 
   template <access_operator... access,
-            Index M = num_access_operators<access...>,
+            Index M = num_index<access...>,
             class ret_t = constant_access<access...>>
   [[nodiscard]] constexpr auto operator()(access... ind) const -> ret_t
     requires(sizeof...(access) == N)
@@ -421,7 +426,7 @@ public:
       return stdx::submdspan(view, ind...);
   }
 
-  template <access_operator access, Index M = num_access_operators<access>,
+  template <access_operator access, Index M = num_index<access>,
             class ret_t = mutable_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access ind) -> ret_t
     requires(not constant)
@@ -438,7 +443,7 @@ public:
       return sub<0, N>(view, ind);
   }
 
-  template <access_operator access, Index M = num_access_operators<access>,
+  template <access_operator access, Index M = num_index<access>,
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access ind) const -> ret_t {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
@@ -502,7 +507,7 @@ public:
     }
   }
 
-  [[nodiscard]] constexpr T elem_at(Index ind) const {
+  [[nodiscard]] constexpr const T& elem_at(Index ind) const {
     ARTS_ASSERT(ind < size(), ind, " vs ", size())
     if constexpr (is_always_exhaustive_v<view_type>) {
       return view.accessor().access(view.data_handle(), ind);
@@ -513,12 +518,12 @@ public:
 
   [[nodiscard]] constexpr T& elem_at(const std::array<Index, N>& pos) requires(not constant) {
     ARTS_ASSERT(pos < shape(), shape_help<N>{pos}, " vs ", shape_help<N>{shape()})
-    return elem_at(mdind(pos), strides());
+    return elem_at(mdind(pos, strides()));
   }
 
-  [[nodiscard]] constexpr T elem_at(const std::array<Index, N>& pos) const {
+  [[nodiscard]] constexpr const T& elem_at(const std::array<Index, N>& pos) const {
     ARTS_ASSERT(pos < shape(), shape_help<N>{pos}, " vs ", shape_help<N>{shape()})
-    return elem_at(mdind(pos), strides());
+    return elem_at(mdind(pos, strides()));
   }
 
   using elem_iterator = matpack_elemwise_mditer<T, false, matpack_view>;
@@ -585,11 +590,16 @@ public:
     return imag_impl<true>();
   }
 
-  constexpr matpack_view& operator=(T x) requires(not constant) {std::fill(elem_begin(), elem_end(), x); return *this;}
-  constexpr matpack_view& operator+=(T x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [x](auto v){return v + x;}); return *this;}
-  constexpr matpack_view& operator-=(T x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [x](auto v){return v - x;}); return *this;}
-  constexpr matpack_view& operator*=(T x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [x](auto v){return v * x;}); return *this;}
-  constexpr matpack_view& operator/=(T x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [x](auto v){return v / x;}); return *this;}
+  [[nodiscard]] matpack_view<T, 1, constant, true> diagonal() const requires(N == 2) {
+    ARTS_ASSERT(ncols() == nrows(), ncols(), " vs ", nrows())
+    return strided_mdspan<T, 1>{unsafe_data_handle(), {std::array<Index, 1>{nrows()}, std::array<Index, 1>{nrows()+1}}};
+  }
+
+  constexpr matpack_view& operator=(std::convertible_to<T> auto x) requires(not constant) {std::fill(elem_begin(), elem_end(), static_cast<T>(x)); return *this;}
+  constexpr matpack_view& operator+=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v + y;}); return *this;}
+  constexpr matpack_view& operator-=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v - y;}); return *this;}
+  constexpr matpack_view& operator*=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v * y;}); return *this;}
+  constexpr matpack_view& operator/=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v / y;}); return *this;}
 
   template <bool c, bool s> constexpr
   matpack_view& operator+=(const matpack_view<T, N, c, s>& x) requires(not constant) {
@@ -629,6 +639,12 @@ public:
   constexpr bool operator==(const matpack_data<T, N>& x) const {return *this == x.view; }
   constexpr bool operator!=(const matpack_data<T, N>& x) const {return *this != x.view; }
 
+  template <std::size_t M>
+  constexpr matpack_view(const std::array<T, M>& x) requires(constant and N == 1) {
+    // The cast here should be OK since you are not able to change any values later on as the type is constant
+    view = exhaustive_view(const_cast<T*>(x.data()), std::array<Index, 1>{static_cast<Index>(M)});
+  }
+
   template <matpack_convertible<T, N> U>
   constexpr matpack_view& operator=(const U& x) requires(not constant) {
     const auto ext_sh = mdshape(x);
@@ -638,6 +654,7 @@ public:
   }
 
   constexpr void swap(matpack_view& other) noexcept requires(not constant) { std::swap(view, other.view); }
+  constexpr void set(const matpack_view& other) { view = other.view; }
 };
 }  // namespace matpack
 

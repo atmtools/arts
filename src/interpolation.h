@@ -27,7 +27,7 @@
 #define interpolation_h
 
 #include "arts.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "mystring.h"
 
 //! Structure to store a grid position.

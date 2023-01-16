@@ -42,7 +42,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

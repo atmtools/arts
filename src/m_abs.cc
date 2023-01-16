@@ -56,7 +56,7 @@
 #include "lineshape.h"
 #include "m_xml.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "methods.h"
 #include "montecarlo.h"
@@ -99,7 +99,7 @@ void AbsInputFromRteScalars(  // WS Output:
 
   // Prepare abs_vmrs:
   abs_vmrs.resize(rtp_vmr.nelem(), 1);
-  abs_vmrs = rtp_vmr;
+  abs_vmrs = ExhaustiveMatrixView{rtp_vmr};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

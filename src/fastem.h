@@ -30,7 +30,7 @@
 #ifndef fastem_h
 #define fastem_h
 
-#include "matpackI.h"
+#include "matpack_data.h"
 
 void fastem(  // Output:
     Vector &emissivity,

@@ -600,8 +600,8 @@ int main() {
     ofs << "#ifndef auto_md_h\n";
     ofs << "#define auto_md_h\n\n";
 
-    ofs << "#include \"matpackI.h\"\n"
-        << "#include \"matpackII.h\"\n"
+    ofs << "#include \"matpack_data.h\"\n"
+        << "#include \"matpack_sparse.h\"\n"
         << "#include \"species_tags.h\"\n"
         << "#include \"artstime.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"

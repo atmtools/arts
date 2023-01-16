@@ -461,7 +461,7 @@ void pndFromPsd(Matrix& pnd_data,
       ext_l0 = ext;
 
     for (Index ip = 0; ip < np; ip++)  //loop over pressure levels
-      if (abs(pnd_data(ip, joker).sum()) > 0.)
+      if (abs(sum(pnd_data(ip, joker))) > 0.)
         for (Index f = fstart; f < (fstart + nf); f++)
           bulkext(ip, f) += pnd_data(ip, intarr[ise]) * ext[f];
   }
@@ -476,7 +476,7 @@ void pndFromPsd(Matrix& pnd_data,
   Numeric contrib;
   for (Index ip = 0; ip < np; ip++)  //loop over pressure levels
   {
-    if (abs(pnd_data(ip, joker).sum()) > 0.) {
+    if (abs(sum(pnd_data(ip, joker))) > 0.) {
       for (Index f = fstart; f < (fstart + nf); f++) {
         /*        for( Index ise=0; ise<ng; ise++ )
         {

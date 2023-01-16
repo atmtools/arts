@@ -22,7 +22,7 @@
 #include "arts.h"
 #include "file.h"
 #include "global_data.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 int main() {
   try {
@@ -42,7 +42,7 @@ int main() {
 
     ofs << "#include \"workspace_memory_handler.h\"\n"
         << "#include <iostream>\n"
-        << "#include \"matpackII.h\"\n"
+        << "#include \"matpack_sparse.h\"\n"
         << "#include \"m_general.h\"\n"
         << "#include \"supergeneric.h\"\n"
         << "#include \"artstime.h\"\n"

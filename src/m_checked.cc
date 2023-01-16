@@ -37,7 +37,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "wigner_functions.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

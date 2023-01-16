@@ -33,7 +33,7 @@
 
 #include "arts.h"
 #include "gridded_fields.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "mystring.h"
 #include "species.h"
@@ -46,7 +46,7 @@ using ArrayOfCIARecord = Array<CIARecord>;
 
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
-                       ConstVectorView frequency,
+                       const ConstVectorView& frequency,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
@@ -163,7 +163,7 @@ class CIARecord {
      \param[in] verbosity   Standard verbosity object.
      */
   void Extract(VectorView result,
-               ConstVectorView f_grid,
+               const ConstVectorView& f_grid,
                const Numeric& temperature,
                const Numeric& T_extrapolfac,
                const Index& robust,
@@ -227,7 +227,7 @@ class CIARecord {
  private:
   /** Append dataset to mdata. */
   void AppendDataset(const Vector& freq,
-                     const ArrayOfNumeric& temp,
+                     const Vector& temp,
                      const ArrayOfVector& cia);
 
   /** The data itself, directly from the HITRAN file. 

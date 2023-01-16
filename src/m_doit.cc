@@ -52,7 +52,7 @@
 #include "logic.h"
 #include "m_general.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"

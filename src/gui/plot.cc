@@ -1,6 +1,7 @@
 #include <cinttypes>
 #include <mutex>
 
+#include "matpack_math.h"
 #include "plot.h"
 #include "menu.h"
 
@@ -66,7 +67,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
     if (valid) {
       if (ImPlot::BeginPlot(PlotConfig::Title.c_str(), x.c_str(), y.c_str(), {-1, -1})) {
         for (std::size_t i=0; i<lines.size(); i++) {
-          ImPlot::PlotLine(lines[i].c_str(), xdata[i].get_c_array(), ydata[i].get_c_array(), int(ydata[i].nelem()));
+          ImPlot::PlotLine(lines[i].c_str(), xdata[i].data_handle(), ydata[i].data_handle(), int(ydata[i].nelem()));
         }
         ImPlot::EndPlot();
       }
@@ -113,7 +114,7 @@ void plot(const Vector& xdata, const Vector& ydata) {
 }
 
 void plot(const Vector& ydata) {
-  const Vector xdata(0.0, ydata.size(), 1.0);
+  const Vector xdata=uniform_grid(0.0, ydata.size(), 1.0);
   plot(xdata, ydata);
 }
 } // namespace ARTSGUI

@@ -30,7 +30,7 @@
 #include "absorptionlines.h"
 #include "arts_conversions.h"
 #include "linescaling.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
 #include "matpack_complex.h"
 #include "mystring.h"
 

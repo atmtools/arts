@@ -46,6 +46,7 @@
 #include "jpl_species.h"
 #include "linescaling.h"
 #include "lineshapemodel.h"
+#include "matpack_math.h"
 #include "quantum_numbers.h"
 #include "rational.h"
 #include "wigner_functions.h"
@@ -2405,7 +2406,7 @@ Numeric Lines::F_mean(const ConstVectorView& wgts) const noexcept {
                          0.0,
                          std::plus<>(),
                          [](const auto& a, const auto& b) { return a.F0 * b; });
-  const Numeric div = wgts.sum();
+  const Numeric div = sum(wgts);
   return val / div;
 }
 

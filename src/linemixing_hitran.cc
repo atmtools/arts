@@ -34,6 +34,8 @@
 #include "lin_alg.h"
 #include "linemixing.h"
 #include "lineshapemodel.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "physics_funcs.h"
 
 #pragma GCC diagnostic push
@@ -1278,11 +1280,11 @@ EqvLinesOut eqvlines(const ConstComplexMatrixView& W,
   }
   
   // Do the matrix backward multiplication
-  auto& inv_zvec=zvec.inv();
+  inv(zvec, zvec);
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      z += pop[j] * dip[j] * inv_zvec(i, j);
+      z += pop[j] * dip[j] * zvec(i, j);
     }
     out.str[i] *= z;
   }

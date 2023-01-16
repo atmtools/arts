@@ -29,7 +29,7 @@
 #define methods_h
 
 #include <iosfwd>
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
 #define NODEF "@@THIS_KEYWORD_HAS_NO_DEFAULT_VALUE@@"

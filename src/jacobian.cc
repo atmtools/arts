@@ -920,7 +920,7 @@ void calcBaselineFit(Vector& y_baseline,
   const Index n2 = jg[2].nelem();
   const Index n3 = jg[3].nelem();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row4 = rowind.get_start();
+  const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[rq_index][0];
 
   if (n3 > 1) {

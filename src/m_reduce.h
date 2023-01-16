@@ -33,7 +33,7 @@
 #include <cstring>
 #include "array.h"
 #include "exceptions.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 
 //////// Helper function /////////
 
@@ -267,8 +267,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -293,8 +293,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -319,8 +319,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -345,8 +345,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -371,8 +371,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -397,8 +397,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -425,8 +425,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -451,8 +451,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -477,8 +477,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -503,8 +503,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -529,8 +529,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -557,8 +557,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -583,8 +583,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -609,8 +609,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -635,8 +635,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -663,8 +663,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -689,8 +689,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -715,8 +715,8 @@ inline void Reduce(
   Index num = dim_sizes.nelem();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -744,8 +744,8 @@ inline void Reduce(
   if (num == test) {
     o.resize(
         dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3], dim_sizes[4]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -771,8 +771,8 @@ inline void Reduce(
   if (num == test) {
     o.resize(
         dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3], dim_sizes[4]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;
@@ -804,8 +804,8 @@ inline void Reduce(
              dim_sizes[3],
              dim_sizes[4],
              dim_sizes[5]);
-    memcpy(o.get_c_array(),
-           i.get_c_array(),
+    memcpy(o.data_handle(),
+           i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
     ostringstream os;

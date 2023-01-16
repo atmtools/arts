@@ -684,7 +684,7 @@ void ext2trans(MatrixView trans_mat,
 }
 
 void get_ppath_transmat(Workspace& ws,
-                        MatrixView& trans_mat,
+                        MatrixView trans_mat,
                         const Ppath& ppath,
                         const Agenda& propmat_clearsky_agenda,
                         const Index stokes_dim,
@@ -1161,7 +1161,7 @@ void mcPathTraceGeneral(Workspace& ws,
     x[1] = dl;
     Vector itw(2);
 
-    gridpos(gp, x, ds);
+    gridpos(gp, x, ConstVectorView{ds});
     ARTS_ASSERT(gp[0].idx == 0);
     interpweights(itw, gp[0]);
     interp(ext_mat_mono, itw, ext_matArray, gp[0]);
@@ -1498,7 +1498,7 @@ void mcPathTraceRadar(Workspace& ws,
     ArrayOfGridPos gp(1);
     x[1] = dl;
     Vector itw(2);
-    gridpos(gp, x, ds);
+    gridpos(gp, x, ConstVectorView{ds});
     ARTS_ASSERT(gp[0].idx == 0);
     interpweights(itw, gp[0]);
     interp(ext_mat_mono, itw, ext_matArray, gp[0]);

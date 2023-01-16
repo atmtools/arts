@@ -21,7 +21,7 @@
   ===  File description
   ===========================================================================*/
 
-#include "matpackI.h"
+#include "matpack_data.h"
 
 /*!
   \file   gas_scattering.h

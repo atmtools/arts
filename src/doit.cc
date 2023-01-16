@@ -46,7 +46,7 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -79,7 +79,7 @@ void rte_step_doit_replacement(  //Output and Input:
          abs_vec_av.NumberOfFrequencies() == 1);
 
   //Check inputs:
-  ARTS_ASSERT(is_size(trans_mat, 1, stokes_dim, stokes_dim));
+  ARTS_ASSERT(is_size(trans_mat, stokes_dim, stokes_dim));
   ARTS_ASSERT(stokes_dim == ext_mat_av.StokesDimensions() and
          stokes_dim == abs_vec_av.StokesDimensions());
   ARTS_ASSERT(is_size(sca_vec_av, stokes_dim));

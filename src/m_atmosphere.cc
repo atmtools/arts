@@ -55,7 +55,7 @@
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "linescaling.h"
-#include "matpackIII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "rte.h"
 #include "special_interp.h"

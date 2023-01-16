@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.h"
 #include "debug.h"
 
 #include <experimental/mdspan>
@@ -8,13 +9,14 @@
 #include <complex>
 #include <concepts>
 #include <cstdint>
+#include <vector>
 #include <type_traits>
 
 namespace stdx = std::experimental;
 
-using Numeric = double;
+using Numeric = NUMERIC;
 
-using Index = std::int64_t;
+using Index = INDEX;
 
 using Complex = std::complex<Numeric>;
 
@@ -318,20 +320,37 @@ concept has_mdshape = rankable<T> and requires(T a) {
   { mdshape(a) } -> std::same_as<std::array<Index, rank<T>()>>;
 };
 
+template <typename T>
+concept has_index_access = requires(T a) {
+  a[Index{}];
+};
+
+template <typename T>
+concept is_iterable = requires(T a) {
+  std::begin(a);
+  std::begin(a) + Index{};
+  std::end(a);
+  std::size(a);
+};
+
 //! Get a positional value
 template <rankable T, auto dim = rank<T>()>
 constexpr auto mdvalue(const T& v, const std::array<Index, dim>& pos) {
-  if constexpr (dim == 1) return v[pos[0]];
-  else return std::apply([&v](auto... inds){return v(inds...);}, pos);
+  if constexpr (dim == 1) {
+    if constexpr (has_index_access<T>)
+      return v[pos[0]];
+    else if constexpr (is_iterable<T>) return *(std::begin(v)+pos[0]);
+    else {/**/}
+  } else return std::apply([&v](auto... inds){return v(inds...);}, pos);
 }
 
 //! The type is arithmetic or complex (for interface reasons, this cannot be const, volatile, reference, or any combination)
 template <typename T>
 concept math_type = arithmetic<T> or complex_type<T>;
 
-template <typename T>
-concept has_mdvalue = has_mdshape<T> and requires(T a) {
-  { mdvalue(a, mdshape(a)) } -> math_type;
+template <typename U, typename T>
+concept mdvalue_type_compatible = requires(U a) {
+  { mdvalue(a, mdshape(a)) } -> std::convertible_to<T>;
 };
 
 template <typename T, Index N, bool constant, bool strided>
@@ -362,14 +381,9 @@ template <typename U, typename T>
 concept typed_matpack_view = rankable<U> and sized_matpack_view<U, T, rank<U>()>;
 
 template <typename T>
-concept has_value_type = requires(T) {
-  typename std::remove_cvref_t<T>::value_type{};
-};
-
-template <has_value_type T>
 using matpack_value_type = typename std::remove_cvref_t<T>::value_type;
 
-template <has_value_type first, has_value_type second, has_value_type... rest>
+template <typename first, typename second, typename... rest>
 class same_value_type {
 static consteval bool same() {
   using L = matpack_value_type<first>;
@@ -382,23 +396,26 @@ public:
   static constexpr bool value = same();
 };
 
-template <has_value_type first, has_value_type second, has_value_type... rest>
+template <typename first, typename second, typename... rest>
 inline constexpr bool same_value_type_v = same_value_type<first, second, rest...>::value;
 
 template <typename T, Index N>
-concept strict_size_matpack_view = has_value_type<T> and sized_matpack_view<T, matpack_value_type<T>, N>;
+concept strict_size_matpack_view = sized_matpack_view<T, matpack_value_type<T>, N>;
 
 template <typename T>
-concept any_matpack_view = has_value_type<T> and rankable<T> and sized_matpack_view<T, matpack_value_type<T>, rank<T>()>;
+concept any_matpack_view = rankable<T> and sized_matpack_view<T, matpack_value_type<T>, rank<T>()>;
 
 template <typename U, typename T, Index N>
 concept sized_matpack_data = std::same_as<std::remove_cvref_t<U>, matpack_data<T, N>>;
 
+template <typename U, typename T, Index N>
+concept sized_matpack_type = sized_matpack_data<U, T, N> or sized_matpack_view<U, T, N>;
+
 template <typename T, Index N>
-concept strict_size_matpack_data = has_value_type<T> and sized_matpack_data<T, matpack_value_type<T>, N>;
+concept strict_size_matpack_data = sized_matpack_data<T, matpack_value_type<T>, N>;
 
 template <typename T>
-concept any_matpack_data = has_value_type<T> and rankable<T> and sized_matpack_data<T, matpack_value_type<T>, rank<T>()>;
+concept any_matpack_data = rankable<T> and sized_matpack_data<T, matpack_value_type<T>, rank<T>()>;
 
 template<typename T, Index N>
 concept strict_size_matpack_type = strict_size_matpack_data<T, N> or strict_size_matpack_view<T, N>;
@@ -410,7 +427,7 @@ template <typename T>
 concept any_matpack_type = any_matpack_data<T> or any_matpack_view<T>;
 
 template <typename U, typename T, Index N>
-concept matpack_convertible = not sized_matpack_data<U, T, N> and has_mdshape<U> and has_mdvalue<U> and rank<U>() == N;
+concept matpack_convertible = not any_matpack_type<U> and has_mdshape<U> and mdvalue_type_compatible<U, T> and rank<U>() == N;
 
 template <Index N> using ranking = stdx::dextents<Index, N>;
 

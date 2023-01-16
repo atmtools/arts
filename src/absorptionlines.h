@@ -37,7 +37,7 @@
 #include "enums.h"
 #include "jacobian.h"
 #include "lineshapemodel.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
 #include "zeemandata.h"

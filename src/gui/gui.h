@@ -17,7 +17,8 @@
 #include "gui_macros.h"
 #include "propagationmatrix.h"
 
-#include <matpackI.h>
+#include <matpack_arrays.h>
+#include <matpack_data.h>
 
 namespace ARTSGUI {
   /** A global config for all things ARTSGUI */

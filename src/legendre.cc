@@ -1960,8 +1960,8 @@ bool gsl_integration_glfixed_table_alloc(Vector &x, Vector &w, Index n) {
   /* Use a predefined table of size n if possible */
   for (auto &&g : glaw) {
     if (n == (Index)g.n) {
-      memcpy(x.get_c_array(), g.x, sizeof(Numeric) * m);
-      memcpy(w.get_c_array(), g.w, sizeof(Numeric) * m);
+      memcpy(x.data_handle(), g.x, sizeof(Numeric) * m);
+      memcpy(w.data_handle(), g.w, sizeof(Numeric) * m);
       precomputed = true;
       break;
     }
@@ -1970,8 +1970,8 @@ bool gsl_integration_glfixed_table_alloc(Vector &x, Vector &w, Index n) {
   /* No predefined table is available.  Generate one on the fly. */
   if (!precomputed) {
     gauss_legendre_tbl(n,
-                       x.get_c_array(),
-                       w.get_c_array(),
+                       x.data_handle(),
+                       w.data_handle(),
                        1e-10 /* precision magic number */);
   }
 

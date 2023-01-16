@@ -57,7 +57,7 @@
 #include <numbers>
 
 #include "arts_constexpr_math.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {

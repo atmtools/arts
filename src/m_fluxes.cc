@@ -30,7 +30,7 @@
 #include "check_input.h"
 #include "legendre.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "sorting.h"
 #include "surface.h"

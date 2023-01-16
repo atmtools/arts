@@ -285,7 +285,7 @@ void get_refr_index_2d(Workspace& ws,
   Vector z_grid(np);
   ArrayOfGridPos gp_lat(1);
   //
-  gridpos(gp_lat, lat_grid, lat);
+  gridpos(gp_lat, lat_grid, ExhaustiveConstVectorView{lat});
   z_at_lat_2d(z_grid, p_grid, lat_grid, z_field(joker, joker, 0), gp_lat[0]);
 
   // Determine the ellipsoid radius at *lat*
@@ -380,8 +380,8 @@ void get_refr_index_3d(Workspace& ws,
   Vector z_grid(np);
   ArrayOfGridPos gp_lat(1), gp_lon(1);
   //
-  gridpos(gp_lat, lat_grid, lat);
-  gridpos(gp_lon, lon_grid, lon);
+  gridpos(gp_lat, lat_grid, ExhaustiveConstVectorView{lat});
+  gridpos(gp_lon, lon_grid, ExhaustiveConstVectorView{lon});
   z_at_latlon(
       z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat[0], gp_lon[0]);
 

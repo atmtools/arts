@@ -43,7 +43,7 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;

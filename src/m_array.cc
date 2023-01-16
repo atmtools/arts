@@ -26,7 +26,8 @@
 
 
 #include "artstime.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
+#include "matpack_arrays.h"
 #include "messages.h"
 #include "sorting.h"
 

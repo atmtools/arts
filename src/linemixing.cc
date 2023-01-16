@@ -10,7 +10,7 @@
 #include "lin_alg.h"
 #include "linemixing.h"
 #include "lineshape.h"
-#include "matpack.h"
+#include "matpack_data.h"
 #include "matpack_complex.h"
 #include "matpack_eigen.h"
 #include "messages.h"
@@ -90,11 +90,11 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
   }
   
   // Do the matrix backward multiplication
-  auto& invV=V.inv();
+  inv(V, V);
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      z += pop[j] * dip[j] * invV(i, j);
+      z += pop[j] * dip[j] * V(i, j);
     }
     str[i] *= z;
   }

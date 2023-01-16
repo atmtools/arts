@@ -38,8 +38,9 @@
 #include <utility>
 
 #include "jacobian.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
+#include "matpack_sparse.h"
 
 class CovarianceMatrix;
 
@@ -123,9 +124,9 @@ class Block {
   ~Block() = default;
 
   /*! Number of rows of this block */
-  [[nodiscard]] Index nrows() const { return row_range_.get_extent(); }
+  [[nodiscard]] Index nrows() const { return row_range_.extent; }
   /*! Number of columns of this block */
-  [[nodiscard]] Index ncols() const { return column_range_.get_extent(); }
+  [[nodiscard]] Index ncols() const { return column_range_.extent; }
 
   /*! The row range of this block*/
   [[nodiscard]] Range get_row_range() const { return row_range_; }
@@ -143,7 +144,7 @@ class Block {
   /*! Return the diagonal as a vector.*/
   [[nodiscard]] Vector diagonal() const {
     if (dense_) {
-      return dense_->diagonal();
+      return ::diagonal(*dense_);
     }        
     return sparse_->diagonal();
    
@@ -415,7 +416,5 @@ void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
 MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
-
-std::ostream &operator<<(std::ostream &os, const ConstVectorView &v);
 
 #endif  // covariance_matrix_h

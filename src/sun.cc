@@ -36,8 +36,7 @@
 #include "arts_conversions.h"
 #include "check_input.h"
 #include "debug.h"
-#include "matpack.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
@@ -486,7 +485,7 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
     out3 << os.str();
   }
 
-  const Numeric* f_grid_begin = f_grid.get_c_array();
+  const Numeric* f_grid_begin = f_grid.unsafe_data_handle();
   const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
   const Index i_fstart = std::distance(
       f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
@@ -527,7 +526,7 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
   const Numeric f_grid_fmin = f_grid[i_fstart];
   const Numeric f_grid_fmax = f_grid[i_fstop];
 
-  const Numeric* data_f_grid_begin = data_f_grid.get_c_array();
+  const Numeric* data_f_grid_begin = data_f_grid.unsafe_data_handle();
   const Numeric* data_f_grid_end = data_f_grid_begin + data_f_grid.size() - 1;
   const Index i_data_fstart =
       std::distance(
