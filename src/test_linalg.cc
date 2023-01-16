@@ -34,6 +34,7 @@
 #include <random>
 #include "array.h"
 #include "lin_alg.h"
+#include "matpack_math.h"
 #include "test_utils.h"
 
 #include "minimize.h"

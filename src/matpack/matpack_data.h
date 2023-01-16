@@ -50,6 +50,9 @@ class matpack_data {
   template <typename U, Index M, bool c, bool s> friend class matpack_view;
 
 public:
+  constexpr operator view_type&() {return view;}
+  constexpr operator const view_type&() const {return view;}
+
   constexpr matpack_data(const std::array<Index, N> &sz = {}, const T &x = {})
       : data(mdsize<N>(sz), x),
         view(data.data(), sz) {}
@@ -60,7 +63,7 @@ public:
   template <typename... arguments>
   constexpr matpack_data(integral auto dim0, arguments ... args)
     requires(sizeof...(arguments) == N)
-      : matpack_data(front_array<Index, N>(dim0, args...), get_last(args...)) {
+      : matpack_data(front_array<Index, N>(dim0, args...), static_cast<T>(get_last(args...))) {
   }
 
   matpack_data(const matpack_data& x) : data(x.data), view(data.data(), x.shape()) {}

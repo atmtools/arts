@@ -26,7 +26,7 @@
 #include <unistd.h>
 #endif
 
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "sorting.h"
 
 void testVector() {

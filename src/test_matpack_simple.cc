@@ -19,7 +19,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include "matpackVII.h"
+#include "matpack_data.h"
 
 // Simple element access operator benchmark
 void test1() {

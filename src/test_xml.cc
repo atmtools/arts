@@ -16,7 +16,7 @@
    USA. */
 
 #include <iostream>
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "xml_io_base.h"
 
 int main(int /*argc*/, char * /*argv*/[]) {

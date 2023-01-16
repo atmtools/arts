@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "bifstream.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 //#define VERBOSE
 

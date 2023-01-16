@@ -184,7 +184,7 @@ class Block {
   friend void mult(MatrixView, const Block &, ConstMatrixView);
   friend void mult(VectorView, const Block &, ConstVectorView);
 
-  friend MatrixView &operator+=(MatrixView &, const Block &);
+  friend MatrixView operator+=(MatrixView, const Block &);
 
  private:
   Range row_range_, column_range_;
@@ -200,7 +200,7 @@ void mult(MatrixView, ConstMatrixView, const Block &);
 void mult(MatrixView, const Block &, ConstMatrixView);
 void mult(VectorView, const Block &, ConstVectorView);
 
-MatrixView &operator+=(MatrixView &, const Block &);
+MatrixView operator+=(MatrixView, const Block &);
 void add_inv(MatrixView A, const Block &);
 
 //------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ class CovarianceMatrix {
   friend void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
   friend void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-  friend MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
+  friend MatrixView operator+=(MatrixView, const CovarianceMatrix &);
   friend void add_inv(MatrixView, const CovarianceMatrix &);
 
   friend void xml_read_from_stream(istream &,
@@ -414,7 +414,7 @@ void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
 void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
 void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
+MatrixView operator+=(MatrixView, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
 
 #endif  // covariance_matrix_h
