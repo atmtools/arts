@@ -37,7 +37,7 @@
 #include "arts_conversions.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric PI=Constant::pi;

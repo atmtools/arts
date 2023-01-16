@@ -14,7 +14,7 @@ template <matpack::strict_sized_matpack_type<2> MAT>
 auto transpose(const MAT &x)
     -> matpack::matpack_view<matpack::matpack_value_type<MAT>, 2,
                              MAT::is_const(), true> {
-  return matpack::strided_mdspan<Numeric, 2>{
+  return matpack::strided_mdspan<matpack::matpack_value_type<MAT>, 2>{
       x.unsafe_data_handle(),
       {std::array{x.extent(1), x.extent(0)},
        std::array{x.stride(1), x.stride(0)}}};

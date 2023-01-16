@@ -24,7 +24,9 @@
 */
 
 #include "matpack_complex.h"
+#include "matpack_data.h"
 #include "matpack_eigen.h"
+#include "matpack_math.h"
 #include <iostream>
 
 using std::cout;

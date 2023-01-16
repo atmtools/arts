@@ -4,11 +4,12 @@
 #include <numeric>
 #include <vector>
 
-#include "matpack/matpack_concepts.h"
-#include "matpack/matpack_data.h"
-#include "matpack/matpack_eigen.h"
-#include "matpack/matpack_math.h"
-#include "matpack/matpack_view.h"
+#include "logic.h"
+#include "matpack_concepts.h"
+#include "matpack_data.h"
+#include "matpack_eigen.h"
+#include "matpack_math.h"
+#include "matpack_view.h"
 #include "matpack_complex.h"
 
 using std::cout;

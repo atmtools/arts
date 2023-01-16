@@ -119,7 +119,7 @@ void mult(VectorView w, const Block &A, ConstVectorView v) {
   }
 }
 
-MatrixView &operator+=(MatrixView &A, const Block &B) {
+MatrixView operator+=(MatrixView A, const Block &B) {
   MatrixView Aview(A(B.get_row_range(), B.get_column_range()));
   MatrixView ATview(A(B.get_column_range(), B.get_row_range()));
   if (B.get_matrix_type() == Block::MatrixType::dense) {
@@ -616,7 +616,7 @@ void solve(VectorView w, const CovarianceMatrix &A, ConstVectorView v) {
   }
 }
 
-MatrixView &operator+=(MatrixView &A, const CovarianceMatrix &B) {
+MatrixView operator+=(MatrixView A, const CovarianceMatrix &B) {
   for (const Block &c : B.correlations_) {
     A += c;
   }

@@ -30,8 +30,8 @@
 #include <iostream>
 #include <stdexcept>
 #include "lin_alg.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_sparse.h"
 #include "test_utils.h"
 #include "xml_io.h"
 
@@ -191,7 +191,7 @@ void test40() {
   A.rw(2, 2) = 33;
   cout << "Diagonal A:\n" << A << "\n";
 
-  Vector b(1, 3, 1), c(3);
+  Vector b=uniform_grid(1, 3, 1), c(3);
   cout << "b:\n" << b << "\n";
 
   mult(c, A, b);

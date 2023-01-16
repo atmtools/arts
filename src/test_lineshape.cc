@@ -133,7 +133,7 @@ InternalData line_model() {
   const Numeric f0 = ((mod == ModificationInternal::f) ? 500e6 + ::df : 500e6) + (ls_type == LineShape::Type::DP ? 498e6 : 0);
   const Numeric df_ = ls_type == LineShape::Type::DP ? 4e6/Numeric(::N - 1) : 1e9/Numeric(::N - 1);
   
-  const Vector f_grid(f0, ::N, df_);
+  const Vector f_grid=uniform_grid(f0, ::N, df_);
   Vector vmr({0.3, 0.7});
   if constexpr (mod == ModificationInternal::SelfVMR) vmr[0] += ::dVMR;
   else if constexpr (mod == ModificationInternal::AirVMR) vmr[1] += ::dVMR;
@@ -680,7 +680,7 @@ void test_sparse() {
   auto [qid, band, f_gp, vmr, P, T, H] = line_model<ModificationInternal::None, LineShape::Type::HTP>();
   P *= 1000;
   band.lines.front().F0 = 1500e9;
-  Vector f_g(500e9, 20001, 10e7);
+  Vector f_g=uniform_grid(500e9, 20001, 10e7);
   auto band2 = band;
   band2.cutoff = Absorption::CutoffType::ByLine;
   band2.cutofffreq = 750e9;

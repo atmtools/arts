@@ -646,9 +646,19 @@ public:
   constexpr bool operator!=(const matpack_data<T, N>& x) const {return *this != x.view; }
 
   template <std::size_t M>
-  constexpr matpack_view(const std::array<T, M>& x) requires(constant and N == 1) {
-    // The cast here should be OK since you are not able to change any values later on as the type is constant
-    view = exhaustive_view(const_cast<T*>(x.data()), std::array<Index, 1>{static_cast<Index>(M)});
+  constexpr matpack_view(const std::array<T, M> &x)
+    requires(constant and N == 1)
+      : matpack_view(const_cast<T *>(x.data()), {static_cast<Index>(M)}) {
+    // The cast here should be OK since you are not able to change any values
+    // later on as the type is constant
+  }
+
+  constexpr matpack_view(const std::vector<T> &x)
+    requires(constant and N == 1)
+      : matpack_view(const_cast<T *>(x.data()),
+                     {static_cast<Index>(x.size())}) {
+    // The cast here should be OK since you are not able to change any values
+    // later on as the type is constant
   }
 
   template <matpack_convertible<T, N> U>
