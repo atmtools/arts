@@ -107,9 +107,6 @@ add_executable (make_auto_md_h
         parameters.cc
         )
 
-if (ENABLE_PCH)
-  target_precompile_headers(make_auto_md_h PRIVATE pch_matpack.h)
-endif()
 target_link_libraries (make_auto_md_h methods matpack)
 
 add_custom_command (
