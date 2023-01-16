@@ -38,7 +38,7 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "gas_abs_lookup.h"
-#include "matpackVII.h"
+#include "matpack_arrays.h"
 #include "messages.h"
 #include "nc_io.h"
 
