@@ -3,7 +3,7 @@
 #include "matpack_concepts.h"
 
 namespace matpack {
-template <Index N> [[nodiscard]] consteval std::array<Joker, N> jokers() {
+template <Index N> [[nodiscard]] constexpr std::array<Joker, N> jokers() {
   std::array<Joker, N> out;
   out.fill(joker);
   return out;
