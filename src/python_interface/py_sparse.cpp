@@ -9,7 +9,7 @@
 #include <variant>
 
 #include "covariance_matrix.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "py_macros.h"
 
 namespace Python {
