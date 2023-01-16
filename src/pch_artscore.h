@@ -23,8 +23,6 @@
   \brief  List of precompiled headers
 */
 
-#include "pch_matpack.h"
-
 #include <numeric>
 #include <variant>
 #include "agenda_class.h"
