@@ -934,8 +934,6 @@ std::cout << "#########################################################\n";\
 X();\
 std::cout << "#########################################################\n";
 
-#include "type_debug_help.h"
-
 int main() {
   EXECUTE_TEST(test1)
   EXECUTE_TEST(test2)
@@ -973,16 +971,4 @@ int main() {
   EXECUTE_TEST(test_data)
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
-
-  Tensor7 x(2, 2, 2, 2, 2, 2, 2);
-
-  std::cout << type(x) << '\n';
-  std::cout << type(x[0]) << '\n';
-  std::cout << type(x[1]) << '\n';
-  std::cout << type(x(0, joker, joker, joker, joker, joker, joker)) << '\n';
-  std::cout << type(x(0, joker, joker, joker, joker, joker, 0)) << '\n';
-  std::cout << type(x(0, joker, joker, joker, joker, 0, joker)) << '\n';
-  std::cout << type(x(0, 1, joker, joker, joker, joker, joker)) << '\n';
-
-  std::cout << Matrix(1,2,3) << '\n';
 }
