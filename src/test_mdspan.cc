@@ -871,6 +871,61 @@ void test_complex() {
   }
 }
 
+void test_math() {
+  {
+    Vector x{0, 1, 2, 3, 4};
+    ARTS_ASSERT(min(x) == 0)
+    ARTS_ASSERT(min(ExhaustiveVectorView{x}) == 0)
+    ARTS_ASSERT(min(ExhaustiveConstVectorView{x}) == 0)
+    ARTS_ASSERT(min(VectorView{x}) == 0)
+    ARTS_ASSERT(min(ConstVectorView{x}) == 0)
+
+    static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveConstVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.elem_begin())>);
+
+    static_assert(std::random_access_iterator<decltype(x.begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveConstVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.begin())>);
+
+    static_assert(std::random_access_iterator<decltype(x.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveVectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveConstVectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.elem_end())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.elem_end())>);
+
+    static_assert(std::random_access_iterator<decltype(x.end())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveVectorView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveConstVectorView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.end())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.end())>);
+  }
+
+/*
+  {
+    Matrix x(3, 3, 0);
+    ARTS_ASSERT(min(x) == 0)
+    ARTS_ASSERT(min(ExhaustiveVectorView{x}) == 0)
+    ARTS_ASSERT(min(ExhaustiveConstVectorView{x}) == 0)
+
+    static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveConstVectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.elem_begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.elem_begin())>);
+
+    static_assert(std::random_access_iterator<decltype(x.begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ExhaustiveConstVectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(VectorView{x}.begin())>);
+    static_assert(std::random_access_iterator<decltype(ConstVectorView{x}.begin())>);
+  } */
+}
+
 #define EXECUTE_TEST(X) \
 std::cout << "#########################################################\n";\
 std::cout << "Executing test: " #X << '\n'; \
@@ -878,11 +933,9 @@ std::cout << "#########################################################\n";\
 X();\
 std::cout << "#########################################################\n";
 
+#include "type_debug_help.h"
+
 int main() {
-  test_view();
-  test_eigen();
-  test_data();
-  test_complex();return 0;
   EXECUTE_TEST(test1)
   EXECUTE_TEST(test2)
   EXECUTE_TEST(test4)
@@ -913,4 +966,22 @@ int main() {
   EXECUTE_TEST(test41)
   EXECUTE_TEST(test42)
   EXECUTE_TEST(test44)
+
+  EXECUTE_TEST(test_view)
+  EXECUTE_TEST(test_eigen)
+  EXECUTE_TEST(test_data)
+  EXECUTE_TEST(test_complex)
+  EXECUTE_TEST(test_math)
+
+  Tensor7 x(2, 2, 2, 2, 2, 2, 2);
+
+  std::cout << type(x) << '\n';
+  std::cout << type(x[0]) << '\n';
+  std::cout << type(x[1]) << '\n';
+  std::cout << type(x(0, joker, joker, joker, joker, joker, joker)) << '\n';
+  std::cout << type(x(0, joker, joker, joker, joker, joker, 0)) << '\n';
+  std::cout << type(x(0, joker, joker, joker, joker, 0, joker)) << '\n';
+  std::cout << type(x(0, 1, joker, joker, joker, joker, joker)) << '\n';
+
+  std::cout << Matrix(1,2,3) << '\n';
 }

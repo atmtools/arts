@@ -28,6 +28,7 @@
 */
 
 #include "propmat_field.h"
+#include "matpack_data.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "transmissionmatrix.h"
@@ -217,7 +218,7 @@ void emission_from_propmat_field(
                        0,
                        rqtmp,
                        ppath,
-                       {0},
+                       Vector{0},
                        1,
                        nlte_field,
                        0,

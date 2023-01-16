@@ -32,6 +32,8 @@
 #include <sstream>
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "matpack_eigen.h"
+#include "matpack_math.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

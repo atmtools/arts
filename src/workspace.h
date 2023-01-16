@@ -4,7 +4,7 @@
 #include <map>
 
 #include "array.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "mystring.h"
 #include "wsv_aux.h"
 

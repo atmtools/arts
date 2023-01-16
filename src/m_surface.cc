@@ -48,6 +48,8 @@
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
+#include "matpack_math.h"
+#include "matpack_eigen.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -212,7 +214,7 @@ void InterpSurfaceFieldToPosition(Numeric& outvalue,
                                   const Matrix& field,
                                   const Verbosity& verbosity) {
   // Input checks (dummy p_grid)
-  chk_atm_grids(atmosphere_dim, Vector(2, 2, -1), lat_grid, lon_grid);
+  chk_atm_grids(atmosphere_dim, uniform_grid(2, 2, -1), lat_grid, lon_grid);
   chk_atm_surface(
       "input argument *field*", field, atmosphere_dim, lat_grid, lon_grid);
   chk_rte_pos(atmosphere_dim, rtp_pos);
@@ -1288,7 +1290,7 @@ void iySurfaceLambertian(Workspace& ws,
       Vector emissivity=surface_scalar_reflectivity;
       emissivity*=-1;
       emissivity+=1;
-      diy_dpos0*=emissivity;
+      diy_dpos0*=ExhaustiveMatrixView{emissivity};
 
       // Weight with transmission to sensor
       iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
@@ -2701,7 +2703,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
   // Help variables
   //
   const Numeric dza = (90.0 - abs(surface_normal[0])) / (Numeric)lambertian_nza;
-  const Vector za_lims(0.0, lambertian_nza + 1, dza);
+  const Vector za_lims=uniform_grid(0.0, lambertian_nza + 1, dza);
 
   // surface_los
   for (Index ip = 0; ip < lambertian_nza; ip++) {

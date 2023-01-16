@@ -39,7 +39,7 @@
 #include "matpack_complex.h"
 #include "geodetic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "physics_funcs.h"
 #include "workspace_ng.h"
 

@@ -37,7 +37,8 @@
 #include <utility>
 
 #include "array.h"
-#include "matpackVI.h"
+#include "matpack_arrays.h"
+#include "matpack_data.h"
 #include "mystring.h"
 
 namespace GriddedFieldGrids {

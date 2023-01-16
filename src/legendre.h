@@ -33,7 +33,7 @@
 
 #include "arts.h"
 #include "grids.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 struct gsl_integration_glfixed_table {
   size_t n;        /* number of points */

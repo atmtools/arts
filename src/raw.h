@@ -28,7 +28,7 @@
 #define RAW_H
 
 #include "covariance_matrix.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 namespace Raw {
 namespace Calibration {

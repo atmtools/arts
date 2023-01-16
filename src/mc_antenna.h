@@ -32,7 +32,7 @@
 #define mc_antenna_h
 
 #include "arts.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "rng.h"
 #include <cmath>
 #include <stdexcept>

@@ -32,7 +32,7 @@
 #include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
-#include "matpack.h"
+#include "matpack_data.h"
 #include "propagationmatrix.h"
 
 void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(

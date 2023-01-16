@@ -4,7 +4,7 @@
 #include <array>
 #include <utility>
 
-#include "matpackI.h"
+#include "matpack_data.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"

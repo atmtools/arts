@@ -37,8 +37,8 @@
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "math_funcs.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_sparse.h"
 #include "messages.h"
 
 /*===========================================================================

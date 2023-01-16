@@ -33,7 +33,7 @@
 
 #include <stdexcept>
 
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "mystring.h"
 
 // Special stuff for the parser:

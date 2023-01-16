@@ -10,7 +10,7 @@ namespace Absorption::PredefinedModel::MT_CKD100 {
 Numeric XINT_FUN(const Numeric V1A,
                  const Numeric /* V2A */,
                  const Numeric DVA,
-                 const matpack::vector_like auto& A,
+                 const auto& A,
                  const Index nA,
                  const Numeric VI) {
   // ----------------------------------------------------------------------
@@ -51,7 +51,7 @@ Numeric XINT_FUN(const Numeric V1A,
 Numeric XINT_FUN(const Numeric V1A,
                  const Numeric /* V2A */,
                  const Numeric DVA,
-                 const matpack::vector_like auto& A,
+                 const auto& A,
                  const Numeric VI) {
   // ----------------------------------------------------------------------
   //     THIS SUBROUTINE INTERPOLATES THE A ARRAY STORED

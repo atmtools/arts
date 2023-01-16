@@ -208,7 +208,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
                                          upper,
                                          lower);
 
-      set_constant_statistical_equilibrium_matrix(SEE, x, r.sum(), unique);
+      set_constant_statistical_equilibrium_matrix(SEE, x, sum(r), unique);
       solve(nlte_field.value(joker, ip, 0, 0), SEE, x);
 
       for (Index il = 0; il < nlevels; il++) {

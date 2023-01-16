@@ -664,7 +664,7 @@ This feature will be added in a future version.
   if (iy_agenda_call1)
     iy_trans_new = tot_tra[np - 1];
   else
-    iy_transmittance_mult(iy_trans_new, iy_transmittance, tot_tra[np - 1]);
+    iy_transmittance_mult(iy_trans_new, iy_transmittance, Tensor3{tot_tra[np - 1]});
 
   // iy_aux: Optical depth
   if (auxOptDepth >= 0)
@@ -1280,7 +1280,7 @@ void iyEmissionHybrid(Workspace& ws,
   if (iy_agenda_call1)
     iy_trans_new = tot_tra[np - 1];
   else
-    iy_transmittance_mult(iy_trans_new, iy_transmittance, tot_tra[np - 1]);
+    iy_transmittance_mult(iy_trans_new, iy_transmittance, Tensor3{tot_tra[np - 1]});
 
   // Copy transmission to iy_aux
   for (Index i = 0; i < naux; i++)
@@ -1705,7 +1705,7 @@ void iyEmissionStandard(
   if (iy_agenda_call1)
     iy_trans_new = tot_tra[np - 1];
   else
-    iy_transmittance_mult(iy_trans_new, iy_transmittance, tot_tra[np - 1]);
+    iy_transmittance_mult(iy_trans_new, iy_transmittance, Tensor3{tot_tra[np - 1]});
 
   // iy_aux: Optical depth
   if (auxOptDepth >= 0)
@@ -2144,7 +2144,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                  atmosphere_dim,
                                  cloudbox_limits);
         for (Index p = 0; p < pnd_field.nbooks(); p++) {
-          interp_atmfield_by_itw(pnd1(p, i, 0, 0),
+          interp_atmfield_by_itw(ExhaustiveVectorView{pnd1(p, i, 0, 0)},
                                  atmosphere_dim,
                                  pnd_field(p, joker, joker, joker),
                                  gpc_p,
@@ -2784,7 +2784,7 @@ void yCalc(Workspace& ws,
     for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
       const Range rowind =
           get_rowindex_for_mblock(sensor_response, mblock_index);
-      const Index row0 = rowind.get_start();
+      const Index row0 = rowind.offset;
 
       // The sensor response must be applied in a special way for
       // uncorrelated errors. Schematically: sqrt( H.^2 * y.^2 )
@@ -3198,12 +3198,12 @@ void yApplyUnit(Vector& y,
         // Jacobian
         Tensor3 J(jacobian.ncols(), 1, n);
         J(joker, 0, joker) = transpose(jacobian(ii, joker));
-        apply_iy_unit2(J, yv, iy_unit, y_f[i0], 1, i_pol);
+        apply_iy_unit2(J, yv, iy_unit, ExhaustiveConstVectorView{y_f[i0]}, 1, i_pol);
         jacobian(ii, joker) = transpose(J(joker, 0, joker));
       }
 
       // y (must be done last)
-      apply_iy_unit(yv, iy_unit, y_f[i0], 1, i_pol);
+      apply_iy_unit(yv, iy_unit, ExhaustiveConstVectorView{y_f[i0]}, 1, i_pol);
       y[ii] = yv(0, joker);
 
       i0 += n;
@@ -3225,11 +3225,11 @@ void yApplyUnit(Vector& y,
       // Jacobian
       if (do_j) {
         apply_iy_unit2(
-            MatrixView(jacobian(i, joker)), yv, iy_unit, y_f[i], 1, i_pol);
+            ExhaustiveTensor3View{ExhaustiveMatrixView{jacobian(i, joker)}}, yv, iy_unit, ExhaustiveConstVectorView{y_f[i]}, 1, i_pol);
       }
 
       // y (must be done last)
-      apply_iy_unit(yv, iy_unit, y_f[i], 1, i_pol);
+      apply_iy_unit(yv, iy_unit, ExhaustiveConstVectorView{y_f[i]}, 1, i_pol);
       y[i] = yv(0, 0);
     }
   }

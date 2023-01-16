@@ -1,11 +1,12 @@
 #ifndef interpolation_lagrange_h
 #define interpolation_lagrange_h
 
+#include "array.h"
 #include "arts_conversions.h"
 #include "debug.h"
 #include "enums.h"
 #include "grids.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "nonstd.h"
 #include <algorithm>
 #include <array>
@@ -451,10 +452,10 @@ struct Lagrange {
   Index pos{0};
   
   /*! The Lagrange interpolation weights at each point */
-  Array<Numeric> lx;
+  std::vector<Numeric> lx;
   
   /*! The Lagrange interpolation weights derivatives at each point */
-  Array<Numeric> dlx;
+  std::vector<Numeric> dlx;
 
   /* Number of weights */
   [[nodiscard]] Index size() const noexcept { return lx.size(); }
@@ -502,8 +503,8 @@ struct Lagrange {
       if (do_derivs) dlx = dlx_finder(pos, p, x, xi, lx, type, cycle);
     } else {
       pos = 0;
-      lx = Array<Numeric>(1, 1);
-      dlx = Array<Numeric>(1, 0);
+      lx = std::vector<Numeric>(1, 1);
+      dlx = std::vector<Numeric>(1, 0);
     }
   }
   
@@ -530,11 +531,11 @@ struct Lagrange {
    * @param[in] cycle Size of a cycle if Cyclic type
    */
   template <class SortedVectorType>
-  static Array<Numeric> lx_finder(
+  static std::vector<Numeric> lx_finder(
       const Index p0, const Index n, const Numeric x,
       const SortedVectorType& xi, const GridType type,
       const std::pair<Numeric, Numeric> cycle) noexcept {
-    Array<Numeric> out(n);
+    std::vector<Numeric> out(n);
     switch (type) {
       case GridType::Standard:
         for (Index j = 0; j < n; j++)
@@ -589,12 +590,12 @@ struct Lagrange {
    * @param[in] cycle Size of a cycle if Cyclic type
    */
   template <class SortedVectorType>
-  static Array<Numeric> dlx_finder(
+  static std::vector<Numeric> dlx_finder(
       const Index p0, const Index n, const Numeric x,
-      const SortedVectorType& xi, const Array<Numeric>& li,
+      const SortedVectorType& xi, const std::vector<Numeric>& li,
       const GridType type,
       const std::pair<Numeric, Numeric> cycle) noexcept {
-    Array<Numeric> out(n);
+    std::vector<Numeric> out(n);
     switch (type) {
       case GridType::Standard:
         for (Index j = 0; j < n; j++)

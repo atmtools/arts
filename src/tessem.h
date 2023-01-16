@@ -28,7 +28,7 @@
 #define tessem_h
 
 #include <fstream>
-#include "matpackI.h"
+#include "matpack_data.h"
 
 struct TessemNN {
   Index nb_inputs;
@@ -48,6 +48,6 @@ struct TessemNN {
 
 void tessem_read_ascii(std::ifstream& is, TessemNN& net);
 
-void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx);
+void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx);
 
 #endif /* tessem_h */

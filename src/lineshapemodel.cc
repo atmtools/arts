@@ -35,7 +35,9 @@
 #include "arts_conversions.h"
 #include "debug.h"
 #include "lineshapemodel.h"
-#include "matpackI.h"
+#include "matpack_data.h"
+#include "matpack_eigen.h"
+#include "matpack_math.h"
 #include <limits>
 
 Jacobian::Line select_derivativeLineShape(const String& var,
@@ -487,11 +489,11 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if (bath) {
-    line_vmrs[n - 1] = 1.0 - line_vmrs.sum();
-  } else if(line_vmrs.sum() == 0) {  // Special case
+  if (auto sl = sum(line_vmrs); bath) {
+    line_vmrs[n - 1] = 1.0 - sl;
+  } else if(sl == 0) {  // Special case
   } else {
-    line_vmrs /= line_vmrs.sum();
+    line_vmrs /= sl;
   }
     
   return line_vmrs;
@@ -534,9 +536,9 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if(line_vmrs.sum() == 0) {  // Special case
+  if(auto sl = sum(line_vmrs); sl == 0) {  // Special case
   } else if (bath) {
-    line_mass[n - 1] = (line_vmrs * line_mass) / line_vmrs.sum();
+    line_mass[n - 1] = (line_vmrs * line_mass) / sl;
   }
     
   return line_mass;
@@ -1008,7 +1010,7 @@ Output SingleSpeciesModel::dT0(Numeric T, Numeric T0,
                    const Vector &vmrs) const ARTS_NOEXCEPT {                   \
     ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
                                                                                \
-    return PVAR * std::transform_reduce(begin(), end(), vmrs.get_c_array(),    \
+    return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
                                         0.0, std::plus<>(),                    \
                                         [T, T0](auto &ls, auto &xi) {          \
                                           return xi * ls.X().at(T, T0);        \
@@ -1030,7 +1032,7 @@ FUNC(DV, P *P)
                           const Vector &vmrs) const ARTS_NOEXCEPT {            \
     ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
                                                                                \
-    return PVAR * std::transform_reduce(begin(), end(), vmrs.get_c_array(),    \
+    return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
                                         0.0, std::plus<>(),                    \
                                         [T, T0](auto &ls, auto &xi) {          \
                                           return xi * ls.X().dT(T, T0);        \

@@ -7,7 +7,7 @@
 #include "array.h"
 #include "enums.h"
 #include "isotopologues.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 
 namespace Species {

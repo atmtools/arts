@@ -1,4 +1,5 @@
 #include "interpolation_lagrange.h"
+#include "matpack_math.h"
 
 namespace Interpolation {
 

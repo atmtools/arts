@@ -31,6 +31,8 @@
 
 #include "covariance_matrix.h"
 #include "lapack.h"
+#include "lin_alg.h"
+#include "matpack_math.h"
 
 //------------------------------------------------------------------------------
 // Correlations
@@ -301,16 +303,16 @@ bool CovarianceMatrix::is_consistent(const ArrayOfArrayOfIndex &jis) const {
     Index row_start = jis[i][0];
     Index row_extent = jis[i][1] - jis[i][0] + 1;
     Range row_range = b.get_row_range();
-    if ((row_range.get_start() != row_start) ||
-        (row_range.get_extent() != row_extent)) {
+    if ((row_range.offset != row_start) ||
+        (row_range.extent != row_extent)) {
       return false;
     }
 
     Index column_start = jis[j][0];
     Index column_extent = jis[j][1] - jis[j][0] + 1;
     Range column_range = b.get_column_range();
-    if ((column_range.get_start() != column_start) ||
-        (column_range.get_extent() != column_extent)) {
+    if ((column_range.offset != column_start) ||
+        (column_range.extent != column_extent)) {
       return false;
     }
     return true;
@@ -450,11 +452,11 @@ void CovarianceMatrix::invert_correlation_block(
     std::tie(ci, cj) = blocks[i]->get_indices();
 
     if (ci == cj) {
-      Index extent = blocks[i]->get_row_range().get_extent();
+      Index extent = blocks[i]->get_row_range().extent;
       block_start.insert(
-          std::make_pair(ci, blocks[i]->get_row_range().get_start()));
+          std::make_pair(ci, blocks[i]->get_row_range().offset));
       block_extent.insert(
-          std::make_pair(ci, blocks[i]->get_row_range().get_extent()));
+          std::make_pair(ci, blocks[i]->get_row_range().extent));
       block_start_cont.insert(std::make_pair(ci, n));
       block_extent_cont.insert(std::make_pair(ci, extent));
       block_indices.push_back(ci);
@@ -636,8 +638,8 @@ std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &covmat) {
     Index i, j;
     tie(i, j) = b.get_indices();
     os << "\ti = " << i << ", j = " << j << ": "
-       << b.get_row_range().get_extent();
-    os << " x " << b.get_column_range().get_extent();
+       << b.get_row_range().extent;
+    os << " x " << b.get_column_range().extent;
     os << ", has inverse: "
        << (covmat.has_inverse(std::make_pair(i, j)) ? "yes" : "no");
     os << std::endl;

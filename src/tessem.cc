@@ -30,7 +30,7 @@
 
 #include "tessem.h"
 #include "file.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 
 /*! Read TESSEM2 neural network parameters
@@ -84,7 +84,7 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
   \param[in] net  Neural network parameters.
   \param[in] nx  Input data.
 */
-void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx) {
+void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx) {
   ARTS_USER_ERROR_IF (nx.nelem() != net.nb_inputs,
     "Tessem NN requires ", net.nb_inputs,
     " values, but input vector has ", nx.nelem(), " element.")

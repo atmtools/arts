@@ -84,20 +84,20 @@ public:
   [[nodiscard]] constexpr auto operator<=>(const matpack_mditer&) const noexcept = default;
 
   [[nodiscard]] constexpr auto operator*() const
-      -> std::conditional_t<N == 1, std::conditional_t<not constant, std::add_lvalue_reference_t<T>, T>,
+      -> std::conditional_t<N == 1, std::conditional_t<constant, T, T&>,
                             value_type> {
     if constexpr (N == 1) {
-      return orig->operator[](pos);
+      return orig->elem_at(pos);
     } else {
       return sub<M, N>(*orig, pos);
     }
   }
 
   [[nodiscard]] constexpr auto operator[](Index i) const
-      -> std::conditional_t<N == 1, std::add_lvalue_reference_t<T>,
+      -> std::conditional_t<N == 1, std::conditional_t<constant, T, T&>,
                             value_type> {
     if constexpr (N == 1) {
-      return orig->operator[](pos + i);
+      return orig->elem_at(pos + i);
     } else {
       return sub<M, N>(*orig, pos + i);
     }
@@ -111,7 +111,7 @@ class matpack_elemwise_mditer {
 
 public:
   using difference_type = Index;
-  using value_type = T;
+  using value_type = std::conditional_t<constant, const T, T>;
 
   constexpr matpack_elemwise_mditer() = default;
   constexpr matpack_elemwise_mditer(matpack_elemwise_mditer&&) noexcept = default;
@@ -133,6 +133,9 @@ public:
   [[nodiscard]] constexpr matpack_elemwise_mditer operator-(Index i) const noexcept {matpack_elemwise_mditer out(*this); out.pos-=i; return out;}
   [[nodiscard]] constexpr friend matpack_elemwise_mditer operator+(Index i, const matpack_elemwise_mditer& m) noexcept {return m + i;}
   [[nodiscard]] constexpr friend matpack_elemwise_mditer operator-(Index i, const matpack_elemwise_mditer& m) noexcept {return m - i;}
+
+  [[nodiscard]] constexpr difference_type operator-(const matpack_elemwise_mditer& other) const noexcept {return pos-other.pos;}
+  [[nodiscard]] constexpr difference_type operator+(const matpack_elemwise_mditer& other) const noexcept {return pos+other.pos;}
 
   [[nodiscard]] constexpr auto operator<=>(const matpack_elemwise_mditer&) const noexcept = default;
 

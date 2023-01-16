@@ -792,7 +792,9 @@ void GasAbsLookup::Extract(Matrix& sga,
   // For sure, we need to store the pressure grid position.
   // We do the interpolation in log(p). Test have shown that this
   // gives slightly better accuracy than interpolating in p directly.
-  const auto plag = Interpolation::LagrangeVector(log(p), log_p_grid, p_interp_order);
+  const auto plog=std::log(p);
+  ConstVectorView plog_v{plog};
+  const auto plag = Interpolation::LagrangeVector(plog_v, log_p_grid, p_interp_order);
 
   // Pressure interpolation weights:
   const auto pitw = interpweights(plag[0]);

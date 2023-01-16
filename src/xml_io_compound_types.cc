@@ -222,10 +222,10 @@ void xml_write_to_stream(ostream& os_xml,
 
     Range row_range = c.get_row_range();
     Range column_range = c.get_column_range();
-    block_tag.add_attribute("row_start", row_range.get_start());
-    block_tag.add_attribute("row_extent", row_range.get_extent());
-    block_tag.add_attribute("column_start", column_range.get_start());
-    block_tag.add_attribute("column_extent", column_range.get_extent());
+    block_tag.add_attribute("row_start", row_range.offset);
+    block_tag.add_attribute("row_extent", row_range.extent);
+    block_tag.add_attribute("column_start", column_range.offset);
+    block_tag.add_attribute("column_extent", column_range.extent);
     block_tag.add_attribute("is_inverse", Index(0));
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       block_tag.add_attribute("type", "Matrix");
@@ -253,10 +253,10 @@ void xml_write_to_stream(ostream& os_xml,
 
     Range row_range = c.get_row_range();
     Range column_range = c.get_column_range();
-    block_tag.add_attribute("row_start", row_range.get_start());
-    block_tag.add_attribute("row_extent", row_range.get_extent());
-    block_tag.add_attribute("column_start", column_range.get_start());
-    block_tag.add_attribute("column_extent", column_range.get_extent());
+    block_tag.add_attribute("row_start", row_range.offset);
+    block_tag.add_attribute("row_extent", row_range.extent);
+    block_tag.add_attribute("column_start", column_range.offset);
+    block_tag.add_attribute("column_extent", column_range.extent);
     block_tag.add_attribute("is_inverse", Index(1));
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       block_tag.add_attribute("type", "Matrix");

@@ -7,9 +7,10 @@
 
 #include <iostream>
 
-#include "matpack.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_eigen.h"
+#include "matpack_math.h"
+#include "matpack_sparse.h"
 #include "lin_alg.h"
 #include "covariance_matrix.h"
 
@@ -45,8 +46,8 @@ public:
     ArtsVector & operator=(const ArtsVector &A) = default;
     ArtsVector(const Vector &v) : Vector(v) {}
 
-    ArtsVector(ArtsVector &&A);
-    ArtsVector & operator=(ArtsVector &&A);
+    ArtsVector(ArtsVector &&A) = default;
+    ArtsVector & operator=(ArtsVector &&A) = default;
 
     // ----------------- //
     //   Manipulations   //
@@ -101,8 +102,8 @@ public:
 
     ArtsMatrix (const Matrix &A);
 
-    ArtsMatrix(ArtsMatrix &&A);
-    ArtsMatrix & operator=(ArtsMatrix &&A);
+    ArtsMatrix(ArtsMatrix &&A) = default;
+    ArtsMatrix & operator=(ArtsMatrix &&A) = default;
 
     template <typename ArtsType>
     ArtsMatrix(const ArtsMatrixReference<ArtsType> & A);

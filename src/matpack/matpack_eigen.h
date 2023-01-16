@@ -1,6 +1,7 @@
 #pragma once
 
 #include "matpack_concepts.h"
+#include "matpack_eigen.h"
 #include "matpack_view.h"
 
 #pragma GCC diagnostic push

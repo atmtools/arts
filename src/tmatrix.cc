@@ -30,7 +30,7 @@
 #include "arts_constants.h"
 #include "matpack_complex.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "optproperties.h"
 
@@ -907,12 +907,12 @@ void tmatrix_random_orientation(Numeric& cext,
        csca,
        walb,
        asymm,
-       f11.get_c_array(),
-       f22.get_c_array(),
-       f33.get_c_array(),
-       f44.get_c_array(),
-       f12.get_c_array(),
-       f34.get_c_array(),
+       f11.unsafe_data_handle(),
+       f22.unsafe_data_handle(),
+       f33.unsafe_data_handle(),
+       f44.unsafe_data_handle(),
+       f12.unsafe_data_handle(),
+       f34.unsafe_data_handle(),
        errmsg);
 
   if (strlen(errmsg)) {
@@ -1427,12 +1427,12 @@ void tmatrix_tmd_test(const Verbosity& verbosity) {
        csca,
        walb,
        asymm,
-       f11.get_c_array(),
-       f22.get_c_array(),
-       f33.get_c_array(),
-       f44.get_c_array(),
-       f12.get_c_array(),
-       f34.get_c_array(),
+       f11.unsafe_data_handle(),
+       f22.unsafe_data_handle(),
+       f33.unsafe_data_handle(),
+       f44.unsafe_data_handle(),
+       f12.unsafe_data_handle(),
+       f34.unsafe_data_handle(),
        errmsg);
 
   out0 << "reff: " << reff << " um\n";

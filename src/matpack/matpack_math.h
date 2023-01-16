@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <nonstd.h>
 
 #include "matpack_concepts.h"
@@ -19,21 +20,25 @@ auto transpose(const MAT &x)
        std::array{x.stride(1), x.stride(0)}}};
 }
 
-void mult_fast(ExhaustiveMatrixView&& A, const ExhaustiveConstMatrixView& B, const ExhaustiveConstMatrixView& C);
+void mult_fast(ExhaustiveMatrixView A, const ExhaustiveConstMatrixView& B, const ExhaustiveConstMatrixView& C);
 
-void mult_slow(MatrixView&& A, const ConstMatrixView& B, const ConstMatrixView& C);
+void mult_slow(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C);
 
-void mult_fast(ExhaustiveComplexMatrixView&& A, const ExhaustiveConstComplexMatrixView& B, const ExhaustiveConstComplexMatrixView& C);
+void mult_fast(ExhaustiveComplexMatrixView A, const ExhaustiveConstComplexMatrixView& B, const ExhaustiveConstComplexMatrixView& C);
 
-void mult_slow(ComplexMatrixView&& A, const ConstComplexMatrixView& B, const ConstComplexMatrixView& C);
+void mult_slow(ComplexMatrixView A, const ConstComplexMatrixView& B, const ConstComplexMatrixView& C);
 
-void mult_fast(ExhaustiveVectorView&& A, const ExhaustiveConstMatrixView& B, const ExhaustiveConstVectorView& C);
+void mult_fast(ExhaustiveVectorView A, const ExhaustiveConstMatrixView& B, const ExhaustiveConstVectorView& C);
 
-void mult_slow(VectorView&& A, const ConstMatrixView& B, const ConstVectorView& C);
+void mult_slow(VectorView A, const ConstMatrixView& B, const ConstVectorView& C);
 
-void mult_fast(ExhaustiveComplexVectorView&& A, const ExhaustiveConstComplexMatrixView& B, const ExhaustiveConstComplexVectorView& C);
+void mult_fast(ExhaustiveComplexVectorView A, const ExhaustiveConstComplexMatrixView& B, const ExhaustiveConstComplexVectorView& C);
 
-void mult_slow(ComplexVectorView&& A, const ConstComplexMatrixView& B, const ConstComplexVectorView& C);
+void mult_slow(ComplexVectorView A, const ConstComplexMatrixView& B, const ConstComplexVectorView& C);
+
+void cross3(VectorView A, const ConstVectorView& B, const ConstVectorView& C);
+
+void cross3(ComplexVectorView A, const ConstComplexVectorView& B, const ConstComplexVectorView& C);
 
 template <matpack::strict_sized_matpack_type<2> OUTMAT,
           matpack::strict_sized_matpack_type<2> LMAT,
@@ -63,6 +68,8 @@ void mult(LHSVEC &&A, const RHSMAT &B, const RHSVEC &C)
     mult_slow(std::forward<LHSVEC>(A), B, C);
 }
 
+Vector diagonal(const ConstMatrixView& A);
+
 Vector uniform_grid(Numeric x0, Index N, Numeric dx);
 
 ComplexVector uniform_grid(Complex x0, Index N, Complex dx);
@@ -79,34 +86,25 @@ void transform(OUT &&out,
 }
 
 template <matpack::any_matpack_type IN>
-constexpr auto min_element(const IN &in)  {
-  return std::min_element(in.elem_begin(), in.elem_end());
+constexpr auto min(const IN &in) {
+  using T = matpack::matpack_value_type<IN>;
+  //FIXME: CLANG bug means we want to use std::reduce rather than min_element
+  return std::reduce(in.elem_begin(), in.elem_end(), std::numeric_limits<T>::max(), [](auto a, auto b){return a < b ? a : b;});
 }
 
 template <matpack::any_matpack_type IN>
-constexpr auto min(const IN &in) -> matpack::matpack_value_type<IN> {
-  return *min_element(in);
+constexpr auto max(const IN &in) {
+  using T = matpack::matpack_value_type<IN>;
+  //FIXME: CLANG bug means we want to use std::reduce rather than max_element
+  return std::reduce(in.elem_begin(), in.elem_end(), std::numeric_limits<T>::lowest(), [](auto a, auto b){return a > b ? a : b;});
 }
 
 template <matpack::any_matpack_type IN>
-constexpr auto max_element(const IN &in)  {
-  return std::max_element(in.elem_begin(), in.elem_end());
-}
-
-template <matpack::any_matpack_type IN>
-constexpr auto max(const IN &in) -> matpack::matpack_value_type<IN> {
-  return *max_element(in);
-}
-
-template <matpack::any_matpack_type IN>
-constexpr auto minmax_element(const IN &in)  {
-  return std::minmax_element(in.elem_begin(), in.elem_end());
-}
-
-template <matpack::any_matpack_type IN>
-constexpr auto minmax(const IN &in) -> std::pair<matpack::matpack_value_type<IN>, matpack::matpack_value_type<IN>> {
-  auto [mn, mx] = minmax_element(in);
-  return {*mn, *mx};
+constexpr auto minmax(const IN &in)
+    -> std::pair<matpack::matpack_value_type<IN>,
+                 matpack::matpack_value_type<IN>> {
+  // FIXME: CLANG bug means we cant use minmax_element so we need to be less efficient
+  return {min(in), max(in)};
 }
 
 template <matpack::any_matpack_type IN>
@@ -114,22 +112,20 @@ constexpr auto sum(const IN &in) {
   return std::reduce(in.elem_begin(), in.elem_end());
 }
 
-template <matpack::any_matpack_type IN>
-constexpr auto has_nan(const IN &in) {
-  return std::any_of(in.elem_begin(), in.elem_end(), [](auto& a){return nonstd::isnan(a);});
+template <matpack::any_matpack_type IN> constexpr auto mean(const IN &in) {
+  return sum(in) / static_cast<decltype(sum(in))>(in.size());
 }
 
-template <matpack::any_matpack_type IN>
-constexpr auto is_decreasing(const IN &in) {
-  return not has_nan(in) and in.elem_end() == std::adjacent_find(in.elem_begin(), in.elem_end(), [](auto& a, auto& b){return a <= b;});
-}
-
-template <matpack::any_matpack_type IN>
-constexpr auto is_increasing(const IN &in) {
-  return not has_nan(in) and in.elem_end() == std::adjacent_find(in.elem_begin(), in.elem_end(), [](auto& a, auto& b){return a >= b;});
-}
-
-template <matpack::any_matpack_type IN>
-constexpr auto is_sorted(const IN &in) {
-  return not has_nan(in) and std::is_sorted(in.elem_begin(), in.elem_end());
+template <matpack::any_matpack_type IN> constexpr auto nanmean(const IN &in) {
+  using T = matpack::matpack_value_type<IN>;
+  using pt = std::pair<Index, T>;
+  const auto [count, sum] = std::transform_reduce(
+      in.elem_begin(), in.elem_end(), pt(0, 0),
+      [](pt a, pt b) {
+        return pt{a.first + b.first, a.second + b.second};
+      },
+      [](T a) {
+        return nonstd::isnan(a) ? pt(0, 0) : pt(1, a);
+      });
+  return sum / static_cast<T>(count);
 }

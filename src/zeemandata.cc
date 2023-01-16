@@ -29,6 +29,7 @@
 #include "zeemandata.h"
 
 #include "debug.h"
+#include "matpack_data.h"
 #include "matpack_eigen.h"
 #include "species_info.h"
 #include "wigner_functions.h"
@@ -440,14 +441,14 @@ void sum(PropagationMatrix& pm,
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
                        : pm.NumberOfNeededVectors() == 4)
 
-  const auto pol_real = matpack::eigen::col_vec(polvec.att);
-  const auto pol_imag = matpack::eigen::col_vec(polvec.dis);
+  const ExhaustiveConstVectorView pol_real(polvec.att);
+  const ExhaustiveConstVectorView pol_imag(polvec.dis);
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
-  matpack::eigen::mat(out).leftCols<4>().noalias() += matpack::eigen::row_vec(abs.real()) * pol_real;
+  matpack::eigen::mat(out).leftCols<4>().noalias() += matpack::eigen::row_vec(abs.real()) * matpack::eigen::col_vec(pol_real);
   if (do_phase)
     matpack::eigen::mat(out).rightCols<3>().noalias() +=
-        matpack::eigen::row_vec(abs.imag()) * pol_imag;
+        matpack::eigen::row_vec(abs.imag()) * matpack::eigen::col_vec(pol_imag);
 }
 
 void dsum(PropagationMatrix& pm,
@@ -466,23 +467,23 @@ void dsum(PropagationMatrix& pm,
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
                        : pm.NumberOfNeededVectors() == 4)
 
-  const auto pol_real = matpack::eigen::col_vec(polvec.att);
-  const auto pol_imag = matpack::eigen::col_vec(polvec.dis);
-  const auto dpolvec_dtheta_real = matpack::eigen::col_vec(dpolvec_dtheta.att);
-  const auto dpolvec_dtheta_imag = matpack::eigen::col_vec(dpolvec_dtheta.dis);
-  const auto dpolvec_deta_real = matpack::eigen::col_vec(dpolvec_deta.att);
-  const auto dpolvec_deta_imag = matpack::eigen::col_vec(dpolvec_deta.dis);
+  const ExhaustiveConstVectorView pol_real(polvec.att);
+  const ExhaustiveConstVectorView pol_imag(polvec.dis);
+  const ExhaustiveConstVectorView dpolvec_dtheta_real(dpolvec_dtheta.att);
+  const ExhaustiveConstVectorView dpolvec_dtheta_imag(dpolvec_dtheta.dis);
+  const ExhaustiveConstVectorView dpolvec_deta_real(dpolvec_deta.att);
+  const ExhaustiveConstVectorView dpolvec_deta_imag(dpolvec_deta.dis);
 
   auto da_r =
-      (dt * dpolvec_dtheta_real + de * dpolvec_deta_real);
+      (dt * matpack::eigen::col_vec(dpolvec_dtheta_real) + de * matpack::eigen::col_vec(dpolvec_deta_real));
   auto da_i =
-      (dt * dpolvec_dtheta_imag + de * dpolvec_deta_imag);
+      (dt * matpack::eigen::col_vec(dpolvec_dtheta_imag) + de * matpack::eigen::col_vec(dpolvec_deta_imag));
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
   matpack::eigen::mat(out).leftCols<4>().noalias() +=
-      dH * matpack::eigen::row_vec(dabs.real()) * pol_real + matpack::eigen::row_vec(abs.real()) * da_r;
+      dH * matpack::eigen::row_vec(dabs.real()) * matpack::eigen::col_vec(pol_real) + matpack::eigen::row_vec(abs.real()) * da_r;
   if (do_phase)
     matpack::eigen::mat(out).rightCols<3>().noalias() +=
-        dH * matpack::eigen::row_vec(dabs.imag()) * pol_imag + matpack::eigen::row_vec(abs.imag()) * da_i;
+        dH * matpack::eigen::row_vec(dabs.imag()) * matpack::eigen::col_vec(pol_imag) + matpack::eigen::row_vec(abs.imag()) * da_i;
 }
 }  // namespace Zeeman

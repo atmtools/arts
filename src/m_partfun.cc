@@ -1,7 +1,7 @@
 #include <filesystem>
 
 #include "math_funcs.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "messages.h"
 #include "mystring.h"
 #include "partfun.h"

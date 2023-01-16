@@ -481,7 +481,7 @@ HartmannTran::HartmannTran(Numeric F0_noshift, const Output &ls,
 }
 
 Complex HartmannTran::dFdf() const noexcept {
-  constexpr Complex ddeltax = -1i;
+  constexpr Complex ddeltax{0, -1};
   const Complex dx = -ddeltax / ((ETA - 1) * Complex(G2, D2));
   const Complex dsqrtxy = dx / (2 * sqrtxy);
 
@@ -2031,7 +2031,7 @@ struct CutoffRange {
 CutoffRange limited_range(const Numeric fl, const Numeric fu,
                           const Vector &f_grid) ARTS_NOEXCEPT {
   ARTS_ASSERT(fu > fl);
-  const Numeric *it0 = f_grid.get_c_array();
+  const Numeric *it0 = f_grid.data_handle();
   const Numeric *itn = it0 + f_grid.size();
   const Numeric *itl = std::lower_bound(it0, itn, fl);
   return CutoffRange{std::distance(it0, itl),
@@ -2055,7 +2055,7 @@ SparseLimitRange linear_sparse_limited_range(
   const Index nvs = sparse_f_grid.size();
 
   // Find bounds in sparse
-  const Numeric *it0s = sparse_f_grid.get_c_array();
+  const Numeric *it0s = sparse_f_grid.data_handle();
   const Numeric *itns = it0s + nvs;
   const Numeric *itlc =
       std::lower_bound(it0s, itns, std::nextafter(flc, fuc)); // lower cutoff
@@ -2089,7 +2089,7 @@ SparseLimitRange linear_sparse_limited_range(
       (beg_ur <= 0 or beg_ur >= nvs) ? fuc : sparse_f_grid[beg_ur];
 
   // Find bounds in dense
-  const Numeric *it0 = f_grid.get_c_array();
+  const Numeric *it0 = f_grid.data_handle();
   const Numeric *itn = it0 + f_grid.size();
   const Numeric *itl = std::lower_bound(it0, itn, fl); // include boundary
   const Numeric *itu =
@@ -2114,7 +2114,7 @@ SparseLimitRange quad_sparse_limited_range(
   const Index nv = f_grid.size();
 
   // Find bounds in sparse
-  const Numeric *const it0s = sparse_f_grid.get_c_array();
+  const Numeric *const it0s = sparse_f_grid.data_handle();
   const Numeric *const itns = it0s + nvs;
   const Numeric *itlc =
       std::lower_bound(it0s, itns, std::nextafter(flc, fuc)); // lower cutoff
@@ -2150,7 +2150,7 @@ SparseLimitRange quad_sparse_limited_range(
     --ituc; // skip some cutoff
 
   // Find bounds in dense
-  const Numeric *const it0 = f_grid.get_c_array();
+  const Numeric *const it0 = f_grid.data_handle();
   const Numeric *const itn = it0 + nv;
   const Numeric *itl;
   const Numeric *itu;
@@ -2222,11 +2222,11 @@ struct ComputeValues {
                 ComplexMatrix &dN_, const Vector &f_grid, const Index start,
                 const Index nv, const ArrayOfDerivatives &derivs_,
                 const bool do_nlte_) noexcept
-      : F(F_.get_c_array() + start),
-        dF(dF_.get_c_array() + start * derivs_.size()),
-        N(N_.get_c_array() + start),
-        dN(dN_.get_c_array() + start * derivs_.size()),
-        f(f_grid.get_c_array() + start), size(nv), derivs(derivs_),
+      : F(F_.data_handle() + start),
+        dF(dF_.data_handle() + start * derivs_.size()),
+        N(N_.data_handle() + start),
+        dN(dN_.data_handle() + start * derivs_.size()),
+        f(f_grid.data_handle() + start), size(nv), derivs(derivs_),
         jac_size(derivs_.size()), max_jac_size(active_nelem(derivs)),
         do_nlte(do_nlte_) {}
 

@@ -1,7 +1,7 @@
 #ifndef ppath_struct_h
 #define ppath_struct_h
 
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "interpolation.h"
 

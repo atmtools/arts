@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "template_partfun.h"
 
 namespace PartitionFunctions {

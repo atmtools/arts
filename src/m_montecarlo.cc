@@ -40,7 +40,7 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mc_interp.h"
 #include "messages.h"
 #include "montecarlo.h"

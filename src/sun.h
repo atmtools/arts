@@ -37,7 +37,7 @@
 
 #include "arts.h"
 #include "gridded_fields.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "transmissionmatrix.h"
 #include "energylevelmap.h"
 #include "optproperties.h"

@@ -30,7 +30,7 @@
 #include "arts.h"
 #include "bifstream.h"
 #include "gridded_fields.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "mystring.h"
 #include "species.h"
@@ -119,23 +119,23 @@ class XsecRecord {
 
  private:
   /** Calculate crosssections */
-  void CalcXsec(VectorView& xsec,
+  void CalcXsec(VectorView xsec,
                 Index dataset,
                 Numeric pressure,
                 Numeric temperature) const;
 
   // /** Calculate temperature derivative of crosssections */
-  // void CalcDT(VectorView& xsec_dt,
+  // void CalcDT(VectorView xsec_dt,
   //             Index dataset,
   //             Numeric temperature) const;
 
   // /** Calculate pressure derivative of crosssections */
-  // void CalcDP(VectorView& xsec_dp,
+  // void CalcDP(VectorView xsec_dp,
   //             Index dataset,
   //             Numeric pressure) const;
 
   /** Remove negative cross sections and adjust integral */
-  void RemoveNegativeXsec(VectorView& xsec) const;
+  void RemoveNegativeXsec(VectorView xsec) const;
 
   static const Index P00 = 0;
   static const Index P10 = 1;
