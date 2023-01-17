@@ -63,12 +63,12 @@ template <typename T>
 concept arithmetic = std::is_arithmetic_v<std::remove_cvref_t<T>>;
 
 template <typename T>
-concept complex_type = requires(T a) {
-  sizeof(decltype(1.0 * a.real())) * 2 == sizeof(T);
-  sizeof(decltype(1.0 * a.imag())) * 2 == sizeof(T);
-  { a.real() } -> arithmetic;
-  { a.imag() } -> arithmetic;
-};
+concept complex_type =
+    requires(T a) {
+      { a.real() } -> arithmetic;
+      { a.imag() } -> arithmetic;
+    } and sizeof(std::remove_cvref_t<decltype(T{}.real())>) * 2 == sizeof(T) and
+    sizeof(std::remove_cvref_t<decltype(T{}.imag())>) * 2 == sizeof(T);
 
 //! Helper to get the subtype of a complex type (e.g., Numeric from std::complex<Numeric>)
 template <complex_type T>
