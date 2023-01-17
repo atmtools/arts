@@ -1706,24 +1706,30 @@ Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
 
   return pos;
 }
+
 )--";
 
-  for (auto& [name, group] : arts.group) {
+  for (auto &[name, group] : arts.group) {
     const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
 
     os << "WorkspaceVariable::operator " << name << extra;
-    os << "&() {return *static_cast<" << name << extra
+    os << "&() {ARTS_USER_ERROR_IF(group() not_eq WorkspaceGroupIndexValue<"
+       << name << R"(>, name(), " is not of type )"
+       << name << "\") return *static_cast<" << name << extra
        << "*>(ws[pos].get());}\n";
 
     os << "WorkspaceVariable::operator " << name << extra;
-    os << "&() const {ARTS_USER_ERROR_IF(not is_initialized(), \"Not initialized: \", name()) return *static_cast<"
+    os << "&() const {ARTS_USER_ERROR_IF(group() not_eq WorkspaceGroupIndexValue<"
+       << name << R"(>, name(), " is not of type )"
+       << name << "\") ARTS_USER_ERROR_IF(not is_initialized(), \"Not "
+          "initialized: \", name()) return *static_cast<"
        << name << extra << "*>(ws[pos].get());}\n";
   }
 
-  os << R"--(WorkspaceVariable::operator Index&() {return *static_cast<Index *>(ws[pos].get());}
-WorkspaceVariable::operator Index&() const {ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name()) return *static_cast<Index *>(ws[pos].get());}
-WorkspaceVariable::operator Numeric&() {return *static_cast<Numeric *>(ws[pos].get());}
-WorkspaceVariable::operator Numeric&() const {ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name()) return *static_cast<Numeric *>(ws[pos].get());}
+  os << R"--(WorkspaceVariable::operator Index&() {return static_cast<Index_&>(*this);}
+WorkspaceVariable::operator Index&() const {return static_cast<Index_&>(*this);}
+WorkspaceVariable::operator Numeric&() {return static_cast<Numeric_&>(*this);}
+WorkspaceVariable::operator Numeric&() const {return static_cast<Numeric_&>(*this);}
 }  // namespace Python
 )--";
 }
