@@ -29,6 +29,7 @@
 
 #include <sstream>
 #include <string>
+#include <version>
 
 /*! Take all arguments and turn to string by their operator<<() */
 template <typename ... Args>
@@ -41,6 +42,25 @@ std::string var_string(Args&& ... args) {
     return "";
   }
 }
+
+#if __cpp_lib_source_location	>= 201907L
+#include <iomanip>
+#include <source_location>
+
+#define CURRENT_SOURCE_LOCATION                                                \
+  var_string("Filename:      ",                                                \
+             std::quoted(std::source_location::current().file_name()), '\n',   \
+             "Function Name: ",                                                \
+             std::quoted(std::source_location::current().function_name()),     \
+             '\n', "Line Number:   ", std::source_location::current().line(),  \
+             '\n',                                                             \
+             "Column Number: ", std::source_location::current().column())
+
+#else
+
+#define CURRENT_SOURCE_LOCATION var_string("\t", __FILE__, ":", __LINE__)
+
+#endif
 
 #ifndef NDEBUG
 #include <exception>
@@ -84,9 +104,8 @@ std::string var_string(Args&& ... args) {
     if (not(condition)) {                                                      \
       throw std::runtime_error(                                                \
           var_string("Failed Internal Assert: " #condition "\n"                \
-                     "This is a bug! "                                         \
-                     "Bug is found at:\n\t" __FILE__ ":",                      \
-                     __LINE__,                                                 \
+                     "This is a bug!  Bug is found at:\n",                     \
+                     CURRENT_SOURCE_LOCATION,                                  \
                      "\nPlease contact"                                        \
                      " ARTS developers so we can fix "                         \
                      "our error(s) via:\n\t"                                   \
@@ -137,12 +156,12 @@ std::string var_string(Args&& ... args) {
                   "Must have an error message in user-"                        \
                   "facing code in " __FILE__);                                 \
     if (condition) {                                                           \
-      throw std::runtime_error(var_string(                                     \
-          "User Error: " #condition "\nError is found at:\n\t" __FILE__ ":",   \
-          __LINE__,                                                            \
-          "\nPlease follow "                                                   \
-          "these instructions to correct your "                                \
-          "error:\n" __VA_OPT__(, __VA_ARGS__)));                              \
+      throw std::runtime_error(                                                \
+          var_string("User Error: " #condition "\nError is found at:\n",       \
+                     CURRENT_SOURCE_LOCATION,                                  \
+                     "\nPlease follow "                                        \
+                     "these instructions to correct your "                     \
+                     "error:\n" __VA_OPT__(, __VA_ARGS__)));                   \
     }                                                                          \
   }
 
@@ -154,8 +173,8 @@ std::string var_string(Args&& ... args) {
                   "facing code in " __FILE__);                                 \
     throw std::runtime_error(                                                  \
         var_string("User Error:\n"                                             \
-                   "Error is found at:\n\t" __FILE__ ":",                      \
-                   __LINE__,                                                   \
+                   "Error is found at:\n",                                     \
+                   CURRENT_SOURCE_LOCATION,                                    \
                    "\nPlease follow "                                          \
                    "these instructions to correct your "                       \
                    "error:\n" __VA_OPT__(, __VA_ARGS__)));                     \
