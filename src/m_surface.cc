@@ -3250,7 +3250,7 @@ void surface_rtpropFromTypesAverage(
   surface_emission = 0.;
 
   // Help variables
-  const Numeric weight_sum = dlos_weight_vector.sum();
+  const Numeric weight_sum = sum(dlos_weight_vector);
   Numeric tmp_skin_t;
   Vector tmp_type_mix;
   Matrix tmp_emission, tmp_los;
