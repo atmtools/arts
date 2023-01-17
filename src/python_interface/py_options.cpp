@@ -64,7 +64,6 @@ void py_options(py::module_& m) {
   DeclareOption(Options, test_agendaDefaultOptions)
   DeclareOption(Options, dobatch_calc_agendaDefaultOptions)
   DeclareOption(Options, ybatch_calc_agendaDefaultOptions)
-  DeclareOption(Options, surface_rtprop_sub_agendaDefaultOptions)
   DeclareOption(Options, spt_calc_agendaDefaultOptions)
   DeclareOption(Options, sensor_response_agendaDefaultOptions)
   DeclareOption(Options, propmat_clearsky_agendaDefaultOptions)

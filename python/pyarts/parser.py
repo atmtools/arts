@@ -245,11 +245,13 @@ class WSMCall:
                     a = self.convert_argument(n, a)
                 s += to_python(a, workspace) + ", "
 
-            a = self.args[-1]
-            n = self.arg_names[len(self.args)-1]
-            if not isinstance(a, WSV):
-                a = self.convert_argument(n, a)
-            s += to_python(a, workspace) + ")\n"
+            if len(self.args):
+                a = self.args[-1]
+                n = self.arg_names[len(self.args)-1]
+                if not isinstance(a, WSV):
+                    a = self.convert_argument(n, a)
+                s += to_python(a, workspace)
+            s += ")\n"
 
         if self.args is None:
             keys = list(self.kwargs.keys())
@@ -258,11 +260,13 @@ class WSMCall:
                 if not isinstance(a, WSV):
                     a = self.convert_argument(k, a)
                 s += str(k) + "=" + to_python(a, workspace) + ", "
-            k = keys[-1]
-            a = self.kwargs[keys[-1]]
-            if not isinstance(a, WSV):
-                a = self.convert_argument(k, a)
-            s += str(k) + "=" + to_python(a, workspace) + ")\n"
+            if len(keys):
+                k = keys[-1]
+                a = self.kwargs[keys[-1]]
+                if not isinstance(a, WSV):
+                    a = self.convert_argument(k, a)
+                s += str(k) + "=" + to_python(a, workspace)
+            s += ")\n"
         return s
 
 

@@ -185,7 +185,6 @@ Agenda get_g0_agenda(Workspace& ws, const String& option);
 Agenda get_dobatch_calc_agenda(Workspace& ws, const String& option);
 Agenda get_ybatch_calc_agenda(Workspace& ws, const String& option);
 Agenda get_test_agenda(Workspace& ws, const String& option);
-Agenda get_surface_rtprop_sub_agenda(Workspace& ws, const String& option);
 Agenda get_spt_calc_agenda(Workspace& ws, const String& option);
 Agenda get_sensor_response_agenda(Workspace& ws, const String& option);
 Agenda get_propmat_clearsky_agenda(Workspace& ws, const String& option);

@@ -258,7 +258,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
                            const Vector& yb,
                            const Index& stokes_dim,
                            const Vector& f_grid,
-                           const Matrix& mblock_dlos_grid,
+                           const Matrix& mblock_dlos,
                            const Sparse& sensor_response,
                            const ArrayOfRetrievalQuantity& jacobian_quantities,
                            const Verbosity&) {
@@ -300,7 +300,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   Vector dy(n1y);
   {
     const Index nf2 = f_grid.nelem();
-    const Index nlos2 = mblock_dlos_grid.nrows();
+    const Index nlos2 = mblock_dlos.nrows();
     const Index niyb = nf2 * nlos2 * stokes_dim;
 
     // Interpolation weights
@@ -400,7 +400,7 @@ void jacobianCalcFreqStretch(
     const Vector& yb,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Matrix& mblock_dlos_grid,
+    const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfIndex& sensor_response_pol_grid,
     const Vector& sensor_response_f_grid,
@@ -448,7 +448,7 @@ void jacobianCalcFreqStretch(
   Vector dy(n1y);
   {
     const Index nf2 = f_grid.nelem();
-    const Index nlos2 = mblock_dlos_grid.nrows();
+    const Index nlos2 = mblock_dlos.nrows();
     const Index niyb = nf2 * nlos2 * stokes_dim;
 
     // Interpolation weights
@@ -589,21 +589,21 @@ void jacobianCalcPointingZaInterp(
     const Index& stokes_dim,
     const Vector& f_grid,
     const Matrix& DEBUG_ONLY(sensor_los),
-    const Matrix& mblock_dlos_grid,
+    const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfTime& sensor_time,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
-  if (mblock_dlos_grid.nrows() < 2)
+  if (mblock_dlos.nrows() < 2)
     throw runtime_error(
-        "The method demands that *mblock_dlos_grid* has "
+        "The method demands that *mblock_dlos* has "
         "more than one row.");
 
-  if (!(is_increasing(mblock_dlos_grid(joker, 0)) ||
-        is_decreasing(mblock_dlos_grid(joker, 0))))
+  if (!(is_increasing(mblock_dlos(joker, 0)) ||
+        is_decreasing(mblock_dlos(joker, 0))))
     throw runtime_error(
         "The method demands that the zenith angles in "
-        "*mblock_dlos_grid* are sorted (increasing or decreasing).");
+        "*mblock_dlos* are sorted (increasing or decreasing).");
 
   // Set some useful variables.
   RetrievalQuantity rq;
@@ -636,20 +636,20 @@ void jacobianCalcPointingZaInterp(
   {
     // Sizes
     const Index nf = f_grid.nelem();
-    const Index nza = mblock_dlos_grid.nrows();
+    const Index nza = mblock_dlos.nrows();
 
     // Shifted zenith angles
-    Vector za1 = mblock_dlos_grid(joker, 0);
+    Vector za1 = mblock_dlos(joker, 0);
     za1 -= rq.Target().perturbation;
-    Vector za2 = mblock_dlos_grid(joker, 0);
+    Vector za2 = mblock_dlos(joker, 0);
     za2 += rq.Target().perturbation;
 
     // Find interpolation weights
     ArrayOfGridPos gp1(nza), gp2(nza);
     gridpos(
-        gp1, mblock_dlos_grid(joker, 0), za1, 1e6);  // Note huge extrapolation!
+        gp1, mblock_dlos(joker, 0), za1, 1e6);  // Note huge extrapolation!
     gridpos(
-        gp2, mblock_dlos_grid(joker, 0), za2, 1e6);  // Note huge extrapolation!
+        gp2, mblock_dlos(joker, 0), za2, 1e6);  // Note huge extrapolation!
     Matrix itw1(nza, 2), itw2(nza, 2);
     interpweights(itw1, gp1);
     interpweights(itw2, gp2);
@@ -724,7 +724,7 @@ void jacobianCalcPointingZaRecalc(
     const Matrix& sensor_pos,
     const Matrix& sensor_los,
     const Matrix& transmitter_pos,
-    const Matrix& mblock_dlos_grid,
+    const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfTime& sensor_time,
     const String& iy_unit,
@@ -782,7 +782,7 @@ void jacobianCalcPointingZaRecalc(
              sensor_pos,
              los,
              transmitter_pos,
-             mblock_dlos_grid,
+             mblock_dlos,
              iy_unit,
              iy_main_agenda,
              0,

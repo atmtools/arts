@@ -582,18 +582,6 @@ Agenda get_test_agenda(Workspace& ws, const String& option) {
   return agenda.finalize();
 }
 
-Agenda get_surface_rtprop_sub_agenda(Workspace& ws, const String& option) {
-  AgendaCreator agenda(ws, "surface_rtprop_sub_agenda");
-
-  using enum Options::surface_rtprop_sub_agendaDefaultOptions;
-  switch (Options::tosurface_rtprop_sub_agendaDefaultOptionsOrThrow(option)) {
-    case FINAL:
-      break;
-  }
-  
-  return agenda.finalize();
-}
-
 Agenda get_spt_calc_agenda(Workspace& ws, const String& option) {
   AgendaCreator agenda(ws, "spt_calc_agenda");
 

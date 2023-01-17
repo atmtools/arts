@@ -3032,26 +3032,6 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AddZaAa"),
-      DESCRIPTION(
-          "Adds zenith and azimuth angles.\n"
-          "\n"
-          "Adds up line-of-sights (LOS). In short, *dlos* is added to *ref_los*,\n"
-          "assuming that a unit changes in zenith and azimuth are equal where\n"
-          "dlos=(0,0).\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("new_los"),
-      GOUT_TYPE("Matrix"),
-      GOUT_DESC("End line-of-sights."),
-      IN(),
-      GIN("ref_los", "dlos"),
-      GIN_TYPE("Vector", "Matrix"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Reference line-of-sight (a single LOS).",
-               "Change in line-of-sight (can be multiple LOS).")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("AgendaAppend"),
       DESCRIPTION(
           "Append methods to an agenda.\n"
@@ -3224,44 +3204,6 @@ Available models:
                AGENDAMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AntennaConstantGaussian1D"),
-      DESCRIPTION(
-          "Sets up a 1D gaussian antenna response and a matching\n"
-          "*mblock_dlos_grid*.\n"
-          "\n"
-          "As *antenna_responseGaussian*, but also creates *mblock_dlos_grid*.\n"
-          "For returned antenna response, see *antenna_responseGaussian*.\n"
-          "\n"
-          "The size of *mblock_dlos_grid* is determined by *n_za_grid*.\n"
-          "The end points of the grid are set to be the same as for the\n"
-          "antenna response. The spacing of the grid follows the magnitude of\n"
-          "the response; the spacing is smaller where the response is high.\n"
-          "More precisely, the grid points are determined by dividing\n"
-          "the cumulative sum of the response in equal steps. This makes sense\n"
-          "if the representation error of the radiance (as a function of\n"
-          "zenith angle) increases linearly with the grid spacing.\n"
-          "\n"
-          "The WSV *antenna_dlos* is set to [0].\n"
-          "\n"
-          "The antenna repsonse is not normalised.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("antenna_dim",
-          "mblock_dlos_grid",
-          "antenna_response",
-          "antenna_dlos"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("n_za_grid", "fwhm", "xwidth_si", "dx_si"),
-      GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, "3", "0.1"),
-      GIN_DESC("Number of points (>1) to include in *mblock_dlos_grid*.",
-               "Full width at half-maximum of antenna beam [deg].",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("AntennaMultiBeamsToPencilBeams"),
       DESCRIPTION(
           "Maps a multi-beam case to a matching pencil beam case.\n"
@@ -3281,7 +3223,7 @@ Available models:
           "sensor_los",
           "antenna_dlos",
           "antenna_dim",
-          "mblock_dlos_grid"),
+          "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -3289,7 +3231,7 @@ Available models:
          "sensor_los",
          "antenna_dlos",
          "antenna_dim",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "atmosphere_dim"),
       GIN(),
       GIN_TYPE(),
@@ -3301,11 +3243,11 @@ Available models:
       DESCRIPTION(
           "Sets some antenna related variables\n"
           "\n"
-          "Use this method to set *antenna_dim* and *mblock_dlos_grid* to\n"
+          "Use this method to set *antenna_dim* and *mblock_dlos* to\n"
           "suitable values (1 and [0], respectively) for cases when a\n"
           "sensor is included, but the antenna pattern is neglected.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("antenna_dim", "mblock_dlos_grid"),
+      OUT("antenna_dim", "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -3318,49 +3260,79 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseGaussian"),
       DESCRIPTION(
-          "Sets up a gaussian antenna response.\n"
+          "Sets up a Gaussian antenna response.\n"
           "\n"
-          "The method assumes that the response is the same for all\n"
-          "frequencies and polarisations, and that it can be modelled as\n"
-          "gaussian.\n"
+          "This method works as *antenna_responseGaussianConstant* but allows\n"
+          "to inlude a frequency variation of the antenna width. Here the FWHM\n" 
+          "is specified at a set of frequencies. These frequencies will also be\n"
+          "the frequency grid of *antenna_response*.\n"
           "\n"
-          "The grid generated is approximately\n"
-          "   si * [-xwidth_si:dx_si:xwidth_si]\n"
-          "where si is the standard deviation corresponding to the FWHM.\n"
-          "That is, width and spacing of the grid is specified in terms of\n"
-          "number of standard deviations. If xwidth_si is set to 2, the\n"
-          "response will cover about 95% the complete response. For\n"
-          "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
-          "an integer, the end points of the grid are kept and the spacing\n"
-          "of the grid is reduced (ie. spacing is equal or smaller *dx_si*).\n"
-          "\n"
-          "If the 2D option is selected (*do_2d*), a circular antenna is\n"
-          "assumed and the response is any direction follows the 1D case.\n"
-          "\n"
-          "The antenna repsonse is not normalised.\n"),
+          "If *grid_width* is set to <=0, the grid width will be twice the max\n"
+          "value in *fwhm*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("fwhm", "xwidth_si", "dx_si", "do_2d"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "3", "0.1", "0"),
-      GIN_DESC("Full width at half-maximum",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.",
+      GIN("f_points", "fwhm", "grid_width", "grid_npoints", "do_2d"),
+      GIN_TYPE("Vector", "Vector", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "-1.0", "21", "0"),
+      GIN_DESC("Frequencies at which FWHM is defined.",
+               "Full width at half-maximum of the Gaussian function.",
+               "Full width of grid (negative value gives 2*fwhm).",
+               "Number of points to represent the grid, see above.",
                "Set to 1 to create a 2D antenna pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("antenna_responseVaryingGaussian"),
+      NAME("antenna_responseGaussianConstant"),
       DESCRIPTION(
-          "Sets up gaussian antenna responses.\n"
+          "Sets up a Gaussian antenna response, with no frequency variation.\n"
           "\n"
-          "Similar to *antenna_responseGaussian* but allows to set up\n"
+          "The method assumes that the response is the same for all\n"
+          "frequencies and polarisations, and that it can be modelled\n"
+          "as Gaussian. The width of the Gaussian is specified by its\n"
+          "full width at half maximum (FWHM).\n"
+          "\n"
+          "The grid generated has *grid_npoints* equidistant values, with\n"
+          "the first one at -grid_width/2 and the last one at grid_width/2.\n"
+          "\n"
+          "If *grid_width* is set to <= 0, a default of twice the FWMH is\n"
+          "applied. This gives a coverage of about 98\% of the response.\n"
+          "\n"
+          "The default for *grid_npoints* is 21. When the grid width is 2*FWHM,\n"
+          "that default value gives an error < 0.001 of the integrated response\n"
+          "using trapezoidal integration. *grid_npoints* must be > 1.\n"
+          "\n"
+          "If the 2D option is selected (*do_2d*), a circular antenna is\n"
+          "assumed. The same grid and FWHM is applied in both dimensions.\n"
+          "\n"
+          "If the grid has a sufficiently high width the integral of the\n"
+          "response is 1. Otherwise the integral is smaller than 1. That\n"
+          "is, no normalisation is applied.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("antenna_response"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("fwhm", "grid_width", "grid_npoints", "do_2d"),
+      GIN_TYPE("Numeric", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "-1.0", "21", "0"),
+      GIN_DESC("Full width at half-maximum of the Gaussian function.",
+               "Full width of grid (negative value gives 2*fwhm).",
+               "Number of points to represent the grid, see above.",
+               "Set to 1 to create a 2D antenna pattern.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("antenna_responseGaussianEffectiveSize"),
+      DESCRIPTION(
+          "Sets up Gaussian antenna responses.\n"
+          "\n"
+          "Similar to *antenna_responseGaussianConstant* but allows to set up\n"
           "responses that varies with frequency. That is, the method assumes\n"
           "that the response is the same for all polarisations, and that it\n"
-          "can be modelled as a gaussian function varying with frequency.\n"
+          "can be modelled as a Gaussian function varying with frequency.\n"
           "\n"
           "The full width at half maximum (FWHM in radians) is calculated as:\n"
           "    fwhm = lambda / leff\n"
@@ -3372,34 +3344,28 @@ Available models:
           "range [*fstart*,*fstop*], with a logarithmic spacing. That is, the\n"
           "frequency grid of the responses is taken from *VectorNLogSpace*.\n"
           "\n"
-          "The responses have a common angular grid. The width, determined by\n"
-          "*xwidth_si*, is set for the lowest frequency, while the spacing\n"
-          "(*dx_si*) is set for the highest frequency. This ensures that both\n"
-          "the width and spacing are equal or better than *xwidth_si* and\n"
-          "*dx_si*, respectively, for all frequencies.\n"
-          "\n"
-          "If the 2D option is selected (*do_2d*), a circular antenna is\n"
-          "assumed and the response is any direction follows the 1D case.\n"
-          "\n"
-          "The antenna repsonse is not normalised.\n"),
+          "The responses have a common angular grid. The parameters to define\n"
+          "the grid are the same as for *antenna_responseGaussianConstant*. If\n" 
+          "*grid_width* is <= 0, it is set to twice the FWHM at the lowest\n"
+          "frequency.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("leff", "xwidth_si", "dx_si", "nf", "fstart", "fstop", "do_2d"),
+      GIN("leff", "grid_width", "grid_npoints", "nf", "fstart", "fstop", "do_2d"),
       GIN_TYPE("Numeric",
                "Numeric",
-               "Numeric",
+               "Index",
                "Index",
                "Numeric",
                "Numeric",
                "Index"),
-      GIN_DEFAULT(NODEF, "3", "0.1", NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Effective size of the antenna",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.",
+      GIN_DEFAULT(NODEF, "-1.0", "21", NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Effective size of the antenna,",
+               "Full width of grid.",
+               "Number of points to represent the grid.",
                "Number of points in frequency grid (must be >= 2)",
                "Start point of frequency grid",
                "End point of frequency grid",
@@ -4353,12 +4319,12 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
       DESCRIPTION(
-          "Sets up a rectangular channel response.\n"
+          "Sets up a rectangular channel response.\n" 
+          "\n"
+          "The method assumes that all channels have the same response.\n"
           "\n"
           "The response of the backend channels is hee assumed to be constant\n"
-          "inside the resolution width, and zero outside.\n"
-          "\n"
-          "The method assumes that all channels have the same response.\n"),
+          "inside the resolution width, and zero outside.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("backend_channel_response"),
       GOUT(),
@@ -4373,37 +4339,52 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseGaussian"),
       DESCRIPTION(
-          "Sets up a gaussian backend channel response.\n"
+          "Sets up a Gaussian backend channel response.\n"
           "\n"
-          "The method assumes that all channels can be modelled as gaussian.\n"
+          "The method assumes that all channels have the same response.\n"
           "\n"
-          "If *fwhm* has only one element, all channels are assumed to be equal.\n"
-          "If *fwhm* has multiple elements, *xwidth_si* and *dx_si* must have one\n"
-          "element or the same number of elements as *fwhm*. If one element is given,\n"
-          "this value will be used for all channels.\n"
+          "This method works as *backend_channel_responseGaussianConstant*\n"
+          "but handles the case where the response of each channel must be\n"
+          "described. Here the FWHM is specified for each *f_backend*.\n" 
           "\n"
-          "The grid generated can be written as\n"
-          "   si * [-xwidth_si:dx_si:xwidth_si]\n"
-          "where si is the standard deviation corresponding to the FWHM.\n"
-          "That is, width and spacing of the grid is specified in terms of\n"
-          "number of standard deviations. If xwidth_si is set to 2, the\n"
-          "response will cover about 95% the complete response. For\n"
-          "xwidth_si=3, about 99% is covered. If xwidth_si/dx_si is not\n"
-          "an integer, the end points of the grid are kept and the spacing\n"
-          "if the grid is adjusted in the downward direction (ie. spacing is.\n"
-          "is max *dx_si*).\n"),
+          "The GINs *fwhm* and *grid_npoints* work in the same way as for\n"
+          "*antenna_responseGaussianConstant*. A negative *grid_width*\n"
+          "gives a grid that is twice the FWHM of each channel.\n"),
+      AUTHORS("Patrick Eriksson, Oliver Lemke"),
+      OUT("backend_channel_response"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_backend"),
+      GIN("fwhm", "grid_width", "grid_npoints"),
+      GIN_TYPE("Vector", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "-1.0", "21"),
+      GIN_DESC("Full width at half-maximum of the Gaussian function.",
+               "Full width of grid.",
+               "Number of points to represent the grid.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("backend_channel_responseGaussianConstant"),
+      DESCRIPTION(
+          "Sets up a single Gaussian backend channel response.\n"
+          "\n"
+          "The method assumes that all channels have the same response.\n"
+          "\n"
+          "The GINs *fwhm* and *grid_npoints* work in the same way as for\n"
+          "*antenna_responseGaussianConstant*. A negative *grid_width*\n"
+          "gives a grid that is twice the FWHM.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("fwhm", "xwidth_si", "dx_si"),
-      GIN_TYPE("Vector", "Vector", "Vector"),
-      GIN_DEFAULT(NODEF, "[3]", "[0.1]"),
-      GIN_DESC("Full width at half-maximum",
-               "Half-width of response, in terms of std. dev.",
-               "Grid spacing, in terms of std. dev.")));
+      GIN("fwhm", "grid_width", "grid_npoints"),
+      GIN_TYPE("Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "-1.0", "21"),
+      GIN_DESC("Full width at half-maximum of the Gaussian function.",
+               "Full width of grid.",
+               "Number of points to represent the grid.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactAddConstant"),
@@ -5913,13 +5894,13 @@ Available models:
       GIN_DESC("The vector containing the diagonal elements.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DiffZaAa"),
+      NAME("dlosDiffOfLos"),
       DESCRIPTION(
           "Derives the difference betwenn zenith and azimuth angles.\n"
           "\n"
           "Determines the difference between a set of angles (*other_los*)\n"
           "and a reference direction (*ref_los*). This method reverses the\n"
-          "addition made by *AddZaAa*.\n"),
+          "addition made by *losAddLosAndDlos*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("dlos"),
@@ -5929,8 +5910,77 @@ Available models:
       GIN("ref_los", "other_los"),
       GIN_TYPE("Vector", "Matrix"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Reference line-of-sight (a single LOS).",
-               "Other line-of-sights (can be multiple LOS).")));
+      GIN_DESC("Reference line-of-sight (a single los).",
+               "Other line-of-sights (can be multiple los).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("dlosGauss"),
+      DESCRIPTION(
+          "Gives *dlos* suitable for a circular Gaussian response.\n"
+          "\n"
+          "The method generates a *dlos* where each direction has an equal\n"
+          "weight in terms of the product of solid angle and a circular Gaussian\n"
+          "response. That is, the FWHM of the response is equal in zenith and\n"
+          "azimuth directions.\n"
+          "\n"
+          "One dlos is always placed at (0,0). Remaining points are placed in\n"
+          "radial layers, with three dlos in each layer. The number of layers\n"
+          "is selected to match *n-target* as close as possble. The final number\n"
+          "of points is 1+3*n_layers. If n_layers is <= 3, the dlos directions\n"
+          "are at 0, +-60, +-120 and 180 deg in polar angle (from dza=0). If the\n"
+          "number of layers is higher, the angular step size is instead 24 deg.\n"
+          "\n"
+          "Default is to let *dlos_weight_vector* respresent the solid angle of\n"
+          "each dlos direction. With *include_response_in_weight* set to 1, all\n"
+          "elements of *dlos_weight_vector* are equal and their sum is 1.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("dlos", "dlos_weight_vector"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("fwhm", "ntarget", "include_response_in_weight"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
+      GIN_DESC("The full width at half maximum of the Gaussian response.",
+               "Number of dlos-directions to target.",
+               "Set to 1 to include the response values in *dlos_weight_vector*.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("dlosUniform"),
+      DESCRIPTION(
+          "Gives *dlos* a rectangular coverage, with uniform spacing.\n"
+          "\n"
+          "The directions described by *dlos* are uniform with respect\n"
+          "to relative zenith and azimuth (and thus are NOT uniform in\n"
+          "solid angle). The same angular grid is applied in both angular\n"
+          "dimensions. With width = 1 and npoints = 5, the angular grids\n"
+          "both are [-0.4, -0.2, 0, 0.2, 0.4].\n"
+          "\n"
+          "The inner loop in is the zenith direction. That is, first comes\n"
+          "all relative zenith angles for first relative azimuth angle etc.\n"
+          "\n"
+          "For default settings, the resulting number of dlos-directions\n"
+          "is npoints * npoints.\n"
+          "\n"
+          "If GIN *crop_circular* is true, dlos-es at a radius outside of\n"
+          "width/2 are removed. The resulting number of directions then\n"
+          "approaches pi*npoints*npoints/4, for high values of *npoints*.\n"
+          "There is no effect of *crop_circular* for npoints=2, while for\n"
+          "npoints=3 the corner points are removed (despite being inside\n"
+          "the radius limit) and the number of directions becomes five.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("dlos", "dlos_weight_vector"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("width", "npoints", "crop_circular"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
+      GIN_DESC("The full width, in each dimension, in degrees.",
+               "Number of points over the width, in each dimension (>1).",
+               "Set to 1, to crop dlos-es to obtain a pseudo-circular pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalc"),
@@ -8293,6 +8343,33 @@ Available models:
       GIN_DESC("Field to interpolate.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("InterpSurfaceTypeMask"),
+      DESCRIPTION(
+          "Interpolation of surface type mask.\n"
+          "\n"
+          "The method determines the surface type at the position of concern\n"
+          "(*rtp_pos*) from the provided type mask.\n"
+          "\n"
+          "The surface type is taken as the nearest value in *surface_type_mask*.\n"
+          "\n"
+          "The altitude in *rtp_pos* is ignored.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("surface_type"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Surface type index"),
+      IN("atmosphere_dim",
+         "lat_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "surface_type_mask"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricalWithAltitude"),
       DESCRIPTION(
           "Calculates the geometrical intersection with an altitude.\n"
@@ -8308,7 +8385,12 @@ Available models:
           "an altitude is determined. The intersections are described by the\n"
           "GOUT *pos* and *los.\n"
           "\n"
-          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"),
+          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"
+          "\n"
+          "The GOUT *pos* and *los* can NOT be *sensor_pos* and *sensor_los*.\n"
+          "If you want to store the intersections in *sensor_pos* and *sensor_los*\n"
+          "use *sensor_pos_losForwardToAltitude*. For *rte_pos* and *rte_los*\n"
+          "you have *rte_pos_losForwardToAltitude*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -9350,39 +9432,6 @@ Available models:
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("iySurfaceCallAgendaX"),
-      DESCRIPTION(
-          "Switch between the elements of *iy_surface_agenda_array*.\n"
-          "\n"
-          "This method calls the agendas matching *surface_types* and\n"
-          "sums up the iy-data of each type.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("iy", "diy_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_unit",
-         "iy_transmittance",
-         "iy_id",
-         "cloudbox_on",
-         "jacobian_do",
-         "f_grid",
-         "iy_main_agenda",
-         "rtp_pos",
-         "rtp_los",
-         "rte_pos2",
-         "iy_surface_agenda_array",
-         "surface_types",
-         "surface_types_aux",
-         "surface_types_weights" ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
@@ -10831,7 +10880,7 @@ Available models:
          "yb",
          "stokes_dim",
          "f_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "jacobian_quantities"),
       GIN(),
@@ -10858,7 +10907,7 @@ Available models:
          "yb",
          "stokes_dim",
          "f_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_pol_grid",
          "sensor_response_f_grid",
@@ -10889,7 +10938,7 @@ Available models:
          "stokes_dim",
          "f_grid",
          "sensor_los",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_time",
          "jacobian_quantities"),
@@ -10923,7 +10972,7 @@ Available models:
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_time",
          "iy_unit",
@@ -11287,6 +11336,25 @@ Available models:
       GIN_DESC("A raw atmospheric field.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("losAddLosAndDlos"),
+      DESCRIPTION(
+          "Adds zenith and azimuth angles.\n"
+          "\n"
+          "Adds up a line-of-sights (ref_los), with relative angle off-sets\n" 
+          "(dlos).\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("new_los"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("End line-of-sights."),
+      IN(),
+      GIN("ref_los", "dlos"),
+      GIN_TYPE("Vector", "Matrix"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Reference line-of-sight (a single los).",
+               "Change in line-of-sight (can be multiple dlos).")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsCalc"),
       DESCRIPTION(
           "Interpolation of raw magnetic fields to calculation grids.\n"
@@ -11525,6 +11593,35 @@ Available models:
                GIN_DEFAULT(NODEF),
                GIN_DESC("Input covariance matrix.")));
 
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("MatrixGaussian"),
+      DESCRIPTION(
+          "Fills a matrix with a Gaussian function.\n"
+          "\n"
+          "Works as *VectorGaussian* but grid, mean and si/fwhm must be\n"
+          "specified for each dimension.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("Y"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Output Matrix."),
+      IN(),
+      GIN("x_row", "x0_row", "si_row", "fwhm_row",
+          "x_col", "x0_col", "si_col", "fwhm_col"),
+      GIN_TYPE("Vector", "Numeric", "Numeric", "Numeric",
+               "Vector", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "-1", "-1",
+                  NODEF, "0", "-1", "-1"),
+      GIN_DESC("Grid of the function for row dimension.",
+               "Centre/mean point of the function for row dimension.",
+               "Row standard deviation of the function, ignored if <=0.",
+               "Row full width at half-max of the function, ignored if <=0.",
+               "Grid of the function for column dimension.",
+               "Centre/mean point of the function for column dimension.",
+               "Column standard deviation of the function, ignored if <=0.",
+               "Column full width at half-max of the function, ignored if <=0.")));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixIdentity"),
       DESCRIPTION(
@@ -11606,6 +11703,25 @@ Available models:
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Matrix.",
                "The value to be multiplied with the matrix.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("MatrixReshapeTensor3"),
+      DESCRIPTION(
+          "Creates a matrix as reshaped version of a tenor3.\n"
+          "\n"
+          "If the size of the tensor is [npages, nrows, ncols], the created\n"
+          "matrix gets size [npages*nrows, ncols]. The matrix is filled with\n"
+          "the tensor's page dimension as the outermost loop.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Matrix to fill."),
+      IN(),
+      GIN("in"),
+      GIN_TYPE("Tensor3"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Tensor3 to copy.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSetConstant"),
@@ -11765,62 +11881,26 @@ Available models:
                "The vector to be copied into the third row.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("mblock_dlos_gridUniformCircular"),
+      NAME("mblock_dlosFrom1dAntenna"),
       DESCRIPTION(
-          "Gives *mblock_dlos_grid* roughly circular coverage, with uniform spacing.\n"
+          "Sets *mblock_dlos* based on a 1D gaussian antenna response.\n"
           "\n"
-          "The method considers points on a regular grid with a spacing set by\n"
-          "GIN *spacing*. All points inside a radius from (0,0) are included in\n"
-          "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
-          "a roughly circular domain, and cover the same solid beam angle.\n"
-          "The radius is adjusted according to *spacing' and *centre*, but is\n"
-          "ensured to be >= *width*.\n"
-          "\n"
-          "Note that the method assumes that width is small and the solid beam\n"
-          "angle does not change with distance from (0.0).\n"
-          "\n"
-          "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
-          "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
-          "*centre* from its default value.\n"),
+          "The length of *mblock_dlos* is determined by *npoints*. The end\n"
+          "points of the grid are set to be the same as for the antenna\n"
+          "response. The spacing of the grid follows the magnitude of the\n"
+          "response; the spacing is smaller where the response is high.\n"
+          "More precisely, the grid points are determined by dividing the\n"
+          "cumulative sum of the response in equal steps.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("mblock_dlos_grid"),
+      OUT("mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN(),
-      GIN("spacing", "width", "centre"),
-      GIN_TYPE("Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "0"),
-      GIN_DESC("The angular spacing between points.",
-               "The minimum distance from (0,0) to cover.",
-               "Set to 1 to place a point at (0,0).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("mblock_dlos_gridUniformRectangular"),
-      DESCRIPTION(
-          "Gives *mblock_dlos_grid* rectangular coverage, with uniform spacing.\n"
-          "\n"
-          "The method creates an equidistant rectangular grid. The width in zenith\n"
-          "and azimuth can differ. Note that selected widths are half-widths (i.e.\n"
-          "distance from (0,0), and refers to the mimumum value allowed. The actual\n"
-          "width depends on values selected for *spacing* and *centre*.\n"
-          "\n"
-          "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
-          "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
-          "*centre* from its default value.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("mblock_dlos_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("spacing", "za_width", "aa_width", "centre"),
-      GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("The angular spacing between points.",
-               "Min value of half-width in zenith angle direction.",
-               "Min value of half-width in azimuth angle direction.",
-               "Set to 1 to place a point at (0,0).")));
+      IN("antenna_response"),
+      GIN("npoints"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Number of points (>1) to include in *mblock_dlos*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussian"),
@@ -17551,6 +17631,24 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_losReverse"),
+      DESCRIPTION(
+          "Reverses the direction in *rte_los*.\n"
+          "\n"
+          "The method updates *rte_los* to have angles of the reversed\n"
+          "direction.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_los", "atmosphere_dim"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+  
   md_data_raw.push_back(
       create_mdrecord(NAME("rte_losSet"),
                DESCRIPTION("Sets *rte_los* to the given angles.\n"
@@ -17631,7 +17729,57 @@ where N>=0 and the species name is something line "H2O".
                "Longitude of sensor position.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("rte_pos_losMoveToStartOfPpath"),
+      NAME("rte_pos_losBackwardToAltitude"),
+      DESCRIPTION(
+          "Moves *rte_pos* and *rte_los* backwards to the target altitude.\n"
+          "\n"
+          "The method gives the *rte_pos* and *rte_los* at the target altitude\n"
+          "to reach the original *rte_pos* and *rte_los* with a geometrical ppath.\n"
+          "That is, the movement is backwards in terms of viewing direction.\n"
+          "\n"
+          "If the original *rte_los* is reversed with respect to the line-of-sight\n"
+          "direction, then set the GIN los_reversed to 1. One such case is that\n"
+          "if *rte_los* represents surface incidence angles, i.e. holds the\n"
+          "zenith and nadir angle towards the sensor.\n"
+          "\n"
+          "There is also *sensor_pos_losBackwardToAltitude*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos", "rte_los", "atmosphere_dim", "lat_grid", "lon_grid", "refellipsoid"),
+      GIN("altitude", "los_is_reversed"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("Target altitude.",
+               "Set to 1 if *rte_los* is valid for the reversed direction.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_pos_losForwardToAltitude"),
+      DESCRIPTION(
+          "Moves *rte_pos* and *rte_los* forward to the target altitude.\n"
+          "\n"
+          "The method gives the *rte_pos* and *rte_los* at the target altitude\n"
+          "when forward-propagating the original *rte_pos* and *rte_los*\n"
+          "geometrically.\n"
+          "\n"
+          "There is also *sensor_pos_losForwardToAltitude*. The WSM\n"
+          "*IntersectionGeometricalWithAltitude* performs the same operation\n"
+          "with *sensor_pos* and *sensor_los* as input.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rte_pos", "rte_los", "atmosphere_dim", "lat_grid", "lon_grid", "refellipsoid"),
+      GIN("altitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Target altitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_pos_losStartOfPpath"),
       DESCRIPTION(
           "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
           "\n"
@@ -17648,7 +17796,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
@@ -18388,7 +18535,7 @@ where N>=0 and the species name is something line "H2O".
           "Checks consistency of the sensor variables.\n"
           "\n"
           "The following WSVs are examined: *f_grid*, *sensor_pos*, *sensor_los*,\n"
-          "*transmitter_pos*, *mblock_dlos_grid*, *antenna_dim*,\n"
+          "*transmitter_pos*, *mblock_dlos*, *antenna_dim*,\n"
           "*sensor_response*, *sensor_response_f*, *sensor_response_pol*,\n"
           "and *sensor_response_dlos*.\n"
           "\n"
@@ -18412,7 +18559,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_f",
          "sensor_response_pol",
@@ -18428,7 +18575,7 @@ where N>=0 and the species name is something line "H2O".
           "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
           "\n"
           "The variables are set as follows:\n"
-          "   mblock_dlos_grid        : One row with zero(s).\n"
+          "   mblock_dlos        : One row with zero(s).\n"
           "   sensor_response*        : As returned by *sensor_responseInit*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
@@ -18438,7 +18585,7 @@ where N>=0 and the species name is something line "H2O".
           "sensor_response_f_grid",
           "sensor_response_pol_grid",
           "sensor_response_dlos_grid",
-          "mblock_dlos_grid"),
+          "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -18482,7 +18629,7 @@ where N>=0 and the species name is something line "H2O".
       DESCRIPTION(
           "Reverses the direction in *sensor_los*.\n"
           "\n"
-          "The method updates *sensor_los* to have angles matching the reversed\n"
+          "The method updates *sensor_los* to have angles of the reversed\n"
           "direction.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
@@ -18544,6 +18691,66 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_pos_losBackwardToAltitude"),
+      DESCRIPTION(
+          "Moves *sensor_pos* and *sensor_los* backwards to the target altitude.\n"
+          "\n"
+          "The method gives the *sensor_pos* and *sensor_los* at the target altitude\n"
+          "to reach the original *sensor_pos* and *sensor_los* with a geometrical\n"
+          "ppath. That is, the movement is backwards in terms of viewing direction.\n"
+          "\n"
+          "If the original *sensor_los* is reversed with respect to the line-of-sight\n"
+          "direction, then set the GIN los_reversed to 1. One such case is that\n"
+          "if *sensor_los* represents surface incidence angles, i.e. holds the\n"
+          "zenith and nadir angle towards the sensor.\n"
+          "\n"
+          "There is also *rte_pos_losBackwardToAltitude*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos",
+         "sensor_los",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "refellipsoid"),
+      GIN("altitude", "los_is_reversed"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("Target altitude.",
+               "Set to 1 if *rte_los* is valid for the reversed direction.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_pos_losForwardToAltitude"),
+      DESCRIPTION(
+          "Moves *sensor_pos* and *sensor_los* forward to the target altitude.\n"
+          "\n"
+          "The method gives the *sensor_pos* and *sensor_los* at the target altitude\n"
+          "when forward-propagating the original *sensor_pos* and *sensor_los*\n"
+          "geometrically.\n"
+          "\n"
+          "The WSM *IntersectionGeometricalWithAltitude* performs the same operation\n"
+          "but allows to store the new pos and los as other variables. There is\n"
+          "also *rte_pos_losForwardToAltitude*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos",
+         "sensor_los", 
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid", 
+         "refellipsoid"),
+      GIN("altitude"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Target altitude.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseAntenna"),
       DESCRIPTION(
           "Includes response of the antenna.\n"
@@ -18557,37 +18764,37 @@ where N>=0 and the species name is something line "H2O".
           "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
           "details on how to specify the antenna response.\n"
           "\n"
-          "The text below refers to *mblock_dlos_grid* despite it is not an\n"
-          "input to the method. The method instead uses *sensor_response_dlos_grid*\n"
-          "but the values in this WSV are likely coming from *mblock_dlos_grid*.\n"
+          "The text below refers to *mblock_dlos* despite it is not an input\n"
+          "to the method. The method instead uses *sensor_response_dlos_grid*\n"
+          "but the values in this WSV are likely coming from *mblock_dlos*.\n"
           "\n"
           "One dimensional antenna patterns are handled as other response\n"
           "functions. That is, both antenna response and radiances are treated\n"
-          "as piece-wise linear functions, and the pencil beam calculations must\n"
-          "cover the full sensor response (i.e. *mblock_dlos_grid* must be\n"
+          "as piece-wise linear functions, and the pencil beam calculations\n"
+          "must cover the full sensor response (i.e. *mblock_dlos* shall be\n"
           "sufficiently broad).\n"
           "\n"
-          "There exist different options for two dimensional (2D) antenna patterns,\n"
-          "see below (if 2D, the GIN *option_2d* must be set, the default results\n"
-          "in an error). A normalisation is always applied for 2D antennas (i.e.\n"
-          "*sensor-norm* is ignored).\n"
+          "There exist different options for two dimensional antenna patterns.\n"
+          "(If 2D, the GIN *option_2d* must be set, the default setting results\n"
+          "in an error). A normalisation is always applied for 2D antennas.\n"
           "\n"
-          "\"interp_response\""
-          "For this option, each direction defined by *mblock_dlos_grid* is\n"
-          "considered to represent the same size in terms of solid beam angle,\n"
-          "and the antenna pattern is interpolated to these directions. There is\n"
-          "no check on how well *mblock_dlos_grid* covers the antenna response.\n"
-          "The response is treated to be zero outside the ranges of its  anular\n"
-          "grids\n"
+          "\"interp_response\"\n"
+          "Both radiances and the antenna pattern are treated as step-wise\n"
+          "constant functions. The antenna pattern is interpolated to the\n"
+          "*mblock_dlos* directions. At extrapolation, the antenna response\n"
+          "is set to zero. This option considers GIN *solid_angles*, that\n"
+          "shall be a vector with length matching the rows of *mblock_dlos*.\n"
+          "The values going into *sensor_response* are the interpolated antenna\n"
+          "values times the corresponding solid angle.\n"
           "\n"
-          "\"gridded_dlos\""
+          "\"gridded_dlos\"\n"
           "This option is more similar to the 1D case. The radiances are treated\n"
           "as a bi-linear function, but the antenna response is treated as step-\n"
           "wise constant function (in contrast to 1D). For this option\n"
-          "*mblock_dlos_grid* must match a combination of zenith and azimuth\n"
+          "*mblock_dlos* must match a combination of zenith and azimuth\n"
           "grids, and this for a particular order. If the zenith and azimuth\n"
           "grids have 3 and 2 values, respectively, the order shall be:\n"
-          "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2) ]\n"
+          "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2)]\n"
           "Both these grids must be strictly increasing and as for 1D must cover\n"
           "the antenna response completely.\n"),
       AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
@@ -18611,10 +18818,12 @@ where N>=0 and the species name is something line "H2O".
          "antenna_dlos",
          "antenna_response",
          "sensor_norm"),
-      GIN( "option_2d" ),
-      GIN_TYPE( "String" ),
-      GIN_DEFAULT( "-" ),
-      GIN_DESC( "Calculation option for 2D antenna cases. See above for details." )));
+      GIN("option_2d", "solid_angles"),
+      GIN_TYPE("String", "Vector"),
+      GIN_DEFAULT("-", "[]"),
+      GIN_DESC("Calculation option for 2D antenna cases. See above for details.",
+               "The solid angle of each *mblock_dlos* direction. Only considered "
+               "for 2D with \"interp_response\".")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackend"),
@@ -18855,13 +19064,13 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The variables are set as follows:\n"
           "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
-          "                     *stokes_dim* and *mblock_dlos_grid*.\n"
+          "                     *stokes_dim* and *mblock_dlos*.\n"
           "   sensor_response_f       : Repeated values of *f_grid*.\n"
           "   sensor_response_pol     : Data matching *stokes_dim*.\n"
-          "   sensor_response_dlos    : Repeated values of *mblock_dlos_grid*.\n"
+          "   sensor_response_dlos    : Repeated values of *mblock_dlos*.\n"
           "   sensor_response_f_grid  : Equal to *f_grid*.\n"
           "   sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
-          "   sensor_response_dlos_grid : Equal to *mblock_dlos_grid*.\n"),
+          "   sensor_response_dlos_grid : Equal to *mblock_dlos*.\n"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -18874,7 +19083,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "antenna_dim",
          "atmosphere_dim",
          "stokes_dim",
@@ -18923,7 +19132,7 @@ where N>=0 and the species name is something line "H2O".
           "cover both sides of the swath.\n"),
       AUTHORS("Oliver Lemke", "Patrick Eriksson"),
       OUT("antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -19168,7 +19377,7 @@ where N>=0 and the species name is something line "H2O".
       AUTHORS("Stefan Buehler"),
       OUT("f_grid",
           "antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -19210,7 +19419,7 @@ where N>=0 and the species name is something line "H2O".
       AUTHORS("Oscar Isoz"),
       OUT("f_grid",
           "antenna_dim",
-          "mblock_dlos_grid",
+          "mblock_dlos",
           "sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -19677,7 +19886,85 @@ where N>=0 and the species name is something line "H2O".
                "The description of the sun.\n")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("starsOff"),
+      NAME("sunsAddSingleFromGridAtLocation"),
+      DESCRIPTION(
+          "Extracts a sun spectrum measured at the given location\n"
+          "adds it to *suns*.\n"
+          "\n"
+          "The method allows to obtain the sun spectrum by\n"
+          "interpolation from a field of such data. \n"
+          "The sun spectrum is expected to be stored as\n"
+          "irradiance.\n"
+          "It is coverted to the irradiance at the suns photosphere.\n"
+          "\n"
+          "Unit:        GriddedField2: [W m-2 Hz-1]\n"
+          "                 Vector *f_grid*[Hz]\n"
+          "                 Vector *stokes_dim*[1]\n"
+          "\n"
+          "Dimensions: [f_grid, stokes_dim]\n"
+          "\n"
+          "This method performs an interpolation onto the f_grid.\n"
+          "The point of *f_grid* that are outside the data frequency grid\n"
+          "are initialized according to planck's law of the temperature variable.\n"
+          "Hence, a temperature of 0 means 0s the edges of the f_grid.\n"),
+      AUTHORS("Jon Petersen"),
+      OUT("suns",
+          "suns_do"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("suns",
+          "f_grid",
+          "stokes_dim",
+          "refellipsoid"),
+      GIN("sun_spectrum_raw",
+          "radius",
+          "distance",
+          "temperature",
+          "zenith",
+          "azimuth",
+          "description",
+          "location_latitude",
+          "location_longitude",
+          "location_altitude"),
+      GIN_TYPE("GriddedField2",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "String",
+               "Numeric",
+               "Numeric",
+               "Numeric"),
+      GIN_DEFAULT(NODEF,
+                  "6.963242e8",
+                  "1.495978707e11",
+                  "-1",
+                  "0",
+                  "0",
+                  "Sun spectrum from Griddedfield.",
+                  "0",
+                  "0",
+                  "1e5"),
+      GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
+               "The radius of the sun in meter.\n"
+               "Default is the radius of our Sun.\n",
+               "The distance between the location and the \n"
+               "center of the sun in meter.\n"
+               "Default value is set to 1 a.u.\n",
+               "The temperature of the padding if the f_grid is outside the \n"
+               "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"
+               "temperature for a padding using plack's law.\n",
+               "Zenith angle of the sun in the sky.\n",
+               "Azimuthal angle of the sun in the sky.\n",
+               "The description of the sun.\n",
+               "The latitude of the sun spectrum measurement.\n",
+               "The longitude of the sun spectrum measurement.\n",
+               "The altitude of the sun spectrum measurement.\n")));  
+      
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sunsOff"),
       DESCRIPTION(
           "Turns all calculations with suns off \n"),
       AUTHORS("Jon Petersen"),
@@ -20017,91 +20304,6 @@ where N>=0 and the species name is something line "H2O".
                "angle grid. See above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceSemiSpecularBy3beams"),
-      DESCRIPTION(
-          "A simplistic treatment of semi-specular surfaces.\n"
-          "\n"
-          "This method has no strong physical basis but could be used for simpler\n"
-          "testing or as starting point for more advanced methods.\n"
-          "\n"
-          "This method assumes that the surface can be treated to have three facets,\n"
-          "all lacking surface roughness. One facet is assumed to give standard\n"
-          "specular reflection, while the two other facets are tilted with +dza\n"
-          "and -dza, respectively. The tilt is assumed to only affect the zenith\n"
-          "angle of the reflected direction (azimuth same as for specular direction).\n"
-          "The area ratio of the non-tilted facet is set by *specular_factor*.\n"
-          "That is, the specular beam is given weight w, while the other two beams\n"
-          "each get weight (1-w)/2.\n"
-          "\n"
-          "If a facet tilts away from the viewing direction in such way that\n"
-          "the surface is observed from below, the tilt of the facet is decreased\n"
-          "in steps of 1 degree until a successful calculation is obtained. If this\n"
-          "turns out to require a tilt of zero, this facete is merged with\n"
-          "the specular direction.\n"
-          "\n"
-          "The pure specular properties of the surface shall be described by\n"
-          "*surface_rtprop_sub_agenda*. That is, if you have specular surface\n"
-          "described and you want to make it semi-specular by this method, you\n"
-          "move the content of the existing *surface_rtprop_agenda* to\n"
-          "*surface_rtprop_sub_agenda* and instead fill *surface_rtprop_agenda*\n"
-          "with this method.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_skin_t",
-          "surface_los",
-          "surface_rmatrix",
-          "surface_emission"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "f_grid",
-         "rtp_pos",
-         "rtp_los",
-         "surface_rtprop_sub_agenda"),
-      GIN("specular_factor", "dza"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The weight given to the specular direction. Denoted as w above."
-               " A value between 1/3 and 1.",
-               "Zenith angle seperation to each secondary direction. A "
-               "between 0 and 45 degrees.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surfaceSplitSpecularTo3beams"),
-      DESCRIPTION(
-          "A very simple approximation of a semi-specular surface.\n"
-          "\n"
-          "This method has no direct physical basis but could be used for simpler\n"
-          "testing or as starting point for more advanced methods.\n"
-          "\n"
-          "The method requires that the surface RT properties (e.g. *surface_los*)\n"
-          "have been set up to mimic a specular surface. This method splits the down-\n"
-          "welling radiation into three directions. The specular direction is given\n"
-          "weight w, while the other two beams each get weight (1-w)/2. The basic\n"
-          "polarised reflectivity from the specular calculations is maintained\n"
-          "for each beam. The beams are just separated in zenith angle, with a\n"
-          "separation of *dza*. The lowermost beam is not allowed to be closer to\n"
-          "the surface than 1 degree. If there is no room for the lowermost beam,\n"
-          "it is merged with the main beam.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_los", "surface_rmatrix"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("surface_los",
-         "surface_rmatrix",
-         "atmosphere_dim",
-         "rtp_pos",
-         "rtp_los"),
-      GIN("specular_factor", "dza"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("The weight given to the specular direction. Denoted as w above."
-               " A value between 1/3 and 1.",
-               "Zenith angle seperation to each secondary direction. A "
-               "between 0 and 45 degrees.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceMapToLinearPolarisation"),
       DESCRIPTION(
           "Convert surface RT properties to a linear polarisation.\n"
@@ -20322,18 +20524,60 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("A field of surface reflectivities")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("surface_rtpropCallAgendaX"),
+      NAME("surface_rtpropFromTypesAverage"),
       DESCRIPTION(
-          "Switch between the elements of *surface_rtprop_agenda_array*.\n"
+          "Extracts surface RT properties by averaging.\n"
           "\n"
-          "This method requires that *surface_types* have length 1, in\n"
-          "contrast to *iySurfaceCallAgendaX*\n"
+          "This method allows to let one pencil beam calculation represent\n"
+          "an area when it comes to surface RT properties. The surface is\n"
+          "sampled at a set of positions. The sampling is defined as a set\n"
+          "of angles by the WSV *dlos*.\n"
           "\n"
-          "This method obtains the surface properties as defined by the\n"
-          "agenda in *surface_rtprop_agenda_array* corresponding to\n"
-          "*surface_types*.\n"),
+          "A weight must be specified for each angle by *dlos_weight_vector*.\n"
+          "These weights should represent the solid angle each *dlos* covers,\n"
+          "but can also include other weighting factors such as antenna pattern.\n" 
+          "The sum of *dlos_weight_vector* is internally normalised to 1.\n"
+          "\n"
+          "All the output variables are a weighted average between the surface\n"
+          "types inside the area sampled.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("surface_skin_t",
+      OUT("surface_type_mix",
+          "surface_skin_t",
+          "surface_los",
+          "surface_rmatrix",
+          "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "stokes_dim",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "rtp_los",
+         "refellipsoid",
+         "surface_type_mask",
+         "surface_rtprop_agenda_array",
+         "z_sensor",
+         "dlos",
+         "dlos_weight_vector"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_rtpropFromTypesManual"),
+      DESCRIPTION(
+          "Extracts surface RT properties by manual selection of surface type.\n"
+          "\n"
+          "The surface type to apply is selected by the GIN argument.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_type_mix",
+          "surface_skin_t",
           "surface_los",
           "surface_rmatrix",
           "surface_emission"),
@@ -20343,14 +20587,66 @@ where N>=0 and the species name is something line "H2O".
       IN("f_grid",
          "rtp_pos",
          "rtp_los",
-         "surface_rtprop_agenda_array",
-         "surface_types",
-         "surface_types_aux",
-         "surface_types_weights" ),
+         "surface_rtprop_agenda_array"),
+      GIN("surface_type"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Selected surface type")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_rtpropFromTypesNearest"),
+      DESCRIPTION(
+          "Extracts surface RT properties from nearest surface type.\n"
+          "\n"
+          "The surface type is set by nearest interpolation of *surface_type_mask*\n"
+          "and the corresponding agenda in *surface_rtprop_agenda_array* is\n"
+          "called to obtain the local radiative properties of the surface.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("surface_type_mix",
+          "surface_skin_t",
+          "surface_los",
+          "surface_rmatrix",
+          "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "atmosphere_dim",
+         "lat_grid",
+         "lat_true",
+         "lon_true",
+         "rtp_pos",
+         "rtp_los",
+         "surface_type_mask",
+         "surface_rtprop_agenda_array"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_rtpropInterpFreq"),
+      DESCRIPTION(
+          "Interpolates surface RT properties in frequency.\n"
+          "\n"
+          "The WSVs *surface_rmatrix* and *surface_emission* are inter-\n"
+          "polated linearly in frequency. The original frequency is given\n"
+          "by *f_grid*, and there is an interpolation to new frequency grid.\n"
+          "The function resets *f_grid* to the new grid.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("f_grid",
+          "surface_rmatrix",
+          "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "surface_rmatrix",
+         "surface_emission"),
+      GIN("f_new"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("New frequency grid")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromGriddedField4"),
@@ -20416,47 +20712,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surface_typeInterpTypeMask"),
-      DESCRIPTION(
-          "Interpolation of surface type mask.\n"
-          "\n"
-          "The method determines the surface type(s) at the position of concern\n"
-          "(*rtp_pos*) from the provided type mask (*surface_type_mask*).\n"
-          "\n"
-          "For the default interpolation method, \"nearest\", the closest point\n"
-          "in the mask is selected. The surface type is set to the integer part\n"
-          "of the value at the found point, while *surface_types_aux* is set to\n"
-          "the reminder. For example, if the mask value at closest point is 2.23,\n"
-          "*surface_types* is set to 2 and *surface_type_aux* becomes 0.23.\n"
-          "*surface_types_weights* is set to 1. For this option, all output\n"
-          "arguments have length 1.\n"
-          "\n"
-          "With the interpolation set to \"linear\", the output arguments are\n"
-          "set up to describe a mixture of types. The mask values at the grid cell\n"
-          "corner points are determined, and type and aux values are extracted as\n"
-          "above. The weight associated with each type is calculated as for a\n"
-          "standard bi-linear interpolation. If *rte_pos* is exactly at the centre\n"
-          "of the grid cell, and three corner points match type 0 and one point\n"
-          "type 1, type 0 and 1 get weight 0.75 and 0.25 respectively.\n"
-          "\n"
-          "The altitude in *rtp_pos* is ignored.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("surface_types", "surface_types_aux", "surface_types_weights"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "lat_grid",
-         "lat_true",
-         "lon_true",
-         "rtp_pos",
-         "surface_type_mask"),
-      GIN("method"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("nearest"),
-      GIN_DESC("Interpolation method (see above).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceBlackbody"),
@@ -20790,15 +21045,12 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "This method determines whether the position in *rtp_pos* is\n"
           "of type ocean or land depending on whether a corresponding\n"
-          "cell is contained in the provided TELSEM atlas.\n"
-          "In combination with the WSM *surface_rtpropCallAgendaX* this\n"
-          "can be used to used different methods to compute surface radiative\n"
-          "properties.\n"),
+          "cell is contained in the provided TELSEM atlas.\n"),
       AUTHORS("Simon Pfreundschuh"),
-      OUT("surface_type"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
+      OUT(),
+      GOUT("surface_type"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Surface type flag"),
       IN("atmosphere_dim", "lat_grid", "lat_true", "lon_true", "rtp_pos"),
       GIN("atlas"),
       GIN_TYPE("TelsemAtlas"),
@@ -21523,6 +21775,30 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Input vector.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("VectorGaussian"),
+      DESCRIPTION(
+          "Fills a vector with a Gaussian function.\n"
+          "\n"
+          "The width can be set in two ways, either by standard deviation or\n"
+          "the full width at half maximum. Only one of the corresponding GINs\n"
+          "can be >0 and that value will determine the width.\n"
+          "\n"
+          "The vectors *x* and *y* can be the same variable.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("y"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Output vector."),
+      IN(),
+      GIN("x", "x0", "si", "fwhm"),
+      GIN_TYPE("Vector", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "-1", "-1"),
+      GIN_DESC("Grid of the function.",
+               "Centre/mean point of the function.",
+               "Standard deviation of the function, ignored if <=0.",
+               "Full width at half-max of the function, ignored if <=0.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorInsertGridPoints"),
       DESCRIPTION(
           "Insert some additional points into a grid.\n"
@@ -21684,6 +21960,26 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start value.", "End value.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("VectorNLinSpaceVector"),
+      DESCRIPTION(
+          "As *VectorNLinSpace* but end points taken from a vector.\n"
+          "\n"
+          "The method gives a vector with equidistant spacing between\n"
+          "first and last element of the reference vector.\n"
+          "\n"
+          "The length (*nelem*) must be larger than 1.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Vector"),
+      GOUT_DESC("Variable to initialize."),
+      IN("nelem"),
+      GIN("y"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Reference vector.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLogSpace"),
@@ -22063,15 +22359,39 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("VMR value to apply for each abs_species.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("vmr_fieldSetRh"),
+      DESCRIPTION(
+          "Sets the first H2O species to have a constant relative humidity (RH).\n"
+          "\n"
+          "The water vapour saturation pressure is obtained by *water_p_eq_agenda*\n"
+          "and the setytings in this agenda determines if the RH is e.g. defined\n"
+          "with respect to liquid, or a combination of liquid and ice.\n"
+          "\n"
+          "Only the first H2O species is modified.\n"
+          "\n"
+          "The default value of *vmr_threshold* aims at avoiding changing VMRs\n"
+          "above the tropopause.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("vmr_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("vmr_field", "abs_species", "t_field", "p_grid", "water_p_eq_agenda"),
+      GIN("rh", "vmr_threshold"),
+      GIN_TYPE("Numeric", "Numeric"),
+      GIN_DEFAULT("1.0", "15.0e-6"),
+      GIN_DESC("Relative humidity to set.",
+               "Don't change H2O VMR values below this value.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("water_p_eq_fieldMK05"),
       DESCRIPTION(
           "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
           "\n"
-          "Default is to set the saturation pressure is set to the one with\n"
-          "respect to water at temperatures >= 0C, and to the one with\n"
-          "respect to ice for <0C. The GIN *only_liquid* allows you to apply\n"
-          "the liquid value at all temperatures.\n"
-          "\n"
+          "Default is setting the saturation pressure to the one with respect\n"
+          "to water at temperatures >= 0C, and to the one with respect to ice\n"
+          "for <0C. The GIN *only_liquid* allows you to apply the liquid value\n"
+          "at all temperatures.\n"
           "\n"
           "The saturation pressure with respect to liquid and ice water is\n"
           "calculated according to Eq. 10 and 7, respectively, of:\n"
@@ -22649,7 +22969,7 @@ where N>=0 and the species name is something line "H2O".
           "sensor_response_f_grid",
           "sensor_response_pol_grid",
           "sensor_response_dlos_grid",
-          "mblock_dlos_grid"),
+          "mblock_dlos"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -22662,7 +22982,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_response_f_grid",
          "sensor_response_pol_grid",
          "sensor_response_dlos_grid",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "jacobian_quantities",
          "x",
          "sensor_response_agenda",
@@ -23049,7 +23369,7 @@ where N>=0 and the species name is something line "H2O".
           "and thus also several goe-positions, associated with each value of *y*.\n"
           "The geo-position assigned to a value in *y* is the *geo_pos* of the pencil\n"
           "beam related to the highest value in *sensor_response*. This means that\n"
-          "*mblock_dlos_grid* must contain the bore-sight direction (0,0), if you\n"
+          "*mblock_dlos* must contain the bore-sight direction (0,0), if you\n"
           "want *y_geo* to exactly match the bore-sight direction.\n"
           "\n"
           "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
@@ -23073,7 +23393,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_f",
          "sensor_response_pol",
@@ -23165,7 +23485,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_pos",
          "sensor_los",
          "transmitter_pos",
-         "mblock_dlos_grid",
+         "mblock_dlos",
          "sensor_response",
          "sensor_response_f",
          "sensor_response_pol",
@@ -23301,6 +23621,91 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_geo_seriesFromY_geo"),
+      DESCRIPTION(
+          "Fills *y_geo_series* with data from *y_geo*.\n"
+          "\n"
+          "The geo-position is taken from the first channel. There is no check\n"
+          "that the other channels have identical data in *y_geo*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_geo_series"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y_geo", "sensor_response_f_grid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_geo_swathFromY_geo"),
+      DESCRIPTION(
+          "Fills *y_geo_series* with data from *y_geo*.\n"
+          "\n"
+          "The geo-position is taken from the first channel. There is no check\n"
+          "that the other channels have identical data in *y_geo*.\n"
+          "\n"
+          "The method assumes the same order in *y* as *y_swathFromY*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_geo_swath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y_geo", "sensor_response_f_grid"),
+      GIN("npixel"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Number of pixels per swath.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_seriesFromY"),
+      DESCRIPTION(
+          "Fills *y_series* with data from *y*.\n"
+          "\n"
+          "The method basically reshapes *y* to fit *y_series*.\n"
+          "\n"
+          "Default is to check that *y_f* does not change between posistions,\n"
+          "i.e. that the channel frequencies do not vary.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_series"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y", "y_f", "sensor_response_f_grid"),
+      GIN("safe"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag for checking that channels do not vary in frequency.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_swathFromY"),
+      DESCRIPTION(
+          "Fills *y_swath* with data from *y*.\n"
+          "\n"
+          "The method basically reshapes *y* to fit *y_swath*. It is assumed\n"
+          "that swath forms the outermost loop in *y*. That is, first in *y*\n"
+          "are the data for the first swath etc. The number of pixels per swath\n"
+          "must be specified manually by a GIN parameter.\n"
+          "\n"
+          "To set *sensor_pos* and *sensor_los* having data organised in swath\n"
+          "format, use *MatrixReshapeTensor3*.\n"
+          "\n"
+          "Default is to check that *y_f* does not change between posistions,\n"
+          "i.e. that the channel frequencies do not vary.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_swath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y", "y_f", "sensor_response_f_grid"),
+      GIN("npixel", "safe"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC("Number of pixels per swath.",
+               "Flag for checking that channels do not vary in frequency.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),
@@ -24164,28 +24569,6 @@ Options are:
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("surface_rtprop_agenda"),
-                      GOUT(),
-                      GOUT_TYPE(),
-                      GOUT_DESC(),
-                      IN(),
-                      GIN("option"),
-                      GIN_TYPE("String"),
-                      GIN_DEFAULT(NODEF),
-                      GIN_DESC("Default agenda option (see description)"),
-                      SETMETHOD(false),
-                      AGENDAMETHOD(false),
-                      USES_TEMPLATES(false),
-                      PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("surface_rtprop_sub_agendaSet"),
-                      DESCRIPTION(R"--(Sets *surface_rtprop_sub_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--"),
-                      AUTHORS("Richard Larsson"),
-                      OUT("surface_rtprop_sub_agenda"),
                       GOUT(),
                       GOUT_TYPE(),
                       GOUT_DESC(),

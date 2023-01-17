@@ -106,7 +106,7 @@ nelemGet( nang, angles )
 IndexSet( sensor_norm, 1 )  # Here just a dummy value 
 AntennaOff                  # Simplest way to set some dummy variables
 #
-Matrix1ColFromVector( mblock_dlos_grid, angles )
+Matrix1ColFromVector( mblock_dlos, angles )
 
 
 

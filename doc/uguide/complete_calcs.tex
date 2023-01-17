@@ -111,7 +111,7 @@ radiation shall be calculated are given by specifying an imaginary sensor with
 infinite frequency and angular resolution. The workspace variables for the
 sensor that always must be specified are \builtindoc{sensor\_response},
 \builtindoc{sensor\_pos}, \builtindoc{sensor\_los} and
-\builtindoc{mblock\_dlos\_grid}. These variables are presented separately
+\builtindoc{mblock\_dlos}. These variables are presented separately
 below.
 
 
@@ -247,7 +247,7 @@ The sensor and data reduction are described as a series of units, each having
 its own transfer matrix. There is only one compulsory transfer matrix and it is
 \wsvindex{sensor\_response}. There are several workspace variables associated
 with this transfer matrix where \wsvindex{antenna\_dim} and
-\wsvindex{mblock\_dlos\_grid} are the compulsory ones.
+\wsvindex{mblock\_dlos} are the compulsory ones.
 
 The variable \builtindoc{antenna\_dim} gives the dimensionality of the antenna
 pattern\index{antenna pattern dimensionality}, where the options are 1 and 2,
@@ -316,7 +316,7 @@ a common vector, \aMpiVct{b}. Values are put in following the order in
   \label{eq:fm_defs:freqs_of_ib}
 \end{equation}
 where \aFrq{i} is element $i$ of \builtindoc{f\_grid} and $n$ the length of the
-same vector. The order of the angles inside \builtindoc{mblock\_dlos\_grid} is
+same vector. The order of the angles inside \builtindoc{mblock\_dlos} is
 followed when looping the pencil beam directions
 
 The workspace variable \builtindoc{sensor\_response} is here denoted as
