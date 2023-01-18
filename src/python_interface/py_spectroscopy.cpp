@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <lineshape.h>
 #include <lineshapemodel.h>
 #include <py_auto_interface.h>
@@ -250,16 +251,16 @@ void py_spectroscopy(py::module_& m) {
           }));
 
   py::class_<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
-      .def(py::init([](LineShape::ModelParameters a,
-                       LineShape::ModelParameters b,
-                       LineShape::ModelParameters c,
-                       LineShape::ModelParameters d,
-                       LineShape::ModelParameters e,
-                       LineShape::ModelParameters f,
-                       LineShape::ModelParameters g,
-                       LineShape::ModelParameters h,
-                       LineShape::ModelParameters i) {
-             return new LineShapeSingleSpeciesModel{a, b, c, d, e, f, g, h, i};
+      .def(py::init([](LineShape::ModelParameters G0,
+                       LineShape::ModelParameters D0,
+                       LineShape::ModelParameters G2,
+                       LineShape::ModelParameters D2,
+                       LineShape::ModelParameters FVC,
+                       LineShape::ModelParameters ETA,
+                       LineShape::ModelParameters Y,
+                       LineShape::ModelParameters G,
+                       LineShape::ModelParameters DV) {
+             return new LineShapeSingleSpeciesModel{G0, D0, G2, D2, FVC, ETA, Y, G, DV};
            }),
            py::arg("G0") = LineShape::ModelParameters{},
            py::arg("D0") = LineShape::ModelParameters{},
@@ -444,31 +445,47 @@ void py_spectroscopy(py::module_& m) {
 
   py::class_<AbsorptionLines>(m, "AbsorptionLines")
       .def(
-          py::init([](bool a, bool b, AbsorptionCutoffType c,
-                      AbsorptionMirroringType d, AbsorptionPopulationType e,
-                      AbsorptionNormalizationType f, LineShape::Type g,
-                      Numeric h, Numeric i, Numeric j, QuantumIdentifier k,
-                      ArrayOfSpecies l, Array<AbsorptionSingleLine> n) {
-            ARTS_USER_ERROR_IF(not good_enum(k.Species()),
+          py::init([](bool selfbroadening, bool bathbroadening,
+                      AbsorptionCutoffType cutoff,
+                      AbsorptionMirroringType mirroring,
+                      AbsorptionPopulationType population,
+                      AbsorptionNormalizationType normalization,
+                      LineShape::Type lineshapetype, Numeric T0,
+                      Numeric cutofffreq, Numeric linemixinglimit,
+                      QuantumIdentifier quantumidentity,
+                      ArrayOfSpecies broadeningspecies,
+                      Array<AbsorptionSingleLine> lines) {
+            ARTS_USER_ERROR_IF(not good_enum(quantumidentity.Species()),
                                "Bad quantumidentity, must specify species and "
                                "isotoplogue, e.g., H2O-161")
             ARTS_USER_ERROR_IF(
-                k.Isotopologue().joker() or
-                    Species::is_predefined_model(k.Isotopologue()),
+                quantumidentity.Isotopologue().joker() or
+                    Species::is_predefined_model(
+                        quantumidentity.Isotopologue()),
                 "Bad quantumidentity, must specify isotopologue, e.g., H2O-161")
-            return new AbsorptionLines{a,
-                                       b,
-                                       c,
-                                       d,
-                                       e,
-                                       f,
-                                       g,
-                                       h,
-                                       i,
-                                       j,
-                                       std::move(k),
-                                       std::move(l),
-                                       std::move(n)};
+            ARTS_USER_ERROR_IF(
+                std::any_of(lines.begin(), lines.end(),
+                            [count = broadeningspecies.nelem()](auto &line) {
+                              return line.lineshape.nelem() not_eq count;
+                            }),
+                "Incorrect size of broadeningspecies vs the line shape model")
+            ARTS_USER_ERROR_IF(
+                broadeningspecies.size() < (selfbroadening + bathbroadening),
+                "Must have atleast ", (selfbroadening + bathbroadening),
+                " broadening species to support settings")
+            return new AbsorptionLines{selfbroadening,
+                                       bathbroadening,
+                                       cutoff,
+                                       mirroring,
+                                       population,
+                                       normalization,
+                                       lineshapetype,
+                                       T0,
+                                       cutofffreq,
+                                       linemixinglimit,
+                                       std::move(quantumidentity),
+                                       std::move(broadeningspecies),
+                                       std::move(lines)};
           }),
           py::arg("selfbroadening") = false, py::arg("bathbroadening") = false,
           py::arg("cutoff") = AbsorptionCutoffType::None,
