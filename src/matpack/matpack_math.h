@@ -32,7 +32,7 @@ auto transpose(const MAT &x)
  * @param B Any matrix
  * @param C Any matrix
  */
-void mult_fast(ExhaustiveMatrixView A, const ExhaustiveConstMatrixView& B, const ExhaustiveConstMatrixView& C);
+void mult(MatrixView A, const ConstMatrixView &B, const ConstMatrixView &C);
 
 /** Makes A = B * C
  * 
@@ -40,55 +40,23 @@ void mult_fast(ExhaustiveMatrixView A, const ExhaustiveConstMatrixView& B, const
  * @param B Any matrix
  * @param C Any matrix
  */
-void mult_slow(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C);
+void mult(ComplexMatrixView A, const ConstComplexMatrixView &B, const ConstComplexMatrixView &C);
 
-/** Makes A = B * C
+/** Makes y = M * x
  * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any matrix
+ * @param[out] y May not point at the same data as M or x
+ * @param M Any matrix
+ * @param x Any vector
  */
-void mult_fast(ExhaustiveComplexMatrixView A, const ExhaustiveConstComplexMatrixView& B, const ExhaustiveConstComplexMatrixView& C);
+void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x);
 
-/** Makes A = B * C
+/** Makes y = M * x
  * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any matrix
+ * @param[out] y May not point at the same data as M or x
+ * @param M Any matrix
+ * @param x Any vector
  */
-void mult_slow(ComplexMatrixView A, const ConstComplexMatrixView& B, const ConstComplexMatrixView& C);
-
-/** Makes A = B * C
- * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any vector
- */
-void mult_fast(ExhaustiveVectorView A, const ExhaustiveConstMatrixView& B, const ExhaustiveConstVectorView& C);
-
-/** Makes A = B * C
- * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any vector
- */
-void mult_slow(VectorView A, const ConstMatrixView& B, const ConstVectorView& C);
-
-/** Makes A = B * C
- * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any vector
- */
-void mult_fast(ExhaustiveComplexVectorView A, const ExhaustiveConstComplexMatrixView& B, const ExhaustiveConstComplexVectorView& C);
-
-/** Makes A = B * C
- * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any vector
- */
-void mult_slow(ComplexVectorView A, const ConstComplexMatrixView& B, const ConstComplexVectorView& C);
+void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstComplexVectorView &x);
 
 /** Computes the 3-dim cross-product of B and C
  * 
@@ -105,46 +73,6 @@ void cross3(VectorView A, const ConstVectorView& B, const ConstVectorView& C);
  * @param C Any vector
  */
 void cross3(ComplexVectorView A, const ConstComplexVectorView& B, const ConstComplexVectorView& C);
-
-/** Makes A = B * C
- * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any matrix
- */
-template <matpack::strict_size_matpack_type<2> OUTMAT,
-          matpack::strict_size_matpack_type<2> LMAT,
-          matpack::strict_size_matpack_type<2> RMAT>
-void mult(OUTMAT &&A, const LMAT &B, const RMAT &C)
-  requires(matpack::same_value_type_v<OUTMAT, LMAT, RMAT>)
-{
-  if constexpr (matpack::is_always_exhaustive_v<OUTMAT> and
-                matpack::is_always_exhaustive_v<LMAT> and
-                matpack::is_always_exhaustive_v<RMAT>)
-    mult_fast(std::forward<OUTMAT>(A), B, C);
-  else
-    mult_slow(std::forward<OUTMAT>(A), B, C);
-}
-
-/** Makes A = B * C
- * 
- * @param[out] A May not point at the same data as B or C
- * @param B Any matrix
- * @param C Any vector
- */
-template <matpack::strict_size_matpack_type<1> LHSVEC,
-          matpack::strict_size_matpack_type<2> RHSMAT,
-          matpack::strict_size_matpack_type<1> RHSVEC>
-void mult(LHSVEC &&A, const RHSMAT &B, const RHSVEC &C)
-  requires(matpack::same_value_type_v<LHSVEC, RHSMAT, RHSVEC>)
-{
-  if constexpr (matpack::is_always_exhaustive_v<LHSVEC> and
-                matpack::is_always_exhaustive_v<RHSMAT> and
-                matpack::is_always_exhaustive_v<RHSVEC>)
-    mult_fast(std::forward<LHSVEC>(A), B, C);
-  else
-    mult_slow(std::forward<LHSVEC>(A), B, C);
-}
 
 //! Copies the diagonal of matrix view A and returns it
 Vector diagonal(const ConstMatrixView& A);
