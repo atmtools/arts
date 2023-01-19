@@ -1,17 +1,22 @@
 #include "artstime.h"
 #include "matpack_arrays.h"
 #include "matpack_math.h"
+#include "matpack_view.h"
 
 #include <cstdlib>
 
 void test_sum(Index N) {
   Numeric X;
+  Vector a(N, 1);
   {
-    DebugTime timer{"Vector"};
-    Vector a(N, 1);
+    DebugTime timer{"Summing a Vector"};
     X = sum(a);
   }
-  std::cout << "Got " << X << " expected something close to " << static_cast<Numeric>(N) << '\n';
+  const ConstVectorView b = a;
+  {
+    DebugTime timer{"Summing a const ConstVectorView"};
+    X = sum(b);
+  }
 }
 
 int main(int argc, char** c) {
