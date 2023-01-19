@@ -908,7 +908,7 @@ Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
     random_fill_vector(x, 1000, false);
 
     mult(y, A, x);
-    mult_slow(y_ref, A, x);
+    mult(y_ref, A, x);
 
     Numeric err_mul = get_maximum_error(y, y_ref, true);
     if (err_mul > max_err) max_err = err_mul;
@@ -920,7 +920,7 @@ Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
     // A^T  * y
 
     mult(x, transpose(A), y);
-    mult_slow(x_ref, transpose(A), y);
+    mult(x_ref, transpose(A), y);
 
     err_mul = get_maximum_error(x, x_ref, true);
     if (err_mul > max_err) max_err = err_mul;
@@ -940,7 +940,7 @@ Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
     mult(y[Range(0, joker, row_stride)],
          A(Range(0, m_sub), Range(0, n_sub)),
          x[Range(0, joker, column_stride)]);
-    mult_slow(y_ref[Range(0, joker, row_stride)],
+    mult(y_ref[Range(0, joker, row_stride)],
                  A(Range(0, m_sub), Range(0, n_sub)),
                  x[Range(0, joker, column_stride)]);
 
@@ -964,7 +964,7 @@ Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
       mult(y[Range(y_offset, m_sub)],
            A(Range(y_offset, m_sub), Range(x_offset, n_sub)),
            x[Range(x_offset, n_sub)]);
-      mult_slow(y_ref[Range(y_offset, m_sub)],
+      mult(y_ref[Range(y_offset, m_sub)],
                    A(Range(y_offset, m_sub), Range(x_offset, n_sub)),
                    x[Range(x_offset, n_sub)]);
 
@@ -1078,7 +1078,7 @@ Numeric matrix_mult(
     random_fill_matrix(C_ref, 10, false);
 
     mult(C, A, B);
-    mult_slow(C_ref, A, B);
+    mult(C_ref, A, B);
 
     Numeric err_mul = get_maximum_error(C, C_ref, true);
     if (err_mul > max_err) max_err = err_mul;
@@ -1094,7 +1094,7 @@ Numeric matrix_mult(
     random_fill_matrix(AT, 100.0, false);
 
     mult(C, transpose(AT), B);
-    mult_slow(C_ref, transpose(AT), B);
+    mult(C_ref, transpose(AT), B);
     Numeric err_trans1 = get_maximum_error(C, C_ref, true);
     if (err_trans1 > max_err) max_err = err_trans1;
 
@@ -1109,7 +1109,7 @@ Numeric matrix_mult(
     random_fill_matrix(BT, 100.0, false);
 
     mult(C, A, transpose(BT));
-    mult_slow(C_ref, A, transpose(BT));
+    mult(C_ref, A, transpose(BT));
     Numeric err_trans2 = get_maximum_error(C, C_ref, true);
     if (err_trans2 > max_err) max_err = err_trans2;
 
@@ -1121,7 +1121,7 @@ Numeric matrix_mult(
     // A^T * B^T
 
     mult(C, transpose(AT), transpose(BT));
-    mult_slow(C_ref, transpose(AT), transpose(BT));
+    mult(C_ref, transpose(AT), transpose(BT));
     Numeric err_trans3 = get_maximum_error(C, C_ref, true);
     if (err_trans3 > max_err) max_err = err_trans3;
 
@@ -1149,7 +1149,7 @@ Numeric matrix_mult(
     ConstMatrixView B_sub(B(r2, r3));
 
     mult(C_sub, A_sub, B_sub);
-    mult_slow(C_sub_ref, A_sub, B_sub);
+    mult(C_sub_ref, A_sub, B_sub);
 
     Numeric err = get_maximum_error(C_sub, C_sub_ref, true);
     if (err > max_err) max_err = err;
@@ -1873,7 +1873,7 @@ void test_mult() {
     Vector y(3);
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A (3, 3, 1);
-    mult_slow(y, A, x);
+    mult(y, A, x);
     std::cout << "A (in):\n" << A << '\n'
               << "x (in):\n" << x << '\n'
               << "y (out):\n" << y << '\n';
@@ -1883,7 +1883,7 @@ void test_mult() {
     Vector y(3);
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A = build_test_matrix(3, 3);
-    mult_slow(y, A, x);
+    mult(y, A, x);
     std::cout << "A (in):\n" << A << '\n'
               << "x (in):\n" << x << '\n'
               << "y (out):\n" << y << '\n';
@@ -1893,7 +1893,7 @@ void test_mult() {
     Vector y(3);
     Vector x(std::vector<Numeric>{1, 2});
     Matrix A = build_test_matrix(3, 2);
-    mult_slow(y, A, x);
+    mult(y, A, x);
     std::cout << "A (in):\n" << A << '\n'
               << "x (in):\n" << x << '\n'
               << "y (out):\n" << y << '\n';
