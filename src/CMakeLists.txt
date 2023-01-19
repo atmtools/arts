@@ -679,3 +679,7 @@ target_link_libraries(run_partfun PRIVATE artscore)
 add_subdirectory(matpack)
 add_executable(test_mdspan test_mdspan.cc)
 target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack)
+
+#####
+add_executable(test_perf test_perf.cc)
+target_link_libraries(test_perf PUBLIC ${ALL_ARTS_LIBRARIES})
