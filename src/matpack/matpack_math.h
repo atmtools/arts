@@ -259,7 +259,6 @@ template <matpack::any_matpack_type IN> constexpr auto nanmean(const IN &in) {
         return pt{a.first + b.first, a.second + b.second};
       },
       [](T a) {
-        using namespace std;
         using namespace nonstd;
         return isnan(a) ? pt(0, 0) : pt(1, a);
       });
