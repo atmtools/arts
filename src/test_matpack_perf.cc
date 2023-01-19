@@ -112,10 +112,51 @@ void test_dot(Index N) {
   std::cout << X << '\n';
 }
 
+void test_vec_mult(Index N) {
+  Vector x(N/100, 1);
+  Matrix A(N/100, N/100, 1);
+  Vector y(N/100, 1);
+
+  VectorView xv=x;
+  MatrixView Av=A;
+  VectorView yv=y;
+
+  Numeric X;
+  {
+    DebugTime timer{"STARTUP"};
+    mult(x, A, y);
+    X = x[0];
+    mult(x, A, y);
+    X += x[0];
+    mult(x, A, y);
+    X += x[0];
+    mult(x, A, y);
+    X += x[0];
+    mult(x, A, y);
+    X += x[0];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector vector mult product    "};
+    mult(x, A, y);
+    X = sum(x);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView vector mult product"};
+    mult(xv, Av, yv);
+    X = sum(xv);
+  }
+  std::cout << X << '\n';
+}
+
 int main(int argc, char** c) {
   Index N = 100'000;
   if (argc == 2) N = static_cast<Index>(std::atoll(c[1]));
 
   //test_sum(N);
-  test_dot(N);
+  //test_dot(N);
+  test_vec_mult(N);
 }
