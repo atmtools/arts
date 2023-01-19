@@ -635,7 +635,8 @@ private:
     if constexpr (view_type::is_always_exhaustive()) {
       return ind;
     } else {
-      return mdind(mdpos(shape(), ind), strides());
+      if constexpr (N == 1) return stride(0) * ind;
+      else return mdind(mdpos(shape(), ind), strides());
     }
   }
 
@@ -956,8 +957,14 @@ using ExhaustiveComplexVectorView = matpack::matpack_view<Complex, 1, false, tru
 //! A mutable continuous view of a matrix of Complex
 using ExhaustiveComplexMatrixView = matpack::matpack_view<Complex, 2, false, true>;
 
+//! A mutable continuous view of a tensor of Complex of rank 3
+using ExhaustiveComplexTensor3View = matpack::matpack_view<Complex, 3, false, true>;
+
 //! A constant continuous view of a vector of Complex
 using ExhaustiveConstComplexVectorView = matpack::matpack_view<Complex, 1, true, true>;
 
 //! A constant continuous view of a matrix of Complex
 using ExhaustiveConstComplexMatrixView = matpack::matpack_view<Complex, 2, true, true>;
+
+//! A constant continuous view of a tensor of Complex of rank 3
+using ExhaustiveConstComplexTensor3View = matpack::matpack_view<Complex, 3, true, true>;
