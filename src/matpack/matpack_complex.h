@@ -6,22 +6,45 @@
 #include <complex>
 #include <type_traits>
 
+//! Helper struct that is guaranteed by the C++ standard to represent the memory
+//! layout of a Complex
 template <typename T> struct ComplexLayout {
   T real, imag;
 };
 
+/** Extract a reference to the real value of a complex type
+ *
+ * Unlike the standard version, this returns by reference
+ * 
+ * @param c A complex type, a + ib
+ * @return Its real value as a reference, a
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> &real_val(T &c) noexcept {
   return reinterpret_cast<ComplexLayout<matpack::complex_subtype<T>>(&)>(c)
       .real;
 }
 
+/** Extract a reference to the imaginary value of a complex type
+ *
+ * Unlike the standard version, this returns by reference
+ * 
+ * @param c A complex type, a + ib
+ * @return Its imaginary value as a reference, b
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> &imag_val(T &c) noexcept {
   return reinterpret_cast<ComplexLayout<matpack::complex_subtype<T>>(&)>(c)
       .imag;
 }
 
+/** Extract a reference to the real value of a complex type
+ *
+ * Unlike the standard version, this returns by reference
+ * 
+ * @param c A complex type, a + ib
+ * @return Its real value as a constant reference, a
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> real_val(const T &c) noexcept {
   return reinterpret_cast<const ComplexLayout<matpack::complex_subtype<T>>(&)>(
@@ -29,6 +52,13 @@ constexpr matpack::complex_subtype<T> real_val(const T &c) noexcept {
       .real;
 }
 
+/** Extract a reference to the imaginary value of a complex type
+ *
+ * Unlike the standard version, this returns by reference
+ * 
+ * @param c A complex type, a + ib
+ * @return Its imaginary value as a constant reference, b
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> imag_val(const T &c) noexcept {
   return reinterpret_cast<const ComplexLayout<matpack::complex_subtype<T>>(&)>(
@@ -134,20 +164,40 @@ constexpr auto operator/(T x, U c) noexcept
          std::complex<K>{static_cast<K>(c.real()), static_cast<K>(c.imag())};
 }
 
+/** Compute |c|^2
+ *  
+ * @param c A complex type, a + ib
+ * @return a^2 + b^2
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> abs2(T c) {
   return c.real() * c.real() + c.imag() * c.imag();
 }
 
+/** Returns the conjugate
+ * 
+ * @param c A complex type, a + ib
+ * @return Its conjugate, a - ib
+ */
 template <matpack::complex_type T> constexpr T conj(T c) {
   return {c.real(), -c.imag()};
 }
 
+/** Same as std::real(c) but constexpr
+ * 
+ * @param c A complex type, a + ib
+ * @return a
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> real(T c) {
   return c.real();
 }
 
+/** Same as std::imag(c) but constexpr
+ * 
+ * @param c A complex type, a + ib
+ * @return b 
+ */
 template <matpack::complex_type T>
 constexpr matpack::complex_subtype<T> imag(T c) {
   return c.imag();
@@ -179,16 +229,32 @@ inline std::complex<float> operator*(const std::complex<float>& c,
 #define a2 z.real()
 #define b2 z.imag()
 
-/** squared magnitude of c */
+/** Compute |c|^2
+ *  
+ * @param c A complex type, a + ib
+ * @return a^2 + b^2
+ */
 constexpr Numeric abs2(Complex c) noexcept { return a1 * a1 + b1 * b1; }
 
-/** the conjugate of c */
+/** Returns the conjugate
+ * 
+ * @param c A complex type, a + ib
+ * @return Its conjugate, a - ib
+ */
 constexpr Complex conj(Complex c) noexcept { return {a1, -b1}; }
 
-/** real */
+/** Returns the conjugate
+ * 
+ * @param c A complex type, a + ib
+ * @return Its conjugate, a - ib
+ */
 constexpr Numeric real(Complex c) noexcept { return a1; }
 
-/** imag */
+/** Same as std::imag(c) but constexpr
+ * 
+ * @param c A complex type, a + ib
+ * @return b 
+ */
 constexpr Numeric imag(Complex c) noexcept { return b1; }
 
 // Basic constexpr operations for Complex that don't exist in the standard yet (C++11)
@@ -278,6 +344,12 @@ _complex_operations_(Index)
 
 #undef _complex_operations_
 
+/** Test if any nan are in the complex
+ * 
+ * @param c A complex type, a + ib
+ * @return true if isnan(a) or isnan(b)
+ * @return false if not
+ */
 constexpr bool isnan(Complex c) noexcept {
   return nonstd::isnan(c.real()) or nonstd::isnan(c.imag());
 }
