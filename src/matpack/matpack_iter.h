@@ -3,12 +3,14 @@
 #include "matpack_concepts.h"
 
 namespace matpack {
+//! Return an array of jokers
 template <Index N> [[nodiscard]] constexpr std::array<Joker, N> jokers() {
   std::array<Joker, N> out;
   out.fill(joker);
   return out;
 }
 
+//! Create a tuple to access an index surrounded by jokers
 template <Index M, Index N> [[nodiscard]] constexpr auto tup(Index i) {
   if constexpr (M > 0 and N - M - 1 > 0) {
     return std::tuple_cat(jokers<M>(), std::tuple{i}, jokers<N - M - 1>());
@@ -21,11 +23,13 @@ template <Index M, Index N> [[nodiscard]] constexpr auto tup(Index i) {
   }
 }
 
+//! Helper to return the original span type when accessed by a joker
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr auto sub(mdspan_type &v, Joker) {
   return v;
 }
 
+//! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr auto sub(mdspan_type &v, Index i) {
   using namespace stdx;
@@ -40,18 +44,25 @@ template <Index M, Index N, class mdspan_type>
       tup<M, N>(i));
 }
 
+//! The multidimensional iteration type --- FIXME: tested only for M == 0
 template <Index M, bool constant, class mdspan_type,
           class submdspan_type>
 class matpack_mditer {
+  //! The rank of the original mdspan
   static constexpr auto N = mdspan_type::rank();
+
+  //! The underlying type of the original mdspan
   using T = std::conditional_t<constant, const typename mdspan_type::value_type,
                                typename mdspan_type::value_type>;
 
   static_assert(N > 0, "Not for 0-rank mdspan");
   static_assert(M >= 0 and M < N, "Out-of-rank");
 
+  //! The iterator represents this dimension along M
   Index pos{0};
-  std::conditional_t<constant, const mdspan_type *, mdspan_type *> orig;
+
+  //! The original data is at this location
+  std::conditional_t<constant, const mdspan_type *, mdspan_type *> orig{nullptr};
 
 public:
   using difference_type = Index;
@@ -63,7 +74,10 @@ public:
   constexpr matpack_mditer& operator=(matpack_mditer&&) noexcept = default;
   constexpr matpack_mditer& operator=(const matpack_mditer&) = default;
 
+  //! Construct the iterator from this type
   constexpr matpack_mditer(mdspan_type &x) requires(not constant) : orig(&x) {}
+
+  //! Construct the iterator from this type
   constexpr matpack_mditer(const mdspan_type &x) requires(constant) : orig(&x) {}
 
   constexpr matpack_mditer& operator++() noexcept {pos++; return *this;}
@@ -104,10 +118,14 @@ public:
   }
 };
 
+//! An elementwise iterator for a mdspan type
 template <typename T, bool constant, class mdspan_type>
 class matpack_elemwise_mditer {
+  //! The position of this object in the original data
   Index pos{0};
-  std::conditional_t<constant, const mdspan_type *, mdspan_type *> orig;
+
+  //! A pointer to the original data
+  std::conditional_t<constant, const mdspan_type *, mdspan_type *> orig{nullptr};
 
 public:
   using difference_type = Index;
@@ -119,7 +137,10 @@ public:
   constexpr matpack_elemwise_mditer& operator=(matpack_elemwise_mditer&&) noexcept = default;
   constexpr matpack_elemwise_mditer& operator=(const matpack_elemwise_mditer&) = default;
 
+  //! Construct the iterator from this type
   constexpr matpack_elemwise_mditer(mdspan_type &x) requires(not constant) : orig(&x) {}
+
+  //! Construct the iterator from this type
   constexpr matpack_elemwise_mditer(const mdspan_type &x) requires(constant) : orig(&x) {}
 
   constexpr matpack_elemwise_mditer& operator++() noexcept {pos++; return *this;}
