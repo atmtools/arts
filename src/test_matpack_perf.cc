@@ -35,6 +35,30 @@ void test_sum(Index N) {
       X = sum(c);
     }
     std::cout << X << '\n';
+
+    {
+      DebugTime timer{"STARTUP"};
+      X = mean(a) + mean(a) + mean(a) + mean(a) + mean(a);
+    }
+    std::cout << X << '\n';
+
+    {
+      DebugTime timer{"Mean a Vector                         "};
+      X = mean(a);
+    }
+    std::cout << X << '\n';
+
+    {
+      DebugTime timer{"Mean a const ConstVectorView          "};
+      X = mean(b);
+    }
+    std::cout << X << '\n';
+
+    {
+      DebugTime timer{"Mean a VectorView                     "};
+      X = mean(c);
+    }
+    std::cout << X << '\n';
   }
 }
 
