@@ -4,6 +4,7 @@
 #include <numeric>
 #include <vector>
 
+#include "debug.h"
 #include "logic.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
@@ -927,6 +928,27 @@ void test_math() {
   } */
 }
 
+void test_mult() {
+  {
+    Matrix A(4,4,1);
+    for (Index i=1; i<=16; i++) A.elem_at(i-1) = static_cast<Numeric>(i);
+    Vector y({1,2,3,4}), x(4);
+
+    Vector eig_x=A*y;
+    mult(x, A, y);
+    ARTS_USER_ERROR_IF(eig_x not_eq x, eig_x, " vs ", x)
+  }
+  {
+    ComplexMatrix A(4,4,1);
+    for (Index i=1; i<=16; i++) A.elem_at(i-1) = {static_cast<Numeric>(i), 2*static_cast<Numeric>(i)};
+    ComplexVector y({1,2,3,4}), x(4);
+
+    ComplexVector eig_x=A*y;
+    mult(x, A, y);
+    ARTS_USER_ERROR_IF(eig_x not_eq x, eig_x, " vs ", x)
+  }
+}
+
 #define EXECUTE_TEST(X) \
 std::cout << "#########################################################\n";\
 std::cout << "Executing test: " #X << '\n'; \
@@ -971,4 +993,5 @@ int main() {
   EXECUTE_TEST(test_data)
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
+  EXECUTE_TEST(test_mult)
 }
