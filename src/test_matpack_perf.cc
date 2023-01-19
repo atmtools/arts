@@ -113,9 +113,9 @@ void test_dot(Index N) {
 }
 
 void test_vec_mult(Index N) {
-  Vector x(N/100, 1);
-  Matrix A(N/100, N/100, 1);
-  Vector y(N/100, 1);
+  Vector x(N, 1);
+  Matrix A(N, N, 1);
+  Vector y(N, 1);
 
   VectorView xv=x;
   MatrixView Av=A;
