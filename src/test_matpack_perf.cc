@@ -59,6 +59,30 @@ void test_sum(Index N) {
       X = mean(c);
     }
     std::cout << X << '\n';
+
+    {
+      DebugTime timer{"STARTUP"};
+      X = nanmean(a) + nanmean(a) + nanmean(a) + nanmean(a) + nanmean(a);
+    }
+    std::cout << X << '\n';
+
+    {
+      DebugTime timer{"NAN-Mean a Vector                         "};
+      X = nanmean(a);
+    }
+    std::cout << X << '\n';
+
+    {
+      DebugTime timer{"NAN-Mean a const ConstVectorView          "};
+      X = nanmean(b);
+    }
+    std::cout << X << '\n';
+
+    {
+      DebugTime timer{"NAN-Mean a VectorView                     "};
+      X = nanmean(c);
+    }
+    std::cout << X << '\n';
   }
 }
 
