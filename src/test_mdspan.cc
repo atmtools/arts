@@ -9,6 +9,7 @@
 #include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "matpack_eigen.h"
+#include "matpack_iter.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
 #include "matpack_complex.h"
@@ -35,7 +36,7 @@ int test1() {
   cout << "v.begin() = " << *v.begin() << "\n";
 
   cout << "v = \n" << v << "\n";
-
+  
   fill_with_junk(v[Range(1, 8, 2)][Range(2, joker)]);
   //  fill_with_junk(v);
 
@@ -931,7 +932,7 @@ void test_math() {
 void test_mult() {
   {
     Matrix A(4,4,1);
-    for (Index i=1; i<=16; i++) A.elem_at(i-1) = static_cast<Numeric>(i);
+    for (Index i=0; i<4; i++) for (Index j=0; j<4; j++) A(i, j) = static_cast<Numeric>(i);
     Vector y({1,2,3,4}), x(4);
 
     Vector eig_x=A*y;
@@ -940,7 +941,7 @@ void test_mult() {
   }
   {
     ComplexMatrix A(4,4,1);
-    for (Index i=1; i<=16; i++) A.elem_at(i-1) = {static_cast<Numeric>(i), 2*static_cast<Numeric>(i)};
+    for (Index i=0; i<4; i++) for (Index j=0; j<4; j++) A(i, j) = {static_cast<Numeric>(i), 2*static_cast<Numeric>(i)};
     ComplexVector y({1,2,3,4}), x(4);
 
     ComplexVector eig_x=A*y;
@@ -994,4 +995,11 @@ int main() {
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
+
+  matpack::flat_shape_pos<4> pos{{3,4,5,6}};
+
+  for (Index i=0; i<100; i++) {
+    std::cout << pos << " " << pos.to_index() << '\n';
+    pos++;
+  }
 }

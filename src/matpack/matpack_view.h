@@ -224,30 +224,6 @@ using mutable_left_access_type = typename access_retval::subhelper<T, N, constan
 template <typename T, Index N, bool constant, bool strided, access_operator access>
 using constant_left_access_type = typename access_retval::subhelper<T, N, constant, strided, access>::constant_type;
 
-//! Helper struct to pretty-print the shape of the object
-template <std::size_t N> struct shape_help {
-std::array<Index, N> shape;
-constexpr shape_help(const std::array<Index, N>& x) : shape(x) {}
-friend std::ostream& operator<<(std::ostream& os, const shape_help& sh) {
-  bool first=true;
-  os << '(';
-  for (auto& x: sh.shape) {
-    if (not first) os << ", ";
-    first = false;
-    os << x;
-  }
-  return os << ')';
-}
-};
-
-//! Return a constant Index array of size N with value v
-template <Index N, Index v> 
-constexpr std::array<Index, N> constant_array() {
-  std::array<Index, N> x;
-  x.fill(v);
-  return x;
-}
-
 //! Helper to view a smaller size as a larger size
 template <Index N, Index M>
 std::array<Index, N> upview(const std::array<Index, M> &low) {
@@ -612,59 +588,6 @@ public:
   //! Iterate over this object by left-most dimension --- return the one-past-the-end of these iterators
   [[nodiscard]] constexpr auto cend() const {return end();}
 
-private:
-  //! Helper function to compute the position of an element in the mdspan
-  [[nodiscard]] static constexpr std::array<Index, N> mdpos(const std::array<Index, N>& sh, Index ind) {
-    std::array<Index, N> pos;
-    for (Index i=N-1; i>=0; i--) {
-      pos[i] = ind % sh[i];
-      ind /= sh[i];
-    }
-    return pos;
-  }
-
-  //! Helper function to take position and stridedness and compute the index it represents
-  [[nodiscard]] static constexpr Index mdind(const std::array<Index, N>& pos, const std::array<Index, N>& str) {
-      return std::transform_reduce(pos.begin(), pos.end(), str.begin(),
-                                   Index{0}, std::plus<>(),
-                                   std::multiplies<>());
-  }
-
-  //! Finds the true index even if the object is strided
-  [[nodiscard]] constexpr Index mdind(Index ind) const {
-    if constexpr (view_type::is_always_exhaustive()) {
-      return ind;
-    } else {
-      if constexpr (N == 1) return stride(0) * ind;
-      else return mdind(mdpos(shape(), ind), strides());
-    }
-  }
-
-public:
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr T& elem_at(Index ind) requires(not constant) {
-    ARTS_ASSERT(ind < size(), ind, " vs ", size())
-    return view.accessor().access(view.data_handle(), mdind(ind));
-  }
-
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr const T& elem_at(Index ind) const {
-    ARTS_ASSERT(ind < size(), ind, " vs ", size())
-    return view.accessor().access(view.data_handle(), mdind(ind));
-  }
-
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr T& elem_at(const std::array<Index, N>& pos) requires(not constant) {
-    ARTS_ASSERT(pos < shape(), shape_help<N>{pos}, " vs ", shape_help<N>{shape()})
-    return elem_at(mdind(pos, strides()));
-  }
-
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr const T& elem_at(const std::array<Index, N>& pos) const {
-    ARTS_ASSERT(pos < shape(), shape_help<N>{pos}, " vs ", shape_help<N>{shape()})
-    return elem_at(mdind(pos, strides()));
-  }
-
   using elem_iterator = matpack_elemwise_mditer<T, false, matpack_view>;
   using const_elem_iterator = matpack_elemwise_mditer<T, true, const matpack_view>;
   
@@ -756,7 +679,7 @@ public:
   }
 
   constexpr matpack_view& operator=(std::convertible_to<T> auto x) requires(not constant) {
-        if constexpr (N == 1)
+    if constexpr (N == 1)
       std::fill(elem_begin(), elem_end(), static_cast<T>(x));
     else
       for (auto v : *this)
@@ -857,10 +780,24 @@ public:
 
   //! Allow assigning all the values of a compatible object to this view
   template <matpack_convertible<T, N> U>
-  constexpr matpack_view& operator=(const U& x) requires(not constant) {
+  constexpr matpack_view &operator=(const U &x)
+    requires(not constant)
+  {
     const auto ext_sh = mdshape(x);
-    ARTS_ASSERT(shape() == ext_sh, shape_help<N>(shape()), " vs ", shape_help<N>(ext_sh))
-    for (Index i=0; i<size(); i++) elem_at(i) = mdvalue(x, mdpos(ext_sh, i));
+    ARTS_ASSERT(shape() == ext_sh, shape_help<N>(shape()), " vs ",
+                shape_help<N>(ext_sh))
+
+    auto pos = flat_shape_pos<N>(shape());
+    for (Index i = 0; i < size(); i++) {
+      if constexpr (N == 1)
+        this->operator[](i) = mdvalue(x, pos.pos);
+      else
+        std::apply(
+            [this](auto... ind) -> T & { return this->operator()(ind...); },
+            pos.pos) = mdvalue(x, pos.pos);
+      ++pos;
+    }
+
     return *this;
   }
 

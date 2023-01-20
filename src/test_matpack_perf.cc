@@ -163,7 +163,7 @@ void test_mat_multiply(Index N) {
     mult(A, B, C);
     mult(A, B, C);
     mult(A, B, C);
-    X = A.elem_at(0);
+    X = A.elem_at(0, 0);
   }
   std::cout << X << '\n';
 
