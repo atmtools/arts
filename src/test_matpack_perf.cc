@@ -182,7 +182,7 @@ void test_mat_multiply(Index N) {
   std::cout << X << '\n';
 }
 
-void test_elementary_ops(Index N) {
+void test_elementary_ops_vec(Index N) {
   Vector A(N, 1);
   VectorView Av = A;
 
@@ -269,6 +269,93 @@ void test_elementary_ops(Index N) {
   std::cout << X << '\n';
 }
 
+void test_elementary_ops_mat(Index N) {
+  Matrix A(N, N, 1);
+  MatrixView Av = A;
+
+  Numeric X;
+  {
+    DebugTime timer{"STARTUP"};
+    A = 1;
+    A += 1;
+    A *= 2;
+    A /= 2;
+    A -= 1;
+    X = A(0, 0) + A(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector Set    "};
+    A = 1;
+    X = A(0, 0) + A(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView Set"};
+    Av = 1;
+    X = Av(0, 0) + Av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector PlusEq    "};
+    A += 1.33;
+    X = A(0, 0) + A(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView PlusEq"};
+    Av += 1.33;
+    X = Av(0, 0) + Av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector MinusEq    "};
+    A -= 1.5;
+    X = A(0, 0) + A(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView MinusEq"};
+    Av -= 1.5;
+    X = Av(0, 0) + Av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector TimesEq    "};
+    A *= 3.5;
+    X = A(0, 0) + A(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView TimesEq"};
+    Av *= 3.5;
+    X = Av(0, 0) + Av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector DivEq    "};
+    A /= 7.77;
+    X = A(0, 0) + A(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView DivEq"};
+    A /= 7.77;
+    X = Av(0, 0) + Av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+}
+
 int main(int argc, char** c) {
   Index N = 100'000;
   if (argc == 2) N = static_cast<Index>(std::atoll(c[1]));
@@ -277,5 +364,6 @@ int main(int argc, char** c) {
   //test_dot(N);
   //test_vec_mult(N);
   //test_mat_multiply(N);
-  test_elementary_ops(N);
+  //test_elementary_ops_vec(N);
+  test_elementary_ops_mat(N);
 }
