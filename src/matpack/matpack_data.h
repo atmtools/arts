@@ -345,11 +345,11 @@ public:
   //! Return a view of the diagonal of this object
   [[nodiscard]] constexpr auto diagonal() const requires(N == 2) { return matpack_view<T, 1, true, false>{view}.diagonal(); }
 
-  constexpr matpack_data& operator=(std::convertible_to<T> auto x) {view = x; return *this;}
-  constexpr matpack_data& operator+=(std::convertible_to<T> auto x) {view += x; return *this;}
-  constexpr matpack_data& operator-=(std::convertible_to<T> auto x) {view -= x; return *this;}
-  constexpr matpack_data& operator*=(std::convertible_to<T> auto x) {view *= x; return *this;}
-  constexpr matpack_data& operator/=(std::convertible_to<T> auto x) {view /= x; return *this;}
+  constexpr matpack_data& operator=(std::convertible_to<T> auto x) {std::fill(data.begin(), data.end(), static_cast<T>(x)); return *this;}
+  constexpr matpack_data& operator+=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z + y;}); return *this;}
+  constexpr matpack_data& operator-=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z - y;}); return *this;}
+  constexpr matpack_data& operator*=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z * y;}); return *this;}
+  constexpr matpack_data& operator/=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z / y;}); return *this;}
   
   template <bool c, bool s> constexpr matpack_data& operator+=(const matpack_view<T, N, c, s>& x) {view += x; return *this;}
   template <bool c, bool s> constexpr matpack_data& operator-=(const matpack_view<T, N, c, s>& x) {view -= x; return *this;}
