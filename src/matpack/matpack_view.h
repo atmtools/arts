@@ -706,25 +706,25 @@ public:
   template <bool c, bool s> constexpr
   matpack_view& operator+=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a + b;});
+    for (Index i=0; i<extent(0); i++) this->operator[](i) += x[i];
     return *this;
   }
   template <bool c, bool s> constexpr
   matpack_view& operator-=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a - b;});
+    for (Index i=0; i<extent(0); i++) this->operator[](i) -= x[i];
     return *this;
   }
   template <bool c, bool s> constexpr
   matpack_view& operator*=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a * b;});
+    for (Index i=0; i<extent(0); i++) this->operator[](i) *= x[i];
     return *this;
   }
   template <bool c, bool s> constexpr
   matpack_view& operator/=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a / b;});
+    for (Index i=0; i<extent(0); i++) this->operator[](i) /= x[i];
     return *this;
   }
   constexpr matpack_view& operator+=(const matpack_data<T, N>& x) requires(not constant) {*this += x.view; return *this;}
