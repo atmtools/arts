@@ -271,7 +271,7 @@ void test_elementary_ops_vec(Index N) {
 
 void test_elementary_ops_mat(Index N) {
   Matrix A(N, N, 1);
-  MatrixView Av = transpose(A);
+  MatrixView Av = A;
 
   Numeric X;
   {
@@ -286,70 +286,70 @@ void test_elementary_ops_mat(Index N) {
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"Vector Set    "};
+    DebugTime timer{"Matrix Set    "};
     A = 1;
     X = A(0, 0) + A(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"VectorView Set"};
+    DebugTime timer{"MatrixView Set"};
     Av = 1;
     X = Av(0, 0) + Av(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"Vector PlusEq    "};
+    DebugTime timer{"Matrix PlusEq    "};
     A += 1.33;
     X = A(0, 0) + A(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"VectorView PlusEq"};
+    DebugTime timer{"MatrixView PlusEq"};
     Av += 1.33;
     X = Av(0, 0) + Av(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"Vector MinusEq    "};
+    DebugTime timer{"Matrix MinusEq    "};
     A -= 1.5;
     X = A(0, 0) + A(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"VectorView MinusEq"};
+    DebugTime timer{"MatrixView MinusEq"};
     Av -= 1.5;
     X = Av(0, 0) + Av(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"Vector TimesEq    "};
+    DebugTime timer{"Matrix TimesEq    "};
     A *= 3.5;
     X = A(0, 0) + A(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"VectorView TimesEq"};
+    DebugTime timer{"MatrixView TimesEq"};
     Av *= 3.5;
     X = Av(0, 0) + Av(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"Vector DivEq    "};
+    DebugTime timer{"Matrix DivEq    "};
     A /= 7.77;
     X = A(0, 0) + A(N-1, N-1);
   }
   std::cout << X << '\n';
 
   {
-    DebugTime timer{"VectorView DivEq"};
+    DebugTime timer{"MatrixView DivEq"};
     Av /= 7.77;
     X = Av(0, 0) + Av(N-1, N-1);
   }
