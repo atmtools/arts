@@ -152,11 +152,42 @@ void test_vec_mult(Index N) {
   std::cout << X << '\n';
 }
 
+void test_mat_multiply(Index N) {
+  Matrix A(20, 20), C(N, 20, 1), B(20, N, 1);
+  MatrixView Av=A, Bv=B, Cv=C;
+
+  Numeric X;
+  {
+    DebugTime timer{"STARTUP"};
+    mult(A, B, C);
+    mult(A, B, C);
+    mult(A, B, C);
+    mult(A, B, C);
+    X = A.elem_at(0);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Matrix mult    "};
+    mult(A, B, C);
+    X = A.elem_at(0);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"MatrixView mult"};
+    mult(Av, Bv, Cv);
+    X = A.elem_at(0);
+  }
+  std::cout << X << '\n';
+}
+
 int main(int argc, char** c) {
   Index N = 100'000;
   if (argc == 2) N = static_cast<Index>(std::atoll(c[1]));
 
   //test_sum(N);
   //test_dot(N);
-  test_vec_mult(N);
+  //test_vec_mult(N);
+  test_mat_multiply(N);
 }
