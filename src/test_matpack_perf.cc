@@ -170,14 +170,14 @@ void test_mat_multiply(Index N) {
   {
     DebugTime timer{"Matrix mult    "};
     mult(A, B, C);
-    X = A.elem_at(0);
+    X = A(0, 0);
   }
   std::cout << X << '\n';
 
   {
     DebugTime timer{"MatrixView mult"};
     mult(Av, Bv, Cv);
-    X = A.elem_at(0);
+    X = Av(0, 0);
   }
   std::cout << X << '\n';
 }
