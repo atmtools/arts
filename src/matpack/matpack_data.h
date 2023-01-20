@@ -292,16 +292,18 @@ public:
   [[nodiscard]] constexpr auto cend() const {return end();}
 
   //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr T& elem_at(Index ind) { return data[ind]; }
+  template <integral... Inds>
+  [[nodiscard]] constexpr T& elem_at(Inds... inds) requires(sizeof...(Inds) == N) {
+    if constexpr (N == 1) return data[std::array{inds...}[0]];
+    else return view(inds...);
+  }
 
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr const T& elem_at(Index ind) const { return data[ind]; }
-
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr T& elem_at(const std::array<Index, N>& pos) { return view.elem_at(pos); }
-
-  //! Access the data elements regardless of the matpack data rank
-  [[nodiscard]] constexpr const T& elem_at(const std::array<Index, N>& pos) const { return view.elem_at(pos); }
+  //! Access the data elements regardless of the matpack data rank  template <integral... Inds>
+  template <integral... Inds>
+  [[nodiscard]] constexpr T elem_at(Inds... inds) const requires(sizeof...(Inds) == N) {
+    if constexpr (N == 1) return data[std::array{inds...}[0]];
+    else return view(inds...);
+  }
   
   //! Iterate over this object element-wise --- return the first of these iterators
   [[nodiscard]] constexpr auto elem_begin() { return data.begin(); }

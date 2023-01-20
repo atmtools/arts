@@ -97,13 +97,13 @@ auto ArtsMatrix::cols() const
 auto ArtsMatrix::operator()(Index i, Index j)
     -> RealType &
 {
-    return this->elem_at({i,j});
+    return this->elem_at(i, j);
 }
 
 auto ArtsMatrix::operator()(Index i, Index j) const
     -> RealType
 {
-    return this->elem_at({i,j});
+    return this->elem_at(i, j);
 }
 
 auto ArtsMatrix::data_pointer()
