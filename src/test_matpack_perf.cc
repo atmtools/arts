@@ -271,7 +271,7 @@ void test_elementary_ops_vec(Index N) {
 
 void test_elementary_ops_mat(Index N) {
   Matrix A(N, N, 1);
-  MatrixView Av = A;
+  MatrixView Av = transpose(A);
 
   Numeric X;
   {
