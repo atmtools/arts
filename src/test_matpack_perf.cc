@@ -430,6 +430,80 @@ void test_ops_vec(Index N) {
   std::cout << X << '\n';
 }
 
+void test_ops_mat(Index N) {
+  Matrix a(N, N, 1.1);
+  Matrix b(N, N, 2.2);
+  MatrixView av=a;
+  MatrixView bv=b;
+
+  Numeric X;
+  {
+    DebugTime timer{"STARTUP"};
+    a += b;
+    a -= b;
+    a *= b;
+    a /= b;
+    X = a(0, 0) + a(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Matrix     ADD"};
+    a += b;
+    X = a(0, 0) + a(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"MatrixView ADD"};
+    av += bv;
+    X = av(0, 0) + av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Matrix     SUB"};
+    a -= b;
+    X = a(0, 0) + a(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"MatrixView SUB"};
+    av -= bv;
+    X = av(0, 0) + av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Matrix     MUL"};
+    a *= b;
+    X = a(0, 0) + a(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"MatrixView MUL"};
+    av *= bv;
+    X = av(0, 0) + av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Matrix     DIV"};
+    a /= b;
+    X = a(0, 0) + a(N-1, N-1);
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"MatrixView DIV"};
+    av /= bv;
+    X = av(0, 0) + av(N-1, N-1);
+  }
+  std::cout << X << '\n';
+}
+
 int main(int argc, char** c) {
   Index N = 100'000;
   if (argc == 2) N = static_cast<Index>(std::atoll(c[1]));
@@ -441,4 +515,5 @@ int main(int argc, char** c) {
   //test_elementary_ops_vec(N);
   //test_elementary_ops_mat(N);
   test_ops_vec(N);
+  //test_ops_mat(N);
 }
