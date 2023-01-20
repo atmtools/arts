@@ -755,19 +755,49 @@ public:
     return strided_mdspan<T, 1>{unsafe_data_handle(), {std::array<Index, 1>{nrows()}, std::array<Index, 1>{nrows()+1}}};
   }
 
-  constexpr matpack_view& operator=(std::convertible_to<T> auto x) requires(not constant) {std::fill(elem_begin(), elem_end(), static_cast<T>(x)); return *this;}
+  constexpr matpack_view& operator=(std::convertible_to<T> auto x) requires(not constant) {
+        if constexpr (N == 1)
+      std::fill(elem_begin(), elem_end(), static_cast<T>(x));
+    else
+      for (auto v : *this)
+        v = x;
+    return *this;}
   constexpr matpack_view& operator+=(std::convertible_to<T> auto x) requires(not constant) {
     if constexpr (N == 1)
-      std::transform(begin(), end(), begin(),
+      std::transform(elem_begin(), elem_end(), elem_begin(),
                      [y = static_cast<T>(x)](auto v) { return v + y; });
     else
       for (auto v : *this)
         v += x;
     return *this;
   }
-  constexpr matpack_view& operator-=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v - y;}); return *this;}
-  constexpr matpack_view& operator*=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v * y;}); return *this;}
-  constexpr matpack_view& operator/=(std::convertible_to<T> auto x) requires(not constant) {std::transform(elem_begin(), elem_end(), elem_begin(), [y = static_cast<T>(x)](auto v){return v / y;}); return *this;}
+  constexpr matpack_view& operator-=(std::convertible_to<T> auto x) requires(not constant) {
+    if constexpr (N == 1)
+      std::transform(elem_begin(), elem_end(), elem_begin(),
+                     [y = static_cast<T>(x)](auto v) { return v - y; });
+    else
+      for (auto v : *this)
+        v -= x;
+    return *this;
+  }
+  constexpr matpack_view& operator*=(std::convertible_to<T> auto x) requires(not constant) {
+    if constexpr (N == 1)
+      std::transform(elem_begin(), elem_end(), elem_begin(),
+                     [y = static_cast<T>(x)](auto v) { return v * y; });
+    else
+      for (auto v : *this)
+        v *= x;
+    return *this;
+  }
+  constexpr matpack_view& operator/=(std::convertible_to<T> auto x) requires(not constant) {
+    if constexpr (N == 1)
+      std::transform(elem_begin(), elem_end(), elem_begin(),
+                     [y = static_cast<T>(x)](auto v) { return v / y; });
+    else
+      for (auto v : *this)
+        v /= x;
+    return *this;
+  }
 
   template <bool c, bool s> constexpr
   matpack_view& operator+=(const matpack_view<T, N, c, s>& x) requires(not constant) {
