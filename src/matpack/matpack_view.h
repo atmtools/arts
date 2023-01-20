@@ -369,22 +369,26 @@ public:
   }
   constexpr matpack_view& operator=(const me_view& x) requires (not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::copy(x.elem_begin(), x.elem_end(), elem_begin());
+    if(unsafe_data_handle() not_eq x.unsafe_data_handle())
+      std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
   }
   constexpr matpack_view& operator=(const ce_view& x) requires (not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::copy(x.elem_begin(), x.elem_end(), elem_begin());
+    if(unsafe_data_handle() not_eq x.unsafe_data_handle())
+      std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
   }
   constexpr matpack_view& operator=(const ms_view& x) requires (not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::copy(x.elem_begin(), x.elem_end(), elem_begin());
+    if(unsafe_data_handle() not_eq x.unsafe_data_handle())
+      std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
   }
   constexpr matpack_view& operator=(const cs_view& x) requires (not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    std::copy(x.elem_begin(), x.elem_end(), elem_begin());
+    if(unsafe_data_handle() not_eq x.unsafe_data_handle())
+      std::copy(x.elem_begin(), x.elem_end(), elem_begin());
     return *this;
   }
 
@@ -679,46 +683,23 @@ public:
   }
 
   constexpr matpack_view& operator=(std::convertible_to<T> auto x) requires(not constant) {
-    if constexpr (N == 1)
-      std::fill(elem_begin(), elem_end(), static_cast<T>(x));
-    else
-      for (auto v : *this)
-        v = x;
-    return *this;}
+    for (auto&& v : *this) v = static_cast<T>(x);
+    return *this;
+  }
   constexpr matpack_view& operator+=(std::convertible_to<T> auto x) requires(not constant) {
-    if constexpr (N == 1)
-      std::transform(elem_begin(), elem_end(), elem_begin(),
-                     [y = static_cast<T>(x)](auto v) { return v + y; });
-    else
-      for (auto v : *this)
-        v += x;
+    for (auto&& v : *this) v += static_cast<T>(x);
     return *this;
   }
   constexpr matpack_view& operator-=(std::convertible_to<T> auto x) requires(not constant) {
-    if constexpr (N == 1)
-      std::transform(elem_begin(), elem_end(), elem_begin(),
-                     [y = static_cast<T>(x)](auto v) { return v - y; });
-    else
-      for (auto v : *this)
-        v -= x;
+    for (auto&& v : *this) v -= static_cast<T>(x);
     return *this;
   }
   constexpr matpack_view& operator*=(std::convertible_to<T> auto x) requires(not constant) {
-    if constexpr (N == 1)
-      std::transform(elem_begin(), elem_end(), elem_begin(),
-                     [y = static_cast<T>(x)](auto v) { return v * y; });
-    else
-      for (auto v : *this)
-        v *= x;
+    for (auto&& v : *this) v *= static_cast<T>(x);
     return *this;
   }
   constexpr matpack_view& operator/=(std::convertible_to<T> auto x) requires(not constant) {
-    if constexpr (N == 1)
-      std::transform(elem_begin(), elem_end(), elem_begin(),
-                     [y = static_cast<T>(x)](auto v) { return v / y; });
-    else
-      for (auto v : *this)
-        v /= x;
+    for (auto&& v : *this) v /= static_cast<T>(x);
     return *this;
   }
 
@@ -783,8 +764,7 @@ public:
   constexpr matpack_view &operator=(const U &x)
     requires(not constant)
   {
-    const auto ext_sh = mdshape(x);
-    ARTS_ASSERT(shape() == ext_sh, shape_help<N>(shape()), " vs ",
+    ARTS_ASSERT(shape() == mdshape(x), shape_help<N>(shape()), " vs ",
                 shape_help<N>(ext_sh))
 
     auto pos = flat_shape_pos<N>(shape());

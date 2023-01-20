@@ -356,6 +356,80 @@ void test_elementary_ops_mat(Index N) {
   std::cout << X << '\n';
 }
 
+void test_ops_vec(Index N) {
+  Vector a(N, 1.1);
+  Vector b(N, 2.2);
+  VectorView av=a;
+  VectorView bv=b;
+
+  Numeric X;
+  {
+    DebugTime timer{"STARTUP"};
+    a += b;
+    a -= b;
+    a *= b;
+    a /= b;
+    X = a[0] + a[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector     ADD"};
+    a += b;
+    X = a[0] + a[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView ADD"};
+    av += bv;
+    X = av[0] + av[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector     SUB"};
+    a -= b;
+    X = a[0] + a[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView SUB"};
+    av -= bv;
+    X = av[0] + av[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector     MUL"};
+    a *= b;
+    X = a[0] + a[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView MUL"};
+    av *= bv;
+    X = av[0] + av[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"Vector     DIV"};
+    a /= b;
+    X = a[0] + a[N-1];
+  }
+  std::cout << X << '\n';
+
+  {
+    DebugTime timer{"VectorView DIV"};
+    av /= bv;
+    X = av[0] + av[N-1];
+  }
+  std::cout << X << '\n';
+}
+
 int main(int argc, char** c) {
   Index N = 100'000;
   if (argc == 2) N = static_cast<Index>(std::atoll(c[1]));
@@ -365,5 +439,6 @@ int main(int argc, char** c) {
   //test_vec_mult(N);
   //test_mat_multiply(N);
   //test_elementary_ops_vec(N);
-  test_elementary_ops_mat(N);
+  //test_elementary_ops_mat(N);
+  test_ops_vec(N);
 }
