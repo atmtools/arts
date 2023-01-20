@@ -764,10 +764,11 @@ public:
   constexpr matpack_view &operator=(const U &x)
     requires(not constant)
   {
-    ARTS_ASSERT(shape() == mdshape(x), shape_help<N>(shape()), " vs ",
+    auto ext_sh = mdshape(x);
+    ARTS_ASSERT(shape() == ext_sh, shape_help<N>(shape()), " vs ",
                 shape_help<N>(ext_sh))
 
-    auto pos = flat_shape_pos<N>(shape());
+    auto pos = flat_shape_pos<N>(ext_sh);
     for (Index i = 0; i < size(); i++) {
       if constexpr (N == 1)
         this->operator[](i) = mdvalue(x, pos.pos);
