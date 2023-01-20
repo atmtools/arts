@@ -514,6 +514,6 @@ int main(int argc, char** c) {
   //test_mat_multiply(N);
   //test_elementary_ops_vec(N);
   //test_elementary_ops_mat(N);
-  test_ops_vec(N);
-  //test_ops_mat(N);
+  //test_ops_vec(N);
+  test_ops_mat(N);
 }
