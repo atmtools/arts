@@ -263,7 +263,7 @@ void test_elementary_ops_vec(Index N) {
 
   {
     DebugTime timer{"VectorView DivEq"};
-    A /= 7.77;
+    Av /= 7.77;
     X = Av[0] + Av[N-1];
   }
   std::cout << X << '\n';
@@ -350,7 +350,7 @@ void test_elementary_ops_mat(Index N) {
 
   {
     DebugTime timer{"VectorView DivEq"};
-    A /= 7.77;
+    Av /= 7.77;
     X = Av(0, 0) + Av(N-1, N-1);
   }
   std::cout << X << '\n';
