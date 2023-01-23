@@ -1,7 +1,6 @@
 #pragma once
 
 #include "matpack_concepts.h"
-#include "matpack_eigen.h"
 #include "matpack_view.h"
 
 #pragma GCC diagnostic push
@@ -96,13 +95,6 @@ template <strict_size_matpack_type<1> U> constexpr auto as_eigen(const U &x) {
 } // namespace matpack::eigen
 
 namespace matpack {
-//! Compute dot-product of x and y
-template <strict_size_matpack_type<1> VECONE,
-          strict_size_matpack_type<1> VECTWO>
-constexpr auto operator*(const VECONE &x, const VECTWO &y) {
-  return eigen::as_eigen(x).dot(eigen::as_eigen(y));
-}
-
 //! Perform the math and return a lazy object; A * x
 template <strict_size_matpack_type<2> MAT, strict_size_matpack_type<1> VEC>
 constexpr auto operator*(const MAT &A, const VEC &x) {

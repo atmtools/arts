@@ -43,7 +43,6 @@
 #include "arts_omp.h"
 #include "lapack.h"
 #include "logic.h"
-#include "matpack_eigen.h"
 #include "matpack_math.h"
 
 //! LU decomposition.

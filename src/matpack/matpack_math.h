@@ -191,3 +191,14 @@ template <matpack::any_matpack_type IN> constexpr auto nanmean(const IN &in) {
       });
   return sum / static_cast<T>(count);
 }
+
+namespace matpack {
+//! Compute dot-product of x and y
+template <strict_size_matpack_type<1> VECONE,
+          strict_size_matpack_type<1> VECTWO>
+constexpr auto operator*(const VECONE &x, const VECTWO &y) {
+  ARTS_ASSERT(x.size() == y.size(), x.size(), " vs ", y.size())
+  using T = std::remove_cvref_t<decltype(x[0] * y[0])>;
+  return std::transform_reduce(x.elem_begin(), x.elem_end(), y.elem_begin(), T{0});
+}
+}  // namespace matpack
