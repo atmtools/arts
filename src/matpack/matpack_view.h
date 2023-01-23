@@ -683,48 +683,57 @@ public:
   }
 
   constexpr matpack_view& operator=(std::convertible_to<T> auto x) requires(not constant) {
-    for (auto&& v : *this) v = static_cast<T>(x);
+    if constexpr (strided) for (auto&& v : *this) v = static_cast<T>(x);
+    else std::fill(elem_begin(), elem_end(), static_cast<T>(x));
     return *this;
   }
   constexpr matpack_view& operator+=(std::convertible_to<T> auto x) requires(not constant) {
-    for (auto&& v : *this) v += static_cast<T>(x);
+    if constexpr (strided) for (auto&& v : *this) v += static_cast<T>(x);
+    else std::transform(elem_begin(), elem_end(), elem_begin(), [y=static_cast<T>(x)](auto z){return z + y;});
     return *this;
   }
   constexpr matpack_view& operator-=(std::convertible_to<T> auto x) requires(not constant) {
-    for (auto&& v : *this) v -= static_cast<T>(x);
+    if constexpr (strided) for (auto&& v : *this) v -= static_cast<T>(x);
+    else std::transform(elem_begin(), elem_end(), elem_begin(), [y=static_cast<T>(x)](auto z){return z - y;});
     return *this;
   }
   constexpr matpack_view& operator*=(std::convertible_to<T> auto x) requires(not constant) {
-    for (auto&& v : *this) v *= static_cast<T>(x);
+    if constexpr (strided) for (auto&& v : *this) v *= static_cast<T>(x);
+    else std::transform(elem_begin(), elem_end(), elem_begin(), [y=static_cast<T>(x)](auto z){return z * y;});
     return *this;
   }
   constexpr matpack_view& operator/=(std::convertible_to<T> auto x) requires(not constant) {
-    for (auto&& v : *this) v /= static_cast<T>(x);
+    if constexpr (strided) for (auto&& v : *this) v /= static_cast<T>(x);
+    else std::transform(elem_begin(), elem_end(), elem_begin(), [y=static_cast<T>(x)](auto z){return z / y;});
     return *this;
   }
 
   template <bool c, bool s> constexpr
   matpack_view& operator+=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    for (Index i=0; i<extent(0); i++) this->operator[](i) += x[i];
+    if constexpr (strided or s) for (Index i=0; i<extent(0); i++) this->operator[](i) += x[i];
+    else std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a + b;});
     return *this;
   }
   template <bool c, bool s> constexpr
   matpack_view& operator-=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    for (Index i=0; i<extent(0); i++) this->operator[](i) -= x[i];
+    if constexpr (strided or s) for (Index i=0; i<extent(0); i++) this->operator[](i) -= x[i];
+    else std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a - b;});
     return *this;
   }
   template <bool c, bool s> constexpr
   matpack_view& operator*=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    for (Index i=0; i<extent(0); i++) this->operator[](i) *= x[i];
+    if constexpr (strided or s) for (Index i=0; i<extent(0); i++) this->operator[](i) *= x[i];
+    else std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a * b;});
     return *this;
   }
   template <bool c, bool s> constexpr
   matpack_view& operator/=(const matpack_view<T, N, c, s>& x) requires(not constant) {
     ARTS_ASSERT(shape() == x.shape(), shape_help<N>(shape()), " vs ", shape_help<N>(x.shape()))
-    for (Index i=0; i<extent(0); i++) this->operator[](i) /= x[i];
+    if constexpr (strided or s) for (Index i=0; i<extent(0); i++) this->operator[](i) /= x[i];
+    else std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a / b;});
     return *this;
   }
   constexpr matpack_view& operator+=(const matpack_data<T, N>& x) requires(not constant) {*this += x.view; return *this;}
