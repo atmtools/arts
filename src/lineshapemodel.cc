@@ -36,7 +36,6 @@
 #include "debug.h"
 #include "lineshapemodel.h"
 #include "matpack_data.h"
-#include "matpack_eigen.h"
 #include "matpack_math.h"
 #include <limits>
 

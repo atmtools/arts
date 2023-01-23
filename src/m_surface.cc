@@ -49,7 +49,6 @@
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
-#include "matpack_eigen.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"

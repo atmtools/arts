@@ -47,7 +47,6 @@
 #include "auto_md.h"
 #include "jacobian.h"
 #include "math_funcs.h"
-#include "matpack_eigen.h"
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
