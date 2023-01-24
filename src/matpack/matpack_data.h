@@ -97,7 +97,7 @@ public:
   template <typename... arguments>
   constexpr matpack_data(integral auto dim0, arguments ... args)
     requires(sizeof...(arguments) == N)
-      : matpack_data(front_array<Index, N>(dim0, args...), static_cast<T>(get_last(args...))) {
+      : matpack_data(front_array<Index, N>(dim0, args...), get_last(args...)) {
   }
 
   /** Construct a new matpack data object

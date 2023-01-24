@@ -420,7 +420,19 @@ void mult(VectorView y, const Sparse& M, ConstVectorView x) {
   ARTS_ASSERT(y.nelem() == M.nrows());
   ARTS_ASSERT(M.ncols() == x.nelem());
 
-  matpack::eigen::as_eigen(y).noalias() = M.matrix * matpack::eigen::as_eigen(x);
+    // Typedefs for Eigen interface
+  typedef Eigen::Matrix<Numeric, Eigen::Dynamic, 1, Eigen::ColMajor>
+      EigenColumnVector;
+  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
+  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
+
+  Numeric* data;
+  data = x.unsafe_data_handle();
+  ColumnMap x_map(data, x.nelem(), Stride(1, x.stride(0)));
+  data = y.unsafe_data_handle();
+  ColumnMap y_map(data, y.nelem(), Stride(1, y.stride(0)));
+
+  y_map = M.matrix * x_map;
 }
 
 //! Sparse matrix - Vector multiplication.
@@ -443,7 +455,19 @@ void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x) {
   ARTS_ASSERT(y.nelem() == M.ncols());
   ARTS_ASSERT(M.nrows() == x.nelem());
 
-  matpack::eigen::as_eigen(y).noalias() = matpack::eigen::col_vec(x) * M.matrix;
+    // Typedefs for Eigen interface
+  typedef Eigen::Matrix<Numeric, 1, Eigen::Dynamic, Eigen::RowMajor>
+      EigenColumnVector;
+  typedef Eigen::Stride<1, Eigen::Dynamic> Stride;
+  typedef Eigen::Map<EigenColumnVector, 0, Stride> ColumnMap;
+
+  Numeric* data;
+  data = x.unsafe_data_handle();
+  ColumnMap x_map(data, x.nelem(), Stride(1, x.stride(0)));
+  data = y.unsafe_data_handle();
+  ColumnMap y_map(data, y.nelem(), Stride(1, y.stride(0)));
+
+  y_map = x_map * M.matrix;
 }
 
 //! SparseMatrix - Matrix multiplication.
@@ -470,7 +494,30 @@ void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C) {
   ARTS_ASSERT(A.ncols() == C.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  matpack::eigen::as_eigen(A).noalias() = B.matrix * matpack::eigen::as_eigen(C);
+  
+  // Typedefs for Eigen interface
+  typedef Eigen::
+      Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+          EigenMatrix;
+  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> Stride;
+  typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
+
+  Index row_stride, column_stride;
+  row_stride = C.stride(0);
+  column_stride = C.stride(1);
+
+  Numeric* data;
+  data = C.unsafe_data_handle();
+  Stride c_stride(row_stride, column_stride);
+  MatrixMap C_map(data, C.nrows(), C.ncols(), c_stride);
+
+  row_stride = A.stride(0);
+  column_stride = A.stride(1);
+  data = A.unsafe_data_handle();
+  Stride a_stride(row_stride, column_stride);
+  MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
+
+  A_map = B.matrix * C_map;
 }
 
 //! Matrix - SparseMatrix multiplication.
@@ -497,7 +544,29 @@ void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C) {
   ARTS_ASSERT(A.ncols() == C.ncols());
   ARTS_ASSERT(B.ncols() == C.nrows());
 
-  matpack::eigen::as_eigen(A).noalias() = matpack::eigen::as_eigen(B) * C.matrix;
+    // Typedefs for Eigen interface.
+  typedef Eigen::
+      Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+          EigenMatrix;
+  typedef Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> Stride;
+  typedef Eigen::Map<EigenMatrix, 0, Stride> MatrixMap;
+
+  Index row_stride, column_stride;
+  row_stride = B.stride(0);
+  column_stride = B.stride(1);
+
+  Numeric* data;
+  data = B.unsafe_data_handle();
+  Stride b_stride(row_stride, column_stride);
+  MatrixMap B_map(data, B.nrows(), B.ncols(), b_stride);
+
+  row_stride = A.stride(0);
+  column_stride = A.stride(1);
+  data = A.unsafe_data_handle();
+  Stride a_stride(row_stride, column_stride);
+  MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
+
+  A_map = B_map * C.matrix;
 }
 
 //! Transpose of sparse matrix
