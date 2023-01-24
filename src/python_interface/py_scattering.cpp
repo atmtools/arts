@@ -20,7 +20,7 @@ void py_scattering(py::module_& m) {
           }));
 
   py::class_<SingleScatteringData>(m, "SingleScatteringData")
-      .def(py::init([]() { return new SingleScatteringData{}; }))
+      .def(py::init([]() { return std::make_unique<SingleScatteringData>(); }))
       .PythonInterfaceCopyValue(SingleScatteringData)
       .PythonInterfaceWorkspaceVariableConversion(SingleScatteringData)
       .PythonInterfaceFileIO(SingleScatteringData)
@@ -49,7 +49,7 @@ void py_scattering(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
 
-            return new SingleScatteringData{t[0].cast<PType>(),
+            return std::make_unique<SingleScatteringData>(SingleScatteringData{t[0].cast<PType>(),
                                             t[1].cast<String>(),
                                             t[2].cast<Vector>(),
                                             t[3].cast<Vector>(),
@@ -57,12 +57,12 @@ void py_scattering(py::module_& m) {
                                             t[5].cast<Vector>(),
                                             t[6].cast<Tensor7>(),
                                             t[7].cast<Tensor5>(),
-                                            t[8].cast<Tensor5>()};
+                                            t[8].cast<Tensor5>()});
           }))
       .PythonInterfaceWorkspaceDocumentation(SingleScatteringData);
 
   py::class_<ScatteringMetaData>(m, "ScatteringMetaData")
-      .def(py::init([]() { return new ScatteringMetaData{}; }))
+      .def(py::init([]() { return std::make_unique<ScatteringMetaData>(); }))
       .PythonInterfaceCopyValue(ScatteringMetaData)
       .PythonInterfaceWorkspaceVariableConversion(ScatteringMetaData)
       .PythonInterfaceFileIO(ScatteringMetaData)
@@ -89,13 +89,13 @@ void py_scattering(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-            return new ScatteringMetaData{t[0].cast<String>(),
+            return std::make_unique<ScatteringMetaData>(ScatteringMetaData{t[0].cast<String>(),
                                           t[1].cast<String>(),
                                           t[2].cast<String>(),
                                           t[3].cast<Numeric>(),
                                           t[4].cast<Numeric>(),
                                           t[5].cast<Numeric>(),
-                                          t[6].cast<Numeric>()};
+                                          t[6].cast<Numeric>()});
           }))
       .PythonInterfaceWorkspaceDocumentation(ScatteringMetaData);
 

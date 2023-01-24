@@ -189,14 +189,14 @@ Returns: GriddedField
 )--"));
 
   py::class_<GriddedField1, GriddedField>(m, "GriddedField1")
-      .def(py::init([]() { return new GriddedField1{}; }))
-      .def(py::init([](const String& s) { return new GriddedField1{s}; }))
+      .def(py::init([]() { return std::make_unique<GriddedField1>(); }))
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField1>(s); }))
       .def(py::init([](const std::array<VectorOrArrayOfString, 1>& grids,
                        const Vector& data,
                        const std::optional<std::array<String, 1>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 1;
-             auto* out = new GriddedField1(name);
+             auto out = std::make_unique<GriddedField1>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -217,14 +217,14 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField1);
 
   py::class_<GriddedField2, GriddedField>(m, "GriddedField2")
-      .def(py::init([]() { return new GriddedField2{}; }))
-      .def(py::init([](const String& s) { return new GriddedField2{s}; }))
+      .def(py::init([]() { return std::make_unique<GriddedField2>(); }))
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField2>(s); }))
       .def(py::init([](const std::array<VectorOrArrayOfString, 2>& grids,
                        const Matrix& data,
                        const std::optional<std::array<String, 2>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 2;
-             auto* out = new GriddedField2(name);
+             auto out = std::make_unique<GriddedField2>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -245,14 +245,14 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField2);
 
   py::class_<GriddedField3, GriddedField>(m, "GriddedField3")
-      .def(py::init([]() { return new GriddedField3{}; }))
-      .def(py::init([](const String& s) { return new GriddedField3{s}; }))
+      .def(py::init([]() { return std::make_unique<GriddedField3>(); }))
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField3>(s); }))
       .def(py::init([](const std::array<VectorOrArrayOfString, 3>& grids,
                        const Tensor3& data,
                        const std::optional<std::array<String, 3>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 3;
-             auto* out = new GriddedField3(name);
+             auto out = std::make_unique<GriddedField3>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -273,14 +273,14 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField3);
 
   py::class_<GriddedField4, GriddedField>(m, "GriddedField4")
-      .def(py::init([]() { return new GriddedField4{}; }))
-      .def(py::init([](const String& s) { return new GriddedField4{s}; }))
+      .def(py::init([]() { return std::make_unique<GriddedField4>(); }))
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField4>(s); }))
       .def(py::init([](const std::array<VectorOrArrayOfString, 4>& grids,
                        const Tensor4& data,
                        const std::optional<std::array<String, 4>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 4;
-             auto* out = new GriddedField4(name);
+             auto out = std::make_unique<GriddedField4>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -301,14 +301,14 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField4);
 
   py::class_<GriddedField5, GriddedField>(m, "GriddedField5")
-      .def(py::init([]() { return new GriddedField5{}; }))
-      .def(py::init([](const String& s) { return new GriddedField5{s}; }))
+      .def(py::init([]() { return std::make_unique<GriddedField5>(); }))
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField5>(s); }))
       .def(py::init([](const std::array<VectorOrArrayOfString, 5>& grids,
                        const Tensor5& data,
                        const std::optional<std::array<String, 5>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 5;
-             auto* out = new GriddedField5(name);
+             auto out = std::make_unique<GriddedField5>(name);;
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -329,14 +329,14 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField5);
 
   py::class_<GriddedField6, GriddedField>(m, "GriddedField6")
-      .def(py::init([]() { return new GriddedField6{}; }))
-      .def(py::init([](const String& s) { return new GriddedField6{s}; }))
+      .def(py::init([]() { return std::make_unique<GriddedField6>(); }))
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField6>(s); }))
       .def(py::init([](const std::array<VectorOrArrayOfString, 6>& grids,
                        const Tensor6& data,
                        const std::optional<std::array<String, 6>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 6;
-             auto* out = new GriddedField6(name);
+             auto out = std::make_unique<GriddedField6>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())

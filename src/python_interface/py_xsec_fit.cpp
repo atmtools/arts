@@ -1,3 +1,4 @@
+#include <memory>
 #include <pybind11/attr.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
@@ -40,7 +41,7 @@ void py_xsec(py::module_& m) {
     .def_readwrite_static("__eq__", &details::XsecRecord::__eq__);
 
   py::class_<XsecRecord>(m, "XsecRecord")
-      .def(py::init([]() { return new XsecRecord{}; }))
+      .def(py::init([]() { return std::make_unique<XsecRecord>(); }))
       .PythonInterfaceCopyValue(XsecRecord)
       // .PythonInterfaceWorkspaceVariableConversion(XsecRecord)
       .PythonInterfaceFileIO(XsecRecord)
@@ -74,7 +75,7 @@ void py_xsec(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-            auto* out = new XsecRecord{};
+            auto out = std::make_unique<XsecRecord>();
             out->SetVersion(t[0].cast<Index>());
             out->SetSpecies(t[1].cast<Species::Species>());
             out->FitMinPressures() = t[2].cast<Vector>();

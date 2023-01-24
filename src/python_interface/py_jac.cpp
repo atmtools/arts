@@ -9,7 +9,7 @@
 namespace Python {
 void py_jac(py::module_& m) {
   py::class_<Jacobian::Type>(m, "JacobianType")
-      .def(py::init([]() { return new Jacobian::Type{}; }))
+      .def(py::init([]() { return Jacobian::Type{}; }))
       .def(py::init(
                [](const std::string& c) { return Jacobian::toTypeOrThrow(c); }),
            py::arg("str").none(false))
@@ -21,13 +21,13 @@ void py_jac(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Jacobian::Type{
+            return Jacobian::Type{
                 Jacobian::toType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Type>();
 
   py::class_<Jacobian::Atm>(m, "JacobianAtm")
-      .def(py::init([]() { return new Jacobian::Atm{}; }))
+      .def(py::init([]() { return Jacobian::Atm{}; }))
       .def(py::init(
                [](const std::string& c) { return Jacobian::toAtmOrThrow(c); }),
            py::arg("str").none(false))
@@ -39,13 +39,13 @@ void py_jac(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Jacobian::Atm{
+            return Jacobian::Atm{
                 Jacobian::toAtm(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Atm>();
 
   py::class_<Jacobian::Line>(m, "JacobianLine")
-      .def(py::init([]() { return new Jacobian::Line{}; }))
+      .def(py::init([]() { return Jacobian::Line{}; }))
       .def(py::init(
                [](const std::string& c) { return Jacobian::toLineOrThrow(c); }),
            py::arg("str").none(false))
@@ -57,13 +57,13 @@ void py_jac(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Jacobian::Line{
+            return Jacobian::Line{
                 Jacobian::toLine(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Line>();
 
   py::class_<Jacobian::Sensor>(m, "JacobianSensor")
-      .def(py::init([]() { return new Jacobian::Sensor{}; }))
+      .def(py::init([]() { return Jacobian::Sensor{}; }))
       .def(py::init([](const std::string& c) {
              return Jacobian::toSensorOrThrow(c);
            }),
@@ -76,13 +76,13 @@ void py_jac(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Jacobian::Sensor{
+            return Jacobian::Sensor{
                 Jacobian::toSensor(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Sensor>();
 
   py::class_<Jacobian::Special>(m, "JacobianSpecial")
-      .def(py::init([]() { return new Jacobian::Special{}; }))
+      .def(py::init([]() { return Jacobian::Special{}; }))
       .def(py::init([](const std::string& c) {
              return Jacobian::toSpecialOrThrow(c);
            }),
@@ -95,13 +95,13 @@ void py_jac(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Jacobian::Special{
+            return Jacobian::Special{
                 Jacobian::toSpecial(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, Jacobian::Special>();
 
   py::class_<JacobianTarget>(m, "JacobianTarget")
-      .def(py::init([]() { return new JacobianTarget{}; }))
+      .def(py::init([]() { return std::make_unique<JacobianTarget>(); }))
       .PythonInterfaceCopyValue(JacobianTarget)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
       .PythonInterfaceFileIO(JacobianTarget)
@@ -123,7 +123,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 10, "Invalid state!")
             
-            auto* out = new JacobianTarget{};
+            auto out = std::make_unique<JacobianTarget>();
             
             out -> type = t[0].cast<Jacobian::Type>();
             out -> atm = t[1].cast<Jacobian::Atm>();
@@ -143,7 +143,7 @@ void py_jac(py::module_& m) {
   PythonInterfaceWorkspaceArray(JacobianTarget);
 
   py::class_<RetrievalQuantity>(m, "RetrievalQuantity")
-      .def(py::init([]() { return new RetrievalQuantity{}; }))
+      .def(py::init([]() { return std::make_unique<RetrievalQuantity>(); }))
       .def(py::pickle(
           [](const RetrievalQuantity& self) {
             return py::make_tuple(self.SubTag(),
@@ -159,7 +159,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
 
-            auto* out = new RetrievalQuantity {};
+            auto out = std::make_unique<RetrievalQuantity>();
 
             out->SubTag() = t[0].cast<String>();
             out->SubSubTag() = t[1].cast<String>();

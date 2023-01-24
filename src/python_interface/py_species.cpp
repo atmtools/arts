@@ -19,7 +19,7 @@ void internal_species(py::module_& m) {
 
   py::class_<SpeciesTagTypeStatus>(m, "SpeciesTagTypeStatus")
       .def(py::init([](const ArrayOfArrayOfSpeciesTag& s) {
-        return new SpeciesTagTypeStatus{s};
+        return std::make_unique<SpeciesTagTypeStatus>(s);
       }))
       .def_readwrite("Plain", &SpeciesTagTypeStatus::Plain)
       .def_readwrite("Zeeman", &SpeciesTagTypeStatus::Zeeman)
@@ -54,14 +54,14 @@ void py_species(py::module_& m) {
                 "Bad version")
             auto v = t[1].cast<
                 std::array<Numeric, SpeciesIsotopologueRatios::maxsize>>();
-            auto* out = new SpeciesIsotopologueRatios{};
+            auto out = std::make_unique<SpeciesIsotopologueRatios>();
             out->data = v;
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
   py::class_<Species::Species>(m, "Species")
-      .def(py::init([]() { return new Species::Species{}; }))
+      .def(py::init([]() { return std::make_unique<Species::Species>(); }))
       .def(py::init([](const std::string& c) {
         if (auto out = Species::fromShortName(c); good_enum(out)) return out;
         return Species::toSpeciesOrThrow(c);
@@ -74,8 +74,8 @@ void py_species(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Species::Species{
-                Species::toSpecies(t[0].cast<std::string>())};
+            return std::make_unique<Species::Species>(
+                Species::toSpecies(t[0].cast<std::string>()));
           }));
   py::implicitly_convertible<std::string, Species::Species>();
 
@@ -105,10 +105,10 @@ void py_species(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            return new SpeciesIsotopeRecord{t[0].cast<Species::Species>(),
+            return std::make_unique<SpeciesIsotopeRecord>(t[0].cast<Species::Species>(),
                                             t[1].cast<std::string>(),
                                             t[2].cast<Numeric>(),
-                                            t[3].cast<Index>()};
+                                            t[3].cast<Index>());
           }));
   py::implicitly_convertible<std::string, SpeciesIsotopeRecord>();
 
@@ -121,10 +121,10 @@ void py_species(py::module_& m) {
       .PythonInterfaceBasicRepresentation(ArrayOfIsotopeRecord)
       .PythonInterfaceIndexItemAccess(ArrayOfIsotopeRecord)
       .def(py::init([](Index a, SpeciesIsotopeRecord b) {
-        return new ArrayOfIsotopeRecord{a, b};
+        return std::make_unique<ArrayOfIsotopeRecord>(a, b);
       }))
       .def(py::init([](const std::vector<SpeciesIsotopeRecord>& a) {
-        return new ArrayOfIsotopeRecord{a};
+        return std::make_unique<ArrayOfIsotopeRecord>(a);
       }))
       .def(
           "append",
@@ -141,8 +141,8 @@ void py_species(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new ArrayOfIsotopeRecord{
-                t[0].cast<std::vector<SpeciesIsotopeRecord>>()};
+            return std::make_unique<ArrayOfIsotopeRecord>(
+                t[0].cast<std::vector<SpeciesIsotopeRecord>>());
           }))
       .doc() =
       "A list of isotope records\n"
@@ -151,7 +151,7 @@ void py_species(py::module_& m) {
       "available Arts isotopologues\n";
 
   py::class_<Species::TagType>(m, "SpeciesTagType")
-      .def(py::init([]() { return new Species::TagType{}; }))
+      .def(py::init([]() { return std::make_unique<Species::TagType>(); }))
       .def(py::init([](const std::string& c) { return Species::toTagType(c); }))
       .PythonInterfaceCopyValue(Species::TagType)
       .PythonInterfaceBasicRepresentation(Species::TagType)
@@ -161,14 +161,14 @@ void py_species(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Species::TagType{
-                Species::toTagType(t[0].cast<std::string>())};
+            return std::make_unique<Species::TagType>(
+                Species::toTagType(t[0].cast<std::string>()));
           }));
   py::implicitly_convertible<std::string, Species::TagType>();
 
   py::class_<SpeciesTag>(m, "SpeciesTag")
-      .def(py::init([]() { return new SpeciesTag{}; }))
-      .def(py::init([](const std::string& s) { return new SpeciesTag{s}; }))
+      .def(py::init([]() { return std::make_unique<SpeciesTag>(); }))
+      .def(py::init([](const std::string& s) { return std::make_unique<SpeciesTag>(s); }))
       .PythonInterfaceCopyValue(SpeciesTag)
       .def_readwrite("spec_ind", &SpeciesTag::spec_ind)
       .def_readwrite("lower_freq", &SpeciesTag::lower_freq)
@@ -205,7 +205,7 @@ Returns
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-            auto* out = new SpeciesTag{};
+            auto out = std::make_unique<SpeciesTag>();;
             out->spec_ind = t[0].cast<Index>();
             out->lower_freq = t[1].cast<Numeric>();
             out->upper_freq = t[2].cast<Numeric>();
@@ -227,13 +227,13 @@ Returns
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
       .def(py::self == py::self)
-      .def(py::init([]() { return new ArrayOfSpeciesTag{}; }))
+      .def(py::init([]() { return std::make_unique<ArrayOfSpeciesTag>(); }))
       .def(py::init(
-          [](const std::string& s) { return new ArrayOfSpeciesTag(s); }))
+          [](const std::string& s) { return std::make_unique<ArrayOfSpeciesTag>(s); }))
       .def(py::init(
-          [](Index a, SpeciesTag b) { return new ArrayOfSpeciesTag(a, b); }))
+          [](Index a, SpeciesTag b) { return std::make_unique<ArrayOfSpeciesTag>(a, b); }))
       .def(py::init([](const std::vector<SpeciesTag>& v) {
-        return new ArrayOfSpeciesTag{v};
+        return std::make_unique<ArrayOfSpeciesTag>(v);
       }))
       .def(
           "append",
@@ -256,7 +256,7 @@ Returns
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new ArrayOfSpeciesTag{t[0].cast<std::vector<SpeciesTag>>()};
+            return std::make_unique<ArrayOfSpeciesTag>(t[0].cast<std::vector<SpeciesTag>>());
           }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesTag);
   py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();

@@ -6,7 +6,7 @@
 namespace Python {
 void py_nlte(py::module_& m) {
 py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
-      .def(py::init([]() { return new EnergyLevelMapType{}; }))
+      .def(py::init([]() { return EnergyLevelMapType{}; }))
       .def(py::init([](const std::string& c) {
         return toEnergyLevelMapTypeOrThrow(c);
       }))
@@ -18,13 +18,13 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new EnergyLevelMapType{
+            return EnergyLevelMapType{
                 toEnergyLevelMapType(t[0].cast<std::string>())};
           }));
   py::implicitly_convertible<std::string, EnergyLevelMapType>();
 
   py::class_<EnergyLevelMap>(m, "EnergyLevelMap")
-      .def(py::init([]() { return new EnergyLevelMap{}; }))
+      .def(py::init([]() { return std::make_unique<EnergyLevelMap>(); }))
       .PythonInterfaceCopyValue(EnergyLevelMap)
       .PythonInterfaceWorkspaceVariableConversion(EnergyLevelMap)
       .PythonInterfaceBasicRepresentation(EnergyLevelMap)
@@ -39,7 +39,7 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            auto*  out = new EnergyLevelMap{};
+            auto  out = std::make_unique<EnergyLevelMap>();
             out->type = t[0].cast<EnergyLevelMapType>();
             out->levels = t[1].cast<ArrayOfQuantumIdentifier>();
             out->vib_energy = t[2].cast<Vector>();

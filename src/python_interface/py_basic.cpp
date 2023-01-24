@@ -9,11 +9,11 @@
 namespace Python {
 void py_basic(py::module_& m) {
   py::class_<Verbosity>(m, "Verbosity")
-      .def(py::init([]() { return new Verbosity{}; }))
+      .def(py::init([]() { return std::make_unique<Verbosity>(); }))
       .PythonInterfaceWorkspaceVariableConversion(Verbosity)
       .PythonInterfaceCopyValue(Verbosity)
       .def(py::init([](Index a, Index s, Index f) {
-             return new Verbosity(a, s, f);
+             return std::make_unique<Verbosity>(a, s, f);
            }),
            py::arg("agenda") = 0,
            py::arg("screen") = 0,
@@ -57,7 +57,7 @@ void py_basic(py::module_& m) {
             const auto vf = t[2].cast<Index>();
             const auto bm = t[3].cast<bool>();
 
-            auto* out = new Verbosity{va, vs, vf};
+            auto out = std::make_unique<Verbosity>(va, vs, vf);
             out->set_main_agenda(bm);
             return out;
           }))
@@ -65,8 +65,8 @@ void py_basic(py::module_& m) {
   py::implicitly_convertible<Index, Verbosity>();
 
   py::class_<String>(m, "String")
-      .def(py::init([]() { return new String{}; }))
-      .def(py::init([](const std::string& s) { return new String{s}; }))
+      .def(py::init([]() { return std::make_unique<String>(); }))
+      .def(py::init([](const std::string& s) { return std::make_unique<String>(s); }))
       .PythonInterfaceCopyValue(String)
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
@@ -80,7 +80,7 @@ void py_basic(py::module_& m) {
           [](const String& self) { return py::make_tuple(std::string(self)); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new String{t[0].cast<std::string>()};
+            return std::make_unique<String>(t[0].cast<std::string>());
           }))
       .PythonInterfaceWorkspaceDocumentationExtra(String,
                                                   R"--(
@@ -136,11 +136,11 @@ object's instances (i.e., no element-wise comparisions))--");
                              ArrayOfArrayOfIndex>();
 
   py::class_<Numeric_>(m, "Numeric")
-      .def(py::init([]() { return new Numeric_{}; }))
+      .def(py::init([]() { return std::make_unique<Numeric_>(); }))
       .def(py::init([](Index i) -> Numeric_ {
         return Numeric_{static_cast<Numeric>(i)};
       }))
-      .def(py::init([](Numeric n) { return new Numeric_{n}; }))
+      .def(py::init([](Numeric n) { return std::make_unique<Numeric_>(n); }))
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(x.val)); })
@@ -198,7 +198,7 @@ object's instances (i.e., no element-wise comparisions))--");
           [](const Numeric_& self) { return py::make_tuple(self.val); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Numeric_{t[0].cast<Numeric>()};
+            return std::make_unique<Numeric_>(t[0].cast<Numeric>());
           }))
       .PythonInterfaceWorkspaceDocumentationExtra(Numeric,
                                                   R"--(
@@ -208,8 +208,8 @@ This is a wrapper class for Arts Numeric.
 You can get copies and set the value by the "value" property)--");
 
   py::class_<Index_>(m, "Index")
-      .def(py::init([]() { return new Index_{}; }))
-      .def(py::init([](Index i) { return new Index_{i}; }))
+      .def(py::init([]() { return std::make_unique<Index_>(); }))
+      .def(py::init([](Index i) { return std::make_unique<Index_>(i); }))
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def("__hash__", [](Index_& x) { return py::hash(py::int_(x.val)); })
@@ -266,7 +266,7 @@ You can get copies and set the value by the "value" property)--");
           [](const Index_& self) { return py::make_tuple(self.val); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new Index_{t[0].cast<Index>()};
+            return std::make_unique<Index_>(t[0].cast<Index>());
           }))
       .PythonInterfaceWorkspaceDocumentationExtra(Index,
                                                   R"--(
@@ -282,14 +282,14 @@ You can get copies and set the value by the "value" property)--");
   py::implicitly_convertible<Index, Index_>();
 
   py::class_<Any>(m, "Any")
-      .def(py::init([]() { return new Any{}; }))
-      .def(py::init([](const py::args&, const py::kwargs&) { return new Any{}; }))
+      .def(py::init([]() { return std::make_unique<Any>();; }))
+      .def(py::init([](const py::args&, const py::kwargs&) { return std::make_unique<Any>(); }))
       .def("__repr__", [](Any&) { return "Any"; })
       .def("__str__", [](Any&) { return "Any"; })
       .def(py::pickle([](const py::object&) { return py::make_tuple(); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
-                        return new Any{};
+                        return std::make_unique<Any>();
                       }))
       .PythonInterfaceWorkspaceDocumentation(Any);
 

@@ -11,11 +11,11 @@ void py_time(py::module_& m) {
       .def(py::pickle([](const clock_t& self) { return py::make_tuple(self); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-                        return new clock_t{t[0].cast<clock_t>()};
+                        return clock_t{t[0].cast<clock_t>()};
                       }));
 
   py::class_<Timer>(m, "Timer")
-      .def(py::init([]() { return new Timer{}; }))
+      .def(py::init([]() { return std::make_unique<Timer>(); }))
       .PythonInterfaceCopyValue(Timer)
       .PythonInterfaceWorkspaceVariableConversion(Timer)
       .PythonInterfaceFileIO(Timer)
@@ -39,7 +39,7 @@ void py_time(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
 
-            auto* out = new Timer{};
+            auto out = std::make_unique<Timer>();
             out->running = t[0].cast<bool>();
             out->finished = t[1].cast<bool>();
             out->cputime_start = t[2].cast<std::clock_t>();
@@ -52,7 +52,7 @@ void py_time(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentation(Timer);
 
   py::class_<Time>(m, "Time")
-      .def(py::init([]() { return new Time{}; }))
+      .def(py::init([]() { return std::make_unique<Time>(); }))
       .def(py::init([](std::chrono::system_clock::time_point nt) {
         Time t;
         t.time = nt;
@@ -65,7 +65,7 @@ void py_time(py::module_& m) {
       }))
       .PythonInterfaceCopyValue(Time)
       .PythonInterfaceWorkspaceVariableConversion(Time)
-      .def(py::init([](const std::string& s) { return new Time{s}; }))
+      .def(py::init([](const std::string& s) { return std::make_unique<Time>(s); }))
       .PythonInterfaceFileIO(Time)
       .PythonInterfaceBasicRepresentation(Time)
       .def_readwrite("time", &Time::time)

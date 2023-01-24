@@ -595,8 +595,8 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
        << group_index << R"--(, "Already exist of different group: ", name)
   }
 
-  if (value.has_value()) w.push_move(pos, std::shared_ptr<)--"
-       << group << ">(new " << group << R"--({*value}));
+  if (value.has_value()) w.push_move(pos, std::make_shared<)--"
+       << group << R"--(>(*value));
 }, py::doc(R"-x-(
 Create new )--"
        << group << R"--( on the workspace
@@ -1582,8 +1582,7 @@ WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py
     os << "      case " << group << ": {auto conv_obj = py::type::of<" << name
        << extra << ">()(";
     if (name == "Agenda") os << "ws, ";
-    os << "obj); value_ptr = std::shared_ptr<" << name << ">(new " << name
-       << "{* conv_obj.cast<" << name << extra << "*>()});} break;\n";
+    os << "obj); value_ptr = std::make_shared<" << name << ">(* conv_obj.cast<" << name << extra << "*>());} break;\n";
   }
 
   os << R"--(      default: ARTS_USER_ERROR("Cannot create type")

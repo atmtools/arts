@@ -17,7 +17,7 @@ void py_rte(py::module_& m) {
       .def(py::init([](Index nf, Index ns) {
              ARTS_USER_ERROR_IF(nf < 0, "Bad frequency size")
              ARTS_USER_ERROR_IF(ns < 1 or ns > 4, "Bad stokes_dim")
-             return new TransmissionMatrix(nf, ns);
+             return std::make_unique<TransmissionMatrix>(nf, ns);;
            }),
            py::arg("nf") = 0,
            py::arg("stokes_dim") = 1)
@@ -62,7 +62,7 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-            auto* out = new TransmissionMatrix{};
+            auto out = std::make_unique<TransmissionMatrix>();
             out->stokes_dim = t[0].cast<Index>();
             out->T1 = t[1].cast<decltype(out->T1)>();
             out->T2 = t[2].cast<decltype(out->T2)>();
@@ -77,7 +77,7 @@ void py_rte(py::module_& m) {
              ARTS_USER_ERROR_IF(nf < 0, "Bad requency size, valid: [0, ...)")
              ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
                                 "Bad stokes dimensionality, valid: [1, 4]")
-             return new RadiationVector(nf, ns);
+             return std::make_unique<RadiationVector> (nf, ns);
            }),
            py::arg("nf") = 0,
            py::arg("ns") = 1,
@@ -119,7 +119,7 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-            auto* out = new RadiationVector{};
+            auto out = std::make_unique<RadiationVector>();
             out->stokes_dim = t[0].cast<Index>();
             out->R1 = t[1].cast<decltype(out->R1)>();
             out->R2 = t[2].cast<decltype(out->R2)>();
@@ -137,7 +137,7 @@ void py_rte(py::module_& m) {
                                 " should be [1, 4]")
              ARTS_USER_ERROR_IF(nf < 0 or nza < 0 or naa < 0,
                                 "Negative size index")
-             return new PropagationMatrix(nf, ns, nza, naa, v);
+             return std::make_unique<PropagationMatrix> (nf, ns, nza, naa, v);
            }),
            py::arg("nf") = 0,
            py::arg("ns") = 1,
@@ -177,10 +177,10 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-            auto* out = new PropagationMatrix{t[0].cast<Index>(),
+            auto out = std::make_unique<PropagationMatrix>(t[0].cast<Index>(),
                                               t[1].cast<Index>(),
                                               t[2].cast<Index>(),
-                                              t[3].cast<Index>()};
+                                              t[3].cast<Index>());
             out->Data() = t[4].cast<Tensor4>();
             return out;
           }))
@@ -194,7 +194,7 @@ void py_rte(py::module_& m) {
                                 " should be [1, 4]")
              ARTS_USER_ERROR_IF(nf < 0 or nza < 0 or naa < 0,
                                 "Negative size index")
-             return new StokesVector(nf, ns, nza, naa, v);
+             return std::make_unique<StokesVector> (nf, ns, nza, naa, v);
            }),
            py::arg_v("nf", Index(0), "Index(0)"),
            py::arg_v("ns", Index(1), "Index(1)"),
@@ -233,10 +233,10 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
-            auto* out = new StokesVector{t[0].cast<Index>(),
+            auto out = std::make_unique<StokesVector>(t[0].cast<Index>(),
                                          t[1].cast<Index>(),
                                          t[2].cast<Index>(),
-                                         t[3].cast<Index>()};
+                                         t[3].cast<Index>());
             out->Data() = t[4].cast<Tensor4>();
             return out;
           }))
@@ -253,7 +253,7 @@ void py_rte(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfStokesVector);
 
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init([]() { return new LagrangeInterpolation{}; }))
+      .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }))
       .PythonInterfaceCopyValue(LagrangeInterpolation)
       .def(py::pickle(
           [](const LagrangeInterpolation& self) {
@@ -262,7 +262,7 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
-            auto* out = new LagrangeInterpolation{};
+            auto out = std::make_unique<LagrangeInterpolation>();
 
             out->pos = t[0].cast<Index>();
             out->lx = t[1].cast<Array<Numeric>>();
@@ -277,7 +277,7 @@ void py_rte(py::module_& m) {
                              ArrayOfLagrangeInterpolation>();
 
   py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .def(py::init([]() { return new GasAbsLookup{}; }))
+      .def(py::init([]() { return std::make_unique<GasAbsLookup>(); }))
       .PythonInterfaceCopyValue(GasAbsLookup)
       .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)
@@ -315,7 +315,7 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 11, "Invalid state!")
 
-            auto* out = new GasAbsLookup{};
+            auto out = std::make_unique<GasAbsLookup>();
 
             out->Species() = t[0].cast<ArrayOfArrayOfSpeciesTag>();
             out->NonLinearSpecies() = t[1].cast<ArrayOfIndex>();

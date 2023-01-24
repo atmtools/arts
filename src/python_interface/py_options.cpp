@@ -8,7 +8,7 @@
 //! See DeclareOption macro, but this may rename the python class
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)       \
   py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
-      .def(py::init([]() { return new opt_namespace::opt_localname{}; }))    \
+      .def(py::init([]() { return opt_namespace::opt_localname{}; }))        \
       .def(py::init([](const std::string& s) {                               \
         return opt_namespace::to##opt_localname##OrThrow(s);                 \
       }))                                                                    \
@@ -28,7 +28,7 @@
           },                                                                 \
           [](const py::tuple& t) {                                           \
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")              \
-            return new opt_namespace::opt_localname{                         \
+            return opt_namespace::opt_localname{                             \
                 opt_namespace::to##opt_localname(t[0].cast<std::string>())}; \
           }))                                                                \
       .def_static(                                                           \
