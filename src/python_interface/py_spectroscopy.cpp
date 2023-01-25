@@ -28,7 +28,7 @@ void internal_spectroscopy(py::module_& m) {
   py::class_<AbsorptionMirroringTagTypeStatus>(
       m, "AbsorptionMirroringTagTypeStatus")
       .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
-        return new AbsorptionMirroringTagTypeStatus{a};
+        return std::make_unique<AbsorptionMirroringTagTypeStatus>(a);
       }))
       .def_readwrite("None", &AbsorptionMirroringTagTypeStatus::None)
       .def_readwrite("Lorentz", &AbsorptionMirroringTagTypeStatus::Lorentz)
@@ -40,7 +40,7 @@ void internal_spectroscopy(py::module_& m) {
   py::class_<AbsorptionNormalizationTagTypeStatus>(
       m, "AbsorptionNormalizationTagTypeStatus")
       .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
-        return new AbsorptionNormalizationTagTypeStatus{a};
+        return std::make_unique<AbsorptionNormalizationTagTypeStatus>(a);
       }))
       .def_readwrite("None", &AbsorptionNormalizationTagTypeStatus::None)
       .def_readwrite("VVH", &AbsorptionNormalizationTagTypeStatus::VVH)
@@ -52,7 +52,7 @@ void internal_spectroscopy(py::module_& m) {
   py::class_<AbsorptionPopulationTagTypeStatus>(
       m, "AbsorptionPopulationTagTypeStatus")
       .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
-        return new AbsorptionPopulationTagTypeStatus{a};
+        return std::make_unique<AbsorptionPopulationTagTypeStatus>(a);
       }))
       .def_readwrite("LTE", &AbsorptionPopulationTagTypeStatus::LTE)
       .def_readwrite("NLTE", &AbsorptionPopulationTagTypeStatus::NLTE)
@@ -69,7 +69,7 @@ void internal_spectroscopy(py::module_& m) {
 
   py::class_<AbsorptionCutoffTagTypeStatus>(m, "AbsorptionCutoffTagTypeStatus")
       .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
-        return new AbsorptionCutoffTagTypeStatus{a};
+        return std::make_unique<AbsorptionCutoffTagTypeStatus>(a);
       }))
       .def_readwrite("None", &AbsorptionCutoffTagTypeStatus::None)
       .def_readwrite("ByLine", &AbsorptionCutoffTagTypeStatus::ByLine)
@@ -78,7 +78,7 @@ void internal_spectroscopy(py::module_& m) {
   py::class_<AbsorptionLineShapeTagTypeStatus>(
       m, "AbsorptionLineShapeTagTypeStatus")
       .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
-        return new AbsorptionLineShapeTagTypeStatus{a};
+        return std::make_unique<AbsorptionLineShapeTagTypeStatus>(a);
       }))
       .def_readwrite("DP", &AbsorptionLineShapeTagTypeStatus::DP)
       .def_readwrite("LP", &AbsorptionLineShapeTagTypeStatus::LP)
@@ -89,7 +89,7 @@ void internal_spectroscopy(py::module_& m) {
 
   py::class_<AbsorptionTagTypesStatus>(m, "AbsorptionTagTypesStatus")
       .def(py::init([](ArrayOfArrayOfAbsorptionLines& a) {
-        return new AbsorptionTagTypesStatus{a};
+        return std::make_unique<AbsorptionTagTypesStatus>(a);
       }))
       .def_readwrite("mirroring", &AbsorptionTagTypesStatus::mirroring)
       .def_readwrite("normalization", &AbsorptionTagTypesStatus::normalization)
@@ -107,7 +107,7 @@ void py_spectroscopy(py::module_& m) {
                        Numeric c,
                        Numeric d,
                        Numeric e) {
-             return new LineShapeModelParameters(a, b, c, d, e);
+             return std::make_unique<LineShapeModelParameters>(a, b, c, d, e);
            }),
            py::arg("type") = LineShape::TemperatureModel::None,
            py::arg("X0") = 0,
@@ -127,12 +127,12 @@ void py_spectroscopy(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
-            return new LineShapeModelParameters{
+            return std::make_unique<LineShapeModelParameters>(
                 t[0].cast<LineShape::TemperatureModel>(),
                 t[1].cast<Numeric>(),
                 t[2].cast<Numeric>(),
                 t[3].cast<Numeric>(),
-                t[4].cast<Numeric>()};
+                t[4].cast<Numeric>());
           }));
 
   auto ZeemanPolarizationStringGetter =
@@ -152,7 +152,7 @@ void py_spectroscopy(py::module_& m) {
     ARTS_USER_ERROR("Bad enum value ", c);
   };
   py::class_<Zeeman::Polarization>(m, "ZeemanPolarization")
-      .def(py::init([]() { return new Zeeman::Polarization{}; }))
+      .def(py::init([]() { return std::make_unique<Zeeman::Polarization>(); }))
       .def(py::init([ZeemanPolarizationEnumGetter](const std::string& c) {
              return ZeemanPolarizationEnumGetter(c);
            }),
@@ -177,14 +177,14 @@ void py_spectroscopy(py::module_& m) {
   py::implicitly_convertible<std::string, Zeeman::Polarization>();
 
   py::class_<Zeeman::Model>(m, "ZeemanModel")
-      .def(py::init([]() { return new Zeeman::Model{}; }))
+      .def(py::init([]() { return std::make_unique<Zeeman::Model>(); }))
       .def(py::init([](Numeric a, Numeric b) {
-             return new Zeeman::Model{a, b};
+             return std::make_unique<Zeeman::Model>(a, b);
            }),
            py::arg("gu"),
            py::arg("gl"))
       .def(py::init([](std::array<Numeric, 2> a) {
-             return new Zeeman::Model{a[0], a[1]};
+             return std::make_unique<Zeeman::Model>(a[0], a[1]);
            }),
            py::arg("gs"))
       .PythonInterfaceCopyValue(Zeeman::Model)
@@ -195,8 +195,8 @@ void py_spectroscopy(py::module_& m) {
           [](const Zeeman::Model& t) { return py::make_tuple(t.gu(), t.gl()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            return new Zeeman::Model{t[0].cast<Numeric>(),
-                                     t[1].cast<Numeric>()};
+            return std::make_unique<Zeeman::Model>(t[0].cast<Numeric>(),
+                                     t[1].cast<Numeric>());
           }));
   py::implicitly_convertible<std::array<Numeric, 2>, Zeeman::Model>();
 
@@ -210,7 +210,7 @@ void py_spectroscopy(py::module_& m) {
                        Numeric g,
                        Numeric h,
                        Numeric i) {
-             return new LineShape::Output{a, b, c, d, e, f, g, h, i};
+             return std::make_unique< LineShape::Output>(a, b, c, d, e, f, g, h, i);
            }),
            py::arg("g0") = 0,
            py::arg("d0") = 0,
@@ -239,7 +239,7 @@ void py_spectroscopy(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return new LineShape::Output{t[0].cast<Numeric>(),
+            return std::make_unique< LineShape::Output>(t[0].cast<Numeric>(),
                                          t[1].cast<Numeric>(),
                                          t[2].cast<Numeric>(),
                                          t[3].cast<Numeric>(),
@@ -247,7 +247,7 @@ void py_spectroscopy(py::module_& m) {
                                          t[5].cast<Numeric>(),
                                          t[6].cast<Numeric>(),
                                          t[7].cast<Numeric>(),
-                                         t[8].cast<Numeric>()};
+                                         t[8].cast<Numeric>());
           }));
 
   py::class_<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
@@ -260,7 +260,7 @@ void py_spectroscopy(py::module_& m) {
                        LineShape::ModelParameters Y,
                        LineShape::ModelParameters G,
                        LineShape::ModelParameters DV) {
-             return new LineShapeSingleSpeciesModel{G0, D0, G2, D2, FVC, ETA, Y, G, DV};
+             return std::make_unique<LineShapeSingleSpeciesModel>(G0, D0, G2, D2, FVC, ETA, Y, G, DV);
            }),
            py::arg("G0") = LineShape::ModelParameters{},
            py::arg("D0") = LineShape::ModelParameters{},
@@ -341,7 +341,7 @@ void py_spectroscopy(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return new LineShapeSingleSpeciesModel{
+            return std::make_unique<LineShapeSingleSpeciesModel>(
                 t[0].cast<LineShape::ModelParameters>(),
                 t[1].cast<LineShape::ModelParameters>(),
                 t[2].cast<LineShape::ModelParameters>(),
@@ -350,13 +350,13 @@ void py_spectroscopy(py::module_& m) {
                 t[5].cast<LineShape::ModelParameters>(),
                 t[6].cast<LineShape::ModelParameters>(),
                 t[7].cast<LineShape::ModelParameters>(),
-                t[8].cast<LineShape::ModelParameters>()};
+                t[8].cast<LineShape::ModelParameters>());
           }));
 
   py::class_<LineShapeModel>(m, "LineShapeModel")
-      .def(py::init([]() { return new LineShapeModel{}; }))
+      .def(py::init([]() { return std::make_unique<LineShapeModel>(); }))
       .def(py::init([](const std::vector<LineShapeSingleSpeciesModel>& v) {
-        return new LineShapeModel{v};
+        return std::make_unique<LineShapeModel>(v);
       }))
       .PythonInterfaceCopyValue(LineShapeModel)
       .PythonInterfaceBasicRepresentation(LineShapeModel)
@@ -371,8 +371,8 @@ void py_spectroscopy(py::module_& m) {
           [](const LineShapeModel& t) { return py::make_tuple(t.Data()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new LineShapeModel{
-                t[0].cast<std::vector<LineShapeSingleSpeciesModel>>()};
+            return std::make_unique<LineShapeModel>(
+                t[0].cast<std::vector<LineShapeSingleSpeciesModel>>());
           }));
   py::implicitly_convertible<std::vector<LineShapeSingleSpeciesModel>,
                              LineShapeModel>();
@@ -387,8 +387,8 @@ void py_spectroscopy(py::module_& m) {
                        ZeemanModel g,
                        LineShapeModel h,
                        Quantum::Number::LocalState i) {
-             return new AbsorptionSingleLine{
-                 a, b, c, d, e, f, g, std::move(h), std::move(i)};
+             return std::make_unique<AbsorptionSingleLine>(
+                 a, b, c, d, e, f, g, std::move(h), std::move(i));
            }),
            py::arg("F0") = 0,
            py::arg("I0") = 0,
@@ -424,7 +424,7 @@ void py_spectroscopy(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return new AbsorptionSingleLine{
+            return std::make_unique<AbsorptionSingleLine>(
                 t[0].cast<Numeric>(),
                 t[1].cast<Numeric>(),
                 t[2].cast<Numeric>(),
@@ -433,7 +433,7 @@ void py_spectroscopy(py::module_& m) {
                 t[5].cast<Numeric>(),
                 t[6].cast<Zeeman::Model>(),
                 t[7].cast<LineShape::Model>(),
-                t[8].cast<Quantum::Number::LocalState>()};
+                t[8].cast<Quantum::Number::LocalState>());
           }));
 
   py::class_<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
@@ -473,7 +473,7 @@ void py_spectroscopy(py::module_& m) {
                 broadeningspecies.size() < (selfbroadening + bathbroadening),
                 "Must have atleast ", (selfbroadening + bathbroadening),
                 " broadening species to support settings")
-            return new AbsorptionLines{selfbroadening,
+            return std::make_unique<AbsorptionLines>(selfbroadening,
                                        bathbroadening,
                                        cutoff,
                                        mirroring,
@@ -485,7 +485,7 @@ void py_spectroscopy(py::module_& m) {
                                        linemixinglimit,
                                        std::move(quantumidentity),
                                        std::move(broadeningspecies),
-                                       std::move(lines)};
+                                       std::move(lines));
           }),
           py::arg("selfbroadening") = false, py::arg("bathbroadening") = false,
           py::arg("cutoff") = AbsorptionCutoffType::None,
@@ -570,7 +570,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
           },
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 13, "Invalid state!")
-            return new AbsorptionLines{
+            return std::make_unique<AbsorptionLines>(
                 t[0].cast<bool>(),
                 t[1].cast<bool>(),
                 t[2].cast<AbsorptionCutoffType>(),
@@ -583,7 +583,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
                 t[9].cast<Numeric>(),
                 t[10].cast<QuantumIdentifier>(),
                 t[11].cast<ArrayOfSpecies>(),
-                t[12].cast<Array<AbsorptionSingleLine>>()};
+                t[12].cast<Array<AbsorptionSingleLine>>());
           }))
       .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
 
@@ -663,7 +663,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
 
   py::class_<SpeciesErrorCorrectedSuddenData>(m,
                                               "SpeciesErrorCorrectedSuddenData")
-      .def(py::init([]() { return new SpeciesErrorCorrectedSuddenData{}; }))
+      .def(py::init([]() { return std::make_unique<SpeciesErrorCorrectedSuddenData>(); }))
       .PythonInterfaceCopyValue(SpeciesErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(SpeciesErrorCorrectedSuddenData)
       .def_readwrite("spec", &SpeciesErrorCorrectedSuddenData::spec)
@@ -684,7 +684,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-            auto* out = new SpeciesErrorCorrectedSuddenData{};
+            auto out = std::make_unique<SpeciesErrorCorrectedSuddenData>();
             out->spec = t[0].cast<Species::Species>();
             out->scaling = t[1].cast<LineShapeModelParameters>();
             out->beta = t[2].cast<LineShapeModelParameters>();
@@ -701,7 +701,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
       .PythonInterfaceArrayDefault(SpeciesErrorCorrectedSuddenData);
 
   py::class_<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
-      .def(py::init([]() { return new ErrorCorrectedSuddenData{}; }))
+      .def(py::init([]() { return std::make_unique<ErrorCorrectedSuddenData>(); }))
       .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
       .def(
@@ -721,7 +721,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto* out = new ErrorCorrectedSuddenData{};
+            auto out = std::make_unique<ErrorCorrectedSuddenData>();
             out->id = t[0].cast<QuantumIdentifier>();
             out->data = t[1].cast<Array<SpeciesErrorCorrectedSuddenData>>();
             return out;
@@ -734,7 +734,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
 
   py::class_<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
       m, "MapOfErrorCorrectedSuddenData")
-      .def(py::init([]() { return new MapOfErrorCorrectedSuddenData{}; }))
+      .def(py::init([]() { return std::make_unique<MapOfErrorCorrectedSuddenData>(); }))
       .PythonInterfaceCopyValue(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceWorkspaceVariableConversion(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(MapOfErrorCorrectedSuddenData)
@@ -760,18 +760,18 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             auto x = t[0].cast<Array<ErrorCorrectedSuddenData>>();
-            auto* out = new MapOfErrorCorrectedSuddenData{};
+            auto out = std::make_unique<MapOfErrorCorrectedSuddenData>();
             for (auto& b : x) out->operator[](b.id) = b;
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(MapOfErrorCorrectedSuddenData);
 
   py::class_<CIARecord>(m, "CIARecord")
-      .def(py::init([]() { return new CIARecord{}; }))
+      .def(py::init([]() { return std::make_unique<CIARecord>(); }))
       .def(py::init([](const ArrayOfGriddedField2& data,
                        Species::Species spec1,
                        Species::Species spec2) {
-        return new CIARecord(data, spec1, spec2);
+        return std::make_unique<CIARecord>(data, spec1, spec2);
       }))
       .PythonInterfaceCopyValue(CIARecord)
       .PythonInterfaceWorkspaceVariableConversion(CIARecord)
@@ -838,7 +838,7 @@ Returns
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto* out = new CIARecord{};
+            auto out = std::make_unique<CIARecord>();
             out->Data() = t[0].cast<ArrayOfGriddedField2>();
             out->TwoSpecies() = t[1].cast<std::array<Species::Species, 2>>();
             return out;
@@ -848,7 +848,7 @@ Returns
   PythonInterfaceWorkspaceArray(CIARecord);
 
   py::class_<HitranRelaxationMatrixData>(m, "HitranRelaxationMatrixData")
-      .def(py::init([]() { return new HitranRelaxationMatrixData{}; }))
+      .def(py::init([]() { return std::make_unique<HitranRelaxationMatrixData>(); }))
       .PythonInterfaceCopyValue(HitranRelaxationMatrixData)
       .PythonInterfaceWorkspaceVariableConversion(HitranRelaxationMatrixData)
       .PythonInterfaceBasicRepresentation(HitranRelaxationMatrixData)
@@ -892,7 +892,7 @@ Returns
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 16, "Invalid state!")
-            auto* out = new HitranRelaxationMatrixData{};
+            auto out = std::make_unique<HitranRelaxationMatrixData>();
             out->W0pp = t[0].cast<Tensor4>();
             out->B0pp = t[1].cast<Tensor4>();
             out->W0rp = t[2].cast<Tensor4>();

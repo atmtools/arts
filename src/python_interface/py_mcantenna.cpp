@@ -21,7 +21,7 @@ void py_mcantenna(py::module_& m) {
           }));
 
   py::class_<MCAntenna>(m, "MCAntenna")
-      .def(py::init([]() { return new MCAntenna{}; }))
+      .def(py::init([]() { return std::make_unique<MCAntenna>(); }))
       .PythonInterfaceCopyValue(MCAntenna)
       .PythonInterfaceWorkspaceVariableConversion(MCAntenna)
       .PythonInterfaceFileIO(MCAntenna)
@@ -44,7 +44,7 @@ void py_mcantenna(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
 
-            auto* out = new MCAntenna{};
+            auto out = std::make_unique<MCAntenna>();
             out->atype = t[0].cast<AntennaType>();
             out->sigma_aa = t[1].cast<Numeric>();
             out->sigma_za = t[2].cast<Numeric>();

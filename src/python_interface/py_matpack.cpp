@@ -32,7 +32,7 @@ void py_matpack(py::module_& m) {
       .def(py::init([](Index a, Index b, Index c) {
              ARTS_USER_ERROR_IF(0 > a, "Bad start")
              ARTS_USER_ERROR_IF(0 > b, "Bad extent")
-             return new Range{a, b, c};
+             return std::make_unique<Range>(a, b, c);
            }),
            py::arg("start"),
            py::arg("extent"),
@@ -45,8 +45,8 @@ void py_matpack(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
-            return new Range{
-                t[0].cast<Index>(), t[1].cast<Index>(), t[2].cast<Index>()};
+            return std::make_unique<Range>(
+                t[0].cast<Index>(), t[1].cast<Index>(), t[2].cast<Index>());
           }));
 
   py::class_<ConstVectorView>(m, "ConstVectorView");
@@ -65,9 +65,9 @@ void py_matpack(py::module_& m) {
   py::class_<Tensor7View, ConstTensor7View>(m, "Tensor7View");
 
   py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
-      .def(py::init([]() { return new Vector{}; }))
+      .def(py::init([]() { return std::make_unique<Vector>(); }))
       .def(py::init([](const std::vector<Scalar>& v) {
-             auto* out = new Vector(v.size());
+             auto out = std::make_unique<Vector>(v.size());;
              for (size_t i = 0; i < v.size(); i++)
                out->operator[](i) = std::visit(
                    [](auto&& x) { return static_cast<Numeric>(x); }, v[i]);
@@ -110,12 +110,12 @@ The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
   py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
-      .def(py::init([]() { return new Matrix{}; }))
+      .def(py::init([]() { return std::make_unique<Matrix>(); }))
       .def(py::init([](const std::vector<std::vector<Scalar>>& v) {
              test_correct_size(v);
              auto n1 = v.size();
              auto n2 = n1 > 0 ? v[0].size() : 0;
-             auto* out = new Matrix(n1, n2);
+             auto out = std::make_unique<Matrix>(n1, n2);
              for (size_t i = 0; i < n1; i++) {
                for (size_t j = 0; j < n2; j++) {
                  out->operator()(i, j) = std::visit(
@@ -167,13 +167,13 @@ The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
   py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
-      .def(py::init([]() { return new Tensor3{}; }))
+      .def(py::init([]() { return std::make_unique<Tensor3>(); }))
       .def(py::init([](const std::vector<std::vector<std::vector<Scalar>>>& v) {
              test_correct_size(v);
              auto n1 = v.size();
              auto n2 = n1 > 0 ? v[0].size() : 0;
              auto n3 = n2 > 0 ? v[0][0].size() : 0;
-             auto* out = new Tensor3(n1, n2, n3);
+             auto out = std::make_unique<Tensor3>(n1, n2, n3);
              for (size_t i1 = 0; i1 < n1; i1++) {
                for (size_t i2 = 0; i2 < n2; i2++) {
                  for (size_t i3 = 0; i3 < n3; i3++) {
@@ -227,7 +227,7 @@ The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
   py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
-      .def(py::init([]() { return new Tensor4{}; }))
+      .def(py::init([]() { return std::make_unique<Tensor4>(); }))
       .def(py::init([](const std::vector<
                         std::vector<std::vector<std::vector<Scalar>>>>& v) {
              test_correct_size(v);
@@ -235,7 +235,7 @@ via x.value)--");
              auto n2 = n1 > 0 ? v[0].size() : 0;
              auto n3 = n2 > 0 ? v[0][0].size() : 0;
              auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
-             auto* out = new Tensor4(n1, n2, n3, n4);
+             auto out = std::make_unique<Tensor4>(n1, n2, n3, n4);
              for (size_t i1 = 0; i1 < n1; i1++) {
                for (size_t i2 = 0; i2 < n2; i2++) {
                  for (size_t i3 = 0; i3 < n3; i3++) {
@@ -294,7 +294,7 @@ The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
   py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
-      .def(py::init([]() { return new Tensor5{}; }))
+      .def(py::init([]() { return std::make_unique<Tensor5>(); }))
       .def(py::init([](const std::vector<std::vector<
                            std::vector<std::vector<std::vector<Scalar>>>>>& v) {
              test_correct_size(v);
@@ -303,7 +303,7 @@ via x.value)--");
              auto n3 = n2 > 0 ? v[0][0].size() : 0;
              auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
              auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
-             auto* out = new Tensor5(n1, n2, n3, n4, n5);
+             auto out = std::make_unique<Tensor5>(n1, n2, n3, n4, n5);
              for (size_t i1 = 0; i1 < n1; i1++) {
                for (size_t i2 = 0; i2 < n2; i2++) {
                  for (size_t i3 = 0; i3 < n3; i3++) {
@@ -367,7 +367,7 @@ The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
   py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
-      .def(py::init([]() { return new Tensor6{}; }))
+      .def(py::init([]() { return std::make_unique<Tensor6>(); }))
       .def(
           py::init([](const std::vector<std::vector<std::vector<
                           std::vector<std::vector<std::vector<Scalar>>>>>>& v) {
@@ -378,7 +378,7 @@ via x.value)--");
             auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
             auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
             auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
-            auto* out = new Tensor6(n1, n2, n3, n4, n5, n6);
+            auto out = std::make_unique<Tensor6>(n1, n2, n3, n4, n5, n6);
             for (size_t i1 = 0; i1 < n1; i1++) {
               for (size_t i2 = 0; i2 < n2; i2++) {
                 for (size_t i3 = 0; i3 < n3; i3++) {
@@ -448,7 +448,7 @@ The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
   py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
-      .def(py::init([]() { return new Tensor7{}; }))
+      .def(py::init([]() { return std::make_unique<Tensor7>(); }))
       .def(py::init(
                [](const std::vector<std::vector<std::vector<std::vector<
                       std::vector<std::vector<std::vector<Scalar>>>>>>>& v) {
@@ -460,7 +460,7 @@ via x.value)--");
                  auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
                  auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
                  auto n7 = n6 > 0 ? v[0][0][0][0][0][0].size() : 0;
-                 auto* out = new Tensor7(n1, n2, n3, n4, n5, n6, n7);
+                 auto out = std::make_unique<Tensor7>(n1, n2, n3, n4, n5, n6, n7);
                  for (size_t i1 = 0; i1 < n1; i1++) {
                    for (size_t i2 = 0; i2 < n2; i2++) {
                      for (size_t i3 = 0; i3 < n3; i3++) {
@@ -603,7 +603,7 @@ via x.value)--");
            py::arg("d") = 1)
       .PythonInterfaceCopyValue(Rational)
       .PythonInterfaceWorkspaceVariableConversion(Rational)
-      .def(py::init([](const String& s) { return new Rational{s}; }))
+      .def(py::init([](const String& s) { return std::make_unique<Rational>(s); }))
       .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
@@ -618,7 +618,7 @@ via x.value)--");
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 
-            return new Rational{t[0].cast<Index>(), t[1].cast<Index>()};
+            return std::make_unique<Rational>(t[0].cast<Index>(), t[1].cast<Index>());
           }))
       .PythonInterfaceWorkspaceDocumentation(Rational);
   py::implicitly_convertible<Index, Rational>();

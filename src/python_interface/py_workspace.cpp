@@ -189,9 +189,9 @@ Agenda unpickle_agenda(Workspace &ws, const py::tuple &t) {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
-Agenda* parse_agenda(Workspace&,
-                     const char* filename,
-                     const Verbosity& verbosity);
+std::unique_ptr<Agenda> parse_agenda(Workspace&,
+                                     const char* filename,
+                                     const Verbosity& verbosity);
 
 void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>&,
                        py::class_<WorkspaceVariable>&);
@@ -367,10 +367,10 @@ void py_workspace(py::module_& m,
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            return new WsvRecord{t[0].cast<String>().c_str(),
+            return std::make_unique<WsvRecord>(t[0].cast<String>().c_str(),
                                  t[1].cast<String>().c_str(),
                                  t[2].cast<String>(),
-                                 t[3].cast<TokVal>()};
+                                 t[3].cast<TokVal>());
           }));
 
   py::class_<Array<WsvRecord>>(m, "ArrayOfWsvRecord")

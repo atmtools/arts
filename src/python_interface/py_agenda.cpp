@@ -51,8 +51,8 @@ std::filesystem::path correct_include_path(
   return path;
 }
 
-Agenda* parse_agenda(Workspace& ws, const char* filename, const Verbosity& verbosity) {
-  auto* a = new Agenda{ws};
+std::unique_ptr<Agenda> parse_agenda(Workspace& ws, const char* filename, const Verbosity& verbosity) {
+  std::unique_ptr<Agenda> a = std::make_unique<Agenda>(ws);
   ArtsParser parser = ArtsParser(*a, filename, verbosity);
 
   parser.parse_tasklist();
@@ -209,10 +209,10 @@ MRecord simple_delete_method(WorkspaceVariable val) {
 
 void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
-      .def(py::init([]() { return new CallbackFunction{}; }))
+      .def(py::init([]() { return std::make_unique<CallbackFunction>(); }))
       .PythonInterfaceCopyValue(CallbackFunction)
       .def(py::init([](const std::function<void(Workspace&)>& f) {
-        return new CallbackFunction{f};
+        return std::make_unique<CallbackFunction>(f);
       }))
       .def(
           "__call__",
@@ -262,7 +262,7 @@ void py_agenda(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new TokVal{py::type::of<TokVal>()(t[0]).cast<TokVal>()};
+            return std::make_unique<TokVal>(py::type::of<TokVal>()(t[0]).cast<TokVal>());
           }));
   py::implicitly_convertible<WorkspaceVariablesVariant, TokVal>();
   py::implicitly_convertible<py::int_, TokVal>();
@@ -281,7 +281,7 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<MRecord>);
 
   py::class_<MdRecord>(m, "MdRecord")
-      .def(py::init([]() { return new MdRecord{}; }))
+      .def(py::init([]() { return std::make_unique<MdRecord>(); }))
       .def_property_readonly("name", &MdRecord::Name)
       .def_property_readonly("outs", &MdRecord::Out)
       .def_property_readonly("g_out", &MdRecord::GOut)
@@ -300,7 +300,7 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<MdRecord>);
 
   py::class_<AgRecord>(m, "AgRecord")
-      .def(py::init([]() { return new AgRecord{}; }))
+      .def(py::init([]() { return std::make_unique<AgRecord>(); }))
       .PythonInterfaceCopyValue(AgRecord)
       .def_property_readonly("name", &AgRecord::Name)
       .def_property_readonly("description", &AgRecord::Description)
@@ -314,7 +314,7 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceBasicRepresentation(Array<AgRecord>);
 
   py::class_<Agenda>(m, "Agenda")
-      .def(py::init([](Workspace& ws) { return new Agenda{ws}; }))
+      .def(py::init([](Workspace& ws) { return std::make_unique<Agenda>(ws); }))
       .def(py::init([](Workspace&, const Agenda& a) { return a; }),
            py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
       .def(py::init([](Workspace& ws,
@@ -641,7 +641,7 @@ Both agendas must be defined on the same workspace)--"),
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
-      .def(py::init([]() { return new ArrayOfAgenda{}; }))
+      .def(py::init([]() { return std::make_unique<ArrayOfAgenda>(); }))
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
       .PythonInterfaceCopyValue(ArrayOfAgenda)
       .def(py::init([](std::vector<Agenda> va) {
@@ -744,7 +744,7 @@ Both agendas must be defined on the same workspace)--"),
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new ArrayOfAgenda{t[0].cast<std::vector<Agenda>>()};
+            return std::make_unique<ArrayOfAgenda>(t[0].cast<std::vector<Agenda>>());
           }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAgenda);
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();

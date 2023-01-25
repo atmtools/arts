@@ -7,10 +7,10 @@
 namespace Python {
 void py_ppath(py::module_& m) {
   py::class_<GridPos>(m, "GridPos")
-      .def(py::init([]() { return new GridPos{}; }))
+      .def(py::init([]() { return std::make_unique<GridPos>(); }))
       .PythonInterfaceCopyValue(GridPos)
       .PythonInterfaceWorkspaceVariableConversion(GridPos)
-      .def(py::init([](Index i, std::array<Numeric, 2> x) { return new GridPos{i, x}; }))
+      .def(py::init([](Index i, std::array<Numeric, 2> x) { return std::make_unique<GridPos>(GridPos{i, x}); }))
       .PythonInterfaceFileIO(GridPos)
       .PythonInterfaceBasicRepresentation(GridPos)
       .def_readwrite("idx", &GridPos::idx)
@@ -21,7 +21,7 @@ void py_ppath(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            return new GridPos{t[0].cast<Index>(), t[1].cast<std::array<Numeric, 2>>()};
+            return std::make_unique<GridPos>(GridPos{t[0].cast<Index>(), t[1].cast<std::array<Numeric, 2>>()});
           }))
       .PythonInterfaceWorkspaceDocumentation(GridPos);
 
@@ -31,7 +31,7 @@ void py_ppath(py::module_& m) {
   py::implicitly_convertible<std::vector<GridPos>, ArrayOfGridPos>();
 
   py::class_<Ppath>(m, "Ppath")
-      .def(py::init([]() { return new Ppath{}; }))
+      .def(py::init([]() { return std::make_unique<Ppath>(); }))
       .PythonInterfaceCopyValue(Ppath)
       .PythonInterfaceWorkspaceVariableConversion(Ppath)
       .def("__repr__", [](Ppath&) { return "Ppath"; })
@@ -79,7 +79,7 @@ void py_ppath(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 19, "Invalid state!")
-            return new Ppath{t[0].cast<Index>(),
+            return std::make_unique<Ppath>(Ppath{t[0].cast<Index>(),
                              t[1].cast<Index>(),
                              t[2].cast<Numeric>(),
                              t[3].cast<String>(),
@@ -97,7 +97,7 @@ void py_ppath(py::module_& m) {
                              t[15].cast<Vector>(),
                              t[16].cast<ArrayOfGridPos>(),
                              t[17].cast<ArrayOfGridPos>(),
-                             t[18].cast<ArrayOfGridPos>()};
+                             t[18].cast<ArrayOfGridPos>()});
           }))
       .PythonInterfaceWorkspaceDocumentation(Ppath);
 

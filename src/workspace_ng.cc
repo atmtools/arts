@@ -159,11 +159,12 @@ Workspace::Workspace()
 }
 
 std::shared_ptr<Workspace> Workspace::deepcopy() {
-  std::shared_ptr<Workspace> out{new Workspace{}};
-  out->wsv_data_ptr = std::shared_ptr<Workspace::wsv_data_type>(
-      new Workspace::wsv_data_type{*wsv_data_ptr});
-  out->WsvMap_ptr = std::shared_ptr<Workspace::WsvMap_type>(
-      new Workspace::WsvMap_type{*WsvMap_ptr});
+  auto mout = Workspace{};
+  auto out = std::make_shared<Workspace>(std::move(mout));
+  out->wsv_data_ptr = std::make_shared<Workspace::wsv_data_type>(
+      *wsv_data_ptr);
+  out->WsvMap_ptr = std::make_shared<Workspace::WsvMap_type>(
+      *WsvMap_ptr);
   out->ws.resize(nelem());
 
   for (Index i = 0; i < out->nelem(); i++) {
@@ -232,9 +233,11 @@ ArrayOfIndex Workspace::wsvs(const Workspace::wsv_data_type &wsv_data) {
 }
 
 std::shared_ptr<Workspace> Workspace::create() {
-  return std::shared_ptr<Workspace>{new Workspace{}};
+  auto mout = Workspace{};
+  return std::make_shared<Workspace>(std::move(mout));
 }
 
 std::shared_ptr<Workspace> Workspace::shallowcopy() const {
-  return std::shared_ptr<Workspace>{new Workspace{*this}};
+  auto mout = Workspace{*this};
+  return std::make_shared<Workspace>(std::move(mout));
 }

@@ -11,7 +11,7 @@ void internalCKDMT400(
     py::module_& m,
     py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>& c) {
   c.def(py::init([]() {
-     return new Absorption::PredefinedModel::MT_CKD400::WaterData{};
+     return std::make_unique<Absorption::PredefinedModel::MT_CKD400::WaterData>();
    }))
       .def_readonly_static(
           "key", &Absorption::PredefinedModel::MT_CKD400::WaterData::key)
@@ -43,7 +43,7 @@ void internalCKDMT400(
           },
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            auto *out = new Absorption::PredefinedModel::MT_CKD400::WaterData{};
+            auto out = std::make_unique<Absorption::PredefinedModel::MT_CKD400::WaterData>();
             out->self_absco_ref = t[0].cast<std::vector<double>>();
             out->for_absco_ref = t[1].cast<std::vector<double>>();
             out->wavenumbers = t[2].cast<std::vector<double>>();
@@ -650,7 +650,7 @@ void py_predefined(py::module_& m) {
 
   //! A predefined model key
   py::class_<PredefinedModelDataKey>(predef, "PredefinedModelDataKey")
-      .def(py::init([]() { return new PredefinedModelDataKey{}; }))
+      .def(py::init([]() { return std::make_unique<PredefinedModelDataKey>(); }))
       .def(py::init([](const std::string& c) {
         return Absorption::PredefinedModel::toDataKeyOrThrow(c);
       }))
@@ -663,15 +663,15 @@ void py_predefined(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return new PredefinedModelDataKey{
+            return std::make_unique<PredefinedModelDataKey>(
                 Absorption::PredefinedModel::toDataKey(
-                    t[0].cast<std::string>())};
+                    t[0].cast<std::string>()));
           }));
   py::implicitly_convertible<std::string, PredefinedModelDataKey>();
 
   //! ARTS Workspace class, must live on the main (m) namespace
   py::class_<PredefinedModelData>(m, "PredefinedModelData")
-      .def(py::init([]() { return new PredefinedModelData{}; }))
+      .def(py::init([]() { return std::make_unique<PredefinedModelData>(); }))
       .PythonInterfaceWorkspaceVariableConversion(PredefinedModelData)
       .PythonInterfaceFileIO(PredefinedModelData)
       .PythonInterfaceCopyValue(PredefinedModelData)
@@ -690,7 +690,7 @@ void py_predefined(py::module_& m) {
           [](const PredefinedModelData& t) { return py::make_tuple(t.data); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            auto* out = new PredefinedModelData{};
+            auto out = std::make_unique<PredefinedModelData>();;
             out->data = t[0].cast<PredefinedModelData::DataMap>();
             return out;
           }))
