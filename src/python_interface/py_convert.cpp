@@ -23,5 +23,11 @@ These all should work with any array-like type
   PythonInterfaceConvert(wavelen2freq, Numeric, "Wavelenth [m]", "Frequency [Hz]");
   PythonInterfaceConvert(pa2torr, Numeric, "Pressure [Pa]", "Torr [Torr]");
   PythonInterfaceConvert(torr2pa, Numeric, "Torr [Torr]", "Pressure [Pa]");
+  PythonInterfaceConvert(hz_per_msquared2kaycm_per_cmsquared, Numeric, "Spectral line intensity [Hz/m2]", "CGS spectral line intensity [cm-1/cm-2]");
+  PythonInterfaceConvert(kaycm_per_cmsquared2hz_per_msquared, Numeric, "CGS spectral line intensity [cm-1/cm-2]", "Spectral line intensity [Hz/m2]");
+  PythonInterfaceConvert(hz_per_pa2kaycm_per_atm, Numeric, "Line shape parameter [Hz/Pa]", "CGS line shape parameter [cm-1/atm]");
+  PythonInterfaceConvert(kaycm_per_atm2hz_per_pa, Numeric, "CGS line shape parameter [cm-1/atm]", "Line shape parameter [Hz/Pa]");
+  PythonInterfaceConvert(joule2kaycm, Numeric, "Energy [J]", "CGS Energy [cm-1]");
+  PythonInterfaceConvert(kaycm2joule, Numeric, "CGS Energy [cm-1]", "Energy [J]");
 }
 }  // namespace Python
