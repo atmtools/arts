@@ -35,8 +35,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <cmath>
-#include <memory>
 #include <stdexcept>
+#include <vector>
 
 #include "array.h"
 #include "arts.h"
@@ -271,7 +271,6 @@ void diagonalize(MatrixView P,
   // Memory references
   double* adata = A_tmp.mdata;
   double* rpdata = P2.mdata;
-  auto lpdata = std::array<double, 0>{};  //To not confuse the compiler
   double* wrdata = WR2.mdata;
   double* widata = WI2.mdata;
 
@@ -283,7 +282,7 @@ void diagonalize(MatrixView P,
                  &LDA,
                  wrdata,
                  widata,
-                 lpdata.data(),
+                 nullptr,
                  &LDA_L,
                  rpdata,
                  &LDA_R,
