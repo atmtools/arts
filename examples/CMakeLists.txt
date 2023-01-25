@@ -7,9 +7,5 @@ if (ENABLE_GUI)
     arts_test_run_pyfile(examples classroom/vibrational-spectra/start_gui.py)
   endif()
 endif()
-<<<<<<< Updated upstream
-=======
 
-arts_test_run_pyfile(examples arts-cat-data/lines/lines.py)
 arts_test_run_pyfile(examples arts-cat-data/cia/cia.py)
->>>>>>> Stashed changes
