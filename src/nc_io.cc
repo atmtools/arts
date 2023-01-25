@@ -449,7 +449,7 @@ void nca_get_data(const int ncid, const String &name,
     Index species_strings_length =
         nca_get_dim(ncid, name + "_strings_length", noerror);
     char *species_strings =
-        new char[species_strings_nelem * species_strings_length];
+        new char[species_strings_nelem * species_strings_length];  // FIXME: THIS SHOULD NOT USE "new"
     if (species_count.nelem())
       nca_get_data(ncid, name + "_strings", species_strings);
 

@@ -86,6 +86,9 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
   //! Shallow copy of a Workspace, it has to be created as a shared pointer
   [[nodiscard]] std::shared_ptr<Workspace> shallowcopy() const;
 
+  //! Allow move construction of this object in public
+  Workspace(Workspace&&) noexcept = default;
+
   /** Delete WSV.
    *
    * Frees the memory of the topmost WSV on the stack.
@@ -228,7 +231,7 @@ concept CanCopy = CopyConstructor<T> or ShallowCopyConstructor<T>;
 template <typename T>
 std::shared_ptr<T> get_shallow_copy(const T& x) {
   if constexpr (ShallowCopyConstructor<T>) return x.shallowcopy();
-  else return new T{x};
+  else { T mout{x}; return std::make_shared<T>(std::move(mout)); }
 }
 
 template <CanCopy T>

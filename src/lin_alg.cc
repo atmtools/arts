@@ -35,7 +35,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <cmath>
-#include <new>
+#include <memory>
 #include <stdexcept>
 
 #include "array.h"
@@ -60,7 +60,7 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   ARTS_ASSERT(is_size(LU, n, n));
 
   int n_int, info;
-  int* ipiv = new int[n];
+  auto ipiv = std::vector<int>(n);
 
   LU = transpose(A);
 
@@ -69,13 +69,12 @@ void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A) {
   n_int = (int)n;
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(&n_int, &n_int, LU.mdata, &n_int, ipiv, &info);
+  lapack::dgetrf_(&n_int, &n_int, LU.mdata, &n_int, ipiv.data(), &info);
 
   // Copy pivot array to pivot vector.
   for (Index i = 0; i < n; i++) {
     indx[i] = ipiv[i];
   }
-  delete[] ipiv;
 }
 
 //! LU backsubstitution
@@ -173,27 +172,18 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   Matrix LU(A);
 
   int n_int, info;
-  int* ipiv = new int[n];
+  auto ipiv = std::vector<int>(n);
 
   n_int = (int)n;
 
   // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(&n_int, &n_int, LU.mdata, &n_int, ipiv, &info);
+  lapack::dgetrf_(&n_int, &n_int, LU.mdata, &n_int, ipiv.data(), &info);
 
   // Invert matrix.
   int lwork = n_int;
-  double* work;
+  auto work = std::vector<double>(lwork);
 
-  try {
-    work = new double[lwork];
-  } catch (std::bad_alloc& ba) {
-    ARTS_USER_ERROR(
-        "Error inverting matrix: Could not allocate workspace memory.");
-  }
-
-  lapack::dgetri_(&n_int, LU.mdata, &n_int, ipiv, work, &lwork, &info);
-  delete[] work;
-  delete[] ipiv;
+  lapack::dgetri_(&n_int, LU.mdata, &n_int, ipiv.data(), work.data(), &lwork, &info);
 
   // Check for success.
   ARTS_USER_ERROR_IF(info not_eq 0,
@@ -211,7 +201,7 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   Ainv = A;
   int n_int = int(n), lwork = n_int, info;
   std::vector<int> ipiv(n);
-  ComplexVector work(lwork);
+  std::vector<Complex> work(lwork);
 
   // Compute LU decomposition using LAPACK dgetrf_.
   lapack::zgetrf_(
@@ -220,7 +210,7 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
                   Ainv.get_c_array(),
                   &n_int,
                   ipiv.data(),
-                  work.get_c_array(),
+                  work.data(),
                   &lwork,
                   &info);
 
@@ -275,19 +265,13 @@ void diagonalize(MatrixView P,
 
   // Work matrix
   int lwork = 2 * n_int + n_int * n_int;
-  double *work, *rwork;
-  try {
-    rwork = new double[2 * n_int];
-    work = new double[lwork];
-  } catch (std::bad_alloc& ba) {
-    ARTS_USER_ERROR(
-        "Error diagonalizing: Could not allocate workspace memory.");
-  }
+  auto work = std::vector<double>(lwork);
+  auto rwork = std::vector<double>(2 * n_int);
 
   // Memory references
   double* adata = A_tmp.mdata;
   double* rpdata = P2.mdata;
-  auto* lpdata = new double[0];  //To not confuse the compiler
+  auto lpdata = std::array<double, 0>{};  //To not confuse the compiler
   double* wrdata = WR2.mdata;
   double* widata = WI2.mdata;
 
@@ -299,19 +283,14 @@ void diagonalize(MatrixView P,
                  &LDA,
                  wrdata,
                  widata,
-                 lpdata,
+                 lpdata.data(),
                  &LDA_L,
                  rpdata,
                  &LDA_R,
-                 work,
+                 work.data(),
                  &lwork,
-                 rwork,
+                 rwork.data(),
                  &info);
-
-  // Free memory.  Can these be sent in to speed things up?
-  delete[] work;
-  delete[] rwork;
-  delete[] lpdata;
 
   // Re-order.  This can be done better?
   for (Index i = 0; i < n; i++)
