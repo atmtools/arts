@@ -182,7 +182,7 @@ void test03()
   constexpr Range r5 = Range(n-1, n, -1);
   const auto ranges={r0, r1, r2, r3, r4, r5};
   
-  ComplexVector V(n, n);
+  ComplexVector V(n, static_cast<Numeric>(n));
   for (Index i=0; i<n; i++)
     V[i] = Complex(Numeric(i), Numeric(i+2*n));
   const ComplexVector cV=V;

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <complex>
+#include <cstdint>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -577,7 +578,7 @@ void test_view() {
     }
     
     Numeric d=1.0;
-    for (auto a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+    for (auto a: y) for (auto b: a) for (auto c: b) {ARTS_USER_ERROR_IF(c != d, c, ' ', d); d+=1.0;}
   }
 
   //! Simply test that some standard operators work
@@ -592,7 +593,7 @@ void test_view() {
     }
     
     Numeric d=1.0;
-    for (const auto& a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+    for (const auto& a: y) for (auto b: a) for (auto c: b) {ARTS_USER_ERROR_IF(c != d, c, ' ', d); d+=1.0;}
   }
 
   //! Simply test that some standard operators work
@@ -607,7 +608,7 @@ void test_view() {
     }
     
     Numeric d=1.0;
-    for (auto a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+    for (auto a: y) for (auto b: a) for (auto c: b) {ARTS_USER_ERROR_IF(c != d, c, ' ', d); d+=1.0;}
   }
 
   //! Simply test that some standard operators work
@@ -622,7 +623,7 @@ void test_view() {
     }
     
     Numeric d=1.0;
-    for (const auto& a: y) for (auto b: a) for (auto c: b) {ARTS_ASSERT(c == d, c, ' ', d); d+=1.0;}
+    for (const auto& a: y) for (auto b: a) for (auto c: b) {ARTS_USER_ERROR_IF(c != d, c, ' ', d); d+=1.0;}
   }
 
   //! Allow assignment between views
@@ -754,7 +755,7 @@ void test_eigen() {
     ComplexVectorView y{matpack::exhaustive_mdspan<std::complex<Numeric>, 1>{x.data(), 8}};
 
     const std::complex<Numeric> z = y * y;
-    ARTS_ASSERT(z == std::transform_reduce(x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}))
+    ARTS_USER_ERROR_IF(z != std::transform_reduce(x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}), z)
   }
 
   {
@@ -807,7 +808,7 @@ void test_complex() {
   {
     Complex x{0, 0};
     const Complex y{0, 0};
-    ARTS_ASSERT(x == y)
+    ARTS_USER_ERROR_IF(x != y, x, ' ', y)
     ARTS_ASSERT(real_val(x) == real_val(y))
     ARTS_ASSERT(imag_val(x) == imag_val(y))
   }
