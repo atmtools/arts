@@ -207,10 +207,10 @@ Numeric fix_hydrostatic(Numeric x0, const Point& atm, const Data& data, Numeric 
     if constexpr (isGriddedField3<T>) {
       const Vector& alts =  x.get_numeric_grid(0);
       if (data.alt_low == Extrapolation::Hydrostatic and alt < alts.front())
-      return SimpleHydrostaticExpansion{x0, alts.front(), atm.T(), atm.mean_mass(), g}(alt);
+      return SimpleHydrostaticExpansion{x0, alts.front(), atm.temperature, atm.mean_mass(), g}(alt);
 
       if (data.alt_upp == Extrapolation::Hydrostatic and alt > alts.back())
-      return SimpleHydrostaticExpansion{x0, alts.front(), atm.T(), atm.mean_mass(), g}(alt);
+      return SimpleHydrostaticExpansion{x0, alts.front(), atm.temperature, atm.mean_mass(), g}(alt);
     }
 
     return x0;

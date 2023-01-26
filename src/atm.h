@@ -50,42 +50,45 @@ concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or isQuantumIdentifier<T>;
 class Point {
   std::map<ArrayOfSpeciesTag, Numeric> species_content{};
   std::map<QuantumIdentifier, Numeric> nlte{};
+
+  //FIXME: Remove
   std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
+
+public:
   Numeric pressure{std::numeric_limits<Numeric>::min()};
   Numeric temperature{std::numeric_limits<Numeric>::min()};
   std::array<Numeric, 3> wind{0., 0., 0.};
   std::array<Numeric, 3> mag{0., 0., 0.};
 
-  template <typename... Ts>
-  void internal_set(KeyType auto&& lhs, auto&& rhs, Ts&&... ts) {
-    set(std::forward<decltype(lhs)>(lhs), std::forward<decltype(rhs)>(rhs));
-    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
+  template <KeyType T, typename U, typename... Ts>
+  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
+    set(std::forward<T>(lhs), std::forward<U>(rhs));
+    if constexpr (sizeof...(Ts) > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  template <typename... Ts>
-  constexpr bool internal_has(KeyType auto&& key, Ts&&... keys) const {
-    bool has_this = has(std::forward<decltype(key)>(key));
-    if constexpr (sizeof...(Ts))
+  template <KeyType T, typename... Ts>
+  constexpr bool internal_has(T&& key, Ts&&... keys) const {
+    bool has_this = has(std::forward<T>(key));
+    if constexpr (sizeof...(Ts) > 0)
       return has_this and internal_has(std::forward<Ts>(keys)...);
     else
       return has_this;
   }
 
  public:
-  template <typename... Ts>
-  Point(Ts&&... ts) {
-    static_assert((sizeof...(Ts) % 2) == 0, "Uneven number of inputs");
-    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
+  template <typename... Ts, std::size_t N = sizeof...(Ts)>
+  Point(Ts&&... ts) requires((N % 2) == 0) {
+    if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  Numeric operator[](KeyType auto&& x) const {
-    using T = decltype(x);
+  template<KeyType T>
+  Numeric operator[](T&& x) const {
     if constexpr (isArrayOfSpeciesTag<T>) {
       auto y = species_content.find(std::forward<T>(x));
-      return y == species_content.end() ? 0 : y->second;
+      return y not_eq species_content.end() ? 0 : y->second;
     } else if constexpr (isQuantumIdentifier<T>) {
       auto y = nlte.find(std::forward<T>(x));
-      return y == nlte.end() ? 0 : y->second;
+      return y not_eq nlte.end() ? 0 : y->second;
     } else {
       switch (std::forward<T>(x)) {
         case Key::temperature:
@@ -100,26 +103,16 @@ class Point {
           return wind[2];
         case Key::mag_u:
           return mag[0];
-          break;
         case Key::mag_v:
           return mag[1];
-          break;
         case Key::mag_w:
           return mag[2];
         case Key::FINAL: {
         }
       }
-      return 0;
+      return temperature; // CANNOT REACH
     }
   }
-
-  [[nodiscard]] constexpr auto P() const { return pressure; }
-
-  [[nodiscard]] constexpr auto T() const { return temperature; }
-
-  [[nodiscard]] constexpr auto M() const { return mag; }
-
-  [[nodiscard]] constexpr auto W() const { return wind; }
 
   // FIXME: This data should be elsewhere???
   [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
@@ -137,11 +130,8 @@ class Point {
     nlte_energy = x;
   }
 
-  void set(KeyType auto&& x, Numeric y) {
-    using T = decltype(x);
-    ARTS_USER_ERROR_IF(
-        std::isnan(y) or std::isinf(y), "Bad input NaN or Inf: ", y)
-
+  template<KeyType T>
+  void set(T&& x, Numeric y) {
     if constexpr (isArrayOfSpeciesTag<T>) {
       species_content[x] = y;
     } else if constexpr (isQuantumIdentifier<T>) {
@@ -149,11 +139,9 @@ class Point {
     } else {
       switch (std::forward<T>(x)) {
         case Key::temperature:
-          ARTS_USER_ERROR_IF(y <= 0, "Bad temperature: ", y)
           temperature = y;
           break;
         case Key::pressure:
-          ARTS_USER_ERROR_IF(y <= 0, "Bad pressure: ", y)
           pressure = y;
           break;
         case Key::wind_u:
@@ -180,8 +168,8 @@ class Point {
     }
   }
 
-  constexpr bool has(KeyType auto&& key) const {
-    using T = decltype(key);
+  template<KeyType T>
+  constexpr bool has(T&& key) const {
     if constexpr (isArrayOfSpeciesTag<T>)
       return species_content.end() not_eq
              species_content.find(std::forward<T>(key));
@@ -254,12 +242,14 @@ concept RawDataType =
     isGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 template <typename T>
-concept DataType = RawDataType<T> or isTensor3<T>;
+concept DataType = RawDataType<T> or isTensor3<T> or isData<T>;
 
 class Field {
   std::map<Key, Data> other{};
   std::map<ArrayOfSpeciesTag, Data> specs{};
   std::map<QuantumIdentifier, Data> nlte{};
+
+  //FIXME: Remove
   std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
 
   //! The below only exist if regularized is true
@@ -269,24 +259,34 @@ class Field {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this altitude)
   Numeric space_alt{std::numeric_limits<Numeric>::lowest()};
 
-  template <typename... Ts>
-  void internal_set(KeyType auto&& lhs, RawDataType auto&& rhs, Ts&&... ts) {
-    set(std::forward<decltype(lhs)>(lhs), std::forward<decltype(rhs)>(rhs));
-    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
+  template <KeyType T, RawDataType U, typename... Ts>
+  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
+    set(std::forward<T>(lhs), std::forward<U>(rhs));
+    if constexpr (sizeof...(Ts) > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  template <typename... Ts>
-  bool internal_has(KeyType auto&& key, Ts&&... keys) const {
-    bool has_this = has(std::forward<decltype(key)>(key));
+  template <KeyType T, KeyType... Ts>
+  bool internal_has(T&& key, Ts&&... keys) const {
+    bool has_this = has(std::forward<T>(key));
     if constexpr (sizeof...(Ts))
       return has_this and internal_has(std::forward<Ts>(keys)...);
     else
       return has_this;
   }
 
-  Data& get(KeyType auto&& x) {
-    using T = decltype(x);
+  template<KeyType T>
+  Data& get(T&& x) {
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      return specs[std::forward<T>(x)];
+    } else if constexpr (isQuantumIdentifier<T>) {
+      return nlte[std::forward<T>(x)];
+    } else {
+      return other[std::forward<T>(x)];
+    }
+  }
 
+  template<KeyType T>
+  const Data& get(T&& x) const {
     if constexpr (isArrayOfSpeciesTag<T>) {
       return specs[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
@@ -297,10 +297,9 @@ class Field {
   }
 
  public:
-  template <typename... Ts>
-  Field(Ts&&... ts) {
-    static_assert((sizeof...(Ts) % 2) == 0, "Uneven number of inputs");
-    if constexpr (sizeof...(Ts)) internal_set(std::forward<Ts>(ts)...);
+  template <typename... Ts, std::size_t N = sizeof...(Ts)>
+  Field(Ts&&... ts) requires((N % 2) == 0) {
+    if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
   void top_of_atmosphere(Numeric x) {space_alt = x;}
@@ -310,15 +309,13 @@ class Field {
     return {alt.nelem(), lat.nelem(), lon.nelem()};
   }
 
-  void set(KeyType auto &&x, DataType auto &&y) {
-    using T = decltype(x);
-    using U = decltype(y);
-
+  template<KeyType T, DataType U>
+  void set(T &&x, U &&y) {
     if constexpr (isData<U>) {
       set_altitude_limits(x, y.alt_low, y.alt_upp);
       set_latitude_limits(x, y.lat_low, y.lat_upp);
       set_longitude_limits(x, y.lon_low, y.lon_upp);
-      set(x, std::move(y.data));
+      std::visit([this, x](auto&& d){this -> set(x, d);}, y.data);
     } else {
       if constexpr (isTensor3<U>) {
           ARTS_USER_ERROR_IF(
@@ -348,25 +345,31 @@ class Field {
     }
   }
 
-  void set_altitude_limits(KeyType auto &&x, Extrapolation low,
+  template<KeyType T>
+  Data& operator[](T&& x) { return get(x); }
+
+  template<KeyType T>
+  const Data& operator[](T&& x) const { return get(x); }
+
+  template<KeyType T>
+  void set_altitude_limits(T &&x, Extrapolation low,
                            Extrapolation upp) {
-    using T = decltype(x);
     auto &y = get(std::forward<T>(x));
     y.alt_low = low;
     y.alt_upp = upp;
   }
 
-  void set_latitude_limits(KeyType auto &&x, Extrapolation low,
+  template<KeyType T>
+  void set_latitude_limits(T &&x, Extrapolation low,
                            Extrapolation upp) {
-    using T = decltype(x);
     auto &y = get(std::forward<T>(x));
     y.lat_low = low;
     y.lat_upp = upp;
   }
 
-  void set_longitude_limits(KeyType auto &&x, Extrapolation low,
+  template<KeyType T>
+  void set_longitude_limits(T &&x, Extrapolation low,
                             Extrapolation upp) {
-    using T = decltype(x);
     auto &y = get(std::forward<T>(x));
     y.lon_low = low;
     y.lon_upp = upp;
@@ -394,12 +397,12 @@ class Field {
   //! Compute the values at a single point
   [[nodiscard]] Point at(Numeric, Numeric, Numeric, const FunctionalData& g=FunctionalDataAlwaysThrow{}) const;
 
-  bool has(KeyType auto &&key) const {
-    using T = decltype(key);
+  template <KeyType T>
+  bool has(T &&key) const {
     if constexpr (isArrayOfSpeciesTag<T>)
       return specs.end() not_eq specs.find(std::forward<T>(key));
     else if constexpr (isKey<T>)
-      return other.end() not_eq other.find(std::forward<key>(key));
+      return other.end() not_eq other.find(std::forward<T>(key));
     else if constexpr (isQuantumIdentifier<T>)
       return nlte.end() not_eq nlte.find(std::forward<T>(key));
   }

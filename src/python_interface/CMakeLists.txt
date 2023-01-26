@@ -99,6 +99,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_math.cpp
     py_options.cpp
     py_hitran.cpp
+    py_atm.cpp
 
     py_auto_interface.h
     py_auto_interface.cc

@@ -192,6 +192,10 @@ These cross-section records contains information about the valid temperature and
 pressure ranges as well as well as the fitting coefficients used to compute
 and interpolate the cross-section to other temperatures and pressures)--");
 
+  wsv_groups.emplace_back("AtmField", R"--(An atmospheric field)--");
+
+  wsv_groups.emplace_back("AtmPoint", R"--(An atmospheric point)--");
+
   wsv_groups.emplace_back(
       "CIARecord",
       R"--(Contains information to compute collision induced absorption for a pair of species
