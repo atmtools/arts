@@ -1,5 +1,6 @@
 #include <arts_options.h>
 #include <lineshapemodel.h>
+#include "atm.h"
 #include "ppath_struct.h"
 
 #include "py_macros.h"
@@ -95,5 +96,9 @@ void py_options(py::module_& m) {
 
   // Ppath
   DeclareOption(Options, PpathBackground)
+
+  // Atm
+  DeclareOptionRenamed(AtmExtrapolation, Atm, Extrapolation)
+  DeclareOptionRenamed(AtmKey, Atm, Key)
 }
 }  // namespace Python
