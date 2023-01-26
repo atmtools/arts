@@ -2267,6 +2267,142 @@ void xml_write_to_stream(ostream& os_xml,
 }
 
 
+
+//=== AtmField =========================================
+/*!
+ * \param is_xml     XML Input stream
+ * \param atm        AtmField return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          AtmField& atm,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs, "No binary data")
+
+  atm = AtmField{};  // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("AtmField");
+
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
+
+  for (Index i = 0; i < n; i++) {
+  }
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/AtmField");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param atm        AtmField
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const AtmField& atm,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbofs, "No binary data")
+
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("AtmField");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  const Index n = 0;//atm.nelem();
+  open_tag.add_attribute("nelem", n);
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  for (Index i=0; i<n; i++) {
+
+  }
+
+  close_tag.set_name("/AtmField");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
+
+//=== AtmPoint =========================================
+/*!
+ * \param is_xml     XML Input stream
+ * \param atm        AtmPoint return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          AtmPoint& atm,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs, "No binary data")
+
+  atm = AtmPoint{};  // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("AtmPoint");
+
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
+
+  for (Index i = 0; i < n; i++) {
+  }
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/AtmPoint");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param atm        AtmPoint
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const AtmPoint& atm,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbofs, "No binary data")
+
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("AtmPoint");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  const Index n = 0;//atm.nelem();
+  open_tag.add_attribute("nelem", n);
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  for (Index i=0; i<n; i++) {
+
+  }
+
+  close_tag.set_name("/AtmPoint");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

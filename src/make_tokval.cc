@@ -19,6 +19,7 @@ int main() {
 #include "ppath_struct.h"
 #include "absorptionlines.h"
 #include "artstime.h"
+#include "atm.h"
 #include "callback.h"
 #include "cia.h"
 #include "covariance_matrix.h"
