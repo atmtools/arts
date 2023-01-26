@@ -284,28 +284,6 @@ class matpack_view {
   //! Allow any other matpack view type to access the private parts of this object
   template <typename U, Index M, bool c, bool s> friend class matpack_view;
 
-  //! Helper function to change the stride of this object's view
-  template <Index dim>
-  constexpr void strided_dimension(matpack_strided_access range) requires(dim >= 0 and dim < N and strided) {
-    range = matpack_strided_access(extent(dim), range);
-    auto *d = view.data_handle() + stride(dim) * range.offset;
-    std::array<Index, N> extmap=shape(), strmap=strides();
-    std::get<dim>(extmap) =
-        range.extent < 0 ? std::get<dim>(extmap) : range.extent;
-    std::get<dim>(strmap) *= range.stride;
-    view = strided_view{d, {extmap, strmap}};
-  }
-
-  //! Helper function to change the stride of this object's view
-  template <Index i = 0, access_operator first, access_operator... access>
-  constexpr matpack_view &range_adaptor(first &&maybe_range, access &&...rest) requires(strided) {
-    if constexpr (is_matpack_strided_access<first>)
-      strided_dimension<i>(std::forward<first>(maybe_range));
-    if constexpr (sizeof...(access) not_eq 0)
-      range_adaptor<i + not integral<first>>(std::forward<access>(rest)...);
-    return *this;
-  }
-
   //! Sets this view to another view type, ignoring shape-checks
   constexpr void secret_set(view_type x) { view = std::move(x); }
 
@@ -490,6 +468,30 @@ public:
    */
   [[nodiscard]] constexpr bool empty() const { return view.empty(); }
 
+private:
+  //! Helper function to change the stride of this object's view
+  template <Index dim>
+  constexpr void strided_dimension(matpack_strided_access range) requires(dim >= 0 and dim < N and strided) {
+    range = matpack_strided_access(extent(dim), range);
+    auto *d = view.data_handle() + stride(dim) * range.offset;
+    std::array<Index, N> extmap=shape(), strmap=strides();
+    std::get<dim>(extmap) =
+        range.extent < 0 ? std::get<dim>(extmap) : range.extent;
+    std::get<dim>(strmap) *= range.stride;
+    view = strided_view{d, {extmap, strmap}};
+  }
+
+  //! Helper function to change the stride of this object's view
+  template <Index i = 0, access_operator first, access_operator... access>
+  constexpr matpack_view &range_adaptor(first &&maybe_range, access &&...rest) requires(strided) {
+    if constexpr (is_matpack_strided_access<first>)
+      strided_dimension<i>(std::forward<first>(maybe_range));
+    if constexpr (sizeof...(access) not_eq 0)
+      range_adaptor<i + not integral<first>>(std::forward<access>(rest)...);
+    return *this;
+  }
+
+public:
   template <access_operator... access,
             Index M = num_index<access...>,
             class ret_t = mutable_access<access...>>
