@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "debug.h"
+#include "experimental/__p0009_bits/full_extent_t.hpp"
+#include "experimental/__p0009_bits/layout_stride.hpp"
 #include "logic.h"
 
 #include "matpack_complex.h"
@@ -363,8 +365,8 @@ void test_math() {
   {
     Matrix x(3, 3, 0);
     ARTS_ASSERT(min(x) == 0)
-    ARTS_ASSERT(min(ExhaustiveVectorView{x}) == 0)
-    ARTS_ASSERT(min(ExhaustiveConstVectorView{x}) == 0)
+    ARTS_ASSERT(min(ExhaustiveMatrixView{x}) == 0)
+    ARTS_ASSERT(min(ExhaustiveConstMatrixView{x}) == 0)
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
     static_assert(std::random_access_iterator<decltype(ExhaustiveMatrixView{x}.elem_begin())>);
@@ -427,6 +429,5 @@ int main() {
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
-
 }
 
