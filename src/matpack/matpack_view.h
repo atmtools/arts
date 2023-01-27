@@ -472,6 +472,8 @@ private:
   //! Helper function to change the stride of this object's view
   template <Index dim>
   constexpr void strided_dimension(matpack_strided_access range) requires(dim >= 0 and dim < N and strided) {
+    ARTS_ASSERT(range.stride > 0, "negative stride")
+
     range = matpack_strided_access(extent(dim), range);
     auto *d = view.data_handle() + stride(dim) * range.offset;
     std::array<Index, N> extmap=shape(), strmap=strides();

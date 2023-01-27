@@ -6,8 +6,6 @@
 #include <vector>
 
 #include "debug.h"
-#include "experimental/__p0009_bits/full_extent_t.hpp"
-#include "experimental/__p0009_bits/layout_stride.hpp"
 #include "logic.h"
 
 #include "matpack_complex.h"
@@ -415,50 +413,6 @@ void test_mult() {
   }
 }
 
-void test_negative_stride() {
-  Vector vec{1,2,3,4,5,6,7,8,9,10};
-  Vector rvec{10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
-  auto rvecv = vec[Range(9, 10, -1)];
-  ARTS_USER_ERROR_IF(rvecv != rvec, rvecv, " != ", rvec)
-  ARTS_USER_ERROR_IF(vec[Range(5, 2, -2)] != Vector({6, 4}), vec[Range(5, 2, -2)], " != ", Vector({6, 4}))
-  ARTS_USER_ERROR_IF(not std::equal(rvecv.begin(), rvecv.end(), rvec.begin()), "Bad iter")
-
-  Index d1 = 2, d2 = 3, d3 = 4, d4 = 5;
-  Tensor4 t4(d1, d2, d3, d4), rt4(d1, d2, d3, d4), rt4_d1(d1, d2, d3, d4),
-      rt4_d2(d1, d2, d3, d4), rt4_d3(d1, d2, d3, d4), rt4_d4(d1, d2, d3, d4);
-  for (Index i1 = 0; i1 < d1; i1++) {
-    for (Index i2 = 0; i2 < d2; i2++) {
-      for (Index i3 = 0; i3 < d3; i3++) {
-        for (Index i4 = 0; i4 < d4; i4++) {
-          auto v =
-              static_cast<Numeric>(i1 + 10 * i2 + 100 * i3 + 1000 * i4 + 10000);
-          t4(i1, i2, i3, i4) = v;
-          rt4(d1 - 1 - i1, d2 - 1 - i2, d3 - 1 - i3, d4 - 1 - i4) = v;
-          rt4_d1(d1 - 1 - i1, i2, i3, i4) = v;
-          rt4_d2(i1, d2 - 1 - i2, i3, i4) = v;
-          rt4_d3(i1, i2, d3 - 1 - i3, i4) = v;
-          rt4_d4(i1, i2, i3, d4 - 1 - i4) = v;
-        }
-      }
-    }
-  }
-  auto rt4v = t4(Range(d1-1, d1, -1), Range(d2-1, d2, -1), Range(d3-1, d3, -1), Range(d4-1, d4, -1));
-  auto rt4v_d1 = t4(Range(d1-1, d1, -1), joker, joker, joker);
-  auto rt4v_d2 = t4(joker, Range(d2-1, d2, -1), joker, joker);
-  auto rt4v_d3 = t4(joker, joker, Range(d3-1, d3, -1), joker);
-  auto rt4v_d4 = t4(joker, joker, joker, Range(d4-1, d4, -1));
-  ARTS_USER_ERROR_IF(rt4 != rt4v, rt4, "\n!=\n", rt4v)
-  ARTS_USER_ERROR_IF(not std::equal(rt4v.begin(), rt4v.end(), rt4.begin()), "Bad iter")
-  ARTS_USER_ERROR_IF(rt4_d1 != rt4v_d1, rt4_d1, "\n!=\n", rt4v_d1)
-  ARTS_USER_ERROR_IF(not std::equal(rt4v_d1.begin(), rt4v_d1.end(), rt4_d1.begin()), "Bad iter")
-  ARTS_USER_ERROR_IF(rt4_d2 != rt4v_d2, rt4_d2, "\n!=\n", rt4v_d2)
-  ARTS_USER_ERROR_IF(not std::equal(rt4v_d2.begin(), rt4v_d2.end(), rt4_d2.begin()), "Bad iter")
-  ARTS_USER_ERROR_IF(rt4_d3 != rt4v_d3, rt4_d3, "\n!=\n", rt4v_d3)
-  ARTS_USER_ERROR_IF(not std::equal(rt4v_d3.begin(), rt4v_d3.end(), rt4_d3.begin()), "Bad iter")
-  ARTS_USER_ERROR_IF(rt4_d4 != rt4v_d4, rt4_d4, "\n!=\n", rt4v_d4)
-  ARTS_USER_ERROR_IF(not std::equal(rt4v_d4.begin(), rt4v_d4.end(), rt4_d4.begin()), "Bad iter")
-}
-
 #define EXECUTE_TEST(X) \
 std::cout << "#########################################################\n";\
 std::cout << "Executing test: " #X << '\n'; \
@@ -473,6 +427,5 @@ int main() {
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
-  EXECUTE_TEST(test_negative_stride)
 }
 

@@ -3677,10 +3677,9 @@ void p_gridFromZRaw(  //WS Output
     if (no_negZ) {
       while (z_field_raw.data(i, 0, 0) < 0.0) i--;
     }
-    p_grid = p_grid_raw[Range(i, joker, -1)];
+    p_grid = reverse(p_grid_raw);
   } else {
-    ARTS_USER_ERROR (
-                        "z_field_raw needs to be monotonous, but this is not the case.\n")
+    ARTS_USER_ERROR ("z_field_raw needs to be monotonous, but this is not the case.\n")
   }
 }
 
