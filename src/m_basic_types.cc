@@ -1372,7 +1372,7 @@ void VectorInsertGridPoints(  // WS Generic Output:
     // Turn grid round.
 
     // Copy ig to dummy vector in reverse order:
-    const Vector dummy = ig[Range(ig.nelem() - 1, ig.nelem(), -1)];
+    const Vector dummy = reverse(ig);
 
     // Copy dummy back to ig vector:
     ig = dummy;

@@ -41,6 +41,7 @@
 #include "gridded_fields.h"
 #include "logic.h"
 #include "matpack_data.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "rte.h"
 #include "sensor.h"
@@ -1317,15 +1318,9 @@ void integration_func_by_vecmult(VectorView h,
   Numeric xfmax = x_f_in[nf - 1];
 
   // Handle possibly reversed x_g.
-  Vector x_g;
-  Index xg_reversed = 0;
-  //
-  if (is_decreasing(x_g_in)) {
-    x_g = x_g_in[Range(ng - 1, ng, -1)];
-    xg_reversed = 1;
-  } else {
-    x_g = x_g_in;
-  }
+  const bool xg_reversed = is_decreasing(x_g_in);
+  Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
+
   //
   ARTS_ASSERT(x_g[0] <= xfmin);
   ARTS_ASSERT(x_g[ng - 1] >= xfmax);
@@ -1421,7 +1416,7 @@ void integration_func_by_vecmult(VectorView h,
 
   // Flip back if x_g was decreasing
   if (xg_reversed) {
-    Vector tmp = h[Range(ng - 1, ng, -1)];  // Flip order
+    Vector tmp = reverse(h);  // Flip order
     h = tmp;
   }
 
@@ -1451,15 +1446,9 @@ void integration_bin_by_vecmult(VectorView h,
   ARTS_ASSERT(limit1 <= limit2);
 
   // Handle possibly reversed x_g.
-  Vector x_g;
-  Index xg_reversed = 0;
-  //
-  if (is_decreasing(x_g_in)) {
-    x_g = x_g_in[Range(ng - 1, ng, -1)];
-    xg_reversed = 1;
-  } else {
-    x_g = x_g_in;
-  }
+  const bool xg_reversed = is_decreasing(x_g_in);
+  const Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
+  
   //
   ARTS_ASSERT(x_g[0] <= limit1);
   ARTS_ASSERT(x_g[ng - 1] >= limit2);
@@ -1536,7 +1525,7 @@ void integration_bin_by_vecmult(VectorView h,
 
   // Flip back if x_g was decreasing
   if (xg_reversed) {
-    Vector tmp = h[Range(ng - 1, ng, -1)];  // Flip order
+    Vector tmp = reverse(h);  // Flip order
     h = tmp;
   }
 }

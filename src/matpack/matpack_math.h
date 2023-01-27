@@ -202,3 +202,34 @@ constexpr auto operator*(const VECONE &x, const VECTWO &y) {
   return std::transform_reduce(x.elem_begin(), x.elem_end(), y.elem_begin(), T{0});
 }
 }  // namespace matpack
+
+/** Reverses the input in place using elementwise iteration
+ *
+ * Note that this will not allocate any new memory
+ *
+ * Calls std::reverse(inout.elem_begin(), inout.elem_end())
+ *
+ * @param[in] in Any mutable view of matpack data
+ */
+template <matpack::any_matpack_type INOUT>
+constexpr void reverse_inplace(INOUT &&inout) {
+  std::reverse(inout.elem_begin(), inout.elem_end());
+}
+
+/** Returns the reverse of the input
+ *
+ * Note that this will allocate new memory before calling reverse_inplace()
+ * to reverse the allocated data
+ *
+ * @param[in] in Any input view of data
+ * @return Allocated memory of the reverse of the input
+ */
+template <matpack::any_matpack_type IN>
+constexpr matpack::matpack_data<matpack::matpack_value_type<IN>,
+                                matpack::rank<IN>()>
+reverse(const IN &in) {
+  matpack::matpack_data<matpack::matpack_value_type<IN>, matpack::rank<IN>()>
+      out(in);
+  reverse_inplace(out);
+  return out;
+}
