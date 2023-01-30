@@ -24,16 +24,11 @@ std::ostream& operator<<(std::ostream& os, const Point& atm) {
   os << "Magnetic Field: [u: " << atm.mag[0] << ", v: " << atm.mag[1]
      << ", w: " << atm.mag[2] << "] T";
 
-  for (auto& spec : atm.species_content) {
+  for (auto& spec : atm.specs) {
     os << ",\n" << spec.first << ": " << spec.second;
   }
 
   for (auto& vals : atm.nlte) {
-    if (atm.nlte_energy and atm.nlte_energy->size())
-      os << ",\n"
-         << vals.first << ": " << vals.second << " K; "
-         << atm.nlte_energy->at(vals.first) << " J";
-    else
       os << ",\n" << vals.first << ": " << vals.second;
   }
 
@@ -49,9 +44,9 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
   };
   os << "Regularized Field: " << (atm.regularized ? "true " : "false");
   if (atm.regularized) {
-    os << ",\nAltitude: [" << atm.alt << "]";
-    os << ",\nLatitude: [" << atm.lat << "]";
-    os << ",\nLongitude: [" << atm.lon << "]";
+    os << ",\nAltitude: [" << atm.grid[0] << "]";
+    os << ",\nLatitude: [" << atm.grid[1] << "]";
+    os << ",\nLongitude: [" << atm.grid[2] << "]";
   }
 
   for (auto& vals : atm.other) {
@@ -66,8 +61,6 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
 
   for (auto& vals : atm.nlte) {
     os << ",\n" << vals.first << ":";
-    if (atm.nlte_energy and atm.nlte_energy->size())
-      os << " " << atm.nlte_energy->at(vals.first) << " J\n";
     std::visit(printer, vals.second.data);
   }
 
@@ -77,7 +70,7 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
 Numeric Point::mean_mass() const {
   Numeric out = 0;
   Numeric total_vmr = 0;
-  for (auto& x: species_content) {
+  for (auto& x: specs) {
     Numeric this_mass_sum = 0.0;
 
     for (auto& spec: x.first) {
@@ -92,6 +85,116 @@ Numeric Point::mean_mass() const {
   if (total_vmr not_eq 0) out /= total_vmr;
   return out;
 }
+
+std::vector<KeyVal> Point::keys() const {
+  std::vector<KeyVal> out;
+  out.reserve(nelem());
+  for (auto &a : enumtyps::KeyTypes)
+    out.emplace_back(a);
+  for (auto &a : specs)
+    out.emplace_back(a.first);
+  for (auto &a : nlte)
+    out.emplace_back(a.first);
+  return out;
+}
+
+std::vector<KeyVal> Field::keys() const {
+  std::vector<KeyVal> out;
+  out.reserve(nelem());
+  for (auto &a : other)
+    out.emplace_back(a.first);
+  for (auto &a : specs)
+    out.emplace_back(a.first);
+  for (auto &a : nlte)
+    out.emplace_back(a.first);
+  return out;
+}
+
+Index Point::nspec() const { return static_cast<Index>(specs.size()); }
+Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
+Index Point::nelem() const { return nspec() + nnlte() + nother(); }
+
+Index Field::nspec() const { return static_cast<Index>(specs.size()); }
+Index Field::nnlte() const { return static_cast<Index>(nlte.size()); }
+Index Field::nother() const { return static_cast<Index>(other.size()); }
+Index Field::nelem() const { return nspec() + nnlte() + nother(); }
+
+String Data::data_type() const {
+  if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
+  if (std::holds_alternative<Tensor3>(data)) return "Tensor3";
+  if (std::holds_alternative<Numeric>(data)) return "Numeric";
+  if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
+  ARTS_ASSERT(false, "Cannot be reached, you have added a new type but not doen the plumbing...")
+  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+}
+
+void Field::throwing_check() const {
+  if (regularized) {
+    for (auto &key_val : other) {
+      std::visit(
+          [&](auto &&x) {
+            if constexpr (not isTensor3<decltype(x)>) {
+              ARTS_USER_ERROR(
+                  "The data for ", key_val.first,
+                  " is not a Tensor3 even though the data is regularized")
+            } else {
+              ARTS_USER_ERROR_IF(x.npages() not_eq grid[0].nelem() or
+                                     x.nrows() not_eq grid[1].nelem() or
+                                     x.ncols() not_eq grid[2].nelem(),
+                                 "Mismatch dimensions.  Expects shape:\n[",
+                                 grid[0].nelem(), ", ", grid[1].nelem(), ", ",
+                                 grid[2].nelem(), "]\nGot shape:\n[", x.npages(),
+                                 ", ", grid[1].nelem(), ", ", grid[2].nelem(),
+                                 "]\nFor field: ", key_val.first)
+            }
+          },
+          key_val.second.data);
+    }
+
+    for (auto &key_val : specs) {
+      std::visit(
+          [&](auto &&x) {
+            if constexpr (not isTensor3<decltype(x)>) {
+              ARTS_USER_ERROR(
+                  "The data for ", key_val.first,
+                  " is not a Tensor3 even though the data is regularized")
+            } else {
+              ARTS_USER_ERROR_IF(x.npages() not_eq grid[0].nelem() or
+                                     x.nrows() not_eq grid[1].nelem() or
+                                     x.ncols() not_eq grid[2].nelem(),
+                                 "Mismatch dimensions.  Expects shape:\n[",
+                                 grid[0].nelem(), ", ", grid[1].nelem(), ", ",
+                                 grid[2].nelem(), "]\nGot shape:\n[", x.npages(),
+                                 ", ", grid[1].nelem(), ", ", grid[2].nelem(),
+                                 "]\nFor field: ", key_val.first)
+            }
+          },
+          key_val.second.data);
+    }
+
+    for (auto &key_val : nlte) {
+      std::visit(
+          [&](auto &&x) {
+            if constexpr (not isTensor3<decltype(x)>) {
+              ARTS_USER_ERROR(
+                  "The data for ", key_val.first,
+                  " is not a Tensor3 even though the data is regularized")
+            } else {
+              ARTS_USER_ERROR_IF(x.npages() not_eq grid[0].nelem() or
+                                     x.nrows() not_eq grid[1].nelem() or
+                                     x.ncols() not_eq grid[2].nelem(),
+                                 "Mismatch dimensions.  Expects shape:\n[",
+                                 grid[0].nelem(), ", ", grid[1].nelem(), ", ",
+                                 grid[2].nelem(), "]\nGot shape:\n[", x.npages(),
+                                 ", ", grid[1].nelem(), ", ", grid[2].nelem(),
+                                 "]\nFor field: ", key_val.first)
+            }
+          },
+          key_val.second.data);
+    }
+  }
+}
+
 namespace detail {
 constexpr Numeric field_interp(Numeric x, Numeric, Numeric, Numeric) noexcept {
   return x;
@@ -231,48 +334,48 @@ Data::hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const {
   return {alt, lat, lon};
 }
 
-Point main_fitting(const Field &field, Numeric alt_point, Numeric lat_point,
-                   Numeric lon_point) {
+Point Field::internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const {
   Point atm;
 
-  if (alt_point > field.space_alt)
+  if (alt_point > top_of_atmosphere)
     return atm;
 
-  if (not field.regularized) {
+  if (not regularized) {
     const auto get_value = [alt = alt_point, lat = lat_point,
                             lon = lon_point](auto &x) {
       return detail::compute_value(x, alt, lat, lon);
     };
 
-    for (auto &vals : field.specs)
-      atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : field.other)
-      atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : field.nlte)
-      atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : specs)
+      atm[vals.first] = get_value(vals.second);
+    for (auto &vals : other)
+      atm[vals.first] = get_value(vals.second);
+    for (auto &vals : nlte)
+      atm[vals.first] = get_value(vals.second);
   } else {
     const auto get_value = [v = detail::LinearInterpolation(
-                                field.alt, field.lat, field.lon, alt_point,
+                                grid[0], grid[1], grid[2], alt_point,
                                 lat_point, lon_point)](auto &x) {
       return Interpolation::interp(*std::get_if<Tensor3>(&x.data), v.iw, v.alt,
                                    v.lat, v.lon);
     };
 
-    for (auto &vals : field.specs)
-      atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : field.other)
-      atm.set(vals.first, get_value(vals.second));
-    for (auto &vals : field.nlte)
-      atm.set(vals.first, get_value(vals.second));
+    for (auto &vals : specs)
+      atm[vals.first] = get_value(vals.second);
+    for (auto &vals : other)
+      atm[vals.first] = get_value(vals.second);
+    for (auto &vals : nlte)
+      atm[vals.first] = get_value(vals.second);
   }
 
-  atm.set_energy_level(field.nlte_energy);
   return atm;
 }
 
 Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
                 const FunctionalData &g) const {
-  Point atm = main_fitting(*this, alt_point, lat_point, lon_point);
+  throwing_check();
+
+  Point atm = internal_fitting(alt_point, lat_point, lon_point);
 
   // Fix for hydrostatic equilibrium
   for (auto &vals : specs) {
@@ -280,11 +383,11 @@ Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
       const auto [base_alt, base_lat, base_lon] =
           vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
       if (base_alt not_eq alt_point) {
-        auto base_atm = main_fitting(*this, base_alt, base_lat, base_lon);
+        auto base_atm = internal_fitting(base_alt, base_lat, base_lon);
         auto base_gra = g(base_alt, base_lat, base_lon);
-        atm.set(vals.first,
+        atm[vals.first] =
                 detail::fix_hydrostatic(base_atm[vals.first], base_atm,
-                                        vals.second, base_gra, alt_point));
+                                        vals.second, base_gra, alt_point);
       }
     }
   }
@@ -293,11 +396,11 @@ Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
       const auto [base_alt, base_lat, base_lon] =
           vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
       if (base_alt not_eq alt_point) {
-        auto base_atm = main_fitting(*this, base_alt, base_lat, base_lon);
+        auto base_atm = internal_fitting(base_alt, base_lat, base_lon);
         auto base_gra = g(base_alt, base_lat, base_lon);
-        atm.set(vals.first,
+        atm[vals.first] =
                 detail::fix_hydrostatic(base_atm[vals.first], base_atm,
-                                        vals.second, base_gra, alt_point));
+                                        vals.second, base_gra, alt_point);
       }
     }
   }
@@ -306,11 +409,11 @@ Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
       const auto [base_alt, base_lat, base_lon] =
           vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
       if (base_alt not_eq alt_point) {
-        auto base_atm = main_fitting(*this, base_alt, base_lat, base_lon);
+        auto base_atm = internal_fitting(base_alt, base_lat, base_lon);
         auto base_gra = g(base_alt, base_lat, base_lon);
-        atm.set(vals.first,
+        atm[vals.first] =
                 detail::fix_hydrostatic(base_atm[vals.first], base_atm,
-                                        vals.second, base_gra, alt_point));
+                                        vals.second, base_gra, alt_point);
       }
     }
   }
@@ -350,20 +453,21 @@ Field& Field::regularize(const Vector& altitudes,
   }
 
   regularized = true;
-  alt = altitudes;
-  lat = latitudes;
-  lon = longitudes;
+  grid = {altitudes, latitudes, longitudes};
 
   for (Index i0{0}; auto& vals : specs)
-    set(vals.first, std::move(specs_data[i0++]));
+    specs[vals.first] = std::move(specs_data[i0++]);
   for (Index i0{0}; auto& vals : other)
-    set(vals.first, std::move(other_data[i0++]));
+    other[vals.first] = std::move(other_data[i0++]);
   for (Index i0{0}; auto& vals : nlte)
-    set(vals.first, std::move(nlte_data[i0++]));
+    nlte[vals.first] = std::move(nlte_data[i0++]);
 
   return *this;
 }
 
+std::array<Index, 3> Field::regularized_shape() const {
+  return {grid[0].nelem(), grid[1].nelem(), grid[2].nelem()};
+}
 namespace internal {
   using namespace Cmp;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <limits>
 #include <map>
@@ -47,12 +48,18 @@ concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
 template <typename T>
 concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or isQuantumIdentifier<T>;
 
-class Point {
-  std::map<ArrayOfSpeciesTag, Numeric> species_content{};
-  std::map<QuantumIdentifier, Numeric> nlte{};
+using KeyVal = std::variant<Key, ArrayOfSpeciesTag, QuantumIdentifier>;
 
-  //FIXME: Remove
-  std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
+struct Point {
+private:
+  template <KeyType T, typename U, typename... Ts, size_t N=sizeof...(Ts)>
+  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
+    this->operator[](std::forward<T>(lhs)) = std::forward<U>(rhs);
+    if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
+  }
+
+  std::map<ArrayOfSpeciesTag, Numeric> specs{};
+  std::map<QuantumIdentifier, Numeric> nlte{};
 
 public:
   Numeric pressure{std::numeric_limits<Numeric>::min()};
@@ -60,22 +67,6 @@ public:
   std::array<Numeric, 3> wind{0., 0., 0.};
   std::array<Numeric, 3> mag{0., 0., 0.};
 
-  template <KeyType T, typename U, typename... Ts>
-  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
-    set(std::forward<T>(lhs), std::forward<U>(rhs));
-    if constexpr (sizeof...(Ts) > 0) internal_set(std::forward<Ts>(ts)...);
-  }
-
-  template <KeyType T, typename... Ts>
-  constexpr bool internal_has(T&& key, Ts&&... keys) const {
-    bool has_this = has(std::forward<T>(key));
-    if constexpr (sizeof...(Ts) > 0)
-      return has_this and internal_has(std::forward<Ts>(keys)...);
-    else
-      return has_this;
-  }
-
- public:
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
   Point(Ts&&... ts) requires((N % 2) == 0) {
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
@@ -84,8 +75,8 @@ public:
   template<KeyType T>
   Numeric operator[](T&& x) const {
     if constexpr (isArrayOfSpeciesTag<T>) {
-      auto y = species_content.find(std::forward<T>(x));
-      return y not_eq species_content.end() ? 0 : y->second;
+      auto y = specs.find(std::forward<T>(x));
+      return y not_eq specs.end() ? 0 : y->second;
     } else if constexpr (isQuantumIdentifier<T>) {
       auto y = nlte.find(std::forward<T>(x));
       return y not_eq nlte.end() ? 0 : y->second;
@@ -114,80 +105,65 @@ public:
     }
   }
 
-  // FIXME: This data should be elsewhere???
-  [[nodiscard]] Numeric energy_level(const QuantumIdentifier& x) const {
-    ARTS_USER_ERROR_IF(
-        not nlte_energy or nlte.size() not_eq nlte_energy->size(),
-        "Incorrect NLTE energy term")
-    auto y = nlte_energy->find(x);
-    return y == nlte_energy->end() ? 0 : y->second;
-  }
-
-  // FIXME: This data should be elsewhere???
-  void set_energy_level(const decltype(nlte_energy)& x) {
-    ARTS_USER_ERROR_IF(x and x->size() and x->size() not_eq nlte.size(),
-                       "Mismatching sizes")
-    nlte_energy = x;
-  }
-
   template<KeyType T>
-  void set(T&& x, Numeric y) {
+  Numeric& operator[](T&& x) {
     if constexpr (isArrayOfSpeciesTag<T>) {
-      species_content[x] = y;
+      return specs[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
-      nlte[x] = y;
+      return nlte[std::forward<T>(x)];
     } else {
       switch (std::forward<T>(x)) {
         case Key::temperature:
-          temperature = y;
-          break;
+          return temperature;
         case Key::pressure:
-          pressure = y;
-          break;
+          return pressure;
         case Key::wind_u:
-          wind[0] = y;
-          break;
+          return wind[0];
         case Key::wind_v:
-          wind[1] = y;
-          break;
+          return wind[1];
         case Key::wind_w:
-          wind[2] = y;
-          break;
+          return wind[2];
         case Key::mag_u:
-          mag[0] = y;
-          break;
+          return mag[0];
         case Key::mag_v:
-          mag[1] = y;
-          break;
+          return mag[1];
         case Key::mag_w:
-          mag[2] = y;
-          break;
-        case Key::FINAL:
-          break;
+          return mag[2];
+        case Key::FINAL: {
+        }
       }
+      return temperature; // CANNOT REACH
     }
   }
 
-  template<KeyType T>
-  constexpr bool has(T&& key) const {
-    if constexpr (isArrayOfSpeciesTag<T>)
-      return species_content.end() not_eq
-             species_content.find(std::forward<T>(key));
-    else if constexpr (isKey<T>)
-      return true;
-    else if constexpr (isQuantumIdentifier<T>)
-      return nlte.end() not_eq nlte.find(std::forward<T>(key));
-  }
+  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
+  constexpr bool has(T &&key, Ts &&...keys) const {
+    const auto has_ = [](auto &x [[maybe_unused]],
+                         auto &&k [[maybe_unused]]) {
+      if constexpr (isArrayOfSpeciesTag<T>)
+        return x.specs.end() not_eq
+               x.specs.find(std::forward<T>(k));
+      else if constexpr (isKey<T>)
+        return true;
+      else if constexpr (isQuantumIdentifier<T>)
+        return x.nlte.end() not_eq x.nlte.find(std::forward<T>(k));
+    };
 
-  template <typename... Ts>
-  constexpr bool has_data(Ts&&... keys) const {
-    if constexpr (sizeof...(Ts))
-      return internal_has(std::forward<Ts>(keys)...);
+    if constexpr (N > 0)
+      return has_(*this, std::forward<T>(key)) and
+             has(std::forward<Ts>(keys)...);
     else
-      return true;
+      return has_(*this, std::forward<T>(key));
   }
 
   [[nodiscard]] Numeric mean_mass() const;
+
+  [[nodiscard]] std::vector<KeyVal> keys() const;
+
+  [[nodiscard]] Index nelem() const;
+  [[nodiscard]] Index nspec() const;
+  [[nodiscard]] Index nnlte() const;
+  [[nodiscard]] static constexpr Index nother() {return static_cast<Index>(enumtyps::KeyTypes.size());}
 
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
@@ -213,12 +189,39 @@ struct Data {
   Extrapolation lon_upp{Extrapolation::None};
   Extrapolation lon_low{Extrapolation::None};
 
+  // Standard
+  Data() = default;
+  Data(const Data&) = default;
+  Data(Data&&) = default;
+  Data& operator=(const Data&) = default;
+  Data& operator=(Data&&) = default;
+
+  // Allow copy and move construction implicitly from all types
+  Data(const GriddedField3& x) : data(x) {}
+  Data(const Tensor3& x) : data(x) {}
+  Data(const Numeric& x) : data(x) {}
+  Data(const FunctionalData& x) : data(x) {}
+  Data(GriddedField3&& x) : data(std::move(x)) {}
+  Data(Tensor3&& x) : data(std::move(x)) {}
+  Data(FunctionalData&& x) : data(std::move(x)) {}
+
+  // Allow copy and move set implicitly from all types
+  Data& operator=(const GriddedField3& x) {data=x; return *this;}
+  Data& operator=(const Tensor3& x) {data=x; return *this;}
+  Data& operator=(const Numeric& x) {data=x; return *this;}
+  Data& operator=(const FunctionalData& x) {data=x; return *this;}
+  Data& operator=(GriddedField3&& x) {data=std::move(x); return *this;}
+  Data& operator=(Tensor3&& x) {data=std::move(x); return *this;}
+  Data& operator=(FunctionalData&& x) {data=std::move(x); return *this;}
+
   [[nodiscard]] constexpr bool need_hydrostatic() const noexcept {
     return alt_low == Extrapolation::Hydrostatic or
         alt_upp == Extrapolation::Hydrostatic;
   }
 
   [[nodiscard]] std::tuple<Numeric, Numeric, Numeric> hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const;
+
+  [[nodiscard]] String data_type() const;
 };
 
 template <typename T>
@@ -244,151 +247,55 @@ concept RawDataType =
 template <typename T>
 concept DataType = RawDataType<T> or isTensor3<T> or isData<T>;
 
-class Field {
+struct Field {
+private:
+  template <KeyType T, RawDataType U, typename... Ts, std::size_t N = sizeof...(Ts)>
+  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
+    this->operator[](std::forward<T>(lhs)) = std::forward<U>(rhs);
+    if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
+  }
+
   std::map<Key, Data> other{};
   std::map<ArrayOfSpeciesTag, Data> specs{};
   std::map<QuantumIdentifier, Data> nlte{};
 
-  //FIXME: Remove
-  std::shared_ptr<std::map<QuantumIdentifier, Numeric>> nlte_energy{};
+  [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
+ 
+ public:
+  //! Grid if regularized
+  std::array<Vector, 3> grid{};
 
   //! The below only exist if regularized is true
   bool regularized{false};
-  Vector alt{}, lat{}, lon{};
 
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this altitude)
-  Numeric space_alt{std::numeric_limits<Numeric>::lowest()};
+  Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
-  template <KeyType T, RawDataType U, typename... Ts>
-  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
-    set(std::forward<T>(lhs), std::forward<U>(rhs));
-    if constexpr (sizeof...(Ts) > 0) internal_set(std::forward<Ts>(ts)...);
-  }
-
-  template <KeyType T, KeyType... Ts>
-  bool internal_has(T&& key, Ts&&... keys) const {
-    bool has_this = has(std::forward<T>(key));
-    if constexpr (sizeof...(Ts))
-      return has_this and internal_has(std::forward<Ts>(keys)...);
-    else
-      return has_this;
-  }
-
-  template<KeyType T>
-  Data& get(T&& x) {
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      return specs[std::forward<T>(x)];
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte[std::forward<T>(x)];
-    } else {
-      return other[std::forward<T>(x)];
-    }
-  }
-
-  template<KeyType T>
-  const Data& get(T&& x) const {
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      return specs[std::forward<T>(x)];
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte[std::forward<T>(x)];
-    } else {
-      return other[std::forward<T>(x)];
-    }
-  }
-
- public:
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
   Field(Ts&&... ts) requires((N % 2) == 0) {
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  void top_of_atmosphere(Numeric x) {space_alt = x;}
-  [[nodiscard]] Numeric top_of_atmosphere() const {return space_alt;}
+  [[nodiscard]] std::array<Index, 3> regularized_shape() const;
 
-  [[nodiscard]] Shape<3> regularized_shape() const {
-    return {alt.nelem(), lat.nelem(), lon.nelem()};
-  }
-
-  template<KeyType T, DataType U>
-  void set(T &&x, U &&y) {
-    if constexpr (isData<U>) {
-      set_altitude_limits(x, y.alt_low, y.alt_upp);
-      set_latitude_limits(x, y.lat_low, y.lat_upp);
-      set_longitude_limits(x, y.lon_low, y.lon_upp);
-      std::visit([this, x](auto&& d){this -> set(x, d);}, y.data);
+  template <KeyType T> Data &operator[](T &&x) {
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      return specs[std::forward<T>(x)];
+    } else if constexpr (isQuantumIdentifier<T>) {
+      return nlte[std::forward<T>(x)];
     } else {
-      if constexpr (isTensor3<U>) {
-          ARTS_USER_ERROR_IF(
-              not regularized,
-              "Field needs to be regularized to set Tensor3 data")
-          ARTS_USER_ERROR_IF(y.shape() not_eq regularized_shape(),
-                             "The shape is wrong.  The input field is shape ",
-                             y.shape(), " but we have a regularized shape of ",
-                             regularized_shape())
-      } else {
-          ARTS_USER_ERROR_IF(
-              regularized,
-              "Expects a regularized field (i.e., Tensor3-style gridded)")
-      }
-
-      if constexpr (isGriddedField3<U>) {
-          ARTS_USER_ERROR_IF("Pressure" not_eq y.get_grid_name(0) or
-                                 "Latitude" not_eq y.get_grid_name(1) or
-                                 "Longitude" not_eq y.get_grid_name(2),
-                             "The grids should be [Pressure x Latitude x "
-                             "Longitude] but it is [",
-                             y.get_grid_name(0), " x ", y.get_grid_name(1),
-                             " x ", y.get_grid_name(2), ']')
-      }
-
-      get(std::forward<T>(x)).data = std::move(y);
+      return other[std::forward<T>(x)];
     }
   }
 
-  template<KeyType T>
-  Data& operator[](T&& x) { return get(x); }
-
-  template<KeyType T>
-  const Data& operator[](T&& x) const { return get(x); }
-
-  template<KeyType T>
-  void set_altitude_limits(T &&x, Extrapolation low,
-                           Extrapolation upp) {
-    auto &y = get(std::forward<T>(x));
-    y.alt_low = low;
-    y.alt_upp = upp;
-  }
-
-  template<KeyType T>
-  void set_latitude_limits(T &&x, Extrapolation low,
-                           Extrapolation upp) {
-    auto &y = get(std::forward<T>(x));
-    y.lat_low = low;
-    y.lat_upp = upp;
-  }
-
-  template<KeyType T>
-  void set_longitude_limits(T &&x, Extrapolation low,
-                            Extrapolation upp) {
-    auto &y = get(std::forward<T>(x));
-    y.lon_low = low;
-    y.lon_upp = upp;
-  }
-
-  // FIXME: This data should be elsewhere???
-  [[nodiscard]] Numeric energy_level(const QuantumIdentifier &x) const {
-    ARTS_USER_ERROR_IF(not nlte_energy or
-                           nlte.size() not_eq nlte_energy->size(),
-                       "Incorrect NLTE energy term")
-    auto y = nlte_energy->find(x);
-    return y == nlte_energy->end() ? 0 : y->second;
-  }
-
-  // FIXME: This data should be elsewhere???
-  void set_energy_level(const QuantumIdentifier &x, Numeric y) {
-    if (not nlte_energy)
-      nlte_energy = std::make_shared<std::map<QuantumIdentifier, Numeric>>();
-    nlte_energy->operator[](x) = y;
+  template <KeyType T> const Data &operator[](T &&x) const {
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      return specs.at(std::forward<T>(x));
+    } else if constexpr (isQuantumIdentifier<T>) {
+      return nlte.at(std::forward<T>(x));
+    } else {
+      return other.at(std::forward<T>(x));
+    }
   }
 
   //! Regularizes the calculations so that all data is on a single grid
@@ -397,28 +304,33 @@ class Field {
   //! Compute the values at a single point
   [[nodiscard]] Point at(Numeric, Numeric, Numeric, const FunctionalData& g=FunctionalDataAlwaysThrow{}) const;
 
-  template <KeyType T>
-  bool has(T &&key) const {
-    if constexpr (isArrayOfSpeciesTag<T>)
-      return specs.end() not_eq specs.find(std::forward<T>(key));
-    else if constexpr (isKey<T>)
-      return other.end() not_eq other.find(std::forward<T>(key));
-    else if constexpr (isQuantumIdentifier<T>)
-      return nlte.end() not_eq nlte.find(std::forward<T>(key));
+  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
+  bool has(T &&key, Ts &&...keys) const {
+    const auto has_this_key = [this] (auto&& k) {
+      if constexpr (isArrayOfSpeciesTag<T>)
+        return specs.end() not_eq specs.find(std::forward<T>(k));
+      else if constexpr (isKey<T>)
+        return other.end() not_eq other.find(std::forward<T>(k));
+      else if constexpr (isQuantumIdentifier<T>)
+        return nlte.end() not_eq nlte.find(std::forward<T>(k));
+    };
+
+    if constexpr (N > 0)
+      return has_this_key(std::forward<T>(key)) and has(std::forward<Ts>(keys)...);
+    else
+      return has_this_key(std::forward<T>(key));
   }
 
-  template <typename... Ts> bool has_data(Ts &&...keys) const {
-    if constexpr (sizeof...(Ts))
-      return internal_has(std::forward<Ts>(keys)...);
-    else
-      return true;
-  }
+  [[nodiscard]] std::vector<KeyVal> keys() const;
+
+  [[nodiscard]] Index nelem() const;
+  [[nodiscard]] Index nspec() const;
+  [[nodiscard]] Index nnlte() const;
+  [[nodiscard]] Index nother() const;
+
+  void throwing_check() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Field &atm);
-
-private:
-  //! Fits an atmospheric point without hydrostatic balance
-  friend Point main_fitting(const Field& field, Numeric alt_point, Numeric lat_point, Numeric lon_point);
 };
 
 /** A wrapper to fix the input field to the expected format for Field
