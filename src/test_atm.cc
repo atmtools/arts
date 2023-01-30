@@ -16,7 +16,7 @@ void point() {
   std::cout << atm << '\n' << '\n';
 
   std::cout << atm[ArrayOfSpeciesTag{"O2-66"}] << '\n' << '\n';
-  std::cout << atm[pressure] << ' ' << atm.P() << '\n' << '\n';
+  std::cout << atm[pressure] << ' ' << atm.pressure << '\n' << '\n';
 
   ARTS_USER_ERROR_IF( not atm.has(pressure), "should have pressure")
   ARTS_USER_ERROR_IF( not atm.has_data(wind_u, mag_v), "should have fields")
