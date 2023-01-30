@@ -13,6 +13,11 @@
 #include "gridded_fields.h"
 #include "matpack_data.h"
 
+#include <map>
+
+//! The data type for additioanl NLTE vibrational energy levels
+using VibrationalEnergyLevels = std::map<QuantumIdentifier, Numeric>;
+
 /** Sets up the solution matrix for linear statistical equilibrium equation
  * 
  * @param[in,out] A Matrix to solve SEE
