@@ -61,18 +61,18 @@ void py_atm(py::module_ &m) {
           py::is_operator(), py::return_value_policy::reference_internal)
       .def(
           "__setitem__",
-          [](AtmPoint &atm, Atm::Key x, Numeric data) { atm.set(x, data); },
+          [](AtmPoint &atm, Atm::Key x, Numeric data) { atm[x] = data; },
           py::is_operator())
       .def(
           "__setitem__",
           [](AtmPoint &atm, const QuantumIdentifier &x, Numeric data) {
-            atm.set(x, data);
+            atm[x] = data;
           },
           py::is_operator())
       .def(
           "__setitem__",
           [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
-            atm.set(x, data);
+            atm[x] = data;
           },
           py::is_operator())
       .PythonInterfaceCopyValue(AtmPoint)
@@ -104,19 +104,19 @@ void py_atm(py::module_ &m) {
       .def(
           "__setitem__",
           [](AtmField &atm, Atm::Key x, const Atm::Data &data) {
-            atm.set(x, data);
+            atm[x] = data;
           },
           py::is_operator())
       .def(
           "__setitem__",
           [](AtmField &atm, const QuantumIdentifier &x, const Atm::Data &data) {
-            atm.set(x, data);
+            atm[x] = data;
           },
           py::is_operator())
       .def(
           "__setitem__",
           [](AtmField &atm, const ArrayOfSpeciesTag &x, const Atm::Data &data) {
-            atm.set(x, data);
+            atm[x] = data;
           },
           py::is_operator())
       .PythonInterfaceCopyValue(AtmField)

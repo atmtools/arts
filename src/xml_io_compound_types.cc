@@ -27,13 +27,22 @@
 */
 
 #include "arts.h"
+#include "atm.h"
 #include "cloudbox.h"
 #include "debug.h"
 #include "global_data.h"
 #include "gridded_fields.h"
+#include "isotopologues.h"
+#include "mystring.h"
 #include "predefined/predef_data.h"
+#include "quantum_numbers.h"
 #include "xml_io.h"
+#include "xml_io_general_types.h"
+#include <limits>
 #include <sstream>
+#include <stdexcept>
+#include <type_traits>
+#include <variant>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -2287,15 +2296,80 @@ void xml_read_from_stream(istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AtmField");
 
-  Index n;
-  open_tag.get_attribute_value("nelem", n);
+  Index nspec, nnlte, nother;
+  open_tag.get_attribute_value("nspec", nspec);
+  open_tag.get_attribute_value("nnlte", nnlte);
+  open_tag.get_attribute_value("nother", nother);
+
+  const Index n = nspec+nnlte+nother;
+  xml_read_from_stream(is_xml, atm.top_of_atmosphere, pbifs, verbosity);
+  atm.regularized = [&](){Index x; xml_read_from_stream(is_xml, x, pbifs, verbosity); return static_cast<bool>(x);}();
+
+  if (atm.regularized) {
+    xml_read_from_stream(is_xml, atm.grid[0], pbifs, verbosity);
+    xml_read_from_stream(is_xml, atm.grid[1], pbifs, verbosity);
+    xml_read_from_stream(is_xml, atm.grid[2], pbifs, verbosity);
+  }
 
   for (Index i = 0; i < n; i++) {
+    String key;
+    String typ;
+    ArrayOfString ext;
+    xml_read_from_stream(is_xml, key, pbifs, verbosity);
+    xml_read_from_stream(is_xml, typ, pbifs, verbosity);
+    xml_read_from_stream(is_xml, ext, pbifs, verbosity);
+    ARTS_USER_ERROR_IF(ext.nelem() not_eq 6, "Weird limits, should be 6-long, reads: {", ext, '}')
+
+    Atm::Data &data = [&]() -> Atm::Data & {
+      if (nother > 0) {
+        nother--;
+        return atm[Atm::toKeyOrThrow(key)];
+      }
+      if (nspec > 0) {
+        nspec--;
+        return atm[ArrayOfSpeciesTag(key)];
+      }
+      nnlte--;
+      return atm[QuantumIdentifier(key)];
+    }();
+
+    data.alt_low = Atm::toExtrapolationOrThrow(ext[0]);
+    data.alt_upp = Atm::toExtrapolationOrThrow(ext[1]);
+    data.lat_low = Atm::toExtrapolationOrThrow(ext[2]);
+    data.lat_upp = Atm::toExtrapolationOrThrow(ext[3]);
+    data.lon_low = Atm::toExtrapolationOrThrow(ext[4]);
+    data.lon_upp = Atm::toExtrapolationOrThrow(ext[5]);
+
+    if (typ == "Tensor3") {
+      Tensor3 x;
+      xml_read_from_stream(is_xml, x, pbifs, verbosity);
+      data = x;
+    } else if (typ == "GriddedField3") {
+      GriddedField3 x;
+      xml_read_from_stream(is_xml, x, pbifs, verbosity);
+      data = x;
+    } else if (typ == "Numeric") {
+      Numeric x;
+      xml_read_from_stream(is_xml, x, pbifs, verbosity);
+      data = x;
+    } else if (typ == "FunctionalData") {
+      String x;
+      xml_read_from_stream(is_xml, x, pbifs, verbosity);
+      data = Atm::FunctionalData([x](Numeric, Numeric, Numeric) -> Numeric {
+        ARTS_USER_ERROR(x)
+        return std::numeric_limits<Numeric>::signaling_NaN();
+      });
+    } else {
+      ARTS_USER_ERROR("Missing type data for: ", typ)
+    }
   }
+  ARTS_ASSERT((nspec+nnlte+nother) == 0)
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AtmField");
+
+  atm.throwing_check();
 }
 
 /*!
@@ -2317,15 +2391,54 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("AtmField");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  const Index n = 0;//atm.nelem();
-  open_tag.add_attribute("nelem", n);
+  //! List of all KEY values
+  auto keys = atm.keys();
+  const Index nspec = atm.nspec();
+  const Index nnlte = atm.nnlte();
+  const Index nother = atm.nother();
+
+  open_tag.add_attribute("nspec", nspec);
+  open_tag.add_attribute("nnlte", nnlte);
+  open_tag.add_attribute("nother", nother);
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
   xml_set_stream_precision(os_xml);
 
-  for (Index i=0; i<n; i++) {
+  xml_write_to_stream(os_xml, atm.top_of_atmosphere, pbofs, "Top Of Atmosphere", verbosity);
+  xml_write_to_stream(os_xml, Index(atm.regularized), pbofs, "Regularized", verbosity);
 
+  if (atm.regularized) {
+    xml_write_to_stream(os_xml, atm.grid[0], pbofs, "Altitude Grid", verbosity);
+    xml_write_to_stream(os_xml, atm.grid[1], pbofs, "Latitude Grid", verbosity);
+    xml_write_to_stream(os_xml, atm.grid[2], pbofs, "Longitude Grid", verbosity);
+  }
+
+  for (auto& key: keys) {
+    std::visit([&](auto&& key_val) {
+      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "Data Key", verbosity);
+
+      const Atm::Data& data = atm[key_val];
+      xml_write_to_stream(os_xml, data.data_type(), pbofs, "Data Type", verbosity);
+
+      const ArrayOfString extrap{
+          toString(data.alt_low), toString(data.alt_upp),
+          toString(data.lat_low), toString(data.lat_upp),
+          toString(data.lon_low), toString(data.lon_upp)};
+      xml_write_to_stream(os_xml, extrap, pbofs, "Extrapolations", verbosity);
+
+      std::visit([&](auto&& data_type [[maybe_unused]]){
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(data_type)>, Atm::FunctionalData>)
+          xml_write_to_stream(
+              os_xml,
+              var_string(
+                  "Data for ", key_val,
+                  " read from file as functional must be set explicitly"),
+              pbofs, "Functional Data Error", verbosity);
+        else
+          xml_write_to_stream(os_xml, data_type, pbofs, "Data", verbosity);
+      }, data.data);
+    }, key);
   }
 
   close_tag.set_name("/AtmField");
@@ -2333,7 +2446,6 @@ void xml_write_to_stream(ostream& os_xml,
 
   os_xml << '\n';
 }
-
 
 
 //=== AtmPoint =========================================
@@ -2355,11 +2467,30 @@ void xml_read_from_stream(istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AtmPoint");
 
-  Index n;
-  open_tag.get_attribute_value("nelem", n);
+  Index nspec, nnlte, nother;
+  open_tag.get_attribute_value("nspec", nspec);
+  open_tag.get_attribute_value("nnlte", nnlte);
+  open_tag.get_attribute_value("nother", nother);
 
+  const Index n = nspec+nnlte+nother;
   for (Index i = 0; i < n; i++) {
+    Numeric v;
+    String k;
+    xml_read_from_stream(is_xml, k, pbifs, verbosity);
+    xml_read_from_stream(is_xml, v, pbifs, verbosity);
+
+    if (nother > 0) {
+      atm[Atm::toKeyOrThrow(k)] = v;
+      nother--;
+    } else if (nspec > 0) {
+      atm[ArrayOfSpeciesTag(k)] = v;
+      nspec--;
+    } else if (nnlte > 0) {
+      atm[QuantumIdentifier(k)] = v;
+      nnlte--;
+    }
   }
+  ARTS_ASSERT((nspec+nnlte+nother) == 0)
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
@@ -2385,15 +2516,25 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("AtmPoint");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  const Index n = 0;//atm.nelem();
-  open_tag.add_attribute("nelem", n);
+  //! List of all KEY values
+  auto keys = atm.keys();
+  const Index nspec = atm.nspec();
+  const Index nnlte = atm.nnlte();
+  const Index nother = atm.nother();
+
+  open_tag.add_attribute("nspec", nspec);
+  open_tag.add_attribute("nnlte", nnlte);
+  open_tag.add_attribute("nother", nother);
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
   xml_set_stream_precision(os_xml);
 
-  for (Index i=0; i<n; i++) {
-
+  for (auto& key: keys) {
+    std::visit([&](auto&& key_val) {
+      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "", verbosity);
+      xml_write_to_stream(os_xml, atm[key_val], pbofs, "", verbosity);
+    }, key);
   }
 
   close_tag.set_name("/AtmPoint");
