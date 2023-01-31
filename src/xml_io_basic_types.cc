@@ -35,6 +35,7 @@
 #include "quantum_numbers.h"
 #include "xml_io.h"
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////
@@ -666,6 +667,81 @@ void xml_write_to_stream(ostream& os_xml,
   close_tag.set_name("/AbsorptionLines");
   close_tag.write_to_stream(os_xml);
 
+  os_xml << '\n';
+}
+
+
+//=== VibrationalEnergyLevels ================================================================
+
+//! Reads VibrationalEnergyLevels from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param vib     VibrationalEnergyLevels return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          VibrationalEnergyLevels& vib,
+                          bifstream* pbifs [[maybe_unused]],
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("VibrationalEnergyLevels");
+  const Index n = [&](){Index x; tag.get_attribute_value("nelem", x); return x;}();
+  vib.data.clear();
+  vib.data.reserve(n);
+
+  for (Index i=0; i<n; i++) {
+    tag.read_from_stream(is_xml);
+    tag.check_name("Data");
+    QuantumIdentifier qkey = [&](){String k; tag.get_attribute_value("key", k); return QuantumIdentifier{k};}();
+    Numeric data;
+    if (pbifs) *pbifs >> data;
+    else is_xml >> data;
+    vib[std::move(qkey)] = data;
+    tag.read_from_stream(is_xml);
+    tag.check_name("/Data");
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/VibrationalEnergyLevels");
+}
+
+//! Writes VibrationalEnergyLevels to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param vib     VibrationalEnergyLevels
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const VibrationalEnergyLevels& vib,
+                         bofstream* pbofs [[maybe_unused]],
+                         const String&,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("VibrationalEnergyLevels");
+  open_tag.add_attribute("nelem", vib.nelem());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (auto& a: vib) {
+    ArtsXMLTag open_data_tag(verbosity);
+    open_data_tag.set_name("Data");
+    open_data_tag.add_attribute("key", var_string(a.first));
+    open_data_tag.write_to_stream(os_xml);
+    if (pbofs) *pbofs << a.second;
+    else os_xml << ' ' << a.second << ' ';
+    ArtsXMLTag close_data_tag(verbosity);
+    close_data_tag.set_name("/Data");
+    close_data_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+  }
+
+  close_tag.set_name("/VibrationalEnergyLevels");
+  close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 

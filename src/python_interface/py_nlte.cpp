@@ -1,7 +1,14 @@
 
+#include <memory>
 #include <py_auto_interface.h>
+#include <pybind11/attr.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/pybind11.h>
 
+#include "debug.h"
 #include "py_macros.h"
+#include "python_interface_value_type.h"
+#include "quantum_numbers.h"
 
 namespace Python {
 void py_nlte(py::module_& m) {
@@ -47,5 +54,23 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(EnergyLevelMap);
+
+  py::class_<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
+      .def(py::init([](){return std::make_unique<VibrationalEnergyLevels>();}))
+      .def(
+          "__getitem__",
+          [](VibrationalEnergyLevels &x, const QuantumIdentifier &q) {
+            if (x.data.find(q) == x.end()) throw py::key_error(var_string(q));
+            return x[q];
+          }, py::return_value_policy::reference_internal)
+      .def(
+          "__setitem__",
+          [](VibrationalEnergyLevels &x, const QuantumIdentifier &q,
+             Numeric y) { x[q] = y; })
+      .PythonInterfaceCopyValue(VibrationalEnergyLevels)
+      .PythonInterfaceWorkspaceVariableConversion(VibrationalEnergyLevels)
+      .PythonInterfaceBasicRepresentation(VibrationalEnergyLevels)
+      .PythonInterfaceFileIO(VibrationalEnergyLevels)
+      .PythonInterfaceWorkspaceDocumentation(VibrationalEnergyLevels);
 }
 }  // namespace Python

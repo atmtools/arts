@@ -28,6 +28,16 @@
 #include "arts_constants.h"
 #include "interp.h"
 
+std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib) {
+  bool any = false;
+  for (auto& a: vib) {
+    if (any) os << ' ';
+    any = true;
+    os << a.first << ": " << a.second;
+  }
+  return os;
+}
+
 void statistical_equilibrium_equation(MatrixView A,
                                       const ConstVectorView& Aij,
                                       const ConstVectorView& Bij,
