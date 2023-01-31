@@ -451,7 +451,7 @@ struct TwoLevelValueHolder {
 };
 
 struct TwoLevelValueHolderHash {
-  constexpr std::size_t operator()(const TwoLevelValueHolder &g) const {
+  std::size_t operator()(const TwoLevelValueHolder &g) const {
     return std::hash<std::string_view>{}(g.upp.s.val()) ^
            (std::hash<std::string_view>{}(g.low.s.val()) << 1);
   }
@@ -1012,7 +1012,7 @@ class ValueList {
 };
 
 struct ValueListHash {
-  constexpr std::size_t operator()(const ValueList &g) const {
+  std::size_t operator()(const ValueList &g) const {
     std::size_t out = 0;
     std::size_t i = 1;
     for (auto& x: g) {
@@ -1060,7 +1060,7 @@ struct LocalState {
 
 //! Allow global state to be used in hashes
 struct LocalStateHash {
-  constexpr std::size_t operator()(const LocalState &g) const {
+  std::size_t operator()(const LocalState &g) const {
     return ValueListHash{}(g.val);
   }
 };
@@ -1114,7 +1114,7 @@ struct GlobalState {
 
 //! Allow global state to be used in hashes
 struct GlobalStateHash {
-  constexpr std::size_t operator()(const GlobalState &g) const {
+  std::size_t operator()(const GlobalState &g) const {
     return static_cast<std::size_t>(g.isotopologue_index) ^
            (ValueListHash{}(g.val) << 1);
   }
