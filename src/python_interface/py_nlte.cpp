@@ -4,6 +4,7 @@
 #include <pybind11/attr.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
+#include <vector>
 
 #include "debug.h"
 #include "py_macros.h"
@@ -76,6 +77,34 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
       .def("__setitem__",
            [](VibrationalEnergyLevels &x, const QuantumIdentifier &q,
               Numeric y) { x[q] = y; })
+      .def(py::pickle(
+          [](const VibrationalEnergyLevels &t) {
+            std::vector<QuantumIdentifier> qn;
+            std::vector<Numeric> v;
+
+            qn.reserve(t.size());
+            v.reserve(t.size());
+
+            for (auto &x : t) {
+              qn.emplace_back(x.first);
+              v.emplace_back(x.second);
+            }
+
+            return py::make_tuple(qn, v);
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+
+            const auto qn = t[0].cast<std::vector<QuantumIdentifier>>();
+            const auto v = t[1].cast<std::vector<Numeric>>();
+            ARTS_USER_ERROR_IF(v.size() != qn.size(), "Invalid size!")
+
+            auto out = std::make_unique<VibrationalEnergyLevels>();
+            for (std::size_t i = 0; i < v.size(); i++) {
+              out->operator[](qn[i]) = v[i];
+            }
+            return out;
+          }))
       .PythonInterfaceCopyValue(VibrationalEnergyLevels)
       .PythonInterfaceWorkspaceVariableConversion(VibrationalEnergyLevels)
       .PythonInterfaceBasicRepresentation(VibrationalEnergyLevels)
