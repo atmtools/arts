@@ -248,7 +248,6 @@ AgendaSet( dobatch_calc_agenda ){
   # generate p_grid, t_field, z_field, massdensity_field, vmr_field
   # Additionally moving TOA down to 10hPa altitude.
   AtmFieldsAndParticleBulkPropFieldFromCompact( p_min=1e3 )
-  Print(p_grid)
 
   # Get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )
