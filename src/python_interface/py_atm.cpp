@@ -38,7 +38,25 @@ void py_atm(py::module_ &m) {
       .def_readwrite("lat_upp", &Atm::Data::lat_upp)
       .def_readwrite("lat_low", &Atm::Data::lat_low)
       .def_readwrite("lon_upp", &Atm::Data::lon_upp)
-      .def_readwrite("lon_low", &Atm::Data::lon_low);
+      .def_readwrite("lon_low", &Atm::Data::lon_low)
+      .def(py::pickle(
+          [](const Atm::Data &t) {
+            return py::make_tuple(t.data, t.alt_low, t.alt_upp, t.lat_low,
+                                  t.lat_upp, t.lon_low, t.lon_upp);
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
+
+            auto out = std::make_unique<Atm::Data>();
+            out->data = t[0].cast<Atm::FieldData>();
+            out->alt_low = t[1].cast<Atm::Extrapolation>();
+            out->alt_upp = t[2].cast<Atm::Extrapolation>();
+            out->lat_low = t[3].cast<Atm::Extrapolation>();
+            out->lat_upp = t[4].cast<Atm::Extrapolation>();
+            out->lon_low = t[5].cast<Atm::Extrapolation>();
+            out->lon_upp = t[6].cast<Atm::Extrapolation>();
+            return out;
+          }));
   py::implicitly_convertible<GriddedField3, Atm::Data>();
   py::implicitly_convertible<Tensor3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
@@ -91,6 +109,31 @@ void py_atm(py::module_ &m) {
       .PythonInterfaceWorkspaceVariableConversion(AtmPoint)
       .PythonInterfaceFileIO(AtmPoint)
       .PythonInterfaceBasicRepresentation(AtmPoint)
+      .def(py::pickle(
+          [](const AtmPoint &t) {
+            auto k = t.keys();
+            std::vector<Numeric> v;
+            v.reserve(k.size());
+            for (auto &kn : k)
+              v.emplace_back(
+                  std::visit([&](auto &&key) { return t[key]; }, kn));
+            return py::make_tuple(k, v);
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
+
+            auto k = t[0].cast<std::vector<Atm::KeyVal>>();
+            auto v = t[1].cast<std::vector<Numeric>>();
+            ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
+
+            auto out = std::make_unique<AtmPoint>();
+            for (std::size_t i = 0; i < k.size(); i++)
+              std::visit(
+                  [&](auto &&key) -> Numeric & { return out->operator[](key); },
+                  k[i]) = v[i];
+
+            return out;
+          }))
       .PythonInterfaceWorkspaceDocumentation(AtmPoint);
 
   fld.def(
@@ -99,7 +142,8 @@ void py_atm(py::module_ &m) {
            if (not atm.has(x))
              throw py::key_error(var_string(x));
            return atm[x];
-         }, py::return_value_policy::reference_internal)
+         },
+         py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const QuantumIdentifier &x) -> Atm::Data & {
@@ -129,6 +173,38 @@ void py_atm(py::module_ &m) {
       .PythonInterfaceWorkspaceVariableConversion(AtmField)
       .PythonInterfaceFileIO(AtmField)
       .PythonInterfaceBasicRepresentation(AtmField)
+      .def(py::pickle(
+          [](const AtmField &t) {
+            auto k = t.keys();
+            std::vector<Atm::Data> v;
+            v.reserve(k.size());
+            for (auto &kn : k)
+              v.emplace_back(
+                  std::visit([&](auto &&key) { return t[key]; }, kn));
+            return py::make_tuple(k, v, t.grid, t.regularized,
+                                  t.top_of_atmosphere);
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+
+            auto k = t[0].cast<std::vector<Atm::KeyVal>>();
+            auto v = t[1].cast<std::vector<Atm::Data>>();
+            ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
+
+            auto out = std::make_unique<AtmField>();
+            out->grid = t[2].cast<std::array<Vector, 3>>();
+            out->regularized = t[3].cast<bool>();
+            out->top_of_atmosphere = t[4].cast<Numeric>();
+
+            for (std::size_t i = 0; i < k.size(); i++)
+              std::visit(
+                  [&](auto &&key) -> Atm::Data & {
+                    return out->operator[](key);
+                  },
+                  k[i]) = v[i];
+
+            return out;
+          }))
       .PythonInterfaceWorkspaceDocumentation(AtmField);
 }
 } // namespace Python
