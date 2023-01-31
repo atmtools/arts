@@ -32,7 +32,7 @@
 #include "matpack_data.h"
 #include "quantum_numbers.h"
 
-#include <map>
+#include <unordered_map>
 
 /** The data type for additioanl NLTE vibrational energy levels
  *
