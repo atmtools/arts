@@ -994,7 +994,22 @@ class TestGroups:
 
     def testVerbosity(self):
         cxx.Verbosity()
+    
+    def testAtmField(self):
+        x = cxx.AtmField()
+        x["wind_u"] = 3.
+        x[cxx.ArrayOfSpeciesTag("O2")] = cxx.GriddedField3(
+            [[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]], np.random.rand(3, 7, 3))
 
+        def test_fun(a, b, c): return float(a+b+c)
+        x[cxx.ArrayOfSpeciesTag("N2")] = test_fun
+        test.io(x, delete=True)
+        x[cxx.ArrayOfSpeciesTag("N2")] = test_fun
+        x.top_of_atmosphere = 2.5
+        x.regularize([1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7])
+        test.io(x, delete=True)
+        assert [3, 7, 3] == x.regularized_shape()
+        
     def test_pickle(self):
         ws = Workspace()
         x = list(cxx.get_WsvGroupMap().keys())
@@ -1046,4 +1061,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    b = x.test_pickle()
+    b = x.testAtmField()

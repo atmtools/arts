@@ -29,6 +29,7 @@ int main() {
 #include "linemixing_hitran.h"
 #include "matpack_data.h"
 #include "mc_antenna.h"
+#include "nlte.h"
 #include "optproperties.h"
 #include "sun.h"
 #include "supergeneric.h"

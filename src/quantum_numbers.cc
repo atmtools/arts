@@ -411,7 +411,11 @@ Species::Species GlobalState::Species() const noexcept {
 }
 
 std::ostream& operator<<(std::ostream& os, const GlobalState& gs) {
-    return os << gs.Isotopologue().FullName() << ' ' << gs.val;
+  os << gs.Isotopologue().FullName();
+  for (auto& x: gs.val) {
+    os << ' ' << x;
+  }
+  return os;
 }
 
 std::istream& operator>>(std::istream& is, GlobalState& gs) {

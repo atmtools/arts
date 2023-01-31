@@ -1,6 +1,8 @@
 #include "atm.h"
 
 #include <algorithm>
+#include <exception>
+#include <iomanip>
 #include <limits>
 #include <numeric>
 #include <ostream>
@@ -237,6 +239,8 @@ Numeric field_interp(const GriddedField3 &x, Numeric alt_point,
 }
 
 bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, const char* type) {
+  ARTS_USER_ERROR_IF(r.size() == 0, "The ", std::quoted(type), " grid is empty")
+
   using enum Extrapolation;
   switch (low) {
   case Zero:
@@ -250,7 +254,7 @@ bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, c
     x = std::max(x, r.front());
     break;
   case None:
-    ARTS_USER_ERROR_IF(x < r.front(), "The ", type, " value ", x,
+    ARTS_USER_ERROR_IF(x < r.front(), "The ", std::quoted(type), " value ", x,
                        " is below the range of ", r)
     break;
   case Linear:
@@ -271,7 +275,7 @@ bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, c
     x = std::min(x, r.back());
     break;
   case None:
-    ARTS_USER_ERROR_IF(x > r.back(), "The ", type, "value ", x, " is below the range of ",
+    ARTS_USER_ERROR_IF(x > r.back(), "The ", std::quoted(type), " value ", x, " is below the range of ",
                        r)
     break;
   case Linear:
@@ -283,18 +287,22 @@ bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, c
   return false;
 }
 
-Numeric compute_value(const Data& data, Numeric alt, Numeric lat, Numeric lon) {
-  auto compute = [&](auto& x) -> Numeric {
+Numeric compute_value(const Data &data, Numeric alt, Numeric lat, Numeric lon) {
+  auto compute = [alt, lat, lon, alt_low = data.alt_low, alt_upp = data.alt_upp,
+                  lat_low = data.lat_low, lat_upp = data.lat_upp,
+                  lon_low = data.lon_low,
+                  lon_upp = data.lon_upp](auto &&x) -> Numeric {
     using T = decltype(x);
 
     if constexpr (isGriddedField3<T>) {
-      const Vector& alts = x.get_numeric_grid(0);
-      const Vector& lats = x.get_numeric_grid(1);
-      const Vector& lons = x.get_numeric_grid(2);
+      const Vector &alts = x.get_numeric_grid(0);
+      const Vector &lats = x.get_numeric_grid(1);
+      const Vector &lons = x.get_numeric_grid(2);
 
-      if (limits(alt, alts, data.alt_low, data.alt_upp, "altitude")) return alt;
-      if (limits(lat, lats, data.lat_low, data.lat_upp, "latitude")) return lat;
-      if (limits(lon, lons, data.lon_low, data.lon_upp, "longitude")) return lon;
+      Numeric test;
+      if (limits(test=alt, alts, alt_low, alt_upp, "altitude")) return test;
+      if (limits(test=lat, lats, lat_low, lat_upp, "latitude")) return test;
+      if (limits(test=lon, lons, lon_low, lon_upp, "longitude")) return test;
     }
 
     return field_interp(x, alt, lat, lon);
@@ -342,7 +350,7 @@ Point Field::internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_
 
   if (not regularized) {
     const auto get_value = [alt = alt_point, lat = lat_point,
-                            lon = lon_point](auto &x) {
+                            lon = lon_point](auto &&x) {
       return detail::compute_value(x, alt, lat, lon);
     };
 
@@ -367,7 +375,7 @@ Point Field::internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_
     for (auto &vals : nlte)
       atm[vals.first] = get_value(vals.second);
   }
-
+  
   return atm;
 }
 
@@ -391,6 +399,7 @@ Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
       }
     }
   }
+
   for (auto &vals : other) {
     if (vals.second.need_hydrostatic()) {
       const auto [base_alt, base_lat, base_lon] =
@@ -404,6 +413,7 @@ Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
       }
     }
   }
+
   for (auto &vals : nlte) {
     if (vals.second.need_hydrostatic()) {
       const auto [base_alt, base_lat, base_lon] =
@@ -426,6 +436,7 @@ Field& Field::regularize(const Vector& altitudes,
                          const Vector& latitudes,
                          const Vector& longitudes) {
   ARTS_USER_ERROR_IF(regularized, "Cannot re-regularize a regularized grid")
+
   ArrayOfTensor3 specs_data(
       specs.size(),
       Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
@@ -436,7 +447,6 @@ Field& Field::regularize(const Vector& altitudes,
       nlte.size(),
       Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
 
-#pragma omp parallel for collapse(3) if (!arts_omp_in_parallel())
   for (Index i2 = 0; i2 < altitudes.size(); i2++) {
     for (Index i3 = 0; i3 < latitudes.size(); i3++) {
       for (Index i4 = 0; i4 < longitudes.size(); i4++) {
@@ -469,7 +479,7 @@ std::array<Index, 3> Field::regularized_shape() const {
   return {grid[0].nelem(), grid[1].nelem(), grid[2].nelem()};
 }
 namespace internal {
-  using namespace Cmp;
+using namespace Cmp;
 
 std::pair<std::array<Index, 3>, std::array<Index, 3>> shape(
     const GriddedField& gf) {

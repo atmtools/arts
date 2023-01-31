@@ -33,6 +33,7 @@
 
 #include <cfloat>
 #include <stdexcept>
+#include "nlte.h"
 #include "xml_io_general_types.h"
 #include "absorption.h"
 #include "agenda_class.h"
@@ -86,6 +87,7 @@ TMPL_XML_READ_WRITE_STREAM(JacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(Rational)
 TMPL_XML_READ_WRITE_STREAM(Timer)
 TMPL_XML_READ_WRITE_STREAM(Time)
+TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
 
 //=== Compound Types =======================================================
 
