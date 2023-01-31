@@ -30,12 +30,13 @@
 
 std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib) {
   bool any = false;
+  os << '{';
   for (auto& a: vib) {
-    if (any) os << ' ';
+    if (any) os << ',' << ' ';
     any = true;
-    os << a.first << ": " << a.second;
+    os << std::quoted(var_string(a.first)) << ": " << a.second;
   }
-  return os;
+  return os << '}';
 }
 
 void statistical_equilibrium_equation(MatrixView A,

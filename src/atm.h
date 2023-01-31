@@ -58,12 +58,12 @@ private:
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  std::map<ArrayOfSpeciesTag, Numeric> specs{};
+  std::unordered_map<ArrayOfSpeciesTag, Numeric, ArrayOfSpeciesTagHash> specs{};
   std::unordered_map<QuantumIdentifier, Numeric, Quantum::Number::GlobalStateHash> nlte{};
 
 public:
-  Numeric pressure{std::numeric_limits<Numeric>::min()};
-  Numeric temperature{std::numeric_limits<Numeric>::min()};
+  Numeric pressure{0};
+  Numeric temperature{0};
   std::array<Numeric, 3> wind{0., 0., 0.};
   std::array<Numeric, 3> mag{0., 0., 0.};
 
@@ -256,7 +256,7 @@ private:
   }
 
   std::unordered_map<Key, Data, EnumHash> other{};
-  std::map<ArrayOfSpeciesTag, Data> specs{};
+  std::unordered_map<ArrayOfSpeciesTag, Data, ArrayOfSpeciesTagHash> specs{};
   std::unordered_map<QuantumIdentifier, Data, Quantum::Number::GlobalStateHash> nlte{};
 
   [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
