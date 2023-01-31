@@ -450,6 +450,13 @@ struct TwoLevelValueHolder {
   }
 };
 
+struct TwoLevelValueHolderHash {
+  constexpr std::size_t operator()(const TwoLevelValueHolder &g) const {
+    return std::hash<std::string_view>{}(g.upp.s.val()) ^
+           (std::hash<std::string_view>{}(g.low.s.val()) << 1);
+  }
+};
+
 /** Takes a rational and determine which type of quantum number it is,
  * returning this information or throwing a runtime error if there's
  * an error
@@ -1004,6 +1011,18 @@ class ValueList {
   [[nodiscard]] bool good() const;
 };
 
+struct ValueListHash {
+  constexpr std::size_t operator()(const ValueList &g) const {
+    std::size_t out = 0;
+    std::size_t i = 1;
+    for (auto& x: g) {
+      out ^= (EnumHash{}(x.type) ^ (TwoLevelValueHolderHash{}(x.qn) << 1)) << i;
+      i++;
+    }
+    return out;
+  }
+};
+
 ValueList from_hitran(std::string_view upp, std::string_view low);
 
 //! A logical struct for local quantum numbers
@@ -1037,6 +1056,13 @@ struct LocalState {
 
   //! Test if there are bad quantum numbers (undefined ones)
   [[nodiscard]] bool good() const;
+};
+
+//! Allow global state to be used in hashes
+struct LocalStateHash {
+  constexpr std::size_t operator()(const LocalState &g) const {
+    return ValueListHash{}(g.val);
+  }
 };
 
 struct LevelTest {bool upp{true}, low{true};};
@@ -1084,6 +1110,14 @@ struct GlobalState {
 
   //! Test if there are bad quantum numbers (undefined ones) or if the isotopologue is not a normal target
   [[nodiscard]] bool good() const;
+};
+
+//! Allow global state to be used in hashes
+struct GlobalStateHash {
+  constexpr std::size_t operator()(const GlobalState &g) const {
+    return static_cast<std::size_t>(g.isotopologue_index) ^
+           (ValueListHash{}(g.val) << 1);
+  }
 };
 
 //! StateMatchType operates so that a check less than a level should be 'better', bar None
