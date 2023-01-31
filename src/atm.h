@@ -59,7 +59,7 @@ private:
   }
 
   std::map<ArrayOfSpeciesTag, Numeric> specs{};
-  std::map<QuantumIdentifier, Numeric> nlte{};
+  std::unordered_map<QuantumIdentifier, Numeric, Quantum::Number::GlobalStateHash> nlte{};
 
 public:
   Numeric pressure{std::numeric_limits<Numeric>::min()};
@@ -76,10 +76,10 @@ public:
   Numeric operator[](T&& x) const {
     if constexpr (isArrayOfSpeciesTag<T>) {
       auto y = specs.find(std::forward<T>(x));
-      return y not_eq specs.end() ? 0 : y->second;
+      return y == specs.end() ? 0 : y->second;
     } else if constexpr (isQuantumIdentifier<T>) {
       auto y = nlte.find(std::forward<T>(x));
-      return y not_eq nlte.end() ? 0 : y->second;
+      return y == nlte.end() ? 0 : y->second;
     } else {
       switch (std::forward<T>(x)) {
         case Key::temperature:
@@ -101,7 +101,7 @@ public:
         case Key::FINAL: {
         }
       }
-      return temperature; // CANNOT REACH
+      ARTS_USER_ERROR("Cannot reach")
     }
   }
 
@@ -255,9 +255,9 @@ private:
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  std::map<Key, Data> other{};
+  std::unordered_map<Key, Data, EnumHash> other{};
   std::map<ArrayOfSpeciesTag, Data> specs{};
-  std::map<QuantumIdentifier, Data> nlte{};
+  std::unordered_map<QuantumIdentifier, Data, Quantum::Number::GlobalStateHash> nlte{};
 
   [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
  

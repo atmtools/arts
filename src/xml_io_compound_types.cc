@@ -2270,8 +2270,6 @@ void xml_read_from_stream(istream& is_xml,
                           AtmField& atm,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(pbifs, "No binary data")
-
   atm = AtmField{};  // overwrite
 
   CREATE_OUT2;
@@ -2352,6 +2350,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AtmField");
 
+  //! Throw at the end if things looks bad
   atm.throwing_check();
 }
 
@@ -2366,8 +2365,6 @@ void xml_write_to_stream(ostream& os_xml,
                          bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(pbofs, "No binary data")
-
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
@@ -2441,8 +2438,6 @@ void xml_read_from_stream(istream& is_xml,
                           AtmPoint& atm,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(pbifs, "No binary data")
-
   atm = AtmPoint{};  // overwrite
 
   CREATE_OUT2;
@@ -2491,8 +2486,6 @@ void xml_write_to_stream(ostream& os_xml,
                          bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(pbofs, "No binary data")
-
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
@@ -2515,8 +2508,8 @@ void xml_write_to_stream(ostream& os_xml,
 
   for (auto& key: keys) {
     std::visit([&](auto&& key_val) {
-      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "", verbosity);
-      xml_write_to_stream(os_xml, atm[key_val], pbofs, "", verbosity);
+      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "Data Key", verbosity);
+      xml_write_to_stream(os_xml, atm[key_val], pbofs, "Data", verbosity);
     }, key);
   }
 

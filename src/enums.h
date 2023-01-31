@@ -91,6 +91,13 @@ constexpr void check_enum_error(EnumType type, Messages... args) {
   ARTS_USER_ERROR_IF(not good_enum(type), args...)
 }
 
+//! Allow enums to be used in hashes
+struct EnumHash {
+  template <typename T> constexpr std::size_t operator()(T t) const {
+    return static_cast<std::size_t>(t);
+  }
+};
+
 /*! Enum style
  *
  * Generates a "enum class ENUMTYPE : TYPE"

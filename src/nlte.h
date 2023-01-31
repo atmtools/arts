@@ -12,11 +12,39 @@
 #include "absorption.h"
 #include "gridded_fields.h"
 #include "matpack_data.h"
+#include "quantum_numbers.h"
 
 #include <map>
 
-//! The data type for additioanl NLTE vibrational energy levels
-using VibrationalEnergyLevels = std::map<QuantumIdentifier, Numeric>;
+/** The data type for additioanl NLTE vibrational energy levels
+ *
+ * Note that this should just implement some of unordered_map
+ * but it cannot be an unordered_map because that disagrees
+ * with some functionality further down the chain (2023-01-31, RL)
+ */
+struct VibrationalEnergyLevels {
+  using Key = QuantumIdentifier;
+  using T = Numeric;
+  using size_type = std::size_t;
+
+  std::unordered_map<Key, T, Quantum::Number::GlobalStateHash> data;
+
+  [[nodiscard]] auto begin() {return data.begin();}
+  [[nodiscard]] auto begin() const {return data.begin();}
+  [[nodiscard]] auto cbegin() const {return data.cbegin();}
+  [[nodiscard]] auto end() {return data.end();}
+  [[nodiscard]] auto end() const {return data.end();}
+  [[nodiscard]] auto cend() const {return data.cend();}
+  [[nodiscard]] T& at( const Key& key ) {return data.at(key);}
+  [[nodiscard]] const T& at( const Key& key ) const {return data.at(key);}
+  T& operator[]( const Key& key ) {return data[key];}
+  T& operator[]( Key&& key ) {return data[std::move(key)];}
+  [[nodiscard]] bool empty() const noexcept {return data.empty();}
+  [[nodiscard]] size_type size() const noexcept {return data.size(); }
+  [[nodiscard]] Index nelem() const noexcept {return static_cast<Index>(size());}
+
+  friend std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib);
+};
 
 /** Sets up the solution matrix for linear statistical equilibrium equation
  * 

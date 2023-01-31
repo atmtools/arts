@@ -456,6 +456,8 @@ which holds information about the polarized absorption)--");
       "Verbosity",
       "Controls the screen, agenda, and file verbosity level (i.e. the level of information printed)");
 
+  wsv_groups.emplace_back("VibrationalEnergyLevels", "A map of vibrational energy levels for NLTE calculations");
+
   std::sort(wsv_groups.begin(), wsv_groups.end(), [](auto& a, auto& b) {
     return a.name < b.name;
   });
