@@ -56,17 +56,26 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
       .PythonInterfaceWorkspaceDocumentation(EnergyLevelMap);
 
   py::class_<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
-      .def(py::init([](){return std::make_unique<VibrationalEnergyLevels>();}))
+      .def(py::init(
+          []() { return std::make_unique<VibrationalEnergyLevels>(); }))
+      .def(py::init([](std::map<QuantumIdentifier, Numeric> &in) {
+        auto out = std::make_unique<VibrationalEnergyLevels>();
+        for (auto &x : in) {
+          out->operator[](x.first) = x.second;
+        }
+        return out;
+      }))
       .def(
           "__getitem__",
           [](VibrationalEnergyLevels &x, const QuantumIdentifier &q) {
-            if (x.data.find(q) == x.end()) throw py::key_error(var_string(q));
+            if (x.data.find(q) == x.end())
+              throw py::key_error(var_string(q));
             return x[q];
-          }, py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](VibrationalEnergyLevels &x, const QuantumIdentifier &q,
-             Numeric y) { x[q] = y; })
+          },
+          py::return_value_policy::reference_internal)
+      .def("__setitem__",
+           [](VibrationalEnergyLevels &x, const QuantumIdentifier &q,
+              Numeric y) { x[q] = y; })
       .PythonInterfaceCopyValue(VibrationalEnergyLevels)
       .PythonInterfaceWorkspaceVariableConversion(VibrationalEnergyLevels)
       .PythonInterfaceBasicRepresentation(VibrationalEnergyLevels)
