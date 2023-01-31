@@ -1009,6 +1009,19 @@ class TestGroups:
         x.regularize([1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7])
         test.io(x, delete=True)
         assert [3, 7, 3] == x.regularized_shape()
+    
+    def testAtmPoint(self):
+        x = cxx.AtmPoint()
+        x["wind_u"] = 3.
+        x[cxx.ArrayOfSpeciesTag("O2")] = 0.21
+        x[cxx.ArrayOfSpeciesTag("N2")] = 0.79
+        test.io(x, delete=True)
+    
+    def testVibrationalEnergyLevels(self):
+        x = cxx.VibrationalEnergyLevels({"H2O-161": 3, "O2-66": 0.21})
+        x["H2O-162"] = 5.
+        x["O2-68"] = 0.0021
+        test.io(x, delete=True)
         
     def test_pickle(self):
         ws = Workspace()
@@ -1061,4 +1074,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    b = x.testAtmField()
+    b = x.testVibrationalEnergyLevels()
