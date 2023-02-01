@@ -120,9 +120,9 @@ class XsecRecord {
  private:
   /** Calculate crosssections */
   void CalcXsec(VectorView xsec,
-                Index dataset,
-                Numeric pressure,
-                Numeric temperature) const;
+                const Index dataset,
+                const Numeric pressure,
+                const Numeric temperature) const;
 
   // /** Calculate temperature derivative of crosssections */
   // void CalcDT(VectorView xsec_dt,
