@@ -12,15 +12,15 @@ template <Index N> [[nodiscard]] constexpr std::array<Joker, N> jokers() {
 }
 
 //! Create a tuple to access an index surrounded by jokers
-template <Index M, Index N> [[nodiscard]] constexpr auto tup(Index i) {
+template <Index M, Index N, typename T> [[nodiscard]] constexpr auto tup(T&& i) {
   if constexpr (M > 0 and N - M - 1 > 0) {
-    return std::tuple_cat(jokers<M>(), std::tuple{i}, jokers<N - M - 1>());
+    return std::tuple_cat(jokers<M>(), std::tuple{std::forward<T>(i)}, jokers<N - M - 1>());
   } else if constexpr (M > 0) {
-    return std::tuple_cat(jokers<M>(), std::tuple{i});
+    return std::tuple_cat(jokers<M>(), std::tuple{std::forward<T>(i)});
   } else if constexpr (N - M - 1 > 0) {
-    return std::tuple_cat(std::tuple{i}, jokers<N - M - 1>());
+    return std::tuple_cat(std::tuple{std::forward<T>(i)}, jokers<N - M - 1>());
   } else {
-    return std::tuple{i};
+    return std::tuple{std::forward<T>(i)};
   }
 }
 
@@ -33,6 +33,21 @@ template <Index M, Index N, class mdspan_type>
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
 [[nodiscard]] constexpr auto sub(mdspan_type &v, Index i) {
+  using namespace stdx;
+  return std::apply(
+      [&v](auto &&...slices) {
+        if constexpr (requires { v(slices...); }) {
+          return v(slices...);
+        } else {
+          return submdspan(v, slices...);
+        }
+      },
+      tup<M, N>(i));
+}
+
+//! Helper to return  smaller span type when accessed by a index
+template <Index M, Index N, class mdspan_type>
+[[nodiscard]] constexpr auto sub(mdspan_type &v, const stdx::strided_slice<Index, Index, Index>& i) {
   using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
