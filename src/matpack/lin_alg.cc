@@ -250,10 +250,10 @@ void diagonalize(MatrixView P,
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
 
-  Matrix A_tmp = A;
-  Matrix P2 = P;
-  Vector WR2 = WR;
-  Vector WI2 = WI;
+  Matrix A_tmp{A};
+  Matrix P2{P};
+  Vector WR2{WR};
+  Vector WI2{WI};
 
   // Integers
   int LDA, LDA_L, LDA_R, n_int, info;
@@ -321,7 +321,7 @@ void diagonalize(ComplexMatrixView P,
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
 
-  ComplexMatrix A_tmp = A;
+  ComplexMatrix A_tmp{A};
 
   // Integers
   int LDA = int(A.ncols()), LDA_L = int(A.ncols()),

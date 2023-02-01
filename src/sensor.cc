@@ -125,7 +125,7 @@ void antenna1d_matrix(Sparse& H,
 
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
-    Vector shifted_aresponse_za_grid = aresponse_za_grid;
+    Vector shifted_aresponse_za_grid{aresponse_za_grid};
     shifted_aresponse_za_grid += antenna_dza[ia];
 
     // Order of loops assumes that the antenna response more often
@@ -235,8 +235,8 @@ void antenna2d_gridded_dlos(Sparse& H,
                       "For the gridded_dlos option, the number of dlos angles "
                       "must be a product of two integers.");
   const Index naa = n_dlos / nza; 
-  const Vector za_grid = mblock_dlos(Range(0,nza),0);
-  const Vector aa_grid = mblock_dlos(Range(0,naa,nza),1);
+  const Vector za_grid{mblock_dlos(Range(0,nza),0)};
+  const Vector aa_grid{mblock_dlos(Range(0,naa,nza),1)};
   for(Index i=0; i<n_dlos; i++ ) {
     ARTS_USER_ERROR_IF(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ,
         "Zenith angle of dlos ", i, " (0-based) differs to zenith " 
@@ -362,7 +362,7 @@ void antenna2d_gridded_dlos(Sparse& H,
         if (new_antenna) {
           
           // za grid positions
-          Vector zas = aresponse_za_grid;
+          Vector zas{aresponse_za_grid};
           zas += antenna_dlos(ia, 0);
           ARTS_USER_ERROR_IF( zas[0] < za_grid[0],
               "The zenith angle grid in *mblock_dlos* is too narrow. " 
@@ -377,7 +377,7 @@ void antenna2d_gridded_dlos(Sparse& H,
           gridpos(gp_za, za_grid, zas);
           
           // aa grid positions
-          Vector aas = aresponse_aa_grid;
+          Vector aas{aresponse_aa_grid};
           if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
           ARTS_USER_ERROR_IF( aas[0] < aa_grid[0],
               "The azimuth angle grid in *mblock_dlos* is too narrow. " 
@@ -702,7 +702,7 @@ void mixer_matrix(Sparse& H,
   Vector row_temp(f_grid.nelem());
   Vector row_final(f_grid.nelem() * n_pol * n_sp);
   //
-  Vector if_grid = f_grid;
+  Vector if_grid{f_grid};
   if_grid -= lo;
   //
   for (Index i = 0; i < f_mixer.nelem(); i++) {

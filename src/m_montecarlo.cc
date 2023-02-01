@@ -877,7 +877,7 @@ void MCRadar(  // Workspace reference:
                                               lon_grid,
                                               refellipsoid,
                                               local_rte_pos,
-                                              sensor_pos(0, joker),
+                                              Vector{sensor_pos(0, joker)},
                                               verbosity);
         }
 
@@ -897,7 +897,7 @@ void MCRadar(  // Workspace reference:
                                             lat_grid,
                                             lon_grid,
                                             refellipsoid,
-                                            sensor_pos(0, joker),
+                                            Vector{sensor_pos(0, joker)},
                                             local_rte_pos,
                                             verbosity);
 
@@ -914,7 +914,7 @@ void MCRadar(  // Workspace reference:
                          f_grid,
                          refellipsoid,
                          z_surface,
-                         sensor_pos(0, joker),
+                         Vector{sensor_pos(0, joker)},
                          local_rte_pos,
                          ppath_lmax,
                          za_accuracy,

@@ -345,16 +345,16 @@ void defocusing_general_sub(Workspace& ws,
              ppx,
              ppath_step_agenda,
              atmosphere_dim,
-             p_grid,
-             lat_grid,
-             lon_grid,
-             z_field,
-             f_grid,
-             refellipsoid,
-             z_surface,
+             Vector{p_grid},
+             Vector{lat_grid},
+             Vector{lon_grid},
+             Tensor3{z_field},
+             Vector{f_grid},
+             Vector{refellipsoid},
+             Matrix{z_surface},
              0,
              ArrayOfIndex(0),
-             rte_pos,
+             Vector{rte_pos},
              rte_los,
              ppath_lmax,
              ppath_lraytrace,
@@ -456,7 +456,7 @@ void defocusing_general(Workspace& ws,
     lo += ppath.lstep[i] * (ppath.nreal[i] + ppath.nreal[i + 1]) / 2.0;
   }
   // Extract rte_pos and rte_los
-  const Vector rte_pos = ppath.start_pos[Range(0, atmosphere_dim)];
+  const Vector rte_pos{ppath.start_pos[Range(0, atmosphere_dim)]};
   //
   Vector rte_los0(max(Index(1), atmosphere_dim - 1)), rte_los;
   mirror_los(rte_los, ppath.start_los, atmosphere_dim);
@@ -598,8 +598,8 @@ void defocusing_sat2sat(Workspace& ws,
   // Calculate two new ppaths to get dalpha/da
   Numeric alpha1, a1, alpha2, a2, dada;
   Ppath ppt;
-  Vector rte_pos = ppath.end_pos[Range(0, atmosphere_dim)];
-  Vector rte_los = ppath.end_los;
+  Vector rte_pos{ppath.end_pos[Range(0, atmosphere_dim)]};
+  Vector rte_los{ppath.end_los};
   //
   rte_los[0] -= dza;
   adjust_los(rte_los, atmosphere_dim);
@@ -607,13 +607,13 @@ void defocusing_sat2sat(Workspace& ws,
              ppt,
              ppath_step_agenda,
              atmosphere_dim,
-             p_grid,
-             lat_grid,
-             lon_grid,
-             z_field,
-             f_grid,
-             refellipsoid,
-             z_surface,
+             Vector{p_grid},
+             Vector{lat_grid},
+             Vector{lon_grid},
+             Tensor3{z_field},
+             Vector{f_grid},
+             Vector{refellipsoid},
+             Matrix{z_surface},
              0,
              ArrayOfIndex(0),
              rte_pos,
@@ -632,13 +632,13 @@ void defocusing_sat2sat(Workspace& ws,
              ppt,
              ppath_step_agenda,
              atmosphere_dim,
-             p_grid,
-             lat_grid,
-             lon_grid,
-             z_field,
-             f_grid,
-             refellipsoid,
-             z_surface,
+             Vector{p_grid},
+             Vector{lat_grid},
+             Vector{lon_grid},
+             Tensor3{z_field},
+             Vector{f_grid},
+             Vector{refellipsoid},
+             Matrix{z_surface},
              0,
              ArrayOfIndex(0),
              rte_pos,
@@ -721,11 +721,11 @@ void get_iy(Workspace& ws,
                         iy_unit,
                         cloudbox_on,
                         jacobian_do,
-                        f_grid,
+                        Vector{f_grid},
                         nlte_field,
-                        rte_pos,
-                        rte_los,
-                        rte_pos2,
+                        Vector{rte_pos},
+                        Vector{rte_los},
+                        Vector{rte_pos2},
                         iy_main_agenda);
 }
 
@@ -780,7 +780,7 @@ void get_iy_of_background(Workspace& ws,
     {
       agenda_name = "iy_space_agenda";
       chk_not_empty(agenda_name, iy_space_agenda);
-      iy_space_agendaExecute(ws, iy, f_grid, rtp_pos, rtp_los, iy_space_agenda);
+      iy_space_agendaExecute(ws, iy, Vector{f_grid}, rtp_pos, rtp_los, iy_space_agenda);
     } break;
 
     case 2:  //--- The surface -----------------------------------------------
@@ -809,17 +809,17 @@ void get_iy_of_background(Workspace& ws,
                                dsurface_rmatrix_dx,
                                dsurface_emission_dx,
                                iy_unit,
-                               iy_transmittance,
+                               Tensor3{iy_transmittance},
                                iy_id_new,
                                cloudbox_on,
                                jacobian_do,
                                iy_main_agenda,
-                               f_grid,
+                               Vector{f_grid},
                                nlte_field,
                                rtp_pos,
                                rtp_los,
-                               rte_pos2,
-                               surface_props_data,
+                               Vector{rte_pos2},
+                               Tensor3{surface_props_data},
                                dsurface_names,
                                iy_surface_agenda);
     } break;
@@ -829,7 +829,7 @@ void get_iy_of_background(Workspace& ws,
       agenda_name = "iy_cloudbox_agenda";
       chk_not_empty(agenda_name, iy_cloudbox_agenda);
       iy_cloudbox_agendaExecute(
-          ws, iy, f_grid, rtp_pos, rtp_los, iy_cloudbox_agenda);
+          ws, iy, Vector{f_grid}, rtp_pos, rtp_los, iy_cloudbox_agenda);
     } break;
 
     default:  //--- ????? ----------------------------------------------------
@@ -1157,13 +1157,13 @@ void get_stepwise_clearsky_propmat(
                                  dS_dx,
                                  jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
                                  {},
-                                 ppath_f_grid,
-                                 ppath_magnetic_field,
-                                 ppath_line_of_sight,
+                                 Vector{ppath_f_grid},
+                                 Vector{ppath_magnetic_field},
+                                 Vector{ppath_line_of_sight},
                                  ppath_pressure,
                                  ppath_temperature,
                                  ppath_nlte,
-                                 ppath_vmrs,
+                                 Vector{ppath_vmrs},
                                  propmat_clearsky_agenda);
 
   // If there are no NLTE values, then set the LTE flag as true
@@ -1253,7 +1253,7 @@ void get_stepwise_scattersky_propmat(
                       t_ok,
                       scat_data,
                       stokes_dim,
-                      ppath_temperature,
+                      Vector{ppath_temperature},
                       dir_array,
                       -1);
 
@@ -1566,7 +1566,7 @@ void iyb_calc_body(bool& failed,
                           iy_unit,
                           cloudbox_on,
                           j_analytical_do,
-                          f_grid,
+                          Vector{f_grid},
                           nlte_field,
                           rtp_pos,
                           los,
@@ -2059,7 +2059,7 @@ void rtmethods_jacobian_finalisation(
         if (jac_species_i[ia] >= 0) {
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
-              Matrix ddterm = diy_dpath[ia](ip, joker, joker);
+              Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
               ddterm *= ppvar_vmr(jac_species_i[ia], ip) *
                         (number_density(ppvar_p[ip], ppvar_t[ip] + 1) -
                          number_density(ppvar_p[ip], ppvar_t[ip]));
@@ -2082,7 +2082,7 @@ void rtmethods_jacobian_finalisation(
             for (Index ip = 0; ip < np; ip++) {
               const Numeric p_eq = water_p_eq(ip, 0, 0);
               const Numeric p_eq1K = water_p_eq1K(ip, 0, 0);
-              Matrix ddterm = diy_dpath[ia](ip, joker, joker);
+              Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
               ddterm *= ppvar_vmr(jac_species_i[ia], ip) *
                         (ppvar_p[ip] / pow(p_eq, 2.0)) * (p_eq1K - p_eq);
               diy_dpath[iq](ip, joker, joker) += ddterm;

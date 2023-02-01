@@ -425,7 +425,7 @@ void iyRadarSingleScat(Workspace& ws,
                                   ptype,
                                   t_ok,
                                   scat_data[i_ss][i_se],
-                                  ppvar_t[Range(ip, 1)],
+                                  Vector{ppvar_t[Range(ip, 1)]},
                                   mlos_sca,
                                   mlos_inc,
                                   0,
@@ -723,8 +723,8 @@ void yRadar(Workspace& ws,
                           iy_id,
                           cloudbox_on,
                           jacobian_do,
-                          sensor_pos(p, joker),
-                          sensor_los(p, joker),
+                          Vector{sensor_pos(p, joker)},
+                          Vector{sensor_los(p, joker)},
                           iy_radar_agenda);
 
     // Check if path and size OK
@@ -770,7 +770,7 @@ void yRadar(Workspace& ws,
 
         for (Index iv = 0; iv < nf; iv++) {
           // Pick out part of iy for frequency
-          Matrix I = iy(Range(iv * np, np), joker);
+          Matrix I{iy(Range(iv * np, np), joker)};
           ArrayOfTensor3 dI(njq);
           if (j_analytical_do) {
             FOR_ANALYTICAL_JACOBIANS_DO(
@@ -1058,7 +1058,7 @@ void particle_bulkpropRadarOnionPeeling(
                       p_grid[ip],
                       t_field(ip, ilat, ilon),
                       rtp_nlte_local_dummy,
-                      vmr_field(joker, ip, ilat, ilon),
+                      Vector{vmr_field(joker, ip, ilat, ilon)},
                       propmat_clearsky_agenda);
                   k_this = propmat.Kjj()[0];
                   // Optical thickness

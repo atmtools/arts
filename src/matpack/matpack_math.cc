@@ -290,7 +290,7 @@ ComplexVector uniform_grid(Complex x0, Index N, Complex dx) {
 
 Vector diagonal(const ConstMatrixView& A) {
   using namespace matpack::eigen;
-  return as_eigen(A).diagonal();
+  return Vector{as_eigen(A).diagonal()};
 }
 
 void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) {

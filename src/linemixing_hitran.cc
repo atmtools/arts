@@ -1257,9 +1257,9 @@ void eqvlines(CommonBlock& cmn,
   }
 }
 
-EqvLinesOut eqvlines(const ConstComplexMatrixView& W,
-                     const ConstVectorView& pop,
-                     const ConstVectorView& dip,
+EqvLinesOut eqvlines(const ComplexMatrix& W,
+                     const Vector& pop,
+                     const Vector& dip,
                      const Numeric& fmean)
 {
   // Size of problem
@@ -1369,7 +1369,7 @@ void convtp(CommonBlock& cmn,
   }
 }
 
-ConvTPOut convtp(const ConstVectorView& vmrs,
+ConvTPOut convtp(const Vector& vmrs,
                  const HitranRelaxationMatrixData& hitran,
                  const AbsorptionLines& band,
                  const Numeric T,
@@ -1591,7 +1591,7 @@ void compabs(
   const Numeric& ptot,
   const Numeric& xco2,
   const Numeric& xh2o,
-  const ConstVectorView& invcm_grid,
+  const Vector& invcm_grid,
   const bool mixsdv,
   const bool mixfull,
   VectorView absv,
@@ -1708,8 +1708,8 @@ Vector compabs(
   const HitranRelaxationMatrixData& hitran,
   const ArrayOfAbsorptionLines& bands,
   const SpeciesIsotopologueRatios& isotopologue_ratio,
-  const ConstVectorView &vmrs,
-  const ConstVectorView &f_grid)
+  const Vector &vmrs,
+  const Vector &f_grid)
 {
   using Math::pow2;
   using Math::pow3;
@@ -1932,7 +1932,7 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
   }
 }
 
-Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const ConstVectorView& invcm_grid, const Numeric stotmax, const calctype type)
+Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const Vector& invcm_grid, const Numeric stotmax, const calctype type)
 {
   const Index n = invcm_grid.nelem();
   Vector absorption(n);
@@ -1984,8 +1984,8 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
-               const ConstVectorView& vmrs,
-               const ConstVectorView& f_grid)
+               const Vector& vmrs,
+               const Vector& f_grid)
 {
   return f_grid.nelem() ? compabs(T, P, hitran, bands, isotopologue_ratio, vmrs, f_grid) : Vector(0);
 }

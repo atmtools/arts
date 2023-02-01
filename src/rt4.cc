@@ -464,9 +464,9 @@ void run_rt4(Workspace& ws,
     Numeric wavelength;
     wavelength = 1e6 * SPEED_OF_LIGHT / f_grid[f_index];
 
-    Matrix groundreflec = ground_reflec(f_index, joker, joker);
-    Tensor4 surfreflmat = surf_refl_mat(f_index, joker, joker, joker, joker);
-    Matrix surfemisvec = surf_emis_vec(f_index, joker, joker);
+    Matrix groundreflec{ground_reflec(f_index, joker, joker)};
+    Tensor4 surfreflmat{surf_refl_mat(f_index, joker, joker, joker, joker)};
+    Matrix surfemisvec{surf_emis_vec(f_index, joker, joker)};
     //Vector muvalues=mu_values;
 
     // only update gas_extinct if there is any gas absorption at all (since
@@ -865,7 +865,7 @@ void gas_optpropCalc(Workspace& ws,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
-                                   f_mono,  // monochromatic calculation
+                                   Vector{f_mono},  // monochromatic calculation
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    rtp_pressure_local,
@@ -902,7 +902,7 @@ void par_optpropCalc(Tensor5View emis_vector,
   ARTS_ASSERT(extinct_matrix.nshelves() == Np_cloud - 1);
 
   // preparing input data
-  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
+  Vector T_array{t_profile[Range(cloudbox_limits[0], Np_cloud)]};
   Matrix dir_array(za_grid.nelem(), 2, 0.);
   dir_array(joker, 0) = za_grid;
 
@@ -1398,7 +1398,7 @@ void surf_optpropCalc(Workspace& ws,
                                  surface_emission,
                                  surface_los,
                                  surface_rmatrix,
-                                 f_grid,
+                                 Vector{f_grid},
                                  rtp_pos,
                                  rtp_los,
                                  surface_rtprop_agenda);

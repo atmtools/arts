@@ -135,7 +135,7 @@ void rte_step_doit_replacement(  //Output and Input:
     Matrix invK(stokes_dim, stokes_dim);
     ext_mat_av.MatrixInverseAtPosition(invK);
 
-    Vector source = abs_vec_av.VectorAtPosition();
+    Vector source{abs_vec_av.VectorAtPosition()};
     source *= rtp_planck_value;
 
     for (Index i = 0; i < stokes_dim; i++)
@@ -278,7 +278,7 @@ void cloud_fieldsCalc(Workspace& ws,
                           abs_vec_local,
                           ext_mat_spt_local,
                           abs_vec_spt_local,
-                          pnd_field,
+                          Tensor4{pnd_field},
                           scat_p_index_local,
                           scat_lat_index_local,
                           scat_lon_index_local,
@@ -710,7 +710,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                      partial_nlte_dummy,
                                      ArrayOfRetrievalQuantity(0),
                                      {},
-                                     f_grid[Range(f_index, 1)],
+                                     Vector{f_grid[Range(f_index, 1)]},
                                      rtp_mag_dummy,
                                      ppath_los_dummy,
                                      rtp_pressure,
@@ -835,7 +835,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                      partial_nlte_dummy,
                                      ArrayOfRetrievalQuantity(0),
                                      {},
-                                     f_grid[Range(f_index, 1)],
+                                     Vector{f_grid[Range(f_index, 1)]},
                                      rtp_mag_dummy,
                                      ppath_los_dummy,
                                      rtp_pressure,
@@ -1443,13 +1443,13 @@ void cloud_RT_no_background(Workspace& ws,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
-                                   f_grid[Range(f_index, 1)],
+                                   Vector{f_grid[Range(f_index, 1)]},
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    p_int[k],
                                    t_int[k],
                                    rtp_nlte_dummy,
-                                   vmr_list_int(joker, k),
+                                   Vector{vmr_list_int(joker, k)},
                                    propmat_clearsky_agenda);
 
     // Skip any further calculations for the first point.
@@ -1732,7 +1732,7 @@ void interp_cloud_coeff1D(  //Output
   // The zenith angles of the propagation path are needed as we have to
   // interpolate the intensity field and the scattered field on the
   // right angles.
-  Vector los_grid = ppath_step.los(joker, 0);
+  Vector los_grid{ppath_step.los(joker, 0)};
 
   ArrayOfGridPos gp_za(los_grid.nelem());
   gridpos(gp_za, za_grid, los_grid);

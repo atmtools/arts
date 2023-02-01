@@ -398,7 +398,7 @@ void test_mult() {
     for (Index i=0; i<4; i++) for (Index j=0; j<4; j++) A(i, j) = static_cast<Numeric>(i);
     Vector y({1,2,3,4}), x(4);
 
-    Vector eig_x=A*y;
+    Vector eig_x{A*y};
     mult(x, A, y);
     ARTS_USER_ERROR_IF(eig_x not_eq x, eig_x, " vs ", x)
   }
@@ -407,7 +407,7 @@ void test_mult() {
     for (Index i=0; i<4; i++) for (Index j=0; j<4; j++) A(i, j) = {static_cast<Numeric>(i), 2*static_cast<Numeric>(i)};
     ComplexVector y({1,2,3,4}), x(4);
 
-    ComplexVector eig_x=A*y;
+    ComplexVector eig_x{A*y};
     mult(x, A, y);
     ARTS_USER_ERROR_IF(eig_x not_eq x, eig_x, " vs ", x)
   }

@@ -113,25 +113,25 @@ public:
    *
    * @param[in] x An old matpack view object
    */
-  constexpr matpack_data(const me_view& x) : matpack_data(x.shape()) {view = x;}
+  explicit constexpr matpack_data(const me_view& x) : matpack_data(x.shape()) {view = x;}
 
   /** Construct a new matpack data object
    *
    * @param[in] x An old matpack view object
    */
-  constexpr matpack_data(const ce_view& x) : matpack_data(x.shape()) {view = x;}
+  explicit constexpr matpack_data(const ce_view& x) : matpack_data(x.shape()) {view = x;}
 
   /** Construct a new matpack data object
    *
    * @param[in] x An old matpack view object
    */
-  constexpr matpack_data(const ms_view& x) : matpack_data(x.shape()) {view = x;}
+  explicit constexpr matpack_data(const ms_view& x) : matpack_data(x.shape()) {view = x;}
 
   /** Construct a new matpack data object
    *
    * @param[in] x An old matpack view object
    */
-  constexpr matpack_data(const cs_view& x) : matpack_data(x.shape()) {view = x;}
+  explicit constexpr matpack_data(const cs_view& x) : matpack_data(x.shape()) {view = x;}
 
   /** Construct a new matpack data object
    *
@@ -351,6 +351,18 @@ public:
   constexpr matpack_data& operator*=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z * y;}); return *this;}
   constexpr matpack_data& operator/=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z / y;}); return *this;}
   
+  template <bool c, bool s> constexpr matpack_data& operator=(const matpack_view<T, N, c, s>& x) {
+    if constexpr (not s) {
+      if (data_handle() != x.unsafe_data_handle()) {
+        resize(x.shape());
+        view = x;
+      }
+    } else {
+      *this = matpack_data{x};
+    }
+    return *this;
+  }
+
   template <bool c, bool s> constexpr matpack_data& operator+=(const matpack_view<T, N, c, s>& x) {view += x; return *this;}
   template <bool c, bool s> constexpr matpack_data& operator-=(const matpack_view<T, N, c, s>& x) {view -= x; return *this;}
   template <bool c, bool s> constexpr matpack_data& operator*=(const matpack_view<T, N, c, s>& x) {view *= x; return *this;}
@@ -373,7 +385,7 @@ public:
 
   //! Construct this object from another that is conceptually convertible to this object's type
   template <matpack_convertible<T, N> U>
-  constexpr matpack_data(const U& x) : matpack_data(mdshape(x)) { view = x; }
+  explicit constexpr matpack_data(const U& x) : matpack_data(mdshape(x)) { view = x; }
 
   template <matpack_convertible<T, N> U>
   constexpr matpack_data& operator=(const U& x) {

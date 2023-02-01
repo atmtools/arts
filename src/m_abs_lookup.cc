@@ -392,7 +392,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             StokesVector S;
             ArrayOfPropagationMatrix dK;
             ArrayOfStokesVector dS;
-            Vector rtp_vmr = these_all_vmrs(joker, p);
+            Vector rtp_vmr{these_all_vmrs(joker, p)};
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
             // Perform the propagation matrix computations

@@ -573,7 +573,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
             dpsd_data_dx(ext_i_jac[0], ip, joker) = jac_data(0, joker);
             dpsd_data_dx(ext_i_jac[0], ip, joker) *= scfac1 + dn0dla * dladw;
             // 2. Term associated with la
-            Vector term2 = jac_data(2, joker);
+            Vector term2{jac_data(2, joker)};
             term2 *= dladw;
             // Sum up
             dpsd_data_dx(ext_i_jac[0], ip, joker) += term2;

@@ -33,7 +33,7 @@ Array<Lagrange> LagrangeVector(
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
 
-Vector interpweights(const Lagrange& dim0) { return dim0.lx; }
+Vector interpweights(const Lagrange& dim0) { return Vector{dim0.lx}; }
 
 Grid<Vector, 1> interpweights(const Array<Lagrange>& dim0) {
   Grid<Vector, 1> out(dim0.size());
@@ -45,7 +45,7 @@ Grid<Vector, 1> interpweights(const Array<Lagrange>& dim0) {
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
 
-Vector dinterpweights(const Lagrange& dim0) { return dim0.dlx; }
+Vector dinterpweights(const Lagrange& dim0) { return Vector{dim0.dlx}; }
 
 Grid<Vector, 1> dinterpweights(const Array<Lagrange>& dim0) {
   Grid<Vector, 1> out(dim0.size());

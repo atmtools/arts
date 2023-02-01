@@ -1269,9 +1269,9 @@ class StokesVector final : public PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView To StokesVector
    */
-  VectorView VectorAtPosition(const Index iv = 0,
-                              const Index iz = 0,
-                              const Index ia = 0) {
+  auto VectorAtPosition(const Index iv = 0,
+                        const Index iz = 0,
+                        const Index ia = 0) {
     return mdata(ia, iz, iv, joker);
   }
 
@@ -1282,9 +1282,9 @@ class StokesVector final : public PropagationMatrix {
    * @param[in] ia Azimuth index
    * @return VectorView To StokesVector
    */
-  [[nodiscard]] ConstVectorView VectorAtPosition(const Index iv = 0,
-                                                 const Index iz = 0,
-                                                 const Index ia = 0) const {
+  [[nodiscard]] auto VectorAtPosition(const Index iv = 0,
+                                      const Index iz = 0,
+                                      const Index ia = 0) const {
     return mdata(ia, iz, iv, joker);
   }
 

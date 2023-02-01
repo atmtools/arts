@@ -1457,7 +1457,7 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
        << sensor_response.ncols() << "\n";
 
   // Update sensor_response_za_grid
-  const Vector zaaa = sensor_response_dlos_grid(1, joker);
+  const Vector zaaa{sensor_response_dlos_grid(1, joker)};
   sensor_response_dlos_grid.resize(1, zaaa.nelem());
   sensor_response_dlos_grid(0, joker) = zaaa;
 
@@ -3135,7 +3135,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
   // ---------------------------------------------------
 
   f_gridFromSensorAMSU(f_grid,
-                       lo_multi,
+                       Vector{lo_multi},
                        f_backend_multi,
                        backend_channel_response_multi,
                        spacing,
@@ -3165,7 +3165,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
                                    sensor_response_f_grid,
                                    sensor_response_pol_grid,
                                    sensor_response_dlos_grid,
-                                   lo_multi,
+                                   Vector{lo_multi},
                                    sideband_response_multi,
                                    sideband_mode_multi,
                                    f_backend_multi,

@@ -937,7 +937,7 @@ This feature will be added in a future version.
                                      f_grid,
                                      ppvar_p[ip],
                                      ppvar_t[ip],
-                                     ppvar_vmr(joker, ip),
+                                     Vector{ppvar_vmr(joker, ip)},
                                      gas_scattering_los_in,
                                      gas_scattering_los_out,
                                      0,

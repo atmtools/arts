@@ -172,7 +172,7 @@ void cloudboxSetAutomatically(  // WS Output:
       //is unequal zero (and not NaN), i.e. if we actually have some amount of
       //these scattering species in the atmosphere.
       chk_scat_species_field(one_not_empty,
-                             particle_field(l, joker, joker, joker),
+                             Tensor3{particle_field(l, joker, joker, joker)},
                              "particle_field",
                              atmosphere_dim,
                              p_grid,
@@ -184,7 +184,7 @@ void cloudboxSetAutomatically(  // WS Output:
         any_not_empty = true;
         find_cloudlimits(p1,
                          p2,
-                         particle_field(l, joker, joker, joker),
+                         Tensor3{particle_field(l, joker, joker, joker)},
                          atmosphere_dim,
                          cloudbox_margin);
       }
@@ -1768,10 +1768,10 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
     ArrayOfGriddedField3 pnd_field_tmp;
 
     GriddedFieldPRegrid(
-        pnd_field_tmp, p_grid_cloud, pnd_field_raw, 1, zeropadding, verbosity);
+        pnd_field_tmp, Vector{p_grid_cloud}, pnd_field_raw, 1, zeropadding, verbosity);
 
     FieldFromGriddedField(pnd_field,
-                          p_grid_cloud,
+                          Vector{p_grid_cloud},
                           pnd_field_tmp[0].get_numeric_grid(1),
                           pnd_field_tmp[0].get_numeric_grid(2),
                           pnd_field_tmp,

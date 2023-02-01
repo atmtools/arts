@@ -784,8 +784,8 @@ void psdDelanoeEtAl14(Matrix& psd_data,
     psd_data(ip, joker) *= n0_p;
     jac_data(0, joker) *= n0_p;
 
-    Vector dndx = jac_data(0, joker);
-    Vector dndn0 = psd_data(ip, joker);
+    Vector dndx{jac_data(0, joker)};
+    Vector dndn0{psd_data(ip, joker)};
     dndn0 *= (1.0 / n0_p);
 
     Vector dxddm = x_grid;

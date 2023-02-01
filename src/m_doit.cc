@@ -1677,8 +1677,8 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
   Matrix itw_z(Z_gp.nelem(), 2);
   // We only need the p_grid inside the cloudbox as cloudbox_field_mono is only defined in the
   // cloudbox
-  Vector p_grid_cloudbox = p_grid[Range(
-      cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)];
+  Vector p_grid_cloudbox {p_grid[Range(
+      cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)]};
   ostringstream os;
   os << "There is a problem with the pressure grid interpolation";
   chk_interpolation_grids(os.str(), p_grid, p_grid_orig);
@@ -1776,13 +1776,13 @@ void OptimizeDoitPressureGrid(
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
-                                   f_grid[Range(f_index, 1)],
+                                   Vector{f_grid[Range(f_index, 1)]},
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    p_grid[k],
                                    t_field(k, 0, 0),
                                    rtp_nlte_dummy,
-                                   vmr_field(joker, k, 0, 0),
+                                   Vector{vmr_field(joker, k, 0, 0)},
                                    propmat_clearsky_agenda);
     abs_coeff += cur_propmat_clearsky.Kjj()[0];
     abs_coeff /= (Numeric)vmr_field.nbooks();  // FIXME: Is this really as intended???
@@ -2825,8 +2825,8 @@ void DoitCalc(Workspace& ws,
         os << "Frequency: " << f_grid[f_index] / 1e9 << " GHz \n";
         out2 << os.str();
 
-        Tensor6 cloudbox_field_mono_local =
-            cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
+        Tensor6 cloudbox_field_mono_local{
+            cloudbox_field(f_index, joker, joker, joker, joker, joker, joker)};
         doit_mono_agendaExecute(wss,
                                 cloudbox_field_mono_local,
                                 f_grid,
@@ -3757,7 +3757,7 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
                                 cloudbox_limits,
                                 atmosphere_dim,
                                 stokes_dim,
-                                cloudbox_field_values(f_index, joker),
+                                Vector{cloudbox_field_values(f_index, joker)},
                                 verbosity);
 
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =

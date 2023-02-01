@@ -640,9 +640,9 @@ void jacobianCalcPointingZaInterp(
     const Index nza = mblock_dlos.nrows();
 
     // Shifted zenith angles
-    Vector za1 = mblock_dlos(joker, 0);
+    Vector za1{mblock_dlos(joker, 0)};
     za1 -= rq.Target().perturbation;
-    Vector za2 = mblock_dlos(joker, 0);
+    Vector za2{mblock_dlos(joker, 0)};
     za2 += rq.Target().perturbation;
 
     // Find interpolation weights
@@ -1898,7 +1898,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
         "Dimension of offset vector incompatible with retrieval grids.");
   }
 
-  jqs.back().SetTransformationMatrix(transpose(transformation_matrix));
+  jqs.back().SetTransformationMatrix(Matrix{transpose(transformation_matrix)});
   jqs.back().SetOffsetVector(offset_vector);
 }
 
