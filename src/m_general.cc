@@ -136,8 +136,8 @@ void Print(  // WS Generic Input:
   os << "  CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets\n";
   for (Index i = 0; i < cia_data.nelem(); i++)
     for (Index j = 0; j < cia_data[i].DatasetCount(); j++) {
-      Vector temp_grid = cia_data[i].TemperatureGrid(j);
-      Vector freq_grid = cia_data[i].FrequencyGrid(j);
+      Vector temp_grid{cia_data[i].TemperatureGrid(j)};
+      Vector freq_grid{cia_data[i].FrequencyGrid(j)};
 
       os << setprecision(2) << std::fixed << "  " << cia_data[i].MoleculeName(0)
          << "-CIA-" << cia_data[i].MoleculeName(1) << "-" << j << "; "

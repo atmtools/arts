@@ -361,7 +361,7 @@ void iySurfaceFastem(Workspace& ws,
     for (Index q = 0; q < diy_dx.nelem(); q++) {
       for (Index p = 0; p < diy_dx[q].npages(); p++) {
         for (Index i = 0; i < nf; i++) {
-          Vector x = diy_dx[q](p, i, joker);
+          Vector x{diy_dx[q](p, i, joker)};
           mult(diy_dx[q](p, i, joker), surface_rmatrix(0, i, joker, joker), x);
         }
       }
@@ -1564,7 +1564,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      Vector los = surface_los(ilos, joker);
+      Vector los{surface_los(ilos, joker)};
 
       // Include surface reflection matrix in *iy_transmittance*
       // If iy_transmittance is empty, this is interpreted as the
@@ -1698,7 +1698,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
   // Loop *surface_los*-es.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      Vector los = surface_los(ilos, joker);
+      Vector los{surface_los(ilos, joker)};
 
       // Include surface reflection matrix in *iy_transmittance*
       // If iy_transmittance is empty, this is interpreted as the
@@ -3268,8 +3268,8 @@ void surface_rtpropFromTypesAverage(
                                    lat_grid,
                                    lat_true,
                                    lon_true,
-                                   ground_pos(i, joker),
-                                   ground_los(i, joker),
+                                   Vector{ground_pos(i, joker)},
+                                   Vector{ground_los(i, joker)},
                                    surface_type_mask,
                                    surface_rtprop_agenda_array,
                                    verbosity);

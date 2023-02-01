@@ -643,7 +643,7 @@ void GriddedFieldPRegridHelper(Index& ing_min,
   const Vector& in_p_grid = gfraw_in.get_numeric_grid(p_grid_index);
 
   // Initialize output field. Set grids and copy grid names
-  gfraw_out.set_grid(p_grid_index, p_grid);
+  gfraw_out.set_grid(p_grid_index, Vector{p_grid});
   gfraw_out.set_grid_name(p_grid_index, gfraw_in.get_grid_name(p_grid_index));
 
   if (zeropadding) {
@@ -892,10 +892,10 @@ void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
   const Vector& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
 
   // Initialize output field. Set grids and copy grid names
-  gfraw_out.set_grid(lat_grid_index, lat_true);
+  gfraw_out.set_grid(lat_grid_index, Vector{lat_true});
   gfraw_out.set_grid_name(lat_grid_index,
                           gfraw_in.get_grid_name(lat_grid_index));
-  gfraw_out.set_grid(lon_grid_index, lon_true);
+  gfraw_out.set_grid(lon_grid_index, Vector{lon_true});
   gfraw_out.set_grid_name(lon_grid_index,
                           gfraw_in.get_grid_name(lon_grid_index));
 
@@ -1342,7 +1342,7 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
 
   for (Index lat_index = 0; lat_index < lat_grid.nelem(); lat_index++) {
     for (Index lon_index = 0; lon_index < lon_grid.nelem(); lon_index++) {
-      const Vector z_out = z_field(joker, lat_index, lon_index);
+      const Vector z_out{z_field(joker, lat_index, lon_index)};
 
       GriddedFieldZToPRegridHelper(ing_min,
                                    ing_max,
@@ -1422,7 +1422,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
 
   af.set_grid(GFIELD4_FIELD_NAMES, field_names_1);
 
-  af.set_grid(GFIELD4_P_GRID, im(Range(joker), 0));
+  af.set_grid(GFIELD4_P_GRID, Vector{im(Range(joker), 0)});
 
   af.set_grid(GFIELD4_LAT_GRID, Vector());
   af.set_grid(GFIELD4_LON_GRID, Vector());
@@ -1600,9 +1600,9 @@ void atm_fields_compactCreateFromField(  // WS Output:
   sp_name_grid[0] = name;
 
   atm_fields_compact.set_grid(0, sp_name_grid);
-  atm_fields_compact.set_grid(1, sp_p_grid);
-  atm_fields_compact.set_grid(2, sp_lat_grid);
-  atm_fields_compact.set_grid(3, sp_lon_grid);
+  atm_fields_compact.set_grid(1, Vector{sp_p_grid});
+  atm_fields_compact.set_grid(2, Vector{sp_lat_grid});
+  atm_fields_compact.set_grid(3, Vector{sp_lon_grid});
 
   atm_fields_compact.data.resize(
       1, sp_p_grid.nelem(), sp_lat_grid.nelem(), sp_lon_grid.nelem());

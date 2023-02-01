@@ -231,7 +231,7 @@ void get_refr_index_1d(Workspace& ws,
                                rtp_pressure,
                                rtp_temperature,
                                rtp_vmr,
-                               f_grid,
+                               Vector{f_grid},
                                refr_index_air_agenda);
 }
 
@@ -326,7 +326,7 @@ void get_refr_index_2d(Workspace& ws,
                                rtp_pressure,
                                rtp_temperature,
                                rtp_vmr,
-                               f_grid,
+                               Vector{f_grid},
                                refr_index_air_agenda);
 }
 
@@ -424,7 +424,7 @@ void get_refr_index_3d(Workspace& ws,
                                rtp_pressure,
                                rtp_temperature,
                                rtp_vmr,
-                               f_grid,
+                               Vector{f_grid},
                                refr_index_air_agenda);
 }
 

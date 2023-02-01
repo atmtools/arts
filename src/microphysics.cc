@@ -67,7 +67,7 @@ Numeric asymmetry_parameter(ConstVectorView sa_grid,
   ARTS_ASSERT(abs(sa_grid[n-1]-180.0) < 1.0e-3);
   ARTS_ASSERT(pfun.nelem() == n);
 
-  Vector sa = sa_grid;
+  Vector sa{sa_grid};
   sa *= DEG2RAD;
 
   // Sine and cosine of scattering angle

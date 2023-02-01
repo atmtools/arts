@@ -384,7 +384,7 @@ void CIARecord::ReadFromCIA(const String& filename,
     // If the min/max wave numbers of this set are different from the
     // previous one, a new dataset starts
     if (npoints == -1 || wave_min != set_wave_min || wave_max != set_wave_max) {
-      if (ndataset != -1) AppendDataset(freq, temp, cia);
+      if (ndataset != -1) AppendDataset(freq, Vector{temp}, cia);
 
       npoints = set_npoints;
       ndataset++;
@@ -449,7 +449,7 @@ void CIARecord::ReadFromCIA(const String& filename,
     throw runtime_error(os.str());
   }
 
-  AppendDataset(freq, temp, cia);
+  AppendDataset(freq, Vector{temp}, cia);
 
   //    // For debugging
   //    for(Index i = 0; i < mdata.nelem(); i++)
