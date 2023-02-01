@@ -427,5 +427,25 @@ int main() {
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
+
+  Vector A({1,23,4,5,6,7});
+  const Vector B({1,23,4,5,6,7});
+  std::cout << A[1] << '\n' << B[1] << '\n';
+  std::cout << A[joker] << '\n' << B[joker] << '\n';
+  std::cout << A[Range(1, 1, 1)] << '\n' << B[Range(1, 1, 1)] << '\n';
+  std::cout << A[Range(1, 2, 1)] << '\n' << B[Range(1, 2, 1)] << '\n';
+  std::cout << A[Range(1, 2, 2)] << '\n' << B[Range(1, 2, 2)] << '\n';
+  std::cout << A[Range(1, 2, 3)] << '\n' << B[Range(1, 2, 3)] << '\n';
+  std::cout << A[Range(1, 3, 2)] << '\n' << B[Range(1, 3, 2)] << '\n';
+  std::cout << A[Range(2, 1, 1)] << '\n' << B[Range(2, 1, 1)] << '\n';
+  std::cout << A[Range(2, 2, 1)] << '\n' << B[Range(2, 2, 1)] << '\n';
+  std::cout << A[Range(2, 2, 2)] << '\n' << B[Range(2, 2, 2)] << '\n';
+  std::cout << A[Range(2, 2, 3)] << '\n' << B[Range(2, 2, 3)] << '\n';
+  std::puts("JOKER");
+  std::cout << A[Range(1, joker, 1)] << '\n' << B[Range(1, joker, 1)] << '\n';
+  std::cout << A[Range(1, joker, 1)] << '\n' << B[Range(1, joker, 1)] << '\n';
+  std::cout << A[Range(1, joker, 2)] << '\n' << B[Range(1, joker, 2)] << '\n';
+  std::cout << A[Range(1, joker, 3)] << '\n' << B[Range(1, joker, 3)] << '\n';
+  std::cout << A[Range(1, joker, 2)] << '\n' << B[Range(1, joker, 2)] << '\n';
 }
 

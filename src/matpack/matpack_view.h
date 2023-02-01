@@ -12,6 +12,7 @@
 #include <ostream>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace matpack {
 //! A strided accessor to get the range of a type
@@ -45,14 +46,11 @@ struct matpack_strided_access {
     ARTS_ASSERT(offset < max_size or (max_size == 0 and offset == 0), "offset=", offset, "; max_size=", max_size);
 
     // Stride must be != 0:
-    ARTS_ASSERT(0 != stride, "stride=", stride);
+    ARTS_ASSERT(0 < stride, "stride=", stride);
 
     // Convert negative extent (joker) to explicit extent
     if (extent < 0) {
-      if (0 < stride)
-        extent = 1 + (max_size - 1 - offset) / stride;
-      else
-        extent = 1 + (0 - offset) / stride;
+      extent = 1 + (max_size - 1 - offset) / stride;
     } else {
       // Check that extent is ok:
       ARTS_ASSERT(0 <= (offset + (extent - 1) * stride));
@@ -79,8 +77,8 @@ struct matpack_strided_access {
     // and <= prev_fin, except for Joker:
     ARTS_ASSERT(offset <= prev_fin || extent == -1);
 
-    // Resulting stride must be != 0:
-    ARTS_ASSERT(0 != stride,
+    // Resulting stride must be < 0:
+    ARTS_ASSERT(0 < stride,
                 "Problem: stride==",
                 stride,
                 " for offset==",
@@ -90,21 +88,12 @@ struct matpack_strided_access {
 
     // Convert negative extent (joker) to explicit extent
     if (extent < 0) {
-      if (0 < stride)
-        extent = 1 + (prev_fin - offset) / stride;
-      else
-        extent = 1 + (p.offset - offset) / stride;
+      extent = 1 + (prev_fin - offset) / stride;
     } else {
       ARTS_ASSERT(p.offset <= (offset + (extent - 1) * stride));
       ARTS_ASSERT((offset + (extent - 1) * stride) <= prev_fin);
     }
   }
-
-  //! FIXME: Remove once mdspan has better type system 
-  constexpr operator Joker() const noexcept {return joker;}
-
-  //! FIXME: Remove once mdspan has better type system
-  constexpr operator Joker() noexcept {return joker;}
   
   friend std::ostream &operator<<(std::ostream &os,
                                   const matpack_strided_access &msa) {
@@ -112,6 +101,26 @@ struct matpack_strided_access {
               << msa.stride << ")";
   }
 };
+namespace detail {
+constexpr Index substride(Index, integral auto &&x) noexcept {
+  return static_cast<Index>(std::forward<decltype(x)>(x));
+}
+
+constexpr Joker substride(Index, Joker) noexcept { return joker; }
+
+constexpr stdx::strided_slice<Index, Index, Index>
+substride(Index max, const matpack_strided_access &x) noexcept {
+  return stdx::strided_slice<Index, Index, Index>{
+      x.offset, x.extent < 0 ? max - x.offset : x.extent * x.stride, x.stride};
+}
+
+template <class OffsetType, class ExtentType, class StrideType>
+constexpr stdx::strided_slice<OffsetType, ExtentType, StrideType> substride(
+    Index,
+    const stdx::strided_slice<OffsetType, ExtentType, StrideType> &x) noexcept {
+  return x;
+}
+} // namespace detail
 
 //! Count the number of integral there are in the access operators
 template <access_operator... access, Index N=sizeof...(access)>
@@ -274,6 +283,9 @@ class matpack_view {
   //! Helper to return correct constant type
   template <access_operator access>
   using constant_left_access = constant_access_type<T, N, constant, strided, access>;
+
+  //! A runtime access to the indexes of the view types extents
+  using integer_seq = std::make_integer_sequence<Index, N>;
 
   //! The pure data view from mdspan
   view_type view;
@@ -469,95 +481,75 @@ public:
   [[nodiscard]] constexpr bool empty() const { return view.empty(); }
 
 private:
-  //! Helper function to change the stride of this object's view
-  template <Index dim>
-  constexpr void strided_dimension(matpack_strided_access range) requires(dim >= 0 and dim < N and strided) {
-    ARTS_ASSERT(range.stride > 0, "negative stride")
-
-    range = matpack_strided_access(extent(dim), range);
-    auto *d = view.data_handle() + stride(dim) * range.offset;
-    std::array<Index, N> extmap=shape(), strmap=strides();
-    std::get<dim>(extmap) =
-        range.extent < 0 ? std::get<dim>(extmap) : range.extent;
-    std::get<dim>(strmap) *= range.stride;
-    view = strided_view{d, {extmap, strmap}};
+  //! Helper function to call submdspan for this view
+  template <Index... ints, access_operator... access>
+  constexpr auto
+  submdspan_substride_extents(std::integer_sequence<Index, ints...>,
+                              access &&...ind) const
+    requires(sizeof...(ints) == sizeof...(access))
+  {
+    return stdx::submdspan(
+        view, detail::substride(extent(ints), std::forward<access>(ind))...);
   }
 
-  //! Helper function to change the stride of this object's view
-  template <Index i = 0, access_operator first, access_operator... access>
-  constexpr matpack_view &range_adaptor(first &&maybe_range, access &&...rest) requires(strided) {
-    if constexpr (is_matpack_strided_access<first>)
-      strided_dimension<i>(std::forward<first>(maybe_range));
-    if constexpr (sizeof...(access) not_eq 0)
-      range_adaptor<i + not integral<first>>(std::forward<access>(rest)...);
-    return *this;
+  //! Helper function to call submdspan for this view
+  template <access_operator... access>
+  constexpr auto submdspan_substride(access &&...ind) const {
+    return submdspan_substride_extents(integer_seq{},
+                                       std::forward<access>(ind)...);
   }
 
 public:
   template <access_operator... access,
             Index M = num_index<access...>,
             class ret_t = mutable_access<access...>>
-  [[nodiscard]] constexpr auto operator()(access... ind) -> ret_t
+  [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
   {
-    ARTS_ASSERT(check_index_sizes(view, 0, ind...),
+    ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds: ", shape_help<N>(shape()))
     if constexpr (N == M)
-      return view(ind...);
-    else if constexpr (has_any_range<access...>)
-      return ret_t{stdx::submdspan(view, ind...)}.range_adaptor(
-          std::forward<access>(ind)...);
+      return view(std::forward<access>(ind)...);
     else
-      return stdx::submdspan(view, ind...);
+      return submdspan_substride(std::forward<access>(ind)...);
   }
 
   template <access_operator... access,
             Index M = num_index<access...>,
             class ret_t = constant_access<access...>>
-  [[nodiscard]] constexpr auto operator()(access... ind) const -> ret_t
+  [[nodiscard]] constexpr auto operator()(access&&... ind) const -> ret_t
     requires(sizeof...(access) == N)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind...),
                 "Out-of-bounds: ", shape_help<N>(shape()))
     if constexpr (N == M)
-      return view(ind...);
-    else if constexpr (has_any_range<access...>)
-      return ret_t{stdx::submdspan(view, ind...)}.range_adaptor(
-          std::forward<access>(ind)...);
+      return view(std::forward<access>(ind)...);
     else
-      return stdx::submdspan(view, ind...);
+      return submdspan_substride(std::forward<access>(ind)...);
   }
 
   template <access_operator access, Index M = num_index<access>,
             class ret_t = mutable_left_access<access>>
-  [[nodiscard]] constexpr auto operator[](access ind) -> ret_t
+  [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
     requires(not constant)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds: ", shape_help<N>(shape()))
     if constexpr (N == M and N == 1)
-      return view[ind];
-    else if constexpr (has_any_range<access>) {
-      ret_t out{view};
-      out.template strided_dimension<0>(ind);
-      return out;
-    } else
-      return sub<0, N>(view, ind);
+      return view[std::forward<access>(ind)];
+    else
+      return sub<0, N>(view, detail::substride(extent(0), std::forward<access>(ind)));
   }
 
   template <access_operator access, Index M = num_index<access>,
             class ret_t = constant_left_access<access>>
-  [[nodiscard]] constexpr auto operator[](access ind) const -> ret_t {
+  [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds: ", shape_help<N>(shape()))
     if constexpr (N == M and N == 1)
-      return view[ind];
-    else if constexpr (has_any_range<access>) {
-      ret_t out{view};
-      out.template strided_dimension<0>(ind);
-      return out;
-    } else
-      return sub<0, N>(view, ind);
+      return view[std::forward<access>(ind)];
+    else
+      return sub<0, N>(view, detail::substride(extent(0), std::forward<access>(ind)));
   }
 
   //! The value type of this matpack data is public information
