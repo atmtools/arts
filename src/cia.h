@@ -165,7 +165,6 @@ class CIARecord {
   void Extract(VectorView result,
                ConstVectorView f_grid,
                const Numeric& temperature,
-               const Index& dataset,
                const Numeric& T_extrapolfac,
                const Index& robust,
                const Verbosity& verbosity) const;
@@ -184,7 +183,6 @@ class CIARecord {
      */
   [[nodiscard]] Numeric Extract(const Numeric& frequency,
                                 const Numeric& temperature,
-                                const Index& dataset,
                                 const Numeric& T_extrapolfac,
                                 const Index& robust,
                                 const Verbosity& verbosity) const {
@@ -194,7 +192,6 @@ class CIARecord {
     Extract(result,
             freqvec,
             temperature,
-            dataset,
             T_extrapolfac,
             robust,
             verbosity);
