@@ -39,10 +39,6 @@ struct Tag {
   /*! Contains the second CIA species that should be used for this tag. */
   Species cia_2nd_species{Species::FINAL};
 
-  //! CIA dataset index.
-  /*! A CIA file contains several datasets. This index specifies which one we want. */
-  Index cia_dataset_index{-1};
-
   constexpr Tag() noexcept = default;
   
   // Documentation is with implementation.
@@ -83,8 +79,7 @@ struct Tag {
             other.lower_freq == lower_freq and
             other.upper_freq == upper_freq and
             other.type == type and
-            other.cia_2nd_species == cia_2nd_species and
-            other.cia_dataset_index == cia_dataset_index;
+            other.cia_2nd_species == cia_2nd_species;
   }
   
   constexpr bool operator!=(const Tag& other) const noexcept {
@@ -242,6 +237,8 @@ namespace Species {
 Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                   const Vector& rtp_vmr,
                   const Species spec) ARTS_NOEXCEPT;
+
+SpeciesTag parse_tag(std::string_view text);
 } // namespace Species
 
 #endif  // species_tags_h

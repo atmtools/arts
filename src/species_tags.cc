@@ -1,13 +1,124 @@
 #include "species_tags.h"
 
 #include <cfloat>
+#include <iomanip>
 #include <iterator>
 #include <string_view>
 
 #include "debug.h"
+#include "isotopologues.h"
+#include "nonstd.h"
 #include "partfun.h"
+#include "species.h"
 
 namespace Species {
+namespace detail {
+void trim(std::string_view &text) {
+  while (text.size() and nonstd::isspace(text.front())) text.remove_prefix(1);
+  while (text.size() and nonstd::isspace(text.back())) text.remove_suffix(1);
+}
+
+constexpr std::string_view next(std::string_view &text) {
+  std::string_view next = text.substr(
+      0, text.find_first_of('-', text.size() > 0 and text.front() == '-'));
+  trim(next);
+  trim(text);
+  return next;
+}
+
+Species spec(std::string_view part, std::string_view orig [[maybe_unused]]) {
+  Species s = fromShortName(part);
+  ARTS_USER_ERROR_IF(not good_enum(s), "The species extraction from ",
+                     std::quoted(part),
+                     " is not good.  "
+                     "The original tag reads ",
+                     std::quoted(orig))
+  return s;
+}
+
+Index isot(Species species, std::string_view isot,
+           std::string_view orig [[maybe_unused]]) {
+  Index spec_ind = find_species_index(species, isot);
+  ARTS_USER_ERROR_IF(spec_ind < 0,
+                     "Bad isotopologue from ", std::quoted(orig))
+  return spec_ind;
+}
+
+
+} // namespace detail
+
+SpeciesTag parse_tag(std::string_view text) {
+  using namespace detail;
+  trim(text);
+
+  const std::string_view orig = text;
+  std::string_view part;
+  Species species;
+  SpeciesTag tag;
+
+  // The first part is a species --- we do not know what to do with it yet
+  part = next(text);
+  species = spec(part, orig);
+
+  // Check if species name contains the special tag for
+  // Faraday Rotation
+  if (species == Species::free_electrons) {
+    constexpr Index ind =
+        find_species_index(IsotopeRecord(Species::free_electrons));
+    tag.spec_ind = ind;
+    tag.type = TagType::FreeElectrons;
+  }
+
+  // Check if species name contains the special tag for
+  // Particles
+  if (species == Species::particles) {
+    constexpr Index ind = find_species_index(IsotopeRecord(Species::particles));
+    tag.spec_ind = ind;
+    tag.type = TagType::Particles;
+  }
+
+  // If there is no text remaining after the previous next(), we are a wild-tag species
+  if (text.size() == 0 and tag.type == TagType::FINAL) {
+    tag.spec_ind = isot(species, Joker, orig);
+    tag.type = TagType::Plain;
+  } else {
+
+    // This is where we start chaining calls to parts of the tag
+    part = next(text);
+
+    if (part.front() == 'Z') {
+      part = next(text);
+      tag.spec_ind = isot(species, part, orig);
+      tag.type = TagType::Zeeman;
+      ARTS_USER_ERROR_IF(is_predefined_model(Isotopologues[tag.spec_ind]), "Bad Zeeman tag using predefined model in tag: ", std::quoted(orig))
+    } else if (part == "CIA") {
+      part = next(text);
+      tag.cia_2nd_species = spec(part, orig);
+      tag.type = TagType::Cia;
+    } else if (part == "XFIT") {
+      tag.type = TagType::XsecFit;
+    } else {
+      tag.spec_ind = isot(species, part, orig);
+      tag.type = is_predefined_model(Isotopologues[tag.spec_ind]) ? TagType::Predefined : TagType::Plain;
+    }
+
+    part = next(text);
+  }
+
+  if (species == Species::free_electrons) {
+    tag.type = TagType::FreeElectrons;
+  } else if (species == Species::particles) {
+    tag.type = TagType::Particles;
+  }
+
+  return tag;
+}
+
+ArrayOfSpeciesTag parse_tags(std::string_view t) {
+  ArrayOfSpeciesTag tags;
+  t.find_first_of(',');
+  return tags;
+}
 
 Numeric Tag::Q(Numeric T) const {
   return PartitionFunctions::Q(T, Isotopologue());
@@ -178,7 +289,7 @@ Tag::Tag(String def) : type(TagType::Plain) {
 
     // Do the conversion from string to index:
     std::istringstream is(def);
-    is >> cia_dataset_index;
+    //is >> cia_dataset_index;
 
     def = "";
   } else {
@@ -288,7 +399,7 @@ String Tag::Name() const {
 
   // Is this a CIA tag?
   if (type == TagType::Cia) {
-    os << "CIA-" << toShortName(cia_2nd_species) << "-" << cia_dataset_index;
+    os << "CIA-" << toShortName(cia_2nd_species);
 
   } else if (type == TagType::FreeElectrons || type == TagType::Particles) {
     os << toShortName(Isotopologue().spec);
