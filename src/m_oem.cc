@@ -45,6 +45,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "jacobian.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
@@ -1158,10 +1159,11 @@ void OEM(Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_m") {
+        ARTS_USER_ERROR(method, " is not supported")
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
-        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
+//        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
+//            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_cg") {
         oem::CG cg(T, apply_norm, 1e-10, 0);
@@ -1182,10 +1184,11 @@ void OEM(Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_m") {
+        ARTS_USER_ERROR(method, " is not supported")
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, (unsigned int)max_iter, s);
-        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
+//        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
+//            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_cg") {
         oem::CG cg(T, apply_norm, 1e-10, 0);
