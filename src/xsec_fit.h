@@ -137,10 +137,10 @@ class XsecRecord {
   /** Remove negative cross sections and adjust integral */
   void RemoveNegativeXsec(VectorView xsec) const;
 
-  static const Index P00 = 0;
-  static const Index P10 = 1;
-  static const Index P01 = 2;
-  static const Index P20 = 3;
+  static constexpr Index P00 = 0;
+  static constexpr Index P10 = 1;
+  static constexpr Index P01 = 2;
+  static constexpr Index P20 = 3;
 
   Index mversion{2};
   Species::Species mspecies;
