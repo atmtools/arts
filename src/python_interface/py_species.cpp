@@ -29,7 +29,6 @@ void internal_species(py::module_& m) {
       .def_readwrite("FreeElectrons", &SpeciesTagTypeStatus::FreeElectrons)
       .def_readwrite("Particles", &SpeciesTagTypeStatus::Particles)
       .def_readwrite("XsecFit", &SpeciesTagTypeStatus::XsecFit)
-      .def_readwrite("NoLines", &SpeciesTagTypeStatus::NoLines)
       .PythonInterfaceBasicRepresentation(SpeciesTagTypeStatus);
 }
 
@@ -175,7 +174,6 @@ void py_species(py::module_& m) {
       .def_readwrite("upper_freq", &SpeciesTag::upper_freq)
       .def_readwrite("type", &SpeciesTag::type)
       .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species)
-      .def_readwrite("cia_dataset_index", &SpeciesTag::cia_dataset_index)
       .def("partfun",
            py::vectorize(&SpeciesTag::Q),
            py::doc(R"--(Compute the partition function at a given temperature
@@ -200,18 +198,16 @@ Returns
                                   t.lower_freq,
                                   t.upper_freq,
                                   t.type,
-                                  t.cia_2nd_species,
-                                  t.cia_dataset_index);
+                                  t.cia_2nd_species);
           },
           [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
+            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
             auto out = std::make_unique<SpeciesTag>();;
             out->spec_ind = t[0].cast<Index>();
             out->lower_freq = t[1].cast<Numeric>();
             out->upper_freq = t[2].cast<Numeric>();
             out->type = t[3].cast<Species::TagType>();
             out->cia_2nd_species = t[4].cast<Species::Species>();
-            out->cia_dataset_index = t[5].cast<Index>();
             return out;
           }));
   py::implicitly_convertible<std::string, SpeciesTag>();
