@@ -4,11 +4,11 @@ This file will showcase how you can load collision-induced absorption (CIA)
 data from arts-cat-data into the workspace and do the required setups to
 perform a simple forward calculations using this data
 
-Note that this example presumes that you have set ARTS_DATA_PATH to contain
-a local copy of both arts-cat-data and arts-xml-data.  Please check that this
-is the case if the example does not work for you.  You can easily check if this
-path is set by adding the following two lines at the top of this
-pyarts-controlfile:
+Note that this example presumes that you have set the environment variable 
+ARTS_DATA_PATH to contain a path to a local copy of both arts-cat-data and
+arts-xml-data before you import pyarts.  Please check that this is the case
+if the example does not work for you.  You can easily check if this path is
+set by adding the following two lines at the top of this pyarts-controlfile:
 
 ```
 import os
@@ -26,17 +26,17 @@ ws = pyarts.workspace.Workspace()
 """
 
 Set ws.abs_species to the species tags that you wish to use.  CIA tags are
-structured so that the main and secondary species are surrounded by the word
+structured so that the main and secondary species are separated by the word
 "CIA".  These tags are followed by an extraction index, to select which CIA
 data is used.
 
 This sets up self CIA by molecular oxygen for the first "O2-CIA-O2-0" CIA
-band.  To include all CIA band by O2, you have to write:
+band.  To include all CIA bands by O2, you have to write:
     "O2-CIA-O2-0,O2-CIA-O2-1,O2-CIA-O2-2,O2-CIA-O2-3,O2-CIA-O2-4,O2-CIA-O2-5,O2-CIA-O2-6,O2-CIA-O2-7"
     
-CIA is not just self-induced but can occur between two different moleules.  In
+CIA is not just self-induced but can occur between two different molecules.  In
 this case you can change the tag to read something like "O2-CIA-N2-0", though
-you must ensure that there also exist another N2 species in your ws.abs_species
+you must ensure that there also exists another N2 species in your ws.abs_species
 as this is the only way to pass the volume mixing ratio of the atmosphere into
 ARTS
 
@@ -79,25 +79,25 @@ ws.propmat_clearsky_agendaAuto(T_extrapolfac=1)
 # This part is not covered in great details in this example
 
 # setup some agendas and core settings
-ws.iy_unit="PlanckBT"
-ws.iy_main_agendaSet(option="Emission")
-ws.ppath_agendaSet(option="FollowSensorLosPath")
-ws.ppath_step_agendaSet(option="GeometricPath")
+ws.iy_unit = "PlanckBT"
+ws.iy_main_agendaSet(option = "Emission")
+ws.ppath_agendaSet(option = "FollowSensorLosPath")
+ws.ppath_step_agendaSet(option = "GeometricPath")
 ws.water_p_eq_agendaSet()
 ws.iy_space_agendaSet()
 ws.iy_surface_agendaSet()
-ws.surface_rtprop_agendaSet(option="Blackbody_SurfTFromt_surface")
+ws.surface_rtprop_agendaSet(option = "Blackbody_SurfTFromt_surface")
 
 # set the frequency range of these computations --- change to compute other frequencies
 ws.f_grid = ws.abs_cia_data.value[0].data[0].grids[0]
 
 # set the atmosphere and planet
-ws.PlanetSet(option="Earth")
+ws.PlanetSet(option = "Earth")
 ws.AtmosphereSet1D()
 ws.p_grid = np.logspace(5.05, 0, 40)
 ws.lat_grid = []
 ws.lon_grid = []
-ws.AtmRawRead(basename="planets/Earth/Fascod/tropical/tropical")
+ws.AtmRawRead(basename = "planets/Earth/Fascod/tropical/tropical")
 ws.AtmFieldsCalc()
 ws.z_surface = [[0]]
 ws.t_surface = [[300]]
@@ -125,7 +125,7 @@ ws.yCalc()
 # Save test results
 # ws.y.value.savexml("cia_test_result.xml", type="zascii")
 
-# test that we are still 
+# test that we are still OK
 y = pyarts.arts.Vector()
 y.readxml("cia_test_result.xml")
 assert np.allclose(y, ws.y.value), "yCalc has changed output in test"
