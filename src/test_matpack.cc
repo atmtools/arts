@@ -60,7 +60,7 @@ int test1() {
   fill_with_junk(v[Range(1, 8, 2)][Range(2, joker)]);
   //  fill_with_junk(v);
 
-  Vector v2 = v[Range(2, 4)];
+  Vector v2{v[Range(2, 4)]};
 
   cout << "v2 = \n" << v2 << "\n";
 

@@ -359,8 +359,8 @@ Numeric test_diagonal(Index n_tests) {
     std::tie(rqs, jis) = setup_retrieval_1D();
     CovarianceMatrix covmat(random_covariance_matrix(rqs, jis));
 
-    Vector diag_1 = covmat.diagonal();
-    Vector diag_2 = Matrix(covmat).diagonal();
+    Vector diag_1{covmat.diagonal()};
+    Vector diag_2{Matrix(covmat).diagonal()};
     e = std::max(e, get_maximum_error(diag_1, diag_2, true));
   }
   return e;
