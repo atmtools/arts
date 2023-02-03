@@ -186,7 +186,7 @@ void NumericInterpLatLonField(Numeric& value,
   gfield2.checksize_strict();
   chk_rte_pos("pos", pos);
   
-  value = interp_gfield2(gfield2, pos[Range(1, 2)]);
+  value = interp_gfield2(gfield2, Vector{pos[Range(1, 2)]});
 }                  
 
 
@@ -306,14 +306,14 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
   refr_index_air_ZZZ_agendaExecute(ws,
                                    refr_index_air,
                                    refr_index_air_group,
-                                   pos,
+                                   Vector{pos},
                                    refr_index_air_agenda);
 
   // Altitude gradient
   Numeric n, dummy;
   {
     const Numeric dz = 1;
-    Vector pos_shifted = pos;
+    Vector pos_shifted{pos};
     pos_shifted[0] += dz;
     refr_index_air_ZZZ_agendaExecute(ws,
                                      n,
@@ -339,7 +339,7 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
     // Latitude
     {
       const Numeric dlat = 1e-4;
-      Vector pos_shifted = pos;
+      Vector pos_shifted{pos};
       pos_shifted[1] += dlat;
       if (pos_shifted[1] > 90)  // We simply cut at 90 deg, will underestimate 
         pos_shifted[1] = 90;    // gradient but should not be of any practical
@@ -366,7 +366,7 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
     // Longitude
     { 
       const Numeric dlon = 1e-4;
-      Vector pos_shifted = pos;
+      Vector pos_shifted{pos};
       pos_shifted[2] += dlon;
       if (pos_shifted[2] >= 180)  // We can't go above 180 deg
         pos_shifted[2] -= 180;
