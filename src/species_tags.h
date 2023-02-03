@@ -18,8 +18,7 @@ ENUMCLASS(TagType, unsigned char,
     Cia,
     FreeElectrons,
     Particles,
-    XsecFit,
-    NoLines)
+    XsecFit)
 struct Tag {
   //! Molecular species index in Species::Isotopologues
   Index spec_ind{-1};
@@ -39,14 +38,10 @@ struct Tag {
   /*! Contains the second CIA species that should be used for this tag. */
   Species cia_2nd_species{Species::FINAL};
 
-  //! CIA dataset index.
-  /*! A CIA file contains several datasets. This index specifies which one we want. */
-  Index cia_dataset_index{-1};
-
   constexpr Tag() noexcept = default;
   
   // Documentation is with implementation.
-  explicit Tag(String def);
+  explicit Tag(std::string_view text);
   
   constexpr Tag(const IsotopeRecord& isot) noexcept :
   spec_ind(find_species_index(isot)),
@@ -83,8 +78,7 @@ struct Tag {
             other.lower_freq == lower_freq and
             other.upper_freq == upper_freq and
             other.type == type and
-            other.cia_2nd_species == cia_2nd_species and
-            other.cia_dataset_index == cia_dataset_index;
+            other.cia_2nd_species == cia_2nd_species;
   }
   
   constexpr bool operator!=(const Tag& other) const noexcept {
@@ -113,17 +107,19 @@ public:
     std::fill(this->begin(), this->end(), x);
     return *this;
   }
+
   ArrayOfSpeciesTag& operator=(const ArrayOfSpeciesTag& A) {
     this->resize(A.size());
     std::copy(A.begin(), A.end(), this->begin());
     return *this;
   }
+
   ArrayOfSpeciesTag& operator=(ArrayOfSpeciesTag&& A) noexcept {
     Array<SpeciesTag>::operator=(std::move(A));
     return *this;
   }
   
-  ArrayOfSpeciesTag(String names);
+  ArrayOfSpeciesTag(std::string_view text);
   
   friend std::ostream& operator<<(std::ostream& os, const ArrayOfSpeciesTag& ot) {
     bool first = true;
@@ -176,8 +172,7 @@ struct SpeciesTagTypeStatus {
     Cia{false},
     FreeElectrons{false},
     Particles{false},
-    XsecFit{false},
-    NoLines{false};
+    XsecFit{false};
   SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
   friend std::ostream& operator<<(std::ostream&, SpeciesTagTypeStatus);
 };
@@ -242,6 +237,17 @@ namespace Species {
 Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                   const Vector& rtp_vmr,
                   const Species spec) ARTS_NOEXCEPT;
+
+/** Parse a list of species tags into an Array<Tag>
+ *
+ * This is the function call that ArrayOfSpeciesTag uses
+ * to create itself from a string_view, but it also performs
+ * vital error checking necessary for ARTS internals
+ *
+ * @param text A textual representation of comma-separated species tags
+ * @return Array<Tag> List of species tags with no constraints
+ */
+Array<Tag> parse_tags(std::string_view text);
 } // namespace Species
 
 #endif  // species_tags_h

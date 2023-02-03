@@ -1,14 +1,175 @@
 #include "species_tags.h"
 
+#include <algorithm>
 #include <cfloat>
+#include <fast_float/fast_float.h>
+#include <iomanip>
 #include <iterator>
 #include <string_view>
+#include <system_error>
 
 #include "debug.h"
+#include "isotopologues.h"
+#include "nonstd.h"
 #include "partfun.h"
-#include "matpack_concepts.h" 
+#include "species.h"
 
 namespace Species {
+namespace detail {
+constexpr void trim(std::string_view &text) {
+  while (text.size() and nonstd::isspace(text.front()))
+    text.remove_prefix(1);
+  while (text.size() and nonstd::isspace(text.back()))
+    text.remove_suffix(1);
+}
+
+constexpr std::string_view next(std::string_view &text) {
+  std::string_view next = text.substr(
+      0, text.find_first_of('-', text.size() > 0 and text.front() == '-'));
+  text.remove_prefix(std::min(text.size(), next.size()+1));
+  trim(next);
+  trim(text);
+  return next;
+}
+
+constexpr std::string_view next_tag(std::string_view &text) {
+  std::string_view next = text.substr(0, text.find_first_of(','));
+  text.remove_prefix(std::min(text.size(), next.size()+1));
+  trim(next);
+  trim(text);
+  return next;
+}
+
+constexpr Species spec(std::string_view part,
+                       std::string_view orig [[maybe_unused]]) {
+  Species s = fromShortName(part);
+  ARTS_USER_ERROR_IF(not good_enum(s), "The species extraction from ",
+                     std::quoted(part),
+                     " is not good.  "
+                     "The original tag reads ",
+                     std::quoted(orig))
+  return s;
+}
+
+constexpr Index isot(Species species, std::string_view isot,
+                     std::string_view orig [[maybe_unused]]) {
+  Index spec_ind = find_species_index(species, isot);
+  ARTS_USER_ERROR_IF(spec_ind < 0, "Bad isotopologue: ", std::quoted(isot),
+                     "\nValid options are:\n",
+                     isotopologues_names(species),
+                     "\nThe original tag reads ", std::quoted(orig))
+  return spec_ind;
+}
+
+constexpr Numeric freq(std::string_view part,
+                       std::string_view orig [[maybe_unused]]) {
+  Numeric f;
+  if (part.size() == 1 and part.front() == '*')
+    f = -1;
+  else {
+    auto err =
+        fast_float::from_chars(part.data(), part.data() + part.size(), f);
+    ARTS_USER_ERROR_IF(err.ec == std::errc::invalid_argument,
+                       "Invalid argument: ", std::quoted(part),
+                       "\nThe original tag reads ", std::quoted(orig));
+    ARTS_USER_ERROR_IF(err.ec == std::errc::result_out_of_range,
+                       "Out-of-range: ", std::quoted(part),
+                       "\nThe original tag reads ", std::quoted(orig));
+  }
+  return f;
+}
+
+constexpr void check(std::string_view text, std::string_view orig) {
+  ARTS_USER_ERROR_IF(text.size(), "Parsing error.  The text ",
+                     std::quoted(text),
+                     " remains to be parsed at end of a complete species tag\n"
+                     "The original tag reads ", std::quoted(orig))
+}
+} // namespace detail
+
+SpeciesTag parse_tag(std::string_view text) {
+  using namespace detail;
+  trim(text);
+
+  const std::string_view orig = text;
+  SpeciesTag tag;
+
+  // The first part is a species --- we do not know what to do with it yet
+  const Species species = spec(next(text), orig);
+
+  // Check if species name contains the special tag for
+  // Faraday Rotation
+  if (species == Species::free_electrons) {
+    constexpr Index ind =
+        find_species_index(IsotopeRecord(Species::free_electrons));
+    tag.spec_ind = ind;
+    tag.type = TagType::FreeElectrons;
+  }
+
+  // Check if species name contains the special tag for
+  // Particles
+  if (species == Species::particles) {
+    constexpr Index ind = find_species_index(IsotopeRecord(Species::particles));
+    tag.spec_ind = ind;
+    tag.type = TagType::Particles;
+  }
+  
+  // If there is no text remaining after the previous next(), then we are a
+  // wild-tag species. Otherwise we have to process the tag a bit more
+  if (text.size() == 0) {
+    if (tag.type == TagType::FINAL) {
+      tag.spec_ind = isot(species, Joker, orig);
+      tag.type = TagType::Plain;
+    }
+    check(text, orig);
+  } else {
+    if (const std::string_view tag_key = next(text); tag_key.front() == 'Z') {
+      tag.spec_ind = isot(species, next(text), orig);
+      tag.type = TagType::Zeeman;
+      ARTS_USER_ERROR_IF(
+          is_predefined_model(Isotopologues[tag.spec_ind]),
+          "Bad Zeeman tag using predefined model in tag: ", std::quoted(orig))
+    } else if (tag_key == "CIA") {
+      tag.spec_ind = isot(species, Joker, orig);
+      tag.cia_2nd_species = spec(next(text), orig);
+      tag.type = TagType::Cia;
+      check(text, orig);
+    } else if (tag_key == "XFIT") {
+      tag.spec_ind = isot(species, Joker, orig);
+      tag.type = TagType::XsecFit;
+      check(text, orig);
+    } else {
+      tag.spec_ind = isot(species, tag_key, orig);
+      tag.type = is_predefined_model(Isotopologues[tag.spec_ind])
+                     ? TagType::Predefined
+                     : TagType::Plain;
+    }
+  }
+
+  if (text.size()) {
+    tag.lower_freq = freq(next(text), orig);
+    tag.upper_freq = freq(next(text), orig);
+    ARTS_USER_ERROR_IF(tag.upper_freq >= 0 and tag.lower_freq >= 0 and
+                           tag.upper_freq <= tag.lower_freq,
+                       "Invalid frequency range [", tag.lower_freq, ", ",
+                       tag.upper_freq, "]\nOriginal tag: ", std::quoted(orig))
+    check(text, orig);
+  }
+
+  return tag;
+}
+
+Array<Tag> parse_tags(std::string_view text) {
+  using namespace detail;
+  trim(text);
+
+  Array<Tag> tags;
+  while (text.size()) {
+    tags.emplace_back(parse_tag(next_tag(text)));
+  }
+
+  return tags;
+}
 
 Numeric Tag::Q(Numeric T) const {
   return PartitionFunctions::Q(T, Isotopologue());
@@ -18,255 +179,7 @@ Numeric Tag::dQdT(Numeric T) const {
   return PartitionFunctions::dQdT(T, Isotopologue());
 }
 
-Tag::Tag(String def) : type(TagType::Plain) {
-  // Save input string for error messages:
-  String def_original = def;
-
-  // Name of species and isotopologue (aux variables):
-  String name, isoname;
-  // Aux index:
-  Index n;
-
-  // We cannot set a default value for the isotopologue, because the
-  // default should be `ALL' and the value for `ALL' depends on the
-  // species.
-
-  // Extract the species name:
-  n = def.find('-');  // find the '-'
-  if (n != def.npos) {
-    name = def.substr(0, n);  // Extract before '-'
-    def.erase(0, n + 1);      // Remove from def
-  } else {
-    // n==def.npos means that def does not contain a '-'. In that
-    // case we assume that it contains just a species name and
-    // nothing else
-    name = def;
-    def = "";
-  }
-
-  // Remove whitespace
-  name.trim();
-
-  // Obtain species index from species name.
-  // (This will also remove possible whitespace.)
-  const Species spec = fromShortName(name);
-  ARTS_USER_ERROR_IF(not good_enum(spec),
-                     "Bad species name: ",
-                     name,
-                     " extracted from: ",
-                     def_original)
-
-  // Check if species name contains the special tag for
-  // Faraday Rotation
-  if (spec == Species::free_electrons) {
-    constexpr Index ind =
-        find_species_index(IsotopeRecord(Species::free_electrons));
-    spec_ind = ind;
-    type = TagType::FreeElectrons;
-    return;
-  }
-
-  // Check if species name contains the special tag for
-  // Particles
-  if (spec == Species::particles) {
-    constexpr Index ind = find_species_index(IsotopeRecord(Species::particles));
-    spec_ind = ind;
-    type = TagType::Particles;
-    return;
-  }
-
-  // Set "all" species per default by leaving the joker in
-  spec_ind = find_species_index(IsotopeRecord(spec));
-  ARTS_USER_ERROR_IF(
-      spec_ind < 0, "Bad species extracted: ", spec, " from ", def_original)
-  if (0 == def.nelem()) {
-    return;
-  }
-
-  // Extract the isotopologue name/Zeeman flag:
-  n = def.find('-');  // find the '-'
-  if (n != def.npos) {
-    isoname = def.substr(0, n);  // Extract before '-'
-    def.erase(0, n + 1);         // Remove from def
-
-    if ("Z" == isoname) {
-      type = TagType::Zeeman;
-      // Zeeman flag was present, now extract the isotopologue name:
-      n = def.find('-');  // find the '-'
-      if (n != def.npos) {
-        isoname = def.substr(0, n);  // Extract before '-'
-        def.erase(0, n + 1);         // Remove from def
-      } else {
-        // n==def.npos means that def does not contain a '-'. In that
-        // case we assume that it contains just the isotopologue name and
-        // nothing else.
-        isoname = def;
-        def = "";
-      }
-    }
-
-    if ("XFIT" == isoname) {
-      type = TagType::XsecFit;
-      // Hitran Xsec flag was present, now extract the isotopologue name:
-      n = def.find('-');  // find the '-'
-      if (n != def.npos) {
-        isoname = def.substr(0, n);  // Extract before '-'
-        def.erase(0, n + 1);         // Remove from def
-      } else {
-        // n==def.npos means that def does not contain a '-'. In that
-        // case we assume that it contains just the isotopologue name and
-        // nothing else.
-        isoname = def;
-        def = "";
-      }
-    }
-  } else {
-    // n==def.npos means that def does not contain a '-'. In that
-    // case we assume that it contains just the isotopologue name or
-    // Zeeman flag and nothing else.
-    isoname = def;
-    def = "";
-    if ("Z" == isoname) {
-      type = TagType::Zeeman;
-      // This means that there is nothing else to parse. Apparently
-      // the user wants all isotopologues and no frequency limits.
-      return;
-    }
-    if ("XFIT" == isoname) {
-      type = TagType::XsecFit;
-      // This means that there is nothing else to parse. Apparently
-      // the user wants all isotopologues and no frequency limits.
-      return;
-    }
-  }
-
-  if (Joker == isoname) {
-    // The user wants all isotopologues. This already set
-  } else if ("CIA" == isoname)  // Check for "cia":
-  {
-    // The user wants this to use the CIA catalog:
-    type = TagType::Cia;
-
-    // We have to read in the second species, and the dataset index
-    n = def.find('-');  // find the '-'
-
-    ARTS_USER_ERROR_IF(
-        n == def.npos,
-        "Invalid species tag ",
-        def_original,
-        ".\n"
-        "I am missing a minus sign (and a dataset index after that.)")
-
-    String otherspec = def.substr(0, n);  // Extract before '-'
-    def.erase(0, n + 1);                  // Remove from def
-
-    cia_2nd_species = fromShortName(otherspec);
-    ARTS_USER_ERROR_IF(not good_enum(cia_2nd_species),
-                       "Bad species name: ",
-                       otherspec,
-                       " extracted from: ",
-                       def_original)
-
-    // Convert remaining def to dataset index.
-
-    // Check that everything remaining is just numbers.
-    for (Index i = 0; i < def.nelem(); ++i)
-      ARTS_USER_ERROR_IF(!isdigit(def[i]),
-                         "Invalid species tag ",
-                         def_original,
-                         ".\n"
-                         "The tag should end with a dataset index")
-
-    // Do the conversion from string to index:
-    std::istringstream is(def);
-    is >> cia_dataset_index;
-
-    def = "";
-  } else {
-    spec_ind = find_species_index(IsotopeRecord(spec, isoname));
-
-    // Check if we found a matching isotopologue:
-    ARTS_USER_ERROR_IF(spec_ind < 0,
-                       "Isotopologue ",
-                       isoname,
-                       " is not a valid isotopologue or "
-                       "absorption model for species ",
-                       name,
-                       ".\n"
-                       "Valid options are:\n",
-                       isotopologues_names(spec))
-
-    // Check if the found isotopologue represents a predefined model
-    // (continuum or full absorption model) and set the type accordingly:
-    if (is_predefined_model(Isotopologue()))
-      type = TagType::Predefined;
-  }
-
-  if (0 == def.nelem()) {
-    // This means that there is nothing else to parse. Apparently
-    // the user wants no frequency limits.  Frequency defaults are
-    // already set, so we can return directly.
-
-    return;
-  }
-
-  ARTS_USER_ERROR_IF(def[0] != Joker[0] && !isdigit(def[0]),
-                     "Expected frequency limits, but got \"",
-                     def,
-                     "\"")
-
-  // Look for the two frequency limits:
-
-  // Extract first frequency
-  n = def.find('-');  // find the '-'
-  if (n != def.npos) {
-    // Frequency as a String:
-    String fname;
-    fname = def.substr(0, n);  // Extract before '-'
-    def.erase(0, n + 1);       // Remove from def
-
-    // Check for joker:
-    if (Joker == fname) {
-      // The default for lower_freq is already -1, meaning `ALL'.
-      // So there is nothing to do here.
-    } else {
-      ARTS_USER_ERROR_IF(!isdigit(fname[0]),
-                         "Expected frequency limit, but got \"",
-                         fname,
-                         "\"")
-      // Convert to Numeric:
-      char* endptr;
-      lower_freq = strtod(fname.c_str(), &endptr);
-      ARTS_USER_ERROR_IF(endptr != fname.c_str() + fname.nelem(),
-                         "Error parsing frequency limit \"",
-                         fname,
-                         "\"")
-    }
-  } else {
-    // n==def.npos means that def does not contain a '-'. In this
-    // case that is not allowed!
-    ARTS_USER_ERROR(
-        "You must either specify both frequency limits\n"
-        "(at least with jokers), or none.");
-  }
-
-  // Now there should only be the upper frequency left in def.
-  // Check for joker:
-  if (Joker== def) {
-    // The default for upper_freq is already -1, meaning `ALL'.
-    // So there is nothing to do here.
-  } else {
-    ARTS_USER_ERROR_IF(
-        !isdigit(def[0]), "Expected frequency limit, but got \"", def, "\"")
-    // Convert to Numeric:
-    char* endptr;
-    upper_freq = strtod(def.c_str(), &endptr);
-    ARTS_USER_ERROR_IF(endptr != def.c_str() + def.nelem(),
-                       "Error parsing frequency limit \"",
-                       def,
-                       "\"")
-  }
-}
+Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
 
 //! Return the full name of the tag.
 /*! 
@@ -289,7 +202,7 @@ String Tag::Name() const {
 
   // Is this a CIA tag?
   if (type == TagType::Cia) {
-    os << "CIA-" << toShortName(cia_2nd_species) << "-" << cia_dataset_index;
+    os << "CIA-" << toShortName(cia_2nd_species);
 
   } else if (type == TagType::FreeElectrons || type == TagType::Particles) {
     os << toShortName(Isotopologue().spec);
@@ -329,56 +242,32 @@ String Tag::Name() const {
   }
   return os.str();
 }
-}  // namespace Species
+} // namespace Species
 
-ArrayOfSpeciesTag::ArrayOfSpeciesTag(String these_names) {
-  // There can be a comma separated list of tag definitions, so we
-  // need to break the String apart at the commas.
-  ArrayOfString tag_def;
+ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
+    : ArrayOfSpeciesTag(Species::parse_tags(text)) {
+  ARTS_USER_ERROR_IF(
+      size() and
+          std::any_of(begin(), end(),
+                      [front_species = front().Spec()](const SpeciesTag &tag) {
+                        return tag.Spec() not_eq front_species;
+                      }),
+      "All species in a group of tags must be the same\n"
+      "Your list of tags have been parsed as: ",
+      *this, "\nThe original tags-list read ", std::quoted(text))
 
-  bool go_on = true;
-
-  while (go_on) {
-    //          Index n = find_first( these_names, ',' );
-    Index n = these_names.find(',');
-    if (n == these_names.npos)  // Value npos indicates not found.
-    {
-      // There are no more commas.
-      //              cout << "these_names: (" << these_names << ")\n";
-      tag_def.push_back(these_names);
-      go_on = false;
-    } else {
-      tag_def.push_back(these_names.substr(0, n));
-      these_names.erase(0, n + 1);
-    }
-  }
-  // tag_def now holds the different tag Strings for this group.
-
-  // Set size to zero, in case the method has been called before.
-  resize(0);
-
-  for (Index s = 0; s < tag_def.nelem(); ++s) {
-    Species::Tag this_tag(tag_def[s]);
-
-    // Safety checks:
-    if (s > 0) {
-      // Tags inside a group must belong to the same species.
-      ARTS_USER_ERROR_IF(
-          front().Isotopologue().spec != this_tag.Isotopologue().spec,
-          "Tags in a tag group must belong to the same species.");
-
-      // Zeeman tags and plain line by line tags must not be mixed. (Because
-      // there can be only one line list per tag group.)
-      ARTS_USER_ERROR_IF(((front().type == Species::TagType::Zeeman) &&
-                          (this_tag.type == Species::TagType::Plain)) ||
-                             ((front().type == Species::TagType::Plain) &&
-                              (this_tag.type == Species::TagType::Zeeman)),
-                         "Zeeman tags and plain line-by-line tags must "
-                         "not be mixed in the same tag group.");
-    }
-
-    push_back(this_tag);
-  }
+  ARTS_USER_ERROR_IF(
+      size() and
+          std::any_of(
+              begin(), end(),
+              [front_is_zeeman = front().type == Species::TagType::Zeeman](
+                  const SpeciesTag &tag) {
+                return front_is_zeeman ? tag.type != Species::TagType::Zeeman
+                                       : tag.type == Species::TagType::Zeeman;
+              }),
+      "All species in a group of tags must be Zeeman-tagged if any one is\n"
+      "Your list of tags have been parsed as: ",
+      *this, "\nThe original tags-list read ", std::quoted(text)) {}
 }
 
 Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
@@ -518,9 +407,6 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_s
         case Species::TagType::XsecFit:
           XsecFit = true;
           break;
-        case Species::TagType::NoLines:
-          NoLines = true;
-          break;
         case Species::TagType::FINAL: { /* leave last */
         }
       }
@@ -554,9 +440,6 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
       [[fallthrough]];
     case Species::TagType::XsecFit:
       os << "    XsecFit:       " << val.XsecFit << '\n';
-      [[fallthrough]];
-    case Species::TagType::NoLines:
-      os << "    NoLines:          " << val.NoLines;
   }
   return os;
 }

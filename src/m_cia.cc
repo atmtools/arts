@@ -186,7 +186,6 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
           this_cia.Extract(xsec_temp,
                            f_grid,
                            abs_t[ip],
-                           this_species.cia_dataset_index,
                            T_extrapolfac,
                            robust,
                            verbosity);
@@ -194,7 +193,6 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
             this_cia.Extract(dxsec_temp_dF,
                              dfreq,
                              abs_t[ip],
-                             this_species.cia_dataset_index,
                              T_extrapolfac,
                              robust,
                              verbosity);
@@ -202,7 +200,6 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
             this_cia.Extract(dxsec_temp_dT,
                              f_grid,
                              dabs_t[ip],
-                             this_species.cia_dataset_index,
                              T_extrapolfac,
                              robust,
                              verbosity);
@@ -401,7 +398,6 @@ void propmat_clearskyAddCIA(  // WS Output:
         this_cia.Extract(xsec_temp,
                          f_grid,
                          rtp_temperature,
-                         this_species.cia_dataset_index,
                          T_extrapolfac,
                          ignore_errors,
                          verbosity);
@@ -409,7 +405,6 @@ void propmat_clearskyAddCIA(  // WS Output:
           this_cia.Extract(dxsec_temp_dF,
                            dfreq,
                            rtp_temperature,
-                           this_species.cia_dataset_index,
                            T_extrapolfac,
                            ignore_errors,
                            verbosity);
@@ -418,7 +413,6 @@ void propmat_clearskyAddCIA(  // WS Output:
           this_cia.Extract(dxsec_temp_dT,
                            f_grid,
                            rtp_temperature + dt,
-                           this_species.cia_dataset_index,
                            T_extrapolfac,
                            ignore_errors,
                            verbosity);

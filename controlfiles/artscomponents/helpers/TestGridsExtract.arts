@@ -44,8 +44,8 @@ StringSet( basename, "planets/Jupiter/MPS/" )
 StringSet( atmcase, "Jupiter.mean" )
 
 abs_speciesSet( species=["CH4", "H2",
-                         "H2-CIA-H2-0",
-                         "CH4-CIA-CH4-0"] )
+                         "H2-CIA-H2",
+                         "CH4-CIA-CH4"] )
 
 # construct atmcase name
 Append( basename, atmcase )

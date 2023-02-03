@@ -32,6 +32,7 @@
 #include "check_input.h"
 #include "cia.h"
 #include <cmath>
+#include <numeric>
 #include "species_tags.h"
 #include "absorption.h"
 #include "file.h"
@@ -236,31 +237,18 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 }
 
 // Documentation in header file.
-void CIARecord::Extract(VectorView result,
-                        const ConstVectorView& f_grid,
-                        const Numeric& temperature,
-                        const Index& dataset,
-                        const Numeric& T_extrapolfac,
-                        const Index& robust,
-                        const Verbosity& verbosity) const {
-  // If there is more than one dataset available for this species pair,
-  // we have to decide on which one to use. The rest is done by helper function
-  // cia_interpolate.
-
-  // Make sure dataset index exists
-  if (dataset >= mdata.nelem()) {
-    ostringstream os;
-    os << "There are only " << mdata.nelem() << " datasets in this CIA file.\n"
-       << "But you are trying to use dataset " << dataset
-       << ". (Zero-based indexing.)";
-    throw runtime_error(os.str());
+void CIARecord::Extract(VectorView res, const ConstVectorView &f_grid,
+                        const Numeric &temperature,
+                        const Numeric &T_extrapolfac, const Index &robust,
+                        const Verbosity &verbosity) const {
+  res = 0;
+  
+  Vector result(res.nelem());
+  for (auto &this_cia : mdata) {
+    cia_interpolation(result, f_grid, temperature, this_cia, T_extrapolfac,
+                      robust, verbosity);
+    res += result;
   }
-
-  // Get a handle on this dataset:
-  const GriddedField2& this_cia = mdata[dataset];
-
-  cia_interpolation(
-      result, f_grid, temperature, this_cia, T_extrapolfac, robust, verbosity);
 }
 
 // Documentation in header file.
