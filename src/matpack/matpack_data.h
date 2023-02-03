@@ -295,6 +295,19 @@ public:
   //! Iterate over this object by left-most dimension --- return the one-past-the-end of these iterators
   [[nodiscard]] constexpr auto cend() const {return end();}
 
+  //! Return the first element
+  [[nodiscard]] constexpr auto& front() const requires (N == 1) {return data.front();}
+
+  //! Return the last element
+  [[nodiscard]] constexpr auto& back() const requires (N == 1) {return data.back();}
+
+  //! Return the first element
+  [[nodiscard]] constexpr auto& front() requires (N == 1) {return data.front();}
+
+  //! Return the last element
+  [[nodiscard]] constexpr auto& back() requires (N == 1) {return data.back();}
+
+
   //! Access the data elements regardless of the matpack data rank
   template <integral... Inds>
   [[nodiscard]] constexpr T& elem_at(Inds... inds) requires(sizeof...(Inds) == N) {
