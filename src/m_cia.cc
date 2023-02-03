@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iomanip>
 #include "absorption.h"
 #include "arts.h"
 #include "arts_constants.h"
@@ -706,5 +707,9 @@ void abs_cia_dataReadSpeciesSplitCatalog(
     }
 
     xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back(), verbosity);
+
+    ARTS_USER_ERROR_IF(robust == 0 and abs_cia_data.back().DatasetCount() == 0,
+                       "Cannot find any data for ", std::quoted(name),
+                       " in file at ", fil)
   }
 }
