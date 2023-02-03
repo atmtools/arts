@@ -237,28 +237,18 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 }
 
 // Documentation in header file.
-void CIARecord::Extract(VectorView res, const ConstVectorView& f_grid,
+void CIARecord::Extract(VectorView res, const ConstVectorView &f_grid,
                         const Numeric &temperature,
                         const Numeric &T_extrapolfac, const Index &robust,
                         const Verbosity &verbosity) const {
-  // If there is more than one dataset available for this species pair,
-  // we have to decide on which one to use. The rest is done by helper function
-  // cia_interpolate.
-
-  auto sum_up = [](VectorView a, const Vector &b) {
-    a += b;
-    return a;
-  };
-
-  auto compute = [&](const GriddedField2 &this_cia) {
-    Vector result(res.nelem());
+  res = 0;
+  
+  Vector result(res.nelem());
+  for (auto &this_cia : mdata) {
     cia_interpolation(result, f_grid, temperature, this_cia, T_extrapolfac,
                       robust, verbosity);
-    return result;
-  };
-
-  res = std::transform_reduce(mdata.begin(), mdata.end(),
-                              Vector(res.nelem(), 0), sum_up, compute);
+    res += result;
+  }
 }
 
 // Documentation in header file.
