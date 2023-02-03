@@ -19,6 +19,7 @@ print(os.environ.get("ARTS_DATA_PATH"))
 
 import pyarts
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Initialize ARTS
 ws = pyarts.workspace.Workspace()
@@ -102,6 +103,15 @@ ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 """
 
+With abs_species and abs_lines_per_species both defined, you can (and must)
+confirm that the input is proper by setting lbl_checked to 1.  This is safely
+done using:
+
+"""
+ws.lbl_checkedCalc()
+
+"""
+
 You should generally always call this after you are done setting up your
 ws.abs_species and ws.abs_lines_per_species.  It will deal with the internal
 ARTS setup for you.  Note that the flag use_abs_lookup=1 can be passed to this
@@ -112,58 +122,51 @@ or to compute the absorption on-the-fly
 """
 ws.propmat_clearsky_agendaAuto()
 
-# That's it! You now have working absorption calculations for your loaded lines.
-# We still need to setup an atmosphere to perform our calculations in.
-# This part is not covered in great details in this example
+"""
 
-# setup some agendas and core settings
-ws.iy_unit="PlanckBT"
-ws.iy_main_agendaSet(option="Emission")
-ws.ppath_agendaSet(option="FollowSensorLosPath")
-ws.ppath_step_agendaSet(option="GeometricPath")
-ws.water_p_eq_agendaSet()
-ws.iy_space_agendaSet()
-ws.iy_surface_agendaSet()
-ws.surface_rtprop_agendaSet(option="Blackbody_SurfTFromt_surface")
+Compute absorption
 
-# set the frequency range of these computations --- change to compute other frequencies
-ws.f_grid = np.linspace(30e9, 120e9, 1000)
+Now we can use the propmat_clearsky_agenda to compute the absorption of O2-66.
+We can also use this agenda in more complicated setups that might require
+absorption calculations, but that is for other examples
 
-# set the atmosphere and planet
-ws.PlanetSet(option="Earth")
-ws.AtmosphereSet1D()
-ws.p_grid = np.logspace(5.05, 0, 40)
-ws.lat_grid = []
-ws.lon_grid = []
-ws.AtmRawRead(basename="planets/Earth/Fascod/tropical/tropical")
-ws.AtmFieldsCalc()
-ws.z_surface = [[0]]
-ws.t_surface = [[300]]
+To just execute the agenda we need to still define its both its inputs and the
+inputs required to initialize the propagation matrix
 
-# Calculation setup:
-ws.stokes_dim = 1
-ws.jacobianOff()
-ws.cloudboxOff()
+"""
 
-# sensor setup
-ws.sensor_pos = [[300e3]]
-ws.sensor_los = [[180]]
-ws.sensorOff()
+ws.jacobian_quantities = [] # No derivatives
+ws.select_abs_species = [] # All species
+ws.f_grid = np.linspace(40e9, 120e9, 1001) # Frequencies between 40 and 120 GHz
+ws.rtp_mag = [] # No magnetic field
+ws.rtp_los = [] # No particular LOS
+ws.rtp_pressure = 1e5 # At 1 bar
+ws.rtp_temperature = 295 # At room temperature
+ws.rtp_nlte = pyarts.arts.EnergyLevelMap() # No NLTE
+ws.rtp_vmr = [0.21] # At 21% atmospheric Oxygen
+ws.stokes_dim = 1 # Unpolarized
 
-# run checks to ensure quality of setup
-ws.lbl_checkedCalc()
-ws.atmfields_checkedCalc()
-ws.atmgeom_checkedCalc()
-ws.cloudbox_checkedCalc()
-ws.sensor_checkedCalc()
+# Call the agenda with inputs above
+ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
 
-# perform the forward calculations using standard methods
-ws.yCalc()
+# Plot the absorption of this example
+plt.figure(1)
+plt.clf()
+plt.semilogy(ws.f_grid.value / 1e9, ws.propmat_clearsky.value.data.flatten())
+plt.xlabel("Frequency [GHz]")
+plt.ylabel("Absorption [1/m]")
+plt.title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")
 
+"""
+That's it!  You are done and have reached the end of this example.  Everything
+below here is just to ensure that ARTS does not break in the future.  It can
+be safely ignored
+
+"""
 # Save test results
-# ws.y.value.savexml("lines_test_result.xml", type="zascii")
+# ws.propmat_clearsky.value.data.savexml("lines_test_result.xml", type="zascii")
 
 # test that we are still 
-y = pyarts.arts.Vector()
-y.readxml("lines_test_result.xml")
-assert np.allclose(y, ws.y.value), "yCalc has changed output in test"
+propmat_clearsky_agenda = pyarts.arts.Tensor4()
+propmat_clearsky_agenda.readxml("lines_test_result.xml")
+assert np.allclose(propmat_clearsky_agenda, ws.propmat_clearsky.value.data), "O2 Absorption has changed"
