@@ -470,7 +470,7 @@ void py_spectroscopy(py::module_& m) {
                             }),
                 "Incorrect size of broadeningspecies vs the line shape model")
             ARTS_USER_ERROR_IF(
-                broadeningspecies.size() < (selfbroadening + bathbroadening),
+                broadeningspecies.size() < static_cast<std::size_t>(selfbroadening + bathbroadening),
                 "Must have atleast ", (selfbroadening + bathbroadening),
                 " broadening species to support settings")
             return std::make_unique<AbsorptionLines>(selfbroadening,

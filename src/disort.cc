@@ -59,7 +59,7 @@ inline constexpr Numeric PLANCK_CONST=Constant::planck_constant;
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_temperature;
 
-void add_normed_phase_functions(Tensor3View& pfct1,
+void add_normed_phase_functions(Tensor3View pfct1,
                                 const MatrixView& sca1,
                                 const MatrixView& pfct2,
                                 const MatrixView& sca2) {
@@ -370,22 +370,22 @@ void get_gasoptprop(Workspace& ws,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
-                                   f_grid,
+                                   Vector{f_grid},
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    p_grid[ip],
                                    t_profile[ip],
                                    rtp_nlte_dummy,
-                                   vmr_profiles(joker, ip),
+                                   Vector{vmr_profiles(joker, ip)},
                                    propmat_clearsky_agenda);
     ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
   }
 }
 
 void get_gas_scattering_properties(Workspace& ws,
-                                   MatrixView& sca_coeff_gas,
-                                   MatrixView& sca_coeff_gas_level,
-                                   MatrixView& pfct_gas,
+                                   MatrixView sca_coeff_gas,
+                                   MatrixView sca_coeff_gas_level,
+                                   MatrixView pfct_gas,
                                    const ConstVectorView& f_grid,
                                    const VectorView& p,
                                    const VectorView& t,
@@ -408,10 +408,10 @@ void get_gas_scattering_properties(Workspace& ws,
                                  K_sca_gas_temp,
                                  sca_mat_dummy,
                                  sca_fct_temp,
-                                 f_grid,
+                                 Vector{f_grid},
                                  p[ip],
                                  t[ip],
-                                 vmr(joker, ip),
+                                 Vector{vmr(joker, ip)},
                                  dummy,
                                  dummy,
                                  1,
@@ -467,7 +467,7 @@ void get_paroptprop(MatrixView ext_bulk_par,
   abs_bulk_par = 0.;
 
   // preparing input data
-  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
+  Vector T_array{t_profile[Range(cloudbox_limits[0], Np_cloud)]};
   Matrix dir_array(1, 2, 0.);  // just a dummy. only tot_random allowed, ie.
   // optprop are independent of direction.
 
@@ -607,7 +607,7 @@ void get_parZ(Tensor3& pha_bulk_par,
   pha_bulk_par = 0.;
 
   // preparing input data
-  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
+  Vector T_array{t_profile[Range(cloudbox_limits[0], Np_cloud)]};
   Matrix idir_array(1, 2, 0.);  // we want pfct on sca ang grid, hence set
   // pdir(*,0) to sca ang, all other to 0.
   Matrix pdir_array(nang, 2, 0.);
@@ -647,7 +647,7 @@ void get_parZ(Tensor3& pha_bulk_par,
 }
 
 void get_pfct(Tensor3& pfct_bulk_par,
-              ConstTensor3View& pha_bulk_par,
+              ConstTensor3View pha_bulk_par,
               ConstMatrixView ext_bulk_par,
               ConstMatrixView abs_bulk_par,
               const ArrayOfIndex& cloudbox_limits) {
@@ -722,10 +722,10 @@ void get_pmom(Tensor3View pmom,
   }
 
   for (Index il = 0; il < nlyr; il++)
-    if (pfct_bulk_par(joker, il, 0).sum() != 0.)
+    if (sum(pfct_bulk_par(joker, il, 0)) != 0.)
       for (Index f_index = 0; f_index < nf; f_index++) {
         if (pfct_bulk_par(f_index, il, 0) != 0) {
-          Vector pfct = pfct_bulk_par(f_index, il, joker);
+          Vector pfct{pfct_bulk_par(f_index, il, joker)};
 
           // Check if phase function is properly normalized
           // For highly peaked phasefunctions, integrating over the angle instead
@@ -767,7 +767,7 @@ void get_pmom(Tensor3View pmom,
       }
 }
 
-void get_scat_bulk_layer(MatrixView& sca_bulk_layer,
+void get_scat_bulk_layer(MatrixView sca_bulk_layer,
                          const MatrixView& ext_bulk,
                          const MatrixView& abs_bulk) {
   const Index nf = ext_bulk.nrows();
@@ -909,7 +909,7 @@ void reduced_1datm(Vector& p,
     Matrix itw2(1, 2);
     itw2(0, 0) = itw[0];
     itw2(0, 1) = itw[1];
-    itw2p(p[0], p, gp, itw2);
+    itw2p(ExhaustiveVectorView{p[0]}, p, gp, itw2);
     // pnd_field and cloudbox limits need special treatment
     cboxlims = cloudbox_limits;
     if (ifirst < cloudbox_limits[0]) {  // Surface below cloudbox
@@ -1191,10 +1191,10 @@ void run_cdisort(Workspace& ws,
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
-                dtauc(f_index, joker).get_c_array(),
+                dtauc(f_index, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
     std::memcpy(ds.ssalb,
-                ssalb(f_index, joker).get_c_array(),
+                ssalb(f_index, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
 
     // Wavenumber in [1/cm]
@@ -1213,7 +1213,7 @@ void run_cdisort(Workspace& ws,
     ds.bc.fbeam = fbeam;
 
     std::memcpy(ds.pmom,
-                pmom(f_index, joker, joker).get_c_array(),
+                pmom(f_index, joker, joker).unsafe_data_handle(),
                 sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
@@ -1590,10 +1590,10 @@ void run_cdisort_flux(Workspace& ws,
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
-                dtauc(f_index, joker).get_c_array(),
+                dtauc(f_index, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
     std::memcpy(ds.ssalb,
-                ssalb(f_index, joker).get_c_array(),
+                ssalb(f_index, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
 
     // Wavenumber in [1/cm]
@@ -1612,7 +1612,7 @@ void run_cdisort_flux(Workspace& ws,
     ds.bc.fbeam = fbeam;
 
     std::memcpy(ds.pmom,
-                pmom(f_index, joker, joker).get_c_array(),
+                pmom(f_index, joker, joker).unsafe_data_handle(),
                 sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
     c_disort(&ds, &out);
@@ -1779,7 +1779,7 @@ void surf_albedoCalc(Workspace& ws,
                                  surface_emission,
                                  surface_los,
                                  surface_rmatrix,
-                                 f_grid,
+                                 Vector{f_grid},
                                  rtp_pos,
                                  rtp_los,
                                  surface_rtprop_agenda);
@@ -1804,7 +1804,7 @@ void surf_albedoCalc(Workspace& ws,
     if (!surface_los.empty()) {
       for (Index f_index = 0; f_index < nf; f_index++)
         dir_refl_coeff(rza, f_index) =
-            surface_rmatrix(joker, f_index, 0, 0).sum();
+            sum(surface_rmatrix(joker, f_index, 0, 0));
     }
     out2 << "  directional albedos[f_grid] = " << dir_refl_coeff(rza, joker)
          << "\n";
@@ -1875,7 +1875,7 @@ void surf_albedoCalc(Workspace& ws,
 
   // eventually sum up the weighted directional power reflection coefficients
   for (Index f_index = 0; f_index < nf; f_index++) {
-    albedo[f_index] = dir_refl_coeff(joker, f_index).sum();
+    albedo[f_index] = sum(dir_refl_coeff(joker, f_index));
     out2 << "at f=" << f_grid[f_index] * 1e-9
          << " GHz, ending up with albedo=" << albedo[f_index] << "\n";
     if (albedo[f_index] < 0 || albedo[f_index] > 1.) {
@@ -1911,7 +1911,7 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
                                surface_emission,
                                surface_los,
                                surface_rmatrix,
-                               f_grid,
+                               Vector{f_grid},
                                rtp_pos,
                                rtp_los,
                                surface_rtprop_agenda);

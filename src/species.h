@@ -2,7 +2,7 @@
 #define species_h
 
 #include "enums.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 namespace Species {
 /** named species */

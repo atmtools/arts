@@ -25,7 +25,7 @@
 */
 
 #include "file.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "tessem.h"
 

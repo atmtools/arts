@@ -29,7 +29,7 @@
 
 #include "array.h"
 #include "debug.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "mystring.h"
 
 #include "messages.h"

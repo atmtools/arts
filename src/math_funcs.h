@@ -32,9 +32,10 @@
 #ifndef math_funcs_h
 #define math_funcs_h
 
-#include "matpack.h"
-#include "matpackI.h"
-#include "matpackIII.h"
+#include "array.h"
+#include "matpack_concepts.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 
 Numeric fac(const Index n);
 

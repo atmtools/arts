@@ -29,7 +29,7 @@
 #define m_select_h
 
 #include "agenda_class.h"
-#include "matpackII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"

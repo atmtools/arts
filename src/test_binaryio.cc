@@ -19,7 +19,7 @@
 #include <iostream>
 
 #include "arts.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
 #include "xml_io.h"
 
 int main(int /* argc */, char* /* argv */[]) {

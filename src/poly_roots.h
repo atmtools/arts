@@ -31,7 +31,7 @@
 #define poly_roots_h
 
 #include "arts.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 int poly_root_solve(Matrix& roots, Vector& coeffs);
 

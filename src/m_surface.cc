@@ -48,6 +48,7 @@
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -212,7 +213,7 @@ void InterpSurfaceFieldToPosition(Numeric& outvalue,
                                   const Matrix& field,
                                   const Verbosity& verbosity) {
   // Input checks (dummy p_grid)
-  chk_atm_grids(atmosphere_dim, Vector(2, 2, -1), lat_grid, lon_grid);
+  chk_atm_grids(atmosphere_dim, uniform_grid(2, 2, -1), lat_grid, lon_grid);
   chk_atm_surface(
       "input argument *field*", field, atmosphere_dim, lat_grid, lon_grid);
   chk_rte_pos(atmosphere_dim, rtp_pos);
@@ -360,7 +361,7 @@ void iySurfaceFastem(Workspace& ws,
     for (Index q = 0; q < diy_dx.nelem(); q++) {
       for (Index p = 0; p < diy_dx[q].npages(); p++) {
         for (Index i = 0; i < nf; i++) {
-          Vector x = diy_dx[q](p, i, joker);
+          Vector x{diy_dx[q](p, i, joker)};
           mult(diy_dx[q](p, i, joker), surface_rmatrix(0, i, joker, joker), x);
         }
       }
@@ -1288,7 +1289,7 @@ void iySurfaceLambertian(Workspace& ws,
       Vector emissivity=surface_scalar_reflectivity;
       emissivity*=-1;
       emissivity+=1;
-      diy_dpos0*=emissivity;
+      diy_dpos0*=ExhaustiveMatrixView{emissivity};
 
       // Weight with transmission to sensor
       iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
@@ -1563,7 +1564,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      Vector los = surface_los(ilos, joker);
+      Vector los{surface_los(ilos, joker)};
 
       // Include surface reflection matrix in *iy_transmittance*
       // If iy_transmittance is empty, this is interpreted as the
@@ -1697,7 +1698,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
   // Loop *surface_los*-es.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      Vector los = surface_los(ilos, joker);
+      Vector los{surface_los(ilos, joker)};
 
       // Include surface reflection matrix in *iy_transmittance*
       // If iy_transmittance is empty, this is interpreted as the
@@ -2701,7 +2702,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
   // Help variables
   //
   const Numeric dza = (90.0 - abs(surface_normal[0])) / (Numeric)lambertian_nza;
-  const Vector za_lims(0.0, lambertian_nza + 1, dza);
+  const Vector za_lims=uniform_grid(0.0, lambertian_nza + 1, dza);
 
   // surface_los
   for (Index ip = 0; ip < lambertian_nza; ip++) {
@@ -3248,7 +3249,7 @@ void surface_rtpropFromTypesAverage(
   surface_emission = 0.;
 
   // Help variables
-  const Numeric weight_sum = dlos_weight_vector.sum();
+  const Numeric weight_sum = sum(dlos_weight_vector);
   Numeric tmp_skin_t;
   Vector tmp_type_mix;
   Matrix tmp_emission, tmp_los;
@@ -3267,8 +3268,8 @@ void surface_rtpropFromTypesAverage(
                                    lat_grid,
                                    lat_true,
                                    lon_true,
-                                   ground_pos(i, joker),
-                                   ground_los(i, joker),
+                                   Vector{ground_pos(i, joker)},
+                                   Vector{ground_los(i, joker)},
                                    surface_type_mask,
                                    surface_rtprop_agenda_array,
                                    verbosity);

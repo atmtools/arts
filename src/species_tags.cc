@@ -6,6 +6,7 @@
 
 #include "debug.h"
 #include "partfun.h"
+#include "matpack_concepts.h" 
 
 namespace Species {
 
@@ -308,16 +309,7 @@ String Tag::Name() const {
 
     // Determine the precision, depending on whether Numeric is double
     // or float:
-    int precision;
-#ifdef USE_FLOAT
-    precision = FLT_DIG;
-#else
-#ifdef USE_DOUBLE
-    precision = DBL_DIG;
-#else
-#error Numeric must be double or float
-#endif
-#endif
+    constexpr int precision = std::same_as<Numeric, double> ? DBL_DIG : FLT_DIG;
 
     if (0 > lower_freq) {
       // lower_freq < 0 means no lower limit.

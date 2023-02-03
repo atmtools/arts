@@ -2,7 +2,7 @@
 #define igrf13_h
 
 #include "artstime.h"
-#include "matpackIII.h"
+#include "matpack_data.h"
 
 namespace IGRF {
 //! Magnetic field for the east (u), north (v), and up (w) components as the ENU-coordinate system

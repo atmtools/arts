@@ -41,8 +41,8 @@
 #include "gridded_fields.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
-#include "matpackI.h"
-#include "matpackV.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
@@ -392,7 +392,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             StokesVector S;
             ArrayOfPropagationMatrix dK;
             ArrayOfStokesVector dS;
-            Vector rtp_vmr = these_all_vmrs(joker, p);
+            Vector rtp_vmr{these_all_vmrs(joker, p)};
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
             // Perform the propagation matrix computations
@@ -634,7 +634,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
   Numeric mindev = 1e9;
   Numeric maxdev = -1e9;
 
-  Vector the_grid(0, abs_t.nelem(), 1);
+  Vector the_grid=uniform_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
     const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
 
@@ -665,7 +665,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
     ++div;
   } while (effective_step > step);
 
-  abs_t_pert = Vector(mindev, div, effective_step);
+  abs_t_pert =uniform_grid(mindev, div, effective_step);
 
   out2 << "  abs_t_pert: " << abs_t_pert[0] << " K to "
        << abs_t_pert[abs_t_pert.nelem() - 1] << " K in steps of "
@@ -710,7 +710,7 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
   // mindev is set to zero from the start, since we always want to
   // include 0.
 
-  Vector the_grid(0, refprof.nelem(), 1);
+  Vector the_grid=uniform_grid(0, refprof.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
     //       cout << "!!!!!! i = " << i << "\n";
     //       cout << " min/ref/max = " << minprof[i] << " / "
@@ -776,7 +776,7 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
     ++div;
   } while (effective_step > step);
 
-  abs_nls_pert = Vector(mindev, div, effective_step);
+  abs_nls_pert = uniform_grid(mindev, div, effective_step);
 
   // If there are negative values, we also add 0. The reason for this
   // is that 0 is a turning point.
@@ -1350,7 +1350,7 @@ void abs_lookupSetupBatch(  // WS Output:
   // If np is too small for the interpolation order, we increase it:
   if (np < abs_p_interp_order + 1) np = abs_p_interp_order + 1;
 
-  Vector log_abs_p(log(maxp), np, -p_step);
+  Vector log_abs_p=uniform_grid(log(maxp), np, -p_step);
   log_abs_p[np - 1] = log(minp);
 
   abs_p.resize(np);
@@ -1751,7 +1751,7 @@ void abs_lookupSetupWide(  // WS Output:
   // If np is too small for the interpolation order, we increase it:
   if (np < abs_p_interp_order + 1) np = abs_p_interp_order + 1;
 
-  Vector log_abs_p(log(p_max), np, -p_step);
+  Vector log_abs_p=uniform_grid(log(p_max), np, -p_step);
 
   abs_p.resize(np);
   transform(abs_p, exp, log_abs_p);

@@ -21,7 +21,7 @@ int main(int argc, char** argv) try {
 
   bool gui = argc > minargs ? std::stoi(argv[minargs - 1]) : false;
 
-  const Vector f_grid(F0, NF, DF);
+  const Vector f_grid=uniform_grid(F0, NF, DF);
   PropagationMatrix propmat_clearsky(NF);
   ArrayOfPropagationMatrix x(0);
 

@@ -5,7 +5,7 @@
 
 #include "enums.h"
 #include "isotopologues.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 namespace PartitionFunctions {
 

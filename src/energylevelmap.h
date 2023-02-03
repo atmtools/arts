@@ -28,7 +28,7 @@
 #define energylevelmap_h
 
 #include "absorptionlines.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "quantum_numbers.h"
 

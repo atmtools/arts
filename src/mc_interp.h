@@ -34,7 +34,7 @@
 #include "array.h"
 #include "arts.h"
 #include "interpolation.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "optproperties.h"
 #include "ppath.h"
 

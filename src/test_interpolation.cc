@@ -24,15 +24,16 @@
 #include "interpolation.h"
 #include "interpolation_lagrange.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "xml_io.h"
 
 void test01() {
   cout << "Simple interpolation cases\n"
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
+  Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng=uniform_grid(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "og:\n" << og << "\n";
   cout << "ng:\n" << ng << "\n";
@@ -180,8 +181,8 @@ void test03(Index n) {
        << "---------------------------------------------\n";
 
   Vector a(n);
-  Iterator1D ai = a.begin();
-  const Iterator1D ae = a.end();
+  auto ai = a.begin();
+  const auto ae = a.end();
   Index i = 0;
   for (; ai != ae; ++ai, ++i) *ai = (Numeric)i;
 }
@@ -195,7 +196,7 @@ void test04() {
   // The original Tensor is called a, the new one n.
 
   // 10 pages, 20 rows, 30 columns, all grids are: 1,2,3
-  Vector a_pgrid(1, 3, 1), a_rgrid(1, 3, 1), a_cgrid(1, 3, 1);
+  Vector a_pgrid=uniform_grid(1, 3, 1), a_rgrid=uniform_grid(1, 3, 1), a_cgrid=uniform_grid(1, 3, 1);
   Tensor3 a(a_pgrid.nelem(), a_rgrid.nelem(), a_cgrid.nelem());
 
   a = 0;
@@ -206,7 +207,7 @@ void test04() {
 
   // New row and column grids:
   // 1, 1.5, 2, 2.5, 3
-  Vector n_rgrid(1, 5, .5), n_cgrid(1, 5, .5);
+  Vector n_rgrid=uniform_grid(1, 5, .5), n_cgrid=uniform_grid(1, 5, .5);
   Tensor3 n(a_pgrid.nelem(), n_rgrid.nelem(), n_cgrid.nelem());
 
   // So, n has the same number of pages as a, but more rows and columns.
@@ -248,8 +249,8 @@ void test04() {
 void test05() {
   cout << "Very simple interpolation case\n";
 
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
+  Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng=uniform_grid(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "Original grid:\n" << og << "\n";
   cout << "New grid:\n" << ng << "\n";
@@ -284,7 +285,7 @@ void test06() {
   cout << "Simple extrapolation cases\n"
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
-  Vector og(1, 5, +1);               // 1, 2, 3, 4, 5
+  Vector og=uniform_grid(1, 5, +1);               // 1, 2, 3, 4, 5
   Vector ng{0.9, 1.5, 3, 4.5, 5.1};  // 0.9, 1.5, 3, 4.5, 5.1
 
   cout << "og:\n" << og << "\n";
@@ -421,8 +422,8 @@ void test06() {
 
 void test09() {
   // Original and new grid
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
+  Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng=uniform_grid(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
   
   // Original data
   Vector yi{5, -2, 50, 2, 1};
@@ -470,8 +471,8 @@ void test09() {
 
 void test11() {
   constexpr int N = 20;
-  Vector x0(1, N, +1);  // 1, 2, 3, 4, 5 ... 10
-  Vector x1(1, N, +2);  // 1, 2, 3, 4, 5 ... 10
+  Vector x0=uniform_grid(1, N, +1);  // 1, 2, 3, 4, 5 ... 10
+  Vector x1=uniform_grid(1, N, +2);  // 1, 2, 3, 4, 5 ... 10
   Vector x0n(100);
   Vector x1n(100);
   nlinspace(x0n, x0[0], x0[N - 1], 100);

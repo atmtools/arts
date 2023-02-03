@@ -427,8 +427,8 @@ void ppathCalcFromAltitude(Workspace& ws,
               cloudbox_on,
               cloudbox_checked,
               ppath_inside_cloudbox_do,
-              ppath.dim == 1 ? ppath.pos(pos, 0) : ppath.pos(pos, joker),
-              ppath.dim == 1 ? ppath.los(pos, 0) : ppath.los(pos, joker),
+              ppath.dim == 1 ? Vector{ppath.pos(pos, 0)} : Vector{ppath.pos(pos, joker)},
+              ppath.dim == 1 ? Vector{ppath.los(pos, 0)} : Vector{ppath.los(pos, joker)},
               rte_pos2,
               verbosity);
     pos = first_pos_before_altitude(ppath, altitude);
@@ -444,8 +444,8 @@ void ppathCalcFromAltitude(Workspace& ws,
                 cloudbox_on,
                 cloudbox_checked,
                 ppath_inside_cloudbox_do,
-                ppath.dim == 1 ? ppath.pos(pos, 0) : ppath.pos(pos, joker),
-                ppath.dim == 1 ? ppath.los(pos, 0) : ppath.los(pos, joker),
+                ppath.dim == 1 ? Vector{ppath.pos(pos, 0)} : Vector{ppath.pos(pos, joker)},
+                ppath.dim == 1 ? Vector{ppath.los(pos, 0)} : Vector{ppath.los(pos, joker)},
                 rte_pos2,
                 verbosity);
       break;
@@ -1851,8 +1851,8 @@ void ppath_fieldCalc(Workspace& ws,
               cloudbox_on,
               cloudbox_checked,
               ppath_inside_cloudbox_do,
-              sensor_pos(i, joker),
-              sensor_los(i, joker),
+              Vector{sensor_pos(i, joker)},
+              Vector{sensor_los(i, joker)},
               rte_pos2,
               verbosity);
 }
@@ -2273,8 +2273,8 @@ void sensor_losGeometricFromSensorPosToOtherPositions(
                                         lat_grid,
                                         lon_grid,
                                         refellipsoid,
-                                        sensor_pos(i, joker),
-                                        target_pos(i, joker),
+                                        Vector{sensor_pos(i, joker)},
+                                        Vector{target_pos(i, joker)},
                                         verbosity);
     sensor_los(i, joker) = rte_los;
   }
@@ -2442,7 +2442,7 @@ void VectorZtanToZaRefr1D(Workspace& ws,
                       refr_index_air_group,
                       refr_index_air_agenda,
                       p_grid,
-                      refellipsoid[0],
+                      ConstVectorView{refellipsoid[0]},
                       z_field,
                       t_field,
                       vmr_field,

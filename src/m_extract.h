@@ -33,7 +33,7 @@
 #include "array.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
-#include "matpackV.h"
+#include "matpack_data.h"
 #include "quantum_numbers.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */

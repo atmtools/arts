@@ -30,7 +30,7 @@
 #define disort_h
 
 #include "agenda_class.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "optproperties.h"
 #include "sun.h"
@@ -45,7 +45,7 @@
  * @param[in]   pftc2   Phase function 2 as Legendre series (layer, polynomial).
  * @param[in]   sca2    Scattering coefficient phase function 2 (frequency, layer).
  */
-void add_normed_phase_functions(Tensor3View& pftc1,
+void add_normed_phase_functions(Tensor3View pftc1,
                                 const MatrixView& sca1,
                                 const MatrixView& pftc2,
                                 const MatrixView& sca2);
@@ -355,9 +355,9 @@ void get_gasoptprop(Workspace& ws,
  * @date       2021-11-17
  */
 void get_gas_scattering_properties(Workspace& ws,
-                                   MatrixView& sca_coeff_gas,
-                                   MatrixView& sca_coeff_gas_level,
-                                   MatrixView& pfct_gas,
+                                   MatrixView sca_coeff_gas,
+                                   MatrixView sca_coeff_gas_level,
+                                   MatrixView pfct_gas,
                                    const ConstVectorView& f_grid,
                                    const VectorView& p,
                                    const VectorView& t,
@@ -479,7 +479,7 @@ void get_parZ(Tensor3& pha_bulk_par,
  * @date   2018-04-04
  */
 void get_pfct(Tensor3& pfct_bulk_par,
-              ConstTensor3View& pha_bulk_par,
+              ConstTensor3View pha_bulk_par,
               ConstMatrixView ext_bulk_par,
               ConstMatrixView abs_bulk_par,
               const ArrayOfIndex& cloudbox_limits);
@@ -514,7 +514,7 @@ void get_pmom(Tensor3View pmom,
  * @author     Manfred Brath
  * @date       2021-11-17
  */
-void get_scat_bulk_layer(MatrixView& sca_bulk_layer,
+void get_scat_bulk_layer(MatrixView sca_bulk_layer,
                          const MatrixView& ext_bulk,
                          const MatrixView& abs_bulk);
 

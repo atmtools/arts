@@ -28,7 +28,7 @@
 #define m_conversion_h
 
 #include "arts_constants.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;

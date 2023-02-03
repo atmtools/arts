@@ -182,14 +182,14 @@ void get_quad_angles(  // Output
     const Index& nummu) {
   if (quad_type == "D") {
     double_gauss_quadrature_(
-        nhstreams, mu_values.get_c_array(), quad_weights.get_c_array());
+        nhstreams, mu_values.unsafe_data_handle(), quad_weights.unsafe_data_handle());
   } else if (quad_type == "G") {
     gauss_legendre_quadrature_(
-        nhstreams, mu_values.get_c_array(), quad_weights.get_c_array());
+        nhstreams, mu_values.unsafe_data_handle(), quad_weights.unsafe_data_handle());
   } else  //if( quad_type=="L" )
   {
     lobatto_quadrature_(
-        nhstreams, mu_values.get_c_array(), quad_weights.get_c_array());
+        nhstreams, mu_values.unsafe_data_handle(), quad_weights.unsafe_data_handle());
   }
 
   // Set "extra" angle (at 0deg) if quad_type!="L" && !add_straight_angles
@@ -407,8 +407,8 @@ void run_rt4(Workspace& ws,
   // of scat_layers).
   Vector pnd_per_level(pnd.ncols());
   for (Index clev = 0; clev < pnd.ncols(); clev++)
-    pnd_per_level[clev] = pnd(joker, clev).sum();
-  Numeric pndtot = pnd_per_level.sum();
+    pnd_per_level[clev] =sum(pnd(joker, clev));
+  Numeric pndtot = sum(pnd_per_level);
 
   for (Index i = 0; i < cboxlims[1] - cboxlims[0]; i++) {
     scatlayers[num_layers - 1 - cboxlims[0] - i] = float(i + 1);
@@ -464,9 +464,9 @@ void run_rt4(Workspace& ws,
     Numeric wavelength;
     wavelength = 1e6 * SPEED_OF_LIGHT / f_grid[f_index];
 
-    Matrix groundreflec = ground_reflec(f_index, joker, joker);
-    Tensor4 surfreflmat = surf_refl_mat(f_index, joker, joker, joker, joker);
-    Matrix surfemisvec = surf_emis_vec(f_index, joker, joker);
+    Matrix groundreflec{ground_reflec(f_index, joker, joker)};
+    Tensor4 surfreflmat{surf_refl_mat(f_index, joker, joker, joker, joker)};
+    Matrix surfemisvec{surf_emis_vec(f_index, joker, joker)};
     //Vector muvalues=mu_values;
 
     // only update gas_extinct if there is any gas absorption at all (since
@@ -540,25 +540,25 @@ void run_rt4(Workspace& ws,
                   ground_type.c_str(),
                   ground_albedo[f_index],
                   ground_index[f_index],
-                  groundreflec.get_c_array(),
-                  surfreflmat.get_c_array(),
-                  surfemisvec.get_c_array(),
+                  groundreflec.unsafe_data_handle(),
+                  surfreflmat.unsafe_data_handle(),
+                  surfemisvec.unsafe_data_handle(),
                   sky_temp,
                   wavelength,
                   num_layers,
-                  height.get_c_array(),
-                  temperatures.get_c_array(),
-                  gas_extinct.get_c_array(),
+                  height.unsafe_data_handle(),
+                  temperatures.unsafe_data_handle(),
+                  gas_extinct.unsafe_data_handle(),
                   num_scatlayers,
-                  scatlayers.get_c_array(),
-                  extinct_matrix.get_c_array(),
-                  emis_vector.get_c_array(),
-                  scatter_matrix.get_c_array(),
+                  scatlayers.unsafe_data_handle(),
+                  extinct_matrix.unsafe_data_handle(),
+                  emis_vector.unsafe_data_handle(),
+                  scatter_matrix.unsafe_data_handle(),
                   //noutlevels,
-                  //outlevels.get_c_array(),
-                  mu_values.get_c_array(),
-                  up_rad.get_c_array(),
-                  down_rad.get_c_array());
+                  //outlevels.unsafe_data_handle(),
+                  mu_values.unsafe_data_handle(),
+                  up_rad.unsafe_data_handle(),
+                  down_rad.unsafe_data_handle());
       }
 
     } else {  // if (auto_inc_nstreams)
@@ -713,26 +713,26 @@ void run_rt4(Workspace& ws,
                   ground_type.c_str(),
                   ground_albedo[f_index],
                   ground_index[f_index],
-                  groundreflec.get_c_array(),
-                  surfreflmat_new.get_c_array(),
-                  surfemisvec_new.get_c_array(),
+                  groundreflec.unsafe_data_handle(),
+                  surfreflmat_new.unsafe_data_handle(),
+                  surfemisvec_new.unsafe_data_handle(),
                   sky_temp,
                   wavelength,
                   num_layers,
-                  height.get_c_array(),
-                  temperatures.get_c_array(),
-                  gas_extinct.get_c_array(),
+                  height.unsafe_data_handle(),
+                  temperatures.unsafe_data_handle(),
+                  gas_extinct.unsafe_data_handle(),
                   num_scatlayers,
-                  scatlayers.get_c_array(),
+                  scatlayers.unsafe_data_handle(),
                   extinct_matrix_new(0, joker, joker, joker, joker, joker)
-                      .get_c_array(),
-                  emis_vector_new(0, joker, joker, joker, joker).get_c_array(),
-                  scatter_matrix_new.get_c_array(),
+                      .unsafe_data_handle(),
+                  emis_vector_new(0, joker, joker, joker, joker).unsafe_data_handle(),
+                  scatter_matrix_new.unsafe_data_handle(),
                   //noutlevels,
-                  //outlevels.get_c_array(),
-                  mu_values_new.get_c_array(),
-                  up_rad_new.get_c_array(),
-                  down_rad_new.get_c_array());
+                  //outlevels.unsafe_data_handle(),
+                  mu_values_new.unsafe_data_handle(),
+                  up_rad_new.unsafe_data_handle(),
+                  down_rad_new.unsafe_data_handle());
       }
       // back-interpolate nstream_new fields to nstreams
       //   (possible to use iyCloudboxInterp agenda? nja, not really a good
@@ -748,7 +748,7 @@ void run_rt4(Workspace& ws,
       for (Index j = 0; j < nummu; j++) {
         const LagrangeInterpolation lag_za(0,
                                            cos_za_interp ? mu_values[j] : za_grid_orig[j], 
-                                           cos_za_interp ? mu_values_new : za_grid[Range(0, nummu_new)],
+                                           cos_za_interp ? VectorView{mu_values_new} : za_grid[Range(0, nummu_new)],
                                            za_interp_order, false);
         const auto itw = interpweights(lag_za);
 
@@ -865,7 +865,7 @@ void gas_optpropCalc(Workspace& ws,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
-                                   f_mono,  // monochromatic calculation
+                                   Vector{f_mono},  // monochromatic calculation
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    rtp_pressure_local,
@@ -902,7 +902,7 @@ void par_optpropCalc(Tensor5View emis_vector,
   ARTS_ASSERT(extinct_matrix.nshelves() == Np_cloud - 1);
 
   // preparing input data
-  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
+  Vector T_array{t_profile[Range(cloudbox_limits[0], Np_cloud)]};
   Matrix dir_array(za_grid.nelem(), 2, 0.);
   dir_array(joker, 0) = za_grid;
 
@@ -1398,7 +1398,7 @@ void surf_optpropCalc(Workspace& ws,
                                  surface_emission,
                                  surface_los,
                                  surface_rmatrix,
-                                 f_grid,
+                                 Vector{f_grid},
                                  rtp_pos,
                                  rtp_los,
                                  surface_rtprop_agenda);
@@ -1445,7 +1445,7 @@ void surf_optpropCalc(Workspace& ws,
     if (nsl > 1)  // non-blackbody, non-specular reflection
     {
       for (Index f_index = 0; f_index < nf; f_index++)
-        R_arts[f_index] = surface_rmatrix(joker, f_index, 0, 0).sum();
+        R_arts[f_index] = sum(surface_rmatrix(joker, f_index, 0, 0));
 
       // Determine angle range weights in surface_rmatrix and de-scale
       // surface_rmatrix with those.
@@ -1504,7 +1504,7 @@ void surf_optpropCalc(Workspace& ws,
                          // just setting diagonal elements of surf_refl_mat.
     {
       for (Index f_index = 0; f_index < nf; f_index++)
-        R_arts[f_index] = surface_rmatrix(joker, f_index, 0, 0).sum();
+        R_arts[f_index] = sum(surface_rmatrix(joker, f_index, 0, 0));
 
       // surface_los angle should be identical to
       // 180. - (rtp_los=za_grid[nummu+rmu]=180.-za_grid[rmu])
@@ -1523,7 +1523,7 @@ void surf_optpropCalc(Workspace& ws,
     //eventually make sure the scaling of surf_refl_mat is correct
     for (Index f_index = 0; f_index < nf; f_index++) {
       Numeric R_scale = 1.;
-      Numeric R_rt4 = surf_refl_mat(f_index, joker, 0, rmu, 0).sum();
+      Numeric R_rt4 = sum(surf_refl_mat(f_index, joker, 0, rmu, 0));
       if (R_rt4 == 0.) {
         ARTS_USER_ERROR_IF (R_arts[f_index] != 0.,
           "Something went wrong.\n"
@@ -1624,25 +1624,25 @@ void rt4_test(Tensor4& out_rad,
             ground_type.c_str(),
             ground_albedo,
             ground_index,
-            ground_reflec.get_c_array(),
-            surf_refl_mat.get_c_array(),
-            surf_emis_vec.get_c_array(),
+            ground_reflec.unsafe_data_handle(),
+            surf_refl_mat.unsafe_data_handle(),
+            surf_emis_vec.unsafe_data_handle(),
             sky_temp,
             wavelength,
             num_layers,
-            height.get_c_array(),
-            temperatures.get_c_array(),
-            gas_extinct.get_c_array(),
+            height.unsafe_data_handle(),
+            temperatures.unsafe_data_handle(),
+            gas_extinct.unsafe_data_handle(),
             num_scatlayers,
-            scatlayers.get_c_array(),
-            extinct_matrix.get_c_array(),
-            emis_vector.get_c_array(),
-            scatter_matrix.get_c_array(),
+            scatlayers.unsafe_data_handle(),
+            extinct_matrix.unsafe_data_handle(),
+            emis_vector.unsafe_data_handle(),
+            scatter_matrix.unsafe_data_handle(),
             //noutlevels,
-            //outlevels.get_c_array(),
-            mu_values.get_c_array(),
-            up_rad.get_c_array(),
-            down_rad.get_c_array());
+            //outlevels.unsafe_data_handle(),
+            mu_values.unsafe_data_handle(),
+            up_rad.unsafe_data_handle(),
+            down_rad.unsafe_data_handle());
 
   //so far, output is in
   //    units W/m^2 um sr

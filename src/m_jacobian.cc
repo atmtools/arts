@@ -40,6 +40,7 @@
 #include "jacobian.h"
 #include "m_xml.h"
 #include "math_funcs.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "rte.h"
@@ -568,7 +569,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
   // number of measurement blocks, all elements set to -1.
-  Vector grid(0, poly_order + 1, 1);
+  Vector grid=uniform_grid(0, poly_order + 1, 1);
   if (poly_order == -1) {
     grid.resize(sensor_pos.nrows());
     grid = -1.0;
@@ -639,9 +640,9 @@ void jacobianCalcPointingZaInterp(
     const Index nza = mblock_dlos.nrows();
 
     // Shifted zenith angles
-    Vector za1 = mblock_dlos(joker, 0);
+    Vector za1{mblock_dlos(joker, 0)};
     za1 -= rq.Target().perturbation;
-    Vector za2 = mblock_dlos(joker, 0);
+    Vector za2{mblock_dlos(joker, 0)};
     za2 += rq.Target().perturbation;
 
     // Find interpolation weights
@@ -684,7 +685,7 @@ void jacobianCalcPointingZaInterp(
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row0 = rowind.get_start();
+  const Index row0 = rowind.offset;
 
   // Handle pointing "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
@@ -805,7 +806,7 @@ void jacobianCalcPointingZaRecalc(
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row0 = rowind.get_start();
+  const Index row0 = rowind.offset;
 
   // Handle "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
@@ -873,15 +874,15 @@ void jacobianAddPolyfit(Workspace& ws _U_,
   if (no_pol_variation)
     grids[1] = Vector(1, 1);
   else
-    grids[1] = Vector(0, sensor_response_pol_grid.nelem(), 1);
+    grids[1] = uniform_grid(0, sensor_response_pol_grid.nelem(), 1);
   if (no_los_variation)
     grids[2] = Vector(1, 1);
   else
-    grids[2] = Vector(0, sensor_response_dlos_grid.nrows(), 1);
+    grids[2] = uniform_grid(0, sensor_response_dlos_grid.nrows(), 1);
   if (no_mblock_variation)
     grids[3] = Vector(1, 1);
   else
-    grids[3] = Vector(0, sensor_pos.nrows(), 1);
+    grids[3] = uniform_grid(0, sensor_pos.nrows(), 1);
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
@@ -965,7 +966,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   const Index n2 = jg[2].nelem();
   const Index n3 = jg[3].nelem();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row4 = rowind.get_start();
+  const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[iq][0];
 
   if (n3 > 1) {
@@ -1102,15 +1103,15 @@ void jacobianAddSinefit(Workspace& ws _U_,
   if (no_pol_variation)
     grids[1] = Vector(1, 1);
   else
-    grids[1] = Vector(0, sensor_response_pol_grid.nelem(), 1);
+    grids[1] = uniform_grid(0, sensor_response_pol_grid.nelem(), 1);
   if (no_los_variation)
     grids[2] = Vector(1, 1);
   else
-    grids[2] = Vector(0, sensor_response_dlos_grid.nrows(), 1);
+    grids[2] = uniform_grid(0, sensor_response_dlos_grid.nrows(), 1);
   if (no_mblock_variation)
     grids[3] = Vector(1, 1);
   else
-    grids[3] = Vector(0, sensor_pos.nrows(), 1);
+    grids[3] = uniform_grid(0, sensor_pos.nrows(), 1);
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
@@ -1201,7 +1202,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   const Index n2 = jg[2].nelem();
   const Index n3 = jg[3].nelem();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row4 = rowind.get_start();
+  const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[iq][0];
 
   if (n3 > 1) {
@@ -1897,7 +1898,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
         "Dimension of offset vector incompatible with retrieval grids.");
   }
 
-  jqs.back().SetTransformationMatrix(transpose(transformation_matrix));
+  jqs.back().SetTransformationMatrix(Matrix{transpose(transformation_matrix)});
   jqs.back().SetOffsetVector(offset_vector);
 }
 
@@ -2124,8 +2125,8 @@ void jacobianFromTwoY(Matrix& jacobian,
   if( y_pert.nelem() != n ){
     throw runtime_error("Inconsistency in length of *y_pert* and *y*.");
   }
-  jacobian = y_pert;
-  jacobian -= y;
+  jacobian = ExhaustiveConstMatrixView{y_pert};
+  jacobian -= ExhaustiveConstMatrixView{y};
   jacobian /= pert_size;
 }
 

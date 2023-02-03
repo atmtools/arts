@@ -1,5 +1,6 @@
 #include "gridded_fields.h"
-#include "matpack.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 
 using std::cout;
 using std::endl;
@@ -14,10 +15,10 @@ int main(void) {
 
   // Initializing the grids
   //////////////////////////////////////////////////////////////////////////////
-  Vector gfonegrid(1, 5, 1);     // gfonegrid = [1,2,3,4,5]
+  Vector gfonegrid=uniform_grid(1, 5, 1);     // gfonegrid = [1,2,3,4,5]
   gfone.set_grid(0, gfonegrid);  // Set grid for the vector elements.
 
-  Vector gftwogrid0(1, 5, 1);  // gftwogrid0 = [1,2,3,4,5]
+  Vector gftwogrid0=uniform_grid(1, 5, 1);  // gftwogrid0 = [1,2,3,4,5]
   ArrayOfString gftwogrid1{"Chan1", "Chan2", "Chan3"};
 
   gftwo.set_grid(0, gftwogrid0);  // Set grid for the matrix rows.
@@ -30,7 +31,7 @@ int main(void) {
 
   // Initializing the data
   //////////////////////////////////////////////////////////////////////////////
-  Vector avector(1, 4, 0.5);  // avector = [1,1.5,2,2.5]
+  Vector avector=uniform_grid(1, 4, 0.5);  // avector = [1,1.5,2,2.5]
 
   gfone.data = avector;
 

@@ -33,7 +33,7 @@
 #include <iostream>
 #include <vector>
 
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 /** This can be used to make arrays out of anything.
 

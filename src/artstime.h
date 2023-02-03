@@ -33,7 +33,7 @@
 
 #include "array.h"
 #include "debug.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 
 /** A duration of time, 1 full tick should be 1 second */

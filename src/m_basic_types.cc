@@ -54,13 +54,9 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
-#include "matpackII.h"
-#include "matpackIII.h"
-#include "matpackIV.h"
-#include "matpackV.h"
-#include "matpackVI.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
+#include "matpack_arrays.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "mystring.h"
 #include "optproperties.h"
@@ -1376,7 +1372,7 @@ void VectorInsertGridPoints(  // WS Generic Output:
     // Turn grid round.
 
     // Copy ig to dummy vector in reverse order:
-    const Vector dummy = ig[Range(ig.nelem() - 1, ig.nelem(), -1)];
+    const Vector dummy = reverse(ig);
 
     // Copy dummy back to ig vector:
     ig = dummy;

@@ -49,6 +49,7 @@
 #include "interpolation_lagrange.h"
 #include "m_select.h"
 #include "math_funcs.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "ppath.h"
 #include "rte.h"
@@ -471,7 +472,7 @@ void f_gridFromSensorAMSU(  // WS Output:
 
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
+  std::vector<Numeric> f_grid_array;
 
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Band width:
@@ -491,7 +492,7 @@ void f_gridFromSensorAMSU(  // WS Output:
     out3 << "  Band range " << i << ": " << grid << "\n";
 
     // Append to f_grid_array:
-    f_grid_array.reserve(f_grid_array.nelem() + npi);
+    f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
 
@@ -599,7 +600,7 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
 
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
+  std::vector<Numeric> f_grid_array;
 
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Bandwidth:
@@ -638,12 +639,12 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
     const Numeric gs = bw / npf;
 
     // Create the grid for this band:
-    Vector grid(fmin[i], npi, gs);
+    Vector grid=uniform_grid(fmin[i], npi, gs);
 
     out3 << "  Band range " << i << ": " << grid << "\n";
 
     // Append to f_grid_array:
-    f_grid_array.reserve(f_grid_array.nelem() + npi);
+    f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
 
@@ -690,7 +691,7 @@ void f_gridFromSensorHIRS(  // WS Output:
 
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
+  std::vector<Numeric> f_grid_array;
 
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Band width:
@@ -710,7 +711,7 @@ void f_gridFromSensorHIRS(  // WS Output:
     out3 << "  Band range " << i << ": " << grid << "\n";
 
     // Append to f_grid_array:
-    f_grid_array.reserve(f_grid_array.nelem() + npi);
+    f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
 
@@ -1456,7 +1457,7 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
        << sensor_response.ncols() << "\n";
 
   // Update sensor_response_za_grid
-  const Vector zaaa = sensor_response_dlos_grid(1, joker);
+  const Vector zaaa{sensor_response_dlos_grid(1, joker)};
   sensor_response_dlos_grid.resize(1, zaaa.nelem());
   sensor_response_dlos_grid(0, joker) = zaaa;
 
@@ -3134,7 +3135,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
   // ---------------------------------------------------
 
   f_gridFromSensorAMSU(f_grid,
-                       lo_multi,
+                       Vector{lo_multi},
                        f_backend_multi,
                        backend_channel_response_multi,
                        spacing,
@@ -3164,7 +3165,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
                                    sensor_response_f_grid,
                                    sensor_response_pol_grid,
                                    sensor_response_dlos_grid,
-                                   lo_multi,
+                                   Vector{lo_multi},
                                    sideband_response_multi,
                                    sideband_mode_multi,
                                    f_backend_multi,

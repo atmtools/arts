@@ -44,7 +44,7 @@
 #include "cloudbox.h"
 #include "lin_alg.h"
 #include "logic.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "optproperties.h"
 #include "physics_funcs.h"
@@ -199,7 +199,7 @@ void cloud_atm_vars_by_gp(VectorView pressure,
  */
 void get_ppath_transmat(
     Workspace& ws,
-    MatrixView& trans_mat,
+    MatrixView trans_mat,
     const Ppath& ppath,
     const Agenda& propmat_clearsky_agenda,
     const Index stokes_dim,

@@ -49,8 +49,7 @@
 #include "interpolation_lagrange.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackIII.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "montecarlo.h"
 #include "optproperties.h"
@@ -2965,7 +2964,7 @@ void ScatSpeciesMerge(  //WS Output:
                    i_aa++) {
                 // Weighted sum of ext_mat_data and abs_vec_data
                 if (orig_part.T_grid.nelem() == 1) {
-                  Vector v = orig_part.ext_mat_data(i_f, 0, i_za, i_aa, joker);
+                  Vector v{orig_part.ext_mat_data(i_f, 0, i_za, i_aa, joker)};
                   v *= pnd_field(pnd_index, i_lv, 0, 0);
                   this_part.ext_mat_data(i_f, 0, i_za, 0, joker) += v;
 
@@ -3015,13 +3014,13 @@ void ScatSpeciesMerge(  //WS Output:
                        i_aa_inc++) {
                     // Weighted sum of pha_mat_data
                     if (orig_part.T_grid.nelem() == 1) {
-                      Vector v = orig_part.pha_mat_data(i_f,
+                      Vector v{orig_part.pha_mat_data(i_f,
                                                         0,
                                                         i_za_out,
                                                         i_aa_out,
                                                         i_za_inc,
                                                         i_aa_inc,
-                                                        joker);
+                                                        joker)};
                       v *= pnd_field(pnd_index, i_lv, 0, 0);
                       this_part.pha_mat_data(i_f,
                                              0,

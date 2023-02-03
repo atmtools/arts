@@ -34,7 +34,7 @@
 #include "energylevelmap.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "mystring.h"
 #include <array>

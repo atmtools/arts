@@ -77,7 +77,7 @@ void interp(MatrixView tia,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   Index anr = a[0].nrows();
   Index anc = a[0].ncols();
@@ -102,7 +102,7 @@ void interp(VectorView tia,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   Index an = a[0].nelem();
 

@@ -89,7 +89,7 @@ void nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&) {
                          "ArrayOfMatrix",
                          pos,
                          vnrows[i] * vncols[i],
-                         aom[i].get_c_array());
+                         aom[i].unsafe_data_handle());
     pos += vnrows[i] * vncols[i];
   }
 
@@ -143,7 +143,7 @@ void nca_write_to_file(const int ncid,
   for (Index i = 0; i < aom.nelem(); i++) {
     size_t count = aom[i].nrows() * aom[i].ncols();
     if ((retval = nc_put_vara_double(
-             ncid, varid, &pos, &count, aom[i].get_c_array())))
+             ncid, varid, &pos, &count, aom[i].unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
     pos += count;
   }
@@ -170,7 +170,7 @@ void nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&) {
   for (Index i = 0; i < nelem; i++) {
     aov[i].resize(vnelem[i]);
     nca_get_data(
-        ncid, "ArrayOfVector", pos, vnelem[i], aov[i].get_c_array());
+        ncid, "ArrayOfVector", pos, vnelem[i], aov[i].unsafe_data_handle());
     pos += vnelem[i];
   }
 
@@ -216,7 +216,7 @@ void nca_write_to_file(const int ncid,
   for (Index i = 0; i < aov.nelem(); i++) {
     size_t count = aov[i].nelem();
     if ((retval = nc_put_vara_double(
-             ncid, varid, &pos, &count, aov[i].get_c_array())))
+             ncid, varid, &pos, &count, aov[i].unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
     pos += count;
   }

@@ -26,7 +26,8 @@
 #define test_utils_h
 
 #include "matpack_complex.h"
-#include "matpackI.h"
+#include "matpack_data.h"
+#include "matpack_sparse.h"
 #include <stdlib.h>
 #include <time.h>
 

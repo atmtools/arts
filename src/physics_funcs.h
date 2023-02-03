@@ -34,7 +34,7 @@
 
 #include "arts_conversions.h"
 #include "arts.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "matpack_complex.h"
 
 /*===========================================================================

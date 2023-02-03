@@ -26,7 +26,7 @@
 #include "arts_conversions.h"
 #include "file.h"
 #include "geodetic.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "rte.h"
 #include "telsem.h"

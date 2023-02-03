@@ -29,7 +29,7 @@
 
 #include "absorption.h"
 #include "gridded_fields.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 /** Sets up the solution matrix for linear statistical equilibrium equation
  * 

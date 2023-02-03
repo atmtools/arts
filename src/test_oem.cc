@@ -15,7 +15,7 @@
 #include <string>
 #include "engine.h"
 #include "lin_alg.h"
-#include "matpackII.h"
+#include "matpack_sparse.h"
 #include "matrix.h"
 #include "oem.h"
 #include "test_utils.h"

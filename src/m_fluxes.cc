@@ -30,7 +30,7 @@
 #include "check_input.h"
 #include "legendre.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "sorting.h"
 #include "surface.h"
@@ -167,8 +167,8 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     }
 
     //#sort weights and theta in increasing direction of za_grid
-    za_grid = za_grid_temp[Range(x.nelem() - 1, x.nelem(), -1)];
-    za_grid_weights = w[Range(x.nelem() - 1, x.nelem(), -1)];
+    za_grid = reverse(za_grid_temp);
+    za_grid_weights = reverse(w);
 
   } else {
     ostringstream os;

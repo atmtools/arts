@@ -45,6 +45,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "jacobian.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
@@ -362,9 +363,9 @@ void xaStandard(Workspace& ws,
     else if (jacobian_quantities[q].Target().isWind()) {
       ConstTensor3View source_field(wind_u_field);
       if (jacobian_quantities[q] == Jacobian::Atm::WindV) {
-        source_field = wind_v_field;
+        source_field.set(wind_v_field);
       } else if (jacobian_quantities[q] == Jacobian::Atm::WindW) {
-        source_field = wind_w_field;
+        source_field.set(wind_w_field);
       }
 
       // Determine grid positions for interpolation from retrieval grids back
@@ -418,9 +419,9 @@ void xaStandard(Workspace& ws,
       } else {
         ConstTensor3View source_field(mag_u_field);
         if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
-          source_field = mag_v_field;
+          source_field.set(mag_v_field);
         } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
-          source_field = mag_w_field;
+          source_field.set(mag_w_field);
         }
 
         // Determine grid positions for interpolation from retrieval grids back
@@ -1100,11 +1101,11 @@ void OEM(Workspace& ws,
     Vector dy = y;
     dy -= yf;
     Vector sdy = y;
-    mult_inv(sdy, covmat_se, dy);
+    mult_inv(ExhaustiveMatrixView{sdy}, covmat_se, ExhaustiveMatrixView{dy});
     Vector dx = x;
     dx -= xa;
     Vector sdx = x;
-    mult_inv(sdx, covmat_sx, dx);
+    mult_inv(ExhaustiveMatrixView{sdx}, covmat_sx, ExhaustiveMatrixView{dx});
     cost_start = dx * sdx + dy * sdy;
     cost_start /= static_cast<Numeric>(m);
   }
@@ -1158,10 +1159,11 @@ void OEM(Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_m") {
+        ARTS_USER_ERROR(method, " is not supported")
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
-        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
+//        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
+//            x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_cg") {
         oem::CG cg(T, apply_norm, 1e-10, 0);
@@ -1182,10 +1184,11 @@ void OEM(Workspace& ws,
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_m") {
+        ARTS_USER_ERROR(method, " is not supported")
         oem::Std s(T, apply_norm);
         oem::GN gn(stop_dx, (unsigned int)max_iter, s);
-        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
-            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
+//        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
+//            x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_cg") {
         oem::CG cg(T, apply_norm, 1e-10, 0);

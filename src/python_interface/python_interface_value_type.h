@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <matpack.h>
+#include <matpack_concepts.h>
 
 namespace Python {
 template <typename type>

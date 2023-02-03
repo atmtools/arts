@@ -35,7 +35,7 @@
 #include <functional>
 
 #include "array.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
 
 /** get_sorted_indexes
@@ -55,14 +55,8 @@
  */
 template <typename T>
 void get_sorted_indexes(ArrayOfIndex& sorted, const T& data) {
-  sorted.resize(0);
-
-  Index i = 0;
-  for (typename T::const_iterator it = data.begin(); it != data.end(); ++it) {
-    sorted.push_back(i);
-    i++;
-  }
-
+  sorted.resize(data.size());
+  std::iota(sorted.begin(), sorted.end(), 0);
   sort(sorted.begin(), sorted.end(), [&data](const Index a, const Index b) {
     return data[a] < data[b];
   });

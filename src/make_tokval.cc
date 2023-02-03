@@ -26,8 +26,7 @@ int main() {
 #include "gas_abs_lookup.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
-#include "matpackII.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "mc_antenna.h"
 #include "optproperties.h"
 #include "sun.h"
@@ -185,8 +184,14 @@ inline TokValType* tokval_type(void * ptr) noexcept {
 TokVal::TokVal(const char * const c) : TokVal(String(c)) {}
     
 TokVal::TokVal() : TokVal(Any{}) {}
-TokVal::TokVal(const TokVal& v) : TokVal(Any{}) { std::visit([&](auto&& in) {*this = *in;}, *tokval_type(v.ptr)); }
-TokVal& TokVal::operator=(const TokVal& v) {std::visit([&](auto&& in) {*this = *in;}, *tokval_type(v.ptr)); return *this; }
+TokVal::TokVal(const TokVal& v) : TokVal(Any{}) { *this = v; }
+TokVal& TokVal::operator=(const TokVal& v) {
+  delete tokval_type(ptr);
+  ptr = std::visit([&](auto&& in) -> void* {
+    return new TokValType{std::make_unique<std::remove_cvref_t<decltype(*in)>>(*in)};
+  }, *tokval_type(v.ptr));
+  return *this;
+}
 
 TokVal::~TokVal() noexcept {delete tokval_type(ptr); ptr=nullptr;}
 

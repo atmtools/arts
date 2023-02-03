@@ -53,7 +53,7 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
  \param[in] verbosity   Standard verbosity object.
  */
 void cia_interpolation(VectorView result,
-                       ConstVectorView f_grid,
+                       const ConstVectorView& f_grid,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
@@ -181,7 +181,7 @@ void cia_interpolation(VectorView result,
       }
     }
   }
-  
+
   // Find frequency grid positions:
   const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid);
   
@@ -237,7 +237,7 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 
 // Documentation in header file.
 void CIARecord::Extract(VectorView result,
-                        ConstVectorView f_grid,
+                        const ConstVectorView& f_grid,
                         const Numeric& temperature,
                         const Index& dataset,
                         const Numeric& T_extrapolfac,
@@ -324,7 +324,7 @@ void CIARecord::ReadFromCIA(const String& filename,
 
   // Frequency, temp and cia values for current dataset
   Vector freq;
-  ArrayOfNumeric temp;
+  std::vector<Numeric> temp;
   ArrayOfVector cia;
 
   // Keep track of current line in file
@@ -386,7 +386,7 @@ void CIARecord::ReadFromCIA(const String& filename,
     // If the min/max wave numbers of this set are different from the
     // previous one, a new dataset starts
     if (npoints == -1 || wave_min != set_wave_min || wave_max != set_wave_max) {
-      if (ndataset != -1) AppendDataset(freq, temp, cia);
+      if (ndataset != -1) AppendDataset(freq, Vector{temp}, cia);
 
       npoints = set_npoints;
       ndataset++;
@@ -451,7 +451,7 @@ void CIARecord::ReadFromCIA(const String& filename,
     throw runtime_error(os.str());
   }
 
-  AppendDataset(freq, temp, cia);
+  AppendDataset(freq, Vector{temp}, cia);
 
   //    // For debugging
   //    for(Index i = 0; i < mdata.nelem(); i++)
@@ -464,7 +464,7 @@ void CIARecord::ReadFromCIA(const String& filename,
 
 /** Append data dataset to mdata. */
 void CIARecord::AppendDataset(const Vector& freq,
-                              const ArrayOfNumeric& temp,
+                              const Vector& temp,
                               const ArrayOfVector& cia) {
   GriddedField2 dataset;
   dataset.resize(freq.nelem(), temp.nelem());

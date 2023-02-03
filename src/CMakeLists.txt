@@ -1,9 +1,11 @@
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/matpack
                       ${ZLIB_INCLUDE_DIR}
                       ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
                       ${ARTS_SOURCE_DIR}/3rdparty/cdisort
                       ${ARTS_SOURCE_DIR}/3rdparty/Eigen
+                      ${ARTS_SOURCE_DIR}/3rdparty/mdspan/include()
                     )
 
 if (NETCDF_FOUND)
@@ -105,9 +107,6 @@ add_executable (make_auto_md_h
         parameters.cc
         )
 
-if (ENABLE_PCH)
-  target_precompile_headers(make_auto_md_h PRIVATE pch_matpack.h)
-endif()
 target_link_libraries (make_auto_md_h methods matpack)
 
 add_custom_command (
@@ -127,9 +126,6 @@ add_executable (make_auto_md_cc
         parameters.cc
         )
 
-if (ENABLE_PCH)
-  target_precompile_headers(make_auto_md_cc PRIVATE pch_matpack.h)
-endif()
 target_link_libraries (make_auto_md_cc methods matpack)
 
 add_custom_command (
@@ -350,27 +346,8 @@ if (ENABLE_DOCSERVER)
 endif (ENABLE_DOCSERVER)
 
 ########### next target ###############
-
-add_library (matpack STATIC
-        lin_alg.cc
-        logic.cc
-        rational.cc
-        matpackI.cc
-        matpackII.cc
-        matpackIII.cc
-        matpackIV.cc
-        matpackV.cc
-        matpackVI.cc
-        matpackVII.cc
-        matpack_complex.cc
-        propagationmatrix.cc
-        )
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
-if (ENABLE_PCH)
-  target_precompile_headers(matpack PRIVATE pch_matpack.h)
-endif()
-target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
@@ -441,7 +418,6 @@ target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
 ########### next testcase ###############
 
 add_executable (test_linalg
-  lin_alg.cc
   test_linalg.cc)
 
 target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES}
@@ -505,7 +481,7 @@ target_link_libraries (test_tensor matpack)
 
 ########### next testcase ###############
 
-add_executable (test_matpack describe.h describe.cc
+add_executable (test_matpack
                 wigner_functions.cc test_matpack.cc)
 target_link_libraries (test_matpack matpack artscore test_utils)
 
@@ -546,7 +522,7 @@ target_link_libraries (test_cia ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
-add_executable (test_propagationmatrix test_propagationmatrix.cc absorption.h jacobian.h linescaling.h propagationmatrix.h global_data.h)
+add_executable (test_propagationmatrix test_propagationmatrix.cc)
 target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
@@ -698,3 +674,14 @@ add_dependencies(check-deps test_matpack_eigen)
 
 add_executable(run_partfun run_partfun.cc)
 target_link_libraries(run_partfun PRIVATE artscore)
+
+#####
+add_subdirectory(matpack)
+add_executable(test_mdspan test_mdspan.cc)
+target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack)
+add_test(NAME "arts.cpp.fast.test_mdspan" COMMAND test_mdspan)
+add_dependencies(check-deps test_mdspan)
+
+#####
+add_executable(test_matpack_perf test_matpack_perf.cc artstime.cc)
+target_link_libraries(test_matpack_perf PUBLIC matpack)

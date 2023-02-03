@@ -30,18 +30,18 @@ void test_correct_size(const std::vector<T>& x) {
 void py_matpack(py::module_& m) {
   py::class_<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
-             ARTS_USER_ERROR_IF(0 > a, "Bad start")
+             ARTS_USER_ERROR_IF(0 > a, "Bad offset")
              ARTS_USER_ERROR_IF(0 > b, "Bad extent")
              return std::make_unique<Range>(a, b, c);
            }),
-           py::arg("start"),
+           py::arg("offset"),
            py::arg("extent"),
            py::arg("stride") = 1)
       .PythonInterfaceBasicRepresentation(Range)
       .def(py::pickle(
           [](const Range& self) {
             return py::make_tuple(
-                self.get_start(), self.get_extent(), self.get_stride());
+                self.offset, self.extent, self.stride);
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
@@ -49,22 +49,8 @@ void py_matpack(py::module_& m) {
                 t[0].cast<Index>(), t[1].cast<Index>(), t[2].cast<Index>());
           }));
 
-  py::class_<ConstVectorView>(m, "ConstVectorView");
-  py::class_<ConstMatrixView>(m, "ConstMatrixView");
-  py::class_<ConstTensor3View>(m, "ConstTensor3View");
-  py::class_<ConstTensor4View>(m, "ConstTensor4View");
-  py::class_<ConstTensor5View>(m, "ConstTensor5View");
-  py::class_<ConstTensor6View>(m, "ConstTensor6View");
-  py::class_<ConstTensor7View>(m, "ConstTensor7View");
-  py::class_<VectorView, ConstVectorView>(m, "VectorView");
-  py::class_<MatrixView, ConstMatrixView>(m, "MatrixView");
-  py::class_<Tensor3View, ConstTensor3View>(m, "Tensor3View");
-  py::class_<Tensor4View, ConstTensor4View>(m, "Tensor4View");
-  py::class_<Tensor5View, ConstTensor5View>(m, "Tensor5View");
-  py::class_<Tensor6View, ConstTensor6View>(m, "Tensor6View");
-  py::class_<Tensor7View, ConstTensor7View>(m, "Tensor7View");
 
-  py::class_<Vector, VectorView>(m, "Vector", py::buffer_protocol())
+  py::class_<Vector>(m, "Vector", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Vector>(); }))
       .def(py::init([](const std::vector<Scalar>& v) {
              auto out = std::make_unique<Vector>(v.size());;
@@ -80,7 +66,7 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceFileIO(Vector)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Vector& x) -> py::buffer_info {
-        return py::buffer_info(x.get_c_array(),
+        return py::buffer_info(x.data_handle(),
                                sizeof(Numeric),
                                py::format_descriptor<Numeric>::format(),
                                1,
@@ -109,7 +95,7 @@ This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
-  py::class_<Matrix, MatrixView>(m, "Matrix", py::buffer_protocol())
+  py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Matrix>(); }))
       .def(py::init([](const std::vector<std::vector<Scalar>>& v) {
              test_correct_size(v);
@@ -132,7 +118,7 @@ via x.value)--");
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Matrix& x) -> py::buffer_info {
         return py::buffer_info(
-            x.get_c_array(),
+            x.data_handle(),
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             2,
@@ -166,7 +152,7 @@ This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
-  py::class_<Tensor3, Tensor3View>(m, "Tensor3", py::buffer_protocol())
+  py::class_<Tensor3>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor3>(); }))
       .def(py::init([](const std::vector<std::vector<std::vector<Scalar>>>& v) {
              test_correct_size(v);
@@ -193,7 +179,7 @@ via x.value)--");
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor3& x) -> py::buffer_info {
         return py::buffer_info(
-            x.get_c_array(),
+            x.data_handle(),
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             3,
@@ -226,7 +212,7 @@ This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
-  py::class_<Tensor4, Tensor4View>(m, "Tensor4", py::buffer_protocol())
+  py::class_<Tensor4>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor4>(); }))
       .def(py::init([](const std::vector<
                         std::vector<std::vector<std::vector<Scalar>>>>& v) {
@@ -257,7 +243,7 @@ via x.value)--");
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor4& x) -> py::buffer_info {
         return py::buffer_info(
-            x.get_c_array(),
+            x.data_handle(),
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             4,
@@ -293,7 +279,7 @@ This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
-  py::class_<Tensor5, Tensor5View>(m, "Tensor5", py::buffer_protocol())
+  py::class_<Tensor5>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor5>(); }))
       .def(py::init([](const std::vector<std::vector<
                            std::vector<std::vector<std::vector<Scalar>>>>>& v) {
@@ -327,7 +313,7 @@ via x.value)--");
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor5& x) -> py::buffer_info {
         return py::buffer_info(
-            x.get_c_array(),
+            x.data_handle(),
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             5,
@@ -366,7 +352,7 @@ This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
-  py::class_<Tensor6, Tensor6View>(m, "Tensor6", py::buffer_protocol())
+  py::class_<Tensor6>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor6>(); }))
       .def(
           py::init([](const std::vector<std::vector<std::vector<
@@ -404,7 +390,7 @@ via x.value)--");
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor6& x) -> py::buffer_info {
         return py::buffer_info(
-            x.get_c_array(),
+            x.data_handle(),
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             6,
@@ -447,7 +433,7 @@ This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using np.array(x, copy=False) or
 via x.value)--");
 
-  py::class_<Tensor7, Tensor7View>(m, "Tensor7", py::buffer_protocol())
+  py::class_<Tensor7>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor7>(); }))
       .def(py::init(
                [](const std::vector<std::vector<std::vector<std::vector<
@@ -491,7 +477,7 @@ via x.value)--");
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](Tensor7& x) -> py::buffer_info {
         return py::buffer_info(
-            x.get_c_array(),
+            x.data_handle(),
             sizeof(Numeric),
             py::format_descriptor<Numeric>::format(),
             7,

@@ -40,8 +40,8 @@
 #include "auto_md.h"
 #include "gridded_fields.h"
 #include "logic.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "rte.h"
 #include "sensor.h"
@@ -125,7 +125,7 @@ void antenna1d_matrix(Sparse& H,
 
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
-    Vector shifted_aresponse_za_grid = aresponse_za_grid;
+    Vector shifted_aresponse_za_grid{aresponse_za_grid};
     shifted_aresponse_za_grid += antenna_dza[ia];
 
     // Order of loops assumes that the antenna response more often
@@ -182,7 +182,7 @@ void antenna1d_matrix(Sparse& H,
 
           // Normalisation?
           if (do_norm) {
-            hza /= hza.sum();
+            hza /= sum(hza);
           }
         }
 
@@ -235,8 +235,8 @@ void antenna2d_gridded_dlos(Sparse& H,
                       "For the gridded_dlos option, the number of dlos angles "
                       "must be a product of two integers.");
   const Index naa = n_dlos / nza; 
-  const Vector za_grid = mblock_dlos(Range(0,nza),0);
-  const Vector aa_grid = mblock_dlos(Range(0,naa,nza),1);
+  const Vector za_grid{mblock_dlos(Range(0,nza),0)};
+  const Vector aa_grid{mblock_dlos(Range(0,naa,nza),1)};
   for(Index i=0; i<n_dlos; i++ ) {
     ARTS_USER_ERROR_IF(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ,
         "Zenith angle of dlos ", i, " (0-based) differs to zenith " 
@@ -362,7 +362,7 @@ void antenna2d_gridded_dlos(Sparse& H,
         if (new_antenna) {
           
           // za grid positions
-          Vector zas = aresponse_za_grid;
+          Vector zas{aresponse_za_grid};
           zas += antenna_dlos(ia, 0);
           ARTS_USER_ERROR_IF( zas[0] < za_grid[0],
               "The zenith angle grid in *mblock_dlos* is too narrow. " 
@@ -377,7 +377,7 @@ void antenna2d_gridded_dlos(Sparse& H,
           gridpos(gp_za, za_grid, zas);
           
           // aa grid positions
-          Vector aas = aresponse_aa_grid;
+          Vector aas{aresponse_aa_grid};
           if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
           ARTS_USER_ERROR_IF( aas[0] < aa_grid[0],
               "The azimuth angle grid in *mblock_dlos* is too narrow. " 
@@ -425,7 +425,7 @@ void antenna2d_gridded_dlos(Sparse& H,
           }
 
           // For 2D antennas we always normalise
-          hza /= hza.sum();
+          hza /= sum(hza);
         }
 
         // Put weights into H
@@ -608,7 +608,7 @@ void antenna2d_interp_response(Sparse& H,
           }
 
           // For 2D antennas we always normalise
-          hdlos /= hdlos.sum();
+          hdlos /= sum(hdlos);
         }
 
         // Put weights into H
@@ -702,7 +702,7 @@ void mixer_matrix(Sparse& H,
   Vector row_temp(f_grid.nelem());
   Vector row_final(f_grid.nelem() * n_pol * n_sp);
   //
-  Vector if_grid = f_grid;
+  Vector if_grid{f_grid};
   if_grid -= lo;
   //
   for (Index i = 0; i < f_mixer.nelem(); i++) {
@@ -710,7 +710,7 @@ void mixer_matrix(Sparse& H,
         row_temp, filter.data, filter_grid, if_grid, f_mixer[i], -f_mixer[i]);
 
     // Normalise if flag is set
-    if (do_norm) row_temp /= row_temp.sum();
+    if (do_norm) row_temp /= sum(row_temp);
 
     // Loop over number of polarisations
     for (Index p = 0; p < n_pol; p++) {
@@ -971,7 +971,7 @@ void spectrometer_matrix(Sparse& H,
         weights, ch_response[irp].data, ch_response_f, sensor_f);
 
     // Normalise if flag is set
-    if (do_norm) weights /= weights.sum();
+    if (do_norm) weights /= sum(weights);
 
     // Loop over polarisation and spectra (viewing directions)
     // Weights change only with frequency
@@ -1003,7 +1003,7 @@ void stokes2pol(VectorView w,
 
   ArrayOfVector s2p(10);
   //
-  s2p[0] = {1};              // I
+  s2p[0] = Vector{1};              // I
   s2p[1] = {0, 1};           // Q
   s2p[2] = {0, 0, 1};        // U
   s2p[3] = {0, 0, 0, 1};     // V
@@ -1318,15 +1318,9 @@ void integration_func_by_vecmult(VectorView h,
   Numeric xfmax = x_f_in[nf - 1];
 
   // Handle possibly reversed x_g.
-  Vector x_g;
-  Index xg_reversed = 0;
-  //
-  if (is_decreasing(x_g_in)) {
-    x_g = x_g_in[Range(ng - 1, ng, -1)];
-    xg_reversed = 1;
-  } else {
-    x_g = x_g_in;
-  }
+  const bool xg_reversed = is_decreasing(x_g_in);
+  Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
+
   //
   ARTS_ASSERT(x_g[0] <= xfmin);
   ARTS_ASSERT(x_g[ng - 1] >= xfmax);
@@ -1422,7 +1416,7 @@ void integration_func_by_vecmult(VectorView h,
 
   // Flip back if x_g was decreasing
   if (xg_reversed) {
-    Vector tmp = h[Range(ng - 1, ng, -1)];  // Flip order
+    Vector tmp = reverse(h);  // Flip order
     h = tmp;
   }
 
@@ -1452,15 +1446,9 @@ void integration_bin_by_vecmult(VectorView h,
   ARTS_ASSERT(limit1 <= limit2);
 
   // Handle possibly reversed x_g.
-  Vector x_g;
-  Index xg_reversed = 0;
-  //
-  if (is_decreasing(x_g_in)) {
-    x_g = x_g_in[Range(ng - 1, ng, -1)];
-    xg_reversed = 1;
-  } else {
-    x_g = x_g_in;
-  }
+  const bool xg_reversed = is_decreasing(x_g_in);
+  const Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
+  
   //
   ARTS_ASSERT(x_g[0] <= limit1);
   ARTS_ASSERT(x_g[ng - 1] >= limit2);
@@ -1537,7 +1525,7 @@ void integration_bin_by_vecmult(VectorView h,
 
   // Flip back if x_g was decreasing
   if (xg_reversed) {
-    Vector tmp = h[Range(ng - 1, ng, -1)];  // Flip order
+    Vector tmp = reverse(h);  // Flip order
     h = tmp;
   }
 }
@@ -1562,21 +1550,21 @@ void summation_by_vecmult(VectorView h,
   // Determine grid positions for point 1 (both with respect to f and g grids)
   // and interpolate response function.
   ArrayOfGridPos gp1g(1), gp1f(1);
-  gridpos(gp1g, x_g, x1);
-  gridpos(gp1f, x_f, x1);
+  gridpos(gp1g, x_g, ExhaustiveConstVectorView{x1});
+  gridpos(gp1f, x_f, ExhaustiveConstVectorView{x1});
   Matrix itw1(1, 2);
   interpweights(itw1, gp1f);
   Numeric f1;
-  interp(f1, itw1, f, gp1f);
+  interp(ExhaustiveVectorView{f1}, itw1, f, gp1f);
 
   // Same for point 2
   ArrayOfGridPos gp2g(1), gp2f(1);
-  gridpos(gp2g, x_g, x2);
-  gridpos(gp2f, x_f, x2);
+  gridpos(gp2g, x_g, ExhaustiveConstVectorView{x2});
+  gridpos(gp2f, x_f, ExhaustiveConstVectorView{x2});
   Matrix itw2(1, 2);
   interpweights(itw2, gp2f);
   Numeric f2;
-  interp(f2, itw2, f, gp2f);
+  interp(ExhaustiveVectorView{f2}, itw2, f, gp2f);
 
   //Initialise h at zero and store calculated weighting components
   h = 0.0;

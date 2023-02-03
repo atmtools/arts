@@ -773,7 +773,7 @@ void interpweights(VectorView itw, const GridPos& tc) {
   // COMMAND!
 
   LOOPIT(c) {
-    itw.get(iti) = *c;
+    itw[iti] = *c;
     ++iti;
   }
 }
@@ -800,7 +800,7 @@ void interpweights(VectorView itw, const GridPos& tr, const GridPos& tc) {
 
   LOOPIT(r)
   LOOPIT(c) {
-    itw.get(iti) = (*r) * (*c);
+    itw[iti] = (*r) * (*c);
     ++iti;
   }
 }
@@ -832,7 +832,7 @@ void interpweights(VectorView itw,
   LOOPIT(p)
   LOOPIT(r)
   LOOPIT(c) {
-    itw.get(iti) = (*p) * (*r) * (*c);
+    itw[iti] = (*p) * (*r) * (*c);
     ++iti;
   }
 }
@@ -867,7 +867,7 @@ void interpweights(VectorView itw,
   LOOPIT(p)
   LOOPIT(r)
   LOOPIT(c) {
-    itw.get(iti) = (*b) * (*p) * (*r) * (*c);
+    itw[iti] = (*b) * (*p) * (*r) * (*c);
     ++iti;
   }
 }
@@ -905,7 +905,7 @@ void interpweights(VectorView itw,
   LOOPIT(p)
   LOOPIT(r)
   LOOPIT(c) {
-    itw.get(iti) = (*s) * (*b) * (*p) * (*r) * (*c);
+    itw[iti] = (*s) * (*b) * (*p) * (*r) * (*c);
     ++iti;
   }
 }
@@ -946,7 +946,7 @@ void interpweights(VectorView itw,
   LOOPIT(p)
   LOOPIT(r)
   LOOPIT(c) {
-    itw.get(iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+    itw[iti] = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
     ++iti;
   }
 }
@@ -973,14 +973,14 @@ Numeric interp(ConstVectorView itw, ConstVectorView a, const GridPos& tc) {
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
   for (Index c = 0; c < 2; ++c) {
-    tia += a.get(tc.idx + c) * itw.get(iti);
+    tia += a[tc.idx + c] * itw[iti];
     ++iti;
   }
 
@@ -1013,7 +1013,7 @@ Numeric interp(ConstVectorView itw,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1021,7 +1021,7 @@ Numeric interp(ConstVectorView itw,
   Index iti = 0;
   for (Index r = 0; r < 2; ++r)
     for (Index c = 0; c < 2; ++c) {
-      tia += a.get(tr.idx + r, tc.idx + c) * itw.get(iti);
+      tia += a(tr.idx + r, tc.idx + c) * itw[iti];
       ++iti;
     }
 
@@ -1056,7 +1056,7 @@ Numeric interp(ConstVectorView itw,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1065,7 +1065,7 @@ Numeric interp(ConstVectorView itw,
   for (Index p = 0; p < 2; ++p)
     for (Index r = 0; r < 2; ++r)
       for (Index c = 0; c < 2; ++c) {
-        tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) * itw.get(iti);
+        tia += a(tp.idx + p, tr.idx + r, tc.idx + c) * itw[iti];
         ++iti;
       }
 
@@ -1102,7 +1102,7 @@ Numeric interp(ConstVectorView itw,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1112,8 +1112,8 @@ Numeric interp(ConstVectorView itw,
     for (Index p = 0; p < 2; ++p)
       for (Index r = 0; r < 2; ++r)
         for (Index c = 0; c < 2; ++c) {
-          tia += a.get(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
-                 itw.get(iti);
+          tia += a(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
+                 itw[iti];
           ++iti;
         }
 
@@ -1152,7 +1152,7 @@ Numeric interp(ConstVectorView itw,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1163,12 +1163,12 @@ Numeric interp(ConstVectorView itw,
       for (Index p = 0; p < 2; ++p)
         for (Index r = 0; r < 2; ++r)
           for (Index c = 0; c < 2; ++c) {
-            tia += a.get(ts.idx + s,
+            tia += a(ts.idx + s,
                          tb.idx + b,
                          tp.idx + p,
                          tr.idx + r,
                          tc.idx + c) *
-                   itw.get(iti);
+                   itw[iti];
             ++iti;
           }
 
@@ -1209,7 +1209,7 @@ Numeric interp(ConstVectorView itw,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
@@ -1221,13 +1221,13 @@ Numeric interp(ConstVectorView itw,
         for (Index p = 0; p < 2; ++p)
           for (Index r = 0; r < 2; ++r)
             for (Index c = 0; c < 2; ++c) {
-              tia += a.get(tv.idx + v,
+              tia += a(tv.idx + v,
                            ts.idx + s,
                            tb.idx + b,
                            tp.idx + p,
                            tr.idx + r,
                            tc.idx + c) *
-                     itw.get(iti);
+                     itw[iti];
               ++iti;
             }
 
@@ -1295,7 +1295,7 @@ void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
     // COMMAND!
 
     LOOPIT(c) {
-      itw.get(i, iti) = *c;
+      itw(i, iti) = *c;
       ++iti;
     }
   }
@@ -1348,7 +1348,7 @@ void interpweights(MatrixView itw,
 
     LOOPIT(r)
     LOOPIT(c) {
-      itw.get(i, iti) = (*r) * (*c);
+      itw(i, iti) = (*r) * (*c);
       ++iti;
     }
   }
@@ -1398,7 +1398,7 @@ void interpweights(MatrixView itw,
     LOOPIT(p)
     LOOPIT(r)
     LOOPIT(c) {
-      itw.get(i, iti) = (*p) * (*r) * (*c);
+      itw(i, iti) = (*p) * (*r) * (*c);
       ++iti;
     }
   }
@@ -1453,7 +1453,7 @@ void interpweights(MatrixView itw,
     LOOPIT(p)
     LOOPIT(r)
     LOOPIT(c) {
-      itw.get(i, iti) = (*b) * (*p) * (*r) * (*c);
+      itw(i, iti) = (*b) * (*p) * (*r) * (*c);
       ++iti;
     }
   }
@@ -1513,7 +1513,7 @@ void interpweights(MatrixView itw,
     LOOPIT(p)
     LOOPIT(r)
     LOOPIT(c) {
-      itw.get(i, iti) = (*s) * (*b) * (*p) * (*r) * (*c);
+      itw(i, iti) = (*s) * (*b) * (*p) * (*r) * (*c);
       ++iti;
     }
   }
@@ -1578,7 +1578,7 @@ void interpweights(MatrixView itw,
     LOOPIT(p)
     LOOPIT(r)
     LOOPIT(c) {
-      itw.get(i, iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+      itw(i, iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
       ++iti;
     }
   }
@@ -1614,7 +1614,7 @@ void interp(VectorView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+      is_same_within_epsilon(sum(itw(0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1629,7 +1629,7 @@ void interp(VectorView ia,
     Index iti = 0;
     for (Index c = 0; c < 2; ++c) {
       ARTS_ASSERT(tc.idx + c < a.nelem());  // Temporary !?
-      tia += a.get(tc.idx + c) * itw.get(i, iti);
+      tia += a(tc.idx + c) * itw(i, iti);
       ++iti;
     }
   }
@@ -1672,7 +1672,7 @@ void interp(VectorView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+      is_same_within_epsilon(sum(itw(0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1688,7 +1688,7 @@ void interp(VectorView ia,
     Index iti = 0;
     for (Index r = 0; r < 2; ++r)
       for (Index c = 0; c < 2; ++c) {
-        tia += a.get(tr.idx + r, tc.idx + c) * itw.get(i, iti);
+        tia += a(tr.idx + r, tc.idx + c) * itw(i, iti);
         ++iti;
       }
   }
@@ -1734,7 +1734,7 @@ void interp(VectorView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+      is_same_within_epsilon(sum(itw(0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1752,7 +1752,7 @@ void interp(VectorView ia,
     for (Index p = 0; p < 2; ++p)
       for (Index r = 0; r < 2; ++r)
         for (Index c = 0; c < 2; ++c) {
-          tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) * itw.get(i, iti);
+          tia += a(tp.idx + p, tr.idx + r, tc.idx + c) * itw(i, iti);
           ++iti;
         }
   }
@@ -1801,7 +1801,7 @@ void interp(VectorView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+      is_same_within_epsilon(sum(itw(0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1821,8 +1821,8 @@ void interp(VectorView ia,
       for (Index p = 0; p < 2; ++p)
         for (Index r = 0; r < 2; ++r)
           for (Index c = 0; c < 2; ++c) {
-            tia += a.get(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
-                   itw.get(i, iti);
+            tia += a(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
+                   itw(i, iti);
             ++iti;
           }
   }
@@ -1874,7 +1874,7 @@ void interp(VectorView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+      is_same_within_epsilon(sum(itw(0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1896,12 +1896,12 @@ void interp(VectorView ia,
         for (Index p = 0; p < 2; ++p)
           for (Index r = 0; r < 2; ++r)
             for (Index c = 0; c < 2; ++c) {
-              tia += a.get(ts.idx + s,
+              tia += a(ts.idx + s,
                            tb.idx + b,
                            tp.idx + p,
                            tr.idx + r,
                            tc.idx + c) *
-                     itw.get(i, iti);
+                     itw(i, iti);
               ++iti;
             }
   }
@@ -1956,7 +1956,7 @@ void interp(VectorView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(
-      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+      is_same_within_epsilon(sum(itw(0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
   for (Index i = 0; i < n; ++i) {
@@ -1980,13 +1980,13 @@ void interp(VectorView ia,
           for (Index p = 0; p < 2; ++p)
             for (Index r = 0; r < 2; ++r)
               for (Index c = 0; c < 2; ++c) {
-                tia += a.get(tv.idx + v,
+                tia += a(tv.idx + v,
                              ts.idx + s,
                              tb.idx + b,
                              tp.idx + p,
                              tr.idx + r,
                              tc.idx + c) *
-                       itw.get(i, iti);
+                       itw(i, iti);
                 ++iti;
               }
   }
@@ -2046,7 +2046,7 @@ void interpweights(Tensor3View itw,
 
       LOOPIT(r)
       LOOPIT(c) {
-        itw.get(ir, ic, iti) = (*r) * (*c);
+        itw(ir, ic, iti) = (*r) * (*c);
         ++iti;
       }
     }
@@ -2099,7 +2099,7 @@ void interpweights(Tensor4View itw,
         LOOPIT(p)
         LOOPIT(r)
         LOOPIT(c) {
-          itw.get(ip, ir, ic, iti) = (*p) * (*r) * (*c);
+          itw(ip, ir, ic, iti) = (*p) * (*r) * (*c);
           ++iti;
         }
       }
@@ -2159,7 +2159,7 @@ void interpweights(Tensor5View itw,
           LOOPIT(p)
           LOOPIT(r)
           LOOPIT(c) {
-            itw.get(ib, ip, ir, ic, iti) = (*b) * (*p) * (*r) * (*c);
+            itw(ib, ip, ir, ic, iti) = (*b) * (*p) * (*r) * (*c);
             ++iti;
           }
         }
@@ -2226,7 +2226,7 @@ void interpweights(Tensor6View itw,
             LOOPIT(p)
             LOOPIT(r)
             LOOPIT(c) {
-              itw.get(is, ib, ip, ir, ic, iti) =
+              itw(is, ib, ip, ir, ic, iti) =
                   (*s) * (*b) * (*p) * (*r) * (*c);
               ++iti;
             }
@@ -2301,7 +2301,7 @@ void interpweights(Tensor7View itw,
               LOOPIT(p)
               LOOPIT(r)
               LOOPIT(c) {
-                itw.get(iv, is, ib, ip, ir, ic, iti) =
+                itw(iv, is, ib, ip, ir, ic, iti) =
                     (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
                 ++iti;
               }
@@ -2350,7 +2350,7 @@ void interp(MatrixView ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      itw(0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+      sum(itw(0, 0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index ir = 0; ir < nr; ++ir) {
@@ -2371,7 +2371,7 @@ void interp(MatrixView ia,
         for (Index c = 0; c < 2; ++c) {
           ARTS_ASSERT(tr.idx + r < a.nrows());  // Temporary !?
           ARTS_ASSERT(tc.idx + c < a.ncols());  // Temporary !?
-          tia += a.get(tr.idx + r, tc.idx + c) * itw.get(ir, ic, iti);
+          tia += a(tr.idx + r, tc.idx + c) * itw(ir, ic, iti);
           ++iti;
         }
     }
@@ -2417,7 +2417,7 @@ void interp(Tensor3View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      itw(0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+      sum(itw(0, 0, 0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index ip = 0; ip < np; ++ip) {
@@ -2440,8 +2440,8 @@ void interp(Tensor3View ia,
               ARTS_ASSERT(tp.idx + p < a.npages());  // Temporary !?
               ARTS_ASSERT(tr.idx + r < a.nrows());   // Temporary !?
               ARTS_ASSERT(tc.idx + c < a.ncols());   // Temporary !?
-              tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) *
-                     itw.get(ip, ir, ic, iti);
+              tia += a(tp.idx + p, tr.idx + r, tc.idx + c) *
+                     itw(ip, ir, ic, iti);
               ++iti;
             }
       }
@@ -2491,7 +2491,7 @@ void interp(Tensor4View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      itw(0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+      sum(itw(0, 0, 0, 0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index ib = 0; ib < nb; ++ib) {
@@ -2514,8 +2514,8 @@ void interp(Tensor4View ia,
             for (Index p = 0; p < 2; ++p)
               for (Index r = 0; r < 2; ++r)
                 for (Index c = 0; c < 2; ++c) {
-                  tia += a.get(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
-                         itw.get(ib, ip, ir, ic, iti);
+                  tia += a(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
+                         itw(ib, ip, ir, ic, iti);
                   ++iti;
                 }
         }
@@ -2569,7 +2569,7 @@ void interp(Tensor5View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      itw(0, 0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+      sum(itw(0, 0, 0, 0, 0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index is = 0; is < ns; ++is) {
@@ -2595,12 +2595,12 @@ void interp(Tensor5View ia,
                 for (Index p = 0; p < 2; ++p)
                   for (Index r = 0; r < 2; ++r)
                     for (Index c = 0; c < 2; ++c) {
-                      tia += a.get(ts.idx + s,
+                      tia += a(ts.idx + s,
                                    tb.idx + b,
                                    tp.idx + p,
                                    tr.idx + r,
                                    tc.idx + c) *
-                             itw.get(is, ib, ip, ir, ic, iti);
+                             itw(is, ib, ip, ir, ic, iti);
                       ++iti;
                     }
           }
@@ -2658,7 +2658,7 @@ void interp(Tensor6View ia,
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
   ARTS_ASSERT(is_same_within_epsilon(
-      itw(0, 0, 0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+      sum(itw(0, 0, 0, 0, 0, 0, Range(joker))), 1, sum_check_epsilon));
 
   // We have to loop all the points in the new grid:
   for (Index iv = 0; iv < nv; ++iv) {
@@ -2687,13 +2687,13 @@ void interp(Tensor6View ia,
                     for (Index p = 0; p < 2; ++p)
                       for (Index r = 0; r < 2; ++r)
                         for (Index c = 0; c < 2; ++c) {
-                          tia += a.get(tv.idx + v,
+                          tia += a(tv.idx + v,
                                        ts.idx + s,
                                        tb.idx + b,
                                        tp.idx + p,
                                        tr.idx + r,
                                        tc.idx + c) *
-                                 itw.get(iv, is, ib, ip, ir, ic, iti);
+                                 itw(iv, is, ib, ip, ir, ic, iti);
                           ++iti;
                         }
             }

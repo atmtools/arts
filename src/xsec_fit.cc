@@ -81,7 +81,7 @@ void XsecRecord::Extract(VectorView result,
     // data_f_grid, because xsec datasets are defined only where the absorption
     // was measured. So, we have to find out which part of f_grid is inside
     // data_f_grid.
-    const Numeric* f_grid_begin = f_grid.get_c_array();
+    const Numeric* f_grid_begin = f_grid.data_handle();
     const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
     const Index i_fstart = std::distance(
         f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
@@ -117,7 +117,7 @@ void XsecRecord::Extract(VectorView result,
     const Numeric f_grid_fmin = f_grid[i_fstart];
     const Numeric f_grid_fmax = f_grid[i_fstop];
 
-    const Numeric* data_f_grid_begin = data_f_grid.get_c_array();
+    const Numeric* data_f_grid_begin = data_f_grid.data_handle();
     const Numeric* data_f_grid_end = data_f_grid_begin + data_f_grid.size() - 1;
     const Index i_data_fstart =
         std::distance(
@@ -173,7 +173,7 @@ void XsecRecord::Extract(VectorView result,
   }
 }
 
-void XsecRecord::CalcXsec(VectorView& xsec,
+void XsecRecord::CalcXsec(VectorView xsec,
                           const Index dataset,
                           const Numeric pressure,
                           const Numeric temperature) const {
@@ -184,7 +184,7 @@ void XsecRecord::CalcXsec(VectorView& xsec,
   }
 }
 
-// void XsecRecord::CalcDT(VectorView& xsec_dt,
+// void XsecRecord::CalcDT(VectorView xsec_dt,
 //                         const Index dataset,
 //                         const Numeric temperature) const {
 //   for (Index i = 0; i < xsec_dt.nelem(); i++) {
@@ -193,7 +193,7 @@ void XsecRecord::CalcXsec(VectorView& xsec,
 //   }
 // }
 
-// void XsecRecord::CalcDP(VectorView& xsec_dp,
+// void XsecRecord::CalcDP(VectorView xsec_dp,
 //                         const Index dataset,
 //                         const Numeric pressure) const {
 //   for (Index i = 0; i < xsec_dp.nelem(); i++) {
@@ -202,7 +202,7 @@ void XsecRecord::CalcXsec(VectorView& xsec,
 //   }
 // }
 
-void XsecRecord::RemoveNegativeXsec(VectorView& xsec) const {
+void XsecRecord::RemoveNegativeXsec(VectorView xsec) const {
   Numeric sum_xsec{};
   Numeric sum_xsec_non_negative{};
   for (auto& x : xsec) {
