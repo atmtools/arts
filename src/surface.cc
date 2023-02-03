@@ -423,13 +423,14 @@ void surface_normal_calc(VectorView pos,
   //
   pos[1] = lat;
   pos[2] = pos2D[1];
-  pos[0] = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+  pos[0] = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
 
   // Radius at pos0
   const Numeric r = pos[0] + prime_vertical_radius(refellipsoid, lat);
 
   // Shifted positions
-  Vector posWE = pos, posSN = pos;
+  Vector posWE{pos};
+  Vector posSN{pos};
   //
   // North pole case
   if (lat > lat_limit) {
@@ -451,8 +452,8 @@ void surface_normal_calc(VectorView pos,
       posWE[2] -= 360;
   }
   //
-  posSN[0] = interp_gfield2(surface_elevation, posSN[Range(1, 2)]);
-  posWE[0] = interp_gfield2(surface_elevation, posWE[Range(1, 2)]);
+  posSN[0] = interp_gfield2(surface_elevation, Vector{posSN[Range(1, 2)]});
+  posWE[0] = interp_gfield2(surface_elevation, Vector{posWE[Range(1, 2)]});
   
   // Convert all three positions to ECEF
   Vector ecefSN(3), ecefWE(3);

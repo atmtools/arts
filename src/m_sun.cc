@@ -7,7 +7,7 @@
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
-#include "geodetic.h"
+#include "geodetic_OLD.h"
 #include "sun.h"
 #include <iostream>
 

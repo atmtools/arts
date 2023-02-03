@@ -311,7 +311,7 @@ void geodetic2ecef(VectorView ecef,
   // Use geocentric function if geoid is spherical
   if (is_ellipsoid_spherical(refellipsoid))
     {
-      Vector posc = pos;
+      Vector posc{pos};
       posc[0] += refellipsoid[0];
       geocentric2ecef(ecef, posc);
     }
@@ -384,7 +384,7 @@ Numeric intersection_altitude(ConstVectorView ecef,
                               const Numeric& altitude,
                               const Numeric& l_min) {  
   Numeric l;
-  Vector ellipsoid = refellipsoid;
+  Vector ellipsoid{refellipsoid};
   ellipsoid += altitude;
 
   // Code taken from Atmlab's ellipsoid_intersection
