@@ -32,7 +32,7 @@
 #define geodetic_OLD_h
 
 #include "interpolation.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 // 2D:
 

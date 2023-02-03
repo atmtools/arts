@@ -4519,7 +4519,7 @@ void ppath_start_stepping(Ppath& ppath,
       ppath.r[0] = refellipsoid[0] + rte_pos[0];
       ppath.los(0, joker) = ppath.end_los;
       //
-      gridpos(ppath.gp_p, z_field(joker, 0, 0), ppath.pos(0, 0));
+      gridpos(ppath.gp_p, z_field(joker, 0, 0), ConstVectorView{ppath.pos(0, 0)});
       gridpos_check_fd(ppath.gp_p[0]);
 
       // Is the sensor on the surface looking down?

@@ -13,9 +13,7 @@
 #include "debug.h"
 #include "gridded_fields.h"
 #include "interpolation_lagrange.h"
-#include "matpack.h"
-#include "matpackIV.h"
-#include "matpack_concepts.h"
+#include "matpack_data.h"
 
 namespace Atm {
 std::ostream& operator<<(std::ostream& os, const Point& atm) {
@@ -510,9 +508,9 @@ auto get_value(const auto& in_data,
                const std::array<Index, 3>& ind,
                const std::array<Index, 3>& pos) {
   using T = decltype(in_data);
-  if constexpr (matpack::has_dim<T, 3>) {
+  if constexpr (matpack::rank<T>() == 3) {
     return in_data(ind[pos[0]], ind[pos[1]], ind[pos[2]]);
-  } else if constexpr (matpack::has_dim<T, 2>) {
+  } else if constexpr (matpack::rank<T>() == 2) {
     if (pos[0] == -1) return in_data(ind[pos[1]], ind[pos[2]]);
     if (pos[1] == -1) return in_data(ind[pos[0]], ind[pos[2]]);
     return in_data(ind[pos[0]], ind[pos[1]]);
