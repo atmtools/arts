@@ -467,7 +467,7 @@ void ppathGeometric(Ppath& ppath,
   // If surface intersection, include part beyond?
   if (include_specular_ppath && ppath.backgroundZZZ == PpathBackground::Surface) {
 
-    Vector pos = ppath.pos(ppath.np-1, joker);
+    Vector pos{ppath.pos(ppath.np-1, joker)};
     Vector los(2);
     specular_los_calc(los,
                       refellipsoid,
@@ -480,7 +480,7 @@ void ppathGeometric(Ppath& ppath,
                    pos,
                    los,
                    ppath_lstep,
-                   ppath_ltotal - ppath.lstep.sum(),
+                   ppath_ltotal - sum(ppath.lstep),
                    refellipsoid,
                    surface_elevation,
                    surface_search_accuracy,
@@ -632,7 +632,7 @@ void ppathRefracted(Workspace& ws,
         // Below surface?
       } else {
         const Numeric z_surface = interp_gfield2(surface_elevation,
-                                                 pos_try[Range(1, 2)]);
+                                                 Vector{pos_try[Range(1, 2)]});
         if (pos_try[0] <= z_surface) {
           inside = false;
           background = PpathBackground::Surface;
@@ -780,7 +780,7 @@ void ppathRefracted(Workspace& ws,
   // If surface intersection, include part beyond?
   if (include_specular_ppath && ppath.backgroundZZZ == PpathBackground::Surface) {
 
-    Vector pos = ppath.pos(ppath.np-1, joker);
+    Vector pos{ppath.pos(ppath.np-1, joker)};
     Vector los(2);
     specular_los_calc(los,
                       refellipsoid,
@@ -795,7 +795,7 @@ void ppathRefracted(Workspace& ws,
                    pos,
                    los,
                    ppath_lstep,
-                   ppath_ltotal - ppath.lstep.sum(),
+                   ppath_ltotal - sum(ppath.lstep),
                    ppath_lraytrace,
                    refellipsoid,
                    surface_elevation,

@@ -61,7 +61,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 
   // Check that observation position is above ground
   if (rte_pos[0] < z_max) {
-    Numeric z_surf = interp_gfield2(surface_elevation, rte_pos[Range(1, 2)]);
+    Numeric z_surf = interp_gfield2(surface_elevation, Vector{rte_pos[Range(1, 2)]});
     if (rte_pos[0] < z_surf - surface_search_accuracy)
       ARTS_USER_ERROR(
           "The sensor is below the surface. Not allowed!\n"
@@ -124,7 +124,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
         l_test += surface_search_accuracy;
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
-        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+        Numeric z_surf = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
         if (pos[0] < z_surf) above_surface = false;
       }
       if (above_surface) {
@@ -142,7 +142,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
       if (l_max_could_be_above_surface) {
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_max);
-        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+        Numeric z_surf = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
         if (pos[0] > z_surf) return -1;
       }
       // Start bisection
@@ -150,7 +150,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
         const Numeric l_test = (l_min + l_max) / 2;
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
-        Numeric z_surf = interp_gfield2(surface_elevation, pos[Range(1, 2)]);
+        Numeric z_surf = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
         if (pos[0] >= z_surf)
           l_min = l_test;
         else
@@ -590,7 +590,7 @@ void refracted_link_basic(Workspace& ws,
     
     // Extend ppath into space?
     if (ppath.backgroundZZZ == PpathBackground::Space) {
-      const Numeric l2end = l2false - ppath.start_lstep - ppath.lstep.sum();
+      const Numeric l2end = l2false - ppath.start_lstep - sum(ppath.lstep);
       if (l2end > 0) {
         geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
         ecef_at_distance(ecef, ecef, decef, l2end);
