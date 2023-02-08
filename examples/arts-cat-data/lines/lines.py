@@ -59,6 +59,10 @@ of what is possible:
     species.  Note that you can add as many species as you wish.  Also note
     that you are not allowed to write "O2-66,H2O-161" but must separate this
     as written at the top of this listitem.
+5) Change ["O2-66"] to ["O2-66", "O2"].  Consequence: All oxygen lines are
+    in your list of line-by-line absorption species.  Note that you can 
+    add as many species as you wish.  Also note that you are allowed to 
+    write "O2-66,O2".
 
 """
 ws.abs_speciesSet(species = ["O2-66"])
@@ -97,6 +101,10 @@ are the consequences:
 5) Change ["O2-66"] to ["O2-66", "H2O-161"].  The len of
     ws.abs_lines_per_species is now 2 as the first entry are lines of O2-66 and
     the second entry are lines of H2O-161
+6) Change ["O2-66"] to ["O2-66", "O2"].  The len of
+    ws.abs_lines_per_species is now 2 as the first entry are lines of O2-66 and
+    the second entry are all other lines of O2.  Note therefore that ["O2", "O2-66"]
+    also has the len 2, but that all lines are now in the first entry.
 
 """
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = "lines/")
