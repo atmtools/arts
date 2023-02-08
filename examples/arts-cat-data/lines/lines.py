@@ -4,7 +4,7 @@ This file will showcase how you can load line data from arts-cat-data into the
 workspace and do the required setups to perform a simple forward calculations
 using this data
 
-Note that this example presumes that you have set the environment variable 
+Note that this example presumes that you have set the environment variable
 ARTS_DATA_PATH to contain a path to a local copy of both arts-cat-data and
 arts-xml-data before you import pyarts.  Please check that this is the case
 if the example does not work for you.  You can easily check if this path is
@@ -60,12 +60,12 @@ of what is possible:
     that you are not allowed to write "O2-66,H2O-161" but must separate this
     as written at the top of this listitem.
 5) Change ["O2-66"] to ["O2-66", "O2"].  Consequence: All oxygen lines are
-    in your list of line-by-line absorption species.  Note that you can 
-    add as many species as you wish.  Also note that you are allowed to 
+    in your list of line-by-line absorption species.  Note that you can
+    add as many species as you wish.  Also note that you are allowed to
     write "O2-66,O2".
 
 """
-ws.abs_speciesSet(species = ["O2-66"])
+ws.abs_speciesSet(species=["O2-66"])
 
 """
 
@@ -107,7 +107,7 @@ are the consequences:
     also has the len 2, but that all lines are now in the first entry.
 
 """
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = "lines/")
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 """
 
@@ -143,19 +143,19 @@ inputs required to initialize the propagation matrix
 
 """
 
-ws.jacobian_quantities = [] # No derivatives
-ws.select_abs_species = [] # All species
-ws.f_grid = np.linspace(40e9, 120e9, 1001) # Frequencies between 40 and 120 GHz
-ws.rtp_mag = [] # No magnetic field
-ws.rtp_los = [] # No particular LOS
-ws.rtp_pressure = 1e5 # At 1 bar
-ws.rtp_temperature = 295 # At room temperature
-ws.rtp_nlte = pyarts.arts.EnergyLevelMap() # No NLTE
-ws.rtp_vmr = [0.21] # At 21% atmospheric Oxygen
-ws.stokes_dim = 1 # Unpolarized
+ws.jacobian_quantities = []  # No derivatives
+ws.select_abs_species = []  # All species
+ws.f_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
+ws.rtp_mag = []  # No magnetic field
+ws.rtp_los = []  # No particular LOS
+ws.rtp_pressure = 1e5  # At 1 bar
+ws.rtp_temperature = 295  # At room temperature
+ws.rtp_nlte = pyarts.arts.EnergyLevelMap()  # No NLTE
+ws.rtp_vmr = [0.21]  # At 21% atmospheric Oxygen
+ws.stokes_dim = 1  # Unpolarized
 
 # Call the agenda with inputs above
-ws.AgendaExecute(a = ws.propmat_clearsky_agenda)
+ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
 
 # Plot the absorption of this example
 plt.figure(1)
@@ -177,4 +177,6 @@ be safely ignored
 # test that we are still OK
 propmat_clearsky_agenda = pyarts.arts.Tensor4()
 propmat_clearsky_agenda.readxml("lines_test_result.xml")
-assert np.allclose(propmat_clearsky_agenda, ws.propmat_clearsky.value.data), "O2 Absorption has changed"
+assert np.allclose(
+    propmat_clearsky_agenda, ws.propmat_clearsky.value.data
+), "O2 Absorption has changed"
