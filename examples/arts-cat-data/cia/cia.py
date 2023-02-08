@@ -4,7 +4,7 @@ This file will showcase how you can load collision-induced absorption (CIA)
 data from arts-cat-data into the workspace and do the required setups to
 perform a simple forward calculations using this data
 
-Note that this example presumes that you have set the environment variable 
+Note that this example presumes that you have set the environment variable
 ARTS_DATA_PATH to contain a path to a local copy of both arts-cat-data and
 arts-xml-data before you import pyarts.  Please check that this is the case
 if the example does not work for you.  You can easily check if this path is
@@ -31,7 +31,7 @@ structured so that the main and secondary species are separated by the word
 "CIA"
 
 This example sets up self CIA by molecular oxygen
-    
+
 CIA is not just self-induced but can occur between two different molecules.  In
 this case you can change the tag to read something like "O2-CIA-N2", though
 you must ensure that there also exists another N2 species in your ws.abs_species
@@ -89,16 +89,16 @@ inputs required to initialize the propagation matrix
 
 """
 
-ws.jacobian_quantities = [] # No derivatives
-ws.select_abs_species = [] # All species
-ws.f_grid = ws.abs_cia_data.value[0].data[0].grids[0] # Frequencies from the first band
-ws.rtp_mag = [] # No magnetic field
-ws.rtp_los = [] # No particular LOS
-ws.rtp_pressure = 1e5 # At 1 bar
-ws.rtp_temperature = 295 # At room temperature
-ws.rtp_nlte = pyarts.arts.EnergyLevelMap() # No NLTE
-ws.rtp_vmr = [0.21] # At 21% atmospheric Oxygen
-ws.stokes_dim = 1 # Unpolarized
+ws.jacobian_quantities = []  # No derivatives
+ws.select_abs_species = []  # All species
+ws.f_grid = ws.abs_cia_data.value[0].data[0].grids[0]  # Frequencies from the first band
+ws.rtp_mag = []  # No magnetic field
+ws.rtp_los = []  # No particular LOS
+ws.rtp_pressure = 1e5  # At 1 bar
+ws.rtp_temperature = 295  # At room temperature
+ws.rtp_nlte = pyarts.arts.EnergyLevelMap()  # No NLTE
+ws.rtp_vmr = [0.21]  # At 21% atmospheric Oxygen
+ws.stokes_dim = 1  # Unpolarized
 
 # Call the agenda with inputs above
 ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
@@ -106,7 +106,10 @@ ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
 # Plot the absorption of this example
 plt.figure(1)
 plt.clf()
-plt.semilogy(1e9 * pyarts.arts.convert.freq2wavelen(ws.f_grid.value), ws.propmat_clearsky.value.data.flatten())
+plt.semilogy(
+    1e9 * pyarts.arts.convert.freq2wavelen(ws.f_grid.value),
+    ws.propmat_clearsky.value.data.flatten(),
+)
 plt.xlabel("Wavelength [nm]")
 plt.ylabel("Absorption [1/m]")
 plt.title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
@@ -123,4 +126,6 @@ be safely ignored
 # test that we are still OK
 propmat_clearsky_agenda = pyarts.arts.Tensor4()
 propmat_clearsky_agenda.readxml("cia_test_result.xml")
-assert np.allclose(propmat_clearsky_agenda, ws.propmat_clearsky.value.data), "O2 Absorption has changed"
+assert np.allclose(
+    propmat_clearsky_agenda, ws.propmat_clearsky.value.data
+), "O2 Absorption has changed"
