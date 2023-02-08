@@ -124,8 +124,8 @@ You should generally always call this after you are done setting up your
 ws.abs_species and ws.abs_lines_per_species.  It will deal with the internal
 ARTS setup for you.  Note that the flag use_abs_lookup=1 can be passed to this
 method call to set up the agenda for USING the the lookup-table.  Without the
-flag, ARTS should be configured correctly to either COMPUTE the lookup-table
-or to compute the absorption on-the-fly
+flag, ARTS should be configured correctly either 1) to compute the lookup-table,
+or to 2) compute the absorption on-the-fly
 
 """
 ws.propmat_clearsky_agendaAuto()
