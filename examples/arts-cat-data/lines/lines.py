@@ -4,11 +4,11 @@ This file will showcase how you can load line data from arts-cat-data into the
 workspace and do the required setups to perform a simple forward calculations
 using this data
 
-Note that this example presumes that you have set ARTS_DATA_PATH to contain
-a local copy of both arts-cat-data and arts-xml-data.  Please check that this
-is the case if the example does not work for you.  You can easily check if this
-path is set by adding the following two lines at the top of this
-pyarts-controlfile:
+Note that this example presumes that you have set the environment variable 
+ARTS_DATA_PATH to contain a path to a local copy of both arts-cat-data and
+arts-xml-data before you import pyarts.  Please check that this is the case
+if the example does not work for you.  You can easily check if this path is
+set by adding the following two lines at the top of this pyarts-controlfile:
 
 ```
 import os
@@ -35,7 +35,7 @@ There are many ways to customize this tag.  The following things are examples
 of what is possible:
 1) Change "O2-66" to "O2".  Consequence: Not just the O2-66 isotopologue is
     included in the absorption species tag list but all molecular oxygen lines
-    are lincluded.  Note that "O2-*" is the same thing as "O2".
+    are included.  Note that "O2-*" is the same thing as "O2".
 2) Change "O2-66" into "O2-66,O2-68".  Consequence: Not just O2-66 but also
     the O16-O18 isotopologue is included as the first species tag.
     Note that for forward calculation purposes, writing ["O2-66,O2-68"] or
@@ -61,7 +61,7 @@ of what is possible:
     as written at the top of this listitem.
 
 """
-ws.abs_speciesSet(species=["O2-66"])
+ws.abs_speciesSet(species = ["O2-66"])
 
 """
 
@@ -90,16 +90,16 @@ are the consequences:
     contain not just O2-66 lines but also lines of O2-68.  If written as
     ["O2-66,O2-68"] the len of ws.abs_lines_per_species will not change.  If
     written as ["O2-66", "O2-68"] the len of ws.abs_lines_per_species is now 2.
-3) Change "O2-66" into "O2-66-40e9-120e9".  This will simple limit the number
+3) Change "O2-66" into "O2-66-40e9-120e9".  This will simply limit the number
     of lines in the line catalog.
 4) Change "O2-66" to "O2-Z-66".  The line catalog will look exactly the same
     but the calculations inside will change significantly
-5) Change ["O2-66"] to ["O2-66", "H2O-161"].  The en of
+5) Change ["O2-66"] to ["O2-66", "H2O-161"].  The len of
     ws.abs_lines_per_species is now 2 as the first entry are lines of O2-66 and
     the second entry are lines of H2O-161
 
 """
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = "lines/")
 
 """
 
@@ -147,7 +147,7 @@ ws.rtp_vmr = [0.21] # At 21% atmospheric Oxygen
 ws.stokes_dim = 1 # Unpolarized
 
 # Call the agenda with inputs above
-ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
+ws.AgendaExecute(a = ws.propmat_clearsky_agenda)
 
 # Plot the absorption of this example
 plt.figure(1)
