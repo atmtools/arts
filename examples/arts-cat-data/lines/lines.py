@@ -166,7 +166,7 @@ be safely ignored
 # Save test results
 # ws.propmat_clearsky.value.data.savexml("lines_test_result.xml", type="zascii")
 
-# test that we are still 
+# test that we are still OK
 propmat_clearsky_agenda = pyarts.arts.Tensor4()
 propmat_clearsky_agenda.readxml("lines_test_result.xml")
 assert np.allclose(propmat_clearsky_agenda, ws.propmat_clearsky.value.data), "O2 Absorption has changed"
