@@ -28,6 +28,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iomanip>
 #include "absorption.h"
 #include "arts.h"
 #include "arts_constants.h"
@@ -695,8 +696,8 @@ void abs_cia_dataReadSpeciesSplitCatalog(
   names.erase(std::unique(names.begin(), names.end()), names.end());
 
   const std::filesystem::path inpath{basename.c_str()};
-  const bool is_dir = std::filesystem::is_directory(inpath);
-
+  const bool is_dir = basename.back() == '/' or std::filesystem::is_directory(inpath);
+  
   for (auto& name : names) {
     auto fil{inpath};
     if (is_dir) {
@@ -705,15 +706,10 @@ void abs_cia_dataReadSpeciesSplitCatalog(
       fil += "." + name + ".xml";
     }
 
-    if (std::filesystem::is_regular_file(fil)) {
-      xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back(), verbosity);
-    } else {
-      ARTS_USER_ERROR_IF(not robust,
-                         "Cannot find ",
-                         fil,
-                         "\nIt is required to be there for ",
-                         name,
-                         " is found in a tag")
-    }
+    xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back(), verbosity);
+
+    ARTS_USER_ERROR_IF(robust == 0 and abs_cia_data.back().DatasetCount() == 0,
+                       "Cannot find any data for ", std::quoted(name),
+                       " in file at ", fil)
   }
 }

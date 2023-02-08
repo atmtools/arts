@@ -8,4 +8,5 @@ if (ENABLE_GUI)
   endif()
 endif()
 
+arts_test_run_pyfile(examples arts-cat-data/cia/cia.py)
 arts_test_run_pyfile(examples arts-cat-data/lines/lines.py)
