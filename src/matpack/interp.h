@@ -801,6 +801,13 @@ public:
 };
 } // namespace internal
 
+/** Precompute the interpolation weights
+ *
+ * For use with the interp method when re-usability is required
+ * 
+ * @tparam lags... Several Lagrange types
+ * @param[in] lag... Several Lagrange values
+ */
 template<lagrange_type... lags, Index N = sizeof...(lags)>
 constexpr auto interpweights2(lags&&... lag) requires (N > 0) {
   if constexpr (N > 1) {
@@ -828,6 +835,14 @@ constexpr auto interpweights2(lags&&... lag) requires (N > 0) {
   }
 }
 
+/** Precompute the interpolation derivative weights
+ *
+ * For use with the interp method when re-usability is required
+ * 
+ * @tparam dlx And Index indicating which dimension's derivative is wanted
+ * @tparam lags... Several Lagrange types
+ * @param[in] lag... Several Lagrange values, where the dlx:th one has a derivative
+ */
 template<Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
 constexpr auto dinterpweights2(lags&&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
   if constexpr (N > 1) {
@@ -862,6 +877,13 @@ concept list_of_lagrange_type = requires(T a) {
   { a[0] } -> lagrange_type;
 };
 
+/** Precompute the interpolation weights
+ *
+ * For use with the reinterp method when re-usability is required
+ * 
+ * @tparam list_lags... Several lists of Lagrange types
+ * @param[in] lags... Several lists of Lagrange values
+ */
 template <list_of_lagrange_type... list_lags, Index N = sizeof...(list_lags)>
 constexpr auto interpweights2(list_lags &&...lags)
   requires(N > 0)
@@ -880,6 +902,13 @@ constexpr auto interpweights2(list_lags &&...lags)
   return out;
 }
 
+/** Precompute the interpolation derivative weights
+ *
+ * For use with the reinterp method when re-usability is required
+ * 
+ * @tparam list_lags... Several lists of Lagrange types
+ * @param[in] lags... Several lists of Lagrange values, where the dlx:th one has a derivatives
+ */
 template <Index dlx, list_of_lagrange_type... list_lags,
           Index N = sizeof...(list_lags)>
 constexpr auto dinterpweights2(list_lags &&...lags)
@@ -898,15 +927,38 @@ constexpr auto dinterpweights2(list_lags &&...lags)
   return out;
 }
 
-template <typename FieldType, typename InterpWeights, lagrange_type... lags>
-constexpr auto interp2(FieldType &&field, InterpWeights &&iw, lags &&...lag) {
-  typename std::remove_cvref_t<FieldType>::value_type out{0};
+//! Check that the type is a field type
+template <typename T, Index... sz>
+concept field_t = matpack::rank<T>() == sizeof...(sz) and 
+matpack::has_mdshape<T> and requires (T a) {
+  matpack::mdvalue(a, {sz...});
+};
+
+namespace internal {
+//! Helper function that returns 0 regardless of input type
+template <typename T> constexpr Index zero() {return 0;}
+}  // namespace internal
+
+/** Interpolate a single output value with re-usable weights
+ * 
+ * @tparam lags... Several Lagrange types
+ * @param field A field value of the same rank as the number of lags
+ * @param iw An interpolation weight of the same rank as the number of lags
+ * @param lag... Several Lagrange values
+ * @return constexpr auto The value of the interpolation
+ */
+template <lagrange_type... lags>
+constexpr auto interp2(field_t<internal::zero<lags>()...> auto &&field,
+                       field_t<internal::zero<lags>()...> auto &&iw,
+                       lags &&...lag) {
+  matpack::matpack_value_type<decltype(field)> out{0};
 
   //! Deal with the cyclicity by a applying wrapping lambda
   auto val_fn = std::apply(
       [&](auto &&...maxsize) {
         return [&](auto &&...offset) {
-          return iw(offset...) * field(lag.index_pos(offset, maxsize)...);
+          return mdvalue(iw, {offset...}) *
+                 matpack::mdvalue(field, {lag.index_pos(offset, maxsize)...});
         };
       },
       matpack::mdshape(field));
@@ -920,20 +972,88 @@ constexpr auto interp2(FieldType &&field, InterpWeights &&iw, lags &&...lag) {
   return out;
 }
 
-template <typename FieldType, typename ListOfInterpWeights,
+/** Reinterpolates a field as another field with re-usable weights
+ *
+ *  This is done by calling interp for all the combinations of the inputs
+ * 
+ * @tparam lags... Several lists of Lagrange types
+ * @param field A field value of the same rank as the number of lags
+ * @param iw_field A field of interpolation weights of the same rank as the number of lags
+ * @param lag... Several lists of Lagrange values
+ * @return constexpr auto A new field
+ */
+template <typename ListOfInterpWeights,
           list_of_lagrange_type... lags>
-constexpr auto reinterp2(FieldType &&field, ListOfInterpWeights &&iw,
+constexpr auto reinterp2(field_t<internal::zero<lags>()...> auto &&field,
+                         ListOfInterpWeights &&iw_field,
                          lags &&...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
-  matpack::matpack_data<typename std::remove_cvref_t<FieldType>::value_type,
+  matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
                         sizeof...(lags)>
   out(list_lag.size()...);
 
   std::transform(
-      iw.elem_begin(), iw.elem_end(), in.begin(), out.elem_begin(),
+      iw_field.elem_begin(), iw_field.elem_end(), in.begin(), out.elem_begin(),
       [&](auto &&internal_iw, auto &&lag_t) {
         return std::apply(
             [&](auto &&...lag) { return interp2(field, internal_iw, lag...); },
+            lag_t);
+      });
+
+  return out;
+}
+
+/** Interpolate a single output value
+ * 
+ * @tparam lags... Several Lagrange types
+ * @param field A field value of the same rank as the number of lags
+ * @param lag... Several Lagrange values
+ * @return constexpr auto The value of the interpolation
+ */
+template <lagrange_type... lags>
+constexpr auto interp2(field_t<internal::zero<lags>()...> auto &&field,
+                       lags &&...lag) {
+  matpack::matpack_value_type<decltype(field)> out{0};
+
+  auto fn_val = std::apply(
+      [&](auto &&...maxsize) {
+        return [&](auto &&...offset) {
+          return (lag.lx[offset] * ...) *
+                 matpack::mdvalue(field, {lag.index_pos(offset, maxsize)...});
+        };
+      },
+      matpack::mdshape(field));
+
+  for (matpack::flat_shape_pos<sizeof...(lags)> pos{std::array{lag.size()...}};
+       pos.pos.front() < pos.shp.front(); ++pos) {
+    out += std::apply(fn_val, pos.pos);
+  }
+
+  return out;
+}
+
+/** Reinterpolates a field as another field
+ *
+ *  This is done by calling interp for all the combinations of the inputs
+ * 
+ * @tparam lags... Several lists of Lagrange types
+ * @param field A field value of the same rank as the number of lags
+ * @param lag... Several lists of Lagrange values
+ * @return constexpr auto A new field
+ */
+template <list_of_lagrange_type... lags>
+constexpr auto reinterp2(field_t<internal::zero<lags>()...> auto &&field,
+                         lags &&...list_lag) {
+  const auto in = matpack::elemwise{list_lag...};
+  matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
+                        sizeof...(lags)>
+  out(list_lag.size()...);
+
+  std::transform(
+      in.begin(), in.end(), out.elem_begin(),
+      [&](auto &&lag_t) {
+        return std::apply(
+            [&](auto &&...lag) { return interp2(field, lag...); },
             lag_t);
       });
 

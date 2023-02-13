@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <complex>
 #include <cstdint>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <type_traits>
 #include <vector>
 
 #include "debug.h"
@@ -462,6 +464,10 @@ void test_my_interp() {
 
   std::cout << matpack::shape_help{iw.shape()} << '\n';
 
+std::cout << my_interp::field_t<Matrix, 0,0 > << '\n';
+std::cout << my_interp::field_t<std::remove_cvref_t<decltype(interpweights2(x, x2))>, 0, 0> << '\n';
+
+
   std::cout << interp2(Matrix(7, 7, 1), interpweights2(x, x2), x, x2) << '\n';
 
   std::cout << '\n' << reinterp2(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2}) << '\n';
@@ -474,8 +480,22 @@ void test_my_interp() {
   auto x_lags = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, false>>(XN, X);
   auto y_lags = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, false>>(YN, Y);
   auto iw_vec = my_interp::interpweights2(x_lags, y_lags);
+  std::cout << X << '\n';
+  std::cout << XN << '\n';
+  std::cout << Y << '\n';
+  std::cout << YN << '\n';
   std::cout << matpack::eigen::as_eigen(Z) << '\n';
   std::cout << matpack::eigen::as_eigen(my_interp::reinterp2(Z, iw_vec, x_lags, y_lags)) << '\n';
+
+  for (auto mx: XN)
+  {
+    for (auto my:YN){
+  auto lagx = my_interp::Lagrange<1, false>(0, mx, X);
+  auto lagy = my_interp::Lagrange<1, false>(0, my, Y);
+  auto iw2 = my_interp::interpweights2(lagx, lagy);
+  std::cout << interp2(Z, iw2, lagx, lagy) - interp2(Z, lagx, lagy) << '\n';}
+  }
+
 }
 
 #define EXECUTE_TEST(X) \
