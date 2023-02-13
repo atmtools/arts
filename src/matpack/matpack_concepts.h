@@ -42,6 +42,12 @@ class matpack_view;
 template <typename T, Index N>
 class matpack_data;
 
+//! The constexpr view type
+template <typename T, bool constant, Index... alldim> struct matpack_constant_view;
+
+//! The constexpr data type
+template <typename T, Index... alldim> struct matpack_constant_data;
+
 //! Helper bool
 template <typename T>
 inline constexpr bool is_matpack_strided_access =
@@ -257,7 +263,7 @@ constexpr Index mdsize(const std::array<Index, N>& shape) {
 }
 
 //! A rankable multidimensional array
-template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has_IsVectorAtCompileTime<T> or has_size<T>;
+template <typename T> concept rankable = has_rank<T> or has_NumIndices<T> or has_IsVectorAtCompileTime<T> or has_size<T> or has_nelem<T>;
 
 //! Get the rank of the multidimensional array at compile time
 template <rankable T>
@@ -266,6 +272,7 @@ constexpr auto rank() {
   else if constexpr (has_IsVectorAtCompileTime<T>) return 2 - std::remove_cvref_t<T>::IsVectorAtCompileTime;
   else if constexpr (has_rank<T>) return std::remove_cvref_t<T>::rank();
   else if constexpr (has_size<T>) return 1;
+  else if constexpr (has_nelem<T>) return 1;
   else return -1;
 }
 

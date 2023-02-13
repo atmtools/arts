@@ -2,10 +2,12 @@
 #include <complex>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <vector>
 
 #include "debug.h"
+#include "interp.h"
 #include "logic.h"
 
 #include "matpack_complex.h"
@@ -15,6 +17,8 @@
 #include "matpack_iter.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
+
+#include "matpack_constexpr.h"
 
 void test_view() {
   //! Simply test that some standard operators work
@@ -413,6 +417,67 @@ void test_mult() {
   }
 }
 
+void test_const_view() {
+  std::array<double, 3*3> x {1,2,3,4,5,6,7,8,9};
+  std::array<double, 3> x3 {1,2,3};
+
+  {
+    matpack::matpack_constant_view<double, false, 3, 3> xv(x);
+    ARTS_USER_ERROR_IF(xv != xv, "Bad")
+    ARTS_USER_ERROR_IF(xv(2, 2) != x.back(), "Bad")
+    ARTS_USER_ERROR_IF(xv(0, 0) != x.front(), "Bad")
+    ARTS_USER_ERROR_IF(xv[0] != (matpack::matpack_constant_view<double, false, 3>{x3}), "Bad")
+    ARTS_USER_ERROR_IF(xv[0][0] != x.front(), "Bad")
+  }
+
+  {
+    matpack::matpack_constant_view<double, true, 3, 3> xv(x);
+    ARTS_USER_ERROR_IF(xv != xv, "Bad")
+    ARTS_USER_ERROR_IF(xv(2, 2) != x.back(), "Bad")
+    ARTS_USER_ERROR_IF(xv(0, 0) != x.front(), "Bad")
+    ARTS_USER_ERROR_IF(xv[0] != (matpack::matpack_constant_view<double, true, 3>{x3}), "Bad")
+    ARTS_USER_ERROR_IF(xv[0][0] != x.front(), "Bad")
+  }
+}
+
+void test_const_data() {
+  constexpr matpack::matpack_constant_data<Numeric, 3> x{1, 2, 3};
+  Vector y(x);
+  constexpr matpack::matpack_constant_data<Numeric, 3, 3> z{2,3,4};
+  Matrix t(z);
+}
+  
+struct tmp {
+ my_interp::Lagrange<1, false> v;
+};
+#include "type_debug_help.h"
+void test_my_interp() {
+  my_interp::Lagrange<1, true> x(0, 3.5, std::array<Numeric, 7>{1,2,3,4,5,6,7});
+  my_interp::Lagrange<1, false> x2(0, 3.5, std::array<Numeric, 7>{1,2,3,4,5,6,7});
+  std::cout << x << '\n' << '\n';
+  auto iw = interpweights2(std::array{x, x}, std::array{x2, x2});
+
+  std::cout << type(iw) << '\n';
+  std::cout << iw << '\n';
+
+  std::cout << matpack::shape_help{iw.shape()} << '\n';
+
+  std::cout << interp2(Matrix(7, 7, 1), interpweights2(x, x2), x, x2) << '\n';
+
+  std::cout << '\n' << reinterp2(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2}) << '\n';
+
+  Matrix Z = uniform_grid(-5, 49, 0.2).reshape(7, 7);
+  Vector X = uniform_grid(1, 7, 1);
+  Vector Y = uniform_grid(1, 7, 1);
+  Vector XN = uniform_grid(1, 14, 0.5);
+  Vector YN = uniform_grid(1, 28, 0.25);
+  auto x_lags = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, false>>(XN, X);
+  auto y_lags = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, false>>(YN, Y);
+  auto iw_vec = my_interp::interpweights2(x_lags, y_lags);
+  std::cout << matpack::eigen::as_eigen(Z) << '\n';
+  std::cout << matpack::eigen::as_eigen(my_interp::reinterp2(Z, iw_vec, x_lags, y_lags)) << '\n';
+}
+
 #define EXECUTE_TEST(X) \
 std::cout << "#########################################################\n";\
 std::cout << "Executing test: " #X << '\n'; \
@@ -427,25 +492,8 @@ int main() {
   EXECUTE_TEST(test_complex)
   EXECUTE_TEST(test_math)
   EXECUTE_TEST(test_mult)
-
-  Vector A({1,23,4,5,6,7});
-  const Vector B({1,23,4,5,6,7});
-  std::cout << A[1] << '\n' << B[1] << '\n';
-  std::cout << A[joker] << '\n' << B[joker] << '\n';
-  std::cout << A[Range(1, 1, 1)] << '\n' << B[Range(1, 1, 1)] << '\n';
-  std::cout << A[Range(1, 2, 1)] << '\n' << B[Range(1, 2, 1)] << '\n';
-  std::cout << A[Range(1, 2, 2)] << '\n' << B[Range(1, 2, 2)] << '\n';
-  std::cout << A[Range(1, 2, 3)] << '\n' << B[Range(1, 2, 3)] << '\n';
-  std::cout << A[Range(1, 3, 2)] << '\n' << B[Range(1, 3, 2)] << '\n';
-  std::cout << A[Range(2, 1, 1)] << '\n' << B[Range(2, 1, 1)] << '\n';
-  std::cout << A[Range(2, 2, 1)] << '\n' << B[Range(2, 2, 1)] << '\n';
-  std::cout << A[Range(2, 2, 2)] << '\n' << B[Range(2, 2, 2)] << '\n';
-  std::cout << A[Range(2, 2, 3)] << '\n' << B[Range(2, 2, 3)] << '\n';
-  std::puts("JOKER");
-  std::cout << A[Range(1, joker, 1)] << '\n' << B[Range(1, joker, 1)] << '\n';
-  std::cout << A[Range(1, joker, 1)] << '\n' << B[Range(1, joker, 1)] << '\n';
-  std::cout << A[Range(1, joker, 2)] << '\n' << B[Range(1, joker, 2)] << '\n';
-  std::cout << A[Range(1, joker, 3)] << '\n' << B[Range(1, joker, 3)] << '\n';
-  std::cout << A[Range(1, joker, 2)] << '\n' << B[Range(1, joker, 2)] << '\n';
+  EXECUTE_TEST(test_const_view)
+  EXECUTE_TEST(test_const_data)
+  EXECUTE_TEST(test_my_interp)
 }
 

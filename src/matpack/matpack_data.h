@@ -61,6 +61,10 @@ class matpack_data {
   //! A constant strided matpack_view
   using cs_view = typename view_type::cs_view;
 
+  //! Any view type
+  template <bool c, bool s>
+  using any_view = matpack_view<T, N, c, s>;
+
   //! Allow all other matpack_data to view private information about this type
   template <typename U, Index M> friend class matpack_data;
 
@@ -351,7 +355,7 @@ public:
   constexpr matpack_data& operator*=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z * y;}); return *this;}
   constexpr matpack_data& operator/=(std::convertible_to<T> auto x) {std::transform(data.begin(), data.end(), data.begin(), [y=static_cast<T>(x)](auto z){return z / y;}); return *this;}
   
-  template <bool c, bool s> constexpr matpack_data& operator=(const matpack_view<T, N, c, s>& x) {
+  template <bool c, bool s> constexpr matpack_data& operator=(const any_view<c, s>& x) {
     if constexpr (not s) {
       if (data_handle() != x.unsafe_data_handle()) {
         resize(x.shape());
@@ -363,17 +367,17 @@ public:
     return *this;
   }
 
-  template <bool c, bool s> constexpr matpack_data& operator+=(const matpack_view<T, N, c, s>& x) {view += x; return *this;}
-  template <bool c, bool s> constexpr matpack_data& operator-=(const matpack_view<T, N, c, s>& x) {view -= x; return *this;}
-  template <bool c, bool s> constexpr matpack_data& operator*=(const matpack_view<T, N, c, s>& x) {view *= x; return *this;}
-  template <bool c, bool s> constexpr matpack_data& operator/=(const matpack_view<T, N, c, s>& x) {view /= x; return *this;}
+  template <bool c, bool s> constexpr matpack_data& operator+=(const any_view<c, s>& x) {view += x; return *this;}
+  template <bool c, bool s> constexpr matpack_data& operator-=(const any_view<c, s>& x) {view -= x; return *this;}
+  template <bool c, bool s> constexpr matpack_data& operator*=(const any_view<c, s>& x) {view *= x; return *this;}
+  template <bool c, bool s> constexpr matpack_data& operator/=(const any_view<c, s>& x) {view /= x; return *this;}
   constexpr matpack_data& operator+=(const matpack_data& x) {view += x.view; return *this;}
   constexpr matpack_data& operator-=(const matpack_data& x) {view -= x.view; return *this;}
   constexpr matpack_data& operator*=(const matpack_data& x) {view *= x.view; return *this;}
   constexpr matpack_data& operator/=(const matpack_data& x) {view /= x.view; return *this;}
 
-  template <bool c, bool s> constexpr bool operator==(const matpack_view<T, N, c, s>& x) const { return view == x; }
-  template <bool c, bool s> constexpr bool operator!=(const matpack_view<T, N, c, s>& x) const { return view != x; }
+  template <bool c, bool s> constexpr bool operator==(const any_view<c, s>& x) const { return view == x; }
+  template <bool c, bool s> constexpr bool operator!=(const any_view<c, s>& x) const { return view != x; }
   constexpr bool operator==(const matpack_data& x) const { return view == x.view; }
   constexpr bool operator!=(const matpack_data& x) const { return view != x.view; }
 
