@@ -242,6 +242,32 @@ std::array<Index, N> upview(const std::array<Index, M> &low) {
   return sz;
 }
 
+namespace detail {
+template <access_operator first, access_operator... rest>
+constexpr void access_str(std::string &out, first ind [[maybe_unused]],
+                          rest... inds) {
+  if constexpr (std::same_as<Joker, std::remove_cvref_t<first>>) {
+  out += "joker";
+  } else {
+  out += var_string(ind);
+  }
+
+  if constexpr (sizeof...(inds) > 0) {
+  out += ", ";
+  access_str(out, inds...);
+  }
+}
+} // namespace detail
+
+//! Returns a string representation of the access indices
+template <access_operator... access>
+constexpr std::string access_str(access... ind) {
+  std::string out{"("};
+  detail::access_str(out, ind...);
+  out += ")";
+  return out;
+}
+
 //! The basic view type
 template <typename T, Index N, bool constant, bool strided>
 class matpack_view {
@@ -510,7 +536,8 @@ public:
     requires(sizeof...(access) == N and not constant)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind...))
     if constexpr (N == M)
       return view(std::forward<access>(ind)...);
     else
@@ -524,7 +551,8 @@ public:
     requires(sizeof...(access) == N)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind...),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind...))
     if constexpr (N == M)
       return view(std::forward<access>(ind)...);
     else
@@ -537,7 +565,8 @@ public:
     requires(not constant)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind))
     if constexpr (N == M and N == 1)
       return view[std::forward<access>(ind)];
     else
@@ -548,7 +577,8 @@ public:
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind))
     if constexpr (N == M and N == 1)
       return view[std::forward<access>(ind)];
     else

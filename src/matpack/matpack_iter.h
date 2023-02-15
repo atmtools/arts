@@ -1,7 +1,6 @@
 #pragma once
 
 #include "matpack_concepts.h"
-#include <__concepts/same_as.h>
 #include <tuple>
 
 namespace matpack {

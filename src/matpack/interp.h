@@ -515,8 +515,9 @@ struct Lagrange {
     else return pos+offset;
   }
   
-  //! Enusre that the move constructor exists
-  constexpr Lagrange() = default;
+  //! Enusre that the standard constructors and set-operators exist
+  constexpr Lagrange() requires(runtime_polyorder()) : lx(1, 1), dlx(1, 0) {}
+  constexpr Lagrange() requires(not runtime_polyorder()) : lx({1}), dlx({0}) {}
   constexpr Lagrange(const Lagrange& l) = default;
   constexpr Lagrange(Lagrange&& l) noexcept = default;
   constexpr Lagrange& operator=(const Lagrange& l) = default;
@@ -1027,7 +1028,7 @@ constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
  * @return constexpr auto A new field
  */
 template <typename ListOfInterpWeights, list_of_lagrange_type... lags>
-constexpr auto reinterp(auto &&out,
+constexpr void reinterp(auto &&out,
                         field_t<internal::zero<lags>()...> auto &&field,
                         ListOfInterpWeights &&iw_field, lags &&...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
