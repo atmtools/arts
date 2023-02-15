@@ -192,7 +192,6 @@ add_library (artscore STATIC
   xsec_fit.cc
   igrf13.cc
   interpolation.cc
-  interpolation_lagrange.cc
   jacobian.cc
   jpl_species.cc
   legendre.cc

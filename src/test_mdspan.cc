@@ -448,54 +448,37 @@ void test_const_data() {
   constexpr matpack::matpack_constant_data<Numeric, 3, 3> z{2,3,4};
   Matrix t(z);
 }
-  
-struct tmp {
- my_interp::Lagrange<1, false> v;
-};
-#include "type_debug_help.h"
+
 void test_my_interp() {
-  my_interp::Lagrange<1, true> x(0, 3.5, std::array<Numeric, 7>{1,2,3,4,5,6,7});
-  my_interp::Lagrange<1, false> x2(0, 3.5, std::array<Numeric, 7>{1,2,3,4,5,6,7});
-  std::cout << x << '\n' << '\n';
-  auto iw = interpweights2(std::array{x, x}, std::array{x2, x2});
+  my_interp::Lagrange<1, true> x(0, 3.5,
+                                 std::array<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
+  my_interp::Lagrange<1, false> x2(0, 3.5,
+                                   std::array<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
+  auto iw = interpweights(std::array{x, x}, std::array{x2, x2});
 
-  std::cout << type(iw) << '\n';
-  std::cout << iw << '\n';
+  matpack::shape_help{iw.shape()};
 
-  std::cout << matpack::shape_help{iw.shape()} << '\n';
+  static_assert(my_interp::field_t<std::remove_cvref_t<decltype(interpweights(x, x2))>, 0, 0>);
 
-std::cout << my_interp::field_t<Matrix, 0,0 > << '\n';
-std::cout << my_interp::field_t<std::remove_cvref_t<decltype(interpweights2(x, x2))>, 0, 0> << '\n';
+  interp(Matrix(7, 7, 1), interpweights(x, x2), x, x2);
 
-
-  std::cout << interp2(Matrix(7, 7, 1), interpweights2(x, x2), x, x2) << '\n';
-
-  std::cout << '\n' << reinterp2(Matrix(7, 7, 1), iw, std::array{x, x}, std::array{x2, x2}) << '\n';
+  reinterp(Matrix(7, 7, 1), iw, std::array{x, x},
+                        std::array{x2, x2});
 
   Matrix Z = uniform_grid(-5, 49, 0.2).reshape(7, 7);
   Vector X = uniform_grid(1, 7, 1);
   Vector Y = uniform_grid(1, 7, 1);
   Vector XN = uniform_grid(1, 14, 0.5);
   Vector YN = uniform_grid(1, 28, 0.25);
-  auto x_lags = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, false>>(XN, X);
-  auto y_lags = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, false>>(YN, Y);
-  auto iw_vec = my_interp::interpweights2(x_lags, y_lags);
-  std::cout << X << '\n';
-  std::cout << XN << '\n';
-  std::cout << Y << '\n';
-  std::cout << YN << '\n';
-  std::cout << matpack::eigen::as_eigen(Z) << '\n';
-  std::cout << matpack::eigen::as_eigen(my_interp::reinterp2(Z, iw_vec, x_lags, y_lags)) << '\n';
 
-  for (auto mx: XN)
-  {
-    for (auto my:YN){
-  auto lagx = my_interp::Lagrange<1, false>(0, mx, X);
-  auto lagy = my_interp::Lagrange<1, false>(0, my, Y);
-  auto iw2 = my_interp::interpweights2(lagx, lagy);
-  std::cout << interp2(Z, iw2, lagx, lagy) - interp2(Z, lagx, lagy) << '\n';}
+  for (auto mx : XN) {
+    for (auto my : YN) {
+      auto lagx = my_interp::Lagrange<1, false>(0, mx, X);
+      auto lagy = my_interp::Lagrange<1, false>(0, my, Y);
+      auto iw2 = my_interp::interpweights(lagx, lagy);
+      ARTS_USER_ERROR_IF(std::abs(interp(Z, iw2, lagx, lagy) - interp(Z, lagx, lagy)) > 1e-16, "Bad");
+    }
   }
-
 }
 
 #define EXECUTE_TEST(X) \

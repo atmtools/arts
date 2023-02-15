@@ -1,20 +1,20 @@
 #pragma once
 
 #include "array.h"
-#include "arts_conversions.h"
-#include "artstime.h"
 #include "debug.h"
 #include "enums.h"
-#include "grids.h"
-#include "interpolation.h"
+#include "nonstd.h"
+
+#include "arts_constants.h"
+#include "arts_conversions.h"
+
 #include "matpack_concepts.h"
 #include "matpack_constexpr.h"
 #include "matpack_data.h"
 #include "matpack_iter.h"
-#include "nonstd.h"
+#include "matpack_math.h"
+#include "matpack_math_extra.h"
 
-#include <__concepts/same_as.h>
-#include <__iterator/concepts.h>
 #include <algorithm>
 #include <array>
 #include <concepts>
@@ -52,8 +52,20 @@ enum class cycle_limit {lower, upper};
 
 //! A helper class to denote a longitude cycle
 template <cycle_limit lim> requires (lim == cycle_limit::lower or lim == cycle_limit::upper)
-struct longitude_cycle {
+struct cycle_m180_p180 {
   static constexpr Numeric bound = lim == cycle_limit::upper ? 180 : -180;
+};
+
+//! A helper class to denote a longitude cycle
+template <cycle_limit lim> requires (lim == cycle_limit::lower or lim == cycle_limit::upper)
+struct cycle_0_p360 {
+  static constexpr Numeric bound = lim == cycle_limit::upper ? 360 : 0;
+};
+
+//! A helper class to denote a longitude cycle
+template <cycle_limit lim> requires (lim == cycle_limit::lower or lim == cycle_limit::upper)
+struct cycle_0_p2pi {
+  static constexpr Numeric bound = lim == cycle_limit::upper ? Constant::two_pi : 0;
 };
 
 //! A helper class to denote no cyclic limit
@@ -206,7 +218,6 @@ constexpr Index IMIN(const Index a, const Index b) noexcept { return a < b ? a :
  * @param[in] xi Original sorted grid
  * @param[in] polyorder Polynominal orders
  * @param[in] ascending The sorting is ascending (1, 2, 3...)
- * @param[in] cycle The size of a cycle (optional; increasing first->second)
  */
 template <template <cycle_limit lim> class Limit=no_cycle, sortable_grid_t Vec=Vector>
 constexpr Index pos_finder(const Index pos0, const Numeric x, const Vec& xi,
@@ -327,9 +338,9 @@ constexpr Numeric l(const Index p0, const Index n, const Numeric x,
           if (j_pos == N - 1)
             return 0;
           if (m_pos not_eq N - 1)
-            val *= min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic(xi[j_pos] - xi[m_pos]);
+            val *= min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic<Limit>(xi[j_pos] - xi[m_pos]);
         } else {
-          val *= min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic(xi[j_pos] - xi[m_pos]);
+          val *= min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic<Limit>(xi[j_pos] - xi[m_pos]);
         }
       }
     }
@@ -453,71 +464,9 @@ constexpr bool is_ascending(const Vec& xi) ARTS_NOEXCEPT {
   return false;
 }
 
-/*! Checks the interpolation grid and throws if it is bad
- * 
- * @param[in] xi Old grid positions
- * @param[in] polyorder Polynominal degree
- * @param[in] x {Min new x, Max new x}
- * @param[in] extrapol Level of extrapolation
- */
-template <GridType type, template <cycle_limit lim> class Limit,
-          sortable_grid_t Vec>
-void check_lagrange_interpolation(
-    [[maybe_unused]] const Vec &xi,
-    [[maybe_unused]] const Index polyorder = 1,
-    [[maybe_unused]] const std::pair<Numeric, Numeric> x =
-        {std::numeric_limits<Numeric>::infinity(),
-         -std::numeric_limits<Numeric>::infinity()},
-    [[maybe_unused]] const Numeric extrapol = 0.5)
-  requires(test_cyclic_limit<Limit>())
-{
-  constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
-  constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
-
-  const Index n = Index(xi.size());
-
-  ARTS_USER_ERROR_IF(polyorder >= n, "Interpolation setup has failed!\n"
-                                     "\tRequesting greater interpolation order "
-                                     "than possible with given input grid")
-  ARTS_USER_ERROR_IF(type == GridType::Cyclic and lb >= ub,
-                     "Interpolation setup has failed!\n"
-                     "\tBad cycle, must be [first, second)")
-  if constexpr (GridType::Cyclic not_eq type) {
-    if (polyorder and extrapol > 0) {
-      const bool ascending = is_ascending(xi);
-      const Numeric xmin =
-          ascending ? xi[0] - extrapol * nonstd::abs(xi[1] - xi[0])
-                    : xi[n - 1] - extrapol * nonstd::abs(xi[n - 2] - xi[n - 1]);
-      const Numeric xmax =
-          ascending ? xi[n - 1] + extrapol * nonstd::abs(xi[n - 2] - xi[n - 1])
-                    : xi[0] + extrapol * nonstd::abs(xi[1] - xi[0]);
-      ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
-                         "Interpolation setup has failed!\n"
-                         "\tThe new grid has limits: ",
-                         x.first, ' ', x.second, '\n',
-                         "\tThe old grid has limits: ", xmin, ' ', xmax)
-    }
-  }
-}
-
-/*! Checks the interpolation grid and throws if it is bad
- * 
- * @param[in] xi Old grid positions
- * @param[in] polyorder Polynominal degree
- * @param[in] x New grid position
- * @param[in] extrapol Level of extrapolation
- */
-template <GridType type, template <cycle_limit lim> class Limit, sortable_grid_t Vec> constexpr
-void check_lagrange_interpolation([[maybe_unused]] const Vec& xi,
-                                  [[maybe_unused]] const Index polyorder,
-                                  [[maybe_unused]] const Numeric x,
-                                  [[maybe_unused]] const Numeric extrapol = 0.5)
-  requires(test_cyclic_limit<Limit>()) {
-  check_lagrange_interpolation<type, Limit>(xi, polyorder, {x, x}, extrapol);
-}
-
 //! Completely empty struct that may store as 0 bytes when used with [[no_unique_address]] on most compilers
 struct Empty {
+  constexpr Empty(auto&&...) {}
   [[nodiscard]] static constexpr Index size() noexcept {return 0;}
   [[nodiscard]] static constexpr std::nullptr_t begin() noexcept {return nullptr;}
   [[nodiscard]] static constexpr std::nullptr_t end() noexcept {return nullptr;}
@@ -557,8 +506,8 @@ struct Lagrange {
    * 
    *  Note that this cycles the position iff the grid-type is cyclic
    *
-   * @param offset The offset of the new index
-   * @param maxsize The maximum size of the original grid; only used by the cyclic path
+   * @param[in] offset The offset of the new index
+   * @param[in] maxsize The maximum size of the original grid; only used by the cyclic path
    * @return constexpr Index The position of a point in an original grid
    */
   [[nodiscard]] constexpr Index index_pos(Index offset, Index maxsize [[maybe_unused]]) const noexcept {
@@ -586,7 +535,7 @@ struct Lagrange {
     requires(runtime_polyorder())
       : pos(pos_finder<Limit>(p0, x, xi, polyorder,
                               xi.size() > 1 ? xi[0] < xi[1] : false)),
-        lx(polyorder + 1), dlx(do_derivs ? polyorder + 1 : 0) {
+        lx(polyorder + 1), dlx(polyorder + 1) {
     lx_finder(x, xi);
     dlx_finder(x, xi);
   }
@@ -662,6 +611,77 @@ struct Lagrange {
         dlx[j] = dl<type, Limit>(pos, size(), x, xi, lx, j);
     }
    }
+
+ public:
+   /*! Get the polynominal order of a compile time type */
+   static constexpr Index polyorder()
+     requires(not runtime_polyorder())
+   {
+    return PolyOrder;
+   }
+
+   /*! Checks the interpolation grid and throws if it is bad
+    *
+    * @param[in] xi Old grid positions
+    * @param[in] polyorder Polynominal degree
+    * @param[in] x {Min new x, Max new x} if non-cyclic
+    * @param[in] extrapol Level of extrapolation allowed if non-cyclic
+    */
+   template <sortable_grid_t Vec>
+   static void check(const Vec &xi, const Index polyorder,
+                     [[maybe_unused]] const std::pair<Numeric, Numeric> x =
+                         {std::numeric_limits<Numeric>::infinity(),
+                          -std::numeric_limits<Numeric>::infinity()},
+                     [[maybe_unused]] const Numeric extrapol = 0.5)
+     requires(test_cyclic_limit<Limit>())
+   {
+    constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
+    constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
+
+    const Index n = Index(xi.size());
+
+    ARTS_USER_ERROR_IF(polyorder >= n,
+                       "Interpolation setup has failed!\n"
+                       "\tRequesting greater interpolation order "
+                       "than possible with given input grid")
+    ARTS_USER_ERROR_IF(type == GridType::Cyclic and lb >= ub,
+                       "Interpolation setup has failed!\n"
+                       "\tBad cycle, must be [first, second)")
+    if constexpr (GridType::Cyclic not_eq type) {
+      if (polyorder and extrapol > 0) {
+        const bool ascending = is_ascending(xi);
+        const Numeric xmin =
+            ascending
+                ? xi[0] - extrapol * nonstd::abs(xi[1] - xi[0])
+                : xi[n - 1] - extrapol * nonstd::abs(xi[n - 2] - xi[n - 1]);
+        const Numeric xmax =
+            ascending
+                ? xi[n - 1] + extrapol * nonstd::abs(xi[n - 2] - xi[n - 1])
+                : xi[0] + extrapol * nonstd::abs(xi[1] - xi[0]);
+        ARTS_USER_ERROR_IF(x.first < xmin or x.second > xmax,
+                           "Interpolation setup has failed!\n"
+                           "\tThe new grid has limits: ",
+                           x.first, ' ', x.second, '\n',
+                           "\tThe old grid has limits: ", xmin, ' ', xmax)
+      }
+    }
+   }
+
+   /*! Checks the interpolation grid and throws if it is bad
+    *
+    * @param[in] xi Old grid positions
+    * @param[in] polyorder Polynominal degree
+    * @param[in] x New grid position if non-cyclic
+    * @param[in] extrapol Level of extrapolation allowed if non-cyclic
+    */
+   template <sortable_grid_t Vec>
+   static constexpr void check(const Vec &xi, const Index polyorder,
+                               const Numeric x = 0,
+                               const Numeric extrapol = 0.5)
+     requires(test_cyclic_limit<Limit>())
+   {
+    check(xi, polyorder, std::pair{x, x}, extrapol);
+   }
 };  // Lagrange
 
 namespace internal {
@@ -700,19 +720,19 @@ constexpr bool has_derivatives() {
 
 //! Test to make sure that the type can be used as a lagrange key type
 template <typename T>
-concept lagrange_type = requires(const T a) {
+concept lagrange_type = requires(std::remove_cvref_t<T> a) {
   /* Normal lagrange weight */
   { a.pos } -> matpack::integral;
   { a.size() } -> matpack::integral;
   { a.index_pos(0, 0) } -> matpack::integral;
 } and std::same_as<decltype(internal::has_derivatives<T>()), bool> and
       std::same_as<decltype(internal::runtime_polyorder<T>()), bool> and
-requires (T a) {
+requires (std::remove_cvref_t<T> a) {
    /* The lagrange weights can be accessed */
   { a.lx.size() } -> matpack::integral;  // Size is a size-type
   { a.lx[0] } -> matpack::arithmetic;  // May contain some values
 } and
-requires (T a) {
+requires (std::remove_cvref_t<T> a) {
   { a.dlx.size() } -> matpack::integral;  // Size is a size-type
   { a.dlx[0] } -> matpack::arithmetic;  // May contain some values
 };
@@ -720,45 +740,68 @@ requires (T a) {
 /** Get a list of Lagrange types for use with reinterp
  *
  * This is the runtime polyorder version
- * 
+ *
  * @tparam T A Lagrage type
  * @tparam NewVec A grid-type that is sortable
  * @tparam Vec A grid-type that is sortable
  * @param[in] xs The new grid, does not have to be sorted
  * @param[in] xi The original grid, should be sorted
  * @param[in] order The runtime polynominal order of the interpolation
+ * @param[in] extrapol The allowed extrapolation (inf means all extrapolations
+ * are allowed)
  * @return An array of Lagrange types
  */
 template <lagrange_type T, sortable_grid_t NewVec, sortable_grid_t Vec>
-constexpr Array<T> lagrange_interpolation_list(NewVec &&xs,
-                                               Vec &&xi, Index order=1) requires(std::remove_cvref_t<T>::runtime_polyorder()) {
-   Array<T> out;
-   out.reserve(xs.size());
+constexpr Array<T> lagrange_interpolation_list(
+    NewVec &&xs, Vec &&xi, Index order = 1,
+    Numeric extrapol = 0.5)
+  requires(std::remove_cvref_t<T>::runtime_polyorder())
+{
+  if (extrapol < std::numeric_limits<Numeric>::infinity()) {
+    T::check(xi, order, minmax(xs), extrapol);
+  }
 
-   for (auto &x : xs) {
-    if (out.size())
-      out.emplace_back(out.back().pos, x, xi, order);
-    else
-      out.emplace_back(start_pos_finder(x, xi), x, xi, order);
-   }
-   
-   return out;
+  Array<T> out;
+  out.reserve(xs.size());
+
+  for (auto x : xs) {
+    out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi, order);
+  }
+
+  return out;
 }
 
+/** Get a list of Lagrange types for use with reinterp
+ *
+ * This is the runtime polyorder version
+ *
+ * @tparam T A Lagrage type
+ * @tparam NewVec A grid-type that is sortable
+ * @tparam Vec A grid-type that is sortable
+ * @param[in] xs The new grid, does not have to be sorted
+ * @param[in] xi The original grid, should be sorted
+ * @param[in] extrapol The allowed extrapolation (inf means all extrapolations
+ * are allowed)
+ * @return An array of Lagrange types
+ */
 template <lagrange_type T, sortable_grid_t NewVec, sortable_grid_t Vec>
-constexpr Array<T> lagrange_interpolation_list(NewVec &&xs, Vec &&xi)
-  requires(not std::remove_cvref_t<T>::runtime_polyorder()) {
-   Array<T> out;
-   out.reserve(xs.size());
+constexpr Array<T> lagrange_interpolation_list(
+    NewVec &&xs, Vec &&xi,
+    Numeric extrapol = 0.5)
+  requires(not std::remove_cvref_t<T>::runtime_polyorder())
+{
+  if (extrapol < std::numeric_limits<Numeric>::infinity()) {
+    T::check(xi, T::polyorder(), minmax(xs), extrapol);
+  }
 
-   for (auto &x : xs) {
-    if (out.size())
-      out.emplace_back(out.back().pos, x, xi);
-    else
-      out.emplace_back(start_pos_finder(x, xi), x, xi);
-   }
-   
-   return out;
+  Array<T> out;
+  out.reserve(xs.size());
+
+  for (auto x : xs) {
+    out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi);
+  }
+
+  return out;
 }
 
 namespace internal {
@@ -773,7 +816,7 @@ private:
    * 
    * @tparam selection_flag If true, return the derivative, otherwise the pure weights 
    * @tparam lag_t A Lagrange type
-   * @param lag The Lagrange value
+   * @param[in] lag The Lagrange value
    * @return constexpr const auto& The derivative or pure weights 
    */
   template <bool selection_flag, lagrange_type lag_t>
@@ -790,7 +833,7 @@ public:
   /** Only interface to the helper struct
    * 
    * @tparam inds A compile-time list of Index generated by std::make_integet_sequence<sizeof...(T)>()
-   * @param all A list of Lagrange values
+   * @param[in] all A list of Lagrange values
    * @return constexpr auto An iterable list
    */
   template <Index... inds>
@@ -809,7 +852,7 @@ public:
  * @param[in] lag... Several Lagrange values
  */
 template<lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr auto interpweights2(lags&&... lag) requires (N > 0) {
+constexpr auto interpweights(lags&&... lag) requires (N > 0) {
   if constexpr (N > 1) {
     if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
       const auto in = matpack::elemwise{lag.lx...};
@@ -844,7 +887,7 @@ constexpr auto interpweights2(lags&&... lag) requires (N > 0) {
  * @param[in] lag... Several Lagrange values, where the dlx:th one has a derivative
  */
 template<Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr auto dinterpweights2(lags&&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
+constexpr auto dinterpweights(lags&&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
   if constexpr (N > 1) {
     if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
       const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
@@ -885,18 +928,18 @@ concept list_of_lagrange_type = requires(T a) {
  * @param[in] lags... Several lists of Lagrange values
  */
 template <list_of_lagrange_type... list_lags, Index N = sizeof...(list_lags)>
-constexpr auto interpweights2(list_lags &&...lags)
+constexpr auto interpweights(list_lags &&...lags)
   requires(N > 0)
 {
   using internal_type =
-      std::remove_cvref_t<decltype(interpweights2(lags[0]...))>;
+      std::remove_cvref_t<decltype(interpweights(lags[0]...))>;
 
   const auto in = matpack::elemwise{lags...};
   matpack::matpack_data<internal_type, N> out{
       static_cast<Index>(lags.size())...};
 
   std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
-    return std::apply([](auto &&...lag) { return interpweights2(lag...); }, v);
+    return std::apply([](auto &&...lag) { return interpweights(lag...); }, v);
   });
 
   return out;
@@ -911,17 +954,17 @@ constexpr auto interpweights2(list_lags &&...lags)
  */
 template <Index dlx, list_of_lagrange_type... list_lags,
           Index N = sizeof...(list_lags)>
-constexpr auto dinterpweights2(list_lags &&...lags)
+constexpr auto dinterpweights(list_lags &&...lags)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
   using internal_type =
-      std::remove_cvref_t<decltype(dinterpweights2<dlx>(lags[0]...))>;
+      std::remove_cvref_t<decltype(dinterpweights<dlx>(lags[0]...))>;
 
   const auto in = matpack::elemwise{lags...};
   matpack::matpack_data<internal_type, N> out{static_cast<Index>(lags.size())...};
 
   std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
-    return std::apply([](auto &&...lag) { return dinterpweights2<dlx>(lag...); }, v);
+    return std::apply([](auto &&...lag) { return dinterpweights<dlx>(lag...); }, v);
   });
 
   return out;
@@ -942,31 +985,31 @@ template <typename T> constexpr Index zero() {return 0;}
 /** Interpolate a single output value with re-usable weights
  * 
  * @tparam lags... Several Lagrange types
- * @param field A field value of the same rank as the number of lags
- * @param iw An interpolation weight of the same rank as the number of lags
- * @param lag... Several Lagrange values
+ * @param[in] field A field value of the same rank as the number of lags
+ * @param[in] iw An interpolation weight of the same rank as the number of lags
+ * @param[in] lag... Several Lagrange values
  * @return constexpr auto The value of the interpolation
  */
 template <lagrange_type... lags>
-constexpr auto interp2(field_t<internal::zero<lags>()...> auto &&field,
-                       field_t<internal::zero<lags>()...> auto &&iw,
-                       lags &&...lag) {
+constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
+                      field_t<internal::zero<lags>()...> auto &&iw,
+                      lags &&...lag) {
   matpack::matpack_value_type<decltype(field)> out{0};
-
-  //! Deal with the cyclicity by a applying wrapping lambda
-  auto val_fn = std::apply(
-      [&](auto &&...maxsize) {
-        return [&](auto &&...offset) {
-          return mdvalue(iw, {offset...}) *
-                 matpack::mdvalue(field, {lag.index_pos(offset, maxsize)...});
-        };
-      },
-      matpack::mdshape(field));
 
   //! Now the cyclicity is wrapped, we can just add the values up
   for (matpack::flat_shape_pos<sizeof...(lags)> pos{matpack::mdshape(iw)};
        pos.pos.front() < pos.shp.front(); ++pos) {
-    out += std::apply(val_fn, pos.pos);
+    out += std::apply(std::apply(
+                          [&](auto &&...maxsize) {
+                            return [&](auto &&...offset) {
+                              return matpack::mdvalue(iw, {offset...}) *
+                                     matpack::mdvalue(
+                                         field,
+                                         {lag.index_pos(offset, maxsize)...});
+                            };
+                          },
+                          matpack::mdshape(field)),
+                      pos.pos);
   }
 
   return out;
@@ -977,56 +1020,73 @@ constexpr auto interp2(field_t<internal::zero<lags>()...> auto &&field,
  *  This is done by calling interp for all the combinations of the inputs
  * 
  * @tparam lags... Several lists of Lagrange types
- * @param field A field value of the same rank as the number of lags
- * @param iw_field A field of interpolation weights of the same rank as the number of lags
- * @param lag... Several lists of Lagrange values
+ * @param[inout] out A writable output-field of the size of the list_lag-variables
+ * @param[in] field A field value of the same rank as the number of lags
+ * @param[in] iw_field A field of interpolation weights of the same rank as the number of lags
+ * @param[in] list_lag... Several lists of Lagrange values
  * @return constexpr auto A new field
  */
-template <typename ListOfInterpWeights,
-          list_of_lagrange_type... lags>
-constexpr auto reinterp2(field_t<internal::zero<lags>()...> auto &&field,
-                         ListOfInterpWeights &&iw_field,
-                         lags &&...list_lag) {
+template <typename ListOfInterpWeights, list_of_lagrange_type... lags>
+constexpr auto reinterp(auto &&out,
+                        field_t<internal::zero<lags>()...> auto &&field,
+                        ListOfInterpWeights &&iw_field, lags &&...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
-  matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
-                        sizeof...(lags)>
-  out(list_lag.size()...);
-
   std::transform(
       iw_field.elem_begin(), iw_field.elem_end(), in.begin(), out.elem_begin(),
       [&](auto &&internal_iw, auto &&lag_t) {
         return std::apply(
-            [&](auto &&...lag) { return interp2(field, internal_iw, lag...); },
+            [&](auto &&...lag) { return interp(field, internal_iw, lag...); },
             lag_t);
       });
+}
 
+/** Reinterpolates a field as another field with re-usable weights
+ *
+ *  This is done by calling interp for all the combinations of the inputs
+ * 
+ * @tparam lags... Several lists of Lagrange types
+ * @param[in] field A field value of the same rank as the number of lags
+ * @param[in] iw_field A field of interpolation weights of the same rank as the number of lags
+ * @param[in] lag... Several lists of Lagrange values
+ * @return constexpr auto A new field
+ */
+template <typename ListOfInterpWeights, list_of_lagrange_type... lags>
+constexpr auto reinterp(field_t<internal::zero<lags>()...> auto &&field,
+                        ListOfInterpWeights &&iw_field, lags &&...list_lag) {
+  matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
+                        sizeof...(lags)>
+  out(list_lag.size()...);
+  reinterp(out, std::forward<decltype(field)>(field),
+           std::forward<decltype(iw_field)>(iw_field),
+           std::forward<lags>(list_lag)...);
   return out;
 }
 
 /** Interpolate a single output value
  * 
  * @tparam lags... Several Lagrange types
- * @param field A field value of the same rank as the number of lags
- * @param lag... Several Lagrange values
+ * @param[in] field A field value of the same rank as the number of lags
+ * @param[in] lag... Several Lagrange values
  * @return constexpr auto The value of the interpolation
  */
 template <lagrange_type... lags>
-constexpr auto interp2(field_t<internal::zero<lags>()...> auto &&field,
-                       lags &&...lag) {
+constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
+                      lags &&...lag) {
   matpack::matpack_value_type<decltype(field)> out{0};
-
-  auto fn_val = std::apply(
-      [&](auto &&...maxsize) {
-        return [&](auto &&...offset) {
-          return (lag.lx[offset] * ...) *
-                 matpack::mdvalue(field, {lag.index_pos(offset, maxsize)...});
-        };
-      },
-      matpack::mdshape(field));
 
   for (matpack::flat_shape_pos<sizeof...(lags)> pos{std::array{lag.size()...}};
        pos.pos.front() < pos.shp.front(); ++pos) {
-    out += std::apply(fn_val, pos.pos);
+    out += std::apply(std::apply(
+                          [&](auto &&...maxsize) {
+                            return [&](auto &&...offset) {
+                              return (lag.lx[offset] * ...) *
+                                     matpack::mdvalue(
+                                         field,
+                                         {lag.index_pos(offset, maxsize)...});
+                            };
+                          },
+                          matpack::mdshape(field)),
+                      pos.pos);
   }
 
   return out;
@@ -1037,13 +1097,13 @@ constexpr auto interp2(field_t<internal::zero<lags>()...> auto &&field,
  *  This is done by calling interp for all the combinations of the inputs
  * 
  * @tparam lags... Several lists of Lagrange types
- * @param field A field value of the same rank as the number of lags
- * @param lag... Several lists of Lagrange values
+ * @param[in] field A field value of the same rank as the number of lags
+ * @param[in] lag... Several lists of Lagrange values
  * @return constexpr auto A new field
  */
 template <list_of_lagrange_type... lags>
-constexpr auto reinterp2(field_t<internal::zero<lags>()...> auto &&field,
-                         lags &&...list_lag) {
+constexpr auto reinterp(field_t<internal::zero<lags>()...> auto &&field,
+                        lags &&...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
   matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
                         sizeof...(lags)>
@@ -1053,10 +1113,25 @@ constexpr auto reinterp2(field_t<internal::zero<lags>()...> auto &&field,
       in.begin(), in.end(), out.elem_begin(),
       [&](auto &&lag_t) {
         return std::apply(
-            [&](auto &&...lag) { return interp2(field, lag...); },
+            [&](auto &&...lag) { return interp(field, lag...); },
             lag_t);
       });
 
   return out;
 }
 }  // namespace my_interp
+
+// For linear interpolation
+using LagrangeInterpolation = my_interp::Lagrange<>;
+using ArrayOfLagrangeInterpolation = Array<LagrangeInterpolation>;
+
+// For logarithmic interpolation
+using LagrangeLogInterpolation = my_interp::Lagrange<-1, false, my_interp::GridType::Log>;
+using ArrayOfLagrangeLogInterpolation = Array<LagrangeLogInterpolation>;
+
+// For cyclic interpolation between 0 and 360
+using LagrangeCyclic0to360Interpolation = my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_0_p360>;
+using ArrayOfLagrangeCyclic0to360Interpolation = Array<LagrangeCyclic0to360Interpolation>;
+
+template <std::size_t sz, bool deriv=false>
+using FixedLagrangeInterpolation = my_interp::Lagrange<sz, deriv>;

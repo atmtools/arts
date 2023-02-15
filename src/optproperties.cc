@@ -43,7 +43,7 @@
 #include "check_input.h"
 #include "arts_conversions.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
@@ -384,12 +384,12 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
                 this_T_interp_order);
             grid_unchecked = false;
           }
-          T_lag.emplace_back(0, T_array[iT], T_grid, this_T_interp_order, false);
+          T_lag.emplace_back(0, T_array[iT], T_grid, this_T_interp_order);
         }
       }
       return T_lag;
     } else {
-      return Interpolation::LagrangeVector(T_array, T_grid, this_T_interp_order, extrapolfac);
+      return my_interp::lagrange_interpolation_list<LagrangeInterpolation>(T_array, T_grid, this_T_interp_order, extrapolfac);
     }
   } else {
     t_ok = 1.;

@@ -5,7 +5,6 @@
 
 #include <arts_conversions.h>
 #include <debug.h>
-#include <interpolation_lagrange.h>
 #include <propagationmatrix.h>
 
 #include "predef_data.h"

@@ -26,7 +26,7 @@
 
 #include "nlte.h"
 #include "arts_constants.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 
 void statistical_equilibrium_equation(MatrixView A,
                                       const ConstVectorView& Aij,
@@ -214,7 +214,7 @@ void nlte_collision_factorsCalcFromCoeffs(
             
             if (lt == Quantum::Number::StateMatchType::Full) {
               // Standard linear ARTS interpolation
-              const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0), false);
+              const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0));
               const auto itw = interpweights(lag);
               
               Cij[iline] += interp(gf1.data, itw, lag) * numden * isot_ratio;

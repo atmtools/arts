@@ -277,7 +277,7 @@ constexpr auto rank() {
 }
 
 //! Gets the dimension size of some extent
-template <rankable T, auto dim = rank<T>()> Index dimsize(const T& v, integral auto ind) {
+template <rankable T, auto dim = rank<T>()> constexpr Index dimsize(const T& v, integral auto ind) {
   if constexpr (has_extent<T>) {
     return v.extent(ind);
   } else if constexpr (has_dimension<T>) {

@@ -42,7 +42,7 @@
 #include "check_input.h"
 #include "disort.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "m_xml.h"
 #include "optproperties.h"
 #include "physics_funcs.h"
@@ -749,7 +749,7 @@ void run_rt4(Workspace& ws,
         const LagrangeInterpolation lag_za(0,
                                            cos_za_interp ? mu_values[j] : za_grid_orig[j], 
                                            cos_za_interp ? VectorView{mu_values_new} : za_grid[Range(0, nummu_new)],
-                                           za_interp_order, false);
+                                           za_interp_order);
         const auto itw = interpweights(lag_za);
 
         for (Index k = 0; k < num_layers + 1; k++)

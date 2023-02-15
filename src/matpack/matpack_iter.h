@@ -291,7 +291,7 @@ struct elemwise {
     static constexpr Index N = sizeof...(iters); 
 
     matpack::flat_shape_pos<N> pos{matpack::constant_array<N, 0>()};
-    const std::tuple<iters*...> orig{std::array<nullptr_t, N>{}};
+    const std::tuple<const iters* const...> orig{std::array<nullptr_t, N>{}};
 
   public:
     constexpr elemwise_iteration() = default;
@@ -300,7 +300,6 @@ struct elemwise {
     constexpr elemwise_iteration& operator=(elemwise_iteration&&) noexcept = default;
     constexpr elemwise_iteration& operator=(const elemwise_iteration&) = default;
 
-    constexpr elemwise_iteration(iters&...x) : pos(std::array{static_cast<Index>(x.size())...}), orig((&x)...) {}
     constexpr elemwise_iteration(const iters &...x) : pos(std::array{static_cast<Index>(x.size())...}), orig((&x)...) {}
 
     constexpr elemwise_iteration& operator++() noexcept {pos++; return *this;}

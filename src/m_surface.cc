@@ -46,7 +46,6 @@
 #include "fastem.h"
 #include "geodetic.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
 #include "messages.h"

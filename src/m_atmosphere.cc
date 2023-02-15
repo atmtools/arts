@@ -39,6 +39,7 @@
 
 #include <cfloat>
 #include <cmath>
+#include <vector>
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "species_tags.h"
@@ -53,7 +54,7 @@
 #include "gridded_fields.h"
 #include "igrf13.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "linescaling.h"
 #include "matpack_data.h"
 #include "messages.h"
@@ -147,8 +148,8 @@ void atm_fields_compactExpand(GriddedField4& af,
  */
 void AtmFieldPRegridHelper(Index& ing_min,
                            Index& ing_max,
-                           ArrayOfLagrangeInterpolation& lag_p,
-                           VectorOfVector& itw,
+                           ArrayOfLagrangeLogInterpolation& lag_p,
+                           matpack::matpack_data<std::vector<double>, 1>& itw,
                            ConstVectorView p_grid_out,
                            ConstVectorView p_grid_in,
                            const Index& interp_order,
@@ -166,7 +167,8 @@ void AtmFieldPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    lag_p = Interpolation::LagrangeVector(p_grid_out, p_grid_in, interp_order, 0.5, false, Interpolation::GridType::Log);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(
+      p_grid_out, p_grid_in, interp_order, 0.5);
     itw = interpweights(lag_p);
   }
 }
@@ -202,8 +204,8 @@ void AtmFieldPRegrid(  // WS Generic Output:
   atmtensor_out.resize(
       p_grid_new.nelem(), atmtensor_in.nrows(), atmtensor_in.ncols());
 
-  ArrayOfLagrangeInterpolation lag_p;
-  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
+  ArrayOfLagrangeLogInterpolation lag_p;
+  matpack::matpack_data<std::vector<double>, 1> itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -252,8 +254,8 @@ void AtmFieldPRegrid(  // WS Generic Output:
                        atmtensor_in.nrows(),
                        atmtensor_in.ncols());
   
-  ArrayOfLagrangeInterpolation lag_p;
-  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
+  ArrayOfLagrangeLogInterpolation lag_p;
+  matpack::matpack_data<std::vector<double>, 1> itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -625,8 +627,8 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
  */
 void GriddedFieldPRegridHelper(Index& ing_min,
                                Index& ing_max,
-                               ArrayOfLagrangeInterpolation& lag_p,
-                               VectorOfVector& itw,
+                               ArrayOfLagrangeLogInterpolation& lag_p,
+                               matpack::matpack_data<std::vector<double>, 1>& itw,
                                GriddedField& gfraw_out,
                                const GriddedField& gfraw_in,
                                const Index p_grid_index,
@@ -668,7 +670,7 @@ void GriddedFieldPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    lag_p = Interpolation::LagrangeVector(p_grid[Range(ing_min, nelem_in_range)], in_p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid[Range(ing_min, nelem_in_range)], in_p_grid, interp_order, 0.5);
     itw = interpweights(lag_p);
   }
 }
@@ -704,8 +706,8 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid(2, gfraw_in.get_numeric_grid(2));
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
   
-  ArrayOfLagrangeInterpolation lag_p;
-  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
+  ArrayOfLagrangeLogInterpolation lag_p;
+  matpack::matpack_data<std::vector<double>, 1> itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -779,8 +781,8 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid(3, gfraw_in.get_numeric_grid(3));
   gfraw_out.set_grid_name(3, gfraw_in.get_grid_name(3));
   
-  ArrayOfLagrangeInterpolation lag_p;
-  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
+  ArrayOfLagrangeLogInterpolation lag_p;
+  matpack::matpack_data<std::vector<double>, 1> itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -863,8 +865,8 @@ void GriddedFieldPRegrid(  // WS Generic Output:
  \param[in]     verbosity       Verbosity levels
  */
 void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
-                                    ArrayOfLagrangeInterpolation& lag_lon,
-                                    MatrixOfMatrix& itw,
+                                    ArrayOfLagrangeCyclic0to360Interpolation& lag_lon,
+                                    matpack::matpack_data<Matrix, 2>& itw,
                                     GriddedField& gfraw_out,
                                     const GriddedField& gfraw_in,
                                     const Index lat_grid_index,
@@ -903,8 +905,8 @@ void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
       "Raw field to lat_grid, 3D case", in_lat_grid, lat_true, interp_order);
 
   // Calculate grid positions:
-  lag_lat = Interpolation::LagrangeVector(lat_true, in_lat_grid, interp_order);
-  lag_lon = Interpolation::LagrangeVector(lon_true, in_lon_grid, interp_order, 0.5, false, Interpolation::GridType::Cyclic, {0, 360});
+  lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_true, in_lat_grid, interp_order);
+  lag_lon = my_interp::lagrange_interpolation_list<LagrangeCyclic0to360Interpolation>(lon_true, in_lon_grid, interp_order, 0.5);
   itw = interpweights(lag_lat, lag_lon);
 }
 
@@ -946,8 +948,8 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.resize(lat_true.nelem(), lon_true.nelem());
 
   ArrayOfLagrangeInterpolation lag_lat;
-  ArrayOfLagrangeInterpolation lag_lon;
-  MatrixOfMatrix itw(0, 0);
+  ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
+  matpack::matpack_data<Matrix, 2> itw(0, 0);
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_lat_grid =
@@ -1031,8 +1033,8 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(0, gfraw_in.get_grid_name(0));
   
   ArrayOfLagrangeInterpolation lag_lat;
-  ArrayOfLagrangeInterpolation lag_lon;
-  MatrixOfMatrix itw(0, 0);
+  ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
+  matpack::matpack_data<Matrix, 2> itw(0, 0);
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
@@ -1131,8 +1133,8 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(1, gfraw_in.get_grid_name(1));
   
   ArrayOfLagrangeInterpolation lag_lat;
-  ArrayOfLagrangeInterpolation lag_lon;
-  MatrixOfMatrix itw(0, 0);
+  ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
+  matpack::matpack_data<Matrix, 2> itw(0, 0);
 
   GriddedFieldLatLonRegridHelper(lag_lat,
                                  lag_lon,
@@ -1234,7 +1236,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
 void GriddedFieldZToPRegridHelper(Index& ing_min,
                                   Index& ing_max,
                                   ArrayOfLagrangeInterpolation& lag_p,
-                                  VectorOfVector& itw,
+                                  matpack::matpack_data<std::vector<double>, 1>& itw,
                                   const GriddedField& gfraw_in,
                                   const Index z_grid_index,
                                   ConstVectorView z_grid,
@@ -1272,7 +1274,7 @@ void GriddedFieldZToPRegridHelper(Index& ing_min,
 
   // Calculate grid positions:
   if (nelem_in_range > 0) {
-    lag_p = Interpolation::LagrangeVector(z_grid[Range(ing_min, nelem_in_range)], in_z_grid, interp_order);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_grid[Range(ing_min, nelem_in_range)], in_z_grid, interp_order);
     itw = interpweights(lag_p);
   }
 }
@@ -1336,7 +1338,7 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
   gfraw_out.data = 0.;
 
   ArrayOfLagrangeInterpolation lag_p;
-  VectorOfVector itw(0);  // nb. it is invalid to use this as it stands here...
+  matpack::matpack_data<std::vector<double>, 1> itw(0);  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -2102,8 +2104,8 @@ void AtmFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    auto lag_p=Interpolation::LagrangeVector(p_grid, tfr_p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    auto lag_lat=Interpolation::LagrangeVector(lat_grid, tfr_lat_grid, interp_order);
+    auto lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, tfr_p_grid, interp_order, 0.5);
+    auto lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, tfr_lat_grid, interp_order);
     auto itw=interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2123,8 +2125,8 @@ void AtmFieldsCalc(  //WS Output:
         "Raw z to lat_grid, 2D case", zfr_lat_grid, lat_grid, interp_order);
 
     // Calculate grid positions:
-    lag_p=Interpolation::LagrangeVector(p_grid, zfr_p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    lag_lat=Interpolation::LagrangeVector(lat_grid, zfr_lat_grid, interp_order);
+    lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, zfr_p_grid, interp_order, 0.5);
+    lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, zfr_lat_grid, interp_order);
     itw=interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2157,8 +2159,8 @@ void AtmFieldsCalc(  //WS Output:
           lat_grid,
           interp_order);
       
-      lag_p=Interpolation::LagrangeVector(p_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5, false, Interpolation::GridType::Log);
-      lag_lat=Interpolation::LagrangeVector(lat_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
+      lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5);
+      lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
       itw=interpweights(lag_p, lag_lat);
 
       // Interpolate:
@@ -2191,8 +2193,8 @@ void AtmFieldsCalc(  //WS Output:
           lat_grid,
           interp_order);
 
-      lag_p=Interpolation::LagrangeVector(p_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5, false, Interpolation::GridType::Log);
-      lag_lat=Interpolation::LagrangeVector(lat_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
+      lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5);
+      lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
       itw=interpweights(lag_p, lag_lat);
 
       // Interpolate:
@@ -2442,8 +2444,8 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    auto lag_p = Interpolation::LagrangeVector(ufr_p_grid, p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    auto lag_lat = Interpolation::LagrangeVector(ufr_lat_grid, lat_grid, interp_order);
+    auto lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(ufr_p_grid, p_grid, interp_order, 0.5);
+    auto lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(ufr_lat_grid, lat_grid, interp_order);
     const auto itwu = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2465,8 +2467,8 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p = Interpolation::LagrangeVector(vfr_p_grid, p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    lag_lat = Interpolation::LagrangeVector(vfr_lat_grid, lat_grid, interp_order);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(vfr_p_grid, p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(vfr_lat_grid, lat_grid, interp_order);
     const auto itwv = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2488,8 +2490,8 @@ void MagFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p = Interpolation::LagrangeVector(wfr_p_grid, p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    lag_lat = Interpolation::LagrangeVector(wfr_lat_grid, lat_grid, interp_order);
+    lag_p = my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(wfr_p_grid, p_grid, interp_order, 0.5);
+    lag_lat = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(wfr_lat_grid, lat_grid, interp_order);
     const auto itww = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2604,7 +2606,7 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               interp_order,
                               extrapolation_factor,
                               false);
-      auto lag=Interpolation::LagrangeVector(z_field(joker, ilat, ilon), u.get_numeric_grid(0), interp_order, extrapolation_factor);
+      auto lag=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_field(joker, ilat, ilon), u.get_numeric_grid(0), interp_order, extrapolation_factor);
       auto itw = interpweights(lag);
       reinterp(mag_u_field(joker, ilat, ilon), u.data(joker, ilat, ilon), itw, lag);
 
@@ -2615,7 +2617,7 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               extrapolation_factor,
                               false);
       
-      lag=Interpolation::LagrangeVector(z_field(joker, ilat, ilon), v.get_numeric_grid(0), interp_order, extrapolation_factor);
+      lag=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_field(joker, ilat, ilon), v.get_numeric_grid(0), interp_order, extrapolation_factor);
       itw=interpweights(lag);
       reinterp(mag_v_field(joker, ilat, ilon), v.data(joker, ilat, ilon), itw, lag);
 
@@ -2626,7 +2628,7 @@ void MagFieldsFromAltitudeRawCalc(  //WS Output:
                               extrapolation_factor,
                               false);
       
-      lag=Interpolation::LagrangeVector(z_field(joker, ilat, ilon), w.get_numeric_grid(0), interp_order, extrapolation_factor);
+      lag=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(z_field(joker, ilat, ilon), w.get_numeric_grid(0), interp_order, extrapolation_factor);
       itw=interpweights(lag);
       reinterp(mag_w_field(joker, ilat, ilon), w.data(joker, ilat, ilon), itw, lag);
     }
@@ -2731,8 +2733,8 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    auto lag_p=Interpolation::LagrangeVector(p_grid, ufr_p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    auto lag_lat=Interpolation::LagrangeVector(lat_grid, ufr_lat_grid, interp_order);
+    auto lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, ufr_p_grid, interp_order, 0.5);
+    auto lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, ufr_lat_grid, interp_order);
     const auto itwu = interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2754,8 +2756,8 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p=Interpolation::LagrangeVector(p_grid, vfr_p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    lag_lat=Interpolation::LagrangeVector(lat_grid, vfr_lat_grid, interp_order);
+    lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, vfr_p_grid, interp_order, 0.5);
+    lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, vfr_lat_grid, interp_order);
     const auto itwv=interpweights(lag_p, lag_lat);
 
     // Interpolate:
@@ -2777,8 +2779,8 @@ void WindFieldsCalc(  //WS Output:
                             interp_order);
 
     // Calculate grid positions:
-    lag_p=Interpolation::LagrangeVector(p_grid, wfr_p_grid, interp_order, 0.5, false, Interpolation::GridType::Log);
-    lag_lat=Interpolation::LagrangeVector(lat_grid, wfr_lat_grid, interp_order);
+    lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, wfr_p_grid, interp_order, 0.5);
+    lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, wfr_lat_grid, interp_order);
     const auto itww=interpweights(lag_p, lag_lat);
 
     // Interpolate:

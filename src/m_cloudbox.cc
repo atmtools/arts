@@ -54,7 +54,7 @@
 #include "file.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -883,28 +883,43 @@ void iyInterpCloudboxField(Matrix& iy,
   const ConstVectorView za_g(za_grid[range]);
   
   // Check the zenith-grid
-  Interpolation::check_lagrange_interpolation(za_g, za_interp_order, rte_los[0], za_extpolfac);
-  
-  // Find position of zenith, either by cosine or linear weights
-  const auto lag_za = cos_za_interp ?
-  LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order, false, Interpolation::GridType::CosDeg) :
-  LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order);
+  LagrangeInterpolation::check(za_g, za_interp_order, rte_los[0], za_extpolfac);
   
   // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
   const auto lag_aa = (atmosphere_dim > 1) ?
-    LagrangeInterpolation(0, rte_los[1], aa_grid, aa_interp_order, false, Interpolation::GridType::Cyclic, {-180, 180}) :
-    LagrangeInterpolation();
+    my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>(0, rte_los[1], aa_grid, aa_interp_order) :
+    my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>();
+  
+  // Find position of zenith, either by cosine or linear weights
+  if (cos_za_interp) {
+    const auto lag_za = my_interp::Lagrange<-1, false, my_interp::GridType::CosDeg>(0, rte_los[0], za_g, za_interp_order);
 
-  // Corresponding interpolation weights
-  const auto itw_angs=interpweights(lag_za, lag_aa);
+    // Corresponding interpolation weights
+    const auto itw_angs=interpweights(lag_za, lag_aa);
 
-  for (Index is = 0; is < stokes_dim; is++) {
-    for (Index iv = 0; iv < nf; iv++) {
-      iy(iv, is) =
-          interp(i_field_local(iv, range, joker, is),
-                 itw_angs,
-                 lag_za,
-                 lag_aa);
+    for (Index is = 0; is < stokes_dim; is++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        iy(iv, is) =
+            interp(i_field_local(iv, range, joker, is),
+                  itw_angs,
+                  lag_za,
+                  lag_aa);
+      }
+    }
+  } else {
+    const auto lag_za = LagrangeInterpolation(0, rte_los[0], za_g, za_interp_order);
+
+    // Corresponding interpolation weights
+    const auto itw_angs=interpweights(lag_za, lag_aa);
+
+    for (Index is = 0; is < stokes_dim; is++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        iy(iv, is) =
+            interp(i_field_local(iv, range, joker, is),
+                  itw_angs,
+                  lag_za,
+                  lag_aa);
+      }
     }
   }
 }
@@ -943,13 +958,10 @@ void cloudbox_fieldInterp2Azimuth(
     cloudbox_field.resize(nf,np,1,1,nz,1,ns);
 
     // define interpolations compute cyclic for a azimuth grid [0, 360]
-    const auto lag_aa = LagrangeInterpolation(0,
+    const auto lag_aa = LagrangeCyclic0to360Interpolation(0,
                                               azimuth_los,
                                               aa_grid,
-                                              aa_interp_order,
-                                              false,
-                                              Interpolation::GridType::Cyclic,
-                                              {0, 360});
+                                              aa_interp_order);
 
     // Corresponding interpolation weights
     const auto itw_aa=interpweights(lag_aa);

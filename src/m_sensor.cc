@@ -46,7 +46,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "gridded_fields.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "m_select.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
@@ -1648,7 +1648,7 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
     fnew[Range(i * n1, n2)] = fp;
   }
 
-  const auto lag = Interpolation::LagrangeVector(fnew, sensor_response_f_grid, polyorder);
+  const auto lag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(fnew, sensor_response_f_grid, polyorder);
 
   // Set up H for this part
   //
