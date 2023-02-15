@@ -244,7 +244,7 @@ std::array<Index, N> upview(const std::array<Index, M> &low) {
 
 namespace detail {
 template <access_operator first, access_operator... rest>
-constexpr void access_str(std::string &out, first ind [[maybe_unused]],
+void access_str(std::string &out, first ind [[maybe_unused]],
                           rest... inds) {
   if constexpr (std::same_as<Joker, std::remove_cvref_t<first>>) {
   out += "joker";
@@ -261,7 +261,7 @@ constexpr void access_str(std::string &out, first ind [[maybe_unused]],
 
 //! Returns a string representation of the access indices
 template <access_operator... access>
-constexpr std::string access_str(access... ind) {
+std::string access_str(access... ind) {
   std::string out{"("};
   detail::access_str(out, ind...);
   out += ")";
