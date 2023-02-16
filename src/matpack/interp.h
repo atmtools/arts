@@ -19,6 +19,7 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <exception>
 #include <functional>
 #include <iomanip>
 #include <limits>
@@ -39,13 +40,13 @@ concept sortable_grid_t = matpack::rank<T>() == 1 and requires (T a) {
   { a.end() } -> std::random_access_iterator;  // Can iterate
 };
 
-/*! Cycle once back through a list
+/*! Cycle once through a list
  *
- * @param[in] n Index in a list 0 <= n < 2*N
+ * @param[in] n Index in a list -N <= n < 2*N
  * @param[in] N Index size of a list
- * @return n - N if n >= N else n
+ * @return n - N if n >= N else n + N if n < 0 else n
  */
-constexpr Index cycler(const Index n, const Index N) noexcept { return n >= N ? n - N : n; }
+constexpr Index cycler(const Index n, const Index N) noexcept { return n >= N ? n - N : n < 0 ? n + N : n; }
 
 //! A helper class to select bounds
 enum class cycle_limit {lower, upper};
@@ -158,12 +159,12 @@ constexpr bool full_cycle(const Numeric xo,
  * @return Estimated position of x [0, xvec.size())
 */
 template <sortable_grid_t Vec>
-constexpr Index start_pos_finder(const Numeric x, const Vec& xvec) noexcept {
+constexpr Index start_pos_finder(const Numeric x, const Vec& xvec) {
   if (const Index n = xvec.size(); n > 1) {
     const Numeric x0 = xvec[    0];
     const Numeric x1 = xvec[n - 1];
     const Numeric frac = (x - x0) / (x1 - x0);
-    const auto start_pos = Index(frac * (Numeric)(n - 2));
+    const auto start_pos = static_cast<Index>(frac * (Numeric)(n - 2));
     return start_pos > 0 ? (start_pos < n ? start_pos : n - 1) : 0;
   }
   return 0;
@@ -213,30 +214,28 @@ constexpr Index IMIN(const Index a, const Index b) noexcept { return a < b ? a :
  * side of the point before adjusting so that x is in the center
  * of a multiple interpolation order curve
  *
+ * @tparam ascending The sorting is ascending (1, 2, 3...)
  * @param[in] pos0 Estimation of the first position, must be [0, xi.size())
  * @param[in] x Coordinate to find a position for
  * @param[in] xi Original sorted grid
  * @param[in] polyorder Polynominal orders
- * @param[in] ascending The sorting is ascending (1, 2, 3...)
  */
-template <template <cycle_limit lim> class Limit=no_cycle, sortable_grid_t Vec=Vector>
-constexpr Index pos_finder(const Index pos0, const Numeric x, const Vec& xi,
-                           const Index polyorder,
-                           const bool ascending) noexcept requires(test_cyclic_limit<Limit>()) {
+template <bool ascending, template <cycle_limit lim> class Limit=no_cycle, sortable_grid_t Vec=Vector>
+constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi,
+                           const Index polyorder) requires(test_cyclic_limit<Limit>()) {
   constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
   constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
   constexpr bool cyclic = (ub - lb) < std::numeric_limits<Numeric>::infinity();
 
   if constexpr (cyclic) if (x < lb or x > ub) {
     // We are below or above the cycle so we must redo calculations after clamping x to the cycle
-    return pos_finder<no_cycle>(pos0, cyclic_clamp<Limit>(x), xi, polyorder, ascending);
+    return pos_finder<ascending, no_cycle>(p0, cyclic_clamp<Limit>(x), xi, polyorder);
   }
   
   const Index N = xi.size()-1;
-  Index p0=pos0;
   
   // Loops to find the first position with a neighbor larger or smaller
-  if (ascending) {
+  if constexpr (ascending) {
     while (p0 < N and xi[p0] < x) ++p0;
     while (p0 > 0 and xi[p0] > x) --p0;
   } else {
@@ -245,17 +244,113 @@ constexpr Index pos_finder(const Index pos0, const Numeric x, const Vec& xi,
   }
   
   // Adjustment for higher and lower polynominal orders so that x is in the middle
-  if (polyorder) {
+  if (polyorder > 0) {
     if constexpr (cyclic)  // Max N since we can overstep bounds
-      return IMIN(IMAX(p0 - polyorder / 2, 0), N);
+      return std::clamp<Index>(p0 - polyorder / 2, 0, N);
     else // Max N-polyorder since we cannot overstep bounds
-      return IMIN(IMAX(p0 - polyorder / 2, 0), N-polyorder);
+      return std::clamp<Index>(p0 - polyorder / 2, 0, N-polyorder);
   }
 
-  // In the nearest neighbor case, we mus choose the closest neighbor
-  if (p0 < N and (nonstd::abs(xi[p0] - x) >= nonstd::abs(xi[p0 + 1] - x))) 
-    return p0 + 1;
-  return p0;
+  // In the nearest neighbor case, we must choose the closest neighbor
+  return p0 + (p0 < N and (nonstd::abs(xi[p0] - x) >= nonstd::abs(xi[p0 + 1] - x)));
+}
+
+/*! Finds the position of interpolation of x in xi
+ * 
+ * Will first find the first position with one lower value to the
+ * side of the point before adjusting so that x is in the center
+ * of a multiple interpolation order curve
+ *
+ * @tparam ascending The sorting is ascending (1, 2, 3...)
+ * @tparam polyorder Polynominal orders
+ * @param[in] p0 Estimation of the first position, must be [0, xi.size())
+ * @param[in] x Coordinate to find a position for
+ * @param[in] xi Original sorted grid
+ */
+template <bool ascending, Index polyorder, template <cycle_limit lim> class Limit=no_cycle, sortable_grid_t Vec=Vector>
+constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi) requires(test_cyclic_limit<Limit>()) {
+  constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
+  constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
+  constexpr bool cyclic = (ub - lb) < std::numeric_limits<Numeric>::infinity();
+
+  // Ensure we are within the limits for cyclic orders
+  if constexpr (cyclic) {
+   if (x < lb or x > ub) {
+      return pos_finder<ascending, polyorder, Limit>(p0, cyclic_clamp<Limit>(x), xi);
+    }
+  }
+  
+  /*
+  Polynominal Layout
+  polyorder   indices-offsets-p0
+  0           0
+  1           0 1
+  2           -1 0 1
+  3           -1 0 1 2
+  4           -2 -1 0 1 2
+  ---
+  The output of this function is the left-most index position
+  The input of this function is also the left-most index position
+  */
+  constexpr Index p0_offset = polyorder / 2;
+
+  //! Add the mean offset so the tracing loops put this close to the center
+  if constexpr (p0_offset > 0) p0 += p0_offset;
+
+  //! Cycle the position if necessary
+  if constexpr (cyclic) p0 = cycler(p0, xi.size());
+ 
+  /*
+  Minimum values of the output index
+  polyorder linear cyclic
+  0         0      0
+  1         0      0
+  2         1      0
+  3         1      0
+  4         2      0
+  ---
+  */
+  constexpr Index min_p0_offset = (not cyclic) * p0_offset;
+
+  /*
+  Maximum values
+  polyorder max-linear max-cyclic
+  0         N-1        N-1
+  1         N-2        N-1
+  2         N-3        N-1
+  3         N-4        N-1
+  4         N-5        N-1
+  ---
+  */
+  constexpr Index max_p0_offset = 1 + (not cyclic) * polyorder;
+
+  /* The maximum offset also gives the maximum p0 */
+  const Index N = xi.size() - max_p0_offset;
+
+  /* Clamp higher order indices to ensure we are in a good state */
+  if constexpr (not cyclic and p0_offset > 0) p0 = std::clamp<Index>(p0, 0, N);
+
+  //! The upper index is 1 or 0 if polyorder exist
+  constexpr Index upper_offset = polyorder not_eq 0;
+
+  /** Loop and find a position */
+  if constexpr (ascending) {
+    if (x < xi[p0] and p0 > min_p0_offset) {
+      do --p0; while (x < xi[p0] and p0 > min_p0_offset);
+    } else if (x >= xi[p0 + upper_offset] and p0 < N) {
+      do ++p0; while (x >= xi[p0 + upper_offset] and p0 < N);
+    }
+  } else /* if constexpr descending */ {
+    if (x > xi[p0] and p0 > min_p0_offset) {
+      do --p0; while (x > xi[p0] and p0 > min_p0_offset);
+    } else if (x <= xi[p0 + upper_offset] and p0 < N) {
+      do ++p0; while (x <= xi[p0 + upper_offset] and p0 < N);
+    }
+  }
+
+  if constexpr (cyclic) return cycler(p0 - p0_offset, N + 1);
+  else if constexpr (p0_offset > 0) return p0 - p0_offset;
+  else return p0;
 }
 
 /*! Type of Lagrange interpolation weights
@@ -280,6 +375,56 @@ ENUMCLASS(GridType, char,
           CosRad      /* Cosine in radians interpolation grid, grid only defined [0,  PI] */
          );
 
+template <GridType type, template <cycle_limit lim> class Limit, sortable_grid_t Vec>
+constexpr Numeric l_factor(const Numeric x, const Vec& xi, const Index j, const Index m) {
+  if constexpr (type == GridType::Log) {
+    return (std::log(x) - std::log(xi[m])) /
+           (std::log(xi[j]) - std::log(xi[m]));
+  } else if constexpr (type == GridType::Log10) {
+    return (std::log10(x) - std::log10(xi[m])) /
+           (std::log10(xi[j]) - std::log10(xi[m]));
+  } else if constexpr (type == GridType::Log2) {
+    // Binary log weights
+    return (std::log2(x) - std::log2(xi[m])) /
+            (std::log2(xi[j]) - std::log2(xi[m]));
+  } else if constexpr (type == GridType::SinDeg) {
+    // Sine in degrees weights
+    using Conversion::sind;
+    return (sind(x) - sind(xi[m])) / (sind(xi[j]) - sind(xi[m]));
+  } else if constexpr (type == GridType::SinRad) {
+    // Sine in radians weights
+    using std::sin;
+    return (sin(x) - sin(xi[m])) / (sin(xi[j]) - sin(xi[m]));
+  } else if constexpr (type == GridType::CosDeg) {
+    // Cosine in degrees weights (nb. order changed)
+    using Conversion::cosd;
+    return (cosd(xi[m]) - cosd(x)) / (cosd(xi[m]) - cosd(xi[j]));
+  } else if constexpr (type == GridType::CosRad) {
+    // Cosine in radians weights (nb. order changed)
+    using std::cos;
+    return (cos(xi[m]) - cos(x)) / (cos(xi[m]) - cos(xi[j]));
+  } else if constexpr (type == GridType::Standard) {
+    // Linear weights, simple and straightforward
+    return (x - xi[m]) / (xi[j] - xi[m]);
+  } else if constexpr (type == GridType::Cyclic) {
+    // Cyclic weights
+    // We have to ensure that all weights are cyclic (e.g., 355 degrees < -6 degrees)
+    const auto N = static_cast<Index>(xi.size());
+    const Index m_pos = cycler(m, N);
+    const Index j_pos = cycler(j, N);
+    const Numeric x_val = cyclic_clamp<Limit>(x);
+    
+    // We ignore the last point in full cycles
+    if (full_cycle<Limit>(xi[0], xi[N-1])) {
+      if (j_pos == N - 1) return 0.0;
+      if (m_pos == N - 1) return 1.0;
+    }
+    return min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic<Limit>(xi[j_pos] - xi[m_pos]);
+  } else {
+    std::terminate();
+  }
+}
+
 /*! Computes the weights for a given coefficient
  *
  * @param[in] p0 The origin position
@@ -290,62 +435,41 @@ ENUMCLASS(GridType, char,
  * @param[in] cycle The size of a cycle (optional)
  */
 template <GridType type, template <cycle_limit lim> class Limit, sortable_grid_t Vec>
-constexpr Numeric l(const Index p0, const Index n, const Numeric x,
-                    const Vec& xi, const Index j) noexcept requires(test_cyclic_limit<Limit>()) {
+constexpr Numeric l(const Index p0, const Index order, const Numeric x,
+                    const Vec& xi, const Index j) requires(test_cyclic_limit<Limit>()) {
   Numeric val = 1.0;
-  for (Index m = 0; m < n; m++) {
-    if (m not_eq j) {
-      if constexpr (type == GridType::Log) {
-        // Natural log weights
-        val *= (std::log(x) - std::log(xi[m + p0])) /
-               (std::log(xi[j + p0]) - std::log(xi[m + p0]));
-      } else if constexpr (type == GridType::Log10) {
-        // Common log weights
-        val *= (std::log10(x) - std::log10(xi[m + p0])) /
-               (std::log10(xi[j + p0]) - std::log10(xi[m + p0]));
-      } else if constexpr (type == GridType::Log2) {
-        // Binary log weights
-        val *= (std::log2(x) - std::log2(xi[m + p0])) /
-               (std::log2(xi[j + p0]) - std::log2(xi[m + p0]));
-      } else if constexpr (type == GridType::SinDeg) {
-        // Sine in degrees weights
-        using Conversion::sind;
-        val *= (sind(x) - sind(xi[m + p0])) / (sind(xi[j + p0]) - sind(xi[m + p0]));
-      } else if constexpr (type == GridType::SinRad) {
-        // Sine in radians weights
-        using std::sin;
-        val *= (sin(x) - sin(xi[m + p0])) / (sin(xi[j + p0]) - sin(xi[m + p0]));
-      } else if constexpr (type == GridType::CosDeg) {
-        // Cosine in degrees weights (nb. order changed)
-        using Conversion::cosd;
-        val *= (cosd(xi[m + p0]) - cosd(x)) / (cosd(xi[m + p0]) - cosd(xi[j + p0]));
-      } else if constexpr (type == GridType::CosRad) {
-        // Cosine in radians weights (nb. order changed)
-        using std::cos;
-        val *= (cos(xi[m + p0]) - cos(x)) / (cos(xi[m + p0]) - cos(xi[j + p0]));
-      } else if constexpr (type == GridType::Standard) {
-        // Linear weights, simple and straightforward
-        val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
-      } else if constexpr (type == GridType::Cyclic) {
-        // Cyclic weights
-        // We have to ensure that all weights are cyclic (e.g., 355 degrees < -6 degrees)
-        const Index N = Index(xi.size());
-        const Index m_pos = cycler(m + p0, N);
-        const Index j_pos = cycler(j + p0, N);
-        const Numeric x_val = cyclic_clamp<Limit>(x);
-        if (full_cycle<Limit>(xi[0], xi[N-1])) {
-          // We ignore the last point in full cycles
-          if (j_pos == N - 1)
-            return 0;
-          if (m_pos not_eq N - 1)
-            val *= min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic<Limit>(xi[j_pos] - xi[m_pos]);
-        } else {
-          val *= min_cyclic<Limit>(x_val - xi[m_pos]) / min_cyclic<Limit>(xi[j_pos] - xi[m_pos]);
-        }
-      }
-    }
+  for (Index m = 0; m < order; m++) {
+    val *= l_factor<type, Limit, Vec>(x, xi, j+p0, m+p0+(m>=j));
   }
   return val;
+}
+
+/*! Computes the weights for a given coefficient
+ *
+ * @param[in] p0 The origin position
+ * @param[in] n The number of weights
+ * @param[in] x The position for the weights
+ * @param[in] xi The sorted vector of values
+ * @param[in] j The current coefficient
+ * @param[in] cycle The size of a cycle (optional)
+ */
+template <Index order, GridType type, template <cycle_limit lim> class Limit, sortable_grid_t Vec>
+constexpr Numeric l(const Index p0, const Numeric x,
+                    const Vec& xi, const Index j) requires(test_cyclic_limit<Limit>()) {
+  if constexpr (order == 0) {
+    return 1.0;
+  } else if constexpr (order == 1) {
+    return l_factor<type, Limit, Vec>(x, xi, j+p0, p0+(0>=j));
+  } else if constexpr (order == 2) {
+    return l_factor<type, Limit, Vec>(x, xi, j+p0, p0+(0>=j)) *
+           l_factor<type, Limit, Vec>(x, xi, j+p0, p0+(1>=j));
+  } else {
+    Numeric val = 1.0;
+    for (Index m = 0; m < order; m++) {
+      val *= l_factor<type, Limit, Vec>(x, xi, j+p0, m+p0+(m>=j));
+    }
+    return val;
+  }
 }
 
 /*! Computes the derivatives of the weights for a given coefficient for a given
@@ -366,7 +490,7 @@ template <GridType type, template <cycle_limit lim> class Limit, sortable_grid_t
           class LagrangeVectorType>
 constexpr double dl_dval(
     const Index p0, const Index n, const Numeric x, const Vec& xi,
-    [[maybe_unused]] const LagrangeVectorType& li, const Index j, const Index i) noexcept requires(test_cyclic_limit<Limit>()) {
+    [[maybe_unused]] const LagrangeVectorType& li, const Index j, const Index i) requires(test_cyclic_limit<Limit>()) {
   if constexpr (type == GridType::Standard) {
     // Linear weights, simple and straightforward
     if (x not_eq xi[i + p0]) {
@@ -446,7 +570,7 @@ template <GridType type, template <cycle_limit lim> class Limit, sortable_grid_t
           class LagrangeVectorType>
 constexpr Numeric dl(const Index p0, const Index n, const Numeric x,
                      const Vec& xi, const LagrangeVectorType& li,
-                     const Index j) noexcept requires(test_cyclic_limit<Limit>()) {
+                     const Index j) requires(test_cyclic_limit<Limit>()) {
   Numeric dval = 0.0;
   for (Index i = 0; i < n; i++) {
     if (i not_eq j) {
@@ -458,10 +582,8 @@ constexpr Numeric dl(const Index p0, const Index n, const Numeric x,
 
 //! Checks whether the Sorted Vector is ascending or not by checking its first two elements
 template <sortable_grid_t Vec>
-constexpr bool is_ascending(const Vec& xi) ARTS_NOEXCEPT {
-  if (xi.size() > 1)
-    return xi[0] < xi[1];
-  return false;
+constexpr bool is_ascending(const Vec& xi) {
+  return (xi.size() > 1) and xi[0] < xi[1];
 }
 
 //! Completely empty struct that may store as 0 bytes when used with [[no_unique_address]] on most compilers
@@ -472,6 +594,12 @@ struct Empty {
   [[nodiscard]] static constexpr std::nullptr_t end() noexcept {return nullptr;}
   [[nodiscard]] constexpr Numeric operator[](Index) noexcept {return 0;}
 };
+
+//! Ascending flag struct
+struct AscendingOrder {constexpr AscendingOrder(auto&&...) noexcept {}};
+
+//! Descending flag struct
+struct DescendingOrder {constexpr DescendingOrder(auto&&...) noexcept {}};
 
 /*! A Lagrange interpolation computer */
 template <Index PolyOrder=-1,
@@ -500,7 +628,7 @@ struct Lagrange {
   static constexpr Index size() noexcept requires(not runtime_polyorder()) { return PolyOrder + 1; }
 
   /* Number of weights */
-  [[nodiscard]] constexpr Index size() const noexcept requires(runtime_polyorder()) { return lx.size(); }
+  [[nodiscard]] constexpr Index size() const requires(runtime_polyorder()) { return lx.size(); }
 
   /*! Get the index position in the original grid when applying an offset
    * 
@@ -531,11 +659,48 @@ struct Lagrange {
    * @param[in] polyorder Polynominal degree
    */
   template <sortable_grid_t Vec>
-  constexpr Lagrange(const Index p0, const Numeric x,
-                     const Vec &xi, Index polyorder=1) noexcept
+  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
+                     Index polyorder = 1)
     requires(runtime_polyorder())
-      : pos(pos_finder<Limit>(p0, x, xi, polyorder,
-                              xi.size() > 1 ? xi[0] < xi[1] : false)),
+      : pos(is_ascending(xi)
+                ? pos_finder<true, Limit>(p0, x, xi, polyorder)
+                : pos_finder<false, Limit>(p0, x, xi, polyorder)),
+        lx(polyorder + 1), dlx(polyorder + 1) {
+    lx_finder(x, xi);
+    dlx_finder(x, xi);
+  }
+
+  /*! Standard initializer from Vector-types for runtime polyorder
+   *
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] polyorder Polynominal degree
+   * @param[in] flag For the order of xi
+   */
+  template <sortable_grid_t Vec>
+  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
+                     Index polyorder, AscendingOrder)
+    requires(runtime_polyorder())
+      : pos(pos_finder<true, Limit>(p0, x, xi, polyorder)),
+        lx(polyorder + 1), dlx(polyorder + 1) {
+    lx_finder(x, xi);
+    dlx_finder(x, xi);
+  }
+
+  /*! Standard initializer from Vector-types for runtime polyorder
+   *
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] polyorder Polynominal degree
+   * @param[in] flag For the order of xi
+   */
+  template <sortable_grid_t Vec>
+  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
+                     Index polyorder, DescendingOrder)
+    requires(runtime_polyorder())
+      : pos(pos_finder<false, Limit>(p0, x, xi, polyorder)),
         lx(polyorder + 1), dlx(polyorder + 1) {
     lx_finder(x, xi);
     dlx_finder(x, xi);
@@ -548,11 +713,41 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    */
   template <sortable_grid_t Vec>
-  constexpr Lagrange(const Index p0, const Numeric x,
-                     const Vec &xi) noexcept
+  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi)
     requires(not runtime_polyorder())
-      : pos(pos_finder<Limit>(p0, x, xi, PolyOrder,
-                              xi.size() > 1 ? xi[0] < xi[1] : false)) {
+      : pos(is_ascending(xi)
+                ? pos_finder<true, PolyOrder, Limit>(p0, x, xi)
+                : pos_finder<false, PolyOrder, Limit>(p0, x, xi)) {
+    lx_finder(x, xi);
+    dlx_finder(x, xi);
+  }
+
+  /*! Standard initializer from Vector-types for compiletime polyorder
+   *
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] flag For the order of xi
+   */
+  template <sortable_grid_t Vec>
+  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi, AscendingOrder)
+    requires(not runtime_polyorder())
+      : pos(pos_finder<true, PolyOrder, Limit>(p0, x, xi)) {
+    lx_finder(x, xi);
+    dlx_finder(x, xi);
+  }
+
+  /*! Standard initializer from Vector-types for compiletime polyorder
+   *
+   * @param[in] pos0 Estimation of original position, must be [0, xi.size())
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] flag For the order of xi
+   */
+  template <sortable_grid_t Vec>
+  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi, DescendingOrder)
+    requires(not runtime_polyorder())
+      : pos(pos_finder<false, PolyOrder, Limit>(p0, x, xi)) {
     lx_finder(x, xi);
     dlx_finder(x, xi);
   }
@@ -590,27 +785,45 @@ struct Lagrange {
  private:
    /*! Finds lx
     *
-    * @param[in] x New grid position
-    * @param[in] xi Old grid positions
-    */
-   template <sortable_grid_t Vec>
-   constexpr void lx_finder(const Numeric x,
-                            const Vec &xi) noexcept {
-    for (Index j = 0; j < size(); j++)
-      lx[j] = l<type, Limit>(pos, size(), x, xi, j);
-   }
-
-   /*! Finds dlx
+    * Note that the sum(lx) == 1, and this is guaranteed by
+    * a reduction of the first N-1 elements of lx in this
+    * method
     *
     * @param[in] x New grid position
     * @param[in] xi Old grid positions
     */
    template <sortable_grid_t Vec>
-   constexpr void dlx_finder(const Numeric x, const Vec &xi) noexcept {
-    if constexpr (do_derivs) {
-      for (Index j = 0; j < size(); j++)
-        dlx[j] = dl<type, Limit>(pos, size(), x, xi, lx, j);
-    }
+   constexpr void lx_finder(const Numeric x, const Vec &xi) {
+     if constexpr (runtime_polyorder()) {
+       for (Index j = 0; j < size() - 1; j++)
+         lx[j] = l<type, Limit>(pos, size() - 1, x, xi, j);
+     } else {
+       if constexpr (PolyOrder == 0) {
+       } else if constexpr (PolyOrder == 1) {
+         lx[0] = l<PolyOrder, type, Limit>(pos, x, xi, 0);
+       } else {
+         for (Index j = 0; j < PolyOrder; j++)
+           lx[j] = l<PolyOrder, type, Limit>(pos, x, xi, j);
+       }
+     }
+     lx.back() = 1.0 - std::reduce(lx.begin(), lx.end() - 1);
+   }
+
+   /*! Finds dlx
+    *
+    * FIXME: Remove this comment if sum(dlx) == 0 or not.
+    * I think it is, and if it is the loop should be fixed
+    * to set dlx.back = - std::reduce(dlx.begin(), dlx.end() - 1);
+    *
+    * @param[in] x New grid position
+    * @param[in] xi Old grid positions
+    */
+   template <sortable_grid_t Vec>
+   constexpr void dlx_finder(const Numeric x, const Vec &xi) {
+     if constexpr (do_derivs) {
+       for (Index j = 0; j < size(); j++)
+         dlx[j] = dl<type, Limit>(pos, size(), x, xi, lx, j);
+     }
    }
 
  public:
@@ -765,8 +978,14 @@ constexpr Array<T> lagrange_interpolation_list(
   Array<T> out;
   out.reserve(xs.size());
 
-  for (auto x : xs) {
-    out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi, order);
+  if (is_ascending(xi)) {
+    for (auto x : xs) {
+      out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi, order, AscendingOrder{});
+    }
+  } else {
+    for (auto x : xs) {
+      out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi, order, DescendingOrder{});
+    }
   }
 
   return out;
@@ -798,8 +1017,14 @@ constexpr Array<T> lagrange_interpolation_list(
   Array<T> out;
   out.reserve(xs.size());
 
-  for (auto x : xs) {
-    out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi);
+  if (is_ascending(xi)) {
+    for (auto x : xs) {
+      out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi, AscendingOrder{});
+    }
+  } else {
+    for (auto x : xs) {
+      out.emplace_back(out.size() ? out.back().pos : start_pos_finder(x, xi), x, xi, DescendingOrder{});
+    }
   }
 
   return out;
@@ -839,7 +1064,7 @@ public:
    */
   template <Index... inds>
   static constexpr auto as_elemwise(std::integer_sequence<Index, inds...>,
-                                    T &&...all) requires (sizeof...(inds) == sizeof...(T)) {
+                                    const T &...all) requires (sizeof...(inds) == sizeof...(T)) {
     return matpack::elemwise{one_by_one<inds == dlx>(all)...};
   }
 };
@@ -853,7 +1078,7 @@ public:
  * @param[in] lag... Several Lagrange values
  */
 template<lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr auto interpweights(lags&&... lag) requires (N > 0) {
+constexpr auto interpweights(const lags&... lag) requires (N > 0) {
   if constexpr (N > 1) {
     if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
       const auto in = matpack::elemwise{lag.lx...};
@@ -888,7 +1113,7 @@ constexpr auto interpweights(lags&&... lag) requires (N > 0) {
  * @param[in] lag... Several Lagrange values, where the dlx:th one has a derivative
  */
 template<Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr auto dinterpweights(lags&&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
+constexpr auto dinterpweights(const lags&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
   if constexpr (N > 1) {
     if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
       const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
@@ -929,7 +1154,7 @@ concept list_of_lagrange_type = requires(T a) {
  * @param[in] lags... Several lists of Lagrange values
  */
 template <list_of_lagrange_type... list_lags, Index N = sizeof...(list_lags)>
-constexpr auto interpweights(list_lags &&...lags)
+constexpr auto interpweights(const list_lags &...lags)
   requires(N > 0)
 {
   using internal_type =
@@ -955,7 +1180,7 @@ constexpr auto interpweights(list_lags &&...lags)
  */
 template <Index dlx, list_of_lagrange_type... list_lags,
           Index N = sizeof...(list_lags)>
-constexpr auto dinterpweights(list_lags &&...lags)
+constexpr auto dinterpweights(const list_lags &...lags)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
   using internal_type =
@@ -992,9 +1217,9 @@ template <typename T> constexpr Index zero() {return 0;}
  * @return constexpr auto The value of the interpolation
  */
 template <lagrange_type... lags>
-constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
-                      field_t<internal::zero<lags>()...> auto &&iw,
-                      lags &&...lag) {
+constexpr auto interp(const field_t<internal::zero<lags>()...> auto &field,
+                      const field_t<internal::zero<lags>()...> auto &iw,
+                      const lags &...lag) {
   matpack::matpack_value_type<decltype(field)> out{0};
 
   //! Now the cyclicity is wrapped, we can just add the values up
@@ -1029,8 +1254,8 @@ constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
  */
 template <typename ListOfInterpWeights, list_of_lagrange_type... lags>
 constexpr void reinterp(auto &&out,
-                        field_t<internal::zero<lags>()...> auto &&field,
-                        ListOfInterpWeights &&iw_field, lags &&...list_lag) {
+                        const field_t<internal::zero<lags>()...> auto &field,
+                        const ListOfInterpWeights &iw_field, const lags &...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
   std::transform(
       iw_field.elem_begin(), iw_field.elem_end(), in.begin(), out.elem_begin(),
@@ -1052,14 +1277,12 @@ constexpr void reinterp(auto &&out,
  * @return constexpr auto A new field
  */
 template <typename ListOfInterpWeights, list_of_lagrange_type... lags>
-constexpr auto reinterp(field_t<internal::zero<lags>()...> auto &&field,
-                        ListOfInterpWeights &&iw_field, lags &&...list_lag) {
+constexpr auto reinterp(const field_t<internal::zero<lags>()...> auto &field,
+                        const ListOfInterpWeights &iw_field, const lags &...list_lag) {
   matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
                         sizeof...(lags)>
   out(list_lag.size()...);
-  reinterp(out, std::forward<decltype(field)>(field),
-           std::forward<decltype(iw_field)>(iw_field),
-           std::forward<lags>(list_lag)...);
+  reinterp(out, field, iw_field, list_lag...);
   return out;
 }
 
@@ -1071,8 +1294,8 @@ constexpr auto reinterp(field_t<internal::zero<lags>()...> auto &&field,
  * @return constexpr auto The value of the interpolation
  */
 template <lagrange_type... lags>
-constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
-                      lags &&...lag) {
+constexpr auto interp(const field_t<internal::zero<lags>()...> auto &field,
+                      const lags &...lag) {
   matpack::matpack_value_type<decltype(field)> out{0};
 
   for (matpack::flat_shape_pos<sizeof...(lags)> pos{std::array{lag.size()...}};
@@ -1103,8 +1326,8 @@ constexpr auto interp(field_t<internal::zero<lags>()...> auto &&field,
  * @return constexpr auto A new field
  */
 template <list_of_lagrange_type... lags>
-constexpr auto reinterp(field_t<internal::zero<lags>()...> auto &&field,
-                        lags &&...list_lag) {
+constexpr auto reinterp(const field_t<internal::zero<lags>()...> auto &field,
+                        const lags &...list_lag) {
   const auto in = matpack::elemwise{list_lag...};
   matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
                         sizeof...(lags)>

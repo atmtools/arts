@@ -636,7 +636,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
 
   Vector the_grid=uniform_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
-    const Index idx0 = my_interp::pos_finder(i, Numeric(i), the_grid, p_interp_order, true);
+    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
     for (Index j = 0; j < p_interp_order+1; ++j) {
       // Our pressure grid for the lookup table may be coarser than
@@ -717,7 +717,7 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
     //            << refprof[i] << " / "
     //            << maxprof[i] << "\n";
     
-    const Index idx0 = my_interp::pos_finder(i, Numeric(i), the_grid, p_interp_order, true);
+    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
     for (Index j = 0; j < p_interp_order+1; ++j) {
       //           cout << "!!!!!! j = " << j << "\n";
@@ -1574,7 +1574,7 @@ void abs_lookupSetupBatch(  // WS Output:
   ARTS_ASSERT(log_abs_p.nelem() == np);
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
-    const Index idx0 = my_interp::pos_finder(i, log_abs_p[i], log_abs_p, abs_p_interp_order, false);
+    const Index idx0 = my_interp::pos_finder<false>(i, log_abs_p[i], log_abs_p, abs_p_interp_order);
 
     for (Index fi = 0; fi < datamean.nrows(); ++fi)
       if (1 != fi)  // We skip the z field, which we do not need

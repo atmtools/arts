@@ -41,3 +41,8 @@ constexpr auto max(standard_iterable auto &&x) {
 constexpr auto minmax(standard_iterable auto&& x) {
   return std::pair{min(x), max(x)};
 }
+
+/** Sum up the values */
+constexpr auto sum(standard_iterable auto&& x) {
+  return std::reduce(x.begin(), x.end());
+}
