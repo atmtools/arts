@@ -373,37 +373,6 @@ concept mdvalue_type_compatible = requires(U a) {
                                       } -> std::convertible_to<T>;
                                   };
 
-//! Test that the type U is exactly matpack_view<T, N, constant, strided> (w/o qualifiers)
-template <typename U, typename T, Index N, bool constant, bool strided>
-concept exact_matpack_view = std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, constant, strided>>;
-
-//! Test that the type U is exactly matpack_view<T, N, constant, true> (w/o qualifiers)
-template <typename U, typename T, Index N, bool constant>
-concept strided_matpack_view = exact_matpack_view<U, T, N, constant, true>;
-
-//! Test that the type U is exactly matpack_view<T, N, true, strided> (w/o qualifiers)
-template <typename U, typename T, Index N, bool strided>
-concept constant_matpack_view = exact_matpack_view<U, T, N, true, strided>;
-
-//! Test that the type U is exactly matpack_view<T, N, constant, false> (w/o qualifiers)
-template <typename U, typename T, Index N, bool constant>
-concept contiguous_matpack_view = exact_matpack_view<U, T, N, constant, false>;
-
-//! Test that the type U is exactly matpack_view<T, N, false, strided> (w/o qualifiers)
-template <typename U, typename T, Index N, bool strided>
-concept mutable_matpack_view = exact_matpack_view<U, T, N, false, strided>;
-
-//! Test that the type U is exactly matpack_view<T, N, false/true, false/true> (w/o qualifiers) for any constant, strided
-template <typename U, typename T, Index N>
-concept sized_matpack_view = exact_matpack_view<U, T, N, false, false> or
-                             exact_matpack_view<U, T, N, false, true> or
-                             exact_matpack_view<U, T, N, true, false> or
-                             exact_matpack_view<U, T, N, true, true>;
-
-//! Test that the type U is exactly matpack_view<T, rank<U>(), constant, strided> (w/o qualifiers) for any constant, strided
-template <typename U, typename T>
-concept typed_matpack_view = rankable<U> and sized_matpack_view<U, T, rank<U>()>;
-
 //! The underlying value type of the type T
 template <typename T>
 using matpack_value_type = typename std::remove_cvref_t<T>::value_type;
@@ -432,42 +401,83 @@ template <typename first, typename second, typename... rest>
 inline constexpr bool same_value_type_v = same_value_type<first, second, rest...>::value;
 
 
+//! Test that the type U is exactly matpack_view<T, N, false/true, false/true> (w/o qualifiers) for any constant, strided
+template <typename U, typename T, Index N>
+concept ranked_matpack_view = std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, false, false>> or
+                              std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, false, true>> or
+                              std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, true, false>> or
+                              std::same_as<std::remove_cvref_t<U>, matpack_view<T, N, true, true>>;
+
 //! Test that the type U is exactly matpack_view<U::value_type, N, constant, strided> (w/o qualifiers) for any constant, strided
 template <typename U, Index N>
-concept strict_size_matpack_view = sized_matpack_view<U, matpack_value_type<U>, N>;
+concept strict_rank_matpack_view = ranked_matpack_view<U, matpack_value_type<U>, N>;
 
 //! Test that the type U is any matpack_view<...> (w/o qualifiers)
 template <typename U>
-concept any_matpack_view = rankable<U> and sized_matpack_view<U, matpack_value_type<U>, rank<U>()>;
+concept any_matpack_view = rankable<U> and ranked_matpack_view<U, matpack_value_type<U>, rank<U>()>;
+
 
 //! Test that the type U is exactly matpack_data<T, N> (w/o qualifiers)
 template <typename U, typename T, Index N>
-concept sized_matpack_data = std::same_as<std::remove_cvref_t<U>, matpack_data<T, N>>;
-
-//! Test that the type U is exactly matpack_data<T, N> or matpack_view<T, N, ...> (w/o qualifiers)
-template <typename U, typename T, Index N>
-concept sized_matpack_type = sized_matpack_data<U, T, N> or sized_matpack_view<U, T, N>;
-
+concept ranked_matpack_data = std::same_as<std::remove_cvref_t<U>, matpack_data<T, N>>;
 
 //! Test that the type U is exactly matpack_data<U::value_type, N> (w/o qualifiers)
 template <typename U, Index N>
-concept strict_size_matpack_data = sized_matpack_data<U, matpack_value_type<U>, N>;
+concept strict_rank_matpack_data = ranked_matpack_data<U, matpack_value_type<U>, N>;
 
 //! Test that the type U is any matpack_data<...> (w/o qualifiers)
 template <typename U>
-concept any_matpack_data = rankable<U> and sized_matpack_data<U, matpack_value_type<U>, rank<U>()>;
+concept any_matpack_data = rankable<U> and ranked_matpack_data<U, matpack_value_type<U>, rank<U>()>;
 
-//! Test that the type U is strictly sized matpack_data or matpack_view (w/o qualifiers)
+
+/** Test that the type U is a matpack_constant_view<T, true/false, ...> of a given rank and type (w/o qualifiers) using magic function */
+template <typename U, typename T, Index N>
+concept ranked_matpack_constant_view =
+  std::remove_cvref_t<U>::template magic_test_of_matpack_constant_view<T, N>();
+
+/** Test that the type U is a matpack_constant_view<T, true/false, ...> of a given rank (w/o qualifiers) */
+template <typename U, Index N>
+concept strict_rank_matpack_constant_view = ranked_matpack_constant_view<U, matpack_value_type<U>, N>;
+
+/** Test that the type U is a matpack_constant_view<T, true/false, ...> (w/o qualifiers) */
+template <typename U>
+concept any_matpack_constant_view = ranked_matpack_constant_view<U, matpack_value_type<U>, rank<U>()>;
+
+
+/** Test that the type U is a matpack_constant_data<T, ...> of a given rank and type (w/o qualifiers) using magic function */
+template <typename U, typename T, Index N>
+concept ranked_matpack_constant_data =
+  std::remove_cvref_t<U>::template magic_test_of_matpack_constant_data<T, N>();
+
+/** Test that the type U is a matpack_constant_data<T, ...> of a given rank (w/o qualifiers) */
+template <typename U, Index N>
+concept strict_rank_matpack_constant_data = ranked_matpack_constant_data<U, matpack_value_type<U>, N>;
+
+/** Test that the type U is a matpack_constant_data<T, ...> (w/o qualifiers) */
+template <typename U>
+concept any_matpack_constant_data = ranked_matpack_constant_data<U, matpack_value_type<U>, rank<U>()>;
+
+
+//! Test that the type U is exactly matpack_data<T, N> or matpack_view<T, N, ...> or their constant friends (w/o qualifiers)
+template <typename U, typename T, Index N>
+concept ranked_matpack_type = ranked_matpack_data<U, T, N> or
+                              ranked_matpack_view<U, T, N> or 
+                              ranked_matpack_constant_data<U, T, N> or
+                              ranked_matpack_constant_view<U, T, N>;
+
+//! Test that the type U is strictly ranked matpack_data or matpack_view (w/o qualifiers)
 template<typename U, Index N>
-concept strict_size_matpack_type = strict_size_matpack_data<U, N> or strict_size_matpack_view<U, N>;
+concept strict_rank_matpack_type = ranked_matpack_type<U, matpack_value_type<U>, N>;
 
 //! Test that the type is any matpack_view or matpack_data
-template <typename T>
-concept any_matpack_type = any_matpack_data<T> or any_matpack_view<T>;
+template <typename U>
+concept any_matpack_type = ranked_matpack_type<U, matpack_value_type<U>, rank<U>()>;
 
-//! Test if the type can be converted to a sized matpack_data
+
+//! Test if the type can be converted to a ranked matpack_data
 template <typename U, typename T, Index N>
 concept matpack_convertible = not any_matpack_type<U> and has_mdshape<U> and mdvalue_type_compatible<U, T> and rank<U>() == N;
+
 
 //! Helper to rank a mdspan
 template <Index N> using ranking = stdx::dextents<Index, N>;

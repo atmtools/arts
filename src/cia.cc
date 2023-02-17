@@ -33,6 +33,7 @@
 #include "cia.h"
 #include <cmath>
 #include <numeric>
+#include "matpack_concepts.h"
 #include "species_tags.h"
 #include "absorption.h"
 #include "file.h"
@@ -192,7 +193,7 @@ void cia_interpolation(VectorView result,
     result_active = reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
-    const auto Tnew = std::array<double, 1>{temperature};
+    const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
     if (T_order == 1) {
       const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();

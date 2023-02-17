@@ -16,7 +16,7 @@
  * @param x Any matpack type that is 2-dimensional
  * @return A transpose view of that matpack type
  */
-template <matpack::strict_size_matpack_type<2> MAT>
+template <matpack::strict_rank_matpack_type<2> MAT>
 auto transpose(const MAT &x)
     -> matpack::matpack_view<matpack::matpack_value_type<MAT>, 2,
                              MAT::is_const(), true> {
@@ -194,8 +194,8 @@ template <matpack::any_matpack_type IN> constexpr auto nanmean(const IN &in) {
 
 namespace matpack {
 //! Compute dot-product of x and y
-template <strict_size_matpack_type<1> VECONE,
-          strict_size_matpack_type<1> VECTWO>
+template <strict_rank_matpack_type<1> VECONE,
+          strict_rank_matpack_type<1> VECTWO>
 constexpr auto operator*(const VECONE &x, const VECTWO &y) {
   ARTS_ASSERT(x.size() == y.size(), x.size(), " vs ", y.size())
   using T = std::remove_cvref_t<decltype(x[0] * y[0])>;

@@ -16,6 +16,11 @@ struct matpack_constant_view {
   static constexpr Index sz = (alldim * ...);
   static_assert(sz > 0);
 
+  template <typename U, Index R>
+  static constexpr bool magic_test_of_matpack_constant_view() {
+    return N == R and std::same_as<U, T>;
+  }
+
   using view_type = stdx::mdspan<T, stdx::extents<Index, alldim...>>;
   using data_type = matpack_constant_data<T, alldim...>;
   using const_matpack_constant_view = matpack_constant_view<T, true, alldim...>;
@@ -152,11 +157,21 @@ template <typename T, Index... alldim> struct matpack_constant_data {
   static constexpr Index sz = (alldim * ...);
   static_assert(sz > 0);
 
+  template <typename U, Index R>
+  static constexpr bool magic_test_of_matpack_constant_data() {
+    return N == R and std::same_as<U, T>;
+  }
+
   using mut_view_type = matpack_constant_view<T, false, alldim...>;
   using const_view_type = matpack_constant_view<T, true, alldim...>;
   template <bool c> using inner_view = typename mut_view_type::template inner_view<c>;
 
   std::array<T, sz> data{};
+
+  [[nodiscard]] explicit constexpr operator matpack_data<T, N>() const {
+    if constexpr (N == 1) return matpack_data<T, 1>{data};
+    else return matpack_data<T, 1>{data}.reshape(alldim...);
+  }
 
   [[nodiscard]] constexpr auto view() { return mut_view_type{data}; }
   [[nodiscard]] constexpr auto view() const { return const_view_type{data}; }
@@ -210,9 +225,9 @@ template <typename T, Index... alldim> struct matpack_constant_data {
   [[nodiscard]] static constexpr auto rank() { return N; }
 
   [[nodiscard]] constexpr auto begin() { if constexpr (N == 1) return data.begin(); else return view().begin(); }
-  [[nodiscard]] constexpr auto end() { if constexpr (N == 1) return data.end() + sz; else return view().end(); }
+  [[nodiscard]] constexpr auto end() { if constexpr (N == 1) return data.end(); else return view().end(); }
   [[nodiscard]] constexpr auto begin() const { if constexpr (N == 1) return data.begin(); else return view().begin(); }
-  [[nodiscard]] constexpr auto end() const { if constexpr (N == 1) return data.end() + sz; else return view().end(); }
+  [[nodiscard]] constexpr auto end() const { if constexpr (N == 1) return data.end(); else return view().end(); }
 
   [[nodiscard]] constexpr auto elem_begin() { return data.begin(); }
   [[nodiscard]] constexpr auto elem_end() { return data.end(); }

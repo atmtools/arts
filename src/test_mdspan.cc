@@ -451,14 +451,12 @@ void test_const_data() {
 
 void test_my_interp() {
   my_interp::Lagrange<1, true> x(0, 3.5,
-                                 std::array<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
+                                 matpack::matpack_constant_data<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
   my_interp::Lagrange<1, false> x2(0, 3.5,
-                                   std::array<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
+                                   matpack::matpack_constant_data<Numeric, 7>{1, 2, 3, 4, 5, 6, 7});
   auto iw = interpweights(std::array{x, x}, std::array{x2, x2});
 
   matpack::shape_help{iw.shape()};
-
-  static_assert(my_interp::field_t<std::remove_cvref_t<decltype(interpweights(x, x2))>, 0, 0>);
 
   interp(Matrix(7, 7, 1), interpweights(x, x2), x, x2);
 

@@ -286,13 +286,12 @@ public:
 
 template <typename ... iters> requires(((rank<iters>() == 1) and ...))
 struct elemwise {
-  class elemwise_iteration {
+  struct elemwise_iteration {
     static constexpr Index N = sizeof...(iters); 
 
     matpack::flat_shape_pos<N> pos{matpack::constant_array<N, 0>()};
     const std::tuple<const iters* const...> orig{std::array<nullptr_t, N>{}};
 
-  public:
     constexpr elemwise_iteration() = default;
     constexpr elemwise_iteration(elemwise_iteration&&) noexcept = default;
     constexpr elemwise_iteration(const elemwise_iteration&) = default;
@@ -323,13 +322,10 @@ struct elemwise {
     [[nodiscard]] constexpr auto operator<=(const elemwise_iteration& other) const noexcept {return pos <= other.pos;}
     [[nodiscard]] constexpr auto operator>=(const elemwise_iteration& other) const noexcept {return pos >= other.pos;}
 
-  private:
   template<Index ... ints>
     constexpr auto values(std::integer_sequence<Index, ints...>) const {
       return std::apply([this](auto&&... i){return std::tuple{(*std::get<ints>(orig))[i] ...}; }, pos.pos);
     }
-
-  public:
 
     [[nodiscard]] constexpr auto operator*() const {
       return values(std::make_integer_sequence<Index, N>{});
