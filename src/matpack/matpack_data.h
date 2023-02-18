@@ -298,14 +298,14 @@ public:
   //! Access the data elements regardless of the matpack data rank
   template <integral... Inds>
   [[nodiscard]] constexpr T& elem_at(Inds... inds) requires(sizeof...(Inds) == N) {
-    if constexpr (N == 1) return data[std::array{inds...}[0]];
+    if constexpr (N == 1) return data[std::get<0>(std::tuple{inds...})];
     else return view(inds...);
   }
 
   //! Access the data elements regardless of the matpack data rank  template <integral... Inds>
   template <integral... Inds>
   [[nodiscard]] constexpr T elem_at(Inds... inds) const requires(sizeof...(Inds) == N) {
-    if constexpr (N == 1) return data[std::array{inds...}[0]];
+    if constexpr (N == 1) return data[std::get<0>(std::tuple{inds...})];
     else return view(inds...);
   }
   

@@ -1055,32 +1055,65 @@ public:
 };
 } // namespace internal
 
+//! Conceptually, the type is assignable
+template <typename T, typename U>
+concept matpack_assignable = matpack::any_matpack_type<T> and requires(T& a) {
+  std::apply(a, std::array<Index, matpack::rank<T>()>{}) = U{};
+};
+
 /** Precompute the interpolation weights
  *
  * For use with the interp method when re-usability is required
+ *
+ * The size of out is already set before calling this method
+ *
+ * @param[inout] out A writable matpack type 
+ * @param[in] lag... Several (at least 1) Lagrange value
+ */
+template <lagrange_type... lags, Index N = sizeof...(lags)>
+void interpweights(matpack::ranked_matpack_type<Numeric, N> auto&& out, const lags &...lag) 
+requires(N > 0 and matpack_assignable<decltype(out), Numeric>) {
+  const auto in = matpack::elemwise{lag.lx...};
+  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
+    return std::apply([](auto&&... x){return (x * ...);}, v);
+  });
+}
+
+/** Precompute the interpolation weights
+ *
+ * For use with the interp method when re-usability is required
+ *
+ * The size of out is already set before calling this method
+ *
+ * @param[inout] out A writable matpack type 
+ * @param[in] lag... Several (at least 1) Lagrange value
+ */
+template <Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
+void dinterpweights(matpack::ranked_matpack_type<Numeric, N> auto&& out, const lags &...lag) 
+requires(N > 0 and matpack_assignable<decltype(out), Numeric> and N > 0 and dlx >= 0 and dlx < N) {
+  const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
+  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
+    return std::apply([](auto&&... x){return (x * ...);}, v);
+  });
+}
+
+/** Precompute the interpolation derivative weights
+ *
+ * For use with the interp method when re-usability is required
  * 
+ * @param[inout] out A writable matpack type 
  * @param[in] lag... Several (at least 1) Lagrange value
  */
 template<lagrange_type... lags, Index N = sizeof...(lags)>
 constexpr auto interpweights(const lags&... lag) requires (N > 0) {
   if constexpr (N > 1) {
     if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
-      const auto in = matpack::elemwise{lag.lx...};
       matpack::matpack_data<Numeric, N> out(lag.size()...);
-
-      std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
-        return std::apply([](auto&&... x){return (x * ...);}, v);
-      });
-
+      interpweights(out, lag...);
       return out;
     } else {
-      const auto in = matpack::elemwise{lag.lx...};
       matpack::matpack_constant_data<Numeric, internal::compile_time_size<lags>()...> out{};
-
-      std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
-        return std::apply([](auto&&... x){return (x * ...);}, v);
-      });
-      
+      interpweights(out, lag...);
       return out;
     }
   } else {
@@ -1100,22 +1133,12 @@ template<Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
 constexpr auto dinterpweights(const lags&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
   if constexpr (N > 1) {
     if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
-      const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
       matpack::matpack_data<Numeric, N> out(lag.size()...);
-
-      std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
-        return std::apply([](auto&&... x){return (x * ...);}, v);
-      });
-
+      dinterpweights<dlx>(out, lag...);
       return out;
     } else {
-      const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
       matpack::matpack_constant_data<Numeric, internal::compile_time_size<lags>()...> out{};
-
-      std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
-        return std::apply([](auto&&... x){return (x * ...);}, v);
-      });
-
+      dinterpweights<dlx>(out, lag...);
       return out;
     }
   } else {
