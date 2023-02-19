@@ -374,7 +374,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
 
       for (Index iT = 0; iT < nTout; iT++) {
         if (t_ok[iT] < 0) {
-          T_lag.emplace_back();
+          T_lag.emplace_back(this_T_interp_order);
         } else {
           if (grid_unchecked) {
             chk_interpolation_grids(

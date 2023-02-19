@@ -635,7 +635,7 @@ struct Lagrange {
   }
   
   //! Enusre that the standard constructors and set-operators exist
-  constexpr Lagrange() requires(runtime_polyorder()) : lx(1, 1), dlx(1, 0) {}
+  constexpr Lagrange(std::size_t order=0) requires(runtime_polyorder()) : lx(order+1, 0), dlx(do_derivs * (order+1), 0) {lx.front() = 1;}
   constexpr Lagrange() requires(not runtime_polyorder()) : lx({1}), dlx({0}) {}
   constexpr Lagrange(const Lagrange& l) = default;
   constexpr Lagrange(Lagrange&& l) noexcept = default;
@@ -1073,6 +1073,10 @@ concept matpack_assignable = matpack::any_matpack_type<T> and requires(T& a) {
 template <lagrange_type... lags, Index N = sizeof...(lags)>
 void interpweights(matpack::ranked_matpack_type<Numeric, N> auto&& out, const lags &...lag) 
 requires(N > 0 and matpack_assignable<decltype(out), Numeric>) {
+  ARTS_ASSERT(std::array{lag.size()...} == out.shape(),
+              matpack::shape_help{std::array{lag.size()...}}, " vs ",
+              matpack::shape_help{out.shape()})
+
   const auto in = matpack::elemwise{lag.lx...};
   std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
     return std::apply([](auto&&... x){return (x * ...);}, v);
@@ -1090,7 +1094,11 @@ requires(N > 0 and matpack_assignable<decltype(out), Numeric>) {
  */
 template <Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
 void dinterpweights(matpack::ranked_matpack_type<Numeric, N> auto&& out, const lags &...lag) 
-requires(N > 0 and matpack_assignable<decltype(out), Numeric> and N > 0 and dlx >= 0 and dlx < N) {
+requires(N > 0 and matpack_assignable<decltype(out), Numeric> and dlx >= 0 and dlx < N) {
+  ARTS_ASSERT(std::array{lag.size()...} == out.shape(),
+              matpack::shape_help{std::array{lag.size()...}}, " vs ",
+              matpack::shape_help{out.shape()})
+
   const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
   std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
     return std::apply([](auto&&... x){return (x * ...);}, v);
@@ -1149,15 +1157,9 @@ constexpr auto dinterpweights(const lags&... lag) requires (N > 0 and dlx >= 0 a
 //! Test to make sure that the type is some list of a type that can be used as a lagrange key type
 template <typename T>
 concept list_of_lagrange_type = requires(T a) {
-  { a.size() } -> matpack::integral;
+  { a.size() } -> std::convertible_to<Index>;
   { a[0] } -> lagrange_type;
 };
-
-namespace internal {
-  constexpr Index inner_size_or_zero(const list_of_lagrange_type auto& lag) {
-    return lag.size() == 0 ? 0 : lag[0].size();
-  }
-}  // namespace internal
 
 /** Precompute the interpolation weights
  *
@@ -1169,16 +1171,23 @@ template <list_of_lagrange_type... list_lags, Index N = sizeof...(list_lags)>
 constexpr auto interpweights(const list_lags &...lags)
   requires(N > 0)
 {
-  using internal_type =
-      std::remove_cvref_t<decltype(interpweights(lags[0]...))>;
+  matpack::matpack_data<matpack::matpack_data<Numeric, N>, N> out(
+      static_cast<Index>(lags.size())...,
+      matpack::matpack_data<Numeric, N>(
+          std::array{static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...}, 0.0));
 
-  const auto in = matpack::elemwise{lags...};
-  matpack::matpack_data<internal_type, N> out{
-      static_cast<Index>(lags.size())...};
+  ARTS_ASSERT((std::all_of(lags.begin(), lags.end(), [SZ=lags.size() == 0 ? 0 : lags[0].size()](auto& l) {
+    return SZ == l.size();
+  }) and ...), "All input lags must have the same interpolation order")
 
-  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
-    return std::apply([](auto &&...lag) { return interpweights(lag...); }, v);
-  });
+  if (out.empty()) return out;
+
+  for (matpack::flat_shape_pos<N> pos{
+           std::array{static_cast<Index>(lags.size())...}};
+       pos.pos.front() < pos.shp.front(); ++pos) {
+    std::apply([&](auto&&... ind) { interpweights(out(ind...), lags[ind]...); },
+               pos.pos);
+  }
 
   return out;
 }
