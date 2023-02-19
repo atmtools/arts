@@ -1174,11 +1174,15 @@ constexpr auto interpweights(const list_lags &...lags)
   matpack::matpack_data<matpack::matpack_data<Numeric, N>, N> out(
       static_cast<Index>(lags.size())...,
       matpack::matpack_data<Numeric, N>(
-          std::array{static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...}, 0.0));
+          std::array{
+              static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...},
+          0.0));
 
-  ARTS_ASSERT((std::all_of(lags.begin(), lags.end(), [SZ=lags.size() == 0 ? 0 : lags[0].size()](auto& l) {
-    return SZ == l.size();
-  }) and ...), "All input lags must have the same interpolation order")
+  ARTS_ASSERT((std::all_of(lags.begin(), lags.end(),
+                           [SZ = lags.size() == 0 ? 0 : lags[0].size()](
+                               auto &l) { return SZ == l.size(); }) and
+               ...),
+              "All input lags must have the same interpolation order")
 
   if (out.empty()) return out;
 
@@ -1203,18 +1207,31 @@ template <Index dlx, list_of_lagrange_type... list_lags,
 constexpr auto dinterpweights(const list_lags &...lags)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
-  using internal_type =
-      std::remove_cvref_t<decltype(dinterpweights<dlx>(lags[0]...))>;
+  matpack::matpack_data<matpack::matpack_data<Numeric, N>, N> out(
+      static_cast<Index>(lags.size())...,
+      matpack::matpack_data<Numeric, N>(
+          std::array{
+              static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...},
+          0.0));
 
-  const auto in = matpack::elemwise{lags...};
-  matpack::matpack_data<internal_type, N> out{static_cast<Index>(lags.size())...};
+  ARTS_ASSERT((std::all_of(lags.begin(), lags.end(),
+                           [SZ = lags.size() == 0 ? 0 : lags[0].size()](
+                               auto &l) { return SZ == l.size(); }) and
+               ...),
+              "All input lags must have the same interpolation order")
 
-  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
-    return std::apply([](auto &&...lag) { return dinterpweights<dlx>(lag...); }, v);
-  });
+  if (out.empty()) return out;
 
-  return out;
-}
+  for (matpack::flat_shape_pos<N> pos{
+           std::array{static_cast<Index>(lags.size())...}};
+       pos.pos.front() < pos.shp.front(); ++pos) {
+    std::apply(
+        [&](auto &&...ind) { dinterpweights<dlx>(out(ind...), lags[ind]...); },
+        pos.pos);
+    }
+
+    return out;
+  }
 
 /** Interpolate a single output value with re-usable weights
  * 
