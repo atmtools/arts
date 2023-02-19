@@ -25,8 +25,10 @@
 #include "interpolation.h"
 #include "interp.h"
 #include "math_funcs.h"
+#include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
+#include "nonstd.h"
 #include "xml_io.h"
 
 void test01() {
@@ -506,18 +508,18 @@ constexpr bool is_around(Numeric x, Numeric x0, Numeric e = 1e-12) {
 
 void test12() {
   constexpr int N = 10;
-  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+  constexpr matpack::matpack_constant_data<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  constexpr matpack::matpack_constant_data<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
                                       6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
-  constexpr std::array<Numeric, N> y3{
+  constexpr matpack::matpack_constant_data<Numeric, N> y3{
       1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
       6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
   constexpr Numeric x = 1.5;
 
   // Set up the interpolation Lagranges
-  constexpr FixedLagrangeInterpolation<1> lin(0, x, std::array<Numeric, 2>{1, 2});
-  constexpr FixedLagrangeInterpolation<2> sqr(0, x, std::array<Numeric, 3>{1, 2, 3});
-  constexpr FixedLagrangeInterpolation<3> cub(0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+  constexpr FixedLagrangeInterpolation<1> lin(0, x, matpack::matpack_constant_data<Numeric, 2>{1, 2});
+  constexpr FixedLagrangeInterpolation<2> sqr(0, x, matpack::matpack_constant_data<Numeric, 3>{1, 2, 3});
+  constexpr FixedLagrangeInterpolation<3> cub(0, x, matpack::matpack_constant_data<Numeric, 4>{1, 2, 3, 4});
 
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
@@ -548,10 +550,10 @@ void test12() {
 
 void test13() {
   constexpr int N = 10;
-  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+  constexpr matpack::matpack_constant_data<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  constexpr matpack::matpack_constant_data<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
                                       6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
-  constexpr std::array<Numeric, N> y3{
+  constexpr matpack::matpack_constant_data<Numeric, N> y3{
       1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
       6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
   constexpr Numeric x = 2;
@@ -559,17 +561,17 @@ void test13() {
 
   // Set up the interpolation Lagranges
   constexpr FixedLagrangeInterpolation<1, true> lin(
-      0, x, std::array<Numeric, 2>{1, 2});
+      0, x, matpack::matpack_constant_data<Numeric, 2>{1, 2});
   constexpr FixedLagrangeInterpolation<2, true> sqr(
-      0, x, std::array<Numeric, 3>{1, 2, 3});
+      0, x, matpack::matpack_constant_data<Numeric, 3>{1, 2, 3});
   constexpr FixedLagrangeInterpolation<3, true> cub(
-      0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+      0, x, matpack::matpack_constant_data<Numeric, 4>{1, 2, 3, 4});
   constexpr FixedLagrangeInterpolation<1, true> dlin(
-      0, x + dx, std::array<Numeric, 2>{1, 2});
+      0, x + dx, matpack::matpack_constant_data<Numeric, 2>{1, 2});
   constexpr FixedLagrangeInterpolation<2, true> dsqr(
-      0, x + dx, std::array<Numeric, 3>{1, 2, 3});
+      0, x + dx, matpack::matpack_constant_data<Numeric, 3>{1, 2, 3});
   constexpr FixedLagrangeInterpolation<3, true> dcub(
-      0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4});
+      0, x + dx, matpack::matpack_constant_data<Numeric, 4>{1, 2, 3, 4});
 
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
@@ -860,13 +862,17 @@ struct m2_to_p2 {
   static constexpr Numeric bound = cl == my_interp::cycle_limit::upper ? 2 : -2;
 };
 
+constexpr bool is_close(Numeric a, Numeric b, Numeric absdiff=1e-12) {
+  return nonstd::abs(a - b) < absdiff;
+}
+
 void test26() {
   auto f = [](Numeric x){return Math::pow2(my_interp::cyclic_clamp<m2_to_p2>(x)) - 4;};
   auto df = [](Numeric x){return 2*my_interp::cyclic_clamp<m2_to_p2>(x);};
   
   constexpr Index N = 9;
-  constexpr std::array<Numeric, N> xi{-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2};
-  constexpr std::array<Numeric, N> yi{f(-2), f(-1.5), f(-1), f(-0.5), f(0), f(0.5), f(1), f(1.5), f(2)};
+  constexpr matpack::matpack_constant_data<Numeric, N> xi{-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2};
+  constexpr matpack::matpack_constant_data<Numeric, N> yi{f(-2), f(-1.5), f(-1), f(-0.5), f(0), f(0.5), f(1), f(1.5), f(2)};
   constexpr Index O1 = 3;
   
   // Test for a few values of interpolation
@@ -904,7 +910,7 @@ void test26() {
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights<0>(lin), lin));
+    static_assert(is_close(df(x), interp(yi, dinterpweights<0>(lin), lin)));
   }
   {
     constexpr Numeric x = -2;

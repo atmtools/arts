@@ -453,7 +453,7 @@ constexpr Numeric l(const Index p0, const Numeric x,
     return l_factor<type, Limit, Vec>(x, xi, j+p0, p0+(0>=j));
   } else if constexpr (order == 2) {
     return l_factor<type, Limit, Vec>(x, xi, j+p0, p0+(0>=j)) *
-           l_factor<type, Limit, Vec>(x, xi, j+p0, p0+(1>=j));
+           l_factor<type, Limit, Vec>(x, xi, j+p0, 1+p0+(1>=j));
   } else {
     Numeric val = 1.0;
     for (Index m = 0; m < order; m++) {
@@ -797,6 +797,7 @@ struct Lagrange {
            lx[j] = l<PolyOrder, type, Limit>(pos, x, xi, j);
        }
      }
+     
      lx.back() = 1.0 - std::reduce(lx.begin(), lx.end() - 1);
    }
 
@@ -1071,15 +1072,18 @@ concept matpack_assignable = matpack::any_matpack_type<T> and requires(T& a) {
  * @param[in] lag... Several (at least 1) Lagrange value
  */
 template <lagrange_type... lags, Index N = sizeof...(lags)>
-void interpweights(matpack::ranked_matpack_type<Numeric, N> auto&& out, const lags &...lag) 
-requires(N > 0 and matpack_assignable<decltype(out), Numeric>) {
+constexpr void
+interpweights(matpack::ranked_matpack_type<Numeric, N> auto &&out,
+              const lags &...lag)
+  requires(N > 0 and matpack_assignable<decltype(out), Numeric>)
+{
   ARTS_ASSERT(std::array{lag.size()...} == out.shape(),
               matpack::shape_help{std::array{lag.size()...}}, " vs ",
               matpack::shape_help{out.shape()})
 
   const auto in = matpack::elemwise{lag.lx...};
-  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
-    return std::apply([](auto&&... x){return (x * ...);}, v);
+  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
+    return std::apply([](auto &&...x) { return (x * ...); }, v);
   });
 }
 
@@ -1093,15 +1097,20 @@ requires(N > 0 and matpack_assignable<decltype(out), Numeric>) {
  * @param[in] lag... Several (at least 1) Lagrange value
  */
 template <Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
-void dinterpweights(matpack::ranked_matpack_type<Numeric, N> auto&& out, const lags &...lag) 
-requires(N > 0 and matpack_assignable<decltype(out), Numeric> and dlx >= 0 and dlx < N) {
+constexpr void
+dinterpweights(matpack::ranked_matpack_type<Numeric, N> auto &&out,
+               const lags &...lag)
+  requires(N > 0 and matpack_assignable<decltype(out), Numeric> and dlx >= 0 and
+           dlx < N)
+{
   ARTS_ASSERT(std::array{lag.size()...} == out.shape(),
               matpack::shape_help{std::array{lag.size()...}}, " vs ",
               matpack::shape_help{out.shape()})
 
-  const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(std::make_integer_sequence<Index, N>{}, lag...);
-  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto&& v){
-    return std::apply([](auto&&... x){return (x * ...);}, v);
+  const auto in = internal::select_derivative<dlx, lags...>::as_elemwise(
+      std::make_integer_sequence<Index, N>{}, lag...);
+  std::transform(in.begin(), in.end(), out.elem_begin(), [](auto &&v) {
+    return std::apply([](auto &&...x) { return (x * ...); }, v);
   });
 }
 
@@ -1112,20 +1121,20 @@ requires(N > 0 and matpack_assignable<decltype(out), Numeric> and dlx >= 0 and d
  * @param[inout] out A writable matpack type 
  * @param[in] lag... Several (at least 1) Lagrange value
  */
-template<lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr auto interpweights(const lags&... lag) requires (N > 0) {
-  if constexpr (N > 1) {
-    if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
-      matpack::matpack_data<Numeric, N> out(lag.size()...);
-      interpweights(out, lag...);
-      return out;
-    } else {
-      matpack::matpack_constant_data<Numeric, internal::compile_time_size<lags>()...> out{};
-      interpweights(out, lag...);
-      return out;
-    }
+template <lagrange_type... lags, Index N = sizeof...(lags)>
+constexpr auto interpweights(const lags &...lag)
+  requires(N > 0)
+{
+  if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
+    matpack::matpack_data<Numeric, N> out(lag.size()...);
+    interpweights(out, lag...);
+    return out;
   } else {
-    return std::get<0>(std::tuple{lag...}).lx;
+    matpack::matpack_constant_data<Numeric,
+                                   internal::compile_time_size<lags>()...>
+        out{};
+    interpweights(out, lag...);
+    return out;
   }
 }
 
@@ -1137,20 +1146,20 @@ constexpr auto interpweights(const lags&... lag) requires (N > 0) {
  * @tparam lags... Several Lagrange types
  * @param[in] lag... Several Lagrange values, where the dlx:th one has a derivative
  */
-template<Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
-constexpr auto dinterpweights(const lags&... lag) requires (N > 0 and dlx >= 0 and dlx < N) {
-  if constexpr (N > 1) {
-    if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
-      matpack::matpack_data<Numeric, N> out(lag.size()...);
-      dinterpweights<dlx>(out, lag...);
-      return out;
-    } else {
-      matpack::matpack_constant_data<Numeric, internal::compile_time_size<lags>()...> out{};
-      dinterpweights<dlx>(out, lag...);
-      return out;
-    }
+template <Index dlx, lagrange_type... lags, Index N = sizeof...(lags)>
+constexpr auto dinterpweights(const lags &...lag)
+  requires(N > 0 and dlx >= 0 and dlx < N)
+{
+  if constexpr ((internal::runtime_polyorder<lags>() or ...)) {
+    matpack::matpack_data<Numeric, N> out(lag.size()...);
+    dinterpweights<dlx>(out, lag...);
+    return out;
   } else {
-    return std::get<0>(std::tuple{lag...}).dlx;
+    matpack::matpack_constant_data<Numeric,
+                                   internal::compile_time_size<lags>()...>
+        out{};
+    dinterpweights<dlx>(out, lag...);
+    return out;
   }
 }
 
