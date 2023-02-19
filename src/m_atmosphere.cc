@@ -149,7 +149,7 @@ void atm_fields_compactExpand(GriddedField4& af,
 void AtmFieldPRegridHelper(Index& ing_min,
                            Index& ing_max,
                            ArrayOfLagrangeLogInterpolation& lag_p,
-                           matpack::matpack_data<Vector, 1>& itw,
+                           Matrix& itw,
                            ConstVectorView p_grid_out,
                            ConstVectorView p_grid_in,
                            const Index& interp_order,
@@ -205,7 +205,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
       p_grid_new.nelem(), atmtensor_in.nrows(), atmtensor_in.ncols());
 
   ArrayOfLagrangeLogInterpolation lag_p;
-  matpack::matpack_data<Vector, 1> itw(0);  // nb. it is invalid to use this as it stands here...
+  Matrix itw;  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -255,7 +255,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
                        atmtensor_in.ncols());
   
   ArrayOfLagrangeLogInterpolation lag_p;
-  matpack::matpack_data<Vector, 1> itw(0);  // nb. it is invalid to use this as it stands here...
+  Matrix itw;  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -628,7 +628,7 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
 void GriddedFieldPRegridHelper(Index& ing_min,
                                Index& ing_max,
                                ArrayOfLagrangeLogInterpolation& lag_p,
-                               matpack::matpack_data<Vector, 1>& itw,
+                               Matrix& itw,
                                GriddedField& gfraw_out,
                                const GriddedField& gfraw_in,
                                const Index p_grid_index,
@@ -707,7 +707,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(2, gfraw_in.get_grid_name(2));
   
   ArrayOfLagrangeLogInterpolation lag_p;
-  matpack::matpack_data<Vector, 1> itw(0);  // nb. it is invalid to use this as it stands here...
+  Matrix itw;  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -782,7 +782,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
   gfraw_out.set_grid_name(3, gfraw_in.get_grid_name(3));
   
   ArrayOfLagrangeLogInterpolation lag_p;
-  matpack::matpack_data<Vector, 1> itw(0);  // nb. it is invalid to use this as it stands here...
+  Matrix itw;  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 
@@ -866,7 +866,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
  */
 void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
                                     ArrayOfLagrangeCyclic0to360Interpolation& lag_lon,
-                                    matpack::matpack_data<Matrix, 2>& itw,
+                                    Tensor4& itw,
                                     GriddedField& gfraw_out,
                                     const GriddedField& gfraw_in,
                                     const Index lat_grid_index,
@@ -949,7 +949,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
 
   ArrayOfLagrangeInterpolation lag_lat;
   ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
-  matpack::matpack_data<Matrix, 2> itw(0, 0);
+  Tensor4 itw;
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_lat_grid =
@@ -1034,7 +1034,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   
   ArrayOfLagrangeInterpolation lag_lat;
   ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
-  matpack::matpack_data<Matrix, 2> itw(0, 0);
+  Tensor4 itw;
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
@@ -1134,7 +1134,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   
   ArrayOfLagrangeInterpolation lag_lat;
   ArrayOfLagrangeCyclic0to360Interpolation lag_lon;
-  matpack::matpack_data<Matrix, 2> itw(0, 0);
+  Tensor4 itw;
 
   GriddedFieldLatLonRegridHelper(lag_lat,
                                  lag_lon,
@@ -1236,7 +1236,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
 void GriddedFieldZToPRegridHelper(Index& ing_min,
                                   Index& ing_max,
                                   ArrayOfLagrangeInterpolation& lag_p,
-                                  matpack::matpack_data<Vector, 1>& itw,
+                                  Matrix& itw,
                                   const GriddedField& gfraw_in,
                                   const Index z_grid_index,
                                   ConstVectorView z_grid,
@@ -1338,7 +1338,7 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
   gfraw_out.data = 0.;
 
   ArrayOfLagrangeInterpolation lag_p;
-  matpack::matpack_data<Vector, 1> itw(0);  // nb. it is invalid to use this as it stands here...
+  Matrix itw;  // nb. it is invalid to use this as it stands here...
 
   Index ing_min, ing_max;
 

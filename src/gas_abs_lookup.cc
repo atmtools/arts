@@ -850,8 +850,8 @@ void GasAbsLookup::Extract(Matrix& sga,
   // Define variables for interpolation weights outside the loops.
   // We will make itw point to either the weights with H2O interpolation, or
   // the ones without.
-  matpack::matpack_data<Tensor3, 3> itw_withH2O{}, itw_noH2O{};
-  const matpack::matpack_data<Tensor3, 3> *itw;
+  Tensor6 itw_withH2O{}, itw_noH2O{};
+  const Tensor6 *itw;
 
   for (Index pi = 0; pi < p_interp_order + 1; ++pi) {
     // Throw a runtime error if one of the reference VMR profiles is zero, but

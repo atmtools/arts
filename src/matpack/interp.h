@@ -1171,12 +1171,10 @@ template <list_of_lagrange_type... list_lags, Index N = sizeof...(list_lags)>
 constexpr auto interpweights(const list_lags &...lags)
   requires(N > 0)
 {
-  matpack::matpack_data<matpack::matpack_data<Numeric, N>, N> out(
+  matpack::matpack_data<Numeric, 2*N> out(
       static_cast<Index>(lags.size())...,
-      matpack::matpack_data<Numeric, N>(
-          std::array{
-              static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...},
-          0.0));
+              static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...,
+          0.0);
 
   ARTS_ASSERT((std::all_of(lags.begin(), lags.end(),
                            [SZ = lags.size() == 0 ? 0 : lags[0].size()](
@@ -1189,8 +1187,13 @@ constexpr auto interpweights(const list_lags &...lags)
   for (matpack::flat_shape_pos<N> pos{
            std::array{static_cast<Index>(lags.size())...}};
        pos.pos.front() < pos.shp.front(); ++pos) {
-    std::apply([&](auto&&... ind) { interpweights(out(ind...), lags[ind]...); },
-               pos.pos);
+    std::apply(
+        [&](auto &&...ind) {
+          interpweights(std::apply(out, std::tuple_cat(std::array{ind...},
+                                                       matpack::jokers<N>())),
+                        lags[ind]...);
+        },
+        pos.pos);
   }
 
   return out;
@@ -1207,12 +1210,10 @@ template <Index dlx, list_of_lagrange_type... list_lags,
 constexpr auto dinterpweights(const list_lags &...lags)
   requires(N > 0 and dlx >= 0 and dlx < N)
 {
-  matpack::matpack_data<matpack::matpack_data<Numeric, N>, N> out(
+  matpack::matpack_data<Numeric, 2*N> out(
       static_cast<Index>(lags.size())...,
-      matpack::matpack_data<Numeric, N>(
-          std::array{
-              static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...},
-          0.0));
+              static_cast<Index>(lags.size() == 0 ? 0 : lags[0].size())...,
+          0.0);
 
   ARTS_ASSERT((std::all_of(lags.begin(), lags.end(),
                            [SZ = lags.size() == 0 ? 0 : lags[0].size()](
@@ -1226,9 +1227,14 @@ constexpr auto dinterpweights(const list_lags &...lags)
            std::array{static_cast<Index>(lags.size())...}};
        pos.pos.front() < pos.shp.front(); ++pos) {
     std::apply(
-        [&](auto &&...ind) { dinterpweights<dlx>(out(ind...), lags[ind]...); },
+        [&](auto &&...ind) {
+          dinterpweights<dlx>(
+              std::apply(out, std::tuple_cat(std::array{ind...},
+                                             matpack::jokers<N>())),
+              lags[ind]...);
+        },
         pos.pos);
-    }
+  }
 
     return out;
   }
@@ -1247,7 +1253,6 @@ constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
                       const lags &...lag) {
   matpack::matpack_value_type<decltype(field)> out{0};
 
-  //! Now the cyclicity is wrapped, we can just add the values up
   for (matpack::flat_shape_pos<sizeof...(lags)> pos{matpack::mdshape(iw)};
        pos.pos.front() < pos.shp.front(); ++pos) {
     out += std::apply(std::apply(
@@ -1278,17 +1283,23 @@ constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
  * @return constexpr auto A new field
  */
 template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags)>
-constexpr void reinterp(auto &&out,
-                        const matpack::strict_rank_matpack_type<N> auto &field,
-                        const matpack::strict_rank_matpack_type<N> auto &iw_field, const lags &...list_lag) {
-  const auto in = matpack::elemwise{list_lag...};
-  std::transform(
-      iw_field.elem_begin(), iw_field.elem_end(), in.begin(), out.elem_begin(),
-      [&](auto &&internal_iw, auto &&lag_t) {
-        return std::apply(
-            [&](auto &&...lag) { return interp(field, internal_iw, lag...); },
-            lag_t);
-      });
+constexpr void
+reinterp(matpack::strict_rank_matpack_type<N> auto &&out,
+         const matpack::strict_rank_matpack_type<N> auto &field,
+         const matpack::ranked_matpack_type<Numeric, 2 * N> auto &iw_field,
+         const lags &...list_lag) {
+  for (matpack::flat_shape_pos<N> pos{out.shape()};
+       pos.pos.front() < pos.shp.front(); ++pos) {
+    std::apply(
+        [&](auto... ind) {
+          out(ind...) =
+              interp(field,
+                     std::apply(iw_field, std::tuple_cat(std::array{ind...},
+                                                         matpack::jokers<N>())),
+                     list_lag[ind]...);
+        },
+        pos.pos);
+  }
 }
 
 /** Reinterpolates a field as another field with re-usable weights
@@ -1303,7 +1314,7 @@ constexpr void reinterp(auto &&out,
  */
 template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags)>
 constexpr auto reinterp(const matpack::strict_rank_matpack_type<N> auto &field,
-                        const matpack::strict_rank_matpack_type<N> auto &iw_field, const lags &...list_lag) {
+                        const matpack::ranked_matpack_type<Numeric, 2*N> auto &iw_field, const lags &...list_lag) {
   matpack::matpack_data<matpack::matpack_value_type<decltype(field)>,
                         sizeof...(lags)>
   out(list_lag.size()...);
