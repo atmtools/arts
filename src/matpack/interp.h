@@ -340,7 +340,7 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi) requires(te
   }
 
   if constexpr (cyclic) return cycler(p0 - p0_offset, N + 1);
-  else if constexpr (p0_offset > 0) return p0 - p0_offset;
+  else if constexpr (p0_offset > 0) return std::clamp<Index>(p0 - p0_offset, 0, N);
   else return p0;
 }
 

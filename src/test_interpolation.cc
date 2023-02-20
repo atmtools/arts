@@ -862,10 +862,6 @@ struct m2_to_p2 {
   static constexpr Numeric bound = cl == my_interp::cycle_limit::upper ? 2 : -2;
 };
 
-constexpr bool is_close(Numeric a, Numeric b, Numeric absdiff=1e-12) {
-  return nonstd::abs(a - b) < absdiff;
-}
-
 void test26() {
   auto f = [](Numeric x){return Math::pow2(my_interp::cyclic_clamp<m2_to_p2>(x)) - 4;};
   auto df = [](Numeric x){return 2*my_interp::cyclic_clamp<m2_to_p2>(x);};
@@ -910,7 +906,7 @@ void test26() {
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(is_close(df(x), interp(yi, dinterpweights<0>(lin), lin)));
+    static_assert(is_around(df(x), interp(yi, dinterpweights<0>(lin), lin)));
   }
   {
     constexpr Numeric x = -2;
