@@ -5916,21 +5916,25 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("dlosGauss"),
       DESCRIPTION(
-          "Gives *dlos* suitable for a circular Gaussian response.\n"
+          "Gives a *dlos* suitable for a circular Gaussian response.\n"
           "\n"
-          "The method generates a *dlos* where each direction has an equal\n"
-          "weight in terms of the product of solid angle and a circular Gaussian\n"
-          "response. That is, the FWHM of the response is equal in zenith and\n"
-          "azimuth directions.\n"
+          "The method generates a *dlos* where each direction is meant to have\n"
+          "an equal weight in terms of the product of solid angle and a circular\n"
+          "Gaussian response. That is, the FWHM of the response is equal in zenith\n"
+          "and azimuth directions.\n"
           "\n"
-          "One dlos is always placed at (0,0). Remaining points are placed in\n"
-          "radial layers, with three dlos in each layer. The number of layers\n"
-          "is selected to match *n-target* as close as possble. The final number\n"
-          "of points is 1+3*n_layers. If n_layers is <= 3, the dlos directions\n"
-          "are at 0, +-60, +-120 and 180 deg in polar angle (from dza=0). If the\n"
-          "number of layers is higher, the angular step size is instead 24 deg.\n"
+          "The points have an unequal distribution in radius. The weight in radius\n"
+          "equals radius times the magnitude of the Gaussian response (this product\n"
+          "peaks for a radius around 0.41 * FWHM). The points are distributed in\n"
+          "polar angle simply by adding 208.8 deg from one point to next. There is\n"
+          "no theoretical basis for this step in angle, just found to result in a\n"
+          "relatively uniform distribution over the circle.\n"
           "\n"
-          "Default is to let *dlos_weight_vector* respresent the solid angle of\n"
+          "The method should mainly be used for *npoints* above 10-20. For lower\n"
+          "*npoints*, a rectangular pattern should give a more robust sampling\n"
+          "spatially.\n"
+          "\n"
+          "Default is to let *dlos_weight_vector* represent the solid angle of\n"
           "each dlos direction. With *include_response_in_weight* set to 1, all\n"
           "elements of *dlos_weight_vector* are equal and their sum is 1.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -5939,11 +5943,11 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("fwhm", "ntarget", "include_response_in_weight"),
+      GIN("fwhm", "npoints", "include_response_in_weight"),
       GIN_TYPE("Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, "0"),
       GIN_DESC("The full width at half maximum of the Gaussian response.",
-               "Number of dlos-directions to target.",
+               "Number of dlos-directions.",
                "Set to 1 to include the response values in *dlos_weight_vector*.")));
 
   md_data_raw.push_back(create_mdrecord(
