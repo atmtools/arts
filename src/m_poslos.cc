@@ -73,20 +73,24 @@ void dlosDiffOfLos(Matrix& dlos,
 void dlosGauss(Matrix& dlos,
                Vector& dlos_weight_vector,
                const Numeric& fwhm_deg,
-               const Index& ntarget,
+               const Index& npoints,
                const Index& include_response_in_weight,
-               const Verbosity&)
-{
-  const Index n_per_layer = 3;
-
+               const Verbosity&) {
   // Use FWHM and sigma in radians to get solid angles right
   const Numeric fwhm = DEG2RAD *fwhm_deg;
   const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
 
+  // The product between Gauss and radius gives the "density" for the
+  // sampling. We place points in radius to cover the cumulative
+  // distribution of normalised density with npoints bins. That is,
+  // the two first points cover [0,1/npoints[ and [1/npoints,2/npoints[,
+  // respectively. To get a correct geo-positioning, we still want a
+  // point at (0,0) and the first point is at the end shifted to (0,0).
+  
   // Cumulative distribution of Gauss weighted area, as a function of radius x
   Vector xp, cx;
   {
-    VectorLinSpace(xp, 0, 1.5*fwhm, 0.02*fwhm, Verbosity());
+    linspace(xp, 0, 2.0*fwhm, 0.02*fwhm);
     Vector gx;
     VectorGaussian(gx, xp, 0, -1.0, fwhm, Verbosity());
     gx *= xp;  // Weight with radius, no need to include pi
@@ -95,68 +99,49 @@ void dlosGauss(Matrix& dlos,
     cumsum(cx, gx);
     cx /= cx[np-1];
   }
-
-  // Number of layers (not including (0,0)), and total number of points
-  const Index nlayers = (Index) round((ntarget - 1) / n_per_layer);
-  const Index npoints = 1 + nlayers * n_per_layer;
-
-  // Distribution of the layers w.r.t. cumulative distribution
-  Vector cp(nlayers);
+  // Flat distribution with bins covering [0, 1]
+  Vector cp;
   {
-    const Numeric nterm = 1 / (Numeric) npoints;
-    for (Index i=0; i < nlayers; ++i)
-      cp[i] = nterm + (1 - nterm) * ((Numeric)i+0.5)/(Numeric)nlayers;
+    const Numeric halfbin = 0.5 / (Numeric) npoints;
+    nlinspace(cp, halfbin, 1-halfbin, npoints);
   }
-
+  
   // Radii of layers, obtained by interpolating xp(cx) to cp
-  Vector r(nlayers);
+  Vector r(npoints);
   {
-    ArrayOfGridPos gp(nlayers);
+    ArrayOfGridPos gp(npoints);
     gridpos(gp, cx, cp);
-    Matrix itw(nlayers, 2);
+    Matrix itw(npoints, 2);
     interpweights(itw, gp);
     interp(r, itw, xp, gp);
   }
 
   // Factor to rescale Gauss(x) from 1D to 2D (along y=0)
   const Numeric scfac = 1 / (sqrt(2 * PI) * si);
-
-  // Calculate dlos and weights
+  
+  // Prepare for calculating dlos and weights
   dlos.resize(npoints, 2);
-  dlos(0, joker) = 0.0;
   //
   dlos_weight_vector.resize(npoints);
   dlos_weight_vector = 1.0 / (Numeric) npoints;
   // If include_response_in_weight, all weights equal.
   // Otherwise, we need to divide with value of 2D Gauss for radius:
-  Vector gv(1);
+  Vector gv(npoints);
   if (!include_response_in_weight) {
-    VectorGaussian(gv, Vector(1, 0.0), 0, -1.0, fwhm, Verbosity());
-    dlos_weight_vector[0] = dlos_weight_vector[0] / (scfac * gv[0]);
-    gv.resize(nlayers);
     VectorGaussian(gv, r, 0, -1.0, fwhm, Verbosity());
   }
-  //
-  const Numeric dalpha = 2 * PI / (Numeric) n_per_layer;
-  const ArrayOfIndex shift = {0, 2, 4, 1, 3};
-  //
-  Index n = 0;
-  for (Index i=0; i<nlayers; ++i) {
-    Numeric alpha0;
-    if (nlayers <= 3)
-      alpha0 = dalpha * ((Numeric)(i%2) / 2.0);
-    else
-      alpha0 = dalpha * ((Numeric) shift[i%5] / 5.0);
-    for (Index angle=0; angle<n_per_layer; ++angle) {
-      const Numeric alpha = alpha0 + (Numeric) angle * dalpha;
-      ++n;
-      dlos(n, 0) = r[i] * cos(alpha);
-      dlos(n, 1) = r[i] * sin(alpha);
-      if (!include_response_in_weight) {
-        dlos_weight_vector[n] = dlos_weight_vector[n] / (scfac * gv[i]);
-      }
+
+  // Calculate
+  const Numeric dangle = 0.58 * 2.0 * PI;
+  for (Index i=0; i<npoints; ++i) {
+    const Numeric angle = dangle * (Numeric) i;
+    dlos(i, 0) = r[i] * cos(angle);
+    dlos(i, 1) = r[i] * sin(angle);
+    if (!include_response_in_weight) {
+      dlos_weight_vector[i] = dlos_weight_vector[i] / (scfac * gv[i]);
     }
   }
+  dlos(0, joker) = 0.0;
   dlos *= RAD2DEG;
 }
 
