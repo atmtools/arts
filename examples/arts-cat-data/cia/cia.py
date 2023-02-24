@@ -91,7 +91,7 @@ inputs required to initialize the propagation matrix
 
 ws.jacobian_quantities = []  # No derivatives
 ws.select_abs_species = []  # All species
-ws.f_grid = ws.abs_cia_data.value[0].data[0].grids[0]  # Frequencies from the first band
+ws.f_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
 ws.rtp_mag = []  # No magnetic field
 ws.rtp_los = []  # No particular LOS
 ws.rtp_pressure = 1e5  # At 1 bar
@@ -106,7 +106,7 @@ ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
 # Plot the absorption of this example
 plt.figure(1)
 plt.clf()
-plt.semilogy(
+plt.plot(
     1e9 * pyarts.arts.convert.freq2wavelen(ws.f_grid.value),
     ws.propmat_clearsky.value.data.flatten(),
 )
@@ -121,7 +121,7 @@ be safely ignored
 
 """
 # Save test results
-# ws.propmat_clearsky.value.data.savexml("cia_test_result.xml", type="zascii")
+# ws.propmat_clearsky.value.data.savexml("cia_test_result.xml", type="ascii")
 
 # test that we are still OK
 propmat_clearsky_agenda = pyarts.arts.Tensor4()
