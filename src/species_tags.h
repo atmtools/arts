@@ -102,8 +102,7 @@ struct SpeciesTagHash {
     return std::hash<Index>{}(g.spec_ind) ^
            (std::hash<Numeric>{}(g.lower_freq) << 1) ^
            (std::hash<Numeric>{}(-1) << 2) ^ (EnumHash{}(g.type) << 3) ^
-           (EnumHash{}(g.cia_2nd_species) << 4) ^
-           (std::hash<Index>{}(g.cia_dataset_index) << 5);
+           (EnumHash{}(g.cia_2nd_species) << 4);
   }
 };
 
