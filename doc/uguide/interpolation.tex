@@ -653,13 +653,13 @@ page 2:
 Everything that was written so far in this chapter referred to linear
 interpolation, which uses two neighboring data points in the 1D
 case. But ARTS also has a framework for higher order polynomial
-interpolation. It is defined in the two files
+interpolation. It is defined in the the file
 
 \begin{itemize}
-\item \fileindex{interpolation\_lagrange.h}
-\item \fileindex{interpolation\_lagrange.cc}
+\item \fileindex{matpack/interp.h}
 \end{itemize}
 
+\subsection{Weights}
 We define interpolation order $O$ as the order of the polynomial that
 is used. Linear interpolation, the ARTS standard case, corresponds to
 $O=1$. $O=2$ is quadratic interpolation, $O=3$ cubic interpolation.
@@ -684,13 +684,57 @@ basic higher order polynomial interpolation, instead of $O=2$.
 Overall, higher order interpolation works rather similarly to the
 linear case.  The main difference is that grid positions for higher
 order interpolation are stored in an object of type
-\shortcode{LagrangeInterpolation}, instead of \shortcode{GridPos}. A
-\shortcode{LagrangeInterpolation} object contains the grids first index, interpolation
+\shortcode{my\_interp::Lagrange<>}, instead of \shortcode{GridPos}. A
+\shortcode{my\_interp::Lagrange<>} object contains the grids first index, interpolation
 weights for all interpolation points, and on demand the linear derivative of the 
 interpolation at the grid position. For each point in the new grid,
 there is 1 index, $O+1$ weights, and 0 or $O+1$ weight derivatives.
 
-In contrast to \shortcode{GridPos}, \shortcode{LagrangeInterpolation} stores
+The \shortcode{my\_interp::Lagrange<>} type is a template and requires 
+instantiation upon use of several compile-time parameters.  The template
+signature is:
+\begin{code}
+template <
+    Index PolyOrder=-1,
+    bool do_derivs=false,
+    GridType type=GridType::Standard,
+    template <cycle_limit lim> class Limit=no_cycle>
+  requires(test_cyclic_limit<Limit>())
+struct Lagrange;
+\end{code}
+
+The \shortcode{PolyOrder} \shortcode{Index} informs the type about its interpolation
+order.  If it is negative, the object's polynomial order is determined at runtime.
+If it is positive, the value of the polynomial order has been determined at compile time.
+The difference between runtime and compile time objects is that you tend to to get
+orders of magnitude faster execution times if the value is known at compile time.
+
+The \shortcode{do\_derivs} \shortcode{bool} tells the type to also compute the
+derivatives of the weights.  If this is false, fewer calculations are performed
+but you cannot compute the derivatives.  In general, computing the derivatives
+add an overhead of in worst case 2, as there's often quite a lot less work to
+do to compute the derivatives.
+
+The shortcode{type} \shortcode{GridType} selects the grid transformation.
+\shortcode{GridType} is described more below for options, but there are two
+special grid types that are important to distinguish: cyclic and non-cyclic
+grid types.  If the type is inherently cyclic, special care is taken to cycle the indices
+and weights so that you can interpolate over the "borders" of the input vector grid.
+
+The \shortcode{template <cycle\_limit lim> class Limit} template class over the
+\shortcode{lim} \shortcode{cycle\_limit} determines the cyclicity of the grid.
+It has to be \shortcode{my\_interp::no\_cycle} for all non-cyclic grids.
+The template class itself is very simple.  It needs to be possible to instantiate
+the class with \shortcode{cycle\_limit::lower} and \shortcode{cycle\_limit::upper}
+such that the class has a \shortcode{static constexpr Numeric} member called
+\shortcode{bound}.  If the class is instantiated with the \shortcode{cycle\_limit::lower},
+the value of \shortcode{bound} must be strictly lower than the value of the class
+as instantiated by \shortcode{cycle\_limit::upper}.  Three examples of cyclic bounds 
+are provided as \shortcode{my\_interp::cycle\_m180\_p180},  \shortcode{my\_interp::cycle\_0\_p360},
+and \shortcode{my\_interp::cycle\_0\_p2pi}, which respectively represents the cyclic bounds
+of $[-180,\; 180)$, $[0,\; 360)$, and $[0,\; 2\pi)$.
+
+In contrast to \shortcode{GridPos}, \shortcode{my\_interp::Lagrange<>} stores
 weights \shortcode{lx} rather than fractional distances \shortcode{fd}.
 For the linear case:
 \begin{code}
@@ -702,45 +746,41 @@ So the two concepts are almost the same.  Because the \shortcode{lx} are associa
 with each interpolation point, they work also for higher interpolation
 order, whereas the concept of fractional distance does not.
 
-The weights are calculated according to 
+The weights along any dimension is calculated according to 
 \begin{equation}
- l_j(x) = \prod_{0 \leq m \leq O} \left\{
- \begin{array}{lcr}
- \frac{f(x) - f(x _m)}{f(x_j) - f(x_m)} & \mathrm{if} & m \neq j \\[5pt]
- 1 & \mathrm{if} & m \equiv j
- \end{array}
- \right. 0 \leq j \leq O, 
+ l_j(x) = \prod_{\substack{0 \leq m \leq O \\ m \neq j}} 
+ \frac{u(f(x) - f(x _m))}{u(f(x_j) - f(x_m))} 
 \end{equation}
-where $f$ is a grid scaling function.  This can be a logarithm, reverse cosine,
+where $f$ is a grid scaling function and $u$ is a combination of sign-reversal and cyclic minima.
+The $f$ can be a logarithm, reverse cosine,
 circular constraints, or, most commonly, just the input.  The provided options
-are part of the \shortcode{Interpolation::GridType} enum class and are:
+are part of the \shortcode{my\_interp::GridType} enum class and are:
 \begin{itemize}
- \item[\shortcode{Standard}] $f\left(t\right) = t$
+ \item[\shortcode{Standard}] $f\left(t\right) = t$.  $u(t) = t$.
  \item[\shortcode{Cyclic}]   $f\left(t\right) = t + n\left(t_1 - t_0\right)$,
                              where $c_0 \leq t + n\left(c_1 - c_0\right) < c_1$,
                              with $n$ as an integer and
                              $\left[c_0, c_1\right)$ as the cyclic limits so that
                              $g\left(c_0\right) \equiv g\left(c_0 + m\left[c_1-c_0\right]\right)$
-                             holds true for a valid function $g(t)$ and any integer $m$
+                             holds true for a valid function $g(t)$ and any integer $m$.
+                             $u(t) = t + X$.  $X$ is found as whichever has the absolute minimum
+                             of $t + c_1-c_0$, $t$, or $t+c_0-c_1$.
  \item[\shortcode{Log}]      $f\left(t\right) = \ln\left(t\right)$,
-                             where $t > 0$
+                             where $t > 0$.  $u(t) = t$.
  \item[\shortcode{Log10}]    $f\left(t\right) = \log_{10}\left(t\right)$,
-                             where $t > 0$
+                             where $t > 0$.  $u(t) = t$.
  \item[\shortcode{Log2}]     $f\left(t\right) = \log_2\left(t\right)$,
-                             where $t > 0$
+                             where $t > 0$.  $u(t) = t$.
  \item[\shortcode{SinDeg}]   $f\left(t\right) = \sin\left(\frac{\pi}{180}t\right)$,
-                             where $-90\leq t \leq 90$
+                             where $-90\leq t \leq 90$.  $u(t) = t$.
  \item[\shortcode{SinRad}]   $f\left(t\right) = \sin\left(t\right)$,
-                             where $-\pi/2 \leq t \leq \pi/2$
+                             where $-\pi/2 \leq t \leq \pi/2$.  $u(t) = t$.
  \item[\shortcode{CosDeg}]   $f\left(t\right) = \cos\left(\frac{\pi}{180}\left[180 - t\right]\right)$,
-                             where $0\leq t \leq 180$
+                             where $0\leq t \leq 180$.  $u(t) = -t$.
  \item[\shortcode{CosRad}]   $f\left(t\right) = \cos\left(\pi-t\right)$,
-                             where $0 \leq t \leq \pi$
+                             where $0 \leq t \leq \pi$.  $u(t) = -t$.
 \end{itemize}
 
-These are for the 1D case. For 2D and higher dimensional cases, the weights of
-the individual dimensions have to be multiplied, just as in the linear
-interpolation case.
 The derivatives are computed as
 \begin{equation}
  \frac{\partial l_j(x)}{\partial x} = \sum_{i=0}^{O}
@@ -759,241 +799,81 @@ The derivatives are computed as
 Note that the upper branch speedup is only available for 
 \shortcode{Standard} and for \shortcode{Cyclic} code.
 Other cases must use the lower branch to get linear derivatives.
-These are again for the 1D case. For 2D and higher dimensional cases, the weights of
-the individual dimensions have to be multiplied with the weights of the derivative
-along the dimension of interest.
 
 Instead of \shortcode{gridpos}, you have to use the constructor
-\shortcode{LagrangeInterpolation} for higher order interpolation
-with a single interpolation point, and \shortcode{Interpolation::LagrangeVector}
-for multiple outputs. The single constructor needs an
-initial guess of the position.  Other than that they need the new grid,
-the old grid, the interpolation order, the extrapolation factor allowed,
-whether the derivative should be computed, the type of $f$, and, if needed,
-the $c_0$ and $c_1$ pair of cyclic limits.
+\shortcode{my\_interp::Lagrange<>} for higher order interpolation
+with a single interpolation point, and \shortcode{my\_interp::lagrange\_interpolation\_list<my\_interp::Lagrange<>>}
+for multiple outputs. The constructor requires a start-position guess,
+the value at which to interpolate towards, and the original grid as
+inputs.  In the version of \shortcode{my\_interp::Lagrange<>} that has
+its polynomial order determined at runtime, and addition number representing
+this polynomial order has to also be passed (so that the choice of runtime
+rather than compile time polynomial order is explicit).  The multiple outputs
+function takes the new grid followed by the old grid as arguments.  Again,
+the runtime polynomial order has to also explicitly be set when the runtime
+when calling this function.  An optional but crucial final parameter can
+be passed to the function to determine if the extrapolation outside of a grid is
+acceptable.  By default, the new grid is only allowed to be half a step size
+beyond the upper and lower edges of the old grid.
 
-After setting up the \shortcode{LagrangeInterpolation} object with
-either of the constructors, you have to call \shortcode{interpweights}
-and \shortcode{interp}, as in the linear case for single-point interpolation,
-or \shortcode{reinterp} for multiple interpolations. (The actual
-functions used are not the same, since the name is overloaded. The
-\shortcode{interpweights} and \shortcode{interp} functions for use
-with \shortcode{LagrangeInterpolation} are implemented in
-\shortcode{interpolation\_lagrange.cc}.) So, a complete interpolation chain
-involves:
+\subsection{Interpolation}
 
+So far we have not computed any interpolation but just the weights.  For the 
+interpolation, the code using one or more (list of) \shortcode{my\_interp::Lagrange<>}
+can both mimic, but also differs in parts significantly from, the linear interpolation
+discussed above.  Perhaps the most important difference is that there are no blue
+interpolation schemes.  This was not used anywhere at the time of implementation,
+so it was deemed less useful.  Instead, there are only two types of
+interpolation offered: full interpolation that goes from a N-dimensional tensor
+input to a scalar, and full re-interpolation that goes from one N-dimensional
+tensor and outputs another N-dimensional tensor.  Note that we say "scalar"
+and not \shortcode{Numeric}, because we can handle a much wider
+variety of input value type, perhaps most notable \shortcode{Complex}.
+
+The call order after you have a list of (lists of) \shortcode{my\_interp::Lagrange<>}
+is simple.  Given \shortcode{lag...} as this list and \shortcode{in} as the input field,
+the call-order for scalar interpolation is
 \begin{code}
-LagrangeInterpolation or Interpolation::LagrangeVector
-interpweights
-interp or reinterp
+auto itw = interpweights(lag...);
+auto out = interp(in, itw, lag...);
 \end{code}
-
-Note that \shortcode{reinterp} is used as the function name 
-for the green interpolations of the linear interpolation routines.
-They demand all arrays of interpolation points and returns only the
-same type as was originally interpolated from.  For example Tensor7 $\rightarrow$ Tensor7.
-There is no blue interpolation routine for the Lagrange interpolation
-routine.
-
-The way to emulate blue interpolation using the Lagrange interpolation
-routines is by computing the \shortcode{LagrangeInterpolation} for each grid
-one-by-one before using them in a standard for-loop to get the Blue vector output
-by calling \shortcode{interpweights}, \shortcode{dinterpweights} and then \shortcode{interp}
-for each new grid point manually.
-The function \shortcode{Interpolation::LagrangeVector} can conveniently be used
-for computing all necessary \shortcode{LagrangeInterpolation}.  This function speeds up
-the search routine significantly for new grids with relatively
-small differences between neighboring grid points (relative to the spacing of the original grid).
-Note that it might be faster to not use \shortcode{Interpolation::LagrangeVector} but instead manually
-remembering the past grid position for the search of the next \shortcode{LagrangeInterpolation}.
-We cannot judge this at this time.
-
-For $O=1$ the result of the
-interpolation chain will be the same as for the linear interpolation
-routines. Below are two simple complete examples, first for \shortcode{interp} and then for \shortcode{reinterp}+\shortcode{reduce\_rank}.
-Both examples taken from the file \fileindex{test\_interpolation.cc} in the arts source directory.
-
-Example 1:
+where \shortcode{out} is a scalar.  It is very important that the rank of \shortcode{in}
+is the same as the count of the number of \shortcode{lag...}.  If you want to have
+the derivative instead of the interpolation along some dimension \shortcode{dim},
+the call is 
 \begin{code}
-void test09() {
-  // Original and new grid
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
-  
-  // Original data
-  Vector yi{5, -2, 50, 2, 1};
-  
-  std::cout << og << '\n' << yi << '\n' << '\n';
-
-  // Do the fit point-by-point:
-  for (auto x : ng) {
-    // Simple linear interpolation:
-    GridPos gp;
-    gridpos(gp, og, x);
-    
-    // General Lagrange interpolation, special case interpolation order 1:
-    const LagrangeInterpolation lag(0, x, og);
-    
-    std::cout << "gp point:  " << gp << "lag point:\n" << lag;
-
-    // Linear interpolation weights:
-    Vector iwgp(2);
-    interpweights(iwgp, gp);
-    
-    // General Lagrange interpolation weights:
-    const Vector iwlag = interpweights(lag);
-    
-    std::cout << "gp iw:  " << iwgp << "\nlag iw: " << iwlag << '\n';
-
-    std::cout << "gp res:  " << interp(iwgp, yi, gp)
-              << "\nlag res: " << interp(yi, iwlag, lag) << '\n'
-              << '\n';
-  }
-  
-  // Linear interpolation of all points
-  ArrayOfGridPos gp(ng.nelem());
-  gridpos(gp, og, ng);
-  Matrix gp_iw(gp.nelem(), 2);
-  interpweights(gp_iw, gp);
-  Vector gp_y(ng.nelem());
-  interp(gp_y, gp_iw, yi, gp);
-  std::cout << "gp:  " << gp_y << '\n';
-  
-  // General Lagrange interpolation, special case interpolation order 1:
-  const auto lag = Interpolation::LagrangeVector(ng, og, 1);
-  std::cout << "lag: " << reinterp(yi, interpweights(lag), lag) << '\n';
-}
+auto ditw = dinterpweights<dim>(lag...);
+auto dout = interp(in, itw, lag...);
 \end{code}
-
-Example 2:
+where again \shortcode{dout} is a scalar but now represents the derivative along the select dimension.  The \shortcode{dim} must be 0 or
+higher but strictly less than the rank of \shortcode{in}.  The two interpolation
+weight tensors \shortcode{itw} and \shortcode{ditw} will here have the rank as
+\shortcode{in} with a shape that is the polynomial order plus one in the same
+order as \shortcode{lag...}.  It is possible to pre-allocate these sizes and call
+these two functions directly with \shortcode{d/itw} as the first input.  
+For re-interpolation, the call order is very similar
 \begin{code}
-void test28() {
-  using Constant::pow2;
-  using Constant::pow3;
-  using Conversion::sind;
-  using Conversion::cosd;
-  
-  // Old Grid of pressure, latitude, and longitude
-  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1, Verbosity()); 
-  Vector lat; VectorNLinSpace(lat, 5, -80, 80, Verbosity());
-  Vector lon; VectorNLinSpace(lon, 4, -170, 170, Verbosity());
-  
-  // New Grids (pressure will be reduced)
-  Vector newpre(1, pre[pre.nelem()/2]); 
-  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90, Verbosity());
-  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180, Verbosity());
-  
-  // Old Data given some values
-  Tensor3 data(pre.nelem(), lat.nelem(), lon.nelem());
-  for (Index i=0; i<pre.nelem(); i++) {
-    for (Index j=0; j<lat.nelem(); j++) {
-      for (Index k=0; k<lon.nelem(); k++) {
-        data(i, j, k) =
-          std::log(pre[i]) * sind(lat[j]) * pow3(cosd(lon[k]));
-      }
-    }
-  }
-  
-  // Create Lagrange interpolation values
-  const ArrayOfLagrangeInterpolation lag_pre =
-    Interpolation::LagrangeVector(newpre, pre, 2, 1e9, false,
-      Interpolation::GridType::Log);
-  const ArrayOfLagrangeInterpolation lag_lat =
-    Interpolation::LagrangeVector(newlat, lat, 3, 1e9, false,
-      Interpolation::GridType::SinDeg);
-  const ArrayOfLagrangeInterpolation lag_lon =
-    Interpolation::LagrangeVector(newlon, lon, 1, 1e9, false,
-      Interpolation::GridType::Cyclic, {-180, 180});
-  
-  // Create the interpolation weights
-  const auto lag_iw = interpweights(lag_pre, lag_lat, lag_lon);
-  
-  // Create and reduce the new data
-  const Matrix newdata = reinterp(data,
-    lag_iw, lag_pre, lag_lat, lag_lon).reduce_rank<1, 2>();
-  
-  // Print the data
-  std::cout << data(pre.nelem()/2, joker, joker) 
-            << '\n' << '\n' << newdata << '\n';
-}
+auto ritw = interpweights(lag...);
+auto rout = reinterp(in, itw, lag...);
 \end{code}
-
-
-Note that we also provide fixed interpolation higher order calculations where
-the weights are stored in types of \shortcode{FixedLagrangeInterpolation<O>}.
-These offers significant speed-ups compared to the runtime code.  Internally,
-they do the same calculations as the normal \shortcode{LagrangeInterpolation},
-but since the fixed cases are known at compile time, there is no allocations
-when using the fixed calculations. Below is a simple complete example, taken from
-the file \fileindex{test\_interpolation.cc} in the arts source directory for the fixed calculations: 
-
+where \shortcode{rout} is a tensor the same rank as \shortcode{in}.  If you want to have
+the derivative instead of the interpolation along some dimension \shortcode{dim},
+the call is 
 \begin{code}
-void test13() {
-  constexpr int N = 10;
-  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
-                                      6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
-  constexpr std::array<Numeric, N> y3{
-      1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
-      6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
-  constexpr Numeric x = 2;
-  constexpr Numeric dx = 1e-2;
-
-  // Set up the interpolation Lagranges
-  constexpr FixedLagrangeInterpolation<1> lin(
-    0, x, std::array<Numeric, 2>{1, 2}, true);
-  constexpr FixedLagrangeInterpolation<2> sqr(
-    0, x, std::array<Numeric, 3>{1, 2, 3}, true);
-  constexpr FixedLagrangeInterpolation<3> cub(
-    0, x, std::array<Numeric, 4>{1, 2, 3, 4}, true);
-  constexpr FixedLagrangeInterpolation<1> dlin(
-    0, x + dx, std::array<Numeric, 2>{1, 2}, true);
-  constexpr FixedLagrangeInterpolation<2> dsqr(
-    0, x + dx, std::array<Numeric, 3>{1, 2, 3}, true);
-  constexpr FixedLagrangeInterpolation<3> dcub(
-    0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4}, true);
-
-  // Set up the interpolation weights
-  constexpr auto lin_iw = interpweights(lin);
-  constexpr auto sqr_iw = interpweights(sqr);
-  constexpr auto cub_iw = interpweights(cub);
-  constexpr auto dlin_iw = dinterpweights(lin);
-  constexpr auto dsqr_iw = dinterpweights(sqr);
-  constexpr auto dcub_iw = dinterpweights(cub);
-  constexpr auto alt_lin_iw = interpweights(dlin);
-  constexpr auto alt_sqr_iw = interpweights(dsqr);
-  constexpr auto alt_cub_iw = interpweights(dcub);
-
-  // Get interpolation value
-  constexpr auto lin_lin = interp(y, lin_iw, lin);
-  constexpr auto sqr_sqr = interp(y2, sqr_iw, sqr);
-  constexpr auto cub_cub = interp(y3, cub_iw, cub);
-  constexpr auto dlin_lin = interp(y, dlin_iw, dlin);
-  constexpr auto dsqr_sqr = interp(y2, dsqr_iw, dsqr);
-  constexpr auto dcub_cub = interp(y3, dcub_iw, dcub);
-  constexpr auto alt_lin_lin = interp(y, alt_lin_iw, dlin);
-  constexpr auto alt_sqr_sqr = interp(y2, alt_sqr_iw, dsqr);
-  constexpr auto alt_cub_cub = interp(y3, alt_cub_iw, dcub);
-
-  // Compile-time check that these values are good
-  static_assert(is_around(lin_lin, x));
-  static_assert(is_around(sqr_sqr, x * x));
-  static_assert(is_around(cub_cub, x * x * x));
-  static_assert(is_around(dlin_lin, 1));
-  static_assert(is_around(dsqr_sqr, 2 * x));
-  static_assert(is_around(dcub_cub, 3 * x * x));
-
-  std::cout << lin_lin << ' ' << ' ' << sqr_sqr << ' ' << ' ' << ' ' << cub_cub
-            << '\n'
-            << dlin_lin << ' ' << ' ' << ' ' << ' ' << dsqr_sqr << ' ' << ' '
-            << ' ' << ' ' << ' ' << ' ' << dcub_cub << '\n'
-            << alt_lin_lin << ' ' << alt_sqr_sqr << ' ' << alt_cub_cub << '\n'
-            << (alt_lin_lin - lin_lin) / dx << ' ' << ' ' << ' ' << ' '
-            << (alt_sqr_sqr - sqr_sqr) / dx << ' ' << ' ' << ' '
-            << (alt_cub_cub - cub_cub) / dx << '\n';
-}
+auto dritw = dinterpweights<dim>(lag...);
+auto drout = reinterp(in, itw, lag...);
 \end{code}
+where again \shortcode{drout} is a tensor the same rank as \shortcode{in} but now represents the derivative along the select dimension.
+The rank of \shortcode{ritw} and \shortcode{dritw} is twice that of the rank of \shortcode{in}.  The inner half of the shape is exactly
+the same as in the scalar interpolation.  The outer half of the shape is the same as the length of the lists that makes up the 
+\shortcode{lag...}.
 
+Note that for convenience and for an unknown effect on the speed of the calculations, it is optional to compute
+the interpolation weights.  You can call \shortcode{interp} and \shortcode{reinterp} directly, omitting the calls to
+\shortcode{interpweights} and \shortcode{dinterpweights}.  We are to this date (2023-02-27) not sure what that does to execu5tion
+speed and cannot give any recommendation either way on how to use it.  Different compilers seem to prefer different solutions,
+so it is better for code consistency to stick with the same approach as the \shortcode{gridpos} does of demanding a call
+to \shortcode{interpweights} and \shortcode{dinterpweights} first.
 
 \section{Summary}
 %----------------------------------------------------------------------
@@ -1002,12 +882,12 @@ Now you probably understand better what was written at the very
 beginning of this chapter, namely that doing an interpolation always
 requires the chain of function calls:
 \begin{enumerate}
-\item \shortcode{gridpos} or \shortcode{LagrangeInterpolation} or \shortcode{Interpolation::LagrangeVector} or \shortcode{FixedLagrangeInterpolation<O>} or \shortcode{Interpolation::FixedLagrangeVector<O>} (one for each interpolation dimension)
+\item \shortcode{gridpos} or \shortcode{my\_interp::Lagrange<>} or \shortcode{my\_interp::lagrange\_interpolation\_list<>} (one for each interpolation dimension)
 \item \shortcode{interpweights}
 \item \shortcode{interp} or \shortcode{reinterp}
 \end{enumerate}
 If you are interested in how the functions really work, look in file
-\fileindex{interpolation.cc} or \fileindex{interpolation\_lagrange.cc/h}.
+\fileindex{interpolation.cc} or \fileindex{matpack/interp.h}.
 The documentation there is quite detailed.  When you are using
 interpolation, you should always give some thought to whether you can
 re-use grid positions or even interpolation weights. This can really

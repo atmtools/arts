@@ -440,7 +440,7 @@ void test09() {
     gridpos(gp, og, x);
     
     // General Lagrange interpolation, special case interpolation order 1:
-    const LagrangeInterpolation lag(0, x, og);
+    const LagrangeInterpolation lag(0, x, og, 1);
     
     std::cout << "gp point:  " << gp << "lag point:\n" << lag;
 

@@ -40,7 +40,7 @@ namespace my_interp {
 constexpr Index cycler(const Index n, const Index N) noexcept { return n >= N ? n - N : n < 0 ? n + N : n; }
 
 //! A helper class to select bounds
-enum class cycle_limit {lower, upper};
+enum class cycle_limit : bool {lower, upper};
 
 //! A helper class to denote a longitude cycle
 template <cycle_limit lim> requires (lim == cycle_limit::lower or lim == cycle_limit::upper)
@@ -199,6 +199,18 @@ constexpr Index IMAX(const Index a, const Index b) noexcept { return a > b ? a :
  */
 constexpr Index IMIN(const Index a, const Index b) noexcept { return a < b ? a : b; }
 
+/** Tells the compiler if the type limit is cyclic
+ * 
+ * @return true If the limit is cyclic
+ * @return false Otherwise
+ */
+template <template <cycle_limit lim> class Limit>
+constexpr bool is_cyclic() {
+  constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
+  constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
+  return (ub - lb) < std::numeric_limits<Numeric>::infinity();
+}
+
 /*! Finds the position of interpolation of x in xi
  * 
  * Will first find the first position with one lower value to the
@@ -214,14 +226,15 @@ constexpr Index IMIN(const Index a, const Index b) noexcept { return a < b ? a :
 template <bool ascending, template <cycle_limit lim> class Limit=no_cycle, matpack::ranked_matpack_type<Numeric, 1> Vec=Vector>
 constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi,
                            const Index polyorder) requires(test_cyclic_limit<Limit>()) {
-  constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
-  constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
-  constexpr bool cyclic = (ub - lb) < std::numeric_limits<Numeric>::infinity();
+  constexpr bool cyclic = is_cyclic<Limit>();
 
-  if constexpr (cyclic) if (x < lb or x > ub) {
+  if constexpr (cyclic) {    
+    constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
+    constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
+    if (x < lb or x > ub) {
     // We are below or above the cycle so we must redo calculations after clamping x to the cycle
     return pos_finder<ascending, no_cycle>(p0, cyclic_clamp<Limit>(x), xi, polyorder);
-  }
+  }}
   
   const Index N = xi.size()-1;
   
@@ -260,12 +273,12 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi,
  */
 template <bool ascending, Index polyorder, template <cycle_limit lim> class Limit=no_cycle, matpack::ranked_matpack_type<Numeric, 1> Vec=Vector>
 constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi) requires(test_cyclic_limit<Limit>()) {
-  constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
-  constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
-  constexpr bool cyclic = (ub - lb) < std::numeric_limits<Numeric>::infinity();
+  constexpr bool cyclic = is_cyclic<Limit>();
 
   // Ensure we are within the limits for cyclic orders
   if constexpr (cyclic) {
+    constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
+    constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
    if (x < lb or x > ub) {
       return pos_finder<ascending, polyorder, Limit>(p0, cyclic_clamp<Limit>(x), xi);
     }
@@ -651,7 +664,7 @@ struct Lagrange {
    */
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
-                     Index polyorder = 1)
+                     Index polyorder)
     requires(runtime_polyorder())
       : pos(is_ascending(xi)
                 ? pos_finder<true, Limit>(p0, x, xi, polyorder)
@@ -956,7 +969,7 @@ requires (std::remove_cvref_t<T> a) {
  */
 template <lagrange_type T, matpack::ranked_matpack_type<Numeric, 1> NewVec, matpack::ranked_matpack_type<Numeric, 1> Vec>
 constexpr Array<T> lagrange_interpolation_list(
-    NewVec &&xs, Vec &&xi, Index order = 1,
+    NewVec &&xs, Vec &&xi, Index order,
     Numeric extrapol = 0.5)
   requires(std::remove_cvref_t<T>::runtime_polyorder())
 {
@@ -1258,7 +1271,7 @@ constexpr auto dinterpweights(const list_lags &...lags)
  */
 template <lagrange_type... lags, std::size_t N = sizeof...(lags)>
 constexpr auto interp(const matpack::strict_rank_matpack_type<N> auto &field,
-                      const auto &iw,  // FIXME: MUST BE MATPACK TYPE IN THE END
+                      const matpack::ranked_matpack_type<Numeric, N> auto &iw,
                       const lags &...lag) {
   matpack::matpack_value_type<decltype(field)> out{0};
 
