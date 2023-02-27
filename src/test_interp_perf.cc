@@ -1,6 +1,8 @@
 #include "artstime.h"
 #include "interp.h"
 #include "interpolation.h"
+#include "matpack_data.h"
+#include "matpack_iter.h"
 #include "matpack_math.h"
 #include "matpack_math_extra.h"
 
@@ -287,8 +289,99 @@ std::vector<Timing> test_linear_interpweights_cost(Index n) {
   return out;
 }
 
+std::vector<Timing> test_tensor5_reinterp(Index n) {
+  Vector x0=uniform_grid(0, n/3125, 1.0/static_cast<Numeric>(n/3125-1));
+  Vector x1=uniform_grid(0, n/3125, 1.0/static_cast<Numeric>(n/3125-1));
+  Vector x2=uniform_grid(0, n/3125, 1.0/static_cast<Numeric>(n/3125-1));
+  Vector x3=uniform_grid(0, n/3125, 1.0/static_cast<Numeric>(n/3125-1));
+  Vector x4=uniform_grid(0, n/3125, 1.0/static_cast<Numeric>(n/3125-1));
+
+  Tensor5 ys(n/3125, n/3125, n/3125, n/3125, n/3125);
+  auto x = matpack::elemwise{x0, x1, x2, x3, x4};
+  std::transform(x.begin(), x.end(), ys.elem_begin(), [](auto X){
+    return std::sin(std::get<0>(X)) * std::sin(std::get<1>(X)) * std::sin(std::get<2>(X)) * std::sin(std::get<3>(X)) * std::sin(std::get<4>(X));
+  });
+
+  Vector xs0=uniform_grid(0, 2*n/3125-1, 1.0/static_cast<Numeric>(2*n/3125-2));
+  Vector xs1=uniform_grid(0, 2*n/3125-1, 1.0/static_cast<Numeric>(2*n/3125-2));
+  Vector xs2=uniform_grid(0, 2*n/3125-1, 1.0/static_cast<Numeric>(2*n/3125-2));
+  Vector xs3=uniform_grid(0, 2*n/3125-1, 1.0/static_cast<Numeric>(2*n/3125-2));
+  Vector xs4=uniform_grid(0, 2*n/3125-1, 1.0/static_cast<Numeric>(2*n/3125-2));
+
+  std::vector<Numeric> xvec;
+  std::vector<Timing> out;
+  Numeric X;
+  
+  out.emplace_back("gridpos")([&](){
+    ArrayOfGridPos gp0(xs0.size());
+    ArrayOfGridPos gp1(xs1.size());
+    ArrayOfGridPos gp2(xs2.size());
+    ArrayOfGridPos gp3(xs3.size());
+    ArrayOfGridPos gp4(xs4.size());
+    gridpos(gp0, x0, xs0);
+    gridpos(gp1, x1, xs1);
+    gridpos(gp2, x2, xs2);
+    gridpos(gp3, x3, xs3);
+    gridpos(gp4, x4, xs4);
+
+    Tensor6 iw(gp0.size(), gp1.size(), gp2.size(), gp3.size(), gp4.size(), 32);
+    interpweights(iw, gp0, gp1, gp2, gp3, gp4);
+
+    Tensor5 mout(xs0.size(), xs1.size(), xs2.size(), xs3.size(), xs4.size());
+    interp(mout, iw, ys, gp0, gp1, gp2, gp3, gp4);
+    X = sum(mout);
+  });
+  xvec.push_back(X);
+  
+  out.emplace_back("lagrange-runtime-raw-direct")([&](){
+    auto lag0 = linear_lag_runtime_raw(xs0, x0, 1);
+    auto lag1 = linear_lag_runtime_raw(xs1, x1, 1);
+    auto lag2 = linear_lag_runtime_raw(xs2, x2, 1);
+    auto lag3 = linear_lag_runtime_raw(xs3, x3, 1);
+    auto lag4 = linear_lag_runtime_raw(xs4, x4, 1);
+    auto mout = reinterp_direct(ys, lag0, lag1, lag2, lag3, lag4);
+    X = sum(mout);
+  });
+  xvec.push_back(X);
+  
+  out.emplace_back("lagrange-runtime-raw-indirect")([&](){
+    auto lag0 = linear_lag_runtime_raw(xs0, x0, 1);
+    auto lag1 = linear_lag_runtime_raw(xs1, x1, 1);
+    auto lag2 = linear_lag_runtime_raw(xs2, x2, 1);
+    auto lag3 = linear_lag_runtime_raw(xs3, x3, 1);
+    auto lag4 = linear_lag_runtime_raw(xs4, x4, 1);
+    auto mout = reinterp_indirect(ys, lag0, lag1, lag2, lag3, lag4);
+    X = sum(mout);
+  });
+  xvec.push_back(X);
+  
+  out.emplace_back("lagrange-compile-raw-direct")([&](){
+    auto lag0 = linear_lag_compile_raw_1lin(xs0, x0);
+    auto lag1 = linear_lag_compile_raw_1lin(xs1, x1);
+    auto lag2 = linear_lag_compile_raw_1lin(xs2, x2);
+    auto lag3 = linear_lag_compile_raw_1lin(xs3, x3);
+    auto lag4 = linear_lag_compile_raw_1lin(xs4, x4);
+    auto mout = reinterp_direct(ys, lag0, lag1, lag2, lag3, lag4);
+    X = sum(mout);
+  });
+  xvec.push_back(X);
+  
+  out.emplace_back("lagrange-compile-raw-indirect")([&](){
+    auto lag0 = linear_lag_compile_raw_1lin(xs0, x0);
+    auto lag1 = linear_lag_compile_raw_1lin(xs1, x1);
+    auto lag2 = linear_lag_compile_raw_1lin(xs2, x2);
+    auto lag3 = linear_lag_compile_raw_1lin(xs3, x3);
+    auto lag4 = linear_lag_compile_raw_1lin(xs4, x4);
+    auto mout = reinterp_indirect(ys, lag0, lag1, lag2, lag3, lag4);
+    X = sum(mout);
+  });
+  xvec.push_back(X);
+
+  return out;
+}
+
 int main(int argc, char** c) {
-    std::array <Index, 3> N;
+    std::array <Index, 4> N;
   if (static_cast<std::size_t>(argc) < 1 + 1 + N.size()) {
     std::cerr << "Expects PROGNAME NREPEAT NSIZE..., wehere NSIZE is " << N.size() << " indices\n";
     return EXIT_FAILURE;
@@ -301,5 +394,6 @@ int main(int argc, char** c) {
     std::cout << N[0] << " input test_2x_reinterp_vector\n" << test_2x_reinterp_vector(N[0]) << '\n';
     std::cout << N[1] << " input test_linear_startup_cost\n" << test_linear_startup_cost(N[1]) << '\n';
     std::cout << N[2] << " input test_linear_interpweights_cost\n" << test_linear_interpweights_cost(N[2]) << '\n';
+    std::cout << N[3] << " input test_tensor5_reinterp\n" << test_tensor5_reinterp(N[3]) << '\n';
   }
 }

@@ -354,7 +354,13 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi) requires(te
 
   if constexpr (cyclic) return cycler(p0 - p0_offset, N + 1);
   else if constexpr (p0_offset > 0) return std::clamp<Index>(p0 - p0_offset, 0, N);
-  else return p0;
+  else if constexpr (polyorder == 0) {
+    auto xl = nonstd::abs(xi[std::clamp<Index>(p0 - 1, 0, N)] - x);
+    auto x0 = nonstd::abs(xi[p0] - x);
+    auto xu = nonstd::abs(xi[std::clamp<Index>(p0 + 1, 0, N)] - x);
+    return xl < xu ? (xl < x0 ? p0 - 1 : p0) : 
+                     (xu < x0 ? p0 + 1 : p0);
+  } else return p0;
 }
 
 /*! Type of Lagrange interpolation weights
