@@ -28,7 +28,7 @@
 
 #include "species_tags.h"
 #include "absorption.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "matpack_data.h"
 #include "messages.h"
 

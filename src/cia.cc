@@ -33,10 +33,11 @@
 #include "cia.h"
 #include <cmath>
 #include <numeric>
+#include "matpack_concepts.h"
 #include "species_tags.h"
 #include "absorption.h"
 #include "file.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
@@ -184,7 +185,7 @@ void cia_interpolation(VectorView result,
   }
 
   // Find frequency grid positions:
-  const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid);
+  const auto f_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<f_order>>(f_grid_active, data_f_grid);
   
   // Do the rest of the interpolation.
   if (T_order == 0) {
@@ -192,15 +193,15 @@ void cia_interpolation(VectorView result,
     result_active = reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
-    const auto Tnew = std::array<double, 1>{temperature};
+    const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<1>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 2) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<2>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 3) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<3>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else {
       throw std::runtime_error("Cannot have this T_order, you must update the code...");

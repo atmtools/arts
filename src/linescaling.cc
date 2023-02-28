@@ -17,7 +17,6 @@
    USA. */
 
 #include "linescaling.h"
-#include "interpolation_lagrange.h"
 #include "partfun.h"
 
 Numeric single_partition_function(const Numeric& T,

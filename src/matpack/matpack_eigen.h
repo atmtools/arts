@@ -19,7 +19,7 @@ namespace matpack::eigen {
  * @param x The value
  * @return An appropriate eigen matrix map
  */
-template <strict_size_matpack_type<2> U> constexpr auto mat(const U &x) {
+template <strict_rank_matpack_type<2> U> constexpr auto mat(const U &x) {
   if constexpr (is_always_exhaustive_v<U>) {
     return Eigen::Map<Eigen::Matrix<typename U::value_type, Eigen::Dynamic,
                                     Eigen::Dynamic, Eigen::RowMajor>>(
@@ -41,7 +41,7 @@ template <strict_size_matpack_type<2> U> constexpr auto mat(const U &x) {
  * @param x The value
  * @return An appropriate eigen matrix map as column vector
  */
-template <strict_size_matpack_type<1> U> constexpr auto col_vec(const U &x) {
+template <strict_rank_matpack_type<1> U> constexpr auto col_vec(const U &x) {
   if constexpr (is_always_exhaustive_v<U>) {
     return Eigen::Map<Eigen::Matrix<typename U::value_type, 1, Eigen::Dynamic>>(
         x.data_handle(), 1, x.extent(0));
@@ -60,7 +60,7 @@ template <strict_size_matpack_type<1> U> constexpr auto col_vec(const U &x) {
  * @param x The value
  * @return An appropriate eigen matrix map as row vector
  */
-template <strict_size_matpack_type<1> U> constexpr auto row_vec(const U &x) {
+template <strict_rank_matpack_type<1> U> constexpr auto row_vec(const U &x) {
   if constexpr (is_always_exhaustive_v<U>) {
     return Eigen::Map<Eigen::Matrix<typename U::value_type, Eigen::Dynamic, 1>>(
         x.data_handle(), x.extent(0), 1);
@@ -79,7 +79,7 @@ template <strict_size_matpack_type<1> U> constexpr auto row_vec(const U &x) {
  * @param x The value
  * @return An appropriate eigen matrix map as matrix
  */
-template <strict_size_matpack_type<2> U> constexpr auto as_eigen(const U &x) {
+template <strict_rank_matpack_type<2> U> constexpr auto as_eigen(const U &x) {
   return mat(x);
 }
 
@@ -89,141 +89,141 @@ template <strict_size_matpack_type<2> U> constexpr auto as_eigen(const U &x) {
  * @param x The value
  * @return An appropriate eigen matrix map as row vector
  */
-template <strict_size_matpack_type<1> U> constexpr auto as_eigen(const U &x) {
+template <strict_rank_matpack_type<1> U> constexpr auto as_eigen(const U &x) {
   return row_vec(x);
 }
 } // namespace matpack::eigen
 
 namespace matpack {
 //! Perform the math and return a lazy object; A * x
-template <strict_size_matpack_type<2> MAT, strict_size_matpack_type<1> VEC>
+template <strict_rank_matpack_type<2> MAT, strict_rank_matpack_type<1> VEC>
 constexpr auto operator*(const MAT &A, const VEC &x) {
   return eigen::as_eigen(A) * eigen::as_eigen(x);
 }
 
 //! Perform the math and return a lazy object; A * B
-template <strict_size_matpack_type<2> MATONE,
-          strict_size_matpack_type<2> MATTWO>
+template <strict_rank_matpack_type<2> MATONE,
+          strict_rank_matpack_type<2> MATTWO>
 constexpr auto operator*(const MATONE &A, const MATTWO &B) {
   return eigen::as_eigen(A) * eigen::as_eigen(B);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, strict_size_matpack_type<2> MAT>
+template <arithmetic CONST, strict_rank_matpack_type<2> MAT>
 constexpr auto operator*(const CONST &a, const MAT &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; a * b
-template <arithmetic CONST, strict_size_matpack_type<1> VEC>
+template <arithmetic CONST, strict_rank_matpack_type<1> VEC>
 constexpr auto operator*(const CONST &a, const VEC &b) {
   return a * eigen::as_eigen(b);
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, strict_size_matpack_type<2> MAT>
+template <arithmetic CONST, strict_rank_matpack_type<2> MAT>
 constexpr auto operator*(const MAT &b, const CONST &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; b * a
-template <arithmetic CONST, strict_size_matpack_type<1> VEC>
+template <arithmetic CONST, strict_rank_matpack_type<1> VEC>
 constexpr auto operator*(const VEC &b, const CONST &a) {
   return eigen::as_eigen(b) * a;
 }
 
 //! Perform the math and return a lazy object; x + y
-template <strict_size_matpack_type<2> ONE, strict_size_matpack_type<2> TWO>
+template <strict_rank_matpack_type<2> ONE, strict_rank_matpack_type<2> TWO>
 constexpr auto operator+(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <strict_size_matpack_type<1> ONE, strict_size_matpack_type<1> TWO>
+template <strict_rank_matpack_type<1> ONE, strict_rank_matpack_type<1> TWO>
 constexpr auto operator+(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x = y
-template <strict_size_matpack_type<2> ONE, strict_size_matpack_type<2> TWO>
+template <strict_rank_matpack_type<2> ONE, strict_rank_matpack_type<2> TWO>
 constexpr auto operator-(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <strict_size_matpack_type<1> ONE, strict_size_matpack_type<1> TWO>
+template <strict_rank_matpack_type<1> ONE, strict_rank_matpack_type<1> TWO>
 constexpr auto operator-(const ONE &x, const TWO &y) {
   return eigen::as_eigen(x) - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x * y
-template <typename Derived, strict_size_matpack_type<1> VEC>
+template <typename Derived, strict_rank_matpack_type<1> VEC>
 constexpr auto operator*(const Eigen::MatrixBase<Derived> &x, const VEC &y) {
   return x * eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x * y
-template <typename Derived, strict_size_matpack_type<2> MAT>
+template <typename Derived, strict_rank_matpack_type<2> MAT>
 constexpr auto operator*(const Eigen::MatrixBase<Derived> &x, const MAT &y) {
   return x * eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <typename Derived, strict_size_matpack_type<1> VEC>
+template <typename Derived, strict_rank_matpack_type<1> VEC>
 constexpr auto operator+(const Eigen::MatrixBase<Derived> &x, const VEC &y) {
   return x + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x + y
-template <typename Derived, strict_size_matpack_type<2> MAT>
+template <typename Derived, strict_rank_matpack_type<2> MAT>
 constexpr auto operator+(const Eigen::MatrixBase<Derived> &x, const MAT &y) {
   return x + eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <typename Derived, strict_size_matpack_type<1> VEC>
+template <typename Derived, strict_rank_matpack_type<1> VEC>
 constexpr auto operator-(const Eigen::MatrixBase<Derived> &x, const VEC &y) {
   return x - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; x - y
-template <typename Derived, strict_size_matpack_type<2> MAT>
+template <typename Derived, strict_rank_matpack_type<2> MAT>
 constexpr auto operator-(const Eigen::MatrixBase<Derived> &x, const MAT &y) {
   return x - eigen::as_eigen(y);
 }
 
 //! Perform the math and return a lazy object; y * x
-template <typename Derived, strict_size_matpack_type<1> VEC>
+template <typename Derived, strict_rank_matpack_type<1> VEC>
 constexpr auto operator*(const VEC &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) * x;
 }
 
 //! Perform the math and return a lazy object; y * x
-template <typename Derived, strict_size_matpack_type<2> MAT>
+template <typename Derived, strict_rank_matpack_type<2> MAT>
 constexpr auto operator*(const MAT &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) * x;
 }
 
 //! Perform the math and return a lazy object; y + x
-template <typename Derived, strict_size_matpack_type<1> VEC>
+template <typename Derived, strict_rank_matpack_type<1> VEC>
 constexpr auto operator+(const VEC &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) + x;
 }
 
 //! Perform the math and return a lazy object; y + x
-template <typename Derived, strict_size_matpack_type<2> MAT>
+template <typename Derived, strict_rank_matpack_type<2> MAT>
 constexpr auto operator+(const MAT &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) + x;
 }
 
 //! Perform the math and return a lazy object; y - x
-template <typename Derived, strict_size_matpack_type<1> VEC>
+template <typename Derived, strict_rank_matpack_type<1> VEC>
 constexpr auto operator-(const VEC &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) - x;
 }
 
 //! Perform the math and return a lazy object; y - x
-template <typename Derived, strict_size_matpack_type<2> MAT>
+template <typename Derived, strict_rank_matpack_type<2> MAT>
 constexpr auto operator-(const MAT &y, const Eigen::MatrixBase<Derived> &x) {
   return eigen::as_eigen(y) - x;
 }

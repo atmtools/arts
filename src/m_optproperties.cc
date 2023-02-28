@@ -46,7 +46,7 @@
 #include "check_input.h"
 #include "exceptions.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
@@ -1607,7 +1607,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
           (scat_data_raw[i_ss][i_se].f_grid.nelem() == 1);
       if (!single_se_fgrid) {
         // Gridpositions:
-        const auto lag_freq=Interpolation::LagrangeVector(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
+        const auto lag_freq=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
         const auto itw = interpweights(lag_freq);
 
         //Phase matrix data

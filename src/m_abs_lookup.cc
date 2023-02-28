@@ -39,7 +39,7 @@
 #include "gas_abs_lookup.h"
 #include "global_data.h"
 #include "gridded_fields.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
@@ -448,7 +448,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   }
 
   // 6. Initialize fgp_default.
-  abs_lookup.flag_default = Interpolation::LagrangeVector(abs_lookup.f_grid, abs_lookup.f_grid, 0);
+  abs_lookup.flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(abs_lookup.f_grid, abs_lookup.f_grid, 0);
 
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
@@ -636,7 +636,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
 
   Vector the_grid=uniform_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
-    const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
+    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
     for (Index j = 0; j < p_interp_order+1; ++j) {
       // Our pressure grid for the lookup table may be coarser than
@@ -717,7 +717,7 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
     //            << refprof[i] << " / "
     //            << maxprof[i] << "\n";
     
-    const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
+    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
     for (Index j = 0; j < p_interp_order+1; ++j) {
       //           cout << "!!!!!! j = " << j << "\n";
@@ -1574,7 +1574,7 @@ void abs_lookupSetupBatch(  // WS Output:
   ARTS_ASSERT(log_abs_p.nelem() == np);
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
-    const Index idx0 = Interpolation::pos_finder(i, log_abs_p[i], log_abs_p, abs_p_interp_order, false, false);
+    const Index idx0 = my_interp::pos_finder<false>(i, log_abs_p[i], log_abs_p, abs_p_interp_order);
 
     for (Index fi = 0; fi < datamean.nrows(); ++fi)
       if (1 != fi)  // We skip the z field, which we do not need

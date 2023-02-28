@@ -36,7 +36,7 @@
 #include "check_input.h"
 #include "cloudbox.h"
 #include "arts_conversions.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "jacobian.h"
 #include "m_xml.h"
 #include "math_funcs.h"
@@ -311,7 +311,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     Vector fg_new = f_grid, iyb2(niyb);
     fg_new += rq.Target().perturbation;
     //
-    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
+    const auto lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<porder>>(fg_new, f_grid);
     const auto itw = interpweights(lag);
 
     // Do interpolation
@@ -460,7 +460,7 @@ void jacobianCalcFreqStretch(
     //
     fg_new += rq.Target().perturbation;
     //
-    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
+    const auto lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<porder>>(fg_new, f_grid);
     const auto itw = interpweights(lag);
 
     // Do interpolation

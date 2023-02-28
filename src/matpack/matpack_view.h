@@ -242,6 +242,32 @@ std::array<Index, N> upview(const std::array<Index, M> &low) {
   return sz;
 }
 
+namespace detail {
+template <access_operator first, access_operator... rest>
+void access_str(std::string &out, first ind [[maybe_unused]],
+                          rest... inds) {
+  if constexpr (std::same_as<Joker, std::remove_cvref_t<first>>) {
+  out += "joker";
+  } else {
+  out += var_string(ind);
+  }
+
+  if constexpr (sizeof...(inds) > 0) {
+  out += ", ";
+  access_str(out, inds...);
+  }
+}
+} // namespace detail
+
+//! Returns a string representation of the access indices
+template <access_operator... access>
+std::string access_str(access... ind) {
+  std::string out{"("};
+  detail::access_str(out, ind...);
+  out += ")";
+  return out;
+}
+
 //! The basic view type
 template <typename T, Index N, bool constant, bool strided>
 class matpack_view {
@@ -267,6 +293,9 @@ class matpack_view {
 
   //! A const strided version of this template class
   using cs_view = matpack_view<T, N, true, true>;
+
+  //! A const strided version of this template class
+  using data_t = matpack_data<T, N>;
 
   //! Helper to return correct mutable type
   template <access_operator... access>
@@ -327,7 +356,7 @@ public:
   constexpr matpack_view(const cs_view& x) requires(constant and strided) : view(x.view) {}
 
   //! Construct this from the same size data view
-  constexpr matpack_view(const matpack_data<T, N>& x) noexcept : matpack_view(x.view) {}
+  constexpr matpack_view(const data_t& x) noexcept : matpack_view(x.view) {}
 
   //! Construct this from a smaller view by upping the rank with padded 1-extents to the right
   template <Index M> explicit constexpr matpack_view(const matpack_data<T, M>& x) requires(N > M) : matpack_view(x.data_handle(), upview<N, M>(x.shape())) {}
@@ -353,7 +382,7 @@ public:
   constexpr matpack_view& operator=(const ms_view& x) requires (constant) = delete;
   constexpr matpack_view& operator=(const cs_view& x) requires (constant) = delete;
 
-  constexpr matpack_view& operator=(const matpack_data<T, N>& x) requires(not constant) {
+  constexpr matpack_view& operator=(const data_t& x) requires(not constant) {
     *this = x.view;
     return *this;
   }
@@ -388,13 +417,13 @@ public:
   constexpr matpack_view& operator=(ce_view&& x) requires (constant) = delete;
   constexpr matpack_view& operator=(ms_view&& x) requires (constant) = delete;
   constexpr matpack_view& operator=(cs_view&& x) requires (constant) = delete;
-  constexpr matpack_view& operator=(matpack_data<T, N>&& x) requires (constant) = delete;
+  constexpr matpack_view& operator=(data_t&& x) requires (constant) = delete;
 
   constexpr matpack_view& operator=(me_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(ce_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(ms_view&& x) requires (not constant) {*this = x; return *this;};
   constexpr matpack_view& operator=(cs_view&& x) requires (not constant) {*this = x; return *this;};
-  constexpr matpack_view& operator=(matpack_data<T, N>&& x) requires (not constant) { *this = std::move(x.view); return *this; };
+  constexpr matpack_view& operator=(data_t&& x) requires (not constant) { *this = std::move(x.view); return *this; };
 
   //! Return the total number of elements that can be accessed in this object
   [[nodiscard]] constexpr auto size() const { return static_cast<Index>(view.size()); }
@@ -507,7 +536,8 @@ public:
     requires(sizeof...(access) == N and not constant)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind...))
     if constexpr (N == M)
       return view(std::forward<access>(ind)...);
     else
@@ -521,7 +551,8 @@ public:
     requires(sizeof...(access) == N)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind...),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind...))
     if constexpr (N == M)
       return view(std::forward<access>(ind)...);
     else
@@ -534,7 +565,8 @@ public:
     requires(not constant)
   {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind))
     if constexpr (N == M and N == 1)
       return view[std::forward<access>(ind)];
     else
@@ -545,7 +577,8 @@ public:
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
-                "Out-of-bounds: ", shape_help<N>(shape()))
+                "Out-of-bounds:\nShape:    ", shape_help<N>(shape()),
+                "\nAccessor: ", access_str(ind))
     if constexpr (N == M and N == 1)
       return view[std::forward<access>(ind)];
     else
@@ -732,10 +765,10 @@ public:
     else std::transform(elem_begin(), elem_end(), x.elem_begin(), elem_begin(), [](auto a, auto b){return a / b;});
     return *this;
   }
-  constexpr matpack_view& operator+=(const matpack_data<T, N>& x) requires(not constant) {*this += x.view; return *this;}
-  constexpr matpack_view& operator-=(const matpack_data<T, N>& x) requires(not constant) {*this -= x.view; return *this;}
-  constexpr matpack_view& operator*=(const matpack_data<T, N>& x) requires(not constant) {*this *= x.view; return *this;}
-  constexpr matpack_view& operator/=(const matpack_data<T, N>& x) requires(not constant) {*this /= x.view; return *this;}
+  constexpr matpack_view& operator+=(const data_t& x) requires(not constant) {*this += x.view; return *this;}
+  constexpr matpack_view& operator-=(const data_t& x) requires(not constant) {*this -= x.view; return *this;}
+  constexpr matpack_view& operator*=(const data_t& x) requires(not constant) {*this *= x.view; return *this;}
+  constexpr matpack_view& operator/=(const data_t& x) requires(not constant) {*this /= x.view; return *this;}
 
   template <bool c, bool s> constexpr bool operator==(const matpack_view<T, N, c, s>& x) const {
     return shape() == x.shape() and std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end());
@@ -743,8 +776,8 @@ public:
   template <bool c, bool s> constexpr bool operator!=(const matpack_view<T, N, c, s>& x) const {
     return not (*this == x);
   }
-  constexpr bool operator==(const matpack_data<T, N>& x) const {return *this == x.view; }
-  constexpr bool operator!=(const matpack_data<T, N>& x) const {return *this != x.view; }
+  constexpr bool operator==(const data_t& x) const {return *this == x.view; }
+  constexpr bool operator!=(const data_t& x) const {return *this != x.view; }
 
   //! Helper to view a standard array of data as a 1D object
   template <std::size_t M>

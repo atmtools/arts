@@ -192,7 +192,6 @@ add_library (artscore STATIC
   xsec_fit.cc
   igrf13.cc
   interpolation.cc
-  interpolation_lagrange.cc
   jacobian.cc
   jpl_species.cc
   legendre.cc
@@ -685,3 +684,7 @@ add_dependencies(check-deps test_mdspan)
 #####
 add_executable(test_matpack_perf test_matpack_perf.cc artstime.cc)
 target_link_libraries(test_matpack_perf PUBLIC matpack)
+
+#####
+add_executable(test_interp_perf test_interp_perf.cc artstime.cc)
+target_link_libraries(test_interp_perf PUBLIC matpack artscore)
