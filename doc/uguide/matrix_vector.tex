@@ -26,7 +26,76 @@
 \stophistory
 
 
+This section describes how arbitrary-rank "tensor" classes are
+implemented in ARTS and how their objects can be used.
+Furthermore it describes how arrays of arbitrary type can be constructed and used.
 
+\section{Implementation files}
+The arbitrary-rank "tensor" classes are implemented in the
+\verb|src/matpack/| folder.  The implementation is done through 
+template programming, meaning that the logic for how to use the objects
+is similar even though the rank may change.  Common for all of these
+types though is that the rank of the object has to be known at compile time.
+
+There are two template classes that represents
+objects owning their own data.  The template class that knows both its rank and exact size at
+compile time is implemented in \fileindex{matpack\_constexpr.h}.  The
+template class that only knows its rank at compile time but has to allocate memory
+at runtime is implemented in \fileindex{matpack\_data.h}.
+
+There are also two template classes representing a view of the data.  The template class that
+views a piece of data with known rank and size is implemented also in \fileindex{matpack\_constexpr.h}.
+The template class that views data of known rank but unknown size at compile time is implemented
+in \fileindex{matpack\_view.h}.
+
+All four of these will be described more below.
+
+The template class Array (also described below) is implemented in the file \fileindex{array.h}.
+
+The \builtindoc{Sparse} class is described in the file \fileindex{matpack\_sparse.h}.
+
+\section{Arbitrary rank "tensor" --- matpack}
+This section described ranked data in ARTS.  We call template classes of our arbitrary data
+template class with rank above 2 "Tensor", though we fully admit that they do not conform to all the ideas
+that a mathematical tensor would.  The intent is that they should, but we are limited by the
+use that we have had of them, so further extensions that come at no cost to the quality of
+the current implementation is highly welcome.  We use the term "Vector" to describe
+a rank 1 realization of the template class.  We use the term "Matrix" to 
+describe a rank 2 realization of the template class.  These rank 1 and 2 objects do more closely
+follow the mathematical description of vectors and matrices, such as supporting the dot-product and
+matrix-vector, and matrix-matrix multiplications.
+
+As the most common underlying type
+to perform computations on in ARTS is \builtindoc{Numeric}, the rank 1 class representing
+\builtindoc{Numeric} is called \builtindoc{Vector} and the rank 2 class is called \builtindoc{Matrix}.
+We do not name types above rank 7.  Ranked classes representing \builtindoc{Numeric} between rank 3
+and rank 7 are called \builtindoc{Tensor3}, \builtindoc{Tensor4}, \builtindoc{Tensor5}, \builtindoc{Tensor6},
+and \builtindoc{Tensor7}, respectively.  These are all the named types, each of which have their
+sizes known only at runtime.  It is important to be aware that re-interpolating a \builtindoc{Tensor7}
+requires a rank 14 object, however, so the information in this section also applies to versions of 
+the class that are only named internally.
+
+Under the hood, the implementation for these classes is based on C++23 \shortcode{std::mdspan}
+and the C++26 proposal for \shortcode{std::submdspan}.  The intent is that you should be able to
+interact with these objects as if they were actually of the template class \shortcode{std::mdspan}.
+If this is not realized for some use-cases, this is considered a deficiency and can freely be fixed.
+Note that neither of these C++ standards are actually available as of yet (2023-02-28), so the
+details under the hood relies on the Kokkos implementation (which represents what got accepted for C++23
+and what is proposed for C++26). 
+
+The underlying data type when the size of the data is known at compile time is \shortcode{std::array}
+and the underlying data type when the size of the data is known only at runtime is \shortcode{std::vector}.
+Again, it is our intent that we should expose as much of these types behavior in the interface to our
+own classes as possible.  However, a lot of this is missing, so do feel free to add it.  However, do
+consult with others because it is as of yet not clear to us if \shortcode{std::vector::push_back}
+should push back a single element and only work for rank 1 types, or an entire left-most dimensional
+column so that it works for arbitrary ranks.
+
+\subsection{Defining the template classes}
+The data owning object for the type that knows its size at compile time is called
+\begin{code}
+
+\end{code}
 
 %
 % Introduction
