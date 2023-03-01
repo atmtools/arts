@@ -337,7 +337,7 @@ public:
   //! Construct this from an exhaustive view
   constexpr matpack_view(exhaustive_view x) : view(std::move(x)) {}
 
-  //! Construct this from an exhaustive view
+  //! Construct this from a strided view (BE CAREFUL, THIS HAS TO WORK OR TERMINATE IS CALLED; CHECK YOUR INPUT)
   constexpr matpack_view(strided_view x) : view(std::move(x)) {}
 
   //! Construct this a pointer and a size

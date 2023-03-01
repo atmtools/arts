@@ -78,547 +78,375 @@ the class that are only named internally.
 Under the hood, the implementation for these classes is based on C++23 \shortcode{std::mdspan}
 and the C++26 proposal for \shortcode{std::submdspan}.  The intent is that you should be able to
 interact with these objects as if they were actually of the template class \shortcode{std::mdspan}.
-If this is not realized for some use-cases, this is considered a deficiency and can freely be fixed.
-Note that neither of these C++ standards are actually available as of yet (2023-02-28), so the
+Note that neither of these C++ standards are actually available as of yet (nb., 2023-02-28), so the
 details under the hood relies on the Kokkos implementation (which represents what got accepted for C++23
 and what is proposed for C++26). 
 
 The underlying data type when the size of the data is known at compile time is \shortcode{std::array}
 and the underlying data type when the size of the data is known only at runtime is \shortcode{std::vector}.
-Again, it is our intent that we should expose as much of these types behavior in the interface to our
-own classes as possible.  However, a lot of this is missing, so do feel free to add it.  However, do
-consult with others because it is as of yet not clear to us if \shortcode{std::vector::push_back}
-should push back a single element and only work for rank 1 types, or an entire left-most dimensional
-column so that it works for arbitrary ranks.
+Again, it is our intent that we should expose as much of these the underlying data type's behavior in the interface to our
+own classes as possible.
+
+In short there are two intents of these codes:
+\begin{enumerate}
+\item Represent any data that we might need in ARTS in a concise, fast, and mathematically meaningful way.
+\item Offer a functional interface that matches the C++ standard interface as closely as possible.
+\end{enumerate}
 
 \subsection{Defining the template classes}
-The data owning object for the type that knows its size at compile time is called
+These template classes can own data or view data.  The size of the data can be known at compile time or not.
+This subsection goes through the common type and their used names inside ARTS.
+
+\subsubsection{matpack\_constant\_data --- owning and constant size}
+The data owning template class for the type that knows its size at compile time is called
 \begin{code}
-
+template <typename T, Index... alldim>
+struct matpack_constant_data;
 \end{code}
+It will hold a type \shortcode{T} that can be any type that can be help by \shortcode{std::array}
+and it will have a rank \shortcode{N} that is as many \builtindoc{Index} that you define in the place
+of \shortcode{alldim}.  Here are a few examples to help you understand:
+\begin{code}
+// An object "a" that holds 5 Numeric as a vector:
+matpack_constant_data<Numeric, 5> a;
 
-%
-% Introduction
-%
+// An object "a2" that holds 1,2,3,4,5 as Numeric as a vector:
+matpack_constant_data<Numeric, 5> a2{1,2,3,4,5};
 
-This section describes how vectors and matrices are implemented in
-ARTS and how they are used. Furthermore it describes how arrays of
-arbitrary type can be constructed and used.
+// An object "b" that holds 6 Index as a 3x2 matrix:
+matpack_constant_data<Index, 3, 2> b;
 
+// An object "b" that holds 1,2;3,4;5,6 Index as a 3x2 matrix:
+matpack_constant_data<Index, 3, 2> b{1,2,3,4,5,6};
 
-\section{Implementation files}
-%-------------------------------------------------------------------------
-\label{sec:matpack:files}
+// An object "c" that holds 120 Complex as a 5x4x3x2 tensor 4:
+matpack_constant_data<Complex, 5, 4, 3, 2> c;
+\end{code}
+Note that while the name might be confusing, the "constant" part here refers to "constant size".  The
+"const" and "constexpr" properties of C++ still has to be applied to make the data actually not mutable.
 
-The \builtindoc{Matrix} and \builtindoc{Vector} classes described below reside in the files:
+These are the named version of these types inside ARTS:
 \begin{itemize}
-\item \fileindex{matpackI.h}
-\item \fileindex{matpackI.cc}
+\item THERE ARE NO TYPES EXPLICITLY NAMED YET
 \end{itemize}
 
-Tensors of order 3 to 7 reside in the files:
+\subsubsection{matpack\_constant\_view --- non-owning and constant size}
+The template class that does not own its data but points at a compile time constant size of data
+is called
+\begin{code}
+template <typename T, bool constant, Index... alldim>
+struct matpack_constant_view;
+\end{code}
+Both \shortcode{T} and \shortcode{alldim} are the same as above.  The new boolean argument \shortcode{constant}
+is held to tell the type if it can mutate its data or not.  Generally, you should try to not construct
+a type like this manually but instead rely on access-patterns to a higher or same rank \shortcode{matpack\_constant\_data} or \shortcode{matpack\_constant\_view}
+to generate the type as need be.  You can do so by using the access or call operators provided by 
+\shortcode{matpack\_constant\_data}.  Note also that you can always create a \shortcode{constant==true}
+object if you have a \shortcode{constant==false} object, but that this is irreversible within the type
+system.
+
+These are the named version of these types inside ARTS:
 \begin{itemize}
-\item \fileindex{matpackIII.h}
-\item \fileindex{matpackIV.h}
-\item \fileindex{matpackV.h}
-\item \fileindex{matpackVI.h}
-\item \fileindex{matpackVII.h}
+\item THERE ARE NO TYPES EXPLICITLY NAMED YET
 \end{itemize}
 
-The template class \shortcode{Array} (also described below) is implemented 
-in the file:
+\subsubsection{matpack\_data --- owning and runtime size}
+The data owning template class that does not know its size but its rank at compile time is called
+\begin{code}
+template <typename T, Index N> class matpack_data;
+\end{code}
+Unlike the other data owning object, the size of the data is invariant in most operations by
+keeping the underlying allocated data constant.  This has to be dealt with on a function-by-function
+basis to keep the rest of the class working.
+As for the constant data type, the value type will be a \shortcode{T} --- that is possible to be held by a \shortcode{std::vector} ---
+but the rank is defined explicitly as \shortcode{N}.  Rank 0 objects are not allowed.
+The sizes of the object has to at some point be given during runtime. Here are a few examples to help you understand:
+\begin{code}
+// An object "a" as a rank 1 vector of unknown size:
+matpackt_data<Numeric, 1> a;
+
+// An object "a2" as a rank 1 vector of current size 5:
+matpackt_data<Numeric, 1> a2(5);
+
+// An object "a3" as a rank 1 vector of current size n:
+extern Index n;
+matpackt_data<Numeric, 1> a3(n);
+
+// An object "b" that holds 6 Index as a 3x2 matrix:
+matpack_data<Index, 2> b(3, 2);
+
+// An object "b2" that holds 6 Index as a 3x2 matrix all of value 1:
+matpack_data<Index, 2> b2(3, 2, 1);
+
+// An object "c" that holds 120 Complex as a 5x4x3x2 tensor 4:
+matpack_data<Complex, 4> c(5, 4, 3, 2);
+\end{code}
+Note that the same number of \builtindoc{Index} as the rank of the object has to
+be given to the constructor for the created object to have an immediate size.
+If an additional argument is given, it is converted to type \shortcode{T} and
+set as the value for all of the elements of the tensor.
+Since the data is only known at compile time, these objects can all be resized
+calling the member function \shortcode{resize}.  From the example above, calling
+\shortcode{a.resize(5);} gives the object the size 5.
+
+These are the named version of these types inside ARTS:
+\begin{center}
+\begin{tabular}{llc}
+\\\hline
+Name & Value Type \shortcode{T} & Rank \shortcode{N} \\\hline
+\builtindoc{Vector}  & \builtindoc{Numeric} & 1 \\\hline
+\builtindoc{Matrix}  & \builtindoc{Numeric} & 2 \\\hline
+\builtindoc{Tensor3} & \builtindoc{Numeric} & 3 \\\hline
+\builtindoc{Tensor4} & \builtindoc{Numeric} & 4 \\\hline
+\builtindoc{Tensor5} & \builtindoc{Numeric} & 5 \\\hline
+\builtindoc{Tensor6} & \builtindoc{Numeric} & 6 \\\hline
+\builtindoc{Tensor7} & \builtindoc{Numeric} & 7 \\\hline
+\shortcode{ComplexVector} & \shortcode{Complex} & 1 \\\hline
+\shortcode{ComplexMatrix} & \shortcode{Complex} & 2 \\\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{matpack\_view --- non-owning and runtime size}
+Likewise, the template class that does not own its data but points to runtime allocated set of data
+is called
+\begin{code}
+template <typename T, Index N, bool constant, bool strided>
+class matpack_view;
+\end{code}
+All of \shortcode{T}, \shortcode{N} and \shortcode{constant} are as defined above but because of
+both legacy and practical reasons, we need an additional boolean argument here: \shortcode{strided}.
+Sometimes the memory layout in hardware of data is not \textit{contiguous} or \textit{exhaustive},
+that is you cannot expect that as long as you are within the total size of the object, that the
+next data point is always offset by the same step size.  A good example of a strided vector
+is all the real values from a complex-valued vector; standard implementations of complex values
+guarantees that the real value is next to the imaginary value in memory, so the next real value
+is atleast 2 steps away.  In analogy for \shortcode{matpack\_constant\_view}, the recommended way to create
+a \shortcode{matpack\_view} is same or higher ranks of \shortcode{matpack\_data} or \shortcode{matpack\_view}.
+We also allow viewing a single \shortcode{T} as the underlying via explicit conversion.
+Also as for \shortcode{matpack\_constant\_view}, you can generate a constant view from a non-constant
+but never the reverse.  The same is true for strided views: you are able to generate a strided view
+from a exhaustive view but never a exhaustive view from a strided view.  Be aware that a \shortcode{matpack\_data}
+type is neither constant nor strided, which is why these properties are left to
+the type system and not to the type itself.
+
+These are the named version of these types inside ARTS:
+\begin{center}
+\begin{tabular}{llccc}
+\\\hline
+Name & Value Type \shortcode{T} & Rank \shortcode{N} & \shortcode{constant} & \shortcode{strided} \\\hline
+\shortcode{VectorView}  & \builtindoc{Numeric} & 1 & false & true \\\hline
+\shortcode{MatrixView}  & \builtindoc{Numeric} & 2 & false & true \\\hline
+\shortcode{Tensor3View} & \builtindoc{Numeric} & 3 & false & true \\\hline
+\shortcode{Tensor4View} & \builtindoc{Numeric} & 4 & false & true \\\hline
+\shortcode{Tensor5View} & \builtindoc{Numeric} & 5 & false & true \\\hline
+\shortcode{Tensor6View} & \builtindoc{Numeric} & 6 & false & true \\\hline
+\shortcode{Tensor7View} & \builtindoc{Numeric} & 7 & false & true \\\hline
+\shortcode{ComplexVectorView} & \shortcode{Complex} & 1 & false & true \\\hline
+\shortcode{ComplexMatrixView} & \shortcode{Complex} & 2 & false & true \\\hline
+\shortcode{ConstVectorView}  & \builtindoc{Numeric} & 1 & true & true \\\hline
+\shortcode{ConstMatrixView}  & \builtindoc{Numeric} & 2 & true & true \\\hline
+\shortcode{ConstTensor3View} & \builtindoc{Numeric} & 3 & true & true \\\hline
+\shortcode{ConstTensor4View} & \builtindoc{Numeric} & 4 & true & true \\\hline
+\shortcode{ConstTensor5View} & \builtindoc{Numeric} & 5 & true & true \\\hline
+\shortcode{ConstTensor6View} & \builtindoc{Numeric} & 6 & true & true \\\hline
+\shortcode{ConstTensor7View} & \builtindoc{Numeric} & 7 & true & true \\\hline
+\shortcode{ConstComplexVectorView} & \shortcode{Complex} & 1 & true & true \\\hline
+\shortcode{ConstComplexMatrixView} & \shortcode{Complex} & 2 & true & true \\\hline
+\shortcode{ExhaustiveVectorView}  & \builtindoc{Numeric} & 1 & false & false \\\hline
+\shortcode{ExhaustiveMatrixView}  & \builtindoc{Numeric} & 2 & false & false \\\hline
+\shortcode{ExhaustiveTensor3View} & \builtindoc{Numeric} & 3 & false & false \\\hline
+\shortcode{ExhaustiveTensor4View} & \builtindoc{Numeric} & 4 & false & false \\\hline
+\shortcode{ExhaustiveTensor5View} & \builtindoc{Numeric} & 5 & false & false \\\hline
+\shortcode{ExhaustiveTensor6View} & \builtindoc{Numeric} & 6 & false & false \\\hline
+\shortcode{ExhaustiveTensor7View} & \builtindoc{Numeric} & 7 & false & false \\\hline
+\shortcode{ExhaustiveComplexVectorView} & \shortcode{Complex} & 1 & false & false \\\hline
+\shortcode{ExhaustiveComplexMatrixView} & \shortcode{Complex} & 2 & false & false \\\hline
+\shortcode{ExhaustiveComplexTensor3View} & \shortcode{Complex} & 3 & false & false \\\hline
+\shortcode{ExhaustiveConstVectorView}  & \builtindoc{Numeric} & 1 & true & false \\\hline
+\shortcode{ExhaustiveConstMatrixView}  & \builtindoc{Numeric} & 2 & true & false \\\hline
+\shortcode{ExhaustiveConstTensor3View} & \builtindoc{Numeric} & 3 & true & false \\\hline
+\shortcode{ExhaustiveConstTensor4View} & \builtindoc{Numeric} & 4 & true & false \\\hline
+\shortcode{ExhaustiveConstTensor5View} & \builtindoc{Numeric} & 5 & true & false \\\hline
+\shortcode{ExhaustiveConstTensor6View} & \builtindoc{Numeric} & 6 & true & false \\\hline
+\shortcode{ExhaustiveConstTensor7View} & \builtindoc{Numeric} & 7 & true & false \\\hline
+\shortcode{ExhaustiveConstComplexVectorView} & \shortcode{Complex} & 1 & true & false \\\hline
+\shortcode{ExhaustiveConstComplexMatrixView} & \shortcode{Complex} & 2 & true & false \\\hline
+\shortcode{ExhaustiveConstComplexTensor3View} & \shortcode{Complex} & 3 & true & false \\\hline
+\end{tabular}
+\end{center}
+
+\subsection{Access operations of the template classes}
+The access patterns we allow currently are through these types
 \begin{itemize}
-\item \fileindex{array.h}
+\item \builtindoc{Index} -- an integer, e.g., "row 5"
+\item \shortcode{Range} -- a strided range of values, e.g., "row 1 until row 5, every other item"
+\item \shortcode{Joker} -- an entire dimension, e.g., "all rows"
 \end{itemize}
+Since the constant size data and view types cannot be strided, they make use only of \builtindoc{Index} and \shortcode{Joker}.
+The runtime size data make use of all three types.
+If the access operation would logically reduce the rank to 0, instead of returning a rank 0 object,
+something of the underlying value type \shortcode{T} is returned.  Generally, this is a copy of the value if the
+object is constant or a reference to the value if the object is mutable.
+Otherwise, if the access operation does not completely reduce the rank of the object, a view of the remaining rank is returned.
+Don't worry, there are examples below.
 
-The \builtindoc{Sparse} class is described in the file:
+\subsubsection{Constant size access}
+There are only two ways to access constant data:
+\begin{code}
+// "a" from earlier example:
+matpack_constant_data<Numeric, 5> a;
+a[0] = 3;  // Set the first element of "a" to three
+a(1) = 4;  // Set the second element of "a" to four
+
+// "b" from earlier example
+matpack_constant_data<Index, 3, 2> b;
+b(0, 0) = 3;  // Set row 0 col 0 of b to 3
+b(0, 1) = 4;  // Set row 0 col 1 of b to 4
+
+// c is now a matpack_constant_view<Index, false, 2>
+auto c = b(1, joker);
+
+// Set the second element of "c" to five. b(1, 1) is also 5.
+c[1] = 5;
+
+// We can only access from the left to remain exhaustive so
+// we can just skip all the jokers and do
+auto d = b[2];
+// So that the type of "d" is the same as the type of "c"
+
+const auto e = a;  // Create a constant of "a"
+
+// We can do the same accessing as before to create a
+// matpack_constant_view<Index, true, 2>
+auto f = e[1];
+
+// But if we try to write to the data we get a compile-error
+// The error is difficult to predict, but it will either say
+// that writing to a constant is not allowed or that the
+// requirements of "not constant" is not fulfilled
+f[0] = 2;  // compilation error
+\end{code}
+The same access pattern works for the template class that owns and 
+the template class that does not own the view of the data
+
+\subsubsection{Runtime size access}
+The access operators for the runtime sized data can be any combination of the 
+three accessing types above or just the square-bracket to access the inner-view.
+Note that the way you access an object may change the type returned in subtle ways.
+Examples:
+\begin{code}
+// For a Vector
+Vector a(5);
+a[joker] = Vector(5, 1);  // Set all of "a" to 1
+a[1] = 3;  // Set the second element of "a" to 3
+a[Range(2, 2, 1)] = 4;  // Set the 3rd+4th element of "a" to 4
+
+// What are the return types?
+a[0];  // This is a Numeric!
+a[joker];  // This is an ExhaustiveVectorView!
+a[Range(2, 2, 1)];  // This is a VectorView!
+
+// For a Matrix:
+Matrix b(3, 2);
+b(0, 0) = 10;  // Sets b at row 0 and col 0 to 10
+b[1] = 3;  // Set b(1, 0) and b(1, 1) to 3
+b(joker, 1) = 2;  // Set b(0, 1), b(1, 1), and b(2, 1) to 2
+
+// What are the return types?
+b(0, 0);  // This is a Numeric!
+b(joker, joker);  // This is an ExhaustiveMatrixView!
+b(1, joker);
+b[1];  // These are ExhaustiveVectorView!
+b(joker, 0);  // This is a VectorView!
+b(1, Range(0, 1));  // This is a VectorView! 
+\end{code}
+These access concepts are extendible the any rank.  Note that the last example contains
+exhaustive data layout but the returned type is not exhaustive.  That is because any access
+with range can only be determined at runtime if it is strided or not, but the interface
+is strict with regards to types in C++.
+
+It is up to the developer to ensure that you never access out-of-bounds elements.
+To get the extent of a dimension we have these member functions
 \begin{itemize}
-\item \fileindex{matpackII.h}
+\item \shortcode{extent(i)} --- get the size of the i:th left-most dimension, e.g., rows for $i=1$ on a matrix
+\item \shortcode{nelem} --- get the size of a rank 1 tensor
+\item \shortcode{ncols} --- get the size of the right-most dimension of a rank 2 or higher tensor
+\item \shortcode{nrows} --- get the size of the right-most bar 1 dimension of a rank 2 or higher tensor
+\item \shortcode{npages} --- get the size of the right-most bar 2 dimension of a rank 3 or higher tensor
+\item \shortcode{nbooks} --- get the size of the right-most bar 3 dimension of a rank 4 or higher tensor
+\item \shortcode{nshelves} --- get the size of the right-most bar 4 dimension of a rank 5 or higher tensor
+\item \shortcode{nvitrines} --- get the size of the right-most bar 5 dimension of a rank 6 or higher tensor
+\item \shortcode{nlibraries} --- get the size of the right-most bar 6 dimension of a rank 7 or higher tensor
+\item \shortcode{shape} --- get the sizes of all dimensions of a rank \shortcode{N} tensor as a \shortcode{N}-long array of indices
 \end{itemize}
+To get the stride of a given dimension, we offer the member function \shortcode{stride(i)} for the stride of dimension \shortcode{i}
+or \shortcode{strides} to get the all the strides of a rank \shortcode{N} tensor as a \shortcode{N}-long array of indices.
 
-The file \fileindex{test\_matpack.cc} contains test cases and usage
-examples. For Sparse there is a separate test file, 
-\fileindex{test\_sparse.cc}.
-
-\section{Vectors}
-%-------------------------------------------------------------------------
-\label{sec:matpack:vectors}
-
-The class \typeindex{Vector} implements the mathematical concept of a
-vector. (Surprise, surprise.) This means that:
-\begin{itemize}
-\item A Vector contains a list of floating point values of type \typeindex{Numeric}.
-\item A Vector can be multiplied with another Vector (scalar product),
-  or with a Matrix.
-\item Sub-ranges of a Vector can easily be accessed, and used as if
-  they were Vectors.
-\item Resizing a Vector is expensive and should be avoided.
-\end{itemize}
-
-\subsection{Constructing a Vector}
-%-------------------------------------------------------------------------
-You can construct an object of class Vector in any of these ways:
-
+\subsection{Iterate over elements for faster execution time}
+All template classes in this part of matpack gives 2 very important and very different types
+of iterators: elementwise and subviews.  This allows us to write composable code that works
+for any and all types.  For instance
 \begin{code}
-// By simple initialization
-Vector a;         // Create empty Vector.
-Vector b(3);      // Create Vector of length 3, if
-                  // created like this it will contain
-                  // arbitrary values.
-Vector c(3,0.0);  // Create Vector of length 3, and
-                  // fill it with 0.
+Vector a({1, 2, 3, 4, 5});  // "a" is {1, 2, 3, 4, 5}
+for (auto&& x: a) {
+  x = sin(x);  // update x to the sin of itself
+}  // "a" is {sin(1), sin(2), sin(3), sin(4), sin(5)}
+\end{code}
+Note that we have a shorter way of writing this that also could generate better runtime:
+\begin{code}
+Vector a({1, 2, 3, 4, 5});  // "a" is {1, 2, 3, 4, 5}
+matpack::transform(a, sin, a);
+\end{code}
+You can read the implementation of transform in \fileindex{matpack\_math.h}.  Here the input and output is the same, and both are \builtindoc{Vector}, but this works for any types as long as their total size is the same.  Even if the two types have a different rank...
 
-// By copy
-Vector d=c;       // Make d a copy of c.
+For matrices, this works a little bit different:
+\begin{code}
+Matrix b(3, 2, 1); // A matrix of {1, 1; 1, 1; 1, 1}
+for (auto&& a: b) {
+  a[0] = 3;  // Set the first element of "a" to 3
+}  // Will now have a matrix of {3, 1; 3, 1;, 3; 1}
+\end{code}
+This happens because the \shortcode{begin} and \shortcode{end}
+iterator pairs are dereferenced to a lower rank view.
+This works for any higher rank tensor as well, so a tensor of rank 5 views
+the pair of iterators as a tensor view of rank 4, for example.
+Remember that constness and stridedness is preserved or decayed-towards in these operations, so the
+iterators of a constant view can only ever be constant and the iterator of a 
+strided view can only ever return a strided view when dereferenced.  But iterators of non-constant
+and non-strided can be dereferenced to constant or strided views.
 
-// By special initialization
-Vector e(1,5,1);  // 1, 2, 3, 4, 5
-Vector f(1,5,.5); // 1, 1.5, 2, 2.5, 3
-Vector g(5,5,-1); // 5, 4, 3, 2, 1
+Note also that sometimes we just want to do something with all of the elements.  For rank 1 tensors, this is the same,
+but rank 2 and higher ranked tensors behave differently.
+This is actually the trick to \shortcode{transform} above, we have a pair of iterators \shortcode{elem\_begin} and \shortcode{elem\_end}
+that loops over the individual elements of the tensor.
+Several functions and members of the template classes make use of this feature.  Again, the recommendation is to see \fileindex{matpack\_math.h} as it uses many of these iterators for solving various simple 
+transformation and reduction problems (e.g., \shortcode{sum}, \shortcode{min}, \shortcode{transform}, etc...). 
 
-// By initialization list
-Vector h{1.0,2.0,3.0};  // Creates a vector of length 3
-                        // containing the values
-                        // 1.0, 2.0, and 3.0.
+The subsection also claims that you get faster execution times using these iterators.  This is of course necessary to
+test on a case-by-case basis.  The main benefit we have found in our testing is for exhaustive data and views.  In
+several settings, the compiler seems to emit SIMD code for these exhaustive types.  Depending on your operating
+system and compiler settings, this means some operations may be 2-4 times faster for exhaustive objects when
+operated upon by element-wise iterator logic.  If you use index access or view iterators some additional calculations
+to get to the internal value element is needed, which might prevent such SIMD optimizations.
 
-// By moving from another target
-Vector i=func(...);  // func(...) returns a Vector
-Vector j=other.reduce_rank<I>();  // Where other is an
-                                  // rvalue matrix or
-                                  // tensor and I is the
-                                  // kept dimension
+\subsection{Mathematical and logical operations}
+All of the normal element-wise mathematical operations are available for objects of the same rank and shape as well as for scalar operations:
+\begin{code}
+Vector a({1,2,3,4,5});
+a += 1;  // a = {2,3,4,5,6}
+a -= 2;  // a = {0,1,2,3,4}
+a *= 3;  // a = {0,3,6,9,12}
+a /= 2;  // a = {0,1.5,3,4.5,6}
+
+Matrix b(2, 2, 1);  // b = {1,1;1,1}
+Matrix c(2, 2, 2);  // c = {2,2;2,2}
+b += b;  // b = {2,2;2,2}
+c *= c;  // c = {4,4;4,4}
+b /= c;  // b = {0.5,0.5;0.5,0.5}
+c -= b;  // c = {3.5,3.5;3.5,3.5}
 \end{code}
 
-The special initialization examples all use the same constructor, which takes
-the three arguments `start', `extent', and `stride'. It will create a
-Vector containing `extent' elements, starting with `start', with a
-step of `stride'.
-
-The `reduce\_rank' example requires that `I' is less than the rank of the matrix/tensor,
-and that the dimensions not kept are all 1-long in the higher ranked type.  Note that the
-higher ranked type will be left in a valid to destroy, but not valid to access state.
-
-\subsection{VectorViews}
-%-------------------------------------------------------------------------
-\label{sec:vector_views}
-
-An object of class \typeindex{VectorView} is, like the name says, just
-another view on an existing Vector. It does not have its own
-data. This has the important consequence that it cannot be resized,
-since that would mess up the original Vector that the view is
-referring to. You can create VectorViews from Vectors using the index
-operator `[]', the class \typeindex{Range}, and the special \shortcode{joker}
-object. Examples:
-
-\begin{code}
-Vector x{1,2,3,4,5,6,7};
-VectorView a = x;                 // Now a refers to the 
-                                  // whole of x;
-VectorView b = x[Range(joker)];   // Same effect.
-VectorView c = x[Range(0,2)];     // Take 2 elements of x, 
-                                  // starting at the 
-                                  // beginning,
-                                  // in this case: 1,2.
-VectorView d = x[Range(0,3,2)];   // In this case: 1,3,5.
-VectorView e = x[Range(3,joker)]; // In this case: 4,5,6,7.
-\end{code}
-
-As you can see, most useful ways to create VectorViews involve the
-Range class. The general constructor to this class takes three
-arguments, `start', `extent', and `stride'. This means that you will
-select `extent' elements from the Vector, starting with index `start',
-with a step-width of stride. Note that indices are 0-based, so 0
-refers to the first element. The last argument, `stride', can be
-omitted, in that case the default of 1 is assumed. As a special case,
-`extent'==\shortcode{joker} means `to the end', and calling Range with only one
-argument \shortcode{joker} means `all elements'.
-
-Usually, you will not have to use VectorView explicitly, because you
-can use expressions like:
-
-\begin{code}
-Vector a(1,5,1);                // a = 1,2,3,4,5
-Vector b = a[Range(1,3)];       // b = 2,3,4
-\end{code}
-
-However, \shortcode{VectorView} and the related class
-\typeindex{ConstVectorView} are extremely useful as the argument types of
-functions operating on Vectors. You should define your functions like
-this:
-
-\begin{code}
-void silly_function(VectorView a,      // Output argument
-                    ConstVectorView b  // Input argument
-                                       // (read only)
-                   )
-{
-   // Do some silly stuff with a and b.
-}
-\end{code}
-
-Note that there must not be any `\&' after VectorView or
-ConstVectorView. In other words they have to be passed by value, not
-by reference. This is ok, since they do not contain the actual
-data, so that passing by value is efficient. Passing VectorViews by
-reference is forbidden.
-
-You should use these kind of arguments for all input Vectors, and also
-for the output if you have a function that does not resize the output
-Vector. This has the great advantage that you can call the function
-with Vector sub-ranges, e.g., 
-\begin{code}
-Vector a(1,5,1);                  // a = 1,2,3,4,5
-Vector b(3);                      // Set size of b.
-silly_function(b,a[Range(0,3)]);  // Call fuction with
-                                  // sub-range of a.
-\end{code}
-
-An exception to this rule are workspace methods, which use
-conventional argument types \shortcode{const Vector\&} for input and
-\shortcode{Vector\&} for output.
-
-\subsection{What you can do with a Vector (or VectorView)}
-%-------------------------------------------------------------------------
-
-All examples below (except for the first) assume that \shortcode{a} is a
-Vector or VectorView.
-
-\subsubsection{Resize (only for Vector, not for VectorView!):}
-\begin{code}
-a.resize(5);
-\end{code}
-This makes \shortcode{a} a 5 element vector. The new Vector is not
-initialized (i.e., the contents will be unpredictable). Also, note
-that the previous content will be completely lost. Appending to a
-Vector is not possible.
-
-\subsubsection{Get the number of elements:}
-\begin{code}
-cout << a.nelem();
-\end{code}
-
-\subsubsection{Sum up all elements:}
-\begin{code}
-cout << a.sum();
-\end{code}
-
-\subsubsection{Element access:}
-\begin{code}
-cout << a[3];   // Print 4th element.
-a[0] = 3.5;     // Assign 3.5 to first element.
-\end{code}
-
-Note that we use 0-based indexing! Furthermore note that the operator
-`[]' can be also used with \shortcode{Range}, as explained above.
-
-\subsubsection{Copying Vectors:}
-\begin{code}
-Vector b;
-b = a;
-\end{code}
-In this case the size of b will be adjusted to that of a
-automatically. Maybe you have noticed that there is a way to formulate the 
-example above in even shorter fashion:
-\begin{code}
-Vector b = a;
-\end{code}
-The result is exactly the same. Note, though, that in this case b is
-\emph{constructed} from a, not copied (see section about constructing
-Vectors above). 
-
-\subsubsection{Copying in connection with views:}
-This one is a bit tricky. Obviously, the size of views can not be
-adjusted, because a view is just some selection of the underlying
-object. The `=' operator in this case copies the
-\emph{contents}, so the sizes of the left-hand and right-hand argument
-must match. VectorView internally uses assertions to make sure of
-this. So, if you get an assertion failure one reason could be that you
-forgot to make the target the correct size. Here is an example:
-\begin{code}
-b[Range(5,5,-1)] = a[Range(3,5)];  // Copy 5 elements from 
-                                   // a to b, reversing 
-                                   // the order and starting
-                                   // with index 3 in a.
-\end{code}
-Great, isn't it?
-
-\subsubsection{Assigning a scalar:}
-\begin{code}
-a = 1.0;                        // Assign 1 to all elements.
-\end{code}
-
-\subsubsection{Mathematical operators:}
-\begin{code}
-Vector a(1,3,1), b(3,1); // a = 1,2,3; b = 1,1,1
-a *= 2;                  // a = 2,4,6
-                         // Similarly, /=, +=, -=
-a += b;                  // a = 3,5,7
-                         // Similarly, -=, *=, /=
-a += a;                  // a = 6,10,14
-                         // So a can appear on both sides.
-\end{code}
-
-All these operate element-wise.  Note, that there are no return
-versions of these operators (i.e., expressions like \shortcode{b = a+1} are
-not possible). This is again for efficiency reasons. It is currently
-an active area of research in programming techniques how to make this
-kind of expression efficient. None of the available solutions works,
-so ARTS has to live without it.
-
-\subsubsection{Maximum, minimum and mean:}
-\begin{code}
-cout << max(a);
-cout << min(a);
-cout << mean(a);
-\end{code}
-
-\subsubsection{Scalar product:}
-\begin{code}
-cout << a*a;
-\end{code}
-
-This is an exception to the rule not to have return versions of
-operators. The reason is quite obvious: The return value is only a
-scalar. 
-
-\subsubsection{Arbitrary single-argument math functions:}
-\begin{code}
-Vector b(a.nelem());
-transform(b,sin,a);  // b = sin(a)
-transform(b,cos,b);  // b = sin(b)
-                     // So b can appear on both sides.
-\end{code}
-
-The transform function operates on each element of \shortcode{a} with the
-function you specify and puts the result in \shortcode{b}. Note that the
-order of the arguments is swapped compared to the old function
-\shortcode{trans} that we had in the pre-Matpack era.
-
-
-\section{Matrices}
-%-------------------------------------------------------------------------
-\label{sec:matpack:matrices}
-
-The class \typeindex{Matrix} implements the mathematical concept of a
-matrix. (Who would have guessed this?) This means that:
-\begin{itemize}
-\item A Matrix contains floating point values of type \builtindoc{Numeric}.
-\item The values are arranged in rows and columns and can be accessed
-  by indices. The first index is the row, the second the column. In
-  other words, we use \emph{row-major} order, similar to C, Matlab,
-  and most math textbooks. Note, however, that some languages like
-  FORTRAN and IDL use \emph{column-major} order.
-\item A Matrix can be multiplied with a Vector, or with another
-  Matrix.
-\item A sub-range of a Matrix in both dimensions (submatrix) can
-  easily be accessed, and used as if it was just a normal matrix.
-\item Resizing a Matrix is expensive and should be avoided.
-\end{itemize}
-
-\subsection{Constructing a Matrix}
-%-------------------------------------------------------------------------
-You can construct an object of class Matrix in any of these ways:
-
-\begin{code}
-// By simple initialization
-Matrix a;          // Create empty Matrix.
-Matrix b(3,4);     // Create Matrix with 3 rows
-                   // and 4 columns. When
-                   // created like this it will contain
-                   // arbitrary values.
-Matrix c(3,4,0.0); // Similar, but
-                   // fill it with 0.
-
-// By copy
-Matrix d=c;        // Make d a copy of c.
-
-// By moving from another target
-Matrix e=func2(...);  // func2(...) returns a Matrix
-Matrix f=other.reduce_rank<I, J>();  // Where other is an
-                                     // rvalue tensor and
-                                     // I and J are the
-                                     // kept dimensions
-\end{code}
-
-The `reduce\_rank' example requires that `I' and `J' are less than the rank of the tensor,
-and that the dimensions not kept are all 1-long in the higher ranked type.  Note that the
-higher ranked type will be left in a valid to destroy, but not valid to access state.
-
-\subsection{MatrixViews}
-%-------------------------------------------------------------------------
-
-A \typeindex{MatrixView} is a view on an existing Matrix, in the same way
-as a \shortcode{VectorView} is a view on an existing Vector. Like a
-VectorView, a MatrixView cannot be resized and does not contain the
-actual data. A view is generated by using Ranges:
-
-\begin{code}
-Matrix x(10,20);                  // Create 10x20 matrix.
-MatrixView a = x;                 // Now a refers to the
-                                  // whole of x;
-MatrixView b = x(Range(joker),Range(joker));
-                                  // Same effect.
-MatrixView c = x[Range(0,2),Range(0,2)];
-                                  // 2x2 sub-matrix.
-\end{code}
-
-You probably get the idea. Note that the second argument of Range gives
-the number of elements to take, not the index of the last element. See
-the section about Vectors for more examples how to use Range. You can
-use \shortcode{joker}, and also the third argument of Range to select only
-every nth row, or column, or reverse the order of the rows or columns.
-
-In analogy to the Vector case, you should use the two classes
-\shortcode{MatrixView} and \typeindex{ConstMatrixView} as function arguments.
-Please refer to the discussion in the Vector section for details. As
-in the case of VectorViews, all arguments of these types should be
-passed by value, not by reference. Also, similar to the Vector case,
-workspace methods are the exception, because they have to use the
-conventional \shortcode{const Matrix\&} or \shortcode{Matrix\&} as input/output
-arguments.
-
-\subsection{What you can do with a Matrix (or MatrixView)}
-%-------------------------------------------------------------------------
-
-All examples below (except for the first) assume that \shortcode{a} is a
-Matrix or MatrixView.
-
-\subsubsection{Resize (only for Matrix, not for MatrixView!):}
-\begin{code}
-a.resize(5,10);
-\end{code}
-This makes \shortcode{a} a 5x10 Matrix (5 rows, 10 columns). The new Matrix
-is not initialized (i.e., the contents will be unpredictable). Also,
-note that the previous content will be completely lost.
-
-\subsubsection{Get the number of rows or columns:}
-\begin{code}
-cout << a.nrows();
-cout << a.ncols();
-\end{code}
-
-\subsubsection{Refer to a row or column:}
-\begin{code}
-Vector x = a(0,Range(joker));           // First row.
-Vector y = a(Range(joker),a.ncols()-1); // Last column.
-\end{code}
-Of course, you can use more complicated Range expressions to refer to
-only parts of a row or column. However, the case that you want all
-elements of a given dimension is so
-much more common than the more sophisticated uses of the
-\shortcode{Range} class, that it is worth to introduce a simplified
-notation for this case. Therefore, you are allowed to
-omit the \shortcode{Range} and just write:
-\begin{code}
-Vector x = a(0,joker);           // First row.
-Vector y = a(joker,a.ncols()-1); // Last column.
-\end{code}
-
-Technically, expressions of this kind return the type
-\shortcode{VectorView}. This means, they can be used in all cases
-where an object of that type is expected, for example with the
-function defined in Section \ref{sec:vector_views}:
-
-\begin{code}
-silly_function(a(0,Range(joker)),
-               a(1,Range(joker))); // Call silly_function
-                                   // with first and
-                                   // second row of a.
-\end{code}
-
-
-
-\subsubsection{Element access:}
-\begin{code}
-cout << a(3,4); // Print that element.
-a(0,0) = 3.5;   // Assign 3.5 to the top-left element
-\end{code}
-
-Note that we use 0-based indexing! Furthermore note that the operator
-`()' can be also used with one or two \shortcode{Range} arguments, as
-explained above. To summarize:
-
-\begin{itemize}
-\item (\shortcode{Index},\shortcode{Index}) returns \shortcode{Numeric} (element access).
-\item (\shortcode{Index},\shortcode{Range}) or (\shortcode{Range},\shortcode{Index}) returns
-  \shortcode{VectorView} (row or column access).
-\item (\shortcode{Range},\shortcode{Range}) returns \shortcode{MatrixView}
-  (sub-matrix access).
-\end{itemize}
-
-You may find it unlogical, that Matrix uses `()' for indexing, whereas
-Vector uses `[]'. However, using `[]' for Matrix is not possible,
-since it can have only one argument. On the other hand, using `()' for
-Vector element access seemed not a good idea, since that would break
-with the established use of `[]' for element access in C and C++.
-
-\subsubsection{Copying Matrices:}
-\begin{code}
-Matrix b;
-b = a;
-\end{code}
-
-As in the case of Vectors, the `=' operator adjusts the size of the
-target automatically.
-
-\subsubsection{Copying in connection with views:}
-
-As in the case of Vectors, the `=' operator copies only the
-\emph{contents} for views, so the dimensions must match. An attempt to justify
-this behavior has been made above in the Section about Vector. As for
-Vector, you can use `=' with complicated expressions. Here is a more
-elaborate example:
-
-\begin{code}
-b(Range(0,3),Range(0,4)) =
-   a(Range(10,3),Range(3,4,-1)); // Copy a row 10-12,
-                                 // column 0-3
-                                 // to b row 0-2,
-                                 // column 0-3, reversing
-                                 // the order of columns.
-\end{code}
-Note that in this case the dimensions must match exactly, as explained
-in the Section about Vector.
-
-If you do not understand the use of Range here, refer to Section
-\ref{sec:vector_views}. 
-
-\subsubsection{Assigning a scalar:}
-\begin{code}
-a = 1.0;                        // Assign 1 to all elements.
-\end{code}
-
-\subsubsection{Mathematical operators:}
-
-You can use the operators `+=', `-=', `*=', and `/=', which operate
-element-vise, just as for Vector.
-
-\subsubsection{Maximum, minimum and mean:}
-\begin{code}
-cout << max(a);
-cout << min(a);
-cout << mean(a);
-\end{code}
-These operations act on the complete matrix. Hence, the output is a scalar
-value.
-
-\subsubsection{Arbitrary single-argument math functions:}
-
-The function \funcindex{transform} works just like for Vector.
-
-\subsubsection{Transpose:}
-\begin{code}
-Matrix b = transpose(a); // Make b the transpose of a.
-\end{code}
-
-The function \funcindex{transpose} creates a MatrixView, for which rows and
-columns are interchanged. Note, that only the way the data is accessed
-is changed, not the data itself. So Matrix \shortcode{a} in the example
-above is not changed. For this reason, transposing is very efficient.
-You can use \shortcode{transpose(a)} instead of \shortcode{a} in any matrix
-expression practically without additional cost. (This is not strictly
-true, after all, the view has to be generated and passed. But that
-cost should be negligible except for very small matrices.)
+We also offer more linear algebra implementations in the \fileindex{lin\_alg.h}, \fileindex{lin\_alg.cc}, \fileindex{matpack\_math.h}, and \fileindex{matpack\_eigen.h} files.  The first two of these files support operations such as LU decomposition, solving of linear systems, matrix inversions and diagonalizations, matrix exponents, and similar.  The \fileindex{matpack\_math.h} file contains matrix-vector, matrix-matrix, and dot-product like features as well as a few statistical functions.  The \fileindex{matpack\_eigen.h} file wraps vectors and matrices with the Eigen3 library so that more direct math works.  Be careful using these convenience functions as they can slow down code that would be faster if the direct LAPACK-call is used.
 
 \subsubsection{Matrix multiplication:}
 \begin{code}
@@ -663,249 +491,15 @@ mult(c,transpose(a),b);                      // c = a' * b
 mult(transpose(c),transpose(b),a);           // c' = b' * a
 \end{code}
 
+\subsection{Notes on minimizing runtime overhead}
+This is just a list of reminders that anyone coming back to read this should be aware of.  There is
+no specific order to these recommendations, and they are probably hardware bound, so take these with
+a grain of salt but look at the list as a "best practices" example.
 
-\section{Tensors}
-%-------------------------------------------------------------------------
-\label{sec:matpack:tensors}
-
-ARTS has tensors with rank 3 to 7. They are called
-\typeindex{Tensor3}, \typeindex{Tensor4}, \typeindex{Tensor5},
-\typeindex{Tensor6}, \typeindex{Tensor7}, and work very much like
-matrices, just with more dimensions. Some properties:
-\begin{itemize}
-\item A Tensor contains floating point values of type \builtindoc{Numeric}.
-\item The \emph{rank} of a tensor means the number of dimensions, so a
-  \builtindoc{Tensor4} has 4 dimensions. Tensors of different rank are
-  different classes. That means, the rank is fixed at compile time and
-  cannot be changed at runtime. We will use rank and dimension as
-  synonyms. 
-\item The different dimensions are named:
-\begin{itemize}
-\item Library
-\item Vitrine
-\item Shelf
-\item Book
-\item Page
-\item Row
-\item Column
-\end{itemize}
-For example, \shortcode{Tensor3 b(2,4,3)} defines a third order tensor with 2
-pages, 4 rows, and 3 columns. Note that the column dimension is always
-last. (Incidentally, a \builtindoc{Matrix} behaves exactly like a second
-order tensor, except that it has some additional features.) 
-\item A sub-range of a tensor in all dimensions (sub tensor) can
-  easily be accessed, and used as if it was just a normal tensor.
-\item More importantly, you can easily access lower dimensional
-  `slices' of a tensor. 
-\item Resizing a tensor is expensive and should be avoided.
-\end{itemize}
-
-\subsection{Constructing a tensor}
-%-------------------------------------------------------------------------
-You can construct an object of a tensor class like this:
-
-\begin{code}
-// By simple initialization
-Tensor7 a;            // Create empty tensor of rank 7
-Tensor3 b(2,4,3);     // 2 pages, 4 rows, 3 columns
-Tensor3 c(2,4,3,0.0); // Similar, but
-                      // fill it with 0.
-
-// By copy
-Tensor3 d=c;          // Make d a copy of c.
-
-// By moving from another target
-Tensor3 e3=func3(...);  // func3(...) returns a Tensor3
-Tensor4 e4=func4(...);  // func4(...) returns a Tensor4
-Tensor4 e5=func5(...);  // func5(...) returns a Tensor5
-Tensor4 e6=func6(...);  // func6(...) returns a Tensor6
-Tensor4 e7=func7(...);  // func7(...) returns a Tensor7
-Tensor3 f=other.reduce_rank<I, J, K>();  // Where other is an
-                                         // rvalue tensor of
-                                         // higher order than 3
-                                         // and I-K are the
-                                         // kept dimensions
-Tensor4 f=other.reduce_rank<I, J, K, L>();  // Where other is an
-                                         // rvalue tensor of
-                                         // higher order than 4
-                                         // and I-L are the
-                                         // kept dimensions
-Tensor5 f=other.reduce_rank<I, J, K, L, M>();  // Where other is an
-                                         // rvalue tensor of
-                                         // higher order than 5
-                                         // and I-L are the
-                                         // kept dimensions
-Tensor6 f=other.reduce_rank<I, J, K, L, M, N>();  // Where other is an
-                                         // rvalue Tensor7 and
-                                         // I-N are the kept
-                                         // dimensions
-\end{code}
-
-The `reduce\_rank' examples requires that `I' to `N' are all less than the rank of the 
-higher ranked tensor,
-and that the dimensions not kept are all 1-long of this tensor.  Note that the
-higher ranked tensor will be left in a valid to destroy, but not valid to access state.
-
-\subsection{Tensor views}
-%-------------------------------------------------------------------------
-
-Tensor views work exactly like matrix and vector views. Example:
-\begin{code}
-Tensor4 a(10,20,5,4);
-Tensor3View b = a(3,Range(1,3),joker,joker);
-\end{code}
-If you have read the previous sections carefully, it should be clear
-what this expression does.
-
-This is what is meant by slicing: You can easily create a view of a
-tensor that picks out an object of lower dimension. Note that you can
-use either an \builtindoc{Index} or a \shortcode{Range}
-argument\footnote{Using just \shortcode{joker} is equivalent to using
-  \shortcode{Range(joker)}, as explained in Section
-  \ref{sec:matpack:matrices}.} for any of the dimensions. The
-dimensionality of the result will adjust accordingly, as in the
-example above.
-
-Everything that was said about matrix and vector views holds also
-here. In particular, please always use views as function arguments. 
-
-\subsection{What you can do with a tensor (or tensor view)}
-%-------------------------------------------------------------------------
-
-All examples below (except for the first) assume that \shortcode{a} is a
-Tensor7 or Tensor7View.
-
-\subsubsection{Resize (only for tensors, not for views):}
-\begin{code}
-a.resize(5, 10, 4, 5, 3, 6, 8);
-\end{code}
-This makes \shortcode{a} the requested size. The new tensor is not
-initialized (i.e., the contents will be unpredictable). Also, note
-that the previous content will be completely lost.
-
-\subsubsection{Get the extent of the various dimensions:}
-\begin{code}
-Index nl = a.nlibraries();
-Index nv = a.nvitrines();
-Index ns = a.nshelves();
-Index nb = a.nbooks();
-Index np = a.npages();
-Index nr = a.nrows();
-Index nc = a.ncols();
-\end{code}
-
-Which of these functions are available depends on the dimension of
-your tensor. For example, \shortcode{nlibraries()} is only available for
-\builtindoc{Tensor7}. Note, that I took care that the first letters of the
-dimension names are unique, which is very convenient if you prefer short
-names for your variables that refer so some dimension of a tensor.
-
-\subsubsection{Slicing:}
-\begin{code}
-Vector x = a(0,2,1,8,3,4,joker);
-// Select row 4
-// on page 3 
-// in book 8
-// on shelf 1 
-// in vitrine 2 
-// in library 0
-// and copy it to the Vector x.
-\end{code}
-
-Any \shortcode{Range} or \builtindoc{Index} expression is allowed in any of the
-arguments, of course.
-
-\subsubsection{Element access:}
-\begin{code}
-cout << a(3,4,0,0,0,0,0); // Print that element.
-a(0,0,0,0,0,0,0) = 3.5;   // Assign 3.5 to this element.
-\end{code}
-
-\subsubsection{Copying tensors:}
-
-Works exactly like copying matrices. Size of output argument is
-adjusted for Tensors, but must already have the correct size for
-TensorViews.
-
-\subsubsection{Assigning a scalar:}
-\begin{code}
-a = 1.0;                        // Assign 1 to all elements.
-\end{code}
-
-\subsubsection{Mathematical operators:}
-
-You can use the operators `+=', `-=', `*/', and `/=', which operate
-element-vise, just as for Vector.
-
-\subsubsection{Maximum and minimum:}
-\begin{code}
-cout << max(a);
-cout << min(a);
-\end{code}
-
-\subsubsection{Arbitrary single-argument math functions:}
-
-The function \funcindex{transform} works just like for Vector.
-
-\subsection{Making things appear larger than they are}
-
-Assume that you have written a function that performs some calculation
-for a \builtindoc{Tensor5}:
-\begin{code}
-void my_function(Tensor5View x);
-\end{code}
-
-\noindent Can you call this function with a \builtindoc{Tensor4}? Yes, you can:
-\begin{code}
-Tensor4 a;                      
-Tensor5View b = a;              // The extent of the first
-                                // dimension of b will be 1.
-my_function(b);                 // Call the function.
-\end{code}
-
-In general, you can always create a view that is one dimension bigger
-than what you have. The leading dimension then has extent 1. There is
-one important exception: If you interpret a \builtindoc{Vector} as a
-\builtindoc{Matrix}, the trailing dimension will be 1, not the leading
-dimension. This is necessary, because the vector has to act like a
-column vector, so that matrix-vector products work in the normal way.
-Of course you can use telescoping to blow up anything to
-\builtindoc{Tensor7}: 
-
-\begin{code}
-Numeric b = 3.1415;             // Just any number here.
-Tensor7View bt7 =
-  Tensor6View(
-     Tensor5View(
-        Tensor4View(
-           Tensor3View(
-              MatrixView(
-                 VectorView(b)
-              )
-           )
-        )
-     )
-  );                 // All dimensions of bt7 will be 1!
-\end{code}
-
-This kind of conversion works also implicitly. So, instead of the
-first example, you could have simply written:
-\begin{code}
-my_function(a);
-\end{code}
-
-The purpose of this feature is to avoid having to make special
-versions of auxiliary functions for all different tensor
-dimensions. Use it wisely! There is very little runtime overhead for
-this, since the data itself is not copied.
-
-\subsection{Summary}
-
-This is all. In particular, we have no tensor products, since they
-are not needed. So, tensors are mostly used to store things, notably
-atmospheric field and so on.  There is a set of sophisticated
-interpolation routines, though, which are described separately in
-Chapter \ref{sec:interpolation}.
+\paragraph{Exhaustive or not?}  During the implementation of the modern iteration of \shortcode{matpack}, we
+found that exhaustive views of the data often perform between 2-5 times faster than strided views.  The cost
+is of course that you have to implement the function twice if you even end up having to call it with a
+strided view.  Your choice!
 
 
 \section{Arrays}
