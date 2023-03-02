@@ -55,7 +55,7 @@ The template class Array (also described below) is implemented in the file \file
 The \builtindoc{Sparse} class is described in the file \fileindex{matpack\_sparse.h}.
 
 \section{Arbitrary rank "tensor" --- matpack}
-This section described ranked data in ARTS.  We call template classes of our arbitrary data
+This section describes ranked data in ARTS.  We call template classes of our arbitrary data
 template class with rank above 2 "Tensor", though we fully admit that they do not conform to all the ideas
 that a mathematical tensor would.  The intent is that they should, but we are limited by the
 use that we have had of them, so further extensions that come at no cost to the quality of
@@ -103,7 +103,7 @@ The data owning template class for the type that knows its size at compile time 
 template <typename T, Index... alldim>
 struct matpack_constant_data;
 \end{code}
-It will hold a type \shortcode{T} that can be any type that can be help by \shortcode{std::array}
+It will hold a type \shortcode{T} that can be any type that can be held by \shortcode{std::array}
 and it will have a rank \shortcode{N} that is as many \builtindoc{Index} that you define in the place
 of \shortcode{alldim}.  Here are a few examples to help you understand:
 \begin{code}
@@ -125,7 +125,7 @@ matpack_constant_data<Complex, 5, 4, 3, 2> c;
 Note that while the name might be confusing, the "constant" part here refers to "constant size".  The
 "const" and "constexpr" properties of C++ still has to be applied to make the data actually not mutable.
 
-These are the named version of these types inside ARTS:
+These are the named versions of these types inside ARTS:
 \begin{itemize}
 \item THERE ARE NO TYPES EXPLICITLY NAMED YET
 \end{itemize}
@@ -145,7 +145,7 @@ to generate the type as need be.  You can do so by using the access or call oper
 object if you have a \shortcode{constant==false} object, but that this is irreversible within the type
 system.
 
-These are the named version of these types inside ARTS:
+These are the named versions of these types inside ARTS:
 \begin{itemize}
 \item THERE ARE NO TYPES EXPLICITLY NAMED YET
 \end{itemize}
@@ -189,7 +189,7 @@ Since the data is only known at compile time, these objects can all be resized
 calling the member function \shortcode{resize}.  From the example above, calling
 \shortcode{a.resize(5);} gives the object the size 5.
 
-These are the named version of these types inside ARTS:
+These are the named versions of these types inside ARTS:
 \begin{center}
 \begin{tabular}{llc}
 \\\hline
@@ -229,7 +229,7 @@ from a exhaustive view but never a exhaustive view from a strided view.  Be awar
 type is neither constant nor strided, which is why these properties are left to
 the type system and not to the type itself.
 
-These are the named version of these types inside ARTS:
+These are the named versions of these types inside ARTS:
 \begin{center}
 \begin{tabular}{llccc}
 \\\hline
