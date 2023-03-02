@@ -259,4 +259,15 @@ void extract(T& x, String& line, std::size_t n) {
   line.erase(0, N);
 }
 
+//Specialize std::hash for String (this is allowed by the standard)
+namespace std {
+  template <> struct hash<String>
+  {
+    size_t operator()(const String & x) const
+    {
+      return hash<string>{}(x);
+    }
+  };
+}
+
 #endif  // mystring_h
