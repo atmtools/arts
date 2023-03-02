@@ -1665,7 +1665,7 @@ Index get_and_set_wsv_gin_pos(Workspace& ws, Index pos, const char* const name, 
 }
 
 Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
-  const static std::map<String, Index> gins {
+  const static std::unordered_map<String, Index> gins {
 )--";
 
   std::map<String, TypeVal> has;

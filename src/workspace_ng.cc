@@ -147,8 +147,9 @@ std::shared_ptr<void> Workspace::operator[](Index i) {
 Workspace::Workspace()
     : ws(global_data::wsv_data.nelem()),
       wsv_data_ptr(std::make_shared<Array<WsvRecord>>(global_data::wsv_data)),
-      WsvMap_ptr(std::make_shared<map<String, Index>>(global_data::WsvMap)),
+      WsvMap_ptr(std::make_shared<unordered_map<String, Index>>()),
       original_workspace(this) {
+  for(auto x : global_data::WsvMap) WsvMap_ptr -> emplace(x);
   ARTS_ASSERT(wsv_data_ptr -> size() == WsvMap_ptr->size())
 
   for (Index i = 0; i < (*wsv_data_ptr).nelem(); i++) {

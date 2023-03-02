@@ -25,7 +25,7 @@
 #ifndef WORKSPACE_NG_INCLUDED
 #define WORKSPACE_NG_INCLUDED
 
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <stack>
 #include <vector>
@@ -75,7 +75,7 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
   using wsv_data_type = Array<WsvRecord>;
   std::shared_ptr<wsv_data_type> wsv_data_ptr;
 
-  using WsvMap_type = map<String, Index>;
+  using WsvMap_type = unordered_map<String, Index>;
   std::shared_ptr<WsvMap_type> WsvMap_ptr;
 
   Workspace* original_workspace;
