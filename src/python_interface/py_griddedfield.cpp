@@ -3,6 +3,7 @@
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
+#include <pybind11/stl.h>
 
 #include <functional>
 #include <optional>
@@ -99,7 +100,7 @@ void py_griddedfield(py::module_& m) {
           "gridnames",
           [](GriddedField& g) {
             const Index n = g.get_dim();
-            ArrayOfString o(n);
+            std::vector<String> o(n);
             for (Index i = 0; i < n; i++) o[i] = g.get_grid_name(i);
             return o;
           },
