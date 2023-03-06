@@ -436,7 +436,12 @@ if it is contained in the Atlas and NAN otherwise.)--");
 
   wsv_groups.emplace_back("Timer", "Represents a clock");
 
-  wsv_groups.emplace_back("Time", "Represents a time stamp");
+  wsv_groups.emplace_back("Time", R"(Represents a time stamp in the format:
+"YEAR-MONTH-DAY HOUR:MINUTE:SECOND", e.g., "2023-03-06 14:32:35.35"
+
+Note that most direct user input of a Time accepts a string as above to
+represent the time stamp.
+)");
 
   wsv_groups.emplace_back(
       "TessemNN", "Data required by TESSEM to calculate surface emissivity");
