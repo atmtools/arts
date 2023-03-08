@@ -279,6 +279,71 @@ def unwrap_lon(lon, lat):
     return out
 
 
+def polar_ppath_default_figure(figure_kwargs):
+    """ Get the default figure by standard inputs
+
+    Parameters
+    ----------
+    figure_kwargs : dict, optional
+        Arguments to put into plt.figure().
+
+    Returns
+    -------
+    A matplotlib figure, optional
+        A figure
+    """
+    return plt.figure(**figure_kwargs)
+
+
+def polar_ppath_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
+    """ Get the default axes
+
+    Parameters
+    ----------
+    fig : A matplotlib figure
+        A figure
+    draw_lat_lon : bool, optional
+        Whether or not latitude and longitude vs radius angles are drawn.
+        Def: True
+    draw_map : bool, optional
+        Whether or not latitude and longitude map is drawn.  Def: True
+    draw_za_aa : bool, optional
+        Whether or not Zenith and Azimuth angles are drawn.  Def: False
+
+    Returns
+    -------
+    A list of five matplotlib axes objects
+        A tuple of five axis.
+
+        The order is [lat, lon, map, za, aa]
+
+    """
+    R = draw_map + (draw_za_aa or draw_lat_lon)
+    Z = 2 * draw_lat_lon
+    C = 2 * draw_za_aa + Z
+
+    ax_lat = fig.add_subplot(R, C, 1, polar=True) \
+        if draw_lat_lon else None
+    ax_lon = fig.add_subplot(R, C, 2, polar=True) \
+        if draw_lat_lon else None
+    ax_za = fig.add_subplot(R, C, 1 + Z, polar=True) \
+        if draw_za_aa else None
+    ax_aa = fig.add_subplot(R, C, 2 + Z, polar=True) \
+        if draw_za_aa else None
+    ax_map = fig.add_subplot(R, 1, R, polar=False, aspect=0.5) \
+        if draw_map else None
+
+    if draw_za_aa and draw_lat_lon:
+        ax_lat.set_position([0.0, 1.0, 0.2, 0.2])
+        ax_lon.set_position([0.3, 1.0, 0.2, 0.2])
+        ax_za .set_position([0.6, 1.0, 0.2, 0.2])
+        ax_aa .set_position([0.9, 1.0, 0.2, 0.2])
+        if draw_map:
+            ax_map.set_position([0.1, 0.4, 1.0, 0.5])
+
+    return [ax_lat, ax_lon, ax_map, ax_za, ax_aa]
+
+
 def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
                 figure_kwargs={"dpi": 300},
                 draw_lat_lon=True, draw_map=True, draw_za_aa=False,
@@ -306,9 +371,9 @@ def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
     ppath : pyarts.arts.Ppath
         A single propagation path object
     planetary_radius : float, optional
-        See polar_part
+        See polar_ppath_helper
     rscale : TYPE, optional
-        See polar_part
+        See polar_ppath_helper
     figure_kwargs : dict, optional
         Arguments to put into plt.figure(). The default is {"dpi": 300}.
     draw_lat_lon : bool, optional
@@ -322,7 +387,7 @@ def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
         A figure. The default is None, which generates a new figure.
     axes : A list of five matplotlib axes objects, optional
         A tuple of five axis. The default is None, which generates new axes.
-        The order are [lat, lon, map, za, aa]
+        The order is [lat, lon, map, za, aa]
 
     Returns
     -------
@@ -332,36 +397,12 @@ def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
         As input.
 
     """
-    planetary_radius = float(planetary_radius)
-
     if fig is None:
-        fig = plt.figure(**figure_kwargs)
+        fig = polar_ppath_default_figure(figure_kwargs)
 
     if axes is None:
-        R = draw_map + (draw_za_aa or draw_lat_lon)
-        Z = 2 * draw_lat_lon
-        C = 2 * draw_za_aa + Z
-
-        ax_lat = fig.add_subplot(R, C, 1, polar=True) \
-            if draw_lat_lon else None
-        ax_lon = fig.add_subplot(R, C, 2, polar=True) \
-            if draw_lat_lon else None
-        ax_za = fig.add_subplot(R, C, 1 + Z, polar=True) \
-            if draw_za_aa else None
-        ax_aa = fig.add_subplot(R, C, 2 + Z, polar=True) \
-            if draw_za_aa else None
-        ax_map = fig.add_subplot(R, 1, R, polar=False, aspect=0.5) \
-            if draw_map else None
-
-        if draw_za_aa and draw_lat_lon:
-            ax_lat.set_position([0.0, 1.0, 0.2, 0.2])
-            ax_lon.set_position([0.3, 1.0, 0.2, 0.2])
-            ax_za .set_position([0.6, 1.0, 0.2, 0.2])
-            ax_aa .set_position([0.9, 1.0, 0.2, 0.2])
-            if draw_map:
-                ax_map.set_position([0.1, 0.4, 1.0, 0.5])
-
-        axes = [ax_lat, ax_lon, ax_map, ax_za, ax_aa]
+        axes = polar_ppath_default_axes(fig,
+                                        draw_lat_lon, draw_map, draw_za_aa)
 
     # Set radius and convert degrees
     rad = ppath.pos[:, 0] if ppath.pos.shape[1] > 0 else []
