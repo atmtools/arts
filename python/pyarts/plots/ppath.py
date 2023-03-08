@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def polar_ppath_helper(rad, tht, planetary_radius, rscale, ax=None):
-    """ Just the polar plots required by polar_ppath.  This is a helper func
+    """Just the polar plots required by polar_ppath.  This is a helper func
 
     Parameters
     ----------
@@ -30,10 +30,10 @@ def polar_ppath_helper(rad, tht, planetary_radius, rscale, ax=None):
     if ax is None:
         ax = plt.subplot(111, polar=True)
 
-    ax.plot(tht, rad / rscale + planetary_radius/rscale)
-    ax.set_rmin(planetary_radius/rscale)
+    ax.plot(tht, rad / rscale + planetary_radius / rscale)
+    ax.set_rmin(planetary_radius / rscale)
 
-    ax.set_theta_zero_location('E')
+    ax.set_theta_zero_location("E")
     ax.set_thetalim(-np.pi, np.pi)
     ax.set_thetagrids(np.arange(-180, 179, 30))
 
@@ -41,7 +41,7 @@ def polar_ppath_helper(rad, tht, planetary_radius, rscale, ax=None):
 
 
 def polar_ppath_rad_unit(rscale):
-    """ Returns the radial unit
+    """Returns the radial unit
 
     Parameters
     ----------
@@ -66,7 +66,7 @@ def polar_ppath_rad_unit(rscale):
 
 
 def polar_ppath_lat(rad, lat, planetary_radius, rscale, ax=None):
-    """ Basic plot for ppath latitudes
+    """Basic plot for ppath latitudes
 
     Parameters
     ----------
@@ -94,16 +94,17 @@ def polar_ppath_lat(rad, lat, planetary_radius, rscale, ax=None):
 
     ax = polar_ppath_helper(rad, lat, planetary_radius, rscale, ax)
     ax.set_frame_on(False)
-    ax.set_title("Latitude vs "
-                 f"{'Altitude' if planetary_radius==0 else 'Radius'}")
-    ax.set_thetalim(-np.pi/2, np.pi/2)
+    ax.set_title(
+        "Latitude vs " f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+    )
+    ax.set_thetalim(-np.pi / 2, np.pi / 2)
     ax.set_thetagrids(np.arange(-90, 91, 45))
 
     return ax
 
 
 def polar_ppath_lon(rad, lon, planetary_radius, rscale, ax=None):
-    """ Basic plot for ppath longitudes
+    """Basic plot for ppath longitudes
 
     Parameters
     ----------
@@ -131,9 +132,10 @@ def polar_ppath_lon(rad, lon, planetary_radius, rscale, ax=None):
 
     ax = polar_ppath_helper(rad, lon, planetary_radius, rscale, ax)
     ax.set_frame_on(False)
-    ax.set_title("Longitude vs "
-                 f"{'Altitude' if planetary_radius==0 else 'Radius'}")
-    ax.set_theta_zero_location('S')
+    ax.set_title(
+        "Longitude vs " f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+    )
+    ax.set_theta_zero_location("S")
     ax.set_thetagrids(np.arange(-180, 179, 45))
     ax.set_yticklabels([])  # Disable r-ticks by bad name
 
@@ -141,7 +143,7 @@ def polar_ppath_lon(rad, lon, planetary_radius, rscale, ax=None):
 
 
 def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
-    """ Basic plot for ppath longitudes
+    """Basic plot for ppath longitudes
 
     Parameters
     ----------
@@ -170,9 +172,9 @@ def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
     plot_data = None
     for [londeg, latdeg] in unwrap_lon(lon, lat):
         if plot_data is None:
-            plot_data, = ax.plot(londeg, latdeg)
+            (plot_data,) = ax.plot(londeg, latdeg)
         else:
-            plot_data, = ax.plot(londeg, latdeg, color=plot_data.get_color())
+            (plot_data,) = ax.plot(londeg, latdeg, color=plot_data.get_color())
 
     ax.set_ylim(-90, 90)
     ax.set_xlim(-180, 180)
@@ -186,7 +188,7 @@ def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
 
 
 def polar_ppath_za(za, ax=None):
-    """ Basic plot for ppath longitudes
+    """Basic plot for ppath longitudes
 
     Parameters
     ----------
@@ -210,14 +212,14 @@ def polar_ppath_za(za, ax=None):
     ax.set_title("Zenith Angle")
     ax.set_thetalim(0, np.pi)
     ax.set_thetagrids(np.arange(0, 181, 45))
-    ax.set_theta_zero_location('N')
+    ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
 
     return ax
 
 
 def polar_ppath_aa(aa, ax=None):
-    """ Basic plot for ppath longitudes
+    """Basic plot for ppath longitudes
 
     Parameters
     ----------
@@ -239,7 +241,7 @@ def polar_ppath_aa(aa, ax=None):
     ax = polar_ppath_helper(np.ones_like(aa), aa, 0.0, 1.0, ax)
     ax.set_frame_on(False)
     ax.set_title("Azimuth Angle")
-    ax.set_theta_zero_location('N')
+    ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
     ax.set_thetagrids(np.arange(-180, 179, 45))
     ax.set_yticklabels([])  # Disable r-ticks by bad name
@@ -248,7 +250,7 @@ def polar_ppath_aa(aa, ax=None):
 
 
 def unwrap_lon(lon, lat):
-    """ Unwraps the lat and lon for plotting purposes.  This is a helper func
+    """Unwraps the lat and lon for plotting purposes.  This is a helper func
 
     Parameters
     ----------
@@ -280,7 +282,7 @@ def unwrap_lon(lon, lat):
 
 
 def polar_ppath_default_figure(figure_kwargs):
-    """ Get the default figure by standard inputs
+    """Get the default figure by standard inputs
 
     Parameters
     ----------
@@ -296,7 +298,7 @@ def polar_ppath_default_figure(figure_kwargs):
 
 
 def polar_ppath_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
-    """ Get the default axes
+    """Get the default axes
 
     Parameters
     ----------
@@ -322,33 +324,37 @@ def polar_ppath_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
     Z = 2 * draw_lat_lon
     C = 2 * draw_za_aa + Z
 
-    ax_lat = fig.add_subplot(R, C, 1, polar=True) \
-        if draw_lat_lon else None
-    ax_lon = fig.add_subplot(R, C, 2, polar=True) \
-        if draw_lat_lon else None
-    ax_za = fig.add_subplot(R, C, 1 + Z, polar=True) \
-        if draw_za_aa else None
-    ax_aa = fig.add_subplot(R, C, 2 + Z, polar=True) \
-        if draw_za_aa else None
-    ax_map = fig.add_subplot(R, 1, R, polar=False, aspect=0.5) \
-        if draw_map else None
+    ax_lat = fig.add_subplot(R, C, 1, polar=True) if draw_lat_lon else None
+    ax_lon = fig.add_subplot(R, C, 2, polar=True) if draw_lat_lon else None
+    ax_za = fig.add_subplot(R, C, 1 + Z, polar=True) if draw_za_aa else None
+    ax_aa = fig.add_subplot(R, C, 2 + Z, polar=True) if draw_za_aa else None
+    ax_map = (
+        fig.add_subplot(R, 1, R, polar=False, aspect=0.5) if draw_map else None
+    )
 
     if draw_za_aa and draw_lat_lon:
         ax_lat.set_position([0.0, 1.0, 0.2, 0.2])
         ax_lon.set_position([0.3, 1.0, 0.2, 0.2])
-        ax_za .set_position([0.6, 1.0, 0.2, 0.2])
-        ax_aa .set_position([0.9, 1.0, 0.2, 0.2])
+        ax_za.set_position([0.6, 1.0, 0.2, 0.2])
+        ax_aa.set_position([0.9, 1.0, 0.2, 0.2])
         if draw_map:
             ax_map.set_position([0.1, 0.4, 1.0, 0.5])
 
     return [ax_lat, ax_lon, ax_map, ax_za, ax_aa]
 
 
-def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
-                figure_kwargs={"dpi": 300},
-                draw_lat_lon=True, draw_map=True, draw_za_aa=False,
-                fig=None, axes=None):
-    """  Plots a single observation in a polar coordinate system
+def polar_ppath(
+    ppath,
+    planetary_radius=0.0,
+    rscale=1000,
+    figure_kwargs={"dpi": 300},
+    draw_lat_lon=True,
+    draw_map=True,
+    draw_za_aa=False,
+    fig=None,
+    axes=None,
+):
+    """Plots a single observation in a polar coordinate system
 
     The default layout is:
         LAT.vs.RAD | LON.vs.RAD
@@ -401,8 +407,9 @@ def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
         fig = polar_ppath_default_figure(figure_kwargs)
 
     if axes is None:
-        axes = polar_ppath_default_axes(fig,
-                                        draw_lat_lon, draw_map, draw_za_aa)
+        axes = polar_ppath_default_axes(
+            fig, draw_lat_lon, draw_map, draw_za_aa
+        )
 
     # Set radius and convert degrees
     rad = ppath.pos[:, 0] if ppath.pos.shape[1] > 0 else []
@@ -415,13 +422,16 @@ def polar_ppath(ppath, planetary_radius=0.0, rscale=1000,
 
     if draw_lat_lon:
         axes[0] = polar_ppath_lat(rad, lat, planetary_radius, rscale, axes[0])
-        axes[0].set_ylabel(f"{'Altitude' if planetary_radius==0 else 'Radius'}"
-                           f" [{polar_ppath_rad_unit(rscale)}]")
+        axes[0].set_ylabel(
+            f"{'Altitude' if planetary_radius==0 else 'Radius'}"
+            f" [{polar_ppath_rad_unit(rscale)}]"
+        )
         axes[1] = polar_ppath_lon(rad, lon, planetary_radius, rscale, axes[1])
 
     if draw_map:
-        axes[2] = polar_ppath_map(latdeg, londeg, planetary_radius, rscale,
-                                  axes[2])
+        axes[2] = polar_ppath_map(
+            latdeg, londeg, planetary_radius, rscale, axes[2]
+        )
 
     if draw_za_aa:
         axes[3] = polar_ppath_za(za, axes[3])
@@ -440,9 +450,9 @@ def polar_ppath_list(
     fig=None,
     axes=None,
     select="end",
-    show="poslos"
+    show="poslos",
 ):
-    """ Wraps polar_ppath for a list of ppaths with optional outputs
+    """Wraps polar_ppath for a list of ppaths with optional outputs
 
     This function takes several ppath objects in a list and manipulates them
     based on the option input to form a new ppath object that only has a valid
@@ -456,12 +466,12 @@ def polar_ppath_list(
     Parameters
     ----------
     ppaths : list of Ppath
-        A list of path calculations.
+        A list of Ppath.
     planetary_radius : float, optional
-        See polar_part
+        See polar_ppath
     rscale : float, optional
-        See polar_part
-    figure_kwargs : TYPE, optional
+        See polar_ppath
+    figure_kwargs : dict, optional
         See polar_ppath
     fig : TYPE, optional
         See polar_ppath
@@ -498,10 +508,12 @@ def polar_ppath_list(
         my_path.pos = [ppath.start_pos for ppath in ppaths]
         my_path.los = [ppath.start_los for ppath in ppaths]
     elif "low" == select:
-        my_path.pos = np.concatenate([ppath.pos[ppath.r[:].min() == ppath.r[:]]
-                                      for ppath in ppaths])
-        my_path.los = np.concatenate([ppath.los[ppath.r[:].min() == ppath.r[:]]
-                                      for ppath in ppaths])
+        my_path.pos = np.concatenate(
+            [ppath.pos[ppath.r[:].min() == ppath.r[:]] for ppath in ppaths]
+        )
+        my_path.los = np.concatenate(
+            [ppath.los[ppath.r[:].min() == ppath.r[:]] for ppath in ppaths]
+        )
     elif "all" == select:
         my_path.pos = np.concatenate([ppath.pos for ppath in ppaths])
         my_path.los = np.concatenate([ppath.los for ppath in ppaths])
@@ -509,8 +521,13 @@ def polar_ppath_list(
         assert False, f"Unknown selection: '{select}'"
 
     return polar_ppath(
-        ppath=my_path, planetary_radius=planetary_radius, rscale=rscale,
+        ppath=my_path,
+        planetary_radius=planetary_radius,
+        rscale=rscale,
         figure_kwargs=figure_kwargs,
-        draw_lat_lon=draw_lat_lon, draw_map=draw_map, draw_za_aa=draw_za_aa,
-        fig=fig, axes=axes
+        draw_lat_lon=draw_lat_lon,
+        draw_map=draw_map,
+        draw_za_aa=draw_za_aa,
+        fig=fig,
+        axes=axes,
     )
