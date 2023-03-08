@@ -30,7 +30,9 @@ def polar_ppath_helper(rad, tht, planetary_radius, rscale, ax=None):
     if ax is None:
         ax = plt.subplot(111, polar=True)
 
-    ax.plot(tht, rad / rscale + planetary_radius / rscale)
+    st = '-' if len(rad) > 1 else 'x'
+
+    ax.plot(tht, rad / rscale + planetary_radius / rscale, st)
     ax.set_rmin(planetary_radius / rscale)
 
     ax.set_theta_zero_location("E")
@@ -169,12 +171,14 @@ def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
     if ax is None:
         ax = plt.subplot(111, polar=False)
 
+    st = '-' if len(lat) > 1 else 'x'
+
     plot_data = None
     for [londeg, latdeg] in unwrap_lon(lon, lat):
         if plot_data is None:
-            (plot_data,) = ax.plot(londeg, latdeg)
+            (plot_data,) = ax.plot(londeg, latdeg, st)
         else:
-            (plot_data,) = ax.plot(londeg, latdeg, color=plot_data.get_color())
+            (plot_data,) = ax.plot(londeg, latdeg, st, color=plot_data.get_color())
 
     ax.set_ylim(-90, 90)
     ax.set_xlim(-180, 180)
@@ -351,6 +355,7 @@ def polar_ppath(
     draw_lat_lon=True,
     draw_map=True,
     draw_za_aa=False,
+    select="all",
     fig=None,
     axes=None,
 ):
@@ -389,6 +394,8 @@ def polar_ppath(
         Whether or not latitude and longitude map is drawn.  Def: True
     draw_za_aa : bool, optional
         Whether or not Zenith and Azimuth angles are drawn.  Def: False
+    select : str, optional
+        Choose to use "all", "start", or "end" data from Ppath
     fig : A matplotlib figure, optional
         A figure. The default is None, which generates a new figure.
     axes : A list of five matplotlib axes objects, optional
@@ -412,13 +419,40 @@ def polar_ppath(
         )
 
     # Set radius and convert degrees
-    rad = ppath.pos[:, 0] if ppath.pos.shape[1] > 0 else []
-    latdeg = ppath.pos[:, 1] if ppath.pos.shape[1] > 1 else []
-    londeg = ppath.pos[:, 2] if ppath.pos.shape[1] > 2 else []
+    e = np.array([])
+    if "all" == select:
+        rad = ppath.pos[:, 0] if ppath.pos.shape[1] > 0 else e
+        latdeg = ppath.pos[:, 1] if ppath.pos.shape[1] > 1 else e
+        londeg = ppath.pos[:, 2] if ppath.pos.shape[1] > 2 else e
+        za = np.deg2rad(ppath.los[:, 0]) if ppath.los.shape[1] > 0 else e
+        aa = np.deg2rad(ppath.los[:, 1]) if ppath.los.shape[1] > 1 else e
+    elif "end" == select:
+        ps = ppath.end_pos.shape[0]
+        ls = ppath.end_los.shape[0]
+        rad = np.array([ppath.end_pos[0]]) if ps > 0 else e
+        latdeg = np.array([ppath.end_pos[1]]) if ps > 1 else e
+        londeg = np.array([ppath.end_pos[2]]) if ps > 2 else e
+        za = np.deg2rad([ppath.end_los[0]]) if ls > 0 else e
+        aa = np.deg2rad([ppath.end_los[1]]) if ls > 1 else e
+    elif "start" == select:
+        ps = ppath.start_pos.shape[0]
+        ls = ppath.start_los.shape[0]
+        rad = np.array([ppath.start_pos[0]]) if ps > 0 else e
+        latdeg = np.array([ppath.start_pos[1]]) if ps > 1 else e
+        londeg = np.array([ppath.start_pos[2]]) if ps > 2 else e
+        za = np.deg2rad([ppath.start_los[0]]) if ls > 0 else e
+        aa = np.deg2rad([ppath.start_los[1]]) if ls > 1 else e
+    elif "low" == select:
+        p = ppath.r[:].min() == ppath.r[:]
+        rad = ppath.pos[p, 0] if ppath.pos.shape[1] > 0 else e
+        latdeg = ppath.pos[p, 1] if ppath.pos.shape[1] > 1 else e
+        londeg = ppath.pos[p, 2] if ppath.pos.shape[1] > 2 else e
+        za = np.deg2rad(ppath.los[p, 0]) if ppath.los.shape[1] > 0 else e
+        aa = np.deg2rad(ppath.los[p, 1]) if ppath.los.shape[1] > 1 else e
+    else:
+        assert False, f"Bad selection: {select}"
     lat = np.deg2rad(latdeg)
     lon = np.deg2rad(londeg)
-    za = np.deg2rad(ppath.los[:, 0]) if ppath.los.shape[1] > 0 else []
-    aa = np.deg2rad(ppath.los[:, 1]) if ppath.los.shape[1] > 1 else []
 
     if draw_lat_lon:
         axes[0] = polar_ppath_lat(rad, lat, planetary_radius, rscale, axes[0])
@@ -528,6 +562,7 @@ def polar_ppath_list(
         draw_lat_lon=draw_lat_lon,
         draw_map=draw_map,
         draw_za_aa=draw_za_aa,
+        select='all',
         fig=fig,
         axes=axes,
     )
