@@ -93,7 +93,7 @@ void field_of_propagation(Workspace& ws,
             mag_field,
             los,
             nlte_field(i, j, k),
-            vmr_field(joker, i, j, k),
+            Vector{vmr_field(joker, i, j, k)},
             t_field(i, j, k),
             p_grid[i],
             false);

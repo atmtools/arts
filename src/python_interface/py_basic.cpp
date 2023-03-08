@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <py_auto_interface.h>
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
@@ -71,7 +72,8 @@ void py_basic(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
       .PythonInterfaceIndexItemAccess(String)
-      .PythonInterfaceBasicRepresentation(String)
+      .def("__repr__", [](const String& s){return var_string(std::quoted(s));}, py::is_operator())
+      .def("__str__", [](const String& s){return var_string(s);}, py::is_operator())
       .def(py::self + py::self)
       .def(py::self += py::self)
       .def(py::self == py::self)
@@ -152,7 +154,8 @@ object's instances (i.e., no element-wise comparisions))--");
           "value",
           [](Numeric_& x) { return x.val; },
           [](Numeric_& x, Numeric_ y) { x.val = y.val; })
-      .PythonInterfaceBasicRepresentation(Numeric_)
+      .def("__repr__", [](const Numeric_& x){return var_string(x);}, py::is_operator())
+      .def("__str__", [](const Numeric_& x){return var_string(x);}, py::is_operator())
       .def(
           "savexml",
           [](const Numeric_& x,
@@ -220,7 +223,8 @@ You can get copies and set the value by the "value" property)--");
           "value",
           [](Index_& x) { return x.val; },
           [](Index_& x, Index_ y) { x.val = y.val; })
-      .PythonInterfaceBasicRepresentation(Index_)
+      .def("__repr__", [](const Index_& x){return var_string(x);}, py::is_operator())
+      .def("__str__", [](const Index_& x){return var_string(x);}, py::is_operator())
       .def(
           "savexml",
           [](const Index_& x,
@@ -284,8 +288,8 @@ You can get copies and set the value by the "value" property)--");
   py::class_<Any>(m, "Any")
       .def(py::init([]() { return std::make_unique<Any>();; }))
       .def(py::init([](const py::args&, const py::kwargs&) { return std::make_unique<Any>(); }))
-      .def("__repr__", [](Any&) { return "Any"; })
-      .def("__str__", [](Any&) { return "Any"; })
+      .def("__repr__", [](Any&) { return "Any"; }, py::is_operator())
+      .def("__str__", [](Any&) { return "Any"; }, py::is_operator())
       .def(py::pickle([](const py::object&) { return py::make_tuple(); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
