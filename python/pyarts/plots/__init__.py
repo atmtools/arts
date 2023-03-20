@@ -3,4 +3,12 @@
 from pyarts.plots.arts_lookup import *  # noqa
 from pyarts.plots.ppath import *  # noqa
 
-__all__ = [s for s in dir() if not s.startswith("_")]
+
+__all__ = [  # noqa
+    # pyarts.plots.arts_lookup:
+    'plot_arts_lookup',
+
+    # pyarts.plots.ppath:
+    'polar_ppath',
+    'polar_ppath_list',
+]

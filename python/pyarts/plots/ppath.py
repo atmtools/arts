@@ -1,10 +1,17 @@
+""" Functions to plot :class:`pyarts.arts.Ppath` in different ways """
+
 import pyarts
 import numpy as np
 import matplotlib.pyplot as plt
 
+__all__ = [
+    'polar_ppath',
+    'polar_ppath_list',
+]
+
 
 def polar_ppath_helper(rad, tht, planetary_radius, rscale, ax=None):
-    """Just the polar plots required by polar_ppath.  This is a helper func
+    """Just the polar plots required by :func:`polar_ppath`.
 
     Parameters
     ----------
@@ -14,10 +21,11 @@ def polar_ppath_helper(rad, tht, planetary_radius, rscale, ax=None):
         List of angles [in radian].
     planetary_radius : float
         A planetary radius in same unit as rad.
-    rscale : A rescaler for the radius
-        This will rescale values.  If rad is in meters, rscale=1000 means that
-        the scale is now in kilometers
-    ax : matplotlib axis, optional
+    rscale : float
+        This will rescale values.  As rad is in meters, rscale=1000 means that
+        the scale is now in kilometers.  See :func:`polar_ppath_rad_unit` for
+        good options
+    ax : Axes, optional
         The axis to draw at. The default is None, which generates a default
         polar coordinate.
 
@@ -49,7 +57,7 @@ def polar_ppath_rad_unit(rscale):
     ----------
     rscale : float
         1.0 for "m", 1000 for "km", 1e6 for "Mm.
-        Defaults to "???"
+        Otherwise returns "???"
 
     Returns
     -------
@@ -81,7 +89,7 @@ def polar_ppath_lat(rad, lat, planetary_radius, rscale, ax=None):
     rscale : A rescaler for the radius
         This will rescale values.  If rad is in meters, rscale=1000
         means that the scale is now in kilometers
-    ax : matplotlib axis, optional
+    ax : Axes, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -119,7 +127,7 @@ def polar_ppath_lon(rad, lon, planetary_radius, rscale, ax=None):
     rscale : A rescaler for the radius
         This will rescale values.  If rad is in meters, rscale=1000
         means that the scale is now in kilometers
-    ax : matplotlib axis, optional
+    ax : Axes, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -144,7 +152,7 @@ def polar_ppath_lon(rad, lon, planetary_radius, rscale, ax=None):
     return ax
 
 
-def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
+def polar_ppath_map(lat, lon, ax=None):
     """Basic plot for ppath longitudes
 
     Parameters
@@ -153,12 +161,7 @@ def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
         List of latitudes [in degrees]
     lon : np.array
         List of longitudes [in degrees].
-    planetary_radius : float
-        A planetary radius in same unit as rad.
-    rscale : A rescaler for the radius
-        This will rescale values.  If rad is in meters, rscale=1000
-        means that the scale is now in kilometers
-    ax : matplotlib axis, optional
+    ax : Axes, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -178,7 +181,8 @@ def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
         if plot_data is None:
             (plot_data,) = ax.plot(londeg, latdeg, st)
         else:
-            (plot_data,) = ax.plot(londeg, latdeg, st, color=plot_data.get_color())
+            (plot_data,) = ax.plot(londeg, latdeg, st,
+                                   color=plot_data.get_color())
 
     ax.set_ylim(-90, 90)
     ax.set_xlim(-180, 180)
@@ -192,13 +196,13 @@ def polar_ppath_map(lat, lon, planetary_radius, rscale, ax=None):
 
 
 def polar_ppath_za(za, ax=None):
-    """Basic plot for ppath longitudes
+    """Basic plot for ppath zeniths
 
     Parameters
     ----------
     za : np.array
         List of Zenith angles [in radians]
-    ax : matplotlib axis, optional
+    ax : Axes, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -223,13 +227,13 @@ def polar_ppath_za(za, ax=None):
 
 
 def polar_ppath_aa(aa, ax=None):
-    """Basic plot for ppath longitudes
+    """Basic plot for ppath azimuths
 
     Parameters
     ----------
     aa : np.array
         List of Azimuth angles [in radians]
-    ax : matplotlib axis, optional
+    ax : Axes, optional
         The axis to draw at. The default is None, which generates a
         default polar coordinate.
 
@@ -306,7 +310,7 @@ def polar_ppath_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
 
     Parameters
     ----------
-    fig : A matplotlib figure
+    fig : Figure
         A figure
     draw_lat_lon : bool, optional
         Whether or not latitude and longitude vs radius angles are drawn.
@@ -318,7 +322,7 @@ def polar_ppath_default_axes(fig, draw_lat_lon, draw_map, draw_za_aa):
 
     Returns
     -------
-    A list of five matplotlib axes objects
+    A list of five Axes
         A tuple of five axis.
 
         The order is [lat, lon, map, za, aa]
@@ -361,10 +365,7 @@ def polar_ppath(
 ):
     """Plots a single observation in a polar coordinate system
 
-    The default layout is:
-        LAT.vs.RAD | LON.vs.RAD
-        -----------------------
-              LAT.vs.LON
+    Use the draw_* variables to select which plots are done
 
     The polar plots' central point is at the surface of the planet, i.e., at
     planetary_radius/rscale.  The radius of these plots are the scaled down
@@ -382,9 +383,9 @@ def polar_ppath(
     ppath : pyarts.arts.Ppath
         A single propagation path object
     planetary_radius : float, optional
-        See polar_ppath_helper
-    rscale : TYPE, optional
-        See polar_ppath_helper
+        See :func:`polar_ppath_helper`
+    rscale : float, optional
+        See :func:`polar_ppath_helper`
     figure_kwargs : dict, optional
         Arguments to put into plt.figure(). The default is {"dpi": 300}.
     draw_lat_lon : bool, optional
@@ -396,9 +397,9 @@ def polar_ppath(
         Whether or not Zenith and Azimuth angles are drawn.  Def: False
     select : str, optional
         Choose to use "all", "start", or "end" data from Ppath
-    fig : A matplotlib figure, optional
+    fig : Figure, optional
         A figure. The default is None, which generates a new figure.
-    axes : A list of five matplotlib axes objects, optional
+    axes : A list of five Axes, optional
         A tuple of five axis. The default is None, which generates new axes.
         The order is [lat, lon, map, za, aa]
 
@@ -463,9 +464,7 @@ def polar_ppath(
         axes[1] = polar_ppath_lon(rad, lon, planetary_radius, rscale, axes[1])
 
     if draw_map:
-        axes[2] = polar_ppath_map(
-            latdeg, londeg, planetary_radius, rscale, axes[2]
-        )
+        axes[2] = polar_ppath_map(latdeg, londeg, axes[2])
 
     if draw_za_aa:
         axes[3] = polar_ppath_za(za, axes[3])
@@ -486,38 +485,47 @@ def polar_ppath_list(
     select="end",
     show="poslos",
 ):
-    """Wraps polar_ppath for a list of ppaths with optional outputs
+    """Wraps :func:`polar_ppath` for a list of ppaths
 
     This function takes several ppath objects in a list and manipulates them
     based on the option input to form a new ppath object that only has a valid
-    pos field.  This new ppath object is the passed directly to polar_ppath
-    to plot the polar coordinate and mapping information about pathing
+    pos field.  This new ppath object is the passed directly to
+    :func:`polar_ppath` to plot the polar coordinate and mapping information
+    about pathing
 
-    For example, by default, the option argument is end_pos, which means that
-    this call would plot the satellite orbit if the ppaths describe a set of
-    satallite (ordered) observations
+    For example, by default, the select argument is "end", which means that
+    this call would plot the sensor position for each Ppath
 
     Parameters
     ----------
-    ppaths : list of Ppath
-        A list of Ppath.
+    ppaths : list of pyarts.arts.Ppath
+        A list of :class:`Ppath` (or pyarts.arts.ArrayOfPpath).
     planetary_radius : float, optional
-        See polar_ppath
+        See :func:`polar_ppath`
     rscale : float, optional
-        See polar_ppath
+        See :func:`polar_ppath`
     figure_kwargs : dict, optional
-        See polar_ppath
-    fig : TYPE, optional
-        See polar_ppath
-    axes : TYPE, optional
-        See polar_ppath
+        See :func:`polar_ppath`
+    fig : Figure, optional
+        See :func:`polar_ppath`
+    axes : Axes, optional
+        See :func:`polar_ppath`
     select : str, optional
         The selection criteria for the positions and line of sights in the
-        ppath list.  Default is "end".  Options are: "end" for end_pos and
-        end_los, "start" for start_pos and start_los, "low" for the lowest
-        r pos and los, and "all" for all pos and los
-    show : str/list, optional
+        ppath list.  Default is "end".
+        Options are:
+            - "end" - end_pos and end_los for each :class:`Ppath`
+            - "start" - start_pos and start_los for each :class:`Ppath`
+            - "low" - the lowest r's pos and los for each :class:`Ppath`
+            - "all" - all pos and los for each :class:`Ppath`
+
+    show : str or list, optional
         Selects what to show.  Default is "poslos" for showing everything.
+        Options are:
+            - "pos" - show the position
+            - "los" - show the line of sight
+            - "no_map" - don't show the map
+
         The python "in" operator is used to determine what to show, and the
         triggers are: "pos" to show ppath pos, "los" to show ppath los, and
         "no_map" to not show the map.  Note that for all intents and purposes,
@@ -527,7 +535,7 @@ def polar_ppath_list(
 
     Returns
     -------
-    See polar_ppath.
+    As :func:`polar_ppath`.
 
     """
     draw_map = "no_map" not in show
