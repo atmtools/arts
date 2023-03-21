@@ -96,15 +96,6 @@ using SpeciesTagType = Species::TagType;
 
 using SpeciesTag = Species::Tag;
 
-//! Allow SpeciesTag to be used in hashes
-struct SpeciesTagHash {
-  std::size_t operator()(const SpeciesTag &g) const {
-    return std::hash<Index>{}(g.spec_ind) ^
-           (std::hash<Numeric>{}(g.lower_freq) << 1) ^
-           (std::hash<Numeric>{}(-1) << 2) ^ (EnumHash{}(g.type) << 3) ^
-           (EnumHash{}(g.cia_2nd_species) << 4);
-  }
-};
 
 class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 public:
@@ -174,19 +165,6 @@ public:
   
   [[nodiscard]] bool Particles() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec){return spec.Type() == Species::TagType::Particles;});
-  }
-};
-
-//! Allow ArrayOfSpeciesTag to be used in hashes
-struct ArrayOfSpeciesTagHash {
-  std::size_t operator()(const ArrayOfSpeciesTag &g) const {
-    std::size_t out = 0;
-    std::size_t i = 1;
-    for (auto& a: g) {
-      out ^= (SpeciesTagHash{}(a) << i);
-      i++;
-    }
-    return out;
   }
 };
 
@@ -277,5 +255,31 @@ Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
  */
 Array<Tag> parse_tags(std::string_view text);
 } // namespace Species
+
+namespace std {
+//! Allow SpeciesTag to be used in hashes
+template <> struct hash<SpeciesTag> {
+  std::size_t operator()(const SpeciesTag &g) const {
+    return std::hash<Index>{}(g.spec_ind) ^
+           (std::hash<Numeric>{}(g.lower_freq) << 1) ^
+           (std::hash<Numeric>{}(-1) << 2) ^
+           (std::hash<Species::TagType>{}(g.type) << 3) ^
+           (std::hash<Species::Species>{}(g.cia_2nd_species) << 4);
+  }
+};
+
+//! Allow ArrayOfSpeciesTag to be used in hashes
+template <> struct hash<ArrayOfSpeciesTag> {
+  std::size_t operator()(const ArrayOfSpeciesTag &g) const {
+    std::size_t out = 0;
+    std::size_t i = 1;
+    for (auto &a : g) {
+      out ^= (std::hash<SpeciesTag>{}(a) << i);
+      i++;
+    }
+    return out;
+  }
+};
+} // namespace std
 
 #endif  // species_tags_h

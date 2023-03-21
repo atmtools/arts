@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
@@ -12,6 +13,7 @@
 #include <variant>
 
 #include "arts_constants.h"
+#include "compare.h"
 #include "debug.h"
 #include "enums.h"
 #include "gridded_fields.h"
@@ -56,8 +58,8 @@ private:
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  std::unordered_map<ArrayOfSpeciesTag, Numeric, ArrayOfSpeciesTagHash> specs{};
-  std::unordered_map<QuantumIdentifier, Numeric, Quantum::Number::GlobalStateHash> nlte{};
+  std::unordered_map<ArrayOfSpeciesTag, Numeric> specs{};
+  std::unordered_map<QuantumIdentifier, Numeric> nlte{};
 
 public:
   Numeric pressure{0};
@@ -68,6 +70,11 @@ public:
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
   Point(Ts&&... ts) requires((N % 2) == 0) {
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
+  }
+
+  void reserve(Index nspec, Index nnlte) {
+    specs.reserve(nspec);
+    nlte.reserve(nnlte);
   }
 
   template<KeyType T>
@@ -163,6 +170,10 @@ public:
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] static constexpr Index nother() {return static_cast<Index>(enumtyps::KeyTypes.size());}
 
+  constexpr bool zero_wind() const noexcept {
+    return std::all_of(wind.begin(), wind.end(), Cmp::eq(0));
+  }
+
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
 
@@ -253,9 +264,9 @@ private:
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
-  std::unordered_map<Key, Data, EnumHash> other{};
-  std::unordered_map<ArrayOfSpeciesTag, Data, ArrayOfSpeciesTagHash> specs{};
-  std::unordered_map<QuantumIdentifier, Data, Quantum::Number::GlobalStateHash> nlte{};
+  std::unordered_map<Key, Data> other{};
+  std::unordered_map<ArrayOfSpeciesTag, Data> specs{};
+  std::unordered_map<QuantumIdentifier, Data> nlte{};
 
   [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
  
@@ -382,3 +393,4 @@ public:
 
 using AtmField = Atm::Field;
 using AtmPoint = Atm::Point;
+using ArrayOfAtmPoint = Array<AtmPoint>;

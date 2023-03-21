@@ -450,13 +450,6 @@ struct TwoLevelValueHolder {
   }
 };
 
-struct TwoLevelValueHolderHash {
-  std::size_t operator()(const TwoLevelValueHolder &g) const {
-    return std::hash<std::string_view>{}(g.upp.s.val()) ^
-           (std::hash<std::string_view>{}(g.low.s.val()) << 1);
-  }
-};
-
 /** Takes a rational and determine which type of quantum number it is,
  * returning this information or throwing a runtime error if there's
  * an error
@@ -1011,18 +1004,6 @@ class ValueList {
   [[nodiscard]] bool good() const;
 };
 
-struct ValueListHash {
-  std::size_t operator()(const ValueList &g) const {
-    std::size_t out = 0;
-    std::size_t i = 1;
-    for (auto& x: g) {
-      out ^= (EnumHash{}(x.type) ^ (TwoLevelValueHolderHash{}(x.qn) << 1)) << i;
-      i++;
-    }
-    return out;
-  }
-};
-
 ValueList from_hitran(std::string_view upp, std::string_view low);
 
 //! A logical struct for local quantum numbers
@@ -1056,13 +1037,6 @@ struct LocalState {
 
   //! Test if there are bad quantum numbers (undefined ones)
   [[nodiscard]] bool good() const;
-};
-
-//! Allow global state to be used in hashes
-struct LocalStateHash {
-  std::size_t operator()(const LocalState &g) const {
-    return ValueListHash{}(g.val);
-  }
 };
 
 struct LevelTest {bool upp{true}, low{true};};
@@ -1110,14 +1084,6 @@ struct GlobalState {
 
   //! Test if there are bad quantum numbers (undefined ones) or if the isotopologue is not a normal target
   [[nodiscard]] bool good() const;
-};
-
-//! Allow global state to be used in hashes
-struct GlobalStateHash {
-  std::size_t operator()(const GlobalState &g) const {
-    return static_cast<std::size_t>(g.isotopologue_index) ^
-           (ValueListHash{}(g.val) << 1);
-  }
 };
 
 //! StateMatchType operates so that a check less than a level should be 'better', bar None
@@ -1255,5 +1221,45 @@ using QuantumNumberValueList = Quantum::Number::ValueList;
 using QuantumNumberLocalState = Quantum::Number::LocalState;
 using QuantumIdentifier = Quantum::Number::GlobalState;
 using ArrayOfQuantumIdentifier = Array<QuantumIdentifier>;
+
+namespace std {
+//! Allow Quantum::Number::TwoLevelValueHolder to be used in hashes
+template <> struct hash<Quantum::Number::TwoLevelValueHolder> {
+  std::size_t operator()(const Quantum::Number::TwoLevelValueHolder &g) const {
+    return std::hash<std::string_view>{}(g.upp.s.val()) ^
+           (std::hash<std::string_view>{}(g.low.s.val()) << 1);
+  }
+};
+
+//! Allow QuantumNumberValueList to be used in hashes
+template <> struct hash<QuantumNumberValueList> {
+  std::size_t operator()(const QuantumNumberValueList &g) const {
+    std::size_t out = 0;
+    std::size_t i = 1;
+    for (auto &x : g) {
+      out ^= (std::hash<Quantum::Number::Type>{}(x.type) ^
+              (std::hash<Quantum::Number::TwoLevelValueHolder>{}(x.qn) << 1))
+             << i;
+      i++;
+    }
+    return out;
+  }
+};
+
+//! Allow QuantumNumberLocalState to be used in hashes
+struct LocalStateHash {
+  std::size_t operator()(const QuantumNumberLocalState &g) const {
+    return std::hash<QuantumNumberValueList>{}(g.val);
+  }
+};
+
+//! Allow QuantumIdentifier to be used in hashes
+template <> struct hash<QuantumIdentifier> {
+  std::size_t operator()(const QuantumIdentifier &g) const {
+    return static_cast<std::size_t>(g.isotopologue_index) ^
+           (std::hash<QuantumNumberValueList>{}(g.val) << 1);
+  }
+};
+} // namespace std
 
 #endif  // quantun_numbers_h
