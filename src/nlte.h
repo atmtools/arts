@@ -27,7 +27,7 @@ struct VibrationalEnergyLevels {
   using T = Numeric;
   using size_type = std::size_t;
 
-  std::unordered_map<Key, T, Quantum::Number::GlobalStateHash> data;
+  std::unordered_map<Key, T> data;
 
   [[nodiscard]] auto begin() {return data.begin();}
   [[nodiscard]] auto begin() const {return data.begin();}
