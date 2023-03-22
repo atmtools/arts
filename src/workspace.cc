@@ -523,6 +523,42 @@ void define_wsv_data() {
       GROUP("GriddedField4")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("atm_field"),
+      DESCRIPTION(
+          R"--(An atmospheric field in ARTS
+
+The atmospheric field defines the altitude of the top-of-the-atmosphere,
+as well as the variables that are required for the radiative transfer
+calculations along a path through the atmosphere.
+
+This atmospheric field may exist on a regular grid but can also be
+free-form. Some methods require the atmospheric field to be on a regular
+grid, so we provide INSERT-METHOD-NAME-HERE to regularize the field grid.
+
+The atmospheric field may, but does not have to, consist of the following:
+    Temperature         - Kelvin
+    Pressure            - Pascal
+    Wind                - Meters per second
+    Magnetic Field      - Tesla
+    Species content     - See user guide for relevant species
+    NLTE ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
+)--"),
+      GROUP("AtmField")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("atm_point"),
+      DESCRIPTION(
+          R"--(An atmospheric point in ARTS
+
+The atmospheric point consists of all the relevant atmospheric field data
+at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
+at a single altitude-latitude-longitude but may of course be generated manually.
+
+See *atm_field* for the data that may be available in the atmospheric point.
+)--"),
+      GROUP("AtmPoint")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("atmosphere_dim"),
       DESCRIPTION(
           "The atmospheric dimensionality (1-3).\n"

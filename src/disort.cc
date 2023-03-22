@@ -371,12 +371,8 @@ void get_gasoptprop(Workspace& ws,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
                                    Vector{f_grid},
-                                   rtp_mag_dummy,
                                    ppath_los_dummy,
-                                   p_grid[ip],
-                                   t_profile[ip],
-                                   rtp_nlte_dummy,
-                                   Vector{vmr_profiles(joker, ip)},
+                                   AtmPoint{},  // FIXME: DUMMY VALUE
                                    propmat_clearsky_agenda);
     ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
   }

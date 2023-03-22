@@ -29,6 +29,7 @@
  */
 
 #include "arts_conversions.h"
+#include "atm.h"
 #include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
@@ -114,34 +115,22 @@ void propmat_clearskyAddHitranLineMixingLines(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const Verbosity&) {
   ARTS_USER_ERROR_IF(jacobian_quantities.nelem(),
                      "Cannot support any Jacobian at this time");
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                      "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq rtp_vmr.nelem(),
-                     "Bad size of input species+vmrs");
 
-  // vmrs should be [air, water, co2]
-  Vector vmrs(3, 0);
+  // vmrs should be [air, water, co2]  FIXME: confirm, because code disagreed
+  const Numeric water = atm_point[Species::Species::Water];
+  const Numeric co2 = atm_point[Species::Species::CarbonDioxide];
+  const Vector vmrs{co2, water, 1.0-co2-water};
+
   for (Index i = 0; i < abs_species.nelem(); i++) {
-    auto& specs = abs_species[i];
-    if (select_abs_species.nelem() and select_abs_species not_eq specs)
+    if (select_abs_species.nelem() and select_abs_species not_eq abs_species[i])
       continue;
-    for (auto& spec : specs) {
-      if (Species::fromShortName("H2O") == spec.Spec()) {
-        vmrs[1] = rtp_vmr[i];
-      } else if (Species::fromShortName("CO2") == spec.Spec()) {
-        vmrs[0] = rtp_vmr[i];
-      }
-    }
-  }
-  vmrs[2] = 1.0 - vmrs[1] - vmrs[0];
 
-  for (Index i = 0; i < abs_species.nelem(); i++) {
     if (abs_lines_per_species[i].nelem() and
         (abs_lines_per_species[i].front().population ==
              Absorption::PopulationType::ByHITRANFullRelmat or
@@ -151,8 +140,8 @@ void propmat_clearskyAddHitranLineMixingLines(
           lm_hitran_2017::compute(abs_hitran_relmat_data,
                                   abs_lines_per_species[i],
                                   isotopologue_ratios,
-                                  rtp_pressure,
-                                  rtp_temperature,
+                                  atm_point.pressure,
+                                  atm_point.temperature,
                                   vmrs,
                                   f_grid);
   }

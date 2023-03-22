@@ -1777,12 +1777,8 @@ void OptimizeDoitPressureGrid(
                                    ArrayOfRetrievalQuantity(0),
                                    {},
                                    Vector{f_grid[Range(f_index, 1)]},
-                                   rtp_mag_dummy,
                                    ppath_los_dummy,
-                                   p_grid[k],
-                                   t_field(k, 0, 0),
-                                   rtp_nlte_dummy,
-                                   Vector{vmr_field(joker, k, 0, 0)},
+                                   AtmPoint{},  // FIXME: DUMMY VALUE,
                                    propmat_clearsky_agenda);
     abs_coeff += cur_propmat_clearsky.Kjj()[0];
     abs_coeff /= (Numeric)vmr_field.nbooks();  // FIXME: Is this really as intended???

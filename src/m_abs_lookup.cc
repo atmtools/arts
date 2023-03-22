@@ -47,6 +47,7 @@
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
 #include "rng.h"
+#include "species_tags.h"
 
 using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
 using GriddedFieldGrids::GFIELD4_P_GRID;
@@ -405,11 +406,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
                                            abs_species[i],
                                            f_grid,
                                            {},
-                                           {},
-                                           abs_p[p],
-                                           this_t[p],
-                                           {},
-                                           rtp_vmr,
+                                           AtmPoint{},  // FIXME: DUMMY VALUE
                                            propmat_clearsky_agenda);
             K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], this_t[p]);
             abs_lookup.xsec(j, spec, Range(joker), p) = K.Kjj();
@@ -2012,9 +2009,7 @@ void propmat_clearskyAddFromLookup(
     const Index& abs_nls_interp_order,
     const Index& abs_f_interp_order,
     const Vector& f_grid,
-    const Numeric& a_pressure,
-    const Numeric& a_temperature,
-    const Vector& a_vmr_list,
+    const AtmPoint& atm_point,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -2038,6 +2033,13 @@ void propmat_clearskyAddFromLookup(
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
 
+  const Vector a_vmr_list = [&]() {
+    Vector vmr(abs_species.nelem());
+    std::transform(abs_species.begin(), abs_species.end(), vmr.begin(),
+                   [&](const ArrayOfSpeciesTag& spec) -> Numeric { return atm_point[spec]; });
+    return vmr;
+  }();
+
   // The combination of doing frequency jacobian together with an
   // absorption lookup table is quite dangerous. If the frequency
   // interpolation order for the table is zero, the Jacobian will be
@@ -2057,8 +2059,8 @@ void propmat_clearskyAddFromLookup(
                      abs_t_interp_order,
                      abs_nls_interp_order,
                      abs_f_interp_order,
-                     a_pressure,
-                     a_temperature,
+                     atm_point.pressure,
+                     atm_point.temperature,
                      a_vmr_list,
                      f_grid,
                      extpolfac);
@@ -2071,21 +2073,21 @@ void propmat_clearskyAddFromLookup(
                        abs_t_interp_order,
                        abs_nls_interp_order,
                        abs_f_interp_order,
-                       a_pressure,
-                       a_temperature,
+                       atm_point.pressure,
+                       atm_point.temperature,
                        a_vmr_list,
                        dfreq,
                        extpolfac);
   }
   if (do_temp_jac) {
-    const Numeric dtemp = a_temperature + dt;
+    const Numeric dtemp = atm_point.temperature + dt;
     abs_lookup.Extract(dabs_scalar_gas_dt,
                        select_abs_species,
                        abs_p_interp_order,
                        abs_t_interp_order,
                        abs_nls_interp_order,
                        abs_f_interp_order,
-                       a_pressure,
+                       atm_point.pressure,
                        dtemp,
                        a_vmr_list,
                        f_grid,
@@ -2292,12 +2294,8 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                            jacobian_quantities,
                                            {},
                                            this_f_grid,
-                                           this_rtp_mag,
                                            los,
-                                           a_pressure,
-                                           a_temperature,
-                                           a_nlte_list,
-                                           a_vmr_list,
+                                           AtmPoint{},  // FIXME: DUMMY VALUE
                                            abs_agenda);
             
             // Convert from derivative to absorption

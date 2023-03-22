@@ -17,12 +17,8 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfSpeciesTag& select_abs_species,
     const Vector& f_grid,
-    const Vector& rtp_mag,
     const Vector& rtp_los,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const EnergyLevelMap& rtp_nlte,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const Agenda& propmat_clearsky_agenda,
     // WS Generic Input:
     const ArrayOfSpeciesTag& target,
@@ -49,12 +45,8 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
                                    jacobian_quantities,
                                    target,
                                    f_grid,
-                                   rtp_mag,
                                    rtp_los,
-                                   rtp_pressure,
-                                   rtp_temperature,
-                                   rtp_nlte,
-                                   rtp_vmr,
+                                   atm_point,
                                    propmat_clearsky_agenda);
 
     ARTS_USER_ERROR_IF(propmat_clearsky.Data().shape() not_eq pm.Data().shape(), "Mismatching sizes")

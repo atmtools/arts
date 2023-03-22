@@ -39,6 +39,7 @@
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -711,12 +712,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                      ArrayOfRetrievalQuantity(0),
                                      {},
                                      Vector{f_grid[Range(f_index, 1)]},
-                                     rtp_mag_dummy,
                                      ppath_los_dummy,
-                                     rtp_pressure,
-                                     rtp_temperature,
-                                     rtp_nlte_dummy,
-                                     rtp_vmr,
+                                     AtmPoint{},  // FIXME: DUMMY VALUE
                                      propmat_clearsky_agenda);
 
       opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
@@ -836,12 +833,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                      ArrayOfRetrievalQuantity(0),
                                      {},
                                      Vector{f_grid[Range(f_index, 1)]},
-                                     rtp_mag_dummy,
                                      ppath_los_dummy,
-                                     rtp_pressure,
-                                     rtp_temperature,
-                                     rtp_nlte_dummy,
-                                     rtp_vmr,
+                                     AtmPoint{},  // FIXME: DUMMY VALUE
                                      propmat_clearsky_agenda);
 
       opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
@@ -1444,12 +1437,8 @@ void cloud_RT_no_background(Workspace& ws,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
                                    Vector{f_grid[Range(f_index, 1)]},
-                                   rtp_mag_dummy,
                                    ppath_los_dummy,
-                                   p_int[k],
-                                   t_int[k],
-                                   rtp_nlte_dummy,
-                                   Vector{vmr_list_int(joker, k)},
+                                   AtmPoint{},  // FIXME: DUMMY VALUE
                                    propmat_clearsky_agenda);
 
     // Skip any further calculations for the first point.

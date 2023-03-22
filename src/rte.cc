@@ -1141,13 +1141,9 @@ void get_stepwise_clearsky_propmat(
     ArrayOfStokesVector& dS_dx,
     const Agenda& propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& ppath_f_grid,
-    const Vector& ppath_magnetic_field,
-    const Vector& ppath_line_of_sight,
-    const EnergyLevelMap& ppath_nlte,
-    const Vector& ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
+    const ConstVectorView& ppath_f_grid,
+    const ConstVectorView& ppath_line_of_sight,
+    const AtmPoint& atm_point,
     const bool& jacobian_do) {
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
@@ -1157,13 +1153,9 @@ void get_stepwise_clearsky_propmat(
                                  dS_dx,
                                  jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
                                  {},
-                                 ppath_f_grid,
-                                 ppath_magnetic_field,
-                                 ppath_line_of_sight,
-                                 ppath_pressure,
-                                 ppath_temperature,
-                                 ppath_nlte,
-                                 ppath_vmrs,
+                                 Vector{ppath_f_grid},
+                                 Vector{ppath_line_of_sight},
+                                 atm_point,
                                  propmat_clearsky_agenda);
 
   // If there are no NLTE values, then set the LTE flag as true

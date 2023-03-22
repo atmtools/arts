@@ -90,12 +90,8 @@ void field_of_propagation(Workspace& ws,
             propmat_clearsky_agenda,
             jacobian_quantities,
             f_grid,
-            mag_field,
             los,
-            nlte_field(i, j, k),
-            Vector{vmr_field(joker, i, j, k)},
-            t_field(i, j, k),
-            p_grid[i],
+            AtmPoint{},  // FIXME: DUMMY VALUE,
             false);
         absorption_field(i, j, k) = propmat_field(i, j, k);
       }

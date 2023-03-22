@@ -141,6 +141,8 @@ public:
     }
   }
 
+  Numeric operator[](Species::Species x) const noexcept;
+
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
     const auto has_ = [](auto &x [[maybe_unused]],
@@ -170,9 +172,15 @@ public:
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] static constexpr Index nother() {return static_cast<Index>(enumtyps::KeyTypes.size());}
 
-  constexpr bool zero_wind() const noexcept {
+  [[nodiscard]] constexpr bool zero_wind() const noexcept {
     return std::all_of(wind.begin(), wind.end(), Cmp::eq(0));
   }
+
+  [[nodiscard]] constexpr bool zero_mag() const noexcept {
+    return std::all_of(mag.begin(), mag.end(), Cmp::eq(0));
+  }
+
+  [[nodiscard]] bool is_lte() const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };

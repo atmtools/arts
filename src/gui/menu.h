@@ -2,6 +2,7 @@
 
 #include <limits>
 
+#include "atm.h"
 #include "debug.h"
 #include "enums.h"
 #include "gui.h"
@@ -30,12 +31,20 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
                                Vector &,Vector &,
                                const ArrayOfString &keys);
 [[nodiscard]] bool change_item(const char *,
-                               Vector &,Vector &,
+                               std::array<Numeric, 3> &,std::array<Numeric, 3> &,
+                               const std::array<String, 3> &keys);
+[[nodiscard]] bool change_item(const char *,
+                               AtmPoint &,AtmPoint &,
                                const ArrayOfArrayOfSpeciesTag &,
                                Options &);
 [[nodiscard]] bool change_item(
     const char *,
     Vector &,Vector &,
+    Numeric min = std::numeric_limits<Numeric>::lowest(),
+    Numeric max = std::numeric_limits<Numeric>::max());
+[[nodiscard]] bool change_item(
+    const char *,
+    std::array<Numeric, 3> &,std::array<Numeric, 3> &,
     Numeric min = std::numeric_limits<Numeric>::lowest(),
     Numeric max = std::numeric_limits<Numeric>::max());
 

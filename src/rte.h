@@ -507,34 +507,26 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @param[in] propmat_clearsky_agenda As WSA
  * @param[in] jacobian_quantities As WSV
  * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
- * @param[in] ppath_mag_field Magnetic field at propagation path point
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
- * @param[in] ppath_nlte NLTE distribution at propagation path point
- * @param[in] ppath_vmrs Volume mixing ratio of atmospheric species at propagation path point
- * @param[in] ppath_temperature Temperature of atmosphere at propagation path point
- * @param[in] ppath_pressure Pressure of atmosphere at propagation path point
+ * @param[in] atm_point As WSV
  * @param[in] jacobian_do As WSV
  * 
  * @author Richard Larsson 
  * @date   2017-09-21
  */
 void get_stepwise_clearsky_propmat(
-    Workspace& ws,
-    PropagationMatrix& K,
-    StokesVector& S,
-    Index& lte,
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& ppath_f_grid,
-    const Vector& ppath_magnetic_field,
-    const Vector& ppath_line_of_sight,
-    const EnergyLevelMap& ppath_nlte,
-    const Vector& ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const bool& jacobian_do);
+  Workspace& ws,
+  PropagationMatrix& K,
+  StokesVector& S,
+  Index& lte,
+  ArrayOfPropagationMatrix& dK_dx,
+  ArrayOfStokesVector& dS_dx,
+  const Agenda& propmat_clearsky_agenda,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
+  const ConstVectorView& ppath_f_grid,
+  const ConstVectorView& ppath_line_of_sight,
+  const AtmPoint& atm_point,
+  const bool& jacobian_do);
 
 /** Computes the ratio that a partial derivative with regards to frequency
  *  relates to the wind of come component

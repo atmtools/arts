@@ -76,12 +76,8 @@ void define_agenda_data() {
       INPUT("jacobian_quantities",
             "select_abs_species",
             "f_grid",
-            "rtp_mag",
             "rtp_los",
-            "rtp_pressure",
-            "rtp_temperature",
-            "rtp_nlte",
-            "rtp_vmr")));
+            "atm_point")));
 
   agenda_data.push_back(
       AgRecord(NAME("dobatch_calc_agenda"),

@@ -919,13 +919,9 @@ This feature will be added in a future version.
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    Vector{ppvar_f(joker, ip)},
-                                    Vector{ppvar_mag(joker, ip)},
-                                    Vector{ppath.los(ip, joker)},
-                                    ppvar_nlte[ip],
-                                    Vector{ppvar_vmr(joker, ip)},
-                                    ppvar_t[ip],
-                                    ppvar_p[ip],
+                                    ppvar_f(joker, ip),
+                                    ppath.los(ip, joker),
+                                    AtmPoint{},  // FIXME: DUMMY VALUE,
                                     j_analytical_do);
 
       // get Extinction from gas scattering
