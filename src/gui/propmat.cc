@@ -368,7 +368,7 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
       opts.xscale,
       (opts.inverse_propmat_scale ? 1.0 / opts.propmat_scale_const
                                   : opts.propmat_scale_const) /
-          yscale(opts.propmat_scale, v.rtp_temperature, v.rtp_pressure, pm),
+          yscale(opts.propmat_scale, v.atm_point.temperature, v.atm_point.pressure, pm),
       opts.smooth_counter};
 
   std::array<char, 100> yscale_str;
@@ -549,12 +549,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
              ArrayOfRetrievalQuantity& jacobian_quantities,
              ArrayOfSpeciesTag& select_abs_species,
              Vector& f_grid,
-             Vector& rtp_mag,
              Vector& rtp_los,
-             Numeric& rtp_pressure,
-             Numeric& rtp_temperature,
-             EnergyLevelMap&,
-             Vector& rtp_vmr,
+             AtmPoint& atm_point,
              Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species) {
   // Get Graphics data
@@ -585,11 +581,11 @@ void propmat(PropmatClearsky::ResultsArray& res,
   auto old_jacobian_quantities = jacobian_quantities;
   auto old_select_abs_species = select_abs_species;
   auto old_f_grid = f_grid;
-  auto old_rtp_mag = rtp_mag;
+  auto old_rtp_mag = atm_point.mag;
   auto old_rtp_los = rtp_los;
-  auto old_rtp_pressure = rtp_pressure;
-  auto old_rtp_temperature = rtp_temperature;
-  auto old_rtp_vmr = rtp_vmr;
+  auto old_rtp_pressure = atm_point.pressure;
+  auto old_rtp_temperature = atm_point.temperature;
+  auto old_rtp_vmr = atm_point;
   auto old_transmission_distance = transmission_distance;
 
   // Main loop
@@ -627,7 +623,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
         MainMenu::change_item("\tf_grid\t", f_grid, old_f_grid, 1) or updated;
 
     updated = MainMenu::change_item("\trtp_mag\t",
-                                    rtp_mag,
+                                    atm_point.mag,
                                     old_rtp_mag,
                                     {"\tU [T]\t", "\tV [T]\t", "\tW [T]\t"}) or
               updated;
@@ -641,14 +637,14 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
     updated = MainMenu::change_item("\trtp_pressure\t",
                                     "\t[Pa]\t",
-                                    rtp_pressure,
+                                    atm_point.pressure,
                                     old_rtp_pressure,
                                     std::numeric_limits<Numeric>::min()) or
               updated;
 
     updated = MainMenu::change_item("\trtp_temperature\t",
                                     "\t[K]\t",
-                                    rtp_temperature,
+                                    atm_point.temperature,
                                     old_rtp_temperature,
                                     std::numeric_limits<Numeric>::min()) or
               updated;
@@ -656,7 +652,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
     updated = MainMenu::change_item("\trtp_nlte\t") or updated;
 
     updated = MainMenu::change_item(
-                  "\trtp_vmr\t", rtp_vmr, old_rtp_vmr, abs_species, menu_opt) or
+                  "\trtp_vmr\t", atm_point, old_rtp_vmr, abs_species, menu_opt) or
               updated;
 
     updated = MainMenu::change_item("\tTransmission Distance\t",
@@ -873,14 +869,14 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
       // Display current pressure
       ImGui::Text("\tPressure:    %g Pa%c\t",
-                  v.rtp_pressure,
-                  rtp_pressure == v.rtp_pressure ? ' ' : '*');
+                  v.atm_point.pressure,
+                  atm_point.pressure == v.atm_point.pressure ? ' ' : '*');
       ImGui::Separator();
 
       // Display current temperature
       ImGui::Text("\tTemperature: %g K%c\t",
-                  v.rtp_temperature,
-                  rtp_temperature == v.rtp_temperature ? ' ' : '*');
+                  v.atm_point.temperature,
+                  atm_point.temperature == v.atm_point.temperature ? ' ' : '*');
       ImGui::Separator();
 
       // Display current frequency grid
@@ -899,12 +895,12 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Display current magnetic field
       ImGui::Text(
           "\tMagnetic Field:\n\t  U: %g T%c\t\n\t  V: %g T%c\t\n\t  W: %g T%c\t",
-          v.rtp_mag[0],
-          v.rtp_mag[0] == rtp_mag[0] ? ' ' : '*',
-          v.rtp_mag[1],
-          v.rtp_mag[1] == rtp_mag[1] ? ' ' : '*',
-          v.rtp_mag[2],
-          v.rtp_mag[2] == rtp_mag[2] ? ' ' : '*');
+          v.atm_point.mag[0],
+          v.atm_point.mag[0] == atm_point.mag[0] ? ' ' : '*',
+          v.atm_point.mag[1],
+          v.atm_point.mag[1] == atm_point.mag[1] ? ' ' : '*',
+          v.atm_point.mag[2],
+          v.atm_point.mag[2] == atm_point.mag[2] ? ' ' : '*');
       ImGui::Separator();
 
       // Display current LOS
@@ -922,8 +918,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
         const std::string spec{var_string(abs_species[i])};
         ImGui::Text("\t  %s:\t\n\t    %g%c",
                     spec.c_str(),
-                    v.rtp_vmr[i],
-                    v.rtp_vmr[i] == rtp_vmr[i] ? ' ' : '*');
+                    v.atm_point[abs_species[i]],
+                    v.atm_point[abs_species[i]] == atm_point[abs_species[i]] ? ' ' : '*');
       }
       ImGui::Separator();
 

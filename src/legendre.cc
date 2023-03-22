@@ -17,12 +17,10 @@ struct ColatitudeConversion {
 
 
 //! Clamps the longitude in the range [-180, 180)
-constexpr Numeric longitude_clamp(const Numeric lon) {
-  if (lon >= -180 and lon < 180)
-    return lon;
-  if (lon < -180)
-    return longitude_clamp(lon + 360);
-  return longitude_clamp(lon - 360);
+constexpr Numeric longitude_clamp(Numeric lon) {
+  while (lon <= -180) lon += 360;
+  while (lon > 180) lon -= 360;
+  return lon;
 }
 
 
@@ -226,51 +224,4 @@ MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const
   return out;
 }
 #pragma GCC diagnostic pop
-
-//! Computes the altitude, latitude and longitude in relation to the ellopsiod using non-iterative method
-std::array<Numeric, 3> to_geodetic(const std::array<Numeric, 3> xyz, const std::array<Numeric, 2> ell) noexcept {
-  using Math::pow2;
-  using Math::pow3;
-  using Math::pow4;
-
-  const Numeric X = std::get<0>(xyz);
-  const Numeric Y = std::get<1>(xyz);
-  const Numeric Z = std::get<2>(xyz);
-  const Numeric a = std::get<0>(ell);
-  const Numeric e = std::get<1>(ell);
-  const Numeric b = a * std::sqrt(1 - pow2(e));
-
-  // Output
-  std::array<Numeric, 3> pos;
-
-  if (std::abs(X) > 1 / a or std::abs(Y) > 1 / a) {
-    const Numeric DZ = std::sqrt(1 - pow2(e)) * Z;
-    const Numeric r = std::hypot(X, Y);
-    const Numeric e2p = (pow2(a) - pow2(b)) / pow2(b);
-    const Numeric F = 54 * pow2(b * Z);
-    const Numeric G = pow2(r) + pow2(DZ) - pow2(e) * (pow2(a) - pow2(b));
-    const Numeric c = pow4(e) * F * pow2(r) / pow3(G);
-    const Numeric s = std::cbrt(1 + c + std::sqrt(pow2(c) + 2 * c));
-    const Numeric fP = F / (3 * pow2(G * (s + 1 / s + 1)));
-    const Numeric Q = std::sqrt(1 + 2 * pow4(e) * fP);
-    const Numeric r0 = (-fP * pow2(e) * r) / (1 + Q) + sqrt(0.5 * pow2(a) * (1 + 1 / Q) - fP * pow2(DZ) / (Q * (1 + Q)) - 0.5 * fP * pow2(r));
-    const Numeric U = std::hypot(r - pow2(e) * r0, Z);
-    const Numeric V = std::hypot(r - pow2(e) * r0, DZ);
-    const Numeric z0 = pow2(b) * Z / (a * V);
-
-    pos[0] = U * (1 - pow2(b) / (a * V));
-    pos[1] = Conversion::atan2d(Z + e2p * z0, r);
-    pos[2] = Conversion::atan2d(Y, X);
-  } else if (std::abs(Z) < 1 / b) {
-    pos[0] = -a;
-    pos[1] = 0;
-    pos[2] = 180;
-  } else {
-    pos[0] = std::abs(Z) - b;
-    pos[1] = Z < 0 ? -90 : 90;
-    pos[2] = 0;
-  }
-
-  return pos;
-}
 } // namespace Legendre

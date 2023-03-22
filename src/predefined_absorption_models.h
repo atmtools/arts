@@ -10,6 +10,7 @@
 #ifndef fullmodel_h
 #define fullmodel_h
 
+#include "atm.h"
 #include "jacobian.h"
 #include "predefined/predef_data.h"
 #include "propagationmatrix.h"
@@ -32,8 +33,8 @@ struct VMRS {
 
   /**  Construct a new VMRS object
    * 
-   * @param abs_species 
-   * @param rtp_vmr 
+   * @param abs_species As WSV
+   * @param rtp_vmr As WSV
    */
   VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
   CO2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::CarbonDioxide)),
@@ -42,6 +43,16 @@ struct VMRS {
   H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
   LWC(Species::first_vmr(abs_species, rtp_vmr, Species::Species::liquidcloud))
   {}
+
+  /**  Construct a new VMRS object
+   *
+   * @param atm An Atmosphere
+   */
+  constexpr VMRS(const AtmPoint &atm)
+      : CO2(atm[Species::Species::CarbonDioxide]),
+        O2(atm[Species::Species::Oxygen]), N2(atm[Species::Species::Nitrogen]),
+        H2O(atm[Species::Species::Water]),
+        LWC(atm[Species::Species::liquidcloud]) {}
 
   constexpr VMRS() = default;
 

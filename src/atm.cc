@@ -575,4 +575,14 @@ GriddedField3 fix(const GriddedField2& gf) {
 GriddedField3 fix(const GriddedField1& gf) {
   return internal::adapt(gf.data, gf);
 }
+
+Numeric Point::operator[](Species::Species x) const noexcept {
+  for (auto &spec : specs) {
+    if (spec.first.Species() == x)
+      return spec.second;
+  }
+  return 0.0;
+}
+
+bool Point::is_lte() const noexcept { return nlte.empty(); }
 }  // namespace Atm

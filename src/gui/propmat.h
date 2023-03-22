@@ -4,6 +4,7 @@
 #include <jacobian.h>
 #include <propagationmatrix.h>
 
+#include "atm.h"
 #include "enums.h"
 #include "gui.h"
 #include "transmissionmatrix.h"
@@ -19,12 +20,8 @@ struct ComputeValues {
   ArrayOfRetrievalQuantity jacobian_quantities;
   ArrayOfSpeciesTag select_abs_species;
   Vector f_grid;
-  Vector rtp_mag;
   Vector rtp_los;
-  Numeric rtp_pressure;
-  Numeric rtp_temperature;
-  EnergyLevelMap rtp_nlte;
-  Vector rtp_vmr;
+  AtmPoint atm_point;
 
   Numeric transmission_distance;
   TransmissionMatrix tm;
@@ -91,12 +88,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
              ArrayOfRetrievalQuantity& jacobian_quantities,
              ArrayOfSpeciesTag& select_abs_species,
              Vector& f_grid,
-             Vector& rtp_mag,
              Vector& rtp_los,
-             Numeric& rtp_pressure,
-             Numeric& rtp_temperature,
-             EnergyLevelMap& rtp_nlte,
-             Vector& rtp_vmr,
+             AtmPoint& atm_point,
              Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species);
 }  // namespace ARTSGUI

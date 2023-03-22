@@ -10,6 +10,7 @@
 
 #include "agenda_class.h"
 #include "artstime.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "debug.h"
 #include "energylevelmap.h"
@@ -36,12 +37,8 @@ void compute(Workspace& ws,
                                  v.jacobian_quantities,
                                  v.select_abs_species,
                                  v.f_grid,
-                                 v.rtp_mag,
                                  v.rtp_los,
-                                 v.rtp_pressure,
-                                 v.rtp_temperature,
-                                 v.rtp_nlte,
-                                 v.rtp_vmr,
+                                 v.atm_point,
                                  propmat_clearsky_agenda);
 }
 
@@ -52,12 +49,8 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          ArrayOfRetrievalQuantity& jacobian_quantities,
          ArrayOfSpeciesTag& select_abs_species,
          Vector& f_grid,
-         Vector& rtp_mag,
          Vector& rtp_los,
-         Numeric& rtp_pressure,
-         Numeric& rtp_temperature,
-         EnergyLevelMap& rtp_nlte,
-         Vector& rtp_vmr,
+         AtmPoint& atm_point,
          Numeric& transmission_distance) {
   for (auto& v : ret) v.ok.store(false);
   ARTSGUI::PropmatClearsky::ComputeValues v;
@@ -76,12 +69,8 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
         v.jacobian_quantities = jacobian_quantities;
         v.select_abs_species = select_abs_species;
         v.f_grid = f_grid;
-        v.rtp_mag = rtp_mag;
         v.rtp_los = rtp_los;
-        v.rtp_pressure = rtp_pressure;
-        v.rtp_temperature = rtp_temperature;
-        v.rtp_nlte = rtp_nlte;
-        v.rtp_vmr = rtp_vmr;
+        v.atm_point = atm_point;
         v.transmission_distance = transmission_distance;
       } else {
         continue;
@@ -137,23 +126,19 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
   ArrayOfRetrievalQuantity jacobian_quantities{};
   ArrayOfSpeciesTag select_abs_species{};
   Vector f_grid=uniform_grid(1e9, 1000, 1e9);
-  Vector rtp_mag(3, 0);
   Vector rtp_los(2, 0);
-  Numeric rtp_pressure{1000};
-  Numeric rtp_temperature(300);
-  EnergyLevelMap rtp_nlte{};
-  Vector rtp_vmr(abs_species.nelem(), 1.0/Numeric(abs_species.nelem()));
   Numeric transmission_distance{1'000};
+  AtmPoint atm_point{
+    Atm::Key::temperature, 300,
+    Atm::Key::pressure, 1000
+  };
+  for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.nelem());
 
   // Set some defaults
   if (load) {
     if (auto* val = ws.get<Vector>("f_grid")) f_grid = *val;
-    if (auto* val = ws.get<Vector>("rtp_mag")) rtp_mag = *val;
     if (auto* val = ws.get<Vector>("rtp_los")) rtp_los = *val;
-    if (auto* val = ws.get<Vector>("rtp_vmr")) rtp_vmr = *val;
-    if (auto* val = ws.get<Numeric>("rtp_pressure")) rtp_pressure = *val;
-    if (auto* val = ws.get<Numeric>("rtp_temperature")) rtp_temperature = *val;
-    if (auto* val = ws.get<EnergyLevelMap>("rtp_nlte")) rtp_nlte = *val;
+    if (auto* val = ws.get<AtmPoint>("atm_point")) atm_point = *val;
   }
 
   auto success = std::async(std::launch::async,
@@ -165,12 +150,8 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
                             std::ref(jacobian_quantities),
                             std::ref(select_abs_species),
                             std::ref(f_grid),
-                            std::ref(rtp_mag),
                             std::ref(rtp_los),
-                            std::ref(rtp_pressure),
-                            std::ref(rtp_temperature),
-                            std::ref(rtp_nlte),
-                            std::ref(rtp_vmr),
+                            std::ref(atm_point),
                             std::ref(transmission_distance));
 
   if (std::getenv("ARTS_HEADLESS")) {
@@ -188,12 +169,8 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
                      jacobian_quantities,
                      select_abs_species,
                      f_grid,
-                     rtp_mag,
                      rtp_los,
-                     rtp_pressure,
-                     rtp_temperature,
-                     rtp_nlte,
-                     rtp_vmr,
+                     atm_point,
                      transmission_distance,
                      ArrayOfArrayOfSpeciesTag{abs_species});
   }

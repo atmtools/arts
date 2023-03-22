@@ -848,12 +848,8 @@ void gas_optpropCalc(Workspace& ws,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
                                    Vector{f_mono},  // monochromatic calculation
-                                   rtp_mag_dummy,
                                    ppath_los_dummy,
-                                   rtp_pressure_local,
-                                   rtp_temperature_local,
-                                   rtp_nlte_local_dummy,
-                                   rtp_vmr_local,
+                                   AtmPoint{},  // FIXME: DUMMY VALUE,
                                    propmat_clearsky_agenda);
 
     //Assuming non-polarized light and only one frequency

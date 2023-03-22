@@ -62,9 +62,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const ArrayOfXsecRecord& xsec_fit_data,
     const Numeric& force_p,
     const Numeric& force_t,
@@ -73,8 +71,6 @@ void propmat_clearskyAddXsecFit(  // WS Output:
   CREATE_OUTS;
 
   // Forward simulations and their error handling
-  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
-                     "Mismatch dimensions on species and VMR inputs");
   ARTS_USER_ERROR_IF(
       propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
@@ -135,6 +131,8 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     if (select_abs_species.nelem() and abs_species[i] not_eq select_abs_species)
       continue;
 
+    const Numeric vmr = atm_point[abs_species[i]];
+
     for (Index s = 0; s < abs_species[i].nelem(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
@@ -151,8 +149,8 @@ void propmat_clearskyAddXsecFit(  // WS Output:
       // ArrayOfMatrix& this_dxsec = do_jac ? dpropmat_clearsky_dx[i] : empty;
 
       if (do_abort) continue;
-      const Numeric current_p = force_p < 0 ? rtp_pressure : force_p;
-      const Numeric current_t = force_t < 0 ? rtp_temperature : force_t;
+      const Numeric current_p = force_p < 0 ? atm_point.pressure : force_p;
+      const Numeric current_t = force_t < 0 ? atm_point.temperature : force_t;
 
       // Get the absorption cross sections from the HITRAN data:
       this_xdata.Extract(xsec_temp, f_grid, current_p, current_t, verbosity);
@@ -167,14 +165,14 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     }
 
     // Add to result variable:
-    Numeric nd = number_density(rtp_pressure, rtp_temperature);
+    Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
     if (!do_jac) {
-      xsec_temp *= nd * rtp_vmr[i];
+      xsec_temp *= nd * vmr;
       propmat_clearsky.Kjj() += xsec_temp;
     } else {
-      Numeric dnd_dt = dnumber_density_dt(rtp_pressure, rtp_temperature);
+      Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
       for (Index f = 0; f < f_grid.nelem(); f++) {
-        propmat_clearsky.Kjj()[f] += xsec_temp[f] * nd * rtp_vmr[i];
+        propmat_clearsky.Kjj()[f] += xsec_temp[f] * nd * vmr;
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
 
@@ -182,18 +180,18 @@ void propmat_clearskyAddXsecFit(  // WS Output:
 
           if (is_frequency_parameter(deriv)) {
             dpropmat_clearsky_dx[iq].Kjj()[f] +=
-                (dxsec_temp_dF[f] - xsec_temp[f]) * nd * rtp_vmr[i] / df;
+                (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
           } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR ||
                      deriv == Jacobian::Line::VMR) {
             if (species_match(deriv, abs_species[i])) {
               dpropmat_clearsky_dx[iq].Kjj()[f] +=
-                  xsec_temp[f] * nd * rtp_vmr[i];
+                  xsec_temp[f] * nd * vmr;
             }
           } else if (deriv == Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[f] +=
                 ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
                  xsec_temp[f] * dnd_dt) *
-                rtp_vmr[i];
+                vmr;
           }
         }
       }

@@ -95,11 +95,10 @@ forward_propmat(Workspace &ws, const Agenda &propmat_clearsky_agenda,
   ArrayOfArrayOfRadiationVector dJ(np);
 
   for (Index ip = 0; ip < np; ip++) {
-    propmat_clearsky_agendaExecute(
-        ws, K[ip], S, dK[ip], dS, jacobian_quantities, empty_tag_list,
-        path_freq[ip], Vector{atm_path[ip].mag}, Vector{ppath.los[ip]},
-        atm_path[ip].pressure, atm_path[ip].temperature, {}, {},
-        propmat_clearsky_agenda);
+    propmat_clearsky_agendaExecute(ws, K[ip], S, dK[ip], dS,
+                                   jacobian_quantities, empty_tag_list,
+                                   path_freq[ip], Vector{ppath.los[ip]},
+                                   atm_path[ip], propmat_clearsky_agenda);
   }
 
   return {std::move(K), std::move(J), std::move(dK), std::move(dJ)};

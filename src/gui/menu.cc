@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "atm.h"
 #include "jacobian.h"
 #include "math_funcs.h"
 
@@ -244,9 +245,85 @@ bool change_item(const char* name,
   return did_something;
 }
 
+
+
 bool change_item(const char* name,
-                 Vector& vec,
-                 Vector& old,
+                 std::array<Numeric, 3>& vec,
+                 std::array<Numeric, 3>& old,
+                 const std::array<String, 3>& keys) {
+  constexpr Index n = 3;
+  ARTS_ASSERT(n == keys.nelem())
+  bool did_something = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("Value")) {
+      if (ImGui::BeginMenu(name)) {
+        for (Index i = 0; i < n; i++) {
+          ImGui::Text("\t");
+          ImGui::SameLine();
+          if (ImGui::InputDouble(keys[i].c_str(), &vec[i], 0, 0, "%g"))
+            did_something = true;
+          ImGui::Separator();
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
+          vec = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = vec;
+        ImGui::Separator();
+        ImGui::EndMenu();
+      }
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+  return did_something;
+}
+
+bool change_item(const char* name,
+                 std::array<Numeric, 3>& vec,
+                 std::array<Numeric, 3>& old,
+                 const ArrayOfString& keys) {
+  const Index n = 3;
+  ARTS_ASSERT(n == keys.nelem())
+  bool did_something = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("Value")) {
+      if (ImGui::BeginMenu(name)) {
+        for (Index i = 0; i < n; i++) {
+          ImGui::Text("\t");
+          ImGui::SameLine();
+          if (ImGui::InputDouble(keys[i].c_str(), &vec[i], 0, 0, "%g"))
+            did_something = true;
+          ImGui::Separator();
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
+          vec = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = vec;
+        ImGui::Separator();
+        ImGui::EndMenu();
+      }
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+  return did_something;
+}
+
+bool change_item(const char* name,
+                 AtmPoint& vec,
+                 AtmPoint& old,
                  const ArrayOfArrayOfSpeciesTag& spec,
                  Options& menu) {
   ARTS_ASSERT(vec.nelem() == spec.nelem())
@@ -287,14 +364,14 @@ bool change_item(const char* name,
                     scale * max,
                     vmr_type.c_str());
 
-        for (Index i = 0; i < vec.nelem(); i++) {
+        for (Index i = 0; i < spec.nelem(); i++) {
           const std::string spec_name{var_string('\t', spec[i], '\t')};
-          Numeric val = scale * vec[i];
+          Numeric val = scale * vec[spec[i]];
           ImGui::Text("\t");
           ImGui::SameLine();
           if (ImGui::InputDouble(spec_name.c_str(), &val, 0, 0, "%g")) {
             val /= scale;
-            vec[i] = std::clamp(val, 0.0, max);
+            vec[spec[i]] = std::clamp(val, 0.0, max);
             did_something = true;
           }
           ImGui::Separator();

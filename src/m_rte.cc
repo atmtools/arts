@@ -414,13 +414,9 @@ This feature will be added in a future version.
                                       dS_dx,
                                       propmat_clearsky_agenda,
                                       jacobian_quantities,
-                                      Vector{ppvar_f(joker, ip)},
-                                      Vector{ppvar_mag(joker, ip)},
-                                      Vector{ppath.los(ip, joker)},
-                                      ppvar_nlte[ip],
-                                      Vector{ppvar_vmr(joker, ip)},
-                                      ppvar_t[ip],
-                                      ppvar_p[ip],
+                                      ppvar_f(joker, ip),
+                                      ppath.los(ip, joker),
+                                      AtmPoint{},  // FIXME: DUMMY VALUE,
                                       j_analytical_do);
 
         if (j_analytical_do)
@@ -1148,13 +1144,9 @@ void iyEmissionHybrid(Workspace& ws,
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    Vector{ppvar_f(joker, ip)},
-                                    Vector{ppvar_mag(joker, ip)},
-                                    Vector{ppath.los(ip, joker)},
-                                    ppvar_nlte[ip],
-                                    Vector{ppvar_vmr(joker, ip)},
-                                    ppvar_t[ip],
-                                    ppvar_p[ip],
+                                    ppvar_f(joker, ip),
+                                    ppath.los(ip, joker),
+                                    AtmPoint{},  // FIXME: DUMMY VALUE
                                     j_analytical_do);
 
       if (j_analytical_do)
@@ -1364,49 +1356,6 @@ void iyEmissionHybrid(Workspace& ws,
                               jacobian_quantities,
                               j_analytical_do,
                               iy_unit);
-}
-
-void iyEmissionStandardNew(
-    Workspace& ws,
-    Matrix& iy,
-    ArrayOfMatrix& iy_aux,
-    ArrayOfTensor3& diy_dx,
-    ArrayOfAtmPoint& ppvar_atm,
-    Matrix& ppvar_f,
-    Tensor3& ppvar_iy,
-    Tensor4& ppvar_trans_cumulat,
-    Tensor4& ppvar_trans_partial,
-    const Index& iy_id,
-    const Index& stokes_dim,
-    const Vector& f_grid,
-    const Index& atmosphere_dim,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const AtmField& atm,
-    const Index& cloudbox_on,
-    const String& iy_unit,
-    const ArrayOfString& iy_aux_vars,
-    const Index& jacobian_do,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Ppath& ppath,
-    const Vector& rte_pos2,
-    const Agenda& propmat_clearsky_agenda,
-    const Agenda& water_p_eq_agenda,
-    const String& rt_integration_option,
-    const Agenda& iy_main_agenda,
-    const Agenda& iy_space_agenda,
-    const Agenda& iy_surface_agenda,
-    const Agenda& iy_cloudbox_agenda,
-    const Index& iy_agenda_call1,
-    const Tensor3& iy_transmittance,
-    const Numeric& rte_alonglos_v,
-    const Tensor3& surface_props_data,
-    const Verbosity& verbosity) {
-  forward_atm_path(atm_path_resize(ppvar_atm, ppath), ppath, atm);
-  auto path_freq = forward_ppath_freq(f_grid, ppath, ppvar_atm, rte_alonglos_v);
-
-  const static ArrayOfRetrievalQuantity empty_jacobian_quantities(0);
-  const auto [K, S, dK, dS] = forward_propmat(
-      ws, propmat_clearsky_agenda, path_freq, ppvar_atm, (jacobian_do and do_analytical_jacobian<2>(jacobian_quantities)) ? jacobian_quantities : empty_jacobian_quantities);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1630,13 +1579,9 @@ void iyEmissionStandard(
                                       dS_dx,
                                       propmat_clearsky_agenda,
                                       jacobian_quantities,
-                                      Vector{ppvar_f(joker, ip)},
-                                      Vector{ppvar_mag(joker, ip)},
-                                      Vector{ppath.los(ip, joker)},
-                                      ppvar_nlte[ip],
-                                      Vector{ppvar_vmr(joker, ip)},
-                                      ppvar_t[ip],
-                                      ppvar_p[ip],
+                                      ppvar_f(joker, ip),
+                                      ppath.los(ip, joker),
+                                      AtmPoint{},  // FIXME: DUMMY VALUE
                                       j_analytical_do);
 
         if (j_analytical_do)

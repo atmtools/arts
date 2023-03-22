@@ -32,6 +32,7 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "geodetic_OLD.h"
 #include "mc_interp.h"
@@ -310,12 +311,8 @@ void clear_rt_vars_at_gp(Workspace& ws,
                                  ArrayOfRetrievalQuantity(0),
                                  {},
                                  Vector(1, f_mono),
-                                 rtp_mag_dummy,
                                  ppath_los_dummy,
-                                 p_vec[0],
-                                 temperature,
-                                 nlte_dummy,
-                                 Vector{vmr_mat(joker, 0)},
+                                 AtmPoint{},  // FIXME: DUMMY VALUE
                                  propmat_clearsky_agenda);
 
   opt_prop_sum_propmat_clearsky(
@@ -396,12 +393,8 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
                                  ArrayOfRetrievalQuantity(0),
                                  {},
                                  Vector{f_grid[Range(f_index, 1)]},
-                                 rtp_mag_dummy,
                                  ppath_los_dummy,
-                                 p_ppath[0],
-                                 temperature,
-                                 nlte_dummy,
-                                 Vector{vmr_ppath(joker, 0)},
+                                 AtmPoint{},  // FIXME: DUMMY VALUE
                                  propmat_clearsky_agenda);
 
   opt_prop_sum_propmat_clearsky(

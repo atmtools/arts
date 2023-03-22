@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <predef_data.h>
 
+#include "atm.h"
 #include "debug.h"
 #include "logic.h"
 #include "predefined_absorption_models.h"
@@ -66,13 +67,8 @@ void propmat_clearskyAddPredefined(
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const Verbosity&) {
-  // Forward simulations and their error handling
-  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
-                     "Mismatch dimensions on species and VMR inputs");
   ARTS_USER_ERROR_IF(
       propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
@@ -91,7 +87,7 @@ void propmat_clearskyAddPredefined(
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
-  const Absorption::PredefinedModel::VMRS vmr(abs_species, rtp_vmr);
+  const Absorption::PredefinedModel::VMRS vmr(atm_point);
   for (auto& tag_groups : abs_species) {
     if (select_abs_species.nelem() and select_abs_species not_eq tag_groups)
       continue;
@@ -100,8 +96,8 @@ void propmat_clearskyAddPredefined(
                                            dpropmat_clearsky_dx,
                                            tag.Isotopologue(),
                                            f_grid,
-                                           rtp_pressure,
-                                           rtp_temperature,
+                                           atm_point.pressure,
+                                           atm_point.temperature,
                                            vmr,
                                            jacobian_quantities,
                                            predefined_model_data);

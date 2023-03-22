@@ -243,9 +243,7 @@ void propmat_clearskyAddCIA(  // WS Output:
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const ArrayOfCIARecord& abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
@@ -261,8 +259,6 @@ void propmat_clearskyAddCIA(  // WS Output:
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
-                     "*rtp_vmr* must match *abs_species*")
   ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(
@@ -275,10 +271,8 @@ void propmat_clearskyAddCIA(  // WS Output:
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(not is_increasing(f_grid),
                      "Must be sorted and increasing.")
-  ARTS_USER_ERROR_IF(any_negative(rtp_vmr),
-                     "Negative VMR (at least one value).")
-  ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+  ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
   const Numeric df = frequency_perturbation(jacobian_quantities);
@@ -290,7 +284,7 @@ void propmat_clearskyAddCIA(  // WS Output:
   const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
 
   Vector dfreq;
-  Vector dabs_t{rtp_temperature + dt};
+  Vector dabs_t{atm_point.temperature + dt};
 
   if (do_wind_jac) {
     dfreq.resize(f_grid.nelem());
@@ -374,20 +368,20 @@ void propmat_clearskyAddCIA(  // WS Output:
       // want to return a (unary) absorption cross-section, not an
       // absorption coefficient.
       const Numeric nd_sec =
-          number_density(rtp_pressure, rtp_temperature) * rtp_vmr[i_sec];
+          number_density(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
       // Get the binary absorption cross sections from the CIA data:
 
       try {
         this_cia.Extract(xsec_temp,
                          f_grid,
-                         rtp_temperature,
+                         atm_point.temperature,
                          T_extrapolfac,
                          ignore_errors,
                          verbosity);
         if (do_wind_jac) {
           this_cia.Extract(dxsec_temp_dF,
                            dfreq,
-                           rtp_temperature,
+                           atm_point.temperature,
                            T_extrapolfac,
                            ignore_errors,
                            verbosity);
@@ -395,7 +389,7 @@ void propmat_clearskyAddCIA(  // WS Output:
         if (do_temp_jac) {
           this_cia.Extract(dxsec_temp_dT,
                            f_grid,
-                           rtp_temperature + dt,
+                           atm_point.temperature + dt,
                            T_extrapolfac,
                            ignore_errors,
                            verbosity);
@@ -406,18 +400,18 @@ void propmat_clearskyAddCIA(  // WS Output:
       }
 
       if (!do_jac) {
-        xsec_temp *= nd_sec * number_density(rtp_pressure, rtp_temperature) *
-                     rtp_vmr[ispecies];
+        xsec_temp *= nd_sec * number_density(atm_point.pressure, atm_point.temperature) *
+                     atm_point[this_cia.Species(0)];
         propmat_clearsky.Kjj() += xsec_temp;
       } else {  // The Jacobian block
-        const Numeric nd = number_density(rtp_pressure, rtp_temperature);
+        const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
         const Numeric dnd_dt =
-            dnumber_density_dt(rtp_pressure, rtp_temperature);
+            dnumber_density_dt(atm_point.pressure, atm_point.temperature);
         const Numeric dnd_dt_sec =
-            dnumber_density_dt(rtp_pressure, rtp_temperature) * rtp_vmr[i_sec];
+            dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky.Kjj()[iv] +=
-              nd_sec * xsec_temp[iv] * nd * rtp_vmr[ispecies];
+              nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
           for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
             const auto& deriv = jacobian_quantities[iq];
 
@@ -426,14 +420,14 @@ void propmat_clearskyAddCIA(  // WS Output:
             if (is_wind_parameter(deriv)) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                   nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
-                  rtp_vmr[ispecies];
+                  atm_point[this_cia.Species(1)];
             } else if (deriv == Jacobian::Atm::Temperature) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                   ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                     xsec_temp[iv] * dnd_dt_sec) *
                        nd +
                    xsec_temp[iv] * nd_sec * dnd_dt) *
-                  rtp_vmr[ispecies];
+                  atm_point[this_cia.Species(0)];
             } else if (deriv == abs_species[ispecies]) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                   nd_sec * xsec_temp[iv] * nd;
@@ -444,7 +438,7 @@ void propmat_clearskyAddCIA(  // WS Output:
                                                                        : 1.0);
             } else if (species_match(deriv, this_species.cia_2nd_species)) {
               dpropmat_clearsky_dx[iq].Kjj()[iv] +=
-                  nd * nd * xsec_temp[iv] * rtp_vmr[ispecies] *
+                  nd * nd * xsec_temp[iv] * atm_point[this_cia.Species(0)] *
                   (this_species.cia_2nd_species == this_species.Spec() ? 2.0
                                                                        : 1.0);
             }

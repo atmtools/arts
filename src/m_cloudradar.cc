@@ -311,13 +311,9 @@ void iyRadarSingleScat(Workspace& ws,
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    Vector{ppvar_f(joker, ip)},
-                                    Vector{ppvar_mag(joker, ip)},
-                                    Vector{ppath.los(ip, joker)},
-                                    ppvar_nlte[ip],
-                                    Vector{ppvar_vmr(joker, ip)},
-                                    ppvar_t[ip],
-                                    ppvar_p[ip],
+                                    ppvar_f(joker, ip),
+                                    ppath.los(ip, joker),
+                                    AtmPoint{},  // FIXME: DUMMY VALUE
                                     trans_in_jacobian && j_analytical_do);
 
       if (trans_in_jacobian && j_analytical_do)
@@ -1034,12 +1030,8 @@ void particle_bulkpropRadarOnionPeeling(
                       ArrayOfRetrievalQuantity(0),
                       {},
                       f_grid,
-                      Vector(3, 0),
                       Vector(0),
-                      p_grid[ip],
-                      t_field(ip, ilat, ilon),
-                      rtp_nlte_local_dummy,
-                      Vector{vmr_field(joker, ip, ilat, ilon)},
+                      AtmPoint{},  // FIXME: Dummy value
                       propmat_clearsky_agenda);
                   k_this = propmat.Kjj()[0];
                   // Optical thickness

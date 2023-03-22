@@ -23,6 +23,7 @@
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "artstime.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "debug.h"
@@ -401,14 +402,12 @@ void propmat_clearskyAddFaraday(
     PropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     const Index& stokes_dim,
-    const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const Vector& rtp_los,
-    const Vector& rtp_mag,
     const Verbosity&) {
   Index ife = -1;
   for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
@@ -437,50 +436,39 @@ void propmat_clearskyAddFaraday(
   ARTS_USER_ERROR_IF(
       stokes_dim < 3,
       "To include Faraday rotation, stokes_dim >= 3 is required.")
-  ARTS_USER_ERROR_IF(
-      atmosphere_dim == 1 && rtp_los.nelem() < 1,
-      "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
-      "(at least zenith angle component for atmosphere_dim==1),\n"
-      "but it is not.\n")
-  ARTS_USER_ERROR_IF(
-      atmosphere_dim > 1 && rtp_los.nelem() < 2,
-      "For applying propmat_clearskyAddFaraday, los needs to be specified\n"
-      "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
-      "but it is not.\n")
 
-  const Numeric ne = rtp_vmr[ife];
+  const Numeric ne = atm_point[abs_species[ife]];
 
-  if (ne != 0 && (rtp_mag[0] != 0 || rtp_mag[1] != 0 || rtp_mag[2] != 0)) {
+  if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2
     const Numeric c1 =
         2 * FRconst *
         dotprod_with_los(
-            rtp_los, rtp_mag[0], rtp_mag[1], rtp_mag[2], atmosphere_dim);
+            rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2], 3);
 
     Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
     if (do_magn_jac) {
       dc1_u = (2 * FRconst *
                    dotprod_with_los(rtp_los,
-                                    rtp_mag[0] + dmag,
-                                    rtp_mag[1],
-                                    rtp_mag[2],
-                                    atmosphere_dim) -
+                                    atm_point.mag[0] + dmag,
+                                    atm_point.mag[1],
+                                    atm_point.mag[2], 3) -
                c1) /
               dmag;
       dc1_v = (2 * FRconst *
                    dotprod_with_los(rtp_los,
-                                    rtp_mag[0],
-                                    rtp_mag[1] + dmag,
-                                    rtp_mag[2],
-                                    atmosphere_dim) -
+                                    atm_point.mag[0],
+                                    atm_point.mag[1] + dmag,
+                                    atm_point.mag[2],
+                                    3) -
                c1) /
               dmag;
       dc1_w = (2 * FRconst *
                    dotprod_with_los(rtp_los,
-                                    rtp_mag[0],
-                                    rtp_mag[1],
-                                    rtp_mag[2] + dmag,
-                                    atmosphere_dim) -
+                                    atm_point.mag[0],
+                                    atm_point.mag[1],
+                                    atm_point.mag[2] + dmag,
+                                    3) -
                c1) /
               dmag;
     }
@@ -831,10 +819,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const EnergyLevelMap& rtp_nlte,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const Index& nlte_do,
     const Index& lbl_checked,
     // WS User Generic inputs
@@ -852,8 +837,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(not lbl_checked, "Must check LBL calculations")
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
-                     "*rtp_vmr* must match *abs_species*")
   ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq nf,
@@ -874,12 +857,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF((any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and not is_increasing(f_grid),
                      "Must be sorted and increasing if any cutoff or speedup is used.")
-  ARTS_USER_ERROR_IF(any_negative(rtp_vmr),
-                     "Negative VMR (at least one value).")
-  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.value),
-                     "Negative NLTE (at least one value).")
-  ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+  ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(
       sparse_lim > 0 and sparse_df > sparse_lim,
       "If sparse grids are to be used, the limit must be larger than the grid-spacing.\n"
@@ -916,8 +895,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
       if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or
           not abs_lines_per_species[ispecies].nelem())
         continue;
-
       for (auto& band : abs_lines_per_species[ispecies]) {
+band.quantumidentity.UpperLevel();
         LineShape::compute(com,
                           sparse_com,
                           band,
