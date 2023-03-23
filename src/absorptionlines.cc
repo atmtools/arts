@@ -1893,6 +1893,11 @@ Numeric Absorption::Lines::SpeciesMass() const noexcept {
 }
 
 Vector Absorption::Lines::BroadeningSpeciesVMR(
+    const AtmPoint& atm_point) const {
+  return LineShape::vmrs(atm_point, broadeningspecies);
+}
+
+Vector Absorption::Lines::BroadeningSpeciesVMR(
     const ConstVectorView& atm_vmrs,
     const ArrayOfArrayOfSpeciesTag& atm_spec) const {
   return LineShape::vmrs(atm_vmrs, atm_spec, broadeningspecies);

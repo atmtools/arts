@@ -299,3 +299,8 @@ void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_
     "This contains more than one isotopologue or it contains some non-transition type identifiers.\n"
     "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n")
 }
+
+std::pair<Numeric, Numeric>
+VibrationalEnergyLevels::lower_upper(const Key &key) const {
+  return {at(key.LowerLevel()), at(key.UpperLevel())};
+}

@@ -1,6 +1,7 @@
 #include "debug.h"
 #include "enums.h"
 #include "lineshapemodel.h"
+#include "nlte.h"
 #include "partfun.h"
 
 #include <algorithm>
@@ -2492,7 +2493,7 @@ IntensityCalculator::adaptive_scaling(Numeric x, Species::Species self,
 IntensityCalculator::IntensityCalculator(
     const Numeric T, const Numeric QT, const Numeric QT0, const Numeric dQTdT,
     const Numeric r, const Numeric drdSELFVMR, const Numeric drdT,
-    const EnergyLevelMap &nlte, const Absorption::Lines &band,
+    const std::pair<Numeric, Numeric> &nlte, const VibrationalEnergyLevels& nlte_vib_energies, const Absorption::Lines &band,
     const Index line_index) noexcept
     : ls_str(Nostrength{}) {
   const auto &line = band.lines[line_index];
@@ -2507,13 +2508,14 @@ IntensityCalculator::IntensityCalculator(
                                       QT0, dQTdT, r, drdSELFVMR, drdT);
     break;
   case Absorption::PopulationType::NLTE: {
-    const auto [r_low, r_upp] = nlte.get_ratio_params(band, line_index);
+    const auto [r_low, r_upp] = nlte;
     ls_str = FullNonLocalThermodynamicEquilibrium(line.F0, line.A, T, line.glow,
                                                   line.gupp, r_low, r_upp, r,
                                                   drdSELFVMR, drdT);
   } break;
   case Absorption::PopulationType::VibTemps: {
-    const auto [E_low, E_upp, T_low, T_upp] = nlte.get_vibtemp_params(band, T);
+    const auto [T_low, T_upp] = nlte;
+    const auto [E_low, E_upp] = nlte_vib_energies.lower_upper(band.quantumidentity);
     ls_str = VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
         line.I0, band.T0, T, T_low, T_upp, line.F0, line.E0, E_low, E_upp, QT,
         QT0, dQTdT, r, drdSELFVMR, drdT);
@@ -3369,7 +3371,7 @@ void cutoff_loop(ComputeData &com, Normalizer ls_norm,
 void line_loop(ComputeData &com, ComputeData &sparse_com,
                const AbsorptionLines &band,
                const ArrayOfRetrievalQuantity &jacobian_quantities,
-               const EnergyLevelMap &nlte, const Vector &vmrs,
+               const std::pair<Numeric, Numeric> &nlte, const VibrationalEnergyLevels& nlte_vib_energies, const Vector &vmrs,
                const ArrayOfSpeciesTag &self_tag, const Numeric &P,
                const Numeric &T, const Numeric &H, const Numeric &sparse_lim,
                const Numeric QT, const Numeric QT0, const Numeric dQTdT,
@@ -3436,7 +3438,7 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
       case Options::LblSpeedup::None:
         cutoff_loop(com, Normalizer(band.normalization, band.lines[i].F0, T),
                     IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT,
-                                        nlte, band, i),
+                                        nlte, nlte_vib_energies, band, i),
                     band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, DC,
                     i, zeeman_polarization);
         break;
@@ -3444,7 +3446,7 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
         cutoff_loop_sparse_triple(
             com, sparse_com,
             Normalizer(band.normalization, band.lines[i].F0, T),
-            IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
+            IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, nlte_vib_energies,
                                 band, i),
             band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
             DC, i, zeeman_polarization);
@@ -3453,7 +3455,7 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
         cutoff_loop_sparse_linear(
             com, sparse_com,
             Normalizer(band.normalization, band.lines[i].F0, T),
-            IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte,
+            IntensityCalculator(T, QT, QT0, dQTdT, r, drdSELFVMR, drdT, nlte, nlte_vib_energies,
                                 band, i),
             band, derivs, band.ShapeParameters(i, T, P, vmrs), T, H, sparse_lim,
             DC, i, zeeman_polarization);
@@ -3513,7 +3515,7 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
 
         // The line shape strength rescaled by VMR of the broadener
         const auto ls_str = IntensityCalculator(T, QT, QT0, dQTdT, r,
-                                                drdSELFVMR, drdT, nlte, band, i)
+                                                drdSELFVMR, drdT, nlte, nlte_vib_energies, band, i)
                                 .adaptive_scaling(vmrs[ib], band.Species(),
                                                   band.broadeningspecies[ib]);
                                                   
@@ -3549,7 +3551,9 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
 void compute(ComputeData &com, ComputeData &sparse_com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
-             const EnergyLevelMap &nlte, const Vector &vmrs,
+             const std::pair<Numeric, Numeric> &nlte, 
+             const VibrationalEnergyLevels& nlte_vib_energies,
+             const Vector &vmrs,
              const ArrayOfSpeciesTag &self_tag, const Numeric &self_vmr,
              const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
              const Numeric &H, const Numeric &sparse_lim,
@@ -3597,7 +3601,7 @@ void compute(ComputeData &com, ComputeData &sparse_com,
     ComputeData sparse_com_safe(sparse_com.f_grid, jacobian_quantities,
                                 sparse_com.do_nlte);
 
-    line_loop(com_safe, sparse_com_safe, band, jacobian_quantities, nlte, vmrs,
+    line_loop(com_safe, sparse_com_safe, band, jacobian_quantities, nlte, nlte_vib_energies, vmrs,
               self_tag, P, T, H, sparse_lim,
               single_partition_function(T, band.Isotopologue()),
               single_partition_function(band.T0, band.Isotopologue()),
@@ -3612,7 +3616,7 @@ void compute(ComputeData &com, ComputeData &sparse_com,
     com += com_safe;
     sparse_com += sparse_com_safe;
   } else {
-    line_loop(com, sparse_com, band, jacobian_quantities, nlte, vmrs, self_tag,
+    line_loop(com, sparse_com, band, jacobian_quantities, nlte, nlte_vib_energies, vmrs, self_tag,
               P, T, H, sparse_lim,
               single_partition_function(T, band.Isotopologue()),
               single_partition_function(band.T0, band.Isotopologue()),

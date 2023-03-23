@@ -35,6 +35,7 @@
 #define lineshapemodel_h
 
 #include "arts_conversions.h"
+#include "atm.h"
 #include "enums.h"
 #include "file.h"
 #include "jacobian.h"
@@ -613,6 +614,16 @@ constexpr Output differenceOutput(Output y, Output x) noexcept {
  */
 Vector vmrs(const ConstVectorView& atmospheric_vmrs,
             const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+            const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT;
+
+/** Returns a VMR vector for a list of Species from a point in the atmosphere
+ * 
+ * Renormalizes the values to unity if possible or return zeroes
+ * 
+ * @param[in] atm_point As WSV
+ * @param[in] lineshape_species Species affecting lineshape
+ */
+Vector vmrs(const AtmPoint& atm_point,
             const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT;
 
 /** Returns a mass vector for this model's main calculations

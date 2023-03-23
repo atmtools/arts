@@ -652,6 +652,13 @@ struct Lines {
    */
   [[nodiscard]] Vector BroadeningSpeciesVMR(const ConstVectorView&, const ArrayOfArrayOfSpeciesTag&) const;
   
+  /** Returns the VMRs of the broadening species
+   * 
+   * @param[in] atm_point As WSV
+   * @return VMR list of the species
+   */
+  [[nodiscard]] Vector BroadeningSpeciesVMR(const AtmPoint&) const;
+  
   /** Returns the mass of the broadening species
    * 
    * @param[in] atm_vmrs Atmospheric VMRs

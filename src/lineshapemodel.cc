@@ -33,10 +33,12 @@
  **/
 
 #include "arts_conversions.h"
+#include "atm.h"
 #include "debug.h"
 #include "lineshapemodel.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
+#include "species.h"
 #include <limits>
 
 Jacobian::Line select_derivativeLineShape(const String& var,
@@ -487,6 +489,35 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
     }
   }
   
+  // Renormalize, if bath-species exist this is automatic.
+  if (auto sl = sum(line_vmrs); bath) {
+    line_vmrs[n - 1] = 1.0 - sl;
+  } else if(sl == 0) {  // Special case
+  } else {
+    line_vmrs /= sl;
+  }
+    
+  return line_vmrs;
+}
+
+
+Vector LineShape::vmrs(const AtmPoint& atm_point,
+                       const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {
+  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
+  
+  const Index n = lineshape_species.nelem();
+  
+  // We need to know if bath is an actual species
+  const bool bath = n and lineshape_species.back() == Species::Species::Bath;
+  
+  // Initialize list of VMRS to 0
+  Vector line_vmrs(n, 0);
+
+  // Extract the VMR of the first species
+  std::transform(lineshape_species.begin(), lineshape_species.end() - bath,
+                 line_vmrs.begin(),
+                 [&atm_point](const Species::Species spec) { return atm_point[spec]; });
+
   // Renormalize, if bath-species exist this is automatic.
   if (auto sl = sum(line_vmrs); bath) {
     line_vmrs[n - 1] = 1.0 - sl;

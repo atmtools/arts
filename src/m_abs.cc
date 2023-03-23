@@ -61,6 +61,7 @@
 #include "messages.h"
 #include "methods.h"
 #include "montecarlo.h"
+#include "nlte.h"
 #include "optproperties.h"
 #include "parameters.h"
 #include "physics_funcs.h"
@@ -841,6 +842,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
+    const VibrationalEnergyLevels& nlte_vib_levels,
     const AtmPoint& atm_point,
     const Index& nlte_do,
     const Index& lbl_checked,
@@ -918,18 +920,18 @@ void propmat_clearskyAddLines(  // Workspace reference:
           not abs_lines_per_species[ispecies].nelem())
         continue;
       for (auto& band : abs_lines_per_species[ispecies]) {
-band.quantumidentity.UpperLevel();
         LineShape::compute(com,
                           sparse_com,
                           band,
                           jacobian_quantities,
-                          rtp_nlte,
-                          band.BroadeningSpeciesVMR(rtp_vmr, abs_species),
+                          atm_point.is_lte() ? std::pair{0., 0.} : atm_point.levels(band.quantumidentity),
+                          nlte_vib_levels,
+                          band.BroadeningSpeciesVMR(atm_point),
                           abs_species[ispecies],
-                          rtp_vmr[ispecies],
+                          atm_point[abs_species[ispecies]],
                           isotopologue_ratios[band.Isotopologue()],
-                          rtp_pressure,
-                          rtp_temperature,
+                          atm_point.pressure,
+                          atm_point.temperature,
                           0,
                           sparse_lim,
                           Zeeman::Polarization::None,
@@ -972,13 +974,14 @@ band.quantumidentity.UpperLevel();
                          vsparse_com[arts_omp_get_thread_num()],
                          band,
                          jacobian_quantities,
-                         rtp_nlte,
-                         band.BroadeningSpeciesVMR(rtp_vmr, abs_species),
+                         atm_point.is_lte() ? std::pair{0., 0.} : atm_point.levels(band.quantumidentity),
+                         nlte_vib_levels,
+                         band.BroadeningSpeciesVMR(atm_point),
                          abs_species[ispecies],
-                         rtp_vmr[ispecies],
+                         atm_point[abs_species[ispecies]],
                          isotopologue_ratios[band.Isotopologue()],
-                         rtp_pressure,
-                         rtp_temperature,
+                         atm_point.pressure,
+                         atm_point.temperature,
                          0,
                          sparse_lim,
                          Zeeman::Polarization::None,
