@@ -32,6 +32,7 @@
 #include "arts_conversions.h"
 #include "linescaling.h"
 #include "lineshape.h"
+#include "nlte.h"
 #include "species_info.h"
 
 void zeeman_on_the_fly(
@@ -45,12 +46,9 @@ void zeeman_on_the_fly(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,
-    const Vector& rtp_vmr,
-    const EnergyLevelMap& rtp_nlte,
-    const Vector& rtp_mag,
+    const AtmPoint& atm_point,
+    const VibrationalEnergyLevels& nlte_vib_levels,
     const Vector& rtp_los,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
     const Index& nlte_do,
     const Index& manual_tag,
     const Numeric& H0,
@@ -64,10 +62,6 @@ void zeeman_on_the_fly(
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF((rtp_mag.nelem() not_eq 3) and (not manual_tag),
-    "Only for 3D *rtp_mag* or a manual magnetic field")
-  ARTS_USER_ERROR_IF(rtp_vmr.nelem() not_eq abs_species.nelem(),
-    "*rtp_vmr* must match *abs_species*")
   ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
     "*f_grid* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
@@ -85,10 +79,8 @@ void zeeman_on_the_fly(
   ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid, 4),
     "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF(any_negative(rtp_vmr), "Negative VMR (at least one value).")
-  ARTS_USER_ERROR_IF(any_negative(rtp_nlte.value), "Negative NLTE (at least one value).")
-  ARTS_USER_ERROR_IF(rtp_temperature <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF(rtp_pressure <= 0, "Non-positive pressure")
+  ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
+  ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(manual_tag and H0 < 0, "Negative manual magnetic field strength")
 
   // Magnetic field internals and derivatives...
@@ -96,9 +88,9 @@ void zeeman_on_the_fly(
       manual_tag
           ? Zeeman::FromPreDerived(
                 H0, Conversion::deg2rad(theta0), Conversion::deg2rad(eta0))
-          : Zeeman::FromGrids(rtp_mag[0],
-                              rtp_mag[1],
-                              rtp_mag[2],
+          : Zeeman::FromGrids(atm_point.mag[0],
+                              atm_point.mag[1],
+                              atm_point.mag[2],
                               Conversion::deg2rad(rtp_los[0]),
                               Conversion::deg2rad(rtp_los[1]));
 
@@ -138,12 +130,15 @@ void zeeman_on_the_fly(
         continue;
 
       for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com, sparse_com,
-                            band, jacobian_quantities, rtp_nlte,
-                            band.BroadeningSpeciesVMR(rtp_vmr, abs_species), abs_species[ispecies], rtp_vmr[ispecies],
-                            isotopologue_ratios[band.Isotopologue()], rtp_pressure, rtp_temperature, X.H, sparse_limit,
-                            polar, Options::LblSpeedup::None, false);
-        
+        LineShape::compute(
+            com, sparse_com, band, jacobian_quantities,
+            atm_point.is_lte() ? std::pair{0., 0.}
+                               : atm_point.levels(band.quantumidentity),
+            nlte_vib_levels, band.BroadeningSpeciesVMR(atm_point),
+            abs_species[ispecies], atm_point[abs_species[ispecies]],
+            isotopologue_ratios[band.Isotopologue()], atm_point.pressure,
+            atm_point.temperature, X.H, sparse_limit, polar,
+            Options::LblSpeedup::None, false);
       }
     }
       
