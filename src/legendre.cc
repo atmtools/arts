@@ -2154,7 +2154,7 @@ MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const
     }
   }
 
-  MatrixOfSphericalField out(nr, nlon);  // Auto init to zeroes
+  MatrixOfSphericalField out(nlon, nr);  // Auto init to zeroes
   for (Index ilon=0; ilon<nlon; ilon++) {
 
     // Pre-compute the cosine/sine values
@@ -2175,13 +2175,19 @@ MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const
 
     // Compute the field
     for (Index ir=0; ir<nr; ir++) {
-      SphericalField& F = out(ir, ilon);  // Auto init'd to zeroes
+      SphericalField& F = out(ilon, ir);  // Auto init'd to zeroes
       for (Index n=1; n<N; ++n) {
         const Numeric ratn = ratnm(ir, n);
         for (Index m=0; m<n+1; ++m) {
-          F.U += (g(n, m) * cosm[m] + h(n, m) * sinm[m]) * P(n, m) * (n + 1) * ratn;
-          F.S += (g(n, m) * cosm[m] + h(n, m) * sinm[m]) * dP(n, m) * ratn;
-          F.E += (g(n, m) * sinm[m] + h(n, m) * cosm[m]) * P(n, m) * m * ratn;
+          const Numeric gnm{g(n, m)};
+          const Numeric hnm{h(n, m)};
+          const Numeric cosmm{cosm[m]};
+          const Numeric sinmm{sinm[m]};
+          const Numeric Pnm{P(n, m)};
+
+          F.U += (gnm * cosmm + hnm * sinmm) * Pnm * (n + 1) * ratn;
+          F.S += (gnm * cosmm + hnm * sinmm) * dP(n, m) * ratn;
+          F.E += (gnm * sinmm + hnm * cosmm) * Pnm * m * ratn;
         }
       }
       F.S *= sin_theta;

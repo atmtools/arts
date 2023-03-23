@@ -237,7 +237,6 @@ Numeric radius(const Numeric h, const Numeric lat, const Numeric lon, const Nume
 /** Perform all computations on pre-allocated local data
  * 
  * \param[in,out] out Size-initialized output data
- * \param[in] r Pre-allocated radius vector to be filled-up internally
  * \param[in] g The g-coefficients for the Legendre calculations
  * \param[in] h The h-coefficients for the Legendre calculations
  * \param[in] z_field As WSV
@@ -247,7 +246,6 @@ Numeric radius(const Numeric h, const Numeric lat, const Numeric lon, const Nume
  * \param[in] scale the addition scales with this, set to 1.0 for complete calculations
  */
 void compute_impl(MagneticField& out,
-                  Vector& r,
                   const Matrix& g,
                   const Matrix& h,
                   const Tensor3& z_field,
@@ -260,21 +258,24 @@ void compute_impl(MagneticField& out,
   const Index nlat = z_field.nrows();
   const Index nlon = z_field.ncols();
   
+#pragma omp parallel for if (!arts_omp_in_parallel())
   for (Index ilat=0; ilat<nlat; ilat++) {
     const Numeric lat = lat_grid[ilat];
     
+    Vector r(nlon * nz);
     for (Index ilon=0; ilon<nlon; ilon++) {
       for (Index iz=0; iz<nz; iz++) {
         r[ilon + nlon * iz] = radius(z_field(iz, ilat, ilon), lat, lon_grid[ilon], ell[0], ell[1]);
       }
     }
     
-    auto f = Legendre::schmidt_fieldcalc(g, h, r0, r, lat, lon_grid);
-    for (Index ilon=0; ilon<nlon; ilon++) {
-      for (Index iz=0; iz<nz; iz++) {
-        out.u(iz, ilat, ilon) = scale * f(ilon + nlon * iz, ilon).E;
-        out.v(iz, ilat, ilon) = - scale * f(ilon + nlon * iz, ilon).S;
-        out.w(iz, ilat, ilon) += scale * f(ilon + nlon * iz, ilon).U;
+    const auto f = Legendre::schmidt_fieldcalc(g, h, r0, r, lat, lon_grid);
+    for (Index iz=0; iz<nz; iz++) {
+      for (Index ilon=0; ilon<nlon; ilon++) {
+        const auto& flz{f(ilon, ilon + nlon * iz)};
+        out.u(iz, ilat, ilon) += scale * flz.E;
+        out.v(iz, ilat, ilon) -= scale * flz.S;
+        out.w(iz, ilat, ilon) += scale * flz.U;
       }
     }
   }
@@ -293,9 +294,6 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
   const Time y2005("2005-01-01 00:00:00");
   const Time y2000("2000-01-01 00:00:00");
   
-  // Compute vector
-  Vector r(nlon * nz);
-  
   // Output
   MagneticField out(nz, nlat, nlon);  // Inits to zeroes
   
@@ -304,55 +302,55 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
     const Matrix g(matrix(g2020));
     const Matrix h(matrix(h2020));
     
-    compute_impl(out, r, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
+    compute_impl(out, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
   } else if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) / (y2020.Seconds() - y2015.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
     const Matrix g0(matrix(g2020));
     const Matrix h0(matrix(h2020));
-    compute_impl(out, r, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
     
     const Matrix g1(matrix(g2015));
     const Matrix h1(matrix(h2015));
-    compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) / (y2015.Seconds() - y2010.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
     const Matrix g0(matrix(g2015));
     const Matrix h0(matrix(h2015));
-    compute_impl(out, r, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
     
     const Matrix g1(matrix(g2010));
     const Matrix h1(matrix(h2010));
-    compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) / (y2010.Seconds() - y2005.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
     const Matrix g0(matrix(g2010));
     const Matrix h0(matrix(h2010));
-    compute_impl(out, r, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
     
     const Matrix g1(matrix(g2005));
     const Matrix h1(matrix(h2005));
-    compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) / (y2005.Seconds() - y2000.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
     const Matrix g0(matrix(g2005));
     const Matrix h0(matrix(h2005));
-    compute_impl(out, r, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
     
     const Matrix g1(matrix(g2000));
     const Matrix h1(matrix(h2000));
-    compute_impl(out, r, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else {
     const Matrix g(matrix(g2000));
     const Matrix h(matrix(h2000));
-    compute_impl(out, r, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
+    compute_impl(out, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
   }
   
   // Conversion from nano-Tesla to Tesla
