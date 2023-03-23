@@ -182,6 +182,11 @@ public:
 
   [[nodiscard]] bool is_lte() const noexcept;
 
+  [[nodiscard]] std::pair<Numeric, Numeric>
+  levels(const QuantumIdentifier &band) const {
+    return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
+  }
+
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
 

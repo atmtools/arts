@@ -7,6 +7,7 @@
 #include "arts_conversions.h"
 #include "energylevelmap.h"
 #include "linescaling.h"
+#include "nlte.h"
 #include "nonstd.h"
 #include "species.h"
 
@@ -817,7 +818,8 @@ class IntensityCalculator {
                       const Numeric r,
                       const Numeric drdSELFVMR,
                       const Numeric drdT,
-                      const EnergyLevelMap &nlte,
+                      const std::pair<Numeric, Numeric> &nlte,
+                      const VibrationalEnergyLevels& nlte_vib_energies,
                       const Absorption::Lines &band,
                       const Index line_index) noexcept;
 
@@ -940,7 +942,8 @@ void compute(ComputeData &com,
              ComputeData &sparse_com,
              const AbsorptionLines &band,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
-             const EnergyLevelMap &rtp_nlte,
+             const std::pair<Numeric, Numeric> &rtp_nlte,
+             const VibrationalEnergyLevels& nlte_vib_energies,
              const Vector &vmrs,
              const ArrayOfSpeciesTag &self_tag,
              const Numeric &self_vmr,
