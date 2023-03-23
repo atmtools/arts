@@ -1,8 +1,10 @@
 #include <algorithm>
 
+#include "arts_omp.h"
 #include "arts_conversions.h"
 #include "igrf13.h"
 #include "legendre.h"
+#include "matpack_constexpr.h"
 
 /** International Geomagnetic Reference Field version 13
  * 
@@ -20,7 +22,7 @@
  */
 namespace IGRF {
 //! g-coefficients for 2020 (14x14 matrix)
-constexpr std::array<Numeric, 196> g2020{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2020{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29404.8, -1450.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -2499.6, 2982.0, 1677.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -38,7 +40,7 @@ constexpr std::array<Numeric, 196> g2020{
 };
 
 //! h-coefficients for 2020 (14x14 matrix)
-constexpr std::array<Numeric, 196> h2020{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2020{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 4652.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, -2991.6, -734.6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -56,7 +58,7 @@ constexpr std::array<Numeric, 196> h2020{
 };
 
 //! g-coefficients for 2015 (14x14 matrix)
-constexpr std::array<Numeric, 196> g2015{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2015{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29441.46, -1501.77, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -2445.88, 3012.2, 1676.35, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -74,7 +76,7 @@ constexpr std::array<Numeric, 196> g2015{
 };
 
 //! h-coefficients for 2015 (14x14 matrix)
-constexpr std::array<Numeric, 196> h2015{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2015{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 4795.99, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, -2845.41, -642.17, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -92,7 +94,7 @@ constexpr std::array<Numeric, 196> h2015{
 };
 
 //! g-coefficients for 2010 (14x14 matrix)
-constexpr std::array<Numeric, 196> g2010{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2010{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29496.57, -1586.42, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -2396.06, 3026.34, 1668.17, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -110,7 +112,7 @@ constexpr std::array<Numeric, 196> g2010{
 };
 
 //! h-coefficients for 2010 (14x14 matrix)
-constexpr std::array<Numeric, 196> h2010{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2010{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 4944.26, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, -2708.54, -575.73, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -128,7 +130,7 @@ constexpr std::array<Numeric, 196> h2010{
 };
 
 //! g-coefficients for 2005 (14x14 matrix)
-constexpr std::array<Numeric, 196> g2005{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2005{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29554.63, -1669.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -2337.24, 3047.69, 1657.76, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -146,7 +148,7 @@ constexpr std::array<Numeric, 196> g2005{
 };
 
 //! h-coefficients for 2005 (14x14 matrix)
-constexpr std::array<Numeric, 196> h2005{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2005{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 5077.99, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, -2594.5, -515.43, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -164,7 +166,7 @@ constexpr std::array<Numeric, 196> h2005{
 };
 
 //! g-coefficients for 2000 (14x14 matrix)
-constexpr std::array<Numeric, 196> g2000{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> g2000{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -29619.4, -1728.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   -2267.7, 3068.4, 1670.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -182,7 +184,7 @@ constexpr std::array<Numeric, 196> g2000{
 };
 
 //! h-coefficients for 2000 (14x14 matrix)
-constexpr std::array<Numeric, 196> h2000{
+constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2000{
   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, 5186.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
   0.0, -2481.6, -458.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
@@ -201,14 +203,6 @@ constexpr std::array<Numeric, 196> h2000{
 
 //! The reference radius in IGRF13
 constexpr Numeric r0{6371.2e3};
-
-//! Create the square matrix from the static data
-Matrix matrix(const std::array<Numeric, 196> data) {
-  Matrix m(14, 14);
-  Index k = 0;
-  for (Index i=0; i<14; i++) for (Index j=0; j<14; j++) m(i, j) = data[k++];
-  return m;
-}
 
 /** Get the radius from ellipsoidal coordinates
  * 
@@ -299,58 +293,33 @@ MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vect
   
   // Select the correct time
   if (time >= y2020) {
-    const Matrix g(matrix(g2020));
-    const Matrix h(matrix(h2020));
-    
-    compute_impl(out, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
+    compute_impl(out, Matrix(g2020), Matrix(h2020), z_field, lat_grid, lon_grid, ell, 1.0);
   } else if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) / (y2020.Seconds() - y2015.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
-    const Matrix g0(matrix(g2020));
-    const Matrix h0(matrix(h2020));
-    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
-    
-    const Matrix g1(matrix(g2015));
-    const Matrix h1(matrix(h2015));
-    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, Matrix(g2020), Matrix(h2020), z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, Matrix(g2015), Matrix(h2015), z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) / (y2015.Seconds() - y2010.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
-    const Matrix g0(matrix(g2015));
-    const Matrix h0(matrix(h2015));
-    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
-    
-    const Matrix g1(matrix(g2010));
-    const Matrix h1(matrix(h2010));
-    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, Matrix(g2015), Matrix(h2015), z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, Matrix(g2010), Matrix(h2010), z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) / (y2010.Seconds() - y2005.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
-    const Matrix g0(matrix(g2010));
-    const Matrix h0(matrix(h2010));
-    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
-    
-    const Matrix g1(matrix(g2005));
-    const Matrix h1(matrix(h2005));
-    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, Matrix(g2010), Matrix(h2010), z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, Matrix(g2005), Matrix(h2005), z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) / (y2005.Seconds() - y2000.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
     
-    const Matrix g0(matrix(g2005));
-    const Matrix h0(matrix(h2005));
-    compute_impl(out, g0, h0, z_field, lat_grid, lon_grid, ell, scale);
-    
-    const Matrix g1(matrix(g2000));
-    const Matrix h1(matrix(h2000));
-    compute_impl(out, g1, h1, z_field, lat_grid, lon_grid, ell, 1.0 - scale);
+    compute_impl(out, Matrix(g2005), Matrix(h2005), z_field, lat_grid, lon_grid, ell, scale);
+    compute_impl(out, Matrix(g2000), Matrix(h2000), z_field, lat_grid, lon_grid, ell, 1.0 - scale);
   } else {
-    const Matrix g(matrix(g2000));
-    const Matrix h(matrix(h2000));
-    compute_impl(out, g, h, z_field, lat_grid, lon_grid, ell, 1.0);
+    compute_impl(out, Matrix(g2000), Matrix(h2000), z_field, lat_grid, lon_grid, ell, 1.0);
   }
   
   // Conversion from nano-Tesla to Tesla
