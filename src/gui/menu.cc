@@ -252,7 +252,6 @@ bool change_item(const char* name,
                  std::array<Numeric, 3>& old,
                  const std::array<String, 3>& keys) {
   constexpr Index n = 3;
-  ARTS_ASSERT(n == keys.nelem())
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {

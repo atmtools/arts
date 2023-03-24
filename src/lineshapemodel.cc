@@ -502,9 +502,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
 
 
 Vector LineShape::vmrs(const AtmPoint& atm_point,
-                       const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {
-  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
-  
+                       const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {  
   const Index n = lineshape_species.nelem();
   
   // We need to know if bath is an actual species

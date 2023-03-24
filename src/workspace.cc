@@ -2667,16 +2667,13 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("nlte_level_identifiers"),
-      DESCRIPTION("An array of non-lte quantum identifiers for levels matching\n"
-                  "*nlte_field_raw* and on request *nlte_vibrational_energies*.\n"),
-      GROUP("ArrayOfQuantumIdentifier"), ArrayOfQuantumIdentifier{}));
+      NAME("nlte_vib_energies"),
+      DESCRIPTION(R"--(A map of energy levels
 
-  wsv_data.push_back(WsvRecord(
-      NAME("nlte_vibrational_energies"),
-      DESCRIPTION("An list of vibrational energies matching\n"
-                  "*nlte_level_identifiers* and *nlte_field_raw* or being 0.\n"),
-      GROUP("Vector"))); 
+This map is used when required by an absorption band having a
+population distribution that depends on vibrational temperatures
+)--"),
+      GROUP("VibrationalEnergyLevels"), VibrationalEnergyLevels{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("collision_line_identifiers"),

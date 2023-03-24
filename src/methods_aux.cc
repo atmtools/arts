@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <map>
 #include "arts.h"
+#include "debug.h"
 #include "groups.h"
 #include "methods.h"
 #include "workspace_ng.h"
@@ -162,25 +163,19 @@ MdRecord::MdRecord(const char* name,
   // Map the WSV names to indexes
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
-    moutput[j] = global_data::WsvMap.at(output[j]);
-    if (moutput[j] == -1) {
-      ostringstream os;
-      os << "Unknown WSV " << output[j] << " for output (parameter #" << j
-         << ") "
-         << "in WSM " << mname;
-      throw runtime_error(os.str());
-    }
+    auto v = global_data::WsvMap.find(output[j]);
+    ARTS_USER_ERROR_IF(v == global_data::WsvMap.end(), "Unknown WSV ",
+                       output[j], " for output (parameter #", j, ") in WSM ",
+                       mname);
+    moutput[j] = v->second;
   }
 
   minput.resize(input.nelem());
   for (Index j = 0; j < input.nelem(); ++j) {
-    minput[j] = global_data::WsvMap.at(input[j]);
-    if (minput[j] == -1) {
-      ostringstream os;
-      os << "Unknown WSV " << input[j] << " for input (parameter #" << j << ") "
-         << "in WSM " << mname;
-      throw runtime_error(os.str());
-    }
+    auto v = global_data::WsvMap.find(input[j]);
+    ARTS_USER_ERROR_IF(v == global_data::WsvMap.end(), "Unknown WSV ", input[j],
+                       " for input (parameter #", j, ") in WSM ", mname)
+    minput[j] = v->second;
   }
 
   // Map the group names to groups' indexes

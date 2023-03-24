@@ -24,6 +24,8 @@
  * @brief Header of Zeeman propagation matrix calculations
  */
 
+#include "atm.h"
+#include "nlte.h"
 #include "physics_funcs.h"
 #include "quantum_numbers.h"
 #include "rte.h"
@@ -71,7 +73,7 @@ void zeeman_on_the_fly(
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,
     const AtmPoint& atm_point,
-    const VibrationalEnergyLevels& nlte_vib_levels,
+    const VibrationalEnergyLevels& nlte_vib_energies,
     const Vector& rtp_los,
     const Index& nlte_do,
     const Index& manual_tag,

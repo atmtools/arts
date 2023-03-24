@@ -47,7 +47,7 @@ void zeeman_on_the_fly(
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,
     const AtmPoint& atm_point,
-    const VibrationalEnergyLevels& nlte_vib_levels,
+    const VibrationalEnergyLevels& nlte_vib_energies,
     const Vector& rtp_los,
     const Index& nlte_do,
     const Index& manual_tag,
@@ -134,7 +134,7 @@ void zeeman_on_the_fly(
             com, sparse_com, band, jacobian_quantities,
             atm_point.is_lte() ? std::pair{0., 0.}
                                : atm_point.levels(band.quantumidentity),
-            nlte_vib_levels, band.BroadeningSpeciesVMR(atm_point),
+            nlte_vib_energies, band.BroadeningSpeciesVMR(atm_point),
             abs_species[ispecies], atm_point[abs_species[ispecies]],
             isotopologue_ratios[band.Isotopologue()], atm_point.pressure,
             atm_point.temperature, X.H, sparse_limit, polar,

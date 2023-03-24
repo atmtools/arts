@@ -2473,23 +2473,6 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "Humidity grid maximum [fractional].")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_nlteFromRaw"),
-      DESCRIPTION("Sets NLTE values manually\n"
-                  "\n"
-                  "Touch\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_nlte"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("nlte_level_identifiers",
-         "nlte_vibrational_energies"),
-      GIN("data"),
-      GIN_TYPE("Matrix"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vibrational data [nlevels, np]")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesAdd"),
       DESCRIPTION(
           "Adds species tag groups to the list of absorption species.\n"
@@ -3736,8 +3719,6 @@ Available models:
          "z_field_raw",
          "vmr_field_raw",
          "nlte_field_raw",
-         "nlte_level_identifiers",
-         "nlte_vibrational_energies",
          "atmosphere_dim"),
       GIN("interp_order",
           "vmr_zeropadding",
@@ -3776,8 +3757,6 @@ Available models:
          "z_field_raw",
          "vmr_field_raw",
          "nlte_field_raw",
-         "nlte_level_identifiers",
-         "nlte_vibrational_energies",
          "atmosphere_dim"),
       GIN("interp_order",
           "vmr_zeropadding",
@@ -4144,9 +4123,7 @@ Available models:
       OUT("t_field_raw",
           "z_field_raw",
           "vmr_field_raw",
-          "nlte_field_raw",
-          "nlte_level_identifiers",
-          "nlte_vibrational_energies"),
+          "nlte_field_raw"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -4184,9 +4161,7 @@ Available models:
       OUT("t_field_raw",
           "z_field_raw",
           "vmr_field_raw",
-          "nlte_field_raw",
-          "nlte_level_identifiers",
-          "nlte_vibrational_energies"),
+          "nlte_field_raw"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -12689,10 +12664,9 @@ Available models:
                DESCRIPTION("Disable Non-LTE calculations.\n"
                            "\n"
                            "The variables are set as follows:\n"
-                           "   nlte_field             : Empty.\n"
-                           "   nlte_level_identifiers : Empty.\n"),
+                           "   nlte_field             : Empty.\n"),
                AUTHORS("Oliver Lemke"),
-               OUT("nlte_do", "nlte_field", "nlte_level_identifiers"),
+               OUT("nlte_do", "nlte_field"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
@@ -12745,42 +12719,6 @@ Available models:
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldFromRaw"),
-      DESCRIPTION("Sets NLTE values manually\n"
-                  "\n"
-                  "Touch\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("nlte_level_identifiers",
-         "nlte_vibrational_energies"),
-      GIN("data"),
-      GIN_TYPE("Tensor4"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vibrational data [nlevels, np, nlat, nlon]")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldLteExternalPartitionFunction"),
-      DESCRIPTION("Turns on NTLE calculations.\n"
-                  "\n"
-                  "Sets NLTE ratios to those expected for LTE calculations\n"
-                  "with a known partition function\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_do", "nlte_field", "abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species",
-         "nlte_level_identifiers",
-         "t_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfQuantumIdentifierFromLines"),
       DESCRIPTION(
           "Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*\n"
@@ -12797,25 +12735,6 @@ Available models:
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
       GIN_DESC("Only look at global quantum numbers")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldLteInternalPartitionFunction"),
-      DESCRIPTION(
-          "Turns on NTLE calculations.\n"
-          "\n"
-          "Sets NLTE ratios to those expected for LTE calculations\n"
-          "with estimation of the partition function as the sum of all\n"
-          "states of a species\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_do", "nlte_field", "abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "nlte_level_identifiers", "t_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("timeNow"),
@@ -14757,6 +14676,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
          "abs_lines_per_species",
          "isotopologue_ratios",
          "atm_point",
+         "nlte_vib_energies",
          "nlte_do",
          "lbl_checked"),
       GIN("lines_sparse_df", "lines_sparse_lim", "lines_speedup_option", "no_negatives"),
@@ -14945,11 +14865,8 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
          "select_abs_species",
          "jacobian_quantities",
          "isotopologue_ratios",
-         "rtp_pressure",
-         "rtp_temperature",
-         "rtp_nlte",
-         "rtp_vmr",
-         "rtp_mag",
+         "atm_point",
+         "nlte_vib_energies",
          "rtp_los",
          "atmosphere_dim",
          "nlte_do",
@@ -18328,23 +18245,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Target altitude.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("rtp_nlteFromRaw"),
-      DESCRIPTION("Sets NLTE values manually\n"
-                  "\n"
-                  "Touch\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("rtp_nlte"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("nlte_level_identifiers",
-         "nlte_vibrational_energies"),
-      GIN("data"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vibrational data [nlevels]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsPndAndScatAdd"),

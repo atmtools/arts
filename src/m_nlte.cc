@@ -265,9 +265,7 @@ void collision_coefficientsFromSplitFiles(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlteOff(Index& nlte_do,
              EnergyLevelMap& nlte_field,
-             ArrayOfQuantumIdentifier& nlte_level_identifiers,
              const Verbosity&) {
   nlte_do = 0;
   nlte_field = EnergyLevelMap();
-  nlte_level_identifiers.resize(0);
 }

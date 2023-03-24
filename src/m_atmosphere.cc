@@ -1988,8 +1988,6 @@ void AtmFieldsCalc(  //WS Output:
     const GriddedField3& z_field_raw,
     const ArrayOfGriddedField3& vmr_field_raw,
     const ArrayOfGriddedField3& nlte_field_raw,
-    const ArrayOfQuantumIdentifier& nlte_ids,
-    const Vector& nlte_energies,
     const Index& atmosphere_dim,
     // WS Generic Input:
     const Index& interp_order,
@@ -2020,11 +2018,6 @@ void AtmFieldsCalc(  //WS Output:
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
   
-  // NLTE basics
-  nlte_field.type = nlte_ids.nelem() == nlte_field_raw.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
-  nlte_field.levels = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_ids : ArrayOfQuantumIdentifier(0);
-  nlte_field.vib_energy = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_energies : Vector(0);
-
   //==========================================================================
   if (atmosphere_dim == 1) {
     ARTS_USER_ERROR_IF (!(tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1),
@@ -2061,17 +2054,6 @@ void AtmFieldsCalc(  //WS Output:
     }
     FieldFromGriddedField(
         vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
-
-    // Non-LTE interpolation
-    if (nlte_ids.nelem() == nlte_field_raw.nelem()) {
-      GriddedFieldPRegrid(
-          temp_agfield3, p_grid, nlte_field_raw, interp_order, 0, verbosity);
-      FieldFromGriddedField(
-        nlte_field.value, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
-    }
-    else
-      nlte_field.value.resize(0, 0, 0, 0);
-
   }
 
   //=========================================================================
@@ -2086,11 +2068,6 @@ void AtmFieldsCalc(  //WS Output:
     z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
     vmr_field.resize(
         vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
-    if (nlte_ids.nelem() == nlte_field_raw.nelem())
-      nlte_field.value.resize(
-        nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
-    else
-      nlte_field.value.resize(0, 0, 0, 0);
 
     // Interpolate t_field:
 
@@ -2196,16 +2173,6 @@ void AtmFieldsCalc(  //WS Output:
       lag_p=my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(p_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), interp_order, 0.5);
       lag_lat=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(lat_grid, nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), interp_order);
       itw=interpweights(lag_p, lag_lat);
-
-      // Interpolate:
-      if (nlte_ids.nelem() == nlte_field_raw.nelem())
-        reinterp(nlte_field.value(qi_i, joker, joker, 0),
-                 nlte_field_raw[qi_i].data(joker, joker, 0),
-                 itw,
-                 lag_p,
-                 lag_lat);
-      else
-        nlte_field.value.resize(0, 0, 0, 0);
     }
   }
 
@@ -2269,12 +2236,6 @@ void AtmFieldsCalc(  //WS Output:
           "Note that you can explicitly set vmr_zeropadding "
           "to 1 in the method call.")
       }
-      
-      if (nlte_ids.nelem() == nlte_field_raw.nelem())
-        FieldFromGriddedField(
-          nlte_field.value, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
-      else
-        nlte_field.value.resize(0, 0, 0, 0);
     }
   } else {
     // We can never get here, since there was a runtime
@@ -2855,8 +2816,6 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
                            const GriddedField3& z_field_raw,
                            const ArrayOfGriddedField3& vmr_field_raw,
                            const ArrayOfGriddedField3& nlte_field_raw,
-                           const ArrayOfQuantumIdentifier& nlte_ids,
-                           const Vector& nlte_energies,
                            const Index& atmosphere_dim,
                            const Index& interp_order,
                            const Index& vmr_zeropadding,
@@ -2885,8 +2844,6 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
                 z_field_raw,
                 vmr_field_raw,
                 nlte_field_raw,
-                nlte_ids,
-                nlte_energies,
                 1,
                 interp_order,
                 vmr_zeropadding,
@@ -2911,8 +2868,6 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
   if (nlte_field_raw.nelem()) {
     nlte_field.type = EnergyLevelMapType::Tensor3_t;
     nlte_field.value.resize(nlte_field_raw.nelem(), np, nlat, nlon);
-    nlte_field.levels = nlte_ids;
-    nlte_field.vib_energy = nlte_energies;
   }
   else
     nlte_field = EnergyLevelMap();
@@ -3234,8 +3189,6 @@ void AtmRawRead(  //WS Output:
     GriddedField3& z_field_raw,
     ArrayOfGriddedField3& vmr_field_raw,
     ArrayOfGriddedField3& nlte_field_raw,
-    ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    Vector& nlte_vibrational_energies,
     //WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     //Keyword:
@@ -3283,8 +3236,6 @@ void AtmRawRead(  //WS Output:
 
   // NLTE is ignored by doing this
   nlte_field_raw.resize(0);
-  nlte_quantum_identifiers.resize(0);
-  nlte_vibrational_energies.resize(0);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3359,8 +3310,6 @@ void AtmWithNLTERawRead(  //WS Output:
     GriddedField3& z_field_raw,
     ArrayOfGriddedField3& vmr_field_raw,
     ArrayOfGriddedField3& nlte_field_raw,
-    ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    Vector& nlte_vibrational_energies,
     //WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     //Keyword:
@@ -3410,34 +3359,6 @@ void AtmWithNLTERawRead(  //WS Output:
   // Read each nlte field:
   file_name = tmp_basename + "nlte.xml";
   xml_read_from_file(file_name, nlte_field_raw, verbosity);
-
-  out3 << "NLTE field array read from file: " << file_name << "\n";
-
-  // Read each nlte identifier field:
-  file_name = tmp_basename + "qi.xml";
-  xml_read_from_file(file_name, nlte_quantum_identifiers, verbosity);
-
-  out3 << "NLTE identifier array read from file: " << file_name << "\n";
-  
-  if (expect_vibrational_energies) {
-    // Read each energy level field:
-    file_name = tmp_basename + "ev.xml";
-    xml_read_from_file(file_name, nlte_vibrational_energies, verbosity);
-    
-    out3 << "NLTE energy levels array read from file: " << file_name << "\n";
-  }
-  else {
-    nlte_vibrational_energies.resize(0);
-  }
-
-  ARTS_USER_ERROR_IF (nlte_field_raw.nelem() != nlte_quantum_identifiers.nelem() or
-                     (nlte_field_raw.nelem() != nlte_vibrational_energies.nelem() and
-                        0 != nlte_vibrational_energies.nelem()),
-      "The quantum identifers and the NLTE temperature fields\n"
-      "are of different lengths.  This should not be the case.\n"
-      "please check the qi.xml and t_nlte.xml files under\n",
-      basename, "\n"
-      "to correct this error.\n")
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
