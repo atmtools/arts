@@ -82,29 +82,6 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY=Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AbsInputFromRteScalars(  // WS Output:
-    Vector& abs_p,
-    Vector& abs_t,
-    Matrix& abs_vmrs,
-    // WS Input:
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
-    const Verbosity&) {
-  // Prepare abs_p:
-  abs_p.resize(1);
-  abs_p = rtp_pressure;
-
-  // Prepare abs_t:
-  abs_t.resize(1);
-  abs_t = rtp_temperature;
-
-  // Prepare abs_vmrs:
-  abs_vmrs.resize(rtp_vmr.nelem(), 1);
-  abs_vmrs = ExhaustiveMatrixView{rtp_vmr};
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCreateFromLines(  // WS Output:
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     // WS Input:
@@ -271,84 +248,6 @@ void AbsInputFromAtmFields(  // WS Output:
 //======================================================================
 //             Methods related to continua
 //======================================================================
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
-    StokesVector& nlte_source,
-    ArrayOfStokesVector& dnlte_source_dx,
-    // WS Input:
-    const ArrayOfMatrix& src_coef_per_species,
-    const ArrayOfMatrix& dsrc_coef_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& f_grid,
-    const Numeric& rtp_temperature,
-    const Verbosity&) {
-  // nlte_source has format
-  // [ abs_species, f_grid, stokes_dim ].
-  // src_coef_per_species has format ArrayOfMatrix (over species),
-  // where for each species the matrix has format [f_grid, abs_p].
-
-  Index n_species = src_coef_per_species.nelem();  // # species
-
-  ARTS_USER_ERROR_IF(not n_species, "Must have at least one species.")
-
-  Index n_f = src_coef_per_species[0].nrows();  // # frequencies
-
-  // # pressures must be 1:
-  ARTS_USER_ERROR_IF(1 not_eq src_coef_per_species[0].ncols(),
-                     "Must have exactly one pressure.")
-
-  // Check frequency dimension of propmat_clearsky
-  ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq n_f,
-                     "Frequency dimension of nlte_source does not\n"
-                     "match abs_coef_per_species.")
-
-  const Vector B = planck(f_grid, rtp_temperature);
-
-  StokesVector sv(n_f, nlte_source.StokesDimensions());
-  for (Index si = 0; si < n_species; ++si) {
-    sv.Kjj() = src_coef_per_species[si](joker, 0);
-    sv *= B;
-    nlte_source.Kjj() += sv.Kjj();
-  }
-
-  // Jacobian
-  for (Index ii = 0; ii < jacobian_quantities.nelem(); ii++) {
-    const auto& deriv = jacobian_quantities[ii];
-
-    if (not deriv.propmattype()) continue;
-
-    if (deriv == Jacobian::Atm::Temperature) {
-      const Vector dB = dplanck_dt(f_grid, rtp_temperature);
-
-      for (Index si = 0; si < n_species; ++si) {
-        sv.Kjj() = src_coef_per_species[si](joker, 0);
-        sv *= dB;
-        dnlte_source_dx[ii].Kjj() += sv.Kjj();
-      }
-
-      sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
-      sv *= B;
-      dnlte_source_dx[ii].Kjj() += sv.Kjj();
-    } else if (is_frequency_parameter(deriv)) {
-      const Vector dB = dplanck_df(f_grid, rtp_temperature);
-
-      for (Index si = 0; si < n_species; ++si) {
-        sv.Kjj() = src_coef_per_species[si](joker, 0);
-        sv *= dB;
-        dnlte_source_dx[ii].Kjj() += sv.Kjj();
-      }
-
-      sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
-      sv *= B;
-      dnlte_source_dx[ii].Kjj() += sv.Kjj();
-    } else {
-      sv.Kjj() = dsrc_coef_dx[ii](joker, 0);
-      sv *= B;
-      dnlte_source_dx[ii].Kjj() += sv.Kjj();
-    }
-  }
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(  //WS Output

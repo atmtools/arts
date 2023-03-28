@@ -3709,26 +3709,6 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("rtp_mag"),
-      DESCRIPTION(
-          "Magnetic field at a radiative transfer point.\n"
-          "\n"
-          "See *mag_u_field* etc. for a definition of the different components.\n"
-          "For this variable the components are put together and thus defines\n"
-          "magnetic field vector. Hence, this is a vector of length three, even\n"
-          "if any of the input fields is set to be empty.\n"
-          "\n"
-          "The WSV is used as input to methods and agendas calculating radiative\n"
-          "properties for a given conditions.\n"
-          "\n"
-          "Usage: Communication variable.\n"
-          "\n"
-          "Units: T\n"
-          "\n"
-          "Size:  [ u-component, v-component, w-component ]\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("rtp_los"),
       DESCRIPTION(
           "Line-of-sight at a radiative transfer point.\n"
