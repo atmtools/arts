@@ -176,15 +176,11 @@ void propmat_clearskyAddOnTheFlyLineMixing(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
+    const AtmPoint& atm_point,
     const Index& lbl_checked,
     const Verbosity&) {
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                      "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq rtp_vmr.nelem(),
-                     "Bad size of input species+vmrs");
   ARTS_USER_ERROR_IF(not lbl_checked,
                      "Please set lbl_checked true to use this function");
 
@@ -192,16 +188,16 @@ void propmat_clearskyAddOnTheFlyLineMixing(
     if (select_abs_species.nelem() and select_abs_species not_eq abs_species[i])
       continue;
     for (auto& band : abs_lines_per_species[i]) {
-      if (band.OnTheFlyLineMixing() and band.DoLineMixing(rtp_pressure)) {
+      if (band.OnTheFlyLineMixing() and band.DoLineMixing(atm_point.pressure)) {
         // vmrs should be for the line
         const Vector line_shape_vmr =
-            band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+            band.BroadeningSpeciesVMR(atm_point);
         const Numeric this_vmr =
-            rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
+            atm_point[abs_species[i]] * isotopologue_ratios[band.Isotopologue()];
         const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(
-            rtp_temperature,
+            atm_point.temperature,
             0,
-            rtp_pressure,
+            atm_point.pressure,
             this_vmr,
             line_shape_vmr,
             ecs_data[band.quantumidentity],
@@ -238,10 +234,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Vector& rtp_vmr,
-    const Vector& rtp_mag,
+    const AtmPoint& atm_point,
     const Vector& rtp_los,
     const Index& lbl_checked,
     const Verbosity&) {
@@ -249,15 +242,13 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                      "Only for stokes dim 4");
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                      "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF(abs_species.nelem() not_eq rtp_vmr.nelem(),
-                     "Bad size of input species+vmrs");
   ARTS_USER_ERROR_IF(not lbl_checked,
                      "Please set lbl_checked true to use this function");
 
   // Polarization
-  const auto Z = Zeeman::FromGrids(rtp_mag[0],
-                                   rtp_mag[1],
-                                   rtp_mag[2],
+  const auto Z = Zeeman::FromGrids(atm_point.mag[0],
+                                   atm_point.mag[1],
+                                   atm_point.mag[2],
                                    Conversion::deg2rad(rtp_los[0]),
                                    Conversion::deg2rad(rtp_los[1]));
   const auto polarization_scale_data = Zeeman::AllPolarization(Z.theta, Z.eta);
@@ -270,21 +261,21 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
     if (select_abs_species.nelem() and select_abs_species not_eq abs_species[i])
       continue;
     for (auto& band : abs_lines_per_species[i]) {
-      if (band.OnTheFlyLineMixing() and band.DoLineMixing(rtp_pressure)) {
+      if (band.OnTheFlyLineMixing() and band.DoLineMixing(atm_point.pressure)) {
         // vmrs should be for the line
         const Vector line_shape_vmr =
-            band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+            band.BroadeningSpeciesVMR(atm_point);
         const Numeric this_vmr =
-            rtp_vmr[i] * isotopologue_ratios[band.Isotopologue()];
+            atm_point[abs_species[i]] * isotopologue_ratios[band.Isotopologue()];
         for (Zeeman::Polarization polarization :
              {Zeeman::Polarization::Pi,
               Zeeman::Polarization::SigmaMinus,
               Zeeman::Polarization::SigmaPlus}) {
           const auto [abs, dabs, error] =
               Absorption::LineMixing::ecs_absorption(
-                  rtp_temperature,
+                  atm_point.temperature,
                   Z.H,
-                  rtp_pressure,
+                  atm_point.pressure,
                   this_vmr,
                   line_shape_vmr,
                   ecs_data[band.quantumidentity],

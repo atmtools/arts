@@ -532,9 +532,8 @@ void propmat_clearskyAddParticles(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& rtp_vmr,
     const Vector& rtp_los,
-    const Numeric& rtp_temperature,
+    const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& use_abs_as_ext,
@@ -622,11 +621,11 @@ void propmat_clearskyAddParticles(
   Vector T_array;
   if (do_jac_temperature) {
     T_array.resize(2);
-    T_array = rtp_temperature;
+    T_array = atm_point.temperature;
     T_array[1] += dT;
   } else {
     T_array.resize(1);
-    T_array = rtp_temperature;
+    T_array = atm_point.temperature;
   }
   Matrix dir_array(1, 2);
   dir_array(0, joker) = rtp_los_back;
@@ -663,7 +662,7 @@ void propmat_clearskyAddParticles(
       // particle entry. shouldn't happen, though.
       ARTS_ASSERT(sp < na);
       ARTS_USER_ERROR_IF(
-          rtp_vmr[sp] < 0.,
+          atm_point[abs_species[sp]] < 0.,
           "Negative absorbing particle 'vmr' (aka number density)"
           " encountered:\n"
           "scat species #",
@@ -674,7 +673,7 @@ void propmat_clearskyAddParticles(
           sp,
           ")\n")
 
-      if (rtp_vmr[sp] > 0.) {
+      if (atm_point[abs_species[sp]] > 0.) {
         ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
                            "Temperature interpolation error:\n"
                            "scat species #",
@@ -701,7 +700,7 @@ void propmat_clearskyAddParticles(
               internal_propmat.SetAtPosition(
                   ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
         }
-        propmat_clearsky += rtp_vmr[sp] * internal_propmat;
+        propmat_clearsky += atm_point[abs_species[sp]] * internal_propmat;
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
@@ -717,7 +716,7 @@ void propmat_clearskyAddParticles(
       }
 
       // For number density derivatives
-      if (jacobian_quantities.nelem()) rtp_vmr_sum += rtp_vmr[sp];
+      if (jacobian_quantities.nelem()) rtp_vmr_sum += atm_point[abs_species[sp]];
 
       for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
         const auto& deriv = jacobian_quantities[iq];
@@ -733,7 +732,7 @@ void propmat_clearskyAddParticles(
             tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
           }
 
-          tmp *= rtp_vmr[sp];
+          tmp *= atm_point[abs_species[sp]];
           tmp /= dT;
 
           if (nf > 1)
