@@ -206,5 +206,7 @@ void py_atm(py::module_ &m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(AtmField);
+
+  PythonInterfaceWorkspaceArray(AtmPoint);
 }
 } // namespace Python
