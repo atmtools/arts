@@ -355,6 +355,16 @@ private:
     }
   }
 
+  template <KeyType T> void erase_key(T &&x) {
+    if constexpr (isArrayOfSpeciesTag<T>) {
+      specs.erase(std::forward<T>(x));
+    } else if constexpr (isQuantumIdentifier<T>) {
+      nlte.erase(std::forward<T>(x));
+    } else {
+      other.erase(std::forward<T>(x));
+    }
+  }
+
   //! Regularizes the calculations so that all data is on a single grid
   Field &regularize(const Vector &, const Vector &, const Vector &);
 
