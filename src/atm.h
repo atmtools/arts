@@ -1,6 +1,5 @@
 #pragma once
 
-#include <__concepts/same_as.h>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
