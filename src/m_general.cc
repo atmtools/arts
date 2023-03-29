@@ -40,13 +40,13 @@
 
 #include "arts.h"
 
+#include <chrono>
 #include <cstdlib>
+#include <ratio>
 #include <stdexcept>
-#ifdef TIME_SUPPORT
-#include <unistd.h>
-#endif
 
 #include "array.h"
+#include "arts_constants.h"
 #include "check_input.h"
 #include "m_general.h"
 #include "messages.h"
@@ -63,7 +63,7 @@
 #include "fastem.h"
 #include "tessem.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -136,8 +136,8 @@ void Print(  // WS Generic Input:
   os << "  CIA tag; Spectral range [cm-1]; Temp range [K]; # of sets\n";
   for (Index i = 0; i < cia_data.nelem(); i++)
     for (Index j = 0; j < cia_data[i].DatasetCount(); j++) {
-      Vector temp_grid = cia_data[i].TemperatureGrid(j);
-      Vector freq_grid = cia_data[i].FrequencyGrid(j);
+      Vector temp_grid{cia_data[i].TemperatureGrid(j)};
+      Vector freq_grid{cia_data[i].FrequencyGrid(j)};
 
       os << setprecision(2) << std::fixed << "  " << cia_data[i].MoleculeName(0)
          << "-CIA-" << cia_data[i].MoleculeName(1) << "-" << j << "; "
@@ -167,57 +167,6 @@ void Print(  // WS Generic Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
-    const Ppath& x,
-    // Keywords:
-    const Index& level,
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-  SWITCH_OUTPUT(level, "dim: ");
-  Print(x.dim, level, verbosity);
-  SWITCH_OUTPUT(level, "np: ");
-  Print(x.np, level, verbosity);
-  SWITCH_OUTPUT(level, "constant: ");
-  Print(x.constant, level, verbosity);
-  SWITCH_OUTPUT(level, "background: ");
-  Print(x.background, level, verbosity);
-  SWITCH_OUTPUT(level, "start_pos: ");
-  Print(x.start_pos, level, verbosity);
-  SWITCH_OUTPUT(level, "start_los: ");
-  Print(x.start_los, level, verbosity);
-  SWITCH_OUTPUT(level, "start_lstep: ");
-  Print(x.start_lstep, level, verbosity);
-  SWITCH_OUTPUT(level, "pos: ");
-  Print(x.pos, level, verbosity);
-  SWITCH_OUTPUT(level, "los: ");
-  Print(x.los, level, verbosity);
-  SWITCH_OUTPUT(level, "r: ");
-  Print(x.r, level, verbosity);
-  SWITCH_OUTPUT(level, "lstep: ");
-  Print(x.lstep, level, verbosity);
-  SWITCH_OUTPUT(level, "end_pos: ");
-  Print(x.end_pos, level, verbosity);
-  SWITCH_OUTPUT(level, "end_los: ");
-  Print(x.end_los, level, verbosity);
-  SWITCH_OUTPUT(level, "end_lstep: ");
-  Print(x.end_lstep, level, verbosity);
-  SWITCH_OUTPUT(level, "nreal: ");
-  Print(x.nreal, level, verbosity);
-  SWITCH_OUTPUT(level, "ngroup: ");
-  Print(x.ngroup, level, verbosity);
-  SWITCH_OUTPUT(level, "gp_p: ");
-  Print(x.gp_p, level, verbosity);
-  if (x.dim >= 2) {
-    SWITCH_OUTPUT(level, "gp_lat: ");
-    Print(x.gp_lat, level, verbosity);
-  }
-  if (x.dim == 3) {
-    SWITCH_OUTPUT(level, "gp_lon: ");
-    Print(x.gp_lon, level, verbosity);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Print(  // WS Generic Input:
     const ArrayOfPpath& x,
     // Keywords:
     const Index& level,
@@ -232,14 +181,12 @@ void Print(  // WS Generic Input:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef TIME_SUPPORT
 void Print(  // WS Generic Input:
     const Timer& timer,
     // Keywords:
     const Index& level,
     const Verbosity& verbosity) {
   CREATE_OUTS;
-
   if (!timer.finished) {
     SWITCH_OUTPUT(
         level,
@@ -248,49 +195,18 @@ void Print(  // WS Generic Input:
   }
 
   ostringstream os;
-  os.setf(ios::showpoint | ios::fixed);
 
-  static long clktck = 0;
-
-  if (clktck == 0)
-    ARTS_USER_ERROR_IF ((clktck = sysconf(_SC_CLK_TCK)) < 0,
-                        "Timer error: Unable to determine CPU clock ticks");
-
-  os << "  * CPU time  total: " << setprecision(2)
-     << (Numeric)(
-            (timer.cputime_end.tms_stime - timer.cputime_start.tms_stime) +
-            (timer.cputime_end.tms_utime - timer.cputime_start.tms_utime)) /
-            (Numeric)clktck;
-
-  os << "  user: " << setprecision(2)
-     << (Numeric)(timer.cputime_end.tms_utime - timer.cputime_start.tms_utime) /
-            (Numeric)clktck;
-
-  os << "  system: " << setprecision(2)
-     << (Numeric)(timer.cputime_end.tms_stime - timer.cputime_start.tms_stime) /
-            (Numeric)clktck;
-
-  os << "\n               real: " << setprecision(2)
-     << (Numeric)(timer.realtime_end - timer.realtime_start) / (Numeric)clktck;
-
-  os << "  " << setprecision(2)
-     << (Numeric)(
-            (timer.cputime_end.tms_stime - timer.cputime_start.tms_stime) +
-            (timer.cputime_end.tms_utime - timer.cputime_start.tms_utime)) /
-            (Numeric)(timer.realtime_end - timer.realtime_start) * 100.
-     << "%CPU\n";
+  const auto cputime =
+      static_cast<double>(timer.cputime_end - timer.cputime_start) /
+      CLOCKS_PER_SEC;
+  const auto walltime = std::chrono::duration<double, std::ratio<1>>(
+                            timer.realtime_end - timer.realtime_start)
+                            .count();
+  os << std::fixed << setprecision(2) << "  * Timing: CPU " << cputime << "s, "
+     << "Wall " << walltime << "s, " << 100. * cputime / walltime << "%CPU\n";
 
   SWITCH_OUTPUT(level, os.str());
 }
-#else
-void Print(  // WS Generic Input:
-    const Timer&,
-    // Keywords:
-    const Index& level,
-    const Verbosity& verbosity) {
-  SWITCH_OUTPUT(level, "Timer error: ARTS was compiled without timer support");
-}
-#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
@@ -321,12 +237,12 @@ void PrintWorkspace(  // Workspace reference
   for (Index i = 0; i < ws.nelem(); i++) {
     if (!only_allocated) {
       os << "    ";
-      PrintWsvName(os, i);
+      ws.PrintWsvName(os, i);
       if (ws.is_initialized(i)) os << ws.depth(i);
       os << "\n";
     } else if (ws.is_initialized(i)) {
       os << "    ";
-      PrintWsvName(os, i);
+      ws.PrintWsvName(os, i);
       os << ws.depth(i) << "\n";
     }
   }
@@ -351,47 +267,29 @@ void StringJoin(String& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef TIME_SUPPORT
 void timerStart(  // WS Output
     Timer& timer,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF ((timer.realtime_start = times(&timer.cputime_start)) == (clock_t)-1,
-                      "Timer error: Unable to get current CPU time");
+  timer.cputime_start = std::clock();
+  timer.realtime_start = std::chrono::high_resolution_clock::now();
 
   timer.running = true;
   timer.finished = false;
 }
-#else
-void timerStart(  // WS Output
-    Timer& /*starttime*/,
-    const Verbosity&) {
-  ARTS_USER_ERROR (
-      "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
-}
-#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef TIME_SUPPORT
 void timerStop(  // WS Input
     Timer& timer,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF (!timer.running,
-      "Timer error: Unable to stop timer that's not running.");
+  ARTS_USER_ERROR_IF(!timer.running,
+                     "Timer error: Unable to stop timer that's not running.");
 
-  ARTS_USER_ERROR_IF ((timer.realtime_end = times(&(timer.cputime_end))) == (clock_t)-1,
-    "Timer error: Unable to get current CPU time");
+  timer.realtime_end = std::chrono::high_resolution_clock::now();
+  timer.cputime_end = std::clock();
 
   timer.running = false;
   timer.finished = true;
 }
-#else
-void timerStop(  // WS Input
-    const Timer&,
-    const Verbosity&) {
-  ARTS_USER_ERROR (
-    "Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
-}
-#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Error(const String& msg, const Verbosity& verbosity) {

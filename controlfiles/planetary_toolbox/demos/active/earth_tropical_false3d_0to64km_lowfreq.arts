@@ -14,7 +14,7 @@
 
 Arts2{
 
-INCLUDE "general/planet_earth.arts"
+PlanetSet(option="Earth")
 
 VectorNLogSpace( p_grid, 321, 1013e2, 1 )
 

@@ -4,16 +4,10 @@
 #
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # A pressure grid rougly matching 0 to 16 km, in steps of 500 m.
 IndexCreate( np )
@@ -21,10 +15,12 @@ IndexSet( np, 33 )
 VectorNLogSpace( p_grid, np, 1013e2, 100e2 )
 
 # Initial definition of species
-abs_speciesSet( species= [  "N2-SelfContStandardType", "O2-TRE05", "H2O-PWR98" ] )
+abs_speciesSet( species= [  "N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98" ] )
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaAuto
 
 # Dimensionality of the atmosphere
 AtmosphereSet1D
@@ -33,6 +29,9 @@ AtmosphereSet1D
 AtmRawRead( basename = "testdata/midlatitude-winter" )
 #
 AtmFieldsCalc
+
+# Set 90% RH
+vmr_fieldSetRh( rh = 0.9 )
 
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
@@ -66,19 +65,16 @@ Print(range_bins)
 #
 MatrixSet( sensor_pos, [400e3] )
 MatrixSet( sensor_los, [180] )
-#
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
+
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
 #
 AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
+  iy_transmitterSinglePol
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( pext_scaling = 0.5 )
+  VectorSet(geo_pos, [])
 }
 IndexSet( stokes_dim, 2 )
 sensorOff
@@ -146,8 +142,6 @@ pnd_fieldCalcFromParticleBulkProps
 
 # Make checks
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

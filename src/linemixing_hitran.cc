@@ -26,11 +26,32 @@
 
 #include "linemixing_hitran.h"
 #include <Faddeeva/Faddeeva.hh>
+#include <cinttypes>
 #include <fstream>
+#include <functional>
+#include <numeric>
 
 #include "lin_alg.h"
 #include "linemixing.h"
+#include "lineshapemodel.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "physics_funcs.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#else
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
+#include <Eigen/Dense>
+
+#pragma GCC diagnostic pop
 
 namespace lm_hitran_2017 {
 namespace parameters {
@@ -301,7 +322,7 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
         char iv11, iv12, iv21, iv22, il21, il22, iv31, iv32, ir1, fv11, fv12, fv21, fv22, fl21, fl22, fv31, fv32, fr1;
         
         sscanf(line.c_str(), 
-               "%c%c" "%1ld" "%12lf" "%10lf"
+               "%c%c" "%1" PRId64 "%12lf" "%10lf"
                "%10lf" "%5lf" "%5lf" "%4lf"
                "%5lf" "%5lf" "%4lf" "%10lf"
                "%4lf" "%4lf" "%8lf" 
@@ -310,7 +331,7 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
                "%c%c%c%c%c%c"
                "%c%c" "%c%c" "%c%c" "%c%c" "%c"
                "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
-               "%c" "%3ld" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+               "%c" "%3" PRId64 "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
                "%5lf" "%5lf" "%4lf" "%5lf"
                "%20s" "%20s",
                &x,&x,
@@ -799,7 +820,7 @@ void calcw(CommonBlock& cmn,
   
   Vector s(n);
   for (Index i=0; i<n; i++) {
-    s[i] = cmn.LineSg.Sig(i, iband) * cmn.PopuT.PopuT[i] * Constant::pow2(cmn.DipoTcm.DipoT(i, iband));
+    s[i] = cmn.LineSg.Sig(i, iband) * cmn.PopuT.PopuT[i] * Math::pow2(cmn.DipoTcm.DipoT(i, iband));
   }
   
   for (Index i=0; i<n; i++) {
@@ -999,7 +1020,7 @@ Sorter sorter_calcw(ConvTPOut& out,
     if (at_t0) {
       s[i] = band.lines[i].I0;
     } else {
-      s[i] = f0[i] * pop[i] * Constant::pow2(dip[i]);
+      s[i] = f0[i] * pop[i] * Math::pow2(dip[i]);
     }
   }
   
@@ -1236,9 +1257,9 @@ void eqvlines(CommonBlock& cmn,
   }
 }
 
-EqvLinesOut eqvlines(const ConstComplexMatrixView& W,
-                     const ConstVectorView& pop,
-                     const ConstVectorView& dip,
+EqvLinesOut eqvlines(const ComplexMatrix& W,
+                     const Vector& pop,
+                     const Vector& dip,
                      const Numeric& fmean)
 {
   // Size of problem
@@ -1259,11 +1280,11 @@ EqvLinesOut eqvlines(const ConstComplexMatrixView& W,
   }
   
   // Do the matrix backward multiplication
-  auto& inv_zvec=zvec.inv();
+  inv(zvec, zvec);
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      z += pop[j] * dip[j] * inv_zvec(i, j);
+      z += pop[j] * dip[j] * zvec(i, j);
     }
     out.str[i] *= z;
   }
@@ -1315,7 +1336,7 @@ void convtp(CommonBlock& cmn,
       + (xco2 * (cmn.GamVT0CO2.HWVT0SELF(iline, iband) * std::pow(ratiot, cmn.DTGAMCO2.BHWSELF(iline, iband))));
     }
     cmn.SHIFT.shft[iline]=cmn.SHIFT0.shft0(iline, iband);
-    const Numeric wgt = cmn.PopuT.PopuT[iline] * Constant::pow2(cmn.DipoTcm.DipoT(iline, iband));
+    const Numeric wgt = cmn.PopuT.PopuT[iline] * Math::pow2(cmn.DipoTcm.DipoT(iline, iband));
     sumwgt += wgt;
     sigmoy += cmn.LineSg.Sig(iline,iband) * wgt;
   }
@@ -1348,7 +1369,7 @@ void convtp(CommonBlock& cmn,
   }
 }
 
-ConvTPOut convtp(const ConstVectorView& vmrs,
+ConvTPOut convtp(const Vector& vmrs,
                  const HitranRelaxationMatrixData& hitran,
                  const AbsorptionLines& band,
                  const Numeric T,
@@ -1372,7 +1393,7 @@ ConvTPOut convtp(const ConstVectorView& vmrs,
     out.shft[i] = band.lines[i].lineshape.D0(T, band.T0, 1, vmrs);
     out.dip[i] = std::sqrt(- band.lines[i].I0/(pop0 * band.lines[i].F0 * std::expm1(- (Constant::h * band.lines[i].F0) / (Constant::k * band.T0))));
     out.hwt2[i] = band.lines[i].lineshape.G2(T, band.T0, 1, vmrs);
-    wgt[i] = out.pop[i] * Constant::pow2(out.dip[i]);
+    wgt[i] = out.pop[i] * Math::pow2(out.dip[i]);
   }
   
   // Calculate the relaxation matrix
@@ -1407,7 +1428,7 @@ void qsdv(const Numeric& sg0,
           Numeric& ls_qsdv_r,
           Numeric& ls_qsdv_i)
 {
-  using Constant::pow2;
+  using Math::pow2;
   Complex x , y, csqrty, z1, z2, w1, w2, aterm;
   Numeric xz1, yz1, xz2, yz2;
   
@@ -1492,7 +1513,7 @@ Complex qsdv_si(const Numeric F0,
                 const Numeric shift2,
                 const Numeric f)
 {
-  using Constant::pow2;
+  using Math::pow2;
   Complex x , y, csqrty, z1, z2, w1, w2, aterm;
   Numeric xz1, yz1, xz2, yz2;
   
@@ -1570,15 +1591,15 @@ void compabs(
   const Numeric& ptot,
   const Numeric& xco2,
   const Numeric& xh2o,
-  const ConstVectorView& invcm_grid,
+  const Vector& invcm_grid,
   const bool mixsdv,
   const bool mixfull,
   VectorView absv,
   VectorView absy,
   VectorView absw)
 {
-  using Constant::pow2;
-  using Constant::pow3;
+  using Math::pow2;
+  using Math::pow3;
   
   constexpr Numeric rdmult = 30;
   
@@ -1687,11 +1708,11 @@ Vector compabs(
   const HitranRelaxationMatrixData& hitran,
   const ArrayOfAbsorptionLines& bands,
   const SpeciesIsotopologueRatios& isotopologue_ratio,
-  const ConstVectorView &vmrs,
-  const ConstVectorView &f_grid)
+  const Vector &vmrs,
+  const Vector &f_grid)
 {
-  using Constant::pow2;
-  using Constant::pow3;
+  using Math::pow2;
+  using Math::pow3;
   
   // Number of points to compute
   const Index nf = f_grid.nelem();
@@ -1783,15 +1804,15 @@ void detband(CommonBlock& cmn,
     Index isotr, lfr, lir, jmxp, jmxq, jmxr;
     char c11, c12, c21, c22, c31, c32, c41, c42, c51, c52, x;
     sscanf(line.c_str(), 
-           "%1ld"
-           "%c%c" "%1ld" "%c%c"
-           "%c%c" "%1ld" "%c%c"
+           "%1" PRId64
+           "%c%c" "%1" PRId64 "%c%c"
+           "%c%c" "%1" PRId64 "%c%c"
            "%c%c"
            "%12lf"
            "%c" "%12lf"
            "%c" "%12lf"
            "%c%c%c%c%c%c%c%c"
-           "%4ld" "%4ld" "%4ld",
+           "%4" PRId64 "%4" PRId64 "%4" PRId64,
            &isotr,
            &c11, &c12, &lfr, &c21, &c22,
            &c31, &c32, &lir, &c41, &c42,
@@ -1812,10 +1833,25 @@ void detband(CommonBlock& cmn,
         cmn.Bands.Isot[cmn.Bands.nBand] = 10;
       cmn.Bands.li[cmn.Bands.nBand] = lir;
       cmn.Bands.lf[cmn.Bands.nBand] = lfr;
-      
-      char name[15];
-      sprintf(name, "S%ld%c%c%ld%c%c%c%c%ld%c%c%c%c", isotr, c11, c12, lfr, c21, c22, c31, c32, lir, c41, c42, c51, c52);
-      cmn.Bands.BandFile[cmn.Bands.nBand] = name;
+
+      std::array<char, 15> name;
+      snprintf(name.data(),
+               name.size(),
+               "S%" PRId64 "%c%c%" PRId64 "%c%c%c%c%" PRId64 "%c%c%c%c",
+               isotr,
+               c11,
+               c12,
+               lfr,
+               c21,
+               c22,
+               c31,
+               c32,
+               lir,
+               c41,
+               c42,
+               c51,
+               c52);
+      cmn.Bands.BandFile[cmn.Bands.nBand] = name.data();
       cmn.Bands.nBand++;
       ARTS_USER_ERROR_IF (cmn.Bands.nBand > parameters::nBmx,
                           "Too many bands");
@@ -1846,7 +1882,7 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
         sscanf(line.c_str(), 
                "%20s" "%20s"
                "%14lf" "%14lf"
-               "%4ld" "%4ld" "%4ld" "%4ld",
+               "%4" PRId64 "%4" PRId64 "%4" PRId64 "%4" PRId64,
                sw0r, sb0r, &dmaxdt, &wtmax, &jic, &jfc, &jipc, &jfpc);
         String ssw0r = sw0r;
         std::replace(ssw0r.begin(), ssw0r.end(), 'D', 'E');
@@ -1896,7 +1932,7 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
   }
 }
 
-Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const ConstVectorView& invcm_grid, const Numeric stotmax, const calctype type)
+Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const Vector& invcm_grid, const Numeric stotmax, const calctype type)
 {
   const Index n = invcm_grid.nelem();
   Vector absorption(n);
@@ -1948,8 +1984,8 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
-               const ConstVectorView& vmrs,
-               const ConstVectorView& f_grid)
+               const Vector& vmrs,
+               const Vector& f_grid)
 {
   return f_grid.nelem() ? compabs(T, P, hitran, bands, isotopologue_ratio, vmrs, f_grid) : Vector(0);
 }

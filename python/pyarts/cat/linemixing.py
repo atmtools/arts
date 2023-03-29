@@ -5,7 +5,7 @@
 
 import numpy as np
 
-def init_ecs(ws, vmrs=np.array([0.21, 0.79]), specs="O2, N2"):
+def init_ecs(ws, vmrs=np.array([0.21, 0.79]), specs=["O2", "N2"]):
     """ Initialize the error-corrected sudden molecular parameters
     
     Parameters:
@@ -19,7 +19,7 @@ def init_ecs(ws, vmrs=np.array([0.21, 0.79]), specs="O2, N2"):
     ws.ecs_dataAddMakarov2020()
     ws.ecs_dataAddRodrigues1997()
     ws.ecs_dataAddTran2011()
-    ws.ecs_dataSetMeanAir(vmrs=vmrs, specs=specs)
+    ws.ecs_dataAddMeanAir(vmrs=vmrs, specs=specs)
 
 def adapt_lines(ws, lines, t_grid=np.linspace(150, 350),pressure=1e5,order=1,robust=1,rosenkranz_adaptation=0):
     """ Adapt the lines to use line mixing coefficients from on-the-fly bands

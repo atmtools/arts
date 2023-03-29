@@ -28,6 +28,7 @@
 */
 
 #include "propmat_field.h"
+#include "matpack_data.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "transmissionmatrix.h"
@@ -71,29 +72,28 @@ void field_of_propagation(Workspace& ws,
   additional_source_field =
       FieldOfStokesVector(nalt, nlat, nlon, StokesVector(nf, stokes_dim));
 
-  Workspace l_ws(ws);
-  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
+  WorkspaceOmpParallelCopyGuard wss{ws};
 
-#pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda)
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3) \
+    firstprivate(wss)
   for (Index i = 0; i < nalt; i++) {
     for (Index j = 0; j < nlat; j++) {
       for (Index k = 0; k < nlon; k++) {
         thread_local Index itmp;
         get_stepwise_clearsky_propmat(
-            l_ws,
+            wss,
             propmat_field(i, j, k),
             additional_source_field(i, j, k),
             itmp,
             dK_dx,
             dS_dx,
-            l_propmat_clearsky_agenda,
+            propmat_clearsky_agenda,
             jacobian_quantities,
             f_grid,
             mag_field,
             los,
             nlte_field(i, j, k),
-            vmr_field(joker, i, j, k),
+            Vector{vmr_field(joker, i, j, k)},
             t_field(i, j, k),
             p_grid[i],
             false);
@@ -150,6 +150,9 @@ void emission_from_propmat_field(
   src_rad = ArrayOfRadiationVector(np, RadiationVector(nf, ns));
   lyr_tra = ArrayOfTransmissionMatrix(np, TransmissionMatrix(nf, ns));
 
+  RadiationVector J_add_dummy;
+  ArrayOfRadiationVector dJ_add_dummy;
+
   // Size radiative variables always used
   Vector B(nf);
   PropagationMatrix K_this(nf, ns), K_past(nf, ns);
@@ -186,6 +189,7 @@ void emission_from_propmat_field(
 
     stepwise_source(src_rad[ip],
                     rvtmp,
+                    J_add_dummy,
                     K_this,
                     a,
                     S,
@@ -214,7 +218,7 @@ void emission_from_propmat_field(
                        0,
                        rqtmp,
                        ppath,
-                       {0},
+                       Vector{0},
                        1,
                        nlte_field,
                        0,

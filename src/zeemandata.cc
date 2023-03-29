@@ -29,7 +29,10 @@
 #include "zeemandata.h"
 
 #include "debug.h"
+#include "matpack_data.h"
+#include "matpack_eigen.h"
 #include "species_info.h"
+#include "wigner_functions.h"
 
 Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
                               const Numeric& GS,
@@ -87,7 +90,7 @@ Numeric case_b_g_coefficient_o2(Rational J,
                                 Numeric lB,
                                 Numeric lD,
                                 Numeric lH) {
-  using Constant::pow2, Constant::pow3;
+  using Math::pow2, Math::pow3;
   using std::atan2, std::cos, std::sin;
 
   if (J.isUndefined() or N.isUndefined()) return NAN;
@@ -121,7 +124,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
                                          Rational j,
                                          Numeric gperp,
                                          Numeric gpara) {
-  using Constant::pow2;
+  using Math::pow2;
   if (k.isUndefined() or j.isUndefined() or j == 0) return 0;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
@@ -155,7 +158,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         auto NL = qid.val[QuantumNumberType::N].low();
         Numeric gl = case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return Model(gu, gl);
+        return {gu, gl};
       }
     }
   } else if (qid.Isotopologue() == "O2-68") {
@@ -185,7 +188,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         auto NL = qid.val[QuantumNumberType::N].low();
         Numeric gl = case_b_g_coefficient_o2(
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return Model(gu, gl);
+        return {gu, gl};
       }
     }
   } else if (qid.Isotopologue() == "CO-26") {
@@ -193,7 +196,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         -0.2689 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
-    return Model(gperp, gperp);
+    return {gperp, gperp};
   } else if (qid.Isotopologue() == "OCS-622") {
     constexpr Numeric gperp =
         -.02889 /
@@ -207,8 +210,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto JL = qid.val[QuantumNumberType::J].low();
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
-      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara));
+      return {closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "OCS-624") {
     constexpr Numeric gperp =
@@ -224,8 +227,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto JL = qid.val[QuantumNumberType::J].low();
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
-      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara));
+      return {closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.Isotopologue() == "CO2-626") {
     constexpr Numeric gperp =
@@ -241,13 +244,13 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       auto JL = qid.val[QuantumNumberType::J].low();
       auto KL = qid.val[QuantumNumberType::Ka].low();
 
-      return Model(closed_shell_trilinear(KU, JU, gperp, gpara),
-                   closed_shell_trilinear(KL, JL, gperp, gpara));
+      return {closed_shell_trilinear(KU, JU, gperp, gpara),
+                   closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   }
 
   // Set to zero otherwise as we practically say "there's no Zeeman effect" then
-  return Model(0, 0);
+  return {0, 0};
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
@@ -263,13 +266,13 @@ Eigen::Vector3d los_xyz_by_uvw_local(Numeric u, Numeric v, Numeric w) {
 Eigen::Vector3d los_xyz_by_za_local(Numeric z, Numeric a) {
   using std::cos;
   using std::sin;
-  return Eigen::Vector3d(cos(a) * sin(z), sin(a) * sin(z), cos(z));
+  return Eigen::Vector3d(cos(a) * sin(z), sin(a) * sin(z), cos(z)).normalized();
 }
 
 Eigen::Vector3d ev_xyz_by_za_local(Numeric z, Numeric a) {
   using std::cos;
   using std::sin;
-  return Eigen::Vector3d(cos(a) * cos(z), sin(a) * cos(z), -sin(z));
+  return Eigen::Vector3d(cos(a) * cos(z), sin(a) * cos(z), -sin(z)).normalized();
 }
 
 Zeeman::Derived Zeeman::FromGrids(
@@ -293,7 +296,7 @@ Zeeman::Derived Zeeman::FromGrids(
 
     // Compute theta (and its derivatives if possible)
     const Numeric cos_theta = n.dot(nH);
-    const Numeric sin_theta = std::sqrt(1 - Constant::pow2(cos_theta));
+    const Numeric sin_theta = std::sqrt(1 - Math::pow2(cos_theta));
     output.theta = std::acos(cos_theta);
     if (sin_theta not_eq 0) {
       const Eigen::Vector3d dtheta =
@@ -314,7 +317,7 @@ Zeeman::Derived Zeeman::FromGrids(
     output.eta = std::atan2(y, x);
     if (x not_eq 0 or y not_eq 0) {
       const Eigen::Vector3d deta =
-          n.cross(nH) / (output.H * (Constant::pow2(x) + Constant::pow2(y)));
+          n.cross(nH) / (output.H * (Math::pow2(x) + Math::pow2(y)));
       output.deta_dv = deta[0];
       output.deta_du = deta[1];
       output.deta_dw = deta[2];
@@ -334,7 +337,7 @@ Numeric Model::Strength(Rational Ju,
                         Zeeman::Polarization type,
                         Index n) const ARTS_NOEXCEPT {
   ARTS_ASSERT(type not_eq Zeeman::Polarization::None);
-  using Constant::pow2;
+  using Math::pow2;
 
   auto ml = Ml(Ju, Jl, type, n);
   auto mu = Mu(Ju, Jl, type, n);
@@ -438,14 +441,14 @@ void sum(PropagationMatrix& pm,
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
                        : pm.NumberOfNeededVectors() == 4)
 
-  const auto& pol_real = polvec.attenuation();
-  const auto& pol_imag = polvec.dispersion();
+  const ExhaustiveConstVectorView pol_real(polvec.att);
+  const ExhaustiveConstVectorView pol_imag(polvec.dis);
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
-  MapToEigen(out).leftCols<4>().noalias() += MapToEigen(abs.real()) * pol_real;
+  matpack::eigen::mat(out).leftCols<4>().noalias() += matpack::eigen::row_vec(abs.real()) * matpack::eigen::col_vec(pol_real);
   if (do_phase)
-    MapToEigen(out).rightCols<3>().noalias() +=
-        MapToEigen(abs.imag()) * pol_imag;
+    matpack::eigen::mat(out).rightCols<3>().noalias() +=
+        matpack::eigen::row_vec(abs.imag()) * matpack::eigen::col_vec(pol_imag);
 }
 
 void dsum(PropagationMatrix& pm,
@@ -464,18 +467,23 @@ void dsum(PropagationMatrix& pm,
   ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
                        : pm.NumberOfNeededVectors() == 4)
 
-  const auto& pol_real = polvec.attenuation();
-  const auto& pol_imag = polvec.dispersion();
+  const ExhaustiveConstVectorView pol_real(polvec.att);
+  const ExhaustiveConstVectorView pol_imag(polvec.dis);
+  const ExhaustiveConstVectorView dpolvec_dtheta_real(dpolvec_dtheta.att);
+  const ExhaustiveConstVectorView dpolvec_dtheta_imag(dpolvec_dtheta.dis);
+  const ExhaustiveConstVectorView dpolvec_deta_real(dpolvec_deta.att);
+  const ExhaustiveConstVectorView dpolvec_deta_imag(dpolvec_deta.dis);
+
   auto da_r =
-      (dt * dpolvec_dtheta.attenuation() + de * dpolvec_deta.attenuation());
+      (dt * matpack::eigen::col_vec(dpolvec_dtheta_real) + de * matpack::eigen::col_vec(dpolvec_deta_real));
   auto da_i =
-      (dt * dpolvec_dtheta.dispersion() + de * dpolvec_deta.dispersion());
+      (dt * matpack::eigen::col_vec(dpolvec_dtheta_imag) + de * matpack::eigen::col_vec(dpolvec_deta_imag));
 
   MatrixView out = pm.Data()(0, 0, joker, joker);
-  MapToEigen(out).leftCols<4>().noalias() +=
-      dH * MapToEigen(dabs.real()) * pol_real + MapToEigen(abs.real()) * da_r;
+  matpack::eigen::mat(out).leftCols<4>().noalias() +=
+      dH * matpack::eigen::row_vec(dabs.real()) * matpack::eigen::col_vec(pol_real) + matpack::eigen::row_vec(abs.real()) * da_r;
   if (do_phase)
-    MapToEigen(out).rightCols<3>().noalias() +=
-        dH * MapToEigen(dabs.imag()) * pol_imag + MapToEigen(abs.imag()) * da_i;
+    matpack::eigen::mat(out).rightCols<3>().noalias() +=
+        dH * matpack::eigen::row_vec(dabs.imag()) * matpack::eigen::col_vec(pol_imag) + matpack::eigen::row_vec(abs.imag()) * da_i;
 }
 }  // namespace Zeeman

@@ -33,15 +33,18 @@
 
 #include "refraction.h"
 #include <cmath>
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "matpack_complex.h"
 #include "geodetic.h"
 #include "interpolation.h"
 #include "special_interp.h"
+#include "check_input.h"
+#include "arts_conversions.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric TEMP_0_C;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -228,7 +231,7 @@ void get_refr_index_1d(Workspace& ws,
                                rtp_pressure,
                                rtp_temperature,
                                rtp_vmr,
-                               f_grid,
+                               Vector{f_grid},
                                refr_index_air_agenda);
 }
 
@@ -282,7 +285,7 @@ void get_refr_index_2d(Workspace& ws,
   Vector z_grid(np);
   ArrayOfGridPos gp_lat(1);
   //
-  gridpos(gp_lat, lat_grid, lat);
+  gridpos(gp_lat, lat_grid, ExhaustiveConstVectorView{lat});
   z_at_lat_2d(z_grid, p_grid, lat_grid, z_field(joker, joker, 0), gp_lat[0]);
 
   // Determine the ellipsoid radius at *lat*
@@ -323,7 +326,7 @@ void get_refr_index_2d(Workspace& ws,
                                rtp_pressure,
                                rtp_temperature,
                                rtp_vmr,
-                               f_grid,
+                               Vector{f_grid},
                                refr_index_air_agenda);
 }
 
@@ -377,8 +380,8 @@ void get_refr_index_3d(Workspace& ws,
   Vector z_grid(np);
   ArrayOfGridPos gp_lat(1), gp_lon(1);
   //
-  gridpos(gp_lat, lat_grid, lat);
-  gridpos(gp_lon, lon_grid, lon);
+  gridpos(gp_lat, lat_grid, ExhaustiveConstVectorView{lat});
+  gridpos(gp_lon, lon_grid, ExhaustiveConstVectorView{lon});
   z_at_latlon(
       z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat[0], gp_lon[0]);
 
@@ -421,7 +424,7 @@ void get_refr_index_3d(Workspace& ws,
                                rtp_pressure,
                                rtp_temperature,
                                rtp_vmr,
-                               f_grid,
+                               Vector{f_grid},
                                refr_index_air_agenda);
 }
 
@@ -730,4 +733,102 @@ void refr_gradients_3d(Workspace& ws,
   dndlon = (refr_index_air - n0) / (DEG2RAD * dlon * r * cos(DEG2RAD * lat));
 
   refr_index_air = n0;
+}
+
+void refractive_index_water_and_steam_VisNIR(Numeric& n,
+                                             const Index& only_valid_range,
+                                             const Numeric& frequency,
+                                             const Numeric& temperature,
+                                             const Numeric& density) {
+  //convert frequency to wavelength
+  const Numeric wavelength = Conversion::freq2wavelen(frequency) * 1e6;  // [µm]
+
+  //Reference values
+  const Numeric T_star = 273.15;      // [K]
+  const Numeric rho_star = 1000;      // [kg/m^3]
+  const Numeric lambda_star = 0.589;  // [µm]
+
+  //check input
+  bool T_ok = (temperature > T_star - 12) && (temperature < T_star + 500);
+  bool rho_ok = (density > 0) && (density < 1060);
+  bool wvl_ok = (wavelength > 0.2) && (wavelength < 1.9);
+
+  if (only_valid_range) {
+    ARTS_USER_ERROR_IF(!T_ok,
+                       "Refractive index is calculated outside range of "
+                       "validity \n",
+                       "Temperature must be between ",
+                       T_star - 12,
+                       "K and ",
+                       T_star + 500,
+                       "K\n"
+                       "Desired temperature: ",
+                       temperature,
+                       "K \n")
+
+    ARTS_USER_ERROR_IF(!rho_ok,
+                       "Refractive index is calculated outside range of "
+                       "validity \n",
+                       "Density must be between ",
+                       0,
+                       "kg m^-3 and ",
+                       1060,
+                       "kg m^-3\n"
+                       "Desired density: ",
+                       density,
+                       "kg m^-3 \n")
+
+    Numeric frq_upper_limit = Conversion::wavelen2freq(0.2 * 1e-6);
+    Numeric frq_lower_limit = Conversion::wavelen2freq(1.9 * 1e-6);
+
+    ARTS_USER_ERROR_IF(!wvl_ok,
+                       "Refractive index is calculated outside range of "
+                       "validity \n",
+                       "Frequency must be between ",
+                       frq_lower_limit,
+                       "Hz and ",
+                       frq_upper_limit,
+                       "Hz\n"
+                       "Desired density: ",
+                       frequency,
+                       "Hz \n")
+  }
+
+  //coefficients
+  const Numeric a0 = 0.244257733;
+  const Numeric a1 = 9.74634476e-3;
+  const Numeric a2 = -3.73234996e-3;
+  const Numeric a3 = 2.68678472e-4;
+  const Numeric a4 = 1.58920570e-3;
+  const Numeric a5 = 2.45934259e-3;
+  const Numeric a6 = 0.900704920;
+  const Numeric a7 = -1.66626219e-2;
+
+  const Numeric lambda_uv = 0.2292020;
+  const Numeric lambda_ir = 5.432937;
+
+  //normalize input variables
+  Numeric T_bar = temperature / T_star;
+  Numeric rho_bar = density / rho_star;
+  Numeric lambda_bar = wavelength / lambda_star;
+
+  //set up right hands side of eq A1
+  Numeric rhs = a0;
+  rhs += a1 * rho_bar;
+  rhs += a2 * T_bar;
+  rhs += a3 * lambda_bar * lambda_bar * T_bar;
+  rhs += a4 / (lambda_bar * lambda_bar);
+  rhs += a5 / (lambda_bar * lambda_bar - lambda_uv * lambda_uv);
+  rhs += a6 / (lambda_bar * lambda_bar - lambda_ir * lambda_ir);
+  rhs += a7 * rho_bar * rho_bar;
+
+  Complex a;
+  a = rho_bar * rhs;
+
+  //solve Eq A1 (see paper in documentation after n
+  Complex n_cmplx = sqrt(-2 * a - 1);
+  n_cmplx /= sqrt(a - 1);
+
+  //refractive index
+  n = - real(n_cmplx);
 }

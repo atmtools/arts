@@ -6,6 +6,7 @@ Contents
 3a. Prerequisite library
 3b. Compilation
 4. Creation of precalculated tables
+4a. Large symbols - limits for dynamic tables
 5. Library interfaces
 5a. Simple C interface
 5b. Alternative (more efficient) C interface
@@ -73,11 +74,11 @@ To build, it need to be placed alongside fastwigxj in the directory
 structure.  Short build instructions:
 
 cd ..
-wget http://fy.chalmers.se/subatom/wigxjpf/wigxjpf-1.7.tar.gz
-tar -zxvf wigxjpf-1.7.tar.gz
-cd wigxjpf-1.7
+wget http://fy.chalmers.se/subatom/wigxjpf/wigxjpf-1.10.tar.gz
+tar -zxvf wigxjpf-1.10.tar.gz
+cd wigxjpf-1.10
 make
-cd ../fastwigxj-1.3
+cd ../fastwigxj-1.4
 
 The build of FASTWIGXJ will automatically use the version of
 WIGXJPF found with the highest version number (searching ../wigxjpf*/).
@@ -92,8 +93,8 @@ compiled by issuing:
 
 make
 
-Test evaluation of some small symbols (< 1 s runtime) can be performed
-by:
+Test evaluation of some small symbols (a few seconds runtime) can be
+performed by:
 
 make test
 
@@ -160,6 +161,34 @@ kind:   limit:   max j:
                      4      5      6      7      8     10     12     16
 9j      flat    0.0005  0.004  0.016  0.033   0.13   1.07    4.3   34.3
 9j      assym    0.016  0.067   0.26    1.1    4.3   17.2    137
+
+
+4a. Large symbols - limits for dynamic tables
+==============================================
+
+For symbols with large values of j, the canonicalisation routines
+could overflow the internal representations.  Either due to using too
+many bits for each value (9j), or due to the calculation of table
+indices exceeding the 64-bit representation (3j, 6j).
+
+Instead of this happening, the routines will return a special
+indicator, that will lead to direct evaluation by WIGXJPF.
+
+This does not affect the precalculated tables, as memory constraints
+give much lower limits on which j can be included.  It does however
+mean that also the dynamic tables will not be efficient above these
+values, since all requests are served by direct evaluation, as the
+results are not stored in the dynamic hash tables.
+
+The limit for 9j symbols is j <= 63.5.
+
+For 3j and 6j symbols, the limit is on the largest internal
+contributor to the Rasch-Yu index, which rougly translates to a j of
+~3550 for 3j and ~800 for 6j.
+
+(These limits could be increased by using a different hash key scheme
+(3j, 6j) or a different operating scheme for the canonicalisation
+routine altogether (9j); please contact the author.)
 
 
 5. Library interfaces
@@ -286,7 +315,7 @@ exposed to the user yet).
 s: struct:   use structure as arguments
 
 s4: struct4: use structure with 4 symbols as arguments, to do
-    	     c14n calculation in parallel
+             c14n calculation in parallel
 
 a: args:  do a full c14n and retrieval of one symbol, using a call
           sequence with 5, 6 or 9 arguments.
@@ -299,7 +328,7 @@ _canon:   do the c14n of one symbol, using a pointer to a list.
 _prefetch: do the memory prefetch, given the the prepared c14n information.
 
 _get:     get the actual value of one symbol, the pointer to the original
-       	  list of arguments is needed, in case the symbol is not within
+          list of arguments is needed, in case the symbol is not within
           the table and a fallback calculation is required.
 
 _nz:      do not do trivial-0-check, i.e. triangle and integer sum
@@ -321,7 +350,9 @@ collisions within the table, and as a consequence, only allow to be
 3/4 filled.  When more symbols are calculated on-the-fly,
 approximately 1/16 of the symbols are removed from the dynamic hash
 tables.  The removed symbols are the ones which have been accessed the
-longest time ago.
+longest time ago.  The hash table is accessed using the index
+calculated such that symbols that are equal due to symmetries only
+occupy one entry.
 
 It is a good idea to still load some precalculated tables when using
 the dynamic hash tables.  This is particularly the case if trivially-0
@@ -422,6 +453,13 @@ For each symbol, the following items are counted:
   Number of dynamic lookups that had to be restarted, due to other
   thread performing a reduction at the desired location.
 
+- Dynamic C14N overflows
+
+  Number of dynamic lookups/insertations that failed due to overflow
+  in the canonicalisation of the symbol.
+
+  These will also be accounted as directly calculated.
+
 - 9j by 6j
 
   Number of 9j symbols that could be evaluated by (hopefully lookup)
@@ -466,21 +504,25 @@ As the library WIGXJPF is used to evaluate symbols, when FASTWIGXJ is used
 for computations that are published in a research article, it is
 recommended to to cite the following paper:
 
-H. T. Johansson and C. Forssén, Fast and accurate evaluation of Wigner 3j,
-6j, and 9j symbols using prime factorisation and multi-word integer
-arithmetic, (2015), eprint arXiv:1504.08329
+H. T. Johansson and C. Forssén, Fast and Accurate Evaluation of Wigner 3j,
+6j, and 9j Symbols Using Prime Factorization and Multiword Integer Arithmetic,
+SIAM J. Sci. Comput., 38(1) (2016), A376-A384.
 
-@ARTICLE{2015arXiv1504.08329,
-   author = {{Johansson}, H.~T. and {Forss\’en}, C.},
-    title = "{Fast and accurate evaluation of {W}igner 3j, 6j, and 9j
-symbols using prime factorisation and multi-word integer arithmetic}",
-  journal = {ArXiv e-prints},
-archivePrefix = "arXiv",
-   eprint = {1504.08329},
- primaryClass = "physics.comp-ph",
-     year = 2015,
-    month = apr
+@article{johansson2016,
+   author = {H. T. Johansson and C. Forss\’en},
+    title = {Fast and Accurate Evaluation of Wigner 3\$j\$, 6\$j\$, and 9\$j\$
+Symbols Using Prime Factorization and Multiword Integer Arithmetic},
+  journal = {SIAM Journal on Scientific Computing},
+   volume = {38},
+   number = {1},
+    pages = {A376-A384},
+     year = {2016},
+      doi = {10.1137/15M1021908},
+      URL = {http://dx.doi.org/10.1137/15M1021908},
+   eprint = {http://dx.doi.org/10.1137/15M1021908}
 }
+
+Pre-print (2015) at arXiv:1504.08329.
 
 When FASTWIGXJ is used for fast lookup of 3j or 6j symbols, it is
 also suggested to cite the paper describing the mathematical

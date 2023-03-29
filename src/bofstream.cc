@@ -83,7 +83,7 @@ bofstream& operator<<(bofstream& bof, float n) {
   return (bof);
 }
 
-bofstream& operator<<(bofstream& bof, long n) {
+bofstream& operator<<(bofstream& bof, std::int64_t n) {
   bof.writeInt(n, 4);
   return (bof);
 }

@@ -24,9 +24,12 @@
  * @brief Deep calculations for NLTE
  */
 
+#ifndef NLTE_H
+#define NLTE_H
+
 #include "absorption.h"
 #include "gridded_fields.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 /** Sets up the solution matrix for linear statistical equilibrium equation
  * 
@@ -181,7 +184,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
  * @return Index Pos of unique element or len-1
  */
 Index find_first_unique_in_lower(const ArrayOfIndex& upper,
-                                 const ArrayOfIndex& lower) noexcept;
+                                 const ArrayOfIndex& lower) ARTS_NOEXCEPT;
 
 /** Checks that a WSV is OK or throws a run-time error
  * 
@@ -189,3 +192,6 @@ Index find_first_unique_in_lower(const ArrayOfIndex& upper,
  */
 void check_collision_line_identifiers(
     const ArrayOfQuantumIdentifier& collision_line_identifiers);
+
+#endif /* NLTE_H */
+

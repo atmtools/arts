@@ -6,13 +6,9 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
-
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # --------------------< A specific method >--------------------
 #                      -------------------
@@ -36,7 +32,7 @@ ReadARTSCAT( abs_lines=abs_lines, filename="lines.xml", fmin=1e9, fmax=200e9 )
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
 abs_speciesSet( species=[ "H2O-PWR98",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Alternatively select all species that we can find in the scenario:
@@ -78,7 +74,10 @@ VectorSet( abs_t_pert, [] )
 VectorSet( abs_nls_pert, [] )
 #VectorNLogSpace( abs_nls_pert, 5, 0.01, 10 )
 
-abs_xsec_agenda_checkedCalc
+IndexSet(stokes_dim, 1)
+
+propmat_clearsky_agendaAuto
+
 lbl_checkedCalc
 
 jacobianOff

@@ -38,13 +38,14 @@
 #include <cmath>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
-extern const Numeric DEG2RAD;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -374,6 +375,7 @@ void IntersectionGeometricalWithAltitude(Matrix& pos,
                                        lat_grid,
                                        lon_grid,
                                        sensor_pos(i,joker));
+    Numeric za0 = sensor_los(i,0); // For fix below
     poslos2cart(x, y, z, dx, dy, dz,
                 r, sensor_pos(i,1), sensor_pos(i,2),
                 sensor_los(i,0), sensor_los(i,1));
@@ -401,6 +403,12 @@ void IntersectionGeometricalWithAltitude(Matrix& pos,
                                pos(i,joker));
       // Check that pos matches expected altitude
       //ARTS_ASSERT(abs(pos(i,0)-altitude) < 0.1);
+
+      // za=0 can give NaN for los. A simple fix:
+      if (za0 == 0 || za0 == 180) {
+        los(i,0) = za0;
+        los(i,1) = 0;
+      }
     }
   }
 }

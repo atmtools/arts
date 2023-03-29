@@ -28,8 +28,8 @@
 
 #include "species_tags.h"
 #include "absorption.h"
-#include "interpolation_lagrange.h"
-#include "matpackIV.h"
+#include "interp.h"
+#include "matpack_data.h"
 #include "messages.h"
 
 // Declare existance of some classes:
@@ -63,6 +63,7 @@ class GasAbsLookup {
 
   // Documentation is with the implementation!
   void Extract(Matrix& sga,
+               const ArrayOfSpeciesTag& select_abs_species,
                const Index& p_interp_order,
                const Index& t_interp_order,
                const Index& h2o_interp_order,
@@ -107,22 +108,9 @@ class GasAbsLookup {
       const Vector& abs_t_pert,
       const Vector& abs_nls_pert,
       const Agenda& abs_xsec_agenda,
+      // GIN
+      const Numeric& lowest_vmr,
       // Verbosity object:
-      const Verbosity& verbosity);
-
-  friend Numeric calc_lookup_error(  // Parameters for lookup table:
-      Workspace& ws,
-      const GasAbsLookup& al,
-      const Index& abs_p_interp_order,
-      const Index& abs_t_interp_order,
-      const Index& abs_nls_interp_order,
-      const bool ignore_errors,
-      // Parameters for LBL:
-      const Agenda& abs_xsec_agenda,
-      // Parameters for both:
-      const Numeric& local_p,
-      const Numeric& local_t,
-      const Vector& local_vmrs,
       const Verbosity& verbosity);
 
   friend void abs_lookupTestAccuracy(  // Workspace reference:
@@ -190,6 +178,8 @@ class GasAbsLookup {
   
   /** Absorption cross sections */
   Tensor4& Xsec() {return xsec;}
+
+  friend ostream& operator<<(ostream& os, const GasAbsLookup& gal);
   
  private:
   //! The species tags for which the table is valid.
@@ -308,7 +298,5 @@ class GasAbsLookup {
     computation of the lookup table with the old ARTS version.  */
   Tensor4 xsec;
 };
-
-ostream& operator<<(ostream& os, const GasAbsLookup& gal);
 
 #endif  //  gas_abs_lookup_h

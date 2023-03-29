@@ -25,6 +25,7 @@
 
 #include "jacobian.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "global_data.h"
@@ -33,8 +34,8 @@
 #include "rte.h"
 #include "special_interp.h"
 
-extern const Numeric NAT_LOG_TEN;
-extern const Numeric PI;
+inline constexpr Numeric NAT_LOG_TEN=Constant::ln_10;
+inline constexpr Numeric PI=Constant::pi;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
   return os << "\n       Target   = " << ot.Target()
@@ -919,7 +920,7 @@ void calcBaselineFit(Vector& y_baseline,
   const Index n2 = jg[2].nelem();
   const Index n3 = jg[3].nelem();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row4 = rowind.get_start();
+  const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[rq_index][0];
 
   if (n3 > 1) {
@@ -997,6 +998,10 @@ void dxdvmrscf(Numeric& x,
 //======================================================================
 //             Propmat partials descriptions
 //======================================================================
+
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
+  return t.Target().isWind();
+}
 
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
   return t.Target().isWind() or t.Target().isFrequency();
@@ -1082,7 +1087,7 @@ bool is_line_parameter(const RetrievalQuantity& t) noexcept {
 }
 
 bool supports_CIA(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
@@ -1092,7 +1097,7 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
   ARTS_USER_ERROR_IF (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}),
     "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n")
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
@@ -1121,7 +1126,7 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
         return true;
     }
   } else {
-    return rq.Target().SpeciesList() == ast;
+    return rq.Target().species_array_id == ast;
   }
 
   return false;
@@ -1135,7 +1140,7 @@ bool species_match(const RetrievalQuantity& rq, const Species::Species species) 
 
 bool species_iso_match(const RetrievalQuantity& rq,
                        const Species::IsotopeRecord& ir) {
-  auto& ir2 = rq.QuantumIdentity().Isotopologue();
+  auto ir2 = rq.QuantumIdentity().Isotopologue();
   if (ir.spec == ir2.spec and (ir.isotname == Species::Joker or ir.isotname == ir2.isotname))
     return true;
   else
@@ -1163,6 +1168,10 @@ bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Line::Center;});
 }
 
+bool do_wind_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_wind_parameter(j);});
+}
+
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
   return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
 }
@@ -1174,7 +1183,7 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature;});
   if (p not_eq js.cend())
-    return p -> Target().Perturbation();
+    return p -> Target().perturbation;
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
@@ -1182,7 +1191,7 @@ Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
   if (p not_eq js.cend())
-    return p -> Target().Perturbation();
+    return p -> Target().perturbation;
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
@@ -1190,24 +1199,36 @@ Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j.is_mag();});
   if (p not_eq js.cend())
-    return p -> Target().Perturbation();
+    return p -> Target().perturbation;
   else
     return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
-std::ostream& Jacobian::operator<<(std::ostream& os, const Target& x) {
+namespace Jacobian {
+std::ostream& operator<<(std::ostream& os, const Target& x) {
   os << x.TargetType() << ' ';
   switch (toType(x.TargetType())) {
-    case Type::Atm: os << x.AtmType(); break;
-    case Type::Line: os << x.LineType(); break;
-    case Type::Sensor: os << x.SensorType(); break;
-    case Type::Special: os << x.SpecialType(); break;
-    case Type::FINAL: os << "BAD STATE"; break;
+    case Type::Atm:
+      os << x.atm;
+      break;
+    case Type::Line:
+      os << x.line;
+      break;
+    case Type::Sensor:
+      os << x.sensor;
+      break;
+    case Type::Special:
+      os << x.special;
+      break;
+    case Type::FINAL:
+      os << "BAD STATE";
+      break;
   }
-  if (x.needQuantumIdentity()) os << ' ' << x.QuantumIdentity();
-  if (x.needArrayOfSpeciesTag()) os << ' ' << x.SpeciesList();
-  if (x.needString()) os << ' ' << x.StringKey();
-  if (std::isnormal(x.Perturbation())) os << ' ' << x.Perturbation();
-  
+  if (x.needQuantumIdentity()) os << ' ' << x.qid;
+  if (x.needArrayOfSpeciesTag()) os << ' ' << x.species_array_id;
+  if (x.needString()) os << ' ' << x.string_id;
+  if (std::isnormal(x.perturbation)) os << ' ' << x.perturbation;
+
   return os;
 }
+}  // namespace Jacobian

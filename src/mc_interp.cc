@@ -27,8 +27,15 @@
   === External declarations
   ===========================================================================*/
 #include "mc_interp.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "logic.h"
 #include "montecarlo.h"
+
+
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI=Constant::pi;
 
 Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const {
   GridPos gp1, gpl, gpr;
@@ -70,7 +77,7 @@ void interp(MatrixView tia,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   Index anr = a[0].nrows();
   Index anc = a[0].ncols();
@@ -95,7 +102,7 @@ void interp(VectorView tia,
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  ARTS_ASSERT(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+  ARTS_ASSERT(is_same_within_epsilon(sum(itw), 1, sum_check_epsilon));
 
   Index an = a[0].nelem();
 

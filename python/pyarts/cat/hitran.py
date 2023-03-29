@@ -23,6 +23,6 @@ def read(ws, filename):
     ws.ReadHITRAN(filename=filename,
       normalization_option="SFS",
       hitran_type="Online")
-    ws.abs_linesSetEmptyBroadeningParametersToEmpty()
+    ws.abs_linesEmptyBroadeningParameters()
 
     return ws.abs_lines

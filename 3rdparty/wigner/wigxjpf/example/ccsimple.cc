@@ -3,7 +3,14 @@
 /* Header must be included to have the functions declared as extern "C". */
 #include "wigxjpf.h"
 
-int main()
+/* Wrap the calls in a class, to make explicit that we are compiling C++. */
+class test
+{
+public:
+  void testcalls();
+};
+
+void test::testcalls()
 {
   double val3j, val6j, val9j;
 
@@ -34,6 +41,11 @@ int main()
 
   wig_temp_free();
   wig_table_free();
+}
 
+int main()
+{
+  test t;
+  t.testcalls();
   return 0;
 }

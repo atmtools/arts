@@ -35,10 +35,12 @@
 #define covariance_matrix_h
 
 #include <memory>
+#include <utility>
 
 #include "jacobian.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
+#include "matpack_sparse.h"
 
 class CovarianceMatrix;
 
@@ -84,9 +86,9 @@ class Block {
         std::shared_ptr<Matrix> dense)
       : row_range_(row_range),
         column_range_(column_range),
-        indices_(indices),
+        indices_(std::move(indices)),
         matrix_type_(MatrixType::dense),
-        dense_(dense),
+        dense_(std::move(dense)),
         sparse_(nullptr) {
     // Nothing to do here.
   }
@@ -107,10 +109,10 @@ class Block {
         std::shared_ptr<Sparse> sparse)
       : row_range_(row_range),
         column_range_(column_range),
-        indices_(indices),
+        indices_(std::move(indices)),
         matrix_type_(MatrixType::sparse),
         dense_(nullptr),
-        sparse_(sparse) {
+        sparse_(std::move(sparse)) {
     // Nothing to do here.
   }
 
@@ -122,42 +124,42 @@ class Block {
   ~Block() = default;
 
   /*! Number of rows of this block */
-  Index nrows() const { return row_range_.get_extent(); }
+  [[nodiscard]] Index nrows() const { return row_range_.extent; }
   /*! Number of columns of this block */
-  Index ncols() const { return column_range_.get_extent(); }
+  [[nodiscard]] Index ncols() const { return column_range_.extent; }
 
   /*! The row range of this block*/
-  Range get_row_range() const { return row_range_; }
+  [[nodiscard]] Range get_row_range() const { return row_range_; }
   /*! The column range of this block*/
-  Range get_column_range() const { return column_range_; }
+  [[nodiscard]] Range get_column_range() const { return column_range_; }
 
   /*! The row range of this block*/
   Range& get_row_range() { return row_range_; }
   /*! The column range of this block*/
   Range& get_column_range() { return column_range_; }
 
-  void set_matrix(std::shared_ptr<Sparse> sparse) { sparse_ = sparse; }
-  void set_matrix(std::shared_ptr<Matrix> dense) { dense_ = dense; }
+  void set_matrix(std::shared_ptr<Sparse> sparse) { sparse_ = std::move(sparse); dense_ = nullptr; matrix_type_=MatrixType::sparse; }
+  void set_matrix(std::shared_ptr<Matrix> dense) { dense_ = std::move(dense); sparse_ = nullptr; matrix_type_=MatrixType::dense; }
 
   /*! Return the diagonal as a vector.*/
-  Vector diagonal() const {
+  [[nodiscard]] Vector diagonal() const {
     if (dense_) {
-      return dense_->diagonal();
-    } else {
-      return sparse_->diagonal();
-    }
+      return ::diagonal(*dense_);
+    }        
+    return sparse_->diagonal();
+   
   }
 
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
-  IndexPair get_indices() const { return indices_; }
+  [[nodiscard]] IndexPair get_indices() const { return indices_; }
 
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
   void set_indices(Index f, Index s) { indices_ = {f, s}; }
 
   /*! Return the type of the matrix holding the correlation coefficients. */
-  MatrixType get_matrix_type() const { return matrix_type_; }
+  [[nodiscard]] MatrixType get_matrix_type() const { return matrix_type_; }
 
-  const Matrix &get_dense() const {
+  [[nodiscard]] const Matrix &get_dense() const {
     ARTS_ASSERT(dense_);
     return *dense_;
   }
@@ -167,7 +169,7 @@ class Block {
     return *dense_;
   }
 
-  const Sparse &get_sparse() const {
+  [[nodiscard]] const Sparse &get_sparse() const {
     ARTS_ASSERT(sparse_);
     return *sparse_;
   }
@@ -182,7 +184,7 @@ class Block {
   friend void mult(MatrixView, const Block &, ConstMatrixView);
   friend void mult(VectorView, const Block &, ConstVectorView);
 
-  friend MatrixView &operator+=(MatrixView &, const Block &);
+  friend MatrixView operator+=(MatrixView, const Block &);
 
  private:
   Range row_range_, column_range_;
@@ -198,7 +200,7 @@ void mult(MatrixView, ConstMatrixView, const Block &);
 void mult(MatrixView, const Block &, ConstMatrixView);
 void mult(VectorView, const Block &, ConstVectorView);
 
-MatrixView &operator+=(MatrixView &, const Block &);
+MatrixView operator+=(MatrixView, const Block &);
 void add_inv(MatrixView A, const Block &);
 
 //------------------------------------------------------------------------------
@@ -380,7 +382,7 @@ class CovarianceMatrix {
   friend void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
   friend void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-  friend MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
+  friend MatrixView operator+=(MatrixView, const CovarianceMatrix &);
   friend void add_inv(MatrixView, const CovarianceMatrix &);
 
   friend void xml_read_from_stream(istream &,
@@ -412,9 +414,7 @@ void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
 void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
 void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
+MatrixView operator+=(MatrixView, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
-
-std::ostream &operator<<(std::ostream &os, const ConstVectorView &v);
 
 #endif  // covariance_matrix_h

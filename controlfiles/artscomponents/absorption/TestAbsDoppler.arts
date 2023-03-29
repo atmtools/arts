@@ -5,32 +5,21 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # Turn on frequency interpolation
 # (we could also try higher order interpolation here)
 IndexSet( abs_f_interp_order, 1 )
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # Number of Stokes components to be computed
 #
 IndexSet( stokes_dim, 1 )
 
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
-# Read the spectroscopic line data from the ARTS catalogue and
-# create the workspace variable `lines'.
-ReadARTSCAT( abs_lines=abs_lines, filename="lines.xml", fmin=1e9, fmax=200e9 )
-
 # Define the list of absorption species:
 abs_speciesSet( species=[ "H2O-PWR98",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 
@@ -40,8 +29,9 @@ abs_speciesSet( species=[ "H2O-PWR98",
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `abs_lines_per_species':
-abs_lines_per_speciesCreateFromLines
+abs_lines_per_speciesSetEmpty
 
+propmat_clearsky_agendaAuto
 
 # Dimensionality of the atmosphere
 #
@@ -63,7 +53,6 @@ AbsInputFromAtmFields
 VectorNLinSpace( f_grid, 500, 50e9, 150e9 )
 
 # Calculate field of absorption coefficients:
-abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 lbl_checkedCalc
@@ -105,10 +94,11 @@ Copy(f_grid_backup, f_grid)
 VectorNLinSpace( f_grid, 1000, 49e9, 151e9 )
 
 abs_lookupSetup
+
 abs_lookupCalc
 
 # absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 # Restore original frequency grid
 Copy(f_grid, f_grid_backup)

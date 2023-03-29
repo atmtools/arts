@@ -39,6 +39,9 @@
 #cmakedefine ENABLE_TMATRIX
 #cmakedefine ENABLE_TMATRIX_QUAD
 
+/* Defined if IPO/LTO support is available and enabled */
+#cmakedefine IPO_SUPPORTED
+
 /* Define to compile with zlib support */
 #cmakedefine ENABLE_ZLIB
 
@@ -100,9 +103,6 @@
 
 /* check existence of functions */
 #cmakedefine HAVE_REMOVE
-
-/* availability of timer support */
-#cmakedefine TIME_SUPPORT 1
 
 /* Default Index type */
 #cmakedefine INDEX ${INDEX}

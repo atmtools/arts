@@ -9,10 +9,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 
 # Number of Stokes components to be computed
@@ -121,14 +121,11 @@ FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, raw3 )
 # Absorption including Faraday rotation
 #
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # No line data needed here
 # 
 abs_lines_per_speciesSetEmpty
 
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_Faraday )
+propmat_clearsky_agendaAuto
 
 
 
@@ -150,20 +147,22 @@ cloudbox_checkedCalc
 
 # Propagation path agendas and variables
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_step_agendaSet( option="GeometricPath" )
+ppath_agendaSet( option="FollowSensorLosPath" )
 NumericSet( ppath_lmax, 10e3 )
 
 
 
 # Radiative transfer agendas and variables
 #
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
+AgendaSet( iy_main_agenda){
+  Ignore( iy_unit )
+  Ignore( iy_id )
   iy_transmitterSinglePol
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionStandard
+  VectorSet(geo_pos, [])
 }
-Copy( iy_main_agenda, iy_main_agenda__Transmission )
 
 
 # Sensor/receiver and transmitter
@@ -187,8 +186,6 @@ ArrayOfStringSet( iy_aux_vars, [ ] )
 
 # Calculate 
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 lbl_checkedCalc
 
 yCalc

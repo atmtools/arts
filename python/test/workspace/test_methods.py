@@ -26,11 +26,10 @@ class TestMethods:
 
     def test_mixed_arguments(self):
         """
-        Check that this raises a syntax error.
+        Check that this works.
         """
         ws = self.ws
-        with pytest.raises(SyntaxError):
-            ws.yCalc(ws.yf, y_f = ws.y_f)
+        ws.yCalc(ws.yf, y_f = ws.y_f)
 
     def test_unexpected_argument(self):
         """
@@ -84,7 +83,7 @@ class TestMethods:
                     "O3"] )
 
         ws.ArrayOfArrayOfSpeciesTagCreate("abs_species_2")
-        ws.abs_speciesSet(ws.abs_species_2, ws.abs_xsec_agenda_checked,
+        ws.abs_speciesSet(ws.abs_species_2,
                           ws.propmat_clearsky_agenda_checked, species)
         ws.ArrayOfArrayOfSpeciesTagCreate("abs_species_3")
         ws.abs_speciesSet(abs_species = ws.abs_species_3, species = species)
@@ -136,3 +135,16 @@ class TestMethods:
         with pytest.raises(Exception):
             ws.atmgeom_checked = 0
             self.ws.yCalc()
+    
+    def test_predefined_doc(self):
+        isots = pyarts.arts.get_isotopologues()
+        desc = str(pyarts.arts.get_md_data()[pyarts.arts.get_MdMap()["propmat_clearskyAddPredefined"]].desc)
+        
+        for x in isots:
+            if x.predef:
+                assert f"{x.name}:" in desc, f"{x.name} is not documented properly (as '{x.name}: SOME INFORMATION')" 
+
+
+if __name__ == "__main__":
+    x = TestMethods()
+    x.test_predefined_doc()

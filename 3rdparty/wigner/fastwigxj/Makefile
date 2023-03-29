@@ -66,7 +66,7 @@ LDLIBS += -lfastwigxj
 ####################################################################
 
 WIGXJPFDIR = $(shell ls ../wigxjpf*/inc/wigxjpf.h | \
-	sed -e  "s,/inc/wigxjpf.h,," | sort | tail -n 1)
+	sed -e  "s,/inc/wigxjpf.h,," | sort -V | tail -n 1)
 
 ifeq ($(WIGXJPFDIR),)
 $(error Cannot find any WIGXJPF directory: ../wigxjpf*)
@@ -81,8 +81,8 @@ HEADERS += $(WIGXJPFDIR)/inc/wigxjpf.h $(WIGXJPFDIR)/inc/wigxjpf_quadmath.h
 
 ####################################################################
 
-# HAVE_QUADMATH := $(shell $(CC) -DTEST_FLOAT128=1 src/test_cc_dbl.c \
-# 	-lquadmath -o /dev/null 2> /dev/null && echo 1)
+HAVE_QUADMATH := $(shell $(CC) -DTEST_FLOAT128=1 src/test_cc_dbl.c \
+	-lquadmath -o /dev/null 2> /dev/null && echo 1)
 
 ifeq ($(HAVE_QUADMATH),1)
 LDLIBS += -lwigxjpf_quadmath
@@ -96,7 +96,7 @@ endif
 
 AUTO_CONFIG_TESTS = TEST_LONG_DOUBLE TEST_FLOAT128 \
 	TEST_THREAD TEST_THREAD_MUTEX TEST_LSFENCE \
-	TEST_SSE4_1 TEST_AVX2
+	TEST_SSE4_1 TEST_SSE4_2 TEST_AVX2
 
 gen/fastwigxj_auto_config.h.%: src/test_cc_dbl.c Makefile
 	@echo "  AUTO   $@"
@@ -107,7 +107,8 @@ gen/fastwigxj_auto_config.h.%: src/test_cc_dbl.c Makefile
 	  > $@.cc.out 2> $@.cc.err && \
 	  ./$@.exe \
 	  > $@.run.out 2> $@.run.err && \
-	  grep define $@.run.out >> $@ || true
+	  grep define $@.run.out >> $@ || \
+	  echo "/* Not found      $* */" >> $@
 
 gen/fastwigxj_auto_config.h: \
 	  $(addprefix gen/fastwigxj_auto_config.h.,$(AUTO_CONFIG_TESTS))

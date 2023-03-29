@@ -13,6 +13,8 @@ def setup(app):
     """
     app.add_role('arts', arts_docserver_role)
 
+    return {'parallel_read_safe': True}
+
 
 def arts_docserver_role(name, rawtext, text, lineno, inliner, options=None,
                         content=None):

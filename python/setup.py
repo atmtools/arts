@@ -13,12 +13,12 @@ import subprocess
 import shutil
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Distribution
 
 # To use a consistent encoding
 from codecs import open
-from os import remove
-from os.path import abspath, dirname, isfile, join
+from os import remove, listdir
+from os.path import abspath, dirname, isfile, join, splitext
 
 import builtins
 
@@ -31,18 +31,24 @@ STABLE = int(VERSION_TUPLE[1]) % 2 == 0
 here = abspath(dirname(__file__))
 
 try:
-    arts_libname = "libarts_api.so"
-    lib_path = join("@ARTS_BINARY_DIR@", "src", arts_libname)
-    if isfile(join("pyarts", "workspace", arts_libname)):
-        remove(join("pyarts", "workspace", arts_libname))
-    shutil.copy(lib_path, join("pyarts", "workspace"))
+    builtin_path = join("@ARTS_BINARY_DIR@", "src", "python_interface")
+    files = listdir(builtin_path)
+    found = False
+    for file in files:
+        if splitext(file)[-1] in [".so"]:
+            builtin_lib_path = join(builtin_path, file)
+            if isfile(join("pyarts", file)):
+                remove(join("pyarts", file))
+            shutil.copy(builtin_lib_path, "pyarts")
+            found = True
+    if not found: raise
 except:
-    raise Exception(
-        "Could not find ARTS API, which is required for the Python "
-        "interface. Please make sure the installation was "
-        "successful."
-    )
+    raise Exception("Cannot find builtin library")
 
+class BinaryDistribution(Distribution):
+    """Distribution which always forces a binary package with platform name"""
+    def has_ext_modules(foo):
+        return True
 
 setup(
     name="pyarts",
@@ -61,7 +67,7 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["contrib", "doc", "tests*"]),
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=[
         "docutils",
         "matplotlib>=1.4",
@@ -78,4 +84,5 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     include_package_data=True,
+    distclass=BinaryDistribution,
 )

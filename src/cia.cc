@@ -28,14 +28,18 @@
  \date   2012-11-30
  */
 
+#include "arts_constants.h"
+#include "check_input.h"
 #include "cia.h"
 #include <cmath>
+#include <numeric>
+#include "matpack_concepts.h"
 #include "species_tags.h"
 #include "absorption.h"
 #include "file.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /** Interpolate CIA data.
  
@@ -51,7 +55,7 @@ extern const Numeric SPEED_OF_LIGHT;
  \param[in] verbosity   Standard verbosity object.
  */
 void cia_interpolation(VectorView result,
-                       ConstVectorView f_grid,
+                       const ConstVectorView& f_grid,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
@@ -179,9 +183,9 @@ void cia_interpolation(VectorView result,
       }
     }
   }
-  
+
   // Find frequency grid positions:
-  const auto f_lag = Interpolation::FixedLagrangeVector<f_order>(f_grid_active, data_f_grid);
+  const auto f_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<f_order>>(f_grid_active, data_f_grid);
   
   // Do the rest of the interpolation.
   if (T_order == 0) {
@@ -189,15 +193,15 @@ void cia_interpolation(VectorView result,
     result_active = reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
-    const auto Tnew = std::array<double, 1>{temperature};
+    const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<1>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 2) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<2>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 3) {
-      const auto T_lag = Interpolation::FixedLagrangeVector<3>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(Tnew, data_T_grid);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else {
       throw std::runtime_error("Cannot have this T_order, you must update the code...");
@@ -234,31 +238,18 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 }
 
 // Documentation in header file.
-void CIARecord::Extract(VectorView result,
-                        ConstVectorView f_grid,
-                        const Numeric& temperature,
-                        const Index& dataset,
-                        const Numeric& T_extrapolfac,
-                        const Index& robust,
-                        const Verbosity& verbosity) const {
-  // If there is more than one dataset available for this species pair,
-  // we have to decide on which one to use. The rest is done by helper function
-  // cia_interpolate.
-
-  // Make sure dataset index exists
-  if (dataset >= mdata.nelem()) {
-    ostringstream os;
-    os << "There are only " << mdata.nelem() << " datasets in this CIA file.\n"
-       << "But you are trying to use dataset " << dataset
-       << ". (Zero-based indexing.)";
-    throw runtime_error(os.str());
+void CIARecord::Extract(VectorView res, const ConstVectorView &f_grid,
+                        const Numeric &temperature,
+                        const Numeric &T_extrapolfac, const Index &robust,
+                        const Verbosity &verbosity) const {
+  res = 0;
+  
+  Vector result(res.nelem());
+  for (auto &this_cia : mdata) {
+    cia_interpolation(result, f_grid, temperature, this_cia, T_extrapolfac,
+                      robust, verbosity);
+    res += result;
   }
-
-  // Get a handle on this dataset:
-  const GriddedField2& this_cia = mdata[dataset];
-
-  cia_interpolation(
-      result, f_grid, temperature, this_cia, T_extrapolfac, robust, verbosity);
 }
 
 // Documentation in header file.
@@ -322,7 +313,7 @@ void CIARecord::ReadFromCIA(const String& filename,
 
   // Frequency, temp and cia values for current dataset
   Vector freq;
-  ArrayOfNumeric temp;
+  std::vector<Numeric> temp;
   ArrayOfVector cia;
 
   // Keep track of current line in file
@@ -368,7 +359,9 @@ void CIARecord::ReadFromCIA(const String& filename,
 
     istr.str(line);
     istr.clear();
-    istr >> set_wave_min >> set_wave_max >> set_npoints >> set_temp;
+    istr >> double_imanip() >> set_wave_min >> set_wave_max;
+    istr >> set_npoints;
+    istr >> double_imanip() >> set_temp;
 
     if (!istr || std::isnan(set_temp) || std::isnan(set_wave_min) ||
         std::isnan(set_wave_max)) {
@@ -382,7 +375,7 @@ void CIARecord::ReadFromCIA(const String& filename,
     // If the min/max wave numbers of this set are different from the
     // previous one, a new dataset starts
     if (npoints == -1 || wave_min != set_wave_min || wave_max != set_wave_max) {
-      if (ndataset != -1) AppendDataset(freq, temp, cia);
+      if (ndataset != -1) AppendDataset(freq, Vector{temp}, cia);
 
       npoints = set_npoints;
       ndataset++;
@@ -447,7 +440,7 @@ void CIARecord::ReadFromCIA(const String& filename,
     throw runtime_error(os.str());
   }
 
-  AppendDataset(freq, temp, cia);
+  AppendDataset(freq, Vector{temp}, cia);
 
   //    // For debugging
   //    for(Index i = 0; i < mdata.nelem(); i++)
@@ -460,7 +453,7 @@ void CIARecord::ReadFromCIA(const String& filename,
 
 /** Append data dataset to mdata. */
 void CIARecord::AppendDataset(const Vector& freq,
-                              const ArrayOfNumeric& temp,
+                              const Vector& temp,
                               const ArrayOfVector& cia) {
   GriddedField2 dataset;
   dataset.resize(freq.nelem(), temp.nelem());

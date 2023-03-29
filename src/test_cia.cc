@@ -24,6 +24,7 @@
 */
 
 #include "cia.h"
+#include "matpack_math.h"
 
 void test01() {
   cout << "Testing CIA Interpolation.\n";
@@ -40,7 +41,7 @@ void test01() {
   cout << "cia_data:" << cia_data << endl;
 
   // Output frequencies and temperature:
-  Vector f_out(1, 9, 0.5);
+  Vector f_out=uniform_grid(1, 9, 0.5);
   cout << "f_out:" << f_out << endl;
   Numeric T_out = 150;
   cout << "T_out:" << T_out << endl;

@@ -37,8 +37,8 @@
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "math_funcs.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_sparse.h"
 #include "messages.h"
 
 /*===========================================================================
@@ -82,14 +82,13 @@ void antenna1d_matrix(Sparse& H,
   is treated as step-wise constant function (in contrast to 1D). See also
   built-in doc.
 
-   \param   H            The antenna transfer matrix
-   \param   antenna_dim  As the WSV with the same name
-   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
+   \param   H                 The antenna transfer matrix
+   \param   antenna_dim       As the WSV with the same name
+   \param   antenna_dlos      As the WSV with the same name
    \param   antenna_response  As the WSV with the same name
-   \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   f_grid       Frequency grid for monochromatic calculations
-   \param   n_pol        Number of polarisation states
-   \param   do_norm      Flag whether response should be normalised
+   \param   mblock_dlos       As the WSV with the same name
+   \param   f_grid            Frequency grid for monochromatic calculations
+   \param   n_pol             Number of polarisation states
 
    \author  Patrick Eriksson
    \date   2020-09-01
@@ -106,19 +105,17 @@ void antenna2d_gridded_dlos(Sparse& H,
 
 //! antenna2d_interp_response
 /*!
-  For this option, each direction defined by *mblock_dlos_grid* is
-  considered to represent the same size in terms of solid beam angle,
-  and the antenna pattern is interpolated to these directions. See also
-  built-in doc.
+  The antenna pattern is interpolated to the dlos directions and solid
+  beam angles are applied. See also built-in doc.
 
-   \param   H            The antenna transfer matrix
-   \param   antenna_dim  As the WSV with the same name
-   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
+   \param   H                 The antenna transfer matrix
+   \param   antenna_dim       As the WSV with the same name
+   \param   antenna_dlos      As the WSV with the same name
    \param   antenna_response  As the WSV with the same name
-   \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   f_grid       Frequency grid for monochromatic calculations
-   \param   n_pol        Number of polarisation states
-   \param   do_norm      Flag whether response should be normalised
+   \param   mblock_dlos       As the WSV with the same name
+   \param   solid_angles      The solid angle of each dlos
+   \param   f_grid            Frequency grid for monochromatic calculations
+   \param   n_pol             Number of polarisation states
 
    \author  Patrick Eriksson
    \date   2018-09-12
@@ -128,62 +125,9 @@ void antenna2d_interp_response(Sparse& H,
                                ConstMatrixView antenna_dlos,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,
+                               ConstVectorView solid_angles,
                                ConstVectorView f_grid,
                                const Index n_pol);
-
-
-//! gaussian_response_autogrid
-/*!
-   Returns a 1D gaussian response with a suitable grid
-
-   First a grid is generated. The grid is si*[-xwidth_si:dx:xwidth_si],
-   where si is the "standard deviation" corresponding to the FWHM, and
-   dx is biggest possible value < dx_si, to enusre an symmetric grid wth end
-   points exactly at xwidth_si.
-   That is, width and spacing of the grid is specified in terms of number of 
-   standard deviations. If xwidth_si is set to 2, the response will cover
-   about 95% the complete response. For xwidth_si=3, about 99% is covered.
-
-   y is the gaussian function on grid x, with max at x0 and width following
-   fwhm.
-
-   \param   x           Grid generated.
-   \param   y           Calculated response.
-   \param   x0          The x-position of response centre/max.
-   \param   fwhm        The full width at half-maximum of the response
-   \param   xwidth_si   The one-sided width of x. See above.
-   \param   dx_si       The grid step size of x. See above.
-
-   \author Patrick Eriksson
-   \date   2009-09-20
-*/
-void gaussian_response_autogrid(Vector& x,
-                                Vector& y,
-                                const Numeric& x0,
-                                const Numeric& fwhm,
-                                const Numeric& xwidth_si,
-                                const Numeric& dx_si);
-
-
-//! gaussian_response
-/*!
-   Returns a 1D gaussian response
-
-   y is the gaussian function on grid x, with max at x0 and width following
-   fwhm.
-
-   \param   y           Calculated response.
-   \param   x           Grid.
-   \param   x0          The x-position of response centre/max.
-   \param   fwhm        The full width at half-maximum of the response
-
-   \author Patrick Eriksson
-   \date   2009-09-20
-*/
-void gaussian_response(Vector& y,
-                       const Vector& x,
-                       const Numeric& x0,
-                       const Numeric& fwhm);
 
 
 //! mixer_matrix

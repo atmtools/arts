@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 3.12)
+if (ENABLE_CXX23)
+  cmake_minimum_required (VERSION 3.20)
+else ()
+  cmake_minimum_required (VERSION 3.18)
+endif ()
 
 project (ARTS C CXX)
 
@@ -22,6 +26,17 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}"
 )
 endif ()
 
+######## Check compiler versions ########
+set (REQUIRED_GCC_VERSION 11)
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${REQUIRED_GCC_VERSION})
+  message (FATAL_ERROR "GCC version must be at least ${REQUIRED_GCC_VERSION}!")
+endif()
+
+set (REQUIRED_CLANG_VERSION 13)
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${REQUIRED_CLANG_VERSION})
+  message (FATAL_ERROR "Clang version must be at least ${REQUIRED_CLANG_VERSION}!")
+endif()
+
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(DEFAULT_BUILD_TYPE "Release")
@@ -35,13 +50,15 @@ endif()
 
 # User options (auto-complete and cmake gui works better like this)
 include(CMakeDependentOption)
-option (ENABLE_ALLPATHS "Turn off pathing guards" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
-option (ENABLE_CXX20 "Turn on C++20 (experimental)" OFF)
+option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_FORTRAN "Turn on Fortran code" OFF)
 option (ENABLE_GUI "Turn on Debug GUI" OFF)
+option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_NETCDF "Turn on NETCDF support" OFF)
+option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
+option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
 option (NO_DOCSERVER "Turn off the document server" OFF)
 cmake_dependent_option(
@@ -53,8 +70,9 @@ cmake_dependent_option(
 cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
+option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
 
-if (NOT ENABLE_ALLPATHS)
+if (IGNORE_CONDA_PATH)
   # Avoid possible linker incompatibilities for
   # libstdc++ and libgomp on Linux if anaconda is installed
   find_program(CONDA_PROG NAMES conda)
@@ -69,16 +87,30 @@ if (NOT ENABLE_ALLPATHS)
   endif()
 endif()
 
+########### C++20/23 Support ##########
+
+if (NOT CMAKE_CXX_STANDARD)
+  if (ENABLE_CXX23)
+    set(CMAKE_CXX_STANDARD 23)
+  else ()
+    set(CMAKE_CXX_STANDARD 20)
+  endif ()
+endif ()
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 enable_testing ()
 
 list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 ########### Find Python ##########
-set(Python_ADDITIONAL_VERSIONS 3)
-find_package (PythonInterp REQUIRED)
+find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 
 include (CheckPythonModule)
 check_python_modules()
+
+set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python3_EXECUTABLE})
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
@@ -92,20 +124,13 @@ if (ENABLE_FORTRAN)
       set (FORTRAN_EXTRA_FLAGS "-fdefault-double-8 -fdefault-integer-8 -fdefault-real-8")
     endif()
     if (ENABLE_TMATRIX_QUAD)
-      message (FATAL_ERROR "Gfortran does not support quad-precision. Only supported on Intel compiler.")
+      message (FATAL_ERROR "Gfortran does not support quad-precision.")
     endif()
   elseif (FORTRAN_COMPILER MATCHES "ifort.*")
     set (FORTRAN_EXTRA_FLAGS "-i8 -r8")
   else ()
     message (FATAL_ERROR "Unsupported Fortran compiler. Must be gfortran or ifort.")
   endif (FORTRAN_COMPILER MATCHES "gfortran.*")
-
-  INCLUDE (CheckTypeSize)
-  CHECK_TYPE_SIZE (long SIZEOF_LONG)
-  if (NOT SIZEOF_LONG EQUAL 8)
-    message (FATAL_ERROR "Fortran interface only works on 64-bit with long size of 8 bytes.\n"
-      "Size of long on this system: ${SIZEOF_LONG} bytes")
-  endif (NOT SIZEOF_LONG EQUAL 8)
 
 endif (ENABLE_FORTRAN)
 
@@ -128,7 +153,7 @@ if (NOT NUMERIC)
 endif (NOT NUMERIC)
 
 if (NOT INDEX)
-  set (INDEX long)
+  set (INDEX std::int64_t)
 endif (NOT INDEX)
 
 add_definitions (-DHAVE_CONFIG_H)
@@ -143,8 +168,6 @@ if (NO_USER_ERRORS)
   add_definitions (-DNO_ARTS_USER_ERRORS)
 endif (NO_USER_ERRORS)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
-
 ########### ccache Support ##########
 
 if (ENABLE_CCACHE)
@@ -155,39 +178,17 @@ if (ENABLE_CCACHE)
   endif (CCACHE_FOUND)
 endif ()
 
-########### C++17/20 Support ##########
+########### IPO ##########
 
-if (NOT CMAKE_CXX_STANDARD)
-  if (ENABLE_CXX20)
-    set(CMAKE_CXX_STANDARD 20)
-  else ()
-    set(CMAKE_CXX_STANDARD 17)
-  endif ()
+if (ENABLE_IPO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT IPO_SUPPORTED LANGUAGES C CXX OUTPUT IPO_ERROR)
+  if (NOT IPO_SUPPORTED)
+    message(FATAL_ERROR "IPO / LTO not supported: ${IPO_ERROR}")
+  endif()
+else()
+  set(IPO_SUPPORTED OFF)
 endif()
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Explicitly set C++ flags for Intel compiler because cmake
-# only supports it from version 3.6.0+. We don't want to
-# depend on this newer version of cmake because it was only
-# released in June 2016.
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-endif ()
-
-########### Intel compiler specific settings ##########
-
-# Turn off value-unsafe floating-point optimizations which lead
-# to large descrepancies compared to other compilers
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise")
-endif ()
-
-if (ENABLE_FORTRAN AND CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fp-model precise")
-endif ()
 
 ########### OEM Support ##########
 
@@ -203,10 +204,10 @@ if (ENABLE_MPI) # User must enable MPI using -DENABLE_MPI=ON
   endif ()
 endif ()
 
-########### C API ##########
+########### Python ##########
 
-set (C_API true)
-add_definitions(-fPIC)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
@@ -256,26 +257,11 @@ check_type_size("double" SIZEOF_DOUBLE)
 ########### Check functions ##########
 check_function_exists(unlink HAVE_REMOVE)
 
-######## Enable timer support, if we have all necessary header files #######
-if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
-    AND HAVE_SYS_TIMES_H)
-  set (TIME_SUPPORT 1)
-endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
-  AND HAVE_SYS_TIMES_H)
-
 ########### Zlib support ##########
 include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
-########## BLAS support #########
-if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
-  # Workaround: Older versions of cmake
-  # rely on fortran being enabled to detect BLAS
-  enable_language (Fortran)
-endif()
-
 ########## BLAS/LAPACK support #########
-
 find_package (LAPACK REQUIRED)
 
 ########## NetCDF support #########
@@ -293,9 +279,9 @@ endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Docserver support ##########
 
-if (NOT NO_DOCSERVER)
+if (NOT NO_DOCSERVER AND HAVE_UNISTD_H)
   set (ENABLE_DOCSERVER true)
-endif (NOT NO_DOCSERVER)
+endif ()
 
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########
 if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -305,10 +291,18 @@ if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
           "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
+  string(REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+endif ()
+
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
-endif (CMAKE_COMPILER_IS_GNUCXX)
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif ()
 
 ########### Warning flags ##########
 include (ArtsAddCompilerFlag)
@@ -320,21 +314,17 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (W)
   ARTS_ADD_COMPILER_FLAG (Wall)
+  ARTS_ADD_COMPILER_FLAG (Wextra)
   ARTS_ADD_COMPILER_FLAG (Wshadow)
   ARTS_ADD_COMPILER_FLAG (Wconversion)
+  ARTS_ADD_COMPILER_FLAG (Wdeprecated)
+  ARTS_ADD_COMPILER_FLAG (Wdeprecated-declarations)
   ARTS_ADD_COMPILER_FLAG (Wno-sign-conversion)
   ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
   ARTS_ADD_COMPILER_FLAG (Wno-return-type-c-linkage)
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
   ARTS_ADD_COMPILER_FLAG (Wno-psabi)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
-
-######## Need to link to filesystem ########
-if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
-    message (STATUS "Linking against stdc++fs")
-    link_libraries (stdc++fs)
-endif()
-
 
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)
@@ -347,11 +337,6 @@ if (NO_USER_ERRORS)
   ARTS_ADD_COMPILER_FLAG (Wno-unused-parameter)
   ARTS_ADD_COMPILER_FLAG (Wno-unused-variable)
 endif (NO_USER_ERRORS)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  ARTS_ADD_COMPILER_FLAG (w1)
-  ARTS_ADD_COMPILER_FLAG (diag-disable=383,980,981,1418,1419,1682)
-endif ()
 
 if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
@@ -463,7 +448,7 @@ if (ARTS_PARTFUN_DATA_PATH)
   get_filename_component (ARTS_PARTFUN_DATA_PATH "${ARTS_PARTFUN_DATA_PATH}" ABSOLUTE)
     message(STATUS "Using manual partition functions data (unset ARTS_PARTFUN_DATA_PATH to switch to built-in options)")
 else (ARTS_PARTFUN_DATA_PATH)
-  get_filename_component (ARTS_PARTFUN_DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/partfun/" ABSOLUTE)
+  get_filename_component (ARTS_PARTFUN_DATA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/partfun/data" ABSOLUTE)
   message(STATUS "Using built-in partition functions data (use -DARTS_PARTFUN_DATA_PATH=/path/to/data/ to use other partition functions)")
 endif (ARTS_PARTFUN_DATA_PATH)
 message(STATUS "The partition functions data is at ${ARTS_PARTFUN_DATA_PATH}")
@@ -485,6 +470,12 @@ add_custom_target(check-python
     -E '\(\\.nocheck\\.|\\.slow\\.|\\.xmldata\\.|\\.planettoolbox\\.\)'
   DEPENDS check-deps python_tests)
 
+add_custom_target(check-examples
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
+    -R '\(\\pyarts.examples\\.\)'
+    -E '\(\\.nocheck\\.\)'
+  DEPENDS check-deps)
+
 add_custom_target(check-xmldata
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -R '\(\\.xmldata\\.\)'
@@ -500,17 +491,14 @@ add_custom_target(check-planettoolbox
 add_custom_target(check-all
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -E '\\.nocheck\\.'
-  DEPENDS check-deps pyarts python_tests)
+  DEPENDS check-deps python_tests)
 
 add_custom_target(check-all-controlfiles
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -E '^python\\.|\\.pyarts\\.|\\.nocheck\\.'
   DEPENDS check-deps)
 
-add_custom_target(check-pyarts-only
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
-    -R '\\.pyarts\\.'
-  DEPENDS pyarts)
+add_custom_target(check-pyarts-only DEPENDS pyarts_tests)
 
 add_dependencies(check-all mkdir-arts-results)
 
@@ -551,11 +539,29 @@ else()
   message (STATUS "OEM disabled")
 endif()
 
+if (ENABLE_PCH)
+  message (STATUS "Precompiled headers enabled")
+  if (CCACHE_FOUND)
+    message (STATUS "Make sure you set CCACHE_SLOPPINES properly for PCH:
+   export CCACHE_SLOPPINESS=pch_defines,time_macros")
+  endif()
+else()
+  message (STATUS "Precompiled headers disabled")
+endif()
+
+if (IPO_SUPPORTED)
+  message(STATUS "IPO / LTO enabled")
+else()
+  message(STATUS "IPO / LTO disabled")
+endif()
+
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
 add_subdirectory (controlfiles-python)
 add_subdirectory (python)
+add_subdirectory (examples)
+add_subdirectory (tests)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
@@ -565,3 +571,6 @@ if (NOT "${NUMERIC}" STREQUAL "double")
 endif()
 
 message(STATUS "Building ARTS in ${CMAKE_BUILD_TYPE} mode")
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
+  message(STATUS "Optimization level set to O2 instead of O3 in Release mode")
+endif ()

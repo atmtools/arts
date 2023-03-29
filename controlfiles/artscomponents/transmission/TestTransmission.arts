@@ -11,19 +11,13 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 
 # Number of Stokes components to be computed
@@ -57,11 +51,12 @@ AtmosphereSet3D
 abs_speciesSet( species=
             ["H2O-PWR98", 
              "N2-SelfContStandardType",
-             "O2-PWR93"] )
+             "O2-PWR98"] )
 
 # No line data needed here
 # 
 abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaAuto
 
 
 # Atmospheric profiles
@@ -93,8 +88,8 @@ cloudbox_checkedCalc
 # Propagation path agendas and variables
 #
 # refracted path
-Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth  )
+ppath_step_agendaSet( option="RefractedPath" )
+refr_index_air_agendaSet( option="GasMicrowavesEarth"  )
 
 NumericSet( ppath_lmax, 2e3 )
 NumericSet( ppath_lraytrace, 500 )
@@ -109,8 +104,7 @@ VectorSet( rte_pos2, [] )                  # No transmitter position defined
 
 # Radiative transfer agendas
 #
-Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitUnpolIntensity )
-Copy( iy_main_agenda, iy_main_agenda__Transmission )
+iy_main_agendaSet(option="TransmissionUnitUnpolIntensity")
 
 
 # Auxiliary variables
@@ -119,8 +113,6 @@ ArrayOfStringSet( iy_aux_vars,
     [ "Radiative background", "Optical depth" ] )
 
 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 lbl_checkedCalc
 
 
@@ -154,8 +146,13 @@ Compare( iy, iy0, 0.0001 )
 Copy( iy0, iy )
 
 
-Copy( iy_main_agenda, iy_main_agenda__Freqloop )
-Copy( iy_loop_freqs_agenda, iy_loop_freqs_agenda__Transmission )
+iy_main_agendaSet( option="Freqloop" )
+AgendaSet( iy_loop_freqs_agenda ){
+  Ignore( iy_id )  
+  MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
+  ppathCalc
+  iyTransmissionStandard
+}
 
 
 # No along-the-path-variables can here be included

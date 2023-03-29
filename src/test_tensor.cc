@@ -21,7 +21,9 @@
 #include <iostream>
 
 #include "array.h"
-#include "matpackVII.h"
+#include "matpack_arrays.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 
 using std::cout;
 using std::setprecision;

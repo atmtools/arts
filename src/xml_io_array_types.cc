@@ -767,7 +767,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayOfJacobianTarget");
+  open_tag.add_attribute("type", "JacobianTarget");
   open_tag.add_attribute("nelem", ajt.nelem());
 
   open_tag.write_to_stream(os_xml);
@@ -2049,7 +2049,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayGriddedField1");
+  open_tag.add_attribute("type", "ArrayOfGriddedField1");
   open_tag.add_attribute("nelem", aagfield.nelem());
 
   open_tag.write_to_stream(os_xml);
@@ -2120,7 +2120,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayGriddedField2");
+  open_tag.add_attribute("type", "ArrayOfGriddedField2");
   open_tag.add_attribute("nelem", aagfield.nelem());
 
   open_tag.write_to_stream(os_xml);
@@ -2191,7 +2191,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("type", "ArrayGriddedField3");
+  open_tag.add_attribute("type", "ArrayOfGriddedField3");
   open_tag.add_attribute("nelem", aagfield.nelem());
 
   open_tag.write_to_stream(os_xml);
@@ -2696,6 +2696,79 @@ void xml_write_to_stream(ostream& os_xml,
 
   for (Index n = 0; n < atensor7.nelem(); n++)
     xml_write_to_stream(os_xml, atensor7[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+//=== ArrayOfSun =========================================================
+
+//! Reads ArrayOfSun from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param astar   astar return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfSun& astar,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "Sun");
+
+  tag.get_attribute_value("nelem", nelem);
+  astar.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++) {
+      xml_read_from_stream(is_xml, astar[n], pbifs, verbosity);
+    }
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfSun: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfSun to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param astar   ArrayOfSun
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfSun& astar,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "Sun");
+  open_tag.add_attribute("nelem", astar.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < astar.nelem(); n++) {
+    xml_write_to_stream(os_xml, astar[n], pbofs, "", verbosity);
+  }
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -3779,7 +3852,7 @@ void xml_write_to_stream(ostream& os_xml,
   for (Index n = 0; n < at.nelem(); n++)
     xml_write_to_stream(os_xml, at[n], pbofs, "", verbosity);
 
-  close_tag.set_name("/ArrayOfTime");
+  close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
 
   os_xml << '\n';

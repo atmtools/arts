@@ -30,7 +30,7 @@
 #define linescaling_h
 
 #include "absorption.h"
-#include "constants.h"
+#include "arts_conversions.h"
 
 /** Computes the partition function at one temperature
  * 
@@ -189,8 +189,7 @@ Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
  * @return E0 k / T^2
  */
 constexpr Numeric dboltzman_ratio_dT_div_boltzmann_ratio(Numeric T,
-                                                         Numeric E0)
-{
+                                                         Numeric E0) {
   return E0 / (Constant::k * T * T);
 }
 

@@ -23,15 +23,17 @@
   \brief  This file contains functions to read TELSEM atlases.
 */
 
+#include "arts_conversions.h"
 #include "file.h"
 #include "geodetic.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "rte.h"
 #include "telsem.h"
+#include "check_input.h"
 
-extern Numeric EARTH_RADIUS;
-extern Numeric DEG2RAD;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsemStandalone(Matrix &emis,
@@ -125,11 +127,10 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
                            const Verbosity &verbosity) {
   CREATE_OUT2;
   const Index imonth = filename_pattern.find("@MM@");
-  if (imonth < 0) {
-    ostringstream os;
-    os << "Substring '@MM@' not found in filename_pattern for" << std::endl
-       << "month number replacement: " << filename_pattern;
-  }
+  ARTS_USER_ERROR_IF(imonth == String::npos,
+                     "Substring '@MM@' not found in filename_pattern for\n",
+                     "month number replacement: ",
+                     filename_pattern)
 
   std::ifstream is;
 
@@ -158,7 +159,7 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
     std::getline(corr_is, s);
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
-        corr_is >> correlation(i, j, k);
+        corr_is >> double_imanip() >> correlation(i, j, k);
         ARTS_USER_ERROR_IF (corr_is.fail(),
                             "Error reading correlation.");
       }
@@ -175,11 +176,10 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
                              const Verbosity &verbosity) {
   CREATE_OUT2;
   const Index imonth = filename_pattern.find("@MM@");
-  if (imonth < 0) {
-    ostringstream os;
-    os << "Substring '@MM@' not found in filename_pattern for" << std::endl
-       << "month number replacement: " << filename_pattern;
-  }
+  ARTS_USER_ERROR_IF(imonth == String::npos,
+                     "Substring '@MM@' not found in filename_pattern for\n",
+                     "month number replacement: ",
+                     filename_pattern)
 
   telsem_atlases.resize(12);
   for (Index i = 1; i <= 12; i++) {
@@ -207,7 +207,7 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
     std::getline(is, s);
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
-        is >> correlation(i, j, k);
+        is >> double_imanip() >> correlation(i, j, k);
         ARTS_USER_ERROR_IF (is.fail(), "Error reading correlation.");
       }
       std::getline(is, s);

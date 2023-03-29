@@ -40,24 +40,25 @@
 #include <cmath>
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "exceptions.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackIII.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "montecarlo.h"
 #include "optproperties.h"
 #include "sorting.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 #define PART_TYPE scat_data[i_ss][i_se].ptype
 #define F_DATAGRID scat_data[i_ss][i_se].f_grid
@@ -1606,7 +1607,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
           (scat_data_raw[i_ss][i_se].f_grid.nelem() == 1);
       if (!single_se_fgrid) {
         // Gridpositions:
-        const auto lag_freq=Interpolation::LagrangeVector(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
+        const auto lag_freq=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
         const auto itw = interpweights(lag_freq);
 
         //Phase matrix data
@@ -2963,7 +2964,7 @@ void ScatSpeciesMerge(  //WS Output:
                    i_aa++) {
                 // Weighted sum of ext_mat_data and abs_vec_data
                 if (orig_part.T_grid.nelem() == 1) {
-                  Vector v = orig_part.ext_mat_data(i_f, 0, i_za, i_aa, joker);
+                  Vector v{orig_part.ext_mat_data(i_f, 0, i_za, i_aa, joker)};
                   v *= pnd_field(pnd_index, i_lv, 0, 0);
                   this_part.ext_mat_data(i_f, 0, i_za, 0, joker) += v;
 
@@ -3013,13 +3014,13 @@ void ScatSpeciesMerge(  //WS Output:
                        i_aa_inc++) {
                     // Weighted sum of pha_mat_data
                     if (orig_part.T_grid.nelem() == 1) {
-                      Vector v = orig_part.pha_mat_data(i_f,
+                      Vector v{orig_part.pha_mat_data(i_f,
                                                         0,
                                                         i_za_out,
                                                         i_aa_out,
                                                         i_za_inc,
                                                         i_aa_inc,
-                                                        joker);
+                                                        joker)};
                       v *= pnd_field(pnd_index, i_lv, 0, 0);
                       this_part.pha_mat_data(i_f,
                                              0,

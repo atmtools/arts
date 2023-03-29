@@ -166,20 +166,72 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
 
   uint64_t two_js = j1 + j2 + j3;
 
+  /* 17+4=21, 3*21=63 */
+
+  /* Number of bits for row and column indicator. */
+#define R_BITS        2
+#define C_BITS        2
+#define RC_BITS   (R_BITS+C_BITS) /* combined */
+  /* Number of bits for value. */
+#define VAL_BITS     17
+  /* Next offset. */
+#define NEXT_OFF  (RC_BITS + VAL_BITS)
+  /* Location of value. */
+#define SHV1      (         0+RC_BITS) /* value */
+#define SHV2      (  NEXT_OFF+RC_BITS)
+#define SHV3      (2*NEXT_OFF+RC_BITS)
+  /* Location of column indicator. */
+#define SHC1      (         0+R_BITS)  /* col */
+#define SHC2      (  NEXT_OFF+R_BITS)
+#define SHC3      (2*NEXT_OFF+R_BITS)
+  /* Location of row indicator. */
+#define SHR1      (         0       )  /* row */
+#define SHR2      (  NEXT_OFF       )
+#define SHR3      (2*NEXT_OFF       )
+  /* Location of full value. */
+#define SHF1      (         0       )  /* full: row+col+val */
+#define SHF2      (  NEXT_OFF       )
+#define SHF3      (2*NEXT_OFF       )
+
+  /* Mask for raw value. */
+#define MSKW      ((1ll << VAL_BITS) - 1)
+
+  /* Mask for value. */
+#define MSKV      (MSKW << RC_BITS)  /* mask value */
+#define MSKRC     ((1ll << RC_BITS) - 1)
+#define MSKF      (MSKV | MSKRC)     /* mask full */
+
+#define MSKV1     (MSKV << SHF1)
+#define MSKV2     (MSKV << SHF2)
+#define MSKV3     (MSKV << SHF3)
+
+  /* In principle always subtracting one of the j, but let's be
+   * conservative.
+   *
+   * Since m <= j, and due to the triangle rules the other 2 j must
+   * sum up to at least the remaining j, so also j+m cannot exceed.
+   */
+
+  if (two_js > MSKW)
+    {
+      /* We might overflow. */
+      return (uint64_t) -4;
+    }
+
   uint64_t two_js_js_js =
-    (two_js << (32+4)) | (two_js << (16+4)) | (two_js << (4));
+    (two_js << SHV3) | (two_js << SHV2) | (two_js << SHV1);
   /* By adding, instead of or'ing, the m values, any bits marking
    * negative values are superpositioned.  They will then cancel
    * properly when subtracted or added to the j values.
    * Adding or or'ing the j values does not matter.
    */
   uint64_t two_j1_j2_j3 =
-    (two_j1 << (32+4)) + (two_j2 << (16+4)) + (two_j3 << (4));
+    (two_j1 << SHV3) + (two_j2 << SHV2) + (two_j3 << SHV1);
   uint64_t two_m1_m2_m3 =
-    (two_m1 << (32+4)) + (two_m2 << (16+4)) + (two_m3 << (4));
+    (two_m1 << SHV3) + (two_m2 << SHV2) + (two_m3 << SHV1);
 
-  uint64_t col_ind = (0ll << (32+2)) | (1ll << (16+2)) | (2ll << (2));
-  uint64_t row_ind = (1ll << (32+0)) | (1ll << (16+0)) | (1ll << (0));
+  uint64_t col_ind = (0ll << SHC3) | (1ll << SHC2) | (2ll << SHC1);
+  uint64_t row_ind = (1ll << SHR3) | (1ll << SHR2) | (1ll << SHR1);
 
   uint64_t row1 = two_js_js_js - 2 * two_j1_j2_j3 + col_ind;
   uint64_t row2 = two_j1_j2_j3 - two_m1_m2_m3 + col_ind + row_ind;
@@ -191,9 +243,9 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
   fprintf (stderr, "%016" PRIx64 "  %016" PRIx64 "  %016" PRIx64 " rows\n",
 	   row1, row2, row3);
   fprintf (stderr, "%3d %3d %3d  %3d %3d %3d  %3d %3d %3d\n",
-	   (row1 >> 36) & 0xfff, (row1 >> 20) & 0xfff, (row1 >> 4) & 0xfff,
-	   (row2 >> 36) & 0xfff, (row2 >> 20) & 0xfff, (row2 >> 4) & 0xfff,
-	   (row3 >> 36) & 0xfff, (row3 >> 20) & 0xfff, (row3 >> 4) & 0xfff);
+	   (row1>>SHV3) & MSKW, (row1>>SHV2) & MSKW, (row1>>SHV1) & MSKW,
+	   (row2>>SHV3) & MSKW, (row2>>SHV2) & MSKW, (row2>>SHV1) & MSKW,
+	   (row3>>SHV3) & MSKW, (row3>>SHV2) & MSKW, (row3>>SHV1) & MSKW);
 #endif
 
   /* There would now be two ways of finding and selecting the smallest
@@ -210,21 +262,21 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
    * after the values.  They will thus not affect the comparisons.
    */
 
-  uint64_t smallest  = row1 >> 32;
+  uint64_t smallest  = row1 >> SHF3;
   /* Working with two smallest variables and combing at the end
    * did not improve speed.
    */
 
-  if (((row1 >> 16) & 0xffff) < smallest) smallest = (row1 >> 16) & 0xffff;
-  if (((row1      ) & 0xffff) < smallest) smallest = (row1      ) & 0xffff;
+  if (((row1 >> SHF2) & MSKF) < smallest) smallest = (row1 >> SHF2) & MSKF;
+  if (((row1        ) & MSKF) < smallest) smallest = (row1        ) & MSKF;
 
-  if (((row2 >> 32)         ) < smallest) smallest = (row2 >> 32);
-  if (((row2 >> 16) & 0xffff) < smallest) smallest = (row2 >> 16) & 0xffff;
-  if (((row2      ) & 0xffff) < smallest) smallest = (row2      ) & 0xffff;
+  if (((row2 >> SHF3)       ) < smallest) smallest = (row2 >> SHF3);
+  if (((row2 >> SHF2) & MSKF) < smallest) smallest = (row2 >> SHF2) & MSKF;
+  if (((row2        ) & MSKF) < smallest) smallest = (row2        ) & MSKF;
 
-  if (((row3 >> 32)         ) < smallest) smallest = (row3 >> 32);
-  if (((row3 >> 16) & 0xffff) < smallest) smallest = (row3 >> 16) & 0xffff;
-  if (((row3      ) & 0xffff) < smallest) smallest = (row3      ) & 0xffff;
+  if (((row3 >> SHF3)       ) < smallest) smallest = (row3 >> SHF3);
+  if (((row3 >> SHF2) & MSKF) < smallest) smallest = (row3 >> SHF2) & MSKF;
+  if (((row3        ) & MSKF) < smallest) smallest = (row3        ) & MSKF;
 
 #if DEBUG_WIG3J_R_C
   fprintf (stderr, "%016" PRIx64 " smallest\n", smallest);
@@ -233,17 +285,19 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
   /* The column index of the smallest is now in bits 3..2 of smallest,
    * and the row index is in bits 1..0. */
 
-  uint64_t small_col = (smallest & (3 << 2)) << 2; /* 0, 4, 8 -> 0, 16, 32 */
+  uint64_t small_col = ((smallest & (3 << 2)) >> 2) * NEXT_OFF;
 
   /* Column permutations.  We also kill the index information.
    * We either change no columns, or interchange twice, so no sign change.
    */
 
-  uint64_t small_col_rsl = 48 - small_col;
+  uint64_t small_col_rsl = (3*NEXT_OFF) - small_col;
 
-  row1 = ((row1 << small_col) | (row1 >> small_col_rsl)) & 0xfff0fff0fff0ll;
-  row2 = ((row2 << small_col) | (row2 >> small_col_rsl)) & 0xfff0fff0fff0ll;
-  row3 = ((row3 << small_col) | (row3 >> small_col_rsl)) & 0xfff0fff0fff0ll;
+#define MSKV_3POS ((MSKV << SHF3) | (MSKV << SHF2) | (MSKV << SHF1))
+
+  row1 = ((row1 << small_col) | (row1 >> small_col_rsl)) & MSKV_3POS;
+  row2 = ((row2 << small_col) | (row2 >> small_col_rsl)) & MSKV_3POS;
+  row3 = ((row3 << small_col) | (row3 >> small_col_rsl)) & MSKV_3POS;
 
   /* The columns are now in order.  Exchange rows as needed.
    * If exchange is made, we have also changed the sign.
@@ -285,9 +339,9 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
   fprintf (stderr, "%016" PRIx64 "  %016" PRIx64 "  %016" PRIx64 " rows\n",
 	   row1, row2, row3);
   fprintf (stderr, "%3d %3d %3d  %3d %3d %3d  %3d %3d %3d\n",
-	   (row1 >> 36) & 0xfff, (row1 >> 20) & 0xfff, (row1 >> 4) & 0xfff,
-	   (row2 >> 36) & 0xfff, (row2 >> 20) & 0xfff, (row2 >> 4) & 0xfff,
-	   (row3 >> 36) & 0xfff, (row3 >> 20) & 0xfff, (row3 >> 4) & 0xfff);
+	   (row1>>SHV3) & MSKW, (row1>>SHV2) & MSKW, (row1>>SHV1) & MSKW,
+	   (row2>>SHV3) & MSKW, (row2>>SHV2) & MSKW, (row2>>SHV1) & MSKW,
+	   (row3>>SHV3) & MSKW, (row3>>SHV2) & MSKW, (row3>>SHV1) & MSKW);
 #endif
 
   /* We now need to find the largest element.  It will be either in
@@ -295,12 +349,12 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
    * we have to perform a transposition, and a column interchange.
    */
 
-  uint64_t largest =  (row2 >> 32) | (2    ); /* transpose */
-  uint64_t lrow3   =  (row3 >> 32) | (2 | 1); /* transpose, col23 exchange */
+  uint64_t largest =  (row2 >> SHF3) | (2    ); /* transpose */
+  uint64_t lrow3   =  (row3 >> SHF3) | (2 | 1); /* transpose, col23 exchange */
 
   if (lrow3 > largest) { largest = lrow3; }
-  uint64_t lcol2   =  (row1 >> 16) & 0xfff0;  /* none */
-  uint64_t lcol3   = ((row1      ) & 0xfff0) | (    1); /* col23 exchange */
+  uint64_t lcol2   =  (row1 >> SHF2) & MSKV;  /* none */
+  uint64_t lcol3   = ((row1        ) & MSKV) | (    1); /* col23 exchange */
 
   if (lcol2 > largest) { largest = lcol2; }
   if (lcol3 > largest) { largest = lcol3; }
@@ -311,25 +365,25 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
 
 
   /* Calculate transposition.  Use it if wanted. */
-  /* Can be beautifully done with SSE permutation functions. */
+  /* Could be beautifully done with SSE permutation functions. */
   
-  uint64_t trow1 = (((row1      ) & 0xfff000000000ll) |
-		    ((row2 >> 16) & 0xfff00000ll) |
-		    ((row3 >> 32)));
-  uint64_t trow2 = (((row1 << 16) & 0xfff000000000ll) |
-		    ((row2      ) & 0xfff00000ll) |
-		    ((row3 >> 16) & 0xfff0ll));
-  uint64_t trow3 = (((row1 << 32)) |
-		    ((row2 << 16) & 0xfff00000ll) |
-		    ((row3      ) & 0xfff0ll));
+  uint64_t trow1 = (((row1              ) &  MSKV3) |
+		    ((row2 >>   NEXT_OFF) &  MSKV2) |
+		    ((row3 >> 2*NEXT_OFF)         ));
+  uint64_t trow2 = (((row1 <<   NEXT_OFF) &  MSKV3) |
+		    ((row2              ) &  MSKV2) |
+		    ((row3 >>   NEXT_OFF) &  MSKV1));
+  uint64_t trow3 = (((row1 << 2*NEXT_OFF)         ) |
+		    ((row2 <<   NEXT_OFF) &  MSKV2) |
+		    ((row3              ) &  MSKV1));
 
 #if DEBUG_WIG3J_R_C
   fprintf (stderr, "%016" PRIx64 "  %016" PRIx64 "  %016" PRIx64 " trows\n",
 	   trow1, trow2, trow3);
   fprintf (stderr, "%3d %3d %3d  %3d %3d %3d  %3d %3d %3d\n",
-	   (row1 >> 36) & 0xfff, (row1 >> 20) & 0xfff, (row1 >> 4) & 0xfff,
-	   (row2 >> 36) & 0xfff, (row2 >> 20) & 0xfff, (row2 >> 4) & 0xfff,
-	   (row3 >> 36) & 0xfff, (row3 >> 20) & 0xfff, (row3 >> 4) & 0xfff);
+	   (row1>>SHV3) & MSKW, (row1>>SHV2) & MSKW, (row1>>SHV1) & MSKW,
+	   (row2>>SHV3) & MSKW, (row2>>SHV2) & MSKW, (row2>>SHV1) & MSKW,
+	   (row3>>SHV3) & MSKW, (row3>>SHV2) & MSKW, (row3>>SHV1) & MSKW);
 #endif
 
   if (largest & 2) { row1 = trow1; row2 = trow2; row3 = trow3; }
@@ -338,36 +392,43 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
   fprintf (stderr, "%016" PRIx64 "  %016" PRIx64 "  %016" PRIx64 " rows\n",
 	   row1, row2, row3);
   fprintf (stderr, "%3d %3d %3d  %3d %3d %3d  %3d %3d %3d\n",
-	   (row1 >> 36) & 0xfff, (row1 >> 20) & 0xfff, (row1 >> 4) & 0xfff,
-	   (row2 >> 36) & 0xfff, (row2 >> 20) & 0xfff, (row2 >> 4) & 0xfff,
-	   (row3 >> 36) & 0xfff, (row3 >> 20) & 0xfff, (row3 >> 4) & 0xfff);
+	   (row1>>SHV3) & MSKW, (row1>>SHV2) & MSKW, (row1>>SHV1) & MSKW,
+	   (row2>>SHV3) & MSKW, (row2>>SHV2) & MSKW, (row2>>SHV1) & MSKW,
+	   (row3>>SHV3) & MSKW, (row3>>SHV2) & MSKW, (row3>>SHV1) & MSKW);
 #endif
 
   /* Then do the column exchanges. */
 
-  uint64_t colshift = (largest & 1) << 4; /* 0 or 16 */
+  uint64_t colshift = (largest & 1) * NEXT_OFF; /* 0 or NEXT_OFF */
 
-  row1 = (row1 & 0xfff000000000ll) | 
-    ((row1 & 0xfff00000ll) >> colshift) | ((row1 & 0xfff0ll) << colshift);
-  row2 = (row2 & 0xfff000000000ll) | 
-    ((row2 & 0xfff00000ll) >> colshift) | ((row2 & 0xfff0ll) << colshift);
-  row3 = (row3 & 0xfff000000000ll) | 
-    ((row3 & 0xfff00000ll) >> colshift) | ((row3 & 0xfff0ll) << colshift);
+  row1 =
+    ((row1 & MSKV3)            ) |
+    ((row1 & MSKV2) >> colshift) |
+    ((row1 & MSKV1) << colshift);
+  row2 =
+    ((row2 & MSKV3)            ) |
+    ((row2 & MSKV2) >> colshift) |
+    ((row2 & MSKV1) << colshift);
+  row3 =
+    ((row3 & MSKV3)            ) |
+    ((row3 & MSKV2) >> colshift) |
+    ((row3 & MSKV1) << colshift);
 
 #if DEBUG_WIG3J_R_C
   fprintf (stderr, "%016" PRIx64 "  %016" PRIx64 "  %016" PRIx64 " rows\n",
 	   row1, row2, row3);
   fprintf (stderr, "%3d %3d %3d  %3d %3d %3d  %3d %3d %3d\n",
-	   (row1 >> 36) & 0xfff, (row1 >> 20) & 0xfff, (row1 >> 4) & 0xfff,
-	   (row2 >> 36) & 0xfff, (row2 >> 20) & 0xfff, (row2 >> 4) & 0xfff,
-	   (row3 >> 36) & 0xfff, (row3 >> 20) & 0xfff, (row3 >> 4) & 0xfff);
+	   (row1>>SHV3) & MSKW, (row1>>SHV2) & MSKW, (row1>>SHV1) & MSKW,
+	   (row2>>SHV3) & MSKW, (row2>>SHV2) & MSKW, (row2>>SHV1) & MSKW,
+	   (row3>>SHV3) & MSKW, (row3>>SHV2) & MSKW, (row3>>SHV1) & MSKW);
 #endif
 
   sign ^= largest; /* bit 0 matters */
 
   /* We have now placed S and L at their locations. */
   
-  if ((row3 & 0xfff0fff0ll) < (row2 & 0xfff0fff0ll))
+  if ((row3 & (MSKV2 | MSKV1)) <
+      (row2 & (MSKV2 | MSKV1)))
     {
       uint64_t tmp = row2; row2 = row3; row3 = tmp;
       sign ^= 1; /* bit 0 matters */
@@ -377,9 +438,9 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
   fprintf (stderr, "%016" PRIx64 "  %016" PRIx64 "  %016" PRIx64 " rows\n",
 	   row1, row2, row3);
   fprintf (stderr, "%3d %3d %3d  %3d %3d %3d  %3d %3d %3d\n",
-	   (row1 >> 36) & 0xfff, (row1 >> 20) & 0xfff, (row1 >> 4) & 0xfff,
-	   (row2 >> 36) & 0xfff, (row2 >> 20) & 0xfff, (row2 >> 4) & 0xfff,
-	   (row3 >> 36) & 0xfff, (row3 >> 20) & 0xfff, (row3 >> 4) & 0xfff);
+	   (row1>>SHV3) & MSKW, (row1>>SHV2) & MSKW, (row1>>SHV1) & MSKW,
+	   (row2>>SHV3) & MSKW, (row2>>SHV2) & MSKW, (row2>>SHV1) & MSKW,
+	   (row3>>SHV3) & MSKW, (row3>>SHV2) & MSKW, (row3>>SHV1) & MSKW);
 #endif
 
   /* And the array is fully organised. */
@@ -395,23 +456,25 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
    *  0  0 sign
    */
 
+  /*
   uint64_t key =
-    ((row1 & 0xfff000000000ll) << 16) | // S
-    ((row1 & 0x0000fff00000ll) << 20) | // L
-    ((row2 & 0xfff000000000ll) >>  8) | // X
-    ((row2 & 0x0000fff00000ll) >>  4) | // B
-    ((row3 & 0x00000000fff0ll)      ) | // T
+    ((row1 & MSKV3) << 16) | // S
+    ((row1 & MSKV2) << 20) | // L
+    ((row2 & MSKV3) >>  8) | // X
+    ((row2 & MSKV2) >>  4) | // B
+    ((row3 & MSKV1)      ) | // T
     (sign & 1);
+  */
 
   /* + 4 to shift away the empty row/col locations, +1 to shift away
    * the odd sign (which never is).
    */
 
-  uint64_t S = ((row1 & 0xfff000000000ll) >> (32 + 4 + 1));
-  uint64_t L = ((row1 & 0x0000fff00000ll) >> (16 + 4 + 1));
-  uint64_t X = ((row2 & 0xfff000000000ll) >> (32 + 4 + 1));
-  uint64_t B = ((row2 & 0x0000fff00000ll) >> (16 + 4 + 1));
-  uint64_t T = ((row3 & 0x00000000fff0ll) >> ( 0 + 4 + 1));
+  uint64_t S = ((row1 & MSKV3) >> (SHV3 + 1));
+  uint64_t L = ((row1 & MSKV2) >> (SHV2 + 1));
+  uint64_t X = ((row2 & MSKV3) >> (SHV3 + 1));
+  uint64_t B = ((row2 & MSKV2) >> (SHV2 + 1));
+  uint64_t T = ((row3 & MSKV1) >> (SHV1 + 1));
 
 #if 1
   /* As we have the values 2*j, we multiply by this 2 for all other
@@ -429,7 +492,23 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
 		    20 * Tind +
 		    60 * Bind +
 		    120 * Sind) / (120) + 1;
-  
+
+  /* Max index as function of L:
+   *
+   * max_index =
+   *   1/120 *
+   *   (L * (274 + L * (225 + L * (85 + L*(15 + L)))) + 1)
+   *
+   * For the index*120 to stay < 2^64: L <= 7128. (intermediate < 2^64)
+   * For the index     to stay < 2^64: L <= 18575.
+   * For the index     to stay < 2^63: L <= 16170.
+   */
+
+  if (L > 7128)
+    {
+      return (uint64_t) -4;
+    }
+
   sign &= (two_js >> 1) & 1;
 
 #if DEBUG_WIG3J_R_C
@@ -455,7 +534,7 @@ uint64_t wigner3j_regge_canonicalise(const int *two_jv)
   fprintf (stderr, "-> %016" PRIx64 " (%016" PRIx64 ")\n", key, key & ~1);
 #endif
 
-  return key;
+  return /* key */ (uint64_t) -4;
 
   /* And when the need arises to retrieve a set of jn from the c14n
    * variables (e.g. to calculate the value of the symbol):

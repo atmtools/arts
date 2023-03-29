@@ -33,9 +33,9 @@ extern "C" {
  */
 
 void wig_table_init(int max_two_j, int wigner_type);
-void wig_table_free();
+void wig_table_free(void);
 void wig_temp_init(int max_two_j);
-void wig_temp_free();
+void wig_temp_free(void);
 
 /* Use this function instead of wig_temp_init to ensure that __thread
  * support is compiled into the library. */

@@ -72,18 +72,7 @@ arts_test_run_ctlfile(fast artscomponents/surface/TestTessem.arts)
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
 arts_test_run_ctlfile(fast artscomponents/nlte/TestNLTE.arts)
-arts_test_run_ctlfile(fast artscomponents/nlte/TestPopulationDensityNLTE_lineshape.arts)
 arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)
-
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestDoppler.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestLorentz.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestLorentzLM.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigt.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestVoigtLM.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP-VP.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestSDVP.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTP.arts)
-arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTPLM.arts)
 
 arts_test_run_ctlfile(fast artscomponents/psd/TestFromParticleBulkProps.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestPsds.arts)
@@ -129,7 +118,7 @@ arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
 
 arts_test_run_ctlfile(slow artscomponents/heatingrates/TestSpectralRadianceField.arts)
 
-arts_test_run_ctlfile(fast artscomponents/hitran-xsec/TestHitranXsec.arts)
+arts_test_run_ctlfile(fast artscomponents/xsec-fit/TestXsecFit.arts)
 
 if (ENABLE_RT4)
   arts_test_run_ctlfile(fast artscomponents/scatsolvercomp/TestScatSolvers_fast.arts)
@@ -171,8 +160,6 @@ endif ()
 
 ###################
 ### Instruments ###
-arts_test_run_ctlfile(fast instruments/odinsmr/TestOdinSMR.arts)
-arts_test_run_ctlfile(slow instruments/odinsmr/TestOdinSMR_1D.arts)
 
 arts_test_run_ctlfile(fast instruments/ici/TestICI_fast.arts)
 
@@ -214,10 +201,6 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(fast artscomponents/helpers/TestGridsExtract.arts)
 
   arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
-
-  arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeeman.arts)
-  
-  arts_test_run_ctlfile(fast artscomponents/wfuns/TestSpectroscopy.arts)
   
   ##################################
   ### planet toolbox demos cases ###
@@ -233,5 +216,6 @@ if (ARTS_XML_DATA_DIR)
   arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
 endif (ARTS_XML_DATA_DIR)
 
-
-
+####################
+### Syntax tests ###
+arts_test_run_ctlfile(fast artscomponents/syntax/TestWSMCalls.arts)

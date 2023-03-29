@@ -1,3 +1,5 @@
+% !TeX root = arts_user.tex
+
 \chapter{Gas absorption}
  \label{sec:absorption}
 
@@ -22,8 +24,6 @@
   \Mpi         & $\frac{\mbox{W}}{\mbox{m$^2$ Hz sr}}$ & \wsvindex{iy}  & Intensity\\
   \PpathLng    & m                 &                         & Path length element\\
   \aDen{i}     & molec/m$^{-3}$          &                          & Number density of species $i$\\
-  \aAbsXsec{i} & m$^2$/molec    & \wsvindex{abs\_xsec\_per\_species}    & Absorption cross-section of\\
-&&&                                                               absorbing species $i$\\ 
   \aAbsXsec{i,j} & m$^5$/molec$^2$  & \wsvindex{abs\_cia\_data}         & Binary absorption cross-section of \\
 &&&                                                              absorbing  species pair ($i$,$j$) \\ 
   \ExtMat      & m$^{-1}$ (4$\times$4) & \wsvindex{propmat\_clearsky}    & Clear-sky propagation matrix
@@ -97,37 +97,24 @@ particles and polarization changes by electrons).
 \section{Agendas}
 \label{sec:absorption:agendas}
 
-There are two key agendas related to absorption in ARTS:
-\wsaindex{propmat\_clearsky\_agenda} and
-\wsaindex{abs\_xsec\_agenda}.  They fulfill different purposes and
-complement each other.  Agenda propmat\_clearsky\_agenda is called by
-RT methods when they need absorption (more precisely the clear-sky
-propagation matrix, as defined above). Hence, this agenda is the
-interface between the RT part and the absorption part. Is is explained
-further in the next section. 
-
-The other agenda, abs\_xsec\_agenda, is called when absorption is
-actually calculated (either inside propmat\_clearsky\_agenda, if
-absorption is handled on-the-fly, or before, when the absorption
-lookup table is generated).  This agenda is just for the scalar gas
-absorption part and describes in detail the line-by-line absorption
-calculation and various continua.  It is explained further in Section
-\ref{sec:absorption:calculating}.  You will likely need both of the
-above agendas for your ARTS RT simulation.
+There is one key agenda related to absorption in ARTS:
+\wsaindex{propmat\_clearsky\_agenda} is called by RT methods when they
+need absorption (more precisely the clear-sky propagation matrix, as
+defined above).
 
 
 \section{Gas absorption in radiative transfer simulations}
 \label{sec:absorption:abs-rt}
 
-The interface between the RT part of ARTS and the
-absorption part of ARTS is the agenda
-\wsaindex{propmat\_clearsky\_agenda} (see Figure \ref{fig:absorption:pmat_outside}).  RT functions execute this
-agenda whenever they need local absorption matrices.  In a typical
-ARTS run, the agenda will be executed many times over, for different
-points in the atmosphere.  See the built-in documentation for the
-exact input and output arguments of the agenda.  The idea is that
-input arguments are the local atmospheric conditions (temperature,
-pressure, trace gas volume mixing ratios, magnetic field, etc.).
+The interface between the RT part of ARTS and the absorption part of
+ARTS is the agenda \wsaindex{propmat\_clearsky\_agenda} (see Figure
+\ref{fig:absorption:pmat_outside}). RT functions execute this agenda
+whenever they need local absorption matrices. In a typical ARTS run,
+the agenda will be executed many times over, for different points in
+the atmosphere. See the built-in documentation for the exact input and
+output arguments of the agenda. The idea is that input arguments are
+the local atmospheric conditions (temperature, pressure, trace gas
+volume mixing ratios, magnetic field, etc.).
 
 \begin{figure}
  \begin{center}
@@ -146,77 +133,37 @@ matrix \aAbsMat{a}\, as defined in Equation
 \ref{eq:propmattotal}. It describes all non-scattering extinction
 effects, that is, absorption and related polarization effects.
 
-An inside view of propmat\_clearsky\_agenda is given in Figure
-\ref{fig:absorption:pmat_inside}.  The agenda can contain a number of
-different workspace methods that in some way or other compute
-propmat\_clearsky. See the built-in documentation of the individual
-methods to learn more. File \fileindex{agendas.arts}, one of the
-standard include-controlfiles, predefines some typical alternatives
-how propmat\_clearsky\_agenda can be set for different purposes.
+The agenda can contain a number of different workspace methods that in
+some way or another compute \wsvindex{propmat\_clearsky}. See the
+built-in documentation of the individual methods to learn more. File
+\fileindex{agendas.arts}, one of the standard include-controlfiles,
+predefines some typical alternatives how
+\wsvindex{propmat\_clearsky\_agenda} can be set for different
+purposes.
 
-\begin{figure}
- \begin{center}
-  \includegraphics[scale=0.7]{propmat_clearsky_agenda_detail}
-  \caption{An inside view of propmat\_clearsky\_agenda. At the same
-    time, this gives an outside view of abs\_xsec\_agenda, as input to
-    \wsmindex{propmat\_clearskyAddXsecAgenda} in the context of
-    on-the-fly absorption generation.
-    %FIXME:  propmat_clearskyAddZeeman does not use
-    % abs_lineshape line_mixing_data line_mixing_data_lut
-    % these 3 are in the figure due to legacy
-    }
-  \label{fig:absorption:pmat_inside}
- \end{center}
-\end{figure}
-
-
+The method \wsmindex{propmat\_clearsky\_agendaAuto} constructs
+a \wsvindex{propmat\_clearsky\_agenda} that contains all required
+absorption methods. The list of methods is determined automatically
+from the species present in \wsvindex{abs\_species}. This agenda can
+then be used for RT calculation with one-the-fly absorption or the
+preparation of an absorption lookup table. The method
+\wsmindex{propmat\_clearsky\_agendaAuto} can also constructs a
+\wsvindex{propmat\_clearsky\_agenda} that uses a lookup table in RT
+calculations if given the correct flag (see method description).
 
 \section{Calculating gas absorption}
 \label{sec:absorption:calculating}
 
-This section deals with calculating gas absorption matrices in
-ARTS.  This can typically occur in three different contexts:
-as on-the-fly absorption matrix calculation within the radiative transfer
-calculation,
-% (see Section \ref{sec:absorption:abs-rt}), %this reference is more confusing than helping
-when preparing
-a gas absorption lookup table (see Section \ref{sec:absorption:lookup}),
-or when the user is only interested in the absorption itself (see Section
+This section deals with calculating gas absorption matrices in ARTS.
+This can typically occur in three different contexts: as on-the-fly
+absorption matrix calculation within the radiative transfer
+calculation (see above), when preparing a gas absorption lookup table
+(see Section \ref{sec:absorption:lookup}), or when the user is only
+interested in the absorption itself (see Section
 \ref{sec:absorption:abs-only}).
 
 In all these cases, the same agenda is used to actually calculate
-absorption: abs\_xsec\_agenda. Outside views of this agenda are shown
-in Figure \ref{fig:absorption:pmat_inside} (as input to
-\wsmindex{propmat\_clearskyAddXsecAgenda} in the context of on-the-fly
-absorption generation) and Figure \ref{fig:absorption:xsec_in_lookup}
-(as input to \wsmindex{abs\_lookupCalc} in the context of absorption
-lookup table generation).
-
-\begin{figure}
- \begin{center}
-  \includegraphics[scale=0.7]{abs_lookupCalc}
-  \caption{An outside view of abs\_xsec\_agenda, in the context of
-    absorption lookup table generation.}
-  \label{fig:absorption:xsec_in_lookup}
- \end{center}
-\end{figure}
-
-An inside view of abs\_xsec\_agenda is given in Figure
-\ref{fig:absorption:xsec_inside}.  The agenda can contain a number of
-different workspace methods that in some way or other compute
-abs\_xsec. See the built-in documentation of the individual methods to
-learn more. As for propmat\_clearsky\_agenda, file
-\fileindex{agendas.arts} predefines some typical alternatives also for
-abs\_xsec\_agenda.
-
-\begin{figure}
- \begin{center}
-  \includegraphics[scale=0.7]{abs_xsec_agenda}
-  \caption{An inside view of abs\_xsec\_agenda.
-  }
-  \label{fig:absorption:xsec_inside}
- \end{center}
-\end{figure}
+absorption: \wsvindex{propmat\_clearsky\_agenda}.
 
 
 \subsection{Absorption species}
@@ -245,7 +192,7 @@ those for empirical cross section model, and a special Zeeman effect tag.
 An example of the first kind is \verb|"H2O-18"|, which identifies a
 particular isotopologue of water vapor. An example of the second kind is
 \verb|"H2O-ForeignContCKDMT100"|, which identifies a particular continuum
-model. An example of the third is \verb|"CFC11-HXSEC"|, which identifies the
+model. An example of the third is \verb|"CFC11-XFIT"|, which identifies the
 empirical absorption cross section model of CFC11.
 An example of the fourth is \verb|"O2-Z"|, which identifies that special Zeeman
 routines should be used.
@@ -341,7 +288,7 @@ Methods:
 Optimize line data. (optional)&
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods: Add mirror lines for VVW line shape with
-\wsmindex{abs\_linesSetMirroring} (see \theory,
+\wsmindex{abs\_linesMirroring} (see \theory,
 Chapter \ref{T-sec:abs_theory}). \\
 %---------------------------------------------------------------------
 \multicolumn{3}{>{\raggedright\arraybackslash\hsize=2\hsize}X}{The
@@ -353,18 +300,22 @@ Chapter \ref{T-sec:abs_theory}). \\
 \arabic{rownum}a &
 Calculate absorption on-the-fly. &
 Agenda: \wsaindex{propmat\_clearsky\_agenda}. \newline
-Variable: \wsvindex{propmat\_clearsky}, which is nitialized in \wsmindex{propmat\_clearskyInit}.\newline
-Methods: \wsmindex{propmat\_clearskyAddXsecAgenda} (the core method for on-the-fly
-absoprtion calculation inlcuding line-by-line and continuum absorption), \newline
+Variable: \wsvindex{propmat\_clearsky}, which is initialized in \wsmindex{propmat\_clearskyInit}.\newline
+Methods: 
+\wsmindex{propmat\_clearskyAddCIA} computes collision-induced absorption,\newline
+\wsmindex{propmat\_clearskyAddLines} compute line-by-line absorption,\newline 
 \wsmindex{propmat\_clearskyAddZeeman} (see Sec.~\ref{sec:absorption:zeeman}), \newline
 \wsmindex{propmat\_clearskyAddFaraday} (see Sec.~\ref{sec:absorption:faraday}), \newline
 \wsmindex{propmat\_clearskyAddParticles} (see Sec.~\ref{sec:absorption:particles}). \newline
+\wsmindex{propmat\_clearskyAddPredefined} computes legacy continua or full absorption models,\newline
 Alternative:
-\wsmindex{propmat\_clearskyAddFromLookup} instead of \wsmindex{propmat\_clearskyAddXsecAgenda}
+\wsmindex{propmat\_clearskyAddFromLookup}
 (extract absorption from pre-calculated lookup table, see
 Sec.~\ref{sec:absorption:lookup}). Note that the lookup
 table cannot contain absorption for Zeeman tagged species, Faraday rotation, and
-particles due to their directional dependencies.\\
+particles due to their directional dependencies.\newline
+Recommendation:
+\wsmindex{propmat\_clearsky\_agendaAuto} can be used to setup all \wsaindex{propmat\_clearsky\_agenda} calculations\\
 %---------------------------------------------------------------------
 \arabic{rownum}b &
 Calculate absorption lookup table. &
@@ -506,33 +457,12 @@ extra explanation. They are absorption parameterizations by Liebe, and
 allow the inclusion of condensate in the (rare) cases where scattering
 is not important. Their general applicability is therefore fairly limited.
 
-The behavior of the continua and complete absorption models can be
-modified by passing them some additional parameters, stored in the
-variables \wsvindex{abs\_cont\_names}, \wsvindex{abs\_cont\_models},
-and \wsvindex{abs\_cont\_parameters}. Basically,
-\builtindoc{abs\_cont\_names} identifies the model,
-\builtindoc{abs\_cont\_models} contains switches that select different
-behavior (for example taking only the lines, or only the continuum
-part of a complete model), and \builtindoc{abs\_cont\_parameters} can
-contain numerical parameters. 
-
-Yes, the nomenclature for these additional continuum parameters,
-particularly \builtindoc{abs\_cont\_models}, is confusing. However,
-most users will never have to deal with these variables
-explicitly. They are set to default values in the include file
-\fileindex{continua.arts}. Users should therefore always include this file  at
-the start of their controlfiles with
-\begin{code}
-  INCLUDE "continua.arts"
-\end{code}
-Unless you work on continuum model development or verification, you
-should never have to modify these default settings.
-
 The core method to calculate continua and complete absorption models
-is \wsmindex{abs\_xsec\_per\_speciesAddConts}.  Users normally do not
-have to call this method explicitly, since it is used implicitly by
-higher level methods, such as \wsmindex{propmat\_clearskyAddXsecAgenda} and
-\wsmindex{propmat\_clearsky\_fieldCalc}.
+is \wsmindex{propmat\_clearskyAddPredefined}. Users normally do not have to
+call this method explicitly, since it is used implicitly by higher
+level methods, such as \wsmindex{propmat\_clearsky\_fieldCalc} or the
+RT methods via \wsvindex{propmat\_clearsky\_agenda}, which is easiest
+set using \wsmindex{propmat\_clearsky\_agendaAuto}.
 
 \subsection{Collision-induced absorption}
 \label{sec:absorption:cia}
@@ -565,8 +495,8 @@ read in WSV \wsvindex{abs\_cia\_data}, which contains the tabulated
 binary absorption cross-sections, from a file. This will usually be the
 file \fileindex{hitran\_cia2012\_adapted.xml.gz}, which is included in the
 \shortcode{arts-xml-data}, but the original HITRAN data files can also be
-read. Finally, use WSM \wsmindex{abs\_xsec\_per\_speciesAddCIA} in
-abs\_xsec\_agenda to add the CIA absorption. For usage examples, look
+read. Finally, use WSM \wsmindex{propmat\_clearskyAddCIA} in
+propmat\_clearsky\_agenda to add the CIA absorption. For usage examples, look
 in directory \fileindex{controlfiles/artscomponents/cia} that is part
 of the ARTS distribution.
 
@@ -652,9 +582,9 @@ specifically:
 
 \subsection{Absorption cross section model}
 
-The empirical absorption cross sections are calculated in the method \wsmindex{propmat\_clearskyAddHitranXsec}.
+The empirical absorption cross sections are calculated in the method \wsmindex{propmat\_clearskyAddXsecFit}.
 If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
-tag "\verb|-HXSEC|" will be calculated as empirical cross section model species. 
+tag "\verb|-XFIT|" will be calculated as empirical cross section model species. 
 The absorption cross section model is based on HITRAN cross-section data, which are described in detail in 
 \cite{gordon17:_hitran2016_jqsrt}. For the details on the empirical cross section model, see \theory, 
 Section \ref{T-sec:abs_theory:Absorption_cross_section_model}. 
@@ -697,7 +627,7 @@ Line mixing is provided together with the line-by-line data and is then computed
 calculations.  If no such data is provided, line mixing is not computed.
 
 You can deactivate line mixing calculations manually using one of the methods that sets the line mixing limit.
-As an example, \wsmindex{abs\_linesSetLinemixingLimit} sets the line mixing limit for all lines in \wsvindex{abs\_lines}.
+As an example, \wsmindex{abs\_linesLinemixingLimit} sets the line mixing limit for all lines in \wsvindex{abs\_lines}.
 Only at pressures higher than this line mixing limit will the line mixing calculations be available, so setting this
 much higher than the pressure will ensure that no line mixing is computed.
 
@@ -990,7 +920,7 @@ lookup table.  In particular, higher order interpolation gives
 considerably better accuracy for the same table grid spacing.  The
 interpolation orders in the ARTS implementation of the lookup table
 can be chosen by the user.  The settings that are recommended, and set
-as defaults in file \fileindex{general.arts}, are quite high
+as defaults are quite high
 interpolation orders of 5, 7, and 5 for pressure, temperature, and
 water vapor, respectively.  Such high orders are only appropriate
 because the function to be interpolated (the \aAbsXsec{i}) is very smooth.

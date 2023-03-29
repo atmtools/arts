@@ -30,8 +30,10 @@
 #include <algorithm>
 #include <map>
 #include "arts.h"
+#include "groups.h"
 #include "methods.h"
 #include "workspace_ng.h"
+#include "workspace_global_data.h"
 #include "wsv_aux.h"
 
 namespace global_data {
@@ -48,7 +50,7 @@ map<String, Index> MdRawMap;
 Array<MdRecord> md_data;
 
 extern const Array<MdRecord> md_data_raw;
-extern const ArrayOfString wsv_group_names;
+extern const ArrayOfGroupRecord wsv_groups;
 }  // namespace global_data
 
 void limit_line_length(ostream& os,
@@ -64,8 +66,8 @@ void limit_line_length(ostream& os,
   inferred from the presence of Any_ in the generic input or output
   list. 
 */
-MdRecord::MdRecord(const char name[],
-                   const char description[],
+MdRecord::MdRecord(const char* name,
+                   const char* description,
                    const ArrayOfString& authors,
                    const ArrayOfString& output,
                    const ArrayOfString& gout,
@@ -160,7 +162,7 @@ MdRecord::MdRecord(const char name[],
   // Map the WSV names to indexes
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
-    moutput[j] = get_wsv_id(output[j]);
+    moutput[j] = global_data::WsvMap.at(output[j]);
     if (moutput[j] == -1) {
       ostringstream os;
       os << "Unknown WSV " << output[j] << " for output (parameter #" << j
@@ -172,7 +174,7 @@ MdRecord::MdRecord(const char name[],
 
   minput.resize(input.nelem());
   for (Index j = 0; j < input.nelem(); ++j) {
-    minput[j] = get_wsv_id(input[j]);
+    minput[j] = global_data::WsvMap.at(input[j]);
     if (minput[j] == -1) {
       ostringstream os;
       os << "Unknown WSV " << input[j] << " for input (parameter #" << j << ") "
@@ -321,16 +323,16 @@ MdRecord::MdRecord(const char name[],
 void MdRecord::subst_any_with_group(Index g) {
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
   // The group names, we need them for the expansion:
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Make sure they are initialized:
-  ARTS_ASSERT(0 != wsv_group_names.nelem());
+  ARTS_ASSERT(0 != wsv_groups.nelem());
 
   // Make sure that g is in the allowed range, which means
-  // 0<=g<wsv_group_names.nelem() and g != Any_
+  // 0<=g<wsv_groups.nelem() and g != Any_
   ARTS_ASSERT(0 <= g);
   ARTS_ASSERT(wsv_group_id_Any != g);
-  ARTS_ASSERT(g < wsv_group_names.nelem());
+  ARTS_ASSERT(g < wsv_groups.nelem());
 
   // Make sure that this really is a supergeneric method:
   ARTS_ASSERT(Supergeneric());
@@ -338,7 +340,7 @@ void MdRecord::subst_any_with_group(Index g) {
   // Modify the name:
   //   {
   //     ostringstream os;
-  //     os << mname << "_sg_" << wsv_group_names[g];
+  //     os << mname << "_sg_" << wsv_groups[g];
   //     mname = os.str();
   //   }
 
@@ -348,7 +350,7 @@ void MdRecord::subst_any_with_group(Index g) {
     if (wsv_group_id_Any == mgintype[j]) mgintype[j] = g;
 
   // Set the field for the actual group:
-  mactual_groups = wsv_group_names[g];
+  mactual_groups = wsv_groups[g].name;
 }
 
 //! Expand supergeneric record for given Index in GOutSpecType and GInSpecType.
@@ -363,12 +365,12 @@ void MdRecord::subst_any_with_group(Index g) {
 */
 void MdRecord::subst_any_with_specific_group(Index g) {
   // The group names, we need them for the expansion:
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
 
   // Make sure that g is in the allowed range, which means
-  // 0<=g<wsv_group_names.nelem() and g != Any_
+  // 0<=g<wsv_groups.nelem() and g != Any_
   ARTS_ASSERT(0 <= g);
 
   // Make sure that this really is a supergeneric method:
@@ -377,7 +379,7 @@ void MdRecord::subst_any_with_specific_group(Index g) {
   // Modify the name:
   //   {
   //     ostringstream os;
-  //     os << mname << "_sg_" << wsv_group_names[g];
+  //     os << mname << "_sg_" << wsv_groups[g];
   //     mname = os.str();
   //   }
 
@@ -386,14 +388,14 @@ void MdRecord::subst_any_with_specific_group(Index g) {
     if (wsv_group_id_Any == mgouttype[j]) {
       mgouttype[j] = mgoutspectype[j][g];
       // Set the field for the actual group:
-      mactual_groups += wsv_group_names[mgoutspectype[j][g]];
+      mactual_groups += wsv_groups[mgoutspectype[j][g]].name;
     }
 
   for (Index j = 0; j < mgintype.nelem(); ++j)
     if (wsv_group_id_Any == mgintype[j]) {
       mgintype[j] = mginspectype[j][g];
       // Set the field for the actual group:
-      mactual_groups += wsv_group_names[mginspectype[j][g]];
+      mactual_groups += wsv_groups[mginspectype[j][g]].name;
     }
 }
 
@@ -412,12 +414,12 @@ void expand_md_data_raw_to_md_data() {
   using global_data::md_data_raw;
 
   // The group names, we need them for the expansion:
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
 
   // Make sure that they have been initialized:
-  ARTS_ASSERT(0 != wsv_group_names.nelem());
+  ARTS_ASSERT(0 != wsv_groups.nelem());
 
   // Reset md_data, just in case:
   md_data.resize(0);
@@ -448,7 +450,7 @@ void expand_md_data_raw_to_md_data() {
           md_data.push_back(mdlocal);
         }
       } else {
-        for (Index j = 0; j < wsv_group_names.nelem(); ++j) {
+        for (Index j = 0; j < wsv_groups.nelem(); ++j) {
           // Any_ itself is also a group, but we don't want to
           // create a record for Any_!
           if (wsv_group_id_Any != j) {
@@ -474,11 +476,11 @@ void define_md_map() {
   // md_data is constant here and should never be changed
   using global_data::md_data;
   using global_data::MdMap;
-  DEBUG_ONLY(using global_data::wsv_group_names;)
+  DEBUG_ONLY(using global_data::wsv_groups;)
 
-  // Check that md_data and wsv_group_names have already be defined:
+  // Check that md_data and wsv_groups have already be defined:
   ARTS_ASSERT(0 != md_data.nelem());
-  ARTS_ASSERT(0 != wsv_group_names.nelem());
+  ARTS_ASSERT(0 != wsv_groups.nelem());
 
   for (Index i = 0; i < md_data.nelem(); ++i) {
     const MdRecord& mdd = md_data[i];
@@ -565,12 +567,12 @@ void get_short_wsv_description(String& s, const String& desc) {
 
   // Replace any newlines inside the description with spaces
   while ((pos = s.find("\n")) != String::npos) {
-    s.replace(pos, 1, " ");
+    s[pos] = ' ';
   }
 }
 
 ostream& MdRecord::PrintTemplate(ostream& os, bool show_description) const {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   if (show_description) {
     // FIXME: Print description String!
@@ -591,7 +593,7 @@ ostream& MdRecord::PrintTemplate(ostream& os, bool show_description) const {
       else
         os << ",\n";
 
-      os << wsv_group_names[GOutType()[i]];
+      os << wsv_groups[GOutType()[i]];
     }
 
     for (Index i = 0; i < GInType().nelem(); ++i) {
@@ -600,7 +602,7 @@ ostream& MdRecord::PrintTemplate(ostream& os, bool show_description) const {
       else
         os << ",\n";
 
-      os << wsv_group_names[GInType()[i]];
+      os << wsv_groups[GInType()[i]];
     }
 
     os << ')';
@@ -646,7 +648,7 @@ void limit_line_length(ostream& os,
 
 //! Output operator for MdRecord.
 ostream& operator<<(ostream& os, const MdRecord& mdr) {
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
   bool first;
   ostringstream buf;
   ostringstream param;
@@ -676,7 +678,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
       first = false;
     else
       buf << ", ";
-    param << Workspace::wsv_data[mdr.Out()[i]].Name();
+    param << global_data::wsv_data[mdr.Out()[i]].Name();
 
     limit_line_length(os, buf, param, indent, linelen);
   }
@@ -700,7 +702,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
       first = false;
     else
       buf << ", ";
-    param << Workspace::wsv_data[inonly[i]].Name();
+    param << global_data::wsv_data[inonly[i]].Name();
 
     limit_line_length(os, buf, param, indent, linelen);
   }
@@ -748,13 +750,13 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
     buf.str("");
     buf << "OUT   ";
 
-    buf << Workspace::wsv_data[mdr.Out()[i]].Name();
+    buf << global_data::wsv_data[mdr.Out()[i]].Name();
     buf << " (";
-    buf << wsv_group_names[Workspace::wsv_data[mdr.Out()[i]].Group()];
+    buf << wsv_groups[global_data::wsv_data[mdr.Out()[i]].Group()];
     buf << "): ";
 
     get_short_wsv_description(desc,
-                              Workspace::wsv_data[mdr.Out()[i]].Description());
+                              global_data::wsv_data[mdr.Out()[i]].Description());
 
     if (buf.str().length() + desc.length() > linelen) {
       format_paragraph(desc, indent, linelen);
@@ -777,10 +779,10 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
           buf << ", ";
         else
           firstarg = false;
-        buf << wsv_group_names[mdr.GOutSpecType()[i][j]];
+        buf << wsv_groups[mdr.GOutSpecType()[i][j]];
       }
     } else {
-      buf << wsv_group_names[mdr.GOutType()[i]];
+      buf << wsv_groups[mdr.GOutType()[i]];
     }
 
     buf << "): ";
@@ -808,13 +810,13 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
     buf.str("");
     buf << "IN    ";
 
-    buf << Workspace::wsv_data[mdr.In()[i]].Name();
+    buf << global_data::wsv_data[mdr.In()[i]].Name();
     buf << " (";
-    buf << wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()];
+    buf << wsv_groups[global_data::wsv_data[mdr.In()[i]].Group()];
     buf << "): ";
 
     get_short_wsv_description(desc,
-                              Workspace::wsv_data[mdr.In()[i]].Description());
+                              global_data::wsv_data[mdr.In()[i]].Description());
 
     if (buf.str().length() + desc.length() > linelen) {
       format_paragraph(desc, indent, linelen, indent.length());
@@ -837,10 +839,10 @@ ostream& operator<<(ostream& os, const MdRecord& mdr) {
           buf << ", ";
         else
           firstarg = false;
-        buf << wsv_group_names[mdr.GInSpecType()[i][j]];
+        buf << wsv_groups[mdr.GInSpecType()[i][j]];
       }
     } else {
-      buf << wsv_group_names[mdr.GInType()[i]];
+      buf << wsv_groups[mdr.GInType()[i]];
     }
 
     if (mdr.GInDefault()[i] != NODEF) {

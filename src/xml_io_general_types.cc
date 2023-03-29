@@ -120,17 +120,11 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("ncols", ncols);
   matrix.resize(nrows, ncols);
 
-  for (Index r = 0; r < nrows; r++) {
-    for (Index c = 0; c < ncols; c++) {
-      if (pbifs) {
-        *pbifs >> matrix(r, c);
-        if (pbifs->fail()) {
-          ostringstream os;
-          os << " near "
-             << "\n  Row   : " << r << "\n  Column: " << c;
-          xml_data_parse_error(tag, os.str());
-        }
-      } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(matrix.data_handle(), nrows * ncols);
+  } else {
+    for (Index r = 0; r < nrows; r++) {
+      for (Index c = 0; c < ncols; c++) {
         is_xml >> double_imanip() >> matrix(r, c);
         if (is_xml.fail()) {
           ostringstream os;
@@ -338,16 +332,10 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("SparseData");
 
-  for (Index i = 0; i < nnz; i++) {
-    if (pbifs) {
-      *pbifs >> data[i];
-      if (pbifs->fail()) {
-        ostringstream os;
-        os << " near "
-           << "\n  Data element: " << i;
-        xml_data_parse_error(tag, os.str());
-      }
-    } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(data.data_handle(), nnz);
+  } else {
+    for (Index i = 0; i < nnz; i++) {
       is_xml >> double_imanip() >> data[i];
       if (is_xml.fail()) {
         ostringstream os;
@@ -572,19 +560,12 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("ncols", ncols);
   tensor.resize(npages, nrows, ncols);
 
-  for (Index p = 0; p < npages; p++) {
-    for (Index r = 0; r < nrows; r++) {
-      for (Index c = 0; c < ncols; c++) {
-        if (pbifs) {
-          *pbifs >> tensor(p, r, c);
-          if (pbifs->fail()) {
-            ostringstream os;
-            os << " near "
-               << "\n  Page  : " << p << "\n  Row   : " << r
-               << "\n  Column: " << c;
-            xml_data_parse_error(tag, os.str());
-          }
-        } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(tensor.data_handle(), npages * nrows * ncols);
+  } else {
+    for (Index p = 0; p < npages; p++) {
+      for (Index r = 0; r < nrows; r++) {
+        for (Index c = 0; c < ncols; c++) {
           is_xml >> double_imanip() >> tensor(p, r, c);
           if (is_xml.fail()) {
             ostringstream os;
@@ -673,22 +654,16 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("npages", npages);
   tag.get_attribute_value("nrows", nrows);
   tag.get_attribute_value("ncols", ncols);
-  tensor.resize(nbooks, npages, nrows, ncols);
+  tensor = Tensor4(nbooks, npages, nrows, ncols);
 
-  for (Index b = 0; b < nbooks; b++) {
-    for (Index p = 0; p < npages; p++) {
-      for (Index r = 0; r < nrows; r++) {
-        for (Index c = 0; c < ncols; c++) {
-          if (pbifs) {
-            *pbifs >> tensor(b, p, r, c);
-            if (pbifs->fail()) {
-              ostringstream os;
-              os << " near "
-                 << "\n  Book  : " << b << "\n  Page  : " << p
-                 << "\n  Row   : " << r << "\n  Column: " << c;
-              xml_data_parse_error(tag, os.str());
-            }
-          } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(tensor.data_handle(),
+                           nbooks * npages * nrows * ncols);
+  } else {
+    for (Index b = 0; b < nbooks; b++) {
+      for (Index p = 0; p < npages; p++) {
+        for (Index r = 0; r < nrows; r++) {
+          for (Index c = 0; c < ncols; c++) {
             is_xml >> double_imanip() >> tensor(b, p, r, c);
             if (is_xml.fail()) {
               ostringstream os;
@@ -784,22 +759,15 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("ncols", ncols);
   tensor.resize(nshelves, nbooks, npages, nrows, ncols);
 
-  for (Index s = 0; s < nshelves; s++) {
-    for (Index b = 0; b < nbooks; b++) {
-      for (Index p = 0; p < npages; p++) {
-        for (Index r = 0; r < nrows; r++) {
-          for (Index c = 0; c < ncols; c++) {
-            if (pbifs) {
-              *pbifs >> tensor(s, b, p, r, c);
-              if (pbifs->fail()) {
-                ostringstream os;
-                os << " near "
-                   << "\n  Shelf : " << s << "\n  Book  : " << b
-                   << "\n  Page  : " << p << "\n  Row   : " << r
-                   << "\n  Column: " << c;
-                xml_data_parse_error(tag, os.str());
-              }
-            } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(tensor.data_handle(),
+                           nshelves * nbooks * npages * nrows * ncols);
+  } else {
+    for (Index s = 0; s < nshelves; s++) {
+      for (Index b = 0; b < nbooks; b++) {
+        for (Index p = 0; p < npages; p++) {
+          for (Index r = 0; r < nrows; r++) {
+            for (Index c = 0; c < ncols; c++) {
               is_xml >> double_imanip() >> tensor(s, b, p, r, c);
               if (is_xml.fail()) {
                 ostringstream os;
@@ -901,23 +869,17 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("ncols", ncols);
   tensor.resize(nvitrines, nshelves, nbooks, npages, nrows, ncols);
 
-  for (Index v = 0; v < nvitrines; v++) {
-    for (Index s = 0; s < nshelves; s++) {
-      for (Index b = 0; b < nbooks; b++) {
-        for (Index p = 0; p < npages; p++) {
-          for (Index r = 0; r < nrows; r++) {
-            for (Index c = 0; c < ncols; c++) {
-              if (pbifs) {
-                *pbifs >> tensor(v, s, b, p, r, c);
-                if (pbifs->fail()) {
-                  ostringstream os;
-                  os << " near "
-                     << "\n  Vitrine: " << v << "\n  Shelf  : " << s
-                     << "\n  Book   : " << b << "\n  Page   : " << p
-                     << "\n  Row    : " << r << "\n  Column : " << c;
-                  xml_data_parse_error(tag, os.str());
-                }
-              } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(
+        tensor.data_handle(),
+        nvitrines * nshelves * nbooks * npages * nrows * ncols);
+  } else {
+    for (Index v = 0; v < nvitrines; v++) {
+      for (Index s = 0; s < nshelves; s++) {
+        for (Index b = 0; b < nbooks; b++) {
+          for (Index p = 0; p < npages; p++) {
+            for (Index r = 0; r < nrows; r++) {
+              for (Index c = 0; c < ncols; c++) {
                 is_xml >> double_imanip() >> tensor(v, s, b, p, r, c);
                 if (is_xml.fail()) {
                   ostringstream os;
@@ -1024,25 +986,18 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("ncols", ncols);
   tensor.resize(nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols);
 
-  for (Index l = 0; l < nlibraries; l++) {
-    for (Index v = 0; v < nvitrines; v++) {
-      for (Index s = 0; s < nshelves; s++) {
-        for (Index b = 0; b < nbooks; b++) {
-          for (Index p = 0; p < npages; p++) {
-            for (Index r = 0; r < nrows; r++) {
-              for (Index c = 0; c < ncols; c++) {
-                if (pbifs) {
-                  *pbifs >> tensor(l, v, s, b, p, r, c);
-                  if (pbifs->fail()) {
-                    ostringstream os;
-                    os << " near "
-                       << "\n  Library: " << l << "\n  Vitrine: " << v
-                       << "\n  Shelf  : " << s << "\n  Book   : " << b
-                       << "\n  Page   : " << p << "\n  Row    : " << r
-                       << "\n  Column : " << c;
-                    xml_data_parse_error(tag, os.str());
-                  }
-                } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(
+        tensor.data_handle(),
+        nlibraries * nvitrines * nshelves * nbooks * npages * nrows * ncols);
+  } else {
+    for (Index l = 0; l < nlibraries; l++) {
+      for (Index v = 0; v < nvitrines; v++) {
+        for (Index s = 0; s < nshelves; s++) {
+          for (Index b = 0; b < nbooks; b++) {
+            for (Index p = 0; p < npages; p++) {
+              for (Index r = 0; r < nrows; r++) {
+                for (Index c = 0; c < ncols; c++) {
                   is_xml >> double_imanip() >> tensor(l, v, s, b, p, r, c);
                   if (is_xml.fail()) {
                     ostringstream os;
@@ -1146,16 +1101,10 @@ void xml_parse_from_stream(istream& is_xml,
   tag.get_attribute_value("nelem", nelem);
   vector.resize(nelem);
 
-  for (Index n = 0; n < nelem; n++) {
-    if (pbifs) {
-      *pbifs >> vector[n];
-      if (pbifs->fail()) {
-        ostringstream os;
-        os << " near "
-           << "\n  Element: " << n;
-        xml_data_parse_error(tag, os.str());
-      }
-    } else {
+  if (pbifs) {
+    pbifs->readDoubleArray(vector.data_handle(), vector.nelem());
+  } else {
+    for (Index n = 0; n < nelem; n++) {
       is_xml >> double_imanip() >> vector[n];
       if (is_xml.fail()) {
         ostringstream os;

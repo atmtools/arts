@@ -21,7 +21,7 @@
 #ifndef __WIGXJPF_C_WRAP_H__
 #define __WIGXJPF_C_WRAP_H__
 
-#include "wigxjpf_auto_config.h"
+#include "wigxjpf_config.h"
 
 #include "wigxjpf.h"
 

@@ -26,7 +26,7 @@
 
 #include <thread>
 
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "artstime.h"
 #include "messages.h"
 #include "sorting.h"
@@ -52,7 +52,7 @@ void Sleep(const Numeric& duration, const Verbosity&)
 
 void timeSleep(const Time& time, const Verbosity&)
 {
-  std::this_thread::sleep_until(time.Data());
+  std::this_thread::sleep_until(time.time);
 }
 
 

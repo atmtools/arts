@@ -34,6 +34,7 @@
 #include <random>
 #include "array.h"
 #include "lin_alg.h"
+#include "matpack_math.h"
 #include "test_utils.h"
 
 #include "minimize.h"
@@ -466,7 +467,7 @@ void test_real_diagonalize(Index ntests, Index dim) {
 
     // Use the two expm methods to test that diagonalize works
     matrix_exp(F1, A, 10);
-    matrix_exp2(F2, A);
+    matrix_exp(F2, A);
 
     Numeric err1 = 0.0, err2 = 0.0;
     err1 = get_maximum_error(F1, F2, true);
@@ -529,109 +530,12 @@ void test_complex_diagonalize(Index ntests, Index dim) {
   }
 }
 
-void test_matrix_exp_propmat(Index nruns, Index ndiffs) {
-  for (Index i = 0; i < nruns; i++) {
-    Numeric a = ((Numeric)rand() / RAND_MAX), b = ((Numeric)rand() / RAND_MAX),
-            c = ((Numeric)rand() / RAND_MAX), d = ((Numeric)rand() / RAND_MAX),
-            u = ((Numeric)rand() / RAND_MAX), v = ((Numeric)rand() / RAND_MAX),
-            w = ((Numeric)rand() / RAND_MAX);
-
-    Matrix A(4, 4), F0(4, 4), F1(4, 4), F2(4, 4);
-
-    A(0, 0) = A(1, 1) = A(2, 2) = A(3, 3) = a;
-    A(0, 1) = A(1, 0) = b;
-    A(0, 2) = A(2, 0) = c;
-    A(0, 3) = A(3, 0) = d;
-    A(1, 2) = u;
-    A(2, 1) = -A(1, 2);
-    A(1, 3) = v;
-    A(3, 1) = -A(1, 3);
-    A(2, 3) = w;
-    A(3, 2) = -A(2, 3);
-
-    A *= -1.0;
-
-    Tensor3 dF1(ndiffs, 4, 4), dF2(ndiffs, 4, 4), dF3(ndiffs, 4, 4),
-        dF4(ndiffs, 4, 4), dA1(ndiffs, 4, 4), dA2(ndiffs, 4, 4);
-
-    Numeric da1 = ((Numeric)rand() / RAND_MAX),
-            db1 = ((Numeric)rand() / RAND_MAX),
-            dc1 = ((Numeric)rand() / RAND_MAX),
-            dd1 = ((Numeric)rand() / RAND_MAX),
-            du1 = ((Numeric)rand() / RAND_MAX),
-            dv1 = ((Numeric)rand() / RAND_MAX),
-            dw1 = ((Numeric)rand() / RAND_MAX);
-
-    Numeric da2 = ((Numeric)rand() / RAND_MAX),
-            db2 = ((Numeric)rand() / RAND_MAX),
-            dc2 = ((Numeric)rand() / RAND_MAX),
-            dd2 = ((Numeric)rand() / RAND_MAX),
-            du2 = ((Numeric)rand() / RAND_MAX),
-            dv2 = ((Numeric)rand() / RAND_MAX),
-            dw2 = ((Numeric)rand() / RAND_MAX);
-
-    dA1(joker, 0, 0) = dA1(joker, 1, 1) = dA1(joker, 2, 2) = dA1(joker, 3, 3) =
-        da1;
-    dA1(joker, 0, 1) = dA1(joker, 1, 0) = db1;
-    dA1(joker, 0, 2) = dA1(joker, 2, 0) = dc1;
-    dA1(joker, 0, 3) = dA1(joker, 3, 0) = dd1;
-    dA1(joker, 1, 2) = du1;
-    dA1(joker, 2, 1) = -du1;
-    dA1(joker, 1, 3) = dv1;
-    dA1(joker, 3, 1) = -dv1;
-    dA1(joker, 2, 3) = dw1;
-    dA1(joker, 3, 2) = -dw1;
-
-    dA1 *= -1.0;
-
-    dA2(joker, 0, 0) = dA2(joker, 1, 1) = dA2(joker, 2, 2) = dA2(joker, 3, 3) =
-        da2;
-    dA2(joker, 0, 1) = dA2(joker, 1, 0) = db2;
-    dA2(joker, 0, 2) = dA2(joker, 2, 0) = dc2;
-    dA2(joker, 0, 3) = dA2(joker, 3, 0) = dd2;
-    dA2(joker, 1, 2) = du2;
-    dA2(joker, 2, 1) = -du2;
-    dA2(joker, 1, 3) = dv2;
-    dA2(joker, 3, 1) = -dv2;
-    dA2(joker, 2, 3) = dw2;
-    dA2(joker, 3, 2) = -dw2;
-
-    dA2 *= -1.0;
-
-    special_matrix_exp_and_dmatrix_exp_dx_for_rt(F1, dF1, dF2, A, dA1, dA2, 10);
-
-    cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(
-        F1, dF1, dF2, A, dA1, dA2);
-    cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
-        F2, dF3, dF4, A, dA1, dA2);
-
-    matrix_exp(F0, A);
-    cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(F1, A);
-    cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(F2, A);
-
-    std::cout << MapToEigen(F1) << "\n\n";
-    std::cout << MapToEigen(F2) << "\n\n";
-    std::cout << MapToEigen(F1) - MapToEigen(F2) << "\n\n";
-    std::cout << MapToEigen(dF1(0, joker, joker)) << "\n\n";
-    std::cout << MapToEigen(dF3(0, joker, joker)) << "\n\n";
-    std::cout << MapToEigen(dF3(0, joker, joker)) -
-                     MapToEigen(dF1(0, joker, joker))
-              << "\n\n";
-    std::cout << MapToEigen(dF2(0, joker, joker)) << "\n\n";
-    std::cout << MapToEigen(dF4(0, joker, joker)) << "\n\n";
-    std::cout << MapToEigen(dF4(0, joker, joker)) -
-                     MapToEigen(dF2(0, joker, joker))
-              << "\n\n";
-  }
-}
-
-int main(void) {
+int main() {
   // test_lusolve4D();
   // test_inv( 20, 1000 );
   // test_solve_linear_system( 20, 1000, false );
   // test_matrix_exp1D();
   //  test_real_diagonalize(20,100);
-  //  test_complex_diagonalize(20,100);
-  test_matrix_exp_propmat(100000, 10);
+  test_complex_diagonalize(20,100);
   return (0);
 }

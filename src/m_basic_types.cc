@@ -46,6 +46,7 @@
 #include <string_view>
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "artstime.h"
 #include "energylevelmap.h"
 #include "exceptions.h"
@@ -53,29 +54,21 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
-#include "matpackII.h"
-#include "matpackIII.h"
-#include "matpackIV.h"
-#include "matpackV.h"
-#include "matpackVI.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
+#include "matpack_arrays.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "mystring.h"
 #include "optproperties.h"
 #include "quantum_numbers.h"
 #include "sorting.h"
 
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfIndexSet(ArrayOfIndex& aoi,
-                     const ArrayOfIndex& values,
-                     const Verbosity&) {
-  aoi = values;
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfIndexSetConstant(ArrayOfIndex& aoi,
@@ -113,14 +106,6 @@ void ArrayOfIndexLinSpace(ArrayOfIndex& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfStringSet(ArrayOfString& sa,
-                      const ArrayOfString& sa2,
-                      const Verbosity&) {
-  sa.resize(sa2.nelem());
-  sa = sa2;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void FlagOff(Index& x, const Verbosity&) { x = 0; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -149,9 +134,6 @@ void IndexMultiply(Index& out,
                    const Verbosity&) {
   out = in * value;
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void IndexSet(Index& x, const Index& value, const Verbosity&) { x = value; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void IndexStepDown(Index& xout, const Index& xin, const Verbosity&) {
@@ -204,6 +186,46 @@ void MatrixDivide(Matrix& out,
     out.resize(in.nrows(), in.ncols());
     out = in;
     out /= value;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixGaussian(
+    Matrix& Y,
+    const Vector& x_row,
+    const Numeric& x0_row,
+    const Numeric& si_row,
+    const Numeric& fwhm_row,
+    const Vector& x_col,
+    const Numeric& x0_col,
+    const Numeric& si_col,
+    const Numeric& fwhm_col,
+    const Verbosity&)
+{
+  ARTS_USER_ERROR_IF ((si_row<=0 && fwhm_row<=0) ||
+                      (si_row>0 && fwhm_row>0),
+     "One of the GINs *si_row* and *fwhm_row* shall be >0, but just one.");
+  ARTS_USER_ERROR_IF ((si_col<=0 && fwhm_col<=0) ||
+                      (si_col>0 && fwhm_col>0),
+     "One of the GINs *si_col* and *fwhm_col* shall be >0, but just one.");
+
+  const Index nrow = x_row.nelem();
+  const Index ncol = x_col.nelem();
+  Y.resize(nrow, ncol);
+
+  const Numeric si4row = si_row > 0 ? si_row : fwhm_row / (2 * sqrt(2 * NAT_LOG_2));
+  const Numeric si4col = si_col > 0 ? si_col : fwhm_col / (2 * sqrt(2 * NAT_LOG_2));
+  Vector row_term(nrow);
+  for (Index r=0; r<nrow; ++r)
+    row_term[r] = pow((x_row[r] - x0_row) / si4row, 2.0);
+  Vector col_term(ncol);
+  for (Index c=0; c<ncol; ++c)
+    col_term[c] = pow((x_col[c] - x0_col) / si4col, 2.0);
+  const Numeric fac = 1 / (2 * PI * si4row * si4col);
+  for (Index r=0; r<nrow; ++r) {
+     for (Index c=0; c<ncol; ++c) {
+       Y(r,c) = fac * exp(-0.5 * (row_term[r] + col_term[c]));
+    }
   }
 }
 
@@ -438,9 +460,24 @@ void MatrixIdentity(Matrix& out,
   }
 }
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixSet(Matrix& x, const Matrix& values, const Verbosity&) {
-  x = values;
+void MatrixReshapeTensor3(Matrix& m,
+                          const Tensor3& t,
+                          const Verbosity&)
+{
+  const Index npages = t.npages();
+  const Index nrows = t.nrows();
+  const Index ncols = t.ncols();
+
+  m.resize(npages * nrows, ncols);
+
+  Index i = 0;
+  for (Index p=0; p<npages; ++p) { 
+    for (Index r=0; r<nrows; ++r) {
+        m(i++, joker) = t(p, r, joker);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -515,32 +552,11 @@ void NumericMultiply(Numeric& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericSet(Numeric& x, const Numeric& value, const Verbosity&) {
-  x = value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSubtract(Numeric& out,
                      const Numeric& in,
                      const Numeric& value,
                      const Verbosity&) {
   out = in - value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void QuantumIdentifierSet(QuantumIdentifier& x,
-                          const String& value,
-                          const Verbosity&) {
-  x = QuantumIdentifier(value);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfQuantumIdentifierSet(ArrayOfQuantumIdentifier& x,
-                                 const ArrayOfString& values,
-                                 const Verbosity& verbosity) {
-  x.resize(values.nelem());
-  for (Index i = 0; i < x.nelem(); i++)
-    QuantumIdentifierSet(x[i], values[i], verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -565,14 +581,6 @@ void RationalMultiply(Rational& out,
                       const Rational& value,
                       const Verbosity&) {
   out = in * value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void RationalSet(Rational& x,
-                 const Index& numerator,
-                 const Index& denominator,
-                 const Verbosity&) {
-  x = Rational(numerator, denominator);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -644,9 +652,6 @@ void DiagonalMatrix(Sparse& X, const Vector& diag, const Verbosity& /*v*/) {
 
   X.insert_elements(n, indices, indices, diag);
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void StringSet(String& s, const String& s2, const Verbosity&) { s = s2; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Add(Tensor3& out,
@@ -1314,6 +1319,32 @@ void VectorFlip(Vector& out, const Vector& in, const Verbosity&) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorGaussian(
+    Vector& y,
+    const Vector& x,
+    const Numeric& x0,
+    const Numeric& si,
+    const Numeric& fwhm,
+    const Verbosity&)
+{
+  ARTS_USER_ERROR_IF ((si<=0 && fwhm<=0) || (si>0 && fwhm>0),
+     "One of the GINs *si* and *fwhm* shall be >0, but just one.");
+
+  const Index n = x.nelem();
+
+  // Note that y and x can be the same vector
+  if (&y != &x) {
+    y.resize(n);
+  }
+
+  const Numeric si2use = si > 0 ? si : fwhm / (2 * sqrt(2 * NAT_LOG_2));
+  const Numeric fac = 1 / (sqrt(2 * PI) * si2use);
+  for (Index i=0; i<n; ++i) {
+    y[i] = fac * exp(-0.5 * pow((x[i] - x0) / si2use, 2.0));
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorInsertGridPoints(  // WS Generic Output:
     Vector& og,               // Output grid
     // WS Generic Input:
@@ -1341,7 +1372,7 @@ void VectorInsertGridPoints(  // WS Generic Output:
     // Turn grid round.
 
     // Copy ig to dummy vector in reverse order:
-    const Vector dummy = ig[Range(ig.nelem() - 1, ig.nelem(), -1)];
+    const Vector dummy = reverse(ig);
 
     // Copy dummy back to ig vector:
     ig = dummy;
@@ -1535,6 +1566,14 @@ void VectorNLinSpace(Vector& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void VectorNLinSpaceVector(Vector& x,
+                     const Index& n,
+                     const Vector& y,
+                     const Verbosity& verbosity) {
+  VectorNLinSpace(x, n, y[0], last(y), verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfTimeNLinSpace(ArrayOfTime& x,
                           const Index& n,
                           const String& start,
@@ -1653,11 +1692,6 @@ void ArrayOfTimeSetConstant(ArrayOfTime& x,
   out2 << "  Creating a constant vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSet(Vector& x, const Vector& values, const Verbosity&) {
-  x = values;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3240,8 +3274,8 @@ void CompareRelative(const EnergyLevelMap& var1,
                      const String&,
                      const String&,
                      const Verbosity& verbosity) {
-  _cr_internal_(var1.Data(),
-                var2.Data(),
+  _cr_internal_(var1.value,
+                var2.value,
                 maxabsreldiff,
                 error_message,
                 var1name,
@@ -3249,8 +3283,8 @@ void CompareRelative(const EnergyLevelMap& var1,
                 "",
                 "",
                 verbosity);
-  _cr_internal_(var1.Energies(),
-                var2.Energies(),
+  _cr_internal_(var1.vib_energy,
+                var2.vib_energy,
                 maxabsreldiff,
                 error_message,
                 var1name,
@@ -3262,39 +3296,19 @@ void CompareRelative(const EnergyLevelMap& var1,
 
 void PrintPhysicalConstants(const Verbosity& verbosity) {
   CREATE_OUT0;
-
-  extern const Numeric AVOGADROS_NUMB;
-  extern const Numeric BOHR_MAGNETON;
-  extern const Numeric BOLTZMAN_CONST;
-  extern const Numeric ELECTRON_CHARGE;
-  extern const Numeric ELECTRON_MASS;
-  extern const Numeric GAS_CONSTANT;
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric SPEED_OF_LIGHT;
-  extern const Numeric VACUUM_PERMITTIVITY;
-  extern const Numeric DOPPLER_CONST;
-
+  
   out0 << std::setprecision(15) << std::scientific;
   out0 << "---------------------------------------------------------\n"
        << "Numerical const in ARTS \tValue\n"
-       << "Avogadro's constant:    \t " << AVOGADROS_NUMB << '\n'
-       << "Bohr's magneton:        \t " << BOHR_MAGNETON << '\n'
-       << "Boltzmann's constant:   \t " << BOLTZMAN_CONST << '\n'
-       << "Electron charge:        \t" << ELECTRON_CHARGE << '\n'
-       << "Electron mass:          \t " << ELECTRON_MASS << '\n'
-       << "Ideal gas constant:     \t " << GAS_CONSTANT << '\n'
-       << "Planck's constant:      \t " << PLANCK_CONST << '\n'
-       << "Speed of light:         \t " << SPEED_OF_LIGHT << '\n'
-       << "Vacuum permittivity:    \t " << VACUUM_PERMITTIVITY << '\n'
-       << "Doppler constant:       \t " << DOPPLER_CONST << '\n'
+       << "Avogadro's constant:    \t " << Constant::avogadro_constant << '\n'
+       << "Bohr's magneton:        \t " << Constant::bohr_magneton << '\n'
+       << "Boltzmann's constant:   \t " << Constant::boltzmann_constant << '\n'
+       << "Elemental charge:       \t " << Constant::elementary_charge << '\n'
+       << "Electron mass:          \t " << Constant::electron_mass << '\n'
+       << "Ideal gas constant:     \t " << Constant::ideal_gas_constant << '\n'
+       << "Planck's constant:      \t " << Constant::planck_constant << '\n'
+       << "Speed of light:         \t " << Constant::speed_of_light << '\n'
+       << "Vacuum permittivity:    \t " << Constant::vacuum_permittivity << '\n'
+       << "Doppler constant:       \t " << std::sqrt(Constant::doppler_broadening_const_squared) << '\n'
        << "---------------------------------------------------------\n";
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfSpeciesTagSet(ArrayOfSpeciesTag& sst,
-                          const ArrayOfSpeciesTag& sst2,
-                          const Verbosity&) {
-  sst = sst2;
 }

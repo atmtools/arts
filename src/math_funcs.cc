@@ -38,11 +38,13 @@
 #include <iostream>
 #include <stdexcept>
 #include "array.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "logic.h"
 #include "mystring.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
 
 /*****************************************************************************
  *** The functions (in alphabetical order)
@@ -297,6 +299,28 @@ Numeric trapz(ConstVectorView x,
   for (Index i=1; i<n; ++i)
     sum += (x[i]-x[i-1]) * (y[i]+y[i-1]);
   return sum/2.0;
+}
+
+//! cumsum
+/*! 
+    Cumulative sum of a vector
+
+    csum[0] becomes x[0] and last value in csum equals the full sum of x
+
+    \param csum  Vector with cumulative values
+    \param x     Input vector
+
+    \author Patrick Eriksson
+    \date 2022-12-22
+*/
+void cumsum(VectorView csum,
+            ConstVectorView x)
+{
+  const Index n = x.nelem();
+  ARTS_ASSERT(csum.nelem() == n);
+  csum[0] = x[0];
+  for (Index i=1; i<n; ++i)
+    csum[i] = csum[i-1] + x[i];
 }
 
 //! AngIntegrate_trapezoid
@@ -823,4 +847,23 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
     w[i] = (x[i + 1] - x[i - 1]) / 2.;
   }
   w[x.nelem() - 1] = (x[x.nelem() - 1] - x[x.nelem() - 2]) / 2.;
+}
+
+void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x) {
+
+  ARTS_USER_ERROR_IF(x.nelem() <1, "Grid needs at least 2 points." );
+
+  Index N = x.nelem();
+
+  w.resize(N);
+
+  w[0] = (x[1] - x[0])/2;
+  if (N>2){
+
+    for (Index i = 1; i < N-1; i++ ){
+      w[i] = (x[i+1] - x[i-1])/2;
+    }
+
+  }
+  w[N-1] = (x[N-1] - x[N-2])/2;
 }

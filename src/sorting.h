@@ -35,24 +35,8 @@
 #include <functional>
 
 #include "array.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 
-/** IndexComp
- *
- * Functor for the comparison function used by get_sorted_indexes.
- *
- * Author: Oliver Lemke <olemke@core-dump.info>
- * Date:   2003-08-20
- */
-template <typename T>
-class IndexComp : public binary_function<Index, Index, bool> {
-  const T& m_data;
-
- public:
-  explicit IndexComp(const T& data) : m_data(data) {}
-
-  bool operator()(Index a, Index b) const { return (m_data[a] < m_data[b]); }
-};
 
 /** get_sorted_indexes
  *
@@ -71,15 +55,11 @@ class IndexComp : public binary_function<Index, Index, bool> {
  */
 template <typename T>
 void get_sorted_indexes(ArrayOfIndex& sorted, const T& data) {
-  sorted.resize(0);
-
-  Index i = 0;
-  for (typename T::const_iterator it = data.begin(); it != data.end(); ++it) {
-    sorted.push_back(i);
-    i++;
-  }
-
-  sort(sorted.begin(), sorted.end(), IndexComp<T>(data));
+  sorted.resize(data.size());
+  std::iota(sorted.begin(), sorted.end(), 0);
+  sort(sorted.begin(), sorted.end(), [&data](const Index a, const Index b) {
+    return data[a] < data[b];
+  });
 }
 
 #endif /* sorting_h */

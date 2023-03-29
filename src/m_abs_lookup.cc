@@ -24,6 +24,7 @@
 */
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <map>
 
@@ -34,17 +35,21 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "gas_abs_lookup.h"
 #include "global_data.h"
-#include "interpolation_lagrange.h"
+#include "gridded_fields.h"
+#include "interp.h"
 #include "math_funcs.h"
-#include "matpackV.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
+#include "propagationmatrix.h"
 #include "rng.h"
 
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_P_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_P_GRID;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& x, const Verbosity& verbosity) {
@@ -71,11 +76,28 @@ void abs_lookupCalc(  // Workspace reference:
     const Vector& abs_t,
     const Vector& abs_t_pert,
     const Vector& abs_nls_pert,
-    const Agenda& abs_xsec_agenda,
+    const Agenda& propmat_clearsky_agenda,
+    // GIN
+    const Numeric& lowest_vmr,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
+
+  ARTS_USER_ERROR_IF(
+      propmat_clearsky_agenda.name() not_eq "propmat_clearsky_agenda",
+      R"--(
+Not propmat_clearsky_agenda:
+
+)--",
+      propmat_clearsky_agenda)
+
+  ARTS_USER_ERROR_IF(lowest_vmr <= 0, R"--(
+You must give a lowest_vmr value above 0.  This is because
+the computations of the absorption lookup table uses true
+absorption calculations but the output is in cross-sections
+
+Your current lowest_vmr value is: )--", lowest_vmr)
 
   // We need this temporary variable to make a local copy of all VMRs,
   // where we then perturb the H2O profile as needed
@@ -86,10 +108,6 @@ void abs_lookupCalc(  // Workspace reference:
   // saves memory and allows for consistent treatment of nonlinear
   // species. But it means we need local copies of species, line list,
   // and line shapes for agenda communication.
-
-  // Absorption cross sections per tag group.
-  ArrayOfMatrix abs_xsec_per_species, src_xsec_per_species;
-  ArrayOfArrayOfMatrix dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx;
 
   // 2. Determine various important sizes:
   const Index n_species = abs_species.nelem();  // Number of abs species
@@ -126,15 +144,12 @@ void abs_lookupCalc(  // Workspace reference:
     // If there are nonlinear species, then at least one species must be
     // H2O. We will use that to set h2o_abs, and to perturb in the case
     // of nonlinear species.
-    if (n_nls > 0) {
-      ostringstream os;
-      os << "If you have nonlinear species, at least one\n"
-         << "species must be a H2O species.";
-      throw runtime_error(os.str());
-    } else {
-      out2 << "  You have no H2O species. Absorption continua will not work.\n"
-           << "  You should get a runtime error if you try them anyway.\n";
-    }
+    ARTS_USER_ERROR_IF(n_nls > 0,
+                       "If you have nonlinear species, at least one\n"
+                       "species must be a H2O species.")
+
+    out2 << "  You have no H2O species. Absorption continua will not work.\n"
+         << "  You should get a runtime error if you try them anyway.\n";
   }
 
   // abs_species, f_grid, and p_grid should not be empty:
@@ -249,11 +264,6 @@ void abs_lookupCalc(  // Workspace reference:
   String fail_msg;
   bool failed = false;
 
-  // We have to make a local copy of the Workspace and the agenda because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_abs_xsec_agenda(abs_xsec_agenda);
-
   // Loop species:
   for (Index i = 0, spec = 0; i < n_species; ++i) {
     // Skipping Zeeman and free_electrons species.
@@ -344,15 +354,13 @@ void abs_lookupCalc(  // Workspace reference:
       // function. Anyway, shared is the correct setting for
       // abs_lookup, so there is no problem.
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (                                         \
     !arts_omp_in_parallel() &&                                        \
     these_t_pert_nelem >=                                             \
-        arts_omp_get_max_threads()) private(this_t,                   \
-                                            abs_xsec_per_species,     \
-                                            src_xsec_per_species,     \
-                                            dabs_xsec_per_species_dx, \
-                                            dsrc_xsec_per_species_dx) \
-    firstprivate(l_ws, l_abs_xsec_agenda)
+        arts_omp_get_max_threads()) private(this_t)                   \
+    firstprivate(wss)
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
         // Skip remaining iterations if an error occurred
         if (failed) continue;
@@ -377,24 +385,34 @@ void abs_lookupCalc(  // Workspace reference:
           this_t = abs_lookup.t_ref;
           this_t += these_t_pert[j];
 
-          // Call agenda to calculate absorption:
-          abs_xsec_agendaExecute(l_ws,
-                                 abs_xsec_per_species,
-                                 dabs_xsec_per_species_dx,
-                                 abs_species,
-                                 ArrayOfRetrievalQuantity(0),
-                                 abs_species_active,
-                                 f_grid,
-                                 abs_p,
-                                 this_t,
-                                 these_all_vmrs,
-                                 l_abs_xsec_agenda);
-
           // Store in the right place:
           // Loop through all altitudes
           for (Index p = 0; p < n_p_grid; ++p) {
-            abs_lookup.xsec(j, spec, Range(joker), p) =
-                abs_xsec_per_species[i](Range(joker), p);
+            PropagationMatrix K;
+            StokesVector S;
+            ArrayOfPropagationMatrix dK;
+            ArrayOfStokesVector dS;
+            Vector rtp_vmr{these_all_vmrs(joker, p)};
+            for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
+
+            // Perform the propagation matrix computations
+            propmat_clearsky_agendaExecute(wss,
+                                           K,
+                                           S,
+                                           dK,
+                                           dS,
+                                           {},
+                                           abs_species[i],
+                                           f_grid,
+                                           {},
+                                           {},
+                                           abs_p[p],
+                                           this_t[p],
+                                           {},
+                                           rtp_vmr,
+                                           propmat_clearsky_agenda);
+            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], this_t[p]);
+            abs_lookup.xsec(j, spec, Range(joker), p) = K.Kjj();
 
             // There used to be a division by the number density
             // n here. This is no longer necessary, since
@@ -430,7 +448,7 @@ void abs_lookupCalc(  // Workspace reference:
   }
 
   // 6. Initialize fgp_default.
-  abs_lookup.flag_default = Interpolation::LagrangeVector(abs_lookup.f_grid, abs_lookup.f_grid, 0);
+  abs_lookup.flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(abs_lookup.f_grid, abs_lookup.f_grid, 0);
 
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
@@ -471,7 +489,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
     // Loop tags in tag group
     for (Index s = 0; s < abs_species[i].nelem(); ++s) {
       // Check for continuum tags
-      if (abs_species[i][s].type == Species::TagType::PredefinedLegacy ||
+      if (abs_species[i][s].type == Species::TagType::Predefined ||
           abs_species[i][s].type == Species::TagType::Cia) {
         const String thisname = abs_species[i][s].Name();
         // Ok, now we know this is a continuum tag.
@@ -616,9 +634,9 @@ void choose_abs_t_pert(Vector& abs_t_pert,
   Numeric mindev = 1e9;
   Numeric maxdev = -1e9;
 
-  Vector the_grid(0, abs_t.nelem(), 1);
+  Vector the_grid=uniform_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
-    const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
+    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
     for (Index j = 0; j < p_interp_order+1; ++j) {
       // Our pressure grid for the lookup table may be coarser than
@@ -647,7 +665,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
     ++div;
   } while (effective_step > step);
 
-  abs_t_pert = Vector(mindev, div, effective_step);
+  abs_t_pert =uniform_grid(mindev, div, effective_step);
 
   out2 << "  abs_t_pert: " << abs_t_pert[0] << " K to "
        << abs_t_pert[abs_t_pert.nelem() - 1] << " K in steps of "
@@ -692,14 +710,14 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
   // mindev is set to zero from the start, since we always want to
   // include 0.
 
-  Vector the_grid(0, refprof.nelem(), 1);
+  Vector the_grid=uniform_grid(0, refprof.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
     //       cout << "!!!!!! i = " << i << "\n";
     //       cout << " min/ref/max = " << minprof[i] << " / "
     //            << refprof[i] << " / "
     //            << maxprof[i] << "\n";
     
-    const Index idx0 = Interpolation::pos_finder(i, Numeric(i), the_grid, p_interp_order, false, true);
+    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
     for (Index j = 0; j < p_interp_order+1; ++j) {
       //           cout << "!!!!!! j = " << j << "\n";
@@ -758,7 +776,7 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
     ++div;
   } while (effective_step > step);
 
-  abs_nls_pert = Vector(mindev, div, effective_step);
+  abs_nls_pert = uniform_grid(mindev, div, effective_step);
 
   // If there are negative values, we also add 0. The reason for this
   // is that 0 is a turning point.
@@ -1332,7 +1350,7 @@ void abs_lookupSetupBatch(  // WS Output:
   // If np is too small for the interpolation order, we increase it:
   if (np < abs_p_interp_order + 1) np = abs_p_interp_order + 1;
 
-  Vector log_abs_p(log(maxp), np, -p_step);
+  Vector log_abs_p=uniform_grid(log(maxp), np, -p_step);
   log_abs_p[np - 1] = log(minp);
 
   abs_p.resize(np);
@@ -1556,7 +1574,7 @@ void abs_lookupSetupBatch(  // WS Output:
   ARTS_ASSERT(log_abs_p.nelem() == np);
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
-    const Index idx0 = Interpolation::pos_finder(i, log_abs_p[i], log_abs_p, abs_p_interp_order, false, false);
+    const Index idx0 = my_interp::pos_finder<false>(i, log_abs_p[i], log_abs_p, abs_p_interp_order);
 
     for (Index fi = 0; fi < datamean.nrows(); ++fi)
       if (1 != fi)  // We skip the z field, which we do not need
@@ -1733,7 +1751,7 @@ void abs_lookupSetupWide(  // WS Output:
   // If np is too small for the interpolation order, we increase it:
   if (np < abs_p_interp_order + 1) np = abs_p_interp_order + 1;
 
-  Vector log_abs_p(log(p_max), np, -p_step);
+  Vector log_abs_p=uniform_grid(log(p_max), np, -p_step);
 
   abs_p.resize(np);
   transform(abs_p, exp, log_abs_p);
@@ -1844,7 +1862,6 @@ void abs_lookupSetupWide(  // WS Output:
 void abs_speciesAdd(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
     Index& propmat_clearsky_agenda_checked,
-    Index& abs_xsec_agenda_checked,
     // Control Parameters:
     const ArrayOfString& names,
     const Verbosity& verbosity) {
@@ -1852,7 +1869,6 @@ void abs_speciesAdd(  // WS Output:
 
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
-  abs_xsec_agenda_checked = false;
 
   // Size of initial array
   Index n_gs = abs_species.nelem();
@@ -1886,7 +1902,6 @@ void abs_speciesAdd2(  // WS Output:
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     Index& propmat_clearsky_agenda_checked,
-    Index& abs_xsec_agenda_checked,
     // WS Input:
     const Index& atmosphere_dim,
     const Vector& p_grid,
@@ -1904,7 +1919,6 @@ void abs_speciesAdd2(  // WS Output:
 
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
-  abs_xsec_agenda_checked = false;
 
   // Add species to *abs_species*
   abs_species.emplace_back(species);
@@ -1944,7 +1958,6 @@ void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species, const Verbosity&) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesSet(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& abs_xsec_agenda_checked,
     Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
     const ArrayOfString& names,
@@ -1953,7 +1966,6 @@ void abs_speciesSet(  // WS Output:
 
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
-  abs_xsec_agenda_checked = false;
 
   abs_species.resize(names.nelem());
 
@@ -2005,7 +2017,9 @@ void propmat_clearskyAddFromLookup(
     const Vector& a_vmr_list,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const Numeric& extpolfac,
+    const Index& no_negatives,
     const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -2038,6 +2052,7 @@ void propmat_clearskyAddFromLookup(
   // functions that adjust the size of their output argument
   // automatically.
   abs_lookup.Extract(abs_scalar_gas,
+                     select_abs_species,
                      abs_p_interp_order,
                      abs_t_interp_order,
                      abs_nls_interp_order,
@@ -2051,6 +2066,7 @@ void propmat_clearskyAddFromLookup(
     Vector dfreq = f_grid;
     dfreq += df;
     abs_lookup.Extract(dabs_scalar_gas_df,
+                       select_abs_species,
                        abs_p_interp_order,
                        abs_t_interp_order,
                        abs_nls_interp_order,
@@ -2064,6 +2080,7 @@ void propmat_clearskyAddFromLookup(
   if (do_temp_jac) {
     const Numeric dtemp = a_temperature + dt;
     abs_lookup.Extract(dabs_scalar_gas_dt,
+                       select_abs_species,
                        abs_p_interp_order,
                        abs_t_interp_order,
                        abs_nls_interp_order,
@@ -2073,6 +2090,15 @@ void propmat_clearskyAddFromLookup(
                        a_vmr_list,
                        f_grid,
                        extpolfac);
+  }
+
+  if (no_negatives){
+    //Check for negative values due to interpolation and set them to zero
+    for (Index ir = 0; ir < abs_scalar_gas.nrows(); ir++){
+      for (Index ic = 0; ic < abs_scalar_gas.ncols(); ic++){
+        if (abs_scalar_gas(ir, ic)<0) abs_scalar_gas(ir, ic)=0;
+      }
+    }
   }
 
   // Now add to the right place in the absorption matrix.
@@ -2100,7 +2126,7 @@ void propmat_clearskyAddFromLookup(
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
           } else if (deriv == abs_species[isp]) {
             // WARNING:  If CIA in list, this scales wrong by factor 2
-            dpropmat_clearsky_dx[iq].Kjj()[iv] += abs_scalar_gas(isp, iv);
+              dpropmat_clearsky_dx[iq].Kjj()[iv] += (std::isnormal(a_vmr_list[isp])) ? abs_scalar_gas(isp, iv) / a_vmr_list[isp] : 0;
           }
         }
       }
@@ -2197,13 +2223,8 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
     auto& rq = jacobian_quantities.back();
     rq.Subtag(species_list.Name());
     rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, species_list));
-    rq.Target().Perturbation(0.001);
+    rq.Target().perturbation = 0.001;
   }
-
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_abs_agenda(abs_agenda);
 
   String fail_msg;
   bool failed = false;
@@ -2211,15 +2232,14 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   // Make local copy of f_grid, so that we can apply Dopler if we want.
   Vector this_f_grid = f_grid;
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
   // Now we have to loop all points in the atmosphere:
   if (n_pressures)
-#pragma omp parallel for if (!arts_omp_in_parallel() &&                        \
-                             n_pressures >= arts_omp_get_max_threads())        \
-    firstprivate(l_ws, l_abs_agenda, this_f_grid) private(abs,                 \
-                                                          nlte,                \
-                                                          partial_abs,         \
-                                                          partial_nlte,        \
-                                                          a_vmr_list)
+#pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
+                             n_pressures >= arts_omp_get_max_threads()) \
+    firstprivate(wss, this_f_grid) private(                              \
+        abs, nlte, partial_abs, partial_nlte, a_vmr_list)
     for (Index ipr = 0; ipr < n_pressures; ++ipr)  // Pressure:  ipr
     {
       // Skip remaining iterations if an error occurred
@@ -2246,7 +2266,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
           {
             Numeric a_temperature = t_field(ipr, ila, ilo);
             a_vmr_list = vmr_field(Range(joker), ipr, ila, ilo);
-            if (!nlte_field.Data().empty())
+            if (!nlte_field.value.empty())
               a_nlte_list = nlte_field(ipr, ila, ilo);
 
             Vector this_rtp_mag(3, 0.);
@@ -2264,12 +2284,13 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: abs, nlte
-            propmat_clearsky_agendaExecute(l_ws,
+            propmat_clearsky_agendaExecute(wss,
                                            abs,
                                            nlte,
                                            partial_abs,
                                            partial_nlte,
                                            jacobian_quantities,
+                                           {},
                                            this_f_grid,
                                            this_rtp_mag,
                                            los,
@@ -2277,7 +2298,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                            a_temperature,
                                            a_nlte_list,
                                            a_vmr_list,
-                                           l_abs_agenda);
+                                           abs_agenda);
             
             // Convert from derivative to absorption
             for (Index ispec=0; ispec<partial_abs.nelem(); ispec++) {
@@ -2346,681 +2367,4 @@ void p_gridFromGasAbsLookup(Vector& p_grid,
   const Vector& lookup_p_grid = abs_lookup.GetPgrid();
   p_grid.resize(lookup_p_grid.nelem());
   p_grid = lookup_p_grid;
-}
-
-//! Compare lookup and LBL calculation.
-/*!
-  This is a helper function used by abs_lookupTestAccuracy. It takes
-  local p, T, and VMR conditions, performs lookup table extraction and
-  line by line absorption calculation, and compares the difference.
-  
-  \param al                   Lookup table
-  \param abs_p_interp_order   Pressure interpolation order.
-  \param abs_t_interp_order   Temperature interpolation order.
-  \param abs_nls_interp_order H2O interpolation order.
-  \param ignore_errors        If true, we ignore runtime errors in
-                              lookup table extraction. This is handy,
-                              because in some cases it is not easy to
-                              make sure that all local conditions are
-                              inside the valid range for the lookup table.
-  \param local_p 
-  \param local_t 
-  \param local_vmrs 
-
-  \return The maximum of the absolute value of the relative difference
-  between lookup and LBL, in percent. Or -1 if the case should be
-  ignored according to the "ignore_errors" flag.
-*/
-Numeric calc_lookup_error(  // Parameters for lookup table:
-    Workspace& ws,
-    const GasAbsLookup& al,
-    const Index& abs_p_interp_order,
-    const Index& abs_t_interp_order,
-    const Index& abs_nls_interp_order,
-    const bool ignore_errors,
-    // Parameters for LBL:
-    const Agenda& abs_xsec_agenda,
-    // Parameters for both:
-    const Numeric& local_p,
-    const Numeric& local_t,
-    const Vector& local_vmrs,
-    const Verbosity& verbosity) {
-  // Allocate some matrices. I also tried allocating these (and the
-  // vectors below) outside, but there was no significant speed
-  // advantage. (I guess the LBL calculation is expensive enough to
-  // make the extra time of allocation here insignificant.)
-  Matrix sga_tab;  // Absorption, dimension [n_species,n_f_grid]:
-  const EnergyLevelMap local_nlte_dummy;
-
-  // Do lookup table first:
-
-  try {
-    // Absorption, dimension [n_species,n_f_grid]:
-    // Output variable: sga_tab
-    al.Extract(sga_tab,
-               abs_p_interp_order,
-               abs_t_interp_order,
-               abs_nls_interp_order,
-               0,  // f_interp_order
-               local_p,
-               local_t,
-               local_vmrs,
-               al.f_grid,
-               0.0);  // Extpolfac
-  } catch (const std::runtime_error& x) {
-    // If ignore_errors is set to true, then we mark this case for
-    // skipping, and ignore the exceptions.
-    // Otherwise, we re-throw the exception.
-    if (ignore_errors)
-      return -1;
-    else
-      throw runtime_error(x.what());
-  }
-
-  // Get number of frequencies. (We cannot do this earlier, since we
-  // get it from the output of al.Extract.)
-  const Index n_f = sga_tab.ncols();
-
-  // Allocate some vectors with this dimension:
-  Vector abs_tab(n_f);
-  Vector abs_lbl(n_f, 0.0);
-  Vector abs_rel_diff(n_f);
-
-  // Sum up for all species, to get total absorption:
-  for (Index i = 0; i < n_f; ++i) abs_tab[i] = sga_tab(joker, i).sum();
-
-  // Now get absorption line-by-line.
-
-  // Variable to hold result of absorption calculation:
-  PropagationMatrix propmat_clearsky;
-  StokesVector nlte_source;
-  ArrayOfPropagationMatrix dpropmat_clearsky_dx;
-  ArrayOfStokesVector dnlte_source_dx;
-  ArrayOfMatrix d;
-  const ArrayOfRetrievalQuantity jacobian_quantities(0);
-  const Index propmat_clearsky_checked = 1;
-
-  // Initialize propmat_clearsky:
-  propmat_clearskyInit(propmat_clearsky,
-                       nlte_source,
-                       dpropmat_clearsky_dx,
-                       dnlte_source_dx,
-                       jacobian_quantities,
-                       al.f_grid,
-                       1,  // Stokes dimension
-                       propmat_clearsky_checked,
-                       verbosity);
-
-  // Add result of LBL calculation to propmat_clearsky:
-  propmat_clearskyAddXsecAgenda(ws,
-                                propmat_clearsky,
-                                dpropmat_clearsky_dx,
-                                al.f_grid,
-                                al.species,
-                                jacobian_quantities,
-                                local_p,
-                                local_t,
-                                local_vmrs,
-                                abs_xsec_agenda,
-                                verbosity);
-
-  // Argument 0 above is the Doppler shift (usually
-  // rtp_doppler). Should be zero in this case.
-
-  // Sum up for all species, to get total absorption:
-  abs_lbl += propmat_clearsky.Kjj();
-
-  // Ok. What we have to compare is abs_tab and abs_lbl.
-
-  ARTS_ASSERT(abs_tab.nelem() == n_f);
-  ARTS_ASSERT(abs_lbl.nelem() == n_f);
-  ARTS_ASSERT(abs_rel_diff.nelem() == n_f);
-  for (Index i = 0; i < n_f; ++i) {
-    // Absolute value of relative difference in percent:
-    abs_rel_diff[i] = fabs((abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100);
-  }
-
-  // Maximum of this:
-  Numeric max_abs_rel_diff = max(abs_rel_diff);
-
-  //          cout << "ma " << max_abs_rel_diff << "\n";
-
-  return max_abs_rel_diff;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupTestAccuracy(  // Workspace reference:
-    Workspace& ws,
-    // WS Input:
-    const GasAbsLookup& abs_lookup,
-    const Index& abs_lookup_is_adapted,
-    const Index& abs_p_interp_order,
-    const Index& abs_t_interp_order,
-    const Index& abs_nls_interp_order,
-    const Agenda& abs_xsec_agenda,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  const GasAbsLookup& al = abs_lookup;
-
-  // Check if the table has been adapted:
-  if (1 != abs_lookup_is_adapted)
-    throw runtime_error(
-        "Gas absorption lookup table must be adapted,\n"
-        "use method abs_lookupAdapt.");
-
-  // Some important sizes:
-  const Index n_nls = al.nonlinear_species.nelem();
-  const Index n_species = al.species.nelem();
-  //  const Index n_f       = al.f_grid.nelem();
-  const Index n_p = al.log_p_grid.nelem();
-
-  if (n_nls <= 0) {
-    ostringstream os;
-    os << "This function currently works only with lookup tables\n"
-       << "containing nonlinear species.";
-    throw runtime_error(os.str());
-  }
-
-  // If there are nonlinear species, then at least one species must be
-  // H2O. We will use that to perturb in the case of nonlinear
-  // species.
-  Index h2o_index = -1;
-  if (n_nls > 0) {
-    h2o_index = find_first_species(al.species, Species::fromShortName("H2O"));
-
-    // This is a runtime error, even though it would be more logical
-    // for it to be an assertion, since it is an internal check on
-    // the table. The reason is that it is somewhat awkward to check
-    // for this in other places.
-    if (h2o_index == -1) {
-      ostringstream os;
-      os << "With nonlinear species, at least one species must be a H2O species.";
-      throw runtime_error(os.str());
-    }
-  }
-
-  // Check temperature interpolation
-
-  Vector inbet_t_pert(al.t_pert.nelem() - 1);
-  for (Index i = 0; i < inbet_t_pert.nelem(); ++i)
-    inbet_t_pert[i] = (al.t_pert[i] + al.t_pert[i + 1]) / 2.0;
-
-  // To store the temperature error, which we define as the maximum of
-  // the absolute value of the relative difference between LBL and
-  // lookup table, in percent.
-  Numeric err_t = -999;
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index pi = 0; pi < n_p; ++pi)
-    for (Index ti = 0; ti < inbet_t_pert.nelem(); ++ti) {
-      // Find local conditions:
-
-      // Pressure:
-      Numeric local_p = al.p_grid[pi];
-
-      // Temperature:
-      Numeric local_t = al.t_ref[pi] + inbet_t_pert[ti];
-
-      // VMRs:
-      Vector local_vmrs = al.vmrs_ref(joker, pi);
-
-      // Watch out, the table probably does not have an absorption
-      // value for exactly the reference H2O profile. We multiply
-      // with the first perturbation.
-      local_vmrs[h2o_index] *= al.nls_pert[0];
-
-      Numeric max_abs_rel_diff =
-          calc_lookup_error(ws,
-                            // Parameters for lookup table:
-                            al,
-                            abs_p_interp_order,
-                            abs_t_interp_order,
-                            abs_nls_interp_order,
-                            true,  // ignore errors
-                            // Parameters for LBL:
-                            abs_xsec_agenda,
-                            // Parameters for both:
-                            local_p,
-                            local_t,
-                            local_vmrs,
-                            verbosity);
-
-      //          cout << "ma " << max_abs_rel_diff << "\n";
-
-      //Critical directive here is necessary, because all threads
-      //access the same variable.
-#pragma omp critical(abs_lookupTestAccuracy_piti)
-      {
-        if (max_abs_rel_diff > err_t) err_t = max_abs_rel_diff;
-      }
-
-    }  // end parallel for loop
-
-  // Check H2O interpolation
-
-  Vector inbet_nls_pert(al.nls_pert.nelem() - 1);
-  for (Index i = 0; i < inbet_nls_pert.nelem(); ++i)
-    inbet_nls_pert[i] = (al.nls_pert[i] + al.nls_pert[i + 1]) / 2.0;
-
-  // To store the H2O error, which we define as the maximum of
-  // the absolute value of the relative difference between LBL and
-  // lookup table, in percent.
-  Numeric err_nls = -999;
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index pi = 0; pi < n_p; ++pi)
-    for (Index ni = 0; ni < inbet_nls_pert.nelem(); ++ni) {
-      // Find local conditions:
-
-      // Pressure:
-      Numeric local_p = al.p_grid[pi];
-
-      // Temperature:
-
-      // Watch out, the table probably does not have an absorption
-      // value for exactly the reference temperature. We add
-      // the first perturbation.
-
-      Numeric local_t = al.t_ref[pi] + al.t_pert[0];
-
-      // VMRs:
-      Vector local_vmrs = al.vmrs_ref(joker, pi);
-
-      // Now we have to modify the H2O VMR according to nls_pert:
-      local_vmrs[h2o_index] *= inbet_nls_pert[ni];
-
-      Numeric max_abs_rel_diff =
-          calc_lookup_error(ws,
-                            // Parameters for lookup table:
-                            al,
-                            abs_p_interp_order,
-                            abs_t_interp_order,
-                            abs_nls_interp_order,
-                            true,  // ignore errors
-                            // Parameters for LBL:
-                            abs_xsec_agenda,
-                            // Parameters for both:
-                            local_p,
-                            local_t,
-                            local_vmrs,
-                            verbosity);
-
-      //Critical directive here is necessary, because all threads
-      //access the same variable.
-#pragma omp critical(abs_lookupTestAccuracy_pini)
-      {
-        if (max_abs_rel_diff > err_nls) err_nls = max_abs_rel_diff;
-      }
-
-    }  // end parallel for loop
-
-  // Check pressure interpolation
-
-  // IMPORTANT: This does not test the pure pressure interpolation,
-  // unless we have constant reference profiles for T and
-  // H2O. Otherwise we have T and H2O interpolation mixed in.
-
-  Vector inbet_p_grid(n_p - 1);
-  Vector inbet_t_ref(n_p - 1);
-  Matrix inbet_vmrs_ref(n_species, n_p - 1);
-  for (Index i = 0; i < inbet_p_grid.nelem(); ++i) {
-    inbet_p_grid[i] = exp((al.log_p_grid[i] + al.log_p_grid[i + 1]) / 2.0);
-    inbet_t_ref[i] = (al.t_ref[i] + al.t_ref[i + 1]) / 2.0;
-    for (Index j = 0; j < n_species; ++j)
-      inbet_vmrs_ref(j, i) = (al.vmrs_ref(j, i) + al.vmrs_ref(j, i + 1)) / 2.0;
-  }
-
-  // To store the interpolation error, which we define as the maximum of
-  // the absolute value of the relative difference between LBL and
-  // lookup table, in percent.
-  Numeric err_p = -999;
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index pi = 0; pi < n_p - 1; ++pi) {
-    // Find local conditions:
-
-    // Pressure:
-    Numeric local_p = inbet_p_grid[pi];
-
-    // Temperature:
-
-    // Watch out, the table probably does not have an absorption
-    // value for exactly the reference temperature. We add
-    // the first perturbation.
-
-    Numeric local_t = inbet_t_ref[pi] + al.t_pert[0];
-
-    // VMRs:
-    Vector local_vmrs = inbet_vmrs_ref(joker, pi);
-
-    // Watch out, the table probably does not have an absorption
-    // value for exactly the reference H2O profile. We multiply
-    // with the first perturbation.
-    local_vmrs[h2o_index] *= al.nls_pert[0];
-
-    Numeric max_abs_rel_diff = calc_lookup_error(ws,
-                                                 // Parameters for lookup table:
-                                                 al,
-                                                 abs_p_interp_order,
-                                                 abs_t_interp_order,
-                                                 abs_nls_interp_order,
-                                                 true,  // ignore errors
-                                                 // Parameters for LBL:
-                                                 abs_xsec_agenda,
-                                                 // Parameters for both:
-                                                 local_p,
-                                                 local_t,
-                                                 local_vmrs,
-                                                 verbosity);
-
-    //Critical directive here is necessary, because all threads
-    //access the same variable.
-#pragma omp critical(abs_lookupTestAccuracy_pi)
-    {
-      if (max_abs_rel_diff > err_p) err_p = max_abs_rel_diff;
-    }
-  }
-
-  // Check total error
-
-  // To store the interpolation error, which we define as the maximum of
-  // the absolute value of the relative difference between LBL and
-  // lookup table, in percent.
-  Numeric err_tot = -999;
-
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index pi = 0; pi < n_p - 1; ++pi)
-    for (Index ti = 0; ti < inbet_t_pert.nelem(); ++ti)
-      for (Index ni = 0; ni < inbet_nls_pert.nelem(); ++ni) {
-        // Find local conditions:
-
-        // Pressure:
-        Numeric local_p = inbet_p_grid[pi];
-
-        // Temperature:
-        Numeric local_t = inbet_t_ref[pi] + inbet_t_pert[ti];
-
-        // VMRs:
-        Vector local_vmrs = inbet_vmrs_ref(joker, pi);
-
-        // Multiply with perturbation.
-        local_vmrs[h2o_index] *= inbet_nls_pert[ni];
-
-        Numeric max_abs_rel_diff =
-            calc_lookup_error(ws,
-                              // Parameters for lookup table:
-                              al,
-                              abs_p_interp_order,
-                              abs_t_interp_order,
-                              abs_nls_interp_order,
-                              true,  // ignore errors
-                              // Parameters for LBL:
-                              abs_xsec_agenda,
-                              // Parameters for both:
-                              local_p,
-                              local_t,
-                              local_vmrs,
-                              verbosity);
-
-        //Critical directive here is necessary, because all threads
-        //access the same variable.
-#pragma omp critical(abs_lookupTestAccuracy_pitini)
-        {
-          if (max_abs_rel_diff > err_tot) {
-            err_tot = max_abs_rel_diff;
-
-            //             cout << "New max error: pi, ti, ni, err_tot:\n"
-            //                  << pi << ", " << ti << ", " << ni << ", " << err_tot << "\n";
-          }
-        }
-      }
-
-  out2 << "  Max. of absolute value of relative error in percent:\n"
-       << "  Note: Unless you have constant reference profiles, the\n"
-       << "  pressure interpolation error will have other errors mixed in.\n"
-       << "  Temperature interpolation: " << err_t << "%\n"
-       << "  H2O (NLS) interpolation:   " << err_nls << "%\n"
-       << "  Pressure interpolation:    " << err_p << "%\n"
-       << "  Total error:               " << err_tot << "%\n";
-
-  // Check pressure interpolation
-
-  //   ARTS_ASSERT(p_grid.nelem()==log_p_grid.nelem()); // Make sure that log_p_grid is initialized.
-  //   Vector inbet_log_p_grid(log_p_grid.nelem()-1)
-  //   for (Index i=0; i<log_p_grid.nelem()-1; ++i)
-  //     {
-  //       inbet_log_p_grid[i] = (log_p_grid[i]+log_p_grid[i+1])/2.0;
-  //     }
-
-  //   for (Index pi=0; pi<inbet_log_p_grid.nelem(); ++pi)
-  //     {
-  //       for (Index pt=0; pt<)
-  //     }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupTestAccMC(  // Workspace reference:
-    Workspace& ws,
-    // WS Input:
-    const GasAbsLookup& abs_lookup,
-    const Index& abs_lookup_is_adapted,
-    const Index& abs_p_interp_order,
-    const Index& abs_t_interp_order,
-    const Index& abs_nls_interp_order,
-    const Index& mc_seed,
-    const Agenda& abs_xsec_agenda,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
-  const GasAbsLookup& al = abs_lookup;
-
-  // Check if the table has been adapted:
-  if (1 != abs_lookup_is_adapted)
-    throw runtime_error(
-        "Gas absorption lookup table must be adapted,\n"
-        "use method abs_lookupAdapt.");
-
-  // Some important sizes:
-  const Index n_nls = al.nonlinear_species.nelem();
-  const Index n_species = al.species.nelem();
-
-  if (n_nls <= 0) {
-    ostringstream os;
-    os << "This function currently works only with lookup tables\n"
-       << "containing nonlinear species.";
-    throw runtime_error(os.str());
-  }
-
-  // If there are nonlinear species, then at least one species must be
-  // H2O. We will use that to perturb in the case of nonlinear
-  // species.
-  Index h2o_index = -1;
-  if (n_nls > 0) {
-    h2o_index = find_first_species(al.species, Species::fromShortName("H2O"));
-
-    // This is a runtime error, even though it would be more logical
-    // for it to be an assertion, since it is an internal check on
-    // the table. The reason is that it is somewhat awkward to check
-    // for this in other places.
-    if (h2o_index == -1) {
-      ostringstream os;
-      os << "With nonlinear species, at least one species must be a H2O species.";
-      throw runtime_error(os.str());
-    }
-  }
-
-  // How many MC cases to run between each convergence check.
-  // (It is important for parallelization that this is not too small.)
-  const Index chunksize = 100;
-
-  //Random Number generator:
-  Rng rng;
-  rng.seed(mc_seed, verbosity);
-  // rng.draw() will draw a double from the uniform distribution [0,1).
-
-  // (Log) Pressure range:
-  const Numeric lp_max = al.log_p_grid[0];
-  const Numeric lp_min = al.log_p_grid[al.log_p_grid.nelem() - 1];
-
-  // T perturbation range (additive):
-  const Numeric dT_min = al.t_pert[0];
-  const Numeric dT_max = al.t_pert[al.t_pert.nelem() - 1];
-
-  // H2O perturbation range (scaling):
-  const Numeric dh2o_min = al.nls_pert[0];
-  const Numeric dh2o_max = al.nls_pert[al.nls_pert.nelem() - 1];
-
-  // We are creating all random numbers for the chunk beforehand, to avoid the
-  // problem that random number generators in different threads would need
-  // different seeds to produce independent random numbers.
-  // (I prefer this solution to the one of having the rng inside the threads,
-  // because it ensures that the result does not depend on the the number of CPUs.)
-  Vector rand_lp(chunksize);
-  Vector rand_dT(chunksize);
-  Vector rand_dh2o(chunksize);
-
-  // Store the errors for one chunk:
-  Vector max_abs_rel_diff(chunksize);
-
-  // Flag to break our MC calculation loop eventually
-  bool keep_looping = true;
-
-  // Total mean and standard deviation. (Is updated after each chunk.)
-  Numeric total_mean;
-  Numeric total_std;
-  Index N_chunk = 0;
-  while (keep_looping) {
-    ++N_chunk;
-
-    for (Index i = 0; i < chunksize; ++i) {
-      // A random pressure, temperature perturbation, and H2O perturbation,
-      // all with flat PDF between min and max:
-      rand_lp[i] = rng.draw() * (lp_max - lp_min) + lp_min;
-      rand_dT[i] = rng.draw() * (dT_max - dT_min) + dT_min;
-      rand_dh2o[i] = rng.draw() * (dh2o_max - dh2o_min) + dh2o_min;
-    }
-
-    for (Index i = 0; i < chunksize; ++i) {
-      // The pressure we work with here:
-      const Numeric this_lp = rand_lp[i];
-
-      // Now we have to interpolate t_ref and vmrs_ref to this
-      // pressure, so that we can apply the dT and dh2o perturbations.
-
-      // Pressure grid positions:
-      const auto lag = Interpolation::Lagrange(0, rand_lp[i], al.log_p_grid, abs_p_interp_order);
-      const auto itw = interpweights(lag);
-
-      // Interpolated temperature:
-      const Numeric this_t_ref = interp(al.t_ref, itw, lag);
-
-      // Interpolated VMRs:
-      Vector these_vmrs(n_species);
-      for (Index j = 0; j < n_species; ++j) {
-        these_vmrs[j] = interp(al.vmrs_ref(j, Range(joker)), itw, lag);
-      }
-
-      // Now get the actual p, T and H2O values:
-      const Numeric this_p = exp(this_lp);
-      const Numeric this_t = this_t_ref + rand_dT[i];
-      these_vmrs[h2o_index] *= rand_dh2o[i];
-
-      //            cout << "p, T, H2O: " << this_p << ", " << this_t << ", " << these_vmrs[h2o_index] << "\n";
-
-      // Get error between table and LBL calculation for these conditions:
-
-      max_abs_rel_diff[i] = calc_lookup_error(ws,
-                                              // Parameters for lookup table:
-                                              al,
-                                              abs_p_interp_order,
-                                              abs_t_interp_order,
-                                              abs_nls_interp_order,
-                                              true,  // ignore errors
-                                              // Parameters for LBL:
-                                              abs_xsec_agenda,
-                                              // Parameters for both:
-                                              this_p,
-                                              this_t,
-                                              these_vmrs,
-                                              verbosity);
-      //            cout << "max_abs_rel_diff[" << i << "] = " << max_abs_rel_diff[i] << "\n";
-    }
-
-    // Calculate Mean of the last batch.
-
-    // Total number of valid points in the chunk (not counting negative values,
-    // which result from failed calculations at the edges of the table.)
-    Index N = 0;
-    // Mean (initially sum of all values):
-    Numeric mean = 0;
-    for (Index i = 0; i < chunksize; ++i) {
-      const Numeric x = max_abs_rel_diff[i];
-      if (x > 0) {
-        ++N;
-        mean += x;
-      }
-      //            else
-      //              {
-      //                cout << "Negative value ignored.\n";
-      //              }
-    }
-    // Calculate mean by dividing sum by number of valid points:
-    mean = mean / (Numeric)N;
-
-    // Now calculate standard deviation:
-
-    // Variance (initially sum of squared differences)
-    Numeric variance = 0;
-    for (Index i = 0; i < chunksize; ++i) {
-      const Numeric x = max_abs_rel_diff[i];
-      if (x > 0) {
-        variance += (x - mean) * (x - mean);
-      }
-    }
-    // Divide by N to really calculate variance:
-    variance = variance / (Numeric)N;
-
-    //        cout << "Mean = " << mean << " Std = " << std_dev << "\n";
-
-    if (N_chunk == 1) {
-      total_mean = mean;
-      total_std = sqrt(variance);
-    } else {
-      const Numeric old_mean = total_mean;
-
-      // This formula assimilates the new chunk mean into the total mean:
-      total_mean =
-          (total_mean * ((Numeric)(N_chunk - 1)) + mean) / (Numeric)N_chunk;
-
-      // Do the same for the standard deviation.
-      // First get rid of the square root:
-      total_std = total_std * total_std;
-      // Now multiply with old normalisation:
-      total_std *= (Numeric)(N_chunk - 1);
-      // Now add the new sigma
-      total_std += variance;
-      // Divide by the new normalisation:
-      total_std /= (Numeric)N_chunk;
-      // And finally take the square root:
-      total_std = sqrt(total_std);
-
-      // Stop the chunk loop if desired accuracy has been reached.
-      // We take 1% here, no point in trying to be more accurate!
-      if (abs(total_mean - old_mean) < total_mean / 100) keep_looping = false;
-    }
-
-    //        cout << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean
-    //             << " Std estimate = " << total_std << "\n";
-
-    out3 << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean
-         << " Std estimate = " << total_std << "\n";
-
-  }  // End of "keep_looping" loop that runs over the chunks
-
-  out2 << "  Mean relative error: " << total_mean << "%\n"
-       << "  Standard deviation:  " << total_std << "%\n";
 }

@@ -32,16 +32,18 @@
   ===========================================================================*/
 
 #include "physics_funcs.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "messages.h"
 #include "mystring.h"
 #include "physics_funcs.h"
 #include <cmath>
 #include <stdexcept>
 
-extern const Numeric BOLTZMAN_CONST;
-extern const Numeric DEG2RAD;
-extern const Numeric PLANCK_CONST;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PLANCK_CONST=Constant::planck_constant;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -207,10 +209,10 @@ Numeric planck(const Numeric& f, const Numeric& t) {
   ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
   
-  constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
+  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);;
   constexpr Numeric b = Constant::h / Constant::k;
 
-  return a * Constant::pow3(f) / std::expm1((b * f) / t);
+  return a * Math::pow3(f) / std::expm1((b * f) / t);
 }
 
 /** planck
@@ -272,13 +274,13 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
   ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
 
-  constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
+  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);;
   constexpr Numeric b = Constant::h / Constant::k;
   
   // nb. expm1(x) should be more accurate than exp(x) - 1, so use it
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  return a * b * Constant::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) / Constant::pow2(t);
+  return a * b * Math::pow4(f) * inv_exp_t_m1 * (1 + inv_exp_t_m1) / Math::pow2(t);
 }
 
 /** dplanck_dt
@@ -336,12 +338,12 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t)  {
   ARTS_USER_ERROR_IF (t <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF (f <= 0, "Non-positive frequency")
   
-  constexpr Numeric a = 2 * Constant::h / Constant::pow2(Constant::c);;
+  constexpr Numeric a = 2 * Constant::h / Math::pow2(Constant::c);;
   constexpr Numeric b = Constant::h / Constant::k;
   
   const Numeric inv_exp_t_m1 = 1.0 / std::expm1(b * f / t);
 
-  return a * Constant::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
+  return a * Math::pow2(f) * (3.0 - (b * f / t) * (1 + inv_exp_t_m1)) * inv_exp_t_m1;
 }
 
 /** dplanck_df

@@ -1,6 +1,5 @@
-find_program(LEGACY_MAKE make REQUIRED)
-
 add_subdirectory(wigxjpf)
+
 if(FASTWIGNER)
   add_subdirectory(fastwigxj)
 endif()

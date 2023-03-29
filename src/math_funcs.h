@@ -32,8 +32,10 @@
 #ifndef math_funcs_h
 #define math_funcs_h
 
-#include "matpackI.h"
-#include "matpackIII.h"
+#include "array.h"
+#include "matpack_concepts.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 
 Numeric fac(const Index n);
 
@@ -65,6 +67,9 @@ void nlogspace(Vector& x,
 
 Numeric trapz(ConstVectorView x,
               ConstVectorView y);
+
+void cumsum(VectorView csum,
+            ConstVectorView x);
 
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
@@ -133,6 +138,14 @@ void reshape(Tensor3View X, ConstVectorView x);
 
 void calculate_weights_linear(Vector& x, Vector& w, const Index nph);
 
+/** Calculates trapezoidal integration weights for arbitray grid
+ *
+ * @param w Vector integration weights
+ * @param x Vector evaluation points
+ */
+void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x);
+
+
 /** Checks for negative values */
 template <typename MatpackType>
 constexpr bool any_negative(const MatpackType& var) noexcept {
@@ -140,5 +153,12 @@ constexpr bool any_negative(const MatpackType& var) noexcept {
   if (min(var) < 0) return true;
   return false;
 }
+
+/** Computes std::pow(-1, x) without std::pow
+ * 
+ * @param x Index
+ * @return constexpr Index 
+ */
+constexpr Index pow_negative_one(Index x) noexcept { return (x % 2) ? -1 : 1; }
 
 #endif  // math_funcs_h

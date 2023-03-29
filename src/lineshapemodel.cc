@@ -32,9 +32,12 @@
  * real work happens in the header file and not here
  **/
 
-#include "constants.h"
+#include "arts_conversions.h"
+#include "debug.h"
 #include "lineshapemodel.h"
-#include "matpackI.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
+#include <limits>
 
 Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff) {
@@ -108,18 +111,18 @@ std::istream& LineShape::from_artscat4(std::istream& is,
   }
 
   // G0 main coefficient
-  for (auto& v : m.mdata) is >> v.G0().X0;
+  for (auto& v : m.mdata) is >> double_imanip() >> v.G0().X0;
 
   // G0 exponent is same as D0 exponent
   for (auto& v : m.mdata) {
-    is >> v.G0().X1;
+    is >> double_imanip() >> v.G0().X1;
     v.D0().X1 = v.G0().X1;
   }
 
   // D0 coefficient
   m.mdata.front().D0().X0 = 0;
   for (int k = 1; k < 7; k++)
-    is >> m.mdata[k].D0().X0;
+    is >> double_imanip() >> m.mdata[k].D0().X0;
 
   // Special case when self is part of this list, it needs to be removed
   for (int k = 1; k < 7; k++) {
@@ -209,14 +212,14 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
         if (ntemp <= ModelParameters::N) {
           switch (ntemp) {
             case 1:
-              data >> m.mdata[i].Data()[Index(param)].X0;
+              data >> double_imanip() >> m.mdata[i].Data()[Index(param)].X0;
               break;
             case 2:
-              data >> m.mdata[i].Data()[Index(param)].X0 >>
+              data >> double_imanip() >> m.mdata[i].Data()[Index(param)].X0 >>
                   m.mdata[i].Data()[Index(param)].X1;
               break;
             case 3:
-              data >> m.mdata[i].Data()[Index(param)].X0 >>
+              data >> double_imanip() >> m.mdata[i].Data()[Index(param)].X0 >>
                   m.mdata[i].Data()[Index(param)].X1 >>
                   m.mdata[i].Data()[Index(param)].X2;
               break;
@@ -230,11 +233,11 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
           ARTS_USER_ERROR_IF (ntemp > 12,
                 "Too many input parameters in interpolation results Legacy mode.");
           Numeric temp;
-          data >> temp;  // should be 200
-          data >> temp;  // should be 250
-          data >> temp;  // should be 296
-          data >> temp;  // should be 340
-          data >> m.mdata[i].Y().X0 >> m.mdata[i].Y().X1 >> m.mdata[i].Y().X2 >> m.mdata[i].Y().X3 
+          data >> double_imanip() >> temp;  // should be 200
+          data >> double_imanip() >> temp;  // should be 250
+          data >> double_imanip() >> temp;  // should be 296
+          data >> double_imanip() >> temp;  // should be 340
+          data >> double_imanip() >> m.mdata[i].Y().X0 >> m.mdata[i].Y().X1 >> m.mdata[i].Y().X2 >> m.mdata[i].Y().X3 
                >> m.mdata[i].G().X0 >> m.mdata[i].G().X1 >> m.mdata[i].G().X2 >> m.mdata[i].G().X3;
         }
       }
@@ -260,7 +263,7 @@ std::istream& LineShape::from_pressurebroadeningdata(
   const auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, type);
 
   Vector x(n);
-  for (auto& num : x) data >> num;
+  for (auto& num : x) data >> double_imanip() >> num;
 
   LegacyPressureBroadeningData::vector2modelpb(mtype,
                                                self,
@@ -284,7 +287,7 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   const auto n = LegacyLineMixingData::typelm2nelem(type);
 
   Vector x(n);
-  for (auto& num : x) data >> num;
+  for (auto& num : x) data >> double_imanip() >> num;
 
   lsc = LegacyLineMixingData::vector2modellm(x, type);
 
@@ -459,13 +462,12 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
   
   const Index n = lineshape_species.nelem();
-  const Index back = n - 1;  // Last index
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(n, 0);
   
   // We need to know if bath is an actual species
-  const bool bath = lineshape_species.back() == Species::Species::Bath;
+  const bool bath = n and lineshape_species.back() == Species::Species::Bath;
   
   // Loop species
   for (Index i = 0; i < n - bath; i++) {
@@ -486,11 +488,11 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if (bath) {
-    line_vmrs[back] = 1.0 - line_vmrs.sum();
-  } else if(line_vmrs.sum() == 0) {  // Special case
+  if (auto sl = sum(line_vmrs); bath) {
+    line_vmrs[n - 1] = 1.0 - sl;
+  } else if(sl == 0) {  // Special case
   } else {
-    line_vmrs /= line_vmrs.sum();
+    line_vmrs /= sl;
   }
     
   return line_vmrs;
@@ -504,14 +506,13 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                "Bad atmospheric inputs");
   
   const Index n = lineshape_species.nelem();
-  const Index back = n - 1;  // Last index
   
   // Initialize list of VMRS to 0
-  Vector line_vmrs(lineshape_species.nelem(), 0);
-  Vector line_mass(lineshape_species.nelem(), 0);
+  Vector line_vmrs(n, 0);
+  Vector line_mass(n, 0);
   
   // We need to know if bath is an actual species
-  const bool bath = lineshape_species.back() == Species::Species::Bath;
+  const bool bath = n and lineshape_species.back() == Species::Species::Bath;
   
   // Loop species ignoring self and bath
   for (Index i = 0; i < n - bath; i++) {
@@ -534,94 +535,84 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if(line_vmrs.sum() == 0) {  // Special case
+  if(auto sl = sum(line_vmrs); sl == 0) {  // Special case
   } else if (bath) {
-    line_mass[back] = (line_vmrs * line_mass) / line_vmrs.sum();
+    line_mass[n - 1] = (line_vmrs * line_mass) / sl;
   }
     
   return line_mass;
 }
 
-std::ostream& LineShape::operator<<(std::ostream& os, const LineShape::Model& m)
-{
-  for(auto& data: m.Data())
-    os << data;
+namespace LineShape {
+std::ostream& operator<<(std::ostream& os, const Model& m) {
+  for (auto& data : m.Data()) os << data;
   return os;
 }
 
-std::istream& LineShape::operator>>(std::istream& is, Model& m)
-{
-  for(auto& data: m.Data())
-    is >> data;
+std::istream& operator>>(std::istream& is, Model& m) {
+  for (auto& data : m.Data()) is >> data;
   return is;
 }
 
-
-String LineShape::ModelShape2MetaData(const Model& m)
-{
+String ModelShape2MetaData(const Model& m) {
   String out = "";
   const auto& vars = enumtyps::VariableTypes;
-  
-  for (auto& var: vars) {
-    if (std::any_of(m.Data().cbegin(), m.Data().cend(),
-      [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
+
+  for (auto& var : vars) {
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(), [var](auto& x) {
+          return x.Get(var).type not_eq TemperatureModel::None;
+        })) {
       out += String(toString(var)) + ' ';
-      for (auto& ssm: m.Data())
+      for (auto& ssm : m.Data())
         out += String(toString(ssm.Get(var).type)) + ' ';
     }
   }
-  
-  if(out.size())
-    out.pop_back();
-  
+
+  if (out.size()) out.pop_back();
+
   return out;
 }
 
+Model MetaData2ModelShape(const String& s) {
+  if (s.nelem() == 0) return {};
 
-LineShape::Model LineShape::MetaData2ModelShape(const String& s)
-{
-  if (s.nelem() == 0)
-    return LineShape::Model();
-  
   const auto& names = enumstrs::VariableNames;
-  
+
   std::istringstream str(s);
   String part;
-  Variable var=Variable::ETA;
-  TemperatureModel tm=TemperatureModel::None;
-  Index i=-100000;
-  
+  Variable var = Variable::ETA;
+  TemperatureModel tm = TemperatureModel::None;
+  Index i = -100000;
+
   std::vector<SingleSpeciesModel> ssms(0);
   while (not str.eof()) {
     str >> part;
-    if(std::any_of(names.cbegin(), names.cend(),
-      [part](auto x){return part == x;})) {
-      i=-1;
+    if (std::any_of(names.cbegin(), names.cend(), [part](auto x) {
+          return part == x;
+        })) {
+      i = -1;
       var = toVariable(part);
-    }
-    else {
+    } else {
       i++;
       tm = toTemperatureModel(part);
     }
-    
-    if (i < 0)
-      continue;
+
+    if (i < 0) continue;
     if (i < Index(ssms.size()))
       goto add_var;
     else {
       ssms.emplace_back();
-      add_var:
+    add_var:
       auto mp = ssms[i].Get(var);
       mp.type = tm;
       ssms[i].Set(var, mp);
     }
   }
-  
+
   return Model(ssms);
 }
 
-String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, const Numeric T0)
-{
+String modelparameters2metadata(const ModelParameters mp, const Numeric T0) {
   std::ostringstream os;
   switch (mp.type) {
     case TemperatureModel::None:
@@ -634,64 +625,71 @@ String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, 
       os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1;
       break;
     case TemperatureModel::T2:
-      os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " / (1 + " << mp.X2 << " * log(T/" << T0 << "))";
+      os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " / (1 + " << mp.X2
+         << " * log(T/" << T0 << "))";
       break;
     case TemperatureModel::T3:
       os << mp.X0 << " + " << mp.X1 << " * (" << T0 << " - T)";
       break;
     case TemperatureModel::T4:
-      os << "(" << mp.X0 << " + " << mp.X1 << " * (" << T0 << "/T - 1)) * (" << T0 << "/T)^" << mp.X2;
+      os << "(" << mp.X0 << " + " << mp.X1 << " * (" << T0 << "/T - 1)) * ("
+         << T0 << "/T)^" << mp.X2;
       break;
     case TemperatureModel::T5:
       os << mp.X0 << " * (" << T0 << "/T)^(0.25 + 1.5 * " << mp.X1 << ")";
       break;
     case TemperatureModel::LM_AER:
-      os << '(' << "Linear interpolation to y(x) from x-ref = [200, 250, 296, 340] and y-ref = [" << mp.X0 << ", " << mp.X1 << ", " << mp.X2 << ", " << mp.X3 << ']' << ')';
+      os << '('
+         << "Linear interpolation to y(x) from x-ref = [200, 250, 296, 340] and y-ref = ["
+         << mp.X0 << ", " << mp.X1 << ", " << mp.X2 << ", " << mp.X3 << ']'
+         << ')';
       break;
     case TemperatureModel::DPL:
-      os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + "  << mp.X2 << " * (" << T0 << "/T)^" << mp.X3 << ')';
+      os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + " << mp.X2
+         << " * (" << T0 << "/T)^" << mp.X3 << ')';
       break;
     case TemperatureModel::POLY:
-      os << '(' << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2 << " * T * T + "  << mp.X3 << " * T * T * T)";
-    case TemperatureModel::FINAL: break;
+      os << '(' << mp.X0 << " + " << mp.X1 << " * T  + " << mp.X2
+         << " * T * T + " << mp.X3 << " * T * T * T)";
+    case TemperatureModel::FINAL:
+      break;
   }
-  
+
   return os.str();
 }
 
-ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model& m,
-                                            const bool self,
-                                            const ArrayOfSpecies& sts,
-                                            const Numeric T0)
-{
+ArrayOfString ModelMetaDataArray(const LineShape::Model& m,
+                                 const bool self,
+                                 const ArrayOfSpecies& sts,
+                                 const Numeric T0) {
   const auto& vars = enumtyps::VariableTypes;
   ArrayOfString as(0);
-  
-  for (Index i=0; i<Index(Variable::FINAL); i++) {
+
+  for (Index i = 0; i < Index(Variable::FINAL); i++) {
     Variable var = vars[i];
-    
-    if (std::any_of(m.Data().cbegin(), m.Data().cend(),
-      [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
-      
-    std::ostringstream os;
-    os << var << " ~ ";
-    for (Index j=0; j<sts.nelem(); j++) {
-      if (j == 0 and self)
-        os << "VMR(" << self_broadening << ") * " << modelparameters2metadata(m.Data().front().Get(var), T0);
-      else 
-        os << "VMR(" << toShortName(sts[j]) << ") * " << modelparameters2metadata(m.Data()[j].Get(var), T0);
-      
-      if (sts[j] not_eq sts.back()) os << " + ";
-    }
-    as.push_back(os.str());
+
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(), [var](auto& x) {
+          return x.Get(var).type not_eq TemperatureModel::None;
+        })) {
+      std::ostringstream os;
+      os << var << " ~ ";
+      for (Index j = 0; j < sts.nelem(); j++) {
+        if (j == 0 and self)
+          os << "VMR(" << self_broadening << ") * "
+             << modelparameters2metadata(m.Data().front().Get(var), T0);
+        else
+          os << "VMR(" << toShortName(sts[j]) << ") * "
+             << modelparameters2metadata(m.Data()[j].Get(var), T0);
+
+        if (sts[j] not_eq sts.back()) os << " + ";
+      }
+      as.push_back(os.str());
     }
   }
-  
+
   return as;
 }
 
-
-namespace LineShape {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
 Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
@@ -950,6 +948,106 @@ bofstream & SingleSpeciesModel::write(bofstream& bof) const {
   return bof;
 }
 
+Output SingleSpeciesModel::at(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P * G0().at(T, T0), P * D0().at(T, T0),    P * G2().at(T, T0),
+          P * D2().at(T, T0), P * FVC().at(T, T0),   ETA().at(T, T0),
+          P * Y().at(T, T0),  P * P * G().at(T, T0), P * P * DV().at(T, T0)};
+}
+
+Numeric SingleSpeciesModel::dX(Numeric T, Numeric T0, Numeric P,
+                               Jacobian::Line target) const noexcept {
+  static_assert(nVars == 9, "Only has support for 9 variables");
+  static_assert(ModelParameters::N == 4, "Only supports 4 targets per target");
+
+#define FourParams(A, B, p)                                                    \
+  case Shape##A##B:                                                            \
+    return p * A().d##B(T, T0)
+
+#define NineVars(A, p)                                                         \
+  FourParams(A, X0, p);                                                        \
+  FourParams(A, X1, p);                                                        \
+  FourParams(A, X2, p);                                                        \
+  FourParams(A, X3, p)
+
+  using enum Jacobian::Line;
+  switch (target) {
+    NineVars(G0, P);
+    NineVars(D0, P);
+    NineVars(G2, P);
+    NineVars(D2, P);
+    NineVars(FVC, P);
+    NineVars(ETA, 1);
+    NineVars(Y, P);
+    NineVars(G, P * P);
+    NineVars(DV, P * P);
+  default:
+    return std::numeric_limits<Numeric>::signaling_NaN();
+  }
+
+#undef NineVars
+#undef FourParams
+}
+
+Output SingleSpeciesModel::dT(Numeric T, Numeric T0, Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P * G0().dT(T, T0), P * D0().dT(T, T0),    P * G2().dT(T, T0),
+          P * D2().dT(T, T0), P * FVC().dT(T, T0),   ETA().dT(T, T0),
+          P * Y().dT(T, T0),  P * P * G().dT(T, T0), P * P * DV().dT(T, T0)};
+}
+
+Output SingleSpeciesModel::dT0(Numeric T, Numeric T0,
+                               Numeric P) const noexcept {
+  static_assert(nVars == 9);
+  return {P * G0().dT0(T, T0), P * D0().dT0(T, T0),    P * G2().dT0(T, T0),
+          P * D2().dT0(T, T0), P * FVC().dT0(T, T0),   ETA().dT0(T, T0),
+          P * Y().dT0(T, T0),  P * P * G().dT0(T, T0), P * P * DV().dT0(T, T0)};
+}
+
+#define FUNC(X, PVAR)                                                          \
+  Numeric Model::X(Numeric T, Numeric T0, Numeric P [[maybe_unused]],          \
+                   const Vector &vmrs) const ARTS_NOEXCEPT {                   \
+    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
+                                                                               \
+    return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
+                                        0.0, std::plus<>(),                    \
+                                        [T, T0](auto &ls, auto &xi) {          \
+                                          return xi * ls.X().at(T, T0);        \
+                                        });                                    \
+  }
+FUNC(G0, P)
+FUNC(D0, P)
+FUNC(G2, P)
+FUNC(D2, P)
+FUNC(ETA, 1)
+FUNC(FVC, P)
+FUNC(Y, P)
+FUNC(G, P *P)
+FUNC(DV, P *P)
+#undef FUNC
+
+#define FUNC(X, PVAR)                                                          \
+  Numeric Model::d##X##dT(Numeric T, Numeric T0, Numeric P [[maybe_unused]],   \
+                          const Vector &vmrs) const ARTS_NOEXCEPT {            \
+    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
+                                                                               \
+    return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
+                                        0.0, std::plus<>(),                    \
+                                        [T, T0](auto &ls, auto &xi) {          \
+                                          return xi * ls.X().dT(T, T0);        \
+                                        });                                    \
+  }
+FUNC(G0, P)
+FUNC(D0, P)
+FUNC(G2, P)
+FUNC(D2, P)
+FUNC(ETA, 1)
+FUNC(FVC, P)
+FUNC(Y, P)
+FUNC(G, P *P)
+FUNC(DV, P *P)
+#undef FUNC
+
 std::pair<bool, bool> SingleSpeciesModel::MatchTypes(const SingleSpeciesModel& other) const noexcept {
   bool match=true, nullable=true;
   for (Index i=0; i<nVars; i++) {
@@ -1079,228 +1177,6 @@ bool Model::OK(Type type, bool self, bool bath,
   Index m = Index(self) + Index(bath);
   bool needs_any = type not_eq Type::DP;
   return not (n not_eq Index(nspecies) or m > n or (needs_any and not n));
-}
-
-#define LSPC(XVAR, PVAR)                                  \
-  Numeric Model::XVAR(                                    \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]],  \
-      const ConstVectorView& vmrs)                        \
-      const noexcept {                                    \
-    return PVAR *                                         \
-           std::inner_product(                            \
-               mdata.cbegin(),                            \
-               mdata.cend(),                              \
-               vmrs.begin(),                              \
-               0.0,                                       \
-               std::plus<>(),                             \
-               [&](auto& x, auto vmr) -> Numeric {        \
-                 return vmr * x.XVAR().at(T, T0);         \
-               });                                        \
-  }
-  LSPC(G0, P)
-  LSPC(D0, P)
-  LSPC(G2, P)
-  LSPC(D2, P)
-  LSPC(FVC, P)
-  LSPC(ETA, 1)
-  LSPC(Y, P)
-  LSPC(G, P* P)
-  LSPC(DV, P* P)
-#undef LSPC
-
-#define LSPCV(XVAR, PVAR)                                         \
-  Numeric Model::d##XVAR##_dVMR(Numeric T,                        \
-                         Numeric T0,                              \
-                         Numeric P [[maybe_unused]],              \
-                         const Index deriv_pos) const noexcept {  \
-    if (deriv_pos not_eq -1)                                      \
-      return PVAR * mdata[deriv_pos].XVAR().at(T, T0);            \
-    return 0;                                                     \
-  }
-  LSPCV(G0, P)
-  LSPCV(D0, P)
-  LSPCV(G2, P)
-  LSPCV(D2, P)
-  LSPCV(FVC, P)
-  LSPCV(ETA, 1)
-  LSPCV(Y, P)
-  LSPCV(G, P* P)
-  LSPCV(DV, P* P)
-#undef LSPCV
-
-#define LSPCT(XVAR, PVAR)                                 \
-  Numeric Model::d##XVAR##_dT(                            \
-      Numeric T, Numeric T0, Numeric P [[maybe_unused]],  \
-      const ConstVectorView& vmrs)                        \
-      const noexcept {                                    \
-    return PVAR *                                         \
-           std::inner_product(                            \
-               mdata.cbegin(),                            \
-               mdata.cend(),                              \
-               vmrs.begin(),                              \
-               0.0,                                       \
-               std::plus<>(),                             \
-               [&](auto& x, auto vmr) -> Numeric {        \
-                 return vmr * x.XVAR().dT(T, T0);         \
-               });                                        \
-  }
-  LSPCT(G0, P)
-  LSPCT(D0, P)
-  LSPCT(G2, P)
-  LSPCT(D2, P)
-  LSPCT(FVC, P)
-  LSPCT(ETA, 1)
-  LSPCT(Y, P)
-  LSPCT(G, P* P)
-  LSPCT(DV, P* P)
-#undef LSPCT
-
-#define LSPDC(XVAR, DERIV, PVAR)                                        \
-  Numeric Model::d##XVAR##_##DERIV(Numeric T,                           \
-                         Numeric T0,                                    \
-                         Numeric P [[maybe_unused]],                    \
-                         Index deriv_pos,                               \
-                         const ConstVectorView& vmrs) const noexcept {  \
-    if (deriv_pos not_eq -1)                                            \
-      return vmrs[deriv_pos] * PVAR *                                   \
-             mdata[deriv_pos].XVAR().DERIV(T, T0);                      \
-    return 0;                                                           \
-  }
-  LSPDC(G0, dT0, P)
-  LSPDC(G0, dX0, P)
-  LSPDC(G0, dX1, P)
-  LSPDC(G0, dX2, P)
-  LSPDC(G0, dX3, P)
-  LSPDC(D0, dT0, P)
-  LSPDC(D0, dX0, P)
-  LSPDC(D0, dX1, P)
-  LSPDC(D0, dX2, P)
-  LSPDC(D0, dX3, P)
-  LSPDC(G2, dT0, P)
-  LSPDC(G2, dX0, P)
-  LSPDC(G2, dX1, P)
-  LSPDC(G2, dX2, P)
-  LSPDC(G2, dX3, P)
-  LSPDC(D2, dT0, P)
-  LSPDC(D2, dX0, P)
-  LSPDC(D2, dX1, P)
-  LSPDC(D2, dX2, P)
-  LSPDC(D2, dX3, P)
-  LSPDC(FVC, dT0, P)
-  LSPDC(FVC, dX0, P)
-  LSPDC(FVC, dX1, P)
-  LSPDC(FVC, dX2, P)
-  LSPDC(FVC, dX3, P)
-  LSPDC(ETA, dT0, 1)
-  LSPDC(ETA, dX0, 1)
-  LSPDC(ETA, dX1, 1)
-  LSPDC(ETA, dX2, 1)
-  LSPDC(ETA, dX3, 1)
-  LSPDC(Y, dT0, P)
-  LSPDC(Y, dX0, P)
-  LSPDC(Y, dX1, P)
-  LSPDC(Y, dX2, P)
-  LSPDC(Y, dX3, P)
-  LSPDC(G, dT0, P* P)
-  LSPDC(G, dX0, P* P)
-  LSPDC(G, dX1, P* P)
-  LSPDC(G, dX2, P* P)
-  LSPDC(G, dX3, P* P)
-  LSPDC(DV, dT0, P* P)
-  LSPDC(DV, dX0, P* P)
-  LSPDC(DV, dX1, P* P)
-  LSPDC(DV, dX2, P* P)
-  LSPDC(DV, dX3, P* P)
-#undef LSPDC
-
-Output Model::GetParams(Numeric T,
-                        Numeric T0,
-                        Numeric P,
-                        const ConstVectorView& vmrs) const noexcept {
-  return {G0(T, T0, P, vmrs),
-          D0(T, T0, P, vmrs),
-          G2(T, T0, P, vmrs),
-          D2(T, T0, P, vmrs),
-          FVC(T, T0, P, vmrs),
-          ETA(T, T0, P, vmrs),
-          Y(T, T0, P, vmrs),
-          G(T, T0, P, vmrs),
-          DV(T, T0, P, vmrs)};
-}
-
-Output Model::GetParams(Numeric T,
-                        Numeric T0,
-                        Numeric P,
-                        size_t k) const noexcept {
-  return {P * mdata[k].G0().at(T, T0),
-          P * mdata[k].D0().at(T, T0),
-          P * mdata[k].G2().at(T, T0),
-          P * mdata[k].D2().at(T, T0),
-          P * mdata[k].FVC().at(T, T0),
-          mdata[k].ETA().at(T, T0),
-          P * mdata[k].Y().at(T, T0),
-          P * P * mdata[k].G().at(T, T0),
-          P * P * mdata[k].DV().at(T, T0)};
-}
-
-Output Model::GetTemperatureDerivs(Numeric T,
-                                   Numeric T0,
-                                   Numeric P,
-                                   ConstVectorView vmrs) const noexcept {
-  return {dG0_dT(T, T0, P, vmrs),
-          dD0_dT(T, T0, P, vmrs),
-          dG2_dT(T, T0, P, vmrs),
-          dD2_dT(T, T0, P, vmrs),
-          dFVC_dT(T, T0, P, vmrs),
-          dETA_dT(T, T0, P, vmrs),
-          dY_dT(T, T0, P, vmrs),
-          dG_dT(T, T0, P, vmrs),
-          dDV_dT(T, T0, P, vmrs)};
-}
-
-Output Model::GetVMRDerivs(Numeric T, Numeric T0, Numeric P, const Index pos) const noexcept {
-  return {dG0_dVMR(T, T0, P, pos),
-    dD0_dVMR(T, T0, P, pos),
-    dG2_dVMR(T, T0, P, pos),
-    dD2_dVMR(T, T0, P, pos),
-    dFVC_dVMR(T, T0, P, pos),
-    dETA_dVMR(T, T0, P, pos),
-    dY_dVMR(T, T0, P, pos),
-    dG_dVMR(T, T0, P, pos),
-    dDV_dVMR(T, T0, P, pos)};
-}
-
-Numeric Model::GetInternalDeriv(Numeric T,
-                                Numeric T0,
-                                Numeric P,
-                                Index pos,
-                                const Vector& vmrs,
-                                Jacobian::Line deriv) const noexcept {
-  if (pos < 0) return 0;
-
-#define RETURNINTERNALDERIVATIVE(TYPE)         \
-  case Jacobian::Line::Shape##TYPE##X0:        \
-    return d##TYPE##_dX0(T, T0, P, pos, vmrs); \
-  case Jacobian::Line::Shape##TYPE##X1:        \
-    return d##TYPE##_dX1(T, T0, P, pos, vmrs); \
-  case Jacobian::Line::Shape##TYPE##X2:        \
-    return d##TYPE##_dX2(T, T0, P, pos, vmrs); \
-  case Jacobian::Line::Shape##TYPE##X3:        \
-    return d##TYPE##_dX3(T, T0, P, pos, vmrs)
-  switch (deriv) {
-    RETURNINTERNALDERIVATIVE(G0);
-    RETURNINTERNALDERIVATIVE(D0);
-    RETURNINTERNALDERIVATIVE(G2);
-    RETURNINTERNALDERIVATIVE(D2);
-    RETURNINTERNALDERIVATIVE(FVC);
-    RETURNINTERNALDERIVATIVE(ETA);
-    RETURNINTERNALDERIVATIVE(Y);
-    RETURNINTERNALDERIVATIVE(G);
-    RETURNINTERNALDERIVATIVE(DV);
-    default:
-      return std::numeric_limits<Numeric>::quiet_NaN();
-  }
-#undef RETURNINTERNALDERIVATIVE
 }
 
 void Model::Remove(Index i, ArrayOfSpeciesTag& specs) {
@@ -1437,4 +1313,4 @@ Index self_listed(const QuantumIdentifier& qid,
   return false;
 }
 } // namespace LegacyPressureBroadeningData
-} // namespace LineShape
+}  // namespace LineShape

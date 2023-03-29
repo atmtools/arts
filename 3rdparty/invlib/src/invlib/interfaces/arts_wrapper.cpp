@@ -2,22 +2,7 @@
 //  Arts Vector  //
 // ------------- //
 
-ArtsVector::ArtsVector(ArtsVector &&v)
-{
-    this->mrange = v.mrange;
-    this->mdata  = v.mdata;
-    v.mdata      = nullptr;
-}
-
-auto ArtsVector::operator=(ArtsVector &&v)
-    -> ArtsVector &
-{
-    delete[] this->mdata;
-    this->mrange  = v.mrange;
-    this->mdata   = v.mdata;
-    v.mdata       = nullptr;
-    return *this;
-}
+#include "matpack_data.h"
 
 auto ArtsVector::rows() const
     -> Index
@@ -28,25 +13,25 @@ auto ArtsVector::rows() const
 auto ArtsVector::operator()(Index i) const
     -> Numeric
 {
-    return this->get(i);
+    return this->elem_at(i);
 }
 
 auto ArtsVector::operator()(Index i)
     -> Numeric &
 {
-    return this->get(i);
+    return this->elem_at(i);
 }
 
 auto ArtsVector::data_pointer()
     -> Numeric *
 {
-    return this->mdata;
+    return this->data_handle();
 }
 
 auto ArtsVector::data_pointer() const
     -> const Numeric *
 {
-    return this->mdata;
+    return this->data_handle();
 }
 
 auto ArtsVector::accumulate(const ArtsVector& w)
@@ -70,12 +55,12 @@ auto ArtsVector::scale(Numeric c)
 auto ArtsVector::norm() const
     -> Numeric
 {
-    return sqrt(operator*(*this, *this));
+    return sqrt(ExhaustiveConstVectorView{*this} * ExhaustiveConstVectorView{*this});
 }
 
 Numeric dot(const ArtsVector& v, const ArtsVector& w)
 {
-    return v * w;
+    return ExhaustiveConstVectorView{v} * ExhaustiveConstVectorView{w};
 }
 
 //-----------------//
@@ -86,25 +71,6 @@ ArtsMatrix::ArtsMatrix(const Matrix &A)
     : Matrix(A)
 {
     // Nothing to do here.
-}
-
-ArtsMatrix::ArtsMatrix(ArtsMatrix &&A)
-{
-    this->mrr = A.mrr;
-    this->mcr = A.mcr;
-    this->mdata  = A.mdata;
-    A.mdata = nullptr;
-}
-
-auto ArtsMatrix::operator=(ArtsMatrix &&A)
-    -> ArtsMatrix &
-{
-    delete[] this->mdata;
-    this->mcr  = A.mcr;
-    this->mrr  = A.mrr;
-    this->mdata   = A.mdata;
-    A.mdata = nullptr;
-    return *this;
 }
 
 template<typename ArtsType>
@@ -131,19 +97,19 @@ auto ArtsMatrix::cols() const
 auto ArtsMatrix::operator()(Index i, Index j)
     -> RealType &
 {
-    return this->get(i,j);
+    return this->elem_at(i, j);
 }
 
 auto ArtsMatrix::operator()(Index i, Index j) const
     -> RealType
 {
-    return this->get(i,j);
+    return this->elem_at(i, j);
 }
 
 auto ArtsMatrix::data_pointer()
     -> Numeric *
 {
-    return this->mdata;
+    return this->data_handle();
 }
 
 void ArtsMatrix::accumulate(const MatrixType & B)
@@ -156,7 +122,7 @@ void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper & B)
     if (B.is_inverse()) {
         ::add_inv(*this, B);
     } else {
-        ::operator+=(*this, B);
+        ExhaustiveMatrixView{*this} += ConstMatrixView{B};
     }
 }
 
@@ -181,7 +147,7 @@ auto ArtsMatrix::multiply(const ArtsMatrix &B) const
     -> ArtsMatrix
 {
     ArtsMatrix C; C.resize(this->nrows(), B.ncols());
-    ::mult(C, *this, B);
+    ::mult(ExhaustiveMatrixView{C},ExhaustiveMatrixView{*this}, ExhaustiveMatrixView{B});
     return C;
 }
 
@@ -189,7 +155,7 @@ auto ArtsMatrix::multiply(const ArtsVector &v) const
     -> ArtsVector
 {
     ArtsVector w; w.resize(this->nrows());
-    ::mult(w, *this, v);
+    ::mult(ExhaustiveVectorView{w}, ExhaustiveMatrixView{*this}, ExhaustiveVectorView{v});
     return w;
 }
 
@@ -197,7 +163,7 @@ auto ArtsMatrix::transpose_multiply(const ArtsMatrix &B) const
     -> ArtsMatrix
 {
     ArtsMatrix C; C.resize(this->ncols(), B.ncols());
-    ::mult(C, ::transpose(*this), B);
+    ::mult(ExhaustiveMatrixView{C}, ::transpose(ExhaustiveMatrixView{*this}), ExhaustiveMatrixView{B});
     return C;
 }
 
@@ -205,7 +171,7 @@ auto ArtsMatrix::transpose_multiply(const ArtsVector &v) const
     -> ArtsVector
 {
     ArtsVector w; w.resize(this->ncols());
-    ::mult(w, ::transpose(*this), v);
+    ::mult(ExhaustiveVectorView{w}, ::transpose(ExhaustiveMatrixView{*this}), ExhaustiveVectorView{v});
     return w;
 }
 
@@ -216,7 +182,7 @@ auto ArtsMatrix::transpose_multiply_block(const ArtsVector &v,
 {
     ArtsVector w; w.resize(this->ncols());
     ConstVectorView v_view = v[Range(start, extent)];
-    ::mult(w, ::transpose(*this), v_view);
+    ::mult(ExhaustiveVectorView{w}, ::transpose(ExhaustiveConstMatrixView{*this}), v_view);
     return w;
 }
 
@@ -245,7 +211,7 @@ auto ArtsMatrix::transpose() const
     -> ArtsMatrix
 {
     ArtsMatrix B;
-    B.Matrix::operator=(::transpose(*this));
+    B.Matrix::operator=(::transpose(ExhaustiveConstMatrixView{*this}));
     return B;
 }
 
@@ -282,7 +248,7 @@ auto ArtsMatrixReference<ArtsType>::multiply(
     -> ArtsMatrix
 {
     ArtsMatrix C; C.resize(A.get().nrows(), B.ncols());
-    ::mult(C, A, B);
+    ::mult(ExhaustiveMatrixView{C}, MatrixView{A}, ExhaustiveConstMatrixView{B});
     return C;
 }
 
@@ -292,7 +258,7 @@ auto ArtsMatrixReference<ArtsType>::multiply(
     -> ArtsVector
 {
     ArtsVector w; w.resize(A.get().nrows());
-    ::mult(w, A, v);
+    ::mult(ExhaustiveVectorView{w}, MatrixView{A}, ExhaustiveConstVectorView{v});
     return w;
 }
 
@@ -302,7 +268,7 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
     -> ArtsVector
 {
     ArtsVector w; w.resize(A.get().ncols());
-    ::mult(w, ::transpose(A.get()), v);
+    ::mult(ExhaustiveVectorView{w}, ::transpose(A.get()), ExhaustiveConstVectorView{v});
     return w;
 }
 
@@ -322,7 +288,7 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
     -> ArtsMatrix
 {
     ArtsMatrix C; C.resize(A.get().ncols(), B.ncols());
-    ::mult(C, ::transpose(A.get()), B);
+    ::mult(ExhaustiveMatrixView{C}, ::transpose(A.get()), ExhaustiveConstMatrixView{B});
     return C;
 }
 
@@ -355,7 +321,7 @@ auto ArtsCovarianceMatrixWrapper::multiply(
 {
     ArtsVector w; w.resize(covmat_.nrows());
     if (is_inverse_) {
-        ::mult_inv(w, covmat_, v);
+        ::mult_inv(MatrixView{w}, covmat_, ConstMatrixView{v});
     } else {
         ::mult(w, covmat_, v);
     }
@@ -381,7 +347,7 @@ auto ArtsCovarianceMatrixWrapper::transpose_multiply(
 {
     ArtsVector w; w.resize(covmat_.ncols());
     if (is_inverse_) {
-        ::mult_inv(w, covmat_, v);
+        ::mult_inv(MatrixView{w}, covmat_, ConstMatrixView{v});
     } else {
         ::mult(w, covmat_, v);
     }

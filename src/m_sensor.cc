@@ -41,11 +41,15 @@
 #include <stdexcept>
 #include <string>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "interpolation_lagrange.h"
+#include "gridded_fields.h"
+#include "interp.h"
 #include "m_select.h"
 #include "math_funcs.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "ppath.h"
 #include "rte.h"
@@ -54,73 +58,28 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric NAT_LOG_2;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Index GFIELD1_F_GRID;
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_F_GRID;
-extern const Index GFIELD4_ZA_GRID;
-extern const Index GFIELD4_AA_GRID;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+using GriddedFieldGrids::GFIELD1_F_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_F_GRID;
+using GriddedFieldGrids::GFIELD4_ZA_GRID;
+using GriddedFieldGrids::GFIELD4_AA_GRID;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AntennaConstantGaussian1D(Index& antenna_dim,
-                               Matrix& mblock_dlos_grid,
-                               GriddedField4& r,
-                               Matrix& antenna_dlos,
-                               const Index& n_za_grid,
-                               const Numeric& fwhm,
-                               const Numeric& xwidth_si,
-                               const Numeric& dx_si,
-                               const Verbosity& verbosity) {
-  if (dx_si > xwidth_si)
-    throw runtime_error("It is demanded that dx_si <= xwidth_si.");
-
-  antenna_dim = 1;
-
-  antenna_dlos.resize(1, 1);
-  antenna_dlos(0, 0) = 0.0;
-
-  antenna_responseGaussian(r, fwhm, xwidth_si, dx_si, 0, verbosity);
-
-  // za grid for response
-  ConstVectorView r_za_grid = r.get_numeric_grid(GFIELD4_ZA_GRID);
-  const Index nr = r_za_grid.nelem();
-
-  // Cumulative integral of response (factor /2 skipped, but does not matter)
-  Vector cumtrapz(nr);
-  cumtrapz[0] = 0;
-  for (Index i = 1; i < nr; i++) {
-    cumtrapz[i] = cumtrapz[i - 1] + r.data(0, 0, i - 1, 0) + r.data(0, 0, i, 0);
-  }
-
-  // Equally spaced vector between end points of cumulative sum
-  Vector csp;
-  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], n_za_grid);
-
-  // Get mblock_za_grid by interpolation
-  mblock_dlos_grid.resize(n_za_grid, 1);
-  ArrayOfGridPos gp(n_za_grid);
-  gridpos(gp, cumtrapz, csp);
-  Matrix itw(n_za_grid, 2);
-  interpweights(itw, gp);
-  interp(mblock_dlos_grid(joker, 0), itw, r_za_grid, gp);
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
                                     Matrix& sensor_los,
                                     Matrix& antenna_dlos,
                                     Index& antenna_dim,
-                                    Matrix& mblock_dlos_grid,
+                                    Matrix& mblock_dlos,
                                     const Index& atmosphere_dim,
                                     const Verbosity& verbosity) {
   // Sizes
@@ -176,7 +135,7 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
   }
 
   // Set other variables
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
   //
   antenna_dlos.resize(1, 1);
   antenna_dlos = 0;
@@ -186,133 +145,153 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaOff(Index& antenna_dim,
-                Matrix& mblock_dlos_grid,
+                Matrix& mblock_dlos,
                 const Verbosity& verbosity) {
   CREATE_OUT2;
 
   out2 << "  Sets the antenna dimensionality to 1.\n";
   antenna_dim = 1;
 
-  out2 << "  Sets *mblock_dlos_grid* to have one row with value 0.\n";
-  mblock_dlos_grid.resize(1, 1);
-  mblock_dlos_grid = 0;
+  out2 << "  Sets *mblock_dlos* to have one row with value 0.\n";
+  mblock_dlos.resize(1, 1);
+  mblock_dlos = 0;
 }
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+ /* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_responseGaussian(GriddedField4& r,
-                              const Numeric& fwhm,
-                              const Numeric& xwidth_si,
-                              const Numeric& dx_si,
+                              const Vector& f_points,
+                              const Vector& fwhm,
+                              const Numeric& grid_width,
+                              const Index& grid_npoints,
                               const Index& do_2d,
-                              const Verbosity&) {
-  if (dx_si > xwidth_si)
-    throw runtime_error("It is demanded that dx_si <= xwidth_si.");
+                              const Verbosity& verbosity) {
+  const Index nf = f_points.nelem();
+  ARTS_USER_ERROR_IF (nf == 0, "*f_points* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() == 0, "*fwhm* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() != nf,
+                      "*f_points* and *fwhm* must have the same length.");  
+  ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
 
-  Vector x, y;
-  gaussian_response_autogrid(x, y, 0, fwhm, xwidth_si, dx_si);
+  // Defaults
+  const Numeric gwidth = grid_width > 0 ? grid_width : 2 * max(fwhm);
 
+  // Grid
+  Vector grid;
+  nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
+
+  // Start to fill r
   r.set_name("Antenna response");
-
   r.set_grid_name(0, "Polarisation");
   r.set_grid(0, {"NaN"});
-
   r.set_grid_name(1, "Frequency");
-  r.set_grid(1, Vector(1, -999));
-
+  r.set_grid(1, f_points);
   r.set_grid_name(2, "Zenith angle");
-  r.set_grid(2, x);
-
-  // common for 1D and 2D
+  r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
-  const Index n = y.nelem();
-  //
+
   if (do_2d) {
-    r.set_grid(3, x);
-    r.data.resize(1, 1, n, n);
-
-    // The code below follows the function *gaussian_response*
-    const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-    const Numeric a = 1 / (si * sqrt(2 * PI));
-
-    for (Index z = 0; z < n; z++) {
-      for (Index b = 0; b < n; b++) {
-        r.data(0, 0, z, b) =
-            a * exp(-0.5 * pow(sqrt(x[z] * x[z] + x[b] * x[b]) / si, 2.0));
-      }
+    r.set_grid(3, grid);
+    r.data.resize(1, nf, grid_npoints, grid_npoints);
+    for (Index i=0; i<nf; ++i) {
+      ARTS_USER_ERROR_IF (fwhm[i] <= 0,
+                          "All values in *fwhm* must be >= 0.");  
+      Matrix Y;
+      MatrixGaussian(Y, grid, 0, -1.0, fwhm[i],
+                        grid, 0, -1.0, fwhm[i], verbosity);
+      // Apply 1/cos(za) to get correct result after integration
+      for (Index z=0; z<grid_npoints; ++z) 
+          Y(z, joker) /= cos(DEG2RAD * grid[z]);
+      r.data(0, i, joker, joker) = Y;
     }
   } else {
     r.set_grid(3, Vector(1, 0));
-    r.data.resize(1, 1, n, 1);
-    r.data(0, 0, joker, 0) = y;
+    r.data.resize(1, nf, grid_npoints, 1);
+    for (Index i=0; i<nf; ++i) {
+      ARTS_USER_ERROR_IF (fwhm[i] <= 0,
+                          "All values in *fwhm* must be >= 0.");  
+      Vector y;
+      VectorGaussian(y, grid, 0, -1.0, fwhm[i], verbosity);
+      r.data(0, i, joker, 0) = y;
+    }
   }
 }
 
 
 
+ /* Workspace method: Doxygen documentation will be auto-generated */
+void antenna_responseGaussianConstant(GriddedField4& r,
+                                      const Numeric& fwhm,
+                                      const Numeric& grid_width,
+                                      const Index& grid_npoints,
+                                      const Index& do_2d,
+                                      const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
+
+  antenna_responseGaussian(r,
+                           Vector(1, 0.0),
+                           Vector(1, fwhm),
+                           grid_width,
+                           grid_npoints,
+                           do_2d,
+                           verbosity);
+}
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseVaryingGaussian(GriddedField4& r,
-                                     const Numeric& leff,
-                                     const Numeric& xwidth_si,
-                                     const Numeric& dx_si,
-                                     const Index& nf,
-                                     const Numeric& fstart,
-                                     const Numeric& fstop,
-                                     const Index& do_2d,
-                                     const Verbosity& verbosity) {
-  if (dx_si > xwidth_si)
-    throw runtime_error("It is demanded that dx_si <= xwidth_si.");
+void antenna_responseGaussianEffectiveSize(GriddedField4& r,
+                                           const Numeric& leff,
+                                           const Numeric& grid_width,
+                                           const Index& grid_npoints,
+                                           const Index& nf,
+                                           const Numeric& fstart,
+                                           const Numeric& fstop,
+                                           const Index& do_2d,
+                                           const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
 
-  // Calculate response for highest frequency, with xwidth_si scaled from
-  // fstart
-  Vector x, y;
-  Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * fstop);
-  gaussian_response_autogrid(
-      x, y, 0, fwhm, (fstop / fstart) * xwidth_si, dx_si);
+  Numeric gwidth = grid_width;
+  if (gwidth <= 0) {
+    gwidth = 2.0 * RAD2DEG * SPEED_OF_LIGHT / (leff * fstart);
+  }
 
+  // Angular grid
+  Vector grid;
+  nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
+
+  // Start to fill r
   r.set_name("Antenna response");
-
   r.set_grid_name(0, "Polarisation");
   r.set_grid(0, {"NaN"});
-
   Vector f_grid;
   VectorNLogSpace(f_grid, nf, fstart, fstop, verbosity);
   r.set_grid_name(1, "Frequency");
   r.set_grid(1, f_grid);
-
   r.set_grid_name(2, "Zenith angle");
-  r.set_grid(2, x);
-
-  // common for 1D and 2D
+  r.set_grid(2, grid);
   r.set_grid_name(3, "Azimuth angle");
-  const Index n = y.nelem();
-  //
+  
   if (do_2d) {
-    r.set_grid(3, x);
-    r.data.resize(1, nf, n, n);
-
+    r.set_grid(3, grid);
+    r.data.resize(1, nf, grid_npoints, grid_npoints);
+    Matrix Y;
     for (Index i = 0; i < nf; i++) {
-      fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
-      const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-      const Numeric a = 1 / (si * sqrt(2 * PI));
-
-      for (Index z = 0; z < n; z++) {
-        for (Index b = 0; b < n; b++) {
-          r.data(0, i, z, b) =
-              a * exp(-0.5 * pow(sqrt(x[z] * x[z] + x[b] * x[b]) / si, 2.0));
-        }
-      }
+      const Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
+      MatrixGaussian(Y, grid, 0, -1.0, fwhm, grid, 0, -1.0, fwhm, verbosity);
+      // Apply 1/cos(za) to get correct result after integration
+      for (Index z=0; z<grid_npoints; ++z) 
+          Y(z, joker) /= cos(DEG2RAD * grid[z]);
+      r.data(0, i, joker, joker) = Y;
     }
   } else {
     r.set_grid(3, Vector(1, 0));
-    r.data.resize(1, nf, n, 1);
-    //
-    r.data(0, nf - 1, joker, 0) = y;
-    //
-    for (Index i = 0; i < nf - 1; i++) {
-      fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
-      gaussian_response(y, x, 0, fwhm);
+    r.data.resize(1, nf, grid_npoints, 1);
+    Vector y;
+    for (Index i = 0; i < nf; i++) {
+      const Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / (leff * f_grid[i]);
+      VectorGaussian(y, grid, 0, -1.0, fwhm, verbosity);
       r.data(0, i, joker, 0) = y;
     }
   }
@@ -343,40 +322,53 @@ void backend_channel_responseFlat(ArrayOfGriddedField1& r,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
+                                      const Vector& f_backend,
                                       const Vector& fwhm,
-                                      const Vector& xwidth_si,
-                                      const Vector& dx_si,
-                                      const Verbosity&) {
-  if ((fwhm.nelem() != xwidth_si.nelem() && xwidth_si.nelem() != 1) ||
-      (fwhm.nelem() != dx_si.nelem() && dx_si.nelem() != 1)) {
-    std::ostringstream os;
-    os << "*xwidth_si* and *dx_si* must have one element or the same number of\n";
-    os << "elements as *fwhm*.";
-    throw std::runtime_error(os.str());
-  }
+                                      const Numeric& grid_width,
+                                      const Index& grid_npoints,
+                                      const Verbosity& verbosity) {
+  const Index nf = f_backend.nelem();
+  ARTS_USER_ERROR_IF (nf == 0, "*f_backend* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() == 0, "*fwhm* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.nelem() != nf,
+                      "*f_backend* and *fwhm* must have the same length.");  
+  ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
+  
+  // Fill r
+  r.resize(nf);
+  for (Index i=0; i<nf; ++i) {
+    ARTS_USER_ERROR_IF (fwhm[i] <= 0, "All values in *fwhm* must be >= 0.");  
 
-  Index nchannels = fwhm.nelem();
-  r.resize(nchannels);
+    const Numeric gwidth = grid_width > 0 ? grid_width : 2 * fwhm[i];
+    Vector grid;
+    nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
 
-  Vector x, y;
-  Numeric this_xwidth_si = xwidth_si[0];
-  Numeric this_dx_si = dx_si[0];
-  for (Index i = 0; i < nchannels; i++) {
-    if (xwidth_si.nelem() > 1) this_xwidth_si = xwidth_si[i];
-
-    if (dx_si.nelem() > 1) this_dx_si = dx_si[i];
-
-    gaussian_response_autogrid(x, y, 0, fwhm[i], this_xwidth_si, this_dx_si);
-
+    Vector y;
+    VectorGaussian(y, grid, 0, -1.0, fwhm[i], verbosity);
+  
     r[i].set_name("Backend channel response function");
-
     r[i].set_grid_name(0, "Frequency");
-    r[i].set_grid(0, x);
-
-    const Index n = y.nelem();
-    r[i].data.resize(n);
-    for (Index j = 0; j < n; j++) r[i].data[j] = y[j];
+    r[i].set_grid(0, grid);
+    r[i].data = y;
   }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void backend_channel_responseGaussianConstant(ArrayOfGriddedField1& r,
+                                              const Numeric& fwhm,
+                                              const Numeric& grid_width,
+                                              const Index& grid_npoints,
+                                              const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF (fwhm <= 0, "*fwhm* must be > 0.");
+
+  backend_channel_responseGaussian(r,
+                                   Vector(1, 0.0),
+                                   Vector(1, fwhm),
+                                   grid_width,
+                                   grid_npoints,
+                                   verbosity);
 }
 
 
@@ -480,7 +472,7 @@ void f_gridFromSensorAMSU(  // WS Output:
 
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
+  std::vector<Numeric> f_grid_array;
 
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Band width:
@@ -500,7 +492,7 @@ void f_gridFromSensorAMSU(  // WS Output:
     out3 << "  Band range " << i << ": " << grid << "\n";
 
     // Append to f_grid_array:
-    f_grid_array.reserve(f_grid_array.nelem() + npi);
+    f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
 
@@ -508,7 +500,6 @@ void f_gridFromSensorAMSU(  // WS Output:
   f_grid = f_grid_array;
 
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
-  //  cout << "f_grid: " << f_grid << "\n";
 }
 
 
@@ -609,7 +600,7 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
 
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
+  std::vector<Numeric> f_grid_array;
 
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Bandwidth:
@@ -648,12 +639,12 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
     const Numeric gs = bw / npf;
 
     // Create the grid for this band:
-    Vector grid(fmin[i], npi, gs);
+    Vector grid=uniform_grid(fmin[i], npi, gs);
 
     out3 << "  Band range " << i << ": " << grid << "\n";
 
     // Append to f_grid_array:
-    f_grid_array.reserve(f_grid_array.nelem() + npi);
+    f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
 
@@ -700,7 +691,7 @@ void f_gridFromSensorHIRS(  // WS Output:
 
   // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
+  std::vector<Numeric> f_grid_array;
 
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Band width:
@@ -720,7 +711,7 @@ void f_gridFromSensorHIRS(  // WS Output:
     out3 << "  Band range " << i << ": " << grid << "\n";
 
     // Append to f_grid_array:
-    f_grid_array.reserve(f_grid_array.nelem() + npi);
+    f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
 
@@ -905,84 +896,37 @@ void f_gridMetMM(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mblock_dlos_gridUniformCircular(Matrix& mblock_dlos_grid,
-                                     const Numeric& spacing,
-                                     const Numeric& width,
-                                     const Index& centre,
-                                     const Verbosity&) {
-  // Create linear, equidistant grid (same in zenith and azimuth)
-  Vector x;
-  Numeric w;
-  if (centre) {
-    w = spacing * ceil(width / spacing);
-  } else {
-    w = spacing * (0.5 + floor(width / spacing));
-  }
-  linspace(x, -w, w, spacing);
-  //
-  const Index l = x.nelem();
+void mblock_dlosFrom1dAntenna(Matrix& mblock_dlos,
+                              const GriddedField4& antenna_response,
+                              const Index& npoints,
+                              const Verbosity&) {
+  ARTS_USER_ERROR_IF (antenna_response.data.ncols() != 1,
+                      "The input antenna response must be 1D.");  
+  ARTS_USER_ERROR_IF (npoints < 3, "*npoints* must be > 2.");
 
-  Matrix dlos_try(l * l, 2, 0);
-  Index n_in = 0;
-  const Numeric c = width * width;
+  // za grid for response
+  ConstVectorView r_za_grid = antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+  const Index nr = r_za_grid.nelem();
 
-  for (Index i = 0; i < l; i++) {
-    const Numeric a = x[i] * x[i];
-
-    for (Index j = 0; j < l; j++) {
-      if (a + x[j] * x[j] <= c) {
-        dlos_try(n_in, 0) = x[i];
-        dlos_try(n_in, 1) = x[j];
-        n_in++;
-      }
-    }
+  // Cumulative integral of response (factor /2 skipped, but does not matter)
+  Vector cumtrapz(nr);
+  cumtrapz[0] = 0;
+  for (Index i = 1; i < nr; i++) {
+    cumtrapz[i] = cumtrapz[i - 1] + antenna_response.data(0, 0, i - 1, 0) +
+                                    antenna_response.data(0, 0, i, 0);
   }
 
-  mblock_dlos_grid = dlos_try(Range(0, n_in), joker);
-}
+  // Equally spaced vector between end points of cumulative sum
+  Vector csp;
+  nlinspace(csp, cumtrapz[0], cumtrapz[nr - 1], npoints);
 
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void mblock_dlos_gridUniformRectangular(Matrix& mblock_dlos_grid,
-                                        const Numeric& spacing,
-                                        const Numeric& za_width,
-                                        const Numeric& aa_width,
-                                        const Index& centre,
-                                        const Verbosity&) {
-  // Create za-grid
-  Vector za;
-  Numeric w;
-  if (centre) {
-    w = spacing * ceil(za_width / spacing);
-  } else {
-    w = spacing * (0.5 + floor(za_width / spacing));
-  }
-  linspace(za, -w, w, spacing);
-
-  // Create aa-grid
-  Vector aa;
-  if (centre) {
-    w = spacing * ceil(aa_width / spacing);
-  } else {
-    w = spacing * (0.5 + floor(aa_width / spacing));
-  }
-  linspace(aa, -w, w, spacing);
-
-  const Index nza = za.nelem();
-  const Index naa = aa.nelem();
-
-  mblock_dlos_grid.resize(nza * naa, 2);
-
-  Index n = 0;
-
-  for (Index a = 0; a < naa; a++) {
-    for (Index z = 0; z < nza; z++) {
-      mblock_dlos_grid(n, 0) = za[z];
-      mblock_dlos_grid(n, 1) = aa[a];
-      n++;
-    }
-  }
+  // Get mblock_za_grid by interpolation
+  mblock_dlos.resize(npoints, 1);
+  ArrayOfGridPos gp(npoints);
+  gridpos(gp, cumtrapz, csp);
+  Matrix itw(npoints, 2);
+  interpweights(itw, gp);
+  interp(mblock_dlos(joker, 0), itw, r_za_grid, gp);
 }
 
 
@@ -1001,6 +945,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
                             const GriddedField4& antenna_response,
                             const Index& sensor_norm,
                             const String& option_2d,
+                            const Vector& solid_angles,
                             const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1131,7 +1076,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
           is_decreasing(sensor_response_dlos_grid(joker, 0)))) {
       os << "For 1D antennas, the zenith angles in *sensor_response_dlos_grid*\n"
          << "must be sorted, either in increasing or decreasing order.\n"
-         << "The original problem is probably found in *mblock_dlos_grid*.\n";
+         << "The original problem is probably found in *mblock_dlos*.\n";
       error_found = true;
     }
 
@@ -1149,14 +1094,14 @@ void sensor_responseAntenna(Sparse& sensor_response,
         os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
            << "It should be expanded with " << -za_dlow
            << " deg in the lower end.\n"
-           << "This change should be probably applied to *mblock_dlos_grid*.\n";
+           << "This change should be probably applied to *mblock_dlos*.\n";
         error_found = true;
       }
       if (za_dhigh < 0) {
         os << "The WSV zenith angle part of *sensor_response_dlos_grid* is too narrow.\n"
            << "It should be expanded with " << -za_dhigh
            << " deg in the upper end.\n"
-           << "This change should be probably applied to *mblock_dlos_grid*.\n";
+           << "This change should be probably applied to *mblock_dlos*.\n";
         error_found = true;
       }
     }
@@ -1188,12 +1133,15 @@ void sensor_responseAntenna(Sparse& sensor_response,
   else {
 
     if (option_2d == "interp_response" ) {
+      ARTS_USER_ERROR_IF (solid_angles.nelem() != sensor_response_dlos_grid.nrows(),
+          "Length of *solid_angles* not matching number of dlos.");  
       antenna2d_interp_response(hantenna,
                                 antenna_dim,
                                 antenna_dlos,
                                 antenna_response,
                                 sensor_response_dlos_grid,
-                                sensor_response_f_grid,
+                                solid_angles,
+                                sensor_response_f_grid,                                
                                 npol);
     }
     else if (option_2d == "gridded_dlos" ) {
@@ -1509,7 +1457,7 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
        << sensor_response.ncols() << "\n";
 
   // Update sensor_response_za_grid
-  const Vector zaaa = sensor_response_dlos_grid(1, joker);
+  const Vector zaaa{sensor_response_dlos_grid(1, joker)};
   sensor_response_dlos_grid.resize(1, zaaa.nelem());
   sensor_response_dlos_grid(0, joker) = zaaa;
 
@@ -1700,7 +1648,7 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
     fnew[Range(i * n1, n2)] = fp;
   }
 
-  const auto lag = Interpolation::LagrangeVector(fnew, sensor_response_f_grid, polyorder);
+  const auto lag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(fnew, sensor_response_f_grid, polyorder);
 
   // Set up H for this part
   //
@@ -1761,7 +1709,7 @@ void sensor_responseInit(Sparse& sensor_response,
                          ArrayOfIndex& sensor_response_pol_grid,
                          Matrix& sensor_response_dlos_grid,
                          const Vector& f_grid,
-                         const Matrix& mblock_dlos_grid,
+                         const Matrix& mblock_dlos,
                          const Index& antenna_dim,
                          const Index& atmosphere_dim,
                          const Index& stokes_dim,
@@ -1777,16 +1725,16 @@ void sensor_responseInit(Sparse& sensor_response,
   chk_if_in_range("antenna_dim", antenna_dim, 1, 2);
   chk_if_bool("sensor_norm", sensor_norm);
 
-  // mblock_dlos_grid
-  if (mblock_dlos_grid.empty())
-    throw runtime_error("*mblock_dlos_grid* is empty.");
-  if (mblock_dlos_grid.ncols() > 2)
+  // mblock_dlos
+  if (mblock_dlos.empty())
+    throw runtime_error("*mblock_dlos* is empty.");
+  if (mblock_dlos.ncols() > 2)
     throw runtime_error(
-        "The maximum number of columns in *mblock_dlos_grid* is two.");
+        "The maximum number of columns in *mblock_dlos* is two.");
   if (atmosphere_dim < 3) {
-    if (mblock_dlos_grid.ncols() != 1)
+    if (mblock_dlos.ncols() != 1)
       throw runtime_error(
-          "For 1D and 2D *mblock_dlos_grid* must have exactly one column.");
+          "For 1D and 2D *mblock_dlos* must have exactly one column.");
     if (antenna_dim == 2)
       throw runtime_error(
           "2D antennas (antenna_dim=2) can only be "
@@ -1795,7 +1743,7 @@ void sensor_responseInit(Sparse& sensor_response,
 
   // Set grid variables
   sensor_response_f_grid = f_grid;
-  sensor_response_dlos_grid = mblock_dlos_grid;
+  sensor_response_dlos_grid = mblock_dlos;
   //
   sensor_response_pol_grid.resize(stokes_dim);
   //
@@ -1832,13 +1780,13 @@ void sensorOff(Sparse& sensor_response,
                Vector& sensor_response_f_grid,
                ArrayOfIndex& sensor_response_pol_grid,
                Matrix& sensor_response_dlos_grid,
-               Matrix& mblock_dlos_grid,
+               Matrix& mblock_dlos,
                const Index& stokes_dim,
                const Vector& f_grid,
                const Verbosity& verbosity) {
   // Checks are done in sensor_responseInit.
   Index antenna_dim;
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   // Dummy variables (The method is independent of atmosphere_dim.
   // atmosphere_dim used below just for some checks when antenna is active, not
@@ -1853,7 +1801,7 @@ void sensorOff(Sparse& sensor_response,
                       sensor_response_pol_grid,
                       sensor_response_dlos_grid,
                       f_grid,
-                      mblock_dlos_grid,
+                      mblock_dlos,
                       antenna_dim,
                       atmosphere_dim,
                       stokes_dim,
@@ -2004,7 +1952,7 @@ void sensor_responseMixer(Sparse& sensor_response,
 void sensor_responseMetMM(
     // WS Output:
     Index& antenna_dim,
-    Matrix& mblock_dlos_grid,
+    Matrix& mblock_dlos,
     Sparse& sensor_response,
     Vector& sensor_response_f,
     ArrayOfIndex& sensor_response_pol,
@@ -2174,10 +2122,10 @@ void sensor_responseMetMM(
   }
 
   // mblock angle grids
-  mblock_dlos_grid = antenna_dlos_local;
+  mblock_dlos = antenna_dlos_local;
 
   // Set sensor response aux variables
-  sensor_response_dlos_grid = mblock_dlos_grid;
+  sensor_response_dlos_grid = mblock_dlos;
 
   // Set aux variables
   sensor_aux_vectors(sensor_response_f,
@@ -2737,7 +2685,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
 void sensor_responseGenericAMSU(  // WS Output:
     Vector& f_grid,
     Index& antenna_dim,
-    Matrix& mblock_dlos_grid,
+    Matrix& mblock_dlos,
     Sparse& sensor_response,
     Vector& sensor_response_f,
     ArrayOfIndex& sensor_response_pol,
@@ -2783,7 +2731,7 @@ void sensor_responseGenericAMSU(  // WS Output:
   //Set the verbosity to one third of the bandwidth to make sure that the passband flanks does't overlap
   const Numeric minRatioVerbosityVsFdiff =
       10;  // To be used when to passbands are closer then one verbosity value
-  Index totNumPb = 0;
+  //Index totNumPb = 0;
   Vector verbosityVect(n);
 
   for (Index idx = 0; idx < n; ++idx) {
@@ -2814,7 +2762,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       numPBpseudo[i] = numPB[i];
     }
 
-    totNumPb += (int)numPB[i];
+    //totNumPb += (int)numPB[i];
 
     if (numPB[i] > 4) {
       ostringstream os;
@@ -2987,7 +2935,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       verbosity);
 
   // do some final work...
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   sensor_responseInit(
       // out
@@ -3000,7 +2948,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       sensor_response_dlos_grid,
       // in
       f_grid,
-      mblock_dlos_grid,
+      mblock_dlos,
       antenna_dim,
       atmosphere_dim,
       stokes_dim,
@@ -3096,7 +3044,7 @@ void sensor_responseGenericAMSU(  // WS Output:
 void sensor_responseSimpleAMSU(  // WS Output:
     Vector& f_grid,
     Index& antenna_dim,
-    Matrix& mblock_dlos_grid,
+    Matrix& mblock_dlos,
     Sparse& sensor_response,
     Vector& sensor_response_f,
     ArrayOfIndex& sensor_response_pol,
@@ -3187,13 +3135,13 @@ void sensor_responseSimpleAMSU(  // WS Output:
   // ---------------------------------------------------
 
   f_gridFromSensorAMSU(f_grid,
-                       lo_multi,
+                       Vector{lo_multi},
                        f_backend_multi,
                        backend_channel_response_multi,
                        spacing,
                        verbosity);
 
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   sensor_responseInit(sensor_response,
                       sensor_response_f,
@@ -3203,7 +3151,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
                       sensor_response_pol_grid,
                       sensor_response_dlos_grid,
                       f_grid,
-                      mblock_dlos_grid,
+                      mblock_dlos,
                       antenna_dim,
                       atmosphere_dim,
                       stokes_dim,
@@ -3217,7 +3165,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
                                    sensor_response_f_grid,
                                    sensor_response_pol_grid,
                                    sensor_response_dlos_grid,
-                                   lo_multi,
+                                   Vector{lo_multi},
                                    sideband_response_multi,
                                    sideband_mode_multi,
                                    f_backend_multi,
@@ -3459,11 +3407,11 @@ void ySimpleSpectrometer(Vector& y,
   //
   Index antenna_dim;
   Vector sensor_response_f, sensor_response_f_grid;
-  Matrix mblock_dlos_grid, sensor_response_dlos_grid, sensor_response_dlos;
+  Matrix mblock_dlos, sensor_response_dlos_grid, sensor_response_dlos;
   ArrayOfIndex sensor_response_pol, sensor_response_pol_grid;
   Sparse sensor_response;
   //
-  AntennaOff(antenna_dim, mblock_dlos_grid, verbosity);
+  AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
   sensor_responseInit(sensor_response,
                       sensor_response_f,
@@ -3473,7 +3421,7 @@ void ySimpleSpectrometer(Vector& y,
                       sensor_response_pol_grid,
                       sensor_response_dlos_grid,
                       f_grid,
-                      mblock_dlos_grid,
+                      mblock_dlos,
                       antenna_dim,
                       atmosphere_dim,
                       stokes_dim,

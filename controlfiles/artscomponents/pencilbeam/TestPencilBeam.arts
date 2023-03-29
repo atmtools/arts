@@ -11,31 +11,25 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Number of Stokes components to be computed
@@ -57,12 +51,13 @@ VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 abs_speciesSet( species=
                 ["H2O-PWR98", 
                  "N2-SelfContStandardType",
-                 "O2-PWR93"] )
+                 "O2-PWR98"] )
 
 # No line data needed here
 # 
 abs_lines_per_speciesSetEmpty
 
+propmat_clearsky_agendaAuto
 
 # Dimensionality of the atmosphere
 #
@@ -103,8 +98,6 @@ cloudboxOff
 
 # Perform RT calculations
 # 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

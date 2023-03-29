@@ -29,6 +29,7 @@
 #define fullmodel_h
 
 #include "jacobian.h"
+#include "predefined/predef_data.h"
 #include "propagationmatrix.h"
 #include "species.h"
 #include <algorithm>
@@ -41,9 +42,12 @@ namespace Absorption::PredefinedModel {
  *  wrapper in the compute function.
  */
 struct VMRS {
+  Numeric CO2{0};
   Numeric O2{0};
+  Numeric N2{0};
   Numeric H2O{0};
   Numeric N2{0};
+  Numeric LWC{0};
 
   /**  Construct a new VMRS object
    * 
@@ -51,19 +55,25 @@ struct VMRS {
    * @param rtp_vmr 
    */
   VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
+  CO2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::CarbonDioxide)),
   O2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Oxygen)),
   H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
-  N2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Nitrogen))
+  N2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Nitrogen)),
+  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
+  LWC(Species::first_vmr(abs_species, rtp_vmr, Species::Species::liquidcloud))
   {}
 
   constexpr VMRS() = default;
 
   friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
     return os << "O2: " << vmrs.O2 << '\n' <<
-                 "H2O: " << vmrs.H2O << '\n' <<
-                 "N2: " << vmrs.N2 << '\n';
+                 "N2: " << vmrs.N2 << '\n' <<
+                 "H2O: " << vmrs.H2O << '\n';
   }
 };
+
+//! Returns true if the model can be computed
+bool can_compute(const SpeciesIsotopeRecord& model);
 
 /** Compute the predefined model
  *
@@ -77,6 +87,7 @@ struct VMRS {
  * @param[in] rtp_temperature As WSV
  * @param[in] vmr The VMRS defined from WSVs abs_species and rtp_vmr
  * @param[in] jacobian_quantities As WSV
+ * @param[in] predefined_model_data As WSV
  */
 void compute(
     PropagationMatrix& propmat_clearsky,
@@ -86,7 +97,8 @@ void compute(
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const VMRS& vmr,
-    const ArrayOfRetrievalQuantity& jacobian_quantities);
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const PredefinedModelData& predefined_model_data);
 } // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h

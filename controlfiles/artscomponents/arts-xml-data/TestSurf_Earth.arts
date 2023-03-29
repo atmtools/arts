@@ -34,13 +34,10 @@
 # Jana Mendrok 2013-02-26
 
 Arts2 {
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # parameters for converting land/sea mask to surface reflectivities
 #  mask has land=1, sea=0 
@@ -107,7 +104,6 @@ abs_lines_per_speciesCreateFromLines
 #####
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
@@ -163,9 +159,8 @@ Append( casefull, surfmaskname )
 GriddedField2Create( lsmask )
 ReadXML( lsmask, casefull )
 
-abs_xsec_agenda_checkedCalc
+propmat_clearsky_agendaAuto
 lbl_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc
@@ -265,7 +260,7 @@ VectorAdd( surface_scalar_reflectivity, surface_scalar_reflectivity, refl_sea )
 # now we need to do some RT calc in order to APPLY the reflectivity data
 cloudbox_checkedCalc
 sensor_checkedCalc
-#Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+#surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 #Copy( surface_rtprop_agenda, surface_rtprop_agenda__lambertian_ReflFix_SurfTFromt_field )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field )
 yCalc

@@ -36,11 +36,12 @@
 #include "geodetic.h"
 #include <cmath>
 #include <stdexcept>
+#include "arts_conversions.h"
 #include "math_funcs.h"
 #include "ppath.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 /*===========================================================================
   === 2D functions

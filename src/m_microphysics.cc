@@ -43,6 +43,7 @@
 
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -63,7 +64,7 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
+inline constexpr Numeric PI=Constant::pi;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -103,14 +104,13 @@ void HydrotableCalc(Workspace& ws,
 
   // Allocate *hydrotable*
   hydrotable.set_name("Table of particle optical properties");
-  hydrotable.data.resize(5, nf, nt, nw);
+  hydrotable.data.resize(4, nf, nt, nw);
   //
   hydrotable.set_grid_name(0, "Quantity");
   hydrotable.set_grid(0, {"Extinction [m-1]",
                           "Single scattering albedo [-]",
                           "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]",
-                          "Test [-]"});
+                          "Radar reflectivity [m2]"});
   hydrotable.set_grid_name(1, "Frequency [Hz]");
   hydrotable.set_grid(1, f_grid);
   hydrotable.set_grid_name(2, "Temperature [K]");
@@ -461,7 +461,7 @@ void pndFromPsd(Matrix& pnd_data,
       ext_l0 = ext;
 
     for (Index ip = 0; ip < np; ip++)  //loop over pressure levels
-      if (abs(pnd_data(ip, joker).sum()) > 0.)
+      if (abs(sum(pnd_data(ip, joker))) > 0.)
         for (Index f = fstart; f < (fstart + nf); f++)
           bulkext(ip, f) += pnd_data(ip, intarr[ise]) * ext[f];
   }
@@ -476,7 +476,7 @@ void pndFromPsd(Matrix& pnd_data,
   Numeric contrib;
   for (Index ip = 0; ip < np; ip++)  //loop over pressure levels
   {
-    if (abs(pnd_data(ip, joker).sum()) > 0.) {
+    if (abs(sum(pnd_data(ip, joker))) > 0.) {
       for (Index f = fstart; f < (fstart + nf); f++) {
         /*        for( Index ise=0; ise<ng; ise++ )
         {

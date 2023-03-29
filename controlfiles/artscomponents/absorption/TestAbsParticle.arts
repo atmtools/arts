@@ -10,13 +10,9 @@
 # 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
-
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -90,17 +86,8 @@ scat_dataCheck
 ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
 
-# absorption from LUT
-#Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-AgendaSet( propmat_clearsky_agenda )
-{
-  Ignore(rtp_mag)
-  Ignore(rtp_los)
-  Ignore(rtp_nlte)
-  propmat_clearskyInit
-  propmat_clearskyAddFromLookup
-  propmat_clearskyAddParticles
-}
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 AtmFieldsCalc
 
@@ -159,8 +146,6 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc
 scat_data_checkedCalc
 sensor_checkedCalc
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 
 
 #WriteXML( in=abs_species )

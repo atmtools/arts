@@ -31,6 +31,7 @@
 #include "arts.h"
 #include "debug.h"
 #include "isotopologues.h"
+#include "messages.h"
 #include "quantum_numbers.h"
 #include "xml_io.h"
 #include <algorithm>
@@ -68,26 +69,26 @@ void xml_read_from_stream(istream& is_xml,
   if (jt.needQuantumIdentity()) {
     String qid;
     tag.get_attribute_value("id", qid);
-    jt.QuantumIdentity(QuantumIdentifier(qid));
+    jt.qid = QuantumIdentifier(qid);
   }
 
   if (jt.needArrayOfSpeciesTag()) {
     String key;
     tag.get_attribute_value("species", key);
-    jt.SpeciesList() = ArrayOfSpeciesTag(key);
+    jt.species_array_id = ArrayOfSpeciesTag(key);
   }
 
   if (jt.needString()) {
-    tag.get_attribute_value("string_key", jt.StringKey());
+    tag.get_attribute_value("string_key", jt.string_id);
   }
   
   if (pbifs) {
-    *pbifs >> jt.Perturbation();
+    *pbifs >> jt.perturbation;
     if (pbifs->fail()) {
       xml_data_parse_error(tag, "");
     }
   } else {
-    is_xml >> jt.Perturbation();
+    is_xml >> double_imanip() >> jt.perturbation;
     if (is_xml.fail()) {
       xml_data_parse_error(tag, "");
     }
@@ -125,22 +126,22 @@ void xml_write_to_stream(ostream& os_xml,
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
-    open_tag.add_attribute("id", var_string(jt.QuantumIdentity()));
+    open_tag.add_attribute("id", var_string(jt.qid));
   }
 
   if (jt.needArrayOfSpeciesTag()) {
-    open_tag.add_attribute("species", jt.SpeciesList().Name());
+    open_tag.add_attribute("species", jt.species_array_id.Name());
   }
 
   if (jt.needString()) {
-    open_tag.add_attribute("string_key", jt.StringKey());
+    open_tag.add_attribute("string_key", jt.string_id);
   }
   open_tag.write_to_stream(os_xml);
 
   if (pbofs)
-    *pbofs << jt.Perturbation();
+    *pbofs << jt.perturbation;
   else
-    os_xml << ' ' << jt.Perturbation() << ' ';
+    os_xml << ' ' << jt.perturbation << ' ';
 
   close_tag.set_name("/JacobianTarget");
   close_tag.write_to_stream(os_xml);
@@ -203,7 +204,7 @@ void xml_write_to_stream(ostream& os_xml,
   if (pbofs)
     *pbofs << rational;
   else
-    os_xml << rational;
+    os_xml << ' ' << rational << ' ';
 
   close_tag.set_name("/Rational");
   close_tag.write_to_stream(os_xml);
@@ -268,7 +269,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("TransmissionMatrix");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("Stokes", tm.StokesDim());
+  open_tag.add_attribute("Stokes", tm.stokes_dim);
   open_tag.add_attribute("Freqs", tm.Frequencies());
 
   open_tag.write_to_stream(os_xml);
@@ -344,7 +345,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("RadiationVector");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("Stokes", rv.StokesDim());
+  open_tag.add_attribute("Stokes", rv.stokes_dim);
   open_tag.add_attribute("Freqs", rv.Frequencies());
 
   open_tag.write_to_stream(os_xml);
@@ -594,6 +595,19 @@ void xml_read_from_stream(istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLines");
+
+  CREATE_OUT3;
+  if (out3.sufficient_priority_screen()) {
+    if (not al.quantumidentity.good()) {
+      out3 << "Bad data in absorption band " << al.MetaData() << '\n';
+    }
+    for (auto& line : al.lines) {
+      if (not line.localquanta.good()) {
+        out3 << "Bad data in absorption band " << al.MetaData() << '\n'
+             << "Line: " << line << '\n';
+      }
+    }
+  }
 }
 
 //! Writes AbsorptionLines to XML output stream
@@ -622,6 +636,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("AbsorptionLines");
   open_tag.add_attribute("version", al.version);
+  open_tag.add_attribute("id", var_string(al.quantumidentity));
   open_tag.add_attribute("nlines", al.NumLines());
   open_tag.add_attribute("cutofftype", Absorption::toString(al.cutoff));
   open_tag.add_attribute("mirroringtype", Absorption::toString(al.mirroring));
@@ -632,11 +647,6 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("cutofffreq", al.cutofffreq);
   open_tag.add_attribute("linemixinglimit", al.linemixinglimit);
 
-//  open_tag.add_attribute("species", al.SpeciesName());
-//  open_tag.add_attribute("localquanta", al.LocalQuanta());
-//  open_tag.add_attribute("upperglobalquanta", al.UpperQuantumNumbers());
-//  open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
-  open_tag.add_attribute("id", var_string(al.quantumidentity));
   const String localquanta_str =
       al.NumLines() ? al.lines.front().localquanta.keys() : "";
   open_tag.add_attribute("localquanta", localquanta_str);

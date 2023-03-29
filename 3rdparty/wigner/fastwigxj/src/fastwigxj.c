@@ -147,8 +147,8 @@ size_t fastwigxj_dyn_init(int type, size_t entries)
 #if FASTWIGXJ_HAVE_LSFENCE      /* Fences, or cannot order memory access. */
 size_t fastwigxj_thread_dyn_init(int type, size_t entries)
 {
-  //fprintf (stderr, "Dynamic tables not yet supported with threads.");
-  //exit(1);
+  fprintf (stderr, "Dynamic tables not yet supported with threads.");
+  exit(1);
   return fastwigxj_dyn_init(type, entries);
 }
 #endif
@@ -900,11 +900,16 @@ double fastwig3jj_fallback(uint64_t x, const int *two_jv)
 
   if (TABLE_3J->_dyn_table)
     {
-      uint64_t sign = x & 1;
-      uint64_t index = x >> 1;
+      if (x != (uint64_t) -4) /* overflow key, cannot add in table */
+	{
+	  uint64_t sign = x & 1;
+	  uint64_t index = x >> 1;
 
-      wig369j_ht_dyn_insert(TABLE_3J->_dyn_table, STATS_3J,
-			    0, index, sign ? -value : value);
+	  wig369j_ht_dyn_insert(TABLE_3J->_dyn_table, STATS_3J,
+				0, index, sign ? -value : value);
+	}
+      else
+	STATS_3J->_dyn_ovfl++;
     }
 
   return value;
@@ -918,7 +923,14 @@ double fastwig6jj_fallback(uint64_t x, const int *two_jv)
 		 two_jv[3], two_jv[4], two_jv[5]);
 
   if (TABLE_6J->_dyn_table)
-    wig369j_ht_dyn_insert(TABLE_6J->_dyn_table, STATS_6J, 0, x, value);
+    {
+      if (x != (uint64_t) -4) /* overflow key, cannot add in table */
+	{
+	  wig369j_ht_dyn_insert(TABLE_6J->_dyn_table, STATS_6J, 0, x, value);
+	}
+      else
+	STATS_6J->_dyn_ovfl++;
+    }
 
   return value;
 }
@@ -1210,6 +1222,8 @@ double fastwig9jj_fallback(uint64_t sign, uint64_t key, const int *two_jv)
 				sign2, key,
 				(sign & sign2) ? -value : value);
 	}
+      else
+	STATS_9J->_dyn_ovfl++;
     }
 
   return value;
@@ -1274,6 +1288,8 @@ void fastwigxj_print_stats()
 			       offsetof(struct wigner369j_stats, _dyn_hits));
   wig369j_print_stats_val_frac(fid, "Dynamic trip....: ",
 			       offsetof(struct wigner369j_stats, _dyn_trip));
+  wig369j_print_stats_val_frac(fid, "Dyn C14N ovfl...: ",
+			       offsetof(struct wigner369j_stats, _dyn_ovfl));
   wig369j_print_stats_val_frac(fid, "9j-by-6j........: ",
 			       offsetof(struct wigner369j_stats, _9j_by_6j));
   wig369j_print_stats_val_frac(fid, "Full calc.......: ",

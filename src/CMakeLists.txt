@@ -1,9 +1,11 @@
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
+                      ${CMAKE_CURRENT_SOURCE_DIR}/matpack
                       ${ZLIB_INCLUDE_DIR}
                       ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
                       ${ARTS_SOURCE_DIR}/3rdparty/cdisort
                       ${ARTS_SOURCE_DIR}/3rdparty/Eigen
+                      ${ARTS_SOURCE_DIR}/3rdparty/mdspan/include()
                     )
 
 if (NETCDF_FOUND)
@@ -60,43 +62,22 @@ list (APPEND ALL_ARTS_LIBRARIES Faddeeva)
 
 ########### target to extract version number from ChangeLog ###############
 
-add_custom_target (auto_version_h DEPENDS auto_version.h)
-add_dependencies (auto_version_h UpdateAutoVersion)
+add_custom_target (auto_version_cc DEPENDS UpdateAutoVersion)
 
 add_custom_command (
-  OUTPUT auto_version.h
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_h.cmake
+  OUTPUT auto_version.cc
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_cc.cmake
   DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
 )
 
 ########### next target ###############
 
 add_executable (arts main.cc)
-add_dependencies (arts auto_version_h)
 add_dependencies(check-deps arts)
 
 target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
 install (TARGETS arts RUNTIME DESTINATION bin)
-
-set_source_files_properties (legacy_continua.cc PROPERTIES
-                             COMPILE_FLAGS "-fno-strict-aliasing")
-
-# Reduce compile time for very large initialization functions
-set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-
-# Silence invlib warning spam
-set_source_files_properties (m_oem.cc PROPERTIES
-                             COMPILE_FLAGS "-Wno-conversion")
-
-########### next target ###############
-
-if (C_API)
-add_library (arts_api SHARED arts_api.cc interactive_workspace.cc arts_api_classes.cc)
-add_dependencies (arts arts_api)
-set_target_properties(arts_api PROPERTIES SUFFIX .so)
-target_link_libraries (arts_api ${ALL_ARTS_LIBRARIES})
-endif (C_API)
 
 ########### next target ###############
 
@@ -113,7 +94,7 @@ add_custom_command (
         DEPENDS make_workspace_memory_handler_cc
         )
 add_custom_target (BuildAutoSources DEPENDS auto_md.h
-                   auto_md.cc)
+                   auto_md.cc tokval.h)
 
 ########### next target ###############
 
@@ -124,8 +105,6 @@ add_executable (make_auto_md_h
         make_auto_md_h.cc
         messages.cc
         parameters.cc
-        workspace.cc
-        workspace_ng.cc
         )
 
 target_link_libraries (make_auto_md_h methods matpack)
@@ -145,8 +124,6 @@ add_executable (make_auto_md_cc
         make_auto_md_cc.cc
         messages.cc
         parameters.cc
-        workspace.cc
-        workspace_ng.cc
         )
 
 target_link_libraries (make_auto_md_cc methods matpack)
@@ -155,6 +132,20 @@ add_custom_command (
         OUTPUT auto_md.cc
         COMMAND make_auto_md_cc
         DEPENDS make_auto_md_cc
+        )
+
+########### next target ###############
+
+add_executable (make_default_gins
+        make_default_gins.cc
+        )
+
+target_link_libraries (make_default_gins methods)
+
+add_custom_command (
+        OUTPUT default_gins.cc default_gins.h
+        COMMAND make_default_gins
+        DEPENDS make_default_gins
         )
 
 ########### next target ###############
@@ -173,15 +164,18 @@ add_library (artscore STATIC
   absorptionlines.cc
   agenda_class.cc
   agenda_record.cc
+  agenda_set.cc
   arts.cc
   arts_omp.cc
   artstime.cc
+  auto_version.cc
+  callback.cc
   check_input.cc
   cia.cc
   cloudbox.cc
-  constants.cc
   compile_time_tests.cc
   covariance_matrix.cc
+  default_gins.cc
   disort.cc
   docserver.cc
   doit.cc
@@ -190,18 +184,17 @@ add_library (artscore STATIC
   predefined_absorption_models.cc
   file.cc
   gas_abs_lookup.cc
+  gas_scattering.cc
   geodetic.cc
   gridded_fields.cc
+  gui_propmat.cc
   hitran_species.cc
-  hitran_xsec.cc
+  xsec_fit.cc
   igrf13.cc
   interpolation.cc
-  interpolation_lagrange.cc
   jacobian.cc
   jpl_species.cc
-  legacy_continua.cc
   legendre.cc
-  lin_alg.cc
   linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
@@ -211,6 +204,7 @@ add_library (artscore STATIC
   m_absorptionlines.cc
   m_abs_lookup.cc
   m_agenda.cc
+  m_agenda_set.cc
   m_array.cc
   m_artstime.cc
   m_atmosphere.cc
@@ -224,9 +218,11 @@ add_library (artscore STATIC
   m_doit.cc
   m_fluxes.cc
   m_predefined_absorption_models.cc
+  m_propmat.cc
+  m_gas_scattering.cc
   m_general.cc
   m_geodetic.cc
-  m_hitran_xsec.cc
+  m_xsec_fit.cc
   m_jacobian.cc
   m_linemixing.cc
   m_microphysics.cc
@@ -248,6 +244,7 @@ add_library (artscore STATIC
   m_rte.cc
   m_retrieval.cc
   m_sensor.cc
+        m_sun.cc
   m_surface.cc
   m_telsem.cc
   m_tessem.cc
@@ -256,6 +253,7 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
+  m_callback.cc
   math_funcs.cc
   mc_antenna.cc
   mc_interp.cc
@@ -267,14 +265,16 @@ add_library (artscore STATIC
   optproperties.cc
   parameters.cc
   parser.cc
+  partfun.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
+  ppath_struct.cc
   propmat_field.cc
   psd.cc
   quantum_numbers.cc
+  quantum_term_symbol.cc
   radiation_field.cc
-  rational.cc
   raw.cc
   refraction.cc
   rng.cc
@@ -285,17 +285,18 @@ add_library (artscore STATIC
   special_interp.cc
   species_info.cc
   species_tags.cc
+        sun.cc
   surface.cc
   telsem.cc
   tessem.cc
   timings.cc
   tmatrix.cc
-  token.cc
+  tokval_io.cc
   transmissionmatrix.cc
   wigner_functions.cc
-  workspace.cc
   workspace_ng.cc
   workspace_memory_handler.cc
+  wsv_aux_operator.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -304,7 +305,12 @@ add_library (artscore STATIC
   zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
-add_dependencies (artscore auto_version_h species)
+add_dependencies (artscore auto_version_cc species)
+target_link_libraries(artscore auto_partfun)
+
+if (ENABLE_PCH)
+  target_precompile_headers(artscore PRIVATE pch_artscore.h)
+endif()
 
 if (ENABLE_GUI)
   add_subdirectory(gui)
@@ -316,6 +322,8 @@ if (ENABLE_GUI)
                                              ${ARTS_SOURCE_DIR}/3rdparty/)
   
   target_link_libraries (artscore artsgui)
+
+  target_compile_definitions(artscore PUBLIC ARTS_GUI_ENABLED)
 endif()
 
 
@@ -337,24 +345,8 @@ if (ENABLE_DOCSERVER)
 endif (ENABLE_DOCSERVER)
 
 ########### next target ###############
-
-add_library (matpack STATIC
-        lin_alg.cc
-        logic.cc
-        rational.cc
-        matpackI.cc
-        matpackII.cc
-        matpackIII.cc
-        matpackIV.cc
-        matpackV.cc
-        matpackVI.cc
-        matpackVII.cc
-        matpack_complex.cc
-        propagationmatrix.cc
-        )
         
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
-target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
@@ -372,7 +364,6 @@ add_library (binio STATIC
         bifstream.cc
         bofstream.cc
         binio.cc
-        double_imanip.cc
         gzstream.cc 
         )
 
@@ -383,12 +374,19 @@ target_link_libraries (binio ${ZLIB_LIBRARIES})
 ########### next target ###############
 
 add_library (methods STATIC
+        methods.cc
+        tokval.cc
+
         agendas.cc
         agenda_record.cc
-        methods.cc
         methods_aux.cc
         groups.cc
+        workspace.cc
+        wsv_aux.cc
         )
+
+set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
+target_link_libraries(methods PUBLIC predef species)
 
 ########### next target ###############
 
@@ -419,8 +417,6 @@ target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
 ########### next testcase ###############
 
 add_executable (test_linalg
-  constants.cc
-  lin_alg.cc
   test_linalg.cc)
 
 target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES}
@@ -429,7 +425,6 @@ target_link_libraries (test_linalg ${ALL_ARTS_LIBRARIES}
 ########### next testcase ###############
 
 add_executable (test_integration
-  constants.cc
   math_funcs.cc
   test_integration.cc)
 
@@ -485,7 +480,7 @@ target_link_libraries (test_tensor matpack)
 
 ########### next testcase ###############
 
-add_executable (test_matpack describe.h describe.cc
+add_executable (test_matpack
                 wigner_functions.cc test_matpack.cc)
 target_link_libraries (test_matpack matpack artscore test_utils)
 
@@ -526,7 +521,7 @@ target_link_libraries (test_cia ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
-add_executable (test_propagationmatrix test_propagationmatrix.cc absorption.h jacobian.h linescaling.h propagationmatrix.h global_data.h)
+add_executable (test_propagationmatrix test_propagationmatrix.cc)
 target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
@@ -576,77 +571,20 @@ arts_test_cmdline("version" -v)
 arts_test_cmdline("workspacevariables" -w all)
 arts_test_cmdline("check-docs" -C)
 
-########### ARTS Interface ###############
-
-########################################################################################
-# ARTS Library for including in C++ (must link to autoarts.h to get file)
-add_library (public_arts_interface INTERFACE)
-target_link_libraries(public_arts_interface INTERFACE ${ALL_ARTS_LIBRARIES})
-target_include_directories(public_arts_interface INTERFACE ${ARTS_BINARY_DIR}
-                                                           ${ARTS_BINARY_DIR}/src/
-                                                           ${ARTS_SOURCE_DIR}/src/
-                                                           ${ARTS_SOURCE_DIR}/3rdparty/
-                                                           ${ARTS_SOURCE_DIR}/3rdparty/invlib/src)
-add_dependencies(public_arts_interface make_autoarts_h_target)
-########################################################################################
-
-########################################################################################
-# Generate the internal structure for the ARTS C++ interface
-add_executable(make_autoarts_h make_autoarts_h.cc)
-target_link_libraries(make_autoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
-########################################################################################
-
-########################################################################################
-# Generate autoarts.h for the ARTS interface
-add_custom_command(OUTPUT autoarts.h
-                   COMMAND make_autoarts_h > ${ARTS_BINARY_DIR}/src/autoarts.h
-                   DEPENDS make_autoarts_h)
-add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h)
-########################################################################################
-
-########################################################################################
-# Test that the autoarts.h linking can be understood by running a simple test
-add_executable(test_cpp_api test_cpp_api.cc)
-target_link_libraries(test_cpp_api public_arts_interface)
-add_dependencies(check-deps test_cpp_api)
-add_test(NAME "arts.cpp_api.fast.silly_groundbased_water_test" COMMAND test_cpp_api)
-########################################################################################
-
 # Build a test for the plotting tool
 if (ENABLE_GUI)
   add_executable(test_gui test_gui.cc)
   target_link_libraries(test_gui PUBLIC ${ALL_ARTS_LIBRARIES})
 endif()
-
-# Generate the RAW test file
-if (ENABLE_GUI)
-  add_executable(test_raw test_raw.cc)
-  target_link_libraries(test_raw ${ALL_ARTS_LIBRARIES} public_arts_interface test_utils)
-endif()
-
-########################################################################################
-add_executable(gen_auto_partfun gen_auto_partfun.cc xml_io_partfun.cc)
-target_link_libraries (gen_auto_partfun PRIVATE matpack xmliobase)
 ########################################################################################
 
 ########################################################################################
-# Generate auto_partfun.h for the ARTS interface
-add_custom_command(OUTPUT auto_partfun.h
-                   COMMAND gen_auto_partfun ${ARTS_PARTFUN_DATA_PATH} > ${ARTS_BINARY_DIR}/src/auto_partfun.h
-                   DEPENDS gen_auto_partfun)
-########################################################################################
+add_subdirectory(partfun)
 
-########################################################################################
 add_library(species STATIC
-            auto_partfun.h
             isotopologues.cc
-            xml_io_partfun.cc
             )
-########################################################################################
-
-########################################################################################
-add_executable(partfun partfun.cc)
-target_link_libraries (partfun species matpack)
+target_link_libraries(species PUBLIC auto_partfun)
 ########################################################################################
 
 ########################################################################################
@@ -661,10 +599,18 @@ target_link_libraries (test_isotope species matpack)
 
 ########################################################################################
 # Test that the builtin partition functions are complete
-add_executable(test_partfun test_partfun.cc)
+add_executable(test_partfun test_partfun.cc partfun.cc)
 target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_partfun)
 add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
+########################################################################################
+
+########################################################################################
+# Test that the implentation for predefined models are complete
+add_executable(test_predefined test_predefined.cc)
+target_link_libraries(test_predefined ${ALL_ARTS_LIBRARIES})
+add_dependencies(check-deps test_predefined)
+add_test(NAME "arts.cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################
 
 ########### next testcase ###############
@@ -680,4 +626,65 @@ target_link_libraries(calc_predef ${ALL_ARTS_LIBRARIES})
 endif()
 
 add_executable (arts_qn arts_quantum_numbers.cc quantum_numbers.cc)
-target_link_libraries(arts_qn species matpack)
+target_link_libraries(arts_qn species xmliobase)
+
+########### python interface
+add_subdirectory(python_interface)
+
+########### variant tokval
+add_executable (make_tokval make_tokval.cc groups.cc)
+add_custom_command(OUTPUT tokval.h tokval.cc
+                   COMMAND make_tokval
+                   DEPENDS make_tokval)
+
+########################################################################################
+pybind11_add_module(test_pyversion test_pyversion.cc)
+add_custom_target(check-pyversion
+  COMMAND ${Python3_EXECUTABLE} -c "import test_pyversion\\; test_pyversion.check_pyversion\\(\\)"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS test_pyversion
+  COMMENT "Check Python version")
+########################################################################################
+
+########### IPO / LTO support
+if (IPO_SUPPORTED)
+  set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET artscore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET make_auto_md_cc PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET make_auto_md_h PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET matpack PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET methods PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+########################################################################################
+# Test OpenMP
+add_executable(test_omp EXCLUDE_FROM_ALL test_omp.cc)
+target_link_libraries(test_omp PUBLIC ${ALL_ARTS_LIBRARIES})
+########################################################################################
+# Test Eigen
+add_executable(test_matpack_eigen test_matpack_eigen.cc)
+target_link_libraries(test_matpack_eigen PUBLIC matpack)
+add_test(NAME "arts.cpp.fast.test_matpack_eigen" COMMAND test_matpack_eigen)
+add_dependencies(check-deps test_matpack_eigen)
+########################################################################################
+
+add_executable(run_partfun run_partfun.cc)
+target_link_libraries(run_partfun PRIVATE artscore)
+
+#####
+add_subdirectory(matpack)
+add_executable(test_mdspan test_mdspan.cc)
+target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack)
+add_test(NAME "arts.cpp.fast.test_mdspan" COMMAND test_mdspan)
+add_dependencies(check-deps test_mdspan)
+
+#####
+add_executable(test_matpack_perf test_matpack_perf.cc artstime.cc)
+target_link_libraries(test_matpack_perf PUBLIC matpack)
+
+#####
+add_executable(test_interp_perf test_interp_perf.cc artstime.cc)
+target_link_libraries(test_interp_perf PUBLIC matpack artscore)

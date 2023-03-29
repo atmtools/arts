@@ -2,9 +2,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # Define hydrometeors
 #

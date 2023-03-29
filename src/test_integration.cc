@@ -33,12 +33,14 @@
 
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
 
 void init_xy(float stepsize,
              int frequency,

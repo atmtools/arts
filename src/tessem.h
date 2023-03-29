@@ -28,9 +28,9 @@
 #define tessem_h
 
 #include <fstream>
-#include "matpackI.h"
+#include "matpack_data.h"
 
-typedef struct {
+struct TessemNN {
   Index nb_inputs;
   Index nb_outputs;
   Index nb_cache;
@@ -42,10 +42,12 @@ typedef struct {
   Vector x_max;
   Vector y_min;
   Vector y_max;
-} TessemNN;
+
+  friend std::ostream& operator<<(std::ostream& os, const TessemNN&) {return os;}
+};
 
 void tessem_read_ascii(std::ifstream& is, TessemNN& net);
 
-void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx);
+void tessem_prop_nn(VectorView ny, const TessemNN& net, ConstVectorView nx);
 
 #endif /* tessem_h */

@@ -32,19 +32,22 @@
 #include <cmath>
 #include <stdexcept>
 
+
 #include "arts.h"
+#include "arts_constants.h"
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "logic.h"
+#include "matpack_eigen.h"
 #include "messages.h"
 #include "montecarlo.h"
 #include "propagationmatrix.h"
 #include "rte.h"
 #include "sensor.h"
 
-extern const Numeric PI;
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric LOG10_EULER_NUMBER;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric LOG10_EULER_NUMBER=Constant::log10_euler;
 
 // Index of grids inside radar inversion tables
 const Index GFIELD3_DB_GRID = 1;
@@ -88,9 +91,9 @@ void iyRadarSingleScat(Workspace& ws,
                        const Index& jacobian_do,
                        const ArrayOfRetrievalQuantity& jacobian_quantities,
                        const Ppath& ppath,
+                       const Matrix& iy_transmitter,
                        const Agenda& propmat_clearsky_agenda,
                        const Agenda& water_p_eq_agenda,
-                       const Agenda& iy_transmitter_agenda,
                        const Numeric& rte_alonglos_v,
                        const Index& trans_in_jacobian,
                        const Numeric& pext_scaling,
@@ -142,24 +145,14 @@ void iyRadarSingleScat(Workspace& ws,
   // iy_aux_vars checked below
   chk_if_in_range("pext_scaling", pext_scaling, 0, 2);
 
-  // Transmitted signal
-  //
-  Matrix iy0;
-  //
-  iy_transmitter_agendaExecute(ws,
-                               iy0,
-                               f_grid,
-                               ppath.pos(np - 1, Range(0, atmosphere_dim)),
-                               ppath.los(np - 1, joker),
-                               iy_transmitter_agenda);
-  //
-  ARTS_USER_ERROR_IF (iy0.ncols() != ns || iy0.nrows() != nf,
+  //Check transmitter input
+  ARTS_USER_ERROR_IF (iy_transmitter.ncols() != ns || iy_transmitter.nrows() != nf,
     "The size of *iy* returned from *iy_transmitter_agenda* is\n"
     "not correct:\n"
     "  expected size = [", nf, ",", stokes_dim, "]\n"
-    "  size of iy    = [", iy0.nrows(), ",", iy0.ncols(), "]\n")
+    "  size of iy    = [", iy_transmitter.nrows(), ",", iy_transmitter.ncols(), "]\n")
   for (Index iv = 0; iv < nf; iv++)
-    ARTS_USER_ERROR_IF (iy0(iv, 0) != 1,
+    ARTS_USER_ERROR_IF (iy_transmitter(iv, 0) != 1,
           "The *iy* returned from *iy_transmitter_agenda* "
           "must have the value 1 in the first column.");
 
@@ -337,11 +330,11 @@ void iyRadarSingleScat(Workspace& ws,
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppvar_mag(joker, ip),
-                                    ppath.los(ip, joker),
+                                    Vector{ppvar_f(joker, ip)},
+                                    Vector{ppvar_mag(joker, ip)},
+                                    Vector{ppath.los(ip, joker)},
                                     ppvar_nlte[ip],
-                                    ppvar_vmr(joker, ip),
+                                    Vector{ppvar_vmr(joker, ip)},
                                     ppvar_t[ip],
                                     ppvar_p[ip],
                                     trans_in_jacobian && j_analytical_do);
@@ -432,7 +425,7 @@ void iyRadarSingleScat(Workspace& ws,
                                   ptype,
                                   t_ok,
                                   scat_data[i_ss][i_se],
-                                  ppvar_t[Range(ip, 1)],
+                                  Vector{ppvar_t[Range(ip, 1)]},
                                   mlos_sca,
                                   mlos_inc,
                                   0,
@@ -490,9 +483,9 @@ void iyRadarSingleScat(Workspace& ws,
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
       bulk_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
-  lvl_rad[0] = iy0;
+  lvl_rad[0] = iy_transmitter;
   RadiationVector rad_inc = RadiationVector(nf, ns);
-  rad_inc = iy0;
+  rad_inc = iy_transmitter;
   set_backscatter_radiation_vector(lvl_rad,
                                    dlvl_rad,
                                    rad_inc,
@@ -551,7 +544,7 @@ void iyRadarSingleScat(Workspace& ws,
     for (Index ip = 0; ip < np; ip++) {
       for (Index iv = 0; iv < nf; iv++) {
         VectorView stokesvec = VectorView(iy_aux[auxBackScat](iv*np+ip, joker));
-        MapToEigen(stokesvec).noalias() = reflect_matrix[ip].Mat(iv) * rad_inc.Vec(iv);
+        matpack::eigen::row_vec(stokesvec).noalias() = reflect_matrix[ip].Mat(iv) * rad_inc.Vec(iv);
       }
     }
   }
@@ -575,7 +568,6 @@ void yRadar(Workspace& ws,
             const ArrayOfString& iy_aux_vars,
             const Index& stokes_dim,
             const Vector& f_grid,
-            const Index& atmosphere_dim,
             const Index& cloudbox_on,
             const Index& cloudbox_checked,
             const Matrix& sensor_pos,
@@ -584,7 +576,6 @@ void yRadar(Workspace& ws,
             const Index& jacobian_do,
             const ArrayOfRetrievalQuantity& jacobian_quantities,
             const Agenda& iy_radar_agenda,
-            const Agenda& geo_pos_agenda,
             const ArrayOfArrayOfIndex& instrument_pol_array,
             const Vector& range_bins,
             const Numeric& ze_tref,
@@ -716,6 +707,7 @@ void yRadar(Workspace& ws,
   for (Index p = 0; p < npos; p++) {
     // RT part
     ArrayOfTensor3 diy_dx;
+    Vector geo_pos;
     Matrix iy;
     Ppath ppath;
     ArrayOfMatrix iy_aux;
@@ -726,12 +718,13 @@ void yRadar(Workspace& ws,
                           iy_aux,
                           ppath,
                           diy_dx,
+                          geo_pos,
                           iy_aux_vars,
                           iy_id,
                           cloudbox_on,
                           jacobian_do,
-                          sensor_pos(p, joker),
-                          sensor_los(p, joker),
+                          Vector{sensor_pos(p, joker)},
+                          Vector{sensor_los(p, joker)},
                           iy_radar_agenda);
 
     // Check if path and size OK
@@ -777,7 +770,7 @@ void yRadar(Workspace& ws,
 
         for (Index iv = 0; iv < nf; iv++) {
           // Pick out part of iy for frequency
-          Matrix I = iy(Range(iv * np, np), joker);
+          Matrix I{iy(Range(iv * np, np), joker)};
           ArrayOfTensor3 dI(njq);
           if (j_analytical_do) {
             FOR_ANALYTICAL_JACOBIANS_DO(
@@ -852,19 +845,15 @@ void yRadar(Workspace& ws,
                 y_aux[a][iout] = hbin * auxvar[a];
               }
             }
+
+            // And geo pos
+            if (geo_pos.nelem()) y_geo(iout, joker) = geo_pos;
           }
         }  // Frequency
       }
     }
 
     // Other aux variables
-    //
-    Vector geo_pos;
-    geo_pos_agendaExecute(ws, geo_pos, ppath, geo_pos_agenda);
-    ARTS_USER_ERROR_IF (geo_pos.nelem() && geo_pos.nelem() != atmosphere_dim,
-          "Wrong size of *geo_pos* obtained from "
-          "*geo_pos_agenda*.\nThe length of *geo_pos* must "
-          "be zero or equal to *atmosphere_dim*.");
     //
     for (Index b = 0; b < nbins; b++) {
       for (Index iv = 0; iv < nf; iv++) {
@@ -874,9 +863,6 @@ void yRadar(Workspace& ws,
           y_pol[iout] = instrument_pol_array[iv][ip];
           y_pos(iout, joker) = sensor_pos(p, joker);
           y_los(iout, joker) = sensor_los(p, joker);
-          if (geo_pos.nelem()) {
-            y_geo(iout, joker) = geo_pos;
-          }
         }
       }
     }
@@ -962,13 +948,13 @@ void particle_bulkpropRadarOnionPeeling(
   // relationship. 
   const Numeric extrap_fac = 100;
   
-  Workspace l_ws(ws);
-  Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
   ArrayOfString fail_msg;
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
+  
   // Loop all profiles
 #pragma omp parallel for if (!arts_omp_in_parallel() && nlat + nlon > 2) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda) collapse(2)
+    firstprivate(wss) collapse(2)
   for (Index ilat = 0; ilat < nlat; ilat++) {
     for (Index ilon = 0; ilon < nlon; ilon++) {
       if (fail_msg.nelem() != 0) continue;
@@ -979,7 +965,7 @@ void particle_bulkpropRadarOnionPeeling(
           Numeric dbze_corr_hyd = 0;
           Numeric k_part_above = 0, k_abs_above = 0;
           // Take abs below if incangle wrongly given as viewing angle
-          const Numeric hfac = abs(1 / cos(DEG2RAD * incangles(ilat, ilon)));
+          const Numeric hfac = abs(1 / Conversion::cosd(incangles(ilat, ilon)));
 
           for (Index ip = np - 1; ip >= 0; ip--) {
             // Above clutter zone
@@ -1059,20 +1045,21 @@ void particle_bulkpropRadarOnionPeeling(
                   ArrayOfStokesVector partial_nlte_dummy;
                   EnergyLevelMap rtp_nlte_local_dummy;
                   propmat_clearsky_agendaExecute(
-                      l_ws,
+                      wss,
                       propmat,
                       nlte_dummy,
                       partial_dummy,
                       partial_nlte_dummy,
                       ArrayOfRetrievalQuantity(0),
+                      {},
                       f_grid,
                       Vector(3, 0),
                       Vector(0),
                       p_grid[ip],
                       t_field(ip, ilat, ilon),
                       rtp_nlte_local_dummy,
-                      vmr_field(joker, ip, ilat, ilon),
-                      l_propmat_clearsky_agenda);
+                      Vector{vmr_field(joker, ip, ilat, ilon)},
+                      propmat_clearsky_agenda);
                   k_this = propmat.Kjj()[0];
                   // Optical thickness
                   Numeric tau =

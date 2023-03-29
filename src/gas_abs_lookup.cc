@@ -27,8 +27,10 @@
 #include <cfloat>
 #include <cmath>
 #include "check_input.h"
+#include "interp.h"
 #include "interpolation.h"
 #include "logic.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 
@@ -453,7 +455,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   transform(log_p_grid, log, p_grid);
 
   // 6. Initialize flag_default.
-  flag_default = Interpolation::LagrangeVector(f_grid, f_grid, 0);
+  flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(f_grid, f_grid, 0);
 }
 
 //! Extract scalar gas absorption coefficients from the lookup table.
@@ -511,6 +513,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   \author Stefan Buehler
 */
 void GasAbsLookup::Extract(Matrix& sga,
+                           const ArrayOfSpeciesTag& select_abs_species,
                            const Index& p_interp_order,
                            const Index& t_interp_order,
                            const Index& h2o_interp_order,
@@ -706,7 +709,7 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
     } else if (n_new_f_grid == 1) {
       flag = &flag_local;
-      flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, 0);
+      flag_local = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(new_f_grid, f_grid, 0);
 
       // Check that we really are on a frequency grid point, for safety's sake.
       if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin)
@@ -748,7 +751,7 @@ void GasAbsLookup::Extract(Matrix& sga,
 
     // We do have real frequency interpolation (f_interp_order!=0).
     flag = &flag_local;
-    flag_local = Interpolation::LagrangeVector(new_f_grid, f_grid, f_interp_order);
+    flag_local = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(new_f_grid, f_grid, f_interp_order);
   }
 
   // 4.b Other stuff
@@ -791,7 +794,9 @@ void GasAbsLookup::Extract(Matrix& sga,
   // For sure, we need to store the pressure grid position.
   // We do the interpolation in log(p). Test have shown that this
   // gives slightly better accuracy than interpolating in p directly.
-  const auto plag = Interpolation::LagrangeVector(log(p), log_p_grid, p_interp_order);
+  const auto plog=std::log(p);
+  ConstVectorView plog_v{plog};
+  const auto plag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(plog_v, log_p_grid, p_interp_order);
 
   // Pressure interpolation weights:
   const auto pitw = interpweights(plag[0]);
@@ -845,8 +850,8 @@ void GasAbsLookup::Extract(Matrix& sga,
   // Define variables for interpolation weights outside the loops.
   // We will make itw point to either the weights with H2O interpolation, or
   // the ones without.
-  Tensor3OfTensor3 itw_withH2O(0,0,0), itw_noH2O(0,0,0);
-  const Tensor3OfTensor3 *itw;
+  Tensor6 itw_withH2O{}, itw_noH2O{};
+  const Tensor6 *itw;
 
   for (Index pi = 0; pi < p_interp_order + 1; ++pi) {
     // Throw a runtime error if one of the reference VMR profiles is zero, but
@@ -1101,8 +1106,16 @@ void GasAbsLookup::Extract(Matrix& sga,
   // need to multiply with the number density of the species, i.e.,
   // with the total number density n, times the VMR of the
   // species:
-  for (Index si = 0; si < n_species; ++si)
-    sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+  for (Index si = 0; si < n_species; ++si) {
+    if (select_abs_species.nelem()) {
+      if (species[si] == select_abs_species)
+        sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+      else
+        sga(si, Range(joker)) = 0.;
+    } else {
+      sga(si, Range(joker)) *= (n * abs_vmrs[si]);
+    }
+  }
 
   // That's it, we're done!
 }

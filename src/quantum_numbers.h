@@ -2,6 +2,7 @@
 #define quantun_numbers_h
 
 #include <algorithm>
+#include <compare>
 #include <cstddef>
 #include <istream>
 #include <limits>
@@ -16,9 +17,11 @@
 #include "debug.h"
 #include "enums.h"
 #include "isotopologues.h"
-#include "matpack.h"
+#include "matpack_concepts.h"
 #include "nonstd.h"
 #include "rational.h"
+
+constexpr Index quantum_number_error_value = -999'999'999;
 
 namespace Quantum::Number {
 
@@ -58,6 +61,14 @@ struct StringValue {
     for (; i < n; i++) x[i] = s[i];
     if (i < N) x[i] = '\0';
   }
+
+  constexpr std::strong_ordering operator<=>(const StringValue& sv) const {
+    for (std::size_t i=0; i<N; i++) {
+      if (x[i] < sv.x[i]) return std::strong_ordering::less;
+      if (sv.x[i] < x[i]) return std::strong_ordering::greater;
+    }
+    return std::strong_ordering::equal;
+  }
 };
 
 //! Holds integer values
@@ -66,6 +77,8 @@ struct IntegerValue {
 
   //! Returns the value as a rational
   [[nodiscard]] constexpr Rational val() const noexcept { return x; }
+
+  constexpr std::strong_ordering operator<=>(const IntegerValue& i) const {return x<=> i.x;}
 };
 
 //! Holds half integer values, but only its denominator
@@ -76,6 +89,8 @@ struct HalfIntegerValue {
   [[nodiscard]] constexpr Rational val() const noexcept {
     return Rational(x, 2);
   }
+
+  constexpr std::strong_ordering operator<=>(const HalfIntegerValue& h) const {return x<=> h.x;}
 };
 
 //! Three tags, S: str, I: index, H: half-index
@@ -340,8 +355,24 @@ union ValueHolder {
   IntegerValue i;
   HalfIntegerValue h;
 
-  //! Defaults to an integer type
-  constexpr ValueHolder() noexcept : s("NODEF") {}
+  constexpr ValueHolder(ValueType t) noexcept : s(StringValue{"NODEF"}) {
+    switch (t) {
+      case ValueType::H:
+        h = HalfIntegerValue{0};
+        break;
+      case ValueType::I:
+        i = IntegerValue{0};
+        break;
+      default: {
+      }
+    }
+  }
+
+  constexpr ValueHolder(Type t) noexcept : ValueHolder(common_value_type(t)) {}
+  constexpr ValueHolder(const ValueHolder&) = default;
+  constexpr ValueHolder(ValueHolder&&) noexcept = default;
+  constexpr ValueHolder& operator=(const ValueHolder&) = default;
+  constexpr ValueHolder& operator=(ValueHolder&&) noexcept = default;
 };
 
 /** A complete description of a value, its type and value
@@ -352,9 +383,19 @@ struct ValueDescription {
   ValueType type;
   ValueHolder val;
 
+  constexpr ValueDescription(ValueType t) noexcept : type(t), val(t) {}
+  constexpr ValueDescription(const ValueDescription&) = default;
+  constexpr ValueDescription(ValueDescription&&) noexcept = default;
+  constexpr ValueDescription& operator=(const ValueDescription&) = default;
+  constexpr ValueDescription& operator=(ValueDescription&&) noexcept = default;
+
   //! Debug output only
   friend std::ostream& operator<<(std::ostream& os, ValueDescription x);
 };
+
+constexpr std::strong_ordering cmp(std::strong_ordering&& a, std::strong_ordering&& b) {
+  return a == std::strong_ordering::equal ? b : a;
+}
 
 /** The values of two levels
  * 
@@ -363,7 +404,8 @@ struct ValueDescription {
  * there's a 'mismatch'
  */
 struct TwoLevelValueHolder {
-  ValueHolder upp{}, low{};
+  ValueHolder upp;
+  ValueHolder low;
 
   //! Constructor to ensure two ValueDescription have the same type, for IO purposes
   constexpr TwoLevelValueHolder(ValueDescription u, ValueDescription l, Type t)
@@ -388,7 +430,24 @@ struct TwoLevelValueHolder {
     }
   }
 
-  constexpr TwoLevelValueHolder() = default;
+  constexpr TwoLevelValueHolder(Type t) noexcept : upp(t), low(t) {}
+  constexpr TwoLevelValueHolder(const TwoLevelValueHolder&) = default;
+  constexpr TwoLevelValueHolder(TwoLevelValueHolder&&) noexcept = default;
+  constexpr TwoLevelValueHolder& operator=(const TwoLevelValueHolder&) = default;
+  constexpr TwoLevelValueHolder& operator=(TwoLevelValueHolder&&) noexcept = default;
+
+  [[nodiscard]] constexpr std::strong_ordering order(const TwoLevelValueHolder& tv, ValueType t) const {
+    switch (t) {
+    case ValueType::S:
+      return cmp(upp.s <=> tv.upp.s, low.s <=> tv.low.s);
+    case ValueType::I:
+      return cmp(upp.i <=> tv.upp.i, low.i <=> tv.low.i);
+    case ValueType::H:
+      return cmp(upp.h <=> tv.upp.h, low.h <=> tv.low.h);
+    case ValueType::FINAL: break;
+    }
+    return std::strong_ordering::equal;
+  }
 };
 
 /** Takes a rational and determine which type of quantum number it is,
@@ -399,23 +458,23 @@ struct TwoLevelValueHolder {
  * @return constexpr ValueDescription 
  */
 [[nodiscard]] constexpr ValueDescription value_holder(Rational r_) {
-  ValueDescription x{};
-
-  // First reduce it since we technically allow math on rationals to keep non-gcd results
   const Rational r = reduce_by_gcd(r_);
 
   // We must now have a half-integer or not
-  if (r.Denom() == 2) {
-    x.type = ValueType::H;
-    x.val.h.x = r.Nom();
-  } else if (r.Denom() == 1) {
-    x.type = ValueType::I;
-    x.val.i.x = r.Nom();
-  } else {
-    ARTS_USER_ERROR(
-        "Cannot convert ", r, " to half-integer or to full integer value")
+  if (r.denom == 2) {
+    ValueDescription x{ValueType::H};
+    x.val.h.x = r.numer;
+    return x;
+  }
+  
+  if (r.denom == 1) {
+    ValueDescription x{ValueType::I};
+    x.val.i.x = r.numer;
+    return x;
   }
 
+  ValueDescription x{ValueType::I};
+  x.val.i.x = quantum_number_error_value;
   return x;
 }
 
@@ -435,7 +494,7 @@ struct TwoLevelValueHolder {
 [[nodiscard]] constexpr Rational cast_qnrat(std::string_view s) noexcept {
   // Counts for divides, decimals, and existence
   int div = 0, dot = 0, any = 0, minus = false;
-  std::size_t n = s.size();
+  std::size_t const n = s.size();
 
   // Counts relevant items
   for (std::size_t i = 0; i < n; i++) {
@@ -527,24 +586,22 @@ struct TwoLevelValueHolder {
  */
 [[nodiscard]] constexpr ValueDescription value_holder(std::string_view s,
                                                       Type t) {
-  ValueDescription x{};
-  // If this is possibly a rational, we return this as a rational type
   switch (common_value_type(t)) {
-    case ValueType::I:
+    case ValueType::I: 
     case ValueType::H: {
       const Rational r = cast_qnrat(s);
-      ARTS_USER_ERROR_IF(r.isUndefined(), "Bad conversion from: ", s)
       return value_holder(r);
     }
-    case ValueType::S:
-      x.type = ValueType::S;
+    case ValueType::S: {
+      ValueDescription x{ValueType::S};
       x.val.s = StringValue(s);
       return x;
+    }
     case ValueType::FINAL: {
     }
   }
-  x.type = ValueType::FINAL;
-  return x;
+  
+  return ValueType::FINAL;
 }
 
 //! Struct that converts to bool automatically but allows checking both energy levels matching status
@@ -569,7 +626,7 @@ constexpr Index count_items(std::string_view s) noexcept {
 
   Index count = 0;
   for (auto& x : s) {
-    bool this_space = nonstd::isspace(x);
+    bool const this_space = nonstd::isspace(x);
 
     // If we had a space and now no longer do, we are in an item
     if (last_space and not this_space) count++;
@@ -630,7 +687,7 @@ constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
   if (end == 0) return s;
 
   for (std::size_t ind = 0; ind < end; ind++) {
-    bool this_space = nonstd::isspace(s[ind]);
+    bool const this_space = nonstd::isspace(s[ind]);
 
     // Return when we find the end of the final item
     if (this_space and count == i + n) return {&s[beg], ind - beg};
@@ -657,24 +714,34 @@ constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
 
 //! A complete quantum number value with type information
 struct Value {
-  Type type{Type::FINAL};
-  TwoLevelValueHolder qn{};
+  Type type;
+  TwoLevelValueHolder qn;
 
-  Value() = default;
+  constexpr std::strong_ordering operator<=>(const Value& v) const {
+    if (type < v.type) return std::strong_ordering::less;
+    if (v.type < type) return std::strong_ordering::greater;
+    return qn.order(v.qn, common_value_type(type));
+  }
 
-  constexpr Value(Type t, Rational upp_, Rational low_) : type(t) {
+  constexpr Value(Type t=Type::FINAL) : type(t), qn(type) {}
+  Value(const Value&) = default;
+  Value(Value&&) noexcept = default;
+  Value& operator=(const Value&) = default;
+  Value& operator=(Value&&) noexcept = default;
+
+  constexpr Value(Type t, Rational upp_, Rational low_) : Value(t) {
     Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
 
     if (common_value_type(type) == ValueType::H) {
-      ARTS_ASSERT(upp.Denom() <= 2 and low.Denom() <= 2)
-      if (upp.Denom() not_eq 2) upp *= 2;
-      if (low.Denom() not_eq 2) low *= 2;
-      qn.upp.h.x = upp.Nom();
-      qn.low.h.x = low.Nom();
+      ARTS_ASSERT(upp.denom <= 2 and low.denom <= 2)
+      if (upp.denom not_eq 2) upp *= 2;
+      if (low.denom not_eq 2) low *= 2;
+      qn.upp.h.x = upp.numer;
+      qn.low.h.x = low.numer;
     } else if (common_value_type(type) == ValueType::I) {
-      ARTS_ASSERT(upp.Denom() == 1 and low.Denom() == 1)
-      qn.upp.i.x = upp.Nom();
-      qn.low.i.x = low.Nom();
+      ARTS_ASSERT(upp.denom == 1 and low.denom == 1)
+      qn.upp.i.x = upp.numer;
+      qn.low.i.x = low.numer;
     } else {
       ARTS_USER_ERROR(
           t, " is a string-type, so cannot be constructed from rationals")
@@ -682,7 +749,7 @@ struct Value {
   }
 
   //! Default constructor from some string of values
-  constexpr Value(std::string_view s) : type(toTypeOrThrow(items(s, 0))) {
+  constexpr Value(std::string_view s) : Value(toTypeOrThrow(items(s, 0))) {
     ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
                        "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
                        s,
@@ -733,8 +800,8 @@ struct Value {
 
   //! Set level value
   constexpr void set(std::string_view s, bool upp) {
-    ValueDescription v = value_holder(s, type);
-    TwoLevelValueHolder nqn(v, v, type);
+    ValueDescription const v = value_holder(s, type);
+    TwoLevelValueHolder const nqn(v, v, type);
     if (upp) {
       qn.upp = nqn.upp;
     } else {
@@ -750,7 +817,7 @@ struct Value {
    * @param other Another value
    * @return constexpr LevelMatch
    */
-  constexpr LevelMatch operator==(Value other) const noexcept {
+  [[nodiscard]] constexpr LevelMatch level_match(Value other) const noexcept {
     if (type == other.type) {
       switch (common_value_type(type)) {
         case ValueType::I:
@@ -772,41 +839,11 @@ struct Value {
   //! Standard input
   friend std::istream& operator>>(std::istream& is, Value& x);
 
-  bofstream& write(bofstream& bof) const {
-    switch (common_value_type(type)) {
-      case ValueType::I:
-        bof << qn.upp.i.x << qn.low.i.x;
-        break;
-      case ValueType::H:
-        bof << qn.upp.h.x << qn.low.h.x;
-        break;
-      case ValueType::S:
-        bof.writeString(qn.upp.s.x.data(), StringValue::N);
-        bof.writeString(qn.low.s.x.data(), StringValue::N);
-        break;
-      case ValueType::FINAL: {
-      }
-    }
-    return bof;
-  }
+  bofstream& write(bofstream& bof) const;
 
-  bifstream& read(bifstream& bif) {
-    switch (common_value_type(type)) {
-      case ValueType::I:
-        bif >> qn.upp.i.x >> qn.low.i.x;
-        break;
-      case ValueType::H:
-        bif >> qn.upp.h.x >> qn.low.h.x;
-        break;
-      case ValueType::S:
-        bif.readString(qn.upp.s.x.data(), StringValue::N);
-        bif.readString(qn.low.s.x.data(), StringValue::N);
-        break;
-      case ValueType::FINAL: {
-      }
-    }
-    return bif;
-  }
+  bifstream& read(bifstream& bif);
+
+  [[nodiscard]] constexpr bool good() const {return level_match(*this);}
 };
 
 //! Status of comparing two lists that are supposedly of some type
@@ -874,6 +911,15 @@ class ValueList {
   //! From legacy text
   ValueList(std::string_view upp, std::string_view low);
 
+  std::strong_ordering operator<=>(const ValueList& v) const {
+    const std::size_t n = std::min(values.size(), v.values.size());
+    for (std::size_t i=0; i<n; i++) {
+      if (values[i] < v.values[i]) return std::strong_ordering::less;
+      if (v.values[i] < values[i]) return std::strong_ordering::greater;
+    }
+    return values.size() <=> v.values.size();
+  }
+
   //! From values (resorted)
   explicit ValueList(Array<Value> values_) : values(std::move(values_)) {
     finalize();
@@ -904,7 +950,7 @@ class ValueList {
   void finalize();
 
   //! Return number of quantum numbers
-  [[nodiscard]] Index nelem() const { return values.nelem(); }
+  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT { return values.nelem(); }
 
   //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
   [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;
@@ -944,7 +990,7 @@ class ValueList {
   void set(Index i, std::string_view upp, std::string_view low);
 
   //! Returns upper and lower matching status
-  CheckMatch operator==(const ValueList& other) const noexcept;
+  [[nodiscard]] CheckMatch check_match(const ValueList& other) const ARTS_NOEXCEPT;
 
   //! ouptut stream if all values
   friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);
@@ -954,6 +1000,8 @@ class ValueList {
 
   //! Add a type without sorting (WARNING, many things might break if you don't sort in the end)
   void add_type_wo_sort(Type);
+
+  [[nodiscard]] bool good() const;
 };
 
 ValueList from_hitran(std::string_view upp, std::string_view low);
@@ -961,6 +1009,12 @@ ValueList from_hitran(std::string_view upp, std::string_view low);
 //! A logical struct for local quantum numbers
 struct LocalState {
   ValueList val{};
+
+  std::strong_ordering operator<=>(const LocalState& l) const {
+    return val <=> l.val;
+  }
+  auto operator==(const LocalState& l) const {return std::strong_ordering::equal == (*this <=> l);}
+  auto operator!=(const LocalState& l) const {return std::strong_ordering::equal != (*this <=> l);}
 
   LocalState() = default;
 
@@ -980,6 +1034,9 @@ struct LocalState {
 
   //! input stream must have pre-set size
   friend std::istream& operator>>(std::istream& is, LocalState& vl);
+
+  //! Test if there are bad quantum numbers (undefined ones)
+  [[nodiscard]] bool good() const;
 };
 
 struct LevelTest {bool upp{true}, low{true};};
@@ -1001,7 +1058,7 @@ struct GlobalState {
 
   explicit GlobalState(std::string_view s, Index v = version);
 
-  [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept;
+  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
   [[nodiscard]] Species::Species Species() const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const GlobalState& gs);
@@ -1011,14 +1068,22 @@ struct GlobalState {
   [[nodiscard]] GlobalState LowerLevel() const;
   [[nodiscard]] GlobalState UpperLevel() const;
 
-  [[nodiscard]] bool operator==(const GlobalState& that) const;
-  [[nodiscard]] bool operator!=(const GlobalState& that) const;
+  std::strong_ordering operator<=>(const GlobalState& g) const {
+    if (isotopologue_index < g.isotopologue_index) return std::strong_ordering::less;
+    if (g.isotopologue_index < isotopologue_index) return std::strong_ordering::greater;
+    return val <=> g.val;
+  }
+  auto operator==(const GlobalState& g) const {return std::strong_ordering::equal == (*this <=> g);}
+  auto operator!=(const GlobalState& g) const {return std::strong_ordering::equal != (*this <=> g);}
 
   //! Checks wheter all of the LHS is part of RHS
   [[nodiscard]] bool part_of(const GlobalState& other) const;
 
   //! Checks wheter all of the LHS is part of any of the RHS
   [[nodiscard]] LevelTest part_of(const GlobalState& g, const LocalState& l) const;
+
+  //! Test if there are bad quantum numbers (undefined ones) or if the isotopologue is not a normal target
+  [[nodiscard]] bool good() const;
 };
 
 //! StateMatchType operates so that a check less than a level should be 'better', bar None
@@ -1029,7 +1094,7 @@ struct StateMatch {
   StateMatchType type{StateMatchType::None};
   bool upp{false}, low{false};
 
-  StateMatch() = default;
+  constexpr StateMatch() = default;
 
   StateMatch(const GlobalState& target,
              const LocalState& local,
@@ -1038,11 +1103,11 @@ struct StateMatch {
   StateMatch(const GlobalState& target, const GlobalState& key);
 
   //! It is of the desired type if it is less than the value, bar None
-  bool operator==(StateMatchType x) const noexcept {
+  constexpr bool operator==(StateMatchType x) const noexcept {
     return x == type;
   }
 
-  bool operator!=(StateMatchType x) const noexcept { return not((*this) == x); }
+  constexpr bool operator!=(StateMatchType x) const noexcept { return not((*this) == x); }
 };
 
 //! VAMDC classes of quantum number cases

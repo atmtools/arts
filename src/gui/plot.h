@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <matpackI.h>
+#include <matpack_data.h>
 #include <matpack_complex.h>
 
 #pragma GCC diagnostic push

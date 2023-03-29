@@ -25,7 +25,8 @@
  */
 
 #include "nlte.h"
-#include "interpolation_lagrange.h"
+#include "arts_constants.h"
+#include "interp.h"
 
 void statistical_equilibrium_equation(MatrixView A,
                                       const ConstVectorView& Aij,
@@ -111,7 +112,7 @@ Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
 }
 
 Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
-  constexpr Numeric c0 = 2.0 * Constant::h / Constant::pow2(Constant::c);
+  constexpr Numeric c0 = 2.0 * Constant::h / Math::pow2(Constant::c);
   
   // Size of problem
   const Index n = nelem(abs_lines);
@@ -122,7 +123,7 @@ Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        Bij[i] = band.lines[k].A / (c0 * Constant::pow3(band.lines[k].F0));
+        Bij[i] = band.lines[k].A / (c0 * Math::pow3(band.lines[k].F0));
         i++;
       }
     }
@@ -161,8 +162,7 @@ void setCji(Vector& Cji,
             const Vector& Cij,
             const ArrayOfArrayOfAbsorptionLines& abs_lines,
             const Numeric& T) {
-  extern const Numeric PLANCK_CONST, BOLTZMAN_CONST;
-  const static Numeric c0 = -PLANCK_CONST / BOLTZMAN_CONST;
+  static constexpr Numeric c0 = -Constant::planck_constant / Constant::boltzmann_constant;
   const Numeric constant = c0 / T;
 
   // Base equation for single state:  C12 = C21 exp(-hf / kT) g2 / g1
@@ -214,7 +214,7 @@ void nlte_collision_factorsCalcFromCoeffs(
             
             if (lt == Quantum::Number::StateMatchType::Full) {
               // Standard linear ARTS interpolation
-              const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0), false);
+              const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0));
               const auto itw = interpweights(lag);
               
               Cij[iline] += interp(gf1.data, itw, lag) * numden * isot_ratio;
@@ -237,7 +237,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
     ArrayOfIndex& lower,
     const ArrayOfArrayOfAbsorptionLines& abs_lines,
     const EnergyLevelMap& nlte_field) {
-  const Index nl = nelem(abs_lines), nq = nlte_field.Levels().nelem();
+  const Index nl = nelem(abs_lines), nq = nlte_field.levels.nelem();
 
   upper = ArrayOfIndex(nl, -1);
   lower = ArrayOfIndex(nl, -1);
@@ -247,7 +247,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
     for (const AbsorptionLines& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
         for (Index iq = 0; iq < nq; iq++) {
-          const Quantum::Number::StateMatch lt(nlte_field.Levels()[iq], band.lines[k].localquanta, band.quantumidentity);
+          const Quantum::Number::StateMatch lt(nlte_field.levels[iq], band.lines[k].localquanta, band.quantumidentity);
           if (lt == Quantum::Number::StateMatchType::Level and lt.low)
             lower[i] = iq;
           if (lt == Quantum::Number::StateMatchType::Level and lt.upp)
@@ -266,7 +266,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
 }
 
 Index find_first_unique_in_lower(const ArrayOfIndex& upper,
-                                 const ArrayOfIndex& lower) noexcept {
+                                 const ArrayOfIndex& lower) ARTS_NOEXCEPT {
   for (const Index& l : lower) {
     if (std::find(upper.cbegin(), upper.cend(), l) == upper.cend())
       return l;

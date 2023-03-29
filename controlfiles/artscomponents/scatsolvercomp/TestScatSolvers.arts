@@ -4,19 +4,13 @@
 #
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # Blackbody surface
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 VectorSet( surface_scalar_reflectivity, [0] )
 
 # Standard ppath calculations
@@ -37,6 +31,8 @@ abs_speciesSet( species=[ "N2-SelfContStandardType",
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaAuto
 
 # Dimensionality of the atmosphere
 AtmosphereSet1D
@@ -125,7 +121,8 @@ AgendaSet( iy_hybrid_agenda ){
   ppathCalc( cloudbox_on = 0 ) 
   iyEmissionHybrid
   # The line below is just temporary
-  Touch( iy_aux)  
+  Touch( iy_aux)
+  VectorSet(geo_pos, [])
 }
 
 # Versions of y for various calculations
@@ -137,9 +134,7 @@ VectorCreate( y_rt4 )
 StringCreate( message )
 
 # Perform some basic checks
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 
 

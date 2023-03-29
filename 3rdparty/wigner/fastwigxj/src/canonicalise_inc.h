@@ -50,7 +50,7 @@ typedef union v2d4si_t
   v4si _4s;
 } v2d4si;
 
-#if !FASTWIGXJ_HAVE_SSE4_1
+#if !FASTWIGXJ_HAVE_SSE4_2
   // Without sse4 we have to do comparision by explicit subtraction,
   // and the selection (blend) by and/or-ing with the result.
   // The code below does not work when the highest bit is used for data,
@@ -104,6 +104,8 @@ typedef union v2d4si_t
   } while (0)
 #endif
 #else // for sse4
+  // pcmpgt is sse4.2
+  // blendvpd is sse4.1
 #define W9C_KEEPMAX(jx,jy) do {						\
     v2dif __x_gt_y;							\
     /* __builtin_ia32_pcmpgtq */					\

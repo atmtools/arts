@@ -1,3 +1,11 @@
+1.4    2019-07-07
+
+	Fix overflow in 6j canonicalisation.
+	 (Only occurs for j > ~125; only matters for dynamic table usage.)
+	Force use of direct evaluation before canonicalisation overflow occurs.
+	 (Applies at j > ~3550 for 3j, j > ~800 for 6j and j > 63.5 for 9j,
+	 i.e., only matter for dynamic table usage.)
+
 1.3    2018-06-15
 
 	Support for multi-threaded use of dynamic hash tables.

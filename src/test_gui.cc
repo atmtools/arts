@@ -90,7 +90,7 @@ int main() {
   // Retrieval Quantities
   RetrievalQuantity rq;
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
-  rq.Target().Perturbation(0.1);
+  rq.Target().perturbation = 0.1;
   
   Absorption::LineMixing::ErrorCorrectedSuddenData ecs_data{QuantumIdentifier("O2-66")};
   ecs_data[Species::Species::Oxygen].scaling = LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
@@ -121,7 +121,7 @@ int main() {
   // Line Mixing reimplementation of MPM19
   Absorption::PredefinedModel::VMRS vmrs_predef;
   vmrs_predef.O2 = 1;
-  Absorption::PredefinedModel::compute(mpm_abs, dmpm_abs, Species::Isotopologues[Species::find_species_index("O2", "MPM2020")], f_grid, P, T, vmrs_predef, ArrayOfRetrievalQuantity(0));
+  Absorption::PredefinedModel::compute(mpm_abs, dmpm_abs, Species::Isotopologues[Species::find_species_index("O2", "MPM2020")], f_grid, P, T, vmrs_predef, ArrayOfRetrievalQuantity(0), {});
   
   // Line by line calculations
   band.normalization = Absorption::NormalizationType::SFS;

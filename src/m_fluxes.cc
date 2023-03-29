@@ -23,15 +23,20 @@
 #include <stdexcept>
 #include "absorption.h"
 #include "agenda_class.h"
+#include "agenda_set.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "legendre.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "sorting.h"
 #include "surface.h"
 #include "workspace_ng.h"
+#include "check_input.h"
+#include "global_data.h"
 
 /*!
   \file   m_fluxes.cc
@@ -44,8 +49,8 @@
   file auto_md.h.
 */
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions
@@ -62,7 +67,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
                              const Verbosity&) {
   // Azimuth angle grid
   if (N_aa_grid > 1)
-    nlinspace(aa_grid, 0, 360, N_aa_grid);
+    nlinspace(aa_grid, -180, 180, N_aa_grid);
   else if (N_aa_grid < 1) {
     ostringstream os;
     os << "N_aa_grid must be > 0 (even for 1D).";
@@ -162,8 +167,8 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     }
 
     //#sort weights and theta in increasing direction of za_grid
-    za_grid = za_grid_temp[Range(x.nelem() - 1, x.nelem(), -1)];
-    za_grid_weights = w[Range(x.nelem() - 1, x.nelem(), -1)];
+    za_grid = reverse(za_grid_temp);
+    za_grid_weights = reverse(w);
 
   } else {
     ostringstream os;
@@ -237,7 +242,7 @@ void heating_ratesFromIrradiance(Tensor3& heating_rates,
                                (p_grid[2] - p_grid[0]) * g0 /
                                specific_heat_capacity(0, p, r);
 
-      // lower boundary
+      // upper boundary
       net_flux_t = (irradiance_field(idx - 1, p, r, 0) +
                     irradiance_field(idx - 1, p, r, 1));
       net_flux_c = (irradiance_field(idx - 2, p, r, 0) +
@@ -247,7 +252,7 @@ void heating_ratesFromIrradiance(Tensor3& heating_rates,
 
       heating_rates(idx - 1, p, r) =
           -(-3 * net_flux_t + 4 * net_flux_c - net_flux_b) /
-          (p_grid[2] - p_grid[0]) * g0 / specific_heat_capacity(0, p, r);
+          (p_grid[idx-1] - p_grid[idx-3]) * g0 / specific_heat_capacity(0, p, r);
     }
   }
 }
@@ -410,8 +415,8 @@ void spectral_irradiance_fieldFromSpectralRadianceField(
     const Vector& za_grid_weights,
     const Verbosity&) {
   // Number of zenith angles.
-  const Index N_scat_za = za_grid.nelem();
-  const Index N_scat_aa = aa_grid.nelem();
+  const Index N_scat_za = spectral_radiance_field.npages();
+  const Index N_scat_aa = spectral_radiance_field.nrows();
 
   Tensor5 iy_field_aa_integrated;
 
@@ -510,7 +515,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const String& rt_integration_option,
     const Tensor3& surface_props_data,
     const Vector& za_grid,
-    const Index& use_parallel_za,
+    const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
   // Check input
   if (atmosphere_dim != 1)
@@ -540,27 +545,24 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Create one altitude just above TOA
   const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
 
-  Workspace l_ws(ws);
   ArrayOfString fail_msg;
   bool failed = false;
 
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method. This definition of iy_main_agenda will be used to when
   // calculating the the radiation reflected by the surface
-  Agenda iy_main_agenda;
-  iy_main_agenda.append("ppathPlaneParallel", TokVal());
-  iy_main_agenda.append("iyEmissionStandard", TokVal());
-  iy_main_agenda.set_name("iy_main_agenda");
-  iy_main_agenda.check(ws, verbosity);
+  const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");
 
   // Index in p_grid where field at surface shall be placed
   const Index i0 = index_of_zsurface(z_surface(0, 0), z_field(joker, 0, 0));
 
   // Loop zenith angles
   //
-  if (nza)
+  if (nza) {
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(l_ws)
+                             use_parallel_za) firstprivate(wss)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -592,7 +594,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(l_ws,
+        iyEmissionStandard(wss,
                            iy,
                            iy_aux,
                            diy_dx,
@@ -692,7 +694,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         fail_msg.push_back(os.str());
       }
     }
-
+  }
+  
   if (fail_msg.nelem()) {
     ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
@@ -755,7 +758,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const String& rt_integration_option,
     const Tensor3& surface_props_data,
     const Vector& za_grid,
-    const Index& use_parallel_za,
+    const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
   // Check input
   if (atmosphere_dim != 1)
@@ -796,17 +799,12 @@ void spectral_radiance_fieldExpandCloudboxField(
   // Create one altitude just above TOA
   const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
 
-  Workspace l_ws(ws);
   ArrayOfString fail_msg;
   bool failed = false;
 
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method (but the agenda will not be used).
-  Agenda iy_main_agenda;
-  iy_main_agenda.append("ppathPlaneParallel", TokVal());
-  iy_main_agenda.append("iyEmissionStandard", TokVal());
-  iy_main_agenda.set_name("iy_main_agenda");
-  iy_main_agenda.check(ws, verbosity);
+  const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");;
 
   // Variables related to the top of the cloudbox
   const Index i0 = cloudbox_limits[1];
@@ -814,9 +812,11 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Loop zenith angles
   //
-  if (nza)
+  if (nza) {
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(l_ws)
+                             use_parallel_za) firstprivate(wss)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -848,7 +848,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
-        iyEmissionStandard(l_ws,
+        iyEmissionStandard(wss,
                            iy,
                            iy_aux,
                            diy_dx,
@@ -930,6 +930,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         fail_msg.push_back(os.str());
       }
     }
+  }
 
   if (fail_msg.nelem()) {
     ostringstream os;

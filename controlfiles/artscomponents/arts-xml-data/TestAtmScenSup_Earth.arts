@@ -27,9 +27,10 @@
 # Jana Mendrok 2013-02-26
 
 Arts2 {
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 
 Tensor3Create( edensity_field )
@@ -60,13 +61,6 @@ ArrayOfStringSet( timecasearray, ["_00UTC.Ne", "_03UTC.Ne", "_06UTC.Ne", "_09UTC
                                   "_12UTC.Ne", "_15UTC.Ne", "_18UTC.Ne", "_21UTC.Ne"] )
 ArrayOfStringCreate( solarcasearray )
 ArrayOfStringSet( solarcasearray, ["_solmax", "_solmin"] )
-
-# Arrays with B (sub)case names
-ArrayOfStringCreate( yearcasearray )
-ArrayOfStringSet( yearcasearray, ["_1980", "_1990", "_2000", "_2010"] )
-#, "_2012"] )
-ArrayOfStringCreate( resolcasearray )
-ArrayOfStringSet( resolcasearray, ["_200km-5deg-5deg"] )
 
 # the 3D geo grid to test
 VectorCreate( lat_grid3D )
@@ -219,74 +213,6 @@ IndexStepDown( ncases, ncases )
 ForLoop( forloop_agenda, 0, ncases, 1 )
 
 
-#####
-# second: magnetic field, 3D
-#####
-
-AgendaCreate( forloop_agenda_Bres )
-AgendaSet( forloop_agenda_Bres ){
-  # construct case name
-  Extract( casefull, resolcasearray, forloop_index )
-  Append( atmcase, casefull )
-  Print( atmcase, 0 )
-
-  #this is 3D data. we need to regrid the raw data to the calculation grid(s).
-  # for supplemental atm data (Ne, B, winds) this requires manual reading in and
-  # regridding (in contrast to basic atm data, where this is handled by
-  # AtmFieldsCalc(Expand1D).
-
-  #now reading and regridding of each of the 3 B-field components separately
-  Copy( casefull, atmcase )
-  StringSet( caseext, ".mag_u" )
-  Append( casefull, caseext )
-  ReadXML( gf3tmp, casefull )
-  GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
-  GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
-  FieldFromGriddedField( mag_u_field, p_grid, lat_grid, lon_grid, gf3tmp )
-
-  #now reading and regridding of each of the 3 B-field components separately
-  Copy( casefull, atmcase )
-  StringSet( caseext, ".mag_v" )
-  Append( casefull, caseext )
-  ReadXML( gf3tmp, casefull )
-  GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
-  GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
-  FieldFromGriddedField( mag_v_field, p_grid, lat_grid, lon_grid, gf3tmp )
-
-  #now reading and regridding of each of the 3 B-field components separately
-  Copy( casefull, atmcase )
-  StringSet( caseext, ".mag_w" )
-  Append( casefull, caseext )
-  ReadXML( gf3tmp, casefull )
-  GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
-  GriddedFieldLatLonRegrid( gf3tmp, lat_grid, lon_grid, gf3tmp, interp_order )
-  FieldFromGriddedField( mag_w_field, p_grid, lat_grid, lon_grid, gf3tmp )
-
-  atmfields_checkedCalc
-  atmgeom_checkedCalc
-  #WriteXML( "ascii", p_grid )
-  #WriteXML( "ascii", z_field )
-  #WriteXML( "ascii", t_field )
-  #WriteXMLIndexed( "ascii", forloop_index, mag_u_field )
-  #WriteXMLIndexed( "ascii", forloop_index, mag_v_field )
-  #WriteXMLIndexed( "ascii", forloop_index, mag_w_field )
-}
-
-AgendaCreate( forloop_agenda_Byears )
-AgendaSet( forloop_agenda_Byears ){
-  # construct case name
-  Copy( atmcase, basename )
-  Extract( casefull, yearcasearray, forloop_index )
-  Append( atmcase, casefull )
-  Print( atmcase, 0 )
-  Copy( forloop_agenda, forloop_agenda_Bres )
-  nelemGet( ncases, resolcasearray )
-  IndexStepDown( ncases, ncases )
-  ForLoop( forloop_agenda, 0, ncases, 1 )
-}
-
-
-
 # now we actually execute things...
 
 # 3-dimensional atmosphere
@@ -330,14 +256,6 @@ Extract( z_surface, z_field, 0 )
 
 atmfields_checkedCalc
 atmgeom_checkedCalc
-
-# now doing the B cases (reading, 1D regridding, checking). we use several
-# forloops to loop over the different aspects of the data
-Extract( basename, basecasearray, 2 )
-Copy( forloop_agenda, forloop_agenda_Byears  )
-nelemGet( ncases, yearcasearray )
-IndexStepDown( ncases, ncases )
-ForLoop( forloop_agenda, 0, ncases, 1 )
 
 }
 

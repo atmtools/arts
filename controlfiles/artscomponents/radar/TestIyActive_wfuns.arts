@@ -6,10 +6,10 @@
 #
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # Read data from files
 ReadXML( p_grid, "testdata/p_grid_wfuntest.xml" )
@@ -78,19 +78,17 @@ MatrixSet( sensor_los, [180] )
 #
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
-#
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
+
 #
 AgendaSet( iy_main_agenda ){
   Ignore( iy_id )
   Ignore( rte_pos2 )
   Ignore( iy_unit )
+  
+  iy_transmitterSinglePol
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( trans_in_jacobian = 1 )
+  VectorSet(geo_pos, [])
 }
 #
 StringSet( iy_unit_radar, "Ze" )

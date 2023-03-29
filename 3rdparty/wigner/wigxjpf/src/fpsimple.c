@@ -30,6 +30,7 @@
 
 #include "wigxjpf_config.h"
 #include "calc_minmax.h"
+#include "wigxjpf_error.h"
 
 extern double factorial_precalc[FPSIMPLE_MAX_FACTORIAL+1];
 extern int max_factorial_precalc;
@@ -37,12 +38,12 @@ extern int max_factorial_precalc;
 #define CHECK_MAX_PRECALC_FACTORIAL(maxfact) do {			\
     if ((maxfact) > max_factorial_precalc) {				\
       fprintf (stderr,							\
-	       "wigxjpf: Too large factorial (%d!).  Abort.\n", maxfact); \
-      exit(1);								\
+	       "wigxjpf: Too large factorial (%d!).\n", maxfact);	\
+      wigxjpf_error();							\
     }									\
   } while (0)
 
-void __attribute__ ((noinline))
+void WIGXJPF_NOINLINE
 fpsimple_delta_coeff(int two_a, int two_b, int two_c,
 		     double *prefact)
 {

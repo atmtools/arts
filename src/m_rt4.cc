@@ -106,7 +106,7 @@ void RT4Calc(Workspace& ws,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, 1, stokes_dim);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -264,7 +264,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, 1, stokes_dim);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -312,7 +312,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                     surface_complex_refr_index,
                     stokes_dim);
 
-  Agenda dummy_agenda;
+  Agenda dummy_agenda{ws};
 
   run_rt4(ws,
           cloudbox_field,

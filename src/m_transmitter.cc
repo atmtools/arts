@@ -35,6 +35,8 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "geodetic.h"
 #include "jacobian.h"
@@ -48,10 +50,10 @@
 #include <cmath>
 #include <stdexcept>
 
-extern const Numeric DEG2RAD;
-extern const Numeric PI;
-extern const Numeric RAD2DEG;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* Has not been updated since v2.2
@@ -683,6 +685,7 @@ void iyTransmissionStandard(Workspace& ws,
                             const Tensor3& mag_w_field,
                             const Index& cloudbox_on,
                             const ArrayOfIndex& cloudbox_limits,
+                            const Index& gas_scattering_do,
                             const Tensor4& pnd_field,
                             const ArrayOfTensor4& dpnd_field_dx,
                             const ArrayOfString& scat_species,
@@ -691,9 +694,10 @@ void iyTransmissionStandard(Workspace& ws,
                             const Index& jacobian_do,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const Ppath& ppath,
+                            const Matrix& iy_transmitter,
                             const Agenda& propmat_clearsky_agenda,
                             const Agenda& water_p_eq_agenda,
-                            const Agenda& iy_transmitter_agenda,
+                            const Agenda& gas_scattering_agenda,
                             const Index& iy_agenda_call1,
                             const Tensor3& iy_transmittance,
                             const Numeric& rte_alonglos_v,
@@ -729,21 +733,22 @@ void iyTransmissionStandard(Workspace& ws,
           " quantities.\n(Note: jacobians have to be defined BEFORE *pnd_field*"
           " is calculated/set.");
   }
+
+  ARTS_USER_ERROR_IF(jacobian_quantities.nelem() && gas_scattering_do, R"--(
+Jacobian calculation are not supported when gas scattering or suns are included.
+This feature will be added in a future version.
+)--");
+
   // iy_aux_vars checked below
 
   // Transmitted signal
-  iy_transmitter_agendaExecute(ws,
-                               iy,
-                               f_grid,
-                               ppath.pos(np - 1, Range(0, atmosphere_dim)),
-                               ppath.los(np - 1, joker),
-                               iy_transmitter_agenda);
-  if (iy.ncols() != ns || iy.nrows() != nf) {
+//  iy_transmitter=iy_transmitter;
+  if (iy_transmitter.ncols() != ns || iy_transmitter.nrows() != nf) {
     ostringstream os;
-    os << "The size of *iy* returned from *iy_transmitter_agenda* is\n"
+    os << "The size of *iy_transmitter* returned from *iy_transmitter_agenda* is\n"
        << "not correct:\n"
        << "  expected size = [" << nf << "," << stokes_dim << "]\n"
-       << "  size of iy    = [" << iy.nrows() << "," << iy.ncols() << "]\n";
+       << "  size of iy_transmitter    = [" << iy_transmitter.nrows() << "," << iy_transmitter.ncols() << "]\n";
     throw runtime_error(os.str());
   }
   
@@ -821,7 +826,7 @@ void iyTransmissionStandard(Workspace& ws,
   } else {
     // ppvar_iy
     ppvar_iy.resize(nf, ns, np);
-    ppvar_iy(joker, joker, np - 1) = iy;
+    ppvar_iy(joker, joker, np - 1) = iy_transmitter;
 
     // Basic atmospheric variables
     get_ppath_atmvars(ppvar_p,
@@ -863,10 +868,23 @@ void iyTransmissionStandard(Workspace& ws,
       for (Index ip = 0; ip < np; ip++) clear2cloudy[ip] = -1;
     }
 
+
+
+
     // Size radiative variables always used
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
     StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
     ArrayOfIndex lte(np);
+
+    // size gas scattering variables
+    TransmissionMatrix gas_scattering_mat;
+    Vector sca_fct_dummy;
+    PropagationMatrix K_sca;
+    if (gas_scattering_do) {
+      K_sca = PropagationMatrix(nf, ns);
+    }
+
+    Vector gas_scattering_los_in, gas_scattering_los_out;
 
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
@@ -901,14 +919,32 @@ void iyTransmissionStandard(Workspace& ws,
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppvar_mag(joker, ip),
-                                    ppath.los(ip, joker),
+                                    Vector{ppvar_f(joker, ip)},
+                                    Vector{ppvar_mag(joker, ip)},
+                                    Vector{ppath.los(ip, joker)},
                                     ppvar_nlte[ip],
-                                    ppvar_vmr(joker, ip),
+                                    Vector{ppvar_vmr(joker, ip)},
                                     ppvar_t[ip],
                                     ppvar_p[ip],
                                     j_analytical_do);
+
+      // get Extinction from gas scattering
+      if (gas_scattering_do) {
+        gas_scattering_agendaExecute(ws,
+                                     K_sca,
+                                     gas_scattering_mat,
+                                     sca_fct_dummy,
+                                     f_grid,
+                                     ppvar_p[ip],
+                                     ppvar_t[ip],
+                                     Vector{ppvar_vmr(joker, ip)},
+                                     gas_scattering_los_in,
+                                     gas_scattering_los_out,
+                                     0,
+                                     gas_scattering_agenda);
+
+        K_this += K_sca;
+      }
 
       if (j_analytical_do) {
         adapt_stepwise_partial_derivatives(dK_this_dx,
@@ -975,7 +1011,7 @@ void iyTransmissionStandard(Workspace& ws,
       iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1](iv, 0, 0));
   }
 
-  lvl_rad[np - 1] = iy;
+  lvl_rad[np - 1] = iy_transmitter;
 
   // Radiative transfer calculations
   for (Index ip = np - 2; ip >= 0; ip--) {
@@ -1039,7 +1075,7 @@ void iyTransmissionStandard(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iy_transmitterMultiplePol(Matrix& iy,
+void iy_transmitterMultiplePol(Matrix& iy_transmitter,
                                const Index& stokes_dim,
                                const Vector& f_grid,
                                const ArrayOfIndex& instrument_pol,
@@ -1051,15 +1087,15 @@ void iy_transmitterMultiplePol(Matrix& iy,
         "The length of *f_grid* and the number of elements "
         "in *instrument_pol* must be equal.");
 
-  iy.resize(nf, stokes_dim);
+  iy_transmitter.resize(nf, stokes_dim);
 
   for (Index i = 0; i < nf; i++) {
-    stokes2pol(iy(i, joker), stokes_dim, instrument_pol[i], 1);
+    stokes2pol(iy_transmitter(i, joker), stokes_dim, instrument_pol[i], 1);
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iy_transmitterSinglePol(Matrix& iy,
+void iy_transmitterSinglePol(Matrix& iy_transmitter,
                              const Index& stokes_dim,
                              const Vector& f_grid,
                              const ArrayOfIndex& instrument_pol,
@@ -1070,11 +1106,11 @@ void iy_transmitterSinglePol(Matrix& iy,
     throw runtime_error(
         "The number of elements in *instrument_pol* must be 1.");
 
-  iy.resize(nf, stokes_dim);
+  iy_transmitter.resize(nf, stokes_dim);
 
-  stokes2pol(iy(0, joker), stokes_dim, instrument_pol[0], 1);
+  stokes2pol(iy_transmitter(0, joker), stokes_dim, instrument_pol[0], 1);
 
   for (Index i = 1; i < nf; i++) {
-    iy(i, joker) = iy(0, joker);
+    iy_transmitter(i, joker) = iy_transmitter(0, joker);
   }
 }

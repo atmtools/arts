@@ -30,6 +30,7 @@
 
 #include "wigxjpf_config.h"
 #include "calc_minmax.h"
+#include "wigxjpf_error.h"
 
 extern double factorial_log_precalc[FPSIMPLE_MAX_FACTORIAL+1];
 extern int max_factorial_log_precalc;
@@ -37,8 +38,8 @@ extern int max_factorial_log_precalc;
 #define CHECK_MAX_PRECALC_LOG_FACTORIAL(maxfact) do {			\
     if ((maxfact) > max_factorial_log_precalc) {			\
       fprintf (stderr,							\
-	       "wigxjpf: Too large factorial (%d!).  Abort.\n", maxfact); \
-      exit(1);								\
+	       "wigxjpf: Too large factorial (%d!).\n", maxfact);	\
+      wigxjpf_error();							\
     }									\
   } while (0)
 

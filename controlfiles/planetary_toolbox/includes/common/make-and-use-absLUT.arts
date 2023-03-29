@@ -43,12 +43,6 @@
 
 Arts2 {
 
-# for abs.coeffs prepare & use a lookup table 
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
-# for CIA allow temperature extrapolation 
-Copy( abs_xsec_agenda, abs_xsec_agenda__withCIAextraT )
-
 
 # for the selected abs_species and atmospheric scenario, calculate the
 #  absorption lookup table
@@ -58,10 +52,12 @@ ReadSplitARTSCAT( basename="spectroscopy/Perrin/", fmin=0, fmax=4e12 )
 #abs_linesReadFromHitran( filename="your-HITRAN-file", fmin=0, fmax=4e12 )
 abs_lines_per_speciesCreateFromLines
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 atmfields_checkedCalc
 abs_lookupSetup
+
+propmat_clearsky_agendaAuto
 abs_lookupCalc
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 }

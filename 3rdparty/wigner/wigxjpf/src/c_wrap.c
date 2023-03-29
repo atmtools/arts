@@ -21,6 +21,8 @@
 #include <stdio.h>
 
 #include "c_wrap.h"
+#include "wigxjpf_error.h"
+#include "calc.h"
 
 #if WIGXJPF_HAVE_THREAD
 __thread struct wigxjpf_temp *wigxjpf_global_temp = NULL;
@@ -32,10 +34,12 @@ void wig_table_init(int max_two_j, int wigner_type)
 {
   int max_factorial;
 
+  NONABORT_ERROR_SETUP_void;
+
   if (max_two_j < 0) {
     fprintf (stderr,
-	     "wigxjpf: Negative max_two_j in wig_table_init.  Abort.\n");
-    exit(1);
+	     "wigxjpf: Negative max_two_j in wig_table_init.\n");
+    wigxjpf_error();
   }
 
   switch (wigner_type)
@@ -46,16 +50,24 @@ void wig_table_init(int max_two_j, int wigner_type)
     case 9: max_factorial = (5 * max_two_j) / 2 + 1; break;
     default:
       fprintf (stderr,
-	       "wigxjpf: Bad wigner_type (%d) in wig_table_init.  Abort.\n",
+	       "wigxjpf: Bad wigner_type (%d) in wig_table_init.\n",
 	       wigner_type);
-      exit(1);
+      wigxjpf_error();
+      /* A cleaner solution to the compiler warning about later
+       * uninitialised use of max_factorial would be to have a
+       * noreturn attribute on wigxjpf_error().  But then we may end
+       * up with compiler issues if they do not understand attributes?
+       */
+      return; /* In fact, we never return... */
     }
 
   wigxjpf_fill_factors(max_factorial);
 }
 
-void wig_table_free()
+void wig_table_free(void)
 {
+  NONABORT_ERROR_SETUP_void;
+
   wigxjpf_fill_factors(0);
 }
 
@@ -63,9 +75,11 @@ void wig_temp_init(int max_two_j)
 {
   int max_iter = (max_two_j / 2) + 1;
 
+  NONABORT_ERROR_SETUP_void;
+
   if (max_two_j < 0) {
-    fprintf (stderr, "wigxjpf: Negative max_two_j in wig_temp_init.  Abort.\n");
-    exit(1);
+    fprintf (stderr, "wigxjpf: Negative max_two_j in wig_temp_init.\n");
+    wigxjpf_error();
   }
 
   wigxjpf_global_temp = wigxjpf_temp_alloc(max_iter);
@@ -74,20 +88,35 @@ void wig_temp_init(int max_two_j)
 #if WIGXJPF_HAVE_THREAD
 void wig_thread_temp_init(int max_two_j)
 {
+  NONABORT_ERROR_SETUP_void;
+
   wig_temp_init(max_two_j);
 }
 #endif
 
-void wig_temp_free()
+void wig_temp_free(void)
 {
+  NONABORT_ERROR_SETUP_void;
+
   wigxjpf_temp_free(wigxjpf_global_temp);
   wigxjpf_global_temp = NULL;
+}
+
+/* This function is only called from the error handler, to allow reuse
+ * of the temp array.
+ */
+void wigxjpf_drop_temp(void)
+{
+  if (wigxjpf_global_temp)
+    wigxjpf_global_temp->inuse = 0;
 }
 
 double wig3jj(int two_j1, int two_j2, int two_j3,
 	      int two_m1, int two_m2, int two_m3)
 {
   double result;
+
+  NONABORT_ERROR_SETUP_NaN;
 
   calc_3j_double(&result,
 		 two_j1, two_j2, two_j3,
@@ -102,6 +131,8 @@ double wig6jj(int two_j1, int two_j2, int two_j3,
 {
   double result;
 
+  NONABORT_ERROR_SETUP_NaN;
+
   calc_6j_double(&result,
 		 two_j1, two_j2, two_j3,
 		 two_j4, two_j5, two_j6,
@@ -115,6 +146,8 @@ double wig9jj(int two_j1, int two_j2, int two_j3,
 	      int two_j7, int two_j8, int two_j9)
 {
   double result;
+
+  NONABORT_ERROR_SETUP_NaN;
 
   calc_9j_double(&result,
 		 two_j1, two_j2, two_j3,

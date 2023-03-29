@@ -10,31 +10,25 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Number of Stokes components to be computed
@@ -53,8 +47,8 @@ cloudboxOff
 # Read a line file and a matching small frequency grid
 # ---
 ReadARTSCAT( abs_lines, "artscomponents/clearsky/abs_lines.xml" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
 
 
@@ -70,6 +64,7 @@ abs_speciesSet( species=
 # ---
 abs_lines_per_speciesCreateFromLines
 
+propmat_clearsky_agendaAuto
 
 # Atmospheric scenario
 # ---
@@ -79,8 +74,7 @@ AtmRawRead( basename = "testdata/tropical" )
 # Weakly reflecting surface
 # ---
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet(option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 # No sensor properties
 # ---
@@ -122,8 +116,6 @@ Extract( t_surface, t_field, 0 )
 
 # Perform RT calculations
 # ---
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -159,8 +151,6 @@ Copy( vmr_ref, vmr_field )
 
 # Perform RT calculations
 # ---
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -215,8 +205,6 @@ Compare( vmr_field, vmr_ref, 1e-12 )
 
 # Perform RT calculations
 # ---
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

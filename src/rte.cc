@@ -30,10 +30,12 @@
   ===========================================================================*/
 
 #include "rte.h"
+#include "arts_constexpr_math.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
-#include "legacy_continua.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -45,8 +47,8 @@
 #include <cmath>
 #include <stdexcept>
 
-extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric TEMP_0_C;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions in alphabetical order
@@ -73,7 +75,7 @@ void adapt_stepwise_partial_derivatives(
     if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
 
     if (jacobian_quantities[i].is_wind()) {
-      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().AtmType(), atmosphere_dim);
+      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().atm, atmosphere_dim);
       dK_dx[i] *= scale;
       if (not lte) dS_dx[i] *= scale;
     }
@@ -312,19 +314,19 @@ void defocusing_general_sub(Workspace& ws,
                             Vector& pos,
                             Vector& rte_los,
                             Index& background,
-                            const ConstVectorView& rte_pos,
+                            const Vector& rte_pos,
                             const Numeric& lo0,
                             const Agenda& ppath_step_agenda,
                             const Numeric& ppath_lmax,
                             const Numeric& ppath_lraytrace,
                             const Index& atmosphere_dim,
-                            const ConstVectorView& p_grid,
-                            const ConstVectorView& lat_grid,
-                            const ConstVectorView& lon_grid,
-                            const ConstTensor3View& z_field,
-                            const ConstVectorView& f_grid,
-                            const ConstVectorView& refellipsoid,
-                            const ConstMatrixView& z_surface,
+                            const Vector& p_grid,
+                            const Vector& lat_grid,
+                            const Vector& lon_grid,
+                            const Tensor3& z_field,
+                            const Vector& f_grid,
+                            const Vector& refellipsoid,
+                            const Matrix& z_surface,
                             const Verbosity& verbosity) {
   // Special treatment of 1D around zenith/nadir
   // (zenith angles outside [0,180] are changed by *adjust_los*)
@@ -434,13 +436,13 @@ void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Index& atmosphere_dim,
-                        const ConstVectorView& p_grid,
-                        const ConstVectorView& lat_grid,
-                        const ConstVectorView& lon_grid,
-                        const ConstTensor3View& z_field,
-                        const ConstVectorView& f_grid,
-                        const ConstVectorView& refellipsoid,
-                        const ConstMatrixView& z_surface,
+                        const Vector& p_grid,
+                        const Vector& lat_grid,
+                        const Vector& lon_grid,
+                        const Tensor3& z_field,
+                        const Vector& f_grid,
+                        const Vector& refellipsoid,
+                        const Matrix& z_surface,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
@@ -454,7 +456,7 @@ void defocusing_general(Workspace& ws,
     lo += ppath.lstep[i] * (ppath.nreal[i] + ppath.nreal[i + 1]) / 2.0;
   }
   // Extract rte_pos and rte_los
-  const Vector rte_pos = ppath.start_pos[Range(0, atmosphere_dim)];
+  const Vector rte_pos{ppath.start_pos[Range(0, atmosphere_dim)]};
   //
   Vector rte_los0(max(Index(1), atmosphere_dim - 1)), rte_los;
   mirror_los(rte_los, ppath.start_los, atmosphere_dim);
@@ -523,7 +525,7 @@ void defocusing_general(Workspace& ws,
       distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
     }
     //
-    dlf = lp * 2 * DEG2RAD * dza / l12;
+    dlf = lp * 2 * Conversion::deg2rad(1) * dza / l12;
   }
   // If different backgrounds, then only use the second calculation
   else {
@@ -545,7 +547,7 @@ void defocusing_general(Workspace& ws,
                  pos2[2]);
     }
     //
-    dlf = lp * DEG2RAD * dza / l12;
+    dlf = lp * Conversion::deg2rad(1) * dza / l12;
   }
 }
 
@@ -553,13 +555,13 @@ void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Index& atmosphere_dim,
-                        const ConstVectorView& p_grid,
-                        const ConstVectorView& lat_grid,
-                        const ConstVectorView& lon_grid,
-                        const ConstTensor3View& z_field,
-                        const ConstVectorView& f_grid,
-                        const ConstVectorView& refellipsoid,
-                        const ConstMatrixView& z_surface,
+                        const Vector& p_grid,
+                        const Vector& lat_grid,
+                        const Vector& lon_grid,
+                        const Tensor3& z_field,
+                        const Vector& f_grid,
+                        const Vector& refellipsoid,
+                        const Matrix& z_surface,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
@@ -586,7 +588,7 @@ void defocusing_sat2sat(Workspace& ws,
   // Bending angle and impact parameter for centre ray
   Numeric alpha0, a0;
   bending_angle1d(alpha0, ppath);
-  alpha0 *= DEG2RAD;
+  alpha0 *= Conversion::deg2rad(1);
   a0 = ppath.constant;
 
   // Azimuth loss term (Eq 18.5 in Kursinski et al.)
@@ -596,8 +598,8 @@ void defocusing_sat2sat(Workspace& ws,
   // Calculate two new ppaths to get dalpha/da
   Numeric alpha1, a1, alpha2, a2, dada;
   Ppath ppt;
-  Vector rte_pos = ppath.end_pos[Range(0, atmosphere_dim)];
-  Vector rte_los = ppath.end_los;
+  Vector rte_pos{ppath.end_pos[Range(0, atmosphere_dim)]};
+  Vector rte_los{ppath.end_los};
   //
   rte_los[0] -= dza;
   adjust_los(rte_los, atmosphere_dim);
@@ -621,7 +623,7 @@ void defocusing_sat2sat(Workspace& ws,
              false,
              verbosity);
   bending_angle1d(alpha2, ppt);
-  alpha2 *= DEG2RAD;
+  alpha2 *= Conversion::deg2rad(1);
   a2 = ppt.constant;
   //
   rte_los[0] += 2 * dza;
@@ -651,7 +653,7 @@ void defocusing_sat2sat(Workspace& ws,
   // Otherwise use the centre ray as the second one.
   if (ppath_what_background(ppt) == 1) {
     bending_angle1d(alpha1, ppt);
-    alpha1 *= DEG2RAD;
+    alpha1 *= Conversion::deg2rad(1);
     a1 = ppt.constant;
     dada = (alpha2 - alpha1) / (a2 - a1);
   } else {
@@ -680,8 +682,8 @@ Numeric dotprod_with_los(const ConstVectorView& los,
   // Zenith and azimuth angle for photon direction (in radians)
   Vector los_p;
   mirror_los(los_p, los, atmosphere_dim);
-  const Numeric za_p = DEG2RAD * los_p[0];
-  const Numeric aa_p = DEG2RAD * los_p[1];
+  const Numeric za_p = Conversion::deg2rad(1) * los_p[0];
+  const Numeric aa_p = Conversion::deg2rad(1) * los_p[1];
 
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
@@ -689,16 +691,17 @@ Numeric dotprod_with_los(const ConstVectorView& los,
 void get_iy(Workspace& ws,
             Matrix& iy,
             const Index& cloudbox_on,
-            const ConstVectorView& f_grid,
+            const Vector& f_grid,
             const EnergyLevelMap& nlte_field,
-            const ConstVectorView& rte_pos,
-            const ConstVectorView& rte_los,
-            const ConstVectorView& rte_pos2,
+            const Vector& rte_pos,
+            const Vector& rte_los,
+            const Vector& rte_pos2,
             const String& iy_unit,
             const Agenda& iy_main_agenda) {
   ArrayOfTensor3 diy_dx;
   ArrayOfMatrix iy_aux;
   Ppath ppath;
+  Vector geo_pos;
   Tensor3 iy_transmittance(0, 0, 0);
   const Index iy_agenda_call1 = 1;
   const ArrayOfString iy_aux_vars(0);
@@ -710,6 +713,7 @@ void get_iy(Workspace& ws,
                         iy_aux,
                         ppath,
                         diy_dx,
+                        geo_pos,
                         iy_agenda_call1,
                         iy_transmittance,
                         iy_aux_vars,
@@ -728,19 +732,19 @@ void get_iy(Workspace& ws,
 void get_iy_of_background(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
-                          const ConstTensor3View& iy_transmittance,
+                          const Tensor3& iy_transmittance,
                           const Index& iy_id,
                           const Index& jacobian_do,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Ppath& ppath,
-                          const ConstVectorView& rte_pos2,
+                          const Vector& rte_pos2,
                           const Index& atmosphere_dim,
                           const EnergyLevelMap& nlte_field,
                           const Index& cloudbox_on,
                           const Index& stokes_dim,
-                          const ConstVectorView& f_grid,
+                          const Vector& f_grid,
                           const String& iy_unit,
-                          const ConstTensor3View& surface_props_data,
+                          const Tensor3& surface_props_data,
                           const Agenda& iy_main_agenda,
                           const Agenda& iy_space_agenda,
                           const Agenda& iy_surface_agenda,
@@ -1019,7 +1023,7 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                                atmosphere_dim,
                                cloudbox_limits);
       for (Index i = 0; i < pnd_field.nbooks(); i++) {
-        interp_atmfield_by_itw(ppath_pnd(i, ip),
+        interp_atmfield_by_itw(ExhaustiveVectorView{ppath_pnd(i, ip)},
                                atmosphere_dim,
                                pnd_field(i, joker, joker, joker),
                                gpc_p,
@@ -1036,7 +1040,7 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
             for (Index i = 0; i < pnd_field.nbooks();
                  i++)  // Scattering element
             {
-              interp_atmfield_by_itw(ppath_dpnd_dx[iq](i, ip),
+              interp_atmfield_by_itw(ExhaustiveVectorView{ppath_dpnd_dx[iq](i, ip)},
                                      atmosphere_dim,
                                      dpnd_field_dx[iq](i, joker, joker, joker),
                                      gpc_p,
@@ -1137,11 +1141,11 @@ void get_stepwise_clearsky_propmat(
     ArrayOfStokesVector& dS_dx,
     const Agenda& propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_magnetic_field,
-    const ConstVectorView& ppath_line_of_sight,
+    const Vector& ppath_f_grid,
+    const Vector& ppath_magnetic_field,
+    const Vector& ppath_line_of_sight,
     const EnergyLevelMap& ppath_nlte,
-    const ConstVectorView& ppath_vmrs,
+    const Vector& ppath_vmrs,
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
     const bool& jacobian_do) {
@@ -1152,6 +1156,7 @@ void get_stepwise_clearsky_propmat(
                                  dK_dx,
                                  dS_dx,
                                  jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
+                                 {},
                                  ppath_f_grid,
                                  ppath_magnetic_field,
                                  ppath_line_of_sight,
@@ -1248,7 +1253,7 @@ void get_stepwise_scattersky_propmat(
                       t_ok,
                       scat_data,
                       stokes_dim,
-                      ppath_temperature,
+                      Vector{ppath_temperature},
                       dir_array,
                       -1);
 
@@ -1491,21 +1496,22 @@ void iyb_calc_body(bool& failed,
                    Ppath& ppath,
                    Vector& iyb,
                    ArrayOfMatrix& diyb_dx,
+                   Vector& geo_pos,
                    const Index& mblock_index,
                    const Index& atmosphere_dim,
                    const EnergyLevelMap& nlte_field,
                    const Index& cloudbox_on,
                    const Index& stokes_dim,
-                   const ConstMatrixView& sensor_pos,
-                   const ConstMatrixView& sensor_los,
-                   const ConstMatrixView& transmitter_pos,
-                   const ConstMatrixView& mblock_dlos_grid,
+                   const Matrix& sensor_pos,
+                   const Matrix& sensor_los,
+                   const Matrix& transmitter_pos,
+                   const Matrix& mblock_dlos,
                    const String& iy_unit,
                    const Agenda& iy_main_agenda,
                    const Index& j_analytical_do,
                    const ArrayOfRetrievalQuantity& jacobian_quantities,
                    const ArrayOfArrayOfIndex& jacobian_indices,
-                   const ConstVectorView& f_grid,
+                   const Vector& f_grid,
                    const ArrayOfString& iy_aux_vars,
                    const Index& ilos,
                    const Index& nf) {
@@ -1517,16 +1523,16 @@ void iyb_calc_body(bool& failed,
     Vector los(sensor_los.ncols());
     //
     los = sensor_los(mblock_index, joker);
-    if (mblock_dlos_grid.ncols() == 1) {
-      los[0] += mblock_dlos_grid(ilos, 0);
+    if (mblock_dlos.ncols() == 1) {
+      los[0] += mblock_dlos(ilos, 0);
       adjust_los(los, atmosphere_dim);
     } else {
       add_za_aa(los[0],
                 los[1],
                 los[0],
                 los[1],
-                mblock_dlos_grid(ilos, 0),
-                mblock_dlos_grid(ilos, 1));
+                mblock_dlos(ilos, 0),
+                mblock_dlos(ilos, 1));
     }
 
     //--- rtp_pos 1 and 2
@@ -1552,6 +1558,7 @@ void iyb_calc_body(bool& failed,
                           iy_aux_array[ilos],
                           ppath,
                           diy_dx,
+                          geo_pos,
                           iy_agenda_call1,
                           iy_transmittance,
                           iy_aux_vars,
@@ -1610,14 +1617,13 @@ void iyb_calc(Workspace& ws,
               const EnergyLevelMap& nlte_field,
               const Index& cloudbox_on,
               const Index& stokes_dim,
-              const ConstVectorView& f_grid,
-              const ConstMatrixView& sensor_pos,
-              const ConstMatrixView& sensor_los,
-              const ConstMatrixView& transmitter_pos,
-              const ConstMatrixView& mblock_dlos_grid,
+              const Vector& f_grid,
+              const Matrix& sensor_pos,
+              const Matrix& sensor_los,
+              const Matrix& transmitter_pos,
+              const Matrix& mblock_dlos,
               const String& iy_unit,
               const Agenda& iy_main_agenda,
-              const Agenda& geo_pos_agenda,
               const Index& j_analytical_do,
               const ArrayOfRetrievalQuantity& jacobian_quantities,
               const ArrayOfArrayOfIndex& jacobian_indices,
@@ -1627,7 +1633,7 @@ void iyb_calc(Workspace& ws,
 
   // Sizes
   const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos_grid.nrows();
+  const Index nlos = mblock_dlos.nrows();
   const Index niyb = nf * nlos * stokes_dim;
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
@@ -1640,7 +1646,7 @@ void iyb_calc(Workspace& ws,
   } else {
     diyb_dx.resize(0);
   }
-  // Assume that geo_pos_agenda returns empty geo_pos.
+  // Assume empty geo_pos.
   geo_pos_matrix.resize(nlos, 5);
   geo_pos_matrix = NAN;
 
@@ -1648,33 +1654,30 @@ void iyb_calc(Workspace& ws,
   // all outout
   ArrayOfArrayOfMatrix iy_aux_array(nlos);
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_iy_main_agenda(iy_main_agenda);
-  Agenda l_geo_pos_agenda(geo_pos_agenda);
-
   String fail_msg;
   bool failed = false;
   if (nlos >= arts_omp_get_max_threads() || nlos * 10 >= nf) {
     out3 << "  Parallelizing los loop (" << nlos << " iterations, " << nf
          << " frequencies)\n";
 
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
     // Start of actual calculations
-#pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
+#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(wss)
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
 
       Ppath ppath;
+      Vector geo_pos;
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
-                    l_ws,
+                    wss,
                     ppath,
                     iyb,
                     diyb_dx,
+                    geo_pos,
                     mblock_index,
                     atmosphere_dim,
                     nlte_field,
@@ -1683,9 +1686,9 @@ void iyb_calc(Workspace& ws,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
-                    mblock_dlos_grid,
+                    mblock_dlos,
                     iy_unit,
-                    l_iy_main_agenda,
+                    iy_main_agenda,
                     j_analytical_do,
                     jacobian_quantities,
                     jacobian_indices,
@@ -1694,27 +1697,10 @@ void iyb_calc(Workspace& ws,
                     ilos,
                     nf);
 
+      if (geo_pos.nelem()) geo_pos_matrix(ilos, joker) = geo_pos;
+
       // Skip remaining iterations if an error occurred
       if (failed) continue;
-
-      // Note that this code is found in two places inside the function
-      Vector geo_pos;
-      try {
-        geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
-        if (geo_pos.nelem()) {
-          ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
-                "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
-                "The length of *geo_pos* must be zero or five.");
-
-          geo_pos_matrix(ilos, joker) = geo_pos;
-        }
-      } catch (const std::exception& e) {
-#pragma omp critical(iyb_calc_fail)
-        {
-          fail_msg = e.what();
-          failed = true;
-        }
-      }
     }
   } else {
     out3 << "  Not parallelizing los loop (" << nlos << " iterations, " << nf
@@ -1725,13 +1711,15 @@ void iyb_calc(Workspace& ws,
       if (failed) continue;
 
       Ppath ppath;
+      Vector geo_pos;
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
-                    l_ws,
+                    ws,
                     ppath,
                     iyb,
                     diyb_dx,
+                    geo_pos,
                     mblock_index,
                     atmosphere_dim,
                     nlte_field,
@@ -1740,9 +1728,9 @@ void iyb_calc(Workspace& ws,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
-                    mblock_dlos_grid,
+                    mblock_dlos,
                     iy_unit,
-                    l_iy_main_agenda,
+                    iy_main_agenda,
                     j_analytical_do,
                     jacobian_quantities,
                     jacobian_indices,
@@ -1751,27 +1739,10 @@ void iyb_calc(Workspace& ws,
                     ilos,
                     nf);
 
+      if (geo_pos.nelem()) geo_pos_matrix(ilos, joker) = geo_pos;
+
       // Skip remaining iterations if an error occurred
       if (failed) continue;
-
-      // Note that this code is found in two places inside the function
-      Vector geo_pos;
-      try {
-        geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
-        if (geo_pos.nelem()) {
-          ARTS_USER_ERROR_IF (geo_pos.nelem() != 5,
-                "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
-                "The length of *geo_pos* must be zero or five.");
-
-          geo_pos_matrix(ilos, joker) = geo_pos;
-        }
-      } catch (const std::exception& e) {
-#pragma omp critical(iyb_calc_fail)
-        {
-          fail_msg = e.what();
-          failed = true;
-        }
-      }
     }
   }
 
@@ -1872,13 +1843,13 @@ void muellersparse_rotation(Sparse& H,
   ARTS_ASSERT(H(1, 0) == 0);
   //
   H.rw(0, 0) = 1;
-  const Numeric a = cos(2 * DEG2RAD * rotangle);
+  const Numeric a = Conversion::cosd(2 * rotangle);
   H.rw(1, 1) = a;
   if (stokes_dim > 2) {
     ARTS_ASSERT(H(2, 0) == 0);
     ARTS_ASSERT(H(0, 2) == 0);
 
-    const Numeric b = sin(2 * DEG2RAD * rotangle);
+    const Numeric b = Conversion::sind(2 * rotangle);
     H.rw(1, 2) = b;
     H.rw(2, 1) = -b;
     H.rw(2, 2) = a;
@@ -1920,7 +1891,7 @@ void mueller_rotation(Matrix& L,
   L.resize(stokes_dim, stokes_dim);
   L(0, 0) = 1;
   if (stokes_dim > 1 ) {
-    const Numeric alpha = 2 * DEG2RAD * rotangle;
+    const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
     const Numeric c2 = cos(alpha);
     L(0,1) = L(1,0) = 0;
     L(1,1) = c2;
@@ -2088,7 +2059,7 @@ void rtmethods_jacobian_finalisation(
         if (jac_species_i[ia] >= 0) {
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
-              Matrix ddterm = diy_dpath[ia](ip, joker, joker);
+              Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
               ddterm *= ppvar_vmr(jac_species_i[ia], ip) *
                         (number_density(ppvar_p[ip], ppvar_t[ip] + 1) -
                          number_density(ppvar_p[ip], ppvar_t[ip]));
@@ -2111,7 +2082,7 @@ void rtmethods_jacobian_finalisation(
             for (Index ip = 0; ip < np; ip++) {
               const Numeric p_eq = water_p_eq(ip, 0, 0);
               const Numeric p_eq1K = water_p_eq1K(ip, 0, 0);
-              Matrix ddterm = diy_dpath[ia](ip, joker, joker);
+              Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
               ddterm *= ppvar_vmr(jac_species_i[ia], ip) *
                         (ppvar_p[ip] / pow(p_eq, 2.0)) * (p_eq1K - p_eq);
               diy_dpath[iq](ip, joker, joker) += ddterm;
@@ -2192,14 +2163,13 @@ void yCalc_mblock_loop_body(bool& failed,
                             const Matrix& sensor_pos,
                             const Matrix& sensor_los,
                             const Matrix& transmitter_pos,
-                            const Matrix& mblock_dlos_grid,
+                            const Matrix& mblock_dlos,
                             const Sparse& sensor_response,
                             const Vector& sensor_response_f,
                             const ArrayOfIndex& sensor_response_pol,
                             const Matrix& sensor_response_dlos,
                             const String& iy_unit,
                             const Agenda& iy_main_agenda,
-                            const Agenda& geo_pos_agenda,
                             const Agenda& jacobian_agenda,
                             const Index& jacobian_do,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -2230,10 +2200,9 @@ void yCalc_mblock_loop_body(bool& failed,
              sensor_pos,
              sensor_los,
              transmitter_pos,
-             mblock_dlos_grid,
+             mblock_dlos,
              iy_unit,
              iy_main_agenda,
-             geo_pos_agenda,
              j_analytical_do,
              jacobian_quantities,
              jacobian_indices,
@@ -2243,7 +2212,7 @@ void yCalc_mblock_loop_body(bool& failed,
     // Apply sensor response matrix on iyb, and put into y
     //
     const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-    const Index row0 = rowind.get_start();
+    const Index row0 = rowind.offset;
     //
     mult(yb, sensor_response, iyb);
     //
@@ -2329,7 +2298,7 @@ void ze_cfac(Vector& fac,
   }
 
   // Common conversion factor
-  const Numeric a = 4e18 / (PI * PI * PI * PI);
+  static constexpr Numeric a = 4e18 / Math::pow4(Constant::pi);
 
   for (Index iv = 0; iv < nf; iv++) {
     // Reference dielectric factor.

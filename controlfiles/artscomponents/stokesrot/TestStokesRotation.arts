@@ -8,25 +8,26 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # No jacobian calculation
 jacobianOff
@@ -46,6 +47,7 @@ AgendaSet( propmat_clearsky_agenda ){
   Ignore( rtp_vmr )
   Ignore( rtp_nlte )
   Ignore(jacobian_quantities)
+  Ignore(select_abs_species)
   Touch( nlte_source )
   Touch( dpropmat_clearsky_dx )
   Touch( dnlte_source_dx)
@@ -104,7 +106,7 @@ nelemGet( nang, angles )
 IndexSet( sensor_norm, 1 )  # Here just a dummy value 
 AntennaOff                  # Simplest way to set some dummy variables
 #
-Matrix1ColFromVector( mblock_dlos_grid, angles )
+Matrix1ColFromVector( mblock_dlos, angles )
 
 
 

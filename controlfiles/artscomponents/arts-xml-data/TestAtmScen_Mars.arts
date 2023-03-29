@@ -19,8 +19,8 @@
 # Jana Mendrok 2013-02-26
 
 Arts2 {
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_mars.arts"
 
 

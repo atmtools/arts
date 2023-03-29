@@ -28,8 +28,11 @@
 
 #include "arts.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "global_data.h"
+#include "predefined/predef_data.h"
 #include "xml_io.h"
+#include <sstream>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -219,10 +222,10 @@ void xml_write_to_stream(ostream& os_xml,
 
     Range row_range = c.get_row_range();
     Range column_range = c.get_column_range();
-    block_tag.add_attribute("row_start", row_range.get_start());
-    block_tag.add_attribute("row_extent", row_range.get_extent());
-    block_tag.add_attribute("column_start", column_range.get_start());
-    block_tag.add_attribute("column_extent", column_range.get_extent());
+    block_tag.add_attribute("row_start", row_range.offset);
+    block_tag.add_attribute("row_extent", row_range.extent);
+    block_tag.add_attribute("column_start", column_range.offset);
+    block_tag.add_attribute("column_extent", column_range.extent);
     block_tag.add_attribute("is_inverse", Index(0));
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       block_tag.add_attribute("type", "Matrix");
@@ -250,10 +253,10 @@ void xml_write_to_stream(ostream& os_xml,
 
     Range row_range = c.get_row_range();
     Range column_range = c.get_column_range();
-    block_tag.add_attribute("row_start", row_range.get_start());
-    block_tag.add_attribute("row_extent", row_range.get_extent());
-    block_tag.add_attribute("column_start", column_range.get_start());
-    block_tag.add_attribute("column_extent", column_range.get_extent());
+    block_tag.add_attribute("row_start", row_range.offset);
+    block_tag.add_attribute("row_extent", row_range.extent);
+    block_tag.add_attribute("column_start", column_range.offset);
+    block_tag.add_attribute("column_extent", column_range.extent);
     block_tag.add_attribute("is_inverse", Index(1));
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       block_tag.add_attribute("type", "Matrix");
@@ -294,11 +297,11 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("EnergyLevelMap");
   String type;
   tag.get_attribute_value("type", type);
-  elm.Type() = string2energylevelmaptype(type);
+  elm.type = toEnergyLevelMapTypeOrThrow(type);
 
-  xml_read_from_stream(is_xml, elm.Levels(), pbifs, verbosity);
-  xml_read_from_stream(is_xml, elm.Data(), pbifs, verbosity);
-  xml_read_from_stream(is_xml, elm.Energies(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.levels, pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.value, pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.vib_energy, pbifs, verbosity);
 
   tag.read_from_stream(is_xml);
   tag.check_name("/EnergyLevelMap");
@@ -323,12 +326,12 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("EnergyLevelMap");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("type", energylevelmaptype2string(elm.Type()));
+  open_tag.add_attribute("type", toString(elm.type));
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(os_xml, elm.Levels(), pbofs, "Energy Levels", verbosity);
-  xml_write_to_stream(os_xml, elm.Data(), pbofs, "Level Data", verbosity);
-  xml_write_to_stream(os_xml, elm.Energies(), pbofs, "Level Energy", verbosity);
+  xml_write_to_stream(os_xml, elm.levels, pbofs, "Energy Levels", verbosity);
+  xml_write_to_stream(os_xml, elm.value, pbofs, "Level Data", verbosity);
+  xml_write_to_stream(os_xml, elm.vib_energy, pbofs, "Level Energy", verbosity);
 
   close_tag.set_name("/EnergyLevelMap");
   close_tag.write_to_stream(os_xml);
@@ -1293,7 +1296,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("/RetrievalQuantity");
 
   rq = RetrievalQuantity(
-    target, subtag, subsubtag, mode, target.Perturbation(), grids);
+    target, subtag, subsubtag, mode, target.perturbation, grids);
 }
 
 //! Writes RetrievalQuantity to XML output stream
@@ -1726,6 +1729,66 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== Sun =====================================================
+
+//! Reads Sun from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param sun    Sun return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          Sun& sun,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Sun");
+
+  xml_read_from_stream(is_xml, sun.description, pbifs, verbosity);
+  xml_read_from_stream(is_xml, sun.spectrum, pbifs, verbosity);
+  xml_read_from_stream(is_xml, sun.radius, pbifs, verbosity);
+  xml_read_from_stream(is_xml, sun.distance, pbifs, verbosity);
+  xml_read_from_stream(is_xml, sun.latitude, pbifs, verbosity);
+  xml_read_from_stream(is_xml, sun.longitude, pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Sun");
+}
+
+//! Writes Sun to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param sun    Sun
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const Sun& sun,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Sun");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
+
+  xml_write_to_stream(os_xml, sun.description, pbofs, "StarType", verbosity);
+  xml_write_to_stream(os_xml, sun.spectrum, pbofs, "StarSpectrum", verbosity);
+  xml_write_to_stream(os_xml, sun.radius, pbofs, "StarRadius", verbosity);
+  xml_write_to_stream(os_xml, sun.distance, pbofs, "StarDistance", verbosity);
+  xml_write_to_stream(os_xml, sun.latitude, pbofs, "StarLatitude", verbosity);
+  xml_write_to_stream(
+      os_xml, sun.longitude, pbofs, "StarLongitude", verbosity);
+
+  close_tag.set_name("/Sun");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 //=== StokesVector ======================================================
 
 //! Reads StokesVector from XML input stream
@@ -1750,7 +1813,7 @@ void xml_read_from_stream(istream& is_xml,
     Index nza = d.npages();
     Index nf = d.nrows();
     Index nstokes_needed = d.ncols();
-    sv = PropagationMatrix(nf, need2stokes<false>(nstokes_needed), nza, naa);
+    sv = StokesVector(nf, need2stokes<false>(nstokes_needed), nza, naa);
     sv.Data() = std::move(d); // destructive takeover
   } catch (const std::runtime_error& e) {
     ostringstream os;
@@ -1759,7 +1822,7 @@ void xml_read_from_stream(istream& is_xml,
        << e.what();
     throw runtime_error(os.str());
   }
-
+  
   tag.read_from_stream(is_xml);
   tag.check_name("/StokesVector");
 }
@@ -2078,6 +2141,124 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+
+
+//=== PredefinedModelData =========================================
+/*!
+ * \param is_xml     XML Input stream
+ * \param pmd        PredefinedModelData return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          PredefinedModelData& pmd,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbifs, "No binary data")
+
+  pmd = PredefinedModelData{};  // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("PredefinedModelData");
+
+  Index nelem;
+  open_tag.get_attribute_value("nelem", nelem);
+
+  for (Index i = 0; i < nelem; i++) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.read_from_stream(is_xml);
+    internal_open_tag.check_name("Data");
+
+    // Get key
+    String key_str;
+    internal_open_tag.get_attribute_value("key", key_str);
+    auto key =
+        Absorption::PredefinedModel::toDataKeyOrThrow(key_str);
+
+    String sizes_str;
+    internal_open_tag.get_attribute_value("sizes", sizes_str);
+
+    Index sizes_len;
+    internal_open_tag.get_attribute_value("sizes_nelem", sizes_len);
+
+    std::vector<std::size_t> sizes(sizes_len);
+    std::istringstream values(sizes_str);
+    for (auto& sz : sizes) values >> sz;
+
+    pmd.resize(sizes, key);
+    pmd.set_data_from_stream(is_xml, key);
+
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.read_from_stream(is_xml);
+    internal_close_tag.check_name("/Data");
+  }
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/PredefinedModelData");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param rvb        PredefinedModelData
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const PredefinedModelData& pmd,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(pbofs, "No binary data")
+
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("PredefinedModelData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("nelem", Index(pmd.size()));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  const auto keys = pmd.keys();
+
+  for (auto& key : keys) {
+    ArtsXMLTag internal_open_tag(verbosity);
+    internal_open_tag.set_name("Data");
+    internal_open_tag.add_attribute("key", toString(key));
+
+    auto sizes = pmd.data_size(key);
+    internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
+
+    String sizes_str = "";
+    for (std::size_t i = 0; i < sizes.size(); i++) {
+      if (i > 0) sizes_str += " ";
+      sizes_str += var_string(sizes[i]);
+    }
+    internal_open_tag.add_attribute("sizes", sizes_str);
+
+    internal_open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    // Set values
+    pmd.output_data_to_stream(os_xml, key);
+    os_xml << '\n';
+
+    ArtsXMLTag internal_close_tag(verbosity);
+    internal_close_tag.set_name("/Data");
+    internal_close_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+  }
+
+  close_tag.set_name("/PredefinedModelData");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
@@ -2089,7 +2270,7 @@ void xml_read_from_stream(istream&,
                           Agenda&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2097,7 +2278,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== MCAntenna ================================================
@@ -2106,7 +2287,7 @@ void xml_read_from_stream(istream&,
                           MCAntenna&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2114,7 +2295,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== TessemNN ================================================
@@ -2123,7 +2304,7 @@ void xml_read_from_stream(istream&,
                           TessemNN&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2131,7 +2312,7 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== Verbosity ================================================
@@ -2140,7 +2321,7 @@ void xml_read_from_stream(istream&,
                           Verbosity&,
                           bifstream* /* pbifs */,
                           const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
@@ -2148,5 +2329,22 @@ void xml_write_to_stream(ostream&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {
-  throw runtime_error("Method not implemented!");
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== CallbackFunction =========================================
+
+void xml_read_from_stream(istream&,
+                          CallbackFunction&,
+                          bifstream* /* pbifs */,
+                          const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const CallbackFunction&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */,
+                         const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
 }

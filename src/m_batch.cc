@@ -37,6 +37,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include "gridded_fields.h"
 using namespace std;
 
 #include "arts.h"
@@ -47,10 +48,10 @@ using namespace std;
 #include "rte.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Index GFIELD3_P_GRID;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+using GriddedFieldGrids::GFIELD3_P_GRID;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -117,17 +118,13 @@ void ybatchCalc(Workspace& ws,
     ybatch_jacobians[i].resize(0, 0);
   }
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_ybatch_calc_agenda(ybatch_calc_agenda);
-
   // Go through the batch:
 
-  if (ybatch_n)
+  if (ybatch_n) {
+  WorkspaceOmpParallelCopyGuard wss{ws};
+
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1)              \
-    firstprivate(l_ws, l_ybatch_calc_agenda)
+                                               ybatch_n > 1) firstprivate(wss)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -149,12 +146,12 @@ void ybatchCalc(Workspace& ws,
         ArrayOfVector y_aux;
         Matrix jacobian;
 
-        ybatch_calc_agendaExecute(l_ws,
+        ybatch_calc_agendaExecute(wss,
                                   y,
                                   y_aux,
                                   jacobian,
                                   ybatch_start + ybatch_index,
-                                  l_ybatch_calc_agenda);
+                                  ybatch_calc_agenda);
 
         if (y.nelem()) {
 #pragma omp critical(ybatchCalc_assign_y)
@@ -217,6 +214,7 @@ void ybatchCalc(Workspace& ws,
         fail_msg.push_back(os.str());
       }
     }
+  }
 
   if (fail_msg.nelem()) {
     ostringstream os;
@@ -684,17 +682,13 @@ void DOBatchCalc(Workspace& ws,
   dobatch_irradiance_field.resize(ybatch_n);
   dobatch_spectral_irradiance_field.resize(ybatch_n);
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_dobatch_calc_agenda(dobatch_calc_agenda);
-
   // Go through the batch:
 
-  if (ybatch_n)
+  if (ybatch_n) {
+  WorkspaceOmpParallelCopyGuard wss{ws};
+  
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1)              \
-    firstprivate(l_ws, l_dobatch_calc_agenda)
+                                               ybatch_n > 1) firstprivate(wss)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -717,13 +711,13 @@ void DOBatchCalc(Workspace& ws,
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
 
-        dobatch_calc_agendaExecute(l_ws,
+        dobatch_calc_agendaExecute(wss,
                                    cloudbox_field,
                                    radiance_field,
                                    irradiance_field,
                                    spectral_irradiance_field,
                                    ybatch_start + ybatch_index,
-                                   l_dobatch_calc_agenda);
+                                   dobatch_calc_agenda);
 
 #pragma omp critical(dobatchCalc_assign_cloudbox_field)
         dobatch_cloudbox_field[ybatch_index] = cloudbox_field;
@@ -763,6 +757,7 @@ void DOBatchCalc(Workspace& ws,
         fail_msg.push_back(os.str());
       }
     }
+  }
 
   if (fail_msg.nelem()) {
     ostringstream os;

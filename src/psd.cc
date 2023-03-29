@@ -39,6 +39,7 @@
 #include <stdexcept>
 
 #include "arts.h"
+#include "arts_constants.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "lin_alg.h"
@@ -51,9 +52,9 @@
 #include "rng.h"
 #include "sorting.h"
 
-extern const Numeric PI;
-extern const Numeric DENSITY_OF_ICE;
-extern const Numeric DENSITY_OF_WATER;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
+inline constexpr Numeric DENSITY_OF_WATER=Constant::denity_of_water_at_4c;
 
 void psd_cloudice_MH97(Vector& psd,
                        const Vector& diameter,
@@ -572,7 +573,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
             dpsd_data_dx(ext_i_jac[0], ip, joker) = jac_data(0, joker);
             dpsd_data_dx(ext_i_jac[0], ip, joker) *= scfac1 + dn0dla * dladw;
             // 2. Term associated with la
-            Vector term2 = jac_data(2, joker);
+            Vector term2{jac_data(2, joker)};
             term2 *= dladw;
             // Sum up
             dpsd_data_dx(ext_i_jac[0], ip, joker) += term2;
@@ -652,8 +653,7 @@ void psd_mono_common(Matrix& psd_data,
     throw runtime_error("*pnd_agenda_input* must have one column.");
   if (nsi != 1)
     throw runtime_error(
-        "This method demands that length of "
-        "*psd_size_grid* is 1.");
+        "This method demands that length of *psd_size_grid* is 1.");
 
   // Extract particle mass
   Numeric pmass = 0;

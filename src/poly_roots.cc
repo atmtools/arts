@@ -99,8 +99,8 @@ int poly_root_solve(Matrix &roots, Vector &coeffs) {
   ARTS_ASSERT(coeffs[a - 1] != 0);
 
 #ifdef USE_DOUBLE
-  c = coeffs.mdata;
-  s = roots.mdata;
+  c = coeffs.data_handle();
+  s = roots.data_handle();
 #else
   c = (double *)malloc(a * sizeof(double));
   for (Index i = 0; i < a; i++) c[i] = (double)coeffs[i];

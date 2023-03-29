@@ -5,10 +5,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 
 # Number of Stokes components to be computed
@@ -26,14 +26,6 @@ VectorNLogSpace( f_grid, 101, 0.1e9, 5e9 )
 AtmosphereSet1D
 
 
-#
-# Some settings resulting in no gas absorption
-#
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
-
 # Definition of species
 # 
 abs_speciesSet( species=["H2O", "N2", "O2"] )
@@ -42,7 +34,7 @@ abs_speciesSet( species=["H2O", "N2", "O2"] )
 # 
 abs_lines_per_speciesSetEmpty
 
-
+propmat_clearsky_agendaAuto
 
 
 # A pressure grid rougly matching 0 to 1000 km, in steps of 2km.

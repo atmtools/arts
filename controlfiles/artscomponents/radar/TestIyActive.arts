@@ -9,16 +9,10 @@
 #
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # A pressure grid rougly matching 0 to 16 km, in steps of 50 m.
 VectorNLogSpace( p_grid, 321, 1000e2, 100e2 )
@@ -28,6 +22,8 @@ abs_speciesSet( species= [  "N2", "O2", "H2O" ] )
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaAuto
 
 # Dimensionality of the atmosphere
 AtmosphereSet1D
@@ -75,19 +71,16 @@ ReadXML( range_bins, "testdata/range_bins.xml" )
 #
 ReadXML( sensor_pos, "testdata/sensor_pos.xml" )
 MatrixSet( sensor_los, [180] )
-#
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  iy_transmitterSinglePol
-}
+
 ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
-#
+
 AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
+  iy_transmitterSinglePol
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( pext_scaling = weight_ext )
+  VectorSet(geo_pos, [])
 }
 IndexSet( stokes_dim, 3 )
 sensorOff
@@ -96,8 +89,6 @@ StringSet( iy_unit_radar, "dBZe" )
 
 # Make checks
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -133,11 +124,12 @@ Compare( dbz_max, dbz_ref, 0.01 )
 # Result, with gas absorption
 #
 abs_speciesSet( species=[ "N2-SelfContStandardType",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "H2O-PWR98"
                         ] )
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
+
+propmat_clearsky_agendaAuto
+
 #
 # Check that iy_aux vars rrun
 ArrayOfStringSet( iy_aux_vars, ["Radiative background",

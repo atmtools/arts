@@ -9,13 +9,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # Basic settings (already needed in sensor part)
 # ---
@@ -37,19 +34,19 @@ StringSet( iy_unit, "PlanckBT" )
 StringSet( iy_unit, "PlanckBT" )
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 #
 # modifiy the maximum propagation step, from the default to 250 m :
@@ -57,8 +54,7 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 NumericSet( ppath_lmax, 250 )
 
 # Surface
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 
 # 2. Spectroscopy
@@ -71,7 +67,7 @@ Copy( surface_rtprop_agenda,
 
 abs_speciesSet( species=[ "H2O-PWR98",
 #                          "O3",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Read HITRAN catalog (needed for O3):
@@ -84,6 +80,8 @@ abs_speciesSet( species=[ "H2O-PWR98",
 #ReadXML( abs_lines, "ici.hitran12_lines.xml" )
 #abs_lines_per_speciesCreateFromLines
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaAuto
 
 # WARNING: If you redefine abs_species, and want to do a line-by-line
 # calculation, you also have to call
@@ -116,16 +114,16 @@ abs_lookupSetupBatch
 
 # Create the lookup table
 # ---
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 jacobianOff
-
+propmat_clearsky_agendaAuto
 abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table
 # ---
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 
 # Set up RT calculation
@@ -193,7 +191,6 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 
 # Execute the batch calculations:
 # ---
-propmat_clearsky_agenda_checkedCalc
 ybatchCalc
 
 

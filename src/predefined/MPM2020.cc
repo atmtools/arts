@@ -1,4 +1,4 @@
-#include <constants.h>
+#include <arts_conversions.h>
 #include <propagationmatrix.h>
 
 /**
@@ -18,7 +18,7 @@ constexpr Numeric sum_lines(const Numeric f,
                             const std::array<Numeric, num>& y,
                             const std::array<Numeric, num>& dv,
                             const std::array<Numeric, num>& f0) noexcept {
-  using Constant::pow2;
+  using Math::pow2;
 
   Numeric a = 0;
   for (Index i = 0; i < num; i++)
@@ -34,7 +34,7 @@ void compute(PropagationMatrix& propmat_clearsky,
              const Numeric& p_pa,
              const Numeric& t,
              const Numeric& oxygen_vmr) noexcept {
-  using Constant::pow2, Constant::pow3, Constant::log10_euler;
+  using Math::pow2, Math::pow3, Constant::log10_euler;
   using Conversion::hz2ghz, Conversion::pa2bar;
 
   std::array<Numeric, num> c{

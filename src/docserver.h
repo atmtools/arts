@@ -105,6 +105,10 @@ class Docserver {
   int launch(bool daemon);
 };
 
+void run_docserver(Index port = 9000,
+                   const String& baseurl = "",
+                   bool daemon = false);
+
 #endif /* ENABLE_DOCSERVER */
 
 #endif /* docserver_h */

@@ -40,6 +40,7 @@ void propmat_clearskyAddZeeman(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Numeric& rtp_pressure,
@@ -77,6 +78,7 @@ void propmat_clearskyAddZeeman(
                     dpropmat_clearsky_dx,
                     dnlte_source_dx,
                     abs_species,
+                    select_abs_species,
                     jacobian_quantities,
                     abs_lines_per_species,
                     isotopologue_ratios,
@@ -94,10 +96,10 @@ void propmat_clearskyAddZeeman(
                     manual_zeeman_eta);
 }
 
-void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
-                                    const ArrayOfQuantumIdentifier& qid,
-                                    const Vector& gs,
-                                    const Verbosity&) {
+void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
+                                 const ArrayOfQuantumIdentifier& qid,
+                                 const Vector& gs,
+                                 const Verbosity&) {
   ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
   for (Index i=0; i<qid.nelem(); i++) {
     const QuantumIdentifier& id = qid[i];
@@ -116,13 +118,13 @@ void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
-void abs_lines_per_speciesSetZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+void abs_lines_per_speciesZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                 const ArrayOfQuantumIdentifier& qid,
                                                 const Vector& gs,
                                                 const Verbosity& verbosity) {
   for (auto& abs_lines: abs_lines_per_species) {
     for (Index i=0; i<qid.nelem(); i++) {
-      abs_linesSetZeemanCoefficients(abs_lines, qid, gs, verbosity);
+      abs_linesZeemanCoefficients(abs_lines, qid, gs, verbosity);
     }
   }
 }

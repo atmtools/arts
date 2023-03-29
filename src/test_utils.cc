@@ -25,7 +25,8 @@
 #include <cmath>
 #include "arts.h"
 #include "lin_alg.h"
-#include "matpackII.h"
+#include "matpack_sparse.h"
+#include "matpack_math.h"
 
 using std::abs;
 

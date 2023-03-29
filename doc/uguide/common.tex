@@ -17,6 +17,8 @@
 \usepackage{fancyvrb}
 \usepackage{xcolor}
 \usepackage{amsmath}
+\usepackage{minted}
+\usepackage{wasysym}
 
 
 %--- Margins
@@ -204,6 +206,28 @@
 \newcommand{\user}{\emph{ARTS User Guide}}
 \newcommand{\developer}{\emph{ARTS Developer Guide}}
 \newcommand{\theory}{\emph{ARTS Theory}}
+
+%- Cope comments
+\usemintedstyle{sas}
+\definecolor{LightGray}{gray}{0.9}
+\setminted[cpp]{
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+autogobble,
+label=C++
+}
+\setminted[python]{
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+autogobble,
+label=Python,
+python3=true
+}
+\setmintedinline{fontsize=\footnotesize,bgcolor={}}
 
 %------------------------------------------------------------------------------
 

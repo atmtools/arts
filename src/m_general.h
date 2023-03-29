@@ -27,19 +27,18 @@
 #ifndef m_general_h
 #define m_general_h
 
-#include "arts.h"
-
 #include <iostream>
-#ifdef TIME_SUPPORT
-#include <sys/times.h>
-#endif
 #include <stdexcept>
+
+#include "agenda_class.h"
+#include "arts.h"
 #include "cia.h"
 #include "messages.h"
 #include "mystring.h"
 #include "ppath.h"
 #include "special_interp.h"
 #include "tessem.h"
+#include "timer_struct.h"
 
 class Workspace;
 
@@ -64,19 +63,6 @@ class Workspace;
         throw runtime_error("Output level must have value from 0-3"); \
     }                                                                 \
   }
-
-class Timer {
- public:
-  Timer() : running(false), finished(false) {}
-  bool running;
-  bool finished;
-#ifdef TIME_SUPPORT
-  struct tms cputime_start;
-  clock_t realtime_start;
-  struct tms cputime_end;
-  clock_t realtime_end;
-#endif
-};
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <typename T>
@@ -123,13 +109,6 @@ void Print(  // WS Generic Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const ArrayOfString& x,
-    // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Print(  // WS Generic Input:
-    const Ppath& ppath,
     // Keywords:
     const Index& level,
     const Verbosity& verbosity);

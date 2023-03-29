@@ -10,8 +10,10 @@ AgendaSet( propmat_clearsky_agenda__OnTheFly ){
   Ignore( rtp_mag )
   Ignore( rtp_los )
   Ignore( rtp_nlte )
+  Ignore( select_abs_species )
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddLines
+  propmat_clearskyAddPredefined
 }
 Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 

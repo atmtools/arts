@@ -14,13 +14,9 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
-
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -63,22 +59,19 @@ VectorCreate( za )
 VectorZtanToZa1D( za, sensor_pos, refellipsoid, atmosphere_dim, z_tan )
 Matrix1ColFromVector( sensor_los, za )
 
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 # Blackbody surface
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 # Definition of species: here we neglect continua
 abs_speciesSet( species=["H2O-161", "H2O-162", "N2", "O2"] )
 
 # use planetary catalogue
 ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0, fmax=3e12)
-abs_linesSetCutoff(option="ByLine", value=750e9)
-abs_linesSetNormalization(option="VVH")
+abs_linesCutoff(option="ByLine", value=750e9)
+abs_linesNormalization(option="VVH")
 abs_lines_per_speciesCreateFromLines
 
-
+propmat_clearsky_agendaAuto
 
 #######
 # CASE (a): H2O only with builtIn setup and standard profiles
@@ -90,8 +83,6 @@ AtmFieldsCalc
 # Surface at bottom of defined atosphere
 Extract( z_surface, z_field, 0 )
 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 lbl_checkedCalc
 
 # check basic atm&surface setup of
@@ -101,7 +92,7 @@ cloudbox_checkedCalc
 sensor_checkedCalc
 
 #now do the RT calc
-isotopologue_ratiosInitFromBuiltin
+#
 #WriteXML("ascii", isotopologue_ratios, "IRfromARTSBuiltin.xml")
 yCalc
 #WriteXML( "ascii", y, "y.IsoRatios_Builtin.xml" )

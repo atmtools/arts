@@ -73,9 +73,11 @@ simple C interface:
 
 make cthreadedsimple.test
 
-The python interface requires numpy and ctypes, and can be tested:
+The python interface requires numpy and cffi, and can be tested:
 
 make pysimple.test
+make pysimple2.test   # For explicit python2
+make pysimple3.test   # For explicit python3
 
 
 4. Command-line evaluation of single symbols
@@ -205,11 +207,12 @@ FCFLAGS += -I path-to-wigxjpf/mod/
 The python interface is analog to the C interface described above.
 
 A module 'pywigxjpf' is available in pywigxjpf/pywigxjpf.py
-It loads a shared library (lib/libwigxjpf_shared.so) that can be created by 
 
-make shared
+The use of the module requires numpy and cffi.
 
-Furthermore, the use of the module requires numpy and ctypes.
+To build the wrapper (required once):
+
+make pywigxjpf_ffi
 
 A small example program can be found in example/pysimple.py.  As shown
 in this example, to use the interface in python, the module must be
@@ -217,23 +220,27 @@ imported with, e.g.,
 
 import pywigxjpf as wig
 
-after which a number of functions (such as wig.wig3jj) becomes
+after which a number of functions (such as wig.wig3jj) become
 available. Help text is available via e.g.
 
-help(wig)
-help(wig.wig3jj)
+help(wig)                # For interfaces.
+help(wig.pywigxjpf)      # For usage information.
 
 To find the module, the path can be set in PYTHONPATH, e.g. with bash:
 
 export PYTHONPATH=path-to-wigxjpf/pywigxjpf/
 example/pysimple.py
 
-Alternatively, the module can be installed:
+Alternatively, the module can be installed (first build WIGXJPF):
 
-make shared
-python pywigxjpf/setup.py install
+make
+python setup.py install
 
-May need to add --user to the second command.
+You may need to add --user to the second command.
+
+
+Note: When evaluating a fair amount of symbols in python, it may be
+useful to try the numba jit compiler.  See example/py_numba_example.py
 
 
 5d. Native interface

@@ -23,25 +23,24 @@
   \brief  Workspace methods for Agenda.
 */
 
-#include <algorithm>
-#include <map>
 #include "agenda_class.h"
 #include "agenda_record.h"
+#include "debug.h"
 #include "global_data.h"
 #include "messages.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"
 
+#include <algorithm>
+#include <map>
+
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaExecute(Workspace& ws,
+void AgendaExecute(Workspace& ws [[maybe_unused]],
                    // WS Generic Input:
                    const Agenda& this_agenda,
                    const Verbosity& verbosity) {
   CREATE_OUT3;
   out3 << "  Manual agenda execution\n";
-
-  using global_data::agenda_data;
-  using global_data::AgendaMap;
 
   if (!this_agenda.checked()) {
     std::ostringstream os;
@@ -49,16 +48,11 @@ void AgendaExecute(Workspace& ws,
       os << "This agenda is uninitialized. We don't even know its name.";
     else
       os << "*" << this_agenda.name() << "* is uninitialized.";
-    os << " Use *AgendaSet* to add methods to it.";
+    os << " Use *AgendaSet* or *@arts_agenda* to add methods to it.";
     throw std::runtime_error(os.str());
   }
 
-  const AgRecord& agr = agenda_data[AgendaMap.find(this_agenda.name())->second];
-
-  // Duplicate input-only arguments of the agenda as they might be
-  // changed inside the agenda.
-  const ArrayOfIndex& ain = agr.In();
-  const ArrayOfIndex& aout = agr.Out();
+  const auto [ain, aout] = this_agenda.get_global_inout();
 
   // Put the input and outputs into new sets to sort them. Otherwise
   // set_difference screws up.
@@ -73,59 +67,43 @@ void AgendaExecute(Workspace& ws,
                  saout.begin(),
                  saout.end(),
                  insert_iterator<set<Index> >(in_only, in_only.begin()));
-  for (set<Index>::const_iterator it = in_only.begin(); it != in_only.end();
-       it++) {
-    ws.duplicate(*it);
+  for (Index it : in_only) {
+    ws.duplicate(it);
   }
 
   const ArrayOfIndex& outputs_to_push = this_agenda.get_output2push();
   const ArrayOfIndex& outputs_to_dup = this_agenda.get_output2dup();
 
-  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin();
-       it != outputs_to_push.end();
-       it++) {
-    if (ws.is_initialized(*it))
-      ws.duplicate(*it);
+  for (Index it : outputs_to_push) {
+    if (ws.is_initialized(it))
+      ws.duplicate(it);
     else
-      ws.push_uninitialized(*it, NULL);
+      ws.emplace(it);
   }
 
-  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin();
-       it != outputs_to_dup.end();
-       it++) {
-    ws.duplicate(*it);
-  }
+  for (auto it : outputs_to_dup) ws.duplicate(it);
 
-  String agenda_error_msg;
+  String msg;
   bool agenda_failed = false;
 
   try {
     this_agenda.execute(ws);
   } catch (const std::exception& e) {
-    ostringstream os;
-    os << "Run-time error in agenda: " << this_agenda.name() << '\n'
-       << e.what();
     agenda_failed = true;
-    agenda_error_msg = os.str();
-  }
-  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin();
-       it != outputs_to_push.end();
-       it++) {
-    ws.pop_free(*it);
+    msg = e.what();
   }
 
-  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin();
-       it != outputs_to_dup.end();
-       it++) {
-    ws.pop_free(*it);
-  }
+  for (auto it : outputs_to_push) ws.pop(it);
 
-  for (set<Index>::const_iterator it = in_only.begin(); it != in_only.end();
-       it++) {
-    ws.pop_free(*it);
-  }
+  for (auto it : outputs_to_dup) ws.pop(it);
 
-  if (agenda_failed) throw runtime_error(agenda_error_msg);
+  for (auto it : in_only) ws.pop(it);
+
+  ARTS_USER_ERROR_IF(agenda_failed,
+                     "Run-time error in agenda: ",
+                     this_agenda.name(),
+                     '\n',
+                     msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -165,6 +143,7 @@ void AgendaSet(Workspace& ws,
                const Agenda& input_agenda,
                const Verbosity& verbosity) {
   output_agenda = input_agenda;
+  
   output_agenda.set_name(agenda_name);
 
   output_agenda.check(ws, verbosity);
@@ -188,13 +167,13 @@ void ArrayOfAgendaAppend(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaAppend(Workspace& ws,
+void AgendaAppend(Workspace& ws [[maybe_unused]],
                   // WS Generic Output:
                   Agenda& output_agenda,
                   // WS Generic Output Names:
                   const String& output_agenda_name,
                   // WS Generic Input:
-                  const Agenda& in_agenda _U_,
+                  const Agenda& in_agenda [[maybe_unused]],
                   // WS Generic Input Names:
                   const String& in_agenda_name,
                   // Agenda from controlfile:
@@ -232,7 +211,7 @@ void Arts2(Workspace& ws,
            // Agenda from controlfile:
            const Agenda& input_agenda,
            const Verbosity& verbosity) {
-  Verbosity* v = (Verbosity*)ws[get_wsv_id("verbosity")];
+  Verbosity* v = static_cast<Verbosity*>(ws[ws.WsvMap_ptr->find("verbosity") -> second].get());
 
   // If the verbosity in the current workspace and the verbosity parameter point
   // to the same variable in memory, that means we were called

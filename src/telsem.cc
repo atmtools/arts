@@ -27,12 +27,14 @@
 #include "telsem.h"
 #include <cmath>
 #include <utility>
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "check_input.h"
 #include "geodetic.h"
 
-extern Numeric EARTH_RADIUS;
-extern Numeric DEG2RAD;
-extern Numeric PI;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI=Constant::pi;
 
 ////////////////////////////////////////////////////////////////////////////////
 // TelsemAtlas Class
@@ -70,7 +72,7 @@ void TelsemAtlas::read(std::istream& is) {
     is >> cellnum;
     ARTS_USER_ERROR_IF (is.fail(), "Error reading cellnum.");
     for (Index nssmi = 0; nssmi < 2 * nchan; nssmi++) {
-      is >> ssmi[nssmi];
+      is >> double_imanip() >> ssmi[nssmi];
       ARTS_USER_ERROR_IF (is.fail(), "Error reading emissivity.");
     }
 
@@ -97,7 +99,7 @@ void TelsemAtlas::equare() {
   firstcells.resize(maxlat);
 
   // Total number of cells.
-  Index totcel = 0.0;
+  //Index totcel = 0.0;
 
   Numeric rcelat = dlat * PI / 180.0;
 
@@ -117,7 +119,7 @@ void TelsemAtlas::equare() {
     Numeric rcells = azone / aecell;
     Index icellr = static_cast<Index>(rcells + 0.5);
 
-    totcel += 2 * icellr;
+    //totcel += 2 * icellr;
 
     Index lat1 = i + maxlat / 2;
     Index lat2 = maxlat / 2 - 1 - i;

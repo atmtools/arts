@@ -39,7 +39,7 @@
 /*! The lookup information for the agendas. */
 namespace global_data {
 Array<AgRecord> agenda_data;
-}
+} // namespace global_data
 
 void define_agenda_data() {
   using global_data::agenda_data;
@@ -74,6 +74,7 @@ void define_agenda_data() {
              "dpropmat_clearsky_dx",
              "dnlte_source_dx"),
       INPUT("jacobian_quantities",
+            "select_abs_species",
             "f_grid",
             "rtp_mag",
             "rtp_los",
@@ -81,32 +82,6 @@ void define_agenda_data() {
             "rtp_temperature",
             "rtp_nlte",
             "rtp_vmr")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("abs_xsec_agenda"),
-      DESCRIPTION(
-          "Calculate scalar gas absorption cross sections.\n"
-          "\n"
-          "Basically, this agenda calculates cross-sections for all the tags defined\n"
-          "in abs_species. It is used both in the calculation of an absorption\n"
-          "lookup table, and in on-the-fly calculations. Typical effects to\n"
-          "include here are:\n"
-          "\n"
-          "Continua and complete absorption models (*abs_xsec_per_speciesAddConts*), and\n"
-          "\n"
-          "HITRAN style CIA continua (*abs_xsec_per_speciesAddCIA*)\n"
-          "\n"
-          "The include file 'agendas.arts' predefines a number of agendas that\n"
-          "should be useful for most users.\n"),
-      OUTPUT("abs_xsec_per_species",
-             "dabs_xsec_per_species_dx"),
-      INPUT("abs_species",
-            "jacobian_quantities",
-            "abs_species_active",
-            "f_grid",
-            "abs_p",
-            "abs_t",
-            "abs_vmrs")));
 
   agenda_data.push_back(
       AgRecord(NAME("dobatch_calc_agenda"),
@@ -247,23 +222,35 @@ void define_agenda_data() {
   */
 
   agenda_data.push_back(
+      AgRecord(NAME("gas_scattering_agenda"),
+               DESCRIPTION("Calculation of the gas scattering extinction and phase matrix.\n"
+                           "\n"
+                           "This agenda calculates the gas scattering cross\n"
+                           "section and the normalized phase matrix for a specific\n"
+                           "incoming ( *gas_scattering_los_in* ) and outgoing (*gas_scattering_los_out*) direction.\n"
+                           "The scattering cross section is calculated along a\n"
+                           "propagtion path given by the propagation path variables\n"
+                           "*rtp_pressure*, *rtp_temperature*, and *rtp_vmr*."
+                           "If *gas_scattering_los_in* and *gas_scattering_los_out* are empty vectors, then\n"
+                           "*gas_scattering_mat* is set empty. If *gas_scattering_los_in* and *gas_scattering_los_out*\n"
+                           "are not empty, then the phase matrix is calculated\n"
+                           "for the define incoming and outgoing direction.\n"),
+               OUTPUT("gas_scattering_coef","gas_scattering_mat","gas_scattering_fct_legendre"),
+               INPUT("f_grid",
+                     "rtp_pressure",
+                     "rtp_temperature",
+                     "rtp_vmr",
+                     "gas_scattering_los_in",
+                     "gas_scattering_los_out",
+                     "gas_scattering_output_type")));
+
+  agenda_data.push_back(
       AgRecord(NAME("g0_agenda"),
                DESCRIPTION("Calculation of the gravity at zero altitude.\n"
                            "\n"
                            "Returns *g0* for given geographical position.\n"),
                OUTPUT("g0"),
                INPUT("lat", "lon")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("geo_pos_agenda"),
-      DESCRIPTION(
-          "Geo-positioning of a pencil beam calculation.\n"
-          "\n"
-          "The task of this agenda is to set *geo_pos*. The standard choices are\n"
-          "to set that WSV to be empty or select a position along the propagation\n"
-          "path (described by *ppath*).\n"),
-      OUTPUT("geo_pos"),
-      INPUT("ppath")));
 
   agenda_data.push_back(AgRecord(
       NAME("inversion_iterate_agenda"),
@@ -368,7 +355,7 @@ void define_agenda_data() {
           "\n"
           "The include-file 'agendas.arts' predefines some typical alternatives\n"
           "that can be used directly, or adapted for specific applications.\n"),
-      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx", "geo_pos"),
       INPUT("diy_dx",
             "iy_agenda_call1",
             "iy_transmittance",
@@ -390,7 +377,7 @@ void define_agenda_data() {
           "\n"
           "This agenda has a similar role for *yRadar* as *iy_main_agenda*.\n"
           "for *yCalc*.\n"),
-      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx", "geo_pos"),
       INPUT("iy_aux_vars",
             "iy_id",
             "cloudbox_on",
@@ -450,48 +437,6 @@ void define_agenda_data() {
             "rte_pos2",
             "surface_props_data",
             "dsurface_names")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("iy_surface_agenda_array"),
-      DESCRIPTION(
-          "Upwelling radiation from the surface, divided into surface types.\n"
-          "\n"
-          "Each agenda element shall treat the radiative properties of a surface\n"
-          "type. The task of these agendas match directly *iy_surface_agenda*.\n"
-          "This with one exception, these agendas have one additional input:\n"
-          "*surface_type_aux*.\n"
-          "\n"
-          "See *surface_type_mask* for comments on the surface type coding\n"
-          "scheme.  Note the parallel agenda array: surface_rtprop_agenda_array.\n"),
-      OUTPUT("iy", "diy_dx"),
-      INPUT("agenda_array_index",
-            "diy_dx",
-            "iy_unit",
-            "iy_transmittance",
-            "iy_id",
-            "cloudbox_on",
-            "jacobian_do",
-            "iy_main_agenda",
-            "f_grid",
-            "rtp_pos",
-            "rtp_los",
-            "rte_pos2",
-            "surface_type_aux")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("iy_transmitter_agenda"),
-      DESCRIPTION(
-          "Transmitter signal.\n"
-          "\n"
-          "This agenda describes the signal at the start of the propagation\n"
-          "path for calculations of transmission type. That is, the agenda\n"
-          "describes a transmitter, which either can be a natural source or\n"
-          "an artificial device.\n"
-          "\n"
-          "The include-file 'agendas.arts' defines an example agenda that\n"
-          "can be used for transmission calculations\n"),
-      OUTPUT("iy"),
-      INPUT("f_grid", "rtp_pos", "rtp_los")));
 
   agenda_data.push_back(AgRecord(
       NAME("jacobian_agenda"),
@@ -675,7 +620,7 @@ void define_agenda_data() {
              "sensor_response_pol_grid",
              "sensor_response_dlos",
              "sensor_response_dlos_grid",
-             "mblock_dlos_grid"),
+             "mblock_dlos"),
       INPUT("f_backend")));
 
   agenda_data.push_back(AgRecord(
@@ -721,15 +666,14 @@ void define_agenda_data() {
   agenda_data.push_back(AgRecord(
       NAME("surface_rtprop_agenda_array"),
       DESCRIPTION(
-          "Description of surface radiative properties, divided into surface types.\n"
+          "Description of surface radiative properties, for each surface type.\n"
           "\n"
           "Each of these agendas shall treat the radiative properties of a\n"
-          " surface type. The task of these agendas is equivalent to that of\n"
-          "*surface_rtprop_agenda*. This with one exception, these agendas\n"
-          "have one additional input: *surface_type_aux*.\n"
+          "surface type. The task of these agendas is equivalent to that of\n"
+          "*surface_rtprop_agenda*.\n"
           "\n"
-          "See *surface_type_mask* for comments on the surface type coding\n"
-          "scheme. Note the parallel agenda series: iy_surface_sub_agendaX.\n"),
+          "The order of the agendas shall match the coding used in\n"
+          "*surface_type_mask*.\n"),
       OUTPUT("surface_skin_t",
              "surface_emission",
              "surface_los",
@@ -737,24 +681,7 @@ void define_agenda_data() {
       INPUT("agenda_array_index",
             "f_grid",
             "rtp_pos",
-            "rtp_los",
-            "surface_type_aux")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("surface_rtprop_sub_agenda"),
-      DESCRIPTION(
-          "Has exact same functionality as *surface_rtprop_sub_agenda*.\n"
-          "\n"
-          "This agenda complements *surface_rtprop_sub_agenda*, to allow\n"
-          "specifying the surface properties using two levels of agendas.\n"
-          "For example, this agenda can describe the properties for pure specular\n"
-          "reflections, and *surface_rtprop_agenda* can call this agenda for several\n"
-          "angles to build up a more complex surface model.\n"),
-      OUTPUT("surface_skin_t",
-             "surface_emission",
-             "surface_los",
-             "surface_rmatrix"),
-      INPUT("f_grid", "rtp_pos", "rtp_los")));
+            "rtp_los")));
 
   agenda_data.push_back(
       AgRecord(NAME("test_agenda"),
@@ -783,4 +710,8 @@ void define_agenda_data() {
           "See further *ybatchCalc*.\n"),
       OUTPUT("y", "y_aux", "jacobian"),
       INPUT("ybatch_index")));
+
+  std::sort(agenda_data.begin(), agenda_data.end(), [](auto& a, auto& b) {
+    return a.Name() < b.Name();
+  });
 }

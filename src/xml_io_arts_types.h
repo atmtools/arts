@@ -44,12 +44,11 @@
 #include "covariance_matrix.h"
 #include "gas_abs_lookup.h"
 #include "gridded_fields.h"
-#include "hitran_xsec.h"
+#include "xsec_fit.h"
 #include "jacobian.h"
 #include "linemixing_hitran.h"
 #include "m_general.h"
-#include "matpackII.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "mc_antenna.h"
 #include "mc_interp.h"
 #include "messages.h"
@@ -57,12 +56,15 @@
 #include "template_partfun.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
+#include <predefined/predef_data.h>
+#include "sun.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "transmissionmatrix.h"
-#include "hitran_xsec.h"
+#include "xsec_fit.h"
 #include "absorptionlines.h"
 #include "linemixing.h"
+#include "callback.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \
   void xml_read_from_stream(                              \
@@ -106,12 +108,14 @@ TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
 TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
 TMPL_XML_READ_WRITE_STREAM(Ppath)
+TMPL_XML_READ_WRITE_STREAM(PredefinedModelData)
 TMPL_XML_READ_WRITE_STREAM(QuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(RetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(SLIData2)
 TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(Sun)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
@@ -145,6 +149,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfRetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfSun)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
@@ -177,6 +182,11 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor5)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
+
+
+//=== Not storable Types ===================================================
+
+TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
 
 //==========================================================================
 

@@ -29,13 +29,10 @@
 #define methods_h
 
 #include <iosfwd>
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
 #define NODEF "@@THIS_KEYWORD_HAS_NO_DEFAULT_VALUE@@"
-
-class MdRecord;
-ostream& operator<<(ostream& os, const MdRecord& mdr);
 
 //! All information for one workspace method.
 class MdRecord {
@@ -63,8 +60,8 @@ class MdRecord {
         mactual_groups("") {}
 
   // Initializing constructor. Implementation in methods_aux.cc.
-  MdRecord(const char name[],
-           const char description[],
+  MdRecord(const char* name,
+           const char* description,
            const ArrayOfString& authors,
            const ArrayOfString& output,
            const ArrayOfString& gout,
@@ -73,7 +70,7 @@ class MdRecord {
            const ArrayOfString& input,
            const ArrayOfString& gin,
            const ArrayOfString& gintype,
-           const ArrayOfString& gindefault _U_,
+           const ArrayOfString& gindefault,
            const ArrayOfString& gindesc,
            bool set_method = false,
            bool agenda_method = false,
@@ -85,30 +82,30 @@ class MdRecord {
   MdRecord(MdRecord&&) = default;
 
   // Methods returning the lookup information:
-  const String& Name() const { return mname; }
-  const String& Description() const { return mdescription; }
-  const ArrayOfString& Authors() const { return mauthors; }
-  const ArrayOfIndex& Out() const { return moutput; }
-  const ArrayOfString& GOut() const { return mgout; }
-  const ArrayOfIndex& GOutType() const { return mgouttype; }
-  const ArrayOfArrayOfIndex& GOutSpecType() const { return mgoutspectype; }
-  const Array<String>& GOutDescription() const { return mgoutdesc; }
-  const ArrayOfIndex& In() const { return minput; }
-  const ArrayOfString& GIn() const { return mgin; }
-  const ArrayOfIndex& GInType() const { return mgintype; }
-  const ArrayOfArrayOfIndex& GInSpecType() const { return mginspectype; }
-  const Array<String>& GInDefault() const { return mgindefault; }
-  const Array<String>& GInDescription() const { return mgindesc; }
-  const ArrayOfIndex& InOnly() const { return minonly; }
-  const ArrayOfIndex& InOut() const { return minout; }
-  const ArrayOfIndex& OutOnly() const { return moutonly; }
-  bool SetMethod() const { return mset_method; }
-  bool AgendaMethod() const { return magenda_method; }
-  bool Supergeneric() const { return msupergeneric; }
-  bool UsesTemplates() const { return muses_templates; }
-  bool PassWorkspace() const { return mpass_workspace; }
-  bool PassWsvNames() const { return mpass_wsv_names; }
-  const String& ActualGroups() const { return mactual_groups; }
+  [[nodiscard]] const String& Name() const { return mname; }
+  [[nodiscard]] const String& Description() const { return mdescription; }
+  [[nodiscard]] const ArrayOfString& Authors() const { return mauthors; }
+  [[nodiscard]] const ArrayOfIndex& Out() const { return moutput; }
+  [[nodiscard]] const ArrayOfString& GOut() const { return mgout; }
+  [[nodiscard]] const ArrayOfIndex& GOutType() const { return mgouttype; }
+  [[nodiscard]] const ArrayOfArrayOfIndex& GOutSpecType() const { return mgoutspectype; }
+  [[nodiscard]] const Array<String>& GOutDescription() const { return mgoutdesc; }
+  [[nodiscard]] const ArrayOfIndex& In() const { return minput; }
+  [[nodiscard]] const ArrayOfString& GIn() const { return mgin; }
+  [[nodiscard]] const ArrayOfIndex& GInType() const { return mgintype; }
+  [[nodiscard]] const ArrayOfArrayOfIndex& GInSpecType() const { return mginspectype; }
+  [[nodiscard]] const Array<String>& GInDefault() const { return mgindefault; }
+  [[nodiscard]] const Array<String>& GInDescription() const { return mgindesc; }
+  [[nodiscard]] const ArrayOfIndex& InOnly() const { return minonly; }
+  [[nodiscard]] const ArrayOfIndex& InOut() const { return minout; }
+  [[nodiscard]] const ArrayOfIndex& OutOnly() const { return moutonly; }
+  [[nodiscard]] bool SetMethod() const { return mset_method; }
+  [[nodiscard]] bool AgendaMethod() const { return magenda_method; }
+  [[nodiscard]] bool Supergeneric() const { return msupergeneric; }
+  [[nodiscard]] bool UsesTemplates() const { return muses_templates; }
+  [[nodiscard]] bool PassWorkspace() const { return mpass_workspace; }
+  [[nodiscard]] bool PassWsvNames() const { return mpass_wsv_names; }
+  [[nodiscard]] const String& ActualGroups() const { return mactual_groups; }
   void SetPassWorkspace() { mpass_workspace = true; }
 
   // Expand supergeneric method record to an actual group
@@ -128,19 +125,13 @@ class MdRecord {
   */
   ostream& PrintTemplate(ostream& os, bool show_description = true) const;
 
-  //! To override the default assignment operator.
-  /*! MdRecords cannot be assigned! */
-  MdRecord& operator=(const MdRecord& m) {
-    Verbosity verbosity;
-    ArtsOut0 out0(verbosity);
-    out0 << "MdRecord cannot be assigned!\n"
-         << "You tried to assign: " << m << "\n";
-    arts_exit();
-    return *this;
-  }
+  MdRecord& operator=(MdRecord&& m) = default;
+  MdRecord& operator=(const MdRecord& m) = default;
 
   // Needed by make_auto_md_h.cc. See documentation there.
   friend void subst_any_with_group(MdRecord& mdd, Index g);
+
+  friend ostream& operator<<(ostream& os, const MdRecord& mdr);
 
  private:
   //! The name of this method.

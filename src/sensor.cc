@@ -35,22 +35,26 @@
 #include <list>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
+#include "auto_md.h"
+#include "gridded_fields.h"
 #include "logic.h"
-#include "matpackI.h"
-#include "matpackII.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "rte.h"
 #include "sensor.h"
 #include "sorting.h"
 
-extern const Numeric PI;
-extern const Numeric NAT_LOG_2;
-extern const Numeric DEG2RAD;
-extern const Index GFIELD1_F_GRID;
-extern const Index GFIELD4_FIELD_NAMES;
-extern const Index GFIELD4_F_GRID;
-extern const Index GFIELD4_ZA_GRID;
-extern const Index GFIELD4_AA_GRID;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+using GriddedFieldGrids::GFIELD1_F_GRID;
+using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
+using GriddedFieldGrids::GFIELD4_F_GRID;
+using GriddedFieldGrids::GFIELD4_ZA_GRID;
+using GriddedFieldGrids::GFIELD4_AA_GRID;
 
 /*===========================================================================
   === The functions, besides the core integration and sum functions that are
@@ -121,7 +125,7 @@ void antenna1d_matrix(Sparse& H,
 
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
-    Vector shifted_aresponse_za_grid = aresponse_za_grid;
+    Vector shifted_aresponse_za_grid{aresponse_za_grid};
     shifted_aresponse_za_grid += antenna_dza[ia];
 
     // Order of loops assumes that the antenna response more often
@@ -178,7 +182,7 @@ void antenna1d_matrix(Sparse& H,
 
           // Normalisation?
           if (do_norm) {
-            hza /= hza.sum();
+            hza /= sum(hza);
           }
         }
 
@@ -216,7 +220,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Decompose mblock_dlos into za and aa grids, including checking
   ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 2 ,
-                      "For the gridded_dlos option, *mblock_dlos_grid* "
+                      "For the gridded_dlos option, *mblock_dlos* "
                       "must have two columns.");
 
 
@@ -231,8 +235,8 @@ void antenna2d_gridded_dlos(Sparse& H,
                       "For the gridded_dlos option, the number of dlos angles "
                       "must be a product of two integers.");
   const Index naa = n_dlos / nza; 
-  const Vector za_grid = mblock_dlos(Range(0,nza),0);
-  const Vector aa_grid = mblock_dlos(Range(0,naa,nza),1);
+  const Vector za_grid{mblock_dlos(Range(0,nza),0)};
+  const Vector aa_grid{mblock_dlos(Range(0,naa,nza),1)};
   for(Index i=0; i<n_dlos; i++ ) {
     ARTS_USER_ERROR_IF(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ,
         "Zenith angle of dlos ", i, " (0-based) differs to zenith " 
@@ -277,7 +281,8 @@ void antenna2d_gridded_dlos(Sparse& H,
   ARTS_ASSERT(antenna_response.data.npages() == n_ar_f );
   ARTS_ASSERT(antenna_response.data.nbooks() == n_ar_pol );
 
-  // Include cos(za)-term in response
+  // Going from solid angle to (zz,aa) involves weighting with a cos(za)-term
+  // Here we take that term into account by weighting of the antenna response
   Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
   for(Index i3=0; i3<n_ar_za; i3++) {
     const Numeric t = cos(DEG2RAD * aresponse_za_grid[i3]);
@@ -302,9 +307,6 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
-
-  // If you find a bug or change something, likely also change other 2D antenna
-  // function(s) as they are similar
   
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
@@ -360,14 +362,14 @@ void antenna2d_gridded_dlos(Sparse& H,
         if (new_antenna) {
           
           // za grid positions
-          Vector zas = aresponse_za_grid;
+          Vector zas{aresponse_za_grid};
           zas += antenna_dlos(ia, 0);
           ARTS_USER_ERROR_IF( zas[0] < za_grid[0],
-              "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The zenith angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended downwards with at least ",
               za_grid[0]-zas[0], " deg.")
           ARTS_USER_ERROR_IF( zas[n_ar_za-1] > za_grid[nza-1],
-              "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The zenith angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended upwards with at least ",
               zas[n_ar_za-1] - za_grid[nza-1], " deg.")
           
@@ -375,14 +377,14 @@ void antenna2d_gridded_dlos(Sparse& H,
           gridpos(gp_za, za_grid, zas);
           
           // aa grid positions
-          Vector aas = aresponse_aa_grid;
+          Vector aas{aresponse_aa_grid};
           if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
           ARTS_USER_ERROR_IF( aas[0] < aa_grid[0],
-              "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The azimuth angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended downwards with at least ",
               aa_grid[0]-aas[0], " deg.")
           ARTS_USER_ERROR_IF( aas[n_ar_aa-1] > aa_grid[naa-1],
-              "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+              "The azimuth angle grid in *mblock_dlos* is too narrow. " 
               "It must be extended upwards with at least ",
               aas[n_ar_aa-1] - aa_grid[naa-1], " deg.")
           
@@ -423,7 +425,7 @@ void antenna2d_gridded_dlos(Sparse& H,
           }
 
           // For 2D antennas we always normalise
-          hza /= hza.sum();
+          hza /= sum(hza);
         }
 
         // Put weights into H
@@ -451,6 +453,7 @@ void antenna2d_interp_response(Sparse& H,
                                ConstMatrixView antenna_dlos,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,
+                               ConstVectorView solid_angles,
                                ConstVectorView f_grid,
                                const Index n_pol)
 {  
@@ -465,6 +468,7 @@ void antenna2d_interp_response(Sparse& H,
   ARTS_ASSERT(antenna_dim == 2);
   ARTS_ASSERT(n_dlos >= 1);
   ARTS_ASSERT(n_pol >= 1);
+  ARTS_ASSERT(n_dlos == solid_angles.nelem());
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -512,7 +516,7 @@ void antenna2d_interp_response(Sparse& H,
 
   // Storage vectors for response weights
   Vector hrow(H.ncols(), 0.0);
-  Vector hza(n_dlos, 0.0);
+  Vector hdlos(n_dlos, 0.0);
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
@@ -539,10 +543,10 @@ void antenna2d_interp_response(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = aresponse_with_cos(ip, 0, joker, joker);
+            aresponse = antenna_response.data(ip, 0, joker, joker);
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = aresponse_with_cos(0, 0, joker, joker);
+            aresponse = antenna_response.data(0, 0, joker, joker);
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -559,7 +563,7 @@ void antenna2d_interp_response(Sparse& H,
             Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
             interp(aresponse_matrix,
                    itw,
-                   aresponse_with_cos(ip, joker, joker, joker),
+                   antenna_response.data(ip, joker, joker, joker),
                    gp_f,
                    gp_za,
                    gp_aa);
@@ -588,7 +592,7 @@ void antenna2d_interp_response(Sparse& H,
                 za > aresponse_za_grid[n_ar_za - 1] ||
                 aa < aresponse_aa_grid[0] ||
                 aa > aresponse_aa_grid[n_ar_aa - 1]) {
-              hza[l] = 0;
+              hdlos[l] = 0;
             }
             // Otherwise we make an (blue) interpolation
             else {
@@ -599,19 +603,19 @@ void antenna2d_interp_response(Sparse& H,
               interpweights(itw, gp_za, gp_aa);
               Vector value(1);
               interp(value, itw, aresponse, gp_za, gp_aa);
-              hza[l] = value[0];
+              hdlos[l] = solid_angles[l] * value[0];
             }
           }
 
           // For 2D antennas we always normalise
-          hza /= hza.sum();
+          hdlos /= sum(hdlos);
         }
 
         // Put weights into H
         //
         const Index ii = f * n_pol + ip;
         //
-        hrow[Range(ii, n_dlos, nfpol)] = hza;
+        hrow[Range(ii, n_dlos, nfpol)] = hdlos;
         //
         H.insert_row(ia * nfpol + ii, hrow);
         //
@@ -619,45 +623,6 @@ void antenna2d_interp_response(Sparse& H,
       }
     }
   }
-}
-
-
-
-void gaussian_response_autogrid(Vector& x,
-                                Vector& y,
-                                const Numeric& x0,
-                                const Numeric& fwhm,
-                                const Numeric& xwidth_si,
-                                const Numeric& dx_si) {
-  ARTS_ASSERT(dx_si <= xwidth_si);
-
-  const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-
-  // Number of points needed to enure that spacing is max dx_si
-  const Index n = (Index)floor(2 * xwidth_si / dx_si) + 1;
-
-  // Grid for response
-  const Numeric dd = si * xwidth_si;
-  nlinspace(x, -dd, dd, n);
-
-  // Calculate response
-  gaussian_response(y, x, x0, fwhm);
-}
-
-
-
-void gaussian_response(Vector& y,
-                       const Vector& x,
-                       const Numeric& x0,
-                       const Numeric& fwhm) {
-  const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
-  const Numeric a = 1 / (si * sqrt(2 * PI));
-  const Index n = x.nelem();
-
-  y.resize(n);
-  //
-  for (Index i = 0; i < n; i++)
-    y[i] = a * exp(-0.5 * pow((x[i] - x0) / si, 2.0));
 }
 
 
@@ -737,7 +702,7 @@ void mixer_matrix(Sparse& H,
   Vector row_temp(f_grid.nelem());
   Vector row_final(f_grid.nelem() * n_pol * n_sp);
   //
-  Vector if_grid = f_grid;
+  Vector if_grid{f_grid};
   if_grid -= lo;
   //
   for (Index i = 0; i < f_mixer.nelem(); i++) {
@@ -745,7 +710,7 @@ void mixer_matrix(Sparse& H,
         row_temp, filter.data, filter_grid, if_grid, f_mixer[i], -f_mixer[i]);
 
     // Normalise if flag is set
-    if (do_norm) row_temp /= row_temp.sum();
+    if (do_norm) row_temp /= sum(row_temp);
 
     // Loop over number of polarisations
     for (Index p = 0; p < n_pol; p++) {
@@ -1006,7 +971,7 @@ void spectrometer_matrix(Sparse& H,
         weights, ch_response[irp].data, ch_response_f, sensor_f);
 
     // Normalise if flag is set
-    if (do_norm) weights /= weights.sum();
+    if (do_norm) weights /= sum(weights);
 
     // Loop over polarisation and spectra (viewing directions)
     // Weights change only with frequency
@@ -1038,7 +1003,7 @@ void stokes2pol(VectorView w,
 
   ArrayOfVector s2p(10);
   //
-  s2p[0] = {1};              // I
+  s2p[0] = Vector{1};              // I
   s2p[1] = {0, 1};           // Q
   s2p[2] = {0, 0, 1};        // U
   s2p[3] = {0, 0, 0, 1};     // V
@@ -1353,15 +1318,9 @@ void integration_func_by_vecmult(VectorView h,
   Numeric xfmax = x_f_in[nf - 1];
 
   // Handle possibly reversed x_g.
-  Vector x_g;
-  Index xg_reversed = 0;
-  //
-  if (is_decreasing(x_g_in)) {
-    x_g = x_g_in[Range(ng - 1, ng, -1)];
-    xg_reversed = 1;
-  } else {
-    x_g = x_g_in;
-  }
+  const bool xg_reversed = is_decreasing(x_g_in);
+  Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
+
   //
   ARTS_ASSERT(x_g[0] <= xfmin);
   ARTS_ASSERT(x_g[ng - 1] >= xfmax);
@@ -1457,7 +1416,7 @@ void integration_func_by_vecmult(VectorView h,
 
   // Flip back if x_g was decreasing
   if (xg_reversed) {
-    Vector tmp = h[Range(ng - 1, ng, -1)];  // Flip order
+    Vector tmp = reverse(h);  // Flip order
     h = tmp;
   }
 
@@ -1487,15 +1446,9 @@ void integration_bin_by_vecmult(VectorView h,
   ARTS_ASSERT(limit1 <= limit2);
 
   // Handle possibly reversed x_g.
-  Vector x_g;
-  Index xg_reversed = 0;
-  //
-  if (is_decreasing(x_g_in)) {
-    x_g = x_g_in[Range(ng - 1, ng, -1)];
-    xg_reversed = 1;
-  } else {
-    x_g = x_g_in;
-  }
+  const bool xg_reversed = is_decreasing(x_g_in);
+  const Vector x_g{xg_reversed ? reverse(x_g_in) : Vector{x_g_in}};
+  
   //
   ARTS_ASSERT(x_g[0] <= limit1);
   ARTS_ASSERT(x_g[ng - 1] >= limit2);
@@ -1572,7 +1525,7 @@ void integration_bin_by_vecmult(VectorView h,
 
   // Flip back if x_g was decreasing
   if (xg_reversed) {
-    Vector tmp = h[Range(ng - 1, ng, -1)];  // Flip order
+    Vector tmp = reverse(h);  // Flip order
     h = tmp;
   }
 }
@@ -1597,21 +1550,21 @@ void summation_by_vecmult(VectorView h,
   // Determine grid positions for point 1 (both with respect to f and g grids)
   // and interpolate response function.
   ArrayOfGridPos gp1g(1), gp1f(1);
-  gridpos(gp1g, x_g, x1);
-  gridpos(gp1f, x_f, x1);
+  gridpos(gp1g, x_g, ExhaustiveConstVectorView{x1});
+  gridpos(gp1f, x_f, ExhaustiveConstVectorView{x1});
   Matrix itw1(1, 2);
   interpweights(itw1, gp1f);
   Numeric f1;
-  interp(f1, itw1, f, gp1f);
+  interp(ExhaustiveVectorView{f1}, itw1, f, gp1f);
 
   // Same for point 2
   ArrayOfGridPos gp2g(1), gp2f(1);
-  gridpos(gp2g, x_g, x2);
-  gridpos(gp2f, x_f, x2);
+  gridpos(gp2g, x_g, ExhaustiveConstVectorView{x2});
+  gridpos(gp2f, x_f, ExhaustiveConstVectorView{x2});
   Matrix itw2(1, 2);
   interpweights(itw2, gp2f);
   Numeric f2;
-  interp(f2, itw2, f, gp2f);
+  interp(ExhaustiveVectorView{f2}, itw2, f, gp2f);
 
   //Initialise h at zero and store calculated weighting components
   h = 0.0;

@@ -1,0 +1,16 @@
+Arts2 {
+  # All these call syntaxes should work
+  water_p_eq_agendaSet
+
+  water_p_eq_agendaSet()
+
+  water_p_eq_agendaSet(   )
+
+  water_p_eq_agendaSet(
+  )
+
+  water_p_eq_agendaSet(
+    # Comment here is allowed
+  )
+}
+

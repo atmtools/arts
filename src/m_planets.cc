@@ -37,13 +37,17 @@
 
 #include <cmath>
 #include <stdexcept>
+#include "agenda_set.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
+#include "auto_md.h"
 #include "check_input.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 
-extern const Numeric EARTH_RADIUS;
-extern const Numeric DEG2RAD;
+inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 // Ref. 1:
 // Seidelmann, P. Kenneth; Archinal, B. A.; A'hearn, M. F. et al (2007).
@@ -244,4 +248,49 @@ void refellipsoidVenus(Vector& refellipsoid,
 
   else
     throw runtime_error("Unknown selection for input argument *model*.");
+}
+
+void PlanetSet(Workspace& ws,
+               Agenda& g0_agenda,
+               Vector& refellipsoid,
+               Numeric& molarmass_dry_air,
+               Numeric& planet_rotation_period,
+               const String& option,
+               const Verbosity& verbosity) {
+  refellipsoid = Vector{};
+  molarmass_dry_air = 0.0;
+  planet_rotation_period = 0.0;
+
+  using enum Options::planetDefaultOptions;
+  switch (Options::toplanetDefaultOptionsOrThrow(option)) {
+    case Earth:
+      refellipsoidEarth(refellipsoid, "Sphere", verbosity);
+      molarmass_dry_air = 28.966;
+      planet_rotation_period = 86164.1;
+      break;
+    case Io:
+      refellipsoidIo(refellipsoid, "Sphere", verbosity);
+      molarmass_dry_air = 63.110068828000003;
+      planet_rotation_period = 152853;
+      break;
+    case Jupiter:
+      refellipsoidJupiter(refellipsoid, "Sphere", verbosity);
+      molarmass_dry_air = 2.22;
+      planet_rotation_period = 35730;
+      break;
+    case Mars:
+      refellipsoidMars(refellipsoid, "Sphere", verbosity);
+      molarmass_dry_air = 43.34;
+      planet_rotation_period = 88643;
+      break;
+    case Venus:
+      refellipsoidVenus(refellipsoid, "Sphere", verbosity);
+      molarmass_dry_air = 43.45;
+      planet_rotation_period = -2.0997e7;
+      break;
+    case FINAL:
+      break;
+  }
+
+  g0_agenda = AgendaManip::get_g0_agenda(ws, option);
 }

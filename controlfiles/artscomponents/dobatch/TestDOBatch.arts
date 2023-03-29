@@ -8,29 +8,114 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/agendasDOIT.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+
+# Main agenda for DOIT calculation
+# ----------------------------------------------------------------------
+#
+# Input: incoming field on the cloudbox boundary
+# Ouput: the scattered field on the cloudbox boundary
+AgendaSet( doit_mono_agenda ){
+  # Prepare scattering data for DOIT calculation (Optimized method):
+  DoitScatteringDataPrepare
+  Ignore( f_grid )
+  # Alternative method:
+  # no optimization of scattering angle grids (needs less memory):
+  #scat_data_monoCalc
+  # Perform iterations: 1. scattering integral. 2. RT calculations with 
+  # fixed scattering integral field, 3. convergence test 
+  cloudbox_field_monoIterate
+  # Write the radiation field inside the cloudbox:
+  # WriteXML( output_file_format, cloudbox_field )
+}
+
+# Definitions for methods used in *i_fieldIterate*:
+#--------------------------------------------------
+
+# 1. Scattering integral
+# ----------------------
+
+# Calculation of the phase matrix
+AgendaSet( pha_mat_spt_agenda ){
+  # Optimized option:
+  pha_mat_sptFromDataDOITOpt
+  # Alternative option:
+  #pha_mat_sptFromMonoData
+}
+
+AgendaSet( doit_scat_field_agenda ){
+  doit_scat_fieldCalcLimb
+  # Alternative: use the same za grids in RT part and scattering integral part
+  #doit_scat_fieldCalc
+}
+
+
+# 2. Radiative transfer with fixed scattering integral term
+# ---------------------------------------------------------
+
+AgendaSet( doit_rte_agenda ){
+  # Sequential update for 1D
+  cloudbox_fieldUpdateSeq1D
+
+  # Alternatives:
+  # Plane parallel approximation for determination of propagation path steps:
+  #cloudbox_fieldUpdateSeq1DPP
+
+  # Without sequential update (not efficient):
+  #cloudbox_fieldUpdate1D
+
+  # 3D atmosphere:
+  #cloudbox_fieldUpdateSeq3D
+
+  # Sequential update for 1D with normalizing the scattered field:
+  #cloudbox_fieldUpdateSeq1D( normalize=1 )
+}
+
+# Calculate opticle properties of particles and add particle absorption
+# and extinction to the gaseous properties to get total extinction and
+# absorption:
+
+AgendaSet( spt_calc_agenda ){
+  opt_prop_sptFromMonoData
+}
+
+# 3. Convergence test
+# --------------------
+AgendaSet( doit_conv_test_agenda ){
+  # Give limits for all Stokes components in BT:
+  doit_conv_flagAbsBT( #epsilon=[0.1, 0.01, 0.01, 0.01] ) # for stokes dim 4
+                       epsilon=[0.1]) # for stokes dim 1
+
+  # Alternative: Give limits in radiances
+  #doit_conv_flagAbs( epsilon=[0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18] )
+  #
+  # If you want to investigate several iteration fields, for example 
+  # to investigate the convergence behavior, you can use
+  # the following method:
+  #DoitWriteIterationFields( iterations=[2, 4])
+  #}
+
+}
+
+iy_cloudbox_agendaSet( option="LinInterpField" )
+PlanetSet(option="Earth")
 
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Set out put file format
@@ -63,8 +148,7 @@ NumericSet( ppath_lmax, 250 )
 # corresponds to emissivity=0.75
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
 
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 
 # 2. Sensor:---------------------------------------------------------
@@ -96,7 +180,7 @@ batch_atm_fields_compactAddConstant( name="abs_species-N2", value=0.7808 )
 
 abs_speciesSet( species=[ "H2O-PWR98",
                           "O3",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Creation of abs_lookup table
@@ -129,8 +213,8 @@ ReadXML( abs_lookup, "abs_lookupBatch.xml" )
 # Check if lookup table is fitting input
 abs_lookupAdapt
 
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 
 # 7.AGENDAS--------------------------------------------------------------
@@ -199,7 +283,6 @@ IndexSet(ybatch_n, 4)
 # that none of the jobs fails.
 # If settings are changed, especially if the input atmospheres are altered
 # or exchanged, the robust option in *ybatchCalc* should be used.
-propmat_clearsky_agenda_checkedCalc
 
 DOBatchCalc
 

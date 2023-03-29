@@ -33,12 +33,15 @@
 */
 
 #include "arts.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
+#include "check_input.h"
 #include "cloudbox.h"
-#include "matpackI.h"
+#include "matpack_data.h"
+#include "wigner_functions.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric LAT_LON_MIN;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+using  Cloudbox::LAT_LON_MIN;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
@@ -49,7 +52,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
                                  const Verbosity&) {
   bool needs_continua = false;
   bool needs_cia = false;
-  bool needs_hxsec = false;
+  // bool needs_hxsec = false;
 
   for (Index sp = 0; sp < abs_species.nelem(); sp++) {
     for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
@@ -58,10 +61,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           break;
         case Species::TagType::Zeeman:
           break;
-        case Species::TagType::PredefinedLegacy:
-          needs_continua = true;
-          break;
-        case Species::TagType::PredefinedModern:
+        case Species::TagType::Predefined:
           break;
         case Species::TagType::Cia:
           needs_cia = true;
@@ -70,8 +70,8 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
           break;
         case Species::TagType::Particles:
           break;
-        case Species::TagType::HitranXsec:
-          needs_hxsec = true;
+        case Species::TagType::XsecFit:
+          // needs_hxsec = true;
           break;
         default:
           ARTS_USER_ERROR ("Unknown species type: ", abs_species[sp][tgs].Type())
@@ -777,9 +777,8 @@ void lbl_checkedCalc(Index& lbl_checked,
     if (not specs.nelem()) {
       if (not lines.nelem()) {
         continue;
-      } else {
-        ARTS_USER_ERROR ( "Lines for non-existent species discovered!\n");
       }
+      ARTS_USER_ERROR ( "Lines for non-existent species discovered!\n");
     }
     
     const bool any_zeeman = std::any_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == Species::TagType::Zeeman;});
@@ -855,7 +854,8 @@ void lbl_checkedCalc(Index& lbl_checked,
               ARTS_USER_ERROR_IF(
                 single_data.Y().type not_eq LineShape::TemperatureModel::None or
                 single_data.DV().type not_eq LineShape::TemperatureModel::None,
-                                 "Cannot have Rosenkranz-style line mixing with cutoff calculations"
+                                 "Cannot have Rosenkranz-style line mixing with cutoff calculations\n"
+                                 "Note that abs_lines_per_speciesTurnOffLineMixing will make this error go away by modifying the data\n"
               )
             }
           }
@@ -894,11 +894,8 @@ void propmat_clearsky_agenda_checkedCalc(
         case Species::TagType::Zeeman:
           needs_zeeman = true;
           break;
-        case Species::TagType::PredefinedModern:
+        case Species::TagType::Predefined:
           needs_predefined = true;
-          break;
-        case Species::TagType::PredefinedLegacy:
-          needs_continua = true;
           break;
         case Species::TagType::Cia:
           needs_cia = true;
@@ -909,7 +906,7 @@ void propmat_clearsky_agenda_checkedCalc(
         case Species::TagType::Particles:
           needs_particles = true;
           break;
-        case Species::TagType::HitranXsec:
+        case Species::TagType::XsecFit:
           needs_hxsec = true;
           break;
         default:
@@ -929,7 +926,9 @@ void propmat_clearsky_agenda_checkedCalc(
 
   ARTS_USER_ERROR_IF(
       needs_continua and
-          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+          not(propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddConts") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains legacy continua but *propmat_clearsky_agenda*\n"
@@ -937,7 +936,9 @@ void propmat_clearsky_agenda_checkedCalc(
 
   ARTS_USER_ERROR_IF(
       needs_cia and
-          not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
+          not(propmat_clearsky_agenda.has_method(
+                  "propmat_clearskyAddXsecAgenda") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddCIA") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains CIA models but *propmat_clearsky_agenda*\n"
@@ -946,7 +947,7 @@ void propmat_clearsky_agenda_checkedCalc(
   ARTS_USER_ERROR_IF(
       needs_hxsec and
           not(propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecAgenda") or
-              propmat_clearsky_agenda.has_method("propmat_clearskyAddHitranXsec") or
+              propmat_clearsky_agenda.has_method("propmat_clearskyAddXsecFit") or
               propmat_clearsky_agenda.has_method(
                   "propmat_clearskyAddFromLookup")),
       "*abs_species* contains Hitran XSEC models but *propmat_clearsky_agenda*\n"
@@ -986,7 +987,7 @@ void sensor_checkedCalc(Index& sensor_checked,
                         const Matrix& sensor_pos,
                         const Matrix& sensor_los,
                         const Matrix& transmitter_pos,
-                        const Matrix& mblock_dlos_grid,
+                        const Matrix& mblock_dlos,
                         const Sparse& sensor_response,
                         const Vector& sensor_response_f,
                         const ArrayOfIndex& sensor_response_pol,
@@ -994,7 +995,7 @@ void sensor_checkedCalc(Index& sensor_checked,
                         const Verbosity&) {
   // Some sizes
   const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos_grid.nrows();
+  const Index nlos = mblock_dlos.nrows();
   const Index n1y = sensor_response.nrows();
   const Index nmblock = sensor_pos.nrows();
   const Index niyb = nf * nlos * stokes_dim;
@@ -1050,15 +1051,15 @@ void sensor_checkedCalc(Index& sensor_checked,
           "2 for 1D/2D or 3 columns for 3D.");
   }
 
-  // mblock_dlos_grid
+  // mblock_dlos
   //
-  ARTS_USER_ERROR_IF (mblock_dlos_grid.empty(),
-        "*mblock_dlos_grid* is empty.");
-  ARTS_USER_ERROR_IF (mblock_dlos_grid.ncols() > 2,
-        "The maximum number of columns in *mblock_dlos_grid* is two.");
+  ARTS_USER_ERROR_IF (mblock_dlos.empty(),
+        "*mblock_dlos* is empty.");
+  ARTS_USER_ERROR_IF (mblock_dlos.ncols() > 2,
+        "The maximum number of columns in *mblock_dlos* is two.");
   if (atmosphere_dim < 3) {
-    ARTS_USER_ERROR_IF (mblock_dlos_grid.ncols() != 1,
-          "For 1D and 2D *mblock_dlos_grid* must have exactly one column.");
+    ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 1,
+          "For 1D and 2D *mblock_dlos* must have exactly one column.");
   }
 
   // Sensor

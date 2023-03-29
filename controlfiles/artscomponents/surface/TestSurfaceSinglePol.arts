@@ -7,10 +7,10 @@
 
 Arts2{
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 
 # Non-standard variables
@@ -32,24 +32,19 @@ VectorCreate( vdummy )
 NumericCreate( inc_angle )
 
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA )
-
 # Standard emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+iy_surface_agendaSet( option="UseSurfaceRtprop" )
+iy_space_agendaSet( option="CosmicBackground" )
 
 # Ppaths
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
+ppath_step_agendaSet( option="GeometricPath" )
 
-# Position and angle of surface intersection
-AgendaSet( geo_pos_agenda ) {
-    geo_posEndOfPpath
+# Main radiation agenda
+AgendaSet( iy_main_agenda ) {
+  ppathCalc
+  iyEmissionStandard
+  geo_posEndOfPpath
 }
 
 
@@ -66,6 +61,9 @@ jacobianOff
 # No scattering
 cloudboxOff
 
+# No gas scattering
+gas_scatteringOff
+
 # Definition of species
 # 
 abs_speciesSet( species = [ 
@@ -77,6 +75,8 @@ abs_speciesSet( species = [
 # No transitions needed
 # 
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaAuto
 
 # Atmospheric grids
 #
@@ -106,8 +106,6 @@ AgendaSet( surface_rtprop_agenda ){
 
 # Check data and settings 
 # 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -224,8 +222,8 @@ pnd_fieldZero
 cloudbox_checkedCalc
 scat_data_checkedCalc
 VectorNLinSpace( za_grid, 180, 0, 180 )
-VectorSet( aa_grid, [] )
-Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuarticInterpField )
+VectorSet( aa_grid, [0] )
+iy_cloudbox_agendaSet( option="QuarticInterpField" )
 
 Extract( pol_angle, pols, 0 )
 DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )

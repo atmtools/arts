@@ -36,8 +36,8 @@
 #include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
-#include "matpackII.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
+#include "matpack_sparse.h"
 #include "messages.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \

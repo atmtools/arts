@@ -82,8 +82,8 @@ bifstream& operator>>(bifstream& bif, float& n) {
   return (bif);
 }
 
-bifstream& operator>>(bifstream& bif, long& n) {
-  n = (long)bif.readInt(4);
+bifstream& operator>>(bifstream& bif, std::int64_t& n) {
+  n = static_cast<std::int64_t>(bif.readInt(4));
   return (bif);
 }
 

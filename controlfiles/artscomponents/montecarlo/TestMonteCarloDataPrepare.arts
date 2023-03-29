@@ -5,13 +5,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 output_file_formatSetBinary
 
@@ -32,7 +29,7 @@ ReadXML( lat_grid, "lat_grid.xml" )
 ReadXML( lon_grid, "lon_grid.xml" )
 
 abs_speciesSet( species=
-                [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
+                [ "O2-PWR98", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lines_per_speciesSetEmpty
 
@@ -54,7 +51,6 @@ MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 
 WriteXML( output_file_format, z_surface )
 
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
 
 atmfields_checkedCalc
@@ -62,6 +58,8 @@ atmfields_checkedCalc
 jacobianOff
 
 abs_lookupSetup
+
+propmat_clearsky_agendaAuto
 abs_lookupCalc
 WriteXML( output_file_format, abs_lookup )
 

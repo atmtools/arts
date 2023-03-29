@@ -27,9 +27,10 @@
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
+#include "arts_constants.h"
 #include "matpack_complex.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "optproperties.h"
 
@@ -620,7 +621,7 @@ void integrate_phamat_theta0_phi10(Matrix& phamat,
                                    const Numeric& phi_2,
                                    const Numeric& beta,
                                    const Numeric& alpha) {
-  extern const Numeric PI;
+  static constexpr Numeric PI=Constant::pi;
 
   phamat.resize(4, 4);
   phamat = 0.;
@@ -732,7 +733,7 @@ void integrate_phamat_theta0_phi_alpha6(Matrix& phamat,
                                         const Numeric& beta,
                                         const Numeric& alpha_1,
                                         const Numeric& alpha_2) {
-  extern const Numeric PI;
+  static constexpr Numeric PI=Constant::pi;
 
   Matrix z;
   Matrix phamat_phi(4, 4);
@@ -906,12 +907,12 @@ void tmatrix_random_orientation(Numeric& cext,
        csca,
        walb,
        asymm,
-       f11.get_c_array(),
-       f22.get_c_array(),
-       f33.get_c_array(),
-       f44.get_c_array(),
-       f12.get_c_array(),
-       f34.get_c_array(),
+       f11.unsafe_data_handle(),
+       f22.unsafe_data_handle(),
+       f33.unsafe_data_handle(),
+       f44.unsafe_data_handle(),
+       f12.unsafe_data_handle(),
+       f34.unsafe_data_handle(),
        errmsg);
 
   if (strlen(errmsg)) {
@@ -989,8 +990,8 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
   const Index nf = ssd.f_grid.nelem();
   const Index nT = ssd.T_grid.nelem();
 
-  extern const Numeric PI;
-  extern const Numeric SPEED_OF_LIGHT;
+  static constexpr Numeric PI=Constant::pi;
+  static constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
   if (ref_index_real.nrows() != nf)
     throw std::runtime_error(
@@ -1426,12 +1427,12 @@ void tmatrix_tmd_test(const Verbosity& verbosity) {
        csca,
        walb,
        asymm,
-       f11.get_c_array(),
-       f22.get_c_array(),
-       f33.get_c_array(),
-       f44.get_c_array(),
-       f12.get_c_array(),
-       f34.get_c_array(),
+       f11.unsafe_data_handle(),
+       f22.unsafe_data_handle(),
+       f33.unsafe_data_handle(),
+       f44.unsafe_data_handle(),
+       f12.unsafe_data_handle(),
+       f34.unsafe_data_handle(),
        errmsg);
 
   out0 << "reff: " << reff << " um\n";

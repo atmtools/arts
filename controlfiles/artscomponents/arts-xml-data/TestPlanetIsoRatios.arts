@@ -13,13 +13,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
 Copy( iy_main_agenda, iy_main_agenda__Emission )
@@ -51,11 +48,8 @@ sensorOff
 # output radiances in Planck-Tb
 StringSet( iy_unit, "PlanckBT" )
 
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 # Blackbody surface
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 # set atmospheric scenario
 StringCreate( atmcase )
@@ -74,8 +68,8 @@ Extract( z_surface, z_field, 0 )
 
 # use planetary catalogue
 ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0, fmax=3e12)
-abs_linesSetCutoff(option="ByLine", value=750e9)
-abs_linesSetNormalization(option="VVH")
+abs_linesCutoff(option="ByLine", value=750e9)
+abs_linesNormalization(option="VVH")
 abs_lines_per_speciesCreateFromLines
 
 
@@ -87,8 +81,7 @@ MatrixSetConstant( sensor_los, 1, 1, 60. )
 
 
 # check basic atm&surface setup of
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
+propmat_clearsky_agendaAuto
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -101,7 +94,7 @@ lbl_checkedCalc
 #######
 
 #now initialize the isotopologue ratios from builtin
-isotopologue_ratiosInitFromBuiltin
+#
 
 #do the RT calc
 #yCalc

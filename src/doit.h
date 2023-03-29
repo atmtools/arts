@@ -34,7 +34,7 @@
 #define doit_h
 
 #include "agenda_class.h"
-#include "matpackVI.h"
+#include "matpack_data.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
 

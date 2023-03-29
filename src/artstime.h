@@ -29,62 +29,112 @@
 
 #include <chrono>
 #include <cmath>
+#include <string_view>
 
 #include "array.h"
-#include "matpackI.h"
+#include "debug.h"
+#include "matpack_data.h"
 #include "mystring.h"
 
 /** A duration of time, 1 full tick should be 1 second */
 using TimeStep = std::chrono::duration<Numeric>;
 
 /** Class to handle time in ARTS */
-class Time {
-private:
-  std::chrono::system_clock::time_point mtime;
+struct Time {
+  std::chrono::system_clock::time_point time;
+  using InternalTimeStep = decltype(time)::duration;
 
-public:
-  using InternalTimeStep = decltype(mtime)::duration;
-  
   // Version will be updated when C++20 datetime is available... Version 1 will still assume local time at that time
-  [[nodiscard]] Index Version() const noexcept {return 1;}
-  
+  [[nodiscard]] Index Version() const noexcept { return 1; }
+
   // Construction
-  Time() : mtime(std::chrono::system_clock::now()) {}
-  explicit Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
+  Time() : time(std::chrono::system_clock::now()) {}
+  explicit Time(std::time_t t)
+      : time(std::chrono::system_clock::from_time_t(t)) {}
   explicit Time(std::tm t) : Time(std::mktime(&t)) {}
   explicit Time(const String& t);
-  
-  // Data
-  [[nodiscard]] const std::chrono::system_clock::time_point& Data() const {return mtime;}
-  
+
   // Conversions
-  [[nodiscard]] std::time_t toTimeT() const {return std::chrono::system_clock::to_time_t(mtime);}
-  [[nodiscard]] std::tm toStruct() const {std::time_t x=toTimeT();  std::tm* y = std::localtime(&x); return *y;}
-  [[nodiscard]] std::tm toGMTStruct() const {std::time_t x=toTimeT();  std::tm* y = std::gmtime(&x); return *y;}
-  [[nodiscard]] TimeStep seconds_into_day() const {std::tm x = toStruct(); return TimeStep(x.tm_hour*3600 + x.tm_min*60 + x.tm_sec + PartOfSecond());}
-  [[nodiscard]] InternalTimeStep EpochTime() const {return mtime.time_since_epoch();}
-  
+  [[nodiscard]] std::time_t toTimeT() const {
+    return std::chrono::system_clock::to_time_t(time);
+  }
+  [[nodiscard]] std::tm toStruct() const {
+    std::time_t x = toTimeT();
+    std::tm y;
+    tm* z = localtime_r(&x, &y);
+    ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
+    return y;
+  }
+  [[nodiscard]] std::tm toGMTStruct() const {
+    std::time_t x = toTimeT();
+    std::tm y;
+    tm* z = gmtime_r(&x, &y);
+    ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
+    return y;
+  }
+  [[nodiscard]] TimeStep seconds_into_day() const {
+    std::tm x = toStruct();
+    return TimeStep(x.tm_hour * 3600 + x.tm_min * 60 + x.tm_sec +
+                    PartOfSecond());
+  }
+  [[nodiscard]] InternalTimeStep EpochTime() const {
+    return time.time_since_epoch();
+  }
+
   // Operations
-  InternalTimeStep operator-(const Time& t) const noexcept {return mtime - t.mtime;}
-  bool operator<(const Time& t) const noexcept {return mtime < t.mtime;}
-  bool operator==(const Time& t) const noexcept {return mtime == t.mtime;}
-  bool operator!=(const Time& t) const noexcept {return not this -> operator==(t);}
-  bool operator<=(const Time& t) const noexcept {return this -> operator<(t) or this -> operator==(t);}
-  bool operator>(const Time& t) const noexcept {return not this -> operator<=(t);}
-  bool operator>=(const Time& t) const noexcept {return this -> operator>(t) or this -> operator==(t);}
-  template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {mtime += std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
-  template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {mtime -= std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
-  template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {return (Time(*this) += dt);}
-  template <typename T, typename R> Time operator-(const std::chrono::duration<T, R>& dt) const {return (Time(*this) -= dt);}
-  
+  InternalTimeStep operator-(const Time& t) const noexcept {
+    return time - t.time;
+  }
+  bool operator<(const Time& t) const noexcept { return time < t.time; }
+  bool operator==(const Time& t) const noexcept { return time == t.time; }
+  bool operator!=(const Time& t) const noexcept {
+    return not this->operator==(t);
+  }
+  bool operator<=(const Time& t) const noexcept {
+    return this->operator<(t) or this->operator==(t);
+  }
+  bool operator>(const Time& t) const noexcept {
+    return not this->operator<=(t);
+  }
+  bool operator>=(const Time& t) const noexcept {
+    return this->operator>(t) or this->operator==(t);
+  }
+  template <typename T, typename R>
+  Time& operator+=(const std::chrono::duration<T, R>& dt) {
+    time += std::chrono::duration_cast<InternalTimeStep>(dt);
+    return *this;
+  }
+  template <typename T, typename R>
+  Time& operator-=(const std::chrono::duration<T, R>& dt) {
+    time -= std::chrono::duration_cast<InternalTimeStep>(dt);
+    return *this;
+  }
+  template <typename T, typename R>
+  Time operator+(const std::chrono::duration<T, R>& dt) const {
+    return (Time(*this) += dt);
+  }
+  template <typename T, typename R>
+  Time operator-(const std::chrono::duration<T, R>& dt) const {
+    return (Time(*this) -= dt);
+  }
+
   // helpers
-  [[nodiscard]] Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
-  void Seconds(Numeric x) {operator+=(TimeStep(x - Seconds()));}
-  [[nodiscard]] Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
-  
+  [[nodiscard]] Numeric Seconds() const {
+    return std::chrono::duration_cast<TimeStep>(time.time_since_epoch())
+        .count();
+  }
+  void Seconds(Numeric x) { operator+=(TimeStep(x - Seconds())); }
+  [[nodiscard]] Numeric PartOfSecond() const {
+    return std::fmod(Seconds(), 1.0);
+  }
+
   // Conversion
   explicit operator Numeric() const { return Seconds(); }
-}; // Time
+
+  friend std::ostream& operator<<(std::ostream& os, const Time& t);
+
+  friend std::istream& operator>>(std::istream& is, Time& t);
+};  // Time
 
 /** List of times */
 using ArrayOfTime = Array<Time>;
@@ -95,14 +145,8 @@ using ArrayOfArrayOfTime = Array<ArrayOfTime>;
 /** List of time steps */
 using ArrayOfTimeStep = Array<TimeStep>;
 
-/** Output for Time */
-std::ostream& operator<<(std::ostream& os, const Time& t);
-
-/** Input for Time */
-std::istream& operator>>(std::istream& is, Time& t);
-
 /** Debug output for duration */
-inline std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {return os << dt.count() << " seconds";}
+std::ostream& operator<<(std::ostream& os, const TimeStep& dt);
 
 /** Returns a time step from valid string
  * 
@@ -146,7 +190,7 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& dt);
  * @param[in] s A starting index; valid range [0, ts.nelem())
  * @param[in] e The end+1 index; valid range [-1, ts.nelem()]; -1 is treated as ts.nelem()
  */
-Time mean_time(const ArrayOfTime& ts, Index s=0, Index e=-1);
+Time mean_time(const ArrayOfTime& ts, Index s = 0, Index e = -1);
 
 /** Converts from each Time to seconds and returns as Vector
  * 
@@ -177,5 +221,16 @@ TimeStep median(ArrayOfTimeStep);
  * @return mean time step
  */
 TimeStep mean(const ArrayOfTimeStep&);
+
+//! Used to debug execution time, prints msg+time on destruction to std::cerr
+struct DebugTime {
+  Time start{};
+  std::string_view msg;
+  DebugTime(const std::string_view s="Time") : msg(s) {}
+  ~DebugTime() {
+    #pragma omp critical
+    std::cerr << msg << ':' << ' ' << Time{} - start << '\n';
+  }
+};
 
 #endif  // ARTSTIME_H

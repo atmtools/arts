@@ -34,13 +34,9 @@
 #include "array.h"
 #include "arts.h"
 #include "interpolation.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "optproperties.h"
 #include "ppath.h"
-
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PI;
 
 /** A 2D sequential linear interpolation (SLI) lookup table
  * This class holds the gridded for 2D SLI as well as the
@@ -65,9 +61,9 @@ class SLIData2 {
   Numeric interpolate(Numeric x1, Numeric x2) const;
   //checks that it is not empty
   //void check() const;
-};
 
-ostream& operator<<(ostream& os, const SLIData2& sli);
+  friend ostream& operator<<(ostream& os, const SLIData2& sli);
+};
 
 /** interp.
  *

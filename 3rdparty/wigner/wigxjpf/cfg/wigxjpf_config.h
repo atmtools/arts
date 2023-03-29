@@ -35,6 +35,12 @@
 #define WIGXJPF_IMPL_FLOAT128       0
 #endif
 
+/* Generate code to include semi-factorials. */
+
+#ifndef WIGXJPF_IMPL_DOUBLE_FACTORIAL
+#define WIGXJPF_IMPL_DOUBLE_FACTORIAL  0
+#endif
+
 /* Size in bytes of each prime exponent.  2 or 4. */
 
 #define PRIME_LIST_SIZEOF_ITEM      4
@@ -90,5 +96,24 @@
 /* Accounting to find maximum factorial and iteration count. */
 
 #define ACCOUNT_MAX_FACT_ITER       0
+
+/* Special rules for MSVC. */
+
+#ifdef _MSC_VER
+
+# define __thread         __declspec(thread)
+
+# include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+
+#define WIGXJPF_NOINLINE  __declspec(noinline)
+
+#endif
+
+/* Avoid inlining of function. */
+
+#ifndef WIGXJPF_NOINLINE
+#define WIGXJPF_NOINLINE  __attribute__((noinline))
+#endif
 
 #endif/*__WIGXJPF_CONFIG_H__*/

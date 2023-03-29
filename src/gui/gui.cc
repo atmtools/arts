@@ -1,5 +1,6 @@
 #include "gui.h"
 #include <xml_io.h>
+#include "propagationmatrix.h"
 
 namespace ARTSGUI {
   void LayoutAndStyleSettings() {
@@ -113,80 +114,6 @@ GLFWmonitor *get_current_monitor(GLFWwindow *window) {
   return bestmonitor;
 }
 
-namespace MainMenu {
-void fullscreen(Config &cfg, GLFWwindow *window) {
-  if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem(" Fullscreen ", "F11")) {
-        if (not cfg.fullscreen) {
-          glfwGetWindowSize(window, &cfg.width, &cfg.height);
-          glfwGetWindowPos(window, &cfg.xpos, &cfg.ypos);
-          auto *monitor = get_current_monitor(window);
-          const auto *mode = glfwGetVideoMode(monitor);
-          glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height,
-                               0);
-        } else
-          glfwSetWindowMonitor(window, NULL, cfg.xpos, cfg.ypos, cfg.width,
-                               cfg.height, 0);
-
-        cfg.fullscreen = not cfg.fullscreen;
-      }
-      ImGui::Separator();
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-  }
-
-  if (ImGui::IsKeyPressed(GLFW_KEY_F11) or
-      (cfg.fullscreen and ImGui::IsKeyPressed(GLFW_KEY_ESCAPE))) {
-    if (not cfg.fullscreen) {
-      glfwGetWindowSize(window, &cfg.width, &cfg.height);
-      glfwGetWindowPos(window, &cfg.xpos, &cfg.ypos);
-      glfwGetWindowPos(window, &cfg.xpos, &cfg.ypos);
-      auto *monitor = get_current_monitor(window);
-      const auto *mode = glfwGetVideoMode(monitor);
-      glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, 0);
-    } else
-      glfwSetWindowMonitor(window, NULL, cfg.xpos, cfg.ypos, cfg.width,
-                           cfg.height, 0);
-    cfg.fullscreen = not cfg.fullscreen;
-  }
-}
-
-void quitscreen(const Config &cfg, GLFWwindow *window) {
-  if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem(" Quit ", "Ctrl+X"))
-        glfwSetWindowShouldClose(window, 1);
-      ImGui::Separator();
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-  }
-
-  if (cfg.io.KeyCtrl and ImGui::IsKeyPressed(GLFW_KEY_X)) {
-    glfwSetWindowShouldClose(window, 1);
-  }
-}
-
-void exportdata(const Config &cfg, ImGui::FileBrowser& fileBrowser) {
-  if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem(" Export Data ", "Ctrl+S")) {
-        fileBrowser.Open();
-      }
-      ImGui::Separator();
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-  }
-  
-  if (cfg.io.KeyCtrl and ImGui::IsKeyPressed(GLFW_KEY_S)) {
-    fileBrowser.Open();
-  }
-}
-}  // MainMenu
-
 namespace Windows {
 bool full(GLFWwindow *window, const ImVec2 origpos, const char *name) {
   return sub(window, origpos, name);
@@ -268,6 +195,14 @@ namespace Files {
   }
   
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data) {
+    save_data_impl(config, fileBrowser, data);
+  }
+  
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropagationMatrix& data) {
+    save_data_impl(config, fileBrowser, data);
+  }
+  
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfPropagationMatrix& data) {
     save_data_impl(config, fileBrowser, data);
   }
 }  // Files

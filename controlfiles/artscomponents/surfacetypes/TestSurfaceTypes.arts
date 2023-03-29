@@ -13,18 +13,16 @@
 Arts2{
 
   # Includes
-  INCLUDE "general/general.arts"
-  INCLUDE "general/agendas.arts"
-  INCLUDE "general/continua.arts"
-  INCLUDE "general/planet_earth.arts"
+  
+  water_p_eq_agendaSet
+  gas_scattering_agendaSet
+  PlanetSet(option="Earth")
 
   # Agendas (excpept surface ones)
-  Copy(ppath_agenda, ppath_agenda__FollowSensorLosPath)
-  Copy(ppath_step_agenda, ppath_step_agenda__GeometricPath)
-  Copy(iy_space_agenda, iy_space_agenda__CosmicBackground)
-  Copy(iy_main_agenda, iy_main_agenda__Emission)
-  Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-  Copy(propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly)
+  ppath_agendaSet(option="FollowSensorLosPath")
+  ppath_step_agendaSet(option="GeometricPath")
+  iy_space_agendaSet
+  iy_main_agendaSet(option="Emission")
 
   # Various basic settings
   AtmosphereSet3D
@@ -38,7 +36,8 @@ Arts2{
 
   # Absorption
   abs_speciesSet(species=["N2-SelfContStandardType","O2-PWR98","H2O-MPM89"])
-  abs_lines_per_speciesSetEmpty  
+  abs_lines_per_speciesSetEmpty
+  propmat_clearsky_agendaAuto
 
   # Atmosphere and surface altitude
   VectorNLogSpace( p_grid, 35, 1013e2, 100e2 )
@@ -61,30 +60,27 @@ Arts2{
   # Agendas for the surface
   AgendaSet(iy_surface_agenda){
     SurfaceDummy
-    Ignore(nlte_field)
-    surface_typeInterpTypeMask(method="linear")
-    iySurfaceCallAgendaX
+    iySurfaceRtpropAgenda
   }
+  AgendaSet(surface_rtprop_agenda){
+    surface_rtpropFromTypesNearest
+  }  
   NumericCreate( wind_speed )
-  ArrayOfAgendaAppend( iy_surface_agenda_array ){
+  ArrayOfAgendaAppend( surface_rtprop_agenda_array ){
     Ignore( agenda_array_index )
-    Ignore( surface_type_aux )
     InterpGriddedField2ToPosition( out=surface_skin_t,
                              gfield2=surface_t_field )
     InterpGriddedField2ToPosition( out=wind_speed,
                              gfield2=surface_w_field )
     surfaceTessem( wind_speed = wind_speed )
-    iySurfaceRtpropCalc
   }
-  ArrayOfAgendaAppend( iy_surface_agenda_array ){
-    SurfaceDummy
+  ArrayOfAgendaAppend( surface_rtprop_agenda_array ){
     Ignore( agenda_array_index )
     specular_losCalc( ignore_surface_slope=1 )
     InterpGriddedField2ToPosition( out=surface_skin_t,
                            gfield2 = surface_t_field )
-    VectorSetConstant( surface_scalar_reflectivity, 1, surface_type_aux )
+    VectorSetConstant( surface_scalar_reflectivity, 1, 0.12 )
     surfaceFlatScalarReflectivity
-    iySurfaceRtpropCalc
   }
 
   # Sensor pos and los
@@ -93,8 +89,6 @@ Arts2{
 
   # Checks
   lbl_checkedCalc
-  abs_xsec_agenda_checkedCalc
-  propmat_clearsky_agenda_checkedCalc
   atmfields_checkedCalc
   atmgeom_checkedCalc
   cloudbox_checkedCalc

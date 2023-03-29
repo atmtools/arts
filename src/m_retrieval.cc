@@ -292,9 +292,9 @@ void covmat1D(MatrixType& block,
 
   if (n == 0) {
     n = m;
-    grid_view_2 = grid_view_1;
-    sigma_view_2 = sigma_view_1;
-    cls_view_2 = cls_view_1;
+    grid_view_2.set(grid_view_1);
+    sigma_view_2.set(sigma_view_1);
+    cls_view_2.set(cls_view_1);
   }
 
   // Correlation Functions
@@ -444,7 +444,7 @@ void covmat_seAddBlock(CovarianceMatrix& covmat_se,
           " same column.");
     Range column_range = b->get_column_range();
 
-    ARTS_USER_ERROR_IF ((row_range.get_extent() != m) || (column_range.get_extent() != n),
+    ARTS_USER_ERROR_IF ((row_range.extent != m) || (column_range.extent != n),
           "The off-diagonal block is inconsistent "
           "with the corresponding diagonal blocks.");
 
@@ -1193,7 +1193,8 @@ void retrievalDefClose(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void retrievalDefInit(CovarianceMatrix& covmat_se,
+void retrievalDefInit(Workspace& ws,
+                      CovarianceMatrix& covmat_se,
                       CovarianceMatrix& covmat_sx,
                       Sparse& covmat_block,
                       Sparse& covmat_inv_block,
@@ -1202,7 +1203,7 @@ void retrievalDefInit(CovarianceMatrix& covmat_se,
                       const Index& initialize_jacobian,
                       const Verbosity& verbosity) {
   if (initialize_jacobian == 1) {
-    jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
+    jacobianInit(ws, jacobian_quantities, jacobian_agenda, verbosity);
   }
 
   covmat_block = Sparse();

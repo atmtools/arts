@@ -21,52 +21,56 @@
 /**
    \file  double_imanip.h
 
-   IO manipulation classes for parsing nan and inf.
+   Fast double input stream with support for parsing nan and inf.
 
-   Not all compilers do support parsing of nan and inf.
-   The code below is taken (and slightly modified) from the discussion at:
-   http://stackoverflow.com/questions/11420263/is-it-possible-to-read-infinity-or-nan-values-using-input-streams
-
-   \author Oliver Lemke
-   \date 2021-06-03
+   \author Oliver Lemke, Richard Larsson
+   \date 2022-05-23
 */
 
 #ifndef double_imanip_h
 #define double_imanip_h
 
 #include <fstream>
+#include <limits>
+#include <stdexcept>
 
-/** Input stream class for doubles that correctly handles nan and inf. */
-class double_istream {
- public:
-  double_istream(std::istream& i) : in(i) {}
+#include "debug.h"
 
-  double_istream& parse_on_fail(double& x, bool neg);
-
-  double_istream& operator>>(double& x) {
-    bool neg = false;
-    char c;
-    if (!in.good()) return *this;
-    while (isspace(c = (char)in.peek())) in.get();
-    if (c == '-') {
-      neg = true;
-    }
-    in >> x;
-    if (!in.fail()) return *this;
-    return parse_on_fail(x, neg);
-  }
-
- private:
-  std::istream& in;
-};
+#include <fast_float/fast_float.h>
 
 /** Input manipulator class for doubles to enable nan and inf parsing. */
 class double_imanip {
  public:
   const double_imanip& operator>>(double& x) const {
-    double_istream(*in) >> x;
+    std::istream& is = *in;
+    std::string buf;
+
+    // Read to the buffer
+    is >> buf;
+    ARTS_USER_ERROR_IF(is.fail(), "Cannot read from stream")
+
+    // Actual conversion
+    const auto res =
+        fast_float::from_chars(buf.c_str(), buf.c_str() + buf.size(), x);
+
+    // Error (only std::errc::invalid_argument possible)
+    ARTS_USER_ERROR_IF(res.ec == std::errc::invalid_argument,
+                       "The argument: \n\n'",
+                       buf,
+                       R"--('
+
+is not convertible to a valid double.  At the very least it
+cannot be converted to one using the standard string-to-double
+routine
+)--")
+
+    // Put the stream to be where it is supposed to be
+    std::size_t n = std::distance(buf.c_str(), res.ptr);
+    while (n++ < buf.size()) is.unget();
+
     return *this;
   }
+
   std::istream& operator>>(const double_imanip&) const { return *in; }
 
   friend const double_imanip& operator>>(std::istream& in,
@@ -76,6 +80,10 @@ class double_imanip {
   mutable std::istream* in;
 };
 
-const double_imanip& operator>>(std::istream& in, const double_imanip& dm);
+inline const double_imanip& operator>>(std::istream& in,
+                                       const double_imanip& dm) {
+  dm.in = &in;
+  return dm;
+}
 
 #endif

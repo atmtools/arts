@@ -3,8 +3,8 @@
 <GasAbsLookup><Array type="ArrayOfSpeciesTag" nelem="7">
 <Array type="SpeciesTag" nelem="3">
 <SpeciesTag>"H2O-*-*-*"</SpeciesTag>
-<SpeciesTag>"H2O-SelfContCKDMT252-*-*"</SpeciesTag>
-<SpeciesTag>"H2O-ForeignContCKDMT252-*-*"</SpeciesTag>
+<SpeciesTag>"H2O-SelfContCKDMT350-*-*"</SpeciesTag>
+<SpeciesTag>"H2O-ForeignContCKDMT350-*-*"</SpeciesTag>
 </Array>
 <Array type="SpeciesTag" nelem="1">
 <SpeciesTag>"O3-*-*-*"</SpeciesTag>

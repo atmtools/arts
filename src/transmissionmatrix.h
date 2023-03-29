@@ -33,50 +33,155 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#else
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
 #include <Eigen/Dense>
-#include <Eigen/StdVector>
+
 #pragma GCC diagnostic pop
 
 #include "jacobian.h"
 #include "propagationmatrix.h"
 
-/** Class to keep track of Transmission Matrices for Stokes Dim 1-4 */
-class TransmissionMatrix {
- private:
-  Index stokes_dim;
-  std::vector<Eigen::Matrix4d, Eigen::aligned_allocator<Eigen::Matrix4d>> T4;
-  std::vector<Eigen::Matrix3d, Eigen::aligned_allocator<Eigen::Matrix3d>> T3;
-  std::vector<Eigen::Matrix2d, Eigen::aligned_allocator<Eigen::Matrix2d>> T2;
-  std::vector<Eigen::Matrix<double, 1, 1>,
-              Eigen::aligned_allocator<Eigen::Matrix<double, 1, 1>>>
-      T1;
+template <int N>
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstVectorView& vec) {
+#define a vec[0]
+#define b vec[1]
+#define c vec[2]
+#define d vec[3]
+#define u vec[N]
+#define v vec[5]
+#define w vec[6]
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<Numeric, 1, 1>(a);
+  } else if constexpr (N==2) {
+    return (Eigen::Matrix2d() << a, b, b, a).finished();
+  } else if constexpr (N==3) {
+    return (Eigen::Matrix3d() << a, b, c, b, a, u, c, -u, a).finished();
+  } else if constexpr (N==4) {
+    return (Eigen::Matrix4d() << a, b, c, d, b, a, u, v, c, -u, a, w, d, -v, -w, a).finished();
+  }
+#undef a
+#undef b
+#undef c
+#undef d
+#undef u
+#undef v
+#undef w
+}
 
- public:
+template <int N>
+Eigen::Matrix<Numeric, N, N> prop_matrix(const ConstMatrixView& m) {
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<Numeric, 1, 1>(m(0, 0));
+  } else if constexpr (N == 2) {
+    return (Eigen::Matrix2d() << m(0, 0), m(0, 1),
+                                 m(1, 0), m(1, 1)).finished();
+  } else if constexpr (N == 3) {
+    return (Eigen::Matrix3d() << m(0, 0), m(0, 1), m(0, 2),
+                                 m(1, 0), m(1, 1), m(1, 2),
+                                 m(2, 0), m(2, 1), m(2, 2)) .finished();
+  } else if constexpr (N == 4) {
+    return (Eigen::Matrix4d() << m(0, 0), m(0, 1), m(0, 2), m(0, 3),
+                                 m(1, 0), m(1, 1), m(1, 2), m(1, 3),
+                                 m(2, 0), m(2, 1), m(2, 2), m(2, 3),
+                                 m(3, 0), m(3, 1), m(3, 2), m(3, 3)) .finished();
+  }
+}
+
+template <int N>
+Eigen::Matrix<Numeric, N, N> inv_prop_matrix(const ConstVectorView& vec) {
+#define a vec[0]
+#define b vec[1]
+#define c vec[2]
+#define d vec[3]
+#define u vec[N]
+#define v vec[5]
+#define w vec[6]
+  static_assert (N>0 and N<5, "Bad size N");
+  if constexpr (N == 1) {
+    return Eigen::Matrix<double, 1, 1>(1 / a);
+  } else if constexpr (N==2) {
+    return (Eigen::Matrix2d() << a, -b, -b, a).finished() / (a * a - b * b);
+  } else if constexpr (N==3) {
+    return (Eigen::Matrix3d() << a * a + u * u,
+          -a * b - c * u,
+          -a * c + b * u,
+          -a * b + c * u,
+          a * a - c * c,
+          -a * u + b * c,
+          -a * c - b * u,
+          a * u + b * c,
+          a * a - b * b)
+             .finished() /
+         (a * a * a - a * b * b - a * c * c + a * u * u);
+  } else if constexpr (N==4) {
+    return (Eigen::Matrix4d() << a * a * a + a * u * u + a * v * v + a * w * w,
+          -a * a * b - a * c * u - a * d * v - b * w * w + c * v * w -
+              d * u * w,
+          -a * a * c + a * b * u - a * d * w + b * v * w - c * v * v +
+              d * u * v,
+          -a * a * d + a * b * v + a * c * w - b * u * w + c * u * v -
+              d * u * u,
+          -a * a * b + a * c * u + a * d * v - b * w * w + c * v * w -
+              d * u * w,
+          a * a * a - a * c * c - a * d * d + a * w * w,
+          -a * a * u + a * b * c - a * v * w + b * d * w - c * d * v +
+              d * d * u,
+          -a * a * v + a * b * d + a * u * w - b * c * w + c * c * v -
+              c * d * u,
+          -a * a * c - a * b * u + a * d * w + b * v * w - c * v * v +
+              d * u * v,
+          a * a * u + a * b * c - a * v * w - b * d * w + c * d * v - d * d * u,
+          a * a * a - a * b * b - a * d * d + a * v * v,
+          -a * a * w + a * c * d - a * u * v + b * b * w - b * c * v +
+              b * d * u,
+          -a * a * d - a * b * v - a * c * w - b * u * w + c * u * v -
+              d * u * u,
+          a * a * v + a * b * d + a * u * w + b * c * w - c * c * v + c * d * u,
+          a * a * w + a * c * d - a * u * v - b * b * w + b * c * v - b * d * u,
+          a * a * a - a * b * b - a * c * c + a * u * u)
+             .finished() /
+         (a * a * a * a - a * a * b * b - a * a * c * c - a * a * d * d +
+          a * a * u * u + a * a * v * v + a * a * w * w - b * b * w * w +
+          2 * b * c * v * w - 2 * b * d * u * w - c * c * v * v +
+          2 * c * d * u * v - d * d * u * u);
+  }
+#undef a
+#undef b
+#undef c
+#undef d
+#undef u
+#undef v
+#undef w
+}
+
+/** Class to keep track of Transmission Matrices for Stokes Dim 1-4 */
+struct TransmissionMatrix {
+  Index stokes_dim;
+  std::vector<Eigen::Matrix4d> T4;
+  std::vector<Eigen::Matrix3d> T3;
+  std::vector<Eigen::Matrix2d> T2;
+  std::vector<Eigen::Matrix<double, 1, 1>> T1;
 
   /** Construct a new Transmission Matrix object
    * 
    * @param[in] nf Number of frequencies
    * @param[in] stokes Stokes dimension
    */
-  TransmissionMatrix(Index nf = 0, Index stokes = 1)
-      : stokes_dim(stokes),
-        T4(stokes_dim == 4 ? nf : 0, Eigen::Matrix4d::Identity()),
-        T3(stokes_dim == 3 ? nf : 0, Eigen::Matrix3d::Identity()),
-        T2(stokes_dim == 2 ? nf : 0, Eigen::Matrix2d::Identity()),
-        T1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Identity()) {
-    ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
-  }
+  TransmissionMatrix(Index nf = 0, Index stokes = 1);
 
   /** Construct a new Transmission Matrix object
    * 
    * @param[in] tm Matrix to move from
    */
-  TransmissionMatrix(TransmissionMatrix&& tm) noexcept
-      : stokes_dim(tm.stokes_dim),
-        T4(std::move(tm.T4)),
-        T3(std::move(tm.T3)),
-        T2(std::move(tm.T2)),
-        T1(std::move(tm.T1)) {}
+  TransmissionMatrix(TransmissionMatrix&& tm) noexcept = default;
 
   /** Construct a new Transmission Matrix object
    * 
@@ -96,129 +201,88 @@ class TransmissionMatrix {
    * @param[in] tm matrix to move from
    * @return TransmissionMatrix& *this
    */
-  TransmissionMatrix& operator=(TransmissionMatrix&& tm) noexcept {
-    stokes_dim = tm.stokes_dim;
-    T4 = std::move(tm.T4);
-    T3 = std::move(tm.T3);
-    T2 = std::move(tm.T2);
-    T1 = std::move(tm.T1);
-    return *this;
-  }
+  TransmissionMatrix& operator=(TransmissionMatrix&& tm) noexcept = default;
 
   /** Construct a new Transmission Matrix from a Propagation Matrix
    * 
    * @param[in] pm Propagation Matrix
    * @param[in] r Distance
    */
-  explicit TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r = 1.0);
+  explicit TransmissionMatrix(const PropagationMatrix& pm,
+                              const Numeric& r = 1.0);
 
-  operator Tensor3() const {
-    Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
-    for (size_t i = 0; i < T4.size(); i++)
-      for (size_t j = 0; j < 4; j++)
-        for (size_t k = 0; k < 4; k++) T(i, j, k) = T4[i](j, k);
-    for (size_t i = 0; i < T3.size(); i++)
-      for (size_t j = 0; j < 3; j++)
-        for (size_t k = 0; k < 3; k++) T(i, j, k) = T3[i](j, k);
-    for (size_t i = 0; i < T2.size(); i++)
-      for (size_t j = 0; j < 2; j++)
-        for (size_t k = 0; k < 2; k++) T(i, j, k) = T2[i](j, k);
-    for (size_t i = 0; i < T1.size(); i++) T(i, 0, 0) = T1[i](0, 0);
-    return T;
-  }
+  operator Tensor3() const;
+
+  explicit TransmissionMatrix(const ConstMatrixView& mat);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix4d& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix4d& Mat4(size_t i) const { return T4[i]; }
+  [[nodiscard]] const Eigen::Matrix4d& Mat4(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix3d& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix3d& Mat3(size_t i) const { return T3[i]; }
+  [[nodiscard]] const Eigen::Matrix3d& Mat3(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix2d& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix2d& Mat2(size_t i) const { return T2[i]; }
+  [[nodiscard]] const Eigen::Matrix2d& Mat2(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return const Eigen::Matrix<double, 1, 1>& Matrix
    */
-  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Mat1(size_t i) const { return T1[i]; }
+  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Mat1(size_t i) const;
 
   /** Get Matrix at position by copy
    * 
    * @param[in] i Position
    * @return Right size
    */
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wreturn-type"
-  [[nodiscard]] Eigen::MatrixXd Mat(size_t i) const {
-    switch (stokes_dim) {
-      case 1:
-        return Mat1(i);
-      case 2:
-        return Mat2(i);
-      case 3:
-        return Mat3(i);
-      case 4:
-        return Mat4(i);
-    }
-  }
-  #pragma GCC diagnostic pop
+  [[nodiscard]] Eigen::MatrixXd Mat(size_t i) const;
 
   /** Get Matrix at position
    * 
    * @param [in]i Position
    * @return Eigen::Matrix4d& Matrix
    */
-  Eigen::Matrix4d& Mat4(size_t i) { return T4[i]; }
+  Eigen::Matrix4d& Mat4(size_t i);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return Eigen::Matrix3d& Matrix
    */
-  Eigen::Matrix3d& Mat3(size_t i) { return T3[i]; }
+  Eigen::Matrix3d& Mat3(size_t i);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return Eigen::Matrix42& Matrix
    */
-  Eigen::Matrix2d& Mat2(size_t i) { return T2[i]; }
+  Eigen::Matrix2d& Mat2(size_t i);
 
   /** Get Matrix at position
    * 
    * @param[in] i Position
    * @return Eigen::Matrix<double, 1, 1>& Matrix
    */
-  Eigen::Matrix<double, 1, 1>& Mat1(size_t i) { return T1[i]; }
+  Eigen::Matrix<double, 1, 1>& Mat1(size_t i);
 
   /** Set to identity matrix */
-  void setIdentity() {
-    std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Identity());
-    std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Identity());
-    std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Identity());
-    std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Identity());
-  }
+  void setIdentity();
 
   /** Set to zero matrix */
-  void setZero() {
-    std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Zero());
-    std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Zero());
-    std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Zero());
-    std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Zero());
-  }
+  void setZero();
 
   /** Set this to a multiple of A by B
    * 
@@ -227,13 +291,7 @@ class TransmissionMatrix {
    * @param[in] A Matrix 1
    * @param[in] B Matrix 2
    */
-  void mul(const TransmissionMatrix& A, const TransmissionMatrix& B) {
-    for (size_t i = 0; i < T4.size(); i++) T4[i].noalias() = A.T4[i] * B.T4[i];
-    for (size_t i = 0; i < T3.size(); i++) T3[i].noalias() = A.T3[i] * B.T3[i];
-    for (size_t i = 0; i < T2.size(); i++) T2[i].noalias() = A.T2[i] * B.T2[i];
-    for (size_t i = 0; i < T1.size(); i++) T1[i].noalias() = A.T1[i] * B.T1[i];
-  }
-
+  void mul(const TransmissionMatrix& A, const TransmissionMatrix& B);
 
   /** Set this to a multiple of A by B
    * 
@@ -242,12 +300,7 @@ class TransmissionMatrix {
    * @param[in] A Matrix 1
    * @param[in] B Matrix 2
    */
-  void mul_aliased(const TransmissionMatrix& A, const TransmissionMatrix& B) {
-    for (size_t i = 0; i < T4.size(); i++) T4[i] = A.T4[i] * B.T4[i];
-    for (size_t i = 0; i < T3.size(); i++) T3[i] = A.T3[i] * B.T3[i];
-    for (size_t i = 0; i < T2.size(); i++) T2[i] = A.T2[i] * B.T2[i];
-    for (size_t i = 0; i < T1.size(); i++) T1[i] = A.T1[i] * B.T1[i];
-  }
+  void mul_aliased(const TransmissionMatrix& A, const TransmissionMatrix& B);
 
   /** Access value in matrix
    * 
@@ -256,76 +309,42 @@ class TransmissionMatrix {
    * @param[in] k Col in matrix
    * @return const Numeric& value
    */
-  Numeric operator()(const Index i, const Index j, const Index k) const {
-    switch (stokes_dim) {
-      case 4:
-        return T4[i](j, k);
-      case 3:
-        return T3[i](j, k);
-      case 2:
-        return T2[i](j, k);
-      default:
-        return T1[i](j, k);
-    }
-  }
+  [[nodiscard]] Numeric operator()(const Index i,
+                                   const Index j,
+                                   const Index k) const;
 
-  /** Stokes dimensionaility */
-  [[nodiscard]] Index StokesDim() const { return stokes_dim; }
+  /** Access value in matrix
+   *
+   * @param[in] i Position in vector
+   * @param[in] j Row in matrix
+   * @param[in] k Col in matrix
+   * @return const Numeric& value
+   */
+  Numeric& operator()(const Index i, const Index j, const Index k);
 
   /** Number of frequencies */
-  [[nodiscard]] Index Frequencies() const {
-    switch (stokes_dim) {
-      case 4:
-        return Index(T4.size());
-      case 3:
-        return Index(T3.size());
-      case 2:
-        return Index(T2.size());
-      default:
-        return Index(T1.size());
-    }
-  }
+  [[nodiscard]] Index Frequencies() const;
 
   /** Assign to *this lazily
    * 
    * @param[in] lstm Lazy matrix
    * @return TransmissionMatrix& *this
    */
-  TransmissionMatrix& operator+=(const LazyScale<TransmissionMatrix>& lstm) {
-    for (size_t i = 0; i < T4.size(); i++)
-      T4[i].noalias() = lstm.scale * lstm.bas.Mat4(i);
-    for (size_t i = 0; i < T3.size(); i++)
-      T3[i].noalias() = lstm.scale * lstm.bas.Mat3(i);
-    for (size_t i = 0; i < T2.size(); i++)
-      T2[i].noalias() = lstm.scale * lstm.bas.Mat2(i);
-    for (size_t i = 0; i < T1.size(); i++)
-      T1[i].noalias() = lstm.scale * lstm.bas.Mat1(i);
-    return *this;
-  }
+  TransmissionMatrix& operator+=(const LazyScale<TransmissionMatrix>& lstm);
 
   /** Scale self 
    * 
    * @param[in] scale To scale with 
    * @return TransmissionMatrix& *this
    */
-  TransmissionMatrix& operator*=(const Numeric& scale) {
-    std::transform(T4.begin(), T4.end(), T4.begin(), [scale](auto& T){return T*scale;});
-    std::transform(T3.begin(), T3.end(), T3.begin(), [scale](auto& T){return T*scale;});
-    std::transform(T2.begin(), T2.end(), T2.begin(), [scale](auto& T){return T*scale;});
-    std::transform(T1.begin(), T1.end(), T1.begin(), [scale](auto& T){return T*scale;});
-    return *this;
-  }
+  TransmissionMatrix& operator*=(const Numeric& scale);
 
   /** Assign lazily
    * 
    * @param[in] lstm Lazy value
    * @return TransmissionMatrix& *this
    */
-  TransmissionMatrix& operator=(const LazyScale<TransmissionMatrix>& lstm) {
-    operator=(lstm.bas);
-    operator*=(lstm.scale);
-    return *this;
-  }
+  TransmissionMatrix& operator=(const LazyScale<TransmissionMatrix>& lstm);
 
   /** Output operator */
   friend std::ostream& operator<<(std::ostream& os,
@@ -333,30 +352,41 @@ class TransmissionMatrix {
 
   /** Input operator */
   friend std::istream& operator>>(std::istream& data, TransmissionMatrix& tm);
-  
+
   /** Simple template access for the transmission */
-  template <int N> auto& TraMat(size_t i) noexcept {
-    static_assert (N > 0 and N < 5, "Bad size N");
-    if constexpr (N == 1) return T1[i];
-    else if constexpr (N == 2) return T2[i];
-    else if constexpr (N == 3) return T3[i];
-    else if constexpr (N == 4) return T4[i];
+  template <int N>
+  auto& TraMat(size_t i) noexcept {
+    static_assert(N > 0 and N < 5, "Bad size N");
+    if constexpr (N == 1)
+      return T1[i];
+    else if constexpr (N == 2)
+      return T2[i];
+    else if constexpr (N == 3)
+      return T3[i];
+    else if constexpr (N == 4)
+      return T4[i];
   }
-  
+
   /** Simple template access for the transmission */
-  template <int N> [[nodiscard]] auto& TraMat(size_t i) const noexcept {
-    static_assert (N > 0 and N < 5, "Bad size N");
-    if constexpr (N == 1) return T1[i];
-    else if constexpr (N == 2) return T2[i];
-    else if constexpr (N == 3) return T3[i];
-    else if constexpr (N == 4) return T4[i];
+  template <int N>
+  [[nodiscard]] auto& TraMat(size_t i) const noexcept {
+    static_assert(N > 0 and N < 5, "Bad size N");
+    if constexpr (N == 1)
+      return T1[i];
+    else if constexpr (N == 2)
+      return T2[i];
+    else if constexpr (N == 3)
+      return T3[i];
+    else if constexpr (N == 4)
+      return T4[i];
   }
-  
+
   /** Simple template access for the optical depth */
-  template <int N> [[nodiscard]] Eigen::Matrix<Numeric, N, N> OptDepth(size_t i) const noexcept {
+  template <int N>
+  [[nodiscard]] Eigen::Matrix<Numeric, N, N> OptDepth(size_t i) const noexcept {
     return (-TraMat<N>(i).diagonal().array().log().matrix()).asDiagonal();
   }
-  
+
   /*! Return the weighted source term using second order integration
    * 
    \f[ far = \frac{1-\left(1+\log{T_{00}}\right) T}{\log{T_{00}}} \f]
@@ -377,27 +407,29 @@ class TransmissionMatrix {
    * @return Linear Weights
    */
   template <int N>
-  [[nodiscard]] Eigen::Matrix<Numeric, N, 1> second_order_integration_source(const Eigen::Matrix<Numeric, N, N> T,
-                                                                             const Eigen::Matrix<Numeric, N, 1> far,
-                                                                             const Eigen::Matrix<Numeric, N, 1> close,
-                                                                             const Eigen::Matrix<Numeric, N, N> Kfar,
-                                                                             const Eigen::Matrix<Numeric, N, N> Kclose,
-                                                                             const Numeric r)
-  const noexcept {
-    static_assert (N>0 and N<5, "Bad size N");
-    
+  [[nodiscard]] Eigen::Matrix<Numeric, N, 1> second_order_integration_source(
+      const Eigen::Matrix<Numeric, N, N> T,
+      const Eigen::Matrix<Numeric, N, 1> far,
+      const Eigen::Matrix<Numeric, N, 1> close,
+      const Eigen::Matrix<Numeric, N, N> Kfar,
+      const Eigen::Matrix<Numeric, N, N> Kclose,
+      const Numeric r) const noexcept {
+    static_assert(N > 0 and N < 5, "Bad size N");
+
     const auto I = Eigen::Matrix<Numeric, N, N>::Identity();
     if (T(0, 0) < 0.99) {
       const auto od = 0.5 * r * (Kfar + Kclose);
-      Eigen::Matrix<Numeric, N, 1> second = od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
-      if ((far[0] < close[0] and Kfar(0, 0) > Kclose(0, 0)) or (far[0] > close[0] and Kfar(0, 0) < Kclose(0, 0))) {
-        Eigen::Matrix<Numeric, N, 1> second_limit = 0.5 * (I - T) * (far + close);
-        
+      Eigen::Matrix<Numeric, N, 1> second =
+          od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
+      if ((far[0] < close[0] and Kfar(0, 0) > Kclose(0, 0)) or
+          (far[0] > close[0] and Kfar(0, 0) < Kclose(0, 0))) {
+        Eigen::Matrix<Numeric, N, 1> second_limit =
+            0.5 * (I - T) * (far + close);
+
         // FIXME: This is the equation given in the source material...
         // const Eigen::Matrix<Numeric, N, 1> second_limit = 0.25 * r * (Kfar * far + Kclose * close);
-        
-        if (second_limit[0] > second[0])
-          return second;
+
+        if (second_limit[0] > second[0]) return second;
         return second_limit;
       }
 
@@ -406,17 +438,17 @@ class TransmissionMatrix {
 
     return 0.5 * (I - T) * (far + close);
   }
-  
-  
+
   template <int N>
-  [[nodiscard]] Eigen::Matrix<Numeric, N, 1> second_order_integration_dsource(size_t i,
-                                                                              const TransmissionMatrix& dx,
-                                                                              const Eigen::Matrix<Numeric, N, 1> far,
-                                                                              const Eigen::Matrix<Numeric, N, 1> close,
-                                                                              const Eigen::Matrix<Numeric, N, 1> d,
-                                                                              bool isfar) const noexcept {
-    static_assert (N > 0 and N < 5, "Bad size N");
-    
+  [[nodiscard]] Eigen::Matrix<Numeric, N, 1> second_order_integration_dsource(
+      size_t i,
+      const TransmissionMatrix& dx,
+      const Eigen::Matrix<Numeric, N, 1> far,
+      const Eigen::Matrix<Numeric, N, 1> close,
+      const Eigen::Matrix<Numeric, N, 1> d,
+      bool isfar) const noexcept {
+    static_assert(N > 0 and N < 5, "Bad size N");
+
     const auto I = Eigen::Matrix<Numeric, N, N>::Identity();
     const auto T = TraMat<N>(i);
     const auto& dTdx = dx.TraMat<N>(i);
@@ -424,20 +456,17 @@ class TransmissionMatrix {
     if (T(0, 0) < 0.99) {
       const auto od = OptDepth<N>(i);
       const auto doddx = dx.OptDepth<N>(i);
-      const Eigen::Matrix<Numeric, N, 1> second = od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
+      const Eigen::Matrix<Numeric, N, 1> second =
+          od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
       if (first[0] > second[0]) {
         if (isfar) {
-          return od.inverse() * ((I - (I + od) * T) * d
-                              - (I + od) * dTdx * far
-                              + (doddx + T) * close
-                              - doddx * second);
+          return od.inverse() *
+                 ((I - (I + od) * T) * d - (I + od) * dTdx * far +
+                  (doddx + T) * close - doddx * second);
         }
 
-        return od.inverse() * (
-        - (I + od) * dTdx * far
-        + (od - I + T) * d
-        + (doddx + T) * close
-        - doddx * second);
+        return od.inverse() * (-(I + od) * dTdx * far + (od - I + T) * d +
+                               (doddx + T) * close - doddx * second);
       }
 
       return 0.5 * ((I - T) * d - dTdx * (far + close));
@@ -453,10 +482,8 @@ class TransmissionMatrix {
  * @param[in] x Scale
  * @return Lazy Transmission Matrix
  */
-inline LazyScale<TransmissionMatrix> operator*(const TransmissionMatrix& tm,
-                                               const Numeric& x) {
-  return LazyScale<TransmissionMatrix>(tm, x);
-}
+[[nodiscard]] LazyScale<TransmissionMatrix> operator*(
+    const TransmissionMatrix& tm, const Numeric& x);
 
 /** Lazy scale of Transmission Matrix
  * 
@@ -464,48 +491,29 @@ inline LazyScale<TransmissionMatrix> operator*(const TransmissionMatrix& tm,
  * @param[in] tm Transmission Matrix
  * @return Lazy Transmission Matrix
  */
-inline LazyScale<TransmissionMatrix> operator*(const Numeric& x,
-                                               const TransmissionMatrix& tm) {
-  return LazyScale<TransmissionMatrix>(tm, x);
-}
+[[nodiscard]] LazyScale<TransmissionMatrix> operator*(
+    const Numeric& x, const TransmissionMatrix& tm);
 
 /** Radiation Vector for Stokes dimension 1-4 */
-class RadiationVector {
- private:
+struct RadiationVector {
   Index stokes_dim;
-  std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> R4;
-  std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> R3;
-  std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d>> R2;
-  std::vector<Eigen::Matrix<double, 1, 1>,
-              Eigen::aligned_allocator<Eigen::Matrix<double, 1, 1>>>
-      R1;
-
- public:
+  std::vector<Eigen::Vector4d> R4;
+  std::vector<Eigen::Vector3d> R3;
+  std::vector<Eigen::Vector2d> R2;
+  std::vector<Eigen::Matrix<double, 1, 1>> R1;
 
   /** Construct a new Radiation Vector object
    * 
    * @param[in] nf Number of frequencies
    * @param[in] stokes Stokes dimension
    */
-  RadiationVector(Index nf = 0, Index stokes = 1)
-      : stokes_dim(stokes),
-        R4(stokes_dim == 4 ? nf : 0, Eigen::Vector4d::Zero()),
-        R3(stokes_dim == 3 ? nf : 0, Eigen::Vector3d::Zero()),
-        R2(stokes_dim == 2 ? nf : 0, Eigen::Vector2d::Zero()),
-        R1(stokes_dim == 1 ? nf : 0, Eigen::Matrix<double, 1, 1>::Zero()) {
-    ARTS_ASSERT(stokes_dim < 5 and stokes_dim > 0);
-  }
+  RadiationVector(Index nf = 0, Index stokes = 1);
 
   /** Construct a new Radiation Vector object
    * 
    * @param[in] rv Old Radiation Vector to move from
    */
-  RadiationVector(RadiationVector&& rv) noexcept
-      : stokes_dim(rv.stokes_dim),
-        R4(std::move(rv.R4)),
-        R3(std::move(rv.R3)),
-        R2(std::move(rv.R2)),
-        R1(std::move(rv.R1)) {}
+  RadiationVector(RadiationVector&& rv) noexcept = default;
 
   /** Construct a new Radiation Vector object
    * 
@@ -525,176 +533,118 @@ class RadiationVector {
    * @param[in] rv old vetor to move from
    * @return RadiationVector& *this
    */
-  RadiationVector& operator=(RadiationVector&& rv) noexcept {
-    stokes_dim = rv.stokes_dim;
-    R4 = std::move(rv.R4);
-    R3 = std::move(rv.R3);
-    R2 = std::move(rv.R2);
-    R1 = std::move(rv.R1);
-    return *this;
-  }
+  RadiationVector& operator=(RadiationVector&& rv) noexcept = default;
+
+  /** Addition operator
+   *
+   * @param[in] rv Addition by rv
+   * @return RadiationVector& *this
+   */
+  RadiationVector& operator+=(const RadiationVector& rv);
 
   /** Multiply radiation vector from the left
    * 
    * @param[in] T Tranmission Vector
    */
-  void leftMul(const TransmissionMatrix& T) {
-    for (size_t i = 0; i < R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
-    for (size_t i = 0; i < R3.size(); i++) R3[i] = T.Mat3(i) * R3[i];
-    for (size_t i = 0; i < R2.size(); i++) R2[i] = T.Mat2(i) * R2[i];
-    for (size_t i = 0; i < R1.size(); i++) R1[i] = T.Mat1(i) * R1[i];
-  }
+  void leftMul(const TransmissionMatrix& T);
 
   /** Set Radiation Vector to Zero at position
    * 
    * @param[in] i position
    */
-  void SetZero(size_t i) {
-    switch (stokes_dim) {
-      case 4:
-        R4[i].noalias() = Eigen::Vector4d::Zero();
-        break;
-      case 3:
-        R3[i].noalias() = Eigen::Vector3d::Zero();
-        break;
-      case 2:
-        R2[i].noalias() = Eigen::Vector2d::Zero();
-        break;
-      case 1:
-        R1[i][0] = 0;
-        break;
-    }
-  }
+  void SetZero(size_t i);
+
+  void SetZero();
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Vector4d& Vector
    */
-  [[nodiscard]] const Eigen::Vector4d& Vec4(size_t i) const { return R4[i]; }
+  [[nodiscard]] const Eigen::Vector4d& Vec4(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Vector3d& Vector
    */
-  [[nodiscard]] const Eigen::Vector3d& Vec3(size_t i) const { return R3[i]; }
+  [[nodiscard]] const Eigen::Vector3d& Vec3(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Vector2d& Vector
    */
-  [[nodiscard]] const Eigen::Vector2d& Vec2(size_t i) const { return R2[i]; }
+  [[nodiscard]] const Eigen::Vector2d& Vec2(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return const Eigen::Matrix<double, 1, 1>& Vector
    */
-  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Vec1(size_t i) const { return R1[i]; }
-  
+  [[nodiscard]] const Eigen::Matrix<double, 1, 1>& Vec1(size_t i) const;
+
   /** Return Vector at position by copy
    * 
    * @param[in] i position
    * @return const Eigen::Matrix<double, 1, 1>& Vector
    */
-  [[nodiscard]] Eigen::VectorXd Vec(size_t i) const { 
-    switch (stokes_dim) {
-      case 4:
-        return Vec4(i);
-      case 3:
-        return Vec3(i);
-      case 2:
-        return Vec2(i);
-      default:
-        return Vec1(i);
-    }
-  }
-
+  [[nodiscard]] Eigen::VectorXd Vec(size_t i) const;
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Vector4d& Vector
    */
-  Eigen::Vector4d& Vec4(size_t i) { return R4[i]; }
+  Eigen::Vector4d& Vec4(size_t i);
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Vector3d& Vector
    */
-  Eigen::Vector3d& Vec3(size_t i) { return R3[i]; }
+  Eigen::Vector3d& Vec3(size_t i);
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Vector2d& Vector
    */
-  Eigen::Vector2d& Vec2(size_t i) { return R2[i]; }
+  Eigen::Vector2d& Vec2(size_t i);
 
   /** Return Vector at position
    * 
    * @param[in] i position
    * @return Eigen::Matrix<double, 1, 1>& Vector
    */
-  Eigen::Matrix<double, 1, 1>& Vec1(size_t i) { return R1[i]; }
+  Eigen::Matrix<double, 1, 1>& Vec1(size_t i);
 
   /** Remove the average of two other RadiationVector from *this
    * 
    * @param[in] O1 Input 1
    * @param[in] O2 Input 2
    */
-  void rem_avg(const RadiationVector& O1, const RadiationVector& O2) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() -= 0.5 * (O1.R4[i] + O2.R4[i]);
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() -= 0.5 * (O1.R3[i] + O2.R3[i]);
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() -= 0.5 * (O1.R2[i] + O2.R2[i]);
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() -= 0.5 * (O1.R1[i] + O2.R1[i]);
-  }
-
+  void rem_avg(const RadiationVector& O1, const RadiationVector& O2);
 
   /** Add the average of two other RadiationVector to *this
    * 
    * @param[in] O1 Input 1
    * @param[in] O2 Input 2
    */
-  void add_avg(const RadiationVector& O1, const RadiationVector& O2) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += 0.5 * (O1.R4[i] + O2.R4[i]);
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += 0.5 * (O1.R3[i] + O2.R3[i]);
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += 0.5 * (O1.R2[i] + O2.R2[i]);
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
-  }
-  
+  void add_avg(const RadiationVector& O1, const RadiationVector& O2);
+
   /** Add the weighted source of two RadiationVector to *this
    * 
    * @param[in] T The transmission matrix
    * @param[in] far   Input 1
    * @param[in] close Input 2
    */
-  void add_weighted(const TransmissionMatrix& T, const RadiationVector& far, const RadiationVector& close, 
-                    const ConstMatrixView& Kfar, const ConstMatrixView& Kclose, const Numeric r) {
-    for (size_t i = 0; i < R4.size(); i++) {
-      R4[i].noalias() += T.second_order_integration_source<4>(T.TraMat<4>(i), far.R4[i], close.R4[i], prop_matrix<4>(Kfar(i, joker)), prop_matrix<4>(Kclose(i, joker)), r);
-    }
-    for (size_t i = 0; i < R3.size(); i++) {
-      R3[i].noalias() += T.second_order_integration_source<3>(T.TraMat<3>(i), far.R3[i], close.R3[i], prop_matrix<3>(Kfar(i, joker)), prop_matrix<3>(Kclose(i, joker)), r);
-    }
-    for (size_t i = 0; i < R2.size(); i++) {
-      R2[i].noalias() += T.second_order_integration_source<2>(T.TraMat<2>(i), far.R2[i], close.R2[i], prop_matrix<2>(Kfar(i, joker)), prop_matrix<2>(Kclose(i, joker)), r);
-    }
-    for (size_t i = 0; i < R1.size(); i++) {
-      R1[i].noalias() += T.second_order_integration_source<1>(T.TraMat<1>(i), far.R1[i], close.R1[i], prop_matrix<1>(Kfar(i, joker)), prop_matrix<1>(Kclose(i, joker)), r);
-    }
-  }
+  void add_weighted(const TransmissionMatrix& T,
+                    const RadiationVector& far,
+                    const RadiationVector& close,
+                    const ConstMatrixView& Kfar,
+                    const ConstMatrixView& Kclose,
+                    const Numeric r);
 
   /** Add the emission derivative to this
    * 
@@ -708,20 +658,7 @@ class RadiationVector {
                         const TransmissionMatrix& dT,
                         const TransmissionMatrix& T,
                         const RadiationVector& ImJ,
-                        const RadiationVector& dJ) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += PiT.Mat4(i) * (dT.Mat4(i) * ImJ.R4[i] + dJ.R4[i] -
-                                        T.Mat4(i) * dJ.R4[i]);
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += PiT.Mat3(i) * (dT.Mat3(i) * ImJ.R3[i] + dJ.R3[i] -
-                                        T.Mat3(i) * dJ.R3[i]);
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += PiT.Mat2(i) * (dT.Mat2(i) * ImJ.R2[i] + dJ.R2[i] -
-                                        T.Mat2(i) * dJ.R2[i]);
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] -
-                                        T.Mat1(i) * dJ.R1[i]);
-  }
+                        const RadiationVector& dJ);
 
   /** Add the emission derivative to this
    * 
@@ -732,23 +669,13 @@ class RadiationVector {
    * @param[in] dJ Derivative of the emission vector
    */
   void addWeightedDerivEmission(const TransmissionMatrix& PiT,
-                        const TransmissionMatrix& dT,
-                        const TransmissionMatrix& T,
-                        const RadiationVector& I,
-                        const RadiationVector& far,
-                        const RadiationVector& close,
-                        const RadiationVector& d,
-                        bool isfar) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += PiT.Mat4(i) * (dT.Mat4(i) * I.R4[i] + T.second_order_integration_dsource<4>(i, dT, far.R4[i], close.R4[i], d.R4[i], isfar));
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += PiT.Mat3(i) * (dT.Mat3(i) * I.R3[i] + T.second_order_integration_dsource<3>(i, dT, far.R3[i], close.R3[i], d.R3[i], isfar));
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += PiT.Mat2(i) * (dT.Mat2(i) * I.R2[i] + T.second_order_integration_dsource<2>(i, dT, far.R2[i], close.R2[i], d.R2[i], isfar));
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * I.R1[i] + T.second_order_integration_dsource<1>(i, dT, far.R1[i], close.R1[i], d.R1[i], isfar));
-  }
-
+                                const TransmissionMatrix& dT,
+                                const TransmissionMatrix& T,
+                                const RadiationVector& I,
+                                const RadiationVector& far,
+                                const RadiationVector& close,
+                                const RadiationVector& d,
+                                bool isfar);
 
   /** Add the transmission derivative to this
    * 
@@ -758,17 +685,7 @@ class RadiationVector {
    */
   void addDerivTransmission(const TransmissionMatrix& PiT,
                             const TransmissionMatrix& dT,
-                            const RadiationVector& I) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += PiT.Mat4(i) * dT.Mat4(i) * I.R4[i];
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += PiT.Mat3(i) * dT.Mat3(i) * I.R3[i];
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += PiT.Mat2(i) * dT.Mat2(i) * I.R2[i];
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
-  }
-
+                            const RadiationVector& I);
 
   /** Add multiply
    * 
@@ -779,17 +696,7 @@ class RadiationVector {
    * @param[in] A Derivative of transmission matrix
    * @param[in] x Intensity vector
    */
-  void addMultiplied(const TransmissionMatrix& A,
-                     const RadiationVector& x) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += A.Mat4(i) * x.R4[i];
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += A.Mat3(i) * x.R3[i];
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += A.Mat2(i) * x.R2[i];
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += A.Mat1(i) * x.R1[i];
-  }
+  void addMultiplied(const TransmissionMatrix& A, const RadiationVector& x);
 
   /** Sets *this to the reflection derivative
    * 
@@ -801,17 +708,7 @@ class RadiationVector {
   void setDerivReflection(const RadiationVector& I,
                           const TransmissionMatrix& PiT,
                           const TransmissionMatrix& Z,
-                          const TransmissionMatrix& dZ) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i] = PiT.Mat4(i) * (Z.Mat4(i) * R4[i] + dZ.Mat4(i) * I.R4[i]);
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i] = PiT.Mat3(i) * (Z.Mat3(i) * R3[i] + dZ.Mat3(i) * I.R3[i]);
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i] = PiT.Mat2(i) * (Z.Mat2(i) * R2[i] + dZ.Mat2(i) * I.R2[i]);
-    for (size_t i = 0; i < R1.size(); i++)
-      R4[i][0] = PiT.Mat1(i)[0] *
-                 (Z.Mat1(i)[0] * R1[i][0] + dZ.Mat1(i)[0] * I.R1[i][0]);
-  }
+                          const TransmissionMatrix& dZ);
 
   /** Set this to backscatter transmission
    * 
@@ -823,16 +720,7 @@ class RadiationVector {
   void setBackscatterTransmission(const RadiationVector& I0,
                                   const TransmissionMatrix& Tr,
                                   const TransmissionMatrix& Tf,
-                                  const TransmissionMatrix& Z) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() = Tr.Mat4(i) * Z.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() = Tr.Mat3(i) * Z.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() = Tr.Mat2(i) * Z.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() = Tr.Mat1(i) * Z.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
-  }
+                                  const TransmissionMatrix& Z);
 
   /** Set this to backscatter transmission scatter derivative
    * 
@@ -844,44 +732,14 @@ class RadiationVector {
   void setBackscatterTransmissionDerivative(const RadiationVector& I0,
                                             const TransmissionMatrix& Tr,
                                             const TransmissionMatrix& Tf,
-                                            const TransmissionMatrix& dZ) {
-    for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() += Tr.Mat4(i) * dZ.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
-    for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() += Tr.Mat3(i) * dZ.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
-    for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() += Tr.Mat2(i) * dZ.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
-    for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() += Tr.Mat1(i) * dZ.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
-  }
+                                            const TransmissionMatrix& dZ);
 
   /** Set *this from matrix
    * 
    * @param[in] M Matrix
    * @return RadiationVector& *this
    */
-  RadiationVector& operator=(const ConstMatrixView& M) {
-    ARTS_ASSERT(M.ncols() == stokes_dim and M.nrows() == Frequencies());
-    for (size_t i = 0; i < R4.size(); i++) {
-      R4[i][0] = M(i, 0);
-      R4[i][1] = M(i, 1);
-      R4[i][2] = M(i, 2);
-      R4[i][3] = M(i, 3);
-    }
-    for (size_t i = 0; i < R3.size(); i++) {
-      R3[i][0] = M(i, 0);
-      R3[i][1] = M(i, 1);
-      R3[i][2] = M(i, 2);
-    }
-    for (size_t i = 0; i < R2.size(); i++) {
-      R2[i][0] = M(i, 0);
-      R2[i][1] = M(i, 1);
-    }
-    for (size_t i = 0; i < R1.size(); i++) {
-      R1[i][0] = M(i, 0);
-    }
-    return *this;
-  }
+  RadiationVector& operator=(const ConstMatrixView& M);
 
   /** Access operator
    * 
@@ -889,34 +747,20 @@ class RadiationVector {
    * @param[in] j Position in inner vector
    * @return const Numeric& 
    */
-  const Numeric& operator()(const Index i, const Index j) const {
-    switch (stokes_dim) {
-      case 4:
-        return R4[i][j];
-      case 3:
-        return R3[i][j];
-      case 2:
-        return R2[i][j];
-      default:
-        return R1[i][j];
-    }
-  }
+  const Numeric& operator()(const Index i, const Index j) const;
 
+  /** Access operator
+   *
+   * @param[in] i Position in outer vector
+   * @param[in] j Position in inner vector
+   * @return Numeric&
+   */
+  [[nodiscard]] Numeric& operator()(const Index i, const Index j);
   /** Convert *this to Matrix class
    * 
    * @return Matrix
    */
-  operator Matrix() const {
-    Matrix M(Frequencies(), stokes_dim);
-    for (size_t i = 0; i < R4.size(); i++)
-      for (size_t j = 0; j < 4; j++) M(i, j) = R4[i](j);
-    for (size_t i = 0; i < R3.size(); i++)
-      for (size_t j = 0; j < 3; j++) M(i, j) = R3[i](j);
-    for (size_t i = 0; i < R2.size(); i++)
-      for (size_t j = 0; j < 2; j++) M(i, j) = R2[i](j);
-    for (size_t i = 0; i < R1.size(); i++) M(i, 0) = R1[i](0);
-    return M;
-  }
+  operator Matrix() const;
 
   /** Set this to source vector at position
    * 
@@ -928,63 +772,10 @@ class RadiationVector {
   void setSource(const StokesVector& a,
                  const ConstVectorView& B,
                  const StokesVector& S,
-                 Index i) {
-    ARTS_ASSERT(a.NumberOfAzimuthAngles() == 1);
-    ARTS_ASSERT(a.NumberOfZenithAngles() == 1);
-    ARTS_ASSERT(S.NumberOfAzimuthAngles() == 1);
-    ARTS_ASSERT(S.NumberOfZenithAngles() == 1);
-    switch (stokes_dim) {
-      case 4:
-        if (not S.IsEmpty())
-          R4[i].noalias() =
-              Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) *
-                  B[i] +
-              Eigen::Vector4d(S.Kjj()[i], S.K12()[i], S.K13()[i], S.K14()[i]);
-        else
-          R4[i].noalias() =
-              Eigen::Vector4d(a.Kjj()[i], a.K12()[i], a.K13()[i], a.K14()[i]) *
-              B[i];
-        break;
-      case 3:
-        if (not S.IsEmpty())
-          R3[i].noalias() =
-              Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i] +
-              Eigen::Vector3d(S.Kjj()[i], S.K12()[i], S.K13()[i]);
-        else
-          R3[i].noalias() =
-              Eigen::Vector3d(a.Kjj()[i], a.K12()[i], a.K13()[i]) * B[i];
-        break;
-      case 2:
-        if (not S.IsEmpty())
-          R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i] +
-                            Eigen::Vector2d(S.Kjj()[i], S.K12()[i]);
-        else
-          R2[i].noalias() = Eigen::Vector2d(a.Kjj()[i], a.K12()[i]) * B[i];
-        break;
-      default:
-        if (not S.IsEmpty())
-          R1[i][0] = a.Kjj()[i] * B[i] + S.Kjj()[i];
-        else
-          R1[i][0] = a.Kjj()[i] * B[i];
-    }
-  }
-
-  /** Get Stokes dimension */
-  [[nodiscard]] Index StokesDim() const { return stokes_dim; }
+                 Index i);
 
   /** Get frequency count */
-  [[nodiscard]] Index Frequencies() const {
-    switch (stokes_dim) {
-      case 4:
-        return Index(R4.size());
-      case 3:
-        return Index(R3.size());
-      case 2:
-        return Index(R2.size());
-      default:
-        return Index(R1.size());
-    }
-  }
+  [[nodiscard]] Index Frequencies() const;
 
   /** Output operator */
   friend std::ostream& operator<<(std::ostream& os, const RadiationVector& rv);
@@ -995,37 +786,12 @@ class RadiationVector {
 
 using ArrayOfTransmissionMatrix = Array<TransmissionMatrix>;
 using ArrayOfArrayOfTransmissionMatrix = Array<ArrayOfTransmissionMatrix>;
-using ArrayOfArrayOfArrayOfTransmissionMatrix = Array<ArrayOfArrayOfTransmissionMatrix>;
+using ArrayOfArrayOfArrayOfTransmissionMatrix =
+    Array<ArrayOfArrayOfTransmissionMatrix>;
 using ArrayOfRadiationVector = Array<RadiationVector>;
 using ArrayOfArrayOfRadiationVector = Array<ArrayOfRadiationVector>;
-using ArrayOfArrayOfArrayOfRadiationVector = Array<ArrayOfArrayOfRadiationVector>;
-
-  /** Output operator */
-std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
-
-  /** Output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfTransmissionMatrix& atm);
-
-  /** Output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfTransmissionMatrix& aatm);
-
-  /** Output operator */
-std::ostream& operator<<(std::ostream& os, const RadiationVector& rv);
-
-  /** Output operator */
-std::ostream& operator<<(std::ostream& os, const ArrayOfRadiationVector& arv);
-
-  /** Output operator */
-std::ostream& operator<<(std::ostream& os,
-                         const ArrayOfArrayOfRadiationVector& aarv);
-
-  /** Input operator */
-std::istream& operator>>(std::istream& is, TransmissionMatrix& tm);
-
-  /** Input operator */
-std::istream& operator>>(std::istream& is, RadiationVector& rv);
+using ArrayOfArrayOfArrayOfRadiationVector =
+    Array<ArrayOfArrayOfRadiationVector>;
 
 /** Intended to hold various backscatter solvers */
 enum class BackscatterSolver {
@@ -1087,6 +853,7 @@ void update_radiation_vector(RadiationVector& I,
  * 
  * @param[in,out] J Source vector
  * @param[in,out] dJ Source vector derivatives
+ * @param[in] J_add Additional source vector
  * @param[in] K Propagation matrix
  * @param[in] a Absorption vector
  * @param[in] S Scattering source vector
@@ -1100,6 +867,7 @@ void update_radiation_vector(RadiationVector& I,
  */
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
+                     RadiationVector& J_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
@@ -1164,7 +932,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
 void set_backscatter_radiation_vector(
     ArrayOfRadiationVector& I,
     ArrayOfArrayOfArrayOfRadiationVector& dI,
-    const RadiationVector & I_incoming,
+    const RadiationVector& I_incoming,
     const ArrayOfTransmissionMatrix& T,
     const ArrayOfTransmissionMatrix& PiTf,
     const ArrayOfTransmissionMatrix& PiTr,

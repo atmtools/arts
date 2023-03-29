@@ -35,11 +35,12 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
-#include "constants.h"
-#include "interpolation_lagrange.h"
+#include "arts_conversions.h"
+#include "interp.h"
 #include "jacobian.h"
 #include "m_xml.h"
 #include "math_funcs.h"
+#include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "rte.h"
@@ -64,7 +65,7 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(Workspace& ws,
+void jacobianClose(Workspace& ws_in,
                    Index& jacobian_do,
                    Agenda& jacobian_agenda,
                    const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -74,26 +75,28 @@ void jacobianClose(Workspace& ws,
     throw runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
-  jacobian_agenda.check(ws, verbosity);
+  jacobian_agenda.check(ws_in, verbosity);
   jacobian_do = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianInit(ArrayOfRetrievalQuantity& jacobian_quantities,
+void jacobianInit(Workspace& ws,
+                  ArrayOfRetrievalQuantity& jacobian_quantities,
                   Agenda& jacobian_agenda,
                   const Verbosity&) {
   jacobian_quantities.resize(0);
-  jacobian_agenda = Agenda();
+  jacobian_agenda = Agenda{ws};
   jacobian_agenda.set_name("jacobian_agenda");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianOff(Index& jacobian_do,
+void jacobianOff(Workspace& ws, 
+                 Index& jacobian_do,
                  Agenda& jacobian_agenda,
                  ArrayOfRetrievalQuantity& jacobian_quantities,
                  const Verbosity& verbosity) {
   jacobian_do = 0;
-  jacobianInit(jacobian_quantities, jacobian_agenda, verbosity);
+  jacobianInit(ws, jacobian_quantities, jacobian_agenda, verbosity);
 }
 
 //----------------------------------------------------------------------------
@@ -182,7 +185,7 @@ void jacobianAddAbsSpecies(Workspace&,
     ArrayOfSpeciesTag test(species);
     rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, test));
   }
-  rq.Target().Perturbation(0.001);
+  rq.Target().perturbation = 0.001;
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -235,7 +238,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyShift);
   rq.Mode("");
-  rq.Target().Perturbation(df);
+  rq.Target().perturbation = df;
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -256,7 +259,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
                            const Vector& yb,
                            const Index& stokes_dim,
                            const Vector& f_grid,
-                           const Matrix& mblock_dlos_grid,
+                           const Matrix& mblock_dlos,
                            const Sparse& sensor_response,
                            const ArrayOfRetrievalQuantity& jacobian_quantities,
                            const Verbosity&) {
@@ -298,7 +301,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   Vector dy(n1y);
   {
     const Index nf2 = f_grid.nelem();
-    const Index nlos2 = mblock_dlos_grid.nrows();
+    const Index nlos2 = mblock_dlos.nrows();
     const Index niyb = nf2 * nlos2 * stokes_dim;
 
     // Interpolation weights
@@ -306,9 +309,9 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     constexpr Index porder = 3;
     //
     Vector fg_new = f_grid, iyb2(niyb);
-    fg_new += rq.Target().Perturbation();
+    fg_new += rq.Target().perturbation;
     //
-    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
+    const auto lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<porder>>(fg_new, f_grid);
     const auto itw = interpweights(lag);
 
     // Do interpolation
@@ -325,7 +328,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
     }
   }
 
@@ -376,7 +379,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyStretch);
   rq.Mode("");
-  rq.Target().Perturbation(df);
+  rq.Target().perturbation=df;
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -398,7 +401,7 @@ void jacobianCalcFreqStretch(
     const Vector& yb,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Matrix& mblock_dlos_grid,
+    const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfIndex& sensor_response_pol_grid,
     const Vector& sensor_response_f_grid,
@@ -446,7 +449,7 @@ void jacobianCalcFreqStretch(
   Vector dy(n1y);
   {
     const Index nf2 = f_grid.nelem();
-    const Index nlos2 = mblock_dlos_grid.nrows();
+    const Index nlos2 = mblock_dlos.nrows();
     const Index niyb = nf2 * nlos2 * stokes_dim;
 
     // Interpolation weights
@@ -455,9 +458,9 @@ void jacobianCalcFreqStretch(
     //
     Vector fg_new = f_grid, iyb2(niyb);
     //
-    fg_new += rq.Target().Perturbation();
+    fg_new += rq.Target().perturbation;
     //
-    const auto lag = Interpolation::FixedLagrangeVector<porder>(fg_new, f_grid);
+    const auto lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<porder>>(fg_new, f_grid);
     const auto itw = interpweights(lag);
 
     // Do interpolation
@@ -474,7 +477,7 @@ void jacobianCalcFreqStretch(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
     }
 
     // dy above corresponds now to shift. Convert to stretch:
@@ -560,13 +563,13 @@ void jacobianAddPointingZa(Workspace& ws _U_,
     jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
   } else
     throw runtime_error(
-      "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
-  rq.Target().Perturbation(dza);
+      R"(Possible choices for *calcmode* are "recalc" and "interp".)");
+  rq.Target().perturbation = dza;
 
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
   // number of measurement blocks, all elements set to -1.
-  Vector grid(0, poly_order + 1, 1);
+  Vector grid=uniform_grid(0, poly_order + 1, 1);
   if (poly_order == -1) {
     grid.resize(sensor_pos.nrows());
     grid = -1.0;
@@ -587,21 +590,21 @@ void jacobianCalcPointingZaInterp(
     const Index& stokes_dim,
     const Vector& f_grid,
     const Matrix& DEBUG_ONLY(sensor_los),
-    const Matrix& mblock_dlos_grid,
+    const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfTime& sensor_time,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
-  if (mblock_dlos_grid.nrows() < 2)
+  if (mblock_dlos.nrows() < 2)
     throw runtime_error(
-        "The method demands that *mblock_dlos_grid* has "
+        "The method demands that *mblock_dlos* has "
         "more than one row.");
 
-  if (!(is_increasing(mblock_dlos_grid(joker, 0)) ||
-        is_decreasing(mblock_dlos_grid(joker, 0))))
+  if (!(is_increasing(mblock_dlos(joker, 0)) ||
+        is_decreasing(mblock_dlos(joker, 0))))
     throw runtime_error(
         "The method demands that the zenith angles in "
-        "*mblock_dlos_grid* are sorted (increasing or decreasing).");
+        "*mblock_dlos* are sorted (increasing or decreasing).");
 
   // Set some useful variables.
   RetrievalQuantity rq;
@@ -634,20 +637,20 @@ void jacobianCalcPointingZaInterp(
   {
     // Sizes
     const Index nf = f_grid.nelem();
-    const Index nza = mblock_dlos_grid.nrows();
+    const Index nza = mblock_dlos.nrows();
 
     // Shifted zenith angles
-    Vector za1 = mblock_dlos_grid(joker, 0);
-    za1 -= rq.Target().Perturbation();
-    Vector za2 = mblock_dlos_grid(joker, 0);
-    za2 += rq.Target().Perturbation();
+    Vector za1{mblock_dlos(joker, 0)};
+    za1 -= rq.Target().perturbation;
+    Vector za2{mblock_dlos(joker, 0)};
+    za2 += rq.Target().perturbation;
 
     // Find interpolation weights
     ArrayOfGridPos gp1(nza), gp2(nza);
     gridpos(
-        gp1, mblock_dlos_grid(joker, 0), za1, 1e6);  // Note huge extrapolation!
+        gp1, mblock_dlos(joker, 0), za1, 1e6);  // Note huge extrapolation!
     gridpos(
-        gp2, mblock_dlos_grid(joker, 0), za2, 1e6);  // Note huge extrapolation!
+        gp2, mblock_dlos(joker, 0), za2, 1e6);  // Note huge extrapolation!
     Matrix itw1(nza, 2), itw2(nza, 2);
     interpweights(itw1, gp1);
     interpweights(itw2, gp2);
@@ -673,7 +676,7 @@ void jacobianCalcPointingZaInterp(
     mult(y2, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (y2[i] - y1[i]) / (2 * rq.Target().Perturbation());
+      dy[i] = (y2[i] - y1[i]) / (2 * rq.Target().perturbation);
     }
   }
 
@@ -682,7 +685,7 @@ void jacobianCalcPointingZaInterp(
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row0 = rowind.get_start();
+  const Index row0 = rowind.offset;
 
   // Handle pointing "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
@@ -722,12 +725,11 @@ void jacobianCalcPointingZaRecalc(
     const Matrix& sensor_pos,
     const Matrix& sensor_los,
     const Matrix& transmitter_pos,
-    const Matrix& mblock_dlos_grid,
+    const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfTime& sensor_time,
     const String& iy_unit,
     const Agenda& iy_main_agenda,
-    const Agenda& geo_pos_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity& verbosity) {
   // Set some useful variables.
@@ -765,7 +767,7 @@ void jacobianCalcPointingZaRecalc(
     ArrayOfVector iyb_aux;
     ArrayOfMatrix diyb_dx;
 
-    los(joker, 0) += rq.Target().Perturbation();
+    los(joker, 0) += rq.Target().perturbation;
 
     iyb_calc(ws,
              iyb2,
@@ -781,10 +783,9 @@ void jacobianCalcPointingZaRecalc(
              sensor_pos,
              los,
              transmitter_pos,
-             mblock_dlos_grid,
+             mblock_dlos,
              iy_unit,
              iy_main_agenda,
-             geo_pos_agenda,
              0,
              ArrayOfRetrievalQuantity(),
              ArrayOfArrayOfIndex(),
@@ -796,7 +797,7 @@ void jacobianCalcPointingZaRecalc(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
     }
   }
 
@@ -805,7 +806,7 @@ void jacobianCalcPointingZaRecalc(
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row0 = rowind.get_start();
+  const Index row0 = rowind.offset;
 
   // Handle "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
@@ -873,21 +874,21 @@ void jacobianAddPolyfit(Workspace& ws _U_,
   if (no_pol_variation)
     grids[1] = Vector(1, 1);
   else
-    grids[1] = Vector(0, sensor_response_pol_grid.nelem(), 1);
+    grids[1] = uniform_grid(0, sensor_response_pol_grid.nelem(), 1);
   if (no_los_variation)
     grids[2] = Vector(1, 1);
   else
-    grids[2] = Vector(0, sensor_response_dlos_grid.nrows(), 1);
+    grids[2] = uniform_grid(0, sensor_response_dlos_grid.nrows(), 1);
   if (no_mblock_variation)
     grids[3] = Vector(1, 1);
   else
-    grids[3] = Vector(0, sensor_pos.nrows(), 1);
+    grids[3] = uniform_grid(0, sensor_pos.nrows(), 1);
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::Polyfit);
   rq.Mode("");
-  rq.Target().Perturbation(0);
+  rq.Target().perturbation = 0;
 
   // Each polynomial coeff. is treated as a retrieval quantity
   //
@@ -965,7 +966,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   const Index n2 = jg[2].nelem();
   const Index n3 = jg[3].nelem();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row4 = rowind.get_start();
+  const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[iq][0];
 
   if (n3 > 1) {
@@ -1102,21 +1103,21 @@ void jacobianAddSinefit(Workspace& ws _U_,
   if (no_pol_variation)
     grids[1] = Vector(1, 1);
   else
-    grids[1] = Vector(0, sensor_response_pol_grid.nelem(), 1);
+    grids[1] = uniform_grid(0, sensor_response_pol_grid.nelem(), 1);
   if (no_los_variation)
     grids[2] = Vector(1, 1);
   else
-    grids[2] = Vector(0, sensor_response_dlos_grid.nrows(), 1);
+    grids[2] = uniform_grid(0, sensor_response_dlos_grid.nrows(), 1);
   if (no_mblock_variation)
     grids[3] = Vector(1, 1);
   else
-    grids[3] = Vector(0, sensor_pos.nrows(), 1);
+    grids[3] = uniform_grid(0, sensor_pos.nrows(), 1);
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::Sinefit);
   rq.Mode("");
-  rq.Target().Perturbation(0);
+  rq.Target().perturbation = 0;
 
   // Each sinefit coeff. pair is treated as a retrieval quantity
   //
@@ -1201,7 +1202,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   const Index n2 = jg[2].nelem();
   const Index n3 = jg[3].nelem();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row4 = rowind.get_start();
+  const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[iq][0];
 
   if (n3 > 1) {
@@ -1353,7 +1354,7 @@ void jacobianAddTemperature(Workspace&,
   rq.Subtag(subtag);
   rq.Grids(grids);
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
-  rq.Target().Perturbation(0.1);
+  rq.Target().perturbation = 0.1;
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1431,7 +1432,7 @@ void jacobianAddWind(Workspace&,
 
   rq.Subtag(component);  // nb.  This should be possible to remove...
   rq.Grids(grids);
-  rq.Target().Perturbation(dfrequency);
+  rq.Target().perturbation = dfrequency;
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1509,7 +1510,7 @@ void jacobianAddMagField(Workspace&,
   }
 
   rq.Grids(grids);
-  rq.Target().Perturbation(dB);
+  rq.Target().perturbation = dB;
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1551,7 +1552,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   } else {
     rq.Target(Jacobian::Target(jpt, line_identity, SpeciesTag(species).Spec()));
   }
-  out3 << species << ' ' << rq.Target().LineSpecies() << "\n";
+  out3 << species << ' ' << rq.Target().species_id << "\n";
 
   // Test this is not a copy
   for (auto& q : jq)
@@ -1714,7 +1715,7 @@ void jacobianAddNLTE(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity, energy_level_identity.Species()));
-  rq.Target().Perturbation(dx);
+  rq.Target().perturbation = dx;
   rq.Grids(grids);
   
   // Add it to the *jacobian_quantities*
@@ -1897,7 +1898,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
         "Dimension of offset vector incompatible with retrieval grids.");
   }
 
-  jqs.back().SetTransformationMatrix(transpose(transformation_matrix));
+  jqs.back().SetTransformationMatrix(Matrix{transpose(transformation_matrix)});
   jqs.back().SetOffsetVector(offset_vector);
 }
 
@@ -2124,8 +2125,8 @@ void jacobianFromTwoY(Matrix& jacobian,
   if( y_pert.nelem() != n ){
     throw runtime_error("Inconsistency in length of *y_pert* and *y*.");
   }
-  jacobian = y_pert;
-  jacobian -= y;
+  jacobian = ExhaustiveConstMatrixView{y_pert};
+  jacobian -= ExhaustiveConstMatrixView{y};
   jacobian /= pert_size;
 }
 

@@ -11,17 +11,11 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption, with Zeeman
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly_ZeemanPreCalc  )
 
 # sensor-only path
 Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
@@ -30,8 +24,7 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 #
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
-# Standard transmission agenda
-#
+# Standard transmission agenda 
 Copy( iy_main_agenda, iy_main_agenda__Transmission )
 
 
@@ -55,6 +48,7 @@ ReadARTSCAT(filename="line_118ghz.xml", localquantumnumbers="J")
 abs_lines_per_speciesCreateFromLines
 Wigner6Init(wigner_initialized, 40000, 100)
 
+propmat_clearsky_agendaAuto
 
 # Atmosphere
 #
@@ -83,14 +77,8 @@ Copy( mag_w_field, mag_u_field )
 Extract( z_surface, z_field, 0 )
 
 
-# Transmitter
-#
-AgendaSet( iy_transmitter_agenda ){
-  Ignore( rtp_pos )
-  Ignore( rtp_los )
-  Ignore( f_grid )
-  MatrixSet( iy, [1.0,0.25,0.05,0.1] )
-}
+# Define Transmitter
+MatrixSet( iy_transmitter, [1.0,0.25,0.05,0.1] )
 
 
 # Sensor pos and los
@@ -114,8 +102,6 @@ sensorOff
 
 # Checks
 #
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

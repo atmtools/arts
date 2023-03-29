@@ -88,9 +88,10 @@
 Arts2 {
 
 # do NOT modify
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
+
+LegacyContinuaInit
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 INCLUDE "general/planet_mars.arts"
 
 

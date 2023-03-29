@@ -37,6 +37,7 @@
 #include <stdexcept>
 #include "agenda_class.h"
 #include "array.h"
+#include "arts_conversions.h"
 #include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
@@ -50,8 +51,8 @@
 #include "rte.h"
 #include "special_interp.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 /*===========================================================================
   === Precision variables
@@ -2375,7 +2376,7 @@ void ppath_step_geom_1d(Ppath& ppath,
   }
 
   // The path is determined by another function. Determine some variables
-  // needed bý that function and call the function.
+  // needed by that function and call the function.
   //
   // Vars to hold found path points, path step length and coding for end face
   Vector r_v, lat_v, za_v;
@@ -4518,7 +4519,7 @@ void ppath_start_stepping(Ppath& ppath,
       ppath.r[0] = refellipsoid[0] + rte_pos[0];
       ppath.los(0, joker) = ppath.end_los;
       //
-      gridpos(ppath.gp_p, z_field(joker, 0, 0), ppath.pos(0, 0));
+      gridpos(ppath.gp_p, z_field(joker, 0, 0), ExhaustiveConstVectorView{ppath.pos(0, 0)});
       gridpos_check_fd(ppath.gp_p[0]);
 
       // Is the sensor on the surface looking down?
@@ -4996,8 +4997,10 @@ void ppath_start_stepping(Ppath& ppath,
         }
       }
 
-      ARTS_USER_ERROR_IF (r_p <= r_toa_max,
-          "The sensor is horizontally outside (or at the limit) of "
+      ARTS_USER_ERROR_IF (r_p < r_toa_max - RTOL,
+          "r_p=",setprecision(18),r_p,"\n"
+          "r_toa_max=",r_toa_max,"\n"
+          "The sensor is horizontally outside of "
           "the model\natmosphere, but is at a radius smaller than "
           "the maximum value of\nthe top-of-the-atmosphere radii. "
           "This is not allowed. Make the\nmodel atmosphere larger "
@@ -5108,6 +5111,7 @@ void ppath_start_stepping(Ppath& ppath,
         if (above) {
           ppath.pos(0, 0) = rte_pos[0];
           ppath.pos(0, 1) = rte_pos[1];
+          ppath.pos(0, 2) = rte_pos[2];
 //           ppath.pos(0, 1) = lon2use;
           ppath.r[0] = r_e + rte_pos[0];
           ppath.los(0, 0) = rte_los[0];

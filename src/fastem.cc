@@ -33,16 +33,18 @@
 
 #include <cmath>
 #include <stdexcept>
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "matpack_complex.h"
 #include "exceptions.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 
 using std::ostringstream;
 using std::runtime_error;
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 #ifdef ENABLE_FASTEM
 extern "C" {
@@ -125,8 +127,8 @@ void fastem(  // Output:
                  temperature,
                  salinity * 1e3,
                  wind_speed,
-                 emissivity.get_c_array(),
-                 reflectivity.get_c_array(),
+                 emissivity.data_handle(),
+                 reflectivity.data_handle(),
                  transmittance,
                  rel_azimuth);
 }

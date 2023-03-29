@@ -7,39 +7,33 @@ Arts2 {
         ####  Include files ####
 	#==========================================================================
 	
-	INCLUDE "general/general.arts"
-	INCLUDE "general/continua.arts"
-	INCLUDE "general/agendas.arts"
-	INCLUDE "general/planet_earth.arts"
+	
+	water_p_eq_agendaSet
+    gas_scattering_agendaSet
+	PlanetSet(option="Earth")
 	
 
 		
 	#==========================================================================
 			####  Set Agendas ####
-	#==========================================================================
-	
-	# Agenda for scalar gas absorption calculation
-    Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)                    
+	#==========================================================================                  
                     
     # cosmic background radiation
-    Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+    iy_space_agendaSet
             
     # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-    Copy( iy_surface_agenda,iy_surface_agenda__UseSurfaceRtprop)
+    iy_surface_agendaSet
                 
     #Surface Agenda, see in python script
                 
     # sensor-only path
-    Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-        
+    ppath_agendaSet( option="FollowSensorLosPath" )
+    
     # no refraction
-    Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-        
-    # Set propmat_clearsky_agenda to use lookup table
-    Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable)	
+    ppath_step_agendaSet( option="GeometricPath" )	
     
     # (standard) emission calculation
-    Copy( iy_main_agenda, iy_main_agenda__Emission )
+    iy_main_agendaSet(option="Emission")
     
     # saturation pressure agenda of water vapor
     AgendaSet( water_p_eq_agenda ){
@@ -51,8 +45,7 @@ Arts2 {
     }
 	
     # surface agenda
-    Copy( surface_rtprop_agenda,
-            surface_rtprop_agenda__Blackbody_SurfTFromt_surface)
+    surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_surface" )
 	
 	
 	#==========================================================================
@@ -99,7 +92,7 @@ Arts2 {
 	#==========================================================================
 
 		
-	abs_speciesSet(species=["H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
+	abs_speciesSet(species=["H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
 							"O3",
 							"O2, O2-CIAfunCKDMT100",
                            "CO2, CO2-CKDMT252",
@@ -127,6 +120,9 @@ Arts2 {
     #read absorption lookup table
 	ReadXML(abs_lookup,"TestHeatingRates.abs_lookup.xml")
 	abs_lookupAdapt
+
+    abs_lines_per_speciesSetEmpty
+    propmat_clearsky_agendaAuto(use_abs_lookup=1)
 	
 	#==========================================================================
 			#### RT calculations ####
@@ -154,7 +150,6 @@ Arts2 {
     atmgeom_checkedCalc
     atmfields_checkedCalc
     cloudbox_checkedCalc
-    propmat_clearsky_agenda_checkedCalc
 	
 	#calculate intesity field
 	Tensor3Create(trans_field)
@@ -184,6 +179,9 @@ Arts2 {
     heating_ratesFromIrradiance
     Tensor3Create( heating_rates1 )
     Copy(heating_rates1,heating_rates)
+
+    #Uncomment, if you want to calculate new reference
+    #WriteXML("ascii", heating_rates, "TestHeatingRates.heating_ratesREFERENCE2.xml" )
     
     
     # For testing calculate first spectral irradiance and than do spectral 
@@ -193,8 +191,8 @@ Arts2 {
                             spectral_radiation_field=spectral_irradiance_field
     )
     
-    heating_ratesFromIrradiance   
-    
+    heating_ratesFromIrradiance
+
     Compare( heating_rates, heating_rates1, 1e-14)
     
     

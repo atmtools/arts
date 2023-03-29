@@ -32,9 +32,7 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "exceptions.h"
-#include "matpackI.h"
-#include "matpackIII.h"
-#include "matpackVI.h"
+#include "matpack_data.h"
 
 /* Implementations for supported types follow. */
 
@@ -70,12 +68,12 @@ inline void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
     const String& /* out_name */,
     // WS Generic Input:
-    ArrayOfSpeciesTag& in,
+    const ArrayOfSpeciesTag& in,
     const String& direction _U_,
     const String& /* in_name */,
     const String& /* direction_name */,
     const Verbosity&) {
-  ArrayOfSpeciesTag* in_pnt;
+  const ArrayOfSpeciesTag* in_pnt;
   ArrayOfSpeciesTag in_copy;
 
   if (&in == &out) {
@@ -133,13 +131,13 @@ inline void Append(Workspace& ws,
             const String& /* direction_name */,
             const Verbosity& verbosity) {
   // Append in to end of out:
-  out.push_back(in);
-  out[out.nelem() - 1].set_name(out_name);
-  out[out.nelem() - 1].check(ws, verbosity);
+  auto& newag = out.emplace_back(in);
+  newag.set_name(out_name);
+  newag.check(ws, verbosity);
 }
 
 /* Implementation for array types to append single element */
-inline void Append(Workspace& ws,
+inline void Append(Workspace& ws_in,
             // WS Generic Output:
             ArrayOfAgenda& out,
             const String& out_name,
@@ -150,10 +148,10 @@ inline void Append(Workspace& ws,
             const String& /* direction_name */,
             const Verbosity& verbosity) {
   // Append in to end of out:
-  for (ArrayOfAgenda::const_iterator it = in.begin(); it != in.end(); it++) {
-    out.push_back(*it);
-    out[out.nelem() - 1].set_name(out_name);
-    out[out.nelem() - 1].check(ws, verbosity);
+  for (const auto & it : in) {
+    auto& newag = out.emplace_back(it);
+    newag.set_name(out_name);
+    newag.check(ws_in, verbosity);
   }
 }
 
@@ -243,7 +241,7 @@ inline void Append(  // WS Generic Output:
           in_ref;
   } else
     throw runtime_error(
-        "Dimension must be either \"leading\" or \"trailing\".");
+        R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Matrix/Vector */
@@ -261,7 +259,7 @@ inline void Append(  // WS Generic Output:
 
   if (direction == "leading") {
     if (!out.nrows() || !out.ncols()) {
-      out = in;
+      out = ExhaustiveMatrixView{in};
     } else {
       if (out.ncols() != in.nelem())
         throw runtime_error(
@@ -270,11 +268,11 @@ inline void Append(  // WS Generic Output:
 
       out.resize(dummy.nrows() + 1, dummy.ncols());
       out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-      out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(in);
+      out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(ExhaustiveMatrixView{in});
     }
   } else if (direction == "trailing") {
     if (!out.nrows() || !out.ncols()) {
-      out = transpose(in);
+      out = transpose(ExhaustiveMatrixView{in});
     } else if (in.nelem()) {
       if (out.nrows() != in.nelem() && out.nrows() && out.ncols())
         throw runtime_error(
@@ -283,11 +281,11 @@ inline void Append(  // WS Generic Output:
 
       out.resize(dummy.nrows(), dummy.ncols() + 1);
       out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-      out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) = in;
+      out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) = ExhaustiveMatrixView{in};
     }
   } else
     throw runtime_error(
-        "Dimension must be either \"leading\" or \"trailing\".");
+        R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Vector/Numeric */

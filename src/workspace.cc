@@ -29,14 +29,23 @@
   \author Stefan Buehler
   \date   2000-06-10
 */
-#include "workspace_ng.h"
+#include "workspace.h"
+#include "tokval_io.h"
 
 // Some #defines to make the records better readable:
 #define NAME(x) x
 #define DESCRIPTION(x) x
 #define GROUP(x) x
 
-void Workspace::define_wsv_data() {
+namespace global_data {
+Array<WsvRecord> wsv_data;
+
+std::map<String, Index> WsvMap;
+}  // namespace global_data
+
+using global_data::wsv_data;
+
+void define_wsv_data() {
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
   wsv_data.resize(0);
@@ -163,173 +172,6 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfCIARecord")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("abs_cont_models"),
-      DESCRIPTION(
-          "Continuum / full model absorption model description parameter.\n"
-          "\n"
-          "See the WSV `abs_cont_names' for a detailed description\n"
-          "of the allowed continuum models. There should be one string here\n"
-          "for each entry in `abs_cont_names'.See also the online\n"
-          "documentation in arts/doc/doxygen/html/continua_cc.html.\n"),
-      GROUP("ArrayOfString")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_cont_names"),
-      DESCRIPTION(
-          "Continuum / full model absorption tag names.\n"
-          "\n"
-          "This variable should contain a list of tag names\n"
-          "of continuum and full models, respectively.\n"
-          "Associated with this WSV is the WSV\n"
-          "`abs_cont_models' which contains the specific model version of\n"
-          "each continuum / full model absorption tag and the WSV\n"
-          "`abs_cont_parameters' which should contain the continuum / full model\n"
-          "user defined parameters. The user defined parameters are only used when\n"
-          "the specified model is 'user'. See also the online documentation in\n"
-          "arts/doc/doxygen/html/continua_cc.html.\n"
-          "\n"
-          "The following full water vapor models are implemented:\n"
-          "'H2O-MPM87': absorption model (line and continuum) according to \n"
-          "   H. J. Liebe,\n"
-          "   A contribution to modeling atmospheric millimeter-wave properties,\n"
-          "   Frequenz,  41, 1987, 31-36\n"
-          "   and\n"
-          "   H. J. Liebe and D. H. Layton,\n"
-          "   Millimeter-wave properties of the atmosphere:\n"
-          "   Laboratory studies and propagation modeling,\n"
-          "   U.S. Dept. of Commerce, National Telecommunications and Information\n"
-          "   Administration, Institute for Communication Sciences,\n"
-          "   325 Broadway, Boulder, CO 80303-3328, report 87224.\n"
-          "'H2O-MPM89': absorption model (line and continuum) according to \n"
-          "   H. J. Liebe,\n Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631\n"
-          "'H2O-MPM93': absorption model (line and continuum) according to \n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21 \n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "'H2O-CP98': absorption model (line and continuum) according to \n"
-          "   S. L. Cruz-Pol et al.,\n Radio Science, 33(5), 1319, 1998"
-          "   (ece.uprm.edu/~pol/Atmosphere.html)\n"
-          "'H2O-PWR98': absorption model (line and continuum) according to \n"
-          "   P. W. Rosenkranz,\n "
-          "   Radio Science, 33(4),  919, 1998, Radio Science, 34(4), 1025, 1999\n"
-          "   (ftp: mesa.mit.edu/phil/lbl_rt).\n"
-          "\n"
-          "The following full oxygen models are implemented:\n"
-          "'O2-MPM93': absorption model (line and continuum) according to\n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "'O2-PWR93': absorption model (line and continuum) according to \n"
-          "   P. W. Rosenkranz,\n Chapter 2, in M. A. Janssen, \n"
-          "   Atmospheric Remote Sensing by Microwave Radiometry\n"
-          "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-          "\n"
-          "The following continuum parameterizations are implemented:\n"
-          "H2O-H2O ('H2O-SelfContStandardType'):\n"
-          "   P. W. Rosenkranz, \n"
-          "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
-          "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
-          "H2O-air ('H2O-ForeignContStandardType'): \n"
-          "   P. W. Rosenkranz, \n"
-          "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
-          "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
-          "H2O-air ('H2O-ContMPM93'): \n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "O2-air ('O2-SelfContStandardType'):\n"
-          "   P. W. Rosenkranz,\n"
-          "   Chapter 2, in M. A. Janssen,\n"
-          "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-          "   John Wiley & Sons, Inc., 1993\n"
-          "   (mesa.mit.edu/phil/lbl_rt)\n"
-          "   and also described in \n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "N2-N2 ('N2-SelfContStandardType'):\n"
-          "   The functional form of Rosenkranz but with more input parameters.\n"
-          "   P. W. Rosenkranz,\n"
-          "   Chapter 2, in M. A. Janssen,\n"
-          "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-          "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-          "N2-N2 ('N2-SelfContMPM93'):\n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 \n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "CO2-CO2 ('CO2-SelfContPWR93'):\n"
-          "   P. W. Rosenkranz,\n"
-          "   Chapter 2, in M. A. Janssen,\n"
-          "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-          "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-          "CO2-N2 ('CO2-ForeignContPWR93'):\n"
-          "   P. W. Rosenkranz,\n"
-          "   Chapter 2, in M. A. Janssen,\n"
-          "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-          "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-          "\n"
-          "The following cloud absorption models are implemented:\n"
-          "Suspended water droplet ('liquidcloud-MPM93') \n"
-          "   absorption parameterization from the MPM93 model:\n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "Ice water droplet absorption ('icecloud-MPM93') \n"
-          "   parameterization from MPM93 model:\n"
-          "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-          "   Propagation modeling of moist air and suspended water/ice\n"
-          "   particles at frequencies below 1000 GHz,\n"
-          "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-          "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-          "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-          "\n"
-          "The following rain extinction model is implemented:\n"
-          "Rain extinction parameterization ('rain-MPM93') from the\n"
-          "   MPM93 model, described in:\n"
-          "   H. J. Liebe,\n"
-          "   MPM - An Atmospheric Millimeter-Wave Propagation Model,\n"
-          "   Int. J. Infrared and Millimeter Waves, vol. 10(6),\n"
-          "   pp. 631-650, 1989;\n"
-          "   and based on:\n"
-          "   Olsen, R.L., D.V. Rogers, and D. B. Hodge,\n"
-          "   The aR^b relation in the calculation of rain attenuation,\n"
-          "   IEEE Trans. Antennas Propagat., vol. AP-26, pp. 318-329, 1978.\n"
-          "   IMPORTANT NOTE: rain-MPM93 parameterizes the EXTINCTION by rain,\n"
-          "    not just the absorption. Therefore it is not suitable for \n"
-          "    calculating thermal emission by rain!\n"
-          "    Please use rain-MPM93 only for calculation of attenuation.\n"),
-      GROUP("ArrayOfString")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_cont_parameters"),
-      DESCRIPTION(
-          "Continuum model parameters. See the WSV *abs_cont_names*\n"
-          "\n"
-          "for a detailed description of the allowed continuum models. There\n"
-          "should be one parameter vector here for each entry in\n"
-          "*abs_cont_names*. See also the online documentation in\n"
-          "arts/doc/doxygen/html/continua_cc.html.\n"),
-      GROUP("ArrayOfVector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("abs_f_interp_order"),
       DESCRIPTION(
           "Frequency interpolation order for absorption lookup table.\n"
@@ -342,9 +184,8 @@ void Workspace::define_wsv_data() {
           "\n"
           "As a special case, order 0 in this particular case means no\n"
           "interpolation. In that case f_grid must match exactly the grid inside\n"
-          "the lookup table. This is the global default value, set in\n"
-          "general.arts.\n"),
-      GROUP("Index")));
+          "the lookup table. This is the global default value.\n"),
+      GROUP("Index"), Index{0}));
   
 
   wsv_data.push_back(WsvRecord(
@@ -424,12 +265,11 @@ void Workspace::define_wsv_data() {
           "\n"
           "This is used by methods extracting absorption coefficients\n"
           "from the lookup table, and by methods setting up\n"
-          "parameters for lookup table generation. Has a\n"
-          "default value, which is set in general.arts.\n"
+          "parameters for lookup table generation.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{5}));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_p_interp_order"),
@@ -439,12 +279,11 @@ void Workspace::define_wsv_data() {
           "\n"
           "This is used by methods extracting absorption coefficients\n"
           "from the lookup table, and by methods\n"
-          "setting up parameters for lookup table generation. Has a\n"
-          "default value, which is set in general.arts.\n"
+          "setting up parameters for lookup table generation.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{5}));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_t_pert"),
@@ -466,12 +305,11 @@ void Workspace::define_wsv_data() {
           "\n"
           "This is used by methods\n"
           "extracting absorption coefficients from the lookup table, and by\n"
-          "methods setting up parameters for lookup table generation. Has a\n"
-          "default value, which is set in general.arts.\n"
+          "methods setting up parameters for lookup table generation.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{7}));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_lookup_is_adapted"),
@@ -509,18 +347,6 @@ void Workspace::define_wsv_data() {
           "coefficients.  See online documentation of method *abs_speciesSet* for\n"
           "more detailed information how tag groups work and some examples.\n"),
       GROUP("ArrayOfArrayOfSpeciesTag")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_species_active"),
-      DESCRIPTION(
-          "Indices of active absorption species.\n"
-          "\n"
-          "This variable selects, which absorption species are active in\n"
-          "*abs_xsec_agenda*.\n"
-          "\n"
-          "Dimension: A vector with one element for every active species, at max\n"
-          "           same number of elements as abs_species.\n"),
-      GROUP("ArrayOfIndex")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_t"),
@@ -599,34 +425,6 @@ void Workspace::define_wsv_data() {
                   "\n"
                   "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("abs_xsec_agenda_checked"),
-                DESCRIPTION("OK-flag for *abs_xsec_agenda*.\n"
-                            "\n"
-                            "Set by *abs_xsec_agenda_checkedCalc*.\n"),
-                GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_agenda"),
-      DESCRIPTION(
-          "Agenda to calculate scalar gas absorption cross sections.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_per_species"),
-      DESCRIPTION(
-          "Absorption cross sections for the attenuation.\n"
-          "\n"
-          "This variable contains absorption cross section xsec individually for\n"
-          "each tag group. The Array contains one matrix for each tag group, the\n"
-          "matrix format is the same as that of abs_coef.\n"
-          "\n"
-          "Dimensions: [abs_species](f_grid, abs_p)\n"
-          "\n"
-          "Unit:       m^2 (alpha = xsec * n * VMR),\n"
-          "            where n is total density.\n"),
-      GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("agenda_array_index"),
@@ -712,6 +510,9 @@ void Workspace::define_wsv_data() {
           "\n"
           "Usage: Set by the user.\n"
           "\n"
+          "Unit: The unit of the actual response is 1/sr. Properly normalised\n"
+          "      a 4pi integration shall shall give 1.\n"
+          "\n"
           "Dimensions: \n"
           "   GriddedField4:\n"
           "      ArrayOfString field_names[N_pol]\n"
@@ -759,7 +560,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Shall be set by *atmfields_checkedCalc*. See that WSMs for treated\n"
           "WSVs. Only the value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("atmgeom_checked"),
@@ -774,7 +575,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Shall be set by *atmgeom_checkedCalc*. Only the value 1 is taken\n"
           "as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("atm_fields_compact"),
@@ -957,7 +758,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Relevant checks are performed by *cloudbox_checkedCalc. Only the\n"
           "value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("cloudbox_field"),
@@ -1214,44 +1015,71 @@ void Workspace::define_wsv_data() {
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("dabs_coef_dx"),
+      NAME("depolarization_factor"),
       DESCRIPTION(
-          "The partial derivatives of the matrix of total scalar absorption\n"
-          "coefficients.\n"
+          "Depolarization factor for the scattered gas.\n"
           "\n"
-          "Contains the derivative of the gas absorption summed over all\n"
-          "species as a function of *f_grid* and *abs_p*, i.e., for a single\n"
-          "atmospheric profile for some parameter.\n"
+          "The variable accounts for the anisotropy of the scatterer.\n"
+          "It is the ratio of intensities parallel and perpendicular \n"
+          "to the plan of scattering. A table of measured values is \n"
+          "given by Penndorf (1957). Some values are: H2=0.02, N2=0.03\n"
+          "O2=0.06, CO2=0.09 and atmospheric air=0.03."),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("disort_aux"),
+      DESCRIPTION(
+          "Auxilary data to the output of the DisortCalc-Methods.\n"
           "\n"
-          "This variable is not used explicitly in a standard calculation, where\n"
-          "absorption comes from the lookup table *abs_lookup*. However, it is\n"
-          "useful for testing the methods that actually calculate line-by-line\n"
-          "absorption, which have this variable as output. These methods are\n"
-          "called internally by the method *abs_lookupCalc*, which generates\n"
-          "the lookup table.\n"
+          "Different data beside the direct result of Disort\n"
+          "calculations can be obtained by this variable. These auxilary\n"
+          "data are selected by *disort_aux_vars*.\n"
           "\n"
-          "Dimensions: [n_quantities][f_grid, abs_p]\n"
+          "Usage:      Provided by some radiative transfer methods.\n"
           "\n"
-          "Unit: 1/m/quantity\n"),
+          "Dimensions: [quantity][ f_grid, number of disort levels/layers ]\n"),
       GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("dabs_xsec_per_species_dx"),
+      NAME("disort_aux_vars"),
       DESCRIPTION(
-          "Derivative of *abs_xsec_per_species* with respect to retrieval\n"
-          "quantities.\n"
+          "Selection of quantities for *disort_aux* .\n"
           "\n"
-          "The variable gives the derivative of *abs_xsec_per_species* with\n"
-          "respect to some variables (but not all jacobian variables). Handled\n"
-          "are only variables that are involved in xsec and cannot be\n"
-          "calculated at transmission level\n"
+          "Each element of this string array determines the quantity for the\n"
+          "corresponding element in *disort_aux* (i.e. the quantities\n"
+          "are stored in the order given in *disort_aux_vars*).\n"
           "\n"
-          "Usage:      Output of *abs_xsec_agenda*.\n"
-          "\n"
-          "Dimensions: \n"
-          "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"),
-      GROUP("ArrayOfArrayOfMatrix")));
+          "The possible choices vary between the Disort methods. See the WSM you select\n"),
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
+
+  wsv_data.push_back(WsvRecord(
+      NAME("dlos"),
+      DESCRIPTION(
+          "A set of relative angles.\n"
+          "\n"
+          "This variable is a matrix having two columns. The two columns hold\n"
+          "relative zenith angle and relative azimuth angle, respectively.\n"
+          "\n"
+          "These relative angles have zenith angle 90 deg as reference. This\n"
+          "means that dza and daa represent the same angle distance at dza=0.\n"
+          "\n"
+          "Let us say that you add relative angles to a line-of-sight of za = 90\n"
+          "and aa=0. Then adding the following (dza,daa) gives los of (za,aa):\n"
+          "   (1,0) -> (91,0)\n"
+          "   (0,1) -> (90,1)\n"
+          "   (-90,45) -> (0,undefined)\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("dlos_weight_vector"),
+      DESCRIPTION(
+          "A weight associated with each direction *dlos*.\n"
+          "\n"
+          "A standard application should be to store the solid angle each\n"
+          "row in *dlos* covers.\n"),
+      GROUP("Vector")));
+  
   wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
       DESCRIPTION(
@@ -1374,7 +1202,7 @@ void Workspace::define_wsv_data() {
           "Tensor4 is of no relevance and must be set to be empty.\n"
           "\n"
           "Dimensions: [n_quantities][ n_scattering_elements, n_p, n_lat, n_lon ]\n"),
-      GROUP("ArrayOfTensor4")));
+      GROUP("ArrayOfTensor4"), ArrayOfTensor4{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("dpropmat_clearsky_dx"),
@@ -1693,6 +1521,113 @@ void Workspace::define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_do"),
+      DESCRIPTION(
+          "Flag to activate gas scattering.\n"
+          "\n"
+          "If this variable is set to 0, no gas scattering will be considered,\n"
+          "even if the gas_scattering_agenda is set.\n"
+          "\n"),
+      GROUP("Index"), Index{0}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_output_type"),
+      DESCRIPTION(
+          "Flag to select the output of the *gas_scattering_agenda*.\n"
+          "\n"
+          "Internal communications variable, not intended to be used by user."
+          "If equals 0 *gas_scattering_mat* is output and *gas_scattering_fct_legendre* is empty.\n"
+          "If equals 1 *gas_scattering_fct_legendre* is output and *gas_scattering_mat* is empty.\n"
+          "\n"),
+      GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_agenda"),
+      DESCRIPTION(
+          "Agenda calculating gas scattering extinction and phase matrix.\n"
+          "\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_los_in"),
+      DESCRIPTION(
+          "Incoming line-of-sight for gas scattering.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_los_out"),
+      DESCRIPTION(
+          "Outgoing line-of-sight for gas scattering.\n"
+          "\n"
+          "This variable holds a local line-of-sight. The angles of this\n"
+          "vector are defined as for *rte_los*.\n"
+          "\n"
+          "The WSV is used as input in *gas_scattering_agenda*\n"
+          "\n"
+          "Usage: Communication variable.\n"
+          "\n"
+          "Units: [ degree, degree ]\n"
+          "\n"
+          "Size:  [ 2 ]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_coef"),
+      DESCRIPTION(
+          "Spectrum of scattering coefficient matrices.\n"
+          "\n"
+          "This variable contains the elements of the extinction matrix solely\n"
+          "due to scattering.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ m^-1. ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("PropagationMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_mat"),
+      DESCRIPTION(
+          "Spectrum of normalized phase matrices.\n"
+          "\n"
+          "This variable contains the elements of the normalized phase matrix\n"
+          "for a specific incoming and outgoing direction.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
+      GROUP("TransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("gas_scattering_fct_legendre"),
+      DESCRIPTION(
+          "Normalized phase function as Legendre series.\n"
+          "\n"
+          "This variable contains the normalized phase function\n"
+          "as Legendre series.\n"
+          "\n"
+          "Usage: Output of *gas_scattering_agenda*.\n"
+          "\n"
+          "Units: [ 1 ]\n"
+          "\n"
+          "Size:  [Number of Legendre polynomials]\n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("geo_pos"),
       DESCRIPTION(
           "Geo-position of a measurement.\n"
@@ -1727,12 +1662,6 @@ void Workspace::define_wsv_data() {
                 GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("geo_pos_agenda"),
-      DESCRIPTION(
-          "Agenda deriving the geo-position of a pencil beam calculation.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("heating_rates"),
       DESCRIPTION(
           "The heating rates of atmospheric layers.\n"
@@ -1748,10 +1677,50 @@ void Workspace::define_wsv_data() {
           "        lon_grid ]\n"),
       GROUP("Tensor3")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("hitran_xsec_data"),
-                DESCRIPTION("Data for Hitran cross section species.\n"),
-                GROUP("ArrayOfXsecRecord")));
+  wsv_data.push_back(WsvRecord(
+      NAME("xsec_fit_data"),
+      DESCRIPTION(
+          "Fitting model coefficients for cross section species.\n"
+          "\n"
+          "Dimensions: [ n_species ]\n"
+          "\n"
+          "XsecRecord:\n"
+          "  species: Name of species\n"
+          "  version: Fit model version\n"
+          "  fitcoeffs:\n"
+          "    Fit model coefficients as an *ArrayOfGriddedField2*\n"
+          "    Dimensions: [ n_bands ]\n"
+          "      GriddedField2: [ n_band_frequencies, n_coeffs ]\n"
+          "        The fit model:\n"
+          "          z = p00 + p10*x + p01*y + p20*x^2\n"
+          "\n"
+          "          z = Xsec [m^2]\n"
+          "          x = T / T0\n"
+          "          y = P / P0\n"
+          "\n"
+          "          T0 = 1 [K]\n"
+          "          P0 = 1 [Pa]\n"
+          "\n"
+          "          fitcoeffs(:, 0)           p00  [m^2]\n"
+          "          fitcoeffs(:, 1)           p10  [m^2]\n"
+          "          fitcoeffs(:, 2)           p01  [m^2]\n"
+          "          fitcoeffs(:, 3)           p20  [m^2]\n"
+          "  fitminpressures:\n"
+          "    Minimum pressure available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "  fitmaxpressures:\n"
+          "    Maximum pressure available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "  fitmintemperatures:\n"
+          "    Minimum temperature available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "  fitmintemperatures:\n"
+          "    Maximum temperature available in source xsec data to generate the fit coefficients.\n"
+          "    Dimensions: [ n_bands ]\n"
+          "\n"
+          "fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures\n"
+          "are not used to apply the model and solely serve for informational purposes.\n"),
+      GROUP("ArrayOfXsecRecord")));
 
   wsv_data.push_back(WsvRecord(
       NAME("instrument_pol"),
@@ -1835,11 +1804,12 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(
       WsvRecord(NAME("isotopologue_ratios"),
-                DESCRIPTION("Contains the isotopologue ratios.\n"
-                            "\n"
-                            "This variable can be set to default values by\n"
-                            "calling *isotopologue_ratiosInitFromBuiltin*\n"),
-                GROUP("SpeciesIsotopologueRatios")));
+                DESCRIPTION(R"--(Contains the isotopologue ratios.
+
+This variable is set to the default provided by *isotopologue_ratiosInitFromBuiltin*
+)--"),
+                GROUP("SpeciesIsotopologueRatios"),
+                Species::isotopologue_ratiosInitFromBuiltin()));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy"),
@@ -1875,7 +1845,7 @@ void Workspace::define_wsv_data() {
           "Unit:       W / (m^2 Hz sr) or transmittance.\n"
           "\n"
           "Dimensions: [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
-          "            mblock_dlos_grid, and nf is length of f_grid.\n"),
+          "            mblock_dlos, and nf is length of f_grid.\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -1918,7 +1888,7 @@ void Workspace::define_wsv_data() {
           "for *iy_main_agenda* for the complete set of choices. Please not that\n"
           "if the calculations are done through *yCalc*, you can not select\n"
           "along-the-path variables.\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_cloudbox_agenda"),
@@ -1944,7 +1914,7 @@ void Workspace::define_wsv_data() {
           "   xxxyyycba\n"
           "where xxx identifies the row in sensorPos/los (i.e. the mblock_index),\n"
           "yyy identifies pencil beam direction inside measurement block (should\n"
-          "in general match a row in mblock_dlos_grid), and cba identies later legs\n"
+          "in general match a row in mblock_dlos), and cba identies later legs\n"
           "of total propagation paths, where a, b and c identifies secondary, tertiary\n"
           "and quaternary part, respectively. 1-based numbering is used. That is,\n"
           "the primary path of the first pencil beam of the first measurement block\n"
@@ -1961,7 +1931,7 @@ void Workspace::define_wsv_data() {
           "Setting of *iy_id* is not yet supported together with scattering\n"
           "calculations. The value of iy_id then differs, it is either set to 0\n"
           "or keeps its value set by *yCalc*.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(
       WsvRecord(NAME("iy_loop_freqs_agenda"),
@@ -1993,13 +1963,6 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("iy_surface_agenda_array"),
-      DESCRIPTION(
-          // FIXMEDOC
-          "Upwelling radiation from the surface, divided into surface types.\n"),
-      GROUP("ArrayOfAgenda")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("iy_transmittance"),
       DESCRIPTION(
           "Transmittance to be included in *iy*.\n"
@@ -2019,10 +1982,18 @@ void Workspace::define_wsv_data() {
           "Dimensions: [ f_grid, stokes_dim, stokes_dim ]\n"),
       GROUP("Tensor3")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("iy_transmitter_agenda"),
-                DESCRIPTION("Agenda providing a transmitter signal.\n"),
-                GROUP("Agenda")));
+  wsv_data.push_back(WsvRecord(
+      NAME("iy_transmitter"),
+      DESCRIPTION(
+          "Monochromatic pencil beam radiance spectrum of transmitter signal.\n"
+          "\n"
+          "This variable holds a single spectrum, with values corresponding\n"
+          "to infinite frequency and spatial resolution (compare to *y*).\n"
+          "\n"
+          "Unit:       Depend on the transmitted signal\n"
+          "\n"
+          "Dimensions: [ f_grid, stokes_dim ]\n"),
+      GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit"),
@@ -2034,7 +2005,7 @@ void Workspace::define_wsv_data() {
           "methods, including not considering the variable at all.\n"
           "Accordingly, for details see the radiative method you have selected\n"
           "(e.g., *iyEmissionStandard*, *iyMC* and the like).\n"),
-      GROUP("String")));
+      GROUP("String"), String{"1"}));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_unit_radar"),
@@ -2155,7 +2126,7 @@ void Workspace::define_wsv_data() {
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  degrees\n"),
-      GROUP("Vector")));
+      GROUP("Vector"), Vector{}));
 
   wsv_data.push_back(WsvRecord(
     NAME("lbl_checked"),
@@ -2164,7 +2135,7 @@ void Workspace::define_wsv_data() {
                   "Usage: Set manually on own risk, or use *lbl_checkedCalc*.\n"
                   "\n"
                   "Unit:  Boolean\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
   
   wsv_data.push_back(
       WsvRecord(NAME("line_irradiance"),
@@ -2260,7 +2231,7 @@ void Workspace::define_wsv_data() {
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  degrees\n"),
-      GROUP("Vector")));
+      GROUP("Vector"), Vector{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_u_field"),
@@ -2276,7 +2247,7 @@ void Workspace::define_wsv_data() {
           "Unit:       T\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_u_field_raw"),
@@ -2308,7 +2279,7 @@ void Workspace::define_wsv_data() {
           "Unit:       T\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_v_field_raw"),
@@ -2339,7 +2310,7 @@ void Workspace::define_wsv_data() {
           "Unit:       T\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("mag_w_field_raw"),
@@ -2362,25 +2333,18 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("mblock_dlos_grid"),
+      NAME("mblock_dlos"),
       DESCRIPTION(
           "The set of angular pencil beam directions for each measurement block.\n"
           "\n"
           "The relative angles in this variable are angular off-sets with\n"
-          "respect to the angles in *sensor_los*.\n"
+          "respect to the angles in *sensor_los*. Defined as *dlos* but is\n"
+          "allowed to only have a single column, as described below.\n"
           "\n"
           "The first column holds the relative zenith angle. This column is\n"
           "mandatory for all atmospheric dimensionalities. For 3D, there can\n"
           "also be a second column, giving relative azimuth angles. If this\n"
           "column is not present (for 3D) zero azimuth off-sets are assumed.\n"
-          "\n"
-          "This rule applies to all WSVs of dlos-type, while for WSVs holding\n"
-          "absolute angles (los-type, such as *sensor_los*), the second column\n"
-          "is mandatory for 3D.\n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
           "\n"
           "Usage: Set by the user or output of antenna WSMs.\n"
           "\n"
@@ -2457,7 +2421,7 @@ void Workspace::define_wsv_data() {
                   "calculations.\n"
                   "\n"
                   "Usage: Set by the user.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{100}));
 
   wsv_data.push_back(
       WsvRecord(NAME("mc_points"),
@@ -2537,7 +2501,7 @@ void Workspace::define_wsv_data() {
           "Carlo calculations.\n"
           "\n"
           "Usage: Set by the user.\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{0.1}));
 
   wsv_data.push_back(WsvRecord(
       NAME("met_amsu_data"),
@@ -2670,7 +2634,7 @@ void Workspace::define_wsv_data() {
       NAME("nlte_level_identifiers"),
       DESCRIPTION("An array of non-lte quantum identifiers for levels matching\n"
                   "*nlte_field_raw* and on request *nlte_vibrational_energies*.\n"),
-      GROUP("ArrayOfQuantumIdentifier")));
+      GROUP("ArrayOfQuantumIdentifier"), ArrayOfQuantumIdentifier{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("nlte_vibrational_energies"),
@@ -2738,7 +2702,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(
       WsvRecord(NAME("nlte_do"),
                 DESCRIPTION("Flag to perform Non-LTE calculations.\n"),
-                GROUP("Index")));
+                GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("nlte_source"),
@@ -2785,7 +2749,7 @@ void Workspace::define_wsv_data() {
           "To change the value of this variable use the workspace methods\n"
           "*output_file_formatSetAscii*, *output_file_formatSetZippedAscii*, and\n"
           "*output_file_formatSetBinary*\n"),
-      GROUP("String")));
+      GROUP("String"), String{"ascii"}));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_field"),
@@ -2800,7 +2764,7 @@ void Workspace::define_wsv_data() {
           "border of the cloudbox.\n"
           "\n"
           "Dimensions: [ particle_bulkprop_names, p_grid, lat_grid, lon_grid ]\n"),
-      GROUP("Tensor4")));
+      GROUP("Tensor4"), Tensor4{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_names"),
@@ -2812,7 +2776,7 @@ void Workspace::define_wsv_data() {
           "first one will be selected.\n"
           "\n"
           "Dimensions: length should match book-dimension of *particle_bulkprop_field*\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("particle_masses"),
@@ -2838,7 +2802,7 @@ void Workspace::define_wsv_data() {
           "Unit:       kg\n"
           "\n"
           "Dimensions: [number of scattering elements, number of mass categories]\n"),
-      GROUP("Matrix")));
+      GROUP("Matrix"), Matrix{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("pha_mat"),
@@ -2932,7 +2896,7 @@ void Workspace::define_wsv_data() {
           "The sidereal rotation period of the planet.\n"
           "\n"
           "This is time that it takes for the planet to complete one revolution\n"
-          "around its axis of rotation relative to the stars. For Earth, this\n"
+          "around its axis of rotation relative to the suns. For Earth, this\n"
           "is a value roughly 4 min less than 24 h.\n"
           "\n"
           "A negative value signifies a retrograde rotation, i.e. opposite to\n"
@@ -3131,7 +3095,7 @@ void Workspace::define_wsv_data() {
           "cloudbox. Hence, this variable is for internal usage primarily.\n"
           "\n"
           "Usage: For communication between modules of arts.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_lmax"),
@@ -3141,7 +3105,7 @@ void Workspace::define_wsv_data() {
           "See *ppath_stepGeometric* for a description of this variable.\n"
           "\n"
           "Usage: Ppath methods such as *ppath_stepGeometric*.\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{10e3}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_lraytrace"),
@@ -3152,7 +3116,7 @@ void Workspace::define_wsv_data() {
           "See *ppath_stepRefractionBasic* for a description of this variable.\n"
           "\n"
           "Usage: Refraction ppath methods such as *ppath_stepRefractionBasic*.\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{1e3}));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppath_step"),
@@ -3334,6 +3298,16 @@ void Workspace::define_wsv_data() {
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("predefined_model_data"),
+      DESCRIPTION(
+          R"--(This contains predefined model data that cannot
+be distributed directly for whatever reason
+
+Can currently only contain data for new MT CKD models of water.
+)--"),
+      GROUP("PredefinedModelData"), PredefinedModelData{}));
+
+  wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
       DESCRIPTION(
           "This contains the absorption coefficients for one point in the\n"
@@ -3350,7 +3324,7 @@ void Workspace::define_wsv_data() {
                 DESCRIPTION("OK-flag for *propmat_clearsky_agenda*.\n"
                             "\n"
                             "Set by *propmat_clearsky_agenda_checkedCalc*.\n"),
-                GROUP("Index")));
+                GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky_agenda"),
@@ -3539,33 +3513,13 @@ void Workspace::define_wsv_data() {
           "Size:   [ 2 ]\n"),
       GROUP("Vector")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("relmat_per_band"),
-                DESCRIPTION("Relaxation matrix per band per pressure level.\n"
-                            "\n"
-                            "Dimensions: [pressures][band][n_linex, nlines]\n"
-                            "Units: Hz/Pa in HWHM\n"),
-                GROUP("ArrayOfArrayOfMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("relmat_type_per_band"),
-      DESCRIPTION("Used to set the type of line mixing relaxation matrix\n"
-                  "that will be calculated.\n"
-                  "\n"
-                  "Supported types by index:\n"
-                  "   0: Hartmann-Tran type relaxation matrix.\n"
-                  "   1: Linear type relaxation matrix.\n"
-                  "\n"
-                  "Dimensions: [number of bands]\n"),
-      GROUP("ArrayOfIndex")));
-
   wsv_data.push_back(WsvRecord(
       NAME("retrieval_checked"),
       DESCRIPTION(
           "Flag indicating completeness and consistency of retrieval setup.\n"
           "\n"
           "Unit: Boolean\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("retrieval_eo"),
@@ -3604,7 +3558,7 @@ void Workspace::define_wsv_data() {
           "system used that is fixed to the planets centre point.\n"
           "\n"
           "Unit: [ m/s ]\n"),
-      GROUP("Numeric")));
+      GROUP("Numeric"), Numeric{0.0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("rte_los"),
@@ -3765,7 +3719,7 @@ void Workspace::define_wsv_data() {
           "Switch between integration approaches for radiative transfer steps.\n"
           "\n"
           "See each WSM using this varaible as input for available options.\n"),
-      GROUP("String")));
+      GROUP("String"), String{"default"}));
 
   wsv_data.push_back(WsvRecord(
       NAME("rtp_nlte"),
@@ -3823,7 +3777,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Relevant checks are performed by *scat_data_checkedCalc. Only the\n"
           "value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_data_raw"),
@@ -4051,7 +4005,8 @@ void Workspace::define_wsv_data() {
           "  currently possible PSDs see *pnd_fieldCalcFromParticleBulkProps*.\n"
           "\n"
           "Example: [''IWC-MH97'', ''LWC-H98_STCO'', ...]\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"),
+      ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("scat_species_a"),
@@ -4094,6 +4049,15 @@ void Workspace::define_wsv_data() {
           "Dimension:  [number of scattering elements]\n"),
       GROUP("Vector")));
 
+  wsv_data.push_back(
+      WsvRecord(NAME("select_abs_species"),
+                DESCRIPTION(R"--(A select species tag group from *abs_species*
+
+If set to empty, this selection is void.  It must otherwise match perfectly a tag inside
+*abs_species* for that to be the selection.
+)--"),
+                GROUP("ArrayOfSpeciesTag"), ArrayOfSpeciesTag{}));
+
   wsv_data.push_back(WsvRecord(
       NAME("sensor_checked"),
       DESCRIPTION(
@@ -4105,7 +4069,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Shall be set by *sensor_checkedCalc*. See that WSM for treated WSVs.\n"
           "Only the value 1 is taken as OK.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("sensor_description_amsu"),
@@ -4360,7 +4324,7 @@ void Workspace::define_wsv_data() {
           "The relative zenith and azimuth angles associated with the output of\n"
           "*sensor_response*.\n"
           "\n"
-          "Definition of angles match *mblock_dlos_grid*. Works otherwise as\n"
+          "Definition of angles match *mblock_dlos*. Works otherwise as\n"
           "*sensor_response_f*.\n"
           "\n"
           "The variable shall not be set manually, it will be set together with\n"
@@ -4377,9 +4341,9 @@ void Workspace::define_wsv_data() {
           "The zenith and azimuth angles associated with *sensor_response*.\n"
           "\n"
           "A variable for communication between sensor response WSMs. Matches\n"
-          "initially *mblock_dlos_grid*, but is later adjusted according to the\n"
+          "initially *mblock_dlos*, but is later adjusted according to the\n"
           "sensor specifications. Only defined when a common grid exists. Values\n"
-          "are here not repeated as in *sensor_response_dlos*\n"
+          "are here not repeated as in *sensor_response_dlos*.\n"
           "\n"
           "Usage: Set by sensor response methods.\n"
           "\n"
@@ -4617,6 +4581,22 @@ void Workspace::define_wsv_data() {
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("suns_do"),
+      DESCRIPTION("Flag to activate the sun(s).\n"),
+      GROUP("Index"), Index{0}));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("suns"),
+      DESCRIPTION("Array of Sun.\n"
+                  "\n"
+                  "This variable describes a list of suns.\n"
+                  "Each sun is described by a struct with its spectrum, radius,\n"
+                  "distance from center of planet to center of sun,\n"
+                  "temperature (if possible), latitude in the sky of the planet,\n"
+                  "longitude in the sky of the planet and the type\n"),
+      GROUP("ArrayOfSun"), ArrayOfSun{}));
+
+  wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),
       DESCRIPTION(
           "Rotation of the Stokes H and V directions.\n"
@@ -4631,7 +4611,7 @@ void Workspace::define_wsv_data() {
           "In more detail, if no antenna is included or a 1D antenna is used, and\n"
           "the rotation is applied before the antenna is included in \n"
           "*sensor_response*, there should be one angle for each row of\n"
-          "*mblock_dlos_grid*. After inclusion of an antenna response, the relevant\n"
+          "*mblock_dlos*. After inclusion of an antenna response, the relevant\n"
           "number of angles is determined by the rows of *antenna_dlos*.\n"
           "\n"
           "It is assumed that the rotation is common for all frequency elements.\n"
@@ -4703,7 +4683,7 @@ void Workspace::define_wsv_data() {
           "*surface_props_names*.\n"
           "\n"
           "Size:  [ number of props., lat_grid, lon_grid ]\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_props_names"),
@@ -4716,7 +4696,7 @@ void Workspace::define_wsv_data() {
           "the documentation of each method for recognised choices.\n"
           "\n"
           "Size:  [ number of props. ]\n"),
-      GROUP("ArrayOfString")));
+      GROUP("ArrayOfString"), ArrayOfString{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_rmatrix"),
@@ -4747,13 +4727,8 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("surface_rtprop_agenda_array"),
       DESCRIPTION(
-          "Description of surface radiative properties, divided into surface types.\n"),
+          "Description of surface radiative properties, for each surface type.\n"),
       GROUP("ArrayOfAgenda")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_rtprop_sub_agenda"),
-                DESCRIPTION("Sub-agenda to *surface_rtprop_agenda*.\n"),
-                GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_skin_t"),
@@ -4826,40 +4801,15 @@ void Workspace::define_wsv_data() {
           "Dimensions: [ f_grid or 1]\n"),
       GROUP("Vector")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_type"),
-                DESCRIPTION("Local, single surface type value.\n"
-                            "\n"
-                            "See *surface_type_mask* for details.\n"),
-                GROUP("Index")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_type_aux"),
-                DESCRIPTION("Auxiliary variable to *surface_type*.\n"
-                            "\n"
-                            "See *surface_type_mask* for details.\n"),
-                GROUP("Numeric")));
-
   wsv_data.push_back(WsvRecord(
       NAME("surface_type_mask"),
       DESCRIPTION(
           "Classification of the surface using a type coding.\n"
           "\n"
-          "This variable gives a description of the surface using a type class\n"
-          "coding. A common term for such a variable is \"surface mask\".\n"
-          "\n"
-          "The mask is a latitude and longtide field. The mask values are\n"
-          "floating numbers, where the integer part is the type and the remainder\n"
-          "can be used to provide auxilary information. In terms of the local\n"
-          "variables, the mask values equal *surface_type* + *surface_type_aux*.\n"
-          "\n"
           "There is no fixed type coding, it is up to the user to set up\n"
-          "a consistent system. The critical point is in the agendas\n"
-          "matching each surface type, that are denoted as iy_surface_sub_agendaX\n"
-          "where X is the *surface_type* index.\n"
-          "\n"
-          "The surface type can be any integer (>=0) for which a corresponding\n"
-          "agenda exists.\n"
+          "a system consistent with *surface_rtprop_agenda_array*. A value\n"
+          "of 0 in *surface_type_mask* means that element 0 in the agenda\n"
+          "array is valid for that position etc.\n"
           "\n"
           "Dimensions: \n"
           "   GriddedField2:\n"
@@ -4869,28 +4819,20 @@ void Workspace::define_wsv_data() {
       GROUP("GriddedField2")));
 
   wsv_data.push_back(
-      WsvRecord(NAME("surface_types"),
+      WsvRecord(NAME("surface_type_mix"),
           DESCRIPTION(
-            "This and associated WSVs describe a mixture of surface types.\n"
+            "Gives the fraction of different surface types.\n"
             "\n"
-            "Holds a number of *surface_type*.\n"),
-          GROUP("ArrayOfIndex")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_types_aux"),
-          DESCRIPTION(
-            "Auxiliary variable to *surface_types*.\n"
+            "For cases when the surface RT properties are taken from\n"
+            "*surface_rtprop_agenda_array*, this variable specifies to\n"
+            "what extent each surface type has contributed to the surface\n"
+            "RT variables, such as *surface_emission* and *surface_skin_t*.\n" 
             "\n"
-            "Holds a number of *surface_type_aux*..\n"),
-           GROUP("Vector")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("surface_types_weights"),
-          DESCRIPTION("Auxiliary variable to *surface_type*.\n"
-                      "\n"
-                      "Holds the relative weight of each surface type.\n"),
+            "The length of this vector follows *surface_rtprop_agenda_array*\n"
+            "and the sum of the elements is 1. The first element in the\n" 
+            "vector matches the first agenda element, and so on."),
           GROUP("Vector")));
-  
+
   wsv_data.push_back(WsvRecord(
       NAME("telsem_atlases"),
       DESCRIPTION(
@@ -4975,7 +4917,7 @@ void Workspace::define_wsv_data() {
           "Usage: Set by the user.\n"
           "\n"
           "Unit:  [ m, degrees, degrees ]\n"),
-      GROUP("Matrix")));
+      GROUP("Matrix"), Matrix{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("t_field"),
@@ -5020,7 +4962,7 @@ void Workspace::define_wsv_data() {
           "Units:       [ K or \% ]]\n"
           "\n"
           "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"),
-      GROUP("EnergyLevelMap")));
+      GROUP("EnergyLevelMap"), EnergyLevelMap{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("t_field_raw"),
@@ -5200,7 +5142,7 @@ void Workspace::define_wsv_data() {
           "Unit:       m/s\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]  or [ 0 0 0 ].\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("wind_u_field_raw"),
@@ -5233,7 +5175,7 @@ void Workspace::define_wsv_data() {
           "Unit:       m/s\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("wind_v_field_raw"),
@@ -5264,7 +5206,7 @@ void Workspace::define_wsv_data() {
           "Unit:       m/s\n"
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ] or [ 0 0 0 ]\n"),
-      GROUP("Tensor3")));
+      GROUP("Tensor3"), Tensor3{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("wind_w_field_raw"),
@@ -5446,15 +5388,32 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("y_geo"),
       DESCRIPTION(
-          "The geo-positioning associated with *y*.\n"
+          "The geo-position assigned to each element of  *y*.\n"
           "\n"
           "The columns of this matrix matches the elements of *geo_pos*.\n"
           "\n"
-          "If no geo-position is obtained (i.e. *geo_pos_agenda* sets *geo_pos*\n"
-          "to be empty), all elements of *y_geo* is set to NaN.\n"
-          "\n"
           "Unit:  [ m, deg, deg, deg, deg ]\n"),
       GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_geo_series"),
+      DESCRIPTION(
+          "The geo-positioning assigned to each row of *y_series*.\n"
+          "\n"
+          "All channels are assumed to have the same geo-position.\n"
+          "\n"
+          "Otherwise as *y_geo*.\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_geo_swath"),
+      DESCRIPTION(
+          "The geo-positioning assigned to each pixel of *y_swath*.\n"
+          "\n"
+          "All channels are assumed to have the same geo-position.\n"
+          "\n"
+          "Otherwise as *y_geo*.\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("y_los"),
@@ -5503,6 +5462,29 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit:  [ m, deg, deg ]\n"),
       GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_series"),
+      DESCRIPTION(
+          "Two-dimensional version of the measurement vector.\n"
+          "\n"
+          "This WSV can be used for storing *y* reshaped when all measurement\n"
+          "blocks have the same set of channels.\n"
+          "\n"
+          "Dimesion:  [ position, channel ]\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("y_swath"),
+      DESCRIPTION(
+          "Three-dimensional version of the measurement vector.\n"
+          "\n"
+          "This WSV can be used for storing *y* reshaped when all measurement\n"
+          "blocks have the same set of channels, and that the data constitutes\n"
+          "a part of a swath.\n"
+          "\n"
+          "Dimesion:  [ scan, pixel, channel ]\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("yb"),
@@ -5597,12 +5579,12 @@ void Workspace::define_wsv_data() {
       NAME("ybatch_start"),
       DESCRIPTION("Start index for *ybatchCalc*.\n"
                   "\n"
-                  "This is set to a default of zero in *general.arts*.\n"
+                  "This is set to a default of zero.\n"
                   "\n"
                   "See further *ybatchCalc*.\n"
                   "\n"
                   "Usage: Input to *ybatchCalc*.\n"),
-      GROUP("Index")));
+      GROUP("Index"), Index{0}));
 
   wsv_data.push_back(WsvRecord(
       NAME("yf"),
@@ -5720,6 +5702,20 @@ void Workspace::define_wsv_data() {
       GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("z_sensor"),
+      DESCRIPTION(
+          "The altitude of the sensor.\n"
+          "\n"
+          "Please note that the sensor altitude actaully applied is in general\n"
+          "specified by *sensor_pos*. This WSV is only a help, to set other\n"
+          "workspace variables and to call methods in a consistent manner\n"
+          "\n"
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  m\n"),
+      GROUP("Numeric")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("z_surface"),
       DESCRIPTION(
           "The surface altitude.\n"
@@ -5746,34 +5742,14 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"),
       GROUP("Matrix")));
+
+  std::sort(wsv_data.begin(), wsv_data.end(), [](auto& a, auto& b) {
+    return a.Name() < b.Name();
+  });
 }
 
-//! Get index of WSV
-/** 
- Returns the index the Workspace of the given WSV.
- 
- \param[in]  name   WSV name
- \returns           Index in Workspace
- 
- \author Oliver Lemke
- */
-Index get_wsv_id(const String& name) {
-  auto it = Workspace::WsvMap.find(name);
-  if (it == Workspace::WsvMap.end())
-    return -1;
-  return it->second;
+void define_wsv_map() {
+  for (Index i = 0; i < global_data::wsv_data.nelem(); ++i) {
+    global_data::WsvMap[global_data::wsv_data[i].Name()] = i;
+  }
 }
-
-//! Get index of WSV
-/** 
- Returns the index the Workspace of the given WSV.
- 
- Convenience function which can be called from within the debugger because it
- takes a plain char pointer instead of a String object as input.
- 
- \param[in]  name   WSV name
- \returns           Index in Workspace
- 
- \author Oliver Lemke
- */
-Index get_wsv_id(const char* name) { return get_wsv_id(String(name)); }

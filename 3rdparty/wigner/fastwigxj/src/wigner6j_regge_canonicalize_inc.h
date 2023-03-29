@@ -93,6 +93,11 @@ WIGNER6J_REGGE_CANONICALISE_NAME(
    * Thus dividing by two already here to have simpler indexing.
    */
 
+  /* For overflow checking, we can defer this until the index is
+   * to be calculated, since all intermediate results are kept
+   * as full 32-bit integers.
+   */
+
 #if !WIGNER6J_REGGE_CANONICALISE_IN_STRUCT
   uint32_t two_j1 =  (uint32_t) two_jv[0];
   uint32_t two_j2 =  (uint32_t) two_jv[1];
@@ -295,7 +300,7 @@ WIGNER6J_REGGE_CANONICALISE_NAME(
   uint32_t __B[4] __attribute__ ((aligned (32)));  *(v4si *) &__B[0] = B32;
   uint32_t __S[4] __attribute__ ((aligned (32)));  *(v4si *) &__S[0] = S32;
 
-  uint64_t __indexm720[4] __attribute__ ((aligned (32)));
+  uint64_t __index[4] __attribute__ ((aligned (32)));
 
   for (i = 0; i < 4; i++)
 #else
@@ -306,63 +311,89 @@ WIGNER6J_REGGE_CANONICALISE_NAME(
   uint32_t __B[1] = { B32 };
   uint32_t __S[1] = { S32 };
   
-  uint64_t __indexm720[1];
+  uint64_t __index[1];
 
   for (i = 0; i < 1; i++)
 #endif
     {
-      uint32_t S = __S[i];
-      uint32_t B = __B[i];
-      uint32_t T = __T[i];
-      uint32_t X = __X[i];
-      uint32_t L = __L[i];
-      uint32_t E = __E[i];
+      uint64_t S = __S[i];
+      uint64_t B = __B[i];
+      uint64_t T = __T[i];
+      uint64_t X = __X[i];
+      uint64_t L = __L[i];
+      uint64_t E = __E[i];
 
       /*  
   printf("ELXTBS: %" PRIu32 "  %" PRIu32 "  %" PRIu32 ""
 	 "  %" PRIu32 "  %" PRIu32 "  %" PRIu32 "  \n",
 	 E, L, X, T, B, S);
       */
-  uint64_t Eind = E * (120 + E * (274 + (uint64_t) (E * (225 + E * (85 + E * (15 + E))))));
-  uint64_t Lind = L * (24 + (uint64_t) (L * (50 + L * (35 + L * (10 + L)))));
+
+      // Here were overflows at E > 252
+      // E, L, ..., S as uint32_t, and only cast to uint64_t
+      // after four factors.
+
+  uint64_t Eind =
+    E * (120 + E * (274 + (E * (225 + E * (85 + E * (15 + E))))));
+  uint64_t Lind = L * (24 + (L * (50 + L * (35 + L * (10 + L)))));
   uint64_t Xind = X * (6 + X * (11 + X * (6 + X)));
   uint64_t Tind = T * (2 + T * (3 + T));
   uint64_t Bind = B * (1 + B);
   uint64_t Sind = S;
-  __indexm720[i] = (/* */  Eind +
-		     6   * Lind +
-		     30  * Xind +
-		     120 * Tind +
-		     360 * Bind +
-		     720 * Sind);
+  __index[i] = (/* */  Eind +
+		6   * Lind +
+		30  * Xind +
+		120 * Tind +
+		360 * Bind +
+		720 * Sind) / 720 + 1;
   /*
   printf("ELXTBS: %" PRIu64 "  %" PRIu64 "  %" PRIu64 ""
 	 "  %" PRIu32 "  %" PRIu32 "  %" PRIu32 "  \n",
 	 Eind, Lind, Xind, Tind, Bind, Sind);
   */
+
+  /* Max index as function of E:
+   *
+   * max_index =
+   *   1/720 *
+   *   (E * (1764 + E * (1624 + E * (735 + E * (175 + E * (21 + E))))) + 1)
+   *
+   * For the index*720 to stay < 2^64: E <= 1621. (intermediate < 2^64)
+   * For the index     to stay < 2^64: E <= 4862.
+   * For the index     to stay < 2^63: E <= 4331.
+   */
+
+  if (E > 1621)
+    {
+      /* We might have suffered an overflow during index calculation.
+       * Return special non-hash index.
+       */
+      __index[i] = (uint64_t) -4;
+    }
+
     }
   
 #if WIGNER6J_REGGE_CANONICALISE_ARRAY4
   union wigner6j_type_pun_v4di_uint64_t index;
   /*W6U64 index;*/
   /*
-  int __indexm720[4] __attribute__ ((aligned (32)));
-  *(v4si *) &__indexm720[0] = indexm720;
+  int __index[4] __attribute__ ((aligned (32)));
+  *(v4si *) &__index[0] = index;
   */
   /*uint64_t __index[4] __attribute__ ((aligned (32)));*/
 
   for (i = 0; i < 4; i++)
     {
       //printf ("%lld\n",__index[i]);
-      /*__index*/index._u64[i] = __indexm720[i] / 720 + 1;
+      /*__index*/index._u64[i] = __index[i];
       //printf ("%lld\n",__index[i]);
     }
 
   /*index = *(v4di *) &__index[0];*/
   
 #else
-  uint64_t index = __indexm720[0] / 720 + 1;
-  //printf("idx: %" PRIu64 "  %" PRIu64 "\n",__indexm720[0],index);
+  uint64_t index = __index[0];
+  //printf("idx: %" PRIu64 "  %" PRIu64 "\n",__index[0],index);
 #endif
 
   /*

@@ -19,20 +19,24 @@
 #include <iostream>
 
 #include "array.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
-#include "constants.h"
+#include "gridded_fields.h"
 #include "interpolation.h"
-#include "interpolation_lagrange.h"
+#include "interp.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_concepts.h"
+#include "matpack_data.h"
+#include "matpack_math.h"
+#include "nonstd.h"
 #include "xml_io.h"
 
 void test01() {
   cout << "Simple interpolation cases\n"
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
+  Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng=uniform_grid(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "og:\n" << og << "\n";
   cout << "ng:\n" << ng << "\n";
@@ -180,8 +184,8 @@ void test03(Index n) {
        << "---------------------------------------------\n";
 
   Vector a(n);
-  Iterator1D ai = a.begin();
-  const Iterator1D ae = a.end();
+  auto ai = a.begin();
+  const auto ae = a.end();
   Index i = 0;
   for (; ai != ae; ++ai, ++i) *ai = (Numeric)i;
 }
@@ -195,7 +199,7 @@ void test04() {
   // The original Tensor is called a, the new one n.
 
   // 10 pages, 20 rows, 30 columns, all grids are: 1,2,3
-  Vector a_pgrid(1, 3, 1), a_rgrid(1, 3, 1), a_cgrid(1, 3, 1);
+  Vector a_pgrid=uniform_grid(1, 3, 1), a_rgrid=uniform_grid(1, 3, 1), a_cgrid=uniform_grid(1, 3, 1);
   Tensor3 a(a_pgrid.nelem(), a_rgrid.nelem(), a_cgrid.nelem());
 
   a = 0;
@@ -206,7 +210,7 @@ void test04() {
 
   // New row and column grids:
   // 1, 1.5, 2, 2.5, 3
-  Vector n_rgrid(1, 5, .5), n_cgrid(1, 5, .5);
+  Vector n_rgrid=uniform_grid(1, 5, .5), n_cgrid=uniform_grid(1, 5, .5);
   Tensor3 n(a_pgrid.nelem(), n_rgrid.nelem(), n_cgrid.nelem());
 
   // So, n has the same number of pages as a, but more rows and columns.
@@ -248,8 +252,8 @@ void test04() {
 void test05() {
   cout << "Very simple interpolation case\n";
 
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
+  Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng=uniform_grid(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "Original grid:\n" << og << "\n";
   cout << "New grid:\n" << ng << "\n";
@@ -284,7 +288,7 @@ void test06() {
   cout << "Simple extrapolation cases\n"
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
-  Vector og(1, 5, +1);               // 1, 2, 3, 4, 5
+  Vector og=uniform_grid(1, 5, +1);               // 1, 2, 3, 4, 5
   Vector ng{0.9, 1.5, 3, 4.5, 5.1};  // 0.9, 1.5, 3, 4.5, 5.1
 
   cout << "og:\n" << og << "\n";
@@ -421,8 +425,8 @@ void test06() {
 
 void test09() {
   // Original and new grid
-  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
-  Vector ng(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
+  Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng=uniform_grid(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
   
   // Original data
   Vector yi{5, -2, 50, 2, 1};
@@ -436,7 +440,7 @@ void test09() {
     gridpos(gp, og, x);
     
     // General Lagrange interpolation, special case interpolation order 1:
-    const LagrangeInterpolation lag(0, x, og);
+    const LagrangeInterpolation lag(0, x, og, 1);
     
     std::cout << "gp point:  " << gp << "lag point:\n" << lag;
 
@@ -464,14 +468,14 @@ void test09() {
   std::cout << "gp:  " << gp_y << '\n';
   
   // General Lagrange interpolation, special case interpolation order 1:
-  const auto lag = Interpolation::LagrangeVector(ng, og, 1);
+  const auto lag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(ng, og, 1);
   std::cout << "lag: " << reinterp(yi, interpweights(lag), lag) << '\n';
 }
 
 void test11() {
   constexpr int N = 20;
-  Vector x0(1, N, +1);  // 1, 2, 3, 4, 5 ... 10
-  Vector x1(1, N, +2);  // 1, 2, 3, 4, 5 ... 10
+  Vector x0=uniform_grid(1, N, +1);  // 1, 2, 3, 4, 5 ... 10
+  Vector x1=uniform_grid(1, N, +2);  // 1, 2, 3, 4, 5 ... 10
   Vector x0n(100);
   Vector x1n(100);
   nlinspace(x0n, x0[0], x0[N - 1], 100);
@@ -487,10 +491,10 @@ void test11() {
 
   constexpr Index order = 5;
   {
-    const auto lag0 = Interpolation::LagrangeVector(
-        x0n, x0, order, 0.5, false, Interpolation::GridType::Standard);
-    const auto lag1 = Interpolation::LagrangeVector(
-        x1n, x1, order, 0.5, false, Interpolation::GridType::Standard);
+    const auto lag0 =my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        x0n, x0, order, 0.5);
+    const auto lag1 = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        x1n, x1, order, 0.5);
     const auto iwlag = interpweights(lag0, lag1);
     std::cout << x0n << '\n'
               << x1n << '\n'
@@ -504,21 +508,18 @@ constexpr bool is_around(Numeric x, Numeric x0, Numeric e = 1e-12) {
 
 void test12() {
   constexpr int N = 10;
-  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+  constexpr matpack::matpack_constant_data<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  constexpr matpack::matpack_constant_data<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
                                       6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
-  constexpr std::array<Numeric, N> y3{
+  constexpr matpack::matpack_constant_data<Numeric, N> y3{
       1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
       6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
   constexpr Numeric x = 1.5;
 
   // Set up the interpolation Lagranges
-  constexpr Interpolation::FixedLagrange<1> lin(0, x,
-                                                std::array<Numeric, 2>{1, 2});
-  constexpr Interpolation::FixedLagrange<2> sqr(
-      0, x, std::array<Numeric, 3>{1, 2, 3});
-  constexpr Interpolation::FixedLagrange<3> cub(
-      0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+  constexpr FixedLagrangeInterpolation<1> lin(0, x, matpack::matpack_constant_data<Numeric, 2>{1, 2});
+  constexpr FixedLagrangeInterpolation<2> sqr(0, x, matpack::matpack_constant_data<Numeric, 3>{1, 2, 3});
+  constexpr FixedLagrangeInterpolation<3> cub(0, x, matpack::matpack_constant_data<Numeric, 4>{1, 2, 3, 4});
 
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
@@ -549,36 +550,36 @@ void test12() {
 
 void test13() {
   constexpr int N = 10;
-  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  constexpr std::array<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
+  constexpr matpack::matpack_constant_data<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  constexpr matpack::matpack_constant_data<Numeric, N> y2{1,     2 * 2, 3 * 3, 4 * 4, 5 * 5,
                                       6 * 6, 7 * 7, 8 * 8, 9 * 9, 10 * 10};
-  constexpr std::array<Numeric, N> y3{
+  constexpr matpack::matpack_constant_data<Numeric, N> y3{
       1,         2 * 2 * 2, 3 * 3 * 3, 4 * 4 * 4, 5 * 5 * 5,
       6 * 6 * 6, 7 * 7 * 7, 8 * 8 * 8, 9 * 9 * 9, 10 * 10 * 10};
   constexpr Numeric x = 2;
   constexpr Numeric dx = 1e-2;
 
   // Set up the interpolation Lagranges
-  constexpr FixedLagrangeInterpolation<1> lin(
-    0, x, std::array<Numeric, 2>{1, 2}, true);
-  constexpr FixedLagrangeInterpolation<2> sqr(
-    0, x, std::array<Numeric, 3>{1, 2, 3}, true);
-  constexpr FixedLagrangeInterpolation<3> cub(
-    0, x, std::array<Numeric, 4>{1, 2, 3, 4}, true);
-  constexpr FixedLagrangeInterpolation<1> dlin(
-    0, x + dx, std::array<Numeric, 2>{1, 2}, true);
-  constexpr FixedLagrangeInterpolation<2> dsqr(
-    0, x + dx, std::array<Numeric, 3>{1, 2, 3}, true);
-  constexpr FixedLagrangeInterpolation<3> dcub(
-    0, x + dx, std::array<Numeric, 4>{1, 2, 3, 4}, true);
+  constexpr FixedLagrangeInterpolation<1, true> lin(
+      0, x, matpack::matpack_constant_data<Numeric, 2>{1, 2});
+  constexpr FixedLagrangeInterpolation<2, true> sqr(
+      0, x, matpack::matpack_constant_data<Numeric, 3>{1, 2, 3});
+  constexpr FixedLagrangeInterpolation<3, true> cub(
+      0, x, matpack::matpack_constant_data<Numeric, 4>{1, 2, 3, 4});
+  constexpr FixedLagrangeInterpolation<1, true> dlin(
+      0, x + dx, matpack::matpack_constant_data<Numeric, 2>{1, 2});
+  constexpr FixedLagrangeInterpolation<2, true> dsqr(
+      0, x + dx, matpack::matpack_constant_data<Numeric, 3>{1, 2, 3});
+  constexpr FixedLagrangeInterpolation<3, true> dcub(
+      0, x + dx, matpack::matpack_constant_data<Numeric, 4>{1, 2, 3, 4});
 
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
   constexpr auto sqr_iw = interpweights(sqr);
   constexpr auto cub_iw = interpweights(cub);
-  constexpr auto dlin_iw = dinterpweights(lin);
-  constexpr auto dsqr_iw = dinterpweights(sqr);
-  constexpr auto dcub_iw = dinterpweights(cub);
+  constexpr auto dlin_iw = dinterpweights<0>(lin);
+  constexpr auto dsqr_iw = dinterpweights<0>(sqr);
+  constexpr auto dcub_iw = dinterpweights<0>(cub);
   constexpr auto alt_lin_iw = interpweights(dlin);
   constexpr auto alt_sqr_iw = interpweights(dsqr);
   constexpr auto alt_cub_iw = interpweights(dcub);
@@ -621,20 +622,20 @@ void test14() {
   Vector x{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5};
 
   // Set up the interpolation Lagranges
-  auto lin = Interpolation::FixedLagrangeVector<1>(
-      x, y, true, Interpolation::GridType::Standard);
-  auto sqr = Interpolation::FixedLagrangeVector<2>(
-      x, y, true, Interpolation::GridType::Standard);
-  auto cub = Interpolation::FixedLagrangeVector<3>(
-      x, y, true, Interpolation::GridType::Standard);
+  auto lin = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1, true>>(
+      x, y);
+  auto sqr = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2, true>>(
+      x, y);
+  auto cub = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3, true>>(
+      x, y);
 
   // Set up the interpolation weights
   auto lin_iw = interpweights(lin);
   auto sqr_iw = interpweights(sqr);
   auto cub_iw = interpweights(cub);
-  auto dlin_iw = dinterpweights(lin);
-  auto dsqr_iw = dinterpweights(sqr);
-  auto dcub_iw = dinterpweights(cub);
+  auto dlin_iw = dinterpweights<0>(lin);
+  auto dsqr_iw = dinterpweights<0>(sqr);
+  auto dcub_iw = dinterpweights<0>(cub);
 
   // Get interpolation value
   auto lin_lin = reinterp(y, lin_iw, lin);
@@ -654,14 +655,10 @@ void test16() {
   const Vector xdes{4, 3, 2};
   Vector x{2.25, 3.25, 2.35};
 
-  auto asc = Interpolation::LagrangeVector(x, xasc, 1, 1.0, true,
-                                           Interpolation::GridType::Standard);
-  auto des = Interpolation::LagrangeVector(x, xdes, 1, 1.0, true,
-                                           Interpolation::GridType::Standard);
-  auto fasc = Interpolation::FixedLagrangeVector<1>(
-      x, xasc, true, Interpolation::GridType::Standard);
-  auto fdes = Interpolation::FixedLagrangeVector<1>(
-      x, xdes, true, Interpolation::GridType::Standard);
+  auto asc = my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, true>>(x, xasc, 1, 1.0);
+  auto des = my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, true>>(x, xdes, 1, 1.0);
+  auto fasc = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, true>>(x, xasc, 1.0);
+  auto fdes = my_interp::lagrange_interpolation_list<my_interp::Lagrange<1, true>>(x, xdes, 1.0);
   for (Index i = 0; i < x.size(); i++) {
     std::cout << x[i] << ": " << asc[i] << ' ' << '-' << ' ' << des[i] << ' '
               << " xstart [asc des]: " << xasc[asc[i].pos] << ' '
@@ -683,16 +680,13 @@ void test17() {
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
-                                       Interpolation::GridType::Cyclic,
-                                       {0, Constant::two_pi});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic,
-        {0, Constant::two_pi});
+    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' ' << std::sin(n) << ' '
               << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
@@ -708,21 +702,24 @@ void test18() {
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(f);
   for (Numeric n = -3 * 180; n <= 3 * 180; n += 0.1) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
-                                       Interpolation::GridType::Cyclic,
-                                       {-180, 180});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic, {-180, 180});
+    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' ' << Conversion::sind(n) << ' '
               << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
               << ' ' << Conversion::cosd(n) << '\n';
   }
 }
+
+template <my_interp::cycle_limit cl>
+struct zero_to_half {
+  static constexpr Numeric bound = cl == my_interp::cycle_limit::upper ? 0.5 : 0.0;
+};
 
 void test19() {
   const Index N = 500;
@@ -733,14 +730,13 @@ void test19() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        Interpolation::Lagrange(0, n, x, 1, true,
-                                Interpolation::GridType::Cyclic, {0, 0.5});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic, {0, 0.5});
+        my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_to_half>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_to_half>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
               << ' ' << interp(y, dlag_iw, lag) << ' '
@@ -748,6 +744,11 @@ void test19() {
               << '\n';
   }
 }
+
+template <my_interp::cycle_limit cl>
+struct zero_dot_123_to_zero_dot_456 {
+  static constexpr Numeric bound = cl == my_interp::cycle_limit::upper ? 0.456 : 0.123;
+};
 
 void test20() {
   const Index N = 500;
@@ -757,15 +758,13 @@ void test20() {
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(360 / (0.456 + 0.123) * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
-                                       Interpolation::GridType::Cyclic,
-                                       {-0.123, 0.456});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic, {-0.123, 0.456});
+    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_dot_123_to_zero_dot_456>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_dot_123_to_zero_dot_456>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' '
               << Conversion::sind(360 / (0.456 + 0.123) * n) << ' '
@@ -783,14 +782,13 @@ void test21() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        Interpolation::Lagrange(0, n, x, 1, true,
-                                Interpolation::GridType::Cyclic, {0, 0.5});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic, {0, 0.5});
+        my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_to_half>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_to_half>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
               << ' ' << interp(y, dlag_iw, lag) << ' '
@@ -807,16 +805,13 @@ void test22() {
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
-    auto lag = Interpolation::Lagrange(0, n, x, 1, true,
-                                       Interpolation::GridType::Cyclic,
-                                       {0, Constant::two_pi});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic,
-        {0, Constant::two_pi});
+    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' ' << std::sin(n) << ' '
               << interp(y, dlag_iw, lag) << ' ' << interp(y, dflag_iw, flag)
@@ -833,14 +828,13 @@ void test23() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        Interpolation::Lagrange(0, n, x, 1, true,
-                                Interpolation::GridType::Cyclic, {0, 0.5});
-    auto flag = Interpolation::FixedLagrange<1>(
-        0, n, x, true, Interpolation::GridType::Cyclic, {0, 0.5});
+        my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_to_half>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_to_half>(
+        0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
-    auto dlag_iw = dinterpweights(lag);
-    auto dflag_iw = dinterpweights(flag);
+    auto dlag_iw = dinterpweights<0>(lag);
+    auto dflag_iw = dinterpweights<0>(flag);
     std::cout << n << ' ' << interp(y, lag_iw, lag) << ' '
               << interp(y, flag_iw, flag) << ' ' << Conversion::sind(720 * n)
               << ' ' << interp(y, dlag_iw, lag) << ' '
@@ -858,112 +852,115 @@ void test25() {
   for (auto& f : y) f = 15*f*f + f*f*f;
   for (Numeric n = 0; n <= 180; n += 0.01) {
     const auto lag =
-    Interpolation::Lagrange(0, n, x, 5, true, Interpolation::GridType::CosDeg);
-    std::cout << n << ' ' << interp(y, interpweights(lag), lag) << ' ' << interp(y, dinterpweights(lag), lag) << '\n';
+    my_interp::Lagrange<-1, true, my_interp::GridType::CosDeg>(0, n, x, 5);
+    std::cout << n << ' ' << interp(y, interpweights(lag), lag) << ' ' << interp(y, dinterpweights<0>(lag), lag) << '\n';
   }
 }
 
+template <my_interp::cycle_limit cl>
+struct m2_to_p2 {
+  static constexpr Numeric bound = cl == my_interp::cycle_limit::upper ? 2 : -2;
+};
+
 void test26() {
-  auto f = [](Numeric x){return Constant::pow2(Interpolation::cyclic_clamp(x, {-2, 2})) - 4;};
-  auto df = [](Numeric x){return 2*Interpolation::cyclic_clamp(x, {-2, 2});};
+  auto f = [](Numeric x){return Math::pow2(my_interp::cyclic_clamp<m2_to_p2>(x)) - 4;};
+  auto df = [](Numeric x){return 2*my_interp::cyclic_clamp<m2_to_p2>(x);};
   
   constexpr Index N = 9;
-  constexpr std::array<Numeric, N> xi{-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2};
-  constexpr std::array<Numeric, N> yi{f(-2), f(-1.5), f(-1), f(-0.5), f(0), f(0.5), f(1), f(1.5), f(2)};
+  constexpr matpack::matpack_constant_data<Numeric, N> xi{-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2};
+  constexpr matpack::matpack_constant_data<Numeric, N> yi{f(-2), f(-1.5), f(-1), f(-0.5), f(0), f(0.5), f(1), f(1.5), f(2)};
   constexpr Index O1 = 3;
   
   // Test for a few values of interpolation
   {
     constexpr Numeric x = -1.75;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
+    constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(lin), lin));
   }
   {
     constexpr Numeric x = -1.25;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
+    constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(lin), lin));
   }
   {
     constexpr Numeric x = -0.25;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
+    constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(lin), lin));
   }
   {
     constexpr Numeric x = 1;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
+    constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+    static_assert(is_around(df(x), interp(yi, dinterpweights<0>(lin), lin)));
   }
   {
     constexpr Numeric x = -2;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
+    constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(lin), lin));
   }
   {
     constexpr Numeric x = 0;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
-    constexpr Interpolation::FixedLagrange<O1> lin(0, x, xi, true, Interpolation::GridType::Standard);
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
+    constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(lin), lin));
-    static_assert(df(x) == interp(yi, dinterpweights(lin), lin));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(lin), lin));
   }
   {
     constexpr Numeric x = -4;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
   }
   {
     constexpr Numeric x = 4;
-    constexpr Interpolation::FixedLagrange<O1> cyc(0, x, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
+    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
-    static_assert(df(x) == interp(yi, dinterpweights(cyc), cyc));
+    static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
   }
 
   constexpr Index O2 = 3;
   std::cout << "x f(x) interp(x) df(x) dinterp(x)\n";
   for (Numeric X=-3; X<3; X+=0.025) {
-    const Interpolation::FixedLagrange<O2> cyc(0, X, xi, true, Interpolation::GridType::Cyclic, {-2, 2});
-    const Interpolation::FixedLagrange<O2> lin(0, X, xi, true, Interpolation::GridType::Standard);
-    std::cout << X << ' ' << f(X) << ' ' << interp(yi, interpweights(cyc), cyc) << ' ' << df(X) << ' ' << interp(yi, dinterpweights(cyc), cyc) 
-    << ' ' << interp(yi, interpweights(lin), lin) << ' ' << interp(yi, dinterpweights(lin), lin) << '\n';
+    const my_interp::Lagrange<O2, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, X, xi);
+    const FixedLagrangeInterpolation<O2, true> lin(0, X, xi);
+    std::cout << X << ' ' << f(X) << ' ' << interp(yi, interpweights(cyc), cyc) << ' ' << df(X) << ' ' << interp(yi, dinterpweights<0>(cyc), cyc) 
+    << ' ' << interp(yi, interpweights(lin), lin) << ' ' << interp(yi, dinterpweights<0>(lin), lin) << '\n';
   }
 }
 
 void test27() {
-  static_assert(Interpolation::toGridType("Cyclic") == Interpolation::GridType::Cyclic);
-  static_assert(Interpolation::toString(Interpolation::GridType::Cyclic) == "Cyclic");
-  for (auto a : Interpolation::enumstrs::GridTypeNames)
+  for (auto a : my_interp::enumstrs::GridTypeNames)
     std::cout << a.size() << '\n';
-  for (auto a : Interpolation::enumstrs::GridTypeNames)
+  for (auto a : my_interp::enumstrs::GridTypeNames)
     std::cout << a << '\n';
-  for (auto a : Interpolation::enumstrs::GridTypeNames)
+  for (auto a : my_interp::enumstrs::GridTypeNames)
     std::cout << a << '\n';
 }
 
 void test28() {
-  using Constant::pow2;
-  using Constant::pow3;
+  using Math::pow2;
+  using Math::pow3;
   using Conversion::sind;
   using Conversion::cosd;
   
@@ -989,22 +986,18 @@ void test28() {
   }
   
   // Create Lagrange interpolation values
-  const ArrayOfLagrangeInterpolation lag_pre =
-    Interpolation::LagrangeVector(newpre, pre, 2, 1e9, false,
-      Interpolation::GridType::Log);
-  const ArrayOfLagrangeInterpolation lag_lat =
-    Interpolation::LagrangeVector(newlat, lat, 3, 1e9, false,
-      Interpolation::GridType::SinDeg);
-  const ArrayOfLagrangeInterpolation lag_lon =
-    Interpolation::LagrangeVector(newlon, lon, 1, 1e9, false,
-      Interpolation::GridType::Cyclic, {-180, 180});
+  const ArrayOfLagrangeLogInterpolation lag_pre =
+    my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(newpre, pre, 2, 1e9);
+  const auto lag_lat =
+    my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, false, my_interp::GridType::SinDeg>>(newlat, lat, 3, 1e9);
+  const auto lag_lon =
+    my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>>(newlon, lon, 1, 1e9);
   
   // Create the interpolation weights
   const auto lag_iw = interpweights(lag_pre, lag_lat, lag_lon);
   
   // Create and reduce the new data to dim 1 and 2
-  const Matrix newdata = reinterp(data,
-    lag_iw, lag_pre, lag_lat, lag_lon).reduce_rank<1, 2>();
+  const Matrix newdata = reinterp(data, lag_iw, lag_pre, lag_lat, lag_lon).reduce_rank<1, 2>();
   
   // Print the data
   std::cout << data(pre.nelem()/2, joker, joker) 

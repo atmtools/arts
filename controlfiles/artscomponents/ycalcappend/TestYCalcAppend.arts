@@ -14,27 +14,21 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-
-# On-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 
@@ -58,6 +52,8 @@ abs_speciesSet( species=[
 ReadARTSCAT( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
 
+propmat_clearsky_agendaAuto
+
 # Surface altitude
 MatrixSetConstant( z_surface, 1, 1, 0 )
 
@@ -68,9 +64,6 @@ AtmRawRead( basename = "testdata/tropical" )
 AtmFieldsCalc
 
 
-
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 lbl_checkedCalc
@@ -78,7 +71,7 @@ lbl_checkedCalc
 
 # ---- Part 1: An emission measurement at 110.8 GHz --------------------------
 
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 
 MatrixSetConstant( sensor_pos, 1, 1, 0 )
@@ -107,8 +100,14 @@ yCalc
 
 # ---- Part 2: Corresponding transmission (at another angle) -----------------
 
-Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitUnpolIntensity )
-Copy( iy_main_agenda, iy_main_agenda__Transmission )
+AgendaSet( iy_main_agenda){
+  Ignore( iy_unit )
+  Ignore( iy_id )
+  MatrixUnitIntensity( iy_transmitter, stokes_dim, f_grid )
+  ppathCalc( cloudbox_on=0 )
+  iyTransmissionStandard
+  VectorSet(geo_pos, [])
+}
 
 StringSet( iy_unit, "1" )
 
@@ -147,7 +146,7 @@ yCalcAppend( jacobian_quantities_copy=jacobian_quantities_copy,
 
 VectorSet( f_grid, [ 23.4e9, 31e9 ] )
 
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 MatrixSetConstant( sensor_los, 1, 1, 0 )
 sensorOff

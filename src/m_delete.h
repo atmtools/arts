@@ -31,6 +31,7 @@
 
 #include <map>
 
+#include "m_general.h"
 #include "mystring.h"
 #include "workspace_ng.h"
 
@@ -43,7 +44,7 @@ void Delete(  // Workspace reference
     // WS Generic Input Names:
     const String& x_name,
     const Verbosity&) {
-  ws.del(ws.WsvMap.find(x_name)->second);
+  ws.set_empty(ws.WsvMap_ptr->at(x_name));
 }
 
 #endif  // m_ignore_h

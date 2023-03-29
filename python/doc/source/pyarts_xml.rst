@@ -1,12 +1,12 @@
-arts.xml
-========
+pyarts.xml
+==========
 
 .. automodule:: pyarts.xml
 
 .. currentmodule:: pyarts.xml
 
 .. autosummary::
-   :toctree: generated
+   :toctree: stubs
 
    load
    load_directory

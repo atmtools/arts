@@ -33,17 +33,13 @@
 #define absorptionlines_h
 
 #include "bifstream.h"
-
 #include "bofstream.h"
-
 #include "enums.h"
-
+#include "jacobian.h"
 #include "lineshapemodel.h"
-
-#include "matpack.h"
-
+#include "matpack_concepts.h"
 #include "quantum_numbers.h"
-
+#include "species_tags.h"
 #include "zeemandata.h"
 
 #include <utility>
@@ -63,8 +59,6 @@ ENUMCLASS(MirroringType, char,
   Manual            // Mirror by having a line in the array of line record with negative F0
 )  // MirroringType
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexcept {
   switch (in) {
     case MirroringType::None:
@@ -77,8 +71,8 @@ constexpr std::string_view mirroringtype2metadatastring(MirroringType in) noexce
       return "There are manual line entries in the catalog to mirror this line.\n";
     case MirroringType::FINAL: break;
   }
+  return "There's an error";
 }
-#pragma GCC diagnostic pop
 
 /** Describes the type of normalization line effects
  *
@@ -92,8 +86,6 @@ ENUMCLASS(NormalizationType, char,
   SFS                  // Renormalize using simple frequency scaling of the line strength
 )  // NormalizationType
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view normalizationtype2metadatastring(NormalizationType in) {
   switch (in) {
     case NormalizationType::None:
@@ -112,8 +104,8 @@ constexpr std::string_view normalizationtype2metadatastring(NormalizationType in
         "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
     case NormalizationType::FINAL: break;
   }
+  return "There's an error";
 }
-#pragma GCC diagnostic pop
 
 /** Describes the type of population level counter
  *
@@ -129,8 +121,6 @@ ENUMCLASS(PopulationType, char,
   ByRovibLinearDipoleLineMixing   // Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 )  // PopulationType
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr std::string_view populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::LTE:
@@ -149,8 +139,8 @@ constexpr std::string_view populationtype2metadatastring(PopulationType in) {
       return "The lines are considered as in pure NLTE.\n";
     case PopulationType::FINAL: return "There's an error";
   }
+  return "There's an error";
 }
-#pragma GCC diagnostic pop
 
 constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
   return in == PopulationType::ByHITRANFullRelmat or
@@ -243,7 +233,7 @@ struct SingleLine {
   [[nodiscard]] Index LineShapeElems() const noexcept {return lineshape.nelem();}
   
   /** Number of lower quantum numbers */
-  [[nodiscard]] Index LocalQuantumElems() const noexcept {return localquanta.val.nelem();}
+  [[nodiscard]] Index LocalQuantumElems() const ARTS_NOEXCEPT {return localquanta.val.nelem();}
   
   //////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////// Special settings
@@ -274,11 +264,11 @@ struct SingleLine {
   
   /** Binary write for AbsorptionLines */
   bofstream& write(bofstream& bof) const;
+
+  friend std::ostream& operator<<(std::ostream&, const SingleLine&);
+
+  friend std::istream& operator>>(std::istream&, SingleLine&);
 };  // SingleLine
-
-std::ostream& operator<<(std::ostream&, const SingleLine&);
-
-std::istream& operator>>(std::istream&, SingleLine&);
 
 /** Single line reading output */
 struct SingleLineExternal {
@@ -492,30 +482,29 @@ struct Lines {
   [[nodiscard]] String LineShapeMetaData() const noexcept;
   
   /** Species Enum */
-  [[nodiscard]] Species::Species Species() const noexcept {return quantumidentity.Species();}
+  [[nodiscard]] Species::Species Species() const noexcept;
   
   /** Isotopologue Index */
-  [[nodiscard]] const Species::IsotopeRecord& Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
   
   /** Number of lines */
-  [[nodiscard]] Index NumLines() const noexcept {return Index(lines.size());}
-  
+  [[nodiscard]] Index NumLines() const noexcept;
+
   /** Make a common line shape if possible */
   void MakeLineShapeModelCommon();
   
   /** Number of broadening species */
-  [[nodiscard]] Index NumBroadeners() const noexcept {return Index(broadeningspecies.nelem());}
-  
+  [[nodiscard]] Index NumBroadeners() const ARTS_NOEXCEPT;
+
   /** Number of broadening species */
-  [[nodiscard]] Index NumLocalQuanta() const noexcept {
-    return lines.size() ? lines.front().localquanta.val.nelem() : 0;}
-  
+  [[nodiscard]] Index NumLocalQuanta() const noexcept;
+
   /** Returns the number of Zeeman split lines
    * 
    * @param[in] k Line number (less than NumLines())
    * @param[in] type Type of Zeeman polarization
    */
-  [[nodiscard]] Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept;
+  [[nodiscard]] Index ZeemanCount(size_t k, Zeeman::Polarization type) const ARTS_NOEXCEPT;
   
   /** Returns the strength of a Zeeman split line
    * 
@@ -523,7 +512,7 @@ struct Lines {
    * @param[in] type Type of Zeeman polarization
    * @param[in] i Zeeman line count
    */
-  [[nodiscard]] Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept;
+  [[nodiscard]] Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const ARTS_NOEXCEPT;
   
   /** Returns the splitting of a Zeeman split line
    * 
@@ -531,7 +520,7 @@ struct Lines {
    * @param[in] type Type of Zeeman polarization
    * @param[in] i Zeeman line count
    */
-  [[nodiscard]] Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept;
+  [[nodiscard]] Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const ARTS_NOEXCEPT;
   
   /** Set Zeeman effect for all lines that have the correct quantum numbers */
   void SetAutomaticZeeman() noexcept;
@@ -551,39 +540,19 @@ struct Lines {
   [[nodiscard]] Numeric F_mean(const ConstVectorView& wgts) const noexcept;
   
   /** On-the-fly line mixing */
-  [[nodiscard]] bool OnTheFlyLineMixing() const noexcept {
-    return population == PopulationType::ByMakarovFullRelmat or
-           population == PopulationType::ByRovibLinearDipoleLineMixing;
-  }
+  [[nodiscard]] bool OnTheFlyLineMixing() const noexcept;
   
   /** Returns if the pressure should do line mixing
    * 
    * @param[in] P Atmospheric pressure
    * @return true if no limit or P less than limit
    */
-  [[nodiscard]] bool DoLineMixing(Numeric P) const noexcept {
-    return linemixinglimit < 0 ? true : linemixinglimit > P;
-  }
+  [[nodiscard]] bool DoLineMixing(Numeric P) const noexcept;
 
-  [[nodiscard]] bool DoVmrDerivative(const QuantumIdentifier& qid) const noexcept {
-    return qid.Isotopologue() == quantumidentity.Isotopologue() or 
-    (qid.Isotopologue().joker() and qid.Species() == quantumidentity.Species()) or
-    std::any_of(broadeningspecies.begin(), broadeningspecies.end(), [s=qid.Species()](auto& a){return a == s;});
-  }
+  [[nodiscard]] bool DoVmrDerivative(const QuantumIdentifier& qid) const noexcept;
 
   /** @return Whether the band may require linemixing */
-  [[nodiscard]] bool AnyLinemixing() const noexcept {
-    for (auto& line : lines) {
-      for (auto& shape : line.lineshape.Data()) {
-        if (shape.Y().type not_eq LineShape::TemperatureModel::None or
-            shape.G().type not_eq LineShape::TemperatureModel::None or
-            shape.DV().type not_eq LineShape::TemperatureModel::None) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  [[nodiscard]] bool AnyLinemixing() const noexcept;
 
   /** Line shape parameters
    * 
@@ -593,17 +562,17 @@ struct Lines {
    * @param[in] vmrs Line broadener species's volume mixing ratio
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
   
   /** Line shape parameters
    * 
    * @param[in] k Line number (less than NumLines())
    * @param[in] T Atmospheric temperature
    * @param[in] P Atmospheric pressure
-   * @param[in] m Line broadening species position
+   * @param[in] pos Line broadening species position
    * @return Line shape parameters
    */
-  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t m) const noexcept;
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
   
   /** Line shape parameters temperature derivatives
    * 
@@ -613,23 +582,24 @@ struct Lines {
    * @param[in] vmrs Line broadener's volume mixing ratio
    * @return Line shape parameters temperature derivatives
    */
-  [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
+  [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT;
+  
+  /** Line shape parameters temperature derivatives
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] pos Line broadening species position
+   * @return Line shape parameters temperature derivatives
+   */
+  [[nodiscard]] LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
   
   /** Position among broadening species or -1
    * 
    * @param[in] A species index that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const Species::Species spec) const noexcept;
-  
-  /** Position among broadening species or -1
-   * 
-   * @param[in] An identity that might be among the broadener species
-   * @return Position among broadening species or -1
-   */
-  [[nodiscard]] Index LineShapePos(const QuantumIdentifier& qid) const noexcept {
-    return LineShapePos(qid.Species());
-  }
+  [[nodiscard]] Index LineShapePos(const Species::Species spec) const ARTS_NOEXCEPT;
   
   /** Line shape parameters vmr derivative
    * 
@@ -640,20 +610,7 @@ struct Lines {
    * @return Line shape parameters vmr derivative
    */
   [[nodiscard]] LineShape::Output ShapeParameters_dVMR(size_t k, Numeric T, Numeric P,
-                                         const QuantumIdentifier& vmr_qid) const noexcept;
-  
-  /** Line shape parameter internal derivative
-   * 
-   * @param[in] k Line number (less than NumLines())
-   * @param[in] T Atmospheric temperature
-   * @param[in] P Atmospheric pressure
-   * @param[in] vmrs Line broadener's volume mixing ratio
-   * @param[in] derivative Type of line shape derivative
-   * @return Line shape parameter internal derivative
-   */
-  [[nodiscard]] Numeric ShapeParameter_dInternal(size_t k, Numeric T, Numeric P,
-                                   const Vector& vmrs,
-                                   const RetrievalQuantity& derivative) const noexcept;
+                                         const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT;
   
   /** Returns cutoff frequency or maximum value
    * 
@@ -670,12 +627,7 @@ struct Lines {
   [[nodiscard]] Numeric CutoffFreqMinus(size_t k, Numeric shift=0) const noexcept;
   
   /** Position of species if available or -1 else */
-  [[nodiscard]] Index BroadeningSpeciesPosition(Species::Species spec) const noexcept {
-    if (auto ptr = std::find(broadeningspecies.cbegin(),
-      broadeningspecies.cend(), spec); ptr not_eq broadeningspecies.cend())
-      return std::distance(broadeningspecies.cbegin(), ptr);
-    return -1;
-  }
+  [[nodiscard]] Index BroadeningSpeciesPosition(Species::Species spec) const noexcept;
   
   /** Returns a printable statement about the lines */
   [[nodiscard]] String MetaData() const;
@@ -723,15 +675,18 @@ struct Lines {
   /** Binary write for Lines */
   bofstream& write(bofstream& os) const;
   
-  [[nodiscard]] bool OK() const noexcept;
+  [[nodiscard]] bool OK() const ARTS_NOEXCEPT;
   
   [[nodiscard]] Numeric DopplerConstant(Numeric T) const noexcept;
 
   [[nodiscard]] QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept;
-};  // Lines
 
-std::ostream& operator<<(std::ostream&, const Lines&);
-std::istream& operator>>(std::istream&, Lines&);
+  [[nodiscard]] Rational max(QuantumNumberType) const;
+
+  friend std::ostream& operator<<(std::ostream&, const Lines&);
+
+  friend std::istream& operator>>(std::istream&, Lines&);
+};  // Lines
 
 /** Read from ARTSCAT-3
  * 
@@ -953,13 +908,13 @@ std::vector<Lines> split_list_of_external_lines(std::vector<SingleLineExternal>&
                                                 const std::vector<QuantumNumberType>& globalquantas={});
 
 /** Number of lines */
-inline Index nelem(const Lines& l) {return l.NumLines();}
+Index nelem(const Lines& l);
 
 /** Number of lines in list */
-inline Index nelem(const Array<Lines>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
+Index nelem(const Array<Lines>& l);
 
 /** Number of lines in lists */
-inline Index nelem(const Array<Array<Lines>>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
+Index nelem(const Array<Array<Lines>>& l);
 
 /** Compute the reduced rovibrational dipole moment
  * 
@@ -980,6 +935,13 @@ Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rati
  * @return As titled
  */
 Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
+
+/** Checks if there are any cutoffs in the lines
+ *
+ * @param[in] abs_lines_per_species As WSV
+ * @return true if any Lines have a cutoff enum value other than None
+ */
+[[nodiscard]] bool any_cutoff(const Array<Array<Lines>>& abs_lines_per_species);
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;
@@ -988,13 +950,80 @@ using AbsorptionLines = Absorption::Lines;
 using ArrayOfAbsorptionLines = Array<AbsorptionLines>;
 using ArrayOfArrayOfAbsorptionLines = Array<ArrayOfAbsorptionLines>;
 
-std::ostream& operator<<(std::ostream&, const ArrayOfAbsorptionLines&);
-
-std::ostream& operator<<(std::ostream&, const ArrayOfArrayOfAbsorptionLines&);
-
 using AbsorptionNormalizationType = Absorption::NormalizationType;
 using AbsorptionPopulationType = Absorption::PopulationType;
 using AbsorptionMirroringType = Absorption::MirroringType;
 using AbsorptionCutoffType = Absorption::CutoffType;
+
+struct AbsorptionMirroringTagTypeStatus {
+  bool None{false}, Lorentz{false}, SameAsLineShape{false}, Manual{false};
+  AbsorptionMirroringTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionMirroringTagTypeStatus);
+};
+
+struct AbsorptionNormalizationTagTypeStatus {
+  bool None{false}, VVH{false}, VVW{false}, RQ{false}, SFS{false};
+  AbsorptionNormalizationTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionNormalizationTagTypeStatus);
+};
+
+struct AbsorptionPopulationTagTypeStatus {
+  bool LTE{false}, NLTE{false}, VibTemps{false},
+      ByHITRANRosenkranzRelmat{false}, ByHITRANFullRelmat{false},
+      ByMakarovFullRelmat{false}, ByRovibLinearDipoleLineMixing{false};
+  AbsorptionPopulationTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionPopulationTagTypeStatus);
+};
+
+struct AbsorptionCutoffTagTypeStatus {
+  bool None{false}, ByLine{false};
+  AbsorptionCutoffTagTypeStatus(const ArrayOfArrayOfAbsorptionLines&);
+  friend std::ostream& operator<<(std::ostream&, AbsorptionCutoffTagTypeStatus);
+};
+
+struct AbsorptionLineShapeTagTypeStatus {
+  bool DP{false}, LP{false}, VP{false}, SDVP{false}, HTP{false}, SplitLP{false},
+      SplitVP{false}, SplitSDVP{false}, SplitHTP{false};
+  AbsorptionLineShapeTagTypeStatus(const ArrayOfArrayOfAbsorptionLines &);
+  friend std::ostream &operator<<(std::ostream &,
+                                  AbsorptionLineShapeTagTypeStatus);
+};
+
+struct AbsorptionTagTypesStatus {
+  AbsorptionMirroringTagTypeStatus mirroring;
+  AbsorptionNormalizationTagTypeStatus normalization;
+  AbsorptionPopulationTagTypeStatus population;
+  AbsorptionCutoffTagTypeStatus cutoff;
+  AbsorptionLineShapeTagTypeStatus lineshapetype;
+
+  AbsorptionTagTypesStatus(const ArrayOfArrayOfAbsorptionLines& lines)
+      : mirroring(lines),
+        normalization(lines),
+        population(lines),
+        cutoff(lines),
+        lineshapetype(lines) {}
+  friend std::ostream& operator<<(std::ostream&, AbsorptionTagTypesStatus);
+};
+
+//! Helper struct for flat_index
+struct AbsorptionSpeciesBandIndex {
+  //! The species index in abs_species/abs_lines_per_species
+  Index ispecies;
+
+  //! The band index in abs_lines_per_species[ispecies]
+  Index iband;
+};
+
+/** Get a flat index pair for species and band
+
+  @param[in] i: Index smaller than the total number of bands but at least 0
+  @param[in] abs_species: As WSV
+  @param[in] abs_lines_per_species: As WSV
+  @return A valid AbsorptionSpeciesBandIndex
+*/
+AbsorptionSpeciesBandIndex flat_index(
+    Index i,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species);
 
 #endif  // absorptionlines_h

@@ -1,7 +1,7 @@
 macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
 
   set (PDFLATEX_OUTPUTDIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}")
-  set (PDFLATEX_OPTIONS "-interaction;nonstopmode;-halt-on-error")
+  set (PDFLATEX_OPTIONS "-interaction;nonstopmode;-halt-on-error;-shell-escape")
   set (PDFLATEX_LOGGING ">>;${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.log")
 
   set (LOG_OUTPUT "||" "\(cat" "${TARGET}.log" "&&" "exit" "1\)")

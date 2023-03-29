@@ -8,14 +8,12 @@
 
 Arts2{
 
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 
 # Number of Stokes components to be computed
@@ -100,7 +98,7 @@ VectorSet( rte_pos2, [] )                  # No transmitter involved
 #
 # no refraction
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Calculate propagation path
@@ -144,7 +142,7 @@ AgendaSet( forloop_agenda ){
 #
 # no refraction
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
 
@@ -153,9 +151,9 @@ ForLoop( forloop_agenda, 0, ilast, 1  )
 #
 # Repeat with refraction
 #
-Copy( ppath_step_agenda, ppath_step_agenda__RefractedPath )
+ppath_step_agendaSet( option="RefractedPath" )
 NumericSet( ppath_lraytrace, 1e3 )
-Copy( refr_index_air_agenda, refr_index_air_agenda__GasMicrowavesEarth  )
+refr_index_air_agendaSet( option="GasMicrowavesEarth"  )
 
 ForLoop( forloop_agenda, 0, ilast, 1  )
 

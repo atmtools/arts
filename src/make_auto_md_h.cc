@@ -68,10 +68,14 @@
 #include "agenda_record.h"
 #include "array.h"
 #include "arts.h"
+#include "debug.h"
 #include "file.h"
 #include "global_data.h"
 #include "methods.h"
+#include "workspace.h"
+#include "workspace_global_data.h"
 #include "workspace_ng.h"
+#include <stdexcept>
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
@@ -91,9 +95,9 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent) {
   \param mdd Method lookup data.
 */
 void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
-  const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+  const Array<WsvRecord>& wsv_data = global_data::wsv_data;
 
-  String fullname = mdd.Name();
+  const String& fullname = mdd.Name();
 
   // This is needed to flag the first function parameter, which
   // needs no line break before being written:
@@ -111,8 +115,8 @@ void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
   // write.
   ArrayOfIndex vo = mdd.Out();            // Output
   const ArrayOfIndex& vi = mdd.InOnly();  // Input
-  ArrayOfIndex vgo = mdd.GOutType();      // Generic Output
-  ArrayOfIndex vgi = mdd.GInType();       // Generic Input
+  const ArrayOfIndex& vgo = mdd.GOutType();      // Generic Output
+  const ArrayOfIndex& vgi = mdd.GInType();       // Generic Input
   // vo and vi contain handles of workspace variables,
   // vgo and vgi handles of workspace variable groups.
 
@@ -261,8 +265,8 @@ void write_method_header_documentation(ofstream& ofs, const MdRecord& mdd) {
   \param mdd Method lookup data.
 */
 void write_method_header(ofstream& ofs, const MdRecord& mdd) {
-  using global_data::wsv_group_names;
-  const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+  using global_data::wsv_groups;
+  const Array<WsvRecord>& wsv_data = global_data::wsv_data;
 
   //   // Work out the full name to use:
   //   String fullname;
@@ -272,7 +276,7 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
   //     fullname = os.str();
   //   }
 
-  String fullname = mdd.Name();
+  const String& fullname = mdd.Name();
 
   // This is needed to flag the first function parameter, which
   // needs no line break before being written:
@@ -290,8 +294,8 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
   // write.
   ArrayOfIndex vo = mdd.Out();            // Output
   const ArrayOfIndex& vi = mdd.InOnly();  // Input
-  ArrayOfIndex vgo = mdd.GOutType();      // Generic Output
-  ArrayOfIndex vgi = mdd.GInType();       // Generic Input
+  const ArrayOfIndex& vgo = mdd.GOutType();      // Generic Output
+  const ArrayOfIndex& vgi = mdd.GInType();       // Generic Input
   // vo and vi contain handles of workspace variables,
   // vgo and vgi handles of workspace variable groups.
 
@@ -346,8 +350,8 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      ofs << wsv_group_names[Workspace::wsv_data[vo[j]].Group()] << "& "
-          << Workspace::wsv_data[vo[j]].Name();
+      ofs << wsv_groups[global_data::wsv_data[vo[j]].Group()] << "& "
+          << global_data::wsv_data[vo[j]].Name();
     }
   }
 
@@ -367,10 +371,10 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      if (wsv_group_names[mdd.GOutType()[j]] == "Any")
+      if (wsv_groups[mdd.GOutType()[j]] == "Any")
         ofs << "T& ";
       else
-        ofs << wsv_group_names[mdd.GOutType()[j]] << "& ";
+        ofs << wsv_groups[mdd.GOutType()[j]] << "& ";
 
       if (mdd.GOut()[j].length())
         ofs << mdd.GOut()[j];
@@ -419,8 +423,8 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      ofs << "const " << wsv_group_names[Workspace::wsv_data[vi[j]].Group()]
-          << "& " << Workspace::wsv_data[vi[j]].Name();
+      ofs << "const " << wsv_groups[global_data::wsv_data[vi[j]].Group()]
+          << "& " << global_data::wsv_data[vi[j]].Name();
     }
   }
 
@@ -440,14 +444,14 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
         is_first_of_these = false;
       }
 
-      if (wsv_group_names[mdd.GInType()[j]] == "Any") {
+      if (wsv_groups[mdd.GInType()[j]] == "Any") {
         ofs << "const T& ";
         if (mdd.GIn()[j].length())
           ofs << mdd.GIn()[j];
         else
           ofs << "genericinput" << j + 1;
       } else {
-        ofs << "const " << wsv_group_names[mdd.GInType()[j]] << "& ";
+        ofs << "const " << wsv_groups[mdd.GInType()[j]] << "& ";
         if (mdd.GIn()[j].length())
           ofs << mdd.GIn()[j];
         else
@@ -520,10 +524,10 @@ bool md_sanity_checks(const Array<MdRecord>& md_data) {
   ostringstream os;
 
   bool is_sane = true;
-  for (Array<MdRecord>::const_iterator i = md_data.begin(); i < md_data.end();
+  for (auto i = md_data.begin(); i < md_data.end();
        ++i) {
     bool invalid_author = false;
-    for (ArrayOfString::const_iterator j = i->Authors().begin();
+    for (auto j = i->Authors().begin();
          !invalid_author && j < i->Authors().end();
          ++j) {
       if (*j == "" || *j == "unknown") invalid_author = true;
@@ -566,13 +570,13 @@ int main() {
     using global_data::md_data_raw;
 
     // Initialize the wsv group name array:
-    define_wsv_group_names();
+    define_wsv_groups();
 
     // Initialize wsv data.
-    Workspace::define_wsv_data();
+    define_wsv_data();
 
     // Initialize WsvMap.
-    Workspace::define_wsv_map();
+    define_wsv_map();
 
     // Initialize method data.
     define_md_data_raw();
@@ -596,8 +600,8 @@ int main() {
     ofs << "#ifndef auto_md_h\n";
     ofs << "#define auto_md_h\n\n";
 
-    ofs << "#include \"matpackI.h\"\n"
-        << "#include \"matpackII.h\"\n"
+    ofs << "#include \"matpack_data.h\"\n"
+        << "#include \"matpack_sparse.h\"\n"
         << "#include \"species_tags.h\"\n"
         << "#include \"artstime.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"
@@ -612,12 +616,15 @@ int main() {
         << "#include \"cia.h\"\n"
         << "#include \"covariance_matrix.h\"\n"
         << "#include \"propagationmatrix.h\"\n"
+        << "#include <predefined/predef_data.h>\n"
         << "#include \"transmissionmatrix.h\"\n"
+        << "#include \"sun.h\"\n"
         << "#include \"telsem.h\"\n"
         << "#include \"tessem.h\"\n"
-        << "#include \"hitran_xsec.h\"\n"
+        << "#include \"xsec_fit.h\"\n"
         << "#include \"absorptionlines.h\"\n"
         << "#include \"linemixing.h\"\n"
+        << "#include \"callback.h\"\n"
         << "\n";
 
     ofs << "// This is only used for a consistency check. You can get the\n"
@@ -662,15 +669,17 @@ int main() {
     // Create prototypes for the agenda wrappers
 
     // Initialize agenda data.
-    Workspace::define_wsv_map();
+    define_wsv_map();
     define_agenda_data();
 
     using global_data::agenda_data;
-    const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
+    const Array<WsvRecord>& wsv_data = global_data::wsv_data;
     for (Index i = 0; i < agenda_data.nelem(); i++) {
-      bool is_agenda_array =
-          wsv_data[get_wsv_id(agenda_data[i].Name())].Group() ==
-          get_wsv_group_id("ArrayOfAgenda");
+      auto wsv_ptr = global_data::WsvMap.find(agenda_data[i].Name());
+      ARTS_USER_ERROR_IF(wsv_ptr == global_data::WsvMap.end(), "The ",
+                         agenda_data[i].Name(), " agenda fails");
+      bool is_agenda_array = wsv_data[wsv_ptr->second].Group() ==
+                             get_wsv_group_id("ArrayOfAgenda");
       write_agenda_wrapper_header(ofs, agenda_data[i], is_agenda_array);
 
       ofs << ";\n\n";

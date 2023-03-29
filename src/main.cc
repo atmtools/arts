@@ -29,22 +29,21 @@
 */
 
 #include "arts.h"
+#include <memory>
 
-#ifdef TIME_SUPPORT
-#include <sys/stat.h>
-#include <sys/times.h>
-#include <sys/types.h>
+#ifdef ENABLE_DOCSERVER
 #include <unistd.h>
-#include <ctime>
 #endif
+
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
 #include <map>
 
 #include "absorption.h"
 #include "agenda_record.h"
 #include "arts_omp.h"
 #include "auto_md.h"
-#include "auto_version.h"
 #include "docserver.h"
 #include "exceptions.h"
 #include "file.h"
@@ -54,8 +53,11 @@
 #include "mystring.h"
 #include "parameters.h"
 #include "parser.h"
+#include "workspace_global_data.h"
+#include "workspace.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"
+#include "wsv_aux_operator.h"
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby() {
@@ -118,13 +120,11 @@ void set_reporting_level(Index r) {
 
     \param methods All or name of a variable.
     \author Stefan Buehler */
-void option_methods(const String& methods) {
-  Workspace workspace;
-  workspace.initialize();
+void option_methods(Workspace& workspace, const String& methods) {
   // Make global data visible:
   using global_data::md_data_raw;
   extern const Parameters parameters;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -155,8 +155,8 @@ void option_methods(const String& methods) {
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(methods);
-  if (mi != Workspace::WsvMap.end()) {
+  auto mi = workspace.WsvMap_ptr->find(methods);
+  if (mi != workspace.WsvMap_ptr->end()) {
     // If we are here, then the given name matches a variable.
     Index wsv_key = mi->second;
 
@@ -165,7 +165,7 @@ void option_methods(const String& methods) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can generate "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << (*workspace.wsv_data_ptr)[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -177,7 +177,7 @@ void option_methods(const String& methods) {
       // The else clause picks up methods with supergeneric input.
       if (count(mdd.GOutType().begin(),
                 mdd.GOutType().end(),
-                Workspace::wsv_data[wsv_key].Group())) {
+                (*workspace.wsv_data_ptr)[wsv_key].Group())) {
         cout << "- " << mdd.Name() << "\n";
         ++hitcount;
       } else if (count(mdd.GOutType().begin(),
@@ -188,7 +188,7 @@ void option_methods(const String& methods) {
             if (mdd.GOutSpecType()[j].nelem()) {
               if (count(mdd.GOutSpecType()[j].begin(),
                         mdd.GOutSpecType()[j].end(),
-                        Workspace::wsv_data[wsv_key].Group())) {
+                        (*workspace.wsv_data_ptr)[wsv_key].Group())) {
                 cout << "- " << mdd.Name() << "\n";
                 ++hitcount;
               }
@@ -207,7 +207,7 @@ void option_methods(const String& methods) {
     cout
         << "\n---------------------------------------------------------------------\n"
         << "Specific methods that can generate "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << (*workspace.wsv_data_ptr)[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -235,18 +235,18 @@ void option_methods(const String& methods) {
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-      find(wsv_group_names.begin(), wsv_group_names.end(), methods) -
-      wsv_group_names.begin();
+      find(wsv_groups.begin(), wsv_groups.end(), methods) -
+      wsv_groups.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if (group_key != wsv_group_names.nelem()) {
+  if (group_key != wsv_groups.nelem()) {
     // List generic methods:
     hitcount = 0;
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can generate variables of group "
-        << wsv_group_names[group_key] << ":\n"
+        << wsv_groups[group_key] << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -305,14 +305,14 @@ void option_methods(const String& methods) {
 void option_input(const String& input) {
   // Make global data visible:
   using global_data::md_data_raw;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Ok, so the user has probably specified a workspace variable or
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(input);
-  if (mi != Workspace::WsvMap.end()) {
+  auto mi = global_data::WsvMap.find(input);
+  if (mi != global_data::WsvMap.end()) {
     // This is used to count the number of matches to a query, so
     // that `none' can be output if necessary
     Index hitcount = 0;
@@ -324,7 +324,7 @@ void option_input(const String& input) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that can use "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << global_data::wsv_data[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -336,7 +336,7 @@ void option_input(const String& input) {
       // The else clause picks up methods with supergeneric input.
       if (count(mdd.GInType().begin(),
                 mdd.GInType().end(),
-                Workspace::wsv_data[wsv_key].Group())) {
+                global_data::wsv_data[wsv_key].Group())) {
         cout << "- " << mdd.Name() << "\n";
         ++hitcount;
       } else if (count(mdd.GInType().begin(),
@@ -347,7 +347,7 @@ void option_input(const String& input) {
             if (mdd.GInSpecType()[j].nelem()) {
               if (count(mdd.GInSpecType()[j].begin(),
                         mdd.GInSpecType()[j].end(),
-                        Workspace::wsv_data[wsv_key].Group())) {
+                        global_data::wsv_data[wsv_key].Group())) {
                 cout << "- " << mdd.Name() << "\n";
                 ++hitcount;
               }
@@ -366,7 +366,7 @@ void option_input(const String& input) {
     cout
         << "\n---------------------------------------------------------------------\n"
         << "Specific methods that require "
-        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << global_data::wsv_data[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -394,12 +394,12 @@ void option_input(const String& input) {
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-      find(wsv_group_names.begin(), wsv_group_names.end(), input) -
-      wsv_group_names.begin();
+      find(wsv_groups.begin(), wsv_groups.end(), input) -
+      wsv_groups.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if (group_key != wsv_group_names.nelem()) {
+  if (group_key != wsv_groups.nelem()) {
     // This is used to count the number of matches to a query, so
     // that `none' can be output if necessary
     Index hitcount = 0;
@@ -408,7 +408,7 @@ void option_input(const String& input) {
     cout
         << "\n*-------------------------------------------------------------------*\n"
         << "Generic and supergeneric methods that require a variable of group "
-        << wsv_group_names[group_key] << ":\n"
+        << wsv_groups[group_key] << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < md_data_raw.nelem(); ++i) {
       // Get handle on method record:
@@ -468,7 +468,7 @@ void option_workspacevariables(const String& workspacevariables) {
   using global_data::md_data;
   using global_data::MdMap;
   extern const Parameters parameters;
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -484,9 +484,9 @@ void option_workspacevariables(const String& workspacevariables) {
           << "---------------------------------------------------------------------\n";
     }
 
-    for (Index i = 0; i < Workspace::wsv_data.nelem(); ++i) {
+    for (Index i = 0; i < global_data::wsv_data.nelem(); ++i) {
       if (!parameters.plain) cout << "- ";
-      cout << Workspace::wsv_data[i].Name() << "\n";
+      cout << global_data::wsv_data[i].Name() << "\n";
     }
 
     if (!parameters.plain)
@@ -496,7 +496,7 @@ void option_workspacevariables(const String& workspacevariables) {
   }
 
   // Now check if the user gave the name of a method.
-  map<String, Index>::const_iterator mi = MdMap.find(workspacevariables);
+  auto mi = MdMap.find(workspacevariables);
   if (mi != MdMap.end()) {
     // If we are here, then the given name matches a method.
     // Assign the data record for this method to a local
@@ -511,7 +511,7 @@ void option_workspacevariables(const String& workspacevariables) {
         << " are of type:\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < mdr.GInType().nelem(); ++i) {
-      cout << "- " << wsv_group_names[mdr.GInType()[i]] << "\n";
+      cout << "- " << wsv_groups[mdr.GInType()[i]] << "\n";
       ++hitcount;
     }
     if (0 == hitcount) cout << "none\n";
@@ -523,7 +523,7 @@ void option_workspacevariables(const String& workspacevariables) {
         << "Specific workspace variables required by " << mdr.Name() << ":\n"
         << "---------------------------------------------------------------------\n";
     for (Index i = 0; i < mdr.In().nelem(); ++i) {
-      cout << "- " << Workspace::wsv_data[mdr.In()[i]].Name() << "\n";
+      cout << "- " << global_data::wsv_data[mdr.In()[i]].Name() << "\n";
       ++hitcount;
     }
     if (0 == hitcount) cout << "none\n";
@@ -554,7 +554,7 @@ void option_describe(const String& describe) {
   // described.
 
   // Find method id:
-  map<String, Index>::const_iterator i = MdRawMap.find(describe);
+  auto i = MdRawMap.find(describe);
   if (i != MdRawMap.end()) {
     // If we are here, then the given name matches a method.
     cout << md_data_raw[i->second] << "\n";
@@ -565,11 +565,11 @@ void option_describe(const String& describe) {
   // described.
 
   // Find wsv id:
-  i = Workspace::WsvMap.find(describe);
-  if (i != Workspace::WsvMap.end()) {
+  i = global_data::WsvMap.find(describe);
+  if (i != global_data::WsvMap.end()) {
     // If we are here, then the given name matches a workspace
     // variable.
-    cout << Workspace::wsv_data[i->second] << "\n";
+    cout << global_data::wsv_data[i->second] << "\n";
     return;
   }
 
@@ -578,22 +578,39 @@ void option_describe(const String& describe) {
   arts_exit();
 }
 
+template <typename TimePoint>
+std::time_t to_time_t(TimePoint time_point) {
+  auto tp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+      time_point - TimePoint::clock::now() + std::chrono::system_clock::now());
+  return std::chrono::system_clock::to_time_t(tp);
+}
+
 /** This function returns the modification time of the arts executable
     as a string.
 
-    \author Oliver Lemke */
-#ifdef TIME_SUPPORT
-String arts_mod_time(String filename) {
-  struct stat buf;
-  if (stat(filename.c_str(), &buf) != -1) {
-    String ts = ctime(&buf.st_mtime);
-    return String(" (compiled ") + ts.substr(0, ts.length() - 1) + ")";
-  } else
-    return String("");
+    \author Oliver Lemke
+ */
+String arts_mod_time(std::string_view filename) {
+  ostringstream os;
+  try {
+    if (std::filesystem::is_regular_file(filename)) {
+      auto modtime = to_time_t(std::filesystem::last_write_time(filename));
+      os << " (compiled " << std::put_time(std::localtime(&modtime), "%F %T")
+         << ")\n";
+    }
+  } catch (const std::exception&) {
+    // Don't crash if we can't get the modification time.
+  }
+  return os.str();
 }
-#else
-String arts_mod_time(String) { return String(""); }
-#endif
+
+double get_arts_runtime_in_sec(
+    std::chrono::high_resolution_clock::time_point arts_realtime_start) {
+  const auto arts_realtime_end = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration<double, std::ratio<1>>(arts_realtime_end -
+                                                      arts_realtime_start)
+      .count();
+}
 
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
@@ -614,11 +631,7 @@ int main(int argc, char** argv) {
                                        // all command line parameters.
 
   //---------------< -1. Time the arts run if possible >---------------
-#ifdef TIME_SUPPORT
-  struct tms arts_cputime_start;
-  clock_t arts_realtime_start;
-  arts_realtime_start = times(&arts_cputime_start);
-#endif
+  const auto arts_realtime_start = std::chrono::high_resolution_clock::now();
 
   //---------------< 1. Get command line parameters >---------------
   if (get_parameters(argc, argv)) {
@@ -721,6 +734,12 @@ int main(int argc, char** argv) {
 #else
                << "disabled" << endl
 #endif
+               << "   IPO/LTO support:      "
+#ifdef IPO_SUPPORTED
+               << "enabled" << endl
+#else
+               << "disabled" << endl
+#endif
                << endl;
 
     osfeatures << "Include search paths: " << endl;
@@ -735,7 +754,7 @@ int main(int argc, char** argv) {
   }
 
   if (parameters.version) {
-    cout << ARTS_FULL_VERSION << arts_mod_time(argv[0]) << endl;
+    cout << arts_get_version_string() << arts_mod_time(argv[0]) << endl;
     cout << osfeatures.str();
     arts_exit(EXIT_SUCCESS);
   }
@@ -753,13 +772,13 @@ int main(int argc, char** argv) {
   // method lookup data.
 
   // Initialize the wsv group name array:
-  define_wsv_group_names();
+  define_wsv_groups();
 
   // Initialize the wsv data:
-  Workspace::define_wsv_data();
+  define_wsv_data();
 
   // Initialize WsvMap:
-  Workspace::define_wsv_map();
+  define_wsv_map();
 
   // Initialize the md data:
   define_md_data_raw();
@@ -785,8 +804,12 @@ int main(int argc, char** argv) {
   // Initialize memory handler.
   global_data::workspace_memory_handler.initialize();
 
+  auto workspace_shared = Workspace::create();
+
+  Workspace& workspace=*workspace_shared;
+
   // Make all global data visible:
-  using global_data::wsv_group_names;
+  using global_data::wsv_groups;
 
   // Now we are set to deal with the more interesting command line
   // switches.
@@ -810,7 +833,7 @@ int main(int argc, char** argv) {
   // a variable, it should print all methods that produce this
   // variable as output.
   if ("" != parameters.methods) {
-    option_methods(parameters.methods);
+    option_methods(workspace, parameters.methods);
     arts_exit(EXIT_SUCCESS);
   }
 
@@ -848,9 +871,9 @@ int main(int argc, char** argv) {
           << "---------------------------------------------------------------------\n";
     }
 
-    for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
+    for (Index i = 0; i < wsv_groups.nelem(); ++i) {
       if (!parameters.plain) cout << "- ";
-      cout << wsv_group_names[i] << "\n";
+      cout << wsv_groups[i] << "\n";
     }
 
     if (!parameters.plain)
@@ -861,22 +884,8 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_DOCSERVER
   if (0 != parameters.docserver) {
-    if (parameters.daemon) {
-      int pid = fork();
-      if (!pid) {
-        Docserver docserver(parameters.docserver, parameters.baseurl);
-        docserver.launch(parameters.daemon);
-        arts_exit(0);
-      } else {
-        cout << "Docserver daemon started with PID: " << pid << endl;
-        arts_exit(0);
-      }
-    } else {
-      Docserver docserver(parameters.docserver, parameters.baseurl);
-      cout << "Starting the arts documentation server." << endl;
-      docserver.launch(parameters.daemon);
-      arts_exit(0);
-    }
+    run_docserver(parameters.docserver, parameters.baseurl, parameters.daemon);
+    arts_exit(0);
   }
 #endif
 
@@ -957,7 +966,8 @@ int main(int argc, char** argv) {
     out1 << "\n";
 
     // Output full program name (with version number):
-    out1 << "Version: " << ARTS_FULL_VERSION << arts_mod_time(argv[0]) << "\n";
+    out1 << "Version: " << arts_get_version_string() << arts_mod_time(argv[0])
+         << "\n";
 
     // Output more details about the compilation:
     out2 << osfeatures.str() << "\n";
@@ -1006,9 +1016,7 @@ int main(int argc, char** argv) {
 
         // The list of methods to execute and their keyword data from
         // the control file.
-        Agenda tasklist;
-
-        Workspace workspace;
+        Agenda tasklist{workspace};
 
         // Call the parser to parse the control text:
         ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
@@ -1018,10 +1026,6 @@ int main(int argc, char** argv) {
         tasklist.set_name("Arts");
 
         tasklist.set_main_agenda();
-
-        //tasklist.find_unused_variables();
-
-        workspace.initialize();
 
         // Execute main agenda:
         Arts2(workspace, tasklist, verbosity);
@@ -1034,49 +1038,14 @@ int main(int argc, char** argv) {
       }
     }
   } catch (const std::runtime_error& x) {
-#ifdef TIME_SUPPORT
-    struct tms arts_cputime_end;
-    clock_t arts_realtime_end;
-    long clktck = 0;
-
-    clktck = sysconf(_SC_CLK_TCK);
-    arts_realtime_end = times(&arts_cputime_end);
-    if (clktck > 0 && arts_realtime_start != (clock_t)-1 &&
-        arts_realtime_end != (clock_t)-1) {
-      out1 << "This run took " << fixed << setprecision(2)
-           << (Numeric)(arts_realtime_end - arts_realtime_start) /
-                  (Numeric)clktck
-           << "s (" << fixed << setprecision(2)
-           << (Numeric)(
-                  (arts_cputime_end.tms_stime - arts_cputime_start.tms_stime) +
-                  (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime)) /
-                  (Numeric)clktck
-           << "s CPU time)\n";
-    }
-#endif
+    out1 << "This run took " << fixed << setprecision(2)
+         << get_arts_runtime_in_sec(arts_realtime_start) << "s\n";
 
     arts_exit_with_error_message(x.what(), out0);
   }
 
-#ifdef TIME_SUPPORT
-  struct tms arts_cputime_end;
-  clock_t arts_realtime_end;
-  long clktck = 0;
-
-  clktck = sysconf(_SC_CLK_TCK);
-  arts_realtime_end = times(&arts_cputime_end);
-  if (clktck > 0 && arts_realtime_start != (clock_t)-1 &&
-      arts_realtime_end != (clock_t)-1) {
-    out1 << "This run took " << fixed << setprecision(2)
-         << (Numeric)(arts_realtime_end - arts_realtime_start) / (Numeric)clktck
-         << "s (" << fixed << setprecision(2)
-         << (Numeric)(
-                (arts_cputime_end.tms_stime - arts_cputime_start.tms_stime) +
-                (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime)) /
-                (Numeric)clktck
-         << "s CPU time)\n";
-  }
-#endif
+  out1 << "This run took " << fixed << setprecision(2)
+       << get_arts_runtime_in_sec(arts_realtime_start) << "s\n";
 
   out1 << "Everything seems fine. Goodbye.\n";
   arts_exit(EXIT_SUCCESS);

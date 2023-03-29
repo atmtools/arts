@@ -1,6 +1,9 @@
+#include <cinttypes>
 #include <mutex>
 
+#include "matpack_math.h"
 #include "plot.h"
+#include "menu.h"
 
 namespace ARTSGUI {
 // Defaults
@@ -26,7 +29,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   InitializeGUI(PlotConfig::Frame.c_str(), 1280, 720);
   
   // Our global states are stored in config
-  Config config;
+  Config config{};
   
   // Our style
   LayoutAndStyleSettings();
@@ -64,7 +67,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
     if (valid) {
       if (ImPlot::BeginPlot(PlotConfig::Title.c_str(), x.c_str(), y.c_str(), {-1, -1})) {
         for (std::size_t i=0; i<lines.size(); i++) {
-          ImPlot::PlotLine(lines[i].c_str(), xdata[i].get_c_array(), ydata[i].get_c_array(), int(ydata[i].nelem()));
+          ImPlot::PlotLine(lines[i].c_str(), xdata[i].data_handle(), ydata[i].data_handle(), int(ydata[i].nelem()));
         }
         ImPlot::EndPlot();
       }
@@ -72,8 +75,13 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
       if (xdata.size() not_eq ydata.size())
         ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
       else {
-        for (Index i=0; i<xdata.nelem(); i++) {
-          ImGui::Text("xdata[%ld] is %ld elements and ydata[%ld] is %ld elements", i, xdata[i].size(), i, ydata[i].size());
+        for (Index i = 0; i < xdata.nelem(); i++) {
+          ImGui::Text("xdata[%" PRId64 "] is %" PRId64 " elements and ydata[%" PRId64
+                      "] is %" PRId64 " elements",
+                      i,
+                      xdata[i].size(),
+                      i,
+                      ydata[i].size());
         }
       }
     }
@@ -106,7 +114,7 @@ void plot(const Vector& xdata, const Vector& ydata) {
 }
 
 void plot(const Vector& ydata) {
-  const Vector xdata(0.0, ydata.size(), 1.0);
+  const Vector xdata=uniform_grid(0.0, ydata.size(), 1.0);
   plot(xdata, ydata);
 }
 } // namespace ARTSGUI

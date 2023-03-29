@@ -18,6 +18,8 @@
  *  <http://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
+
 #include "c_wrap.h"
 
 /* FORTRAN sends pointers, so we expect those.
@@ -37,7 +39,7 @@ void fwig_table_init_(int32_t *max_two_j, int32_t *wigner_type)
   wig_table_init(*max_two_j, *wigner_type);
 }
 
-void fwig_table_free_()
+void fwig_table_free_(void)
 {
   wig_table_free();
 }
@@ -54,7 +56,7 @@ void fwig_thread_temp_init_(int32_t *max_two_j)
 }
 #endif
 
-void fwig_temp_free_()
+void fwig_temp_free_(void)
 {
   wig_temp_free();
 }

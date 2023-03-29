@@ -17,9 +17,11 @@
 
 /**
  * @file   disort.h
- * @author Claudia Emde <claudia.emde@dlr.de>
- * @date   Tue Feb  7 11:48:17 2006
-  
+ * @author Claudia Emde <claudia.emde@dlr.de>,
+ *         Manfred Brath <manfred.brath@uni-hamburg.de>
+ * @date   Tue Feb  7 10:08:28 2006,
+ *         October 27, 2021
+ *
  * @brief  Functions for disort interface.
  * 
  */
@@ -28,9 +30,25 @@
 #define disort_h
 
 #include "agenda_class.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
 #include "mystring.h"
 #include "optproperties.h"
+#include "sun.h"
+
+
+/** add_normed_phase_functions
+ *
+ * Adds two normalized phase functions, which are represented as Legendre series.
+ *
+ * @param[in, out]   pftc1   Phase function 1 as Legendre series (frequency, layer, plolynomial).
+ * @param[in]   sca1    Scattering coefficient phase function 1 (frequency, layer).
+ * @param[in]   pftc2   Phase function 2 as Legendre series (layer, polynomial).
+ * @param[in]   sca2    Scattering coefficient phase function 2 (frequency, layer).
+ */
+void add_normed_phase_functions(Tensor3View pftc1,
+                                const MatrixView& sca1,
+                                const MatrixView& pftc2,
+                                const MatrixView& sca2);
 
 /** check_disort_input. *** FIXMEDOC *** in disort.cc, line 197
  *
@@ -61,6 +79,29 @@ void check_disort_input(  // Input
     ConstVectorView za_grid,
     const Index& nstreams);
 
+/** check_disort_input.
+ *
+ * Checks that input of DisortCalcIrradiance* is sane.
+ *
+ * @param[in]  disort_is_initialized as the WSV.
+ * @param[in]  atmfields_checked     as the WSV.
+ * @param[in]  atmgeom_checked       as the WSV.
+ * @param[in]  cloudbox_checked      as the WSV.
+ * @param[in]  scat_data             as the WSV.
+ * @param[in]  nstreams              Number of quadrature angles (both hemispheres).
+ *
+ * @author     Jana Mendrok, Manfred Brath
+ * @date       2017-02-23, 2022-08-12
+ */
+void check_disort_irradiance_input(  // Input
+    const Index& atmfields_checked,
+    const Index& atmgeom_checked,
+    const Index& scat_data_checked,
+    const Index& atmosphere_dim,
+    const Index& stokes_dim,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Index& nstreams);
+
 /** init_ifield.
  *
  * Initialize cloudbox_field with the right size and NaN values.
@@ -68,7 +109,8 @@ void check_disort_input(  // Input
  * @param[out] cloudbox_field       As the WSV.
  * @param[in]  f_grid             As the WSV.
  * @param[in]  cloudbox_limits    As the WSV.
- * @param[in]  nang               Total number of angles with RT output.
+ * @param[in]  n_za               Number of zenith angles with RT output.
+ * @param[in]  n_aa               Number of azimuth angles with RT output.
  * @param[in]  stokes_dim         As the WSV.
  *
  * @author     Jana Mendrok
@@ -79,7 +121,8 @@ void init_ifield(  // Output
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& nang,
+    const Index& n_za,
+    const Index& n_aa,
     const Index& stokes_dim);
 
 /** get_disortsurf_props. *** FIXMEDOC *** input/output
@@ -110,7 +153,7 @@ void get_disortsurf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity);
 
-/** Calculate doit_i_feild with Disort.
+/** Calculate doit_i_field with Disort including a sun source.
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output
  * into cloudbox_field.
@@ -120,35 +163,49 @@ void get_disortsurf_props(  // Output
  * Altitudes, temperatures, VMRs and PNDs shall be provided with lat and lon
  * dimensions removed
  *
- * @param[in,out] ws Current workspace
- * @param[out]    cloudbox_field Radiation field
- * @param[in]     f_grid Frequency grid
- * @param[in]     p_grid Pressure grid
+ * @param[in,out] ws Current workspace.
+ * @param[out]    cloudbox_field Radiation field.
+ * @param[out]    disort_aux Auxilary data to spectral_irradiance_field.
+ * @param[in]     f_grid Frequency grid.
+ * @param[in]     p_grid Pressure grid.
  * @param[in]     z_profile Profile of geometric altitudes.
  * @param[in]     z_surface Surface altitude.
  * @param[in]     t_profile Temperature profile.
  * @param[in]     vmr_profiles VMR profiles.
  * @param[in]     pnd_profiles PND profiles.
- * @param[in]     scat_data Array of single scattering data
+ * @param[in]     scat_data Array of single scattering data.
+ * @param[in]     suns Array of sun(s).
  * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
-                  matrix
- * @param[in]     cloudbox_limits Cloudbox limits
- * @param[in]     surface_skin_t Surface skin temperature
- * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
- * @param[in]     za_grid Zenith angle grid
+                  matrix.
+ * @param[in]     gas_scattering_agenda Agenda agenda calculating the gas scattering
+                  cross section and matrix.
+ * @param[in]     cloudbox_limits Cloudbox limits.
+ * @param[in]     surface_skin_t Surface skin temperature.
+ * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity.
+ * @param[in]     za_grid Zenith angle grid.
+ * @param[in]     aa_grid azimuth angle grid.
+ * @param[in]     sun_rte_los local position of the sun top of cloudbox.
+ * @param[in]     gas_scattering_do Flag to activate gas scattering.
+ * @param[in]     suns_do Flag to activate the sun(s).
+ * @param[in]     disort_aux_vars Selection of quantities for disort_aux.
+ * @param[in]     scale_factor Geometric scaling factor, scales the sun spectral
+ *                irradiance at the surface of the sun to the spectral irradiance
+ *                of the sun at cloubbox top.
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
- *                function
- * @param[in]     quiet Silence warnings
- * @param[in]     verbosity Verbosity setting
+ *                function.
+ * @param[in]     only_tro Flag indicating that only TRO scattering data is used.
+ * @param[in]     quiet Silence warnings.
+ * @param[in]     emission Enables blackbody emission.
+ * @param[in]     intensity_correction Enables intensity correction (for low nstreams)
+ * @param[in]     verbosity Verbosity setting.
  *
- * @author        Oliver Lemke
- * @date          2019-09-19
+ * @author        Oliver Lemke, Manfred Brath
+ * @date          2019-09-19, 2021-10-27
  */
 void run_cdisort(Workspace& ws,
-                 // Output
                  Tensor7& cloudbox_field,
-                 // Input
+                 ArrayOfMatrix& disort_aux,
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
                  ConstVectorView z_profile,
@@ -157,16 +214,104 @@ void run_cdisort(Workspace& ws,
                  ConstMatrixView vmr_profiles,
                  ConstMatrixView pnd_profiles,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
+                 const ArrayOfSun& suns,
                  const Agenda& propmat_clearsky_agenda,
+                 const Agenda& gas_scattering_agenda,
                  const ArrayOfIndex& cloudbox_limits,
                  const Numeric& surface_skin_t,
                  const Vector& surface_scalar_reflectivity,
                  ConstVectorView za_grid,
+                 ConstVectorView aa_grid,
+                 ConstVectorView sun_rte_los,
+                 const Index& gas_scattering_do,
+                 const Index& suns_do,
+                 const ArrayOfString& disort_aux_vars,
+                 const Numeric& scale_factor,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& only_tro,
                  const Index& quiet,
+                 const Index& emission,
+                 const Index& intensity_correction,
                  const Verbosity& verbosity);
+
+/** Calculate  spectral_irradiance_field with Disort including a sun source.
+ *
+ * Prepares actual input variables for Disort, runs it, and sorts the output
+ * into cloudbox_field.
+ *
+ * This version uses the C implementation of Disort based on ::run_disort.
+ *
+ * Altitudes, temperatures, VMRs and PNDs shall be provided with lat and lon
+ * dimensions removed
+ *
+ * @param[in,out] ws Current workspace.
+ * @param[out]    spectral_irradiance_field spectral irradiance field.
+ * @param[out]    disort_aux Auxilary data to spectral_irradiance_field.
+ * @param[in]     f_grid Frequency grid.
+ * @param[in]     p_grid Pressure grid.
+ * @param[in]     z_profile Profile of geometric altitudes.
+ * @param[in]     z_surface Surface altitude.
+ * @param[in]     t_profile Temperature profile.
+ * @param[in]     vmr_profiles VMR profiles.
+ * @param[in]     pnd_profiles PND profiles.
+ * @param[in]     scat_data Array of single scattering data.
+ * @param[in]     suns Array of sun(s).
+ * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
+                  matrix.
+ * @param[in]     gas_scattering_agenda Agenda agenda calculating the gas scattering
+                  cross section and matrix.
+ * @param[in]     cloudbox_limits Cloudbox limits.
+ * @param[in]     surface_skin_t Surface skin temperature.
+ * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity.
+ * @param[in]     sun_rte_los local position of the sun top of cloudbox.
+ * @param[in]     gas_scattering_do Flag to activate gas scattering.
+ * @param[in]     suns_do Flag to activate the sun(s).
+ * @param[in]     disort_aux_vars Selection of quantities for disort_aux.
+ * @param[in]     scale_factor Geometric scaling factor, scales the sun spectral
+ *                irradiance at the surface of the sun to the spectral irradiance
+ *                of the sun at cloubbox top.
+ * @param[in]     nstreams Number of quadrature angles (both hemispheres).
+ * @param[in]     Npfct Number of angular grid points to calculate bulk phase
+ *                function.
+ * @param[in]     only_tro Flag indicating that only TRO scattering data is used.
+ * @param[in]     quiet Silence warnings.
+ * @param[in]     emission Enables blackbody emission.
+ * @param[in]     intensity_correction Enables intensity correction (for low nstreams)
+ * @param[in]     verbosity Verbosity setting.
+ *
+ * @author        Oliver Lemke, Manfred Brath
+ * @date          2019-09-19, 2021-10-27
+ */
+void run_cdisort_flux(Workspace& ws,
+                      Tensor5& spectral_irradiance_field,
+                      ArrayOfMatrix& disort_aux,
+                      ConstVectorView f_grid,
+                      ConstVectorView p_grid,
+                      ConstVectorView z_profile,
+                      const Numeric& z_surface,
+                      ConstVectorView t_profile,
+                      ConstMatrixView vmr_profiles,
+                      ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSingleScatteringData& scat_data,
+                      const ArrayOfSun& suns,
+                      const Agenda& propmat_clearsky_agenda,
+                      const Agenda& gas_scattering_agenda,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Numeric& surface_skin_t,
+                      const Vector& surface_scalar_reflectivity,
+                      ConstVectorView sun_rte_los,
+                      const Index& gas_scattering_do,
+                      const Index& suns_do,
+                      const ArrayOfString& disort_aux_vars,
+                      const Numeric& scale_factor,
+                      const Index& nstreams,
+                      const Index& Npfct,
+                      const Index& only_tro,
+                      const Index& quiet,
+                      const Index& emission,
+                      const Index& intensity_correction,
+                      const Verbosity& verbosity);
 
 /** get_gasoptprop.
  *
@@ -190,6 +335,34 @@ void get_gasoptprop(Workspace& ws,
                     ConstMatrixView vmr_profiles,
                     ConstVectorView p_grid,
                     ConstVectorView f_grid);
+
+/** get_gas_scattering_properties
+ *
+ * Calculates the gas scattering coefficient for level and for layer averaged
+ * and the layer averaged phase function as Legendre series.
+ *
+ * @param[in,out]   ws                      Current workspace.
+ * @param[out]      sca_coeff_gas           Gas scattering coefficient (all layers,freqs).
+ * @param[out]      sca_coeff_gas_level     Gas scattering coefficient (all levels,freqs).
+ * @param[out]      pfct_gas                Legendre moments for all layers.
+ * @param[in]       f_grid                  Frequency grid.
+ * @param[in]       p                       Pressure profile.
+ * @param[in]       t                       Temperature.
+ * @param[in]       vmr                     Volume mixing ratio.
+ * @param[in]       gas_scattering_agenda   Gas scattering agenda.
+ *
+ * @author     Manfred Brath
+ * @date       2021-11-17
+ */
+void get_gas_scattering_properties(Workspace& ws,
+                                   MatrixView sca_coeff_gas,
+                                   MatrixView sca_coeff_gas_level,
+                                   MatrixView pfct_gas,
+                                   const ConstVectorView& f_grid,
+                                   const VectorView& p,
+                                   const VectorView& t,
+                                   const MatrixView& vmr,
+                                   const Agenda& gas_scattering_agenda);
 
 /** get_paroptprop.
  *
@@ -306,7 +479,7 @@ void get_parZ(Tensor3& pha_bulk_par,
  * @date   2018-04-04
  */
 void get_pfct(Tensor3& pfct_bulk_par,
-              ConstTensor3View& pha_bulk_par,
+              ConstTensor3View pha_bulk_par,
               ConstMatrixView ext_bulk_par,
               ConstMatrixView abs_bulk_par,
               const ArrayOfIndex& cloudbox_limits);
@@ -329,6 +502,21 @@ void get_pmom(Tensor3View pmom,
               ConstTensor3View pfct_bulk_par,
               ConstVectorView pfct_angs,
               const Index& Nlegendre);
+
+/** get_scat_bulk_layer
+ *
+ * Calculates layer averaged scattering coefficient
+ *
+ * @param[out]  sca_bulk_layer  Bulk scattering coefficient (all levels & freqs)
+ * @param[in]   ext_bulk        Bulk extinction coefficient (all levels & freqs)
+ * @param[in]   abs_bulk        Bulk absorption coefficient (all levels & freqs)
+ *
+ * @author     Manfred Brath
+ * @date       2021-11-17
+ */
+void get_scat_bulk_layer(MatrixView sca_bulk_layer,
+                         const MatrixView& ext_bulk,
+                         const MatrixView& abs_bulk);
 
 /** reduced_1datm
  *

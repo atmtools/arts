@@ -6,21 +6,19 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Blackbody surface with skin temperature interpolated from t_surface field
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 IndexSet( stokes_dim, 1 )
 AtmosphereSet3D
@@ -46,7 +44,7 @@ ReadXML( z_surface, "TestMonteCarloDataPrepare.z_surface.xml" )
 
 ReadXML( abs_lookup, "TestMonteCarloDataPrepare.abs_lookup.xml" )
 
-abs_speciesSet( species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"] )
+abs_speciesSet( species=["O2-PWR98","N2-SelfContStandardType","H2O-PWR98"] )
 
 abs_lookupAdapt
 
@@ -67,10 +65,8 @@ cloudbox_checkedCalc
 #### Define Agendas #################################################
 
 # absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 
 #### Define viewing position and line of sight #########################
@@ -90,7 +86,7 @@ IndexSet( stokes_dim, 4 )
 IndexSet( antenna_dim, 1 )
 #
 VectorSet( za_grid, [-0.2,-0.02,0.00,0.02,0.20 ] )
-Matrix1ColFromVector( mblock_dlos_grid, za_grid )
+Matrix1ColFromVector( mblock_dlos, za_grid )
 #
 MatrixSetConstant( antenna_dlos, 1, 1, 0 )
 
@@ -115,7 +111,7 @@ NumericSet( mc_std_err,       -1 )
 IndexSet(   mc_max_time,      -1 )
 IndexSet(   mc_max_iter,      100 )
 
-Copy( iy_main_agenda, iy_main_agenda__ScattMC )
+iy_main_agendaSet( option="ScattMC" )
 
 ArrayOfStringSet( iy_aux_vars, [ "Error (uncorrelated)" ] )
 

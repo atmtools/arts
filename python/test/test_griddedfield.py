@@ -1,11 +1,13 @@
 # -*- encoding: utf-8 -*-
 import os
 from tempfile import mkstemp
+from copy import deepcopy as copy
 
 import numpy as np
 import pytest
 
-from pyarts import griddedfield, xml
+from pyarts import xml
+import pyarts.arts as cxx
 
 
 def _create_tensor(n):
@@ -27,12 +29,12 @@ def _create_tensor(n):
 def _get_griddedfield_type(dim):
     """Return the appropriate `GriddedField` type for given dimension."""
     return {
-        1: griddedfield.GriddedField1,
-        2: griddedfield.GriddedField2,
-        3: griddedfield.GriddedField3,
-        4: griddedfield.GriddedField4,
-        5: griddedfield.GriddedField5,
-        6: griddedfield.GriddedField6,
+        1: cxx.GriddedField1,
+        2: cxx.GriddedField2,
+        3: cxx.GriddedField3,
+        4: cxx.GriddedField4,
+        5: cxx.GriddedField5,
+        6: cxx.GriddedField6,
     }.get(dim)
 
 
@@ -43,19 +45,19 @@ class TestGriddedFieldUsage:
     def test_check_init(self, dim):
         """Test initialisation of GriddedFields."""
         cls = _get_griddedfield_type(dim)
-        assert cls().dimension == dim
+        assert cls().dim == dim
 
     def test_check_dimension1(self):
         """Test if grid and data dimension agree (positive)."""
-        gf3 = griddedfield.GriddedField3()
+        gf3 = cxx.GriddedField3()
         gf3.grids = [np.arange(5), np.arange(5), []]
         gf3.gridnames = ["A", "B", "C"]
         gf3.data = np.ones((5, 5, 1))
-        assert gf3.check_dimension() is True
+        assert gf3.checksize() is True
 
     def test_check_dimension2(self):
         """Test if grid and data dimension agree (negative)."""
-        gf3 = griddedfield.GriddedField3()
+        gf3 = cxx.GriddedField3()
         gf3.grids = [np.arange(5), np.arange(5), []]
         gf3.gridnames = ["A", "B", "C"]
 
@@ -66,20 +68,20 @@ class TestGriddedFieldUsage:
     def test_data(self):
         """Test setting and getting of data. """
         reference = np.random.randn(10, 10, 10)
-        gf3 = griddedfield.GriddedField3()
+        gf3 = cxx.GriddedField3()
         gf3.data = reference
         assert np.array_equal(gf3.data, reference)
 
     def test_name_setter(self):
         """Test name setter and getter."""
         reference = 'TestName'
-        gf = griddedfield.GriddedField1()
+        gf = cxx.GriddedField1()
         gf.name = reference
         assert gf.name == reference
 
     def _setup_gf2(self):
         """Helper for test_to_dict and test_to_xarray"""
-        gf2 = griddedfield.GriddedField2()
+        gf2 = cxx.GriddedField2()
         gf2.grids = [np.ones(5), np.zeros(5)]
         gf2.gridnames = ["ones", "zeros"]
         gf2.data = np.ones((5, 5))
@@ -103,7 +105,7 @@ class TestGriddedFieldUsage:
 
         da = gf2.to_xarray()
 
-        assert (da.name == "semprini" and
+        assert (da.data_name == "semprini" and
                 da.dims == ("ones", "zeros") and
                 np.array_equal(da.coords["zeros"], np.zeros(5)) and
                 np.array_equal(da.coords["ones"], np.ones(5)) and
@@ -113,7 +115,7 @@ class TestGriddedFieldUsage:
     def test_name_type(self, nametype):
         """Test if only names of type str are accepted."""
         with pytest.raises(TypeError):
-            gf = griddedfield.GriddedField1()
+            gf = cxx.GriddedField1()
             gf.name = nametype
 
     def test_shape(self):
@@ -143,11 +145,11 @@ class TestGriddedFieldUsage:
 
     def test_repr_empty(self):
         """Test string represenation of empty GriddedField objects."""
-        str(griddedfield.GriddedField1())
+        str(cxx.GriddedField1())
 
     def test_get(self):
         """Test the get method for named fields."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[['foo', 'bar']],
             data=np.array([42, 13]),
         )
@@ -156,7 +158,7 @@ class TestGriddedFieldUsage:
 
     def test_get_default(self):
         """Test the GriddedField.get() behavior for non-existing fieldnames."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[['dummy']],
             data=np.array([0]),
         )
@@ -169,7 +171,7 @@ class TestGriddedFieldUsage:
 
     def test_get_keepdims(self):
         """Test the dimension handling of the GriddedField.get()."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[['foo', 'bar']],
             data=np.array([42, 13]),
         )
@@ -179,7 +181,7 @@ class TestGriddedFieldUsage:
 
     def test_get_nofieldnames(self):
         """Test behavior if first grids is not ArrayOfString."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[[0]],
             data=np.array([0]),
         )
@@ -189,7 +191,7 @@ class TestGriddedFieldUsage:
 
     def test_scaling(self):
         """Test the scaling of data in named fields."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[['first_field', 'second_field']],
             data=np.array([1., 1.]),
         )
@@ -202,7 +204,7 @@ class TestGriddedFieldUsage:
 
     def test_integer_scaling(self):
         """Test the scaling of integer data in named fields."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[['first_field', 'second_field']],
             data=np.array([1, 1]),
         )
@@ -215,7 +217,7 @@ class TestGriddedFieldUsage:
 
     def test_set(self):
         """Test the set method for named fields."""
-        gf1 = griddedfield.GriddedField1(
+        gf1 = cxx.GriddedField1(
             grids=[['zero', 'one']],
             data=np.array([0, 0]),
         )
@@ -247,12 +249,13 @@ class TestGriddedFieldLoad:
         reference = ['grid1', 'grid2', 'grid3']
         gf3 = xml.load(self.ref_dir + 'GriddedField3.xml')
         test_data = gf3.gridnames
-        assert np.array_equal(test_data, reference)
+        
+        assert test_data == reference
 
     def test_load_dimension(self):
         """Load reference XML file for GriddedField3 and run check."""
         gf3 = xml.load(self.ref_dir + 'GriddedField3.xml')
-        assert gf3.check_dimension()
+        assert gf3.checksize()
 
     def test_equality(self):
         """Check the equality of two GriddedField objects."""
@@ -265,8 +268,8 @@ class TestGriddedFieldLoad:
     def test_equality_empty(self):
         """Check the equality of two empty GriddedField objects."""
         # Create two different objects with same content.
-        a = griddedfield.GriddedField3()
-        b = griddedfield.GriddedField3()
+        a = cxx.GriddedField3()
+        b = cxx.GriddedField3()
 
         assert a == b
 
@@ -284,7 +287,7 @@ class TestGriddedFieldLoad:
     def test_copy(self):
         """Test copying of GriddedFields."""
         a = xml.load(self.ref_dir + 'GriddedField3.xml')
-        b = a.copy()
+        b = copy(a)
 
         # GriddedFields should be equal but not the same object.
         assert a is not b and a == b
@@ -292,16 +295,16 @@ class TestGriddedFieldLoad:
     def test_deepcopy(self):
         """Test deepcopying of GriddedField attributes."""
         a = xml.load(self.ref_dir + 'GriddedField3.xml')
-        b = a.copy()
+        b = copy(a)
 
         # Grids should not be the same object.
         assert a.grids is not b.grids
 
     def test_from_xarray(self):
         a = xml.load(self.ref_dir + 'GriddedField3.xml')
-        a.dataname = 'Testdata'
+        a.name = 'Testdata'
         da = a.to_xarray()
-        b = griddedfield.GriddedField3.from_xarray(da)
+        b = cxx.GriddedField3.from_xarray(da)
         assert a == b
 
 
@@ -325,3 +328,8 @@ class TestGriddedFieldWrite:
         test_data = xml.load(self.f)
 
         assert np.array_equal(gf.data, test_data.data)
+
+
+if __name__ == "__main__":
+    x = TestGriddedFieldLoad()
+    x.test_equality_empty()

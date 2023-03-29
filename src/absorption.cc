@@ -32,6 +32,7 @@
 
 #include "absorption.h"
 #include "arts.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "file.h"
 #include "linescaling.h"
@@ -39,6 +40,7 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include "partfun.h"
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -83,16 +85,7 @@ void checkIsotopologueRatios(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_
     \author Stefan Buehler
     \date   2001-06-26 */
 Numeric wavenumber_to_joule(Numeric e) {
-  // Planck constant [Js]
-  extern const Numeric PLANCK_CONST;
-
-  // Speed of light [m/s]
-  extern const Numeric SPEED_OF_LIGHT;
-
-  // Constant to convert lower state energy from cm^-1 to J
-  const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
-
-  return e * lower_energy_const;
+  return Conversion::kaycm2joule(e);
 }
 
 //!  set_abs_from_first_species.

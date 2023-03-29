@@ -56,12 +56,12 @@ void print_max_factiter(int lim)
     if ((maxfact) > wigxjpf_max_prime_decomp) {			\
       if (wigxjpf_max_prime_decomp == -1)			\
 	fprintf (stderr, "wigxjpf: "				\
-		 "No factorials table.  Abort.");		\
+		 "No factorials table.\n");			\
       else							\
 	fprintf (stderr, "wigxjpf: "				\
 		 "Too large factorial (%d!).  "			\
-		 "Increase MAX_FACT.  Abort.\n", (maxfact));	\
-      exit(1);							\
+		 "Increase MAX_FACT.\n", (maxfact));		\
+      wigxjpf_error();						\
     }								\
     ACCOUNT_MAX_FACT(maxfact);					\
   } while (0)
@@ -69,17 +69,16 @@ void print_max_factiter(int lim)
 #define CHECK_TEMP do {						\
     if (csi == NULL) {						\
       fprintf (stderr, "wigxjpf: "				\
-	       "Temp array not allocated.  (For this thread?)"	\
-	       "Abort.\n");					\
-      exit(1);							\
+	       "Temp array not allocated.  "			\
+	       "(For this thread?)\n");				\
+      wigxjpf_error();						\
     }							        \
     if (csi->inuse) {						\
       fprintf (stderr, "wigxjpf: "				\
 	       "Temp array already in use.  "			\
 	       "Running multi-threaded, "			\
-	       "but wigxjpf not compiled for that?  "		\
-	       "Abort.\n");					\
-      exit(1);							\
+	       "but wigxjpf not compiled for that?\n");		\
+      wigxjpf_error();						\
     }								\
     csi->inuse = 1;						\
   } while (0)
@@ -88,14 +87,14 @@ void print_max_factiter(int lim)
     if ((iter) > csi->max_iter) {			        \
       fprintf (stderr, "wigxjpf: "				\
 	       "More iterations (%d) than allocated "		\
-	       "in temp array.  Abort.\n", (iter));	        \
-      exit(1);							\
+	       "in temp array.\n", (iter));			\
+      wigxjpf_error();						\
     }							        \
     ACCOUNT_MAX_ITER(iter);				        \
   } while (0)
 
-void __attribute__ ((noinline)) delta_coeff(int two_a, int two_b, int two_c,
-					    struct prime_exponents *prefact_fpf)
+void WIGXJPF_NOINLINE delta_coeff(int two_a, int two_b, int two_c,
+				  struct prime_exponents *prefact_fpf)
 {
   /* Check maximum factorial. */
 
@@ -659,9 +658,9 @@ struct wigxjpf_temp *wigxjpf_temp_alloc(int max_iter)
   if (temp == NULL)
     {
       fprintf (stderr,
-	       "wigxjpf: Memory allocation error (wigxjpf_temp), %zd bytes.",
+	       "wigxjpf: Memory allocation error (wigxjpf_temp), %zd bytes.\n",
 	       total_size);
-      exit(1);
+      wigxjpf_error();
     }
 
   size_t align_pf = (size_t) (temp + 1);
@@ -708,8 +707,8 @@ void wigxjpf_temp_free(struct wigxjpf_temp *temp)
   if (temp->inuse)
     {
       fprintf (stderr,
-	       "wigxjpf: Freeing temp array while still in use.  Abort.");
-      exit(1);
+	       "wigxjpf: Freeing temp array while still in use.\n");
+      wigxjpf_error();
     }
 
   mwi_free(&temp->sum_prod);

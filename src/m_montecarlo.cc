@@ -33,12 +33,14 @@
 #include <fstream>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "matpackI.h"
+#include "matpack_data.h"
 #include "mc_interp.h"
 #include "messages.h"
 #include "montecarlo.h"
@@ -50,11 +52,11 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PI;
-extern const Numeric BOLTZMAN_CONST;
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -665,7 +667,7 @@ void MCRadar(  // Workspace reference:
         "The vector *range_bins* is not allowed to contain "
         "negative distance or round-trip time.");
 
-  if (mc_antenna.get_type() != ANTENNA_TYPE_GAUSSIAN) {
+  if (mc_antenna.atype != ANTENNA_TYPE_GAUSSIAN) {
     throw runtime_error(
         "MCRadar only works with "
         "Gaussian antenna patterns.");
@@ -875,7 +877,7 @@ void MCRadar(  // Workspace reference:
                                               lon_grid,
                                               refellipsoid,
                                               local_rte_pos,
-                                              sensor_pos(0, joker),
+                                              Vector{sensor_pos(0, joker)},
                                               verbosity);
         }
 
@@ -895,7 +897,7 @@ void MCRadar(  // Workspace reference:
                                             lat_grid,
                                             lon_grid,
                                             refellipsoid,
-                                            sensor_pos(0, joker),
+                                            Vector{sensor_pos(0, joker)},
                                             local_rte_pos,
                                             verbosity);
 
@@ -912,7 +914,7 @@ void MCRadar(  // Workspace reference:
                          f_grid,
                          refellipsoid,
                          z_surface,
-                         sensor_pos(0, joker),
+                         Vector{sensor_pos(0, joker)},
                          local_rte_pos,
                          ppath_lmax,
                          za_accuracy,

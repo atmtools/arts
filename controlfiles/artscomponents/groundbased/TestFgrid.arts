@@ -2,24 +2,25 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # ---- Species ---------------------------------------------------------------
@@ -41,18 +42,12 @@ AtmFieldsCalc
 
 # ---- Absorption ------------------------------------------------------------
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 ReadARTSCAT( abs_lines, "testdata/ozone_line.xml" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 abs_lines_per_speciesCreateFromLines
 
-abs_cont_descriptionInit
+propmat_clearsky_agendaAuto
 
 
 # ---- Observation geometry --------------------------------------------------
@@ -128,8 +123,6 @@ IndexSet( stokes_dim, 1 )
 jacobianOff
 cloudboxOff
 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

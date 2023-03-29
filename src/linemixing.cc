@@ -3,19 +3,54 @@
 #include <numeric>
 
 #include <Faddeeva/Faddeeva.hh>
+#include <vector>
 
-#include "constants.h"
+#include "arts_conversions.h"
 #include "debug.h"
 #include "lin_alg.h"
 #include "linemixing.h"
 #include "lineshape.h"
-#include "matpack.h"
 #include "matpack_complex.h"
+#include "matpack_data.h"
+#include "matpack_eigen.h"
 #include "messages.h"
 #include "minimize.h"
 #include "physics_funcs.h"
+#include "quantum_numbers.h"
 #include "rational.h"
 #include "species.h"
+#include "wigner_functions.h"
+
+#if DO_FAST_WIGNER
+#define WIGNER3 fw3jja6
+#define WIGNER6 fw6jja
+#else
+#define WIGNER3 wig3jj
+#define WIGNER6 wig6jj
+#endif
+
+Numeric wig3(const Rational& a,
+             const Rational& b,
+             const Rational& c,
+             const Rational& d,
+             const Rational& e,
+             const Rational& f) noexcept {
+  return WIGNER3(
+      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+}
+
+Numeric wig6(const Rational& a,
+             const Rational& b,
+             const Rational& c,
+             const Rational& d,
+             const Rational& e,
+             const Rational& f) noexcept {
+  return WIGNER6(
+      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+}
+
+#undef WIGNER3
+#undef WIGNER6
 
 namespace Absorption::LineMixing {
 EquivalentLines::EquivalentLines(const ComplexMatrix& W,
@@ -55,11 +90,11 @@ EquivalentLines::EquivalentLines(const ComplexMatrix& W,
   }
   
   // Do the matrix backward multiplication
-  auto& invV=V.inv();
+  inv(V, V);
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      z += pop[j] * dip[j] * invV(i, j);
+      z += pop[j] * dip[j] * V(i, j);
     }
     str[i] *= z;
   }
@@ -137,7 +172,7 @@ Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
 
 
 PopulationAndDipole::PopulationAndDipole(const Numeric T,
-                                         const AbsorptionLines& band) noexcept :
+                                         const AbsorptionLines& band) :
   pop(band.NumLines()), dip(band.NumLines()) {
   const Index n = band.NumLines();
   
@@ -172,7 +207,7 @@ ArrayOfIndex PopulationAndDipole::sort(const AbsorptionLines& band) noexcept {
   // Strength
   Vector s(N);
   for (Index i=0; i<N; i++) {
-    s[i] = band.lines[i].F0 * pop[i] * Constant::pow2(dip[i]);
+    s[i] = band.lines[i].F0 * pop[i] * Math::pow2(dip[i]);
   }
   
   // Sorter
@@ -232,7 +267,7 @@ PopulationAndDipole presorted_population_and_dipole(const Numeric T,
 Numeric SpeciesErrorCorrectedSuddenData::Q(const Rational J,
                                            const Numeric T,
                                            const Numeric T0,
-                                           const Numeric energy) const noexcept {
+                                           const Numeric energy) const {
   return std::exp(- beta.at(T, T0) * energy / (Constant::k * T)) * scaling.at(T, T0) / pow(J * (J+1), lambda.at(T, T0));
 }
 
@@ -240,14 +275,13 @@ Numeric SpeciesErrorCorrectedSuddenData::Omega(const Numeric T,
                                                const Numeric T0,
                                                const Numeric other_mass,
                                                const Numeric energy_x,
-                                               const Numeric energy_xm2) const noexcept
-{
+                                               const Numeric energy_xm2) const {
   using Constant::h;
   using Constant::k;
   using Constant::pi;
   using Constant::m_u;
   using Constant::h_bar;
-  using Constant::pow2;
+  using Math::pow2;
   
   // Constants for the expression
   constexpr Numeric fac = 8 * k / (m_u * pi);
@@ -279,8 +313,8 @@ Numeric erot(const Rational N, const Rational j=-1) {
     return erot<false>(N, J) - erot<false>(1, 0);
   } else {
     using Conversion::mhz2joule;
-    using Constant::pow2;
-    using Constant::pow3;
+    using Math::pow2;
+    using Math::pow3;
     
     constexpr Numeric B0=43100.4425e0;
     constexpr Numeric D0=.145123e0;
@@ -319,31 +353,49 @@ Numeric erot(const Rational N, const Rational j=-1) {
  * @param[in] mass_self The mass of the self-species
  * @param[in] mass_other The mass of the colliding species
  */
-void relaxation_matrix_offdiagonal(MatrixView W,
-                                   const AbsorptionLines& band,
-                                   const ArrayOfIndex& sorting,
-                                   const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT {
+void relaxation_matrix_offdiagonal(
+    MatrixView W,
+    const AbsorptionLines& band,
+    const ArrayOfIndex& sorting,
+    const SpeciesErrorCorrectedSuddenData& rovib_data,
+    const Numeric T) {
   using Conversion::kelvin2joule;
-  
-  const auto bk = [](const Rational& r) -> Numeric {return sqrt(2*r + 1);};
-  
+
+  const auto bk = [](const Rational& r) -> Numeric { return sqrt(2 * r + 1); };
+
   const Index n = band.NumLines();
   if (n == 0) return;
 
   auto& S = band.quantumidentity.val[QuantumNumberType::S];
   const Rational Si = S.upp();
   const Rational Sf = S.low();
-  ARTS_ASSERT(Si.isDefined() and Sf.isDefined(), "Need S for band selection")
-  
+
   Vector dipr(n);
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
     auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
-    
+
     dipr[i] = reduced_dipole(J.upp(), J.low(), N.upp());
   }
 
+  const auto maxL = temp_init_size(band.max(QuantumNumberType::J), band.max(QuantumNumberType::N));
+
+  const auto Om = [&]() {
+    std::vector<Numeric> out(maxL);
+    for (Index i = 0; i < maxL; i++)
+      out[i] = rovib_data.Omega(
+          T, band.T0, band.SpeciesMass(), erot(i), erot(i - 2));
+    return out;
+  }();
+
+  const auto Q = [&]() {
+    std::vector<Numeric> out(maxL);
+    for (Index i = 0; i < maxL; i++)
+      out[i] = rovib_data.Q(i, T, band.T0, erot(i));
+    return out;
+  }();
+
+  wig_thread_temp_init(maxL);
   for (Index i = 0; i < n; i++) {
     auto& J = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J];
     auto& N = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N];
@@ -368,31 +420,38 @@ void relaxation_matrix_offdiagonal(MatrixView W,
 
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
-      Numeric sum=0;
-      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) * bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) * bk(Ji_p);
-      const auto [L0, L1] = wigner_limits(wigner3j_limits<3>(Ni_p, Ni), {Rational(2), std::numeric_limits<Index>::max()});
-      for (Rational L=L0; L<=L1; L+=2) {
-        const Numeric a = wigner3j(Ni_p, Ni, L, 0, 0, 0);
-        const Numeric b = wigner3j(Nf_p, Nf, L, 0, 0, 0);
-        const Numeric c = wigner6j(L, Ji, Ji_p, Si, Ni_p, Ni);
-        const Numeric d = wigner6j(L, Jf, Jf_p, Sf, Nf_p, Nf);
-        const Numeric e = wigner6j(L, Ji, Ji_p, 1, Jf_p, Jf);
-        sum += a * b * c * d * e * Numeric(2*L + 1) * rovib_data.Q(L, T, band.T0, erot(L)) / rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(L), erot(L-2));
+      Numeric sum = 0;
+      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) *
+                          bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) *
+                          bk(Ji_p);
+      const auto [L0, L1] =
+          wigner_limits(wigner3j_limits<3>(Ni_p, Ni),
+                        {Rational(2), std::numeric_limits<Index>::max()});
+      for (Rational L = L0; L <= L1; L += 2) {
+        const Numeric a = wig3(Ni_p, Ni, L, 0, 0, 0);
+        const Numeric b = wig3(Nf_p, Nf, L, 0, 0, 0);
+        const Numeric c = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
+        const Numeric d = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
+        const Numeric e = wig6(L, Ji, Ji_p, 1, Jf_p, Jf);
+        sum += a * b * c * d * e * Numeric(2 * L + 1) * Q[L.toIndex()] / Om[L.toIndex()];
       }
-      sum *= scl * rovib_data.Omega(T, band.T0, band.SpeciesMass(), erot(Ni), erot(Ni - 2));
-      
+      sum *= scl * Om[Ni.toIndex()];
+
       // Add to W and rescale to upwards element by the populations
       W(i, j) = sum;
-      W(j, i) = sum * std::exp((erot(Nf_p, Jf_p) - erot(Nf, Jf)) / kelvin2joule(T));
+      W(j, i) = sum * std::exp((erot(Nf_p) - erot(Nf)) / kelvin2joule(T));
     }
   }
+  wig_temp_free();
+
+  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 
   // Sum rule correction
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     Numeric sumlw = 0.0;
     Numeric sumup = 0.0;
-    
-    for (Index j=0; j<n; j++) {
+
+    for (Index j = 0; j < n; j++) {
       if (j > i) {
         sumlw += dipr[j] * W(j, i);
       } else {
@@ -400,17 +459,18 @@ void relaxation_matrix_offdiagonal(MatrixView W,
       }
     }
 
-    const Rational Ji = band.lines[sorting[i]].localquanta.val[QuantumNumberType::J].low();
-    const Rational Ni = band.lines[sorting[i]].localquanta.val[QuantumNumberType::N].low();
+    const Rational Ni =
+        band.lines[sorting[i]].localquanta.val[QuantumNumberType::N].low();
     for (Index j = i + 1; j < n; j++) {
-      const Rational Jj = band.lines[sorting[j]].localquanta.val[QuantumNumberType::J].low();
-      const Rational Nj = band.lines[sorting[j]].localquanta.val[QuantumNumberType::N].low();
+      const Rational Nj =
+          band.lines[sorting[j]].localquanta.val[QuantumNumberType::N].low();
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
       } else {
-        W(j, i) *= - sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(Ni, Ji) - erot(Nj, Jj)) / kelvin2joule(T));  // This gives LTE
+        W(j, i) *= -sumup / sumlw;
+        W(i, j) = W(j, i) * std::exp((erot(Ni) - erot(Nj)) /
+                                     kelvin2joule(T));  // This gives LTE
       }
     }
   }
@@ -428,8 +488,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
  */
 namespace LinearRovibErrorCorrectedSudden {
 
-EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot)
-{
+EnergyFunction erot_selection(const SpeciesIsotopeRecord& isot) {
   if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
     return [](const Rational J) -> Numeric {return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));};
   }
@@ -442,8 +501,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
                                    const AbsorptionLines& band,
                                    const ArrayOfIndex& sorting,
                                    const SpeciesErrorCorrectedSuddenData& rovib_data,
-                                   const Numeric T) ARTS_NOEXCEPT
-{
+                                   const Numeric T) {
   using Conversion::kelvin2joule;
   
   const Index n = band.NumLines();
@@ -617,7 +675,7 @@ ComplexMatrix ecs_relaxation_matrix(const Numeric T,
     if (vmrs[k] == 0) continue;
     
     // Sum up all atmospheric components
-    MapToEigen(W).noalias() += vmrs[k] * MapToEigen(
+    matpack::eigen::mat(W).noalias() += vmrs[k] * matpack::eigen::mat(
       single_species_ecs_relaxation_matrix(band, sorting, T, P, ecs_data[band.broadeningspecies[k]], k));
   }
 
@@ -697,7 +755,7 @@ std::pair<ComplexVector, bool> ecs_absorption_impl(const Numeric T,
       works = false;
     }
   }
-  
+
   return retval;
 }
 
@@ -722,19 +780,19 @@ EcsReturn ecs_absorption(const Numeric T,
     auto& target = jacobian_quantities[i].Target();
     
     if (target == Jacobian::Atm::Temperature) {
-      const Numeric dT = target.Perturbation();
+      const Numeric dT = target.perturbation;
       const auto [dabs, dwork] = ecs_absorption_impl(T+dT, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec -= dabs;
       vec /= -dT;
       work &= dwork;
     } else if (target.isMagnetic()) {
-      const Numeric dH = target.Perturbation();
+      const Numeric dH = target.perturbation;
       const auto [dabs, dwork] = ecs_absorption_impl(T, H+dH, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
       vec -= dabs;
       vec /= -dH;
       work &= dwork;
     } else if (target.isWind()) {
-      const Numeric df = target.Perturbation();
+      const Numeric df = target.perturbation;
       Vector f_grid_copy = f_grid;
       f_grid_copy += df;
       const auto [dabs, dwork] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid_copy, zeeman_polarization, band);
@@ -742,18 +800,18 @@ EcsReturn ecs_absorption(const Numeric T,
       vec /= df;
       work &= dwork;
     } else if (target == Jacobian::Line::VMR) {
-      if (band.DoVmrDerivative(target.QuantumIdentity())) {
+      if (band.DoVmrDerivative(target.qid)) {
         Vector vmrs_copy = vmrs;
         Numeric this_vmr_copy = this_vmr;
-        const Numeric dvmr = target.Perturbation();
+        const Numeric dvmr = target.perturbation;
         
         // Alter the VMRs for self 
-        if (band.Isotopologue() == target.QuantumIdentity().Isotopologue()) {
+        if (band.Isotopologue() == target.qid.Isotopologue()) {
           this_vmr_copy += dvmr;
           if (band.selfbroadening) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
         } else {
           for (Index j=band.selfbroadening; j<band.broadeningspecies.nelem()-band.bathbroadening; j++) {
-            if (band.broadeningspecies[j] == target.QuantumIdentity().Species()) {
+            if (band.broadeningspecies[j] == target.qid.Species()) {
               vmrs_copy[j] += dvmr;
             }
           }
@@ -769,11 +827,11 @@ EcsReturn ecs_absorption(const Numeric T,
       Numeric d=1e-6;
       
       for (Index iline=0; iline<band.NumLines(); iline++) {
-        if (Quantum::Number::StateMatch(target.QuantumIdentity(), band.lines[iline].localquanta, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
+        if (Quantum::Number::StateMatch(target.qid, band.lines[iline].localquanta, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
           AbsorptionLines band_copy = band;
           
-          const Index pos = band.BroadeningSpeciesPosition(target.QuantumIdentity().Species());
-          switch (target.LineType()) {
+          const Index pos = band.BroadeningSpeciesPosition(target.qid.Species());
+          switch (target.line) {
             case Jacobian::Line::ShapeG0X0:
               d *= band.lines[iline].lineshape[pos].G0().X0;
               band_copy.lines[iline].lineshape[pos].G0().X0 += d;
@@ -918,12 +976,12 @@ EcsReturn ecs_absorption(const Numeric T,
           vec -= dabs;
           vec /= -d;
           work &= dwork;
-        } else if (Quantum::Number::StateMatch(target.QuantumIdentity(), band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
+        } else if (Quantum::Number::StateMatch(target.qid, band.quantumidentity) == Quantum::Number::StateMatchType::Full) {
           ErrorCorrectedSuddenData ecs_data_copy = ecs_data;
           
-          const auto spec = target.QuantumIdentity().Species();
+          const auto spec = target.qid.Species();
           ARTS_USER_ERROR_IF(const Index pos = ecs_data.pos(spec); pos == ecs_data.size(), "No data for species ", spec, " in ecs_data:\n", ecs_data)
-          switch (target.LineType()) {
+          switch (target.line) {
             case Jacobian::Line::ECS_SCALINGX0:
               d *= ecs_data_copy[spec].scaling.X0;
               ecs_data_copy[spec].scaling.X0 += d;
@@ -1046,7 +1104,7 @@ EcsReturn ecs_absorption(const Numeric T,
     }
   }
   
-  return EcsReturn(std::move(absorption), std::move(jacobian), not work);
+  return {std::move(absorption), std::move(jacobian), not work};
 }
 
 Index band_eigenvalue_adaptation(
@@ -1179,9 +1237,9 @@ Vector RosenkranzG(const Vector& dip,
   for (Index k=0; k<N; k++) {
     for (Index j=0; j<N; j++) {
       if (k == j) continue;
-      G[k] += W(k, j) * W(j, k) / Constant::pow2(band.lines[j].F0 - band.lines[k].F0);
-      G[k] += Constant::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.lines[j].F0 - band.lines[k].F0));
-      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Constant::pow2(band.lines[j].F0 - band.lines[k].F0);
+      G[k] += W(k, j) * W(j, k) / Math::pow2(band.lines[j].F0 - band.lines[k].F0);
+      G[k] += Math::pow2(std::abs(dip[j] / dip[k]) * W(j, k) / (band.lines[j].F0 - band.lines[k].F0));
+      G[k] += 2 * std::abs(dip[j] / dip[k]) * W(j, k) * W(k, k) / Math::pow2(band.lines[j].F0 - band.lines[k].F0);
       for (Index l=0; l<N; l++) {
         if (l == k or l == j) continue;
         G[k] -= 2 * std::abs(dip[j] / dip[k]) * W(j, l) * W(l, k) / ((band.lines[j].F0 - band.lines[k].F0) * (band.lines[l].F0 - band.lines[k].F0));
@@ -1454,5 +1512,64 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
   }
   return out;
 }
-} // namespace Absorption::LineMixing
 
+std::ostream& operator<<(std::ostream& os,
+                         const ErrorCorrectedSuddenData& rbd) {
+  for (Index i = 0; i < rbd.data.nelem(); i++) {
+    if (i) os << '\n';
+    os << rbd.data[i];
+  }
+  return os;
+}
+
+std::istream& operator>>(std::istream& is, ErrorCorrectedSuddenData& rbd) {
+  for (auto& x : rbd.data) is >> x;
+  return is;
+}
+
+Index ErrorCorrectedSuddenData::pos(Species::Species spec) const {
+  return std::distance(data.begin(),
+                       std::find(data.cbegin(), data.cend(), spec));
+}
+
+const SpeciesErrorCorrectedSuddenData& ErrorCorrectedSuddenData::operator[](
+    Species::Species spec) const {
+  if (auto ptr = std::find(data.cbegin(), data.cend(), spec);
+      ptr not_eq data.cend())
+    return *ptr;
+  return *std::find(data.cbegin(), data.cend(), Species::Species::Bath);
+}
+
+SpeciesErrorCorrectedSuddenData& ErrorCorrectedSuddenData::operator[](
+    Species::Species spec) {
+  if (auto ptr = std::find(data.begin(), data.end(), spec);
+      ptr not_eq data.end())
+    return *ptr;
+  return data.emplace_back(spec);
+}
+
+ErrorCorrectedSuddenData& MapOfErrorCorrectedSuddenData::operator[](
+    const QuantumIdentifier& id) {
+  if (auto ptr = std::find(begin(), end(), id); ptr not_eq end()) return *ptr;
+  return emplace_back(id);
+}
+
+const ErrorCorrectedSuddenData& MapOfErrorCorrectedSuddenData::operator[](
+    const QuantumIdentifier& id) const {
+  if (auto ptr = std::find(cbegin(), cend(), id); ptr not_eq cend()) {
+    return *ptr;
+  }
+  ARTS_USER_ERROR("Cannot find data for QuantumIdentifier:\n",
+                  id,
+                  '\n',
+                  "Available data:\n",
+                  *this);
+  return front();  // To get rid of potential warnings...
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const MapOfErrorCorrectedSuddenData& m) {
+  std::for_each(m.cbegin(), m.cend(), [&](auto& x) { os << x << '\n'; });
+  return os;
+}
+}  // namespace Absorption::LineMixing

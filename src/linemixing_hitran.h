@@ -28,10 +28,10 @@
 #define LINEMIXING_HITRAN_H
 
 #include "absorptionlines.h"
-#include "matpack_complex.h"
-#include "constants.h"
+#include "arts_conversions.h"
 #include "linescaling.h"
-#include "matpackIV.h"
+#include "matpack_data.h"
+#include "matpack_complex.h"
 #include "mystring.h"
 
 
@@ -79,7 +79,7 @@ Vector compute(const Numeric p,
                const Numeric t,
                const Numeric xco2,
                const Numeric xh2o,
-               const ConstVectorView& invcm_grid,
+               const Vector& invcm_grid,
                const Numeric stotmax,
                const calctype type=calctype::FullW);
 
@@ -100,8 +100,8 @@ Vector compute(const HitranRelaxationMatrixData& hitran,
                const SpeciesIsotopologueRatios& isotopologue_ratio,
                const Numeric P,
                const Numeric T,
-               const ConstVectorView& vmrs,
-               const ConstVectorView& f_grid);
+               const Vector& vmrs,
+               const Vector& f_grid);
 
 /** Class that controls ReadFromLineMixingStream output */
 ENUMCLASS(ModeOfLineMixing, unsigned char,

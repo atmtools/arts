@@ -16,39 +16,33 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-AgendaSet( abs_xsec_agenda ){
-  abs_xsec_per_speciesInit
-  abs_xsec_per_speciesAddConts
-}
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 AgendaSet( propmat_clearsky_agenda ){
   Ignore(rtp_mag)
   Ignore(rtp_los)
   propmat_clearskyInit
-  propmat_clearskyAddXsecAgenda
+  propmat_clearskyAddPredefined
   propmat_clearskyAddLines
 }
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Number of Stokes components to be computed
@@ -67,8 +61,8 @@ cloudboxOff
 # Read a line file and a matching small frequency grid
 # ---
 ReadARTSCAT( abs_lines=abs_lines, filename="abs_lines.xml" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
 
 
@@ -97,8 +91,7 @@ AtmRawRead( basename = "testdata/tropical" )
 # Weakly reflecting surface
 # ---
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet(option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 # No sensor properties
 # ---
@@ -136,7 +129,6 @@ MatrixSet( sensor_los, [ 95; 113; 135] )
 
 # Perform RT calculations
 # ---
-abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc

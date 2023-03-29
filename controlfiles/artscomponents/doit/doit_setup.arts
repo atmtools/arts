@@ -1,28 +1,25 @@
 # example: limb case using an optimized polar angle grid.
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
 
-# Agenda for scalar gas absorption calculation
-Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # No jacobian calculations
 #
@@ -54,7 +51,7 @@ ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
 abs_speciesSet( species=[ "H2O-PWR98",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Atmospheric profiles
@@ -77,8 +74,8 @@ AtmFieldsCalc
 ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
 
-# absorption from LUT
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+abs_lines_per_speciesSetEmpty
+propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
 
 # Definition of Earth surface

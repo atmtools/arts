@@ -8,10 +8,10 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
+
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # Agenda for scalar gas absorption calculation
 Copy( abs_xsec_agenda, abs_xsec_agenda__noCIA )
@@ -32,7 +32,7 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 # blackbody surface with skin temperature interpolated from t_surface field
-Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 
 jacobianOff
@@ -106,8 +106,8 @@ abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
 
 # deriving abs_lines separate, because one might want to use a lookup table
 ReadARTSCAT( abs_lines, "testdata/abs_lines_IR.xml.gz" )
-abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
-abs_linesSetNormalization(abs_lines, "VVH")
+abs_linesCutoff(abs_lines, "ByLine", 750e9)
+abs_linesNormalization(abs_lines, "VVH")
 abs_lines_per_speciesCreateFromLines
 
 

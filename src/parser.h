@@ -18,10 +18,10 @@
 #ifndef parser_h
 #define parser_h
 
-#include <map>
 #include "agenda_class.h"
 #include "methods.h"
 #include "sourcetext.h"
+#include <map>
 
 class ArtsParser {
  public:
@@ -30,13 +30,13 @@ class ArtsParser {
   void parse_tasklist();
 
  private:
-  typedef struct {
+  using NamedArgument = struct {
     String name;
     Index line;
     Index column;
-  } NamedArgument;
+  };
 
-  typedef vector<NamedArgument> NamedArguments;
+  using NamedArguments = vector<NamedArgument>;
 
   void find_named_arguments(vector<NamedArgument>& named_args);
 
@@ -46,7 +46,7 @@ class ArtsParser {
 
   void get_argument_index_by_name(Index& arg_index,
                                   NamedArguments& named_args,
-                                  String name);
+                                  const String& name);
 
   void parse_main();
 
@@ -107,6 +107,11 @@ class ArtsParser {
                          ArrayOfIndex& auto_vars,
                          Array<TokVal>& auto_vars_values);
 
+  void use_default_method_args(const MdRecord *mdd, String &methodname,
+                               ArrayOfIndex &output, ArrayOfIndex &input,
+                               ArrayOfIndex &auto_vars,
+                               Array<TokVal> &auto_vars_values);
+
   String set_gin_to_default(const MdRecord* mdd,
                             ArrayOfIndex& auto_vars,
                             Array<TokVal>& auto_vars_values,
@@ -159,6 +164,8 @@ class ArtsParser {
   bool parse_stringarray_from_string(ArrayOfString& res, String& str);
 
   Agenda& mtasklist;
+
+  std::shared_ptr<Workspace> ws;
 
   String mcfile;
 

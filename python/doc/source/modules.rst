@@ -2,12 +2,13 @@ API Reference
 =============
 
 ARTS Interface
---------------
+--------------------
 
 .. toctree::
    :maxdepth: 2
 
    pyarts.workspace
+   pyarts_arts
 
 
 ARTS XML I/O
@@ -26,15 +27,6 @@ ARTS Data Types
    :maxdepth: 2
 
    pyarts_datatypes
-
-
-ARTS Class Interface
---------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   pyarts_classes
 
 
 ARTS Plotting

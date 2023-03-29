@@ -7,32 +7,26 @@
 
 Arts2{
 
-INCLUDE "general/general.arts"
-INCLUDE "general/continua.arts"
-INCLUDE "general/agendas.arts"
-INCLUDE "general/planet_earth.arts"
-
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA )
+water_p_eq_agendaSet
+gas_scattering_agendaSet
+PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet( option="UseSurfaceRtprop" )
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+iy_space_agendaSet( option="CosmicBackground" )
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
-# geo-positioning
-AgendaSet( geo_pos_agenda ){
+# Main radiation agenda
+AgendaSet( iy_main_agenda ) {
+  ppathCalc
+  iyEmissionStandard
   geo_posEndOfPpath
 }
 
@@ -66,6 +60,8 @@ abs_speciesSet( species = [
 # No transitions needed
 # 
 abs_lines_per_speciesSetEmpty
+
+propmat_clearsky_agendaAuto
 
 # Atmospheric grids
 #
@@ -102,8 +98,6 @@ AgendaSet( surface_rtprop_agenda ){
 
 # Check data and settings (beside sensor)
 # 
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
@@ -129,25 +123,25 @@ Copy( geo_ref, y_geo )
 
 # Define 1D antenna
 #
-NumericCreate( xwidth )
-NumericSet( xwidth, 3 )
 VectorCreate( dza )
 VectorCreate( zeros )
 IndexCreate( ndlos )
 #
-antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
-                                 0.25, 5, 10e9, 40e9, 0 )
-#WriteXML("ascii",antenna_response,"A.xml",0)
-# The generated antenna has a grid extening between about -1.46 and +1.46 deg
+antenna_responseGaussianEffectiveSize( antenna_response=antenna_response,
+                                       leff=1.5,
+                                       nf=5,
+                                       fstart=10e9,
+                                       fstop=40e9 )
+
 IndexSet( sensor_norm, 1 )
 IndexSet( antenna_dim, 1 )
 MatrixSet( antenna_dlos, [0] )
 #
 IndexSet( ndlos, 17 )
 VectorNLinSpace( dza, ndlos, -1.6, 1.6 )
-Print(dza,0)
+#Print(dza,0)
 VectorSetConstant( zeros, ndlos, 0 )
-Matrix1ColFromVector( mblock_dlos_grid, dza )
+Matrix1ColFromVector( mblock_dlos, dza )
 
 
 # Calculate
@@ -164,20 +158,29 @@ Copy( y_ref, y )
 Compare( geo_ref, y_geo, 1e-5 )
 
 
-# Re-do with 2D antenna (but all azimuths in mblock_dlos_grid set to zero) 
+# Re-do with 2D antenna (but all azimuths in mblock_dlos set to zero) 
 #
-antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
-                                 0.25, 5, 10e9, 40e9, 1 )
+antenna_responseGaussianEffectiveSize( antenna_response=antenna_response,
+                                       leff=1.5,
+                                       nf=5,
+                                       fstart=10e9,
+                                       fstop=40e9,
+                                       do_2d=1 )
+
 #WriteXML("ascii",antenna_response,"A.xml",0)
 IndexSet( antenna_dim, 2 )
 #
-Matrix2ColFromVectors( mblock_dlos_grid, dza, zeros )
+Matrix2ColFromVectors( mblock_dlos, dza, zeros )
 
+# Here we assume that antenna response includes cos(za) term and
+# all directions represent the same solid angle
+VectorSetConstant( dlos_weight_vector, ndlos, 1 ) 
 
 # Calculate
 #
 sensor_responseInit
-sensor_responseAntenna(option_2d = "interp_response")
+sensor_responseAntenna( option_2d = "interp_response",
+                        solid_angles=dlos_weight_vector )
 sensor_checkedCalc
 #
 yCalc
@@ -189,11 +192,12 @@ Compare( geo_ref, y_geo, 1e-5 )
 Compare( y, y_ref, 0.01 )
 
 
-# Repeat with circular mblock_dlos_grid
+# Repeat with circular mblock_dlos
 #
-mblock_dlos_gridUniformCircular( spacing=0.2, width=1.6, centre=1 )
+dlosUniform( dlos=mblock_dlos, width=3.3, npoints = 9, crop_circular=1 )
 sensor_responseInit
-sensor_responseAntenna(option_2d = "interp_response")
+sensor_responseAntenna( option_2d = "interp_response",
+                        solid_angles=dlos_weight_vector )
 sensor_checkedCalc
 #
 yCalc
@@ -207,12 +211,13 @@ Compare( y, y_ref, 0.01 )
 Copy( y_ref, y )
 
 
-
-# Repeat with rectangular mblock_dlos_grid
+# Repeat with rectangular mblock_dlos
 #
-mblock_dlos_gridUniformRectangular( spacing=0.2, za_width=1.6, aa_width=1.6, centre=1 )
+dlosUniform( dlos=mblock_dlos, width=3.3, npoints = 9 )
+Print(mblock_dlos, 0)
 sensor_responseInit
-sensor_responseAntenna(option_2d = "interp_response")
+sensor_responseAntenna( option_2d = "interp_response",
+                        solid_angles = dlos_weight_vector )
 sensor_checkedCalc
 #
 yCalc

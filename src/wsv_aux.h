@@ -28,6 +28,8 @@
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
+#include <tokval.h>
+
 #include "array.h"
 #include "arts.h"
 #include "exceptions.h"
@@ -56,66 +58,60 @@ String get_array_groups_as_string(bool basetype_is_group = false,
 class WsvRecord {
  public:
   /** Default constructor. */
-  WsvRecord()
-      : mname(),
-        mdescription(),
-        mgroup(-1),
-        mimplicit(false) { /* Nothing to do here */
-  }
+  WsvRecord();
 
   /** Initializing constructor.
 
     This is used by Workspace::define_wsv_data() to set the information for
     each workspace variable. */
-  WsvRecord(const char name[],
-            const char description[],
+  WsvRecord(const char* name,
+            const char* description,
             const String& group,
-            const bool implicit = false)
-      : mname(name),
-        mdescription(description),
-        mgroup(-1),
-        mimplicit(implicit) {
-    // Map the group names to groups' indexes
-    mgroup = get_wsv_group_id(group);
-    if (mgroup == -1) {
-      ostringstream os;
-
-      os << "Unknown WSV Group " << group << " WSV " << mname;
-      throw runtime_error(os.str());
-    }
-  }
+            const TokVal& val);
 
   /** Initializing constructor.
 
     This is used by the parser to create automatically allocated variables */
-  WsvRecord(const char name[],
-            const char description[],
+  WsvRecord(const char* name,
+            const char* description,
             const Index group,
-            const bool implicit = false)
-      : mname(name),
-        mdescription(description),
-        mgroup(group),
-        mimplicit(implicit) {
-    // Nothing to do here
-  }
+            const TokVal& val);
+
+  /** Initializing constructor.
+
+    This is used by Workspace::define_wsv_data() to set the information for
+    each workspace variable. */
+  WsvRecord(const char* name, const char* description, const String& group);
+
+  /** Initializing constructor.
+
+    This is used by the parser to create automatically allocated variables */
+  WsvRecord(const char* name, const char* description, const Index group);
+
   /** Name of this workspace variable. */
-  const String& Name() const { return mname; }
+  [[nodiscard]] const String& Name() const { return mname; }
+
   /** A text describing this workspace variable. */
-  const String& Description() const { return mdescription; }
+  [[nodiscard]] const String& Description() const { return mdescription; }
+
   /** The wsv group to which this variable belongs. */
-  Index Group() const { return mgroup; }
-  /** Returns true if the variable was automatically created. */
-  bool Implicit() const { return mimplicit; }
+  [[nodiscard]] Index Group() const { return mgroup; }
+
+  [[nodiscard]] bool has_defaults() const;
+
+  [[nodiscard]] std::shared_ptr<void> get_copy() const;
+
+  [[nodiscard]] const TokVal& default_value() const { return defval; }
+  void update_default_value(ArtsType auto&& v) {defval=std::forward<decltype(v)>(v);}
 
  private:
   String mname;
-  String mdescription;
-  Index mgroup;
-  bool mimplicit;
-};
 
-/** Output operator for WsvRecord.
-  \author Stefan Buehler */
-ostream& operator<<(ostream& os, const WsvRecord& wr);
+  String mdescription;
+
+  Index mgroup{-1};
+
+  TokVal defval;
+};
 
 #endif  // wsv_aux_h

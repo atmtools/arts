@@ -34,8 +34,8 @@
 #include "arts.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
-#include "matpackII.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
+#include "matpack_concepts.h"
 #include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
@@ -51,12 +51,13 @@
 // ncolsGet,etc. for data types (groups) which do not provide the
 // requested attribute. A runtime error is thrown.
 
-#define TMPL_NGET_GENERIC(what)                        \
-  template <typename T>                                \
-  void what##Get(Index&, const T&, const Verbosity&) { \
-    ostringstream os;                                  \
-    os << "The variable has no such attribute.\n";     \
-    throw runtime_error(os.str());                     \
+#define TMPL_NGET_GENERIC(what)                                     \
+  template <typename T>                                             \
+  void what##Get(Index& n, const T& x, const Verbosity&) {          \
+    if constexpr (matpack::has_##what<T>)                           \
+      n = x.what();                                                 \
+    else                                                            \
+      ARTS_USER_ERROR("The variable has no " #what " attribute.\n") \
   }
 
 TMPL_NGET_GENERIC(nelem)
@@ -91,10 +92,11 @@ TMPL_NGET_AGENDA(nlibraries)
 #undef TMPL_NGET_AGENDA
 
 template <typename T>
-void IndexSetToLast(Index&, const T&, const Verbosity&) {
-  ostringstream os;
-  os << "The variable has no such attribute.\n";
-  throw runtime_error(os.str());
+void IndexSetToLast(Index& n, const T& x, const Verbosity&) {
+  if constexpr (matpack::has_nelem<T>)
+    n = x.nelem() - 1;
+  else
+    ARTS_USER_ERROR("The variable has no last attribute.\n")
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -9,12 +9,16 @@
 #include <implot.h>
 #include <implot_internal.h>
 
+#include <functional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "gui_macros.h"
+#include "propagationmatrix.h"
 
-#include <matpackI.h>
+#include <matpack_arrays.h>
+#include <matpack_data.h>
 
 namespace ARTSGUI {
   /** A global config for all things ARTSGUI */
@@ -39,6 +43,10 @@ struct Config {
   /** User input */
   bool new_save_path;
   std::filesystem::path save_path;
+  int save_type{-1};
+
+  /** Hover times */
+  float hover_time_limit{0.5f};
 
   Config(bool fullscreen_on = false)
       : io(ImGui::GetIO()),
@@ -62,12 +70,6 @@ struct Config {
 void LayoutAndStyleSettings();
 
 GLFWmonitor *get_current_monitor(GLFWwindow *window);
-
-namespace MainMenu {
-void fullscreen(Config &cfg, GLFWwindow *window);
-void quitscreen(const Config &cfg, GLFWwindow *window);
-void exportdata(const Config &cfg, ImGui::FileBrowser& fileBrowser);
-}  // namespace MainMenu
 
 namespace Windows {
 template <unsigned WIDTH = 1, unsigned HEIGHT = 1, unsigned WIDTH_POS = 0,
@@ -115,6 +117,8 @@ namespace Files {
   ImGui::FileBrowser xmlfile_chooser();
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data);
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfVector& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropagationMatrix& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfPropagationMatrix& data);
 }  // namespace Files
 }  // namespace GUI
 

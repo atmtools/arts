@@ -25,6 +25,7 @@
  */
 
 #include "radiation_field.h"
+#include "arts_conversions.h"
 #include "sorting.h"
 
 void error_in_integrate(const String& error_msg,
@@ -103,8 +104,6 @@ Index grid_index_from_gp(const GridPos& gp) {
 void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
                                  ArrayOfVector& cosza,
                                  const ArrayOfPpath& ppath_field) {
-  extern const Numeric DEG2RAD;
-
   Index nalt = 0;
   for (auto& path : ppath_field)
     for (auto& gp : path.gp_p) nalt = std::max(nalt, grid_index_from_gp(gp));
@@ -130,6 +129,6 @@ void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
     get_sorted_indexes(sorted_index[i], data);
 
     for (Index j = 0; j < data.nelem(); j++)
-      data[j] = std::cos(DEG2RAD * data[j]);
+      data[j] = Conversion::cosd(data[j]);
   }
 }

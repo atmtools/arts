@@ -154,6 +154,7 @@ AgendaSet(iy_main_agenda)
   Ignore(nlte_field)
   Ignore(iy_id)
   iyFOS(fos_n=scatorder)
+  VectorSet(geo_pos, [])
 }
 
 # no Jacobians

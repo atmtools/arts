@@ -42,6 +42,8 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "arts.h"
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "doit.h"
@@ -50,7 +52,7 @@
 #include "logic.h"
 #include "m_general.h"
 #include "math_funcs.h"
-#include "matpackVII.h"
+#include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -59,8 +61,8 @@
 #include "wsv_aux.h"
 #include "xml_io.h"
 
-extern const Numeric PI;
-extern const Numeric RAD2DEG;
+inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -1675,8 +1677,8 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
   Matrix itw_z(Z_gp.nelem(), 2);
   // We only need the p_grid inside the cloudbox as cloudbox_field_mono is only defined in the
   // cloudbox
-  Vector p_grid_cloudbox = p_grid[Range(
-      cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)];
+  Vector p_grid_cloudbox {p_grid[Range(
+      cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)]};
   ostringstream os;
   os << "There is a problem with the pressure grid interpolation";
   chk_interpolation_grids(os.str(), p_grid, p_grid_orig);
@@ -1773,13 +1775,14 @@ void OptimizeDoitPressureGrid(
                                    partial_dummy,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
-                                   f_grid[Range(f_index, 1)],
+                                   {},
+                                   Vector{f_grid[Range(f_index, 1)]},
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    p_grid[k],
                                    t_field(k, 0, 0),
                                    rtp_nlte_dummy,
-                                   vmr_field(joker, k, 0, 0),
+                                   Vector{vmr_field(joker, k, 0, 0)},
                                    propmat_clearsky_agenda);
     abs_coeff += cur_propmat_clearsky.Kjj()[0];
     abs_coeff /= (Numeric)vmr_field.nbooks();  // FIXME: Is this really as intended???
@@ -2801,11 +2804,6 @@ void DoitCalc(Workspace& ws,
 
   //-------- end of checks ----------------------------------------
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws(ws);
-  Agenda l_doit_mono_agenda(doit_mono_agenda);
-
   // OMP likes simple loop end conditions, so we make a local copy here:
   const Index nf = f_grid.nelem();
 
@@ -2813,8 +2811,9 @@ void DoitCalc(Workspace& ws,
     String fail_msg;
     bool failed = false;
 
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) \
-    firstprivate(l_ws, l_doit_mono_agenda)
+    WorkspaceOmpParallelCopyGuard wss{ws};
+
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(wss)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) {
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
@@ -2826,13 +2825,13 @@ void DoitCalc(Workspace& ws,
         os << "Frequency: " << f_grid[f_index] / 1e9 << " GHz \n";
         out2 << os.str();
 
-        Tensor6 cloudbox_field_mono_local =
-            cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
-        doit_mono_agendaExecute(l_ws,
+        Tensor6 cloudbox_field_mono_local{
+            cloudbox_field(f_index, joker, joker, joker, joker, joker, joker)};
+        doit_mono_agendaExecute(wss,
                                 cloudbox_field_mono_local,
                                 f_grid,
                                 f_index,
-                                l_doit_mono_agenda);
+                                doit_mono_agenda);
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
             cloudbox_field_mono_local;
       } catch (const std::exception& e) {
@@ -2910,7 +2909,7 @@ void DoitGetIncoming(Workspace& ws,
   Ppath ppath;
   Tensor3 iy_transmittance(0, 0, 0);
   const ArrayOfString iy_aux_vars(0);
-
+  Vector geo_pos;
 
 
   //--- Check input ----------------------------------------------------------
@@ -2940,6 +2939,7 @@ void DoitGetIncoming(Workspace& ws,
                             iy_aux,
                             ppath,
                             diy_dx,
+                            geo_pos,
                             1,
                             iy_transmittance,
                             iy_aux_vars,
@@ -2964,6 +2964,7 @@ void DoitGetIncoming(Workspace& ws,
                               iy_aux,
                               ppath,
                               diy_dx,
+                              geo_pos,
                               1,
                               iy_transmittance,
                               iy_aux_vars,
@@ -3056,6 +3057,7 @@ void DoitGetIncoming(Workspace& ws,
                                       iy_aux,
                                       ppath,
                                       diy_dx,
+                                      geo_pos,
                                       1,
                                       iy_transmittance,
                                       iy_aux_vars,
@@ -3108,6 +3110,7 @@ void DoitGetIncoming(Workspace& ws,
                                       iy_aux,
                                       ppath,
                                       diy_dx,
+                                      geo_pos,
                                       1,
                                       iy_transmittance,
                                       iy_aux_vars,
@@ -3160,6 +3163,7 @@ void DoitGetIncoming(Workspace& ws,
                                       iy_aux,
                                       ppath,
                                       diy_dx,
+                                      geo_pos,
                                       1,
                                       iy_transmittance,
                                       iy_aux_vars,
@@ -3246,6 +3250,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   Ppath ppath;
   Tensor3 iy_transmittance(0, 0, 0);
   const ArrayOfString iy_aux_vars(0);
+  Vector geo_pos;
 
   //--- Check input ----------------------------------------------------------
   ARTS_USER_ERROR_IF (atmosphere_dim != 3,
@@ -3292,6 +3297,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                             iy_aux,
                             ppath,
                             diy_dx,
+                            geo_pos,
                             1,
                             iy_transmittance,
                             iy_aux_vars,
@@ -3751,7 +3757,7 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
                                 cloudbox_limits,
                                 atmosphere_dim,
                                 stokes_dim,
-                                cloudbox_field_values(f_index, joker),
+                                Vector{cloudbox_field_values(f_index, joker)},
                                 verbosity);
 
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =

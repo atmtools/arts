@@ -30,12 +30,14 @@
 #include <cfloat>
 #include <sstream>
 
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "auto_md.h"
 #include "geodetic.h"
 #include "mc_interp.h"
 #include "montecarlo.h"
 
-extern const Numeric SPEED_OF_LIGHT;
+inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 // Some root-finding helper functions (for MCRadar) that don't need
 // visibility outside this source file
@@ -306,13 +308,14 @@ void clear_rt_vars_at_gp(Workspace& ws,
                                  local_partial_dummy,
                                  local_dnlte_source_dx_dummy,
                                  ArrayOfRetrievalQuantity(0),
+                                 {},
                                  Vector(1, f_mono),
                                  rtp_mag_dummy,
                                  ppath_los_dummy,
                                  p_vec[0],
                                  temperature,
                                  nlte_dummy,
-                                 vmr_mat(joker, 0),
+                                 Vector{vmr_mat(joker, 0)},
                                  propmat_clearsky_agenda);
 
   opt_prop_sum_propmat_clearsky(
@@ -391,13 +394,14 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
                                  local_partial_dummy,
                                  local_dnlte_source_dx_dummy,
                                  ArrayOfRetrievalQuantity(0),
-                                 f_grid[Range(f_index, 1)],
+                                 {},
+                                 Vector{f_grid[Range(f_index, 1)]},
                                  rtp_mag_dummy,
                                  ppath_los_dummy,
                                  p_ppath[0],
                                  temperature,
                                  nlte_dummy,
-                                 vmr_ppath(joker, 0),
+                                 Vector{vmr_ppath(joker, 0)},
                                  propmat_clearsky_agenda);
 
   opt_prop_sum_propmat_clearsky(
@@ -671,24 +675,16 @@ void ext2trans(MatrixView trans_mat,
         }
       */
   } else {
-    Matrix ext_mat_ds = ext_mat;
+    Matrix ext_mat_ds{ext_mat};
     ext_mat_ds *= -lstep;
     //
-    Index q = 10;  // index for the precision of the matrix exp function
-    //
-    switch (stokes_dim) {
-      case 4:
-        cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
-            trans_mat, ext_mat_ds);
-        break;
-      default:
-        matrix_exp(trans_mat, ext_mat_ds, q);
-    }
+    constexpr Index q = 10;  // index for the precision of the matrix exp function
+    matrix_exp(trans_mat, ext_mat_ds, q);
   }
 }
 
 void get_ppath_transmat(Workspace& ws,
-                        MatrixView& trans_mat,
+                        MatrixView trans_mat,
                         const Ppath& ppath,
                         const Agenda& propmat_clearsky_agenda,
                         const Index stokes_dim,
@@ -752,7 +748,7 @@ void get_ppath_transmat(Workspace& ws,
                            pnd_field,
                            scat_data,
                            cloudbox_limits,
-                           ppath.los(np - 1, joker));
+                           Vector{ppath.los(np - 1, joker)});
     } else {
       clear_rt_vars_at_gp(ws,
                           ext_mat_mono,
@@ -804,7 +800,7 @@ void get_ppath_transmat(Workspace& ws,
                              pnd_field,
                              scat_data,
                              cloudbox_limits,
-                             ppath.los(ip, joker));
+                             Vector{ppath.los(ip, joker)});
       } else {
         clear_rt_vars_at_gp(ws,
                             ext_mat_mono,
@@ -968,7 +964,7 @@ void mcPathTraceGeneral(Workspace& ws,
                          pnd_field,
                          scat_data,
                          cloudbox_limits,
-                         ppath_step.los(0, joker));
+                         Vector{ppath_step.los(0, joker)});
   } else {
     clear_rt_vars_at_gp(ws,
                         ext_mat_mono,
@@ -1041,7 +1037,7 @@ void mcPathTraceGeneral(Workspace& ws,
                                  ppath_step,
                                  lmax,
                                  ppath_lraytrace,
-                                 f_grid[Range(f_index, 1)],
+                                 Vector{f_grid[Range(f_index, 1)]},
                                  ppath_step_agenda);
         ip = 1;
 
@@ -1074,7 +1070,7 @@ void mcPathTraceGeneral(Workspace& ws,
                              pnd_field,
                              scat_data,
                              cloudbox_limits,
-                             ppath_step.los(ip, joker));
+                             Vector{ppath_step.los(ip, joker)});
       } else {
         clear_rt_vars_at_gp(ws,
                             ext_mat_mono,
@@ -1165,7 +1161,7 @@ void mcPathTraceGeneral(Workspace& ws,
     x[1] = dl;
     Vector itw(2);
 
-    gridpos(gp, x, ds);
+    gridpos(gp, x, ConstVectorView{ds});
     ARTS_ASSERT(gp[0].idx == 0);
     interpweights(itw, gp[0]);
     interp(ext_mat_mono, itw, ext_matArray, gp[0]);
@@ -1368,7 +1364,7 @@ void mcPathTraceRadar(Workspace& ws,
                                ppath_step,
                                ppath_lmax,
                                ppath_lraytrace,
-                               f_grid[Range(f_index, 1)],
+                               Vector{f_grid[Range(f_index, 1)]},
                                ppath_step_agenda);
 
       if (ppath_step.np <= 1) {
@@ -1502,7 +1498,7 @@ void mcPathTraceRadar(Workspace& ws,
     ArrayOfGridPos gp(1);
     x[1] = dl;
     Vector itw(2);
-    gridpos(gp, x, ds);
+    gridpos(gp, x, ConstVectorView{ds});
     ARTS_ASSERT(gp[0].idx == 0);
     interpweights(itw, gp[0]);
     interp(ext_mat_mono, itw, ext_matArray, gp[0]);
@@ -1574,7 +1570,7 @@ void Sample_los(VectorView new_rte_los,
   pnds(joker, 0) = pnd_vec;
 
   while (tryagain) {
-    new_rte_los[0] = acos(1 - 2 * rng.draw()) * RAD2DEG;
+    new_rte_los[0] = Conversion::acosd(1 - 2 * rng.draw());
     new_rte_los[1] = rng.draw() * 360 - 180;
 
     //Calculate Phase matrix////////////////////////////////
@@ -1612,5 +1608,5 @@ void Sample_los(VectorView new_rte_los,
 
 void Sample_los_uniform(VectorView new_rte_los, Rng& rng) {
   new_rte_los[1] = rng.draw() * 360 - 180;
-  new_rte_los[0] = acos(1 - 2 * rng.draw()) * RAD2DEG;
+  new_rte_los[0] = Conversion::acosd(1 - 2 * rng.draw());
 }

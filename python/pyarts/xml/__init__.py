@@ -147,7 +147,7 @@ def load(filename, search_arts_path=True):
         if artstag == "Array" and len(root) and 'type' in root[0].attrib:
             artstag = f"ArrayOf{root[0].attrib['type']}"  # Fix for arrays
         
-        import pyarts.classes as native_classes
+        import pyarts.arts as native_classes
         if hasattr(native_classes, artstag) and hasattr(
                 getattr(native_classes, artstag), "readxml"):
             ret = getattr(native_classes, artstag)()

@@ -10,7 +10,7 @@
 #include "species.h"
 
 namespace Species {
-constexpr std::string_view Joker = "*";
+inline constexpr std::string_view Joker = "*";
 
 /** Struct containing all information needed about one isotope */
 struct IsotopeRecord {
@@ -25,9 +25,12 @@ struct IsotopeRecord {
   
   //! The degeneracy of states of the molecule.  It is -1 if not defined.
   Index gi;
+
   constexpr explicit IsotopeRecord(Species spec_, const std::string_view isotname_=Joker, Numeric mass_=std::numeric_limits<Numeric>::quiet_NaN(), Index gi_=-1) noexcept
   : spec(spec_), isotname(isotname_), mass(mass_), gi(gi_) {}
+  
   constexpr IsotopeRecord() noexcept : IsotopeRecord(Species::FINAL) {}
+  
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
     return os << ir.spec << ' ' << ir.isotname << ' ' << ir.mass << ' ' << ir.gi;
   }
@@ -45,12 +48,13 @@ struct IsotopeRecord {
   
   [[nodiscard]] String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
   [[nodiscard]] constexpr bool joker() const noexcept {return isotname == Joker;}
+  [[nodiscard]] constexpr bool OK() const noexcept {return good_enum(spec);}
 };
 
 #define deal_with_spec(SPEC) IsotopeRecord(Species::SPEC),
 
 /** A list of all ARTS isotopologues, note how the species enum class input HAS to be sorted */
-constexpr std::array Isotopologues {
+inline constexpr std::array Isotopologues {
   /** Water species **/
   deal_with_spec(Water)
   IsotopeRecord(fromShortName("H2O"), "161", 18.010565, 1),
@@ -60,30 +64,14 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("H2O"), "181", 20.014811, 1),
   IsotopeRecord(fromShortName("H2O"), "182", 21.020985, 6),
   IsotopeRecord(fromShortName("H2O"), "262", 20.022915, 1),
-  IsotopeRecord(fromShortName("H2O"), "CP98"),
-  IsotopeRecord(fromShortName("H2O"), "ContMPM93"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContATM01"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContCKD222"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContCKD24"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContCKD242"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT100"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT252"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT320"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT350"),
-  IsotopeRecord(fromShortName("H2O"), "ForeignContMaTippingType"),
+  IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT400"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContStandardType"),
-  IsotopeRecord(fromShortName("H2O"), "MPM87"),
   IsotopeRecord(fromShortName("H2O"), "MPM89"),
-  IsotopeRecord(fromShortName("H2O"), "MPM93"),
-  IsotopeRecord(fromShortName("H2O"), "PWR2021"),
   IsotopeRecord(fromShortName("H2O"), "PWR98"),
-  IsotopeRecord(fromShortName("H2O"), "SelfContCKD222"),
-  IsotopeRecord(fromShortName("H2O"), "SelfContCKD24"),
-  IsotopeRecord(fromShortName("H2O"), "SelfContCKD242"),
-  IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT100"),
-  IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT252"),
-  IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT320"),
+  IsotopeRecord(fromShortName("H2O"), "PWR2021"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT350"),
+  IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT400"),
   IsotopeRecord(fromShortName("H2O"), "SelfContStandardType"),
   /** Water species **/
   
@@ -101,13 +89,7 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("CO2"), "828", 47.998322, 1),
   IsotopeRecord(fromShortName("CO2"), "837", 48.001646, 12),
   IsotopeRecord(fromShortName("CO2"), "838", 49.001675, 2),
-  IsotopeRecord(fromShortName("CO2"), "CKD241"),
-  IsotopeRecord(fromShortName("CO2"), "CKDMT100"),
   IsotopeRecord(fromShortName("CO2"), "CKDMT252"),
-  IsotopeRecord(fromShortName("CO2"), "ForeignContHo66"),
-  IsotopeRecord(fromShortName("CO2"), "ForeignContPWR93"),
-  IsotopeRecord(fromShortName("CO2"), "SelfContHo66"),
-  IsotopeRecord(fromShortName("CO2"), "SelfContPWR93"),
   /** Carbon dioxide species **/
   
   /** Ozone species **/
@@ -153,17 +135,9 @@ constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("O2"), "68", 33.994076, 1),
   IsotopeRecord(fromShortName("O2"), "CIAfunCKDMT100"),
   IsotopeRecord(fromShortName("O2"), "MPM2020"),
-  IsotopeRecord(fromShortName("O2"), "MPM85"),
-  IsotopeRecord(fromShortName("O2"), "MPM87"),
   IsotopeRecord(fromShortName("O2"), "MPM89"),
-  IsotopeRecord(fromShortName("O2"), "MPM92"),
-  IsotopeRecord(fromShortName("O2"), "MPM93"),
-  IsotopeRecord(fromShortName("O2"), "PWR2021"),
-  IsotopeRecord(fromShortName("O2"), "PWR88"),
-  IsotopeRecord(fromShortName("O2"), "PWR93"),
   IsotopeRecord(fromShortName("O2"), "PWR98"),
-  IsotopeRecord(fromShortName("O2"), "SelfContMPM93"),
-  IsotopeRecord(fromShortName("O2"), "SelfContPWR93"),
+  IsotopeRecord(fromShortName("O2"), "PWR2021"),
   IsotopeRecord(fromShortName("O2"), "SelfContStandardType"),
   IsotopeRecord(fromShortName("O2"), "TRE05"),
   IsotopeRecord(fromShortName("O2"), "v0v0CKDMT100"),
@@ -283,15 +257,9 @@ constexpr std::array Isotopologues {
   deal_with_spec(Nitrogen)
   IsotopeRecord(fromShortName("N2"), "44", 28.006148, 1),
   IsotopeRecord(fromShortName("N2"), "45", 29.003182, 6),
-  IsotopeRecord(fromShortName("N2"), "CIAfunCKDMT100"),
   IsotopeRecord(fromShortName("N2"), "CIAfunCKDMT252"),
-  IsotopeRecord(fromShortName("N2"), "CIArotCKDMT100"),
   IsotopeRecord(fromShortName("N2"), "CIArotCKDMT252"),
-  IsotopeRecord(fromShortName("N2"), "DryContATM01"),
-  IsotopeRecord(fromShortName("N2"), "SelfContBorysow"),
-  IsotopeRecord(fromShortName("N2"), "SelfContMPM93"),
   IsotopeRecord(fromShortName("N2"), "SelfContPWR2021"),
-  IsotopeRecord(fromShortName("N2"), "SelfContPWR93"),
   IsotopeRecord(fromShortName("N2"), "SelfContStandardType"),
   /** N2 species **/
   
@@ -605,11 +573,8 @@ constexpr std::array Isotopologues {
   /** Model species **/
   deal_with_spec(liquidcloud)
   IsotopeRecord(Species::liquidcloud, "ELL07"),
-  IsotopeRecord(Species::liquidcloud, "MPM93"),
   deal_with_spec(icecloud)
-  IsotopeRecord(Species::icecloud, "MPM93"),
   deal_with_spec(rain)
-  IsotopeRecord(Species::rain, "MPM93"),
   deal_with_spec(free_electrons)
   deal_with_spec(particles)
   /** Model species **/
@@ -617,7 +582,7 @@ constexpr std::array Isotopologues {
 
 #undef deal_with_spec
 
-constexpr std::array<std::size_t, std::size_t(Species::FINAL)+1> start_positions() noexcept {
+consteval std::array<std::size_t, std::size_t(Species::FINAL)+1> start_positions() noexcept {
   std::array<bool, std::size_t(Species::FINAL)> found{};
   for (auto& x: found) x = false;
   
@@ -634,15 +599,15 @@ constexpr std::array<std::size_t, std::size_t(Species::FINAL)+1> start_positions
   return out;
 }
 
-constexpr auto IsotopologuesStart = start_positions();
+inline constexpr auto IsotopologuesStart = start_positions();
 
 template <Species spec>
-constexpr std::size_t count_isotopologues() noexcept {
+consteval std::size_t count_isotopologues() noexcept {
   return IsotopologuesStart[std::size_t(spec) + 1] - IsotopologuesStart[std::size_t(spec)];
 }
 
 template <Species spec>
-constexpr std::array<IsotopeRecord, count_isotopologues<spec>()> isotopologues() noexcept {
+consteval std::array<IsotopeRecord, count_isotopologues<spec>()> isotopologues() noexcept {
   static_assert(count_isotopologues<spec>() not_eq 0, "All species must be defined in the Isotopologues!");
   std::array<IsotopeRecord, count_isotopologues<spec>()> isots;
   for (std::size_t i=0; i<count_isotopologues<spec>(); i++) {
@@ -701,6 +666,10 @@ String isotopologues_names(Species spec);
 
 constexpr bool is_predefined_model(const IsotopeRecord& ir) noexcept {
   return not (nonstd::isdigit(ir.isotname[0]) or ir.isotname == Joker);
+}
+
+constexpr bool is_normal_isotopologue(const IsotopeRecord& ir) noexcept {
+  return nonstd::isdigit(ir.isotname[0]) and ir.isotname not_eq Joker;
 }
 
 String predefined_model_names() noexcept;
