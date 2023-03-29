@@ -26,7 +26,9 @@
 
 #include "absorption.h"
 #include "arts.h"
+#include "atm.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "lin_alg.h"
 #include "nlte.h"
 #include "xml_io.h"
@@ -74,7 +76,7 @@ void nlte_fieldRescalePopulationLevels(EnergyLevelMap& nlte_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_fieldForSingleSpeciesNonOverlappingLines(
     Workspace& ws,
-    EnergyLevelMap& nlte_field,
+    AtmField& atm_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfGriddedField1& collision_coefficients,
@@ -86,12 +88,6 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
     const Agenda& propmat_clearsky_agenda,
-    const Agenda& /*water_p_eq_agenda*/,
-    const Tensor4& vmr_field,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Vector& p_grid,
-    const Index& atmosphere_dim,
     const Vector& refellipsoid,
     const Tensor3& surface_props_data,
     const Index& nlte_do,
@@ -106,22 +102,25 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
   CREATE_OUT2;
 
   ARTS_USER_ERROR_IF (not nlte_do, "Must be set to do NLTE");
-  ARTS_USER_ERROR_IF (nlte_field.value.empty(),
-                      "Error in NLTE field, it is empty");
+
+  const Index nlevels = atm_field.nnlte();
+  ARTS_USER_ERROR_IF (nlevels == 0, "Error in NLTE field, it is empty");
 
   Matrix line_irradiance;
   Tensor3 line_transmission;
 
-  const Index nlevels = nlte_field.levels.nelem(), np = p_grid.nelem();
-  ARTS_USER_ERROR_IF (nlevels < 5,
-                      "Must have more than a four levels");
-
-  ARTS_USER_ERROR_IF (atmosphere_dim not_eq 1,
-                      "Only for 1D atmosphere");
+  const Index np = atm_field.grid[0].nelem();
+  ARTS_USER_ERROR_IF (nlevels < 5, "Must have more than a four levels");
 
   const Index nlines = nelem(abs_lines_per_species);
   ARTS_USER_ERROR_IF (nlevels >= nlines,
         "Bad number of lines... overlapping lines in nlte_level_identifiers?");
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized_atmosphere_dim(1), "Must be regular and 1D")
+  const auto keys = atm_field.nlte_keys();
+  const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  const auto& p_field = atm_field[Atm::Key::pressure].get<const Tensor3&>();
+  const auto& t_field = atm_field[Atm::Key::temperature].get<const Tensor3&>();
 
   // Create basic compute vectors
   const Vector Aij = createAij(abs_lines_per_species);
@@ -131,7 +130,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
 
   ArrayOfIndex upper, lower;
   nlte_positions_in_statistical_equilibrium_matrix(
-    upper, lower, abs_lines_per_species, nlte_field);
+    upper, lower, abs_lines_per_species, keys);
   const Index unique = find_first_unique_in_lower(upper, lower);
 
   // Compute arrays
@@ -151,11 +150,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
         line_transmission,
         abs_species,
         abs_lines_per_species,
-        nlte_field,
-        vmr_field,
-        t_field,
-        z_field,
-        p_grid,
+        atm_field,
         refellipsoid,
         surface_props_data,
         ppath_agenda,
@@ -171,7 +166,8 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
         verbosity);
 
     for (Index ip = 0; ip < np; ip++) {
-      r = nlte_field.value(joker, ip, 0, 0);
+      for (Index il=0; il<nlevels; il++) r[il] = atm_field[keys[il]].get<const Tensor3&>()(ip, 0, 0);
+
       nlte_collision_factorsCalcFromCoeffs(Cij,
                                            Cji,
                                            abs_lines_per_species,
@@ -181,7 +177,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
                                            isotopologue_ratios,
                                            vmr_field(joker, ip, 0, 0),
                                            t_field(ip, 0, 0),
-                                           p_grid[ip]);
+                                           p_field(ip, 0, 0));
       
 
       if (dampened)
@@ -209,11 +205,12 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
                                          lower);
 
       set_constant_statistical_equilibrium_matrix(SEE, x, sum(r), unique);
-      solve(nlte_field.value(joker, ip, 0, 0), SEE, x);
+      solve(r, SEE, x);
 
       for (Index il = 0; il < nlevels; il++) {
-        max_change =
-            max(abs(nlte_field.value(il, ip, 0, 0) - r[il]) / r[il], max_change);
+        auto& nlte = atm_field[keys[il]].get<Tensor3&>()(ip, 0, 0);
+        max_change = max(abs(nlte - r[il]) / r[il], max_change);
+        nlte = r[il];
       }
     }
     i++;

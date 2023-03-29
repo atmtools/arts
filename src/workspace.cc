@@ -3252,6 +3252,38 @@ population distribution that depends on vibrational temperatures
       GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("ppvar_atm"),
+      DESCRIPTION(
+          "Atmospheric points along the propagation path.\n"
+          "\n"
+          "ppvar stands for propagation path variable. The variables named in is\n"
+          "way describe the atmosphere and its properties at each point of the\n"
+          "propagation path\n"
+          "\n"
+          "See *atm_point* for information about atmospheric points\n"
+          "\n"
+          "Dimension: [ ppath.np ]\n"
+          "\n"
+          "Usage: Output of radiative transfer methods.\n"),
+      GROUP("ArrayOfAtmPoint")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_f_grid"),
+      DESCRIPTION(
+          "Atmospheric frequency grids along the propagation path.\n"
+          "\n"
+          "ppvar stands for propagation path variable. The variables named in is\n"
+          "way describe the atmosphere and its properties at each point of the\n"
+          "propagation path\n"
+          "\n"
+          "See *f_grid* for information about the frequency grid\n"
+          "\n"
+          "Dimension: [ ppath.np ]\n"
+          "\n"
+          "Usage: Output of radiative transfer methods.\n"),
+      GROUP("ArrayOfVector")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("ppvar_p"),
       DESCRIPTION(
           "Pressure along the propagation path.\n"

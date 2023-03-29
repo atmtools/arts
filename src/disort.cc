@@ -37,9 +37,11 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "arts_constants.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "arts_conversions.h"
+#include "species_tags.h"
 
 extern "C" {
 #include "cdisort.h"
@@ -386,6 +388,7 @@ void get_gas_scattering_properties(Workspace& ws,
                                    const VectorView& p,
                                    const VectorView& t,
                                    const MatrixView& vmr,
+                                   const ArrayOfArrayOfSpeciesTag& specs,
                                    const Agenda& gas_scattering_agenda) {
   const Index Np = p.nelem(); // Number of pressure levels
   const Index Nl = pfct_gas.ncols();  // Number of legendre polynomials
@@ -405,9 +408,7 @@ void get_gas_scattering_properties(Workspace& ws,
                                  sca_mat_dummy,
                                  sca_fct_temp,
                                  Vector{f_grid},
-                                 p[ip],
-                                 t[ip],
-                                 Vector{vmr(joker, ip)},
+                                 AtmPoint(Atm::Key::pressure, p[ip], Atm::Key::temperature, t[ip], specs, vmr(joker, ip)),
                                  dummy,
                                  dummy,
                                  1,
@@ -937,6 +938,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView t_profile,
                  ConstMatrixView vmr_profiles,
                  ConstMatrixView pnd_profiles,
+                 const ArrayOfArrayOfSpeciesTag& specs,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const ArrayOfSun& suns,
                  const Agenda& propmat_clearsky_agenda,
@@ -1147,6 +1149,7 @@ void run_cdisort(Workspace& ws,
                                   p,
                                   t,
                                   vmr,
+                                  specs,
                                   gas_scattering_agenda);
 
     // call add_norm_phase_functions
@@ -1332,6 +1335,7 @@ void run_cdisort_flux(Workspace& ws,
                       ConstVectorView t_profile,
                       ConstMatrixView vmr_profiles,
                       ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSpeciesTag& specs,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const ArrayOfSun& suns,
                       const Agenda& propmat_clearsky_agenda,
@@ -1535,6 +1539,7 @@ void run_cdisort_flux(Workspace& ws,
                                   p,
                                   t,
                                   vmr,
+                                  specs,
                                   gas_scattering_agenda);
 
     // call add_norm_phase_functions

@@ -26,8 +26,10 @@
 #include "agenda_set.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "legendre.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
@@ -496,19 +498,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Agenda& iy_cloudbox_agenda,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Tensor3& z_field,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
-    const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Tensor3& wind_u_field,
-    const Tensor3& wind_v_field,
-    const Tensor3& wind_w_field,
-    const Tensor3& mag_u_field,
-    const Tensor3& mag_v_field,
-    const Tensor3& mag_w_field,
+    const AtmField& atm_field,
     const Matrix& z_surface,
     const Numeric& ppath_lmax,
     const Numeric& rte_alonglos_v,
@@ -518,11 +509,13 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
   // Check input
-  if (atmosphere_dim != 1)
-    throw runtime_error("This method only works for atmosphere_dim = 1.");
+  ARTS_USER_ERROR_IF (not atm_field.regularized_atmosphere_dim(1), "This method only works for 1D regular grids.");
+
+  const auto& z_grid = atm_field.grid[0];
+  ARTS_USER_ERROR_IF(z_grid.nelem() < 2, "Need an altitude grid")
 
   // Sizes
-  const Index nl = p_grid.nelem();
+  const Index nl = z_grid.nelem();
   const Index nf = f_grid.nelem();
   const Index nza = za_grid.nelem();
 
@@ -543,7 +536,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   const Index jacobian_do = 0;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
   // Create one altitude just above TOA
-  const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
+  const Numeric z_space = z_grid(nl - 1) + 10;
 
   ArrayOfString fail_msg;
   bool failed = false;
@@ -554,7 +547,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");
 
   // Index in p_grid where field at surface shall be placed
-  const Index i0 = index_of_zsurface(z_surface(0, 0), z_field(joker, 0, 0));
+  const Index i0 = index_of_zsurface(z_surface(0, 0), z_grid);
 
   // Loop zenith angles
   //
@@ -568,9 +561,9 @@ void spectral_radiance_fieldClearskyPlaneParallel(
       try {
         // Define output variables
         Ppath ppath;
-        Vector ppvar_p, ppvar_t;
-        Matrix iy, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
-        EnergyLevelMap ppvar_nlte;
+        ArrayOfAtmPoint ppvar_atm;
+        ArrayOfVector ppvar_f;
+        Matrix iy;
         Tensor3 ppvar_iy;
         Tensor4 ppvar_trans_cumulat, ppvar_trans_partial;
         ArrayOfMatrix iy_aux;
@@ -581,8 +574,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         Vector rte_pos(1, za_grid[i] < 90 ? z_surface(0, 0) : z_space);
 
         ppathPlaneParallel(ppath,
-                           atmosphere_dim,
-                           z_field,
+                           1,
+                           Vector{z_grid}.reshape(nl, 1, 1),
                            z_surface,
                            cloudbox_on,
                            cloudbox_limits,
@@ -598,12 +591,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            iy,
                            iy_aux,
                            diy_dx,
-                           ppvar_p,
-                           ppvar_t,
-                           ppvar_nlte,
-                           ppvar_vmr,
-                           ppvar_wind,
-                           ppvar_mag,
+                           ppvar_atm,
                            ppvar_f,
                            ppvar_iy,
                            ppvar_trans_cumulat,
@@ -611,18 +599,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            iy_id,
                            stokes_dim,
                            f_grid,
-                           atmosphere_dim,
-                           p_grid,
-                           t_field,
-                           nlte_field,
-                           vmr_field,
                            abs_species,
-                           wind_u_field,
-                           wind_v_field,
-                           wind_w_field,
-                           mag_u_field,
-                           mag_v_field,
-                           mag_w_field,
+                           atm_field,
                            cloudbox_on,
                            iy_unit,
                            iy_aux_vars,
@@ -736,19 +714,8 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Agenda& iy_cloudbox_agenda,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Tensor3& z_field,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
-    const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Tensor3& wind_u_field,
-    const Tensor3& wind_v_field,
-    const Tensor3& wind_w_field,
-    const Tensor3& mag_u_field,
-    const Tensor3& mag_v_field,
-    const Tensor3& mag_w_field,
+    const AtmField& atm_field,
     const Matrix& z_surface,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
@@ -761,17 +728,18 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
   // Check input
-  if (atmosphere_dim != 1)
-    throw runtime_error("This method only works for atmosphere_dim = 1.");
+  ARTS_USER_ERROR_IF(not atm_field.regularized_atmosphere_dim(1), "This method only works for atmosphere_dim = 1.");
   if (!cloudbox_on)
     throw runtime_error("No ned to use this method with cloudbox=0.");
   if (cloudbox_limits[0])
     throw runtime_error(
         "The first element of *cloudbox_limits* must be zero "
         "to use this method.");
+  const auto& z_grid = atm_field.grid[0];
+  ARTS_USER_ERROR_IF(z_grid.nelem() < 2, "Need an altitude grid")
 
   // Sizes
-  const Index nl = p_grid.nelem();
+  const Index nl = z_grid.nelem();
   const Index nf = f_grid.nelem();
   const Index nza = za_grid.nelem();
 
@@ -797,7 +765,7 @@ void spectral_radiance_fieldExpandCloudboxField(
   const Index jacobian_do = 0;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
   // Create one altitude just above TOA
-  const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
+  const Numeric z_space = z_grid(nl - 1) + 10;
 
   ArrayOfString fail_msg;
   bool failed = false;
@@ -808,7 +776,7 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Variables related to the top of the cloudbox
   const Index i0 = cloudbox_limits[1];
-  const Numeric z_top = z_field(i0 + 1, 0, 0);  // Note i0+1
+  const Numeric z_top = z_grid(i0 + 1);  // Note i0+1
 
   // Loop zenith angles
   //
@@ -822,9 +790,9 @@ void spectral_radiance_fieldExpandCloudboxField(
       try {
         // Define output variables
         Ppath ppath;
-        Vector ppvar_p, ppvar_t;
-        Matrix iy, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
-        EnergyLevelMap ppvar_nlte;
+        ArrayOfAtmPoint ppvar_atm;
+        Matrix iy;
+        ArrayOfVector ppvar_f;
         Tensor3 ppvar_iy;
         Tensor4 ppvar_trans_cumulat, ppvar_trans_partial;
         ArrayOfMatrix iy_aux;
@@ -835,8 +803,8 @@ void spectral_radiance_fieldExpandCloudboxField(
         Vector rte_pos(1, za_grid[i] < 90 ? z_top : z_space);
 
         ppathPlaneParallel(ppath,
-                           atmosphere_dim,
-                           z_field,
+                           1,
+                           Vector{z_grid}.reshape(nl, 1, 1),
                            z_surface,
                            cloudbox_on,
                            cloudbox_limits,
@@ -852,12 +820,7 @@ void spectral_radiance_fieldExpandCloudboxField(
                            iy,
                            iy_aux,
                            diy_dx,
-                           ppvar_p,
-                           ppvar_t,
-                           ppvar_nlte,
-                           ppvar_vmr,
-                           ppvar_wind,
-                           ppvar_mag,
+                           ppvar_atm,
                            ppvar_f,
                            ppvar_iy,
                            ppvar_trans_cumulat,
@@ -865,18 +828,8 @@ void spectral_radiance_fieldExpandCloudboxField(
                            iy_id,
                            stokes_dim,
                            f_grid,
-                           atmosphere_dim,
-                           p_grid,
-                           t_field,
-                           nlte_field,
-                           vmr_field,
                            abs_species,
-                           wind_u_field,
-                           wind_v_field,
-                           wind_w_field,
-                           mag_u_field,
-                           mag_v_field,
-                           mag_w_field,
+                           atm_field,
                            cloudbox_on,
                            iy_unit,
                            iy_aux_vars,

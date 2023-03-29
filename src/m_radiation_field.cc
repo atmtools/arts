@@ -27,10 +27,12 @@
 #include "absorption.h"
 #include "arts.h"
 #include "arts_omp.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "debug.h"
 #include "lineshape.h"
 #include "logic.h"
+#include "matpack_iter.h"
 #include "physics_funcs.h"
 #include "ppath_OLD.h"
 #include "propmat_field.h"
@@ -42,11 +44,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     Tensor3& line_transmission,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const EnergyLevelMap& nlte_field,
-    const Tensor4& vmr_field,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Vector& p_grid,
+    const AtmField& atm_field,
     const Vector& refellipsoid,
     const Tensor3& surface_props_data,
     const Agenda& ppath_agenda,
@@ -61,12 +59,16 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const Numeric& r,
     const Verbosity& verbosity)
 {
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regularized atmospheric fields")
+
   ARTS_USER_ERROR_IF (abs_lines_per_species.nelem() not_eq 1,
                       "Only for one species...");
   ARTS_USER_ERROR_IF (nf % 2 not_eq 1,
                       "Must hit line center, nf % 2 must be 1.");
   const Index nl = nelem(abs_lines_per_species);
-  const Index np = p_grid.nelem();
+  const Index np = atm_field.grid[0].nelem();
+
+  ARTS_USER_ERROR_IF((atm_field.regularized_shape() not_eq std::array<Index, 3>{np, 1, 1}), matpack::shape_help<3>{atm_field.regularized_shape()},  " vs (", np, ", 1, 1)")
 
   // Compute variables
   ArrayOfTensor3 diy_dx;
@@ -87,6 +89,9 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   }
   
   ARTS_USER_ERROR_IF(not is_increasing(f_grid), "Frequency grid is not increasing, abs_lines_per_species must be sorted and no overlap is allowed");
+  const auto& p_field = atm_field[Atm::Key::pressure].get<const Tensor3&>();
+  const auto& t_field = atm_field[Atm::Key::temperature].get<const Tensor3&>();
+  const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   ppath_fieldFromDownUpLimbGeoms(ws,
                                  ppath_field,
@@ -94,7 +99,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                  -1,
                                  1e99,
                                  1,
-                                 z_field,
+                                 Vector{atm_field.grid[0]}.reshape(np, 1, 1),  // FIXME: SHOULD NOT TAKE FIELD
                                  f_grid,
                                  0,
                                  1,
@@ -122,11 +127,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                        additional_source_field,
                        1,
                        f_grid,
-                       p_grid,
-                       z_field,
-                       t_field,
-                       nlte_field,
-                       vmr_field,
+                       atm_field,
                        ArrayOfRetrievalQuantity(0),
                        propmat_clearsky_agenda);
 
@@ -139,7 +140,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
         const Numeric DC = band.DopplerConstant(t_field(ip, 0, 0));
         const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
         for (Index k=0; k<band.NumLines(); k++) {
-          const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs);
+          const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_field(ip, 0, 0), vmrs);
           LineShape::Calculator ls(band.lineshapetype, band.lines[k].F0, X, DC, 0, false);
           for (Index iv=0; iv<f_grid.nelem(); iv++) {
             lineshapes[il][ip][iv] = ls(f_grid[iv]);
@@ -196,8 +197,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                 absorption_field,
                                 additional_source_field,
                                 f_grid,
-                                t_field,
-                                nlte_field,
+                                atm_field,
                                 path,
                                 iy_main_agenda,
                                 iy_space_agenda,

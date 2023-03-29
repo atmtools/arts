@@ -658,31 +658,16 @@ void iyTransmissionStandard(Workspace& ws,
                             Matrix& iy,
                             ArrayOfMatrix& iy_aux,
                             ArrayOfTensor3& diy_dx,
-                            Vector& ppvar_p,
-                            Vector& ppvar_t,
-                            EnergyLevelMap& ppvar_nlte,
-                            Matrix& ppvar_vmr,
-                            Matrix& ppvar_wind,
-                            Matrix& ppvar_mag,
+                            ArrayOfAtmPoint& ppvar_atm,
                             Matrix& ppvar_pnd,
-                            Matrix& ppvar_f,
+                            ArrayOfVector& ppvar_f,
                             Tensor3& ppvar_iy,
                             Tensor4& ppvar_trans_cumulat,
                             Tensor4& ppvar_trans_partial,
                             const Index& stokes_dim,
                             const Vector& f_grid,
-                            const Index& atmosphere_dim,
-                            const Vector& p_grid,
-                            const Tensor3& t_field,
-                            const EnergyLevelMap& nlte_field,
-                            const Tensor4& vmr_field,
                             const ArrayOfArrayOfSpeciesTag& abs_species,
-                            const Tensor3& wind_u_field,
-                            const Tensor3& wind_v_field,
-                            const Tensor3& wind_w_field,
-                            const Tensor3& mag_u_field,
-                            const Tensor3& mag_v_field,
-                            const Tensor3& mag_w_field,
+                            const AtmField& atm_field,
                             const Index& cloudbox_on,
                             const ArrayOfIndex& cloudbox_limits,
                             const Index& gas_scattering_do,
@@ -806,11 +791,6 @@ This feature will be added in a future version.
   ArrayOfIndex clear2cloudy;
   //
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
-    ppvar_p.resize(0);
-    ppvar_t.resize(0);
-    ppvar_vmr.resize(0, 0);
-    ppvar_wind.resize(0, 0);
-    ppvar_mag.resize(0, 0);
     ppvar_pnd.resize(0, 0);
     ppvar_f.resize(0, 0);
     ppvar_iy.resize(0, 0, 0);
@@ -828,29 +808,6 @@ This feature will be added in a future version.
     ppvar_iy.resize(nf, ns, np);
     ppvar_iy(joker, joker, np - 1) = iy_transmitter;
 
-    // Basic atmospheric variables
-    get_ppath_atmvars(ppvar_p,
-                      ppvar_t,
-                      ppvar_nlte,
-                      ppvar_vmr,
-                      ppvar_wind,
-                      ppvar_mag,
-                      ppath,
-                      atmosphere_dim,
-                      p_grid,
-                      t_field,
-                      nlte_field,
-                      vmr_field,
-                      wind_u_field,
-                      wind_v_field,
-                      wind_w_field,
-                      mag_u_field,
-                      mag_v_field,
-                      mag_w_field);
-
-    get_ppath_f(
-        ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
-
     // pnd_field
     ArrayOfMatrix ppvar_dpnd_dx(0);
     //
@@ -859,7 +816,7 @@ This feature will be added in a future version.
                           ppvar_pnd,
                           ppvar_dpnd_dx,
                           ppath,
-                          atmosphere_dim,
+                          atm_field.old_atmosphere_dim_est(),
                           cloudbox_limits,
                           pnd_field,
                           dpnd_field_dx);
@@ -919,9 +876,9 @@ This feature will be added in a future version.
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppath.los(ip, joker),
-                                    AtmPoint{},  // FIXME: DUMMY VALUE,
+                                    ppvar_f[ip],
+                                    Vector{ppath.los(ip, joker)},
+                                    ppvar_atm[ip],
                                     j_analytical_do);
 
       // get Extinction from gas scattering
@@ -930,10 +887,8 @@ This feature will be added in a future version.
                                      K_sca,
                                      gas_scattering_mat,
                                      sca_fct_dummy,
-                                     f_grid,
-                                     ppvar_p[ip],
-                                     ppvar_t[ip],
-                                     Vector{ppvar_vmr(joker, ip)},
+                                     ppvar_f[ip],  // FIXME: WAS THIS A BUG?
+                                     ppvar_atm[ip],
                                      gas_scattering_los_in,
                                      gas_scattering_los_out,
                                      0,
@@ -946,10 +901,10 @@ This feature will be added in a future version.
         adapt_stepwise_partial_derivatives(dK_this_dx,
                                            dS_dx,
                                            jacobian_quantities,
-                                           ppvar_f(joker, ip),
+                                           ppvar_f[ip],
                                            ppath.los(ip, joker),
                                            lte[ip],
-                                           atmosphere_dim,
+                                           atm_field.old_atmosphere_dim_est(),
                                            j_analytical_do);
       }
 
@@ -964,8 +919,8 @@ This feature will be added in a future version.
                                         ip,
                                         scat_data,
                                         ppath.los(ip, joker),
-                                        ppvar_t[Range(ip, 1)],
-                                        atmosphere_dim,
+                                        ExhaustiveVectorView{ppvar_atm[ip].temperature},
+                                        atm_field.old_atmosphere_dim_est(),
                                         jacobian_do);
         K_this += Kp;
 
@@ -977,9 +932,9 @@ This feature will be added in a future version.
       // Transmission
       if (ip not_eq 0) {
         const Numeric dr_dT_past =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
         stepwise_transmission(lyr_tra[ip],
                               dlyr_tra_above[ip],
                               dlyr_tra_below[ip],
@@ -1057,15 +1012,13 @@ This feature will be added in a future version.
                                     ns,
                                     nf,
                                     np,
-                                    atmosphere_dim,
                                     ppath,
-                                    ppvar_p,
-                                    ppvar_t,
-                                    ppvar_vmr,
+                                    ppvar_atm,
                                     iy_agenda_call1,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
+                                    abs_species,
                                     jac_species_i);
   }
 }

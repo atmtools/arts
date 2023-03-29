@@ -36,9 +36,11 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "logic.h"
 #include "matpack_eigen.h"
+#include "matpack_view.h"
 #include "messages.h"
 #include "montecarlo.h"
 #include "propagationmatrix.h"
@@ -59,27 +61,13 @@ void iyRadarSingleScat(Workspace& ws,
                        Matrix& iy,
                        ArrayOfMatrix& iy_aux,
                        ArrayOfTensor3& diy_dx,
-                       Vector& ppvar_p,
-                       Vector& ppvar_t,
-                       Matrix& ppvar_vmr,
-                       Matrix& ppvar_wind,
-                       Matrix& ppvar_mag,
+                       ArrayOfAtmPoint& ppvar_atm,
                        Matrix& ppvar_pnd,
-                       Matrix& ppvar_f,
+                       ArrayOfVector& ppvar_f,
                        const Index& stokes_dim,
                        const Vector& f_grid,
-                       const Index& atmosphere_dim,
-                       const Vector& p_grid,
-                       const Tensor3& t_field,
-                       const EnergyLevelMap& nlte_field,
-                       const Tensor4& vmr_field,
                        const ArrayOfArrayOfSpeciesTag& abs_species,
-                       const Tensor3& wind_u_field,
-                       const Tensor3& wind_v_field,
-                       const Tensor3& wind_w_field,
-                       const Tensor3& mag_u_field,
-                       const Tensor3& mag_v_field,
-                       const Tensor3& mag_w_field,
+                       const AtmField& atm_field,
                        const Index& cloudbox_on,
                        const ArrayOfIndex& cloudbox_limits,
                        const Tensor4& pnd_field,
@@ -240,44 +228,16 @@ void iyRadarSingleScat(Workspace& ws,
   EnergyLevelMap ppvar_nlte;
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
-    ppvar_p.resize(0);
-    ppvar_t.resize(0);
-    ppvar_vmr.resize(0, 0);
-    ppvar_wind.resize(0, 0);
-    ppvar_mag.resize(0, 0);
     ppvar_pnd.resize(0, 0);
     ppvar_f.resize(0, 0);
   } else {
-    // Basic atmospheric variables
-    get_ppath_atmvars(ppvar_p,
-                      ppvar_t,
-                      ppvar_nlte,
-                      ppvar_vmr,
-                      ppvar_wind,
-                      ppvar_mag,
-                      ppath,
-                      atmosphere_dim,
-                      p_grid,
-                      t_field,
-                      nlte_field,
-                      vmr_field,
-                      wind_u_field,
-                      wind_v_field,
-                      wind_w_field,
-                      mag_u_field,
-                      mag_v_field,
-                      mag_w_field);
-
-    get_ppath_f(
-        ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
-
     // pnd_field
     if (cloudbox_on)
       get_ppath_cloudvars(clear2cloudy,
                           ppvar_pnd,
                           ppvar_dpnd_dx,
                           ppath,
-                          atmosphere_dim,
+                          atm_field.old_atmosphere_dim_est(),
                           cloudbox_limits,
                           pnd_field,
                           dpnd_field_dx);
@@ -330,8 +290,8 @@ void iyRadarSingleScat(Workspace& ws,
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppath.los(ip, joker),
+                                    ppvar_f[ip],
+                                    Vector{ppath.los(ip, joker)},
                                     AtmPoint{},  // FIXME: DUMMY VALUE
                                     trans_in_jacobian && j_analytical_do);
 
@@ -340,10 +300,10 @@ void iyRadarSingleScat(Workspace& ws,
             dK_this_dx,
             dS_dx,
             jacobian_quantities,
-            ppvar_f(joker, ip),
+            ppvar_f[ip],
             ppath.los(ip, joker),
             lte[ip],
-            atmosphere_dim,
+            atm_field.old_atmosphere_dim_est(),
             trans_in_jacobian && j_analytical_do);
 
       if (clear2cloudy[ip] + 1) {
@@ -357,8 +317,8 @@ void iyRadarSingleScat(Workspace& ws,
                                         ip,
                                         scat_data,
                                         ppath.los(ip, joker),
-                                        ppvar_t[Range(ip, 1)],
-                                        atmosphere_dim,
+                                        ExhaustiveVectorView{ppvar_atm[ip].temperature},
+                                        atm_field.old_atmosphere_dim_est(),
                                         trans_in_jacobian && jacobian_do);
 
         if (abs(pext_scaling - 1) > 1e-6) {
@@ -389,12 +349,12 @@ void iyRadarSingleScat(Workspace& ws,
         {
           // Direction of outgoing scattered radiation (which is reverse to LOS).
           Vector los_sca;
-          mirror_los(los_sca, ppath.los(ip, joker), atmosphere_dim);
+          mirror_los(los_sca, ppath.los(ip, joker), atm_field.old_atmosphere_dim_est());
           mlos_sca(0, joker) = los_sca;
 
           // Obtain a length-2 vector for incoming direction
           Vector los_inc;
-          if (atmosphere_dim == 3) {
+          if (atm_field.old_atmosphere_dim_est() == 3) {
             los_inc = ppath.los(ip, joker);
           } else { // Mirror back to get a correct 3D LOS
             mirror_los(los_inc, los_sca, 3);
@@ -421,7 +381,7 @@ void iyRadarSingleScat(Workspace& ws,
                                   ptype,
                                   t_ok,
                                   scat_data[i_ss][i_se],
-                                  Vector{ppvar_t[Range(ip, 1)]},
+                                  Vector{ppvar_atm[ip].temperature},
                                   mlos_sca,
                                   mlos_inc,
                                   0,
@@ -449,9 +409,9 @@ void iyRadarSingleScat(Workspace& ws,
 
       if (ip not_eq 0) {
         const Numeric dr_dT_past =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
         stepwise_transmission(lyr_tra[ip],
                               dlyr_tra_above[ip],
                               dlyr_tra_below[ip],
@@ -523,15 +483,13 @@ void iyRadarSingleScat(Workspace& ws,
                                     ns,
                                     nf,
                                     np,
-                                    atmosphere_dim,
                                     ppath,
-                                    ppvar_p,
-                                    ppvar_t,
-                                    ppvar_vmr,
+                                    ppvar_atm,
                                     iy_agenda_call1,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
+                                    abs_species,
                                     jac_species_i);
   }
 

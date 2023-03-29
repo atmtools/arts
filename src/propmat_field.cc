@@ -39,17 +39,13 @@ void field_of_propagation(Workspace& ws,
                           FieldOfStokesVector& additional_source_field,
                           const Index& stokes_dim,
                           const Vector& f_grid,
-                          const Vector& p_grid,
-                          const Tensor3& z_field,
-                          const Tensor3& t_field,
-                          const EnergyLevelMap& nlte_field,
-                          const Tensor4& vmr_field,
+                          const AtmField& atm_field,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Agenda& propmat_clearsky_agenda)
 {
-  const Index nalt = z_field.npages();
-  const Index nlat = z_field.nrows();
-  const Index nlon = z_field.ncols();
+  const Index nalt = atm_field.regularized_shape()[0];
+  const Index nlat = atm_field.regularized_shape()[1];
+  const Index nlon = atm_field.regularized_shape()[2];
   const Index nq = jacobian_quantities.nelem();
   const Index nf = f_grid.nelem();
 
@@ -91,7 +87,7 @@ void field_of_propagation(Workspace& ws,
             jacobian_quantities,
             f_grid,
             los,
-            AtmPoint{},  // FIXME: DUMMY VALUE,
+            atm_field.at(atm_field.grid[0][i], atm_field.grid[1][j], atm_field.grid[2][k]),
             false);
         absorption_field(i, j, k) = propmat_field(i, j, k);
       }
@@ -122,8 +118,7 @@ void emission_from_propmat_field(
     const FieldOfStokesVector& absorption_field,
     const FieldOfStokesVector& additional_source_field,
     const Vector& f_grid,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
+    const AtmField& atm_field,
     const Ppath& ppath,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,
@@ -164,8 +159,7 @@ void emission_from_propmat_field(
 
   // Loop ppath points and determine radiative properties
   for (Index ip = 0; ip < np; ip++) {
-    get_stepwise_blackbody_radiation(
-        B, vtmp, f_grid, interp_atmfield_by_gp(1, t_field, ppath.gp_p[ip]), false);
+    // FIXME: GET SOURCE
     K_this = propmat_field(ppath.gp_p[ip]);
     const StokesVector S(additional_source_field(ppath.gp_p[ip]));
     const StokesVector a(absorption_field(ppath.gp_p[ip]));
@@ -215,8 +209,7 @@ void emission_from_propmat_field(
                        rqtmp,
                        ppath,
                        Vector{0},
-                       1,
-                       nlte_field,
+                       atm_field,
                        0,
                        1,
                        f_grid,

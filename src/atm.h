@@ -1,5 +1,6 @@
 #pragma once
 
+#include <__concepts/same_as.h>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -17,6 +18,7 @@
 #include "debug.h"
 #include "enums.h"
 #include "gridded_fields.h"
+#include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "quantum_numbers.h"
 #include "species.h"
@@ -50,10 +52,30 @@ concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or isQuantumIdentifier<T>;
 
 using KeyVal = std::variant<Key, ArrayOfSpeciesTag, QuantumIdentifier>;
 
+template <typename T>
+concept ListKeyType = requires (T a) {
+  { a.size() } -> matpack::integral;
+  { a[0] } -> KeyType;
+};
+
+template <typename T>
+concept ListOfNumeric = requires (T a) {
+  { matpack::mdshape(a) } -> std::same_as<std::array<Index, 1>>;
+  { matpack::mdvalue(a, {Index{0}}) } -> std::same_as<Numeric>;
+};
+
 struct Point {
 private:
-  template <KeyType T, typename U, typename... Ts, size_t N=sizeof...(Ts)>
-  void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
+  template <ListKeyType T, ListOfNumeric U, typename... Ts, size_t N = sizeof...(Ts)>
+  void internal_set(T &&lhs, U &&rhs, Ts &&...ts) {
+    ARTS_ASSERT(static_cast<Index>(lhs.size()) == matpack::mdshape(rhs)[0])
+    for (decltype(lhs.size()) i = 0; i < lhs.size(); i++)
+      this->operator[](lhs[i]) = mdvalue(rhs, {static_cast<Index>(i)});
+    if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
+  }
+
+  template <KeyType T, typename U, typename... Ts, size_t N = sizeof...(Ts)>
+  void internal_set(T &&lhs, U &&rhs, Ts &&...ts) {
     this->operator[](std::forward<T>(lhs)) = std::forward<U>(rhs);
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
@@ -244,6 +266,20 @@ struct Data {
   [[nodiscard]] std::tuple<Numeric, Numeric, Numeric> hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const;
 
   [[nodiscard]] String data_type() const;
+
+  template <typename T>
+  [[nodiscard]] T get() const {
+    auto* out = std::get_if<std::remove_cvref_t<T>>(&data);
+    ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
+    return *out;
+  }
+
+  template <typename T>
+  [[nodiscard]] T get() {
+    auto* out = std::get_if<std::remove_cvref_t<T>>(&data);
+    ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
+    return *out;
+  }
 };
 
 template <typename T>
@@ -323,6 +359,12 @@ private:
   //! Regularizes the calculations so that all data is on a single grid
   Field &regularize(const Vector &, const Vector &, const Vector &);
 
+  //! Estimate the old atmospheric dim (ARTS-2 atmosphere_dim)
+  [[deprecated, nodiscard]] Index old_atmosphere_dim_est() const;
+
+  //! Checks that exactly dim number of dimensions have size greater than 1
+  [[nodiscard]] bool regularized_atmosphere_dim(Index dim) const;
+
   //! Compute the values at a single point
   [[nodiscard]] Point at(Numeric, Numeric, Numeric, const FunctionalData& g=FunctionalDataAlwaysThrow{}) const;
 
@@ -351,6 +393,9 @@ private:
   [[nodiscard]] Index nother() const;
 
   void throwing_check() const;
+
+  [[nodiscard]] ArrayOfQuantumIdentifier nlte_keys() const;
+  [[nodiscard]] ArrayOfArrayOfSpeciesTag spec_keys() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Field &atm);
 };
@@ -402,6 +447,15 @@ public:
     return x0 * std::exp(-(alt - h0) / H);
   }
 };
+
+/** Extracts all the VMR from a regularized Field
+ * 
+ *  
+ * @param[in] atm An atmosospheric field
+ * @param[in] specs A list of atmospheric species
+ * @return Tensor4 All gridded VMR
+ */
+Tensor4 extract_specs_content(const Field& atm, const ArrayOfArrayOfSpeciesTag& specs);
 } // namespace Atm
 
 using AtmField = Atm::Field;

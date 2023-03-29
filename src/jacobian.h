@@ -723,9 +723,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
 void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const RetrievalQuantity& jacobian_quantity,
                              ConstTensor3View diy_dpath,
-                             const Index& atmosphere_dim,
-                             const Ppath& ppath,
-                             ConstVectorView ppath_p);
+                             const Ppath& ppath);
 
 /** diy_from_pos_to_rgrids
 

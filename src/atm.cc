@@ -585,4 +585,38 @@ Numeric Point::operator[](Species::Species x) const noexcept {
 }
 
 bool Point::is_lte() const noexcept { return nlte.empty(); }
-}  // namespace Atm
+
+Index Field::old_atmosphere_dim_est() const {
+  return static_cast<Index>(grid[0].size() > 1) +
+         static_cast<Index>(grid[1].size() > 1) +
+         static_cast<Index>(grid[2].size() > 1);
+}
+
+bool Field::regularized_atmosphere_dim(Index dim) const {
+  return regularized and dim == old_atmosphere_dim_est();
+}
+
+Tensor4 extract_specs_content(const Field &atm,
+                              const ArrayOfArrayOfSpeciesTag &specs) {
+  Tensor4 out(atm.nspec(), atm.regularized_shape()[0],
+              atm.regularized_shape()[1], atm.regularized_shape()[2]);
+  std::transform(specs.begin(), specs.end(), out.begin(),
+                 [&](auto &spec) { return atm[spec].template get<Tensor3>(); });
+  return out;
+}
+
+template <class Key, class T, class Hash, class KeyEqual, class Allocator>
+std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Allocator>& map) {
+  std::vector<Key> out(map.size());
+  std::transform(map.begin(), map.end(), out.begin(), [](auto& v){return v.first;});
+  return out;
+}
+
+ArrayOfQuantumIdentifier Field::nlte_keys() const {
+  return get_keys(nlte);
+}
+
+ArrayOfArrayOfSpeciesTag Field::spec_keys() const {
+  return get_keys(specs);
+}
+} // namespace Atm

@@ -33,6 +33,7 @@
 #include "arts_constexpr_math.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "geodetic_OLD.h"
@@ -44,6 +45,7 @@
 #include "ppath_OLD.h"
 #include "refraction.h"
 #include "special_interp.h"
+#include "species_tags.h"
 #include <cmath>
 #include <stdexcept>
 
@@ -737,9 +739,8 @@ void get_iy_of_background(Workspace& ws,
                           const Index& jacobian_do,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Ppath& ppath,
-                          const Vector& rte_pos2,
-                          const Index& atmosphere_dim,
-                          const EnergyLevelMap& nlte_field,
+                          const ConstVectorView& rte_pos2,
+                          const AtmField& atm_field,
                           const Index& cloudbox_on,
                           const Index& stokes_dim,
                           const Vector& f_grid,
@@ -764,8 +765,8 @@ void get_iy_of_background(Workspace& ws,
   // shall be copied.
   //
   Vector rtp_pos, rtp_los;
-  rtp_pos.resize(atmosphere_dim);
-  rtp_pos = ppath.pos(np - 1, Range(0, atmosphere_dim));
+  rtp_pos.resize(atm_field.old_atmosphere_dim_est());
+  rtp_pos = ppath.pos(np - 1, Range(0, atm_field.old_atmosphere_dim_est()));
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 
@@ -814,8 +815,8 @@ void get_iy_of_background(Workspace& ws,
                                cloudbox_on,
                                jacobian_do,
                                iy_main_agenda,
-                               f_grid,
-                               nlte_field,
+                               Vector{f_grid},
+                               atm_field,
                                rtp_pos,
                                rtp_los,
                                rte_pos2,
@@ -1141,20 +1142,23 @@ void get_stepwise_clearsky_propmat(
     ArrayOfStokesVector& dS_dx,
     const Agenda& propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_line_of_sight,
+    const Vector& ppath_f_grid,
+    const Vector& ppath_line_of_sight,
     const AtmPoint& atm_point,
     const bool& jacobian_do) {
+  static const ArrayOfSpeciesTag select_abs_species{};
+  static const ArrayOfRetrievalQuantity jacobian_quantities_empty{};
+
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
                                  K,
                                  S,
                                  dK_dx,
                                  dS_dx,
-                                 jacobian_do ? jacobian_quantities : ArrayOfRetrievalQuantity(0),
-                                 {},
-                                 Vector{ppath_f_grid},
-                                 Vector{ppath_line_of_sight},
+                                 jacobian_do ? jacobian_quantities : jacobian_quantities_empty,
+                                 select_abs_species,
+                                 ppath_f_grid,
+                                 ppath_line_of_sight,
                                  atm_point,
                                  propmat_clearsky_agenda);
 
@@ -1963,15 +1967,13 @@ void rtmethods_jacobian_finalisation(
     const Index& ns,
     const Index& nf,
     const Index& np,
-    const Index& atmosphere_dim,
     const Ppath& ppath,
-    const Vector& ppvar_p,
-    const Vector& ppvar_t,
-    const Matrix& ppvar_vmr,
+    const ArrayOfAtmPoint& ppvar_atm,
     const Index& iy_agenda_call1,
     const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfIndex& jac_species_i) {
   // Weight with iy_transmittance
   if (!iy_agenda_call1) {
@@ -2004,7 +2006,7 @@ void rtmethods_jacobian_finalisation(
       else if (jacobian_quantities[iq].Mode() == "rel") {
         // Here x = vmr*z
         for (Index ip = 0; ip < np; ip++) {
-          diy_dpath[iq](ip, joker, joker) *= ppvar_vmr(jac_species_i[iq], ip);
+          diy_dpath[iq](ip, joker, joker) *= ppvar_atm[ip][abs_species[jac_species_i[iq]]];
         }
       }
 
@@ -2012,17 +2014,19 @@ void rtmethods_jacobian_finalisation(
         // Here x = z/nd_tot
         for (Index ip = 0; ip < np; ip++) {
           diy_dpath[iq](ip, joker, joker) /=
-              number_density(ppvar_p[ip], ppvar_t[ip]);
+              number_density(ppvar_atm[ip].pressure, ppvar_atm[ip].temperature);
         }
       }
 
       else if (jacobian_quantities[iq].Mode() == "rh") {
         // Here x = (p_sat/p) * z
-        Tensor3 t_data(ppvar_t.nelem(), 1, 1);
-        t_data(joker, 0, 0) = ppvar_t;
+        Tensor3 t_data(ppvar_atm.nelem(), 1, 1);
+        for (Index ip = 0; ip < np; ip++) {
+          t_data(ip, 0, 0) = ppvar_atm[ip].temperature;
+        }
         water_p_eq_agendaExecute(ws, water_p_eq, t_data, water_p_eq_agenda);
         for (Index ip = 0; ip < np; ip++) {
-          diy_dpath[iq](ip, joker, joker) *= water_p_eq(ip, 0, 0) / ppvar_p[ip];
+          diy_dpath[iq](ip, joker, joker) *= water_p_eq(ip, 0, 0) / ppvar_atm[ip].pressure;
         }
       }
 
@@ -2052,14 +2056,16 @@ void rtmethods_jacobian_finalisation(
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
               Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
-              ddterm *= ppvar_vmr(jac_species_i[ia], ip) *
-                        (number_density(ppvar_p[ip], ppvar_t[ip] + 1) -
-                         number_density(ppvar_p[ip], ppvar_t[ip]));
+              ddterm *= ppvar_atm[ip][abs_species[jac_species_i[ia]]] *
+                        (number_density(ppvar_atm[ip].pressure, ppvar_atm[ip].temperature + 1) -
+                         number_density(ppvar_atm[ip].pressure, ppvar_atm[ip].pressure));
               diy_dpath[iq](ip, joker, joker) += ddterm;
             }
           } else if (jacobian_quantities[ia].Mode() == "rh") {
-            Tensor3 t_data(ppvar_t.nelem(), 1, 1);
-            t_data(joker, 0, 0) = ppvar_t;
+            Tensor3 t_data(ppvar_atm.nelem(), 1, 1);
+            for (Index ip = 0; ip < np; ip++) {
+              t_data(ip, 0, 0) = ppvar_atm[ip].temperature;
+            }
             // Calculate water sat. pressure if not already done
             if (water_p_eq.npages() == 0) {
               water_p_eq_agendaExecute(
@@ -2075,8 +2081,8 @@ void rtmethods_jacobian_finalisation(
               const Numeric p_eq = water_p_eq(ip, 0, 0);
               const Numeric p_eq1K = water_p_eq1K(ip, 0, 0);
               Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
-              ddterm *= ppvar_vmr(jac_species_i[ia], ip) *
-                        (ppvar_p[ip] / pow(p_eq, 2.0)) * (p_eq1K - p_eq);
+              ddterm *= ppvar_atm[ip][abs_species[jac_species_i[ia]]] *
+                        (ppvar_atm[ip].pressure / pow(p_eq, 2.0)) * (p_eq1K - p_eq);
               diy_dpath[iq](ip, joker, joker) += ddterm;
             }
           }
@@ -2089,9 +2095,7 @@ void rtmethods_jacobian_finalisation(
   FOR_ANALYTICAL_JACOBIANS_DO(diy_from_path_to_rgrids(diy_dx[iq],
                                                       jacobian_quantities[iq],
                                                       diy_dpath[iq],
-                                                      atmosphere_dim,
-                                                      ppath,
-                                                      ppvar_p);)
+                                                      ppath);)
 }
 
 void rtmethods_unit_conversion(

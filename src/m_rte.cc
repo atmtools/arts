@@ -32,9 +32,11 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
+#include "atm.h"
 #include "atm_path.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "geodetic_OLD.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
@@ -168,34 +170,16 @@ void iyClearsky(
     Matrix& iy,
     ArrayOfMatrix& iy_aux,
     ArrayOfTensor3& diy_dx,
-    Vector& ppvar_p,
-    Vector& ppvar_t,
-    EnergyLevelMap& ppvar_nlte,
-    Matrix& ppvar_vmr,
-    Matrix& ppvar_wind,
-    Matrix& ppvar_mag,
-    Matrix& ppvar_f,
+    ArrayOfAtmPoint& ppvar_atm,
+    ArrayOfVector& ppvar_f,
     Tensor3& ppvar_iy,
     Tensor4& ppvar_trans_cumulat,
     Tensor4& ppvar_trans_partial,
     const Index& iy_id,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Tensor3& z_field,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
-    const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Tensor3& wind_u_field,
-    const Tensor3& wind_v_field,
-    const Tensor3& wind_w_field,
-    const Tensor3& mag_u_field,
-    const Tensor3& mag_v_field,
-    const Tensor3& mag_w_field,
+    const AtmField& atm_field,
     const Matrix& z_surface,
     const Vector& refellipsoid,
     const Numeric& ppath_lmax,
@@ -339,37 +323,9 @@ This feature will be added in a future version.
   ArrayOfVector dr_above(np, Vector(nq, 0));
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
-    ppvar_p.resize(0);
-    ppvar_t.resize(0);
-    ppvar_vmr.resize(0, 0);
-    ppvar_wind.resize(0, 0);
-    ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
     ppvar_trans_cumulat = 1;
   } else {
-    // Basic atmospheric variables
-    get_ppath_atmvars(ppvar_p,
-                      ppvar_t,
-                      ppvar_nlte,
-                      ppvar_vmr,
-                      ppvar_wind,
-                      ppvar_mag,
-                      ppath,
-                      atmosphere_dim,
-                      p_grid,
-                      t_field,
-                      nlte_field,
-                      vmr_field,
-                      wind_u_field,
-                      wind_v_field,
-                      wind_w_field,
-                      mag_u_field,
-                      mag_v_field,
-                      mag_w_field);
-
-    get_ppath_f(
-        ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
-
     const bool temperature_jacobian =
         j_analytical_do and do_temperature_jacobian(jacobian_quantities);
 
@@ -411,7 +367,7 @@ This feature will be added in a future version.
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
 
-    WorkspaceOmpParallelCopyGuard wss{ws};;
+    WorkspaceOmpParallelCopyGuard wss{ws};
     ArrayOfString fail_msg;
     bool do_abort = false;
 
@@ -422,7 +378,7 @@ This feature will be added in a future version.
       if (do_abort) continue;
       try {
         get_stepwise_blackbody_radiation(
-            B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
+            B, dB_dT, ppvar_f[ip], ppvar_atm[ip].temperature, temperature_jacobian);
 
         Index lte;
         get_stepwise_clearsky_propmat(wss,
@@ -433,19 +389,19 @@ This feature will be added in a future version.
                                       dS_dx,
                                       propmat_clearsky_agenda,
                                       jacobian_quantities,
-                                      ppvar_f(joker, ip),
-                                      ppath.los(ip, joker),
-                                      AtmPoint{},  // FIXME: DUMMY VALUE,
+                                      ppvar_f[ip],
+                                      Vector{ppath.los(ip, joker)},
+                                      ppvar_atm[ip],
                                       j_analytical_do);
 
         if (j_analytical_do)
           adapt_stepwise_partial_derivatives(dK_dx[ip],
                                              dS_dx,
                                              jacobian_quantities,
-                                             ppvar_f(joker, ip),
+                                             ppvar_f[ip],
                                              ppath.los(ip, joker),
                                              lte,
-                                             atmosphere_dim,
+                                             atm_field.old_atmosphere_dim_est(),
                                              j_analytical_do);
 
 
@@ -455,9 +411,11 @@ This feature will be added in a future version.
 
           ArrayOfIndex suns_visible(suns.nelem());
 
-          Numeric minP = min(ppvar_p);
+          ARTS_USER_ERROR_IF(not atm_field.regularized, "The grid must be regular ????????????")
 
-          if (suns_do && ppvar_p[ip] > minP) {
+          Numeric maxZ = max(atm_field.grid[0]);
+
+          if (suns_do && atm_field.grid[0][ip] > maxZ) {
             // We skip the uppermost altitude
             // level as there can be sometimes issue due
             // to the finite precision when calculating
@@ -467,6 +425,7 @@ This feature will be added in a future version.
             ArrayOfPpath sun_ppaths(suns.nelem());
             ArrayOfVector sun_rte_los(suns.nelem(), Vector(2));
 
+            /*  ?????????????????????????????????????
             get_sun_ppaths(wss,
                             sun_ppaths,
                             suns_visible,
@@ -485,10 +444,12 @@ This feature will be added in a future version.
                             ppath_lraytrace,
                             ppath_step_agenda,
                             verbosity);
+            */
 
             ArrayOfMatrix transmitted_sunlight;
             ArrayOfArrayOfTensor3 dtransmitted_sunlight_dummy(suns.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
+            /*  ?????????????????????????????????????
             get_direct_radiation(wss,
                                  transmitted_sunlight,
                                  dtransmitted_sunlight_dummy,
@@ -527,6 +488,7 @@ This feature will be added in a future version.
                                  gas_scattering_agenda,
                                  rte_alonglos_v,
                                  verbosity);
+            */
 
             //Loop over the different suns to get the total scattered starlight
             RadiationVector scattered_sunlight_isun(nf, ns);
@@ -539,9 +501,7 @@ This feature will be added in a future version.
                 get_scattered_sunsource(wss,
                                          scattered_sunlight_isun,
                                          f_grid,
-                                         ppvar_p[ip],
-                                         ppvar_t[ip],
-                                         Vector{ppvar_vmr(joker, ip)},
+                                         ppvar_atm[ip],
                                          transmitted_sunlight[i_sun],
                                          sun_rte_los[i_sun],
                                          Vector{ppath.los(ip, joker)},
@@ -562,9 +522,7 @@ This feature will be added in a future version.
                                        sca_mat_dummy,
                                        sca_fct_dummy,
                                        f_grid,
-                                       ppvar_p[ip],
-                                       ppvar_t[ip],
-                                       Vector{ppvar_vmr(joker, ip)},
+                                       ppvar_atm[ip],
                                        in_los_dummy,
                                        out_los_dummy,
                                        0,
@@ -616,9 +574,9 @@ This feature will be added in a future version.
       if (do_abort) continue;
       try {
         const Numeric dr_dT_past =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
         stepwise_transmission(lyr_tra[ip],
                               dlyr_tra_above[ip],
                               dlyr_tra_below[ip],
@@ -678,8 +636,7 @@ This feature will be added in a future version.
                        jacobian_quantities,
                        ppath,
                        rte_pos2,
-                       atmosphere_dim,
-                       nlte_field,
+                       atm_field,
                        cloudbox_on,
                        stokes_dim,
                        f_grid,
@@ -709,7 +666,7 @@ This feature will be added in a future version.
                         ppath,
                         f_grid,
                         stokes_dim,
-                        atmosphere_dim,
+                        atm_field.old_atmosphere_dim_est(),
                         refellipsoid);
 
     if (stars_visible) {
@@ -811,15 +768,13 @@ This feature will be added in a future version.
                                     ns,
                                     nf,
                                     np,
-                                    atmosphere_dim,
                                     ppath,
-                                    ppvar_p,
-                                    ppvar_t,
-                                    ppvar_vmr,
+                                    ppvar_atm,
                                     iy_agenda_call1,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
+                                    abs_species,
                                     jac_species_i);
   }
 
@@ -843,32 +798,17 @@ void iyEmissionHybrid(Workspace& ws,
               Matrix& iy,
               ArrayOfMatrix& iy_aux,
               ArrayOfTensor3& diy_dx,
-              Vector& ppvar_p,
-              Vector& ppvar_t,
-              EnergyLevelMap& ppvar_nlte,
-              Matrix& ppvar_vmr,
-              Matrix& ppvar_wind,
-              Matrix& ppvar_mag,
+              ArrayOfAtmPoint& ppvar_atm,
               Matrix& ppvar_pnd,
-              Matrix& ppvar_f,
+              ArrayOfVector& ppvar_f,
               Tensor3& ppvar_iy,
               Tensor4& ppvar_trans_cumulat,
               Tensor4& ppvar_trans_partial,
               const Index& iy_id,
               const Index& stokes_dim,
               const Vector& f_grid,
-              const Index& atmosphere_dim,
-              const Vector& p_grid,
-              const Tensor3& t_field,
-              const EnergyLevelMap& nlte_field,
-              const Tensor4& vmr_field,
               const ArrayOfArrayOfSpeciesTag& abs_species,
-              const Tensor3& wind_u_field,
-              const Tensor3& wind_v_field,
-              const Tensor3& wind_w_field,
-              const Tensor3& mag_u_field,
-              const Tensor3& mag_v_field,
-              const Tensor3& mag_w_field,
+              const AtmField& atm_field,
               const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
               const Tensor4& pnd_field,
@@ -904,12 +844,7 @@ void iyEmissionHybrid(Workspace& ws,
                        iy,
                        iy_aux,
                        diy_dx,
-                       ppvar_p,
-                       ppvar_t,
-                       ppvar_nlte,
-                       ppvar_vmr,
-                       ppvar_wind,
-                       ppvar_mag,
+                       ppvar_atm,
                        ppvar_f,
                        ppvar_iy,
                        ppvar_trans_cumulat,
@@ -917,18 +852,8 @@ void iyEmissionHybrid(Workspace& ws,
                        iy_id,
                        stokes_dim,
                        f_grid,
-                       atmosphere_dim,
-                       p_grid,
-                       t_field,
-                       nlte_field,
-                       vmr_field,
                        abs_species,
-                       wind_u_field,
-                       wind_v_field,
-                       wind_w_field,
-                       mag_u_field,
-                       mag_v_field,
-                       mag_w_field,
+                       atm_field,
                        cloudbox_on,
                        iy_unit,
                        iy_aux_vars,
@@ -963,9 +888,7 @@ void iyEmissionHybrid(Workspace& ws,
   const Index rbi = ppath_what_background(ppath);
 
   // Throw error if unsupported features are requested
-  if (atmosphere_dim != 1)
-    throw runtime_error(
-        "With cloudbox on, this method handles only 1D calculations.");
+  ARTS_USER_ERROR_IF(not atm_field.regularized_atmosphere_dim(1), "With cloudbox on, this method handles only 1D calculations.");
   if (Naa < 3) throw runtime_error("Naa must be > 2.");
   if (jacobian_do)
     if (dpnd_field_dx.nelem() != jacobian_quantities.nelem())
@@ -1065,11 +988,6 @@ void iyEmissionHybrid(Workspace& ws,
   ArrayOfIndex clear2cloudy;
   //
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
-    ppvar_p.resize(0);
-    ppvar_t.resize(0);
-    ppvar_vmr.resize(0, 0);
-    ppvar_wind.resize(0, 0);
-    ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
     ppvar_trans_cumulat = 0;
     ppvar_trans_partial = 0;
@@ -1080,29 +998,6 @@ void iyEmissionHybrid(Workspace& ws,
       }
     }
   } else {
-    // Basic atmospheric variables
-    get_ppath_atmvars(ppvar_p,
-                      ppvar_t,
-                      ppvar_nlte,
-                      ppvar_vmr,
-                      ppvar_wind,
-                      ppvar_mag,
-                      ppath,
-                      atmosphere_dim,
-                      p_grid,
-                      t_field,
-                      nlte_field,
-                      vmr_field,
-                      wind_u_field,
-                      wind_v_field,
-                      wind_w_field,
-                      mag_u_field,
-                      mag_v_field,
-                      mag_w_field);
-
-    get_ppath_f(
-        ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
-
     // here, the cloudbox is on, ie we don't need to check and branch this here
     // anymore.
     ArrayOfMatrix ppvar_dpnd_dx;
@@ -1111,7 +1006,7 @@ void iyEmissionHybrid(Workspace& ws,
                         ppvar_pnd,
                         ppvar_dpnd_dx,
                         ppath,
-                        atmosphere_dim,
+                        1,
                         cloudbox_limits,
                         pnd_field,
                         dpnd_field_dx);
@@ -1153,7 +1048,7 @@ void iyEmissionHybrid(Workspace& ws,
     // Loop ppath points and determine radiative properties
     for (Index ip = 0; ip < np; ip++) {
       get_stepwise_blackbody_radiation(
-          B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
+          B, dB_dT, ppvar_f[ip], ppvar_atm[ip].temperature, temperature_jacobian);
 
       get_stepwise_clearsky_propmat(ws,
                                     K_this,
@@ -1163,19 +1058,19 @@ void iyEmissionHybrid(Workspace& ws,
                                     dS_dx,
                                     propmat_clearsky_agenda,
                                     jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppath.los(ip, joker),
-                                    AtmPoint{},  // FIXME: DUMMY VALUE
+                                    ppvar_f[ip],
+                                    Vector{ppath.los(ip, joker)},
+                                    ppvar_atm[ip],
                                     j_analytical_do);
 
       if (j_analytical_do)
         adapt_stepwise_partial_derivatives(dK_this_dx,
                                            dS_dx,
                                            jacobian_quantities,
-                                           ppvar_f(joker, ip),
+                                           ppvar_f[ip],
                                            ppath.los(ip, joker),
                                            lte[ip],
-                                           atmosphere_dim,
+                                           1,
                                            j_analytical_do);
 
       if (clear2cloudy[ip] + 1) {
@@ -1189,8 +1084,8 @@ void iyEmissionHybrid(Workspace& ws,
                                         ip,
                                         scat_data,
                                         ppath.los(ip, joker),
-                                        ppvar_t[Range(ip, 1)],
-                                        atmosphere_dim,
+                                        ExhaustiveVectorView{ppvar_atm[ip].temperature},
+                                        1,
                                         jacobian_do);
         a += K_this;
         K_this += Kp;
@@ -1214,8 +1109,8 @@ void iyEmissionHybrid(Workspace& ws,
                                        aa_grid,
                                        ppath.los(Range(ip, 1), joker),
                                        ppath.gp_p[ip],
-                                       Vector{ppvar_t[Range(ip, 1)]},
-                                       atmosphere_dim,
+                                       Vector{ppvar_atm[ip].temperature},
+                                       1,
                                        jacobian_do,
                                        t_interp_order);
         S += Sp;
@@ -1230,9 +1125,9 @@ void iyEmissionHybrid(Workspace& ws,
 
       if (ip not_eq 0) {
         const Numeric dr_dT_past =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
         stepwise_transmission(lyr_tra[ip],
                               dlyr_tra_above[ip],
                               dlyr_tra_below[ip],
@@ -1291,8 +1186,7 @@ void iyEmissionHybrid(Workspace& ws,
                        jacobian_quantities,
                        ppath,
                        rte_pos2,
-                       atmosphere_dim,
-                       nlte_field,
+                       atm_field,
                        cloudbox_on,
                        stokes_dim,
                        f_grid,
@@ -1352,15 +1246,13 @@ void iyEmissionHybrid(Workspace& ws,
                                     ns,
                                     nf,
                                     np,
-                                    atmosphere_dim,
                                     ppath,
-                                    ppvar_p,
-                                    ppvar_t,
-                                    ppvar_vmr,
+                                    ppvar_atm,
                                     iy_agenda_call1,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
+                                    abs_species,
                                     jac_species_i);
 
   // Unit conversions
@@ -1383,31 +1275,16 @@ void iyEmissionStandard(
     Matrix& iy,
     ArrayOfMatrix& iy_aux,
     ArrayOfTensor3& diy_dx,
-    Vector& ppvar_p,
-    Vector& ppvar_t,
-    EnergyLevelMap& ppvar_nlte,
-    Matrix& ppvar_vmr,
-    Matrix& ppvar_wind,
-    Matrix& ppvar_mag,
-    Matrix& ppvar_f,
+    ArrayOfAtmPoint& ppvar_atm,
+    ArrayOfVector& ppvar_f,
     Tensor3& ppvar_iy,
     Tensor4& ppvar_trans_cumulat,
     Tensor4& ppvar_trans_partial,
     const Index& iy_id,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
-    const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Tensor3& wind_u_field,
-    const Tensor3& wind_v_field,
-    const Tensor3& wind_w_field,
-    const Tensor3& mag_u_field,
-    const Tensor3& mag_v_field,
-    const Tensor3& mag_w_field,
+    const AtmField& atm_field,
     const Index& cloudbox_on,
     const String& iy_unit,
     const ArrayOfString& iy_aux_vars,
@@ -1506,11 +1383,6 @@ void iyEmissionStandard(
   ArrayOfVector dr_above(np, Vector(nq, 0));
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
-    ppvar_p.resize(0);
-    ppvar_t.resize(0);
-    ppvar_vmr.resize(0, 0);
-    ppvar_wind.resize(0, 0);
-    ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
     ppvar_trans_cumulat = 0;
     ppvar_trans_partial = 0;
@@ -1522,29 +1394,6 @@ void iyEmissionStandard(
     }
 
   } else {
-    // Basic atmospheric variables
-    get_ppath_atmvars(ppvar_p,
-                      ppvar_t,
-                      ppvar_nlte,
-                      ppvar_vmr,
-                      ppvar_wind,
-                      ppvar_mag,
-                      ppath,
-                      atmosphere_dim,
-                      p_grid,
-                      t_field,
-                      nlte_field,
-                      vmr_field,
-                      wind_u_field,
-                      wind_v_field,
-                      wind_w_field,
-                      mag_u_field,
-                      mag_v_field,
-                      mag_w_field);
-
-    get_ppath_f(
-        ppvar_f, ppath, f_grid, atmosphere_dim, rte_alonglos_v, ppvar_wind);
-
     const bool temperature_jacobian =
         j_analytical_do and do_temperature_jacobian(jacobian_quantities);
 
@@ -1587,7 +1436,7 @@ void iyEmissionStandard(
       if (do_abort) continue;
       try {
         get_stepwise_blackbody_radiation(
-            B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
+            B, dB_dT, ppvar_f[ip], ppvar_atm[ip].temperature, temperature_jacobian);
 
         Index lte;
         get_stepwise_clearsky_propmat(wss,
@@ -1598,19 +1447,19 @@ void iyEmissionStandard(
                                       dS_dx,
                                       propmat_clearsky_agenda,
                                       jacobian_quantities,
-                                      ppvar_f(joker, ip),
-                                      ppath.los(ip, joker),
-                                      AtmPoint{},  // FIXME: DUMMY VALUE
+                                      ppvar_f[ip],
+                                      Vector{ppath.los(ip, joker)},
+                                      ppvar_atm[ip],
                                       j_analytical_do);
 
         if (j_analytical_do)
           adapt_stepwise_partial_derivatives(dK_dx[ip],
                                              dS_dx,
                                              jacobian_quantities,
-                                             ppvar_f(joker, ip),
+                                             ppvar_f[ip],
                                              ppath.los(ip, joker),
                                              lte,
-                                             atmosphere_dim,
+                                             atm_field.old_atmosphere_dim_est(),
                                              j_analytical_do);
 
         // Here absorption equals extinction
@@ -1649,9 +1498,9 @@ void iyEmissionStandard(
       if (do_abort) continue;
       try {
         const Numeric dr_dT_past =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
-            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
         stepwise_transmission(lyr_tra[ip],
                               dlyr_tra_above[ip],
                               dlyr_tra_below[ip],
@@ -1711,8 +1560,7 @@ void iyEmissionStandard(
                        jacobian_quantities,
                        ppath,
                        rte_pos2,
-                       atmosphere_dim,
-                       nlte_field,
+                       atm_field,
                        cloudbox_on,
                        stokes_dim,
                        f_grid,
@@ -1802,15 +1650,13 @@ void iyEmissionStandard(
                                     ns,
                                     nf,
                                     np,
-                                    atmosphere_dim,
                                     ppath,
-                                    ppvar_p,
-                                    ppvar_t,
-                                    ppvar_vmr,
+                                    ppvar_atm,
                                     iy_agenda_call1,
                                     iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
+                                    abs_species,
                                     jac_species_i);
   }
 

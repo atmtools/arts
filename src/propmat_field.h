@@ -30,6 +30,7 @@
 #ifndef PROPAGATION_FIELD_HEADER
 #define PROPAGATION_FIELD_HEADER
 
+#include "atm.h"
 #include "energylevelmap.h"
 #include "field.h"
 #include "transmissionmatrix.h"
@@ -64,11 +65,7 @@ void field_of_propagation(Workspace& ws,
                           FieldOfStokesVector& additional_source_field,
                           const Index& stokes_dim,
                           const Vector& f_grid,
-                          const Vector& p_grid,
-                          const Tensor3& z_field,
-                          const Tensor3& t_field,
-                          const EnergyLevelMap& nlte_field,
-                          const Tensor4& vmr_field,
+                          const AtmField& atm_field,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Agenda& propmat_clearsky_agenda);
 
@@ -119,8 +116,7 @@ void emission_from_propmat_field(
     const FieldOfStokesVector& absorption_field,
     const FieldOfStokesVector& additional_source_field,
     const Vector& f_grid,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
+    const AtmField& atm_field,
     const Ppath& ppath,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,
@@ -128,24 +124,5 @@ void emission_from_propmat_field(
     const Agenda& iy_cloudbox_agenda,
     const Tensor3& surface_props_data,
     const Verbosity& verbosity);
-void emission_from_propmat_field(
-  Workspace& ws,
-  ArrayOfRadiationVector& lvl_rad,
-  ArrayOfRadiationVector& src_rad,
-  ArrayOfTransmissionMatrix& lyr_tra,
-  ArrayOfTransmissionMatrix& tot_tra,
-  const FieldOfPropagationMatrix& propmat_field,
-  const FieldOfStokesVector& absorption_field,
-  const FieldOfStokesVector& additional_source_field,
-  const Vector& f_grid,
-  const Tensor3& t_field,
-  const EnergyLevelMap& nlte_field,
-  const Ppath& ppath,
-  const Agenda& iy_main_agenda,
-  const Agenda& iy_space_agenda,
-  const Agenda& iy_surface_agenda,
-  const Agenda& iy_cloudbox_agenda,
-  const Tensor3& surface_props_data,
-  const Verbosity& verbosity);
 
 #endif  // PROPAGATION_FIELD_HEADER

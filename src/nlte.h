@@ -209,7 +209,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
   ArrayOfIndex& upper,
   ArrayOfIndex& lower,
   const ArrayOfArrayOfAbsorptionLines& abs_lines,
-  const EnergyLevelMap& nlte_field);
+  const ArrayOfQuantumIdentifier& nlte_qid);
 
 /** Finds a unique lower state if one exists or returns index to last element
  * 

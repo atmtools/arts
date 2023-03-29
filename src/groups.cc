@@ -137,6 +137,8 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfArrayOfVector", "A list of *ArrayOfVector*");
 
+  wsv_groups.emplace_back("ArrayOfAtmPoint", "A list of *AtmPoint*");
+
   wsv_groups.emplace_back("ArrayOfCIARecord", "A list of *CIARecord*");
 
   wsv_groups.emplace_back("ArrayOfGriddedField1", "A list of *GriddedField1*");

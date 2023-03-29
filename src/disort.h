@@ -33,6 +33,7 @@
 #include "matpack_data.h"
 #include "mystring.h"
 #include "optproperties.h"
+#include "species_tags.h"
 #include "sun.h"
 
 
@@ -213,6 +214,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView t_profile,
                  ConstMatrixView vmr_profiles,
                  ConstMatrixView pnd_profiles,
+                 const ArrayOfArrayOfSpeciesTag& specs,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const ArrayOfSun& suns,
                  const Agenda& propmat_clearsky_agenda,
@@ -293,6 +295,7 @@ void run_cdisort_flux(Workspace& ws,
                       ConstVectorView t_profile,
                       ConstMatrixView vmr_profiles,
                       ConstMatrixView pnd_profiles,
+                      const ArrayOfArrayOfSpeciesTag& specs,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const ArrayOfSun& suns,
                       const Agenda& propmat_clearsky_agenda,
@@ -362,6 +365,7 @@ void get_gas_scattering_properties(Workspace& ws,
                                    const VectorView& p,
                                    const VectorView& t,
                                    const MatrixView& vmr,
+                                   const ArrayOfArrayOfSpeciesTag& specs,
                                    const Agenda& gas_scattering_agenda);
 
 /** get_paroptprop.

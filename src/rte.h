@@ -38,6 +38,7 @@
 
 #include "agenda_class.h"
 #include "arts.h"
+#include "atm.h"
 #include "jacobian.h"
 #include "matpack_data.h"
 #include "matpack_complex.h"
@@ -357,9 +358,8 @@ void get_iy_of_background(Workspace& ws,
                           const Index& jacobian_do,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Ppath& ppath,
-                          const Vector& rte_pos2,
-                          const Index& atmosphere_dim,
-                          const EnergyLevelMap& nlte_field,
+                          const ConstVectorView& rte_pos2,
+                          const AtmField& atm_field,
                           const Index& cloudbox_on,
                           const Index& stokes_dim,
                           const Vector& f_grid,
@@ -523,8 +523,8 @@ void get_stepwise_clearsky_propmat(
   ArrayOfStokesVector& dS_dx,
   const Agenda& propmat_clearsky_agenda,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
-  const ConstVectorView& ppath_f_grid,
-  const ConstVectorView& ppath_line_of_sight,
+  const Vector& ppath_f_grid,
+  const Vector& ppath_line_of_sight,
   const AtmPoint& atm_point,
   const bool& jacobian_do);
 
@@ -862,15 +862,13 @@ void rtmethods_jacobian_finalisation(
     const Index& ns,
     const Index& nf,
     const Index& np,
-    const Index& atmosphere_dim,
     const Ppath& ppath,
-    const Vector& ppvar_p,
-    const Vector& ppvar_t,
-    const Matrix& ppvar_vmr,
+    const ArrayOfAtmPoint& ppvar_atm,
     const Index& iy_agenda_call1,
     const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfIndex& jac_species_i);
 
 /** This function handles the unit conversion to be done at the end of some

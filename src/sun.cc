@@ -31,6 +31,7 @@
 */
 
 #include "sun.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "agenda_class.h"
 #include "arts_conversions.h"
@@ -64,9 +65,7 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
 void get_scattered_sunsource(Workspace& ws,
                               RadiationVector& scattered_sunlight,
                               const Vector& f_grid,
-                              const Numeric& p,
-                              const Numeric& T,
-                              const Vector& vmr,
+                              const AtmPoint& atm_point,
                               const Matrix& transmitted_sunlight,
                               const Vector& gas_scattering_los_in,
                               const Vector& gas_scattering_los_out,
@@ -81,9 +80,7 @@ void get_scattered_sunsource(Workspace& ws,
                                gas_scattering_mat,
                                sca_fct_dummy,
                                f_grid,
-                               p,
-                               T,
-                               vmr,
+                               atm_point,
                                gas_scattering_los_in,
                                gas_scattering_los_out,
                                0,
@@ -216,20 +213,8 @@ void get_direct_radiation(Workspace& ws,
                           ArrayOfArrayOfTensor3& ddirect_radiation_dx,
                           const Index& stokes_dim,
                           const Vector& f_grid,
-                          const Index& atmosphere_dim,
-                          const Vector& p_grid,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid,
-                          const Tensor3& t_field,
-                          const EnergyLevelMap& nlte_field,
-                          const Tensor4& vmr_field,
                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const Tensor3& wind_u_field,
-                          const Tensor3& wind_v_field,
-                          const Tensor3& wind_w_field,
-                          const Tensor3& mag_u_field,
-                          const Tensor3& mag_v_field,
-                          const Tensor3& mag_w_field,
+                          const AtmField& atm_field,
                           const Index& cloudbox_on,
                           const ArrayOfIndex& cloudbox_limits,
                           const Index& gas_scattering_do,
@@ -255,14 +240,9 @@ void get_direct_radiation(Workspace& ws,
   // gas_scattering_agenda
   ArrayOfMatrix iy_aux_dummy;
   ArrayOfString iy_aux_vars_dummy;
-  Vector ppvar_p_dummy;
-  Vector ppvar_t_dummy;
-  EnergyLevelMap ppvar_nlte_dummy;
-  Matrix ppvar_vmr_dummy;
-  Matrix ppvar_wind_dummy;
-  Matrix ppvar_mag_dummy;
+  ArrayOfAtmPoint ppvar_atm_dummy;
   Matrix ppvar_pnd_dummy;
-  Matrix ppvar_f_dummy;
+  ArrayOfVector ppvar_f_dummy;
   Tensor3 ppvar_iy_dummy;
   Tensor4 ppvar_trans_cumulat_dummy;
   Tensor4 ppvar_trans_partial_dummy;
@@ -274,6 +254,10 @@ void get_direct_radiation(Workspace& ws,
   ArrayOfTensor3 dradiation_trans;
   Vector rtp_pos, rtp_los;
   Index np;
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric fields")
+  const auto& lat_grid = atm_field.grid[1];
+  const auto& lon_grid = atm_field.grid[2];
 
   for (Index i_sun = 0; i_sun < suns.nelem(); i_sun++) {
     np = sun_ppaths[i_sun].np;
@@ -287,7 +271,7 @@ void get_direct_radiation(Workspace& ws,
       sun_pos[0] =
           sun_pos[0] -
           pos2refell_r(
-              atmosphere_dim, refellipsoid, lat_grid, lon_grid, sun_pos);
+              atm_field.old_atmosphere_dim_est(), refellipsoid, lat_grid, lon_grid, sun_pos);
 
 
       if (irradiance_flag) {
@@ -317,8 +301,8 @@ void get_direct_radiation(Workspace& ws,
         //Get the spectral radiance instead
 
         //Set sun position
-        rtp_pos.resize(atmosphere_dim);
-        rtp_pos = sun_ppaths[i_sun].pos(np - 1, Range(0, atmosphere_dim));
+        rtp_pos.resize(atm_field.old_atmosphere_dim_est());
+        rtp_pos = sun_ppaths[i_sun].pos(np - 1, Range(0, atm_field.old_atmosphere_dim_est()));
         rtp_los.resize(sun_ppaths[i_sun].los.ncols());
         rtp_los = sun_ppaths[i_sun].los(np - 1, joker);
 
@@ -334,12 +318,7 @@ void get_direct_radiation(Workspace& ws,
                              radiation_trans,
                              iy_aux_dummy,
                              dradiation_trans,
-                             ppvar_p_dummy,
-                             ppvar_t_dummy,
-                             ppvar_nlte_dummy,
-                             ppvar_vmr_dummy,
-                             ppvar_wind_dummy,
-                             ppvar_mag_dummy,
+                             ppvar_atm_dummy,
                              ppvar_pnd_dummy,
                              ppvar_f_dummy,
                              ppvar_iy_dummy,
@@ -347,18 +326,8 @@ void get_direct_radiation(Workspace& ws,
                              ppvar_trans_partial_dummy,
                              stokes_dim,
                              f_grid,
-                             atmosphere_dim,
-                             p_grid,
-                             t_field,
-                             nlte_field,
-                             vmr_field,
                              abs_species,
-                             wind_u_field,
-                             wind_v_field,
-                             wind_w_field,
-                             mag_u_field,
-                             mag_v_field,
-                             mag_w_field,
+                             atm_field,
                              cloudbox_on,
                              cloudbox_limits,
                              gas_scattering_do,
