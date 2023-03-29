@@ -1394,6 +1394,9 @@ void iyEmissionStandard(
     }
 
   } else {
+   forward_atm_path(atm_path_resize(ppvar_atm, ppath), ppath, atm_field);
+   forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm), f_grid, ppath, ppvar_atm, rte_alonglos_v);
+
     const bool temperature_jacobian =
         j_analytical_do and do_temperature_jacobian(jacobian_quantities);
 

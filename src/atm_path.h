@@ -19,9 +19,6 @@ ArrayOfAtmPoint forward_atm_path(const Ppath&, const AtmField&);
 
 ArrayOfVector& path_freq_resize(ArrayOfVector&, const Vector&, const ArrayOfAtmPoint&);
 
-void forward_ppath_freq(ArrayOfVector&, const Vector&, const Ppath&, const ArrayOfAtmPoint&, const Numeric);
+void forward_path_freq(ArrayOfVector&, const Vector&, const Ppath&, const ArrayOfAtmPoint&, const Numeric);
 
-ArrayOfVector forward_ppath_freq(const Vector&, const Ppath&, const ArrayOfAtmPoint&, const Numeric);
-
-std::tuple<ArrayOfPropagationMatrix, ArrayOfRadiationVector, ArrayOfArrayOfPropagationMatrix, ArrayOfArrayOfRadiationVector>
-forward_propmat(Workspace&, const Agenda&, const ArrayOfVector&, const ArrayOfAtmPoint&, const ArrayOfRetrievalQuantity&);
+ArrayOfVector forward_path_freq(const Vector&, const Ppath&, const ArrayOfAtmPoint&, const Numeric);
