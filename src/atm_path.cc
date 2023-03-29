@@ -40,9 +40,9 @@ ArrayOfVector &path_freq_resize(ArrayOfVector &path_freq,
   return path_freq;
 }
 
-void forward_ppath_freq(ArrayOfVector &path_freq, const Vector &main_freq,
-                        const Ppath &ppath, const ArrayOfAtmPoint &atm_path,
-                        const Numeric along_path_atm_speed) {
+void forward_path_freq(ArrayOfVector &path_freq, const Vector &main_freq,
+                       const Ppath &ppath, const ArrayOfAtmPoint &atm_path,
+                       const Numeric along_path_atm_speed) {
   auto dot_prod = [&](Index ip) {
     const auto &[u, v, w] = atm_path[ip].wind;
     const auto &za = ppath.los(ip, 0);
@@ -67,39 +67,11 @@ void forward_ppath_freq(ArrayOfVector &path_freq, const Vector &main_freq,
   }
 }
 
-ArrayOfVector forward_ppath_freq(const Vector &main_freq, const Ppath &ppath,
-                                 const ArrayOfAtmPoint &atm_path,
-                                 const Numeric along_path_atm_speed) {
+ArrayOfVector forward_path_freq(const Vector &main_freq, const Ppath &ppath,
+                                const ArrayOfAtmPoint &atm_path,
+                                const Numeric along_path_atm_speed) {
   ArrayOfVector path_freq(atm_path.nelem(), Vector(main_freq.nelem()));
-  forward_ppath_freq(path_freq, main_freq, ppath, atm_path,
-                     along_path_atm_speed);
+  forward_path_freq(path_freq, main_freq, ppath, atm_path,
+                    along_path_atm_speed);
   return path_freq;
-}
-
-std::tuple<ArrayOfPropagationMatrix, ArrayOfRadiationVector,
-           ArrayOfArrayOfPropagationMatrix, ArrayOfArrayOfRadiationVector>
-forward_propmat(Workspace &ws, const Agenda &propmat_clearsky_agenda,
-                const Ppath &ppath, const ArrayOfVector &path_freq,
-                const ArrayOfAtmPoint &atm_path,
-                const ArrayOfRetrievalQuantity &jacobian_quantities) {
-  const static ArrayOfSpeciesTag empty_tag_list(0);
-
-  const Index np = atm_path.nelem();
-  const Index nq = jacobian_quantities.nelem();
-  ArrayOfPropagationMatrix K(np);
-  ArrayOfArrayOfPropagationMatrix dK(np);
-  StokesVector S;
-  ArrayOfStokesVector dS;
-
-  ArrayOfRadiationVector J(np);
-  ArrayOfArrayOfRadiationVector dJ(np);
-
-  for (Index ip = 0; ip < np; ip++) {
-    propmat_clearsky_agendaExecute(ws, K[ip], S, dK[ip], dS,
-                                   jacobian_quantities, empty_tag_list,
-                                   path_freq[ip], Vector{ppath.los[ip]},
-                                   atm_path[ip], propmat_clearsky_agenda);
-  }
-
-  return {std::move(K), std::move(J), std::move(dK), std::move(dJ)};
 }
