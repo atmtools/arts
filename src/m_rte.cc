@@ -322,6 +322,12 @@ This feature will be added in a future version.
   ArrayOfVector dr_below(np, Vector(nq, 0));
   ArrayOfVector dr_above(np, Vector(nq, 0));
 
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Atmospheric field is not regular")
+  const auto& z_grid = atm_field.grid[0];
+  const auto& lat_grid = atm_field.grid[1];
+  const auto& lon_grid = atm_field.grid[2];
+  const auto& p_field = atm_field[Atm::Key::pressure].get<const Tensor3&>();
+
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
     ppvar_f.resize(0, 0);
     ppvar_trans_cumulat = 1;
@@ -411,8 +417,6 @@ This feature will be added in a future version.
 
           ArrayOfIndex suns_visible(suns.nelem());
 
-          ARTS_USER_ERROR_IF(not atm_field.regularized, "The grid must be regular ????????????")
-
           Numeric maxZ = max(atm_field.grid[0]);
 
           if (suns_do && atm_field.grid[0][ip] > maxZ) {
@@ -425,7 +429,7 @@ This feature will be added in a future version.
             ArrayOfPpath sun_ppaths(suns.nelem());
             ArrayOfVector sun_rte_los(suns.nelem(), Vector(2));
 
-            /*  ?????????????????????????????????????
+            // FIXME: THESE FIELDS AND GRIDS ARE WRONG!
             get_sun_ppaths(wss,
                             sun_ppaths,
                             suns_visible,
@@ -433,42 +437,28 @@ This feature will be added in a future version.
                             Vector{ppath.pos(ip, joker)},
                             suns,
                             f_grid,
-                            atmosphere_dim,
-                            p_grid,
+                            atm_field.old_atmosphere_dim_est(),
+                            z_grid,
                             lat_grid,
                             lon_grid,
-                            z_field,
+                            p_field,
                             z_surface,
                             refellipsoid,
                             ppath_lmax,
                             ppath_lraytrace,
                             ppath_step_agenda,
                             verbosity);
-            */
 
             ArrayOfMatrix transmitted_sunlight;
             ArrayOfArrayOfTensor3 dtransmitted_sunlight_dummy(suns.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
-            /*  ?????????????????????????????????????
             get_direct_radiation(wss,
                                  transmitted_sunlight,
                                  dtransmitted_sunlight_dummy,
                                  stokes_dim,
                                  f_grid,
-                                 atmosphere_dim,
-                                 p_grid,
-                                 lat_grid,
-                                 lon_grid,
-                                 t_field,
-                                 nlte_field,
-                                 vmr_field,
                                  abs_species,
-                                 wind_u_field,
-                                 wind_v_field,
-                                 wind_w_field,
-                                 mag_u_field,
-                                 mag_v_field,
-                                 mag_w_field,
+                                 atm_field,
                                  cloudbox_on,
                                  cloudbox_limits_dummy,
                                  gas_scattering_do,
@@ -488,7 +478,6 @@ This feature will be added in a future version.
                                  gas_scattering_agenda,
                                  rte_alonglos_v,
                                  verbosity);
-            */
 
             //Loop over the different suns to get the total scattered starlight
             RadiationVector scattered_sunlight_isun(nf, ns);
