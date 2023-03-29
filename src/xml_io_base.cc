@@ -94,7 +94,7 @@ void XMLTag::add_attribute(const String& aname, const Index& value) {
 
 void XMLTag::add_attribute(const String& aname, const Numeric& value) {
   ostringstream v;
-  
+  xml_set_stream_precision(v);
   v << value;
   add_attribute(aname, v.str());
 }

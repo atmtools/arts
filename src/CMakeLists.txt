@@ -211,6 +211,7 @@ add_library (artscore STATIC
   m_array.cc
   m_artstime.cc
   m_atmosphere.cc
+  m_atm.cc
   m_basic_types.cc
   m_batch.cc
   m_checked.cc

@@ -30,14 +30,17 @@
 #include "atm.h"
 #include "cloudbox.h"
 #include "debug.h"
+#include "energylevelmap.h"
 #include "global_data.h"
 #include "gridded_fields.h"
 #include "isotopologues.h"
 #include "mystring.h"
 #include "predefined/predef_data.h"
 #include "quantum_numbers.h"
+#include "species_tags.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
+#include <iomanip>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -2278,6 +2281,72 @@ void xml_write_to_stream(ostream& os_xml,
 
 
 //=== AtmField =========================================
+void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
+                                 Atm::Data &data, bifstream *pbifs,
+                                 const Verbosity &verbosity) {
+  data = Atm::Data{}; // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("Data");
+
+  String keytype, key, type;
+  open_tag.get_attribute_value("keytype", keytype);
+  open_tag.get_attribute_value("key", key);
+  open_tag.get_attribute_value("type", type);
+
+  const auto get_extrapol = [&open_tag](auto &key) {
+    String x;
+    open_tag.get_attribute_value(key, x);
+    return Atm::toExtrapolationOrThrow(x);
+  };
+  data.alt_low = get_extrapol("alt_low");
+  data.alt_upp = get_extrapol("alt_upp");
+  data.lat_low = get_extrapol("lat_low");
+  data.lat_upp = get_extrapol("lat_upp");
+  data.lon_low = get_extrapol("lon_low");
+  data.lon_upp = get_extrapol("lon_upp");
+
+  if (keytype == "Atm::Key")
+    key_val = Atm::toKeyOrThrow(key);
+  else if (keytype == "ArrayOfSpeciesTag")
+    key_val = ArrayOfSpeciesTag(key);
+  else if (keytype == "QuantumIdentifier")
+    key_val = QuantumIdentifier(key);
+  else
+    ARTS_USER_ERROR("Cannot understand the keytype: ", std::quoted(keytype))
+
+  if (type == "Tensor3")
+    data.data = Tensor3{};
+  else if (type == "GriddedField3")
+    data.data = GriddedField3{};
+  else if (type == "Numeric")
+    data.data = Numeric{};
+  else if (type == "FunctionalData")
+    data.data =
+        Atm::FunctionalDataAlwaysThrow{"Cannot restore functional data"};
+  else
+    ARTS_USER_ERROR("Cannot understand the data type: ", std::quoted(type))
+
+  std::visit(
+      [&](auto &v) {
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(v)>,
+                                   Atm::FunctionalData>) {
+          String x;
+          xml_read_from_stream(is_xml, x, pbifs, verbosity);
+          v = Atm::FunctionalDataAlwaysThrow{x};
+        } else {
+          xml_read_from_stream(is_xml, v, pbifs, verbosity);
+        }
+      },
+      data.data);
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/Data");
+}
+
 /*!
  * \param is_xml     XML Input stream
  * \param atm        AtmField return value
@@ -2294,14 +2363,14 @@ void xml_read_from_stream(istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AtmField");
 
-  Index nspec, nnlte, nother;
-  open_tag.get_attribute_value("nspec", nspec);
-  open_tag.get_attribute_value("nnlte", nnlte);
-  open_tag.get_attribute_value("nother", nother);
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
 
-  const Index n = nspec+nnlte+nother;
-  xml_read_from_stream(is_xml, atm.top_of_atmosphere, pbifs, verbosity);
-  atm.regularized = [&](){Index x; xml_read_from_stream(is_xml, x, pbifs, verbosity); return static_cast<bool>(x);}();
+  Index regular;
+  open_tag.get_attribute_value("regular", regular);
+  atm.regularized = regular not_eq 0;
+
+  open_tag.get_attribute_value("toa", atm.top_of_atmosphere);
 
   if (atm.regularized) {
     xml_read_from_stream(is_xml, atm.grid[0], pbifs, verbosity);
@@ -2310,65 +2379,62 @@ void xml_read_from_stream(istream& is_xml,
   }
 
   for (Index i = 0; i < n; i++) {
-    String key;
-    String typ;
-    ArrayOfString ext;
-    xml_read_from_stream(is_xml, key, pbifs, verbosity);
-    xml_read_from_stream(is_xml, typ, pbifs, verbosity);
-    xml_read_from_stream(is_xml, ext, pbifs, verbosity);
-    ARTS_USER_ERROR_IF(ext.nelem() not_eq 6, "Weird limits, should be 6-long, reads: {", ext, '}')
-
-    Atm::Data &data = [&]() -> Atm::Data & {
-      if (nother > 0) {
-        nother--;
-        return atm[Atm::toKeyOrThrow(key)];
-      }
-      if (nspec > 0) {
-        nspec--;
-        return atm[ArrayOfSpeciesTag(key)];
-      }
-      nnlte--;
-      return atm[QuantumIdentifier(key)];
-    }();
-
-    data.alt_low = Atm::toExtrapolationOrThrow(ext[0]);
-    data.alt_upp = Atm::toExtrapolationOrThrow(ext[1]);
-    data.lat_low = Atm::toExtrapolationOrThrow(ext[2]);
-    data.lat_upp = Atm::toExtrapolationOrThrow(ext[3]);
-    data.lon_low = Atm::toExtrapolationOrThrow(ext[4]);
-    data.lon_upp = Atm::toExtrapolationOrThrow(ext[5]);
-
-    if (typ == "Tensor3") {
-      Tensor3 x;
-      xml_read_from_stream(is_xml, x, pbifs, verbosity);
-      data = x;
-    } else if (typ == "GriddedField3") {
-      GriddedField3 x;
-      xml_read_from_stream(is_xml, x, pbifs, verbosity);
-      data = x;
-    } else if (typ == "Numeric") {
-      Numeric x;
-      xml_read_from_stream(is_xml, x, pbifs, verbosity);
-      data = x;
-    } else if (typ == "FunctionalData") {
-      String x;
-      xml_read_from_stream(is_xml, x, pbifs, verbosity);
-      data = Atm::FunctionalData([x](Numeric, Numeric, Numeric) -> Numeric {
-        ARTS_USER_ERROR(x)
-        return std::numeric_limits<Numeric>::signaling_NaN();
-      });
-    } else {
-      ARTS_USER_ERROR("Missing type data for: ", typ)
-    }
+    Atm::KeyVal key_val;
+    Atm::Data data;
+    xml_read_from_stream_helper(is_xml, key_val, data, pbifs, verbosity);
+    std::visit([&](auto& key) {
+      atm[key] = std::move(data);
+    }, key_val);
   }
-  ARTS_ASSERT((nspec+nnlte+nother) == 0)
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AtmField");
+}
 
-  //! Throw at the end if things looks bad
-  atm.throwing_check();
+void xml_write_to_stream_helper(ostream &os_xml, const Atm::KeyVal &key,
+                                const Atm::Data &data, bofstream *pbofs,
+                                const Verbosity &verbosity) {
+  ArtsXMLTag open_data_tag(verbosity);
+  open_data_tag.set_name("Data");
+
+  std::visit([&](auto& key_val){
+    if constexpr (Atm::isKey<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "Atm::Key");
+    else if constexpr (Atm::isArrayOfSpeciesTag<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "ArrayOfSpeciesTag");
+    else if constexpr (Atm::isQuantumIdentifier<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "QuantumIdentifier");
+    else ARTS_ASSERT(false, "New key type is not yet handled by writing routine!")
+    
+    open_data_tag.add_attribute("key", var_string(key_val));
+    open_data_tag.add_attribute("type", data.data_type());
+    open_data_tag.add_attribute("alt_low", toString(data.alt_low));
+    open_data_tag.add_attribute("alt_upp", toString(data.alt_upp));
+    open_data_tag.add_attribute("lat_low", toString(data.lat_low));
+    open_data_tag.add_attribute("lat_upp", toString(data.lat_upp));
+    open_data_tag.add_attribute("lon_low", toString(data.lon_low));
+    open_data_tag.add_attribute("lon_upp", toString(data.lon_upp));
+    open_data_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    std::visit(
+        [&](auto &&data_type [[maybe_unused]]) {
+          if constexpr (std::same_as<std::remove_cvref_t<decltype(data_type)>,
+                                    Atm::FunctionalData>)
+            xml_write_to_stream(
+                os_xml,
+                var_string(
+                    "Data for ", key_val,
+                    " read from file as functional must be set explicitly"),
+                pbofs, "Functional Data Error", verbosity);
+          else
+            xml_write_to_stream(os_xml, data_type, pbofs, "Data", verbosity);
+        },
+        data.data);
+  }, key);
+
+  ArtsXMLTag close_data_tag(verbosity);
+  close_data_tag.set_name("/Data");
+  close_data_tag.write_to_stream(os_xml);
+  os_xml << '\n';
 }
 
 /*!
@@ -2389,21 +2455,15 @@ void xml_write_to_stream(ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   //! List of all KEY values
-  auto keys = atm.keys();
-  const Index nspec = atm.nspec();
-  const Index nnlte = atm.nnlte();
-  const Index nother = atm.nother();
-
-  open_tag.add_attribute("nspec", nspec);
-  open_tag.add_attribute("nnlte", nnlte);
-  open_tag.add_attribute("nother", nother);
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
+  const auto keys = atm.keys();
 
   xml_set_stream_precision(os_xml);
 
-  xml_write_to_stream(os_xml, atm.top_of_atmosphere, pbofs, "Top Of Atmosphere", verbosity);
-  xml_write_to_stream(os_xml, Index(atm.regularized), pbofs, "Regularized", verbosity);
+  open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
+  open_tag.add_attribute("regular", Index(atm.regularized));
+  open_tag.add_attribute("toa", atm.top_of_atmosphere);
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
 
   if (atm.regularized) {
     xml_write_to_stream(os_xml, atm.grid[0], pbofs, "Altitude Grid", verbosity);
@@ -2411,36 +2471,14 @@ void xml_write_to_stream(ostream& os_xml,
     xml_write_to_stream(os_xml, atm.grid[2], pbofs, "Longitude Grid", verbosity);
   }
 
-  for (auto& key: keys) {
-    std::visit([&](auto&& key_val) {
-      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "Data Key", verbosity);
-
-      const Atm::Data& data = atm[key_val];
-      xml_write_to_stream(os_xml, data.data_type(), pbofs, "Data Type", verbosity);
-
-      const ArrayOfString extrap{
-          toString(data.alt_low), toString(data.alt_upp),
-          toString(data.lat_low), toString(data.lat_upp),
-          toString(data.lon_low), toString(data.lon_upp)};
-      xml_write_to_stream(os_xml, extrap, pbofs, "Extrapolations", verbosity);
-
-      std::visit([&](auto&& data_type [[maybe_unused]]){
-        if constexpr (std::same_as<std::remove_cvref_t<decltype(data_type)>, Atm::FunctionalData>)
-          xml_write_to_stream(
-              os_xml,
-              var_string(
-                  "Data for ", key_val,
-                  " read from file as functional must be set explicitly"),
-              pbofs, "Functional Data Error", verbosity);
-        else
-          xml_write_to_stream(os_xml, data_type, pbofs, "Data", verbosity);
-      }, data.data);
-    }, key);
+  for (auto &key : keys) {
+    xml_write_to_stream_helper(os_xml, key,
+                               std::visit([&](auto &k) { return atm[k]; }, key),
+                               pbofs, verbosity);
   }
 
   close_tag.set_name("/AtmField");
   close_tag.write_to_stream(os_xml);
-
   os_xml << '\n';
 }
 
