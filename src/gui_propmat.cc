@@ -129,8 +129,8 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
   Vector rtp_los(2, 0);
   Numeric transmission_distance{1'000};
   AtmPoint atm_point{
-    Atm::Key::temperature, 300,
-    Atm::Key::pressure, 1000
+    Atm::Key::t, 300,
+    Atm::Key::p, 1000
   };
   for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.nelem());
 

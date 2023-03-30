@@ -273,7 +273,7 @@ void surface_get_incoming_direct(
   const Vector& z_grid = atm_field.grid[0];
   const Vector& lat_grid = atm_field.grid[1];
   const Vector& lon_grid = atm_field.grid[2];
-  const auto& p_field = atm_field[Atm::Key::pressure].get<const Tensor3&>();
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
 
   //Allocate
   Vector surface_normal;

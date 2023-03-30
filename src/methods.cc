@@ -4329,6 +4329,221 @@ Available models:
                "Order/names of atmospheric fields.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldTopOfAtmosphere"),
+      DESCRIPTION(R"--(Sets the top of the atmosphere altitude to the field
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("top_of_atmosphere"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Top of atmosphere altitude [m].")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldInit"),
+      DESCRIPTION(R"--(Initialize the atmospheric field with some altitude
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("top_of_atmosphere"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Top of atmosphere altitude [m].")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldAddCustomDataFile"),
+      DESCRIPTION(R"--(Add some custom data from file to the atm_field
+
+The key field is used to determine the type of data that is added by input type.
+
+If the input is a String, the data is added to corresponding atmospheric data,
+these strings can be
+    "t"      - temperature
+    "p"      - pressure
+    "wind_u" - wind u component
+    "wind_v" - wind v component
+    "wind_w" - wind w component
+    "mag_u"  - mag u component
+    "mag_v"  - mag v component
+    "mag_w"  - mag w component
+
+If the input is a QuantumIdentifier, it is assumed this is an energy level
+identifier for NLTE calculations.
+
+If the input is an ArrayOfSpeciesTag, it is assumed this is for the species
+content (VMR, LWC, etc).
+
+The file can contain any of GriddedField3, Tensor3, or Numeric data.  Note
+that the method iterates over these using a slow exception-handling routine,
+so it would be much more efficient to use any of *atm_fieldAddRegularData*,
+*atm_fieldAddGriddedData*, or *atm_fieldAddNumericData* to set the data.
+Nevertheless this method is provided to make it easier to compose atmospheric
+reading.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("key", "filename"),
+      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Atmospheric data key.", "Filename")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldAddField"),
+      DESCRIPTION(R"--(Add another atm_field from file to the current atm_field
+
+The optional flag set_top_of_atmosphere determines if the old (default) or
+new (if it evaluates as true) atm_field's top of the atmosphere altitude
+is used in the output
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("filename", "set_top_of_atmosphere"),
+      GIN_TYPE("String", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("Filename", "Flag for overwriting the top of the atmosphere")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldRead"),
+      DESCRIPTION(R"--(Reads a new atm_field from a folder or base
+
+There are several indices to indicate what data should be read by the routine
+At the end of the routine, a check is performed, throwing a warning if the
+data is not useable.
+
+The basename is used to determine a scenario or a folder depending of the last characther.
+If the last character is "/", a folder structure is assumed, otherwise a scenario
+structure is assumed.  Note that it is only the last characther and that you can
+have longer paths still.  Also note that this method respects the internal ARTS
+environmental variables to find files not just relative to the execution path.
+
+For instance, if you have a folder structure, you can give basename="atm/".  Now
+all the files are expected to be in that folder, e.g., "atm/t.xml" if read_tp is true.
+If instead you have a scenario structure you give this as basename="scen".  Now
+all the files are expected to belong to that scenario by appedning the names.  For
+example, "scen.t.xml" if read_tp is true.
+
+If the flags evaluates true, they expect some files to exist in the basename
+    read_tp - ["t.xml", "p.xml", ]
+    read_mag - ["mag_u.xml", "mag_v.xml", "mag_w.xml", ]
+    read_wind - ["wind_u.xml", "wind_v.xml", "wind_w.xml", ]
+    read_specs - [See below]
+    read_nlte - "nlte.xml"
+
+If "read_specs" is true, then all the species of *abs_species* are read and the
+basename path is expected to contain a file with short-name version for each
+unique species.  Some examples:
+    abs_species=["H2O-161", "O2-66"], - ["H2O.xml", "O2.xml"]
+    abs_species=["H2O-161", "O2-66", "CO2-626"], - ["H2O.xml", "O2.xml", "CO2.xml"]
+    abs_species=["H2O-161", "O2-66", "O2-PWR98"], - ["H2O.xml", "O2.xml"]
+)--"),
+      AUTHORS("Richard Larsson"), OUT("atm_field"), GOUT(), GOUT_TYPE(),
+      GOUT_DESC(), IN("abs_species"),
+      GIN("basename", "top_of_atmosphere", "read_tp", "read_mag", "read_wind",
+          "read_specs", "read_nlte"),
+      GIN_TYPE("String", "Numeric", "Index", "Index", "Index", "Index",
+               "Index"),
+      GIN_DEFAULT("./", NODEF, "1", "0", "0", "1", "0"),
+      GIN_DESC("Base for the name of the data files.",
+               "Top of atmosphere altitude [m].",
+               "Flag to read pressure and temperature",
+               "Flag to read magnetic field", "Flag to read wind field",
+               "Flag to read species", "Flag to read NLTE")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldSave"),
+      DESCRIPTION(R"--(Saves an atm_field to a folder or base
+
+The output files are split to fit with what *atm_fieldRead* can read, so see it
+for most of the filenames that may be generated, depending on the content of the
+atm_field of course
+
+Note that there are some exceptions.  If no_clobber is true, the new files will
+not overwrite old files.  Also, if there are more than one species with the same
+short-name, e.g., "H2O-161" and "H2O-181" both have short-name "H2O", only one of
+these will print the "H2O.xml" file whereas the other will print "H2O.2.xml".
+The latter is not read by *atm_fieldRead*.  Even worse, we can give no guarantee
+at all for whether it is the values from the "H2O-161" or "H2O-181" tags that
+give the "H2O.xml" file because the internal data structure is unordered.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("basename", "filetype", "no_clobber"),
+      GIN_TYPE("String", "String", "Index"),
+      GIN_DEFAULT(NODEF, "ascii", "0"),
+      GIN_DESC("Base for the name of the data files.", "See *WriteXML*", "See *WriteXML*")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldAddRegularData"),
+      DESCRIPTION(R"--(Adds data to the atm_field
+
+The field must be regular and the data must have the correct size
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("key", "data"),
+      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "Tensor3"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldAddGriddedData"),
+      DESCRIPTION(R"--(Adds data to the atm_field
+
+The field must not be regular
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("key", "data"),
+      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "GriddedField3"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldAddNumericData"),
+      DESCRIPTION(R"--(Adds data to the atm_field
+
+The field must not be regular
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field"),
+      GIN("key", "data"),
+      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
       DESCRIPTION(
           "Sets up a rectangular channel response.\n" 

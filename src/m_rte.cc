@@ -326,7 +326,7 @@ This feature will be added in a future version.
   const auto& z_grid = atm_field.grid[0];
   const auto& lat_grid = atm_field.grid[1];
   const auto& lon_grid = atm_field.grid[2];
-  const auto& p_field = atm_field[Atm::Key::pressure].get<const Tensor3&>();
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
     ppvar_f.resize(0, 0);

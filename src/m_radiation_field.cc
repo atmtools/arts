@@ -89,8 +89,8 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   }
   
   ARTS_USER_ERROR_IF(not is_increasing(f_grid), "Frequency grid is not increasing, abs_lines_per_species must be sorted and no overlap is allowed");
-  const auto& p_field = atm_field[Atm::Key::pressure].get<const Tensor3&>();
-  const auto& t_field = atm_field[Atm::Key::temperature].get<const Tensor3&>();
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
   const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   ppath_fieldFromDownUpLimbGeoms(ws,

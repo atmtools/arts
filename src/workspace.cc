@@ -525,7 +525,7 @@ void define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("atm_field"),
       DESCRIPTION(
-          R"--(An atmospheric field in ARTS
+          R"--(An atmospheric field in ARTS.
 
 The atmospheric field defines the altitude of the top-of-the-atmosphere,
 as well as the variables that are required for the radiative transfer
@@ -548,7 +548,7 @@ The atmospheric field may, but does not have to, consist of the following:
   wsv_data.push_back(WsvRecord(
       NAME("atm_point"),
       DESCRIPTION(
-          R"--(An atmospheric point in ARTS
+          R"--(An atmospheric point in ARTS.
 
 The atmospheric point consists of all the relevant atmospheric field data
 at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
