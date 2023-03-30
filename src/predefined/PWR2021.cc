@@ -1,4 +1,5 @@
 #include <arts_conversions.h>
+#include <arts_constexpr_math.h>
 #include <propagationmatrix.h>
 #include <Faddeeva.hh>
 #include <valarray>
@@ -19,7 +20,8 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
                  const Numeric& h2o_vmr) noexcept {
     // Water vapur absorption routine
     // Based on abh2o.f
-    using Constant::pow2, Constant::inv_pi, Constant::boltzmann_constant;
+    using Math::pow2;
+    using Constant::inv_pi, Constant::boltzmann_constant;
     using Conversion::pa2hpa, Conversion::hpa2bar, Conversion::hz2ghz;
 
     if (h2o_vmr <= 0){
@@ -224,7 +226,8 @@ void compute_o2(PropagationMatrix& propmat_clearsky,
                 const Numeric& h2o_vmr) noexcept {
     // Oxygen absorption routine
     // Based on o2abs_19.f
-    using Constant::pow2, Constant::pow3, Constant::inv_pi, Constant::boltzmann_constant;
+    using Math::pow2, Math::pow3;
+    using Constant::inv_pi, Constant::boltzmann_constant;
     using Conversion::hz2ghz, Conversion::pa2bar;
 
     // Line parameters
@@ -410,7 +413,7 @@ void compute_n2(PropagationMatrix& propmat_clearsky,
     // the calculation of partial absorption in 
     // propmat_clearsky_fieldCalc. 
 
-    using Constant::pow2;
+    using Math::pow2;
     using Conversion::pa2hpa, Conversion::hz2ghz;
 
     const auto theta = 300.0 / t;

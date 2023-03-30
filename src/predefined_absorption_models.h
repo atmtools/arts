@@ -46,7 +46,6 @@ struct VMRS {
   Numeric O2{0};
   Numeric N2{0};
   Numeric H2O{0};
-  Numeric N2{0};
   Numeric LWC{0};
 
   /**  Construct a new VMRS object
@@ -57,7 +56,6 @@ struct VMRS {
   VMRS(const ArrayOfArrayOfSpeciesTag& abs_species, const Vector& rtp_vmr) :
   CO2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::CarbonDioxide)),
   O2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Oxygen)),
-  H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
   N2(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Nitrogen)),
   H2O(Species::first_vmr(abs_species, rtp_vmr, Species::Species::Water)),
   LWC(Species::first_vmr(abs_species, rtp_vmr, Species::Species::liquidcloud))
