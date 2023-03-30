@@ -203,23 +203,49 @@ jobs:
           cd cmake-build
           cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_GUI=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN -DENABLE_NETCDF=1 ${{ matrix.cmakeflags }} ..
 
-      - name: Build (Linux)
+      - name: Build ARTS (Linux)
         if: runner.os == 'Linux' && matrix.arts == 'yes'
         run: |
           cd cmake-build
           if [[ ${{ matrix.buildtype }} == "Release" ]]; then
-            make -j2 -C src
+            make -j2 arts
           else
             make -j2 arts
-            make -j1 pyarts
-            make -j2 -C src
           fi
 
-      - name: Build (macOS)
+      - name: Build ARTS (macOS)
         if: runner.os == 'macOS' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j3 -C src
+          make -j3 arts
+
+      - name: Check ARTS (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          make check
+
+      - name: Build PYARTS (Linux)
+        if: runner.os == 'Linux' && matrix.arts == 'yes'
+        run: |
+          cd cmake-build
+          if [[ ${{ matrix.buildtype }} == "Release" ]]; then
+            make -j2 pyarts
+          else
+            make -j2 pyarts
+          fi
+
+      - name: Build PYARTS (macOS)
+        if: runner.os == 'macOS' && matrix.arts == 'yes'
+        run: |
+          cd cmake-build
+          make -j3 pyarts
+
+      - name: Check PYARTS (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          make check-python
 
       - name: Docs (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
@@ -228,15 +254,9 @@ jobs:
           make -j2 -C doc
           make -j2 pyarts_docs
 
-      - name: Check (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
-        run: |
-          cd cmake-build
-          make check
-
-      - name: Check Python (Linux / macOS)
+      - name: Build SRC (Linux / macOS)
         if: matrix.check == 'yes'
         run: |
           cd cmake-build
-          make check-python
+          make -j2 -C src
 

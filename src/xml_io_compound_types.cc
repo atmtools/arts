@@ -2289,7 +2289,7 @@ void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
   CREATE_OUT2;
   ArtsXMLTag open_tag(verbosity);
   open_tag.read_from_stream(is_xml);
-  open_tag.check_name("Data");
+  open_tag.check_name("AtmData");
 
   String keytype, key, type;
   open_tag.get_attribute_value("keytype", keytype);
@@ -2344,7 +2344,7 @@ void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/Data");
+  close_tag.check_name("/AtmData");
 }
 
 /*!
@@ -2379,12 +2379,10 @@ void xml_read_from_stream(istream& is_xml,
   }
 
   for (Index i = 0; i < n; i++) {
-    Atm::KeyVal key_val;
+    Atm::KeyVal key;
     Atm::Data data;
-    xml_read_from_stream_helper(is_xml, key_val, data, pbifs, verbosity);
-    std::visit([&](auto& key) {
-      atm[key] = std::move(data);
-    }, key_val);
+    xml_read_from_stream_helper(is_xml, key, data, pbifs, verbosity);
+    atm[key] = std::move(data);
   }
 
   ArtsXMLTag close_tag(verbosity);
@@ -2396,7 +2394,7 @@ void xml_write_to_stream_helper(ostream &os_xml, const Atm::KeyVal &key,
                                 const Atm::Data &data, bofstream *pbofs,
                                 const Verbosity &verbosity) {
   ArtsXMLTag open_data_tag(verbosity);
-  open_data_tag.set_name("Data");
+  open_data_tag.set_name("AtmData");
 
   std::visit([&](auto& key_val){
     if constexpr (Atm::isKey<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "Atm::Key");
@@ -2432,7 +2430,7 @@ void xml_write_to_stream_helper(ostream &os_xml, const Atm::KeyVal &key,
   }, key);
 
   ArtsXMLTag close_data_tag(verbosity);
-  close_data_tag.set_name("/Data");
+  close_data_tag.set_name("/AtmData");
   close_data_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
@@ -2472,9 +2470,7 @@ void xml_write_to_stream(ostream& os_xml,
   }
 
   for (auto &key : keys) {
-    xml_write_to_stream_helper(os_xml, key,
-                               std::visit([&](auto &k) { return atm[k]; }, key),
-                               pbofs, verbosity);
+    xml_write_to_stream_helper(os_xml, key, atm[key], pbofs, verbosity);
   }
 
   close_tag.set_name("/AtmField");

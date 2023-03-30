@@ -616,7 +616,19 @@ ArrayOfQuantumIdentifier Field::nlte_keys() const {
   return get_keys(nlte);
 }
 
-ArrayOfArrayOfSpeciesTag Field::spec_keys() const {
-  return get_keys(specs);
+ArrayOfArrayOfSpeciesTag Field::spec_keys() const { return get_keys(specs); }
+
+const Data &Field::operator[](const KeyVal &x) const {
+  return std::visit(
+      [this](auto &key) -> const Data & { return this->operator[](key); }, x);
+}
+
+Data &Field::operator[](const KeyVal &x) {
+  return std::visit(
+      [this](auto &key) -> Data & {
+        // FIXME: How do I catch this in a non-const manner?
+        return const_cast<Field *>(this)->operator[](key);
+      },
+      x);
 }
 } // namespace Atm
