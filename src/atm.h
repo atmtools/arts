@@ -365,6 +365,10 @@ private:
     }
   }
 
+  const Data &operator[](const KeyVal &) const;
+
+  Data &operator[](const KeyVal &);
+
   //! Regularizes the calculations so that all data is on a single grid
   Field &regularize(const Vector &, const Vector &, const Vector &);
 
