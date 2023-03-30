@@ -66,7 +66,7 @@ struct VMRS {
    *
    * @param atm An Atmosphere
    */
-  constexpr VMRS(const AtmPoint &atm)
+  VMRS(const AtmPoint &atm)
       : CO2(atm[Species::Species::CarbonDioxide]),
         O2(atm[Species::Species::Oxygen]), N2(atm[Species::Species::Nitrogen]),
         H2O(atm[Species::Species::Water]),
