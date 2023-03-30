@@ -10,21 +10,28 @@
 #include <cstdlib>
 #include <exception>
 #include <iomanip>
+#include <iterator>
+#include <stdexcept>
+#include <string>
 #include <variant>
 
-void atm_fieldInit(AtmField &atm_field, const Numeric &top_of_atmosphere,
-                   const Verbosity &) {
-  atm_field = AtmField{};
+void atm_fieldTopOfAtmosphere(AtmField &atm_field,
+                              const Numeric &top_of_atmosphere,
+                              const Verbosity &) {
   atm_field.top_of_atmosphere = top_of_atmosphere;
 }
 
+void atm_fieldInit(AtmField &atm_field, const Numeric &top_of_atmosphere,
+                   const Verbosity &verbosity) {
+  atm_field = AtmField{};
+  atm_fieldTopOfAtmosphere(atm_field, top_of_atmosphere, verbosity);
+}
 
 void atm_fieldRegularize(AtmField &atm_field, const Vector &z,
                          const Vector &lat, const Vector &lon,
                          const Verbosity &) {
   atm_field.regularize(z, lat, lon);
 }
-
 
 namespace detail {
 /** Tries to read a file as if it were some type T
@@ -120,160 +127,6 @@ void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                          filename, verbosity);
 }
 
-
-void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
-                                 Atm::Data &data, bifstream *pbifs,
-                                 const Verbosity &verbosity);
-
-void atm_fieldAddDataFile(AtmField &atm_field, const String &filename,
-                          const Verbosity &verbosity) {
-  String fn = filename;
-  find_xml_file(fn, verbosity);
-
-  CREATE_OUT2;
-
-  out2 << "  Reading " + filename + '\n';
-
-  // Open input stream:
-  std::unique_ptr<istream> ifs;
-  if (filename.nelem() > 2 &&
-      filename.substr(filename.length() - 3, 3) == ".gz")
-#ifdef ENABLE_ZLIB
-  {
-    ifs = std::make_unique<igzstream>();
-    xml_open_input_file(*static_cast<igzstream *>(ifs.get()), filename,
-                        verbosity);
-  }
-#else
-  {
-    throw runtime_error("This arts version was compiled without zlib support.\n"
-                        "Thus zipped xml files cannot be read.");
-  }
-#endif /* ENABLE_ZLIB */
-  else {
-    ifs = std::make_unique<ifstream>();
-    xml_open_input_file(*static_cast<ifstream *>(ifs.get()), filename,
-                        verbosity);
-  }
-
-  // No need to check for error, because xml_open_input_file throws a
-  // runtime_error with an appropriate error message.
-
-  // Read the matrix from the stream. Here we catch the exception,
-  // because then we can issue a nicer error message that includes the
-  // filename.
-  try {
-    FileType ftype;
-    NumericType ntype;
-    EndianType etype;
-
-    Atm::KeyVal key;
-    Atm::Data data;
-
-    xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
-    if (ftype == FILE_TYPE_ASCII) {
-      xml_read_from_stream_helper(*ifs, key, data, nullptr, verbosity);
-    } else {
-      String bfilename = filename + ".bin";
-      bifstream bifs(bfilename.c_str());
-      xml_read_from_stream_helper(*ifs, key, data, &bifs, verbosity);
-    }
-    xml_read_footer_from_stream(*ifs, verbosity);
-
-    atm_field[key] = data;
-  } catch (const std::runtime_error &e) {
-    ostringstream os;
-    os << "Error reading file: " << filename << '\n' << e.what();
-    throw runtime_error(os.str());
-  }
-}
-
-
-void atm_fieldReadAtm(AtmField &atm_field, const String &basename,
-                   const ArrayOfArrayOfSpeciesTag &abs_species,
-                   const Verbosity &verbosity) {
-  CREATE_OUT3;
-
-  // Fix filename
-  String tmp_basename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/')
-    tmp_basename += ".";
-
-  // Read the temperature field:
-  String file_name = tmp_basename + "t.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Temperature field read from file: " << std::quoted(file_name) << "\n";
-
-  // Read geometrical altitude field:
-  file_name = tmp_basename + "z.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Altitude field read from file: " << std::quoted(file_name) << "\n";
-
-  // We need to read one profile for each tag group.
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    // Determine the name.
-    file_name = tmp_basename +
-                String(Species::toShortName(abs_species[i].Species())) + ".xml";
-
-    // Read the VMR:
-    atm_fieldAddDataFile(atm_field, file_name, verbosity);
-    // state the source of profile.
-    out3 << "  " << Species::toShortName(abs_species[i].Species())
-         << " profile read from file: " << std::quoted(file_name) << "\n";
-  }
-}
-
-
-void atm_fieldReadWind(AtmField &atm_field, const String &basename,
-                   const Verbosity &verbosity) {
-  CREATE_OUT3;
-
-  String tmp_basename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/')
-    tmp_basename += ".";
-
-  // Read wind field u component:
-  String file_name = tmp_basename + "wind_u.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Wind u field read from file: " << std::quoted(file_name) << "\n";
-
-  // Read wind field u component:
-  file_name = tmp_basename + "wind_v.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Wind v field read from file: " << std::quoted(file_name) << "\n";
-
-  // Read wind field u component:
-  file_name = tmp_basename + "wind_w.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Wind w field read from file: " << std::quoted(file_name) << "\n";
-}
-
-
-void atm_fieldReadMag(AtmField &atm_field, const String &basename,
-                   const Verbosity &verbosity) {
-  CREATE_OUT3;
-
-  String tmp_basename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/')
-    tmp_basename += ".";
-
-  // Read mag field u component:
-  String file_name = tmp_basename + "mag_u.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Mag u field read from file: " << std::quoted(file_name) << "\n";
-
-  // Read mag field u component:
-  file_name = tmp_basename + "mag_v.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Mag v field read from file: " << std::quoted(file_name) << "\n";
-
-  // Read mag field u component:
-  file_name = tmp_basename + "mag_w.xml";
-  atm_fieldAddDataFile(atm_field, file_name, verbosity);
-  out3 << "Mag w field read from file: " << std::quoted(file_name) << "\n";
-}
-
-
 void atm_fieldAddField(AtmField &atm_field, const String &filename,
                        const Index &set_top_of_atmosphere,
                        const Verbosity &verbosity) {
@@ -287,12 +140,138 @@ void atm_fieldAddField(AtmField &atm_field, const String &filename,
     atm_field.top_of_atmosphere = atm_field_other.top_of_atmosphere;
 }
 
+void atm_fieldRead(AtmField &atm_field,
+                   const ArrayOfArrayOfSpeciesTag &abs_species,
+                   const String &basename, const Numeric &top_of_atmosphere,
+                   const Index &read_tp, const Index &read_mag,
+                   const Index &read_wind, const Index &read_specs,
+                   const Index &read_nlte, const Verbosity &verbosity) {
+  using enum Atm::Key;
+
+  CREATE_OUT3;
+
+  // Fix filename
+  String tmp_basename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/')
+    tmp_basename += ".";
+
+  // Reset and initialize
+  atm_fieldInit(atm_field, top_of_atmosphere, verbosity);
+
+  if (read_tp) {
+    for (auto &key : {t, p}) {
+      const String file_name{var_string(tmp_basename, key, ".xml")};
+      atm_fieldAddField(atm_field, file_name, 0, verbosity);
+      out3 << key << " field read from file: " << std::quoted(file_name)
+           << '\n';
+    }
+  }
+
+  if (read_mag) {
+    for (auto &key : {mag_u, mag_v, mag_w}) {
+      const String file_name{var_string(tmp_basename, key, ".xml")};
+      atm_fieldAddField(atm_field, file_name, 0, verbosity);
+      out3 << key << " field read from file: " << std::quoted(file_name)
+           << '\n';
+    }
+  }
+
+  if (read_wind) {
+    for (auto &key : {wind_u, wind_v, wind_w}) {
+      const String file_name{var_string(tmp_basename, key, ".xml")};
+      atm_fieldAddField(atm_field, file_name, 0, verbosity);
+      out3 << key << " field read from file: " << std::quoted(file_name)
+           << '\n';
+    }
+  }
+
+  if (read_specs) {
+    for (auto &spec : abs_species) {
+      const String file_name{
+          var_string(tmp_basename, toShortName(spec.Species()), ".xml")};
+      atm_fieldAddField(atm_field, file_name, 0, verbosity);
+      out3 << std::quoted(var_string(spec))
+           << " profile read from file: " << std::quoted(file_name) << "\n";
+    }
+  }
+
+  if (read_nlte) {
+    const String file_name{var_string(tmp_basename, "nlte.xml")};
+    atm_fieldAddField(atm_field, file_name, 0, verbosity);
+    out3 << "Read all NLTE fields from: " << std::quoted(file_name) << '\n';
+  }
+
+  atm_field.throwing_check();
+}
+
+void atm_fieldSave(const AtmField &atm_field, const String &basename,
+                   const String &filetype, const Index &no_clobber,
+                   const Verbosity &verbosity) {
+  const auto ftype = string2filetype(filetype);
+
+  // Fix filename
+  String tmp_basename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/')
+    tmp_basename += ".";
+
+  const auto keys = atm_field.keys();
+
+  //
+  ArrayOfSpecies specs{};
+  ArrayOfIndex nspecs{};
+
+  //
+  AtmField nlte;
+  nlte.top_of_atmosphere = atm_field.top_of_atmosphere;
+
+  for (auto &key : keys) {
+    if (std::holds_alternative<QuantumIdentifier>(key)) {
+      nlte[key] = atm_field[key];
+    } else {
+      String keyname;
+      if (std::holds_alternative<ArrayOfSpeciesTag>(key)) {
+        auto *spec_key = std::get_if<ArrayOfSpeciesTag>(&key);
+        auto spec = spec_key->Species();
+
+        keyname = toString(spec);
+        if (auto ptr = std::find(specs.begin(), specs.end(), spec);
+            ptr == specs.end()) {
+          specs.emplace_back(spec);
+          nspecs.emplace_back(1);
+        } else {
+          const auto pos = std::distance(specs.begin(), ptr);
+          nspecs[pos]++;
+          keyname += var_string(".", nspecs[pos]);
+        }
+      } else if (std::holds_alternative<Atm::Key>(key)) {
+        keyname = toString(*std::get_if<Atm::Key>(&key));
+      } else {
+        ARTS_ASSERT(false, "Failed to account for key type")
+      }
+
+      AtmField out;
+      out.top_of_atmosphere = atm_field.top_of_atmosphere;
+      out[key] = atm_field[key];
+      const String filename{var_string(tmp_basename, keyname, ".xml")};
+      xml_write_to_file(filename, out, ftype, no_clobber, verbosity);
+    }
+  }
+
+  if (nlte.nnlte()) {
+    const String filename{var_string(tmp_basename, "nlte.xml")};
+    xml_write_to_file(filename, nlte, ftype, no_clobber, verbosity);
+  }
+}
 
 void atm_fieldAddRegularData(AtmField &atm_field, const String &key,
                              const Tensor3 &data, const Verbosity &) {
   ARTS_USER_ERROR_IF(
       not atm_field.regularized,
       "Cannot add regular data to non-regularized atmospheric field")
+  ARTS_USER_ERROR_IF(data.shape() not_eq atm_field.regularized_shape(),
+                     "Size-mismatch: field ",
+                     matpack::shape_help{atm_field.regularized_shape()},
+                     " vs input ", matpack::shape_help{data.shape()})
   atm_field[Atm::toKeyOrThrow(key)] = data;
 }
 
@@ -301,6 +280,10 @@ void atm_fieldAddRegularData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
   ARTS_USER_ERROR_IF(
       not atm_field.regularized,
       "Cannot add regular data to non-regularized atmospheric field")
+  ARTS_USER_ERROR_IF(data.shape() not_eq atm_field.regularized_shape(),
+                     "Size-mismatch: field ",
+                     matpack::shape_help{atm_field.regularized_shape()},
+                     " vs input ", matpack::shape_help{data.shape()})
   atm_field[key] = data;
 }
 
@@ -309,9 +292,12 @@ void atm_fieldAddRegularData(AtmField &atm_field, const QuantumIdentifier &key,
   ARTS_USER_ERROR_IF(
       not atm_field.regularized,
       "Cannot add regular data to non-regularized atmospheric field")
+  ARTS_USER_ERROR_IF(data.shape() not_eq atm_field.regularized_shape(),
+                     "Size-mismatch: field ",
+                     matpack::shape_help{atm_field.regularized_shape()},
+                     " vs input ", matpack::shape_help{data.shape()})
   atm_field[key] = data;
 }
-
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const String &key,
                              const GriddedField3 &data, const Verbosity &) {
@@ -333,7 +319,6 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const QuantumIdentifier &key,
                      "Cannot add gridded data to regularized atmospheric field")
   atm_field[key] = data;
 }
-
 
 void atm_fieldAddNumericData(AtmField &atm_field, const String &key,
                              const Numeric &data, const Verbosity &) {

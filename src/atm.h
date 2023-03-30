@@ -26,8 +26,8 @@
 namespace Atm {
 ENUMCLASS(Key,
           char,
-          temperature,
-          pressure,
+          t,
+          p,
           wind_u,
           wind_v,
           wind_w,
@@ -108,9 +108,9 @@ public:
       return y == nlte.end() ? 0 : y->second;
     } else {
       switch (std::forward<T>(x)) {
-        case Key::temperature:
+        case Key::t:
           return temperature;
-        case Key::pressure:
+        case Key::p:
           return pressure;
         case Key::wind_u:
           return wind[0];
@@ -139,9 +139,9 @@ public:
       return nlte[std::forward<T>(x)];
     } else {
       switch (std::forward<T>(x)) {
-        case Key::temperature:
+        case Key::t:
           return temperature;
-        case Key::pressure:
+        case Key::p:
           return pressure;
         case Key::wind_u:
           return wind[0];
