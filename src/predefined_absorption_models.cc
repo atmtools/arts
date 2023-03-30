@@ -84,6 +84,7 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
       return true;
     case find_species_index(Species::Species::Nitrogen, "SelfContPWR2021"):
       if constexpr (not check_exist) PWR2021::compute_n2(pm, f, p, t, vmr.N2, vmr.H2O);
+      return true;
     case find_species_index(Species::Species::Oxygen, "PWR98"):
       if constexpr (not check_exist) PWR98::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
