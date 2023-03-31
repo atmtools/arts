@@ -136,8 +136,8 @@ std::istream &operator>>(std::istream &is, Time &t) {
   ARTS_USER_ERROR_IF(
       YMD.nelem() not_eq 3 or HMS.nelem() not_eq 3,
       "Time stream must look like \"year-month-day hour:min:seconds\"\n"
-      "\"year-month-day\"   looks like: ",
-      ymd, '\n', "\"hour:min:seconds\" looks like: ", hms);
+      "\"year-month-day\"   looks like: ", std::quoted(ymd), '\n',
+      "\"hour:min:seconds\" looks like: ", std::quoted(hms));
 
   // FIXME: C++20 has much better calendar (BUT NOT YET...)
   int year, month, day;
@@ -152,7 +152,7 @@ std::istream &operator>>(std::istream &is, Time &t) {
       std::make_error_code(res_year.ec) or std::make_error_code(res_mon.ec) or
           std::make_error_code(res_day.ec),
       "Cannot understand time point for year-month-day: ", std::quoted(ymd))
-  ARTS_USER_ERROR_IF(year < 1900, "We cannot yet support times for 1900-01-01")
+  ARTS_USER_ERROR_IF(year < 1900, "We cannot yet support times before the year 1900")
 
   int hour, minute;
   Numeric sec;
