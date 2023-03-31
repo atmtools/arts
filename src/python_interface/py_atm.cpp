@@ -166,6 +166,9 @@ void py_atm(py::module_ &m) {
                              const Atm::Data &data) { atm[x] = data; })
       .def("__setitem__", [](AtmField &atm, const ArrayOfSpeciesTag &x,
                              const Atm::Data &data) { atm[x] = data; })
+      .def("at", [](const AtmField& atm, Numeric h, Numeric lat, Numeric lon){
+        return atm.at(h, lat, lon);
+      })
       .def("regularize", &AtmField::regularize)
       .def("regularized_shape", &AtmField::regularized_shape)
       .def_readwrite("top_of_atmosphere", &AtmField::top_of_atmosphere)
