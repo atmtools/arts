@@ -12,7 +12,8 @@
 #include "compare.h"
 #include "debug.h"
 #include "gridded_fields.h"
-#include "interpolation_lagrange.h"
+#include "grids.h"
+#include "interp.h"
 #include "matpack_data.h"
 
 namespace Atm {
@@ -211,18 +212,17 @@ Numeric field_interp(const FunctionalData &f, Numeric alt_point,
 
 template <std::size_t NALT, std::size_t NLAT, std::size_t NLON>
 struct InterpCapture {
-  Interpolation::FixedLagrange<NALT> alt;
-  Interpolation::FixedLagrange<NLAT> lat;
-  Interpolation::FixedLagrange<NLON> lon;
-  FixedGrid<Numeric, NALT + 1, NLAT + 1, NLON + 1> iw;
+  FixedLagrangeInterpolation<NALT> alt;
+  FixedLagrangeInterpolation<NLAT> lat;
+  FixedLagrangeInterpolation<NLON> lon;
+  decltype(interpweights(alt, lat, lon)) iw;
 
   InterpCapture(const Vector &alt_grid, const Vector &lat_grid,
                 const Vector &lon_grid, Numeric alt_point, Numeric lat_point,
                 Numeric lon_point)
       : alt(0, alt_point, alt_grid), lat(0, lat_point, lat_grid),
-        lon(0, lon_point, lon_grid, false, Interpolation::GridType::Cyclic,
-            {-180, 180}),
-        iw(Interpolation::interpweights(alt, lat, lon)) {}
+        lon(0, lon_point, lon_grid),
+        iw(interpweights(alt, lat, lon)) {}
 };
 
 using LinearInterpolation = detail::InterpCapture<1, 1, 1>;
@@ -233,7 +233,7 @@ Numeric field_interp(const GriddedField3 &x, Numeric alt_point,
       x.get_numeric_grid(0), x.get_numeric_grid(1), x.get_numeric_grid(2),
       alt_point, lat_point, lon_point);
 
-  return Interpolation::interp(x.data, iw, alt, lat, lon);
+  return interp(x.data, iw, alt, lat, lon);
 }
 
 bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, const char* type) {
@@ -360,10 +360,9 @@ Point Field::internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_
       atm[vals.first] = get_value(vals.second);
   } else {
     const auto get_value = [v = detail::LinearInterpolation(
-                                grid[0], grid[1], grid[2], alt_point,
-                                lat_point, lon_point)](auto &x) {
-      return Interpolation::interp(*std::get_if<Tensor3>(&x.data), v.iw, v.alt,
-                                   v.lat, v.lon);
+                                grid[0], grid[1], grid[2], alt_point, lat_point,
+                                lon_point)](auto &x) {
+      return interp(*std::get_if<Tensor3>(&x.data), v.iw, v.alt, v.lat, v.lon);
     };
 
     for (auto &vals : specs)
