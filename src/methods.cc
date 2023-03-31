@@ -3012,7 +3012,7 @@ Available models:
         <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
         John Wiley & Sons, Inc., 1993.
 
-    H2O-SelfContPWR2021:
+    N2-SelfContPWR2021:
         Microwave nitrogen absorption continua developed by P.W. Rosenkranz.
 
         Note that this also includes O2-N2 and O2-O2 collision-induced absorption and is
