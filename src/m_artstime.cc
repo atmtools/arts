@@ -24,8 +24,10 @@
  * @brief  Stuff related to manipulating time
  */
 
+#include <stdexcept>
 #include <thread>
 
+#include "debug.h"
 #include "matpack_data.h"
 #include "artstime.h"
 #include "messages.h"
@@ -75,4 +77,16 @@ void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset, const Verbos
 {
   for (Time& time: time_grid)
     timeOffset(time, offset, verbosity);
+}
+
+
+void timeSet(Time& time, const String& time_str, const Verbosity&) try {
+  time = Time{time_str};
+} catch(std::runtime_error& e) {
+  // We perform some checks on the string's validity
+  throw e;
+} catch (...) {
+  // Still, sring conversions may throw std::invalid_argument or std::out_of_range,
+  // we don't care which but just want to warn users about their input
+  ARTS_USER_ERROR("Cannot convert ", std::quoted(time_str), " to valid time")
 }
