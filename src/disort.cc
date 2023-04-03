@@ -40,10 +40,13 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "arts_conversions.h"
+#include "debug.h"
 
+#if not ARTS_LGPL
 extern "C" {
 #include "cdisort.h"
 }
+#endif
 
 #include "disort.h"
 #include "interpolation.h"
@@ -52,6 +55,11 @@ extern "C" {
 #include "messages.h"
 #include "rte.h"
 #include "xml_io.h"
+
+#if ARTS_LGPL
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -803,6 +811,7 @@ thread_local Verbosity disort_verbosity;
 
 /** Verbosity enabled replacement for the original cdisort function. */
 void c_errmsg(const char* messag, int type) {
+  #if not ARTS_LGPL
   Verbosity verbosity = disort_verbosity;
   static int warning_limit = FALSE, num_warnings = 0;
 
@@ -820,6 +829,10 @@ void c_errmsg(const char* messag, int type) {
     warning_limit = TRUE;
   }
 
+  #else
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  #endif
+
   return;
 }
 
@@ -827,6 +840,7 @@ void c_errmsg(const char* messag, int type) {
 
 /** Verbosity enabled replacement for the original cdisort function. */
 int c_write_bad_var(int quiet, const char* varnam) {
+  #if not ARTS_LGPL
   const int maxmsg = 50;
   static int nummsg = 0;
 
@@ -853,6 +867,10 @@ int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
   }
 
   return TRUE;
+
+  #else
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  #endif
 }
 
 void reduced_1datm(Vector& p,
@@ -983,6 +1001,7 @@ void run_cdisort(Workspace& ws,
                 pnd_profiles,
                 cloudbox_limits);
 
+  #if not ARTS_LGPL
   disort_state ds;
   disort_output out;
 
@@ -1324,6 +1343,10 @@ void run_cdisort(Workspace& ws,
   /* Free allocated memory */
   c_disort_out_free(&ds, &out);
   c_disort_state_free(&ds);
+
+  #else
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  #endif
 }
 
 void run_cdisort_flux(Workspace& ws,
@@ -1375,6 +1398,8 @@ void run_cdisort_flux(Workspace& ws,
                 vmr_profiles,
                 pnd_profiles,
                 cloudbox_limits);
+
+#if not ARTS_LGPL
 
   disort_state ds;
   disort_output out;
@@ -1706,6 +1731,10 @@ void run_cdisort_flux(Workspace& ws,
   /* Free allocated memory */
   c_disort_out_free(&ds, &out);
   c_disort_state_free(&ds);
+
+  #else
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  #endif
 }
 
 void surf_albedoCalc(Workspace& ws,
@@ -1936,3 +1965,8 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
     throw runtime_error(os.str());
   }
 }
+
+
+#if ARTS_LGPL
+#pragma GCC diagnostic pop
+#endif
