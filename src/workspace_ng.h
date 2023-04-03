@@ -222,13 +222,13 @@ template <typename T>
 concept CopyConstructor = requires(const T& a) {{ T{a} };};
 
 template <typename T>
-concept ShallowCopyConstructor = requires(const T& a) {a.shallowcopy();};
+concept ShallowCopyConstructor = requires(const T& a) {{ a.shallowcopy() } -> std::same_as<std::shared_ptr<T>>;};
 
 template <typename T>
 concept CanCopy = CopyConstructor<T> or ShallowCopyConstructor<T>;
 
 
-template <typename T>
+template <CanCopy T>
 std::shared_ptr<T> get_shallow_copy(const T& x) {
   if constexpr (ShallowCopyConstructor<T>) return x.shallowcopy();
   else { T mout{x}; return std::make_shared<T>(std::move(mout)); }

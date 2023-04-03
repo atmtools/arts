@@ -4546,6 +4546,9 @@ The field must not be regular
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldIGRF"),
       DESCRIPTION(R"--(Use IGRF to compute the magnetic field at each point
+
+The flag *parsafe* exists if you need the calculations to be safe in parallel
+computations.
 )--"),
       AUTHORS("Richard Larsson"),
       OUT("atm_field"),
@@ -4553,10 +4556,10 @@ The field must not be regular
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atm_field", "time"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("parsafe"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Guaranteed parallel safety at 3X slowdown")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
