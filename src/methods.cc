@@ -4558,8 +4558,8 @@ computations.
       IN("atm_field", "time"),
       GIN("parsafe"),
       GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Guaranteed parallel safety at 3X slowdown")));
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag for parallel safety at 3X slowdown cost")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
