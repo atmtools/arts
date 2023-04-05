@@ -830,7 +830,7 @@ void c_errmsg(const char* messag, int type) {
   }
 
   #else
-  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
   #endif
 
   return;
@@ -869,7 +869,7 @@ int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
   return TRUE;
 
   #else
-  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
   #endif
 }
 
@@ -1345,7 +1345,7 @@ void run_cdisort(Workspace& ws,
   c_disort_state_free(&ds);
 
   #else
-  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
   #endif
 }
 
@@ -1733,7 +1733,7 @@ void run_cdisort_flux(Workspace& ws,
   c_disort_state_free(&ds);
 
   #else
-  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1")
+  ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
   #endif
 }
 

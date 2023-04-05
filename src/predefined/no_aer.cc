@@ -8,7 +8,7 @@ when AER is disabled
 #include "predef.h"
 
 #define NOPE                                                                   \
-  { ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_AER=1") }
+  { ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_PURESCIENCE=1") }
 
 namespace Absorption::PredefinedModel {
 namespace MT_CKD400 {

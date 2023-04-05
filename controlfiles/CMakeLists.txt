@@ -111,8 +111,9 @@ arts_test_run_ctlfile(fast artscomponents/radar/TestOnionPeeling.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
-
+if (NOT ENABLE_ARTS_LGPL)
 arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)
+endif()
 
 arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
 
