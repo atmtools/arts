@@ -692,3 +692,7 @@ target_link_libraries(test_interp_perf PUBLIC matpack artscore)
 #####
 add_executable(test_rng test_rng.cc artstime.cc)
 target_link_libraries(test_rng PUBLIC matpack)
+
+#####
+add_subdirectory(gpl)
+target_link_libraries(artscore artscore_gpl_selector)

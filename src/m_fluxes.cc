@@ -28,7 +28,6 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "legendre.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "messages.h"
@@ -37,6 +36,7 @@
 #include "workspace_ng.h"
 #include "check_input.h"
 #include "global_data.h"
+#include "gsl_gauss_legendre.h"
 
 /*!
   \file   m_fluxes.cc
@@ -99,7 +99,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     //Numeric theta;
 
     //calculate legendre weights and evaluation points
-    gsl_integration_glfixed_table_alloc(xtemp, wtemp, nph);
+    GSL::Integration::GaussLegendre(xtemp, wtemp, nph);
 
     x.resize(nph);
     w.resize(nph);
