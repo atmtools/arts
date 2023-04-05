@@ -1,6 +1,7 @@
 #include "atm.h"
 #include "debug.h"
 #include "gridded_fields.h"
+#include "igrf13.h"
 #include "matpack_data.h"
 #include "messages.h"
 #include "quantum_numbers.h"
@@ -11,6 +12,7 @@
 #include <exception>
 #include <iomanip>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <variant>
@@ -339,4 +341,89 @@ void atm_fieldAddNumericData(AtmField &atm_field, const QuantumIdentifier &key,
   ARTS_USER_ERROR_IF(atm_field.regularized,
                      "Cannot add numeric data to regularized atmospheric field")
   atm_field[key] = data;
+}
+
+void atm_fieldIGRF(AtmField &atm_field, const Time &time, const Index &parsafe,
+                   const Verbosity &) {
+  using namespace IGRF;
+
+  //! We need explicit planet-size as IGRF requires the radius
+  //! This is the WGS84 version of that, with radius and flattening
+  static const Vector ell{6378137., 0.081819190842621};
+
+  //! This struct deals with the computations, it's internally saving a mutable
+  //! state
+  struct res {
+    mutable Numeric u{}, v{}, w{};
+    mutable Numeric alt{}, lat{}, lon{};
+    const Time t;
+
+    res(const Time &x) : t(x) {}
+
+    void comp(Numeric al, Numeric la, Numeric lo) const {
+      if (alt != al or lat != la or lo != lon) {
+        alt = al;
+        lat = la;
+        lon = lo;
+
+        auto f = compute(Vector{alt}.reshape(1, 1, 1), {lat}, {lon}, t, ell);
+        u = f.u(0, 0, 0);
+        v = f.v(0, 0, 0);
+        w = f.w(0, 0, 0);
+      }
+    }
+
+    Numeric get_u(Numeric z, Numeric la, Numeric lo) const {
+      comp(z, la, lo);
+      return u;
+    }
+
+    Numeric get_v(Numeric z, Numeric la, Numeric lo) const {
+      comp(z, la, lo);
+      return v;
+    }
+
+    Numeric get_w(Numeric z, Numeric la, Numeric lo) const {
+      comp(z, la, lo);
+      return w;
+    }
+  };
+
+  /** Different methods for parallel and non-parallel safe versions
+   * In the paralell safe version each field component holds a copy
+   * of the res-struct.  In the unsafe version, the res-struct is
+   * shared between the fields.
+   *
+   * The parallel version is thus safe because it is doing all its
+   * computations locally but the non-parallel version is 3X faster
+   * because it saves the state of the query for, e.g., u to be
+   * reused by v and w (with no regards for order) */
+  if (parsafe == 0) {
+    const std::shared_ptr igrf_ptr = std::make_shared<res>(time);
+    atm_field[Atm::Key::mag_u] = [ptr = igrf_ptr](Numeric h, Numeric lat,
+                                                  Numeric lon) {
+      return ptr->get_u(h, lat, lon);
+    };
+    atm_field[Atm::Key::mag_v] = [ptr = igrf_ptr](Numeric h, Numeric lat,
+                                                  Numeric lon) {
+      return ptr->get_v(h, lat, lon);
+    };
+    atm_field[Atm::Key::mag_w] = [ptr = igrf_ptr](Numeric h, Numeric lat,
+                                                  Numeric lon) {
+      return ptr->get_w(h, lat, lon);
+    };
+  } else {
+    atm_field[Atm::Key::mag_u] = [cpy = res(time)](Numeric h, Numeric lat,
+                                                   Numeric lon) {
+      return res{cpy}.get_u(h, lat, lon);
+    };
+    atm_field[Atm::Key::mag_v] = [cpy = res(time)](Numeric h, Numeric lat,
+                                                   Numeric lon) {
+      return res{cpy}.get_v(h, lat, lon);
+    };
+    atm_field[Atm::Key::mag_w] = [cpy = res(time)](Numeric h, Numeric lat,
+                                                   Numeric lon) {
+      return res{cpy}.get_w(h, lat, lon);
+    };
+  }
 }

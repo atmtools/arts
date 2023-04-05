@@ -26,8 +26,13 @@
 
 #include "artstime.h"
 #include "arts_options.h"
+#include <charconv>
+#include <chrono>
+#include "debug.h"
 #include <cstdlib>
 #include <ctime>
+#include <iomanip>
+#include <system_error>
 
 Time::Time(const String& t) {
   auto s = std::istringstream(t);
@@ -103,14 +108,14 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT)
 
 std::ostream& operator<<(std::ostream& os, const Time& t)
 { 
-  // FIXME: C++20 has much better calendar handling
+  // FIXME: C++20 has much better calendar handling (BUT NOT YET...)
   std::tm x = t.toStruct();
   
   // Deal with seconds
   std::array <char, 2 + 1 + 9 + 100> sec;
   Numeric seconds = Numeric(x.tm_sec) + t.PartOfSecond();
   snprintf(sec.data(), sec.size(), "%.9lf", seconds);
-  
+
   // Print based on std::tm specs
   return os << 1900 + x.tm_year << '-' << std::setfill('0') << std::setw(2)
             << 1 + x.tm_mon << '-' << std::setfill('0') << std::setw(2)
@@ -120,32 +125,60 @@ std::ostream& operator<<(std::ostream& os, const Time& t)
             << std::setfill(' ') << std::setw(0);
 }
 
-std::istream& operator>>(std::istream& is, Time& t)
-{
+std::istream &operator>>(std::istream &is, Time &t) {
   String ymd, hms;
   is >> ymd >> hms;
-  
+
   ArrayOfString YMD, HMS;
   ymd.split(YMD, "-");
   hms.split(HMS, ":");
-  
-  ARTS_USER_ERROR_IF (YMD.nelem() not_eq HMS.nelem() and YMD.nelem() not_eq 3,
-    "Time stream must look like \"year-month-day hour:min:seconds\"\n"
-    "\"year-month-day\"   looks like: ", ymd, '\n',
-    "\"hour:min:seconds\" looks like: ", hms);
-  
-  // FIXME: C++20 has much better calendar handling
-  std::tm x;
-  x.tm_year = std::stoi(YMD[0]) - 1900;
-  x.tm_mon = std::stoi(YMD[1]) - 1;
-  x.tm_mday = std::stoi(YMD[2]);
-  x.tm_hour = std::stoi(HMS[0]);
-  x.tm_min = std::stoi(HMS[1]);
-  x.tm_sec = 0;
-  x.tm_isdst = -1;
-  
-  t = Time(x) + TimeStep(std::stod(HMS[2]));
-  
+
+  ARTS_USER_ERROR_IF(
+      YMD.nelem() not_eq 3 or HMS.nelem() not_eq 3,
+      "Time stream must look like \"year-month-day hour:min:seconds\"\n"
+      "\"year-month-day\"   looks like: ", std::quoted(ymd), '\n',
+      "\"hour:min:seconds\" looks like: ", std::quoted(hms));
+
+  // FIXME: C++20 has much better calendar (BUT NOT YET...)
+  int year, month, day;
+  auto res_year =
+      std::from_chars(YMD[0].c_str(), YMD[0].c_str() + YMD[0].nelem(), year);
+  auto res_mon =
+      std::from_chars(YMD[1].c_str(), YMD[1].c_str() + YMD[1].nelem(), month);
+  auto res_day =
+      std::from_chars(YMD[2].c_str(), YMD[2].c_str() + YMD[2].nelem(), day);
+
+  ARTS_USER_ERROR_IF(
+      std::make_error_code(res_year.ec) or std::make_error_code(res_mon.ec) or
+          std::make_error_code(res_day.ec),
+      "Cannot understand time point for year-month-day: ", std::quoted(ymd))
+  ARTS_USER_ERROR_IF(year < 1900, "We cannot yet support times before the year 1900")
+
+  int hour, minute;
+  Numeric sec;
+  auto res_hour =
+      std::from_chars(HMS[0].c_str(), HMS[0].c_str() + HMS[0].nelem(), hour);
+  auto res_min =
+      std::from_chars(HMS[1].c_str(), HMS[1].c_str() + HMS[1].nelem(), minute);
+  auto res_sec = fast_float::from_chars(HMS[2].c_str(),
+                                        HMS[2].c_str() + HMS[2].nelem(), sec);
+
+  ARTS_USER_ERROR_IF(std::make_error_code(res_hour.ec) or
+                         std::make_error_code(res_min.ec) or
+                         std::make_error_code(res_sec.ec),
+                     "Cannot understand time point for hour:minute:second in: ",
+                     std::quoted(hms))
+
+  std::tm tm_struct{};
+  tm_struct.tm_year = year - 1900;
+  tm_struct.tm_mon = month - 1;
+  tm_struct.tm_mday = day;
+  tm_struct.tm_hour = hour;
+  tm_struct.tm_hour = hour;
+  tm_struct.tm_min = minute;
+  tm_struct.tm_isdst = -1;
+  t = Time{tm_struct} + TimeStep{sec};
+
   return is;
 }
 

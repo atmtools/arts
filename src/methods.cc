@@ -4544,6 +4544,24 @@ The field must not be regular
       GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldIGRF"),
+      DESCRIPTION(R"--(Use IGRF to compute the magnetic field at each point
+
+The flag *parsafe* exists if you need the calculations to be safe in parallel
+computations.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field", "time"),
+      GIN("parsafe"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag for parallel safety at 3X slowdown cost")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
       DESCRIPTION(
           "Sets up a rectangular channel response.\n" 
@@ -20109,6 +20127,33 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("timeSet"),
+      DESCRIPTION(R"(Sets the time.
+
+The time format is similar to C:s strftime format
+    %Y-%m-%d %H:%M:%S
+
+The one exception is that our format accepts, but does not need to use,
+decimals of the second in addtion.  Note that the native time resolution
+for the decimal is the most that can be kept.  For some systems, this is
+nano-seconds, and for others that is micro-seconds.  Please see with your
+vendor.
+
+A default argument is a close approximation to the formal first commit to
+the ARTS codebase.  It is there to give an example of how the format looks.
+)"),
+      AUTHORS("Richard Larsson"),
+      OUT("time"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("time_str"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("2000-03-11 14:39:37.0"),
+      GIN_DESC("A time stamp string in the default format")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sparse_f_gridFromFrequencyGrid"),

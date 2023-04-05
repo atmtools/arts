@@ -41,7 +41,7 @@ using TimeStep = std::chrono::duration<Numeric>;
 
 /** Class to handle time in ARTS */
 struct Time {
-  std::chrono::system_clock::time_point time;
+  std::chrono::time_point<std::chrono::system_clock> time;
   using InternalTimeStep = decltype(time)::duration;
 
   // Version will be updated when C++20 datetime is available... Version 1 will still assume local time at that time
