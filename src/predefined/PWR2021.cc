@@ -148,29 +148,29 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
     const Numeric theta_line = tref_lines / t;
 
     // Line width calculation
-    const auto w0 = w0_air * pdry_bar * std::pow(theta_line, xw_air) +
+    const std::valarray<Numeric> w0 = w0_air * pdry_bar * std::pow(theta_line, xw_air) +
                     w0_self * pvap_bar * std::pow(theta_line, xw_self);
-    const auto w2 = w2_air * pdry_bar * std::pow(theta_line, x2_air) + 
+    const std::valarray<Numeric> w2 = w2_air * pdry_bar * std::pow(theta_line, x2_air) + 
                     w2_self * pvap_bar * std::pow(theta_line, x2_self);                
 
     // Speed-dependent parameter
-    const auto d2 = d2_air * pdry_bar + d2_self * pvap_bar;
+    const std::valarray<Numeric> d2 = d2_air * pdry_bar + d2_self * pvap_bar;
 
     // Frequency shifts
     const Numeric log_theta_line = std::log(theta_line);
-    const auto shift_f = d_air * pdry_bar * 
+    const std::valarray<Numeric> shift_f = d_air * pdry_bar * 
                          (1.0 - a_air * log_theta_line) * std::pow(theta_line, xd_air);
-    const auto shift_s = d_self * pvap_bar *
+    const std::valarray<Numeric> shift_s = d_self * pvap_bar *
                          (1.0 - a_self * log_theta_line) * std::pow(theta_line, xd_self);
-    const auto shift = shift_f + shift_s;
+    const std::valarray<Numeric> shift = shift_f + shift_s;
 
     // Line strengths
-    const auto strength = strength_296 * std::pow(theta_line,2.5) *
+    const std::valarray<Numeric> strength = strength_296 * std::pow(theta_line,2.5) *
                           std::exp(B * (1.0 - theta_line));                         
 
     // Definition of local line contribution
     constexpr Numeric line_cutoff = 750.0;
-    const auto base = w0 / (pow2(line_cutoff) + pow2(w0));
+    const std::valarray<Numeric> base = w0 / (pow2(line_cutoff) + pow2(w0));
 
     const Index nf = f_grid.nelem();
     for (Index iv = 0; iv < nf; ++iv) {
@@ -182,8 +182,8 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
             * pvap_hpa * pow2(f) * conv_cont);
 
         // Line absorption
-        const auto df_1 = f - frequency_ghz - shift;
-        const auto df_2 = f + frequency_ghz + shift;
+        const std::valarray<Numeric> df_1 = f - frequency_ghz - shift;
+        const std::valarray<Numeric> df_2 = f + frequency_ghz + shift;
 
         Numeric line_sum = 0.0;
         for (std::size_t iline = 0; iline < frequency_ghz.size(); iline++){
@@ -191,14 +191,14 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
             if ((w2[iline] > 0) && 
                 (std::abs(df_1[iline]) < (10.0*w0[iline]))){
                     // Speed-dependent resonant shape factor
-                    const auto denom = std::complex<Numeric> (w2[iline], -d2[iline]);
-                    const auto xc = std::complex<Numeric> (w0[iline]-1.5*w2[iline], df_1[iline]+1.5*d2[iline]) /
+                    const std::complex<Numeric> denom = std::complex<Numeric> (w2[iline], -d2[iline]);
+                    const std::complex<Numeric> xc = std::complex<Numeric> (w0[iline]-1.5*w2[iline], df_1[iline]+1.5*d2[iline]) /
                                     denom;
                     
-                    const auto xrt = std::sqrt(xc);
+                    const std::complex<Numeric> xrt = std::sqrt(xc);
                     constexpr Numeric magic_number = 1.77245385090551603;
-                    const auto pxw = magic_number * xrt * Faddeeva::erfcx(xrt);
-                    const auto sd = 2.0 * (1.0 - pxw) / denom;
+                    const std::complex<Numeric> pxw = magic_number * xrt * Faddeeva::erfcx(xrt);
+                    const std::complex<Numeric> sd = 2.0 * (1.0 - pxw) / denom;
                     resonant += sd.real() - base[iline];
                 }
             else if (std::abs(df_1[iline]) < line_cutoff) {
@@ -350,46 +350,46 @@ void compute_o2(PropagationMatrix& propmat_clearsky,
 
     // Relative inverse temperature
     constexpr Numeric t_ref = 300.0;
-    const auto theta = t_ref / t;
-    const auto theta_minus_1 = theta - 1.0;
+    const Numeric theta = t_ref / t;
+    const Numeric theta_minus_1 = theta - 1.0;
     
-    const auto b = std::pow(theta, x);
+    const Numeric b = std::pow(theta, x);
 
-    const auto pvap_pa = h2o_vmr * p_pa;
-    const auto pdry_pa = p_pa - pvap_pa;
-    const auto pvap_bar = pa2bar(pvap_pa);
-    const auto pdry_bar = pa2bar(pdry_pa);
+    const Numeric pvap_pa = h2o_vmr * p_pa;
+    const Numeric pdry_pa = p_pa - pvap_pa;
+    const Numeric pvap_bar = pa2bar(pvap_pa);
+    const Numeric pdry_bar = pa2bar(pdry_pa);
 
     // Factor of 1.2 accounts for higher broadening efficiency
     // for water vapour compared to dry air
-    const auto den = pdry_bar*b + 1.2*pvap_bar*theta;
+    const Numeric den = pdry_bar*b + 1.2*pvap_bar*theta;
 
-    const auto df_cont = cont_width_300 * den;
-    const auto pe2 = pow2(den);
+    const Numeric df_cont = cont_width_300 * den;
+    const Numeric pe2 = pow2(den);
 
-    const auto y = den * (y0 + y1 * theta_minus_1);
-    const auto delta_nu = pe2 * (dnu0 + dnu1 * theta_minus_1);
-    const auto g = 1.0 + pe2 * (g0 + g1 * theta_minus_1);
-    const auto width = width_300 * den;
-    const auto strength = strength_300 * std::exp(-be * theta_minus_1);
+    const std::valarray<Numeric> y = den * (y0 + y1 * theta_minus_1);
+    const std::valarray<Numeric> delta_nu = pe2 * (dnu0 + dnu1 * theta_minus_1);
+    const std::valarray<Numeric> g = 1.0 + pe2 * (g0 + g1 * theta_minus_1);
+    const std::valarray<Numeric> width = width_300 * den;
+    const std::valarray<Numeric> strength = strength_300 * std::exp(-be * theta_minus_1);
 
     const Index nf = f_grid.nelem();
     for (Index iv = 0; iv < nf; ++iv) {
-        const auto f_ghz = hz2ghz(f_grid[iv]);
-        const auto f2_ghz = pow2(f_ghz);
-        const auto cont = 1.584e-17*f2_ghz*df_cont / (theta * (f2_ghz + pow2(df_cont)));
-        const auto df_1 = f_ghz - frequency_ghz - delta_nu;
-        const auto df_2 = f_ghz + frequency_ghz + delta_nu;
-        const auto den_1 = pow2(df_1) + pow2(width);
-        const auto den_2 = pow2(df_2) + pow2(width);
-        const auto sfac_1 = (width * g + df_1*y) / den_1;
-        const auto sfac_2 = (width * g - df_2*y) / den_2;
-        const auto lines = strength * (sfac_1 + sfac_2) * pow2((f_ghz / frequency_ghz));
-        const auto sum = lines.sum() + cont;
+        const Numeric f_ghz = hz2ghz(f_grid[iv]);
+        const Numeric f2_ghz = pow2(f_ghz);
+        const Numeric cont = 1.584e-17*f2_ghz*df_cont / (theta * (f2_ghz + pow2(df_cont)));
+        const std::valarray<Numeric> df_1 = f_ghz - frequency_ghz - delta_nu;
+        const std::valarray<Numeric> df_2 = f_ghz + frequency_ghz + delta_nu;
+        const std::valarray<Numeric> den_1 = pow2(df_1) + pow2(width);
+        const std::valarray<Numeric> den_2 = pow2(df_2) + pow2(width);
+        const std::valarray<Numeric> sfac_1 = (width * g + df_1*y) / den_1;
+        const std::valarray<Numeric> sfac_2 = (width * g - df_2*y) / den_2;
+        const std::valarray<Numeric> lines = strength * (sfac_1 + sfac_2) * pow2((f_ghz / frequency_ghz));
+        const Numeric sum = lines.sum() + cont;
         
         constexpr Numeric conv = 1e-13; // Conversion from Hz / GHz cm^2 / m^2 m^-1 to m^-1
         // Factor of 1.004 comes from Koshelev 2017 paper according to o2abs_19.f code
-        auto absorption = 1.004 * conv * o2_vmr * inv_pi / (boltzmann_constant * t_ref) * sum * pdry_pa * pow3(theta);
+        const Numeric absorption = 1.004 * conv * o2_vmr * inv_pi / (boltzmann_constant * t_ref) * sum * pdry_pa * pow3(theta);
         if (absorption > 0){
             propmat_clearsky.Kjj()[iv] += absorption;
         }
@@ -416,21 +416,21 @@ void compute_n2(PropagationMatrix& propmat_clearsky,
     using Math::pow2;
     using Conversion::pa2hpa, Conversion::hz2ghz;
 
-    const auto theta = 300.0 / t;
-    const auto pdry_pa = p_pa * (1.0 - h2o_vmr);
-    const auto pdry_hpa = pa2hpa(pdry_pa);
+    const Numeric theta = 300.0 / t;
+    const Numeric pdry_pa = p_pa * (1.0 - h2o_vmr);
+    const Numeric pdry_hpa = pa2hpa(pdry_pa);
     // absn2.f includes the N2 vmr in the continuum coefficient
     // Here, we remove the (assumed) value to permit absorption
     // to vary with N2 VMR - ARTS requires this for 
     // propmat_clearsky_fieldCalc to work properly
     constexpr Numeric assumed_n2_vmr = 0.781;
     constexpr Numeric continuum_coefficient = 9.95e-14; // Np / km / (hPa GHz)^2
-    const auto cont = (n2_vmr / assumed_n2_vmr) * continuum_coefficient * pow2(pdry_hpa) * std::pow(theta, 3.22);
+    const Numeric cont = (n2_vmr / assumed_n2_vmr) * continuum_coefficient * pow2(pdry_hpa) * std::pow(theta, 3.22);
     const Index nf = f_grid.nelem();
     for (Index iv = 0; iv < nf; ++iv) {
-        const auto f_ghz = hz2ghz(f_grid[iv]);
-        const auto frequency_dependence = 0.5 + 0.5/(1.0 + pow2(f_ghz / 450.0));
-        const auto continuum = cont * frequency_dependence * pow2(f_ghz) / 1000.0;
+        const Numeric f_ghz = hz2ghz(f_grid[iv]);
+        const Numeric frequency_dependence = 0.5 + 0.5/(1.0 + pow2(f_ghz / 450.0));
+        const Numeric continuum = cont * frequency_dependence * pow2(f_ghz) / 1000.0;
         propmat_clearsky.Kjj()[iv] += continuum;
     }
 }
