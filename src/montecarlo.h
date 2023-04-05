@@ -285,7 +285,7 @@ void mcPathTraceGeneral(Workspace& ws,
                         Vector& abs_vec_mono,
                         Numeric& temperature,
                         MatrixView ext_mat_mono,
-                        Rng& rng,
+                        RandomNumberGenerator<>& rng,
                         Vector& rte_pos,
                         Vector& rte_los,
                         Vector& pnd_vec,
@@ -374,7 +374,7 @@ void mcPathTraceRadar(Workspace& ws,
                       Vector& abs_vec_mono,
                       Numeric& temperature,
                       MatrixView ext_mat_mono,
-                      Rng& rng,
+                      RandomNumberGenerator<>& rng,
                       Vector& rte_pos,
                       Vector& rte_los,
                       Vector& pnd_vec,
@@ -431,7 +431,7 @@ void mcPathTraceRadar(Workspace& ws,
 void Sample_los(VectorView new_rte_los,
                 Numeric& g_los_csc_theta,
                 MatrixView Z,
-                Rng& rng,
+                RandomNumberGenerator<>& rng,
                 ConstVectorView rte_los,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Index stokes_dim,
@@ -452,6 +452,6 @@ void Sample_los(VectorView new_rte_los,
  * @author     *** FIXMEDOC ***
  * @date       *** FIXMEDOC ***
  */
-void Sample_los_uniform(VectorView new_rte_los, Rng& rng);
+void Sample_los_uniform(VectorView new_rte_los, RandomNumberGenerator<>& rng);
 
 #endif  // montecarlo_h

@@ -855,7 +855,7 @@ void mcPathTraceGeneral(Workspace& ws,
                         Vector& abs_vec_mono,
                         Numeric& temperature,
                         MatrixView ext_mat_mono,
-                        Rng& rng,
+                        RandomNumberGenerator<>& rng,
                         Vector& rte_pos,
                         Vector& rte_los,
                         Vector& pnd_vec,
@@ -988,7 +988,7 @@ void mcPathTraceGeneral(Workspace& ws,
   pnd_vecArray[1] = pnd_vec;
 
   //draw random number to determine end point
-  Numeric r = rng.draw();
+  Numeric r = rng.get(0.0, 1.0)();
 
   termination_flag = 0;
 
@@ -1196,7 +1196,7 @@ void mcPathTraceRadar(Workspace& ws,
                       Vector& abs_vec_mono,
                       Numeric& temperature,
                       MatrixView ext_mat_mono,
-                      Rng& rng,
+                      RandomNumberGenerator<>& rng,
                       Vector& rte_pos,
                       Vector& rte_los,
                       Vector& pnd_vec,
@@ -1336,7 +1336,7 @@ void mcPathTraceRadar(Workspace& ws,
   pnd_vecArray[1] = pnd_vec;
 
   //draw random number to determine end point
-  Numeric r = rng.draw();
+  Numeric r = rng.get(0.0, 1.0)();
 
   termination_flag = 0;
 
@@ -1529,7 +1529,7 @@ void mcPathTraceRadar(Workspace& ws,
 void Sample_los(VectorView new_rte_los,
                 Numeric& g_los_csc_theta,
                 MatrixView Z,
-                Rng& rng,
+                RandomNumberGenerator<>& rng,
                 ConstVectorView rte_los,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Index f_index,
@@ -1570,8 +1570,8 @@ void Sample_los(VectorView new_rte_los,
   pnds(joker, 0) = pnd_vec;
 
   while (tryagain) {
-    new_rte_los[0] = Conversion::acosd(1 - 2 * rng.draw());
-    new_rte_los[1] = rng.draw() * 360 - 180;
+    new_rte_los[0] = Conversion::acosd(rng.get(-1.0, 1.0)());
+    new_rte_los[1] = rng.get(-180.0, 180.0)();
 
     //Calculate Phase matrix////////////////////////////////
     Vector inc_dir;
@@ -1598,7 +1598,7 @@ void Sample_los(VectorView new_rte_los,
     pha_mat_Bulk(pha_mat_bulk, ptype_bulk, pha_mat_ssbulk, ptype_ssbulk);
     Z = pha_mat_bulk(0, 0, 0, 0, joker, joker);
 
-    if (rng.draw() <= Z(0, 0) / Z11max)  //then new los is accepted
+    if (rng.get(0.0, 1.0)() <= Z(0, 0) / Z11max)  //then new los is accepted
     {
       tryagain = false;
     }
@@ -1606,7 +1606,7 @@ void Sample_los(VectorView new_rte_los,
   g_los_csc_theta = Z(0, 0) / Csca;
 }
 
-void Sample_los_uniform(VectorView new_rte_los, Rng& rng) {
-  new_rte_los[1] = rng.draw() * 360 - 180;
-  new_rte_los[0] = Conversion::acosd(1 - 2 * rng.draw());
+void Sample_los_uniform(VectorView new_rte_los, RandomNumberGenerator<>& rng) {
+  new_rte_los[1] = rng.get<>(-180., 180.)();
+  new_rte_los[0] = Conversion::acosd(rng.get<>(-1., 1.)());
 }

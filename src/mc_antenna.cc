@@ -29,39 +29,16 @@
 
 #include "mc_antenna.h"
 #include <cfloat>
+#include <random>
 #include <sstream>
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "matpack_math.h"
+#include "rng.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
-
-Numeric ran_gaussian(Rng& rng, const Numeric sigma) {
-  Numeric x, y, r2;
-
-  do {
-    /* choose x,y in uniform square (-1,-1) to (+1,+1) */
-
-    x = -1 + 2 * rng.draw();
-    y = -1 + 2 * rng.draw();
-
-    /* see if it is in the unit circle */
-    r2 = x * x + y * y;
-  } while (r2 > 1.0 || r2 == 0);
-
-  /* Box-Muller transform */
-  return sigma * y * sqrt(-2.0 * log(r2) / r2);
-}
-
-Numeric ran_uniform(Rng& rng) {
-  Numeric phi;
-
-  phi = 360.0 * rng.draw() - 180.0;
-
-  return phi;
-}
 
 void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los)
 
@@ -178,7 +155,7 @@ void MCAntenna::return_los(Numeric& wgt,
 
 void MCAntenna::draw_los(VectorView sampled_rte_los,
                          MatrixView R_los,
-                         Rng& rng,
+                         RandomNumberGenerator<>& rng,
                          ConstMatrixView R_ant2enu,
                          ConstVectorView bore_sight_los) const {
   Numeric ant_el, ant_az, ant_r;
@@ -198,11 +175,15 @@ void MCAntenna::draw_los(VectorView sampled_rte_los,
 
       // Assume Gaussian is narrow enough that response is 0 beyond 90 degrees
       // Same assumption is made for radar return samples (return_los)
-      while (ant_el >= 90) {
-        ant_el = ran_gaussian(rng, sigma_za);
-      }
-      while (ant_az >= 90) {
-        ant_az = ran_gaussian(rng, sigma_aa);
+      {
+        auto za_sample = rng.get<std::normal_distribution>(0.0, sigma_za);
+        while (ant_el >= 90) {
+          ant_el = za_sample();
+        }
+        auto aa_sample = rng.get<std::normal_distribution>(0.0, sigma_aa);
+        while (ant_az >= 90) {
+          ant_az = aa_sample();
+        }
       }
 
       // Propagation direction

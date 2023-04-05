@@ -277,7 +277,6 @@ add_library (artscore STATIC
   radiation_field.cc
   raw.cc
   refraction.cc
-  rng.cc
   rt4.cc
   rte.cc
   sensor.cc
@@ -688,3 +687,8 @@ target_link_libraries(test_matpack_perf PUBLIC matpack)
 #####
 add_executable(test_interp_perf test_interp_perf.cc artstime.cc)
 target_link_libraries(test_interp_perf PUBLIC matpack artscore)
+
+
+#####
+add_executable(test_rng test_rng.cc artstime.cc)
+target_link_libraries(test_rng PUBLIC matpack)

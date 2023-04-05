@@ -143,31 +143,12 @@ struct MCAntenna {
    */
   void draw_los(VectorView sampled_rte_los,
                 MatrixView R_los,
-                Rng& rng,
+                RandomNumberGenerator<>& rng,
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
 
   friend ostream& operator<<(ostream& os, const MCAntenna& mca);
 };
-
-/** ran_gaussian.
- *
- * Returns the gaussian random deviate.
- * Draw a random normal (Gaussian) deviate.
- * Polar (Box-Mueller) method; See Knuth v2, 3rd ed, p122.
- *
- * @param[in]   rng    Rng random number generator instance.
- * @param[in]   sigma  Standard deviation parameter for gaussian distribution.
- *
- * @author      Cory Davis
- * @date        2003-12-01
- */
-Numeric ran_gaussian(Rng& rng, const Numeric sigma);
-
-/** ran_uniform.  *** FIXMEDOC ***
- *
- */
-Numeric ran_uniform(Rng& rng);
 
 /** rotmat_enu.
  *
