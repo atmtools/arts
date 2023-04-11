@@ -570,6 +570,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
+/*
         iyEmissionStandard(wss,
                            iy,
                            iy_aux,
@@ -603,6 +604,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            rte_alonglos_v,
                            surface_props_data,
                            verbosity);
+*/
         ARTS_ASSERT(iy.ncols() == stokes_dim);
 
         // First and last points are most easily handled separately
@@ -799,6 +801,7 @@ void spectral_radiance_fieldExpandCloudboxField(
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
+/*
         iyEmissionStandard(wss,
                            iy,
                            iy_aux,
@@ -832,6 +835,7 @@ void spectral_radiance_fieldExpandCloudboxField(
                            rte_alonglos_v,
                            surface_props_data,
                            verbosity);
+*/
         ARTS_ASSERT(iy.ncols() == stokes_dim);
 
         // First and last points are most easily handled separately
