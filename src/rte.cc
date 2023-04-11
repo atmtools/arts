@@ -40,6 +40,7 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
+#include "matpack_concepts.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
 #include "ppath_OLD.h"
@@ -1118,52 +1119,39 @@ Range get_rowindex_for_mblock(const Sparse& sensor_response,
   return Range(n1y * mblock_index, n1y);
 }
 
-void get_stepwise_blackbody_radiation(VectorView B,
-                                      VectorView dB_dT,
-                                      const ConstVectorView& ppath_f_grid,
-                                      const Numeric& ppath_temperature,
-                                      const bool& do_temperature_derivative) {
-  const Index nf = ppath_f_grid.nelem();
-
-  for (Index i = 0; i < nf; i++)
-    B[i] = planck(ppath_f_grid[i], ppath_temperature);
+void get_stepwise_blackbody_radiation(VectorView B, VectorView dB_dT,
+                                      const ConstVectorView &ppath_f_grid,
+                                      const Numeric &ppath_temperature,
+                                      const bool &do_temperature_derivative) {
+  std::transform(ppath_f_grid.begin(), ppath_f_grid.end(), B.begin(),
+                 [T = ppath_temperature](auto &&f) { return planck(f, T); });
 
   if (do_temperature_derivative)
-    for (Index i = 0; i < nf; i++)
-      dB_dT[i] = dplanck_dt(ppath_f_grid[i], ppath_temperature);
+    std::transform(
+        ppath_f_grid.begin(), ppath_f_grid.end(), dB_dT.begin(),
+        [T = ppath_temperature](auto &&f) { return dplanck_dt(f, T); });
 }
 
 void get_stepwise_clearsky_propmat(
-    Workspace& ws,
-    PropagationMatrix& K,
-    StokesVector& S,
-    Index& lte,
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& ppath_f_grid,
-    const Vector& ppath_line_of_sight,
-    const AtmPoint& atm_point,
-    const bool& jacobian_do) {
+    Workspace &ws, PropagationMatrix &K, StokesVector &S,
+    ArrayOfPropagationMatrix &dK_dx, ArrayOfStokesVector &dS_dx,
+    const Agenda &propmat_clearsky_agenda,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+    const Vector &ppath_f_grid, const Vector &ppath_line_of_sight,
+    const AtmPoint &atm_point, const bool jacobian_do) {
   static const ArrayOfSpeciesTag select_abs_species{};
   static const ArrayOfRetrievalQuantity jacobian_quantities_empty{};
 
   // Perform the propagation matrix computations
-  propmat_clearsky_agendaExecute(ws,
-                                 K,
-                                 S,
-                                 dK_dx,
-                                 dS_dx,
-                                 jacobian_do ? jacobian_quantities : jacobian_quantities_empty,
-                                 select_abs_species,
-                                 ppath_f_grid,
-                                 ppath_line_of_sight,
-                                 atm_point,
-                                 propmat_clearsky_agenda);
+  propmat_clearsky_agendaExecute(
+      ws, K, S, dK_dx, dS_dx,
+      jacobian_do ? jacobian_quantities : jacobian_quantities_empty,
+      select_abs_species, ppath_f_grid, ppath_line_of_sight, atm_point,
+      propmat_clearsky_agenda);
 
-  // If there are no NLTE values, then set the LTE flag as true
-  lte = S.allZeroes();  // FIXME: Should be nlte_do?
+  adapt_stepwise_partial_derivatives(dK_dx, dS_dx, jacobian_quantities,
+                                     ppath_f_grid, ppath_line_of_sight,
+                                     S.allZeroes(), 3, jacobian_do);
 }
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
@@ -2102,8 +2090,6 @@ void rtmethods_unit_conversion(
     Matrix& iy,
     ArrayOfTensor3& diy_dx,
     Tensor3& ppvar_iy,
-    const Index& ns,
-    const Index& np,
     const Vector& f_grid,
     const Ppath& ppath,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -2114,8 +2100,10 @@ void rtmethods_unit_conversion(
   //
   if (ppath.end_lstep == 0)  // If true, sensor inside the atmosphere
   {
-    n = ppath.nreal[np - 1];
+    n = ppath.nreal.back();
   }
+
+  const Index ns = iy.ncols();
 
   // Polarisation index variable
   ArrayOfIndex i_pol(ns);

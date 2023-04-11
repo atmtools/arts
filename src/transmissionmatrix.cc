@@ -29,6 +29,7 @@
 #include "transmissionmatrix.h"
 
 #include "arts_conversions.h"
+#include "debug.h"
 #include "double_imanip.h"
 
 TransmissionMatrix::TransmissionMatrix(Index nf, Index stokes)
@@ -263,6 +264,14 @@ void RadiationVector::SetZero() {
   for (Index i=0; i<Frequencies(); i++) SetZero(i);
 }
 
+void RadiationVector::SetUnity() {
+  SetZero();
+  for (auto& v: R4) v[0] = 1;
+  for (auto& v: R3) v[0] = 1;
+  for (auto& v: R2) v[0] = 1;
+  for (auto& v: R1) v[0] = 1;
+}
+
 Eigen::VectorXd RadiationVector::Vec(size_t i) const {
   switch (stokes_dim) {
     case 4:
@@ -458,8 +467,7 @@ void RadiationVector::setBackscatterTransmissionDerivative(
     R1[i].noalias() += Tr.Mat1(i) * dZ.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
 }
 
-RadiationVector& RadiationVector::operator=(const ConstMatrixView& M) {
-  ARTS_ASSERT(M.ncols() == stokes_dim and M.nrows() == Frequencies());
+RadiationVector::RadiationVector(const ConstMatrixView& M) : RadiationVector(M.nrows(), M.ncols()) {
   for (size_t i = 0; i < R4.size(); i++) {
     R4[i][0] = M(i, 0);
     R4[i][1] = M(i, 1);
@@ -478,7 +486,6 @@ RadiationVector& RadiationVector::operator=(const ConstMatrixView& M) {
   for (size_t i = 0; i < R1.size(); i++) {
     R1[i][0] = M(i, 0);
   }
-  return *this;
 }
 
 RadiationVector& RadiationVector::operator+=(const RadiationVector& rv) {
@@ -1800,143 +1807,120 @@ void stepwise_transmission(TransmissionMatrix& T,
         T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dtemp1, dr_dtemp2, temp_deriv_pos);
 }
 
-void stepwise_source(RadiationVector& J,
-                     ArrayOfRadiationVector& dJ,
-                     RadiationVector& J_add,
-                     const PropagationMatrix& K,
-                     const StokesVector& a,
-                     const StokesVector& S,
-                     const ArrayOfPropagationMatrix& dK,
-                     const ArrayOfStokesVector& da,
-                     const ArrayOfStokesVector& dS,
-                     const ConstVectorView& B,
-                     const ConstVectorView& dB_dT,
-                     const ArrayOfRetrievalQuantity& jacobian_quantities,
-                     const bool& jacobian_do) {
+void stepwise_source(RadiationVector &J, ArrayOfRadiationVector &dJ,
+                     const RadiationVector &J_add, const PropagationMatrix &K,
+                     const StokesVector &a, const StokesVector &S,
+                     const ArrayOfPropagationMatrix &dK,
+                     const ArrayOfStokesVector &da,
+                     const ArrayOfStokesVector &dS, const ConstVectorView &B,
+                     const ConstVectorView &dB_dT,
+                     const ArrayOfRetrievalQuantity &jacobian_quantities,
+                     const bool &jacobian_do) {
   for (Index i = 0; i < K.NumberOfFrequencies(); i++) {
     if (K.IsRotational(i)) {
       J.SetZero(i);
       if (jacobian_do) {
         for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-          if (dJ[j].Frequencies()) dJ[j].SetZero(i);
+          if (dJ[j].Frequencies())
+            dJ[j].SetZero(i);
       }
     } else {
       J.setSource(a, B, S, i);
 
       switch (J.stokes_dim) {
-        case 4: {
-          const auto invK = inv_prop_matrix<4>(K.Data()(0, 0, i, joker));
-          J.Vec4(i) = invK * J.Vec4(i);
-          if (jacobian_do) {
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
-                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec4(i).noalias() =
-                    0.5 * invK *
-                    (source_vector<4>(
-                         a,
-                         B,
-                         da[j],
-                         dB_dT,
-                         dS[j],
-                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                         i) -
-                     prop_matrix<4>(dK[j].Data()(0, 0, i, joker)) * J.Vec4(i));
-              }
+      case 4: {
+        const auto invK = inv_prop_matrix<4>(K.Data()(0, 0, i, joker));
+        J.Vec4(i) = invK * J.Vec4(i);
+        if (J_add.Frequencies())
+          J.Vec4(i).noalias() += invK * J_add.Vec4(i);
+        // TODO: Add jacobians dJ_add of additional source
+
+        if (jacobian_do) {
+          for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+            if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+              dJ[j].Vec4(i).noalias() =
+                  0.5 * invK *
+                  (source_vector<4>(a, B, da[j], dB_dT, dS[j],
+                                    jacobian_quantities[j] ==
+                                        Jacobian::Atm::Temperature,
+                                    i) -
+                   prop_matrix<4>(dK[j].Data()(0, 0, i, joker)) * J.Vec4(i));
             }
           }
-          if (J_add.Frequencies()) {
-            J_add.Vec4(i) = invK * J_add.Vec4(i);
-            //TODO: Add jacobians dJ_add of additional source
-          }
-        } break;
-        case 3: {
-          const auto invK = inv_prop_matrix<3>(K.Data()(0, 0, i, joker));
-          J.Vec3(i) = invK * J.Vec3(i);
-          if (jacobian_do) {
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
-              // Skip others!
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
-                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec3(i).noalias() =
-                    0.5 * invK *
-                    (source_vector<3>(
-                         a,
-                         B,
-                         da[j],
-                         dB_dT,
-                         dS[j],
-                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                         i) -
-                     prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
-              }
+        }
+      } break;
+      case 3: {
+        const auto invK = inv_prop_matrix<3>(K.Data()(0, 0, i, joker));
+        J.Vec3(i) = invK * J.Vec3(i);
+        if (J_add.Frequencies())
+          J.Vec3(i).noalias() += invK * J_add.Vec3(i);
+        // TODO: Add jacobians dJ_add of additional source
+
+        if (jacobian_do) {
+          for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+            // Skip others!
+            if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+              dJ[j].Vec3(i).noalias() =
+                  0.5 * invK *
+                  (source_vector<3>(a, B, da[j], dB_dT, dS[j],
+                                    jacobian_quantities[j] ==
+                                        Jacobian::Atm::Temperature,
+                                    i) -
+                   prop_matrix<3>(dK[j].Data()(0, 0, i, joker)) * J.Vec3(i));
             }
           }
-          if (J_add.Frequencies()) {
-            J_add.Vec3(i) = invK * J_add.Vec3(i);
-            //TODO: Add jacobians dJ_add of additional source
-          }
-        } break;
-        case 2: {
-          const auto invK = inv_prop_matrix<2>(K.Data()(0, 0, i, joker));
-          J.Vec2(i) = invK * J.Vec2(i);
-          if (jacobian_do) {
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
-              // Skip others!
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
-                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec2(i).noalias() =
-                    0.5 * invK *
-                    (source_vector<2>(
-                         a,
-                         B,
-                         da[j],
-                         dB_dT,
-                         dS[j],
-                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                         i) -
-                     prop_matrix<2>(dK[j].Data()(0, 0, i, joker)) * J.Vec2(i));
-              }
+        }
+      } break;
+      case 2: {
+        const auto invK = inv_prop_matrix<2>(K.Data()(0, 0, i, joker));
+        J.Vec2(i) = invK * J.Vec2(i);
+        if (J_add.Frequencies())
+          J.Vec2(i).noalias() += invK * J_add.Vec2(i);
+        // TODO: Add jacobians dJ_add of additional source
+
+        if (jacobian_do) {
+          for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+            // Skip others!
+            if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+              dJ[j].Vec2(i).noalias() =
+                  0.5 * invK *
+                  (source_vector<2>(a, B, da[j], dB_dT, dS[j],
+                                    jacobian_quantities[j] ==
+                                        Jacobian::Atm::Temperature,
+                                    i) -
+                   prop_matrix<2>(dK[j].Data()(0, 0, i, joker)) * J.Vec2(i));
             }
           }
-          if (J_add.Frequencies()) {
-            J_add.Vec2(i) = invK * J_add.Vec2(i);
-            //TODO: Add jacobians dJ_add of additional source
-          }
-        } break;
-        default: {
-          const auto invK = inv_prop_matrix<1>(K.Data()(0, 0, i, joker));
-          J.Vec1(i) = invK * J.Vec1(i);
-          if (jacobian_do) {
-            for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
-              // Skip others!
-              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
-                  dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
-                dJ[j].Vec1(i).noalias() =
-                    0.5 * invK *
-                    (source_vector<1>(
-                         a,
-                         B,
-                         da[j],
-                         dB_dT,
-                         dS[j],
-                         jacobian_quantities[j] == Jacobian::Atm::Temperature,
-                         i) -
-                     prop_matrix<1>(dK[j].Data()(0, 0, i, joker)) * J.Vec1(i));
-              }
+        }
+      } break;
+      default: {
+        const auto invK = inv_prop_matrix<1>(K.Data()(0, 0, i, joker));
+        J.Vec1(i) = invK * J.Vec1(i);
+        if (J_add.Frequencies())
+          J.Vec1(i).noalias() += invK * J_add.Vec1(i);
+        // TODO: Add jacobians dJ_add of additional source
+
+        if (jacobian_do) {
+          for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
+            // Skip others!
+            if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and
+                dJ[j].Frequencies() == dS[j].NumberOfFrequencies()) {
+              dJ[j].Vec1(i).noalias() =
+                  0.5 * invK *
+                  (source_vector<1>(a, B, da[j], dB_dT, dS[j],
+                                    jacobian_quantities[j] ==
+                                        Jacobian::Atm::Temperature,
+                                    i) -
+                   prop_matrix<1>(dK[j].Data()(0, 0, i, joker)) * J.Vec1(i));
             }
           }
-          if (J_add.Frequencies()) {
-            J_add.Vec1(i) = invK * J_add.Vec1(i);
-            //TODO: Add jacobians dJ_add of additional source
-          }
-        } break;
+        }
+      } break;
       }
     }
-  }
-
-  if (J_add.Frequencies()) {
-    J += J_add;
   }
 }
 
@@ -1995,6 +1979,9 @@ void update_radiation_vector(
                      r);
 
     } break;
+    case RadiativeTransferSolver::FINAL: {
+      ARTS_ASSERT(false)
+    }
   }
 }
 
@@ -2003,8 +1990,8 @@ ArrayOfTransmissionMatrix cumulative_transmission(
     const CumulativeTransmission type) /*[[expects: T.nelem()>0]]*/
 {
   const Index n = T.nelem();
-  const Index nf = n ? T[0].Frequencies() : 1;
-  const Index ns = n ? T[0].stokes_dim : 1;
+  const Index nf = n ? T.front().Frequencies() : 0;
+  const Index ns = n ? T.front().stokes_dim : 1;
   ArrayOfTransmissionMatrix PiT(n, TransmissionMatrix(nf, ns));
   switch (type) {
     case CumulativeTransmission::Forward: {

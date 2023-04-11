@@ -135,6 +135,9 @@ void define_wsv_groups() {
   wsv_groups.emplace_back("ArrayOfArrayOfTransmissionMatrix",
                           "A list of *ArrayOfTransmissionMatrix*");
 
+  wsv_groups.emplace_back("ArrayOfArrayOfArrayOfTransmissionMatrix",
+                          "A list of *ArrayOfArrayOfTransmissionMatrix*");
+
   wsv_groups.emplace_back("ArrayOfArrayOfVector", "A list of *ArrayOfVector*");
 
   wsv_groups.emplace_back("ArrayOfAtmPoint", "A list of *AtmPoint*");

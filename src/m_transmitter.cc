@@ -831,7 +831,6 @@ This feature will be added in a future version.
     // Size radiative variables always used
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
     StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
-    ArrayOfIndex lte(np);
 
     // size gas scattering variables
     TransmissionMatrix gas_scattering_mat;
@@ -871,7 +870,6 @@ This feature will be added in a future version.
       get_stepwise_clearsky_propmat(ws,
                                     K_this,
                                     S,
-                                    lte[ip],
                                     dK_this_dx,
                                     dS_dx,
                                     propmat_clearsky_agenda,
@@ -895,17 +893,6 @@ This feature will be added in a future version.
                                      gas_scattering_agenda);
 
         K_this += K_sca;
-      }
-
-      if (j_analytical_do) {
-        adapt_stepwise_partial_derivatives(dK_this_dx,
-                                           dS_dx,
-                                           jacobian_quantities,
-                                           ppvar_f[ip],
-                                           ppath.los(ip, joker),
-                                           lte[ip],
-                                           atm_field.old_atmosphere_dim_est(),
-                                           j_analytical_do);
       }
 
       if (clear2cloudy[ip] + 1) {
@@ -962,7 +949,7 @@ This feature will be added in a future version.
       iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1](iv, 0, 0));
   }
 
-  lvl_rad[np - 1] = iy_transmitter;
+  lvl_rad[np - 1] = RadiationVector{iy_transmitter};
 
   // Radiative transfer calculations
   for (Index ip = np - 2; ip >= 0; ip--) {

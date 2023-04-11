@@ -75,12 +75,10 @@ void field_of_propagation(Workspace& ws,
   for (Index i = 0; i < nalt; i++) {
     for (Index j = 0; j < nlat; j++) {
       for (Index k = 0; k < nlon; k++) {
-        thread_local Index itmp;
         get_stepwise_clearsky_propmat(
             wss,
             propmat_field(i, j, k),
             additional_source_field(i, j, k),
-            itmp,
             dK_dx,
             dS_dx,
             propmat_clearsky_agenda,
@@ -221,7 +219,7 @@ void emission_from_propmat_field(
                        iy_cloudbox_agenda,
                        1,
                        verbosity);
-  lvl_rad[np - 1] = iy;
+  lvl_rad[np - 1] = RadiationVector{iy};
 
   // Radiative transfer calculations
   for (Index ip = np - 2; ip >= 0; ip--)

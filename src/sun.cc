@@ -97,7 +97,7 @@ void get_scattered_sunsource(Workspace& ws,
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
     mat_temp(0,joker) =  transmitted_sunlight(i_f, joker);
-    scattered_sunlight_temp = mat_temp;//transmitted_sunlight(i_f, joker);
+    scattered_sunlight_temp = RadiationVector{mat_temp};//transmitted_sunlight(i_f, joker);
     scattered_sunlight_temp.leftMul(gas_scattering_mat);
 
     for (Index j = 0; j < ns; j++) {

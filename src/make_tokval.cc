@@ -75,7 +75,17 @@ template <ArtsTypeBase> struct WorkspaceGroupIndex { static constexpr Index valu
            << "> { static constexpr Index value=" << i << "; };\n";
 
   file_h << R"--(
+template <ArtsTypeBase> struct WorkspaceGroupName { static constexpr std::string_view value = "None"; };
+)--";
+
+  for (Index i = 0; i < global_data::wsv_groups.nelem(); i++)
+    file_h << "template <> struct WorkspaceGroupName<"
+           << global_data::wsv_groups[i]
+           << "> { static constexpr std::string_view value=\"" << global_data::wsv_groups[i].name << "\"; };\n";
+
+  file_h << R"--(
 template <ArtsTypeBase T> inline constexpr Index WorkspaceGroupIndexValue = WorkspaceGroupIndex<T>::value;
+template <ArtsTypeBase T> inline constexpr std::string_view WorkspaceGroupNameValue = WorkspaceGroupName<T>::value;
 
 class TokVal {
   void * ptr{nullptr};

@@ -41,6 +41,7 @@
 #include "ppath_struct.h"
 #include "quantum_numbers.h"  
 #include "species_tags.h"
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <stdexcept>
@@ -1322,5 +1323,11 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
  * @return false if it does not
  */
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
+
+template <Jacobian::Atm target>
+constexpr Index pos(const ArrayOfRetrievalQuantity& js) {
+  auto ptr = std::find(js.begin(), js.end(), target);
+  return ptr == js.end() ? -1 : std::distance(js.begin(), ptr);
+}
 
 #endif  // jacobian_h

@@ -250,7 +250,6 @@ void iyRadarSingleScat(Workspace& ws,
     // Size radiative variables always used
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
     StokesVector a(nf, ns), S(nf, ns);
-    ArrayOfIndex lte(np);
 
     // Init variables only used if transmission part of jacobian
     Vector dB_dT(0);
@@ -285,7 +284,6 @@ void iyRadarSingleScat(Workspace& ws,
       get_stepwise_clearsky_propmat(ws,
                                     K_this,
                                     S,
-                                    lte[ip],
                                     dK_this_dx,
                                     dS_dx,
                                     propmat_clearsky_agenda,
@@ -294,17 +292,6 @@ void iyRadarSingleScat(Workspace& ws,
                                     Vector{ppath.los(ip, joker)},
                                     AtmPoint{},  // FIXME: DUMMY VALUE
                                     trans_in_jacobian && j_analytical_do);
-
-      if (trans_in_jacobian && j_analytical_do)
-        adapt_stepwise_partial_derivatives(
-            dK_this_dx,
-            dS_dx,
-            jacobian_quantities,
-            ppvar_f[ip],
-            ppath.los(ip, joker),
-            lte[ip],
-            atm_field.old_atmosphere_dim_est(),
-            trans_in_jacobian && j_analytical_do);
 
       if (clear2cloudy[ip] + 1) {
         get_stepwise_scattersky_propmat(a,
@@ -439,9 +426,8 @@ void iyRadarSingleScat(Workspace& ws,
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
       bulk_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
-  lvl_rad[0] = iy_transmitter;
-  RadiationVector rad_inc = RadiationVector(nf, ns);
-  rad_inc = iy_transmitter;
+  lvl_rad[0] = RadiationVector{iy_transmitter};
+  RadiationVector rad_inc{iy_transmitter};
   set_backscatter_radiation_vector(lvl_rad,
                                    dlvl_rad,
                                    rad_inc,

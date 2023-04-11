@@ -501,7 +501,6 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @param[in] ws The workspace
  * @param[in,out] K Propagation matrix at propagation path point
  * @param[in,out] S NLTE source adjustment at propagation path point
- * @param[in,out] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
  * @param[in,out] dK_dx Propagation matrix derivatives at propagation path point
  * @param[in,out] dS_dx NLTE source adjustment derivatives at propagation path point
  * @param[in] propmat_clearsky_agenda As WSA
@@ -518,7 +517,6 @@ void get_stepwise_clearsky_propmat(
   Workspace& ws,
   PropagationMatrix& K,
   StokesVector& S,
-  Index& lte,
   ArrayOfPropagationMatrix& dK_dx,
   ArrayOfStokesVector& dS_dx,
   const Agenda& propmat_clearsky_agenda,
@@ -526,7 +524,7 @@ void get_stepwise_clearsky_propmat(
   const Vector& ppath_f_grid,
   const Vector& ppath_line_of_sight,
   const AtmPoint& atm_point,
-  const bool& jacobian_do);
+  const bool jacobian_do);
 
 /** Computes the ratio that a partial derivative with regards to frequency
  *  relates to the wind of come component
@@ -885,8 +883,6 @@ void rtmethods_unit_conversion(
     Matrix& iy,
     ArrayOfTensor3& diy_dx,
     Tensor3& ppvar_iy,
-    const Index& ns,
-    const Index& np,
     const Vector& f_grid,
     const Ppath& ppath,
     const ArrayOfRetrievalQuantity& jacobian_quantities,

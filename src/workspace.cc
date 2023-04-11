@@ -4331,6 +4331,102 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("ppvar_level_agenda"),
+      DESCRIPTION(
+          "See *Agenda*"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("rte_agenda"),
+      DESCRIPTION(
+          "See *Agenda*"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("background_rad"),
+      DESCRIPTION(
+          "Radiation from the background"),
+      GROUP("RadiationVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_rad"),
+      DESCRIPTION(
+          "Radiation along the propagation path"),
+      GROUP("ArrayOfRadiationVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_drad"),
+      DESCRIPTION(
+          "Radiation derivative along the propagation path"),
+      GROUP("ArrayOfArrayOfRadiationVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_propmat"),
+      DESCRIPTION(
+          "Propagation matrices along the propagation path"),
+      GROUP("ArrayOfPropagationMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_dpropmat"),
+      DESCRIPTION(
+          "Propagation derivative matrices along the propagation path"),
+      GROUP("ArrayOfArrayOfPropagationMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_nlte"),
+      DESCRIPTION(
+          "Additional NLTE along the propagation path"),
+      GROUP("ArrayOfStokesVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_dnlte"),
+      DESCRIPTION(
+          "Additional NLTE derivative along the propagation path"),
+      GROUP("ArrayOfArrayOfStokesVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_src"),
+      DESCRIPTION(
+          "Source vectors along the propagation path"),
+      GROUP("ArrayOfRadiationVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_dsrc"),
+      DESCRIPTION(
+          "Source derivative vectors along the propagation path"),
+      GROUP("ArrayOfArrayOfRadiationVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_tramat"),
+      DESCRIPTION(
+          "Transmission matrices along the propagation path"),
+      GROUP("ArrayOfTransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_dtramat"),
+      DESCRIPTION(
+          "Transmission derivative matrices along the propagation path"),
+      GROUP("ArrayOfArrayOfArrayOfTransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_distance"),
+      DESCRIPTION(
+          "Layer distances along the propagation path"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ppvar_ddistance"),
+      DESCRIPTION(
+          "Derivative of layer distances along the propagation path"),
+      GROUP("ArrayOfArrayOfVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("rte_properties_agenda"),
+      DESCRIPTION(
+          "Agenda providing the radiative properties of a propagation path.\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("sensor_response_agenda"),
       DESCRIPTION(
           "Agenda providing the sensor response data for a measurement block.\n"),

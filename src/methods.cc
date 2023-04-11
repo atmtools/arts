@@ -9099,8 +9099,6 @@ computations.
       OUT("iy",
           "iy_aux",
           "diy_dx",
-          "ppvar_atm",
-          "ppvar_f_grid",
           "ppvar_iy",
           "ppvar_trans_cumulat",
           "ppvar_trans_partial"),
@@ -9109,7 +9107,6 @@ computations.
       GOUT_DESC(),
       IN("diy_dx",
          "iy_id",
-         "stokes_dim",
          "f_grid",
          "abs_species",
          "atm_field",
@@ -9120,7 +9117,7 @@ computations.
          "jacobian_quantities",
          "ppath",
          "rte_pos2",
-         "propmat_clearsky_agenda",
+         "ppvar_level_agenda",
          "water_p_eq_agenda",
          "rt_integration_option",
          "iy_main_agenda",
@@ -9714,6 +9711,7 @@ computations.
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
@@ -14418,6 +14416,7 @@ strings. The following coding is used for the radiative background:
                "Perform double-sided perturbations when calculating "
                "refractive index gradients.",
                "See *ppathGeometric*.")));
+               
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
       DESCRIPTION(
@@ -14431,6 +14430,63 @@ strings. The following coding is used for the radiative background:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ppvar_trans_cumulat"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_atmFromPath"),
+      DESCRIPTION("Gets the atmospheric points along the path.\n"),
+      AUTHORS("Richard Larsson"), OUT("ppvar_atm"), GOUT(), GOUT_TYPE(),
+      GOUT_DESC(), IN("ppath", "atm_field"), GIN(), GIN_TYPE(), GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_fFromPath"),
+      DESCRIPTION("Gets the frequency grid along the path.\n"),
+      AUTHORS("Richard Larsson"), OUT("ppvar_f_grid"), GOUT(), GOUT_TYPE(),
+      GOUT_DESC(), IN("f_grid", "ppath", "ppvar_atm", "rte_alonglos_v"), GIN(),
+      GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_propmatCalc"),
+      DESCRIPTION(
+          "Gets the propagation matrix and NLTE source term along the path.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("propmat_clearsky_agenda", "jacobian_quantities", "ppvar_f_grid", "ppath",
+         "ppvar_atm", "jacobian_do"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_srcCalc"),
+      DESCRIPTION(
+          "Gets the source term along the path.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("ppvar_src", "ppvar_dsrc"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte", "ppvar_f_grid", "ppvar_atm", "jacobian_quantities", "jacobian_do"),
+      GIN("ppvar_additional_src", "ppvar_additional_dsrc"), GIN_TYPE("ArrayOfRadiationVector", 
+      "ArrayOfArrayOfRadiationVector"), GIN_DEFAULT(NODEF, NODEF), GIN_DESC(
+        "Additional source term, for example the solar radiation",
+        "Additional source term derivative, for example the solar radiation derivative"
+      )));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_tramatCalc"),
+      DESCRIPTION(
+          R"--(Gets the transmission matrix in layers along the path.
+
+Assumes that there are two layers surrounding this, thus the output lyr0 and
+lyr1 derivative variables are output.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("ppvar_tramat", "ppvar_dtramat", "ppvar_distance", "ppvar_ddistance"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_propmat", "ppvar_dpropmat", "ppath", "ppvar_atm",
+         "jacobian_quantities", "jacobian_do"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

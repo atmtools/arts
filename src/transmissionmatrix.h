@@ -554,7 +554,16 @@ struct RadiationVector {
    */
   void SetZero(size_t i);
 
+  /** Set Radiation Vector to Zero at all positions
+   */
   void SetZero();
+
+  /** Set Radiation Vector to Unity at all positions
+   * 
+   * Unity means [1, 0, 0, 0], [1, 0, 0], [1, 0], or [1]
+   * depending on stokes dimension
+   */
+  void SetUnity();
 
   /** Return Vector at position
    * 
@@ -734,12 +743,12 @@ struct RadiationVector {
                                             const TransmissionMatrix& Tf,
                                             const TransmissionMatrix& dZ);
 
-  /** Set *this from matrix
-   * 
+  /** Construct *this from matrix
+   *
    * @param[in] M Matrix
    * @return RadiationVector& *this
    */
-  RadiationVector& operator=(const ConstMatrixView& M);
+  explicit RadiationVector(const ConstMatrixView &M);
 
   /** Access operator
    * 
@@ -806,11 +815,8 @@ enum class CumulativeTransmission {
 };
 
 /** Intended to hold various forward solvers */
-enum class RadiativeTransferSolver {
-  Emission,
-  Transmission,
-  LinearWeightedEmission,
-};
+ENUMCLASS(RadiativeTransferSolver, char, Emission, Transmission,
+          LinearWeightedEmission)
 
 /** Update the Radiation Vector
  * 
@@ -867,7 +873,7 @@ void update_radiation_vector(RadiationVector& I,
  */
 void stepwise_source(RadiationVector& J,
                      ArrayOfRadiationVector& dJ,
-                     RadiationVector& J_add,
+                     const RadiationVector& J_add,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
