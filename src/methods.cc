@@ -2836,6 +2836,11 @@ Available models:
 
         Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
 
+    H2O-PWR2022:
+        Microwave water absorption model developed by P.W. Rosenkranz.
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
     CO2-CKDMT252:
         MT CKD absorption for CO2
 
@@ -2883,6 +2888,11 @@ Available models:
         SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
     
     O2-PWR2021:
+        Oxygen microwave absorption model developed by P.W. Rosenkranz.
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
+    O2-PWR2022:
         Oxygen microwave absorption model developed by P.W. Rosenkranz.
 
         Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
