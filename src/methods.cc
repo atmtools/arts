@@ -8899,7 +8899,7 @@ computations.
           "iy_aux",
           "diy_dx",
           "ppvar_atm",
-          "ppvar_f_grid",
+          "ppvar_f",
           "ppvar_iy",
           "ppvar_trans_cumulat",
           "ppvar_trans_partial"),
@@ -8974,7 +8974,7 @@ computations.
           "diy_dx",
           "ppvar_atm",
           "ppvar_pnd",
-          "ppvar_f_grid",
+          "ppvar_f",
           "ppvar_iy",
           "ppvar_trans_cumulat",
           "ppvar_trans_partial"),
@@ -9621,7 +9621,7 @@ computations.
           "diy_dx",
           "ppvar_atm",
           "ppvar_pnd",
-          "ppvar_f_grid"),
+          "ppvar_f"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -10205,7 +10205,7 @@ computations.
           "diy_dx",
           "ppvar_atm",
           "ppvar_pnd",
-          "ppvar_f_grid",
+          "ppvar_f",
           "ppvar_iy",
           "ppvar_trans_cumulat",
           "ppvar_trans_partial"),
@@ -14413,7 +14413,7 @@ strings. The following coding is used for the radiative background:
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_fFromPath"),
       DESCRIPTION("Gets the frequency grid along the path.\n"),
-      AUTHORS("Richard Larsson"), OUT("ppvar_f_grid"), GOUT(), GOUT_TYPE(),
+      AUTHORS("Richard Larsson"), OUT("ppvar_f"), GOUT(), GOUT_TYPE(),
       GOUT_DESC(), IN("f_grid", "ppath", "ppvar_atm", "rte_alonglos_v"), GIN(),
       GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
@@ -14424,23 +14424,23 @@ strings. The following coding is used for the radiative background:
       AUTHORS("Richard Larsson"),
       OUT("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"),
       GOUT(), GOUT_TYPE(), GOUT_DESC(),
-      IN("propmat_clearsky_agenda", "jacobian_quantities", "ppvar_f_grid", "ppath",
+      IN("propmat_clearsky_agenda", "jacobian_quantities", "ppvar_f", "ppath",
          "ppvar_atm", "jacobian_do"),
       GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_srcCalc"),
-      DESCRIPTION(
-          "Gets the source term along the path.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("ppvar_src", "ppvar_dsrc"),
-      GOUT(), GOUT_TYPE(), GOUT_DESC(),
-      IN("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte", "ppvar_f_grid", "ppvar_atm", "jacobian_quantities", "jacobian_do"),
-      GIN("ppvar_additional_src", "ppvar_additional_dsrc"), GIN_TYPE("ArrayOfRadiationVector", 
-      "ArrayOfArrayOfRadiationVector"), GIN_DEFAULT(NODEF, NODEF), GIN_DESC(
-        "Additional source term, for example the solar radiation",
-        "Additional source term derivative, for example the solar radiation derivative"
-      )));
+      DESCRIPTION("Gets the source term along the path.\n"),
+      AUTHORS("Richard Larsson"), OUT("ppvar_src", "ppvar_dsrc"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte",
+         "ppvar_f", "ppvar_atm", "jacobian_quantities", "jacobian_do"),
+      GIN("ppvar_additional_src", "ppvar_additional_dsrc"),
+      GIN_TYPE("ArrayOfRadiationVector", "ArrayOfArrayOfRadiationVector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Additional source term, for example the solar radiation",
+               "Additional source term derivative, for example the solar "
+               "radiation derivative")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_tramatCalc"),
