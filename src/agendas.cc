@@ -590,7 +590,7 @@ void define_agenda_data() {
   agenda_data.push_back(
       AgRecord(NAME("ppvar_level_agenda"),
                DESCRIPTION("Setup propagation path variables for RTE.\n"),
-               OUTPUT("ppvar_atm", "ppvar_f_grid", "ppvar_propmat",
+               OUTPUT("ppvar_atm", "ppvar_f", "ppvar_propmat",
                       "ppvar_dpropmat", "ppvar_src", "ppvar_dsrc"),
                INPUT("ppath", "atm_field", "f_grid", "rte_alonglos_v",
                      "jacobian_quantities")));
@@ -606,6 +606,14 @@ void define_agenda_data() {
                    "ppvar_dsrc",
                    "background_rad",
                    "ppath")));
+
+  agenda_data.push_back(AgRecord(
+      NAME("rte_background_agenda"),
+      DESCRIPTION(
+          "Compute the radiative transfer equation through the propagation path.\n"),
+      OUTPUT("background_rad", "diy_dx"),
+      INPUT("ppath", "atm_field", "f_grid", "rte_alonglos_v", "background_transmittance", "iy_id",
+                     "jacobian_quantities")));
 
   agenda_data.push_back(AgRecord(
       NAME("refr_index_air_agenda"),

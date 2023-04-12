@@ -1749,7 +1749,7 @@ void iyEmissionStandard(
     const Vector &rte_pos2, 
     const Agenda &ppvar_level_agenda,
     const Agenda &water_p_eq_agenda, 
-    const String &rt_integration_option,
+    const String &rte_option,
     const Agenda &iy_main_agenda, 
     const Agenda &iy_space_agenda,
     const Agenda &iy_surface_agenda, 
@@ -1808,16 +1808,8 @@ void iyEmissionStandard(
   ArrayOfRadiationVector lvl_rad;
   ArrayOfArrayOfRadiationVector dlvl_rad;
   ppvar_radCalc(lvl_rad, dlvl_rad, RadiationVector{iy}, src_rad, dsrc_rad,
-                 lyr_tra, tot_tra, dlyr_tra, K, dK, r,
-                 dr,
-                 (rt_integration_option == "first order" ||
-                  rt_integration_option == "default")
-                     ? "Emission"
-                 : (rt_integration_option == "second order")
-                     ? "LinearWeightedEmission"
-                     : throw std::runtime_error(
-                           var_string("Bad option: ", rt_integration_option)),
-                 verbosity);
+                lyr_tra, tot_tra, dlyr_tra, K, dK, r, dr, rte_option,
+                verbosity);
 
   // Copy back to ARTS external style
   ArrayOfTensor3 diy_dpath;

@@ -3204,18 +3204,6 @@ population distribution that depends on vibrational temperatures
                 GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("ppvar_f"),
-      DESCRIPTION(
-          "Doppler adjusted frequencies along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
-          "Dimension: [ number of frequencies, ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("ppvar_iy"),
       DESCRIPTION(
           "iy-values along the propagation path.\n"
@@ -3226,30 +3214,6 @@ population distribution that depends on vibrational temperatures
           "\n"
           "Usage: Output of radiative transfer methods.\n"),
       GROUP("Tensor3")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_mag"),
-      DESCRIPTION(
-          "Magnetic field along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
-          "Dimension: [ 3, ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_nlte"),
-      DESCRIPTION(
-          "Non-LTE temperatures/ratios along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
-          "Dimension: [ number of non-lte temperatures, 1, 1, ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_atm"),
@@ -3268,7 +3232,7 @@ population distribution that depends on vibrational temperatures
       GROUP("ArrayOfAtmPoint")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("ppvar_f_grid"),
+      NAME("ppvar_f"),
       DESCRIPTION(
           "Atmospheric frequency grids along the propagation path.\n"
           "\n"
@@ -3282,20 +3246,6 @@ population distribution that depends on vibrational temperatures
           "\n"
           "Usage: Output of radiative transfer methods.\n"),
       GROUP("ArrayOfVector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_p"),
-      DESCRIPTION(
-          "Pressure along the propagation path.\n"
-          "\n"
-          "ppvar stands for propagation path variable. The variables named in is\n"
-          "way describe the atmosphere and its properties at each point of the\n"
-          "propagation path\n"
-          "\n"
-          "Dimension: [ ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_pnd"),
@@ -3324,18 +3274,6 @@ population distribution that depends on vibrational temperatures
           "\n"
           "Usage: Output of radiative transfer methods.\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_t"),
-      DESCRIPTION(
-          "Temperature along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
-          "Dimension: [ ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_trans_cumulat"),
@@ -3367,30 +3305,6 @@ population distribution that depends on vibrational temperatures
           "\n"
           "Usage: Output of radiative transfer methods.\n"),
       GROUP("Tensor4")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_vmr"),
-      DESCRIPTION(
-          "VMR values along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
-          "Dimension: [ number of abs. species, ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_wind"),
-      DESCRIPTION(
-          "Winds along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
-          "Dimension: [ 3, ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("predefined_model_data"),
@@ -4343,10 +4257,22 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("rte_background_agenda"),
+      DESCRIPTION(
+          "See *Agenda*"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("background_rad"),
       DESCRIPTION(
           "Radiation from the background"),
       GROUP("RadiationVector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("background_transmittance"),
+      DESCRIPTION(
+          "Transmittance from the background"),
+      GROUP("TransmissionMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_rad"),
