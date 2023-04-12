@@ -2831,6 +2831,16 @@ Available models:
         P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
         Radio Science, Vol. 34(4), 1025, 1999.
 
+    H2O-PWR2021:
+        Microwave water absorption model developed by P.W. Rosenkranz.
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
+    H2O-PWR2022:
+        Microwave water absorption model developed by P.W. Rosenkranz.
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
     CO2-CKDMT252:
         MT CKD absorption for CO2
 
@@ -2877,6 +2887,16 @@ Available models:
         M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
         SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
     
+    O2-PWR2021:
+        Oxygen microwave absorption model developed by P.W. Rosenkranz.
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
+    O2-PWR2022:
+        Oxygen microwave absorption model developed by P.W. Rosenkranz.
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
     O2-SelfContStandardType:
         Microwave continua term
 
@@ -3001,6 +3021,15 @@ Available models:
         Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
         <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
         John Wiley & Sons, Inc., 1993.
+
+    N2-SelfContPWR2021:
+        Microwave nitrogen absorption continua developed by P.W. Rosenkranz.
+
+        Note that this also includes O2-N2 and O2-O2 collision-induced absorption and is
+        only applicable to Earth
+
+        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+
     
     liquidcloud-ELL07:
         Water droplet absorption

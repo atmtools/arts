@@ -110,6 +110,18 @@ constexpr auto bar2pa(auto x) noexcept { return x * 1e5; }
 /** Conversion from Pa to bar */
 constexpr auto pa2bar(auto x) noexcept { return x * 1e-5; }
 
+/** Conversion from hPa to Pa */
+constexpr auto hpa2pa(auto x) noexcept { return x * 1e2; }
+
+/** Conversion from Pa to hPa */
+constexpr auto pa2hpa(auto x) noexcept { return x * 1e-2; }
+
+/** Conversion from hPa to bar */
+constexpr auto hpa2bar(auto x) noexcept { return x * 1e-3; }
+
+/** Conversion from bar to hPa */
+constexpr auto bar2hpa(auto x) noexcept{ return x * 1e3; }
+
 /** Conversion from Torr to Pa */
 constexpr auto torr2pa(auto x) noexcept { return x * atm2pa(1.0 / 760.0); }
 

@@ -257,6 +257,138 @@ Parameters:
 )--"));
 }
 
+void internalPWR20xx(py::module_& m) {
+  m.def(
+      "get_h2o_pwr2021",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR20xx::compute_h2o_2021(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_h2o"),
+      py::doc(R"--(Computes water absorption using PWR2021
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_o2_pwr2021",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR20xx::compute_o2_2021(
+            pm, f, p, t, x, h2o);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::arg("x_h2o")=0.0,
+      py::doc(R"--(Computes oxygen absorption using PWR2021
+
+Parameters:
+    f_grid : Vector
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric , optional
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_h2o_pwr2022",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR20xx::compute_h2o_2022(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_h2o"),
+      py::doc(R"--(Computes water absorption using PWR2022
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_o2_pwr2022",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR20xx::compute_o2_2022(
+            pm, f, p, t, x, h2o);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_o2"),
+      py::arg("x_h2o")=0.0,
+      py::doc(R"--(Computes oxygen absorption using PWR2022
+
+Parameters:
+    f_grid : Vector
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_o2 : Numeric
+        Ratio of oxygen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric , optional
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+
+  m.def(
+      "get_n2_pwr2021",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::PWR20xx::compute_n2(pm, f, p, t, x, h2o);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_n2"),
+      py::arg("x_h2o")=0.0,
+      py::doc(R"--(Computes nitrogen absorption using PWR2021
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_n2 : Numeric
+        Ratio of nitrogen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+}
 
 
 void internalTRE05(py::module_& m) {
@@ -703,6 +835,7 @@ void py_predefined(py::module_& m) {
   internalCKDMT400(predef, mtckd400_water_data);
   internalMPM89(predef);
   internalPWR98(predef);
+  internalPWR20xx(predef);
   internalTRE05(predef);
   internalELL07(predef);
   internalSTANDARD(predef);

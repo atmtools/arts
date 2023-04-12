@@ -65,7 +65,7 @@ struct VMRS {
 
   friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
     return os << "O2: " << vmrs.O2 << '\n' <<
-    "N2: " << vmrs.N2 << '\n' <<
+                 "N2: " << vmrs.N2 << '\n' <<
                  "H2O: " << vmrs.H2O << '\n';
   }
 };

@@ -2,6 +2,7 @@ add_library(predef STATIC
     ELL07.cc
     MPM89.cc
     MPM2020.cc
+    PWR20xx.cc
     MT_CKD100.cc
     MT_CKD252.cc
     CKDMT350.cc
@@ -12,7 +13,7 @@ add_library(predef STATIC
     standard.cc
 )
 
-target_link_libraries(predef PUBLIC matpack)
+target_link_libraries(predef PUBLIC matpack Faddeeva)
 target_include_directories(predef PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)
 target_include_directories(predef PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

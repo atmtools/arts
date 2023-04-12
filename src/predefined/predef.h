@@ -128,6 +128,37 @@ void nitrogen_rot(PropagationMatrix& propmat_clearsky,
                   const Numeric o2);
 }  // namespace MT_CKD252
 
+namespace PWR20xx {
+void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
+                      const Vector& f_grid,
+                      const Numeric& p_pa,
+                      const Numeric& t,
+                      const Numeric& h2o_vmr) noexcept;
+void compute_o2_2021(PropagationMatrix& propmat_clearsky,
+                     const Vector& f_grid,
+                     const Numeric& p_pa,
+                     const Numeric& t,
+                     const Numeric& o2_vmr,
+                     const Numeric& h2o_vmr) noexcept;
+void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
+                      const Vector& f_grid,
+                      const Numeric& p_pa,
+                      const Numeric& t,
+                      const Numeric& h2o_vmr) noexcept;
+void compute_o2_2022(PropagationMatrix& propmat_clearsky,
+                     const Vector& f_grid,
+                     const Numeric& p_pa,
+                     const Numeric& t,
+                     const Numeric& o2_vmr,
+                     const Numeric& h2o_vmr) noexcept;
+void compute_n2(PropagationMatrix& propmat_clearsky,
+                const Vector& f_grid,
+                const Numeric& p_pa,
+                const Numeric& t,
+                const Numeric& n2_vmr,
+                const Numeric& h2o_vmr) noexcept;
+}  // namespace PWR20xx
+
 namespace CKDMT350 {
 void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const Vector& f_grid,
