@@ -127,14 +127,13 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
             if ((w2[iline] > 0) && 
                 (std::abs(df_1[iline]) < (10.0*w0[iline]))){
                     // Speed-dependent resonant shape factor
-                    const std::complex<Numeric> denom = std::complex<Numeric> (w2[iline], -d2[iline]);
-                    const std::complex<Numeric> xc = std::complex<Numeric> (w0[iline]-1.5*w2[iline], df_1[iline]+1.5*d2[iline]) /
-                                    denom;
-                    
-                    const std::complex<Numeric> xrt = std::sqrt(xc);
+                    const Complex denom = Complex(w2[iline], -d2[iline]);
+                    const Complex xc = Complex(w0[iline]-1.5*w2[iline], df_1[iline]+1.5*d2[iline]) /
+                                    denom;                    
+                    const Complex xrt = std::sqrt(xc);
                     constexpr Numeric magic_number = 1.77245385090551603;
-                    const std::complex<Numeric> pxw = magic_number * xrt * Faddeeva::erfcx(xrt);
-                    const std::complex<Numeric> sd = 2.0 * (1.0 - pxw) / denom;
+                    const Complex pxw = magic_number * xrt * Faddeeva::erfcx(xrt);
+                    const Complex sd = 2.0 * (1.0 - pxw) / denom;
                     resonant += sd.real() - base[iline];
                 }
             else if (std::abs(df_1[iline]) < line_cutoff) {
@@ -160,38 +159,38 @@ void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
                          const Numeric& h2o_vmr) noexcept {
 
     // Line parameters taken from h2o_sdlist.asc
-    const std::valarray<Numeric> frequency_ghz = {
+    static const std::valarray<Numeric> frequency_ghz = {
         22.23508 , 183.310087, 321.22563 , 325.152888, 380.197353,
        439.150807, 443.018343, 448.001085, 470.888999, 474.689092,
        488.490108, 556.935985, 620.700807, 658.006072, 752.033113,
        916.171582
     };
-    const std::valarray<Numeric> strength_296 = {
+    static const std::valarray<Numeric> strength_296 = {
        1.335e-14, 2.319e-12, 7.657e-14, 2.721e-12, 2.477e-11, 2.137e-12,
        4.440e-13, 2.588e-11, 8.196e-13, 3.268e-12, 6.628e-13, 1.570e-09,
        1.700e-11, 9.033e-13, 1.035e-09, 4.275e-11
     };
-    const std::valarray<Numeric> B = {
+    static const std::valarray<Numeric> B = {
        2.172, 0.677, 6.262, 1.561, 1.062, 3.643, 5.116, 1.424, 3.645,
        2.411, 2.89 , 0.161, 2.423, 7.921, 0.402, 1.461
     };
-    const std::valarray<Numeric> w0_air = {
+    static const std::valarray<Numeric> w0_air = {
        2.74 , 3.033, 2.426, 2.847, 2.868, 2.055, 1.819, 2.612, 2.169,
        2.366, 2.616, 3.115, 2.468, 3.154, 3.114, 2.695
     };
-    const std::valarray<Numeric> xw_air = {
+    static const std::valarray<Numeric> xw_air = {
        0.76, 0.62, 0.73, 0.64, 0.54, 0.69, 0.7 , 0.7 , 0.73, 0.71, 0.75,
        0.75, 0.79, 0.73, 0.77, 0.79
     };
-    const std::valarray<Numeric> w0_self = {
+    static const std::valarray<Numeric> w0_self = {
        13.63, 15.01, 10.65, 13.95, 14.4 ,  9.06,  7.96, 13.01,  9.7 ,
        11.24, 13.58, 14.24, 11.94, 13.84, 13.58, 13.55
     };
-    const std::valarray<Numeric> xw_self = {
+    static const std::valarray<Numeric> xw_self = {
        1.2 , 0.82, 0.54, 0.74, 0.89, 0.52, 0.5 , 0.67, 0.65, 0.64, 0.72,
        1.  , 0.75, 1.  , 0.84, 0.48
     };
-    const std::valarray<Numeric> d_air = {
+    static const std::valarray<Numeric> d_air = {
        -0.033 , -0.074, -0.143, -0.013, -0.074, 0.051, 0.140 , -0.116, 0.061, 
        -0.027,  -0.065,  0.187, 0.0, 0.176  , 0.162, 0.0
     };
@@ -199,7 +198,7 @@ void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
        2.6, 1.8, 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ,
        0. , 0. , 0. 
     };
-    const std::valarray<Numeric> d_self = {
+    static const std::valarray<Numeric> d_self = {
         0.814,  0.136,  0.278,  1.325,  0.24 ,  0.165, -0.229, -0.615,
        -0.465, -0.72 , -0.36 , -1.693,  0.687, -1.496, -0.878,  0.521
     };
@@ -207,14 +206,14 @@ void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
        0.  , 0.98, 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ,
        0.  , 0.92, 0.  , 0.  , 0.47        
     };
-    const std::valarray<Numeric> a_air = {
+    static const std::valarray<Numeric> a_air = {
         0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.
     };
-    const std::valarray<Numeric> a_self = {
+    static const std::valarray<Numeric> a_self = {
         0. , 12.6,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
         0. ,  0. ,  0. ,  0. ,  0. 
     };
-    const std::valarray<Numeric> w2_air = {
+    static const std::valarray<Numeric> w2_air = {
         0.435 , 0.407,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
         0.    ,  0.  ,  0. ,  0. ,  0. 
     };
@@ -222,7 +221,7 @@ void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
        0.   , 0.412, 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
        0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   
     };
-    const std::valarray<Numeric> w2_self = {
+    static const std::valarray<Numeric> w2_self = {
        1.91, 1.46, 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ,
        0.  , 0.  , 0.  , 0.  , 0.  
     };
@@ -230,11 +229,11 @@ void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
        0.   , 0.571, 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
        0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   
     };
-    const std::valarray<Numeric> d2_air = {
+    static const std::valarray<Numeric> d2_air = {
         0.   , -0.016,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,
         0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0. 
     };
-    const std::valarray<Numeric> d2_self = {
+    static const std::valarray<Numeric> d2_self = {
        0.  , 0.16, 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ,
        0.  , 0.  , 0.  , 0.  , 0.  
     };
@@ -287,42 +286,42 @@ void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
                       const Numeric& h2o_vmr) noexcept {
 
     // Line parameters taken from h2o_sdlist.asc
-    const std::valarray<Numeric> frequency_ghz = {
+    static const std::valarray<Numeric> frequency_ghz = {
         22.23508 , 183.310087, 321.22563 , 325.152888, 380.197353,
        439.150807, 443.018343, 448.001085, 470.888999, 474.689092,
        488.490108, 556.935985, 620.700807, 658.006072, 752.033113,
        859.965608, 916.171582, 970.315045, 987.926803, 1097.36487
     };
-    const std::valarray<Numeric> strength_296 = {
+    static const std::valarray<Numeric> strength_296 = {
        1.334e-14, 2.319e-12, 7.654e-14, 2.720e-12, 2.476e-11, 2.136e-12,
        4.440e-13, 2.587e-11, 8.193e-13, 3.268e-12, 6.628e-13, 1.570e-09,
        1.700e-11, 9.027e-13, 1.035e-09, 5.705e-13, 4.272e-11, 4.806e-11,
        7.528e-10, 4.890e-9
     };
-    const std::valarray<Numeric> B = {
+    static const std::valarray<Numeric> B = {
        2.172, 0.677, 6.262, 1.561, 1.062, 3.643, 5.116, 1.424, 3.645,
        2.411, 2.89 , 0.161, 2.423, 7.921, 0.402, 8.163, 1.461, 1.944,
        0.261, 0.754
     };
-    const std::valarray<Numeric> w0_air = {
+    static const std::valarray<Numeric> w0_air = {
        2.74 , 3.033, 2.426, 2.847, 2.868, 2.055, 1.819, 2.612, 2.169,
        2.366, 2.616, 3.115, 2.468, 3.154, 3.114, 3.121, 2.695, 2.574,
        2.976, 3.095
     };
-    const std::valarray<Numeric> xw_air = {
+    static const std::valarray<Numeric> xw_air = {
        0.76, 0.62, 0.73, 0.64, 0.54, 0.69, 0.7 , 0.7 , 0.73, 0.71, 0.75,
        0.75, 0.79, 0.73, 0.77, 0.76, 0.79, 0.70, 0.75, 0.75
     };
-    const std::valarray<Numeric> w0_self = {
+    static const std::valarray<Numeric> w0_self = {
        13.63, 15.01, 10.65, 13.95, 14.4 ,  9.06,  7.96, 13.01,  9.7 ,
        11.24, 13.58, 14.24, 11.94, 13.84, 13.58, 14.08, 13.55, 25.95,
        14.35, 15.27 
     };
-    const std::valarray<Numeric> xw_self = {
+    static const std::valarray<Numeric> xw_self = {
        1.2 , 0.82, 0.54, 0.74, 0.89, 0.52, 0.5 , 0.67, 0.65, 0.64, 0.72,
        1.  , 0.75, 1.  , 0.84, 0.76, 0.48, 0.7 , 0.75, 0.75
     };
-    const std::valarray<Numeric> d_air = {
+    static const std::valarray<Numeric> d_air = {
        -0.033, -0.074, -0.143, -0.013, -0.074, 0.051, 0.140, -0.116,  0.061, 
        -0.027, -0.065,  0.187,  0.001,  0.176, 0.162, 0.005, -0.001, -0.003, 
        -0.002,  0.002
@@ -331,7 +330,7 @@ void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
        2.6, 1.8, 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ,
        0. , 0. , 0., 0., 0., 0., 0. 
     };
-    const std::valarray<Numeric> d_self = {
+    static const std::valarray<Numeric> d_self = {
         0.814,  0.136,  0.278,  1.325,  0.24 ,  0.165, -0.229, -0.615,
        -0.465, -0.72 , -0.36 , -1.693,  0.687, -1.496, -0.878,  0.,
        0.521, 0., 0., 0.
@@ -340,14 +339,14 @@ void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
        0.  , 0.98, 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ,
        0.  , 0.92, 0.  , 0.  , 0., 0.47, 0., 0., 0.        
     };
-    const std::valarray<Numeric> a_air = {
+    static const std::valarray<Numeric> a_air = {
         0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.
     };
-    const std::valarray<Numeric> a_self = {
+    static const std::valarray<Numeric> a_self = {
         0. , 12.6,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
         0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.
     };
-    const std::valarray<Numeric> w2_air = {
+    static const std::valarray<Numeric> w2_air = {
         0.435 , 0.407,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
         0.    ,  0.  ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.
     };
@@ -356,7 +355,7 @@ void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
        0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
        0.   , 0.
     };
-    const std::valarray<Numeric> w2_self = {
+    static const std::valarray<Numeric> w2_self = {
        1.91, 1.46, 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ,
        0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.
     };
@@ -365,12 +364,12 @@ void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
        0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ,
        0.   , 0.  
     };
-    const std::valarray<Numeric> d2_air = {
+    static const std::valarray<Numeric> d2_air = {
         0.   , -0.016,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,
         0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  0.   ,
         0.   ,  0.   ,  0.   ,  0.   
     };
-    const std::valarray<Numeric> d2_self = {
+    static const std::valarray<Numeric> d2_self = {
        0.  , 0.16, 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ,
        0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.
     };
@@ -501,7 +500,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
                      const Numeric& h2o_vmr) noexcept {
     // Line parameters
     // Line frequency (GHz)
-    const std::valarray<Numeric> frequency_ghz = {
+    static const std::valarray<Numeric> frequency_ghz = {
         118.7503, 56.2648, 62.4863, 58.4466, 60.3061, 59.5910,
         59.1642, 60.4348, 58.3239, 61.1506, 57.6125, 61.8002,
         56.9682, 62.4112, 56.3634, 62.9980, 55.7838, 63.5685,
@@ -513,7 +512,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
         773.8395, 834.1455, 895.0710
     };
     // Line strength at 300K
-    const std::valarray<Numeric> strength_300 = {
+    static const std::valarray<Numeric> strength_300 = {
         0.2906e-14,0.7957e-15,0.2444e-14,0.2194e-14,
         0.3301e-14,0.3243e-14,0.3664e-14,0.3834e-14,
         0.3588e-14,0.3947e-14,0.3179e-14,0.3661e-14,
@@ -528,7 +527,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
         0.3011e-14,0.1797e-16,0.1826e-14,0.2193e-16,
         0.1153e-13,0.3974e-14,0.2512e-16
     };
-    const std::valarray<Numeric> be = {
+    static const std::valarray<Numeric> be = {
     0.010, 0.014, 0.083, 0.083, 0.207, 0.207, 0.387, 0.387, 0.621, 0.621,
     0.910, 0.910, 1.255, 1.255, 1.654, 1.654, 2.109, 2.109, 2.618, 2.618, 
     3.182, 3.182, 3.800, 3.800, 4.474, 4.474, 5.201, 5.201, 5.983, 5.983, 
@@ -537,7 +536,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     0.201
     };
     // Line width at 300K (GHz/bar)
-    const std::valarray<Numeric> width_300 = {
+    static const std::valarray<Numeric> width_300 = {
     1.685, 1.703, 1.513, 1.495, 1.433, 1.408,
     1.353, 1.353, 1.303, 1.319, 1.262, 1.265, 
     1.238, 1.217, 1.207, 1.207, 1.137, 1.137,
@@ -549,7 +548,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     1.47        
     };
     // First order mixing coefficients (1/bar)
-    const std::valarray<Numeric> y0 = {
+    static const std::valarray<Numeric> y0 = {
     -0.041, 0.277, -0.373, 0.560, -0.573, 0.618,
     -0.366, 0.278, -0.089, -0.021, 0.0599, -0.152,
     0.216, -0.293, 0.374, -0.436, 0.491, -0.542,
@@ -559,7 +558,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     0.987, -0.988, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
-    const std::valarray<Numeric> y1 = {
+    static const std::valarray<Numeric> y1 = {
     0.000, 0.11, -0.009, 0.007, 0.049, -0.1,
     0.260, -0.346, 0.364, -0.422, 0.315, -0.341,
     0.483, -0.503, 0.598, -0.610, 0.630, -0.633,
@@ -570,7 +569,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
     // Second order mixing coefficients (1/bar^2)
-    const std::valarray<Numeric> g0 = {
+    static const std::valarray<Numeric> g0 = {
     -0.000695, -0.090, -0.103, -0.239, -0.172, -0.171,
     0.028, 0.150, 0.132, 0.170, 0.087, 0.069, 
     0.083, 0.068, 0.007, 0.016, -0.021, -0.066,
@@ -580,7 +579,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     -0.348, -0.344, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
-    const std::valarray<Numeric> g1 = {
+    static const std::valarray<Numeric> g1 = {
     0.000, -0.042, 0.004, 0.025, 0.083, 0.167,
     0.178, 0.223, 0.054, 0.003, 0.002, -0.044,
     -0.019, -0.054, -0.177, -0.208, -0.294, -0.334,
@@ -591,7 +590,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
     // Pressure-induced frequency shift coefficients (GHz/bar^2)
-    const std::valarray<Numeric> dnu0 = {
+    static const std::valarray<Numeric> dnu0 = {
     -0.00028, 0.00596, -0.01950, 0.032, -0.0475, 0.0541,
     -0.0232, 0.0155, 0.0007, -0.0086, -0.0026, -0.0013,
     -0.0004, -0.002, 0.005, -0.007, 0.007, -0.008,
@@ -601,7 +600,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
     0.0029, -0.0029, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
-    const std::valarray<Numeric> dnu1 = {
+    static const std::valarray<Numeric> dnu1 = {
     -0.00037, 0.0086, -0.013, 0.019, -0.026, 0.027,
     0.005, -0.014, 0.012, -0.018, -0.015, 0.015,
     0.003, -0.004, 0.012, -0.013, 0.012, -0.012,
@@ -639,7 +638,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
                      const Numeric& h2o_vmr) noexcept {
     // Line parameters
     // Line frequency (GHz)
-    const std::valarray<Numeric> frequency_ghz = {
+    static const std::valarray<Numeric> frequency_ghz = {
         118.7503, 56.2648, 62.4863, 58.4466, 60.3061, 59.5910,
         59.1642, 60.4348, 58.3239, 61.1506, 57.6125, 61.8002,
         56.9682, 62.4112, 56.3634, 62.9980, 55.7838, 63.5685,
@@ -651,7 +650,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
         773.8395, 834.1455, 895.0710
     };
     // Line strength at 300K
-    const std::valarray<Numeric> strength_300 = {
+    static const std::valarray<Numeric> strength_300 = {
         0.2906e-14,0.7957e-15,0.2444e-14,0.2194e-14,
         0.3301e-14,0.3243e-14,0.3664e-14,0.3834e-14,
         0.3588e-14,0.3947e-14,0.3179e-14,0.3661e-14,
@@ -666,7 +665,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
         0.3026e-14,0.1823e-16,0.1835e-14,0.2226e-16,
         0.1158e-13,0.3992e-14,0.2550e-16
     };
-    const std::valarray<Numeric> be = {
+    static const std::valarray<Numeric> be = {
     0.010, 0.014, 0.083, 0.083, 0.207, 0.207, 0.387, 0.387, 0.621, 0.621,
     0.910, 0.910, 1.255, 1.255, 1.654, 1.654, 2.109, 2.109, 2.618, 2.618, 
     3.182, 3.182, 3.800, 3.800, 4.474, 4.474, 5.201, 5.201, 5.983, 5.983, 
@@ -675,7 +674,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     0.201
     };
     // Line width at 300K (GHz/bar)
-    const std::valarray<Numeric> width_300 = {
+    static const std::valarray<Numeric> width_300 = {
     1.685, 1.703, 1.513, 1.495, 1.433, 1.408,
     1.353, 1.353, 1.303, 1.319, 1.262, 1.265, 
     1.238, 1.217, 1.207, 1.207, 1.137, 1.137,
@@ -687,7 +686,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     1.47        
     };
     // First order mixing coefficients (1/bar)
-    const std::valarray<Numeric> y0 = {
+    static const std::valarray<Numeric> y0 = {
     -0.041, 0.277, -0.373, 0.560, -0.573, 0.618,
     -0.366, 0.278, -0.089, -0.021, 0.0599, -0.152,
     0.216, -0.293, 0.374, -0.436, 0.491, -0.542,
@@ -697,7 +696,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     0.987, -0.988, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
-    const std::valarray<Numeric> y1 = {
+    static const std::valarray<Numeric> y1 = {
     0.000, 0.11, -0.009, 0.007, 0.049, -0.1,
     0.260, -0.346, 0.364, -0.422, 0.315, -0.341,
     0.483, -0.503, 0.598, -0.610, 0.630, -0.633,
@@ -708,7 +707,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
     // Second order mixing coefficients (1/bar^2)
-    const std::valarray<Numeric> g0 = {
+    static const std::valarray<Numeric> g0 = {
     -0.000695, -0.090, -0.103, -0.239, -0.172, -0.171,
     0.028, 0.150, 0.132, 0.170, 0.087, 0.069, 
     0.083, 0.068, 0.007, 0.016, -0.021, -0.066,
@@ -718,7 +717,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     -0.348, -0.344, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
-    const std::valarray<Numeric> g1 = {
+    static const std::valarray<Numeric> g1 = {
     0.000, -0.042, 0.004, 0.025, 0.083, 0.167,
     0.178, 0.223, 0.054, 0.003, 0.002, -0.044,
     -0.019, -0.054, -0.177, -0.208, -0.294, -0.334,
@@ -729,7 +728,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
     // Pressure-induced frequency shift coefficients (GHz/bar^2)
-    const std::valarray<Numeric> dnu0 = {
+    static const std::valarray<Numeric> dnu0 = {
     -0.00028, 0.00596, -0.01950, 0.032, -0.0475, 0.0541,
     -0.0232, 0.0155, 0.0007, -0.0086, -0.0026, -0.0013,
     -0.0004, -0.002, 0.005, -0.007, 0.007, -0.008,
@@ -739,7 +738,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
     0.0029, -0.0029, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0
     };
-    const std::valarray<Numeric> dnu1 = {
+    static const std::valarray<Numeric> dnu1 = {
     -0.00037, 0.0086, -0.013, 0.019, -0.026, 0.027,
     0.005, -0.014, 0.012, -0.018, -0.015, 0.015,
     0.003, -0.004, 0.012, -0.013, 0.012, -0.012,
