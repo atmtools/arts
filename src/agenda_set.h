@@ -200,4 +200,5 @@ Agenda get_doit_scat_field_agenda(Workspace& ws, const String& option);
 Agenda get_doit_rte_agenda(Workspace& ws, const String& option);
 Agenda get_doit_mono_agenda(Workspace& ws, const String& option);
 Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option);
+Agenda get_ppvar_rtprop_agenda(Workspace& ws, const String& option);
 }  // namespace AgendaManip

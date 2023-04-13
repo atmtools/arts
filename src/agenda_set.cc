@@ -3,6 +3,7 @@
 #include <default_gins.h>
 
 #include "arts_options.h"
+#include "transmissionmatrix.h"
 
 namespace AgendaManip {
 std::ostream& operator<<(std::ostream& os, const AgendaMethodVariable& x) {
@@ -761,6 +762,22 @@ Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option) {
       break;
   }
   
+  return agenda.finalize();
+}
+
+Agenda get_ppvar_rtprop_agenda(Workspace &ws, const String &option) {
+  AgendaCreator agenda(ws, "ppvar_rtprop_agenda");
+
+  using enum Options::ppvar_rtprop_agendaDefaultOptions;
+  switch (Options::toppvar_rtprop_agendaDefaultOptionsOrThrow(option)) {
+  case Propmat:
+      agenda.add("ppvar_propmatCalc");
+      agenda.add("ppvar_srcFromPropmat");
+      break;
+  case FINAL:
+      break;
+  }
+
   return agenda.finalize();
 }
 }  // namespace AgendaManip

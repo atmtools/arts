@@ -279,6 +279,8 @@ struct Data {
     ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
     return *out;
   }
+
+  void rescale(Numeric);
 };
 
 template <typename T>
@@ -305,20 +307,18 @@ template <typename T>
 concept DataType = RawDataType<T> or isTensor3<T> or isData<T>;
 
 struct Field {
-private:
   template <KeyType T, RawDataType U, typename... Ts, std::size_t N = sizeof...(Ts)>
   void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
     this->operator[](std::forward<T>(lhs)) = std::forward<U>(rhs);
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
 
+  [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
+
   std::unordered_map<Key, Data> other{};
   std::unordered_map<ArrayOfSpeciesTag, Data> specs{};
   std::unordered_map<QuantumIdentifier, Data> nlte{};
-
-  [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
  
- public:
   //! Grid if regularized
   std::array<Vector, 3> grid{};
 

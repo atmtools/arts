@@ -37,7 +37,7 @@
                 [](const py::tuple &t) {                                       \
                   ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")          \
                   return opt_namespace::opt_localname{                         \
-                      opt_namespace::to##opt_localname(                        \
+                      opt_namespace::to##opt_localname##OrThrow(               \
                           t[0].cast<std::string>())};                          \
                 }))                                                            \
             .def_static(                                                       \
@@ -96,6 +96,7 @@ void py_options(py::module_& m) {
   DeclareOption(Options, doit_rte_agendaDefaultOptions)
   DeclareOption(Options, doit_mono_agendaDefaultOptions)
   DeclareOption(Options, doit_conv_test_agendaDefaultOptions)
+  DeclareOption(Options, ppvar_rtprop_agendaDefaultOptions)
 
   // Default multiple-choice options:
   DeclareOption(Options, planetDefaultOptions)
