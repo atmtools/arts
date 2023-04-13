@@ -717,8 +717,7 @@ void jacobianCalcPointingZaRecalc(
     const Index& mblock_index,
     const Vector& iyb _U_,
     const Vector& yb,
-    const Index& atmosphere_dim,
-    const EnergyLevelMap& nlte_field,              
+    const AtmField& atm_field,              
     const Index& cloudbox_on,
     const Index& stokes_dim,
     const Vector& f_grid,
@@ -732,6 +731,8 @@ void jacobianCalcPointingZaRecalc(
     const Agenda& iy_main_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity& verbosity) {
+constexpr Index atmosphere_dim = 3;
+
   // Set some useful variables.
   RetrievalQuantity rq;
   ArrayOfIndex ji;
@@ -775,8 +776,7 @@ void jacobianCalcPointingZaRecalc(
              diyb_dx,
              geo_pos,
              mblock_index,
-             atmosphere_dim,
-             nlte_field,
+             atm_field,
              cloudbox_on,
              stokes_dim,
              f_grid,

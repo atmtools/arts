@@ -364,21 +364,6 @@ void define_wsv_data() {
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("abs_nlte"),
-      DESCRIPTION(
-          "NLTE temperatures or ratios to be used for the calculation of\n"
-          "absorption coefficients.\n"
-          "\n"
-          "In contrast to the global *nlte_field*, this is just a matrix. Any\n"
-          "absorption method should check that the columns of this vector is the\n"
-          "same as that of *abs_p*\n"
-          "\n"
-          "Dimension: [nltes, 1, 1, p_grid] or [ 0, 0, 0, 0 ]\n"
-          "\n"
-          "Unit: K\n"),
-      GROUP("EnergyLevelMap")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("abs_vec"),
       DESCRIPTION(
           "Total absorption vector.\n"
@@ -3731,23 +3716,6 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("String"), String{"default"}));
 
   wsv_data.push_back(WsvRecord(
-      NAME("rtp_nlte"),
-      DESCRIPTION(
-          "NLTE temperature/ratio at a radiative transfer point.\n"
-          "\n"
-          "This vector variable can hold the NLTE temperature/ratio. It is intended\n"
-          "mainly for communication with various methods and agendas, such as\n"
-          "methods and agendas calculating absorption coefficients.\n"
-          "The WSV is used as input to methods and agendas calculating radiative\n"
-          "properties for a given conditions.\n"
-          "\n"
-          "Usage: Communication variable.\n"
-          "\n"
-          "Units: [ K/# ]\n"
-          "Size:  [ NLTE levels, 1, 1, 1 ] or [ 0, 0, 0, 0 ]\n"),
-      GROUP("EnergyLevelMap")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("rtp_vmr"),
       DESCRIPTION(
           "Absorption species abundances for radiative transfer calculations.\n"
@@ -4245,13 +4213,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("ppvar_level_agenda"),
-      DESCRIPTION(
-          "See *Agenda*"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("rte_agenda"),
+      NAME("ppvar_rtprop_agenda"),
       DESCRIPTION(
           "See *Agenda*"),
       GROUP("Agenda")));
@@ -4329,6 +4291,12 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("ArrayOfTransmissionMatrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("ppvar_cumtramat"),
+      DESCRIPTION(
+          "Cumulative transmission matrices along the propagation path"),
+      GROUP("ArrayOfTransmissionMatrix")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("ppvar_dtramat"),
       DESCRIPTION(
           "Transmission derivative matrices along the propagation path"),
@@ -4345,12 +4313,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       DESCRIPTION(
           "Derivative of layer distances along the propagation path"),
       GROUP("ArrayOfArrayOfVector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("rte_properties_agenda"),
-      DESCRIPTION(
-          "Agenda providing the radiative properties of a propagation path.\n"),
-      GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("sensor_response_agenda"),
@@ -5027,29 +4989,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"),
       GROUP("Tensor3")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("nlte_field"),
-      DESCRIPTION(
-          "The field of NLTE temperatures and/or ratios.\n"
-          "\n"
-          "This variable gives the NLTE temperature/ratio at each crossing of\n"
-          "the pressure, latitude and longitude grids.  The size of the\n"
-          "array is the number of NLTE levels in all molecules.\n"
-          "\n"
-          "The temperature/ratio for a point between the grid crossings is obtained \n"
-          "by (multi-)linear interpolation of the *nlte_field*.\n"
-          "\n"
-          "There are two types of NLTE computations available in ARTS.  One from\n"
-          "giving excitiation temperatures that makes the absorption/emission diverge\n"
-          "from LTE.  The other is to use the absolute ratios of upper-to-lower states at\n"
-          "the levels of interest.\n"
-          ""
-          "\n"
-          "Units:       [ K or \% ]]\n"
-          "\n"
-          "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"),
-      GROUP("EnergyLevelMap"), EnergyLevelMap{}));
 
   wsv_data.push_back(WsvRecord(
       NAME("t_field_raw"),

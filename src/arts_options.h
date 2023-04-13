@@ -199,6 +199,9 @@ ENUMCLASS(doit_mono_agendaDefaultOptions, char)
 /** Options for setting doit_conv_test_agenda */
 ENUMCLASS(doit_conv_test_agendaDefaultOptions, char)
 
+/** Options for setting doit_conv_test_agenda */
+ENUMCLASS(ppvar_rtprop_agendaDefaultOptions, char, Propmat)
+
 /** Options for setting planets */
 ENUMCLASS(planetDefaultOptions,
           char,

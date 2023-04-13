@@ -115,7 +115,7 @@ void iyCalc(Workspace& ws,
             const Index& cloudbox_checked,
             const Index& scat_data_checked,
             const Vector& f_grid,
-            const EnergyLevelMap& nlte_field,
+            const AtmField& atm_field,
             const Vector& rte_pos,
             const Vector& rte_los,
             const Vector& rte_pos2,
@@ -156,7 +156,7 @@ void iyCalc(Workspace& ws,
                         cloudbox_on,
                         0,
                         f_grid,
-                        nlte_field,
+                        atm_field,
                         rte_pos,
                         rte_los,
                         rte_pos2,
@@ -1413,20 +1413,16 @@ void ppvar_propmatCalc(Workspace &ws, ArrayOfPropagationMatrix &ppvar_propmat,
   ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
 }
 
-void ppvar_srcCalc(ArrayOfRadiationVector &ppvar_src,
-                   ArrayOfArrayOfRadiationVector &ppvar_dsrc,
-                   const ArrayOfPropagationMatrix &ppvar_propmat,
-                   const ArrayOfStokesVector &ppvar_nlte,
-                   const ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
-                   const ArrayOfArrayOfStokesVector &ppvar_dnlte,
-                   const ArrayOfVector &ppvar_f,
-                   const ArrayOfAtmPoint &ppvar_atm,
-                   const ArrayOfRetrievalQuantity &jacobian_quantities,
-                   const Index &jacobian_do,
-                   const ArrayOfRadiationVector &ppvar_additional_src,
-                   const ArrayOfArrayOfRadiationVector &ppvar_additional_dsrc
-                   [[maybe_unused]],
-                   const Verbosity &) {
+void ppvar_srcFromPropmat(ArrayOfRadiationVector &ppvar_src,
+                          ArrayOfArrayOfRadiationVector &ppvar_dsrc,
+                          const ArrayOfPropagationMatrix &ppvar_propmat,
+                          const ArrayOfStokesVector &ppvar_nlte,
+                          const ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
+                          const ArrayOfArrayOfStokesVector &ppvar_dnlte,
+                          const ArrayOfVector &ppvar_f,
+                          const ArrayOfAtmPoint &ppvar_atm,
+                          const ArrayOfRetrievalQuantity &jacobian_quantities,
+                          const Index &jacobian_do, const Verbosity &) {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1471,9 +1467,7 @@ void ppvar_srcCalc(ArrayOfRadiationVector &ppvar_src,
       if (j_analytical_do)
         FOR_ANALYTICAL_JACOBIANS_DO(da[iq] = ppvar_dpropmat[ip][iq];);
 
-      stepwise_source(ppvar_src[ip], ppvar_dsrc[ip],
-                      ppvar_additional_src.size() ? ppvar_additional_src[ip]
-                                                  : RadiationVector{},
+      stepwise_source(ppvar_src[ip], ppvar_dsrc[ip], RadiationVector{},
                       ppvar_propmat[ip], a, ppvar_nlte[ip], ppvar_dpropmat[ip],
                       da, ppvar_dnlte[ip], B, dB_dT, jacobian_quantities,
                       j_analytical_do);
@@ -1727,6 +1721,41 @@ void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
       iy_surface_agenda, iy_cloudbox_agenda, iy_agenda_call1, verbosity);
 }
 
+void background_radFromMatrix(RadiationVector &background_rad, const Matrix &iy,
+                              const Verbosity &) {
+  ARTS_USER_ERROR_IF(iy.ncols() > 5 or iy.ncols() < 1,
+                     "Only for stokes dimensions [1, 4].")
+  background_rad = RadiationVector{iy};
+}
+
+void background_transmittanceFromBack(
+    TransmissionMatrix &background_transmittance,
+    const ArrayOfTransmissionMatrix &ppvar_cumtramat, const Verbosity &) {
+  ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0, "Cannot extract from empty list.")
+  background_transmittance = ppvar_cumtramat.back();
+}
+
+void background_transmittanceFromFront(
+    TransmissionMatrix &background_transmittance,
+    const ArrayOfTransmissionMatrix &ppvar_cumtramat, const Verbosity &) {
+  ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0, "Cannot extract from empty list.")
+  background_transmittance = ppvar_cumtramat.front();
+}
+
+void ppvar_cumtramatForward(ArrayOfTransmissionMatrix &ppvar_cumtramat,
+                            const ArrayOfTransmissionMatrix &ppvar_tramat,
+                            const Verbosity &) {
+  ppvar_cumtramat =
+      cumulative_transmission(ppvar_tramat, CumulativeTransmission::Forward);
+}
+
+void ppvar_cumtramatReverse(ArrayOfTransmissionMatrix &ppvar_cumtramat,
+                            const ArrayOfTransmissionMatrix &ppvar_tramat,
+                            const Verbosity &) {
+  ppvar_cumtramat =
+      cumulative_transmission(ppvar_tramat, CumulativeTransmission::Reverse);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(
     Workspace &ws,
@@ -1747,7 +1776,7 @@ void iyEmissionStandard(
     const ArrayOfRetrievalQuantity &jacobian_quantities, 
     const Ppath &ppath,
     const Vector &rte_pos2, 
-    const Agenda &ppvar_level_agenda,
+    const Agenda &ppvar_rtprop_agenda,
     const Agenda &water_p_eq_agenda, 
     const String &rte_option,
     const Agenda &iy_main_agenda, 
@@ -1760,7 +1789,11 @@ void iyEmissionStandard(
     const Tensor3 &surface_props_data,
     const Verbosity &verbosity) {
   ArrayOfAtmPoint ppvar_atm;
+  ppvar_atmFromPath(ppvar_atm, ppath, atm_field, verbosity);
+
   ArrayOfVector ppvar_f;
+  ppvar_fFromPath(ppvar_f, f_grid, ppath, ppvar_atm, rte_alonglos_v, verbosity);
+
   ArrayOfPropagationMatrix K;
   ArrayOfArrayOfPropagationMatrix dK;
   ArrayOfRadiationVector src_rad;
@@ -1769,10 +1802,6 @@ void iyEmissionStandard(
   ArrayOfStokesVector S;
   ArrayOfArrayOfStokesVector dS;
 
-  ppvar_atmFromPath(ppvar_atm, ppath, atm_field, verbosity);
-
-  ppvar_fFromPath(ppvar_f, f_grid, ppath, ppvar_atm, rte_alonglos_v, verbosity);
-
   ppvar_propmatCalc(ws, K, S, dK, dS, propmat_clearsky_agenda, jacobian_quantities,
                     ppvar_f, ppath, ppvar_atm, jacobian_do, verbosity);
 
@@ -1780,10 +1809,10 @@ void iyEmissionStandard(
             ppvar_f, ppvar_atm, jacobian_quantities, jacobian_do, ArrayOfRadiationVector{}, ArrayOfArrayOfRadiationVector{},
             verbosity);
   */
-  
-  ppvar_level_agendaExecute(ws, ppvar_atm, ppvar_f, K, dK, src_rad, dsrc_rad, ppath,
-                      atm_field, f_grid, rte_alonglos_v, jacobian_quantities,
-                      ppvar_level_agenda);
+
+  ppvar_rtprop_agendaExecute(ws, K, dK, src_rad, dsrc_rad,
+                             ppath, ppvar_atm, ppvar_f, jacobian_quantities,
+                             ppvar_rtprop_agenda);
 
   ArrayOfTransmissionMatrix lyr_tra;
   ArrayOfArrayOfArrayOfTransmissionMatrix dlyr_tra;
@@ -1836,22 +1865,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                     GriddedField4& atm_fields_compact,
                                     const Index& iy_id,
                                     const Vector& f_grid,
-                                    const Index& atmosphere_dim,
-                                    const Vector& p_grid,
-                                    const Vector& lat_grid,
-                                    const Vector& lon_grid,
-                                    const Vector& lat_true,
-                                    const Vector& lon_true,
-                                    const Tensor3& t_field,
-                                    const Tensor3& z_field,
-                                    const Tensor4& vmr_field,
-                                    const EnergyLevelMap& nlte_field,
-                                    const Tensor3& wind_u_field,
-                                    const Tensor3& wind_v_field,
-                                    const Tensor3& wind_w_field,
-                                    const Tensor3& mag_u_field,
-                                    const Tensor3& mag_v_field,
-                                    const Tensor3& mag_w_field,
+                                    const AtmField& atm_field,
                                     const Index& cloudbox_on,
                                     const ArrayOfIndex& cloudbox_limits,
                                     const Tensor4& pnd_field,
@@ -1877,30 +1891,19 @@ void iyIndependentBeamApproximation(Workspace& ws,
   ARTS_USER_ERROR_IF (jacobian_do,
         "Jacobians not provided by the method, *jacobian_do* "
         "must be 0.");
-  ARTS_USER_ERROR_IF (!nlte_field.value.empty(),
-        "This method does not yet support non-empty *nlte_field*.");
-  ARTS_USER_ERROR_IF (!wind_u_field.empty(),
-        "This method does not yet support non-empty *wind_u_field*.");
-  ARTS_USER_ERROR_IF (!wind_v_field.empty(),
-        "This method does not yet support non-empty *wind_v_field*.");
-  ARTS_USER_ERROR_IF (!wind_w_field.empty(),
-        "This method does not yet support non-empty *wind_w_field*.");
-  ARTS_USER_ERROR_IF (!mag_u_field.empty(),
-        "This method does not yet support non-empty *mag_u_field*.");
-  ARTS_USER_ERROR_IF (!mag_v_field.empty(),
-        "This method does not yet support non-empty *mag_v_field*.");
-  ARTS_USER_ERROR_IF (!mag_w_field.empty(),
-        "This method does not yet support non-empty *mag_w_field*.");
   //
   if (return_masses) {
     ARTS_USER_ERROR_IF (pnd_field.nbooks() != particle_masses.nrows(),
           "Sizes of *pnd_field* and *particle_masses* "
           "are inconsistent.");
   }
+
+  /* FIXME: SOMETHING ABOUT LATLON GRID
   chk_latlon_true(atmosphere_dim,
                   lat_grid,
                   lat_true,
                   lon_true);
+                  */
 
   // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
   // the function totally general. And 1D must be handled for iterative calls.
@@ -1961,46 +1964,30 @@ void iyIndependentBeamApproximation(Workspace& ws,
     for (Index i = 0; i < ppath.np; i++) {
       const Index ip = ppath.np - i - 1;
       gp_p[i] = ppath.gp_p[ip];
-      if (atmosphere_dim > 1) {
-        gp_lat[i] = ppath.gp_lat[ip];
-        if (atmosphere_dim == 3) {
-          gp_lon[i] = ppath.gp_lon[ip];
-        }
-      }
+      gp_lat[i] = ppath.gp_lat[ip];
+      gp_lon[i] = ppath.gp_lon[ip];
     }
     // Append ppath2, but skipping element [0]
     for (Index i = ppath.np; i < np; i++) {
       const Index ip = i - ppath.np + 1;
       gp_p[i] = ppath2.gp_p[ip];
-      if (atmosphere_dim > 1) {
-        gp_lat[i] = ppath2.gp_lat[ip];
-        if (atmosphere_dim == 3) {
-          gp_lon[i] = ppath2.gp_lon[ip];
-        }
-      }
+      gp_lat[i] = ppath2.gp_lat[ip];
+      gp_lon[i] = ppath2.gp_lon[ip];
     }
   } else {
     // Copy ppath2 in reversed order, but skipping element [0]
     for (Index i = 0; i < ppath2.np - 1; i++) {
       const Index ip = ppath2.np - i - 1;
       gp_p[i] = ppath2.gp_p[ip];
-      if (atmosphere_dim > 1) {
-        gp_lat[i] = ppath2.gp_lat[ip];
-        if (atmosphere_dim == 3) {
-          gp_lon[i] = ppath2.gp_lon[ip];
-        }
-      }
+      gp_lat[i] = ppath2.gp_lat[ip];
+      gp_lon[i] = ppath2.gp_lon[ip];
     }
     // Append ppath
     for (Index i = ppath2.np - 1; i < np; i++) {
       const Index ip = i - ppath2.np + 1;
       gp_p[i] = ppath.gp_p[ip];
-      if (atmosphere_dim > 1) {
-        gp_lat[i] = ppath.gp_lat[ip];
-        if (atmosphere_dim == 3) {
-          gp_lon[i] = ppath.gp_lon[ip];
-        }
-      }
+      gp_lat[i] = ppath.gp_lat[ip];
+      gp_lon[i] = ppath.gp_lon[ip];
     }
   }
 
@@ -2009,43 +1996,34 @@ void iyIndependentBeamApproximation(Workspace& ws,
   Vector p1(np);
   ArrayOfGridPos gp0(0), gp1(1);
   interp_atmfield_gp2itw(itw, 1, gp_p, gp0, gp0);
-  itw2p(p1, p_grid, gp_p, itw);
+  //itw2p(p1, p_grid, gp_p, itw);  FIXME: MUST INTERPOLATE SOMETHING?
 
   // 1D version of lat and lon variables
   Vector lat1(0), lon1(0);
   Vector lat_true1(1), lon_true1(1);
-  if (atmosphere_dim == 3) {
-    gp1[0] = gp_lat[0];
-    interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
-    interp(lat_true1, itw, lat_grid, gp1);
-    gp1[0] = gp_lon[0];
-    interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
-    interp(lon_true1, itw, lon_grid, gp1);
-  } else if (atmosphere_dim == 2) {
-    gp1[0] = gp_lat[0];
-    interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
-    interp(lat_true1, itw, lat_true, gp1);
-    interp(lon_true1, itw, lon_true, gp1);
-  } else {
-    lat_true1[0] = lat_true[0];
-    lon_true1[0] = lon_true[0];
-  }
+
+  gp1[0] = gp_lat[0];
+  interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
+  // interp(lat_true1, itw, lat_grid, gp1);  FIXME: MUST INTERPOLATE SOMETHING?
+  gp1[0] = gp_lon[0];
+  interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
+  // interp(lon_true1, itw, lon_grid, gp1);  FIXME: MUST INTERPOLATE SOMETHING?
 
   // 2D/3D interpolation weights
-  interp_atmfield_gp2itw(itw, atmosphere_dim, gp_p, gp_lat, gp_lon);
+  // interp_atmfield_gp2itw(itw, atmosphere_dim, gp_p, gp_lat, gp_lon);  FIXME: MUST INTERPOLATE SOMETHING?
 
   // 1D temperature field
   Tensor3 t1(np, 1, 1);
-  interp_atmfield_by_itw(
-      t1(joker, 0, 0), atmosphere_dim, t_field, gp_p, gp_lat, gp_lon, itw);
+  //interp_atmfield_by_itw(  FIXME: MUST INTERPOLATE SOMETHING?
+  //    t1(joker, 0, 0), atmosphere_dim, t_field, gp_p, gp_lat, gp_lon, itw);
 
   // 1D altitude field
   Tensor3 z1(np, 1, 1);
-  interp_atmfield_by_itw(
-      z1(joker, 0, 0), atmosphere_dim, z_field, gp_p, gp_lat, gp_lon, itw);
+  // interp_atmfield_by_itw(  FIXME: MUST INTERPOLATE SOMETHING?
+  //    z1(joker, 0, 0), atmosphere_dim, z_field, gp_p, gp_lat, gp_lon, itw);
 
   // 1D VMR field
-  Tensor4 vmr1(vmr_field.nbooks(), np, 1, 1);
+  Tensor4 vmr1;/*(vmr_field.nbooks(), np, 1, 1);
   for (Index is = 0; is < vmr_field.nbooks(); is++) {
     interp_atmfield_by_itw(vmr1(is, joker, 0, 0),
                            atmosphere_dim,
@@ -2054,7 +2032,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                            gp_lat,
                            gp_lon,
                            itw);
-  }
+  }  FIXME: MUST INTERPOLATE SOMETHING? */
 
   // 1D surface altitude
   Matrix zsurf1(1, 1);
@@ -2086,7 +2064,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                 gp_lon[i],
                                 cloudbox_limits,
                                 true,
-                                atmosphere_dim)) {
+                                3)) {
         if (i < ifirst) {
           ifirst = i;
         }
@@ -2116,7 +2094,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
       pnd1.resize(pnd_field.nbooks(), cbox_lims1[1] - cbox_lims1[0] + 1, 1, 1);
       pnd1 = 0;   // As lowermost and uppermost level not always filled
       //
-      itw.resize(1, Index(pow(2.0, Numeric(atmosphere_dim))));
+      itw.resize(1, 8);
       //
       for (Index i = extra_bot; i < pnd1.npages() - extra_top; i++) {
         const Index i0 = cbox_lims1[0] + i;
@@ -2128,11 +2106,11 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                  gp_p[i0],
                                  gp_lat[i0],
                                  gp_lon[i0],
-                                 atmosphere_dim,
+                                 3,
                                  cloudbox_limits);
         for (Index p = 0; p < pnd_field.nbooks(); p++) {
           interp_atmfield_by_itw(ExhaustiveVectorView{pnd1(p, i, 0, 0)},
-                                 atmosphere_dim,
+                                 3,
                                  pnd_field(p, joker, joker, joker),
                                  gpc_p,
                                  gpc_lat,
@@ -2564,8 +2542,7 @@ void yCalc(Workspace& ws,
            Matrix& jacobian,
            const Index& atmgeom_checked,
            const Index& atmfields_checked,
-           const Index& atmosphere_dim,
-           const EnergyLevelMap& nlte_field,
+           const AtmField& atm_field,
            const Index& cloudbox_on,
            const Index& cloudbox_checked,
            const Index& scat_data_checked,
@@ -2687,8 +2664,7 @@ void yCalc(Workspace& ws,
                              y_los,
                              y_geo,
                              jacobian,
-                             atmosphere_dim,
-                             nlte_field,
+                             atm_field,
                              cloudbox_on,
                              stokes_dim,
                              f_grid,
@@ -2730,8 +2706,7 @@ void yCalc(Workspace& ws,
                              y_los,
                              y_geo,
                              jacobian,
-                             atmosphere_dim,
-                             nlte_field,
+                             atm_field,
                              cloudbox_on,
                              stokes_dim,
                              f_grid,
@@ -2806,8 +2781,7 @@ void yCalcAppend(Workspace& ws,
                  ArrayOfRetrievalQuantity& jacobian_quantities,
                  const Index& atmfields_checked,
                  const Index& atmgeom_checked,
-                 const Index& atmosphere_dim,
-                 const EnergyLevelMap& nlte_field,
+                 const AtmField& atm_field,
                  const Index& cloudbox_on,
                  const Index& cloudbox_checked,
                  const Index& scat_data_checked,
@@ -2881,8 +2855,7 @@ void yCalcAppend(Workspace& ws,
         jacobian2,
         atmfields_checked,
         atmgeom_checked,
-        atmosphere_dim,
-        nlte_field,
+        atm_field,
         cloudbox_on,
         cloudbox_checked,
         scat_data_checked,

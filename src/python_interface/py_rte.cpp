@@ -250,6 +250,8 @@ void py_rte(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfRadiationVector);
   PythonInterfaceWorkspaceArray(ArrayOfStokesVector);
 
+  PythonInterfaceWorkspaceArray(ArrayOfArrayOfTransmissionMatrix);
+
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
       .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }))
       .PythonInterfaceCopyValue(LagrangeInterpolation)

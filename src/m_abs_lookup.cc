@@ -32,6 +32,7 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "arts_omp.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -2143,16 +2144,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                 // WS Input:
                                 const Index& atmfields_checked,
                                 const Vector& f_grid,
-                                const Index& stokes_dim,
-                                const Vector& p_grid,
-                                const Vector& lat_grid,
-                                const Vector& lon_grid,
-                                const Tensor3& t_field,
-                                const Tensor4& vmr_field,
-                                const EnergyLevelMap& nlte_field,
-                                const Tensor3& mag_u_field,
-                                const Tensor3& mag_v_field,
-                                const Tensor3& mag_w_field,
+                                const AtmField& atm_field,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const Agenda& abs_agenda,
                                 // WS Generic Input:
@@ -2162,7 +2154,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   CREATE_OUT2;
   CREATE_OUT3;
 
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   if (atmfields_checked != 1)
     throw runtime_error(
         "The atmospheric fields must be flagged to have "
@@ -2176,13 +2167,17 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   EnergyLevelMap a_nlte_list;
 
   // Get the number of species from the leading dimension of vmr_field:
-  const Index n_species = vmr_field.nbooks();
+  const Index n_species = abs_species.nelem();
 
   // Number of frequencies:
   const Index n_frequencies = f_grid.nelem();
 
-  // Number of pressure levels:
-  const Index n_pressures = p_grid.nelem();
+const Vector& z_grid = atm_field.grid[0];
+const Vector& lat_grid = atm_field.grid[1];
+const Vector& lon_grid = atm_field.grid[2];
+
+  // Number of altitudes levels:
+  const Index n_altitudes = z_grid.nelem();
 
   // Number of latitude grid points (must be at least one):
   const Index n_latitudes = max(Index(1), lat_grid.nelem());
@@ -2191,7 +2186,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   const Index n_longitudes = max(Index(1), lon_grid.nelem());
 
   // Check that doppler is empty or matches p_grid
-  if (0 != doppler.nelem() && p_grid.nelem() != doppler.nelem()) {
+  if (0 != doppler.nelem() && z_grid.nelem() != doppler.nelem()) {
     ostringstream os;
     os << "Variable doppler must either be empty, or match the dimension of "
        << "p_grid.";
@@ -2204,17 +2199,15 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   out2 << "  Creating propmat field with dimensions:\n"
        << "    " << n_species << "   gas species,\n"
        << "    " << n_frequencies << "   frequencies,\n"
-       << "    " << stokes_dim << "   stokes dimension,\n"
-       << "    " << stokes_dim << "   stokes dimension,\n"
-       << "    " << n_pressures << "   pressures,\n"
+       << "    " << n_altitudes << "   altitudes,\n"
        << "    " << n_latitudes << "   latitudes,\n"
        << "    " << n_longitudes << "   longitudes.\n";
 
   propmat_clearsky_field.resize(n_species,
                                 n_frequencies,
-                                stokes_dim,
-                                stokes_dim,
-                                n_pressures,
+                                1,
+                                1,
+                                n_altitudes,
                                 n_latitudes,
                                 n_longitudes);
   
@@ -2237,12 +2230,12 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   WorkspaceOmpParallelCopyGuard wss{ws};
 
   // Now we have to loop all points in the atmosphere:
-  if (n_pressures)
+  if (n_altitudes)
 #pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
-                             n_pressures >= arts_omp_get_max_threads()) \
+                             n_altitudes >= arts_omp_get_max_threads()) \
     firstprivate(wss, this_f_grid) private(                              \
         abs, nlte, partial_abs, partial_nlte, a_vmr_list)
-    for (Index ipr = 0; ipr < n_pressures; ++ipr)  // Pressure:  ipr
+    for (Index ial = 0; ial < n_altitudes; ++ial)  // Altitude:  ial
     {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -2250,38 +2243,23 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
       // The try block here is necessary to correctly handle
       // exceptions inside the parallel region.
       try {
-        Numeric a_pressure = p_grid[ipr];
+        Numeric a_altitude = z_grid[ial];
 
         if (0 != doppler.nelem()) {
           this_f_grid = f_grid;
-          this_f_grid += doppler[ipr];
+          this_f_grid += doppler[ial];
         }
 
         {
           ostringstream os;
-          os << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
+          os << "  z_grid[" << ial << "] = " << a_altitude << "\n";
           out3 << os.str();
         }
 
         for (Index ila = 0; ila < n_latitudes; ++ila)     // Latitude:  ila
           for (Index ilo = 0; ilo < n_longitudes; ++ilo)  // Longitude: ilo
           {
-            Numeric a_temperature = t_field(ipr, ila, ilo);
-            a_vmr_list = vmr_field(Range(joker), ipr, ila, ilo);
-            if (!nlte_field.value.empty())
-              a_nlte_list = nlte_field(ipr, ila, ilo);
-
-            Vector this_rtp_mag(3, 0.);
-
-            if (mag_u_field.npages() != 0) {
-              this_rtp_mag[0] = mag_u_field(ipr, ila, ilo);
-            }
-            if (mag_v_field.npages() != 0) {
-              this_rtp_mag[1] = mag_v_field(ipr, ila, ilo);
-            }
-            if (mag_w_field.npages() != 0) {
-              this_rtp_mag[2] = mag_w_field(ipr, ila, ilo);
-            }
+            const AtmPoint atm_point = atm_field.at(z_grid[ial], lat_grid[ila], lon_grid[ilo]);
 
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
@@ -2295,7 +2273,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                            {},
                                            this_f_grid,
                                            los,
-                                           AtmPoint{},  // FIXME: DUMMY VALUE
+                                           atm_point,  // FIXME: DUMMY VALUE
                                            abs_agenda);
             
             // Convert from derivative to absorption
@@ -2305,9 +2283,8 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
 
             // Verify, that the number of elements in abs matrix is
             // constistent with stokes_dim:
-            ARTS_USER_ERROR_IF (stokes_dim != abs.StokesDimensions(),
-                "propmat_clearsky_fieldCalc was called with stokes_dim = ",
-                stokes_dim, ",\n"
+            ARTS_USER_ERROR_IF (1 != abs.StokesDimensions(),
+                "propmat_clearsky_fieldCalc requires stokes_dim = 1"
                 "but the stokes_dim returned by the agenda is ",
                 abs.StokesDimensions(), ".")
 
@@ -2334,7 +2311,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
             // abs:       [abs_species][f_grid, stokes, stokes]
             for (Index i = 0; i < partial_abs.nelem(); i++) {
               partial_abs[i].GetTensor3(propmat_clearsky_field(
-                  i, joker, joker, joker, ipr, ila, ilo));
+                  i, joker, joker, joker, ial, ila, ilo));
             }
           }
       } catch (const std::runtime_error& e) {

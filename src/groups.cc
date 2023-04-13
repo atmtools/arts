@@ -232,11 +232,6 @@ units of m^5 molec^(-2) )--");
 
   wsv_groups.emplace_back("CovarianceMatrix", "Contains the covariance matrix");
 
-  wsv_groups.emplace_back("EnergyLevelMap",
-                          R"--(Maps data based on energy levels
-
-Used for keeping track of non-local thermodynamic equilibrium data)--");
-
   wsv_groups.emplace_back("GasAbsLookup", R"--(An absorption lookup table
 
 This class holds an absorption lookup table, as well as all

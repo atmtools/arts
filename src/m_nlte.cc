@@ -67,14 +67,16 @@ void ArrayOfQuantumIdentifierFromLines(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldRescalePopulationLevels(EnergyLevelMap& nlte_field,
+void atm_fieldRescalePopulationLevels(AtmField& atm_field,
                                        const Numeric& scale,
                                        const Verbosity&) {
-  nlte_field.value *= scale;
+  for (auto& nlte: atm_field.nlte) {
+    nlte.second.rescale(scale);
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldForSingleSpeciesNonOverlappingLines(
+void atm_fieldForSingleSpeciesNonOverlappingLines(
     Workspace& ws,
     AtmField& atm_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -261,8 +263,6 @@ void collision_coefficientsFromSplitFiles(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlteOff(Index& nlte_do,
-             EnergyLevelMap& nlte_field,
              const Verbosity&) {
   nlte_do = 0;
-  nlte_field = EnergyLevelMap();
 }

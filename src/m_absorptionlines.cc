@@ -2251,30 +2251,31 @@ void abs_lines_per_speciesBaseParameterMatchingLevels(
 void abs_lines_per_speciesPopulationNlteField(
     Index& nlte_do,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const EnergyLevelMap& nlte_field,
+    const AtmField& atm_field,
+    const VibrationalEnergyLevels& nlte_vib_energies,
     const Verbosity&) {
-  nlte_field.ThrowIfNotOK();
+  atm_field.throwing_check();
 
-  if (nlte_field.value.empty()) {
+  if (atm_field.nlte.empty()) {
     nlte_do = 0;
     return;
   }
   nlte_do = 1;
 
   const Absorption::PopulationType poptyp =
-      nlte_field.vib_energy.empty() ? Absorption::PopulationType::NLTE
-                                    : Absorption::PopulationType::VibTemps;
+      nlte_vib_energies.empty() ? Absorption::PopulationType::NLTE
+                                : Absorption::PopulationType::VibTemps;
   
   for (auto& spec_lines : abs_lines_per_species) {
     for (auto& band : spec_lines) {
       Index low = 0, upp = 0;
-      for (auto& id : nlte_field.levels) {
+      for (auto& id : atm_field.nlte) {
         for (auto& line : band.lines) {
           const auto lt =
               poptyp == Absorption::PopulationType::NLTE
                   ? Quantum::Number::StateMatch(
-                        id, line.localquanta, band.quantumidentity)
-                  : Quantum::Number::StateMatch(id, band.quantumidentity);
+                        id.first, line.localquanta, band.quantumidentity)
+                  : Quantum::Number::StateMatch(id.first, band.quantumidentity);
           low += lt.low;
           upp += lt.upp;
         }

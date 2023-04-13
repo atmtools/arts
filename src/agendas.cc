@@ -359,7 +359,7 @@ void define_agenda_data() {
             "cloudbox_on",
             "jacobian_do",
             "f_grid",
-            "nlte_field",
+            "atm_field",
             "rte_pos",
             "rte_los",
             "rte_pos2")));
@@ -588,24 +588,11 @@ void define_agenda_data() {
       INPUT("ppath_step", "ppath_lmax", "ppath_lraytrace", "f_grid")));
 
   agenda_data.push_back(
-      AgRecord(NAME("ppvar_level_agenda"),
+      AgRecord(NAME("ppvar_rtprop_agenda"),
                DESCRIPTION("Setup propagation path variables for RTE.\n"),
-               OUTPUT("ppvar_atm", "ppvar_f", "ppvar_propmat",
+               OUTPUT("ppvar_propmat",
                       "ppvar_dpropmat", "ppvar_src", "ppvar_dsrc"),
-               INPUT("ppath", "atm_field", "f_grid", "rte_alonglos_v",
-                     "jacobian_quantities")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("rte_agenda"),
-      DESCRIPTION(
-          "Compute the radiative transfer equation through the propagation path.\n"),
-      OUTPUT("ppvar_rad", "ppvar_drad"),
-      INPUT("ppvar_propmat",
-                   "ppvar_dpropmat",
-                   "ppvar_src",
-                   "ppvar_dsrc",
-                   "background_rad",
-                   "ppath")));
+               INPUT("ppath", "ppvar_atm", "ppvar_f", "jacobian_quantities")));
 
   agenda_data.push_back(AgRecord(
       NAME("rte_background_agenda"),
@@ -633,15 +620,6 @@ void define_agenda_data() {
           "\n"
           "This agenda shall the refractive index for given atmospheric position.\n"),
       OUTPUT("refr_index_air", "refr_index_air_group"),
-      INPUT("rtp_pos")));
-  
-  agenda_data.push_back(AgRecord(
-      NAME("rte_properties_agenda"),
-      DESCRIPTION(
-          "Calculation of the refractive index of air.\n"
-          "\n"
-          "This agenda shall the refractive index for given atmospheric position.\n"),
-      OUTPUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       INPUT("rtp_pos")));
 
   agenda_data.push_back(AgRecord(

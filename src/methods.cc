@@ -3680,211 +3680,6 @@ Available models:
                "Interpolation order.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldsCalc"),
-      DESCRIPTION(
-          "Interpolation of raw atmospheric T, z, VMR, and NLTE T/r fields to\n"
-          "calculation grids.\n"
-          "\n"
-          "An atmospheric scenario includes the following data for each\n"
-          "position (pressure, latitude, longitude) in the atmosphere:\n"
-          "   1. temperature field\n"
-          "   2. the corresponding altitude field\n"
-          "   3. vmr fields for the gaseous species\n"
-          "This method interpolates the fields of raw data (*t_field_raw*,\n"
-          "*z_field_raw*, *vmr_field_raw*) which can be stored on arbitrary\n"
-          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
-          "If *nlte_field_raw* is empty, it is assumed to be so because LTE is\n"
-          "assumed by the user and *nlte_field* will be empty.\n"
-          "\n"
-          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
-          "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
-          "(applying the *vmr_zeropadding* option of *GriddedFieldPRegrid*).\n"
-          "\n"
-          "Default is to just accept obtained VMRs. If you want to enforce\n"
-          "that all VMR created are >= 0, set *vmr_nonegative* to 1. Negative\n"
-          "values are then set 0. Beside being present in input data, negative\n"
-          "VMR can be generated from the interpolation if *interp_order* is\n"
-          "above 1.\n"),
-      AUTHORS("Claudia Emde", "Stefan Buehler"),
-      OUT("t_field", "z_field", "vmr_field", "nlte_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field_raw",
-         "z_field_raw",
-         "vmr_field_raw",
-         "nlte_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order",
-          "vmr_zeropadding",
-          "vmr_nonegative",
-          "nlte_when_negative"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("1", "0", "0", "0"),
-      GIN_DESC("Interpolation order (1=linear interpolation).",
-               "Pad VMRs with zeroes to fit the pressure grid if necessary.",
-               "If set to 1, negative VMRs are set to 0.",
-               "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldsCalcExpand1D"),
-      DESCRIPTION(
-          "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
-          "homogeneous atmospheric fields.\n"
-          "\n"
-          "The method works as *AtmFieldsCalc*, but accepts only raw 1D\n"
-          "atmospheres. The raw atmosphere is interpolated to *p_grid* and\n"
-          "the obtained values are applied for all latitudes, and also\n"
-          "longitudes for 3D, to create a homogeneous atmosphere.\n"
-          "\n"
-          "The method deals only with the atmospheric fields, and to create\n"
-          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
-          "ellipsoid is set to be a sphere.\n"),
-      AUTHORS("Patrick Eriksson", "Claudia Emde", "Stefan Buehler"),
-      OUT("t_field", "z_field", "vmr_field", "nlte_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field_raw",
-         "z_field_raw",
-         "vmr_field_raw",
-         "nlte_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order",
-          "vmr_zeropadding",
-          "vmr_nonegative",
-          "nlte_when_negative"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("1", "0", "0", "0"),
-      GIN_DESC("Interpolation order (1=linear interpolation).",
-               "Pad VMRs with zeroes to fit the pressure grid if necessary.",
-               "If set to 1, negative VMRs are set to 0.",
-               "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldsExpand1D"),
-      DESCRIPTION(
-          "Maps a 1D case to 2D or 3D homogeneous atmospheric fields.\n"
-          "\n"
-          "This method takes a 1D atmospheric case and converts it to the\n"
-          "corresponding case for 2D or 3D. The atmospheric fields (t_field,\n"
-          "z_field and vmr_field) must be 1D and match *p_grid*. The size of\n"
-          "the new data is determined by *atmosphere_dim*, *lat_grid* and\n"
-          "*lon_grid*. That is, these later variables have been changed since\n"
-          "the original fields were created.\n"
-          "\n"
-          "The method deals only with the atmospheric fields, and to create\n"
-          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
-          "ellipsoid is set to be a sphere.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("t_field", "z_field", "vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("t_field",
-         "z_field",
-         "vmr_field",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "atmosphere_dim"),
-      GIN("chk_vmr_nan"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC(
-          "Flag to determine if a search for NaN shall be performed or not.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldsExtract1D"),
-      DESCRIPTION(
-          "Converts 2D or 3D homogeneous atmospheric fields to a 1D case.\n"
-          "\n"
-          "The method extracts data for given latitude and longitude index\n"
-          "to create a 1D atmosphere. *AtmosphereSet1D* is called to set\n"
-          "output values of *atmosphere_dim*, *lat_grid* and *lon_grid*.\n"
-          "Nothing is done if *atmosphere_dim* alöready is 1.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("atmosphere_dim",
-          "lat_grid",
-          "lon_grid",
-          "t_field",
-          "z_field",
-          "vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
-         "z_field",
-         "vmr_field"),
-      GIN("ilat", "ilon"),
-      GIN_TYPE("Index", "Index"),
-      GIN_DEFAULT("0", "0"),
-      GIN_DESC("Pick data having this latitude index (0-based).",
-               "Pick data having this longitude index (0-based).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldsRefinePgrid"),
-      DESCRIPTION(
-          "Refines the pressure grid and regrids the clearsky atmospheric\n"
-          "fields accordingly.\n"
-          "\n"
-          "This method is, e.g., used for absorption lookup table testing. It\n"
-          "can also be used to refine the *p_grid* and atmospheric fields from\n"
-          "compact state atmospheres.\n"
-          "\n"
-          "It adds additional vertical grid points to the atmospheric fields, by\n"
-          "interpolating them in the usual ARTS way (linear in log pressure).\n"
-          "\n"
-          "How fine the new grid will be is determined by the keyword parameter\n"
-          "p_step. The definition of p_step, and the default interpolation\n"
-          "behavior, is consistent with *abs_lookupSetup* and\n"
-          "*abs_lookupSetupBatch* (new points are added between the original\n"
-          "ones, so that the spacing is always below p_step.)\n"
-          "\n"
-          "Internally, *AtmFieldsRefinePgrid* applies *p_gridRefine* and\n"
-          "*AtmFieldPRegrid* to the clearsky atmospheric fields (T, z, vmr).\n"
-          "\n"
-          "Atmospheric field related check WSV are reset to 0 (unchecked),\n"
-          "i.e., the corresponding checkedCalc methods have to be performed\n"
-          "(again) before *yCalc* or similar methods can be executed.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("p_grid",
-          "t_field",
-          "z_field",
-          "vmr_field",
-          "atmfields_checked",
-          "atmgeom_checked",
-          "cloudbox_checked"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "atmosphere_dim"),
-      GIN("p_step", "interp_order"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC("Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
-               "the pressure grid is coarser than this, additional points\n"
-               "are added until each log step is smaller than this.\n",
-               "Interpolation order.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsAndParticleBulkPropFieldFromCompact"),
       DESCRIPTION(
           "Extract pressure grid and atmospheric fields from\n"
@@ -4036,143 +3831,6 @@ Available models:
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("500"),
       GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmosphereSet1D"),
-      DESCRIPTION(
-          "Sets the atmospheric dimension to 1D.\n"
-          "\n"
-          "Sets *atmosphere_dim* to 1, and the latitude and longitude grids\n"
-          "are set to be empty.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("atmosphere_dim", "lat_grid", "lon_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmosphereSet2D"),
-      DESCRIPTION(
-          "Sets the atmospheric dimension to be 2D.\n"
-          "\n"
-          "Sets *atmosphere_dim* to 2 and the longitude grid to be empty.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("atmosphere_dim", "lon_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmosphereSet3D"),
-      DESCRIPTION(
-          "Sets the atmospheric dimension to 3D.\n"
-          "\n"
-          "Sets *atmosphere_dim* to 3, and *lat_true* and *lon_true* are\n"
-          "set to be empty.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("atmosphere_dim", "lat_true", "lon_true"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmRawRead"),
-      DESCRIPTION(
-          "Reads atmospheric data from a scenario.\n"
-          "\n"
-          "An atmospheric scenario includes the following data for each\n"
-          "position (pressure, latitude, longitude) in the atmosphere:\n"
-          "   1. temperature field\n"
-          "   2. the corresponding altitude field\n"
-          "   3. vmr fields for the absorption species\n"
-          "The vmr fields read are governed by the species given in\n"
-          "*abs_species*. Beside gaseous species, these can also contain\n"
-          "purely absorbing particulate matter. In the latter case the\n"
-          "profiles are supposed to provide the mass content (unit kg/m3) for\n"
-          "clouds and precipitation rate (unit kg/m2/s) for precipitation\n"
-          "instead of the vmr.\n"
-          "\n"
-          "The data is stored in different files. This methods reads all\n"
-          "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
-          "*vmr_field_raw*.  *nlte_field_raw* is set to empty.\n"
-          "\n"
-          "Files in a scenarios should be named matching the pattern of:\n"
-          "basename.speciesname.xml\n (for temperature and altitude the\n"
-          "expected 'speciesname' are 't' and'z', respectivly)."
-          "\n"
-          "The files can be anywhere, but they must all be in the same\n"
-          "directory, selected by 'basename'. The files are chosen by the\n"
-          "species name. If you have more than one tag group for the same\n"
-          "species, the same profile will be used.\n"),
-      AUTHORS("Claudia Emde"),
-      OUT("t_field_raw",
-          "z_field_raw",
-          "vmr_field_raw",
-          "nlte_field_raw"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/smiles_local/arts-data/atmosphere/fascod/"
-               "tropical\"")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmWithNLTERawRead"),
-      DESCRIPTION(
-          "Reads atmospheric data from a scenario.\n"
-          "\n"
-          "An atmospheric scenario includes the following data for each\n"
-          "position (pressure, latitude, longitude) in the atmosphere:\n"
-          "   1. temperature field\n"
-          "   2. the corresponding altitude field\n"
-          "   3. vmr fields for the gaseous species\n"
-          "   4. Non-LTE temperature fields and matching identifiers\n"
-          "The data is stored in different files. This method reads all\n"
-          "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
-          "*vmr_field_raw*, *nlte_field_raw*, and *nlte_level_identifiers*.\n"
-          "\n"
-          "Files in a scenarios should be named matching the pattern of:\n"
-          "tropical.H2O.xml\n"
-          "\n"
-          "The files can be anywhere, but they must be all in the same\n"
-          "directory, selected by 'basename'. The files are chosen by the\n"
-          "species name. If you have more than one tag group for the same\n"
-          "species, the same profile will be used.\n"),
-      AUTHORS("Claudia Emde", "Richard Larsson"),
-      OUT("t_field_raw",
-          "z_field_raw",
-          "vmr_field_raw",
-          "nlte_field_raw"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("basename", "expect_vibrational_energies"),
-      GIN_TYPE("String", "Index"),
-      GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/smiles_local/arts-data/atmosphere/fascod/"
-               "tropical\"",
-               "Should ev.xml be read?")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactAddConstant"),
@@ -5488,14 +5146,14 @@ computations.
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,"
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,"
           "PropagationMatrix, StokesVector",
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,"
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,"
           "PropagationMatrix, StokesVector",
           "Numeric",
           "String"),
@@ -6708,7 +6366,7 @@ computations.
          "lat_grid",
          "lon_grid",
          "z_field",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "cloudbox_limits",
          "f_grid",
@@ -6748,7 +6406,7 @@ computations.
          "lat_grid",
          "lon_grid",
          "z_field",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "cloudbox_limits",
          "f_grid",
@@ -8863,7 +8521,7 @@ computations.
           "cloudbox_checked",
           "scat_data_checked",
           "f_grid",
-          "nlte_field",
+          "atm_field",
           "rte_pos",
           "rte_los",
           "rte_pos2",
@@ -9117,7 +8775,7 @@ computations.
          "jacobian_quantities",
          "ppath",
          "rte_pos2",
-         "ppvar_level_agenda",
+         "ppvar_rtprop_agenda",
          "water_p_eq_agenda",
          "rt_integration_option",
          "iy_main_agenda",
@@ -9255,22 +8913,7 @@ computations.
       IN("diy_dx",
          "iy_id",
          "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "lat_true",
-         "lon_true",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "nlte_field",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
+         "atm_field",
          "cloudbox_on",
          "cloudbox_limits",
          "pnd_field",
@@ -9743,8 +9386,7 @@ computations.
          "iy_transmittance",
          "iy_id",
          "jacobian_do",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
@@ -9791,8 +9433,7 @@ computations.
          "iy_id",
          "jacobian_do",
          "suns_do",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
@@ -9896,13 +9537,10 @@ computations.
          "iy_id",
          "jacobian_do",
          "suns_do",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
-         "lat_grid",
-         "lon_grid",
          "z_surface",
          "refellipsoid",
          "rtp_pos",
@@ -10027,13 +9665,10 @@ computations.
          "iy_id",
          "jacobian_do",
          "suns_do",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
-         "lat_grid",
-         "lon_grid",
          "z_surface",
          "refellipsoid",
          "rtp_pos",
@@ -10132,8 +9767,7 @@ computations.
          "iy_id",
          "jacobian_do",
          "suns_do",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
@@ -10178,8 +9812,7 @@ computations.
          "jacobian_do",
          "suns_do",
          "jacobian_quantities",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
@@ -11195,8 +10828,7 @@ computations.
          "mblock_index",
          "iyb",
          "yb",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "stokes_dim",
          "f_grid",
@@ -11604,133 +11236,6 @@ computations.
       GIN_TYPE("GriddedField3"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A raw atmospheric field.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("MagFieldsCalc"),
-      DESCRIPTION(
-          "Interpolation of raw magnetic fields to calculation grids.\n"
-          "Heritage from *AtmFieldsCalc*\n"
-          "\n"
-          "Internally, *MagFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("mag_u_field", "mag_v_field", "mag_w_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "mag_u_field_raw",
-         "mag_v_field_raw",
-         "mag_w_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Interpolation order (1=linear interpolation).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("MagFieldsCalcIGRF"),
-      DESCRIPTION(
-          "Computes the magnetic field from part of the IGRF13 magnetic field model\n"
-          "\n"
-          "Only accounts for period 2000-2020. Other times uses the limits.\n"
-          "If within the select time period, linear interpolation in time is used\n"
-          "\n"
-          "Latitude cutoff very near the poles using only a single value\n"
-          "\n"
-          "Note that no conversion from geocentric uvw to geodetic uvw is performed,\n"
-          "so some small artifacts are to be expected\n"
-          "\n"
-          "Also note that positions close to the poles are given the same field-values\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("mag_u_field", "mag_v_field", "mag_w_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("z_field",
-         "lat_grid",
-         "lon_grid",
-         "refellipsoid",
-         "time"
-        ),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("MagFieldsCalcExpand1D"),
-      DESCRIPTION(
-          "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
-          "homogeneous magnetic fields.  Derived from *AtmFieldsCalcExpand1D*\n"
-          "\n"
-          "The method works as *MagFieldsCalc*, but accepts only raw 1D\n"
-          "magnetic fields. The raw data is interpolated to *p_grid* and\n"
-          "the obtained values are applied for all latitudes, and also\n"
-          "longitudes for 3D, to create a homogeneous atmosphere.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("mag_u_field", "mag_v_field", "mag_w_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "mag_u_field_raw",
-         "mag_v_field_raw",
-         "mag_w_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Interpolation order (1=linear interpolation).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("MagFieldsFromAltitudeRawCalc"),
-      DESCRIPTION(
-          "Regrids the rawfield by lat-lon and interpolates to z_field.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("mag_u_field", "mag_v_field", "mag_w_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("lat_grid",
-         "lon_grid",
-         "z_field",
-         "mag_u_field_raw",
-         "mag_v_field_raw",
-         "mag_w_field_raw"),
-      GIN("interp_order", "extrapolating"),
-      GIN_TYPE("Index", "Numeric"),
-      GIN_DEFAULT("1", "1e99"),
-      GIN_DESC("Interpolation order (1=linear interpolation).",
-               "Extrapolation allowed in interpolation of altitude.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("MagRawRead"),
-      DESCRIPTION(
-          "Reads magnetic field data from a scenario.\n"
-          "\n"
-          "A full set of field components is read (NOTE: fails if scenario\n"
-          "only contains selected field components). The files can be\n"
-          "anywhere, but must all be in the same directory specified by\n"
-          "'basename'. Naming convention for the field component files is\n"
-          "basename.mag_u.xml for the u-component, v- and w-components\n"
-          "accordingly.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("mag_u_field_raw", "mag_v_field_raw", "mag_w_field_raw"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/data/magnetic_field\"")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixAdd"),
@@ -12385,22 +11890,22 @@ computations.
                GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldRescalePopulationLevels"),
+      NAME("atm_fieldRescalePopulationLevels"),
       DESCRIPTION(
           "Rescale NLTE field to expected total distribution amongst levels\n"),
       AUTHORS("Richard Larsson"),
-      OUT("nlte_field"),
+      OUT("atm_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("nlte_field"),
+      IN("atm_field"),
       GIN("s"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("nlte_fieldForSingleSpeciesNonOverlappingLines"),
+      NAME("atm_fieldForSingleSpeciesNonOverlappingLines"),
       DESCRIPTION(
           "NLTE field for a simple setup.\n"
           "\n"
@@ -12784,7 +12289,7 @@ computations.
                            "The variables are set as follows:\n"
                            "   nlte_field             : Empty.\n"),
                AUTHORS("Oliver Lemke"),
-               OUT("nlte_do", "nlte_field"),
+               OUT("nlte_do"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
@@ -12830,7 +12335,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species", "nlte_field"),
+      IN("abs_lines_per_species", "atm_field", "nlte_vib_energies"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -14461,18 +13966,13 @@ strings. The following coding is used for the radiative background:
       GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("ppvar_srcCalc"),
+      NAME("ppvar_srcFromPropmat"),
       DESCRIPTION("Gets the source term along the path.\n"),
       AUTHORS("Richard Larsson"), OUT("ppvar_src", "ppvar_dsrc"), GOUT(),
       GOUT_TYPE(), GOUT_DESC(),
       IN("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte",
          "ppvar_f", "ppvar_atm", "jacobian_quantities", "jacobian_do"),
-      GIN("ppvar_additional_src", "ppvar_additional_dsrc"),
-      GIN_TYPE("ArrayOfRadiationVector", "ArrayOfArrayOfRadiationVector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Additional source term, for example the solar radiation",
-               "Additional source term derivative, for example the solar "
-               "radiation derivative")));
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_tramatCalc"),
@@ -14487,6 +13987,76 @@ lyr1 derivative variables are output.
       GOUT(), GOUT_TYPE(), GOUT_DESC(),
       IN("ppvar_propmat", "ppvar_dpropmat", "ppath", "ppvar_atm",
          "jacobian_quantities", "jacobian_do"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("background_radFromMatrix"),
+      DESCRIPTION(
+          R"--(Sets *background_rad* to matrix input
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("background_rad"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN(),
+      GIN("iy_mat"),
+      GIN_TYPE("Matrix"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Background radiation")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("background_transmittanceFromBack"),
+      DESCRIPTION(
+          R"--(Sets *background_transmittance* to back of *ppvar_cumtramat*
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("background_transmittance"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_cumtramat"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("background_transmittanceFromFront"),
+      DESCRIPTION(
+          R"--(Sets *background_transmittance* to front of *ppvar_cumtramat*
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("background_transmittance"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_cumtramat"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_cumtramatForward"),
+      DESCRIPTION(
+          R"--(Sets *ppvar_cumtramat* by forward iteration of *ppvar_tramat*
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("ppvar_cumtramat"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_tramat"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_cumtramatReverse"),
+      DESCRIPTION(
+          R"--(Sets *ppvar_cumtramat* by reverse iteration of *ppvar_tramat*
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("ppvar_cumtramat"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_tramat"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -15154,16 +14724,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       GOUT_DESC(),
       IN("atmfields_checked",
          "f_grid",
-         "stokes_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
-         "vmr_field",
-         "nlte_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
+         "atm_field",
          "abs_species",
          "propmat_clearsky_agenda"),
       GIN("doppler", "los"),
@@ -23163,82 +22724,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("WindFieldsCalc"),
-      DESCRIPTION(
-          "Interpolation of raw wind fields to calculation grids.\n"
-          "Heritage from *AtmFieldsCalc*\n"
-          "\n"
-          "Internally, *WindFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("wind_u_field", "wind_v_field", "wind_w_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "wind_u_field_raw",
-         "wind_v_field_raw",
-         "wind_w_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Interpolation order (1=linear interpolation).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("WindFieldsCalcExpand1D"),
-      DESCRIPTION(
-          "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
-          "homogeneous wind fields.  Derived from *AtmFieldsCalcExpand1D*\n"
-          "\n"
-          "The method works as *WindFieldsCalc*, but accepts only raw 1D\n"
-          "wind fields. The raw data is interpolated to *p_grid* and\n"
-          "the obtained values are applied for all latitudes, and also\n"
-          "longitudes for 3D, to create a homogeneous atmosphere.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("wind_u_field", "wind_v_field", "wind_w_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "wind_u_field_raw",
-         "wind_v_field_raw",
-         "wind_w_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Interpolation order (1=linear interpolation).")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("WindRawRead"),
-      DESCRIPTION(
-          "Reads wind field data from a scenario.\n"
-          "\n"
-          "A full set of field components is read (NOTE: fails if scenario\n"
-          "only contains selected field components). The files can be\n"
-          "anywhere, but must all be in the same directory specified by\n"
-          "'basename'. Naming convention for the field component files is\n"
-          "basename.wind_u.xml for the u-component, v- and w-components\n"
-          "accordingly.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("wind_u_field_raw", "wind_v_field_raw", "wind_w_field_raw"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/data/wind_field\"")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("wind_u_fieldIncludePlanetRotation"),
       DESCRIPTION(
           "Maps the planet's rotation to an imaginary wind.\n"
@@ -24039,8 +23524,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("atmgeom_checked",
          "atmfields_checked",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "cloudbox_checked",
          "scat_data_checked",
@@ -24131,8 +23615,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "jacobian",
          "atmgeom_checked",
          "atmfields_checked",
-         "atmosphere_dim",
-         "nlte_field",
+         "atm_field",
          "cloudbox_on",
          "cloudbox_checked",
          "scat_data_checked",
@@ -25024,6 +24507,28 @@ Options are:
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("ppath_step_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("ppvar_rtprop_agendaSet"),
+                      DESCRIPTION(R"--(Sets *ppvar_rtprop_agenda* to a default value
+
+Options are:
+    FIXME
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("ppvar_rtprop_agenda"),
                       GOUT(),
                       GOUT_TYPE(),
                       GOUT_DESC(),

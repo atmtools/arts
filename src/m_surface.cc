@@ -262,8 +262,7 @@ void iySurfaceFastem(Workspace& ws,
                      const Tensor3& iy_transmittance,
                      const Index& iy_id,
                      const Index& jacobian_do,
-                     const Index& atmosphere_dim,
-                     const EnergyLevelMap& nlte_field,
+                     const AtmField& atm_field,
                      const Index& cloudbox_on,
                      const Index& stokes_dim,
                      const Vector& f_grid,
@@ -288,7 +287,7 @@ void iySurfaceFastem(Workspace& ws,
                                surface_normal,
                                rtp_pos,
                                rtp_los,
-                               atmosphere_dim,
+                               3,
                                verbosity);
 
   // Use iy_aux to get optical depth for downwelling radiation.
@@ -318,7 +317,7 @@ void iySurfaceFastem(Workspace& ws,
                         cloudbox_on,
                         jacobian_do,
                         f_grid,
-                        nlte_field,
+                        atm_field,
                         rtp_pos,
                         specular_los,
                         rte_pos2,
@@ -338,7 +337,7 @@ void iySurfaceFastem(Workspace& ws,
   surfaceFastem(surface_los,
                 surface_rmatrix,
                 surface_emission,
-                atmosphere_dim,
+                3,
                 stokes_dim,
                 f_grid,
                 rtp_pos,
@@ -384,8 +383,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const Index& iy_id,
                          const Index& jacobian_do,
                          const Index& suns_do,
-                         const Index& atmosphere_dim,
-                         const EnergyLevelMap& nlte_field,
+                         const AtmField& atm_field,
                          const Index& cloudbox_on,
                          const Index& stokes_dim,
                          const Vector& f_grid,
@@ -406,14 +404,13 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const Verbosity& verbosity) {
 
   // Input checks
-  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_rte_pos(3, rtp_pos);
+  chk_rte_los(3, rtp_los);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
   // Check surface_data
-  surface_props_check(atmosphere_dim,
+  surface_props_check(3,
                       lat_grid,
                       lon_grid,
                       surface_props_data,
@@ -423,14 +420,14 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   ArrayOfGridPos gp_lat(1), gp_lon(1);
   Matrix itw;
   rte_pos2gridpos(
-      gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos);
-  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+      gp_lat[0], gp_lon[0], 3, lat_grid, lon_grid, rtp_pos);
+  interp_atmsurface_gp2itw(itw, 3, gp_lat, gp_lon);
 
   // Skin temperature
   Vector surface_skin_t(1);
   surface_props_interp(surface_skin_t,
                        "Skin temperature",
-                       atmosphere_dim,
+                       3,
                        gp_lat,
                        gp_lon,
                        itw,
@@ -461,7 +458,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
-                   atmosphere_dim,
+                   3,
                    lat_grid,
                    lon_grid,
                    refellipsoid,
@@ -476,7 +473,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                           surface_emission,
                           f_grid,
                           stokes_dim,
-                          atmosphere_dim,
+                          3,
                           rtp_pos,
                           rtp_los,
                           specular_los,
@@ -505,7 +502,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                                     dsurface_emission_dx[irq],
                                     f_grid,
                                     stokes_dim,
-                                    atmosphere_dim,
+                                    3,
                                     rtp_pos,
                                     rtp_los,
                                     specular_los,
@@ -533,8 +530,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                       jacobian_do,
                       suns_do,
                       jacobian_quantities,
-                      atmosphere_dim,
-                      nlte_field,
+                      atm_field,
                       cloudbox_on,
                       stokes_dim,
                       f_grid,
@@ -544,8 +540,6 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                       iy_unit,
                       iy_main_agenda,
                       verbosity);
-
-
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -671,13 +665,10 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const Index& iy_id,
                                const Index& jacobian_do,
                                const Index& suns_do,
-                               const Index& atmosphere_dim,
-                               const EnergyLevelMap& nlte_field,
+                               const AtmField& atm_field,
                                const Index& cloudbox_on,
                                const Index& stokes_dim,
                                const Vector& f_grid,
-                               const Vector& lat_grid,
-                               const Vector& lon_grid,
                                const Matrix& z_surface,
                                const Vector& refellipsoid,
                                const Vector& rtp_pos,
@@ -693,11 +684,14 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const Verbosity& verbosity) {
 
   // Input checks
-  ARTS_USER_ERROR_IF(atmosphere_dim==2, "This method does not work for 2d atmospheres.")
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
-  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_rte_pos(3, rtp_pos);
+  chk_rte_los(3, rtp_los);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
+
+  constexpr Index atmosphere_dim = 3;
+  const Vector& lat_grid = atm_field.grid[1];
+  const Vector& lon_grid = atm_field.grid[2];
 
   // Check surface_data
   surface_props_check(atmosphere_dim,
@@ -819,8 +813,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                       jacobian_do,
                       suns_do,
                       jacobian_quantities,
-                      atmosphere_dim,
-                      nlte_field,
+                      atm_field,
                       cloudbox_on,
                       stokes_dim,
                       f_grid,
@@ -964,13 +957,10 @@ void iySurfaceLambertian(Workspace& ws,
                          const Index& iy_id,
                          const Index& jacobian_do,
                          const Index& suns_do,
-                         const Index& atmosphere_dim,
-                         const EnergyLevelMap& nlte_field,
+                         const AtmField& atm_field,
                          const Index& cloudbox_on,
                          const Index& stokes_dim,
                          const Vector& f_grid,
-                         const Vector& lat_grid,
-                         const Vector& lon_grid,
                          const Matrix& z_surface,
                          const Vector& refellipsoid,
                          const Vector& rtp_pos,
@@ -986,6 +976,10 @@ void iySurfaceLambertian(Workspace& ws,
                          const Index& N_za,
                          const Index& N_aa,
                          const Verbosity& verbosity) {
+constexpr Index atmosphere_dim = 3;
+const Vector& lat_grid = atm_field.grid[1];
+const Vector& lon_grid = atm_field.grid[2];
+
   // Input checks
   ARTS_USER_ERROR_IF(surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
                      surface_scalar_reflectivity.nelem() != 1,
@@ -1109,7 +1103,7 @@ void iySurfaceLambertian(Workspace& ws,
                             cloudbox_on,
                             jacobian_do,
                             f_grid,
-                            nlte_field,
+                            atm_field,
                             rtp_pos,
                             los,
                             rte_pos2,
@@ -1172,7 +1166,7 @@ void iySurfaceLambertian(Workspace& ws,
                               cloudbox_on,
                               jacobian_do,
                               f_grid,
-                              nlte_field,
+                              atm_field,
                               rtp_pos,
                               los,
                               rte_pos2,
@@ -1435,8 +1429,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Index& iy_id,
                            const Index& jacobian_do,
                            const Index& suns_do,
-                           const Index& atmosphere_dim,
-                           const EnergyLevelMap& nlte_field,
+                           const AtmField& atm_field,
                            const Index& cloudbox_on,
                            const Index& stokes_dim,
                            const Vector& f_grid,
@@ -1447,6 +1440,8 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Agenda& iy_main_agenda,
                            const Agenda& surface_rtprop_agenda,
                            const Verbosity&) {
+constexpr Index atmosphere_dim = 3;
+
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_rte_pos(atmosphere_dim, rtp_pos);
@@ -1532,7 +1527,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                               cloudbox_on,
                               jacobian_do,
                               f_grid,
-                              nlte_field,
+                              atm_field,
                               rtp_pos,
                               los,
                               rte_pos2,
@@ -1581,8 +1576,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const Index& jacobian_do,
                          const Index& suns_do,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                         const Index& atmosphere_dim,
-                         const EnergyLevelMap& nlte_field,                         
+                         const AtmField& atm_field,                         
                          const Index& cloudbox_on,
                          const Index& stokes_dim,
                          const Vector& f_grid,
@@ -1592,6 +1586,8 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const String& iy_unit,
                          const Agenda& iy_main_agenda,
                          const Verbosity&) {
+constexpr Index atmosphere_dim = 3;
+
   // Input checks
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_rte_pos(atmosphere_dim, rtp_pos);
@@ -1665,7 +1661,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                               cloudbox_on,
                               jacobian_do,
                               f_grid,
-                              nlte_field,
+                              atm_field,
                               rtp_pos,
                               los,
                               rte_pos2,
