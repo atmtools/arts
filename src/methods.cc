@@ -4041,7 +4041,7 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atm_field"),
-      GIN("top_of_atmosphere"),
+      GIN("toa"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Top of atmosphere altitude [m].")));
@@ -4056,7 +4056,7 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("top_of_atmosphere"),
+      GIN("toa"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Top of atmosphere altitude [m].")));
@@ -4106,7 +4106,7 @@ reading.
       NAME("atm_fieldAddField"),
       DESCRIPTION(R"--(Add another atm_field from file to the current atm_field
 
-The optional flag set_top_of_atmosphere determines if the old (default) or
+The optional flag set_toa determines if the old (default) or
 new (if it evaluates as true) atm_field's top of the atmosphere altitude
 is used in the output
 )--"),
@@ -4116,7 +4116,7 @@ is used in the output
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atm_field"),
-      GIN("filename", "set_top_of_atmosphere"),
+      GIN("filename", "set_toa"),
       GIN_TYPE("String", "Index"),
       GIN_DEFAULT(NODEF, "0"),
       GIN_DESC("Filename", "Flag for overwriting the top of the atmosphere")));
@@ -4157,7 +4157,7 @@ unique species.  Some examples:
 )--"),
       AUTHORS("Richard Larsson"), OUT("atm_field"), GOUT(), GOUT_TYPE(),
       GOUT_DESC(), IN("abs_species"),
-      GIN("basename", "top_of_atmosphere", "read_tp", "read_mag", "read_wind",
+      GIN("basename", "toa", "read_tp", "read_mag", "read_wind",
           "read_specs", "read_nlte"),
       GIN_TYPE("String", "Numeric", "Index", "Index", "Index", "Index",
                "Index"),
