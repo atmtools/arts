@@ -241,6 +241,39 @@ template <typename T, Index... alldim> struct matpack_constant_data {
   [[nodiscard]] constexpr bool operator==(const const_view_type &other) const { return view() == other; }
   [[nodiscard]] constexpr bool operator!=(const const_view_type &other) const { return view() != other; }
 
+  matpack_constant_data& operator+=(const matpack_constant_data& o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a + b;});
+    return *this;
+  }
+  matpack_constant_data& operator+=(T x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a + b;});
+    return *this;
+  }
+  matpack_constant_data& operator-=(const matpack_constant_data& o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a - b;});
+    return *this;
+  }
+  matpack_constant_data& operator-=(T x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a - b;});
+    return *this;
+  }
+  matpack_constant_data& operator/=(const matpack_constant_data& o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a / b;});
+    return *this;
+  }
+  matpack_constant_data& operator/=(T x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a / b;});
+    return *this;
+  }
+  matpack_constant_data& operator*=(const matpack_constant_data& o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a * b;});
+    return *this;
+  }
+  matpack_constant_data& operator*=(T x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a * b;});
+    return *this;
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const matpack_constant_data &mv) {
     return os << mv.view();
   }

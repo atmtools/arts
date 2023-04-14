@@ -3,7 +3,6 @@
 #include "agenda_class.h"
 #include "auto_md.h"
 #include "debug.h"
-#include "energylevelmap.h"
 #include "jacobian.h"
 #include "propagationmatrix.h"
 #include "species_tags.h"

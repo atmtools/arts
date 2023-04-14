@@ -23,7 +23,6 @@ int main() {
 #include "callback.h"
 #include "cia.h"
 #include "covariance_matrix.h"
-#include "energylevelmap.h"
 #include "gas_abs_lookup.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"

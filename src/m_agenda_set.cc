@@ -222,3 +222,10 @@ void ppvar_rtprop_agendaSet(Workspace& ws,
                   const Verbosity&) {
   out = get_ppvar_rtprop_agenda(ws, option);
 }
+
+void rte_background_agendaSet(Workspace& ws,
+                  Agenda& out,
+                  const String& option,
+                  const Verbosity&) {
+  out = get_rte_background_agenda(ws, option);
+}

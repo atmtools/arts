@@ -5,7 +5,6 @@
 #include <variant>
 
 #include "arts_conversions.h"
-#include "energylevelmap.h"
 #include "linescaling.h"
 #include "nlte.h"
 #include "nonstd.h"

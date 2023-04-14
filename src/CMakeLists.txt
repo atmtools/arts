@@ -143,7 +143,6 @@ add_library (artscore STATIC
   disort.cc
   docserver.cc
   doit.cc
-  energylevelmap.cc
   fastem.cc
   predefined_absorption_models.cc
   file.cc
@@ -204,7 +203,6 @@ add_library (artscore STATIC
   m_ppath.cc
   m_ppath_OLD.cc
   m_psd.cc
-  m_quantum.cc
   m_radiation_field.cc
   m_raw.cc
   m_refraction.cc

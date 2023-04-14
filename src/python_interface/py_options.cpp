@@ -97,6 +97,7 @@ void py_options(py::module_& m) {
   DeclareOption(Options, doit_mono_agendaDefaultOptions)
   DeclareOption(Options, doit_conv_test_agendaDefaultOptions)
   DeclareOption(Options, ppvar_rtprop_agendaDefaultOptions)
+  DeclareOption(Options, rte_background_agendaDefaultOptions)
 
   // Default multiple-choice options:
   DeclareOption(Options, planetDefaultOptions)

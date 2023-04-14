@@ -629,7 +629,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   Matrix matrix_tmp(stokes_dim, stokes_dim);
   Vector vector_tmp(stokes_dim);
   Vector rtp_vmr(N_species, 0.);
-  EnergyLevelMap rtp_nlte_dummy;
   Vector sca_vec_av(stokes_dim, 0);
 
   // Radiative transfer from one layer to the next, starting
@@ -1382,7 +1381,6 @@ void cloud_RT_no_background(Workspace& ws,
 
   Vector sca_vec_av(stokes_dim, 0);
   Vector stokes_vec(stokes_dim, 0.);
-  EnergyLevelMap rtp_nlte_dummy;
   Vector rtp_vmr_local(N_species, 0.);
 
   // Two propmat_clearsky to average between

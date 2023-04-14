@@ -1,6 +1,5 @@
 #include <mutex>
 
-#include <energylevelmap.h>
 #include <jacobian.h>
 #include <propagationmatrix.h>
 
