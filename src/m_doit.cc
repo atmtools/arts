@@ -1753,7 +1753,6 @@ void OptimizeDoitPressureGrid(
   StokesVector nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
   ArrayOfStokesVector partial_nlte_dummy;
-  EnergyLevelMap rtp_nlte_dummy;
   PropagationMatrix cur_propmat_clearsky;
 
   Index scat_data_insert_offset = 0;

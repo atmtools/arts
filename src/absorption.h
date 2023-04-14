@@ -31,7 +31,6 @@
 #include "species_tags.h"
 #include "absorptionlines.h"
 #include "array.h"
-#include "energylevelmap.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
 #include "matpack_data.h"

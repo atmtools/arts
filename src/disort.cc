@@ -356,7 +356,6 @@ void get_gasoptprop(Workspace& ws,
   ext_bulk_gas = 0.;
 
   // making gas property output containers and input dummies
-  const EnergyLevelMap rtp_nlte_dummy;
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
   StokesVector nlte_dummy;

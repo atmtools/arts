@@ -126,7 +126,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   Vector abs_h2o(n_p_grid);
   Vector this_t;  // Has same dimension, but is
                   // initialized by assignment later.
-  const EnergyLevelMap this_nlte_dummy;
 
   // Species list, lines, and line shapes, all with only 1 element:
   ArrayOfArrayOfSpeciesTag this_species(1);
@@ -2164,7 +2163,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   PropagationMatrix abs;
   StokesVector nlte;
   Vector a_vmr_list;
-  EnergyLevelMap a_nlte_list;
 
   // Get the number of species from the leading dimension of vmr_field:
   const Index n_species = abs_species.nelem();

@@ -59,7 +59,7 @@ struct MethodVariable {
 
   bool new_value{false};
 
-  constexpr MethodVariable() {}
+  constexpr MethodVariable() = default;
 
   MethodVariable(Workspace& ws,
                  const Array<AgendaMethodVariable>& list,
@@ -201,4 +201,5 @@ Agenda get_doit_rte_agenda(Workspace& ws, const String& option);
 Agenda get_doit_mono_agenda(Workspace& ws, const String& option);
 Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option);
 Agenda get_ppvar_rtprop_agenda(Workspace& ws, const String& option);
+Agenda get_rte_background_agenda(Workspace& ws, const String& option);
 }  // namespace AgendaManip

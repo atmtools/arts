@@ -372,53 +372,6 @@ void get_iy_of_background(Workspace& ws,
                           const Index& iy_agenda_call1,
                           const Verbosity& verbosity);
 
-/** Determines pressure, temperature, VMR, winds and magnetic field for each
-    propgataion path point.
-
-    The output variables are sized inside the function. For VMR the
-    dimensions are [ species, propagation path point ].
-
-    @param[out]  ppath_p           Pressure for each ppath point.
-    @param[out]  ppath_t           Temperature for each ppath point.
-    @param[out]  ppath_vmr         VMR values for each ppath point.
-    @param[out]  ppath_wind        Wind vector for each ppath point.
-    @param[out]  ppath_mag         Mag. field vector for each ppath point.
-    @param[in]   ppath             As the WSV.
-    @param[in]   atmosphere_dim    As the WSV.
-    @param[in]   p_grid            As the WSV.
-    @param[in]   lat_grid          As the WSV.
-    @param[in]   lon_grid          As the WSV.
-    @param[in]   t_field           As the WSV.
-    @param[in]   vmr_field         As the WSV.
-    @param[in]   wind_u_field      As the WSV.
-    @param[in]   wind_v_field      As the WSV.
-    @param[in]   wind_w_field      As the WSV.
-    @param[in]   mag_u_field       As the WSV.
-    @param[in]   mag_v_field       As the WSV.
-    @param[in]   mag_w_field       As the WSV.
-
-    @author Patrick Eriksson 
-    @date   2009-10-05
- */
-void get_ppath_atmvars(Vector& ppath_p,
-                       Vector& ppath_t,
-                       EnergyLevelMap& ppath_nlte,
-                       Matrix& ppath_vmr,
-                       Matrix& ppath_wind,
-                       Matrix& ppath_mag,
-                       const Ppath& ppath,
-                       const Index& atmosphere_dim,
-                       const ConstVectorView& p_grid,
-                       const ConstTensor3View& t_field,
-                       const EnergyLevelMap& nlte_field,
-                       const ConstTensor4View& vmr_field,
-                       const ConstTensor3View& wind_u_field,
-                       const ConstTensor3View& wind_v_field,
-                       const ConstTensor3View& wind_w_field,
-                       const ConstTensor3View& mag_u_field,
-                       const ConstTensor3View& mag_v_field,
-                       const ConstTensor3View& mag_w_field);
-
 /** Determines the particle fields along a propagation path.
 
     @param[out]  clear2cloudy        Mapping of index. See code for details. 

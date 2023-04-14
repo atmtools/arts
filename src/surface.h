@@ -36,7 +36,6 @@
 #include "matpack_data.h"
 #include "mystring.h"
 #include "ppath_OLD.h"
-#include "energylevelmap.h"
 #include "optproperties.h"
 #include "sun.h"
 

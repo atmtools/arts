@@ -1250,7 +1250,7 @@ void ppvar_fFromPath(ArrayOfVector &ppvar_f, const Vector &f_grid,
 
 void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
                    ArrayOfArrayOfRadiationVector &ppvar_drad,
-                   const RadiationVector &rad0,
+                   const RadiationVector &background_rad,
                    const ArrayOfRadiationVector &ppvar_src,
                    const ArrayOfArrayOfRadiationVector &ppvar_dsrc,
                    const ArrayOfTransmissionMatrix &ppvar_tramat,
@@ -1277,7 +1277,7 @@ void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
   const Index ns = ppvar_src.front().stokes_dim;
 
   // Size of radiation vector, with all values set to input
-  ppvar_rad.resize(np, rad0);
+  ppvar_rad.resize(np, background_rad);
 
   // Size of derivation radiation vector, with all values set to zero
   ppvar_drad.resize(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
@@ -1561,7 +1561,7 @@ void ppvar_tramatCalc(ArrayOfTransmissionMatrix &ppvar_tramat,
 }
 
 void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
-                    const ArrayOfTransmissionMatrix &tot_tra,
+                    const TransmissionMatrix &background_transmittance,
                     const Ppath &ppath, const Index &iy_agenda_call1,
                     const Verbosity &) {
   const Index np = ppath.np;
@@ -1586,8 +1586,8 @@ void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
     return;
   }
 
-  const Index nf = tot_tra.front().Frequencies();
-  const Index ns = tot_tra.front().stokes_dim;
+  const Index nf = background_transmittance.Frequencies();
+  const Index ns = background_transmittance.stokes_dim;
 
   //
   Index auxOptDepth = -1;
@@ -1612,7 +1612,7 @@ void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
   // iy_aux: Optical depth
   if (auxOptDepth >= 0)
     for (Index iv = 0; iv < nf; iv++)
-      iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1](iv, 0, 0));
+      iy_aux[auxOptDepth](iv, 0) = -std::log(background_transmittance(iv, 0, 0));
 }
 
 void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Tensor4 &ppvar_trans_partial,
@@ -1764,29 +1764,22 @@ void iyEmissionStandard(
     ArrayOfTensor3 &diy_dx,
     Tensor3 &ppvar_iy, 
     Tensor4 &ppvar_trans_cumulat,
-    Tensor4 &ppvar_trans_partial, 
-    const Index &iy_id,
+    Tensor4 &ppvar_trans_partial,
     const Vector &f_grid, 
     const ArrayOfArrayOfSpeciesTag &abs_species,
-    const AtmField &atm_field, 
-    const Index &cloudbox_on, 
+    const AtmField &atm_field,
     const String &iy_unit,
     const ArrayOfString &iy_aux_vars, 
     const Index &jacobian_do,
     const ArrayOfRetrievalQuantity &jacobian_quantities, 
     const Ppath &ppath,
-    const Vector &rte_pos2, 
     const Agenda &ppvar_rtprop_agenda,
     const Agenda &water_p_eq_agenda, 
     const String &rte_option,
-    const Agenda &iy_main_agenda, 
-    const Agenda &iy_space_agenda,
-    const Agenda &iy_surface_agenda, 
-    const Agenda &iy_cloudbox_agenda,
+    const Agenda &rte_background_agenda,
     const Index &iy_agenda_call1, 
     const Tensor3 &iy_transmittance,
-    const Numeric &rte_alonglos_v, 
-    const Tensor3 &surface_props_data,
+    const Numeric &rte_alonglos_v,
     const Verbosity &verbosity) {
   ArrayOfAtmPoint ppvar_atm;
   ppvar_atmFromPath(ppvar_atm, ppath, atm_field, verbosity);
@@ -1798,47 +1791,27 @@ void iyEmissionStandard(
   ArrayOfArrayOfPropagationMatrix dK;
   ArrayOfRadiationVector src_rad;
   ArrayOfArrayOfRadiationVector dsrc_rad;
-  /*
-  ArrayOfStokesVector S;
-  ArrayOfArrayOfStokesVector dS;
-
-  ppvar_propmatCalc(ws, K, S, dK, dS, propmat_clearsky_agenda, jacobian_quantities,
-                    ppvar_f, ppath, ppvar_atm, jacobian_do, verbosity);
-
-  ppvar_srcCalc(src_rad, dsrc_rad, K, S, dK, dS,
-            ppvar_f, ppvar_atm, jacobian_quantities, jacobian_do, ArrayOfRadiationVector{}, ArrayOfArrayOfRadiationVector{},
-            verbosity);
-  */
-
-  ppvar_rtprop_agendaExecute(ws, K, dK, src_rad, dsrc_rad,
-                             ppath, ppvar_atm, ppvar_f, jacobian_quantities,
-                             ppvar_rtprop_agenda);
-
-  ArrayOfTransmissionMatrix lyr_tra;
+  ArrayOfTransmissionMatrix lyr_tra, tot_tra;
   ArrayOfArrayOfArrayOfTransmissionMatrix dlyr_tra;
   Vector r;
   ArrayOfArrayOfVector dr;
-  ppvar_tramatCalc(lyr_tra, dlyr_tra, r, dr, K, dK, ppath, ppvar_atm, jacobian_quantities,
-                  jacobian_do, verbosity);
+  ppvar_rtprop_agendaExecute(ws, K, dK, src_rad, dsrc_rad, lyr_tra, dlyr_tra, r,
+                             dr, tot_tra, ppath, ppvar_atm, ppvar_f,
+                             jacobian_do, ppvar_rtprop_agenda);
 
-  const ArrayOfTransmissionMatrix tot_tra =
-      cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
-
-  iy_auxFromVars(iy_aux, iy_aux_vars, tot_tra, ppath, iy_agenda_call1,
-                 verbosity);
-
-  // Radiative background
-  iyBackground(ws, iy, diy_dx, iy_transmittance, tot_tra.back(),
-                surface_props_data, f_grid, rte_pos2, ppath, atm_field,
-                jacobian_quantities, jacobian_do, cloudbox_on, iy_id,
-                iy_agenda_call1, iy_main_agenda, iy_space_agenda,
-                iy_surface_agenda, iy_cloudbox_agenda, iy_unit, verbosity);
+  RadiationVector background_rad;
+  const auto &background_transmittance = tot_tra.back();
+  rte_background_agendaExecute(
+      ws, background_rad, diy_dx, ppath, atm_field,
+      f_grid, // FIXME: SHOULD f_grid NOT BE SHIFTED BY rte_alonglos_v, AND
+              // rte_alonglos_v BE SET TO 0???
+      iy_transmittance, background_transmittance, jacobian_do,
+      rte_background_agenda);
 
   ArrayOfRadiationVector lvl_rad;
   ArrayOfArrayOfRadiationVector dlvl_rad;
-  ppvar_radCalc(lvl_rad, dlvl_rad, RadiationVector{iy}, src_rad, dsrc_rad,
-                lyr_tra, tot_tra, dlyr_tra, K, dK, r, dr, rte_option,
-                verbosity);
+  ppvar_radCalc(lvl_rad, dlvl_rad, background_rad, src_rad, dsrc_rad, lyr_tra,
+                tot_tra, dlyr_tra, K, dK, r, dr, rte_option, verbosity);
 
   // Copy back to ARTS external style
   ArrayOfTensor3 diy_dpath;
@@ -1854,6 +1827,10 @@ void iyEmissionStandard(
   // Radiance unit conversions
   iyUnitConversion(iy, diy_dx, ppvar_iy, f_grid, ppath, jacobian_quantities,
                    iy_unit, jacobian_do, iy_agenda_call1, verbosity);
+
+  // AUX for some
+  iy_auxFromVars(iy_aux, iy_aux_vars, background_transmittance, ppath,
+                 iy_agenda_call1, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

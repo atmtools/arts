@@ -1189,6 +1189,15 @@ See *atm_field* for the data that may be available in the atmospheric point.
       GROUP("ArrayOfTensor3")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("diy_dpath"),
+      DESCRIPTION(
+          "Derivative of *iy* with respect to retrieval quantities.\n"
+          "\n"
+          "The variable is defined along the path and has size: \n"
+          "     [n_quantities][ ppath.np, f_grid, stokes_dim ]\n"),
+      GROUP("ArrayOfTensor3")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("dpnd_data_dx"),
       DESCRIPTION(
           "Partial derivates of *pnd_data*.\n"

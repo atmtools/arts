@@ -225,7 +225,6 @@ void iyRadarSingleScat(Workspace& ws,
   Vector t_ok(1), t_array(1);
   Matrix mlos_sca(1, 2), mlos_inc(1, 2);
   Index ptype;
-  EnergyLevelMap ppvar_nlte;
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
     ppvar_pnd.resize(0, 0);
@@ -983,7 +982,6 @@ void particle_bulkpropRadarOnionPeeling(
                   ArrayOfPropagationMatrix partial_dummy;
                   StokesVector nlte_dummy;
                   ArrayOfStokesVector partial_nlte_dummy;
-                  EnergyLevelMap rtp_nlte_local_dummy;
                   propmat_clearsky_agendaExecute(
                       wss,
                       propmat,

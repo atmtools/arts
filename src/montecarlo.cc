@@ -300,7 +300,6 @@ void clear_rt_vars_at_gp(Workspace& ws,
 
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
-  const EnergyLevelMap nlte_dummy;
 
   //calcualte absorption coefficient
   propmat_clearsky_agendaExecute(ws,
@@ -348,7 +347,6 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   Matrix pnd_ppath(N_se, 1);
   Vector t_ppath(1);
   Vector p_ppath(1);  //may not be efficient with unecessary vectors
-  EnergyLevelMap nlte_dummy;
   Matrix itw_p(1, 2);
   ArrayOfGridPos ao_gp_p(1), ao_gp_lat(1), ao_gp_lon(1);
   Matrix vmr_ppath(ns, 1), itw_field;

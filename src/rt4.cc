@@ -839,8 +839,6 @@ void gas_optpropCalc(Workspace& ws,
   PropagationMatrix propmat_clearsky_local;
   Vector rtp_vmr_local(vmr_profiles.nrows());
 
-  const EnergyLevelMap rtp_nlte_local_dummy;
-
   // Calculate layer averaged gaseous extinction
   for (Index i = 0; i < Np - 1; i++) {
     rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i + 1]);

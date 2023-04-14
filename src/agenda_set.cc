@@ -773,6 +773,24 @@ Agenda get_ppvar_rtprop_agenda(Workspace &ws, const String &option) {
   case Propmat:
       agenda.add("ppvar_propmatCalc");
       agenda.add("ppvar_srcFromPropmat");
+      agenda.add("ppvar_tramatCalc");
+      agenda.add("ppvar_cumtramatForward");
+      break;
+  case FINAL:
+      break;
+  }
+
+  return agenda.finalize();
+}
+
+Agenda get_rte_background_agenda(Workspace &ws, const String &option) {
+  AgendaCreator agenda(ws, "rte_background_agenda");
+
+  using enum Options::rte_background_agendaDefaultOptions;
+  switch (Options::torte_background_agendaDefaultOptionsOrThrow(option)) {
+  case ByPath:
+      agenda.add("iyBackground");
+      agenda.add("background_radFromMatrix", "iy_mat=iy");
       break;
   case FINAL:
       break;

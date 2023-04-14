@@ -3833,6 +3833,42 @@ Available models:
       GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldLteInternalPartitionFunction"),
+      DESCRIPTION(
+          "Turns on NTLE calculations.\n"
+          "\n"
+          "Sets NLTE ratios to those expected for LTE calculations\n"
+          "with estimation of the partition function as the sum of all\n"
+          "states of a species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_do", "atm_field", "abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field", "abs_lines_per_species"),
+      GIN("nlte_level_identifiers"),
+      GIN_TYPE("ArrayOfQuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("List of levels to compute for")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldLteExternalPartitionFunction"),
+      DESCRIPTION("Turns on NTLE calculations.\n"
+                  "\n"
+                  "Sets NLTE ratios to those expected for LTE calculations\n"
+                  "with a known partition function\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_do", "atm_field", "abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atm_field", "abs_lines_per_species"),
+      GIN("nlte_level_identifiers"),
+      GIN_TYPE("ArrayOfQuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("List of levels to compute for")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactAddConstant"),
       DESCRIPTION(
           "Adds a constant field to atm_fields_compact.\n"
@@ -8495,6 +8531,39 @@ computations.
   md_data_raw.push_back(
       create_mdrecord
 
+      (NAME("iyBackground"),
+       DESCRIPTION(
+           "Computes background radiation by wrapping various agendas\n"),
+       AUTHORS("Richard Larsson"),
+       OUT("iy", "diy_dx"),
+       GOUT(),
+       GOUT_TYPE(),
+       GOUT_DESC(),
+       IN("iy_transmittance",
+          "background_transmittance",
+          "surface_props_data",
+          "f_grid",
+          "rte_pos2",
+          "ppath",
+          "atm_field",
+          "jacobian_quantities",
+          "jacobian_do",
+          "cloudbox_on",
+          "iy_id",
+          "iy_agenda_call1",
+          "iy_main_agenda",
+          "iy_space_agenda",
+          "iy_surface_agenda",
+          "iy_cloudbox_agenda",
+          "iy_unit"),
+       GIN(),
+       GIN_TYPE(),
+       GIN_DEFAULT(),
+       GIN_DESC()));
+
+  md_data_raw.push_back(
+      create_mdrecord
+
       (NAME("iyCalc"),
        DESCRIPTION(
            "A single monochromatic pencil beam calculation.\n"
@@ -8764,28 +8833,21 @@ computations.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
-         "iy_id",
          "f_grid",
          "abs_species",
          "atm_field",
-         "cloudbox_on",
          "iy_unit",
          "iy_aux_vars",
          "jacobian_do",
          "jacobian_quantities",
          "ppath",
-         "rte_pos2",
          "ppvar_rtprop_agenda",
          "water_p_eq_agenda",
          "rt_integration_option",
-         "iy_main_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda",
-         "iy_cloudbox_agenda",
+         "rte_background_agenda",
          "iy_agenda_call1",
          "iy_transmittance",
-         "rte_alonglos_v",
-         "surface_props_data"),
+         "rte_alonglos_v"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -13966,6 +14028,16 @@ strings. The following coding is used for the radiative background:
       GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_radCalc"),
+      DESCRIPTION("Gets the radiation along the path.\n"),
+      AUTHORS("Richard Larsson"), OUT("ppvar_rad", "ppvar_drad"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(),
+      IN("background_rad", "ppvar_src", "ppvar_dsrc", "ppvar_tramat",
+         "ppvar_cumtramat", "ppvar_dtramat", "ppvar_propmat", "ppvar_dpropmat",
+         "ppvar_distance", "ppvar_ddistance", "rt_integration_option"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_srcFromPropmat"),
       DESCRIPTION("Gets the source term along the path.\n"),
       AUTHORS("Richard Larsson"), OUT("ppvar_src", "ppvar_dsrc"), GOUT(),
@@ -13979,8 +14051,8 @@ strings. The following coding is used for the radiative background:
       DESCRIPTION(
           R"--(Gets the transmission matrix in layers along the path.
 
-Assumes that there are two layers surrounding this, thus the output lyr0 and
-lyr1 derivative variables are output.
+A layer is defined as made up by the average of 2 levels, thus the outer-most size
+of the derivatives out of this function is 2.
 )--"),
       AUTHORS("Richard Larsson"),
       OUT("ppvar_tramat", "ppvar_dtramat", "ppvar_distance", "ppvar_ddistance"),
@@ -14061,6 +14133,52 @@ lyr1 derivative variables are output.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iyCopyPath"),
+      DESCRIPTION(
+          R"--(Copies the radiative transfer properties to their matpack equivalents.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("iy", "ppvar_iy", "ppvar_trans_cumulat", "ppvar_trans_partial",
+          "diy_dpath"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_rad", "ppvar_drad", "ppvar_cumtramat", "ppvar_tramat",
+          "jacobian_quantities", "jacobian_do"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("diy_dxTransform"),
+      DESCRIPTION(
+          R"--(Transforms *diy_dpath* and adds it to *diy_dx*.
+)--"),
+      AUTHORS("Richard Larsson"), OUT("diy_dx", "diy_dpath"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(),
+      IN("diy_dx", "diy_dpath", "ppath", "ppvar_atm", "abs_species",
+         "iy_transmittance", "water_p_eq_agenda", "jacobian_quantities",
+         "jacobian_do", "iy_agenda_call1"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iyUnitConversion"),
+      DESCRIPTION(
+          R"--(Perform unit conversions of *iy*, *diy_dx*, and *ppvar_iy*.
+)--"),
+      AUTHORS("Richard Larsson"), OUT("iy", "diy_dx", "ppvar_iy"), GOUT(), GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy", "diy_dx", "ppvar_iy", "f_grid", "ppath", "jacobian_quantities",
+         "iy_unit", "jacobian_do", "iy_agenda_call1"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("iy_auxFromVars"),
+      DESCRIPTION(
+          R"--(Set *iy_aux* from list of parameters.
+)--"),
+      AUTHORS("Richard Larsson"), OUT("iy_aux"), GOUT(), GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("iy_aux_vars", "background_transmittance", "ppath", "iy_agenda_call1"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(
       create_mdrecord(NAME("Print"),
@@ -24613,6 +24731,28 @@ Options are:
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("refr_index_air_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("option"),
+                      GIN_TYPE("String"),
+                      GIN_DEFAULT(NODEF),
+                      GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("rte_background_agendaSet"),
+                      DESCRIPTION(R"--(Sets *rte_background_agenda* to a default value
+
+Options are:
+    FIXME
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("rte_background_agenda"),
                       GOUT(),
                       GOUT_TYPE(),
                       GOUT_DESC(),

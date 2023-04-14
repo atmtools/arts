@@ -13,7 +13,6 @@
 #include "atm.h"
 #include "auto_md.h"
 #include "debug.h"
-#include "energylevelmap.h"
 #include "jacobian.h"
 #include "matpack_math.h"
 #include "messages.h"

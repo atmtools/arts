@@ -31,7 +31,6 @@
 #define PROPAGATION_FIELD_HEADER
 
 #include "atm.h"
-#include "energylevelmap.h"
 #include "field.h"
 #include "transmissionmatrix.h"
 #include "workspace_ng.h"

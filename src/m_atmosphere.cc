@@ -42,6 +42,7 @@
 #include <vector>
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "debug.h"
 #include "species_tags.h"
 #include "absorption.h"
 #include "agenda_class.h"
@@ -2509,14 +2510,17 @@ void vmr_fieldSetRh(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldLteExternalPartitionFunction(
+void atm_fieldLteExternalPartitionFunction(
     Index& nlte_do,
-    EnergyLevelMap& nlte_field,
+    AtmField& atm_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    const Tensor3& t_field,
     const Verbosity& verbosity) {
   using Constant::h;
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric field")
+  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   CREATE_OUT2;
   const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
@@ -2581,20 +2585,22 @@ void nlte_fieldLteExternalPartitionFunction(
       out2 << "Did not find match among lines for: "
            << nlte_quantum_identifiers[in] << "\n";
     }
+    atm_field.nlte[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
-  
-  nlte_field = EnergyLevelMap(nlte_tensor4, nlte_quantum_identifiers);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldLteInternalPartitionFunction(
+void atm_fieldLteInternalPartitionFunction(
     Index& nlte_do,
-    EnergyLevelMap& nlte_field,
+    AtmField& atm_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    const Tensor3& t_field,
     const Verbosity& verbosity) {
   using Constant::h;
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric field")
+  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   CREATE_OUT2;
   const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
@@ -2692,7 +2698,6 @@ void nlte_fieldLteInternalPartitionFunction(
       nlte_tensor4(in, joker, joker, joker) /=
         part_fun(part_fun_pos[in], joker, joker, joker);
     }
+    atm_field.nlte[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
-  
-  nlte_field = EnergyLevelMap(nlte_tensor4, nlte_quantum_identifiers);
 }
