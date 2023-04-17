@@ -117,7 +117,6 @@ void ppathFromRtePos2(Workspace& ws,
   // Geometric LOS from rte_pos to rte_pos2
   Vector rte_los_geom;
   rte_losGeometricFromRtePosToRtePos2(rte_los_geom,
-                                      atmosphere_dim,
                                       lat_grid,
                                       lon_grid,
                                       refellipsoid,
@@ -287,7 +286,6 @@ void ppathFromRtePos2(Workspace& ws,
       }
       //
       rte_losGeometricFromRtePosToRtePos2(los,
-                                          atmosphere_dim,
                                           lat_grid,
                                           lon_grid,
                                           refellipsoid,

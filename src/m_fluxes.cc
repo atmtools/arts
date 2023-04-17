@@ -557,7 +557,6 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         Vector rte_pos(1, za_grid[i] < 90 ? z_surface(0, 0) : z_space);
 
         ppathPlaneParallel(ppath,
-                           1,
                            Vector{z_grid}.reshape(nl, 1, 1),
                            z_surface,
                            cloudbox_on,
@@ -788,7 +787,6 @@ void spectral_radiance_fieldExpandCloudboxField(
         Vector rte_pos(1, za_grid[i] < 90 ? z_top : z_space);
 
         ppathPlaneParallel(ppath,
-                           1,
                            Vector{z_grid}.reshape(nl, 1, 1),
                            z_surface,
                            cloudbox_on,

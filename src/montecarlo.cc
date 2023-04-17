@@ -34,6 +34,7 @@
 #include "arts_conversions.h"
 #include "atm.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "geodetic_OLD.h"
 #include "mc_interp.h"
 #include "montecarlo.h"
@@ -862,14 +863,9 @@ void mcPathTraceGeneral(Workspace& ws,
                         const Index stokes_dim,
                         const Index f_index,
                         const Vector& f_grid,
-                        const Vector& p_grid,
-                        const Vector& lat_grid,
-                        const Vector& lon_grid,
-                        const Tensor3& z_field,
                         const Vector& refellipsoid,
                         const Matrix& z_surface,
-                        const Tensor3& t_field,
-                        const Tensor4& vmr_field,
+                        const AtmField& atm_field,
                         const ArrayOfIndex& cloudbox_limits,
                         const Tensor4& pnd_field,
                         const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -902,6 +898,8 @@ void mcPathTraceGeneral(Workspace& ws,
                   cloudbox_limits[5] - cloudbox_limits[4] + 1);
 
   //initialise Ppath with ppath_start_stepping
+  ARTS_USER_ERROR("NOT PORTED ppath_start_stepping TO USE ATMFIELD")
+  /*
   ppath_start_stepping(ppath_step,
                        3,
                        p_grid,
@@ -916,6 +914,7 @@ void mcPathTraceGeneral(Workspace& ws,
                        rte_pos,
                        rte_los,
                        verbosity);
+                       */
 
   // Check if we have already has radiative background
   if (ppath_what_background(ppath_step)) {
@@ -937,6 +936,8 @@ void mcPathTraceGeneral(Workspace& ws,
 
   // Determine radiative properties at point
   if (inside_cloud) {
+    ARTS_USER_ERROR("NOT PORTED TO USE ATMFIELD BECAUSE I CANNOT DEAL WITH CLOUDS")
+    /*
     cloudy_rt_vars_at_gp(ws,
                          ext_mat_mono,
                          abs_vec_mono,
@@ -956,7 +957,10 @@ void mcPathTraceGeneral(Workspace& ws,
                          scat_data,
                          cloudbox_limits,
                          Vector{ppath_step.los(0, joker)});
+                         */
   } else {
+    ARTS_USER_ERROR("NOT PORTED TO USE ATMFIELD BECAUSE I CANNOT DEAL WITH THE INTERPOLATION")
+    /*
     clear_rt_vars_at_gp(ws,
                         ext_mat_mono,
                         abs_vec_mono,
@@ -969,6 +973,7 @@ void mcPathTraceGeneral(Workspace& ws,
                         p_grid,
                         t_field,
                         vmr_field);
+                        */
     pnd_vec = 0.0;
   }
 
@@ -1043,6 +1048,8 @@ void mcPathTraceGeneral(Workspace& ws,
       }
 
       if (inside_cloud) {
+    ARTS_USER_ERROR("NOT PORTED")
+    /*
         cloudy_rt_vars_at_gp(ws,
                              ext_mat_mono,
                              abs_vec_mono,
@@ -1062,7 +1069,10 @@ void mcPathTraceGeneral(Workspace& ws,
                              scat_data,
                              cloudbox_limits,
                              Vector{ppath_step.los(ip, joker)});
+                             */
       } else {
+    ARTS_USER_ERROR("NOT PORTED")
+    /*
         clear_rt_vars_at_gp(ws,
                             ext_mat_mono,
                             abs_vec_mono,
@@ -1075,6 +1085,7 @@ void mcPathTraceGeneral(Workspace& ws,
                             p_grid,
                             t_field,
                             vmr_field);
+                            */
         pnd_vec = 0.0;
       }
 
@@ -1123,10 +1134,12 @@ void mcPathTraceGeneral(Workspace& ws,
         if (ppath_what_background(ppath_step)) {
           termination_flag = 2;
         }  //we have hit the surface
+    ARTS_USER_ERROR("NOT PORTED")
+    /*
         else if (fractional_gp(ppath_step.gp_p[ip]) >=
                  (Numeric)(p_grid.nelem() - 1) - 1e-3) {
           termination_flag = 1;
-        }  //we are at TOA
+        } */ //we are at TOA
       }
     }
   }  // while

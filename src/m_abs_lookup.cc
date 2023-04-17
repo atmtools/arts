@@ -1243,7 +1243,6 @@ void abs_lookupSetupBatch(  // WS Output:
                                                  particle_bulkprop_names,
                                                  abs_species,
                                                  atm_fields_compact,
-                                                 atmosphere_dim,
                                                  "-",
                                                  0,
                                                  check_gridnames,
@@ -1251,7 +1250,6 @@ void abs_lookupSetupBatch(  // WS Output:
 
     try {
       atmfields_checkedCalc(atmfields_checked,
-                            atmosphere_dim,
                             p_grid,
                             lat_grid,
                             lon_grid,
@@ -1917,7 +1915,6 @@ void abs_speciesAdd2(  // WS Output:
   jacobianAddAbsSpecies(ws,
                         jq,
                         jacobian_agenda,
-                        atmosphere_dim,
                         p_grid,
                         lat_grid,
                         lon_grid,
