@@ -576,7 +576,6 @@ void pnd_fieldCalcFromParticleBulkProps(
     Workspace& ws,
     Tensor4& pnd_field,
     ArrayOfTensor4& dpnd_field_dx,
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
@@ -603,12 +602,11 @@ void pnd_fieldCalcFromParticleBulkProps(
                       "*particle_bulkprop_field* is empty.");
 
   // Checks (not totally complete, but should cover most mistakes)
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
-  chk_atm_field("t_field", t_field, atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
+  chk_atm_field("t_field", t_field, 3, p_grid, lat_grid, lon_grid);
   chk_atm_field("particle_bulkprop_field",
                 particle_bulkprop_field,
-                atmosphere_dim,
+                3,
                 particle_bulkprop_names.nelem(),
                 p_grid,
                 lat_grid,
@@ -626,22 +624,21 @@ void pnd_fieldCalcFromParticleBulkProps(
         "At least one field per scattering species required"
         " in *particle_bulkprop_field*.");
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "Length of *cloudbox_limits* incorrect with respect "
         "to *atmosphere_dim*.");
   ARTS_USER_ERROR_IF (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
       cloudbox_limits[1] >= p_grid.nelem(),
                       "Invalid data in pressure part of *cloudbox_limits*.");
-  if (atmosphere_dim > 1) {
+
     ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] || cloudbox_limits[2] < 0 ||
         cloudbox_limits[3] >= lat_grid.nelem(),
           "Invalid data in latitude part of *cloudbox_limits*.");
-    if (atmosphere_dim > 2) {
+
       ARTS_USER_ERROR_IF (cloudbox_limits[5] <= cloudbox_limits[4] || cloudbox_limits[4] < 0 ||
           cloudbox_limits[5] >= lon_grid.nelem(),
             "Invalid data in longitude part of *cloudbox_limits*.");
-    }
-  }
+    
 
   ARTS_USER_ERROR_IF (nss < 1, "*scat_data* is empty!.");
   ARTS_USER_ERROR_IF (scat_species.nelem() != nss,
@@ -663,16 +660,13 @@ void pnd_fieldCalcFromParticleBulkProps(
   Index pf_offset = 0;                   // Can be changed below
   Index nlat = 1;
   Index ilat_offset = 0;
-  if (atmosphere_dim > 1) {
-    nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-    ilat_offset = cloudbox_limits[2];
-  }
+  nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  ilat_offset = cloudbox_limits[2];
+  
   Index nlon = 1;
   Index ilon_offset = 0;
-  if (atmosphere_dim > 2) {
-    nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-    ilon_offset = cloudbox_limits[4];
-  }
+  nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+  ilon_offset = cloudbox_limits[4];
 
   // Check that *particle_bulkprop_field* contains zeros outside and at
   // cloudbox boundaries

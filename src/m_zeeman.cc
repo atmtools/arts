@@ -46,7 +46,6 @@ void propmat_clearskyAddZeeman(
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_levels,
     const Vector& ppath_los,
-    const Index& atmosphere_dim,
     const Index& nlte_do,
     const Index& lbl_checked,
     const Index& manual_zeeman_tag,
@@ -55,9 +54,6 @@ void propmat_clearskyAddZeeman(
     const Numeric& manual_zeeman_eta,
     const Verbosity&) {
   if (abs_lines_per_species.nelem() == 0) return;
-
-  ARTS_USER_ERROR_IF((atmosphere_dim not_eq 3) and (not manual_zeeman_tag),
-    "Only for 3D *atmosphere_dim* or a manual magnetic field")
   
   ARTS_USER_ERROR_IF((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag),
     "Only for 2D *ppath_los* or a manual magnetic field");
@@ -67,7 +63,7 @@ void propmat_clearskyAddZeeman(
 
   // Change to LOS by radiation
   Vector rtp_los;
-  if (not manual_zeeman_tag) mirror_los(rtp_los, ppath_los, atmosphere_dim);
+  if (not manual_zeeman_tag) mirror_los(rtp_los, ppath_los, 3);
 
   // Main computations
   zeeman_on_the_fly(propmat_clearsky,

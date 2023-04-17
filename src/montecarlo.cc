@@ -682,9 +682,7 @@ void get_ppath_transmat(Workspace& ws,
                         const Index stokes_dim,
                         const Index f_index,
                         const Vector& f_grid,
-                        const Vector& p_grid,
-                        const Tensor3& t_field,
-                        const Tensor4& vmr_field,
+                        const AtmField& atm_field,
                         const ArrayOfIndex& cloudbox_limits,
                         const Tensor4& pnd_field,
                         const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -722,6 +720,7 @@ void get_ppath_transmat(Workspace& ws,
                                          0,
                                          3);
     if (inside_cloud) {
+      /*  FIXME: CLOUD STUFF
       cloudy_rt_vars_at_gp(ws,
                            ext_mat_mono,
                            abs_vec_mono,
@@ -741,7 +740,9 @@ void get_ppath_transmat(Workspace& ws,
                            scat_data,
                            cloudbox_limits,
                            Vector{ppath.los(np - 1, joker)});
+                           */
     } else {
+      /*  FIXME: CLOUD STUFF
       clear_rt_vars_at_gp(ws,
                           ext_mat_mono,
                           abs_vec_mono,
@@ -754,6 +755,7 @@ void get_ppath_transmat(Workspace& ws,
                           p_grid,
                           t_field,
                           vmr_field);
+                          */
       pnd_vec = 0.0;
     }
 
@@ -774,6 +776,7 @@ void get_ppath_transmat(Workspace& ws,
                                            0,
                                            3);
       if (inside_cloud) {
+      /*  FIXME: CLOUD STUFF
         cloudy_rt_vars_at_gp(ws,
                              ext_mat_mono,
                              abs_vec_mono,
@@ -793,7 +796,9 @@ void get_ppath_transmat(Workspace& ws,
                              scat_data,
                              cloudbox_limits,
                              Vector{ppath.los(ip, joker)});
+                             */
       } else {
+      /*  FIXME: CLOUD STUFF
         clear_rt_vars_at_gp(ws,
                             ext_mat_mono,
                             abs_vec_mono,
@@ -806,6 +811,7 @@ void get_ppath_transmat(Workspace& ws,
                             p_grid,
                             t_field,
                             vmr_field);
+                            */
         pnd_vec = 0.0;
       }
 
@@ -1218,14 +1224,9 @@ void mcPathTraceRadar(Workspace& ws,
                       const Index f_index,
                       const Vector& f_grid,
                       const Vector& Iprop,
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
-                      const Tensor3& z_field,
                       const Vector& refellipsoid,
                       const Matrix& z_surface,
-                      const Tensor3& t_field,
-                      const Tensor4& vmr_field,
+                      const AtmField& atm_field,
                       const ArrayOfIndex& cloudbox_limits,
                       const Tensor4& pnd_field,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -1263,6 +1264,7 @@ void mcPathTraceRadar(Workspace& ws,
                   cloudbox_limits[5] - cloudbox_limits[4] + 1);
 
   //initialise Ppath with ppath_start_stepping
+  /*  FIXME: OLD CODE MUST BE UPDATED
   ppath_start_stepping(ppath_step,
                        3,
                        p_grid,
@@ -1277,6 +1279,7 @@ void mcPathTraceRadar(Workspace& ws,
                        rte_pos,
                        rte_los,
                        verbosity);
+                       */
 
   if (ppath_step.np == 0) {
     termination_flag = 1;
@@ -1298,6 +1301,7 @@ void mcPathTraceRadar(Workspace& ws,
   if (inside_cloud) {
     local_rte_los[0] = 180 - ppath_step.los(0, 0);
     local_rte_los[1] = ppath_step.los(0, 1) - 180;
+      /*  FIXME: CLOUD STUFF
     cloudy_rt_vars_at_gp(ws,
                          ext_mat_mono,
                          abs_vec_mono,
@@ -1317,7 +1321,9 @@ void mcPathTraceRadar(Workspace& ws,
                          scat_data,
                          cloudbox_limits,
                          local_rte_los);
+                         */
   } else {
+      /*  FIXME: CLOUD STUFF
     clear_rt_vars_at_gp(ws,
                         ext_mat_mono,
                         abs_vec_mono,
@@ -1330,6 +1336,7 @@ void mcPathTraceRadar(Workspace& ws,
                         p_grid,
                         t_field,
                         vmr_field);
+                        */
     pnd_vec = 0.0;
   }
 
@@ -1393,6 +1400,7 @@ void mcPathTraceRadar(Workspace& ws,
     if (inside_cloud) {
       local_rte_los[0] = 180 - ppath_step.los(ip, 0);
       local_rte_los[1] = ppath_step.los(ip, 1) - 180;
+      /*  FIXME: CLOUD STUFF
       cloudy_rt_vars_at_gp(ws,
                            ext_mat_mono,
                            abs_vec_mono,
@@ -1412,7 +1420,9 @@ void mcPathTraceRadar(Workspace& ws,
                            scat_data,
                            cloudbox_limits,
                            local_rte_los);
+                           */
     } else {
+      /*  FIXME: CLOUD STUFF
       clear_rt_vars_at_gp(ws,
                           ext_mat_mono,
                           abs_vec_mono,
@@ -1425,6 +1435,7 @@ void mcPathTraceRadar(Workspace& ws,
                           p_grid,
                           t_field,
                           vmr_field);
+                          */
       pnd_vec = 0.0;
     }
 
@@ -1460,7 +1471,7 @@ void mcPathTraceRadar(Workspace& ws,
           termination_flag = 2;
         }  //we have hit the surface
         else if (fractional_gp(ppath_step.gp_p[ip]) >=
-                 (Numeric)(p_grid.nelem() - 1) - 1e-3) {
+                 (Numeric)(atm_field.regularized_shape()[0] - 1) - 1e-3) {
           termination_flag = 1;
         }  //we are at TOA
       }

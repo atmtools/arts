@@ -1416,7 +1416,7 @@ void cloudbox_fieldUpdateSeq1DPP(
       << "  --------------------------------------------------------------------- \n";
 
   const Index stokes_dim = doit_scat_field.ncols();
-  //  const Index atmosphere_dim = 1;
+  //  const Index 3 = 1;
 
   //Check the input
 
@@ -1630,7 +1630,7 @@ void DoitInit(  //WS Output
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*");
+        "be 2 x *3*");
 
   //------------- end of checks ---------------------------------------
 
@@ -2034,7 +2034,6 @@ void doit_scat_fieldCalc(Workspace& ws,
                          const Tensor6& cloudbox_field_mono,
                          const Tensor4& pnd_field,
                          const Tensor3& t_field,
-                         const Index& atmosphere_dim,
                          const ArrayOfIndex& cloudbox_limits,
                          const Vector& za_grid,
                          const Vector& aa_grid,
@@ -2075,7 +2074,7 @@ void doit_scat_fieldCalc(Workspace& ws,
   // Check atmospheric dimension and dimensions of
   // radiation field (*cloudbox_field*) and scattering integral field
   // (*doit_scat_field*)
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
@@ -2090,7 +2089,7 @@ void doit_scat_fieldCalc(Workspace& ws,
                    za_grid.nelem(),
                    1,
                    stokes_dim));
-  } else if (atmosphere_dim == 3) {
+  } else if (3 == 3) {
     ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
@@ -2109,15 +2108,15 @@ void doit_scat_fieldCalc(Workspace& ws,
     ARTS_USER_ERROR (
       "The atmospheric dimension must be 1D or 3D \n"
       "for scattering calculations using the DOIT\n"
-      "module, but it is not. The value of *atmosphere_dim*\n"
-      "is ", atmosphere_dim, ".")
+      "module, but it is not. The value of *3*\n"
+      "is ", 3, ".")
   }
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*");
+        "be 2 x *3*");
 
   // This function should only be used for down-looking cases where no
   // optimized zenith angle grid is required.
@@ -2152,9 +2151,9 @@ void doit_scat_fieldCalc(Workspace& ws,
 
   out2 << "  Calculate the scattered field\n";
 
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     // Get pha_mat at the grid positions
-    // Since atmosphere_dim = 1, there is no loop over lat and lon grids
+    // Since 3 = 1, there is no loop over lat and lon grids
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++) {
       //There is only loop over zenith angle grid ; no azimuth angle grid.
@@ -2202,10 +2201,10 @@ void doit_scat_fieldCalc(Workspace& ws,
         }
       }  //end za_prop loop
     }    //end p_index loop
-  }      //end atmosphere_dim = 1
+  }      //end 3 = 1
 
-  //atmosphere_dim = 3
-  else if (atmosphere_dim == 3) {
+  //3 = 3
+  else if (3 == 3) {
     /*there is a loop over pressure, latitude and longitudeindex
         when we calculate the pha_mat from pha_mat_spt and pnd_field
         using the method pha_matCalc.  */
@@ -2292,7 +2291,7 @@ void doit_scat_fieldCalc(Workspace& ws,
     // aa = 0 is the same as aa = 180:
     doit_scat_field(joker, joker, joker, joker, 0, joker) =
         doit_scat_field(joker, joker, joker, joker, Naa - 1, joker);
-  }  // end atmosphere_dim = 3
+  }  // end 3 = 3
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2304,7 +2303,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                              const Tensor6& cloudbox_field_mono,
                              const Tensor4& pnd_field,
                              const Tensor3& t_field,
-                             const Index& atmosphere_dim,
                              const ArrayOfIndex& cloudbox_limits,
                              const Vector& za_grid,
                              const Vector& aa_grid,
@@ -2344,7 +2342,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
   // Check atmospheric dimension and dimensions of
   // radiation field (*cloudbox_field*) and scattering integral field
   // (*doit_scat_field*)
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
@@ -2359,7 +2357,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                    za_grid.nelem(),
                    1,
                    stokes_dim));
-  } else if (atmosphere_dim == 3) {
+  } else if (3 == 3) {
     ARTS_ASSERT(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
@@ -2378,19 +2376,19 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
     ARTS_USER_ERROR (
       "The atmospheric dimension must be 1D or 3D \n"
       "for scattering calculations using the DOIT\n"
-      "module, but it is not. The value of *atmosphere_dim*\n"
-      "is ", atmosphere_dim, ".")
+      "module, but it is not. The value of *3*\n"
+      "is ", 3, ".")
   }
 
   ARTS_USER_ERROR_IF (!(doit_za_interp == 0 || doit_za_interp == 1),
         "Interpolation method is not defined. Use \n"
         "*doit_za_interpSet*.\n");
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*");
+        "be 2 x *3*");
 
   ARTS_USER_ERROR_IF (doit_za_grid_size < 16,
         "*doit_za_grid_size* must be greater than 15 for"
@@ -2450,9 +2448,9 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
 
   Tensor3 product_field(doit_za_grid_size, Naa, stokes_dim, 0);
 
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     // Get pha_mat at the grid positions
-    // Since atmosphere_dim = 1, there is no loop over lat and lon grids
+    // Since 3 = 1, there is no loop over lat and lon grids
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++) {
       // Interpolate intensity field:
@@ -2542,9 +2540,9 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
       }
     }  //end p_index loop
 
-  }  //end atmosphere_dim = 1
+  }  //end 3 = 1
 
-  else if (atmosphere_dim == 3) {
+  else if (3 == 3) {
     // Loop over all positions
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++) {
@@ -2705,13 +2703,10 @@ void doit_za_grid_optCalc(  //WS Output
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_za_interpSet(Index& doit_za_interp,
-                       const Index& atmosphere_dim,
                        //Keyword
                        const String& method,
                        const Verbosity&) {
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1 && method == "polynomial",
+  ARTS_USER_ERROR_IF (3 != 1 && method == "polynomial",
         "Polynomial interpolation is only implemented for\n"
         "1D DOIT calculations as \n"
         "in 3D there can be numerical problems.\n"
@@ -2842,7 +2837,6 @@ void DoitGetIncoming(Workspace& ws,
                      const Index& cloudbox_checked,
                      const Index& doit_is_initialized,
                      const Agenda& iy_main_agenda,
-                     const Index& atmosphere_dim,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
                      const Tensor3& z_field,
@@ -2894,13 +2888,13 @@ void DoitGetIncoming(Workspace& ws,
 
 
   //--- Check input ----------------------------------------------------------
-  ARTS_USER_ERROR_IF (!(atmosphere_dim == 1 || atmosphere_dim == 3),
+  ARTS_USER_ERROR_IF (!(3 == 1 || 3 == 3),
                       "The atmospheric dimensionality must be 1 or 3.");
   ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[Nza - 1] != 180.,
                       "*za_grid* must include 0 and 180 degrees as endpoints.");
   //--------------------------------------------------------------------------
 
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     //Define the variables for position and direction.
     Vector los(1), pos(1);
 
@@ -2992,7 +2986,7 @@ void DoitGetIncoming(Workspace& ws,
     }
   }
 
-  //--- atmosphere_dim = 3: --------------------------------------------------
+  //--- 3 = 3: --------------------------------------------------
   else {
     Index Naa = aa_grid.nelem();
 
@@ -3172,7 +3166,7 @@ void DoitGetIncoming(Workspace& ws,
         }
       }
     }
-  }  // End atmosphere_dim = 3.
+  }  // End 3 = 3.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3184,7 +3178,6 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Index& cloudbox_checked,
                           const Index& doit_is_initialized,
                           const Agenda& iy_main_agenda,
-                          const Index& atmosphere_dim,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
                           const Tensor3& z_field,
@@ -3234,7 +3227,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   Vector geo_pos;
 
   //--- Check input ----------------------------------------------------------
-  ARTS_USER_ERROR_IF (atmosphere_dim != 3,
+  ARTS_USER_ERROR_IF (3 != 3,
                       "The atmospheric dimensionality must be 3.");
   ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[Nza - 1] != 180.,
         "*za_grid* must include 0 and 180 degrees as endpoints.");
@@ -3344,7 +3337,6 @@ void DoitGetIncoming1DAtm(Workspace& ws,
 void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
                                   const Vector& za_grid,
                                   const Vector& f_grid,
-                                  const Index& atmosphere_dim,
                                   const Index& stokes_dim,
                                   const ArrayOfIndex& cloudbox_limits,
                                   const Index& doit_is_initialized,
@@ -3352,7 +3344,7 @@ void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
                                   const Verbosity&)  //verbosity)
 {
   // this is only for 1D atmo!
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+  ARTS_USER_ERROR_IF (3 != 1,
       "This method is currently only implemented for 1D atmospheres!\n")
 
   // Check whether DoitInit was executed
@@ -3431,7 +3423,6 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
                                const Vector& lat_grid,
                                const Vector& lon_grid,
                                const ArrayOfIndex& cloudbox_limits,
-                               const Index& atmosphere_dim,
                                const Index& cloudbox_on,
                                const Index& doit_is_initialized,
                                const Index& all_frequencies,
@@ -3452,7 +3443,7 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
   // Initial field only needs to be calculated from clearsky field for the
   // first frequency. For the next frequencies the solution field from the
   // previous frequencies is used.
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     const Index nf = all_frequencies ? cloudbox_field.nlibraries() : 1;
 
     for (Index f_index = 0; f_index < nf; f_index++) {
@@ -3504,7 +3495,7 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
         }
       }
     }
-  } else if (atmosphere_dim == 3) {
+  } else if (3 == 3) {
     ARTS_USER_ERROR_IF (all_frequencies == false,
           "Error in cloudbox_fieldSetClearsky: For 3D "
           "all_frequencies option is not implemented \n");
@@ -3657,7 +3648,7 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
         }
       }  //end of interpolation
     }    // end of frequency loop
-  }      //ends atmosphere_dim = 3
+  }      //ends 3 = 3
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -3668,7 +3659,6 @@ void cloudbox_fieldSetConst(  //WS Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     // Keyword
     const Vector& cloudbox_field_values,
@@ -3708,7 +3698,6 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     // Keyword
     const Matrix& cloudbox_field_values,
@@ -3752,7 +3741,6 @@ void cloudbox_field_monoSetConst(  //WS Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     // Keyword
     const Vector& cloudbox_field_values,
@@ -3763,10 +3751,8 @@ void cloudbox_field_monoSetConst(  //WS Output:
   out2 << "  Set initial field to constant values: " << cloudbox_field_values
        << "\n";
 
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-
-  // Grids have to be adapted to atmosphere_dim.
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  // Grids have to be adapted to 3.
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 
   // Check the input:
   ARTS_USER_ERROR_IF (stokes_dim < 0 || stokes_dim > 4,
@@ -3776,11 +3762,11 @@ void cloudbox_field_monoSetConst(  //WS Output:
   ARTS_USER_ERROR_IF (stokes_dim != cloudbox_field_values.nelem(),
         "Length of *cloudbox_field_values* has to be equal"
         " *stokes_dim*.");
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*.");
+        "be 2 x *3*.");
 
   for (Index i = 0; i < stokes_dim; i++) {
     cloudbox_field_mono(joker, joker, joker, joker, joker, i) =

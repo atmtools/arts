@@ -815,7 +815,6 @@ void particle_bulkpropRadarOnionPeeling(
     Workspace& ws,
     Tensor4& particle_bulkprop_field,
     ArrayOfString& particle_bulkprop_names,
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
@@ -860,9 +859,9 @@ void particle_bulkpropRadarOnionPeeling(
                       "*dbze_noise* not covered by invtable[0]." );
   ARTS_USER_ERROR_IF (dbze_noise < invtable[1].get_numeric_grid(GFIELD3_DB_GRID)[0],
                       "*dbze_noise* not covered by invtable[1]." );    
-  chk_atm_field("GIN reflectivities", dBZe, atmosphere_dim, p_grid,
+  chk_atm_field("GIN reflectivities", dBZe, 3, p_grid,
                 lat_grid, lon_grid);
-  chk_atm_surface("GIN incangles", incangles, atmosphere_dim, lat_grid,
+  chk_atm_surface("GIN incangles", incangles, 3, lat_grid,
                   lon_grid);
   chk_if_in_range("atten_hyd_scaling", atten_hyd_scaling, 0, 2);
 
@@ -870,7 +869,7 @@ void particle_bulkpropRadarOnionPeeling(
   // And to make the code simpler below, we always switch to matrix
   Matrix hclutterm;
   if (h_clutter.nrows() > 1  || h_clutter.ncols() > 1) {
-    chk_atm_surface("GIN h_clutter", h_clutter, atmosphere_dim, lat_grid, lon_grid);
+    chk_atm_surface("GIN h_clutter", h_clutter, 3, lat_grid, lon_grid);
     hclutterm = h_clutter;
   } else {
     hclutterm.resize(nlat, nlon);

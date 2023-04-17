@@ -159,7 +159,6 @@ void xaStandard(Workspace& ws,
                 const ArrayOfRetrievalQuantity& jacobian_quantities,
                 const Index& atmfields_checked,
                 const Index& atmgeom_checked,
-                const Index& atmosphere_dim,
                 const Vector& p_grid,
                 const Vector& lat_grid,
                 const Vector& lon_grid,
@@ -218,12 +217,12 @@ void xaStandard(Workspace& ws,
                             gp_lat,
                             gp_lon,
                             jacobian_quantities[q],
-                            atmosphere_dim,
+                            3,
                             p_grid,
                             lat_grid,
                             lon_grid);
       Tensor3 t_x;
-      regrid_atmfield_by_gp(t_x, atmosphere_dim, t_field, gp_p, gp_lat, gp_lon);
+      regrid_atmfield_by_gp(t_x, 3, t_field, gp_p, gp_lat, gp_lon);
       flat(xa[ind], t_x);
     }
 
@@ -243,13 +242,13 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              atmosphere_dim,
+                              3,
                               p_grid,
                               lat_grid,
                               lon_grid);
         Tensor3 vmr_x;
         regrid_atmfield_by_gp(vmr_x,
-                              atmosphere_dim,
+                              3,
                               vmr_field(isp, joker, joker, joker),
                               gp_p,
                               gp_lat,
@@ -261,7 +260,7 @@ void xaStandard(Workspace& ws,
           // Here we need to also interpolate *t_field*
           Tensor3 t_x;
           regrid_atmfield_by_gp(
-              t_x, atmosphere_dim, t_field, gp_p, gp_lat, gp_lon);
+              t_x, 3, t_field, gp_p, gp_lat, gp_lon);
           // Calculate number density for species (vmr*nd_tot)
           Index i = 0;
           for (Index i3 = 0; i3 < vmr_x.ncols(); i3++) {
@@ -279,7 +278,7 @@ void xaStandard(Workspace& ws,
           // Here we need to also interpolate *t_field*
           Tensor3 t_x;
           regrid_atmfield_by_gp(
-              t_x, atmosphere_dim, t_field, gp_p, gp_lat, gp_lon);
+              t_x, 3, t_field, gp_p, gp_lat, gp_lon);
           Tensor3 water_p_eq;
           water_p_eq_agendaExecute(ws, water_p_eq, t_x, water_p_eq_agenda);
           // Calculate relative humidity (vmr*p/p_sat)
@@ -342,13 +341,13 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              atmosphere_dim,
+                              3,
                               p_grid,
                               lat_grid,
                               lon_grid);
         Tensor3 pbp_x;
         regrid_atmfield_by_gp(pbp_x,
-                              atmosphere_dim,
+                              3,
                               particle_bulkprop_field(isp, joker, joker, joker),
                               gp_p,
                               gp_lat,
@@ -375,14 +374,14 @@ void xaStandard(Workspace& ws,
                             gp_lat,
                             gp_lon,
                             jacobian_quantities[q],
-                            atmosphere_dim,
+                            3,
                             p_grid,
                             lat_grid,
                             lon_grid);
 
       Tensor3 wind_x;
       regrid_atmfield_by_gp(
-          wind_x, atmosphere_dim, source_field, gp_p, gp_lat, gp_lon);
+          wind_x, 3, source_field, gp_p, gp_lat, gp_lon);
       flat(xa[ind], wind_x);
     }
 
@@ -396,7 +395,7 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              atmosphere_dim,
+                              3,
                               p_grid,
                               lat_grid,
                               lon_grid);
@@ -404,11 +403,11 @@ void xaStandard(Workspace& ws,
         //all three component's hyoptenuse is the strength
         Tensor3 mag_u, mag_v, mag_w;
         regrid_atmfield_by_gp(
-            mag_u, atmosphere_dim, mag_u_field, gp_p, gp_lat, gp_lon);
+            mag_u, 3, mag_u_field, gp_p, gp_lat, gp_lon);
         regrid_atmfield_by_gp(
-            mag_v, atmosphere_dim, mag_v_field, gp_p, gp_lat, gp_lon);
+            mag_v, 3, mag_v_field, gp_p, gp_lat, gp_lon);
         regrid_atmfield_by_gp(
-            mag_w, atmosphere_dim, mag_w_field, gp_p, gp_lat, gp_lon);
+            mag_w, 3, mag_w_field, gp_p, gp_lat, gp_lon);
 
         Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
         for (Index i = 0; i < gp_p.nelem(); i++)
@@ -431,21 +430,21 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              atmosphere_dim,
+                              3,
                               p_grid,
                               lat_grid,
                               lon_grid);
 
         Tensor3 mag_x;
         regrid_atmfield_by_gp(
-            mag_x, atmosphere_dim, source_field, gp_p, gp_lat, gp_lon);
+            mag_x, 3, source_field, gp_p, gp_lat, gp_lon);
         flat(xa[ind], mag_x);
       }
     }
 
     // Surface
     else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
-      surface_props_check(atmosphere_dim,
+      surface_props_check(3,
                           lat_grid,
                           lon_grid,
                           surface_props_data,
@@ -466,12 +465,12 @@ void xaStandard(Workspace& ws,
       get_gp_atmsurf_to_rq(gp_lat,
                            gp_lon,
                            jacobian_quantities[q],
-                           atmosphere_dim,
+                           3,
                            lat_grid,
                            lon_grid);
       Matrix surf_x;
       regrid_atmsurf_by_gp_oem(surf_x,
-                               atmosphere_dim,
+                               3,
                                surface_props_data(isu, joker, joker),
                                gp_lat,
                                gp_lon);
@@ -514,7 +513,6 @@ void x2artsAtmAndSurf(Workspace& ws,
                       const Vector& x,
                       const Index& atmfields_checked,
                       const Index& atmgeom_checked,
-                      const Index& atmosphere_dim,
                       const Vector& p_grid,
                       const Vector& lat_grid,
                       const Vector& lon_grid,
@@ -579,7 +577,7 @@ void x2artsAtmAndSurf(Workspace& ws,
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            atmosphere_dim,
+                            3,
                             p_grid,
                             lat_grid,
                             lon_grid);
@@ -588,7 +586,7 @@ void x2artsAtmAndSurf(Workspace& ws,
       Tensor3 t_x(n_p, n_lat, n_lon);
       reshape(t_x, x_t[ind]);
       regrid_atmfield_by_gp_oem(
-          t_field, atmosphere_dim, t_x, gp_p, gp_lat, gp_lon);
+          t_field, 3, t_x, gp_p, gp_lat, gp_lon);
     }
 
     // Abs species
@@ -610,7 +608,7 @@ void x2artsAtmAndSurf(Workspace& ws,
                               n_lat,
                               n_lon,
                               jacobian_quantities[q].Grids(),
-                              atmosphere_dim,
+                              3,
                               p_grid,
                               lat_grid,
                               lon_grid);
@@ -618,7 +616,7 @@ void x2artsAtmAndSurf(Workspace& ws,
         Tensor3 t3_x(n_p, n_lat, n_lon);
         reshape(t3_x, x_t[ind]);
         regrid_atmfield_by_gp_oem(
-            x_field, atmosphere_dim, t3_x, gp_p, gp_lat, gp_lon);
+            x_field, 3, t3_x, gp_p, gp_lat, gp_lon);
       }
       //
       if (jacobian_quantities[q].Mode() == "rel") {
@@ -702,7 +700,7 @@ void x2artsAtmAndSurf(Workspace& ws,
                               n_lat,
                               n_lon,
                               jacobian_quantities[q].Grids(),
-                              atmosphere_dim,
+                              3,
                               p_grid,
                               lat_grid,
                               lon_grid);
@@ -711,7 +709,7 @@ void x2artsAtmAndSurf(Workspace& ws,
         reshape(pbfield_x, x_t[ind]);
         Tensor3 pbfield;
         regrid_atmfield_by_gp_oem(
-            pbfield, atmosphere_dim, pbfield_x, gp_p, gp_lat, gp_lon);
+            pbfield, 3, pbfield_x, gp_p, gp_lat, gp_lon);
         particle_bulkprop_field(isp, joker, joker, joker) = pbfield;
       }
     }
@@ -730,7 +728,7 @@ void x2artsAtmAndSurf(Workspace& ws,
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            atmosphere_dim,
+                            3,
                             p_grid,
                             lat_grid,
                             lon_grid);
@@ -744,7 +742,7 @@ void x2artsAtmAndSurf(Workspace& ws,
       Tensor3 wind_field(
           target_field.npages(), target_field.nrows(), target_field.ncols());
       regrid_atmfield_by_gp_oem(
-          wind_field, atmosphere_dim, wind_x, gp_p, gp_lat, gp_lon);
+          wind_field, 3, wind_x, gp_p, gp_lat, gp_lon);
 
       if (jacobian_quantities[q] == Jacobian::Atm::WindU) {
         wind_u_field = wind_field;
@@ -769,7 +767,7 @@ void x2artsAtmAndSurf(Workspace& ws,
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            atmosphere_dim,
+                            3,
                             p_grid,
                             lat_grid,
                             lon_grid);
@@ -783,7 +781,7 @@ void x2artsAtmAndSurf(Workspace& ws,
       Tensor3 mag_field(
           target_field.npages(), target_field.nrows(), target_field.ncols());
       regrid_atmfield_by_gp_oem(
-          mag_field, atmosphere_dim, mag_x, gp_p, gp_lat, gp_lon);
+          mag_field, 3, mag_x, gp_p, gp_lat, gp_lon);
       if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
         mag_u_field = mag_field;
       } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
@@ -810,7 +808,7 @@ void x2artsAtmAndSurf(Workspace& ws,
     // Surface
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
-      surface_props_check(atmosphere_dim,
+      surface_props_check(3,
                           lat_grid,
                           lon_grid,
                           surface_props_data,
@@ -836,14 +834,14 @@ void x2artsAtmAndSurf(Workspace& ws,
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            atmosphere_dim,
+                            3,
                             lat_grid,
                             lon_grid);
       // Map values in x back to surface_props_data
       Matrix surf_x(n_lat, n_lon);
       reshape(surf_x, x_t[ind]);
       Matrix surf;
-      regrid_atmsurf_by_gp_oem(surf, atmosphere_dim, surf_x, gp_lat, gp_lon);
+      regrid_atmsurf_by_gp_oem(surf, 3, surf_x, gp_lat, gp_lon);
       surface_props_data(isu, joker, joker) = surf;
     }
   }

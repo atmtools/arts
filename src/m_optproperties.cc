@@ -302,7 +302,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
-  // atmosphere_dim = 3
+  // 3 = 3
   if (pnd_field.ncols() > 1) {
     ARTS_ASSERT(pha_mat_sptDOITOpt.nelem() == N_se_total);
     // Assuming that if the size is o.k. for one scattering element, it will
@@ -315,7 +315,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
   }
 
-  // atmosphere_dim = 1, only zenith angle required for scattered directions.
+  // 3 = 1, only zenith angle required for scattered directions.
   else if (pnd_field.ncols() == 1) {
     //ARTS_ASSERT(is_size(scat_theta, doit_za_grid_size, 1,
     //                doit_za_grid_size, aa_grid.nelem()));
@@ -1012,7 +1012,6 @@ void abs_vecAddGasZeeman( Matrix&      abs_vec,
 void pha_matCalc(Tensor4& pha_mat,
                  const Tensor5& pha_mat_spt,
                  const Tensor4& pnd_field,
-                 const Index& atmosphere_dim,
                  const Index& scat_p_index,
                  const Index& scat_lat_index,
                  const Index& scat_lon_index,
@@ -1029,10 +1028,10 @@ void pha_matCalc(Tensor4& pha_mat,
 
   Index ilat = 0;
   Index ilon = 0;
-  if (atmosphere_dim > 1) ilat = scat_lat_index;
-  if (atmosphere_dim > 2) ilon = scat_lon_index;
+  if (3 > 1) ilat = scat_lat_index;
+  if (3 > 2) ilon = scat_lon_index;
 
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     // For 1d atmospheres, we additinally integrate the phase matrix over the
     // azimuth, because there is no azimuth dependency of the incoming
     // field.
@@ -1351,7 +1350,6 @@ void DoitScatteringDataPrepare(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& f_index,
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     const Tensor3& t_field,
     const ArrayOfIndex& cloudbox_limits,
@@ -1390,7 +1388,7 @@ void DoitScatteringDataPrepare(
 
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
-  if (atmosphere_dim == 1)
+  if (3 == 1)
     N_aa_sca = 1;
   else
     N_aa_sca = aa_grid.nelem();
@@ -1473,11 +1471,11 @@ void DoitScatteringDataPrepare(
                       stokes_dim);
   pha_mat_doit = 0;
 
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     Index aa_index_local = 0;
 
     // Get pha_mat at the grid positions
-    // Since atmosphere_dim = 1, there is no loop over lat and lon grids
+    // Since 3 = 1, there is no loop over lat and lon grids
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++) {
       Numeric rtp_temperature_local =
@@ -1504,7 +1502,6 @@ void DoitScatteringDataPrepare(
         pha_matCalc(pha_mat_local,
                     pha_mat_spt_local,
                     pnd_field,
-                    atmosphere_dim,
                     p_index,
                     0,
                     0,
@@ -2774,7 +2771,6 @@ void ScatSpeciesMerge(  //WS Output:
     ArrayOfString& scat_species,
     Index& cloudbox_checked,
     //WS Input:
-    const Index& atmosphere_dim,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor3& t_field,
@@ -2794,7 +2790,7 @@ void ScatSpeciesMerge(  //WS Output:
   //variables by resetting cloudbox_checked to False.
   cloudbox_checked = 0;
 
-  if (atmosphere_dim != 1)
+  if (3 != 1)
     throw std::runtime_error(
         "Merging scattering elements only works with a 1D atmoshere");
 

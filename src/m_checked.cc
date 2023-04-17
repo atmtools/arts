@@ -95,7 +95,6 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void atmfields_checkedCalc(Index& atmfields_checked,
-                           const Index& atmosphere_dim,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
@@ -112,12 +111,11 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                            const Index& negative_vmr_ok,
                            const Verbosity&) {
   // Consistency between dim, grids and atmospheric fields/surfaces
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
-  chk_atm_field("t_field", t_field, atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
+  chk_atm_field("t_field", t_field, 3, p_grid, lat_grid, lon_grid);
   chk_atm_field("vmr_field",
                 vmr_field,
-                atmosphere_dim,
+                3,
                 abs_species.nelem(),
                 p_grid,
                 lat_grid,
@@ -135,33 +133,33 @@ void atmfields_checkedCalc(Index& atmfields_checked,
   if (wind_w_field.npages() > 0) {
     chk_atm_field("wind_w_field",
                   wind_w_field,
-                  atmosphere_dim,
+                  3,
                   p_grid,
                   lat_grid,
                   lon_grid);
   }
-  if (atmosphere_dim < 3 && wind_v_field.npages() > 0) {
+  if (3 < 3 && wind_v_field.npages() > 0) {
     chk_atm_field("wind_v_field",
                   wind_v_field,
-                  atmosphere_dim,
+                  3,
                   p_grid,
                   lat_grid,
                   lon_grid);
   }
-  if (atmosphere_dim > 2) {
+  if (3 > 2) {
     if (wind_u_field.npages() > 0) {
       if (wind_v_field.npages() > 0) {
         bool chk_poles = false;
         chk_atm_field("wind_u_field",
                       wind_u_field,
-                      atmosphere_dim,
+                      3,
                       p_grid,
                       lat_grid,
                       lon_grid,
                       chk_poles);
         chk_atm_field("wind_v_field",
                       wind_v_field,
-                      atmosphere_dim,
+                      3,
                       p_grid,
                       lat_grid,
                       lon_grid,
@@ -170,12 +168,12 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                                wind_v_field,
                                "wind_u_field",
                                wind_u_field,
-                               atmosphere_dim,
+                               3,
                                lat_grid);
       } else {
         chk_atm_field("wind_u_field",
                       wind_u_field,
-                      atmosphere_dim,
+                      3,
                       p_grid,
                       lat_grid,
                       lon_grid);
@@ -184,7 +182,7 @@ void atmfields_checkedCalc(Index& atmfields_checked,
       if (wind_v_field.npages() > 0) {
         chk_atm_field("wind_v_field",
                       wind_v_field,
-                      atmosphere_dim,
+                      3,
                       p_grid,
                       lat_grid,
                       lon_grid);
@@ -207,7 +205,7 @@ void atmfields_checkedCalc(Index& atmfields_checked,
   if (mag_w_field.npages() > 0) {
     chk_atm_field("mag_w_field (vertical magfield component)",
                   mag_w_field,
-                  atmosphere_dim,
+                  3,
                   p_grid,
                   lat_grid,
                   lon_grid);
@@ -217,14 +215,14 @@ void atmfields_checkedCalc(Index& atmfields_checked,
       bool chk_poles = false;
       chk_atm_field("mag_v_field",
                     mag_v_field,
-                    atmosphere_dim,
+                    3,
                     p_grid,
                     lat_grid,
                     lon_grid,
                     chk_poles);
       chk_atm_field("mag_u_field",
                     mag_u_field,
-                    atmosphere_dim,
+                    3,
                     p_grid,
                     lat_grid,
                     lon_grid,
@@ -233,12 +231,12 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                              mag_v_field,
                              "mag_u_field",
                              mag_u_field,
-                             atmosphere_dim,
+                             3,
                              lat_grid);
     } else {
       chk_atm_field("mag_u_field",
                     mag_u_field,
-                    atmosphere_dim,
+                    3,
                     p_grid,
                     lat_grid,
                     lon_grid);
@@ -247,7 +245,7 @@ void atmfields_checkedCalc(Index& atmfields_checked,
     if (mag_v_field.npages() > 0) {
       chk_atm_field("mag_v_field",
                     mag_v_field,
-                    atmosphere_dim,
+                    3,
                     p_grid,
                     lat_grid,
                     lon_grid);
@@ -260,7 +258,6 @@ void atmfields_checkedCalc(Index& atmfields_checked,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void atmgeom_checkedCalc(Index& atmgeom_checked,
-                         const Index& atmosphere_dim,
                          const Vector& p_grid,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
@@ -273,8 +270,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
                          const Verbosity&) {
   // A repetition from atmfields_checked, but we do this to make the two parts
   // independent (the other option would be to demand atmfields_checkec == 1)
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 
   // *refellipsoid*
   ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
@@ -286,12 +282,12 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
   ARTS_USER_ERROR_IF (refellipsoid[1] < 0 || refellipsoid[1] > 1,
         "The second element of *refellipsoid* must be "
         "inside [0,1].");
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1 && refellipsoid[1] != 0,
+  ARTS_USER_ERROR_IF (3 == 1 && refellipsoid[1] != 0,
         "For 1D, the second element of *refellipsoid* "
         "(the eccentricity) must be 0.");
 
-  chk_atm_field("z_field", z_field, atmosphere_dim, p_grid, lat_grid, lon_grid);
-  chk_atm_surface("z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid);
+  chk_atm_field("z_field", z_field, 3, p_grid, lat_grid, lon_grid);
+  chk_atm_surface("z_surface", z_surface, 3, lat_grid, lon_grid);
 
   // Check that z_field has strictly increasing pages.
   for (Index row = 0; row < z_field.nrows(); row++) {
@@ -317,15 +313,15 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
         "min of z_field: ", z_field(0, row, col), "\n"
         "max of z_field: ", z_field(z_field.npages() - 1, row, col),
         "\n",
-        (atmosphere_dim > 1) ? var_string("\nThis was found to be the case for:\n", "latitude ", lat_grid[row]) : var_string(),
-        (atmosphere_dim > 2) ? var_string("\nlongitude ", lon_grid[col]) : var_string())
+        (3 > 1) ? var_string("\nThis was found to be the case for:\n", "latitude ", lat_grid[row]) : var_string(),
+        (3 > 2) ? var_string("\nlongitude ", lon_grid[col]) : var_string())
     }
   }
 
   // A rough check of gradients in the 500 hPa level (or closest pressure level)
   // This check is just run in the latitude direction, along some longitudes to
   // save time
-  if (atmosphere_dim > 1) {
+  if (3 > 1) {
     // Find 500 hPa
     Index ip = -1; Numeric dpmin = 99e99;
     for (Index i=0; i<p_grid.nelem(); i++) {
@@ -358,13 +354,13 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
   }
   
   // lat/lon true
-  if (atmosphere_dim < 3 && (lat_true.nelem() || lon_true.nelem())) {
-    if (atmosphere_dim == 1) {
+  if (3 < 3 && (lat_true.nelem() || lon_true.nelem())) {
+    if (3 == 1) {
       ARTS_USER_ERROR_IF (lat_true.nelem() != 1,
                           "For 1D, *lat_true* must have length 1.");
       ARTS_USER_ERROR_IF (lon_true.nelem() != 1,
                           "For 1D, *lon_true* must have length 1.");
-    } else if (atmosphere_dim == 2) {
+    } else if (3 == 2) {
       ARTS_USER_ERROR_IF (lat_true.nelem() != lat_grid.nelem(),
             "For 2D, *lat_true* must have same length as *lat_grid*.");
       ARTS_USER_ERROR_IF (lon_true.nelem() != lat_grid.nelem(),
@@ -386,7 +382,6 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_checkedCalc(Index& cloudbox_checked,
                           const Index& atmfields_checked,
-                          const Index& atmosphere_dim,
                           const Vector& p_grid,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
@@ -437,10 +432,10 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
           "'particles' (absorbing-only particles)!");
 
     // Cloudbox limits
-    ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != atmosphere_dim * 2,
+    ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 3 * 2,
         "The array *cloudbox_limits* has incorrect length.\n"
-        "For atmospheric dim. = ", atmosphere_dim,
-        " the length shall be ", atmosphere_dim * 2, " but it is ",
+        "For atmospheric dim. = ", 3,
+        " the length shall be ", 3 * 2, " but it is ",
         cloudbox_limits.nelem(), ".")
     ARTS_USER_ERROR_IF (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
                         cloudbox_limits[1] >= p_grid.nelem(),
@@ -453,7 +448,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
 
     Index nlat = 1, nlon = 1;
 
-    if (atmosphere_dim > 1) {
+    if (3 > 1) {
       nlat = lat_grid.nelem();
       if (demand_latlon_margin) {
         ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] ||
@@ -468,8 +463,8 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
           " - ", cloudbox_limits[3], ".")
         ARTS_USER_ERROR_IF ((lat_grid[cloudbox_limits[2]] -
                              lat_grid[0] < LAT_LON_MIN) &&
-                            (atmosphere_dim == 2 ||
-                             (atmosphere_dim == 3 && lat_grid[0] > -90)),
+                            (3 == 2 ||
+                             (3 == 3 && lat_grid[0] > -90)),
           "Too small distance between cloudbox and lower end of "
           "latitude grid.\n"
           "This distance must be ", LAT_LON_MIN, " degrees.\n"
@@ -477,8 +472,8 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
           " and latitude grid starts at ", lat_grid[0], ".")
         ARTS_USER_ERROR_IF ((lat_grid[nlat - 1] -
                              lat_grid[cloudbox_limits[3]] < LAT_LON_MIN) &&
-                            (atmosphere_dim == 2 ||
-                             (atmosphere_dim == 3 && lat_grid[nlat - 1] < 90)),
+                            (3 == 2 ||
+                             (3 == 3 && lat_grid[nlat - 1] < 90)),
           "Too small distance between cloudbox and upper end of "
           "latitude grid.\n"
           "This distance must be ", LAT_LON_MIN, " degrees.\n"
@@ -498,7 +493,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
       }  
     }
 
-    if (atmosphere_dim > 2) {
+    if (3 > 2) {
       nlon = lon_grid.nelem();
       if (demand_latlon_margin) {
         ARTS_USER_ERROR_IF (cloudbox_limits[5] <= cloudbox_limits[4] ||
@@ -554,14 +549,14 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
     const Index np = TotalNumberOfElements(scat_data);
     // Dummy variables to mimic grids of correct size
     Vector g1(cloudbox_limits[1] - cloudbox_limits[0] + 1), g2(0), g3(0);
-    if (atmosphere_dim > 1) {
+    if (3 > 1) {
       g2.resize(cloudbox_limits[3] - cloudbox_limits[2] + 1);
     }
-    if (atmosphere_dim > 2) {
+    if (3 > 2) {
       g3.resize(cloudbox_limits[5] - cloudbox_limits[4] + 1);
     }
 
-    chk_atm_field("pnd_field", pnd_field, atmosphere_dim, np, g1, g2, g3);
+    chk_atm_field("pnd_field", pnd_field, 3, np, g1, g2, g3);
 
     ARTS_USER_ERROR_IF (!negative_pnd_ok && min(pnd_field) < 0,
                         "Negative values in *pnd_field* not allowed.");
@@ -584,7 +579,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
       ARTS_USER_ERROR_IF (max(pnd_field(joker, g1.nelem() - 1, joker, joker)) > 0,
             "A non-zero value found in *pnd_field* at "
             "upper altitude limit of the cloudbox.");
-    if (atmosphere_dim >= 2) {
+    if (3 >= 2) {
       ARTS_USER_ERROR_IF (max(pnd_field(joker, joker, 0, joker)) > 0,
             "A non-zero value found in *pnd_field* at "
             "lower latitude limit of the cloudbox.");
@@ -592,7 +587,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
             "A non-zero value found in *pnd_field* at "
             "upper latitude limit of the cloudbox.");
     }
-    if (atmosphere_dim == 3) {
+    if (3 == 3) {
       ARTS_USER_ERROR_IF (max(pnd_field(joker, joker, joker, 0)) > 0,
             "A non-zero value found in *pnd_field* at "
             "lower longitude limit of the cloudbox.");
@@ -981,7 +976,6 @@ void propmat_clearsky_agenda_checkedCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_checkedCalc(Index& sensor_checked,
-                        const Index& atmosphere_dim,
                         const Index& stokes_dim,
                         const Vector& f_grid,
                         const Matrix& sensor_pos,
@@ -1012,12 +1006,12 @@ void sensor_checkedCalc(Index& sensor_checked,
   ARTS_USER_ERROR_IF (sensor_los.empty(),
                       "*sensor_los* is empty. This is not allowed.");
   //
-  ARTS_USER_ERROR_IF (sensor_pos.ncols() != atmosphere_dim,
+  ARTS_USER_ERROR_IF (sensor_pos.ncols() != 3,
         "The number of columns of sensor_pos must be "
         "equal to the atmospheric dimensionality.");
-  ARTS_USER_ERROR_IF (atmosphere_dim <= 2 && sensor_los.ncols() != 1,
+  ARTS_USER_ERROR_IF (3 <= 2 && sensor_los.ncols() != 1,
                       "For 1D and 2D, sensor_los shall have one column.");
-  ARTS_USER_ERROR_IF (atmosphere_dim == 3 && sensor_los.ncols() != 2,
+  ARTS_USER_ERROR_IF (3 == 3 && sensor_los.ncols() != 2,
                       "For 3D, sensor_los shall have two columns.");
   ARTS_USER_ERROR_IF (sensor_los.nrows() != nmblock,
       "The number of rows of sensor_pos and sensor_los must be "
@@ -1025,16 +1019,16 @@ void sensor_checkedCalc(Index& sensor_checked,
       "while sensor_los has ", sensor_los.nrows(), " rows.")
   ARTS_USER_ERROR_IF (max(sensor_los(joker, 0)) > 180,
         "First column of *sensor_los* is not allowed to have values above 180.");
-  if (atmosphere_dim == 2) {
+  if (3 == 2) {
     ARTS_USER_ERROR_IF (min(sensor_los(joker, 0)) < -180,
-          "For atmosphere_dim = 2, first column of "
+          "For 3 = 2, first column of "
           "*sensor_los* is not allowed to have values below -180.");
   } else {
     ARTS_USER_ERROR_IF (min(sensor_los(joker, 0)) < 0,
-          "For atmosphere_dim != 2, first column of "
+          "For 3 != 2, first column of "
           "*sensor_los* is not allowed to have values below 0.");
   }
-  if (atmosphere_dim == 3) {
+  if (3 == 3) {
     ARTS_USER_ERROR_IF (max(sensor_los(joker, 1)) > 180,
           "Second column of *sensor_los* is not allowed to have values above 180.");
     ARTS_USER_ERROR_IF (min(sensor_los(joker, 1)) < -180,
@@ -1046,7 +1040,7 @@ void sensor_checkedCalc(Index& sensor_checked,
     ARTS_USER_ERROR_IF (transmitter_pos.nrows() != sensor_pos.nrows(),
           "*transmitter_pos* must either be empty or have "
           "the same number of rows as *sensor_pos*.");
-    ARTS_USER_ERROR_IF (transmitter_pos.ncols() != max(Index(2), atmosphere_dim),
+    ARTS_USER_ERROR_IF (transmitter_pos.ncols() != max(Index(2), 3),
           "*transmitter_pos* must either be empty, have "
           "2 for 1D/2D or 3 columns for 3D.");
   }
@@ -1057,7 +1051,7 @@ void sensor_checkedCalc(Index& sensor_checked,
         "*mblock_dlos* is empty.");
   ARTS_USER_ERROR_IF (mblock_dlos.ncols() > 2,
         "The maximum number of columns in *mblock_dlos* is two.");
-  if (atmosphere_dim < 3) {
+  if (3 < 3) {
     ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 1,
           "For 1D and 2D *mblock_dlos* must have exactly one column.");
   }

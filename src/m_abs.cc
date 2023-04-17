@@ -229,15 +229,14 @@ void AbsInputFromAtmFields(  // WS Output:
     Vector& abs_t,
     Matrix& abs_vmrs,
     // WS Input:
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Tensor3& t_field,
     const Tensor4& vmr_field,
     const Verbosity&) {
   // First, make sure that we really have a 1D atmosphere:
-  ARTS_USER_ERROR_IF(1 != atmosphere_dim,
-                     "Atmospheric dimension must be 1D, but atmosphere_dim is ",
-                     atmosphere_dim,
+  ARTS_USER_ERROR_IF(1 != 3,
+                     "Atmospheric dimension must be 1D, but 3 is ",
+                     3,
                      ".")
 
   abs_p = p_grid;
@@ -426,7 +425,6 @@ void propmat_clearskyAddParticles(
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const Index& stokes_dim,
-    const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -479,14 +477,14 @@ void propmat_clearskyAddParticles(
       " *scat_data* elements.\n")
 
   ARTS_USER_ERROR_IF(
-      atmosphere_dim == 1 && rtp_los.nelem() < 1,
+      3 == 1 && rtp_los.nelem() < 1,
       "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-      "(at least zenith angle component for atmosphere_dim==1),\n"
+      "(at least zenith angle component for 3==1),\n"
       "but it is not.\n")
   ARTS_USER_ERROR_IF(
-      atmosphere_dim > 1 && rtp_los.nelem() < 2,
+      3 > 1 && rtp_los.nelem() < 2,
       "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-      "(both zenith and azimuth angle components for atmosphere_dim>1),\n"
+      "(both zenith and azimuth angle components for 3>1),\n"
       "but it is not.\n")
 
   // Use for rescaling vmr of particulates
@@ -499,7 +497,7 @@ void propmat_clearskyAddParticles(
 
   const Index na = abs_species.nelem();
   Vector rtp_los_back;
-  mirror_los(rtp_los_back, rtp_los, atmosphere_dim);
+  mirror_los(rtp_los_back, rtp_los, 3);
 
   // 170918 JM: along with transition to use of new-type (aka
   // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical
@@ -959,7 +957,6 @@ void WriteMolTau(  //WS Input
     const Vector& f_grid,
     const Tensor3& z_field,
     const Tensor7& propmat_clearsky_field,
-    const Index& atmosphere_dim,
     //Keyword
     const String& filename,
     const Verbosity&) {
@@ -968,8 +965,8 @@ void WriteMolTau(  //WS Input
   int dimids[4];
   int wvlmin_varid, wvlmax_varid, z_varid, wvl_varid, tau_varid;
 
-  ARTS_USER_ERROR_IF(atmosphere_dim != 1,
-                     "WriteMolTau can only be used for atmosphere_dim=1")
+  ARTS_USER_ERROR_IF(3 != 1,
+                     "WriteMolTau can only be used for 3=1")
 #pragma omp critical(netcdf__critical_region)
   {
     // Open file
@@ -1112,7 +1109,6 @@ void WriteMolTau(  //WS Input
     const Vector& f_grid _U_,
     const Tensor3& z_field _U_,
     const Tensor7& propmat_clearsky_field _U_,
-    const Index& atmosphere_dim _U_,
     //Keyword
     const String& filename _U_,
     const Verbosity&) {

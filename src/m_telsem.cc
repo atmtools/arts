@@ -78,7 +78,6 @@ void telsemStandalone(Matrix &emis,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsemSurfaceTypeLandSea(Index &surface_type,
-                              const Index &atmosphere_dim,
                               const Vector &lat_grid,
                               const Vector &lat_true,
                               const Vector &lon_true,
@@ -86,11 +85,11 @@ void telsemSurfaceTypeLandSea(Index &surface_type,
                               const TelsemAtlas &atlas,
                               const Verbosity &) {
   // Checks
-  chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
+  chk_latlon_true(3, lat_grid, lat_true, lon_true);
 
   Numeric lat, lon;
   pos2true_latlon(
-      lat, lon, atmosphere_dim, lat_grid, lat_true, lon_true, rtp_pos);
+      lat, lon, 3, lat_grid, lat_true, lon_true, rtp_pos);
   chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
   chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
 

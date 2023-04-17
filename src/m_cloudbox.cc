@@ -120,7 +120,6 @@ void cloudboxSetAutomatically(  // WS Output:
     ArrayOfIndex& cloudbox_limits,
     //Agenda&  iy_cloudbox_agenda,
     // WS Input:
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
@@ -129,31 +128,30 @@ void cloudboxSetAutomatically(  // WS Output:
     const Numeric& cloudbox_margin,
     const Verbosity& verbosity) {
   // Check existing WSV
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   // includes p_grid chk_if_decreasing
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
   // Set cloudbox_on
   cloudbox_on = 1;
 
-  ARTS_USER_ERROR_IF (atmosphere_dim > 1,
+  ARTS_USER_ERROR_IF (3 > 1,
     "cloudboxSetAutomatically not yet available for 2D and 3D cases.")
 
   Index np = p_grid.nelem();
 
   // Allocate cloudbox_limits
-  cloudbox_limits.resize(atmosphere_dim * 2);
+  cloudbox_limits.resize(3 * 2);
 
   // Initialize boundary counters
   Index p1 = np - 1, p2 = 0;
 
   // OLE: Commented out until code that uses it at the end of this function is commented back in
   /*
-  if ( atmosphere_dim > 1 )
+  if ( 3 > 1 )
     {
       Index lat1 = particle_field.nrows()-1;
       Index lat2 = 0;
     }
-  if ( atmosphere_dim > 2 )
+  if ( 3 > 2 )
     {
       Index lon1 = particle_field.ncols()-1;
       Index lon2 = 0;
@@ -174,7 +172,7 @@ void cloudboxSetAutomatically(  // WS Output:
       chk_scat_species_field(one_not_empty,
                              Tensor3{particle_field(l, joker, joker, joker)},
                              "particle_field",
-                             atmosphere_dim,
+                             3,
                              p_grid,
                              lat_grid,
                              lon_grid);
@@ -185,7 +183,7 @@ void cloudboxSetAutomatically(  // WS Output:
         find_cloudlimits(p1,
                          p2,
                          Tensor3{particle_field(l, joker, joker, joker)},
-                         atmosphere_dim,
+                         3,
                          cloudbox_margin);
       }
     }
@@ -226,7 +224,7 @@ void cloudboxSetAutomatically(  // WS Output:
     ARTS_ASSERT(p_grid[p2] < p_grid[0]);
 
     /*
-    if ( atmosphere_dim >= 2 )
+    if ( 3 >= 2 )
     {
       // The latitude in *lat2* must be bigger than the latitude in *lat1*.
       ARTS_ASSERT ( lat_grid[lat2] > lat_grid[lat1] );
@@ -235,7 +233,7 @@ void cloudboxSetAutomatically(  // WS Output:
       // The latitude in *lat2* must be <= the next to last value in *lat_grid*.
       ARTS_ASSERT ( lat_grid[lat2] <= lat_grid[lat_grid.nelem()-2] );
     }
-    if ( atmosphere_dim == 3 )
+    if ( 3 == 3 )
     {
       // The longitude in *lon2* must be bigger than the longitude in *lon1*.
       ARTS_ASSERT ( lon_grid[lon2] > lon_grid[lon1] );
@@ -265,19 +263,18 @@ void cloudboxSetFullAtm(  //WS Output
     Index& cloudbox_on,
     ArrayOfIndex& cloudbox_limits,
     // WS Input
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
     const Index& fullfull,
     const Verbosity&) {
   cloudbox_on = 1;
-  cloudbox_limits.resize(2 * atmosphere_dim);
+  cloudbox_limits.resize(2 * 3);
 
   cloudbox_limits[0] = 0;
   cloudbox_limits[1] = p_grid.nelem() - 1;
 
-  if (atmosphere_dim > 1) {
+  if (3 > 1) {
     if (fullfull) {
       cloudbox_limits[2] = 0;
       cloudbox_limits[3] = lat_grid.nelem() - 1;
@@ -307,7 +304,7 @@ void cloudboxSetFullAtm(  //WS Output
     }
   }
 
-  if (atmosphere_dim > 2) {
+  if (3 > 2) {
     if (fullfull) {
       cloudbox_limits[4] = 0;
       cloudbox_limits[5] = lon_grid.nelem() - 1;
@@ -348,7 +345,6 @@ void cloudboxSetManually(  // WS Output:
     Index& cloudbox_on,
     ArrayOfIndex& cloudbox_limits,
     // WS Input:
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
@@ -361,8 +357,7 @@ void cloudboxSetManually(  // WS Output:
     const Numeric& lon2,
     const Verbosity&) {
   // Check existing WSV
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 
   // Check keyword arguments
   ARTS_USER_ERROR_IF (p1 <= p2,
@@ -374,7 +369,7 @@ void cloudboxSetManually(  // WS Output:
   ARTS_USER_ERROR_IF (p2 >= p_grid[0],
         "The pressure in *p2* must be smaller than the "
         "first value in *p_grid*.");
-  if (atmosphere_dim >= 2) {
+  if (3 >= 2) {
     ARTS_USER_ERROR_IF (lat2 <= lat1,
           "The latitude in *lat2* must be bigger than the "
           "latitude in *lat1*.");
@@ -385,7 +380,7 @@ void cloudboxSetManually(  // WS Output:
           "The latitude in *lat2* must be <= the "
           "next to last value in *lat_grid*.");
   }
-  if (atmosphere_dim == 3) {
+  if (3 == 3) {
     ARTS_USER_ERROR_IF (lon2 <= lon1,
           "The longitude in *lon2* must be bigger than the "
           "longitude in *lon1*.");
@@ -401,7 +396,7 @@ void cloudboxSetManually(  // WS Output:
   cloudbox_on = 1;
 
   // Allocate cloudbox_limits
-  cloudbox_limits.resize(atmosphere_dim * 2);
+  cloudbox_limits.resize(3 * 2);
 
   // Pressure limits
   if (p1 > p_grid[1]) {
@@ -421,7 +416,7 @@ void cloudboxSetManually(  // WS Output:
   }
 
   // Latitude limits
-  if (atmosphere_dim >= 2) {
+  if (3 >= 2) {
     for (cloudbox_limits[2] = 1; lat_grid[cloudbox_limits[2] + 1] <= lat1;
          cloudbox_limits[2]++) {
     }
@@ -432,7 +427,7 @@ void cloudboxSetManually(  // WS Output:
   }
 
   // Longitude limits
-  if (atmosphere_dim == 3) {
+  if (3 == 3) {
     for (cloudbox_limits[4] = 1; lon_grid[cloudbox_limits[4] + 1] <= lon1;
          cloudbox_limits[4]++) {
     }
@@ -448,7 +443,6 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     Index& cloudbox_on,
     ArrayOfIndex& cloudbox_limits,
     // WS Input:
-    const Index& atmosphere_dim,
     const Tensor3& z_field,
     const Vector& lat_grid,
     const Vector& lon_grid,
@@ -461,7 +455,6 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     const Numeric& lon2,
     const Verbosity&) {
   // Check existing WSV
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
 
   // Check keyword arguments
   ARTS_USER_ERROR_IF (z1 >= z2,
@@ -475,7 +468,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     throw runtime_error( "The altitude in *z2* must be smaller than the "
                          "last value in *z_field*." );
   */
-  if (atmosphere_dim == 3) {
+  if (3 == 3) {
     ARTS_USER_ERROR_IF (lat2 <= lat1,
           "The latitude in *lat2* must be bigger than the "
           " latitude in *lat1*.");
@@ -500,7 +493,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
   cloudbox_on = 1;
 
   // Allocate cloudbox_limits
-  cloudbox_limits.resize(atmosphere_dim * 2);
+  cloudbox_limits.resize(3 * 2);
 
   // Pressure/altitude limits
   if (z1 < z_field(1, 0, 0)) {
@@ -520,7 +513,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
   }
 
   // Latitude limits
-  if (atmosphere_dim >= 2) {
+  if (3 >= 2) {
     for (cloudbox_limits[2] = 1; lat_grid[cloudbox_limits[2] + 1] <= lat1;
          cloudbox_limits[2]++) {
     }
@@ -531,7 +524,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
   }
 
   // Longitude limits
-  if (atmosphere_dim == 3) {
+  if (3 == 3) {
     for (cloudbox_limits[4] = 1; lon_grid[cloudbox_limits[4] + 1] <= lon1;
          cloudbox_limits[4]++) {
     }
@@ -550,7 +543,6 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Index& jacobian_do,
                            const Index& cloudbox_on,
                            const ArrayOfIndex& cloudbox_limits,
-                           const Index& atmosphere_dim,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
@@ -568,17 +560,17 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Index& aa_interp_order,
                            const Verbosity&) {
   //--- Check input -----------------------------------------------------------
-  ARTS_USER_ERROR_IF (!(atmosphere_dim == 1 || atmosphere_dim == 3),
+  ARTS_USER_ERROR_IF (!(3 == 1 || 3 == 3),
                       "The atmospheric dimensionality must be 1 or 3.");
   ARTS_USER_ERROR_IF (jacobian_do,
         "This method does not support jacobians (jacobian_do must be 0)");
   ARTS_USER_ERROR_IF (!cloudbox_on,
         "The cloud box is not activated and no outgoing "
         "field can be returned.");
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the upper and lower\n"
         "limit of the cloud for all atmospheric dimensions.\n"
-        "So its length must be 2 x *atmosphere_dim*");
+        "So its length must be 2 x *3*");
   ARTS_USER_ERROR_IF (za_grid.nelem() == 0,
         "The variable *za_grid* is empty. Are dummy "
         "values from *cloudboxOff used?");
@@ -586,7 +578,7 @@ void iyInterpCloudboxField(Matrix& iy,
         "Zenith angle interpolation order *za_interp_order*"
         " must be smaller\n"
         "than number of angles in *za_grid*.");
-  ARTS_USER_ERROR_IF (atmosphere_dim > 1 && !(aa_interp_order < aa_grid.nelem()),
+  ARTS_USER_ERROR_IF (3 > 1 && !(aa_interp_order < aa_grid.nelem()),
         "Azimuth angle interpolation order *aa_interp_order*"
         " must be smaller\n"
         "than number of angles in *aa_grid*.");
@@ -613,7 +605,7 @@ void iyInterpCloudboxField(Matrix& iy,
   rte_pos2gridpos(gp_p,
                   gp_lat,
                   gp_lon,
-                  atmosphere_dim,
+                  3,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -632,12 +624,12 @@ void iyInterpCloudboxField(Matrix& iy,
     border = 0;
   } else if (is_gridpos_at_index_i(gp_p, cloudbox_limits[1], false)) {
     border = 1;
-  } else if (atmosphere_dim > 1) {
+  } else if (3 > 1) {
     if (is_gridpos_at_index_i(gp_lat, cloudbox_limits[2], false)) {
       border = 2;
     } else if (is_gridpos_at_index_i(gp_lat, cloudbox_limits[3], false)) {
       border = 3;
-    } else if (atmosphere_dim > 2) {
+    } else if (3 > 2) {
       if (is_gridpos_at_index_i(gp_lon, cloudbox_limits[4], false)) {
         border = 4;
       } else if (is_gridpos_at_index_i(gp_lon, cloudbox_limits[5], false)) {
@@ -662,7 +654,7 @@ void iyInterpCloudboxField(Matrix& iy,
     }
 
     // Check in lat and lon dimensions
-    if (atmosphere_dim == 3 && inside) {
+    if (3 == 3 && inside) {
       fgp = fractional_gp(gp_lat);
       if (fgp < Numeric(cloudbox_limits[2]) ||
           fgp > Numeric(cloudbox_limits[3])) {
@@ -708,10 +700,10 @@ void iyInterpCloudboxField(Matrix& iy,
 
   // Sensor points inside the cloudbox
   if (border == 99) {
-    ARTS_USER_ERROR_IF (atmosphere_dim == 3,
+    ARTS_USER_ERROR_IF (3 == 3,
           "Radiation extraction for a position inside cloudbox\n"
           "is not yet implemented for 3D cases.\n");
-    ARTS_ASSERT(atmosphere_dim == 1);
+    ARTS_ASSERT(3 == 1);
 
     ARTS_ASSERT(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
 
@@ -731,7 +723,7 @@ void iyInterpCloudboxField(Matrix& iy,
   // Sensor outside the cloudbox
 
   // --- 1D ------------------------------------------------------------------
-  else if (atmosphere_dim == 1) {
+  else if (3 == 1) {
     i_field_local =
         cloudbox_field(joker, border_index, 0, 0, joker, joker, joker);
   }
@@ -886,7 +878,7 @@ void iyInterpCloudboxField(Matrix& iy,
   LagrangeInterpolation::check(za_g, za_interp_order, rte_los[0], za_extpolfac);
   
   // First position if 1D atmosphere, otherwise compute cyclic for a azimuth grid [-180, 180]
-  const auto lag_aa = (atmosphere_dim > 1) ?
+  const auto lag_aa = (3 > 1) ?
     my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>(0, rte_los[1], aa_grid, aa_interp_order) :
     my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>();
   
@@ -988,7 +980,6 @@ void cloudbox_fieldInterp2Azimuth(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldCrop(Tensor7& cloudbox_field,
                         ArrayOfIndex& cloudbox_limits,
-                        const Index& atmosphere_dim,
                         const Index& cloudbox_on,
                         const Index& new_limit0,
                         const Index& new_limit1,
@@ -1006,7 +997,7 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
 
   Tensor7 fcopy = cloudbox_field;
 
-  if (atmosphere_dim == 1) {
+  if (3 == 1) {
     cloudbox_field = fcopy(
         joker,
         Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
@@ -1023,7 +1014,7 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
     ARTS_USER_ERROR_IF (new_limit3 > cloudbox_limits[3],
                         "new_limits3 > cloudbox_limits[3], not allowed!");
 
-    if (atmosphere_dim == 2) {
+    if (3 == 2) {
       cloudbox_field = fcopy(
           joker,
           Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
@@ -1105,7 +1096,6 @@ void ScatElementsPndAndScatAdd(  //WS Output:
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,
     ArrayOfGriddedField3& pnd_field_raw,
     // WS Input (needed for checking the datafiles):
-    const Index& atmosphere_dim,
     // Keywords:
     const ArrayOfString& scat_data_files,
     const ArrayOfString& pnd_field_files,
@@ -1115,8 +1105,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  //chk_atm_grids( 3, p_grid, lat_grid, lon_grid );
 
   //--- Reading the data ---------------------------------------------------
 
@@ -1157,7 +1146,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
 
       chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem() - 1],
                    pnd_field_files[i],
-                   atmosphere_dim,
+                   3,
                    verbosity);
     }
   }
@@ -1168,7 +1157,6 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,
     ArrayOfGriddedField3& pnd_field_raw,
     // WS Input(needed for checking the datafiles):
-    const Index& atmosphere_dim,
     // Keywords:
     const ArrayOfString& scat_data_files,
     const String& pnd_fieldarray_file,
@@ -1178,8 +1166,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  //chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  //chk_atm_grids ( 3, p_grid, lat_grid, lon_grid );
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfSingleScatteringData arr_ssd;
@@ -1201,7 +1188,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   ArrayOfGriddedField3 pnd_tmp;
   xml_read_from_file(pnd_fieldarray_file, pnd_tmp, verbosity);
 
-  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file, atmosphere_dim, verbosity);
+  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file, 3, verbosity);
 
   // append to pnd_field_raw
   for (Index i = 0; i < pnd_tmp.nelem(); ++i)
@@ -1215,7 +1202,6 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
     Index& propmat_clearsky_agenda_checked,
     // WS Input (needed for checking the datafiles):
-    const Index& atmosphere_dim,
     const Vector& f_grid,
     // Keywords:
     const ArrayOfString& scat_data_files,
@@ -1226,8 +1212,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  //chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  //chk_atm_grids( 3, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
   ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
@@ -1299,7 +1284,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
 
       chk_pnd_data(vmr_field_raw[vmr_field_raw.nelem() - 1],
                    pnd_field_files[i],
-                   atmosphere_dim,
+                   3,
                    verbosity);
     }
 
@@ -1697,7 +1682,6 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     const ArrayOfGriddedField3& pnd_field_raw,
-    const Index& atmosphere_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Index& zeropadding,
@@ -1711,7 +1695,7 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
       "*ParticleTypeInit* and *ParticleTypeAdd(All)* for reading\n"
       "scattering element data.\n")
 
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
   ArrayOfIndex cloudbox_limits_tmp;
   /*if ( cloudbox_limits.empty() )
     {
@@ -1720,36 +1704,36 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
       //scat_data_single&pnd_fields for non-scatt, greybody cloud calculations.
       //Hence, set the limits to first & last elements of the different grids.
       //Note: no margin left at lat/lon_grid edges!.
-      cloudbox_limits_tmp.resize(2*atmosphere_dim);
+      cloudbox_limits_tmp.resize(2*3);
 
       // Pressure limits
       cloudbox_limits_tmp[0] = 0;
       cloudbox_limits_tmp[1] = p_grid.nelem() - 1;
       // Latitude limits
-      if( atmosphere_dim >= 2 )
+      if( 3 >= 2 )
         {
           cloudbox_limits_tmp[2] = 0;
           cloudbox_limits_tmp[3] = lat_grid.nelem() - 1;
         }
       // Longitude limits
-      if( atmosphere_dim == 3 )
+      if( 3 == 3 )
         {
           cloudbox_limits_tmp[4] = 0;
           cloudbox_limits_tmp[5] = lon_grid.nelem() - 1;
         }
     }
   else */
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*");
+        "be 2 x *3*");
   cloudbox_limits_tmp = cloudbox_limits;
 
   // Check that pnd_field_raw has at least 2 grid-points in each dimension.
   // Otherwise, interpolation further down will fail with assertion.
 
-  for (Index d = 0; d < atmosphere_dim; d++) {
+  for (Index d = 0; d < 3; d++) {
     for (Index i = 0; i < pnd_field_raw.nelem(); i++) {
       ARTS_USER_ERROR_IF (pnd_field_raw[i].get_grid_size(d) < 2,
         "Error in pnd_field_raw data. "
@@ -1768,7 +1752,7 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
       p_grid[Range(cloudbox_limits_tmp[0], Np_cloud)];
 
   // Check that no scatterers exist outside the cloudbox
-  chk_pnd_field_raw_only_in_cloudbox(atmosphere_dim,
+  chk_pnd_field_raw_only_in_cloudbox(3,
                                      pnd_field_raw,
                                      p_grid,
                                      lat_grid,
@@ -1776,111 +1760,55 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
                                      cloudbox_limits_tmp);
 
   //==========================================================================
-  if (atmosphere_dim == 1) {
-    ArrayOfGriddedField3 pnd_field_tmp;
+  const Index Nlat_cloud =
+      cloudbox_limits_tmp[3] - cloudbox_limits_tmp[2] + 1;
+  const Index Nlon_cloud =
+      cloudbox_limits_tmp[5] - cloudbox_limits_tmp[4] + 1;
 
-    GriddedFieldPRegrid(
-        pnd_field_tmp, Vector{p_grid_cloud}, pnd_field_raw, 1, zeropadding, verbosity);
+  if (zeropadding) {
+    // FIXME: OLE: Implement this
+    CREATE_OUT0;
+    out0 << "WARNING: zeropadding currently only supported for 1D.";
+  }
 
-    FieldFromGriddedField(pnd_field,
-                          Vector{p_grid_cloud},
-                          pnd_field_tmp[0].get_numeric_grid(1),
-                          pnd_field_tmp[0].get_numeric_grid(2),
-                          pnd_field_tmp,
-                          verbosity);
-  } else if (atmosphere_dim == 2) {
-    const Index Nlat_cloud =
-        cloudbox_limits_tmp[3] - cloudbox_limits_tmp[2] + 1;
+  ConstVectorView lat_grid_cloud =
+      lat_grid[Range(cloudbox_limits_tmp[2], Nlat_cloud)];
+  ConstVectorView lon_grid_cloud =
+      lon_grid[Range(cloudbox_limits_tmp[4], Nlon_cloud)];
 
-    ConstVectorView lat_grid_cloud =
-        lat_grid[Range(cloudbox_limits_tmp[2], Nlat_cloud)];
+  //Resize variables
+  pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, Nlon_cloud);
 
-    if (zeropadding) {
-      // FIXME: OLE: Implement this
-      CREATE_OUT0;
-      out0 << "WARNING: zeropadding currently only supported for 1D.";
-    }
+  // Gridpositions:
+  ArrayOfGridPos gp_p(Np_cloud);
+  ArrayOfGridPos gp_lat(Nlat_cloud);
+  ArrayOfGridPos gp_lon(Nlon_cloud);
 
-    //Resize variables
-    pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 1);
+  // Interpolate pnd_field.
+  // Loop over the scattering element types:
+  for (Index i = 0; i < pnd_field_raw.nelem(); ++i) {
+    // Calculate grid positions:
+    p2gridpos(gp_p,
+              pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
+              p_grid_cloud);
+    gridpos(gp_lat,
+            pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
+            lat_grid_cloud);
+    gridpos(gp_lon,
+            pnd_field_raw[i].get_numeric_grid(GFIELD3_LON_GRID),
+            lon_grid_cloud);
 
-    // Gridpositions:
-    ArrayOfGridPos gp_p(Np_cloud);
-    ArrayOfGridPos gp_lat(Nlat_cloud);
+    // Interpolation weights:
+    Tensor4 itw(Np_cloud, Nlat_cloud, Nlon_cloud, 8);
+    interpweights(itw, gp_p, gp_lat, gp_lon);
 
-    // Interpolate pnd_field.
-    // Loop over the scattering element:
-    for (Index i = 0; i < pnd_field_raw.nelem(); ++i) {
-      // Calculate grid positions:
-      p2gridpos(gp_p,
-                pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
-                p_grid_cloud);
-      gridpos(gp_lat,
-              pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
-              lat_grid_cloud);
-
-      // Interpolation weights:
-      Tensor3 itw(Np_cloud, Nlat_cloud, 4);
-      interpweights(itw, gp_p, gp_lat);
-
-      // Interpolate:
-      interp(pnd_field(i, joker, joker, 0),
-             itw,
-             pnd_field_raw[i].data(joker, joker, 0),
-             gp_p,
-             gp_lat);
-    }
-  } else {
-    const Index Nlat_cloud =
-        cloudbox_limits_tmp[3] - cloudbox_limits_tmp[2] + 1;
-    const Index Nlon_cloud =
-        cloudbox_limits_tmp[5] - cloudbox_limits_tmp[4] + 1;
-
-    if (zeropadding) {
-      // FIXME: OLE: Implement this
-      CREATE_OUT0;
-      out0 << "WARNING: zeropadding currently only supported for 1D.";
-    }
-
-    ConstVectorView lat_grid_cloud =
-        lat_grid[Range(cloudbox_limits_tmp[2], Nlat_cloud)];
-    ConstVectorView lon_grid_cloud =
-        lon_grid[Range(cloudbox_limits_tmp[4], Nlon_cloud)];
-
-    //Resize variables
-    pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, Nlon_cloud);
-
-    // Gridpositions:
-    ArrayOfGridPos gp_p(Np_cloud);
-    ArrayOfGridPos gp_lat(Nlat_cloud);
-    ArrayOfGridPos gp_lon(Nlon_cloud);
-
-    // Interpolate pnd_field.
-    // Loop over the scattering element types:
-    for (Index i = 0; i < pnd_field_raw.nelem(); ++i) {
-      // Calculate grid positions:
-      p2gridpos(gp_p,
-                pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
-                p_grid_cloud);
-      gridpos(gp_lat,
-              pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
-              lat_grid_cloud);
-      gridpos(gp_lon,
-              pnd_field_raw[i].get_numeric_grid(GFIELD3_LON_GRID),
-              lon_grid_cloud);
-
-      // Interpolation weights:
-      Tensor4 itw(Np_cloud, Nlat_cloud, Nlon_cloud, 8);
-      interpweights(itw, gp_p, gp_lat, gp_lon);
-
-      // Interpolate:
-      interp(pnd_field(i, joker, joker, joker),
-             itw,
-             pnd_field_raw[i].data,
-             gp_p,
-             gp_lat,
-             gp_lon);
-    }
+    // Interpolate:
+    interp(pnd_field(i, joker, joker, joker),
+            itw,
+            pnd_field_raw[i].data,
+            gp_p,
+            gp_lat,
+            gp_lon);
   }
 
   // no (cloudy) Jacobians with this WSM, hence no calc.
@@ -1890,7 +1818,6 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldExpand1D(Tensor4& pnd_field,
-                       const Index& atmosphere_dim,
                        const Index& cloudbox_on,
                        const ArrayOfIndex& cloudbox_limits,
                        const Index& nzero,
@@ -1899,8 +1826,6 @@ void pnd_fieldExpand1D(Tensor4& pnd_field,
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
 */
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1,
-                      "No use in calling this method for 1D.");
   ARTS_USER_ERROR_IF (!cloudbox_on,
                       "No use in calling this method with cloudbox off.");
   ARTS_USER_ERROR_IF (nzero < 1,
@@ -1910,10 +1835,7 @@ void pnd_fieldExpand1D(Tensor4& pnd_field,
   const Index npart = pnd_field.nbooks();
   const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   const Index nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-  Index nlon = 1;
-  if (atmosphere_dim == 3) {
-    nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-  }
+  Index nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
   ARTS_USER_ERROR_IF (pnd_field.npages() != np ||
                       pnd_field.nrows() != 1 ||
@@ -1945,28 +1867,22 @@ void pnd_fieldZero(  //WS Output:
     ArrayOfTensor4& dpnd_field_dx,
     ArrayOfArrayOfSingleScatteringData& scat_data,
     //WS Input:
-    const Index& atmosphere_dim,
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*");
+        "be 2 x *3*");
 
   // Resize pnd_field and set it to 0:
   Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index nlat = 1, nlon = 1;
-  if (atmosphere_dim > 1) {
     nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-    if (atmosphere_dim > 2) {
       nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-    }
-  }
 
   // no (cloudy) Jacobians with this WSM, hence no setting.
   // but we need to size dpnd_field to be consistent with jacobian_quantities.

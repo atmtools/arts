@@ -40,6 +40,7 @@
 #include <cmath>
 #include <stdexcept>
 #include "arts.h"
+#include "atm.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "lin_alg.h"
@@ -205,9 +206,7 @@ void get_ppath_transmat(
     const Index stokes_dim,
     const Index f_index,
     const Vector& f_grid,
-    const Vector& p_grid,
-    const Tensor3& t_field,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
     const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
@@ -387,14 +386,9 @@ void mcPathTraceRadar(Workspace& ws,
                       const Index f_index,
                       const Vector& f_grid,
                       const Vector& Iprop,
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
-                      const Tensor3& z_field,
                       const Vector& refellipsoid,
                       const Matrix& z_surface,
-                      const Tensor3& t_field,
-                      const Tensor4& vmr_field,
+                      const AtmField& atm_field,
                       const ArrayOfIndex& cloudbox_limits,
                       const Tensor4& pnd_field,
                       const ArrayOfArrayOfSingleScatteringData& scat_data_mono,

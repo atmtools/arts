@@ -245,7 +245,6 @@ void ybatchMetProfiles(Workspace& ws,
                        const Vector& refellipsoid,
                        const Vector& lat_grid,
                        const Vector& lon_grid,
-                       const Index& atmosphere_dim,
                        const ArrayOfArrayOfSingleScatteringData& scat_data,
                        //Keyword
                        const Index& nelem_p_grid,
@@ -418,8 +417,8 @@ void ybatchMetProfiles(Workspace& ws,
       }
     }
 
-    //cloudbox limits have dimensions 2*atmosphere_dim
-    cloudbox_limits.resize(atmosphere_dim * 2);
+    //cloudbox limits have dimensions 2*3
+    cloudbox_limits.resize(3 * 2);
 
     //if there is no cloud in the considered profile, still we
     //need to set the upper limit. I here set the first level

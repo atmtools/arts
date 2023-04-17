@@ -550,19 +550,13 @@ void MCRadar(  // Workspace reference:
     const Matrix& sensor_pos,
     const Matrix& sensor_los,
     const Index& stokes_dim,
-    const Index& atmosphere_dim,
     const Numeric& ppath_lmax,
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lraytrace,
     const Agenda& propmat_clearsky_agenda,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Tensor3& z_field,
     const Vector& refellipsoid,
     const Matrix& z_surface,
-    const Tensor3& t_field,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
@@ -620,9 +614,6 @@ void MCRadar(  // Workspace reference:
         "method.");
   if (f_index >= f_grid.nelem())
     throw runtime_error("*f_index* is outside the range of *f_grid*.");
-
-  if (atmosphere_dim != 3)
-    throw runtime_error("Only 3D atmospheres are handled.");
 
   if (stokes_dim != mc_y_tx.nelem())
     throw runtime_error("*mc_y_tx* must have size of *stokes_dim*.");
@@ -810,14 +801,9 @@ void MCRadar(  // Workspace reference:
                        f_index,
                        f_grid,
                        Ihold,
-                       p_grid,
-                       lat_grid,
-                       lon_grid,
-                       z_field,
                        refellipsoid,
                        z_surface,
-                       t_field,
-                       vmr_field,
+                       atm_field,
                        cloudbox_limits,
                        pnd_field,
                        scat_data,
@@ -856,10 +842,11 @@ void MCRadar(  // Workspace reference:
           // Use this to ensure that the difference in azimuth angle
           // between incident and scattered lines-of-sight is 180
           // degrees
-          mirror_los(rte_los_geom, local_rte_los, atmosphere_dim);
+          mirror_los(rte_los_geom, local_rte_los, 3);
           firstpass = false;
         } else {
           // Replace with ppath_agendaExecute??
+          /*  FIXME: OLD PPATH
           rte_losGeometricFromRtePosToRtePos2(rte_los_geom,
                                               lat_grid,
                                               lon_grid,
@@ -867,6 +854,7 @@ void MCRadar(  // Workspace reference:
                                               local_rte_pos,
                                               Vector{sensor_pos(0, joker)},
                                               verbosity);
+                                              */
         }
 
         // Get los angles at sensor to determine antenna pattern
@@ -880,6 +868,7 @@ void MCRadar(  // Workspace reference:
         Numeric pplrt_factor = 5;
         Numeric pplrt_lowest = 0.5;
 
+          /*  FIXME: OLD PPATH
         rte_losGeometricFromRtePosToRtePos2(rte_los_antenna,
                                             lat_grid,
                                             lon_grid,
@@ -887,7 +876,9 @@ void MCRadar(  // Workspace reference:
                                             Vector{sensor_pos(0, joker)},
                                             local_rte_pos,
                                             verbosity);
+                                            */
 
+          /*  FIXME: OLD PPATH
         ppathFromRtePos2(ws,
                          ppath,
                          rte_los_antenna,
@@ -907,6 +898,7 @@ void MCRadar(  // Workspace reference:
                          pplrt_factor,
                          pplrt_lowest,
                          verbosity);
+                         */
 
         // Return distance
         const Index np2 = ppath.np;
@@ -939,9 +931,7 @@ void MCRadar(  // Workspace reference:
                              stokes_dim,
                              f_index,
                              f_grid,
-                             p_grid,
-                             t_field,
-                             vmr_field,
+                             atm_field,
                              cloudbox_limits,
                              pnd_field,
                              scat_data,

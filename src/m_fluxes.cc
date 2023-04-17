@@ -685,14 +685,12 @@ void spectral_radiance_fieldClearskyPlaneParallel(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_radiance_fieldCopyCloudboxField(
     Tensor7& spectral_radiance_field,
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor7& cloudbox_field,
     const Verbosity&) {
-  if (atmosphere_dim > 1)
-    throw runtime_error("This method can only be used for 1D calculations.\n");
+  throw runtime_error("This method can only be used for 1D calculations.\n");
   if (!cloudbox_on)
     throw runtime_error("Cloudbox is off. This is not handled by this method.");
   if (cloudbox_limits[0] || cloudbox_limits[1] != p_grid.nelem() - 1)

@@ -93,7 +93,6 @@ void ppathFromRtePos2(Workspace& ws,
                       Vector& rte_los,
                       Numeric& ppath_lraytrace,
                       const Agenda& ppath_step_agenda,
-                      const Index& atmosphere_dim,
                       const Vector& p_grid,
                       const Vector& lat_grid,
                       const Vector& lon_grid,
@@ -109,7 +108,7 @@ void ppathFromRtePos2(Workspace& ws,
                       const Numeric& pplrt_lowest,
                       const Verbosity& verbosity) {
   //--- Check input -----------------------------------------------------------
-  ARTS_USER_ERROR_IF (atmosphere_dim == 2,
+  ARTS_USER_ERROR_IF (3 == 2,
         "2D atmospheres not yet handled. Support for negative"
         " zenith angles needed. Remind me (Patrick) to fix this.");
   //---------------------------------------------------------------------------
@@ -126,17 +125,17 @@ void ppathFromRtePos2(Workspace& ws,
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1 =
-      pos2refell_r(atmosphere_dim, refellipsoid, lat_grid, lon_grid, rte_pos) +
+      pos2refell_r(3, refellipsoid, lat_grid, lon_grid, rte_pos) +
       rte_pos[0];
   const Numeric r2 =
-      pos2refell_r(atmosphere_dim, refellipsoid, lat_grid, lon_grid, rte_pos2) +
+      pos2refell_r(3, refellipsoid, lat_grid, lon_grid, rte_pos2) +
       rte_pos2[0];
 
   // Geometric distance between rte_pos and rte_pos2, effective 2D-lat for
   // rte_pos and and Cartesian coordinates of rte_pos:
   Numeric l12, lat1 = 0, x1, y1 = 0, z1;
-  if (atmosphere_dim <= 2) {
-    if (atmosphere_dim == 2) {
+  if (3 <= 2) {
+    if (3 == 2) {
       lat1 = rte_pos[1];
     }
     distance2D(l12, r1, lat1, r2, rte_pos2[1]);
@@ -160,7 +159,7 @@ void ppathFromRtePos2(Workspace& ws,
   Numeric dxip, dyip = 0, dzip;  // Cartesian LOS of the closest ppath point
   //
   // Data for the intersection of the l12-sphere
-  Vector posc(max(Index(2), atmosphere_dim));
+  Vector posc(3);
   Numeric rc, xc, yc = 0, zc;
 
   CREATE_OUT2;
@@ -181,7 +180,7 @@ void ppathFromRtePos2(Workspace& ws,
     ppath_calc(ws,
                ppt,
                ppath_step_agenda,
-               atmosphere_dim,
+               3,
                p_grid,
                lat_grid,
                lon_grid,
@@ -206,7 +205,7 @@ void ppathFromRtePos2(Workspace& ws,
     //
     while (lip >= l12 && ip > 0) {
       ip--;
-      if (atmosphere_dim <= 2) {
+      if (3 <= 2) {
         distance2D(lip, r1, lat1, ppt.r[ip], ppt.pos(ip, 1));
       } else {
         distance3D(lip,
@@ -237,7 +236,7 @@ void ppathFromRtePos2(Workspace& ws,
       // of "miss" (measured in diffference in geometric angles)
       Vector los;
       Numeric dza;
-      if (atmosphere_dim <= 2) {
+      if (3 <= 2) {
         // Convert pos and los for point ip to cartesian coordinates
         poslos2cart(
             xip, zip, dxip, dzip, ppt.r[ip], ppt.pos(ip, 1), ppt.los(ip, 0));
@@ -249,7 +248,7 @@ void ppathFromRtePos2(Workspace& ws,
         posc[1] = latc;
         posc[0] =
             rc - pos2refell_r(
-                     atmosphere_dim, refellipsoid, lat_grid, lon_grid, posc);
+                     3, refellipsoid, lat_grid, lon_grid, posc);
       } else {
         // Convert pos and los for point ip to cartesian coordinates
         poslos2cart(xip,
@@ -282,7 +281,7 @@ void ppathFromRtePos2(Workspace& ws,
         posc[2] = lonc;
         posc[0] =
             rc - pos2refell_r(
-                     atmosphere_dim, refellipsoid, lat_grid, lon_grid, posc);
+                     3, refellipsoid, lat_grid, lon_grid, posc);
       }
       //
       rte_losGeometricFromRtePosToRtePos2(los,
@@ -342,7 +341,7 @@ void ppathFromRtePos2(Workspace& ws,
         za_new = -p[0] / p[1];
       }
       //
-      if (atmosphere_dim == 3) {
+      if (3 == 3) {
         daa = los[1] - rte_los_geom[1];
       }
     }
@@ -356,7 +355,7 @@ void ppathFromRtePos2(Workspace& ws,
 
       //Additional exit condition to avoid endless loop.
       if (abs(za_upp_limit-za_low_limit)<za_upp_limit*1e-15){
-        ppath_init_structure(ppath, atmosphere_dim, 1);
+        ppath_init_structure(ppath, 3, 1);
         ppath_set_background(ppath, 0);
         return;
       }
@@ -365,7 +364,7 @@ void ppathFromRtePos2(Workspace& ws,
 
     } else {
       rte_los[0] = za_new;
-      if (atmosphere_dim == 3) {
+      if (3 == 3) {
         rte_los[1] -= daa;
         if (rte_los[1] < -180) {
           rte_los[1] += 360;
@@ -389,7 +388,6 @@ void ppathFromRtePos2(Workspace& ws,
                        rte_los,
                        ppath_lraytrace,
                        ppath_step_agenda,
-                       atmosphere_dim,
                        p_grid,
                        lat_grid,
                        lon_grid,
@@ -405,7 +403,7 @@ void ppathFromRtePos2(Workspace& ws,
                        pplrt_lowest,
                        verbosity);
     } else {
-      ppath_init_structure(ppath, atmosphere_dim, 1);
+      ppath_init_structure(ppath, 3, 1);
       ppath_set_background(ppath, 0);
     }
     return;  // --->
@@ -417,14 +415,14 @@ void ppathFromRtePos2(Workspace& ws,
   // Otherwise: Fill path and set background to transmitter
 
   if (ground) {
-    ppath_init_structure(ppath, atmosphere_dim, 1);
+    ppath_init_structure(ppath, 3, 1);
     ppath_set_background(ppath, 2);
   }
 
   else {
     // Distance between point ip of ppt and posc
     Numeric ll;
-    if (atmosphere_dim <= 2) {
+    if (3 <= 2) {
       distance2D(ll, rc, posc[1], ppt.r[ip], ppt.pos(ip, 1));
     } else {
       distance3D(
@@ -434,12 +432,12 @@ void ppathFromRtePos2(Workspace& ws,
     // Last point of ppt closest to rte_pos2. No point to add, maybe
     // calculate start_lstep and start_los:
     if (ip == ppt.np - 1) {
-      ppath_init_structure(ppath, atmosphere_dim, ppt.np);
+      ppath_init_structure(ppath, 3, ppt.np);
       ppath_copy(ppath, ppt, -1);
       if (ppath_what_background(ppath) == 1) {
         ppath.start_lstep = ll;
         Numeric d1, d2 = 0, d3;
-        if (atmosphere_dim <= 2) {
+        if (3 <= 2) {
           cart2poslos(d1,
                       d3,
                       ppath.start_los[0],
@@ -475,11 +473,11 @@ void ppathFromRtePos2(Workspace& ws,
     }
     // rte_pos2 inside the atmosphere (posc entered as end point)
     else {
-      ppath_init_structure(ppath, atmosphere_dim, ip + 2);
+      ppath_init_structure(ppath, 3, ip + 2);
       ppath_copy(ppath, ppt, ip + 1);
       //
       const Index i = ip + 1;
-      if (atmosphere_dim <= 2) {
+      if (3 <= 2) {
         cart2poslos(ppath.r[i],
                     ppath.pos(i, 1),
                     ppath.los(i, 0),
@@ -528,15 +526,15 @@ void ppathFromRtePos2(Workspace& ws,
       rte_pos2gridpos(ppath.gp_p[i],
                       gp_lat,
                       gp_lon,
-                      atmosphere_dim,
+                      3,
                       p_grid,
                       lat_grid,
                       lon_grid,
                       z_field,
-                      ppath.pos(i, Range(0, atmosphere_dim)));
-      if (atmosphere_dim >= 2) {
+                      ppath.pos(i, Range(0, 3)));
+      if (3 >= 2) {
         gridpos_copy(ppath.gp_lat[i], gp_lat);
-        if (atmosphere_dim == 3) {
+        if (3 == 3) {
           gridpos_copy(ppath.gp_lon[i], gp_lon);
         }
       }
@@ -550,7 +548,6 @@ void ppathFromRtePos2(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathPlaneParallel(Ppath& ppath,
-                        const Index& atmosphere_dim,
                         const Tensor3& z_field,
                         const Matrix& z_surface,
                         const Index& cloudbox_on,
@@ -575,10 +572,10 @@ void ppathPlaneParallel(Ppath& ppath,
   Index background = -99;
 
   // Basics checks of input
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
+  ARTS_USER_ERROR_IF (3 != 1,
                       "The function can only be used for 1D atmospheres.");
-  chk_rte_pos(atmosphere_dim, rte_pos);
-  chk_rte_los(atmosphere_dim, rte_los);
+  chk_rte_pos(3, rte_pos);
+  chk_rte_los(3, rte_los);
   ARTS_USER_ERROR_IF (ppath_inside_cloudbox_do && !cloudbox_on,
         "The WSV *ppath_inside_cloudbox_do* can only be set "
         "to 1 if also *cloudbox_on* is 1.");
@@ -613,12 +610,12 @@ void ppathPlaneParallel(Ppath& ppath,
   bool path_to_follow = true;
   if (above_toa && za_sensor < 90) {
     // Path fully in space
-    ppath_init_structure(ppath, atmosphere_dim, 1);
+    ppath_init_structure(ppath, 3, 1);
     background = 1;
     path_to_follow = false;
   } else if (z_sensor == z_surface(0, 0) && za_sensor > 90) {
     // On ground, looking down
-    ppath_init_structure(ppath, atmosphere_dim, 1);
+    ppath_init_structure(ppath, 3, 1);
     background = 2;
     path_to_follow = false;
   } else if (cloudbox_on) {
@@ -626,7 +623,7 @@ void ppathPlaneParallel(Ppath& ppath,
         z_sensor > z_field(cloudbox_limits[0], 0, 0) &&
         z_sensor < z_field(cloudbox_limits[1], 0, 0)) {
       // Inside cloud box
-      ppath_init_structure(ppath, atmosphere_dim, 1);
+      ppath_init_structure(ppath, 3, 1);
       background = 4;
       path_to_follow = false;
     } else if ((z_sensor == z_field(cloudbox_limits[0], 0, 0) &&
@@ -634,12 +631,12 @@ void ppathPlaneParallel(Ppath& ppath,
                (z_sensor == z_field(cloudbox_limits[1], 0, 0) &&
                 za_sensor < 90)) {
       // Cloud box boundary
-      ppath_init_structure(ppath, atmosphere_dim, 1);
+      ppath_init_structure(ppath, 3, 1);
       background = 3;
       path_to_follow = false;
     } else if (above_toa && cloudbox_limits[1] == nz - 1) {
       // Cloud box boundary is at TOA
-      ppath_init_structure(ppath, atmosphere_dim, 1);
+      ppath_init_structure(ppath, 3, 1);
       background = 3;
       path_to_follow = false;
     }
@@ -785,7 +782,7 @@ void ppathPlaneParallel(Ppath& ppath,
       }
     }
 
-    ppath_init_structure(ppath, atmosphere_dim, nptot);
+    ppath_init_structure(ppath, 3, nptot);
 
     // Fill ppath.pos(joker,0), ppath.gp_p and ppath.lstep
     Index iout = -1;
@@ -835,7 +832,6 @@ void ppathStepByStep(Workspace& ws,
                      Ppath& ppath,
                      const Agenda& ppath_step_agenda,
                      const Index& ppath_inside_cloudbox_do,
-                     const Index& atmosphere_dim,
                      const Vector& p_grid,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
@@ -853,7 +849,7 @@ void ppathStepByStep(Workspace& ws,
   ppath_calc(ws,
              ppath,
              ppath_step_agenda,
-             atmosphere_dim,
+             3,
              p_grid,
              lat_grid,
              lon_grid,
@@ -889,11 +885,9 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
                                     const Vector& rte_los,
                                     const Vector& rte_pos2,
                                     const Vector& refellipsoid,
-                                    const Index& atmosphere_dim,
                                     const Index& zenith_angles_per_position,
                                     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF (atmosphere_dim not_eq 1,
-                      "Only for 1D atmospheres");
+  ARTS_USER_ERROR ("Only for 1D atmospheres");
   ARTS_USER_ERROR_IF (refellipsoid[1] not_eq 0.0,
                       "Not allowed for non-spherical planets");
   ARTS_USER_ERROR_IF (ppath_lmax >= 0,
@@ -996,7 +990,6 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
 void ppath_stepGeometric(  // WS Output:
     Ppath& ppath_step,
     // WS Input:
-    const Index& atmosphere_dim,
     const Vector& lat_grid,
     const Vector& lon_grid,
     const Tensor3& z_field,
@@ -1011,7 +1004,7 @@ void ppath_stepGeometric(  // WS Output:
   // A call with background set, just wants to obtain the refractive index for
   // complete ppaths consistent of a single point.
   if (!ppath_what_background(ppath_step)) {
-    if (atmosphere_dim == 1) {
+    if (3 == 1) {
       ppath_step_geom_1d(ppath_step,
                          z_field(joker, 0, 0),
                          refellipsoid,
@@ -1019,7 +1012,7 @@ void ppath_stepGeometric(  // WS Output:
                          ppath_lmax);
     }
 
-    else if (atmosphere_dim == 2) {
+    else if (3 == 2) {
       ppath_step_geom_2d(ppath_step,
                          lat_grid,
                          z_field(joker, joker, 0),
@@ -1028,7 +1021,7 @@ void ppath_stepGeometric(  // WS Output:
                          ppath_lmax);
     }
 
-    else if (atmosphere_dim == 3) {
+    else if (3 == 3) {
       ppath_step_geom_3d(ppath_step,
                          lat_grid,
                          lon_grid,
@@ -1054,7 +1047,6 @@ void ppath_stepGeometric(  // WS Output:
 void ppath_stepRefractionBasic(Workspace& ws,
                                Ppath& ppath_step,
                                const Agenda& refr_index_air_agenda,
-                               const Index& atmosphere_dim,
                                const Vector& p_grid,
                                const Vector& lat_grid,
                                const Vector& lon_grid,
@@ -1074,7 +1066,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
   // A call with background set, just wants to obtain the refractive index for
   // complete ppaths consistent of a single point.
   if (!ppath_what_background(ppath_step)) {
-    if (atmosphere_dim == 1) {
+    if (3 == 1) {
       ppath_step_refr_1d(ws,
                          ppath_step,
                          p_grid,
@@ -1088,7 +1080,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
                          refr_index_air_agenda,
                          "linear_basic",
                          ppath_lraytrace);
-    } else if (atmosphere_dim == 2) {
+    } else if (3 == 2) {
       ppath_step_refr_2d(ws,
                          ppath_step,
                          p_grid,
@@ -1103,7 +1095,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
                          refr_index_air_agenda,
                          "linear_basic",
                          ppath_lraytrace);
-    } else if (atmosphere_dim == 3) {
+    } else if (3 == 3) {
       ppath_step_refr_3d(ws,
                          ppath_step,
                          p_grid,
@@ -1126,7 +1118,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
 
   else {
     ARTS_ASSERT(ppath_step.np == 1);
-    if (atmosphere_dim == 1) {
+    if (3 == 1) {
       get_refr_index_1d(ws,
                         ppath_step.nreal[0],
                         ppath_step.ngroup[0],
@@ -1138,7 +1130,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
                         vmr_field,
                         f_grid,
                         ppath_step.r[0]);
-    } else if (atmosphere_dim == 2) {
+    } else if (3 == 2) {
       get_refr_index_2d(ws,
                         ppath_step.nreal[0],
                         ppath_step.ngroup[0],
@@ -1174,7 +1166,6 @@ void ppath_stepRefractionBasic(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losGeometricFromRtePosToRtePos2(Vector& rte_los,
-                                         const Index& atmosphere_dim,
                                          const Vector& lat_grid,
                                          const Vector& lon_grid,
                                          const Vector& refellipsoid,
@@ -1182,15 +1173,15 @@ void rte_losGeometricFromRtePosToRtePos2(Vector& rte_los,
                                          const Vector& rte_pos2,
                                          const Verbosity&) {
   // Check input
-  chk_rte_pos(atmosphere_dim, rte_pos);
-  chk_rte_pos(atmosphere_dim, rte_pos2, true);
+  chk_rte_pos(3, rte_pos);
+  chk_rte_pos(3, rte_pos2, true);
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1 =
-      pos2refell_r(atmosphere_dim, refellipsoid, lat_grid, lon_grid, rte_pos) +
+      pos2refell_r(3, refellipsoid, lat_grid, lon_grid, rte_pos) +
       rte_pos[0];
   const Numeric r2 =
-      pos2refell_r(atmosphere_dim, refellipsoid, lat_grid, lon_grid, rte_pos2) +
+      pos2refell_r(3, refellipsoid, lat_grid, lon_grid, rte_pos2) +
       rte_pos2[0];
 
   // Remaining polar and cartesian coordinates of rte_pos
@@ -1198,37 +1189,17 @@ void rte_losGeometricFromRtePosToRtePos2(Vector& rte_los,
   // Cartesian coordinates of rte_pos2
   Numeric x2, y2 = 0, z2;
   //
-  if (atmosphere_dim == 1) {
-    // Latitude distance implicitly checked by chk_rte_pos
-    lat1 = 0;
-    pol2cart(x1, z1, r1, lat1);
-    pol2cart(x2, z2, r2, rte_pos2[1]);
-  } else if (atmosphere_dim == 2) {
-    lat1 = rte_pos[1];
-    pol2cart(x1, z1, r1, lat1);
-    pol2cart(x2, z2, r2, rte_pos2[1]);
-  } else {
-    lat1 = rte_pos[1];
-    lon1 = rte_pos[2];
-    sph2cart(x1, y1, z1, r1, lat1, lon1);
-    sph2cart(x2, y2, z2, r2, rte_pos2[1], rte_pos2[2]);
-  }
+  lat1 = rte_pos[1];
+  lon1 = rte_pos[2];
+  sph2cart(x1, y1, z1, r1, lat1, lon1);
+  sph2cart(x2, y2, z2, r2, rte_pos2[1], rte_pos2[2]);
 
   // Geometrical LOS to transmitter
   Numeric za, aa;
   //
   los2xyz(za, aa, r1, lat1, lon1, x1, y1, z1, x2, y2, z2);
   //
-  if (atmosphere_dim == 3) {
-    rte_los.resize(2);
-    rte_los[0] = za;
-    rte_los[1] = aa;
-  } else {
-    rte_los.resize(1);
-    rte_los[0] = za;
-    if (atmosphere_dim == 2 && aa < 0)  // Should 2D-za be negative?
-    {
-      rte_los[0] = -za;
-    }
-  }
+  rte_los.resize(2);
+  rte_los[0] = za;
+  rte_los[1] = aa;
 }

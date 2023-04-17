@@ -80,23 +80,21 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
                                     Matrix& antenna_dlos,
                                     Index& antenna_dim,
                                     Matrix& mblock_dlos,
-                                    const Index& atmosphere_dim,
                                     const Verbosity& verbosity) {
   // Sizes
   const Index nmblock = sensor_pos.nrows();
   const Index nant = antenna_dlos.nrows();
 
   // Input checks
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("antenna_dim", antenna_dim, 1, 2);
   //
-  if (sensor_pos.ncols() != atmosphere_dim)
+  if (sensor_pos.ncols() != 3)
     throw runtime_error(
         "The number of columns of sensor_pos must be "
         "equal to the atmospheric dimensionality.");
-  if (atmosphere_dim <= 2 && sensor_los.ncols() != 1)
+  if (3 <= 2 && sensor_los.ncols() != 1)
     throw runtime_error("For 1D and 2D, sensor_los shall have one column.");
-  if (atmosphere_dim == 3 && sensor_los.ncols() != 2)
+  if (3 == 3 && sensor_los.ncols() != 2)
     throw runtime_error("For 3D, sensor_los shall have two columns.");
   if (sensor_los.nrows() != nmblock) {
     ostringstream os;
@@ -105,13 +103,13 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
        << "while sensor_los has " << sensor_los.nrows() << " rows.";
     throw runtime_error(os.str());
   }
-  if (antenna_dim == 2 && atmosphere_dim < 3) {
-    throw runtime_error("If *antenna_dim* is 2, *atmosphere_dim* must be 3.");
+  if (antenna_dim == 2 && 3 < 3) {
+    throw runtime_error("If *antenna_dim* is 2, *3* must be 3.");
   }
   if (antenna_dlos.empty()) throw runtime_error("*antenna_dlos* is empty.");
   if (antenna_dlos.ncols() < 1 || antenna_dlos.ncols() > 2)
     throw runtime_error("*antenna_dlos* must have one or 2 columns.");
-  if (atmosphere_dim < 3 && antenna_dlos.ncols() == 2)
+  if (3 < 3 && antenna_dlos.ncols() == 2)
     throw runtime_error(
         "*antenna_dlos* can only have two columns for 3D atmosphers.");
 
@@ -939,7 +937,6 @@ void sensor_responseAntenna(Sparse& sensor_response,
                             Matrix& sensor_response_dlos_grid,
                             const Vector& sensor_response_f_grid,
                             const ArrayOfIndex& sensor_response_pol_grid,
-                            const Index& atmosphere_dim,
                             const Index& antenna_dim,
                             const Matrix& antenna_dlos,
                             const GriddedField4& antenna_response,
@@ -950,7 +947,6 @@ void sensor_responseAntenna(Sparse& sensor_response,
   CREATE_OUT3;
 
   // Basic checks
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("antenna_dim", antenna_dim, 1, 2);
   chk_if_bool("sensor_norm", sensor_norm);
 
@@ -978,8 +974,8 @@ void sensor_responseAntenna(Sparse& sensor_response,
   }
 
   // Checks related to antenna dimension
-  if (antenna_dim == 2 && atmosphere_dim < 3) {
-    os << "If *antenna_dim* is 2, *atmosphere_dim* must be 3.\n";
+  if (antenna_dim == 2 && 3 < 3) {
+    os << "If *antenna_dim* is 2, *3* must be 3.\n";
     error_found = true;
   }
 
@@ -987,7 +983,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   if (antenna_dlos.empty()) throw runtime_error("*antenna_dlos* is empty.");
   if (antenna_dlos.ncols() < 1 || antenna_dlos.ncols() > 2)
     throw runtime_error("*antenna_dlos* must have one or 2 columns.");
-  if (atmosphere_dim < 3 && antenna_dlos.ncols() == 2)
+  if (3 < 3 && antenna_dlos.ncols() == 2)
     throw runtime_error(
         "*antenna_dlos* can only have two columns for 3D atmosphers.");
 
@@ -1711,7 +1707,6 @@ void sensor_responseInit(Sparse& sensor_response,
                          const Vector& f_grid,
                          const Matrix& mblock_dlos,
                          const Index& antenna_dim,
-                         const Index& atmosphere_dim,
                          const Index& stokes_dim,
                          const Index& sensor_norm,
                          const Verbosity& verbosity) {
@@ -1731,7 +1726,7 @@ void sensor_responseInit(Sparse& sensor_response,
   if (mblock_dlos.ncols() > 2)
     throw runtime_error(
         "The maximum number of columns in *mblock_dlos* is two.");
-  if (atmosphere_dim < 3) {
+  if (3 < 3) {
     if (mblock_dlos.ncols() != 1)
       throw runtime_error(
           "For 1D and 2D *mblock_dlos* must have exactly one column.");
@@ -1788,10 +1783,10 @@ void sensorOff(Sparse& sensor_response,
   Index antenna_dim;
   AntennaOff(antenna_dim, mblock_dlos, verbosity);
 
-  // Dummy variables (The method is independent of atmosphere_dim.
-  // atmosphere_dim used below just for some checks when antenna is active, not
+  // Dummy variables (The method is independent of 3.
+  // 3 used below just for some checks when antenna is active, not
   // relevant here. ).
-  const Index sensor_norm = 1, atmosphere_dim = 1;
+  const Index sensor_norm = 1;
 
   sensor_responseInit(sensor_response,
                       sensor_response_f,
@@ -1803,7 +1798,6 @@ void sensorOff(Sparse& sensor_response,
                       f_grid,
                       mblock_dlos,
                       antenna_dim,
-                      atmosphere_dim,
                       stokes_dim,
                       sensor_norm,
                       verbosity);
@@ -1962,7 +1956,6 @@ void sensor_responseMetMM(
     Matrix& sensor_response_dlos_grid,
     Index& sensor_norm,
     // WS Input:
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     const Vector& f_grid,
     const Vector& f_backend,
@@ -1986,7 +1979,7 @@ void sensor_responseMetMM(
         "So far inclusion of antenna pattern is NOT supported and\n"
         "*met_mm_antenna* must be empty.\n");
 
-  if (!(atmosphere_dim == 1 || atmosphere_dim == 3))
+  if (!(3 == 1 || 3 == 3))
     throw std::runtime_error(
         "This method only supports 1D and 3D atmospheres.");
 
@@ -2007,7 +2000,7 @@ void sensor_responseMetMM(
       throw std::runtime_error(
           "With *mirror_dza* set to true, *antenna_dlos*"
           "is only allowed to have a single column.");
-    if (atmosphere_dim != 3)
+    if (3 != 3)
       throw std::runtime_error("*mirror_dza* only makes sense in 3D.");
     // We don't want to duplicate zero!
     const Index n = antenna_dlos.nrows();
@@ -2048,7 +2041,6 @@ void sensor_responseMetMM(
                       f_grid,
                       mblock_dlos_dummy,
                       antenna_dim,
-                      atmosphere_dim,
                       stokes_dim,
                       sensor_norm,
                       verbosity);
@@ -2695,7 +2687,6 @@ void sensor_responseGenericAMSU(  // WS Output:
     Matrix& sensor_response_dlos_grid,
     Index& sensor_norm,
     // WS Input:
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     const Matrix& sensor_description_amsu,
     // WS Generic Input:
@@ -2950,7 +2941,6 @@ void sensor_responseGenericAMSU(  // WS Output:
       f_grid,
       mblock_dlos,
       antenna_dim,
-      atmosphere_dim,
       stokes_dim,
       sensor_norm,
       verbosity);
@@ -3054,7 +3044,6 @@ void sensor_responseSimpleAMSU(  // WS Output:
     Matrix& sensor_response_dlos_grid,
     Index& sensor_norm,
     // WS Input:
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     const Matrix& sensor_description_amsu,
     // WS Generic Input:
@@ -3153,7 +3142,6 @@ void sensor_responseSimpleAMSU(  // WS Output:
                       f_grid,
                       mblock_dlos,
                       antenna_dim,
-                      atmosphere_dim,
                       stokes_dim,
                       sensor_norm,
                       verbosity);
@@ -3401,7 +3389,7 @@ void ySimpleSpectrometer(Vector& y,
                          const Numeric& df,
                          const Verbosity& verbosity) {
   // Some dummy values
-  const Index sensor_norm = 1, atmosphere_dim = 1;
+  const Index sensor_norm = 1;
 
   // Init sensor reponse
   //
@@ -3423,7 +3411,6 @@ void ySimpleSpectrometer(Vector& y,
                       f_grid,
                       mblock_dlos,
                       antenna_dim,
-                      atmosphere_dim,
                       stokes_dim,
                       sensor_norm,
                       verbosity);

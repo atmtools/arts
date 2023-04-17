@@ -1379,13 +1379,12 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
 void atm_fields_compactFromMatrix(  // WS Output:
     GriddedField4& af,              // atm_fields_compact
     // WS Input:
-    const Index& atmosphere_dim,
     // WS Generic Input:
     const Matrix& im,
     // Control Parameters:
     const ArrayOfString& field_names,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF (1 != atmosphere_dim,
+  ARTS_USER_ERROR_IF (1 != 3,
     "Atmospheric dimension must be 1.")
 
   const Index np = im.nrows();      // Number of pressure levels.
@@ -1684,7 +1683,6 @@ void batch_atm_fields_compactCleanup(  //WS Output:
 void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     ArrayOfGriddedField4& batch_atm_fields_compact,
     // WS Input:
-    const Index& atmosphere_dim,
     // WS Generic Input:
     const ArrayOfMatrix& am,
     // Control Parameters:
@@ -1721,7 +1719,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     // exceptions inside the parallel region.
     try {
       atm_fields_compactFromMatrix(batch_atm_fields_compact[i],
-                                   atmosphere_dim,
                                    am[i],
                                    field_names,
                                    verbosity);
@@ -1751,7 +1748,6 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const GriddedField4& atm_fields_compact,
-    const Index& atmosphere_dim,
     const String& delim,
     const Numeric& p_min,
     // Control parameters:
@@ -1760,9 +1756,9 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   // Make a handle on atm_fields_compact to save typing:
   const GriddedField4& c = atm_fields_compact;
 
-  // Check if the grids in our data match atmosphere_dim
+  // Check if the grids in our data match 3
   // (throws an error if the dimensionality is not correct):
-  chk_atm_grids(atmosphere_dim,
+  chk_atm_grids(3,
                 c.get_numeric_grid(GFIELD4_P_GRID),
                 c.get_numeric_grid(GFIELD4_LAT_GRID),
                 c.get_numeric_grid(GFIELD4_LON_GRID));
@@ -1963,7 +1959,6 @@ void z_surfaceConstantAltitude(Matrix& z_surface,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToPosition(Numeric& outvalue,
-                              const Index& atmosphere_dim,
                               const Vector& p_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
@@ -1972,21 +1967,21 @@ void InterpAtmFieldToPosition(Numeric& outvalue,
                               const Tensor3& field,
                               const Verbosity& verbosity) {
   // Input checks
-  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
   chk_atm_field("input argument *field*",
                 field,
-                atmosphere_dim,
+                3,
                 p_grid,
                 lat_grid,
                 lon_grid);
-  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_pos(3, rtp_pos);
 
   // Determine grid positions
   GridPos gp_p, gp_lat, gp_lon;
   rte_pos2gridpos(gp_p,
                   gp_lat,
                   gp_lon,
-                  atmosphere_dim,
+                  3,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -1994,7 +1989,7 @@ void InterpAtmFieldToPosition(Numeric& outvalue,
                   rtp_pos);
 
   // Interpolate
-  outvalue = interp_atmfield_by_gp(atmosphere_dim, field, gp_p, gp_lat, gp_lon);
+  outvalue = interp_atmfield_by_gp(3, field, gp_p, gp_lat, gp_lon);
 
   CREATE_OUT3;
   out3 << "    Result = " << outvalue << "\n";
@@ -2220,7 +2215,6 @@ void lon_gridFromRawField(  //WS Output
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
-                                       const Index& atmosphere_dim,
                                        const Vector& p_grid,
                                        const Vector& lat_grid,
                                        const Vector& lon_grid,
@@ -2228,18 +2222,15 @@ void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
                                        const Tensor3& z_field,
                                        const Numeric& planet_rotation_period,
                                        const Verbosity&) {
-  ARTS_USER_ERROR_IF (atmosphere_dim < 3,
-                      "No need to use this method for 1D and 2D.");
-
   const Index np = p_grid.nelem();
   const Index na = lat_grid.nelem();
   const Index no = lon_grid.nelem();
 
-  chk_atm_field("z_field", z_field, atmosphere_dim, p_grid, lat_grid, lon_grid);
+  chk_atm_field("z_field", z_field, 3, p_grid, lat_grid, lon_grid);
   if (wind_u_field.npages() > 0) {
     chk_atm_field("wind_u_field",
                   wind_u_field,
-                  atmosphere_dim,
+                  3,
                   p_grid,
                   lat_grid,
                   lon_grid);
@@ -2271,7 +2262,6 @@ void z2g(Numeric& g, const Numeric& r, const Numeric& g0, const Numeric& z) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void z_fieldFromHSE(Workspace& ws,
                     Tensor3& z_field,
-                    const Index& atmosphere_dim,
                     const Vector& p_grid,
                     const Vector& lat_grid,
                     const Vector& lon_grid,
@@ -2316,7 +2306,7 @@ void z_fieldFromHSE(Workspace& ws,
   ARTS_USER_ERROR_IF (z_hse_accuracy <= 0,
                       "The value of *z_hse_accuracy* must be > 0.");
   //
-  chk_latlon_true(atmosphere_dim, lat_grid, lat_true, lon_true);
+  chk_latlon_true(3, lat_grid, lat_true, lon_true);
 
   // Determine interpolation weights for p_hse
   //
@@ -2344,7 +2334,7 @@ void z_fieldFromHSE(Workspace& ws,
 
     // Radius of reference ellipsoid
     Numeric re;
-    if (atmosphere_dim == 1) {
+    if (3 == 1) {
       re = refellipsoid[0];
     } else {
       re = refell2r(refellipsoid, lat_grid[ilat]);
@@ -2353,15 +2343,15 @@ void z_fieldFromHSE(Workspace& ws,
     for (Index ilon = 0; ilon < nlon; ilon++) {
       // Determine true latitude and longitude
       Numeric lat, lon;
-      Vector pos(atmosphere_dim);  // pos[0] can be a dummy value
-      if (atmosphere_dim >= 2) {
+      Vector pos(3);  // pos[0] can be a dummy value
+      if (3 >= 2) {
         pos[1] = lat_grid[ilat];
-        if (atmosphere_dim == 3) {
+        if (3 == 3) {
           pos[2] = lon_grid[ilon];
         }
       }
       pos2true_latlon(
-          lat, lon, atmosphere_dim, lat_grid, lat_true, lon_true, pos);
+          lat, lon, 3, lat_grid, lat_true, lon_true, pos);
 
       // Get g0
       Numeric g0;
