@@ -108,7 +108,6 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                  Vector(1, 0),
                                  Vector(0),
                                  refellipsoid,
-                                 1,
                                  nz,
                                  verbosity);
 

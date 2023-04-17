@@ -544,26 +544,6 @@ See *atm_field* for the data that may be available in the atmospheric point.
       GROUP("AtmPoint")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("atmosphere_dim"),
-      DESCRIPTION(
-          "The atmospheric dimensionality (1-3).\n"
-          "\n"
-          "This variable defines the complexity of the atmospheric structure.\n"
-          "The dimensionality is given by an integer between 1 and 3, where 1\n"
-          "means 1D etc. This is the master variable for the atmospheric\n"
-          "dimensionality, variables which size changes with the dimensionality\n"
-          "are checked to match this variable. \n"
-          "\n"
-          "Methods adapt automatically to this variable. That is, it should\n"
-          "not be needed to change any methods if the dimensionality is\n"
-          "changed. However, not all methods are working for higher dimensions.\n"
-          "\n"
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit: Integer value.\n"),
-      GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("atmfields_checked"),
       DESCRIPTION(
           "OK-flag for atmospheric grids and (physical) fields.\n"

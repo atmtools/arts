@@ -284,7 +284,6 @@ void surface_get_incoming_direct(
                    surface_normal,
                    rtp_pos,
                    rtp_los,
-                   atm_field.old_atmosphere_dim_est(),
                    lat_grid,
                    lon_grid,
                    refellipsoid,

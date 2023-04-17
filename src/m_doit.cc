@@ -1560,7 +1560,6 @@ void DoitInit(  //WS Output
     Index& doit_is_initialized,
     // WS Input
     const Index& stokes_dim,
-    const Index& atmosphere_dim,
     const Vector& f_grid,
     const Vector& za_grid,
     const Vector& aa_grid,
@@ -1582,8 +1581,6 @@ void DoitInit(  //WS Output
   ARTS_USER_ERROR_IF (stokes_dim < 0 || stokes_dim > 4,
         "The dimension of stokes vector must be"
         "1,2,3, or 4");
-
-  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
 
   // Number of zenith angles.
   const Index N_scat_za = za_grid.nelem();
@@ -1629,7 +1626,7 @@ void DoitInit(  //WS Output
          << "calculation will be very slow.\n";
   }
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
@@ -1643,22 +1640,12 @@ void DoitInit(  //WS Output
   const Index Ns = stokes_dim;
 
   // Resize and initialize radiation field in the cloudbox
-  if (atmosphere_dim == 1) {
-    cloudbox_field.resize(Nf, Np_cloud, 1, 1, Nza, 1, Ns);
-    doit_scat_field.resize(Np_cloud, 1, 1, Nza, 1, Ns);
-  } else if (atmosphere_dim == 3) {
-    const Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-    const Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-    const Index Naa = aa_grid.nelem();
+  const Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  const Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+  const Index Naa = aa_grid.nelem();
 
-    cloudbox_field.resize(Nf, Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
-    doit_scat_field.resize(Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
-  } else {
-    ARTS_USER_ERROR (
-        "Scattering calculations are not possible for a 2D"
-        "atmosphere. If you want to do scattering calculations"
-        "*atmosphere_dim* has to be either 1 or 3");
-  }
+  cloudbox_field.resize(Nf, Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
+  doit_scat_field.resize(Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
 
   cloudbox_field = NAN;
   doit_scat_field = NAN;
@@ -2254,7 +2241,6 @@ void doit_scat_fieldCalc(Workspace& ws,
               pha_matCalc(pha_mat_local,
                           pha_mat_spt_local,
                           pnd_field,
-                          atmosphere_dim,
                           p_index,
                           lat_index,
                           lon_index,
@@ -2602,7 +2588,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
               pha_matCalc(pha_mat_local,
                           pha_mat_spt_local,
                           pnd_field,
-                          atmosphere_dim,
                           p_index,
                           lat_index,
                           lon_index,
@@ -3706,7 +3691,6 @@ void cloudbox_fieldSetConst(  //WS Output:
                                 lat_grid,
                                 lon_grid,
                                 cloudbox_limits,
-                                atmosphere_dim,
                                 stokes_dim,
                                 cloudbox_field_values,
                                 verbosity);
@@ -3751,7 +3735,6 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
                                 lat_grid,
                                 lon_grid,
                                 cloudbox_limits,
-                                atmosphere_dim,
                                 stokes_dim,
                                 Vector{cloudbox_field_values(f_index, joker)},
                                 verbosity);

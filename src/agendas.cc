@@ -294,7 +294,6 @@ void define_agenda_data() {
             "iy_transmittance",
             "iy_aux_vars",
             "iy_id",
-            "atmosphere_dim",
             "p_grid",
             "lat_grid",
             "lon_grid",

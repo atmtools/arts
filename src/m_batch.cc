@@ -431,7 +431,6 @@ void ybatchMetProfiles(Workspace& ws,
     //Cloudbox is set.
     cloudboxSetManually(cloudbox_on,
                         cloudbox_limits,
-                        atmosphere_dim,
                         p_grid,
                         lat_grid,
                         lon_grid,

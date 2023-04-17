@@ -37,6 +37,7 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -99,21 +100,15 @@ void MCGeneral(Workspace& ws,
                const Matrix& sensor_pos,
                const Matrix& sensor_los,
                const Index& stokes_dim,
-               const Index& atmosphere_dim,
                const Agenda& ppath_step_agenda,
                const Numeric& ppath_lmax,
                const Numeric& ppath_lraytrace,
                const Agenda& iy_space_agenda,
                const Agenda& surface_rtprop_agenda,
                const Agenda& propmat_clearsky_agenda,
-               const Vector& p_grid,
-               const Vector& lat_grid,
-               const Vector& lon_grid,
-               const Tensor3& z_field,
                const Vector& refellipsoid,
                const Matrix& z_surface,
-               const Tensor3& t_field,
-               const Tensor4& vmr_field,
+               const AtmField& atm_field,
                const Index& cloudbox_on,
                const ArrayOfIndex& cloudbox_limits,
                const Tensor4& pnd_field,
@@ -132,6 +127,8 @@ void MCGeneral(Workspace& ws,
                const Index& l_mc_scat_order,
                const Index& t_interp_order,
                const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must be a regular atmospheric field")
+
   // Checks of input
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -171,9 +168,6 @@ void MCGeneral(Workspace& ws,
         "method.");
   if (f_index >= f_grid.nelem())
     throw runtime_error("*f_index* is outside the range of *f_grid*.");
-
-  if (atmosphere_dim != 3)
-    throw runtime_error("Only 3D atmospheres are handled. ");
 
   if (sensor_pos.ncols() != 3) {
     ostringstream os;
@@ -245,7 +239,7 @@ void MCGeneral(Workspace& ws,
 
   mc_iteration_count = 0;
   mc_error.resize(stokes_dim);
-  mc_points.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
+  mc_points.resize(atm_field.regularized_shape());
   mc_points = 0;
   mc_scat_order.resize(l_mc_scat_order);
   mc_scat_order = 0;
@@ -332,14 +326,9 @@ void MCGeneral(Workspace& ws,
                            stokes_dim,
                            f_index,
                            f_grid,
-                           p_grid,
-                           lat_grid,
-                           lon_grid,
-                           z_field,
                            refellipsoid,
                            z_surface,
-                           t_field,
-                           vmr_field,
+                           atm_field,
                            cloudbox_limits,
                            pnd_field,
                            scat_data,
@@ -872,7 +861,6 @@ void MCRadar(  // Workspace reference:
         } else {
           // Replace with ppath_agendaExecute??
           rte_losGeometricFromRtePosToRtePos2(rte_los_geom,
-                                              atmosphere_dim,
                                               lat_grid,
                                               lon_grid,
                                               refellipsoid,
@@ -893,7 +881,6 @@ void MCRadar(  // Workspace reference:
         Numeric pplrt_lowest = 0.5;
 
         rte_losGeometricFromRtePosToRtePos2(rte_los_antenna,
-                                            atmosphere_dim,
                                             lat_grid,
                                             lon_grid,
                                             refellipsoid,
@@ -906,7 +893,6 @@ void MCRadar(  // Workspace reference:
                          rte_los_antenna,
                          ppath_lraytrace_var,
                          ppath_step_agenda,
-                         atmosphere_dim,
                          p_grid,
                          lat_grid,
                          lon_grid,

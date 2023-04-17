@@ -31,7 +31,9 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "config.h"
+#include "species_tags.h"
 
 #ifdef ENABLE_RT4
 
@@ -67,7 +69,6 @@ void check_rt4_input(  // Output
     const Index& scat_data_checked,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& atmosphere_dim,
     const Index& stokes_dim,
     const Index& nstreams,
     const String& quad_type,
@@ -91,10 +92,6 @@ void check_rt4_input(  // Output
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
-        "For running RT4, atmospheric dimensionality"
-        " must be 1.\n");
-
   ARTS_USER_ERROR_IF (stokes_dim < 0 || stokes_dim > 2,
         "For running RT4, the dimension of stokes vector"
         " must be 1 or 2.\n");
@@ -105,7 +102,7 @@ void check_rt4_input(  // Output
     "at 0th atmospheric level"
     " (assumes surface there, ignoring z_surface).\n")
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * atmosphere_dim,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2,
         "*cloudbox_limits* is a vector which contains the"
         " upper and lower limit of the cloud for all"
         " atmospheric dimensions. So its dimension must"
@@ -312,12 +309,10 @@ void run_rt4(Workspace& ws,
              Vector& za_grid,
              // Input
              ConstVectorView f_grid,
-             ConstVectorView p_grid,
-             ConstVectorView z_profile,
-             ConstVectorView t_profile,
-             ConstMatrixView vmr_profiles,
+             const AtmField& atm_field,
              ConstMatrixView pnd_profiles,
              const ArrayOfArrayOfSingleScatteringData& scat_data,
+             const ArrayOfArrayOfSpeciesTag& abs_species,
              const Agenda& propmat_clearsky_agenda,
              const ArrayOfIndex& cloudbox_limits,
              const Index& stokes_dim,
@@ -349,6 +344,13 @@ void run_rt4(Workspace& ws,
   Matrix vmr, pnd;
   ArrayOfIndex cboxlims;
   Index ncboxremoved;
+
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Requires regular field")
+const auto p_profile = atm_field[Atm::Key::p].get<const Tensor3&>()(joker, 0, 0);
+const auto t_profile = atm_field[Atm::Key::t].get<const Tensor3&>()(joker, 0, 0);
+const auto& z_grid = atm_field.grid[0];
+const auto vmr_profiles = Matrix{Atm::extract_specs_content(atm_field, abs_species)(joker, joker, 0, 0)};
+
   //
   reduced_1datm(p,
                 z,
@@ -357,8 +359,8 @@ void run_rt4(Workspace& ws,
                 pnd,
                 cboxlims,
                 ncboxremoved,
-                p_grid,
-                z_profile,
+                p_profile,
+                z_grid,
                 surf_altitude,
                 t_profile,
                 vmr_profiles,
