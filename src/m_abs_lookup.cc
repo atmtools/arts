@@ -783,7 +783,6 @@ void abs_lookupSetup(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_nls,
     Vector& abs_nls_pert,
     // WS Input:
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     //                     const Vector& lat_grid,
     //                     const Vector& lon_grid,
@@ -813,7 +812,7 @@ void abs_lookupSetup(  // WS Output:
 
   // Check grids (outcommented the ones that have been done by
   // atmfields_checkedCalc already):
-  //chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  //chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 
   if (p_grid.nelem() < 2) {
     ostringstream os;
@@ -822,11 +821,11 @@ void abs_lookupSetup(  // WS Output:
   }
 
   // Check T field:
-  //chk_atm_field("t_field", t_field, atmosphere_dim,
+  //chk_atm_field("t_field", t_field, 3,
   //              p_grid, lat_grid, lon_grid);
 
   // Check VMR field (and abs_species):
-  //chk_atm_field("vmr_field", vmr_field, atmosphere_dim,
+  //chk_atm_field("vmr_field", vmr_field, 3,
   //              abs_species.nelem(), p_grid, lat_grid, lon_grid);
 
   // Check the keyword arguments:
@@ -913,7 +912,7 @@ void abs_lookupSetup(  // WS Output:
 
   // In the 1D case the lookup table is just a lookup table in
   // pressure. We treat this simple case first.
-  if (1 == atmosphere_dim) {
+  if (1 == 3) {
     // Reference temperature,
     // interpolate abs_t from t_field:
     abs_t.resize(log_abs_p.nelem());
@@ -1055,7 +1054,6 @@ void abs_lookupSetupBatch(  // WS Output:
     const Index& abs_p_interp_order,
     const Index& abs_t_interp_order,
     const Index& abs_nls_interp_order,
-    const Index& atmosphere_dim,
     // Control Parameters:
     const Numeric& p_step10,
     const Numeric& t_step,
@@ -1881,7 +1879,6 @@ void abs_speciesAdd2(  // WS Output:
     Agenda& jacobian_agenda,
     Index& propmat_clearsky_agenda_checked,
     // WS Input:
-    const Index& atmosphere_dim,
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,

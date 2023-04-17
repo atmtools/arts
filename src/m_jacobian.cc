@@ -89,7 +89,6 @@ void jacobianOff(Workspace& ws,
 void jacobianAddAbsSpecies(Workspace&,
                            ArrayOfRetrievalQuantity& jq,
                            Agenda& jacobian_agenda,
-                           const Index& atmosphere_dim,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
@@ -125,7 +124,7 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -139,7 +138,7 @@ void jacobianAddAbsSpecies(Workspace&,
                                "retrieval pressure grid",
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -713,8 +712,6 @@ void jacobianCalcPointingZaRecalc(
     const Agenda& iy_main_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity& verbosity) {
-constexpr Index atmosphere_dim = 3;
-
   // Set some useful variables.
   RetrievalQuantity rq;
   ArrayOfIndex ji;
@@ -982,7 +979,6 @@ void jacobianCalcPolyfit(Matrix& jacobian,
 void jacobianAddScatSpecies(Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
-                            const Index& atmosphere_dim,
                             const Vector& p_grid,
                             const Vector& lat_grid,
                             const Vector& lon_grid,
@@ -1010,7 +1006,7 @@ void jacobianAddScatSpecies(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -1024,7 +1020,7 @@ void jacobianAddScatSpecies(Workspace&,
                                "retrieval pressure grid",
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -1219,7 +1215,6 @@ void jacobianCalcSinefit(Matrix& jacobian,
 void jacobianAddSurfaceQuantity(Workspace&,
                                 ArrayOfRetrievalQuantity& jq,
                                 Agenda& jacobian_agenda,
-                                const Index& atmosphere_dim,
                                 const Vector& lat_grid,
                                 const Vector& lon_grid,
                                 const Vector& rq_lat_grid,
@@ -1241,7 +1236,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(max(atmosphere_dim - 1, Index(1)));
+  ArrayOfVector grids(2);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -1252,7 +1247,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
                                rq_lon_grid,
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -1277,7 +1272,6 @@ void jacobianAddSurfaceQuantity(Workspace&,
 void jacobianAddTemperature(Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
-                            const Index& atmosphere_dim,
                             const Vector& p_grid,
                             const Vector& lat_grid,
                             const Vector& lon_grid,
@@ -1300,7 +1294,7 @@ void jacobianAddTemperature(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -1314,7 +1308,7 @@ void jacobianAddTemperature(Workspace&,
                                "retrieval pressure grid",
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -1352,7 +1346,6 @@ void jacobianAddTemperature(Workspace&,
 void jacobianAddWind(Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
-                     const Index& atmosphere_dim,
                      const Vector& p_grid,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
@@ -1394,7 +1387,7 @@ void jacobianAddWind(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -1408,7 +1401,7 @@ void jacobianAddWind(Workspace&,
                                "retrieval pressure grid",
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -1431,7 +1424,6 @@ void jacobianAddWind(Workspace&,
 void jacobianAddMagField(Workspace&,
                          ArrayOfRetrievalQuantity& jq,
                          Agenda& jacobian_agenda,
-                         const Index& atmosphere_dim,
                          const Vector& p_grid,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
@@ -1473,7 +1465,7 @@ void jacobianAddMagField(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -1487,7 +1479,7 @@ void jacobianAddMagField(Workspace&,
                                "retrieval pressure grid",
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -1650,7 +1642,6 @@ void jacobianAddBasicCatalogParameters(
 void jacobianAddNLTE(Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
-                     const Index& atmosphere_dim,
                      const Vector& p_grid,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
@@ -1676,7 +1667,7 @@ void jacobianAddNLTE(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (not check_retrieval_grids(grids,
@@ -1690,7 +1681,7 @@ void jacobianAddNLTE(Workspace&,
                                   "retrieval pressure grid",
                                   "retrieval latitude grid",
                                   "retrievallongitude_grid",
-                                  atmosphere_dim))
+                                  3))
       throw runtime_error(os.str());
   }
 
@@ -1711,7 +1702,6 @@ void jacobianAddNLTE(Workspace&,
 void jacobianAddNLTEs(Workspace& ws,
                       ArrayOfRetrievalQuantity& jq,
                       Agenda& jacobian_agenda,
-                      const Index& atmosphere_dim,
                       const Vector& p_grid,
                       const Vector& lat_grid,
                       const Vector& lon_grid,
@@ -1725,7 +1715,6 @@ void jacobianAddNLTEs(Workspace& ws,
     jacobianAddNLTE(ws,
                     jq,
                     jacobian_agenda,
-                    atmosphere_dim,
                     p_grid,
                     lat_grid,
                     lon_grid,
@@ -1741,7 +1730,6 @@ void jacobianAddNLTEs(Workspace& ws,
 void jacobianAddSpecialSpecies(Workspace&,
                                ArrayOfRetrievalQuantity& jq,
                                Agenda& jacobian_agenda,
-                               const Index& atmosphere_dim,
                                const Vector& p_grid,
                                const Vector& lat_grid,
                                const Vector& lon_grid,
@@ -1755,7 +1743,7 @@ void jacobianAddSpecialSpecies(Workspace&,
 
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  ArrayOfVector grids(3);
   {
     ostringstream os;
     if (!check_retrieval_grids(grids,
@@ -1769,7 +1757,7 @@ void jacobianAddSpecialSpecies(Workspace&,
                                "retrieval pressure grid",
                                "retrieval latitude grid",
                                "retrievallongitude_grid",
-                               atmosphere_dim))
+                               3))
       throw runtime_error(os.str());
   }
 
@@ -1931,7 +1919,6 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldPerturb(Tensor3& perturbed_field,
-                    const Index& atmosphere_dim,
                     const Vector& p_grid,
                     const Vector& lat_grid,
                     const Vector& lon_grid,
@@ -1946,21 +1933,17 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
   // Input checks (more below)
   chk_atm_field("original_field",
                 original_field,
-                atmosphere_dim,
+                3,
                 p_grid,
                 lat_grid,
                 lon_grid,
                 false );
 
   // Pack retrieval grids into an ArrayOfVector
-  ArrayOfVector ret_grids(atmosphere_dim);
+  ArrayOfVector ret_grids(3);
   ret_grids[0] = p_ret_grid;
-  if (atmosphere_dim>1){
     ret_grids[1] = lat_ret_grid;
-    if (atmosphere_dim>2){
       ret_grids[2] = lon_ret_grid;
-    }
-  }
 
   // Find mapping from retrieval grids to atmospheric grids
   ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -1972,7 +1955,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
                         n_lat,
                         n_lon,
                         ret_grids,
-                        atmosphere_dim,
+                        3,
                         p_grid,
                         lat_grid,
                         lon_grid);
@@ -2005,7 +1988,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
   // Map x to a perturbation defined at atmospheric grids
   Tensor3 x3d(n_p, n_lat, n_lon), pert(n_p, n_lat, n_lon);
   reshape(x3d, x);
-  regrid_atmfield_by_gp_oem(pert, atmosphere_dim, x3d, gp_p, gp_lat, gp_lon);
+  regrid_atmfield_by_gp_oem(pert, 3, x3d, gp_p, gp_lat, gp_lon);
   
   // Init perturbed_field, if not equal to original_field
   if (&perturbed_field != &original_field) {
@@ -2023,7 +2006,6 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
-                             const Index& atmosphere_dim,
                              const Vector& p_grid,
                              const Vector& lat_grid,
                              const Vector& lon_grid,
@@ -2034,13 +2016,13 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
                              const Verbosity&) {
   // Some sizes
   const Index n_p = p_grid.nelem();
-  const Index n_lat = atmosphere_dim<2 ? 1 : lat_grid.nelem();
-  const Index n_lon = atmosphere_dim<3 ? 1 : lon_grid.nelem();
+  const Index n_lat = lat_grid.nelem();
+  const Index n_lon = lon_grid.nelem();
   
   // Check input
   chk_atm_field("original_field",
                 original_field,
-                atmosphere_dim,
+                3,
                 p_grid,
                 lat_grid,
                 lon_grid,
@@ -2055,9 +2037,9 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
 
   // Determine indexes with respect to atmospheric grids
   Index tot_index = pert_index;
-  const Index lon_index = atmosphere_dim<3 ? 0 : tot_index / (n_lat * n_p);
+  const Index lon_index = tot_index / (n_lat * n_p);
   tot_index -= lon_index * n_lat * n_p;
-  const Index lat_index = atmosphere_dim<2 ? 0 : tot_index / n_p;
+  const Index lat_index = tot_index / n_p;
   tot_index -= lat_index * n_p;
   const Index p_index = tot_index;
   
@@ -2067,32 +2049,24 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
   }
 
   // Perturb
-  if (pert_mode == "absolute" ){
-    perturbed_field(p_index,
-                    atmosphere_dim>1 ? lat_index : 0,
-                    atmosphere_dim>2 ? lon_index : 0) += pert_size;
-  }
-  else if (pert_mode == "relative"){
-    perturbed_field(p_index,
-                    atmosphere_dim>1 ? lat_index : 0,
-                    atmosphere_dim>2 ? lon_index : 0) *= 1 + pert_size;
-  }
-  else{
-    throw runtime_error("Bad *pert_mode*. Allowed choices are: "
-                        """absolute"" and ""relative"".");
+  if (pert_mode == "absolute") {
+    perturbed_field(p_index, lat_index, lon_index) += pert_size;
+  } else if (pert_mode == "relative") {
+    perturbed_field(p_index, lat_index, lon_index) *= 1 + pert_size;
+  } else {
+    ARTS_USER_ERROR(R"(Bad *pert_mode*. Allowed choices are:  "absolute" and "relative".)");
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void IndexNumberOfAtmosphericPoints(Index& n,
-                                    const Index& atmosphere_dim,
                                     const Vector& p_grid,
                                     const Vector& lat_grid,
                                     const Vector& lon_grid,
                                     const Verbosity&) {
   const Index n_p = p_grid.nelem();
-  const Index n_lat = atmosphere_dim<2 ? 1 : lat_grid.nelem();
-  const Index n_lon = atmosphere_dim<3 ? 1 : lon_grid.nelem();
+  const Index n_lat = lat_grid.nelem();
+  const Index n_lon = lon_grid.nelem();
 
   n = n_p * n_lat * n_lon;
 }
@@ -2134,7 +2108,6 @@ void jacobianFromYbatch(Matrix& jacobian,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
-                                    const Index& atmosphere_dim,
                                     const Vector& p_grid,
                                     const Vector& lat_grid,
                                     const Vector& lon_grid,
@@ -2158,7 +2131,6 @@ void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
   Tensor3 original_field, perturbed_field;
   original_field = particle_bulkprop_field(iq,joker,joker,joker);
   AtmFieldPerturb(perturbed_field,
-                  atmosphere_dim,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -2175,7 +2147,6 @@ void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
-                                            const Index& atmosphere_dim,
                                             const Vector& p_grid,
                                             const Vector& lat_grid,
                                             const Vector& lon_grid,
@@ -2196,7 +2167,6 @@ void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
   Tensor3 original_field, perturbed_field;
   original_field = particle_bulkprop_field(iq,joker,joker,joker);
   AtmFieldPerturbAtmGrids(perturbed_field,
-                          atmosphere_dim,
                           p_grid,
                           lat_grid,
                           lon_grid,
@@ -2210,7 +2180,6 @@ void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void vmr_fieldPerturb(Tensor4& vmr_field,
-                      const Index& atmosphere_dim,
                       const Vector& p_grid,
                       const Vector& lat_grid,
                       const Vector& lon_grid,
@@ -2240,7 +2209,6 @@ void vmr_fieldPerturb(Tensor4& vmr_field,
   Tensor3 original_field, perturbed_field;
   original_field = vmr_field(iq,joker,joker,joker);
   AtmFieldPerturb(perturbed_field,
-                  atmosphere_dim,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -2257,7 +2225,6 @@ void vmr_fieldPerturb(Tensor4& vmr_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
-                              const Index& atmosphere_dim,
                               const Vector& p_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
@@ -2284,7 +2251,6 @@ void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
   Tensor3 original_field, perturbed_field;
   original_field = vmr_field(iq,joker,joker,joker);
   AtmFieldPerturbAtmGrids(perturbed_field,
-                          atmosphere_dim,
                           p_grid,
                           lat_grid,
                           lon_grid,

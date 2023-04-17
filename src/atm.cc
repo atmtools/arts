@@ -473,6 +473,7 @@ Field& Field::regularize(const Vector& altitudes,
 }
 
 std::array<Index, 3> Field::regularized_shape() const {
+  ARTS_USER_ERROR_IF(not regularized, "Error in atmospheric field:\nCalling a regularized function with an irregular field")
   return {grid[0].nelem(), grid[1].nelem(), grid[2].nelem()};
 }
 namespace internal {
