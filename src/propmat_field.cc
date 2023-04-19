@@ -85,7 +85,7 @@ void field_of_propagation(Workspace& ws,
             jacobian_quantities,
             f_grid,
             los,
-            atm_field.at(atm_field.grid[0][i], atm_field.grid[1][j], atm_field.grid[2][k]),
+            atm_field.at({atm_field.grid[0][i]}, {atm_field.grid[1][j]}, {atm_field.grid[2][k]})[0],
             false);
         absorption_field(i, j, k) = propmat_field(i, j, k);
       }

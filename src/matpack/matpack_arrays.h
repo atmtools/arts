@@ -1,6 +1,7 @@
 #pragma once
 
 #include "array.h"
+#include "matpack_constexpr.h"
 #include "matpack_data.h"
 
 //! An array of vectors of Numeric
@@ -50,3 +51,9 @@ using ArrayOfComplexVector = Array<ComplexVector>;
 
 //! An array of matrices of Complex
 using ArrayOfComplexMatrix = Array<ComplexMatrix>;
+
+//! An array of Vectors of length 2 of Numeric
+using ArrayOfVector2 = Array<Vector2>;
+
+//! An array of Vectors of length 3 of Numeric
+using ArrayOfVector3 = Array<Vector3>;

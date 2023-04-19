@@ -96,7 +96,8 @@ ENUMCLASS(ppath_agendaDefaultOptions,
           char,
           FollowSensorLosPath,
           PlaneParallel,
-          TransmitterReceiverPath)
+          TransmitterReceiverPath,
+          Geometric)
 
 /** Options for setting ppath_step_agenda */
 ENUMCLASS(ppath_step_agendaDefaultOptions,

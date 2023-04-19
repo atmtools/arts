@@ -3702,7 +3702,7 @@ Can currently only contain data for new MT CKD models of water.
           "Switch between integration approaches for radiative transfer steps.\n"
           "\n"
           "See each WSM using this varaible as input for available options.\n"),
-      GROUP("String"), String{"default"}));
+      GROUP("String")));
 
   wsv_data.push_back(WsvRecord(
       NAME("rtp_vmr"),

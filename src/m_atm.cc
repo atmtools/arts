@@ -92,6 +92,7 @@ bool try_reading(AtmField &atm_field, const Atm::KeyVal &key_val,
 void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
                                     const Atm::KeyVal &key_val,
                                     const String &filename,
+                                    const Atm::Extrapolation& extrapolation,
                                     const Verbosity &verbosity) {
   const bool ok = try_reading<GriddedField3, Tensor3, Numeric>(
       atm_field, key_val, filename, verbosity);
@@ -102,31 +103,44 @@ void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
                      "possible to read the file, and\n"
                      "that its type is one that can be handled by "
                      "ARTS atmospheric fields")
+  
+  atm_field[key_val].alt_low = extrapolation;
+  atm_field[key_val].lat_low = extrapolation;
+  atm_field[key_val].lon_low = extrapolation;
+  atm_field[key_val].alt_upp = extrapolation;
+  atm_field[key_val].lat_upp = extrapolation;
+  atm_field[key_val].lon_upp = extrapolation;
 }
 } // namespace detail
 
 void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const String &atmospheric_key,
                                 const String &filename,
+                                const String &extrapolation_type,
                                 const Verbosity &verbosity) {
   detail::atm_fieldAddCustomDataFileImpl(
-      atm_field, Atm::toKeyOrThrow(atmospheric_key), filename, verbosity);
+      atm_field, Atm::toKeyOrThrow(atmospheric_key), filename,
+      Atm::toExtrapolationOrThrow(extrapolation_type), verbosity);
 }
 
 void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const QuantumIdentifier &nlte_key,
                                 const String &filename,
+                                const String &extrapolation_type,
                                 const Verbosity &verbosity) {
-  detail::atm_fieldAddCustomDataFileImpl(atm_field, Atm::KeyVal{nlte_key},
-                                         filename, verbosity);
+  detail::atm_fieldAddCustomDataFileImpl(
+      atm_field, Atm::KeyVal{nlte_key}, filename,
+      Atm::toExtrapolationOrThrow(extrapolation_type), verbosity);
 }
 
 void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const ArrayOfSpeciesTag &spec_key,
                                 const String &filename,
+                                const String &extrapolation_type,
                                 const Verbosity &verbosity) {
-  detail::atm_fieldAddCustomDataFileImpl(atm_field, Atm::KeyVal{spec_key},
-                                         filename, verbosity);
+  detail::atm_fieldAddCustomDataFileImpl(
+      atm_field, Atm::KeyVal{spec_key}, filename,
+      Atm::toExtrapolationOrThrow(extrapolation_type), verbosity);
 }
 
 void atm_fieldAddField(AtmField &atm_field, const String &filename,
@@ -302,24 +316,55 @@ void atm_fieldAddRegularData(AtmField &atm_field, const QuantumIdentifier &key,
 }
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const String &key,
-                             const GriddedField3 &data, const Verbosity &) {
+                             const GriddedField3 &data, 
+                                const String &extrapolation_type,
+                                const Verbosity &) {
   ARTS_USER_ERROR_IF(atm_field.regularized,
                      "Cannot add gridded data to regularized atmospheric field")
-  atm_field[Atm::toKeyOrThrow(key)] = data;
+  auto& fld = atm_field[Atm::toKeyOrThrow(key)] = data;
+
+  const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
+  
+  fld.alt_low = extrapolation;
+  fld.lat_low = extrapolation;
+  fld.lon_low = extrapolation;
+  fld.alt_upp = extrapolation;
+  fld.lat_upp = extrapolation;
+  fld.lon_upp = extrapolation;
 }
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
-                             const GriddedField3 &data, const Verbosity &) {
+                             const GriddedField3 &data,
+                                const String &extrapolation_type, const Verbosity &) {
   ARTS_USER_ERROR_IF(atm_field.regularized,
                      "Cannot add gridded data to regularized atmospheric field")
-  atm_field[key] = data;
+  auto& fld = atm_field[key] = data;
+
+  const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
+  
+  fld.alt_low = extrapolation;
+  fld.lat_low = extrapolation;
+  fld.lon_low = extrapolation;
+  fld.alt_upp = extrapolation;
+  fld.lat_upp = extrapolation;
+  fld.lon_upp = extrapolation;
 }
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const QuantumIdentifier &key,
-                             const GriddedField3 &data, const Verbosity &) {
+                             const GriddedField3 &data,
+                                const String &extrapolation_type, const Verbosity &) {
   ARTS_USER_ERROR_IF(atm_field.regularized,
                      "Cannot add gridded data to regularized atmospheric field")
-  atm_field[key] = data;
+  auto& fld = atm_field[key] = data;
+
+  const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
+  
+  fld.alt_low = extrapolation;
+  fld.lat_low = extrapolation;
+  fld.lon_low = extrapolation;
+  fld.alt_upp = extrapolation;
+  fld.lat_upp = extrapolation;
+  fld.lon_upp = extrapolation;
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field, const String &key,

@@ -1803,9 +1803,7 @@ void iyEmissionStandard(
   const auto &background_transmittance = tot_tra.back();
   rte_background_agendaExecute(
       ws, background_rad, diy_dx, ppath, atm_field,
-      f_grid, // FIXME: SHOULD f_grid NOT BE SHIFTED BY rte_alonglos_v, AND
-              // rte_alonglos_v BE SET TO 0???
-      iy_transmittance, background_transmittance, jacobian_do,
+      f_grid, iy_transmittance, background_transmittance, jacobian_do,
       rte_background_agenda);
 
   ArrayOfRadiationVector lvl_rad;

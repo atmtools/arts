@@ -12,6 +12,8 @@
 #include "interp.h"
 #include "logic.h"
 
+#include "matpack_algo.h"
+#include "matpack_arrays.h"
 #include "matpack_complex.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"

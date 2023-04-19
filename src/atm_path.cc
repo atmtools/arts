@@ -19,10 +19,10 @@ ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
 
 void forward_atm_path(ArrayOfAtmPoint &atm_path, const Ppath &ppath,
                       const AtmField &atm) {
-  std::transform(ppath.pos.begin(), ppath.pos.end(), atm_path.begin(),
-                 [&](const auto &path_pos) {
-                   return atm.at(path_pos[0], path_pos[1], path_pos[2]);
-                 });
+  Vector alt{ppath.pos(joker, 0)};
+  Vector lat{ppath.pos(joker, 1)};
+  Vector lon{ppath.pos(joker, 2)};
+  atm_path = atm.at(alt, lat, lon);
 }
 
 ArrayOfAtmPoint forward_atm_path(const Ppath &ppath, const AtmField &atm) {

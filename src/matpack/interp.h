@@ -860,8 +860,6 @@ struct Lagrange {
                      [[maybe_unused]] const Numeric extrapol = 0.5)
      requires(test_cyclic_limit<Limit>())
    {
-    constexpr Numeric lb = Limit<cycle_limit::lower>::bound;
-    constexpr Numeric ub = Limit<cycle_limit::upper>::bound;
 
     const Index n = Index(xi.size());
 
@@ -869,11 +867,8 @@ struct Lagrange {
                        "Interpolation setup has failed!\n"
                        "\tRequesting greater interpolation order "
                        "than possible with given input grid")
-    ARTS_USER_ERROR_IF(type == GridType::Cyclic and lb >= ub,
-                       "Interpolation setup has failed!\n"
-                       "\tBad cycle, must be [first, second)")
     if constexpr (GridType::Cyclic not_eq type) {
-      if (polyorder and extrapol > 0) {
+      if (polyorder not_eq 0 and extrapol > 0) {
         const bool ascending = is_ascending(xi);
         const Numeric xmin =
             ascending

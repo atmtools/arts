@@ -2251,7 +2251,7 @@ const Vector& lon_grid = atm_field.grid[2];
         for (Index ila = 0; ila < n_latitudes; ++ila)     // Latitude:  ila
           for (Index ilo = 0; ilo < n_longitudes; ++ilo)  // Longitude: ilo
           {
-            const AtmPoint atm_point = atm_field.at(z_grid[ial], lat_grid[ila], lon_grid[ilo]);
+            const AtmPoint atm_point = atm_field.at({z_grid[ial]}, {lat_grid[ila]}, {lon_grid[ilo]})[0];
 
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list

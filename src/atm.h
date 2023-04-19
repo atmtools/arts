@@ -215,7 +215,7 @@ public:
 using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
 using FieldData = std::variant<GriddedField3, Tensor3, Numeric, FunctionalData>;
 
-ENUMCLASS(Extrapolation, char, None, Zero, Nearest, Linear, Hydrostatic)
+ENUMCLASS(Extrapolation, char, None, Zero, Nearest, Linear)
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
@@ -240,13 +240,13 @@ struct Data {
   Data& operator=(Data&&) = default;
 
   // Allow copy and move construction implicitly from all types
-  Data(const GriddedField3& x) : data(x) {}
-  Data(const Tensor3& x) : data(x) {}
-  Data(const Numeric& x) : data(x) {}
-  Data(const FunctionalData& x) : data(x) {}
-  Data(GriddedField3&& x) : data(std::move(x)) {}
-  Data(Tensor3&& x) : data(std::move(x)) {}
-  Data(FunctionalData&& x) : data(std::move(x)) {}
+  explicit Data(const GriddedField3& x) : data(x) {}
+  explicit Data(const Tensor3& x) : data(x) {}
+  explicit Data(const Numeric& x) : data(x) {}
+  explicit Data(const FunctionalData& x) : data(x) {}
+  explicit Data(GriddedField3&& x) : data(std::move(x)) {}
+  explicit Data(Tensor3&& x) : data(std::move(x)) {}
+  explicit Data(FunctionalData&& x) : data(std::move(x)) {}
 
   // Allow copy and move set implicitly from all types
   Data& operator=(const GriddedField3& x) {data=x; return *this;}
@@ -256,13 +256,6 @@ struct Data {
   Data& operator=(GriddedField3&& x) {data=std::move(x); return *this;}
   Data& operator=(Tensor3&& x) {data=std::move(x); return *this;}
   Data& operator=(FunctionalData&& x) {data=std::move(x); return *this;}
-
-  [[nodiscard]] constexpr bool need_hydrostatic() const noexcept {
-    return alt_low == Extrapolation::Hydrostatic or
-        alt_upp == Extrapolation::Hydrostatic;
-  }
-
-  [[nodiscard]] std::tuple<Numeric, Numeric, Numeric> hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const;
 
   [[nodiscard]] String data_type() const;
 
@@ -379,7 +372,8 @@ struct Field {
   [[nodiscard]] bool regularized_atmosphere_dim(Index dim) const;
 
   //! Compute the values at a single point
-  [[nodiscard]] Point at(Numeric, Numeric, Numeric, const FunctionalData& g=FunctionalDataAlwaysThrow{}) const;
+  void at(std::vector<Point>& out, const Vector& alt, const Vector& lat, const Vector& lon) const;
+  [[nodiscard]] std::vector<Point> at(const Vector& alt, const Vector& lat, const Vector& lon) const;
 
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   bool has(T &&key, Ts &&...keys) const {

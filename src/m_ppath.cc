@@ -269,7 +269,7 @@ void ppathGeometric(Ppath& ppath,
                     const GriddedField2& surface_elevation,
                     const Numeric& surface_search_accuracy,
                     const Index& surface_search_safe,
-                    const Numeric& z_toa,
+                    const AtmField& atm_field,
                     const Index& include_specular_ppath,
                     const Verbosity& verbosity)
 {
@@ -277,6 +277,8 @@ void ppathGeometric(Ppath& ppath,
   chk_rte_los("rte_los", rte_los);
   chk_refellipsoidZZZ(refellipsoid);
   chk_surface_elevation(surface_elevation);
+
+  const Numeric z_toa = atm_field.top_of_atmosphere;
   chk_if_positive("z_toa", z_toa);
   chk_if_positive("ppath_lstep", ppath_lstep);
   chk_if_positive("surface_search_accuracy", surface_search_accuracy);
@@ -410,7 +412,7 @@ void ppathGeometric(Ppath& ppath,
                    surface_elevation,
                    surface_search_accuracy,
                    surface_search_safe,
-                   z_toa,
+                   atm_field,
                    include_specular_ppath,
                    verbosity);
 

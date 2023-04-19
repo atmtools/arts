@@ -4068,10 +4068,10 @@ reading.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atm_field"),
-      GIN("key", "filename"),
-      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "String"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Atmospheric data key.", "Filename")));
+      GIN("key", "filename", "extrapolation_type"),
+      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "String", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "Nearest"),
+      GIN_DESC("Atmospheric data key.", "Filename", "Style of extrapolation")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldAddField"),
@@ -4195,10 +4195,10 @@ The field must not be regular
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atm_field"),
-      GIN("key", "data"),
-      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "GriddedField3"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data")));
+      GIN("key", "data", "extrapolation_type"),
+      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "GriddedField3", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "Nearest"),
+      GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data", "Style of extrapolation")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldAddNumericData"),
@@ -4234,6 +4234,26 @@ computations.
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
       GIN_DESC("Flag for parallel safety at 3X slowdown cost")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("atm_fieldRegularize"),
+      DESCRIPTION(R"--(Make the atmospheric field regular.
+
+After this method is called, all new fields to the atm_field must have the
+same shape.
+
+After this method is called, all existing fields have a regular shape.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("atm_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("alt", "lat", "lon"),
+      GIN_TYPE("Vector", "Vector", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("Altitude grid", "Latitude grid", "Longitude grid")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
@@ -13811,28 +13831,31 @@ strings. The following coding is used for the radiative background:
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathGeometric"),
       DESCRIPTION(
-         "Geometric propagation path with fixed step length.\n"
-         "\n"
-         "The propagation path (ppath) from *rte_pos* in the direction of\n"
-         "*rte_los* is determined. Refraction is ignored and the ppath is\n"
-         "denoted as geometrical. With default settings, the ppath ends\n"
-         "either at the surface or in space, depending on the observation\n"
-         "geometry. The points describing the ppath have an equidistant\n"
-         "spacing, that is the highest possible value satisfying *ppath_lstep*.\n"
-         "\n"
-         "Possible intersections with the surface are determined following\n"
-         "*IntersectionGeometricSurface*.\n"
-         "\n"
-         "It is possible to set a maximum length of the ppath (for the part\n"
-         "inside the atmosphere) by *ppath_ltotal*. When the length of the\n"
-         "ppath is governed by this variable, the end point of the ppath\n"
-         "is then a point inside the atmosphere.\n"
-         "\n"
-         "With *include_specular_ppath* set to true, the propagation path is\n"
-         "continued at an intersection with the surface. The additional section\n"
-         "is calculated for the specular direction, with surface topography\n" 
-         "considered. The surface intersection point will appear twice in\n"
-         " *ppath*. The case of multiple surface intersections is handled.\n"),
+         R"(Geometric propagation path with fixed step length.
+
+The propagation path (ppath) from *rte_pos* in the direction of
+*rte_los* is determined. Refraction is ignored and the ppath is
+denoted as geometrical. With default settings, the ppath ends
+either at the surface or in space, depending on the observation
+geometry. The points describing the ppath have an equidistant
+spacing, that is the highest possible value satisfying *ppath_lstep*.
+
+Possible intersections with the surface are determined following
+*IntersectionGeometricSurface*.
+
+It is possible to set a maximum length of the ppath (for the part
+inside the atmosphere) by *ppath_ltotal*. When the length of the
+ppath is governed by this variable, the end point of the ppath
+is then a point inside the atmosphere.
+
+With *include_specular_ppath* set to true, the propagation path is
+continued at an intersection with the surface. The additional section
+is calculated for the specular direction, with surface topography
+considered. The surface intersection point will appear twice in
+ *ppath*. The case of multiple surface intersections is handled.
+ 
+ The *atm_field* is only used for its top of the atmosphere altitude
+ )"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -13845,12 +13868,12 @@ strings. The following coding is used for the radiative background:
          "refellipsoid",
          "surface_elevation",
          "surface_search_accuracy",
-         "surface_search_safe"),
-      GIN("z_toa", "include_specular_ppath"),
-      GIN_TYPE("Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("Top-of-the-atmosphere altitude.",
-               "Flag to continue path after surface intersection.")));
+         "surface_search_safe",
+         "atm_field"),
+      GIN("include_specular_ppath"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Flag to continue path after surface intersection.")));
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathRefracted"),

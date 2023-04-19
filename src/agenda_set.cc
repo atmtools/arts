@@ -362,6 +362,8 @@ Agenda get_ppath_agenda(Workspace& ws, const String& option) {
       agenda.add("rte_losGeometricFromRtePosToRtePos2");
       agenda.add("ppathFromRtePos2");
       break;
+    case Geometric:
+      agenda.add("ppathGeometric");
     case FINAL:
       break;
   }
