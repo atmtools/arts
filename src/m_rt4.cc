@@ -345,86 +345,29 @@ void RT4CalcWithRT4Surface(Workspace& ws,
 
 #else /* ENABLE_RT4 */
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RT4Calc(Workspace&,
-             // WS Output:
-             Tensor7&,
-             Vector&,
-             Vector&,
-             // WS Input
-             const Index&,
-             const Index&,
-             const Index&,
-             const Index&,
-             const Index&,
-             const ArrayOfIndex&,
-             const Agenda&,
-             const Agenda&,
-             const Index&,
-             const Tensor4&,
-             const Tensor3&,
-             const Tensor3&,
-             const Tensor4&,
-             const Vector&,
-             const ArrayOfArrayOfSingleScatteringData&,
-             const Vector&,
-             const Index&,
-             const Matrix&,
-             const Index&,
-             const String&,
-             const String&,
-             const Index&,
-             const Index&,
-             //const Numeric&,
-             const Index&,
-             const Index&,
-             const Index&,
-             const Index&,
-             const Numeric&,
-             const Verbosity&) {
-  ARTS_USER_ERROR ("This version of ARTS was compiled without RT4 support.");
+void RT4Calc(Workspace &, Tensor7 &, Vector &, Vector &, const Index &,
+             const Index &, const Index &, const Index &, const Index &,
+             const ArrayOfIndex &, const Agenda &, const Agenda &,
+             const Tensor4 &, const AtmField &,
+             const ArrayOfArrayOfSingleScatteringData &,
+             const ArrayOfArrayOfSpeciesTag &, const Vector &, const Index &,
+             const Matrix &, const Index &, const String &, const String &,
+             const Index &, const Index &, const Index &, const Index &,
+             const Index &, const Index &, const Numeric &, const Verbosity &) {
+  ARTS_USER_ERROR("This version of ARTS was compiled without RT4 support.");
 }
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RT4CalcWithRT4Surface(Workspace&,
-                           // WS Output:
-                           Tensor7&,
-                           Vector&,
-                           Vector&,
-                           // WS Input
-                           const Index&,
-                           const Index&,
-                           const Index&,
-                           const Index&,
-                           const Index&,
-                           const ArrayOfIndex&,
-                           const Agenda&,
-                           const Index&,
-                           const Tensor4&,
-                           const Tensor3&,
-                           const Tensor3&,
-                           const Tensor4&,
-                           const Vector&,
-                           const ArrayOfArrayOfSingleScatteringData&,
-                           const Vector&,
-                           const Index&,
-                           const Matrix&,
-                           const Numeric&,
-                           const Vector&,
-                           const Tensor3&,
-                           const GriddedField3&,
-                           const Index&,
-                           const String&,
-                           const String&,
-                           const String&,
-                           const Index&,
-                           const Index&,
-                           //const Numeric&,
-                           const Index&,
-                           const Index&,
-                           const Index&,
-                           const Index&,
-                           const Numeric&,
-                           const Verbosity&) {
-  ARTS_USER_ERROR ("This version of ARTS was compiled without RT4 support.");
+void RT4CalcWithRT4Surface(
+    Workspace &, Tensor7 &, Vector &, Vector &, const Index &, const Index &,
+    const Index &, const Index &, const Index &, const ArrayOfIndex &,
+    const Agenda &, const Tensor4 &, const AtmField &,
+    const ArrayOfArrayOfSingleScatteringData &,
+    const ArrayOfArrayOfSpeciesTag &, const Vector &, const Index &,
+    const Matrix &, const Numeric &, const Vector &, const Tensor3 &,
+    const GriddedField3 &, const Index &, const String &, const String &,
+    const String &, const Index &, const Index &, const Index &, const Index &,
+    const Index &, const Index &, const Numeric &, const Verbosity &) {
+  ARTS_USER_ERROR("This version of ARTS was compiled without RT4 support.");
 }
 
 #endif /* ENABLE_RT4 */
