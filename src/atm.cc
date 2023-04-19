@@ -6,7 +6,9 @@
 #include <limits>
 #include <numeric>
 #include <ostream>
+#include <type_traits>
 #include <variant>
+#include <vector>
 
 #include "arts_omp.h"
 #include "compare.h"
@@ -14,6 +16,7 @@
 #include "gridded_fields.h"
 #include "grids.h"
 #include "interp.h"
+#include "matpack_algo.h"
 #include "matpack_data.h"
 
 namespace Atm {
@@ -197,235 +200,217 @@ void Field::throwing_check() const {
 }
 
 namespace detail {
-constexpr Numeric field_interp(Numeric x, Numeric, Numeric, Numeric) noexcept {
-  return x;
-}
-
-Numeric field_interp(const Tensor3 &, Numeric, Numeric, Numeric) {
-  ARTS_USER_ERROR("Cannot field interp a Tensor3")
-}
-
-Numeric field_interp(const FunctionalData &f, Numeric alt_point,
-                     Numeric lat_point, Numeric lon_point) {
-  return f(alt_point, lat_point, lon_point);
-}
-
-template <std::size_t NALT, std::size_t NLAT, std::size_t NLON>
-struct InterpCapture {
-  FixedLagrangeInterpolation<NALT> alt;
-  FixedLagrangeInterpolation<NLAT> lat;
-  FixedLagrangeInterpolation<NLON> lon;
-  decltype(interpweights(alt, lat, lon)) iw;
-
-  InterpCapture(const Vector &alt_grid, const Vector &lat_grid,
-                const Vector &lon_grid, Numeric alt_point, Numeric lat_point,
-                Numeric lon_point)
-      : alt(0, alt_point, alt_grid), lat(0, lat_point, lat_grid),
-        lon(0, lon_point, lon_grid),
-        iw(interpweights(alt, lat, lon)) {}
+struct Limits {
+  Numeric alt_low{std::numeric_limits<Numeric>::lowest()};
+  Numeric alt_upp{std::numeric_limits<Numeric>::max()};
+  Numeric lat_low{std::numeric_limits<Numeric>::lowest()};
+  Numeric lat_upp{std::numeric_limits<Numeric>::max()};
+  Numeric lon_low{std::numeric_limits<Numeric>::lowest()};
+  Numeric lon_upp{std::numeric_limits<Numeric>::max()};
 };
 
-using LinearInterpolation = detail::InterpCapture<1, 1, 1>;
+struct ComputeLimit {
+  Extrapolation type{Extrapolation::Linear};
+  Numeric alt, lat, lon;
+};
 
-Numeric field_interp(const GriddedField3 &x, Numeric alt_point,
-                     Numeric lat_point, Numeric lon_point) {
-  auto [alt, lat, lon, iw] = LinearInterpolation(
-      x.get_numeric_grid(0), x.get_numeric_grid(1), x.get_numeric_grid(2),
-      alt_point, lat_point, lon_point);
-
-  return interp(x.data, iw, alt, lat, lon);
+Limits find_limits(const Numeric&) {
+  return {};
 }
 
-bool limits(Numeric &x, const Vector &r, Extrapolation low, Extrapolation upp, const char* type) {
-  ARTS_USER_ERROR_IF(r.size() == 0, "The ", std::quoted(type), " grid is empty")
+Limits find_limits(const FunctionalData&) {
+  return {};
+}
 
+Limits find_limits(const GriddedField3 &gf3) {
+  return {gf3.get_numeric_grid(0).front(), gf3.get_numeric_grid(0).back(),
+          gf3.get_numeric_grid(1).front(), gf3.get_numeric_grid(1).back(),
+          gf3.get_numeric_grid(2).front(), gf3.get_numeric_grid(2).back()};
+}
+
+Limits find_limits(const Tensor3 &){
+    ARTS_ASSERT(false, "This must be dealt with earlier")}
+
+Vector vec_interp(const Numeric& v, const Vector& alt, const Vector&, const Vector&) {
+  return Vector(alt.nelem(), v);
+}
+
+Vector vec_interp(const FunctionalData& v, const Vector& alt, const Vector& lat, const Vector& lon) {
+  const Index n=alt.nelem();
+  Vector out(n);
+  for (Index i=0; i<n; i++) out[i] = v(alt[i], lat[i], lon[i]);
+  return out;
+}
+
+template <Index poly_alt, Index poly_lat, Index poly_lon>
+Vector tvec_interp(const Tensor3 &v, const Vector &alt_grid,
+                   const Vector &lat_grid, const Vector &lon_grid,
+                   const Vector &alt, const Vector &lat, const Vector &lon) {
+  using namespace my_interp;
+  using AltLag = Lagrange<poly_alt>;
+  using LatLag = Lagrange<poly_lat>;
+  using LonLag = std::conditional_t<
+      poly_lon == 0, Lagrange<0>,
+      Lagrange<poly_lon, false, my_interp::GridType::Cyclic, cycle_m180_p180>>;
+
+  const auto lags_alt = lagrange_interpolation_list<AltLag>(alt, alt_grid, -1);
+  const auto lags_lat = lagrange_interpolation_list<LatLag>(lat, lat_grid, -1);
+  const auto lags_lon = lagrange_interpolation_list<LonLag>(lon, lon_grid, -1);
+
+  const Index n = alt.nelem();
+  Vector out(n);
+  for (Index i = 0; i < n; i++) {
+    out[i] = interp(v, interpweights(lags_alt[i], lags_lat[i], lags_lon[i]),
+                    lags_alt[i], lags_lat[i], lags_lon[i]);
+  }
+
+  return out;
+}
+
+Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, const Vector& lon) {
+  ARTS_ASSERT(v.get_grid_size(0) > 0)
+  ARTS_ASSERT(v.get_grid_size(1) > 0)
+  ARTS_ASSERT(v.get_grid_size(2) > 0)
+
+  const bool d1 = v.get_grid_size(0) == 1;
+  const bool d2 = v.get_grid_size(1) == 1;
+  const bool d3 = v.get_grid_size(2) == 1;
+
+  const Index n=alt.nelem();
+
+  if (d1 and d2 and d3) return Vector(n, v.data(0, 0, 0));
+  if (d1 and d2)        return tvec_interp<0, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d1 and d3)        return tvec_interp<0, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d2 and d3)        return tvec_interp<1, 0, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d1)               return tvec_interp<0, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d2)               return tvec_interp<1, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d3)               return tvec_interp<1, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+                        return tvec_interp<1, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+}
+
+Vector vec_interp(const Tensor3&, const Vector&, const Vector&, const Vector&) {
+    ARTS_ASSERT(false, "This must be dealt with earlier")}
+
+Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
+  ARTS_USER_ERROR_IF(lim.type == Extrapolation::None,
+                     "Altitude limit breaced.  Position (", lim.alt, ", ",
+                     lim.lat, ", ", lim.lon,
+                     ") is out-of-bounds when no extrapolation is wanted")
+
+  if (lim.type == Extrapolation::Zero)
+    return 0;
+
+  if (lim.type == Extrapolation::Nearest)
+    return std::visit(
+        [&](auto &d) {
+          return vec_interp(d, {lim.alt}, {lim.lat}, {lim.lon})[0];
+        },
+        data.data);
+
+  return orig;
+}
+
+constexpr Extrapolation combine(Extrapolation a, Extrapolation b) {
   using enum Extrapolation;
-  switch (low) {
-  case Zero:
-    if (x < r.front()) {
-      x = 0;
-      return true;
+  switch(a) {
+    case None: return None;
+    case Zero: {
+      switch(b) {
+        case None: return None;
+        case Zero: return Zero;
+        case Nearest: return Zero;
+        case Linear: return Zero;
+        case FINAL: ARTS_ASSERT(false);
+      }
     }
-    break;
-  case Hydrostatic: [[fallthrough]];
-  case Nearest:
-    x = std::max(x, r.front());
-    break;
-  case None:
-    ARTS_USER_ERROR_IF(x < r.front(), "The ", std::quoted(type), " value ", x,
-                       " is below the range of ", r)
-    break;
-  case Linear:
-    break;
-  case FINAL: {
-  }
-  }
-
-  switch (upp) {
-  case Zero:
-    if (x > r.back()) {
-      x = 0;
-      return true;
+    case Nearest: {
+      switch (b) {
+        case None: return None;
+        case Zero: return Zero;
+        case Nearest: return Nearest;
+        case Linear: return Nearest;
+        case FINAL: ARTS_ASSERT(false);
+      }
     }
-    break;
-  case Hydrostatic: [[fallthrough]];
-  case Nearest:
-    x = std::min(x, r.back());
-    break;
-  case None:
-    ARTS_USER_ERROR_IF(x > r.back(), "The ", std::quoted(type), " value ", x, " is below the range of ",
-                       r)
-    break;
-  case Linear:
-    break;
-  case FINAL: {
+    case Linear: return b;
+    case FINAL: ARTS_ASSERT(false);
   }
-  }
-
-  return false;
 }
 
-Numeric compute_value(const Data &data, Numeric alt, Numeric lat, Numeric lon) {
-  auto compute = [alt, lat, lon, alt_low = data.alt_low, alt_upp = data.alt_upp,
-                  lat_low = data.lat_low, lat_upp = data.lat_upp,
-                  lon_low = data.lon_low,
-                  lon_upp = data.lon_upp](auto &&x) -> Numeric {
-    using T = decltype(x);
-
-    if constexpr (isGriddedField3<T>) {
-      const Vector &alts = x.get_numeric_grid(0);
-      const Vector &lats = x.get_numeric_grid(1);
-      const Vector &lons = x.get_numeric_grid(2);
-
-      Numeric test;
-      if (limits(test=alt, alts, alt_low, alt_upp, "altitude")) return test;
-      if (limits(test=lat, lats, lat_low, lat_upp, "latitude")) return test;
-      if (limits(test=lon, lons, lon_low, lon_upp, "longitude")) return test;
-    }
-
-    return field_interp(x, alt, lat, lon);
-  };
-
-  return std::visit(compute, data.data);
+constexpr Extrapolation combine(Extrapolation a, Extrapolation b, Extrapolation c) {
+  return combine(combine(a, b), c);
 }
 
-Numeric fix_hydrostatic(Numeric x0, const Point& atm, const Data& data, Numeric g, Numeric alt) {
-  const auto need_fixing = [&](auto& x) {
-    using T = decltype(x);
-
-    if constexpr (isGriddedField3<T>) {
-      const Vector& alts =  x.get_numeric_grid(0);
-      if (data.alt_low == Extrapolation::Hydrostatic and alt < alts.front())
-      return SimpleHydrostaticExpansion{x0, alts.front(), atm.temperature, atm.mean_mass(), g}(alt);
-
-      if (data.alt_upp == Extrapolation::Hydrostatic and alt > alts.back())
-      return SimpleHydrostaticExpansion{x0, alts.front(), atm.temperature, atm.mean_mass(), g}(alt);
-    }
-
-    return x0;
-  };
-
-  return std::visit(need_fixing, data.data);
-}
-} // namespace detail
-
-std::tuple<Numeric, Numeric, Numeric>
-Data::hydrostatic_coord(Numeric alt, Numeric lat, Numeric lon) const {
-  if (const auto *ptr = std::get_if<GriddedField3>(&data); ptr) {
-    detail::limits(alt, ptr->get_numeric_grid(0), alt_low, alt_upp, "altitude");
-    detail::limits(lat, ptr->get_numeric_grid(1), lat_low, lat_upp, "latitude");
-    detail::limits(lon, ptr->get_numeric_grid(2), lon_low, lon_upp,
-                   "longitude");
+void select(Extrapolation lowt, Extrapolation uppt, Numeric lowv, Numeric uppv, Numeric v, Numeric& outv, Extrapolation& outt) {
+  if (v < lowv) {
+    outt = lowt;
+    if (outt == Extrapolation::Nearest) v = lowv;
+  } else if (uppv < v) {
+    outt = uppt;
+    if (outt == Extrapolation::Nearest) v = uppv;
   }
-  return {alt, lat, lon};
+
+  outv = v;
 }
 
-Point Field::internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const {
-  Point atm;
-
-  if (alt_point > top_of_atmosphere)
-    return atm;
-
-  if (not regularized) {
-    const auto get_value = [alt = alt_point, lat = lat_point,
-                            lon = lon_point](auto &&x) {
-      return detail::compute_value(x, alt, lat, lon);
-    };
-
-    for (auto &vals : specs)
-      atm[vals.first] = get_value(vals.second);
-    for (auto &vals : other)
-      atm[vals.first] = get_value(vals.second);
-    for (auto &vals : nlte)
-      atm[vals.first] = get_value(vals.second);
-  } else {
-    const auto get_value = [v = detail::LinearInterpolation(
-                                grid[0], grid[1], grid[2], alt_point, lat_point,
-                                lon_point)](auto &x) {
-      return interp(*std::get_if<Tensor3>(&x.data), v.iw, v.alt, v.lat, v.lon);
-    };
-
-    for (auto &vals : specs)
-      atm[vals.first] = get_value(vals.second);
-    for (auto &vals : other)
-      atm[vals.first] = get_value(vals.second);
-    for (auto &vals : nlte)
-      atm[vals.first] = get_value(vals.second);
-  }
+ComputeLimit find_limit(const Data& data, const Limits& lim, Numeric alt, Numeric lat, Numeric lon) {
+  ComputeLimit out;
+  Extrapolation a{Extrapolation::Linear}, b{Extrapolation::Linear}, c{Extrapolation::Linear};
   
-  return atm;
+  select(data.alt_low, data.alt_upp, lim.alt_low, lim.alt_upp, alt, out.alt, a);
+  select(data.lat_low, data.lat_upp, lim.lat_low, lim.lat_upp, lat, out.lat, b);
+  select(data.lon_low, data.lon_upp, lim.lon_low, lim.lon_upp, lon, out.lon, c);
+  out.type = combine(a, b, c);
+
+  return out;
 }
 
-Point Field::at(Numeric alt_point, Numeric lat_point, Numeric lon_point,
-                const FunctionalData &g) const {
+Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const Vector& lon) {
+  DebugTime t{"vec_interp"};
+  const auto compute = [&](auto& d) {
+    return vec_interp(d, alt, lat, lon);
+  };
+
+  // Perform the interpolation
+  Vector out = std::visit(compute, data.data);
+
+  // Fix the extrapolations for ZERO and NONE and NEAREST
+  const auto lim =
+      std::visit([](auto &d) { return find_limits(d); }, data.data);
+  const Index n = alt.nelem();
+  for (Index i=0; i<n; i++) {
+    out[i] = limit(data, find_limit(data, lim, alt[i], lat[i], lon[i]), out[i]);
+  }
+
+  return out;
+}
+}  // namespace detail
+
+void Field::at(std::vector<Point>& out, const Vector& alt, const Vector& lat, const Vector& lon) const {
   throwing_check();
+  
+  const Index n = static_cast<Index>(out.size());
+  ARTS_ASSERT(n == alt.nelem() and n == lat.nelem() and n == lon.nelem())
+  
+  const auto compute = [&](const auto& key, const Data& data) {
+    const auto interpolate = [&](const Vector& alts, const Vector& lats, const Vector& lons) -> Vector {
+      return detail::vec_interp(data, alts, lats, lons);
+    };
 
-  Point atm = internal_fitting(alt_point, lat_point, lon_point);
+    const Vector field_val = interpolate(alt, lat, lon);
+    for (Index i=0; i<n; i++) out[i][key] = field_val[i];
+  };
 
-  // Fix for hydrostatic equilibrium
-  for (auto &vals : specs) {
-    if (vals.second.need_hydrostatic()) {
-      const auto [base_alt, base_lat, base_lon] =
-          vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
-      if (base_alt not_eq alt_point) {
-        auto base_atm = internal_fitting(base_alt, base_lat, base_lon);
-        auto base_gra = g(base_alt, base_lat, base_lon);
-        atm[vals.first] =
-                detail::fix_hydrostatic(base_atm[vals.first], base_atm,
-                                        vals.second, base_gra, alt_point);
-      }
-    }
-  }
+  for (auto& d: nlte) compute(d.first, d.second);
+  for (auto& d: specs) compute(d.first, d.second);
+  for (auto& d: other) compute(d.first, d.second);
+}
 
-  for (auto &vals : other) {
-    if (vals.second.need_hydrostatic()) {
-      const auto [base_alt, base_lat, base_lon] =
-          vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
-      if (base_alt not_eq alt_point) {
-        auto base_atm = internal_fitting(base_alt, base_lat, base_lon);
-        auto base_gra = g(base_alt, base_lat, base_lon);
-        atm[vals.first] =
-                detail::fix_hydrostatic(base_atm[vals.first], base_atm,
-                                        vals.second, base_gra, alt_point);
-      }
-    }
-  }
-
-  for (auto &vals : nlte) {
-    if (vals.second.need_hydrostatic()) {
-      const auto [base_alt, base_lat, base_lon] =
-          vals.second.hydrostatic_coord(alt_point, lat_point, lon_point);
-      if (base_alt not_eq alt_point) {
-        auto base_atm = internal_fitting(base_alt, base_lat, base_lon);
-        auto base_gra = g(base_alt, base_lat, base_lon);
-        atm[vals.first] =
-                detail::fix_hydrostatic(base_atm[vals.first], base_atm,
-                                        vals.second, base_gra, alt_point);
-      }
-    }
-  }
-
-  return atm;
+std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
+  throwing_check();
+  std::vector<Point> out(alt.nelem());
+  at(out, alt, lat, lon);
+  return out;
 }
 
 //! Regularizes the calculations so that all data is on a single grid
@@ -444,10 +429,17 @@ Field& Field::regularize(const Vector& altitudes,
       nlte.size(),
       Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
 
+  const auto grids = matpack::repeat(altitudes, latitudes, longitudes);
+  const Index nalt = altitudes.nelem(), nlat = latitudes.nelem(),
+              nlon = longitudes.nelem();
+  const auto pnts =
+      matpack::matpack_data<Point, 1>{at(grids[0], grids[1], grids[2])}.reshape(
+          nalt, nlat, nlon);
+
   for (Index i2 = 0; i2 < altitudes.size(); i2++) {
     for (Index i3 = 0; i3 < latitudes.size(); i3++) {
       for (Index i4 = 0; i4 < longitudes.size(); i4++) {
-        const auto pnt = at(altitudes[i2], latitudes[i3], longitudes[i4]);
+        const auto &pnt = pnts(i2, i3, i4);
 
         for (Index i0{0}; auto &vals : specs)
           specs_data[i0++](i2, i3, i4) = pnt[vals.first];

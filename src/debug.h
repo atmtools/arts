@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <version>
+#include <cassert>
 
 /*! Take all arguments and turn to string by their operator<<() */
 template <typename ... Args>
@@ -40,9 +41,20 @@ std::string var_string(Args&& ... args) {
 
 #else
 
-#define CURRENT_SOURCE_LOCATION var_string("\t", __FILE__, ":", __LINE__)
+#define CURRENT_SOURCE_LOCATION                                                \
+  var_string("File:Line:     ", __FILE__, ":", __LINE__)
 
 #endif
+
+#define ARTS_METHOD_ERROR_CATCH                                                \
+  catch (std::logic_error & e) {                                               \
+    throw std::logic_error(var_string(                                         \
+        "Assertion error caught. ", CURRENT_SOURCE_LOCATION, '\n', e.what())); \
+  }                                                                            \
+  catch (std::exception & e) {                                                 \
+    throw std::logic_error(var_string(                                         \
+        "Runtime error caught. ", CURRENT_SOURCE_LOCATION, '\n', e.what()));   \
+  }
 
 #ifndef NDEBUG
 #include <exception>
@@ -84,7 +96,7 @@ std::string var_string(Args&& ... args) {
 #define ARTS_ASSERT(condition, ...)                                            \
   {                                                                            \
     if (not(condition)) {                                                      \
-      throw std::runtime_error(                                                \
+      throw std::logic_error(                                                  \
           var_string("Failed Internal Assert: " #condition "\n"                \
                      "This is a bug!  Bug is found at:\n",                     \
                      CURRENT_SOURCE_LOCATION,                                  \

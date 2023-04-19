@@ -3,6 +3,7 @@
 
 #include <py_auto_interface.h>
 #include <pybind11/attr.h>
+#include <pybind11/detail/common.h>
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -166,12 +167,62 @@ void py_atm(py::module_ &m) {
                              const Atm::Data &data) { atm[x] = data; })
       .def("__setitem__", [](AtmField &atm, const ArrayOfSpeciesTag &x,
                              const Atm::Data &data) { atm[x] = data; })
-      .def("at", [](const AtmField& atm, Numeric h, Numeric lat, Numeric lon){
-        return atm.at(h, lat, lon);
-      })
+      .def("at", [](const AtmField &atm, const Vector& h, const Vector& lat,
+                    const Vector& lon) { return atm.at(h, lat, lon); })
       .def("regularize", &AtmField::regularize)
       .def("regularized_shape", &AtmField::regularized_shape)
       .def_readwrite("top_of_atmosphere", &AtmField::top_of_atmosphere)
+      .def_property(
+          "z_grid",
+          py::cpp_function(
+              [](AtmField &atm) -> Vector & {
+                ARTS_USER_ERROR_IF(
+                    not atm.regularized,
+                    "Can only extract a grid from a regular field")
+                return atm.grid[0];
+              },
+              py::return_value_policy::reference_internal),
+          [](AtmField &atm, const Vector &in) {
+            ARTS_USER_ERROR_IF(not atm.regularized,
+                               "Can only set a grid to a regular field")
+            ARTS_USER_ERROR_IF(atm.grid[0].nelem() == in.nelem(),
+                               "Must have same size")
+            atm.grid[0] = in;
+          })
+      .def_property(
+          "lat_grid",
+          py::cpp_function(
+              [](AtmField &atm) -> Vector & {
+                ARTS_USER_ERROR_IF(
+                    not atm.regularized,
+                    "Can only extract a grid from a regular field")
+                return atm.grid[1];
+              },
+              py::return_value_policy::reference_internal),
+          [](AtmField &atm, const Vector &in) {
+            ARTS_USER_ERROR_IF(not atm.regularized,
+                               "Can only set a grid to a regular field")
+            ARTS_USER_ERROR_IF(atm.grid[1].nelem() == in.nelem(),
+                               "Must have same size")
+            atm.grid[1] = in;
+          })
+      .def_property(
+          "lon_grid",
+          py::cpp_function(
+              [](AtmField &atm) -> Vector & {
+                ARTS_USER_ERROR_IF(
+                    not atm.regularized,
+                    "Can only extract a grid from a regular field")
+                return atm.grid[2];
+              },
+              py::return_value_policy::reference_internal),
+          [](AtmField &atm, const Vector &in) {
+            ARTS_USER_ERROR_IF(not atm.regularized,
+                               "Can only set a grid to a regular field")
+            ARTS_USER_ERROR_IF(atm.grid[2].nelem() == in.nelem(),
+                               "Must have same size")
+            atm.grid[2] = in;
+          })
       .PythonInterfaceCopyValue(AtmField)
       .PythonInterfaceWorkspaceVariableConversion(AtmField)
       .PythonInterfaceFileIO(AtmField)

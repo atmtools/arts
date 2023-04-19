@@ -279,3 +279,6 @@ template <typename T, Index... alldim> struct matpack_constant_data {
   }
 };
 } // namespace matpack
+
+using Vector2 = matpack::matpack_constant_data<Numeric, 2>;
+using Vector3 = matpack::matpack_constant_data<Numeric, 3>;
