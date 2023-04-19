@@ -245,6 +245,7 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) try {
       agenda.add("RadiativePropertiesCalc");
       agenda.add("background_transmittanceFromBack");
       agenda.add("RadiationBackgroundCalc");
+      agenda.set("rt_integration_option", String{"Emission"});
       agenda.add("ppvar_radCalc");
       agenda.add("iyCopyPath");
       agenda.add("diy_dxTransform");
