@@ -238,13 +238,13 @@ subdirectory use:
 cmake -DENABLE_FORTRAN=1 -DCMAKE_Fortran_COMPILER=gfortran ..
 ```
 
-This enables Disort, Fastem, Refice and Tmatrix.
+This enables Disort, Fastem and Tmatrix.
 
 If necessary, certain Fortran modules can be selectively disabled:
 
 ```
 cmake -DENABLE_FORTRAN=1 -DNO_DISORT=1 ..
-cmake -DENABLE_FORTRAN=1 -DNO_REFICE=1 ..
+cmake -DENABLE_FORTRAN=1 -DNO_TMATRIX=1 ..
 ```
 
 IMPORTANT: Only gfortran and Intel Fortran are currently supported.

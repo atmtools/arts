@@ -14,7 +14,7 @@ endif()
 
 if (ENABLE_FASTEM)
   message (STATUS "FASTEM enabled (use -DNO_FASTEM=1 to disable)")
-elseif(NO_REFICE)
+elseif(NO_FASTEM)
   message (STATUS "FASTEM disabled")
 else()
   message (STATUS "FASTEM disabled (use -DENABLE_FORTRAN=1 to enable)")

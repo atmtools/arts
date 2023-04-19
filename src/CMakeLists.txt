@@ -54,10 +54,6 @@ if (ENABLE_TMATRIX)
   list (APPEND ALL_ARTS_LIBRARIES tmatrix)
 endif (ENABLE_TMATRIX)
 
-if (ENABLE_REFICE)
-  list (APPEND ALL_ARTS_LIBRARIES refice)
-endif (ENABLE_REFICE)
-
 list (APPEND ALL_ARTS_LIBRARIES Faddeeva)
 
 ########### target to extract version number from ChangeLog ###############

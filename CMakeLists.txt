@@ -66,8 +66,6 @@ option (NO_DOCSERVER "Turn off the document server" OFF)
 cmake_dependent_option(
     NO_FASTEM "Turn off FASTEM even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 cmake_dependent_option(
-    NO_REFICE "Turn off REFICE even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
-cmake_dependent_option(
     NO_RT4 "Turn off RT4 even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
@@ -103,8 +101,6 @@ if (ENABLE_FORTRAN)
   message(FATAL_ERROR "RT4 is only available using -DENABLE_ARTS_PURESCIENCE=1 -DNO_RT4=1 to turn off.  The reason is that RT4 has no license.")
  elseif(NOT NO_TMATRIX AND NOT ENABLE_ARTS_PURESCIENCE)
   message(FATAL_ERROR "TMATRIX is only available using -DENABLE_ARTS_PURESCIENCE=1, -DNO_TMATRIX=1 to turn off.  The reason is that TMATRIX may only be licensed to be used in non-commercial scientific software.")
- elseif(NOT NO_REFICE AND NOT ENABLE_ARTS_PURESCIENCE)
-  message(FATAL_ERROR "REFICE is only available using -DENABLE_ARTS_PURESCIENCE=1, -DNO_REFICE=1 to turn off.  The reason is that REFICE has no license.")
  endif()
 endif()
 
@@ -548,10 +544,6 @@ get_directory_property(ENABLE_RT4 DIRECTORY
 get_directory_property(ENABLE_FASTEM DIRECTORY
                        3rdparty/fastem
                        DEFINITION ENABLE_FASTEM)
-
-get_directory_property(ENABLE_REFICE DIRECTORY
-                       3rdparty/refice
-                       DEFINITION ENABLE_REFICE)
 
 get_directory_property(ENABLE_TMATRIX DIRECTORY
                        3rdparty/tmatrix

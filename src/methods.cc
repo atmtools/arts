@@ -5344,47 +5344,6 @@ Available models:
                "Temperature grid for refractive index calculation")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("complex_refr_indexIceWarren84"),
-      DESCRIPTION(
-          "Refractive index of ice following Warren84 parameterization.\n"
-          "\n"
-          "Calculates complex refractive index of Ice 1H for wavelengths\n"
-          "between 45 nm and 8.6 m.\n"
-          "For wavelengths above 167 microns, temperature dependence is\n"
-          "included for temperatures between 213 and 272K.\n"
-          "Mainly intended for applications in Earth ice\n"
-          "clouds and snow, not other planets or interstellar space;\n"
-          "the temperature dependence or crystalline form of ice may be\n"
-          "incorrect for these latter applications.\n"
-          "\n"
-          "Authors of Fortran function:\n"
-          "Stephen Warren, Univ. of Washington (1983)\n"
-          "Bo-Cai Gao, JCESS, Univ. of Maryland (1995)\n"
-          "Warren Wiscombe, NASA Goddard (1995)\n"
-          "\n"
-          "References:\n"
-          "Warren, S., 1984: Optical Constants of Ice from the Ultraviolet\n"
-          "to the Microwave, Appl. Opt. 23, 1206-1225\n"
-          "\n"
-          "Kou, L., D. Labrie, and P. Chylek, 1994: Refractive indices\n"
-          "of water and ice in the 0.65- to 2.5-micron spectral range,\n"
-          "Appl. Opt. 32, 3531-3540\n"
-          "\n"
-          "Perovich, D., and J. Govoni, 1991: Absorption Coefficients\n"
-          "of Ice from 250 to 400 nm, Geophys. Res. Lett. 18, 1233-1235\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("complex_refr_index"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("data_f_grid", "data_T_grid"),
-      GIN_TYPE("Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Frequency grid for refractive index calculation",
-               "Temperature grid for refractive index calculation")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexTemperatureConstant"),
       DESCRIPTION(
           "Set frequency dependent complex refractive index.\n"

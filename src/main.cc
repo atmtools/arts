@@ -718,12 +718,6 @@ int main(int argc, char** argv) {
 #else
                << "disabled" << endl
 #endif
-               << "   Refice support:       "
-#ifdef ENABLE_REFICE
-               << "enabled" << endl
-#else
-               << "disabled" << endl
-#endif
                << "   Tmatrix support:      "
 #ifdef ENABLE_TMATRIX
 #ifdef ENABLE_TMATRIX_QUAD

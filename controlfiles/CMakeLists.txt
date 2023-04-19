@@ -139,10 +139,6 @@ if (ENABLE_FASTEM)
   arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4.arts)
 endif ()
 
-if (ENABLE_REFICE)
-  arts_test_run_ctlfile(fast artscomponents/refice/TestRefice.arts)
-endif ()
-
 if (ENABLE_NETCDF)
   arts_test_run_ctlfile(slow artscomponents/moltau/TestMolTau.arts)
 endif ()
