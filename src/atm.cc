@@ -403,10 +403,19 @@ void Field::at(std::vector<Point>& out, const Vector& alt, const Vector& lat, co
   for (auto& d: nlte) compute(d.first, d.second);
   for (auto& d: specs) compute(d.first, d.second);
   for (auto& d: other) compute(d.first, d.second);
+
+  for (Index i=0; i<n; i++) {
+    if (alt[i] > top_of_atmosphere) out[i].setZero();
+  }
 }
 
 std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
   throwing_check();
+  ARTS_USER_ERROR_IF(
+      std::any_of(alt.begin(), alt.end(), Cmp::gt(top_of_atmosphere)),
+      "Cannot get values above the top of the atmosphere, which is at: ",
+      top_of_atmosphere, " m.\nYour max input altitude is: ", max(alt), " m.")
+
   std::vector<Point> out(alt.nelem());
   at(out, alt, lat, lon);
   return out;
@@ -638,5 +647,14 @@ void Data::rescale(Numeric x) {
         }
       },
       data);
+}
+
+void Point::setZero() {
+  pressure=0;
+  temperature=0;
+  wind={0., 0., 0.};
+  mag = {0., 0., 0.};
+  for (auto& v: specs) v.second = 0;
+  for (auto& v: nlte) v.second = 0;
 }
 } // namespace Atm

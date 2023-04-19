@@ -208,6 +208,8 @@ public:
     return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
   }
 
+  void setZero();
+
   friend std::ostream& operator<<(std::ostream& os, const Point& atm);
 };
 
