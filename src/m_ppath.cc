@@ -35,6 +35,7 @@
 #include "ppath.h"
 #include "ppath_struct.h"
 #include "variousZZZ.h"
+#include <limits>
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
@@ -417,7 +418,11 @@ void ppathGeometric(Ppath& ppath,
                    verbosity);
 
     ppath_extend(ppath, ppath2);
-  }  
+  } 
+
+  // FIXME: PPATH BUG FIX SHOULD BE ELSEWHERE; IT CURRENTLY CAN RETURN A POSITION ABOVE THE TOP OF THE ATMOSPHERE
+  constexpr Numeric z_boa = 0.0;
+  for (auto&& pos: ppath.pos) pos[0] = std::clamp(pos[0], z_boa, z_toa);
 }
 
 
