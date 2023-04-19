@@ -61,6 +61,7 @@ ENUMCLASS(SortingOption, char, ByFrequency, ByEinstein)
 ENUMCLASS(iy_main_agendaDefaultOptions,
           char,
           Emission,
+          EmissionNew,
           EmissionPlaneParallel,
           Clearsky,
           Transmission,

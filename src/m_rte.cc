@@ -1756,6 +1756,37 @@ void ppvar_cumtramatReverse(ArrayOfTransmissionMatrix &ppvar_cumtramat,
       cumulative_transmission(ppvar_tramat, CumulativeTransmission::Reverse);
 }
 
+void RadiativePropertiesCalc(
+    Workspace &ws, ArrayOfPropagationMatrix &ppvar_propmat,
+    ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
+    ArrayOfRadiationVector &ppvar_src,
+    ArrayOfArrayOfRadiationVector &ppvar_dsrc,
+    ArrayOfTransmissionMatrix &ppvar_tramat,
+    ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat,
+    Vector &ppvar_distance, ArrayOfArrayOfVector &ppvar_ddistance,
+    ArrayOfTransmissionMatrix &ppvar_cumtramat, const Ppath &ppath,
+    const ArrayOfAtmPoint &ppvar_atm, const ArrayOfVector &ppvar_f,
+    const Index &jacobian_do, const Agenda &ppvar_rtprop_agenda,
+    const Verbosity &) {
+  ppvar_rtprop_agendaExecute(
+      ws, ppvar_propmat, ppvar_dpropmat, ppvar_src, ppvar_dsrc, ppvar_tramat,
+      ppvar_dtramat, ppvar_distance, ppvar_ddistance, ppvar_cumtramat, ppath,
+      ppvar_atm, ppvar_f, jacobian_do, ppvar_rtprop_agenda);
+}
+
+void RadiationBackgroundCalc(Workspace &ws, RadiationVector &background_rad,
+                             ArrayOfTensor3 &diy_dx, const Ppath &ppath,
+                             const AtmField &atm_field, const Vector &f_grid,
+                             const Tensor3 &iy_transmittance,
+                             const TransmissionMatrix &background_transmittance,
+                             const Index &jacobian_do,
+                             const Agenda &rte_background_agenda,
+                             const Verbosity &) {
+  rte_background_agendaExecute(
+      ws, background_rad, diy_dx, ppath, atm_field, f_grid, iy_transmittance,
+      background_transmittance, jacobian_do, rte_background_agenda);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(
     Workspace &ws,
@@ -1795,16 +1826,16 @@ void iyEmissionStandard(
   ArrayOfArrayOfArrayOfTransmissionMatrix dlyr_tra;
   Vector r;
   ArrayOfArrayOfVector dr;
-  ppvar_rtprop_agendaExecute(ws, K, dK, src_rad, dsrc_rad, lyr_tra, dlyr_tra, r,
-                             dr, tot_tra, ppath, ppvar_atm, ppvar_f,
-                             jacobian_do, ppvar_rtprop_agenda);
+  RadiativePropertiesCalc(ws, K, dK, src_rad, dsrc_rad, lyr_tra, dlyr_tra, r,
+                          dr, tot_tra, ppath, ppvar_atm, ppvar_f, jacobian_do,
+                          ppvar_rtprop_agenda, verbosity);
 
   RadiationVector background_rad;
   const auto &background_transmittance = tot_tra.back();
-  rte_background_agendaExecute(
+  RadiationBackgroundCalc(
       ws, background_rad, diy_dx, ppath, atm_field,
       f_grid, iy_transmittance, background_transmittance, jacobian_do,
-      rte_background_agenda);
+      rte_background_agenda, verbosity);
 
   ArrayOfRadiationVector lvl_rad;
   ArrayOfArrayOfRadiationVector dlvl_rad;

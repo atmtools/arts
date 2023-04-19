@@ -1,6 +1,9 @@
 #include "agenda_set.h"
 
 #include <default_gins.h>
+#include <exception>
+#include <iomanip>
+#include <stdexcept>
 
 #include "arts_options.h"
 #include "transmissionmatrix.h"
@@ -11,7 +14,7 @@ std::ostream& operator<<(std::ostream& os, const AgendaMethodVariable& x) {
 }
 
 Array<AgendaMethodVariable> sorted_mdrecord(Workspace& ws,
-                                            const String& method_name) {
+                                            const String& method_name) try {
   static const Index any_pos = global_data::WsvGroupMap.at("Any");
 
   auto& method =
@@ -66,6 +69,8 @@ Array<AgendaMethodVariable> sorted_mdrecord(Workspace& ws,
   }
 
   return var_order;
+} catch (std::exception& e) {
+  throw std::logic_error(var_string("Cannot set: ", std::quoted(method_name), '\n', e.what()));
 }
 
 std::pair<ArrayOfIndex, ArrayOfIndex> split_io(
@@ -223,7 +228,7 @@ void AgendaCreator::set(const std::string_view var, const TokVal& value) {
 
 void AgendaCreator::ignore(const std::string_view var) { add("Ignore", var); }
 
-Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
+Agenda get_iy_main_agenda(Workspace& ws, const String& option) try {
   AgendaCreator agenda(ws, "iy_main_agenda");
 
   using enum Options::iy_main_agendaDefaultOptions;
@@ -231,6 +236,20 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
     case Emission:
       agenda.add("ppathCalc");
       agenda.add("iyEmissionStandard");
+      agenda.set("geo_pos", Vector{});
+      break;
+    case EmissionNew:
+      agenda.add("ppathCalc");
+      agenda.add("ppvar_atmFromPath");
+      agenda.add("ppvar_fFromPath");
+      agenda.add("RadiativePropertiesCalc");
+      agenda.add("background_transmittanceFromBack");
+      agenda.add("RadiationBackgroundCalc");
+      agenda.add("ppvar_radCalc");
+      agenda.add("iyCopyPath");
+      agenda.add("diy_dxTransform");
+      agenda.add("iyUnitConversion");
+      agenda.add("iy_auxFromVars");
       agenda.set("geo_pos", Vector{});
       break;
     case EmissionPlaneParallel:
@@ -276,6 +295,8 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) {
   }
 
   return agenda.finalize();
+}  catch (std::exception& e) {
+  throw std::logic_error(var_string("This option is broken: ", std::quoted(option), '\n', e.what()));
 }
 
 Agenda get_iy_loop_freqs_agenda(Workspace& ws, const String& option) {

@@ -366,7 +366,6 @@ ComputeLimit find_limit(const Data& data, const Limits& lim, Numeric alt, Numeri
 }
 
 Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const Vector& lon) {
-  DebugTime t{"vec_interp"};
   const auto compute = [&](auto& d) {
     return vec_interp(d, alt, lat, lon);
   };

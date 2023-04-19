@@ -15959,6 +15959,28 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Distance assumed when computing local (1-T)")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("RadiativePropertiesCalc"),
+      DESCRIPTION(R"(Wraps executing *ppvar_rtprop_agenda*.
+)"),
+      AUTHORS("Richard Larsson"),
+      OUT("ppvar_propmat", "ppvar_dpropmat", "ppvar_src", "ppvar_dsrc",
+          "ppvar_tramat", "ppvar_dtramat", "ppvar_distance", "ppvar_ddistance",
+          "ppvar_cumtramat"),
+      GOUT(), GOUT_TYPE(), GOUT_DESC(),
+      IN("ppath", "ppvar_atm", "ppvar_f", "jacobian_do", "ppvar_rtprop_agenda"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("RadiationBackgroundCalc"),
+      DESCRIPTION(R"(Wraps executing *rte_background_agenda*.
+)"),
+      AUTHORS("Richard Larsson"), OUT("background_rad", "diy_dx"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(),
+      IN("ppath", "atm_field", "f_grid", "iy_transmittance",
+         "background_transmittance", "jacobian_do", "rte_background_agenda"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("RationalAdd"),
       DESCRIPTION(
           "Adds a Rational and a value (out = in + value).\n"
