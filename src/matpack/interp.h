@@ -1,6 +1,7 @@
 #pragma once
 
 #include "array.h"
+#include "compare.h"
 #include "debug.h"
 #include "enums.h"
 #include "nonstd.h"
@@ -331,8 +332,8 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi) requires(te
   /* The maximum offset also gives the maximum p0 */
   const Index N = xi.size() - max_p0_offset;
 
-  /* Clamp higher order indices to ensure we are in a good state */
-  if constexpr (not cyclic and p0_offset > 0) p0 = std::clamp<Index>(p0, 0, N);
+  /* Clamp indices to ensure we are in a good state */
+  if constexpr (not cyclic) p0 = std::clamp<Index>(p0, 0, N);
 
   //! The upper index is 1 or 0 if polyorder exist
   constexpr Index upper_offset = polyorder not_eq 0;
@@ -1400,6 +1401,71 @@ constexpr auto reinterp(const matpack::strict_rank_matpack_type<N> auto &field,
             lag_t);
       });
 
+  return out;
+}
+
+namespace detail {
+template <list_of_lagrange_type... lags> struct flat_interpweights {
+  using type = decltype(interpweights(lags{}[0]...));
+};
+template <list_of_lagrange_type... lags>
+using flat_interpweights_t = typename flat_interpweights<lags...>::type;
+} // namespace detail
+
+/** Flat interpolation, where the extraction is meant to be a path through the
+ * field.
+ *
+ * This differs from normal interpweights that try to regrid the field
+ */
+template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags),
+          typename T = detail::flat_interpweights_t<lags...>>
+constexpr auto flat_interpweights(const lags &...lag)
+  requires(N > 0)
+{
+  const std::array sz = {static_cast<Index>(lag.size())...};
+  const Index n = sz.front();
+  ARTS_ASSERT(std::all_of(sz.begin() + 1, sz.end(), Cmp::eq(n)))
+
+  std::vector<T> out(n);
+  for (Index i = 0; i < n; i++)
+    out[i] = interpweights(lag[i]...);
+  return out;
+}
+
+template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags),
+          typename T = detail::flat_interpweights_t<lags...>>
+constexpr auto
+flat_interp(const matpack::strict_rank_matpack_type<N> auto &field,
+            const std::vector<T> &iw, const lags &...lag)
+  requires(N > 0)
+{
+  const std::array sz = {static_cast<Index>(iw.size()),
+                         static_cast<Index>(lag.size())...};
+  const Index n = sz.front();
+  ARTS_ASSERT(std::all_of(sz.begin() + 1, sz.end(), Cmp::eq(n)))
+
+  using F = decltype(field);
+  matpack::matpack_data<matpack::matpack_value_type<F>, 1> out(n);
+  for (Index i = 0; i < n; i++)
+    out[i] = interp(field, iw[i], lag[i]...);
+  return out;
+}
+
+template <list_of_lagrange_type... lags, std::size_t N = sizeof...(lags),
+          typename T = detail::flat_interpweights_t<lags...>>
+constexpr auto
+flat_interp(const matpack::strict_rank_matpack_type<N> auto &field,
+            const lags &...lag)
+  requires(N > 0)
+{
+  const std::array sz = {static_cast<Index>(lag.size())...};
+  const Index n = sz.front();
+  ARTS_ASSERT(std::all_of(sz.begin() + 1, sz.end(), Cmp::eq(n)))
+
+  using F = decltype(field);
+  matpack::matpack_data<matpack::matpack_value_type<F>, 1> out(n);
+  for (Index i = 0; i < n; i++)
+    out[i] = interp(field, lag[i]...);
   return out;
 }
 }  // namespace my_interp
