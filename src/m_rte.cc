@@ -1237,16 +1237,16 @@ void iyEmissionHybrid(Workspace& ws,
 }
 
 void ppvar_atmFromPath(ArrayOfAtmPoint &ppvar_atm, const Ppath &ppath,
-                       const AtmField &atm_field, const Verbosity &) {
+                       const AtmField &atm_field, const Verbosity &) try {
   forward_atm_path(atm_path_resize(ppvar_atm, ppath), ppath, atm_field);
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void ppvar_fFromPath(ArrayOfVector &ppvar_f, const Vector &f_grid,
                      const Ppath &ppath, const ArrayOfAtmPoint &ppvar_atm,
-                     const Numeric &rte_alonglos_v, const Verbosity &) {
+                     const Numeric &rte_alonglos_v, const Verbosity &) try {
   forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm), f_grid, ppath,
                     ppvar_atm, rte_alonglos_v);
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
                    ArrayOfArrayOfRadiationVector &ppvar_drad,
@@ -1260,7 +1260,7 @@ void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
                    const ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
                    const Vector &ppvar_distance,
                    const ArrayOfArrayOfVector &ppvar_ddistance,
-                   const String &rte_option, const Verbosity &) {
+                   const String &rte_option, const Verbosity &) try {
   const RadiativeTransferSolver rte_opt =
       toRadiativeTransferSolverOrThrow(rte_option);
 
@@ -1322,7 +1322,7 @@ void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
   case RadiativeTransferSolver::FINAL:
     ARTS_USER_ERROR("Bad RTE option: ", std::quoted(rte_option))
   }
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void iyUnitConversion(Matrix &iy, ArrayOfTensor3 &diy_dx,
                       Tensor3 &ppvar_iy, const Vector &f_grid,
@@ -1365,7 +1365,7 @@ void ppvar_propmatCalc(Workspace &ws, ArrayOfPropagationMatrix &ppvar_propmat,
                        const ArrayOfRetrievalQuantity &jacobian_quantities,
                        const ArrayOfVector &ppvar_f, const Ppath &ppath,
                        const ArrayOfAtmPoint &ppvar_atm,
-                       const Index &jacobian_do, const Verbosity &) {
+                       const Index &jacobian_do, const Verbosity &) try {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1411,7 +1411,7 @@ void ppvar_propmatCalc(Workspace &ws, ArrayOfPropagationMatrix &ppvar_propmat,
   }
 
   ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void ppvar_srcFromPropmat(ArrayOfRadiationVector &ppvar_src,
                           ArrayOfArrayOfRadiationVector &ppvar_dsrc,
@@ -1422,7 +1422,7 @@ void ppvar_srcFromPropmat(ArrayOfRadiationVector &ppvar_src,
                           const ArrayOfVector &ppvar_f,
                           const ArrayOfAtmPoint &ppvar_atm,
                           const ArrayOfRetrievalQuantity &jacobian_quantities,
-                          const Index &jacobian_do, const Verbosity &) {
+                          const Index &jacobian_do, const Verbosity &) try {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1481,7 +1481,7 @@ void ppvar_srcFromPropmat(ArrayOfRadiationVector &ppvar_src,
       }
     }
   }
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void ppvar_tramatCalc(ArrayOfTransmissionMatrix &ppvar_tramat,
                       ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat,
@@ -1491,7 +1491,7 @@ void ppvar_tramatCalc(ArrayOfTransmissionMatrix &ppvar_tramat,
                       const ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
                       const Ppath &ppath, const ArrayOfAtmPoint &ppvar_atm,
                       const ArrayOfRetrievalQuantity &jacobian_quantities,
-                      const Index &jacobian_do, const Verbosity &) {
+                      const Index &jacobian_do, const Verbosity &) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
@@ -1558,7 +1558,7 @@ void ppvar_tramatCalc(ArrayOfTransmissionMatrix &ppvar_tramat,
   }
 
   ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
                     const TransmissionMatrix &background_transmittance,
@@ -1696,7 +1696,7 @@ void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
                    const Agenda &iy_main_agenda, const Agenda &iy_space_agenda,
                    const Agenda &iy_surface_agenda,
                    const Agenda &iy_cloudbox_agenda, const String &iy_unit,
-                   const Verbosity &verbosity) {
+                   const Verbosity &verbosity) try {
   // iy_transmittance
   Tensor3 iy_transmittance_background;
   iy_transmittance_backgroundFromRte(iy_transmittance_background,
@@ -1719,7 +1719,7 @@ void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
       jacobian_quantities, ppath, rte_pos2, atm_field, cloudbox_on, ns, f_grid,
       iy_unit, surface_props_data, iy_main_agenda, iy_space_agenda,
       iy_surface_agenda, iy_cloudbox_agenda, iy_agenda_call1, verbosity);
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void background_radFromMatrix(RadiationVector &background_rad, const Matrix &iy,
                               const Verbosity &) {

@@ -66,12 +66,13 @@ std::string var_string(Args&& ... args) {
 
 #define ARTS_METHOD_ERROR_CATCH                                                \
   catch (std::logic_error & e) {                                               \
-    throw std::logic_error(var_string(                                         \
-        "Assertion error caught. ", CURRENT_SOURCE_LOCATION, '\n', e.what())); \
+    throw std::logic_error(var_string("Assertion error caught:\n",             \
+                                      CURRENT_SOURCE_LOCATION, '\n',           \
+                                      e.what()));                              \
   }                                                                            \
   catch (std::exception & e) {                                                 \
     throw std::logic_error(var_string(                                         \
-        "Runtime error caught. ", CURRENT_SOURCE_LOCATION, '\n', e.what()));   \
+        "Runtime error caught:\n", CURRENT_SOURCE_LOCATION, '\n', e.what()));  \
   }
 
 #ifndef NDEBUG

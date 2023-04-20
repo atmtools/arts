@@ -164,6 +164,9 @@ public:
 
   Numeric operator[](Species::Species x) const noexcept;
 
+  Numeric operator[](const KeyVal&) const;
+  Numeric& operator[](const KeyVal&);
+
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
     const auto has_ = [](auto &x [[maybe_unused]],
