@@ -33,6 +33,8 @@
 #include "arts.h"
 #include "xml_io_base.h"
 #include "xml_io_arts_types.h"
+#include <__concepts/same_as.h>
+#include <type_traits>
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes
@@ -150,7 +152,7 @@ void filename_xml_with_index(String& filename,
 template <typename T>
 void xml_read_from_file(const String& filename,
                         T& type,
-                        const Verbosity& verbosity) {
+                        const Verbosity& verbosity) requires (std::same_as<T, std::remove_const_t<T>>) {
   CREATE_OUT2;
 
   String xml_file = filename;

@@ -5068,50 +5068,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("Verbosity")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("vmr_field"),
-      DESCRIPTION(
-          "VMR field.\n"
-          "\n"
-          "This variable gives the volume mixing ratio of the chosen gaseous \n"
-          "species as a function of p_grid, lat_grid, lon_grid. \n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
-          "\n"
-          "Units: [ Differ between the elements, can be VMR, kg/m3 or #/m3. ]\n"
-          "\n"
-          "Dimensions: [species, p_grid, lat_grid, lon_grid]\n"),
-      GROUP("Tensor4")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("vmr_field_raw"),
-      DESCRIPTION(
-          "VMR data for the chosen gaseous species.\n"
-          "\n"
-          "This variable contains the volume mixing ratios (VMR) for all \n"
-          "chosen gaseous species. It includes the grids corresponding to the \n"
-          "grids in the database. \n"
-          "*vmr_field_raw* is an Array of Array of Tensor3. It contains one \n"
-          "gridded field for each species which contains the data and \n"
-          "also the grids.\n"
-          "For the calculation the data is \n"
-          "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"
-          "\n"
-          "Usage: Output of *AtmRawRead*\n"
-          "       Input to *AtmFieldsCalc*.\n"
-          "\n"
-          "Unit:  absolute number\n"
-          "\n"
-          "Size:  Array[number of absorption species]\n"
-          "       GriddedField3 \n "
-          "       [N_p] \n"
-          "       [N_lat] \n"
-          "       [N_lon] \n"
-          "       [N_p, N_lat, N_lon] \n"),
-      GROUP("ArrayOfGriddedField3")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("water_p_eq_agenda"),
       DESCRIPTION("Agenda to calculate the saturation pressure of water.\n"),
       GROUP("Agenda")));

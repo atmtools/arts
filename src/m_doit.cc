@@ -59,6 +59,7 @@
 #include "ppath_OLD.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "species_tags.h"
 #include "wsv_aux.h"
 #include "xml_io.h"
 
@@ -1394,19 +1395,22 @@ void cloudbox_fieldUpdateSeq1DPP(
     const ArrayOfIndex& cloudbox_limits,
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
     const Vector& za_grid,
     const Tensor4& pnd_field,
-    // Propagation path calculation:
-    const Vector& p_grid,
-    const Tensor3& z_field,
     // Calculate thermal emission:
-    const Tensor3& t_field,
     const Vector& f_grid,
     const Index& f_index,
     const Verbosity& verbosity) {
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Requires regular atmospheric field")
+  const Vector& z_grid = atm_field.grid[0];
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+
   CREATE_OUT2;
   CREATE_OUT3;
 
@@ -1514,8 +1518,8 @@ void cloudbox_fieldUpdateSeq1DPP(
                                            doit_scat_field,
                                            propmat_clearsky_agenda,
                                            vmr_field,
-                                           p_grid,
-                                           z_field,
+                                           z_grid,
+                                           p_field,
                                            t_field,
                                            f_grid,
                                            f_index,
@@ -1539,8 +1543,8 @@ void cloudbox_fieldUpdateSeq1DPP(
                                            doit_scat_field,
                                            propmat_clearsky_agenda,
                                            vmr_field,
-                                           p_grid,
-                                           z_field,
+                                           z_grid,
+                                           p_field,
                                            t_field,
                                            f_grid,
                                            f_index,

@@ -1736,12 +1736,10 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
-    Vector& p_grid,
+    Vector& z_grid,
     Vector& lat_grid,
     Vector& lon_grid,
-    Tensor3& t_field,
-    Tensor3& z_field,
-    Tensor4& vmr_field,
+    AtmField& atm_field,
     Tensor4& particle_bulkprop_field,
     ArrayOfString& particle_bulkprop_names,
 
@@ -1749,10 +1747,9 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const GriddedField4& atm_fields_compact,
     const String& delim,
-    const Numeric& p_min,
     // Control parameters:
     const Index& check_gridnames,
-    const Verbosity&) {
+    const Verbosity& verbosity) {
   // Make a handle on atm_fields_compact to save typing:
   const GriddedField4& c = atm_fields_compact;
 
@@ -1772,39 +1769,23 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
   const Index nf = c.get_grid_size(GFIELD4_FIELD_NAMES);
   const Index np = c.get_grid_size(GFIELD4_P_GRID);
-  //  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
-  //  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
-  Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
-  Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
-  if (nlat == 0) nlat++;
-  if (nlon == 0) nlon++;
+  const Index nlat = std::max<Index>(1, c.get_grid_size(GFIELD4_LAT_GRID));
+  const Index nlon = std::max<Index>(1, c.get_grid_size(GFIELD4_LON_GRID));
 
   // Grids:
-  p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
+  z_grid = c.get_numeric_grid(GFIELD4_P_GRID);
   lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
-
-  // Reduce p_grid to region below p_min
-  Index l = np - 1;
-  bool search_toa = true;
-  while (search_toa && l > 0) {
-    if (p_grid[l - 1] < p_min)
-      l--;
-    else
-      search_toa = false;
-  }
-  ARTS_USER_ERROR_IF (search_toa,
-      "At least one atmospheric level with pressure larger p_min (=",
-      p_min, ")\n"
-      "is needed, but none is found.")
-  const Index npn = l + 1;
-  p_grid = p_grid[Range(0, npn)];
 
   const Index nsa = abs_species.nelem();
 
   // Check that there is at least one VMR species:
   ARTS_USER_ERROR_IF (nsa < 1,
     "There must be at least one absorption species.")
+  
+  // Set TOA
+  atm_fieldInit(atm_field, max(z_grid), verbosity);
+  atm_field.regularize(z_grid, lat_grid, lon_grid);
 
   // In contrast to older versions, we allow the data entries to be in arbitrary
   // order. that is, we have to look for all fields individually. we require the
@@ -1824,37 +1805,33 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
   // Find temperature field:
   found = false;
-  t_field.resize(npn, nlat, nlon);
   for (Index i = 0; i < nf; ++i) {
     if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "T") {
       ARTS_USER_ERROR_IF (found,
           "Only one temperature ('T') field allowed,\n"
           "but found at least 2.")
       found = true;
-      t_field = c.data(i, Range(0, npn), Range(joker), Range(joker));
+      atm_field[Atm::Key::t].get<Tensor3&>() = Tensor3{c.data[i]};
     }
   }
   ARTS_USER_ERROR_IF (!found,
     "One temperature ('T') field required, but none found")
 
-  // Find Altitude field:
+  // Find Pressure field:
   found = false;
-  z_field.resize(npn, nlat, nlon);
   for (Index i = 0; i < nf; ++i) {
-    if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "z") {
+    if (c.get_string_grid(GFIELD4_FIELD_NAMES)[i] == "p") {
       ARTS_USER_ERROR_IF (found,
-          "Only one altitude ('z') field allowed,\n"
+          "Only one pressure ('p') field allowed,\n"
           "but found at least 2.")
       found = true;
-      z_field = c.data(i, Range(0, npn), Range(joker), Range(joker));
+      atm_field[Atm::Key::p].get<Tensor3&>() = Tensor3{c.data[i]};
     }
   }
   ARTS_USER_ERROR_IF (!found,
-    "One altitude ('z') field required, but none found")
+    "One pressure ('p') field required, but none found")
 
   // Extracting the required abs_species fields:
-
-  vmr_field.resize(nsa, npn, nlat, nlon);
   for (Index j = 0; j < nsa; ++j) {
     const String as_name = Species::toShortName(abs_species[j][0].Spec());
     found = false;
@@ -1870,8 +1847,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
             species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
         if (species_name == as_name) {
           found = true;
-          vmr_field(j, Range(joker), Range(joker), Range(joker)) =
-              c.data(i, Range(0, npn), Range(joker), Range(joker));
+          atm_field[abs_species[j]] = Tensor3{c.data[i]};
         }
       }
       i++;
@@ -1896,7 +1872,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   const Index nsp = Idx.size();
 
   // Extracting the required scattering species fields:
-  particle_bulkprop_field.resize(nsp, npn, nlat, nlon);
+  particle_bulkprop_field.resize(nsp, np, nlat, nlon);
   particle_bulkprop_field = NAN;
   particle_bulkprop_names.resize(nsp);
 
@@ -1912,8 +1888,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     parse_atmcompact_speciesname(
         species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[Idx[j]], delim);
 
-    particle_bulkprop_field(j, Range(joker), Range(joker), Range(joker)) =
-        c.data(Idx[j], Range(0, npn), Range(joker), Range(joker));
+    particle_bulkprop_field[j] = c.data[Idx[j]];
 
     particle_bulkprop_names[j] = species_name + delim + scat_type;
   }

@@ -1904,13 +1904,6 @@ void iyIndependentBeamApproximation(Workspace& ws,
           "are inconsistent.");
   }
 
-  /* FIXME: SOMETHING ABOUT LATLON GRID
-  chk_latlon_true(atmosphere_dim,
-                  lat_grid,
-                  lat_true,
-                  lon_true);
-                  */
-
   // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
   // the function totally general. And 1D must be handled for iterative calls.
 
@@ -2149,9 +2142,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                              lon1,
                                              lat_true1,
                                              lon_true1,
-                                             t1,
-                                             z1,
-                                             vmr1,
+                                             atm_field,
                                              zsurf1,
                                              lmax1,
                                              ppath_lraytrace,

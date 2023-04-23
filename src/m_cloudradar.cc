@@ -38,7 +38,9 @@
 #include "arts_omp.h"
 #include "atm.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "logic.h"
+#include "matpack_data.h"
 #include "matpack_eigen.h"
 #include "matpack_view.h"
 #include "messages.h"
@@ -818,9 +820,7 @@ void particle_bulkpropRadarOnionPeeling(
     const Vector& p_grid,
     const Vector& lat_grid,
     const Vector& lon_grid,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
     const Matrix& z_surface,
     const Index& atmfields_checked,
     const Index& atmgeom_checked,
@@ -842,6 +842,10 @@ void particle_bulkpropRadarOnionPeeling(
     const Numeric& atten_hyd_max,
     const Verbosity&)
 {
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric fields")
+  const Tensor3& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  const Vector& z_grid = atm_field.grid[0];
+
   const Index np = t_field.npages();
   const Index nlat = t_field.nrows();
   const Index nlon = t_field.ncols();
@@ -907,8 +911,7 @@ void particle_bulkpropRadarOnionPeeling(
 
           for (Index ip = np - 1; ip >= 0; ip--) {
             // Above clutter zone
-            if (z_field(ip, ilat, ilon) >= z_surface(ilat, ilon) +
-                                           hclutterm(ilat, ilon)) {
+            if (z_grid[ip] >= z_surface(ilat, ilon) + hclutterm(ilat, ilon)) {
               // Local dBZe, roughly corrected with attenuation for previous point
               Numeric dbze =
                   dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;
@@ -961,7 +964,7 @@ void particle_bulkpropRadarOnionPeeling(
                   // Optical thickness
                   Numeric tau =
                       0.5 * hfac * (k_part_above + k_this) *
-                      (z_field(ip + 1, ilat, ilon) - z_field(ip, ilat, ilon));
+                      (z_grid[ip+1] - z_grid[ip]);
                   // This equals -10*log10(exp(-tau)^2)
                   dbze_corr_hyd +=
                       20 * LOG10_EULER_NUMBER * (atten_hyd_scaling * tau);
@@ -991,13 +994,13 @@ void particle_bulkpropRadarOnionPeeling(
                       {},
                       f_grid,
                       Vector(0),
-                      AtmPoint{},  // FIXME: Dummy value
+                      atm_field.at({z_grid[ip]}, {lat_grid[ilat]}, {lon_grid[ilon]})[0],
                       propmat_clearsky_agenda);
                   k_this = propmat.Kjj()[0];
                   // Optical thickness
                   Numeric tau =
                       0.5 * hfac * (k_abs_above + k_this) *
-                      (z_field(ip + 1, ilat, ilon) - z_field(ip, ilat, ilon));
+                      (z_grid[ip+1] - z_grid[ip]);
                   // This equals -10*log10(exp(-tau)^2)
                   dbze_corr_abs += 20 * LOG10_EULER_NUMBER * tau;
                   // k_this can now be shifted to be "above value"

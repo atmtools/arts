@@ -626,8 +626,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const Agenda& propmat_clearsky_agenda,
                                         ConstTensor4View vmr_field,
                                         // Propagation path calculation:
-                                        ConstVectorView p_grid,
-                                        ConstTensor3View z_field,
+                                        ConstVectorView z_grid,
+                                        ConstTensor3View p_field,
                                         // Calculate thermal emission:
                                         ConstTensor3View t_field,
                                         ConstVectorView f_grid,
@@ -665,8 +665,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     if (za_grid[za_index] <= 90.0) {
       stokes_vec = cloudbox_field_mono(
           p_index - cloudbox_limits[0] + 1, 0, 0, za_index, 0, joker);
-      Numeric z_field_above = z_field(p_index + 1, 0, 0);
-      Numeric z_field_0 = z_field(p_index, 0, 0);
+      Numeric z_field_above = z_grid[p_index + 1];
+      Numeric z_field_0 = z_grid[p_index];
 
       Numeric cos_theta, lstep;
       if (za_grid[za_index] == 90.0) {
@@ -686,7 +686,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           0.5 * (t_field(p_index, 0, 0) + t_field(p_index + 1, 0, 0));
       //
       // Average pressure
-      Numeric rtp_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index + 1]);
+      Numeric rtp_pressure = 0.5 * (p_field[p_index][0][0] + p_field[p_index + 1][0][0]);
 
       // Average vmrs
       for (Index j = 0; j < N_species; j++)
@@ -788,8 +788,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     if (za_grid[za_index] > 90) {
       stokes_vec = cloudbox_field_mono(
           p_index - cloudbox_limits[0] - 1, 0, 0, za_index, 0, joker);
-      Numeric z_field_below = z_field(p_index - 1, 0, 0);
-      Numeric z_field_0 = z_field(p_index, 0, 0);
+      Numeric z_field_below = z_grid[p_index - 1];
+      Numeric z_field_0 = z_grid[p_index];
 
       Numeric cos_theta, lstep;
       if (za_grid[za_index] == 90.0) {
@@ -807,7 +807,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           0.5 * (t_field(p_index, 0, 0) + t_field(p_index - 1, 0, 0));
       //
       // Average pressure
-      Numeric rtp_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index - 1]);
+      Numeric rtp_pressure = 0.5 * (p_field[p_index][0][0] + p_field[p_index - 1][0][0]);
 
       //
       // Average vmrs
@@ -920,7 +920,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     //in ppath.
     //pos
     Vector rte_pos(atmosphere_dim);
-    Numeric z_field_0 = z_field(0, 0, 0);
+    Numeric z_field_0 = z_grid[0];
     rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,atmosphere_dim));
     //los
     Vector rte_los(1);

@@ -325,8 +325,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         ConstTensor4View vmr_field,
                                         // Gas absorption:
                                         // Propagation path calculation:
-                                        ConstVectorView p_grid,
-                                        ConstTensor3View z_field,
+                                        ConstVectorView z_grid,
+                                        ConstTensor3View p_field,
                                         // Calculate thermal emission:
                                         ConstTensor3View t_field,
                                         ConstVectorView f_grid,

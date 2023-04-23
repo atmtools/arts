@@ -247,27 +247,19 @@ void ybatchMetProfiles(Workspace& ws,
                        const Vector& lon_grid,
                        const ArrayOfArrayOfSingleScatteringData& scat_data,
                        //Keyword
-                       const Index& nelem_p_grid,
+                       const Index& nelem_z_grid,
                        const String& met_profile_path,
                        const String& met_profile_pnd_path,
                        const Verbosity& verbosity) {
-  GriddedField3 t_field_raw;
-  GriddedField3 z_field_raw;
-  ArrayOfGriddedField3 vmr_field_raw;
+  AtmField atm_field;
   ArrayOfGriddedField3 pnd_field_raw;
-  Vector p_grid;
+  Vector z_grid;
   Matrix sensor_los;
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
   Matrix z_surface;
   Vector y;
   Index no_profiles = met_amsu_data.nrows();
-
-  //  *vmr_field_raw* is an ArrayOfArrayOfTensor3 where the first array
-  //holds the gaseous species.
-  //Resize *vmr_field_raw* according to the number of gaseous species
-  //elements
-  vmr_field_raw.resize(abs_species.nelem());
 
   //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
   //holds the scattering elements.
@@ -324,22 +316,26 @@ void ybatchMetProfiles(Workspace& ws,
                     RAD2DEG;
 
     //Reads the t_field_raw from file
+    GriddedField3 gf3;
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".t.xml",
-                       t_field_raw,
+                       gf3,
                        verbosity);
+    atm_field[Atm::Key::t] = gf3;
 
     //Reads the z_field_raw from file
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
-                           ".lon_" + lon_os.str() + ".z.xml",
-                       z_field_raw,
+                           ".lon_" + lon_os.str() + ".p.xml",
+                       gf3,
                        verbosity);
+    atm_field[Atm::Key::p] = gf3;
 
     //Reads the humidity from file - it is only an ArrayofTensor3
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".H2O.xml",
-                       vmr_field_raw[0],
+                       gf3,
                        verbosity);
+    atm_field[abs_species[0]] = gf3;
 
     //Reads the pnd_field_raw for one scattering element
     //xml_read_from_file("/rinax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
@@ -354,7 +350,7 @@ void ybatchMetProfiles(Workspace& ws,
     // xml_write_to_file("profile_number.xml", i);
 
     // Set z_surface from lowest level of z_field
-    z_surface(0, 0) = z_field_raw.data(0, 0, 0);
+    z_surface(0, 0) = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];;
 
     /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
      array is for species.
@@ -368,26 +364,22 @@ void ybatchMetProfiles(Workspace& ws,
     longitude grid.  The third tensor which is the vmr is set to a 
     constant value of 0.782, corresponding to N2.*/
 
-    vmr_field_raw[1].resize(vmr_field_raw[0]);
-    vmr_field_raw[1].copy_grids(vmr_field_raw[0]);
-    vmr_field_raw[1] = 0.782;  //vmr of N2
+    atm_field[abs_species[1]] = 0.782;  //vmr of N2
 
     /*the third element of the species.  the first 3 Tensors in the
     array are the same .  They are pressure grid, latitude grid and
     longitude grid.  The third tensor which is the vmr is set to a 
     constant value of 0.209, corresponding to O2.*/
-    vmr_field_raw[2].resize(vmr_field_raw[0]);
-    vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
-    vmr_field_raw[2] = 0.209;  //vmr of O2
+    atm_field[abs_species[2]] = 0.209;  //vmr of O2
 
-    const Vector& tfr_p_grid =
-        t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+    const Vector& tfr_z_grid =
+        atm_field[Atm::Key::t].get<const GriddedField3&>().get_numeric_grid(GFIELD3_P_GRID);
     // N_p is the number of elements in the pressure grid
-    Index N_p = tfr_p_grid.nelem();
+    Index N_p = tfr_z_grid.nelem();
 
     //Making a p_grid with the first and last element taken from the profile.
     VectorNLogSpace(
-        p_grid, nelem_p_grid, tfr_p_grid[0], tfr_p_grid[N_p - 1], verbosity);
+        z_grid, nelem_z_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1], verbosity);
 
     /*To set the cloudbox limits, the lower and upper cloudbox limits
     are to be set.  The lower cloudbox limit is set to the lowest
@@ -395,9 +387,9 @@ void ybatchMetProfiles(Workspace& ws,
     ice water content is non-zero.*/
     Numeric cl_grid_min, cl_grid_max;
 
-    //Lower limit = lowest pressure level of the original grid.
+    //Lower limit = lowest altitude level of the original grid.
     //Could it be the interpolated p_grid? FIXME STR
-    cl_grid_min = tfr_p_grid[0];
+    cl_grid_min = tfr_z_grid[0];
 
     // A counter for non-zero ice content
     Index level_counter = 0;
@@ -413,7 +405,7 @@ void ybatchMetProfiles(Workspace& ws,
         //cloudbox limit. Moreover, we take one level higher
         // than the upper limit because we want the upper limit
         //to have 0 pnd.
-        cl_grid_max = tfr_p_grid[ip + 1];
+        cl_grid_max = tfr_z_grid[ip + 1];
       }
     }
 
@@ -424,13 +416,13 @@ void ybatchMetProfiles(Workspace& ws,
     //need to set the upper limit. I here set the first level
     //for the upper cloudbox limit.
     if (level_counter == 0) {
-      cl_grid_max = p_grid[1];
+      cl_grid_max = z_grid[1];
     }
 
     //Cloudbox is set.
     cloudboxSetManually(cloudbox_on,
                         cloudbox_limits,
-                        p_grid,
+                        z_grid,
                         lat_grid,
                         lon_grid,
                         cl_grid_min,
@@ -450,11 +442,9 @@ void ybatchMetProfiles(Workspace& ws,
 
     met_profile_calc_agendaExecute(ws,
                                    y,
-                                   t_field_raw,
-                                   vmr_field_raw,
-                                   z_field_raw,
+                                   atm_field,
                                    pnd_field_raw,
-                                   p_grid,
+                                   z_grid,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,
@@ -483,11 +473,9 @@ void ybatchMetProfilesClear(Workspace& ws,
                             const Index& nelem_p_grid,
                             const String& met_profile_path,
                             const Verbosity& verbosity) {
-  GriddedField3 t_field_raw;
-  GriddedField3 z_field_raw;
-  ArrayOfGriddedField3 vmr_field_raw;
+  AtmField atm_field;
   ArrayOfGriddedField3 pnd_field_raw;
-  Vector p_grid;
+  Vector z_grid;
   Matrix sensor_los;
   Index cloudbox_on = 0;
   ArrayOfIndex cloudbox_limits;
@@ -498,8 +486,6 @@ void ybatchMetProfilesClear(Workspace& ws,
   // The humidity data is stored as  an ArrayOfTensor3 whereas
   // vmr_field_raw is an ArrayOfArrayOfTensor3
   GriddedField3 vmr_field_raw_h2o;
-
-  vmr_field_raw.resize(abs_species.nelem());
 
   y.resize(f_grid.nelem());
   ybatch.resize(no_profiles);
@@ -553,15 +539,19 @@ void ybatchMetProfilesClear(Workspace& ws,
     cout << "sensor_los" << sensor_los << endl;
     //Reads the t_field_raw from file
 
+    GriddedField3 gf3;
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".t.xml",
-                       t_field_raw,
+                       gf3,
                        verbosity);
+    atm_field[Atm::Key::t] = gf3;
+
     //Reads the z_field_raw from file
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
-                           ".lon_" + lon_os.str() + ".z.xml",
-                       z_field_raw,
+                           ".lon_" + lon_os.str() + ".p.xml",
+                       gf3,
                        verbosity);
+    atm_field[Atm::Key::p] = gf3;
 
     //Reads the humidity from file - it is only an ArrayofTensor3
     // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer
@@ -588,29 +578,25 @@ void ybatchMetProfilesClear(Workspace& ws,
 
     // N_p is the number of elements in the pressure grid
     //z_surface(0,0) = oro_height[i]+ 0.01;
-    z_surface(0, 0) = z_field_raw.data(0, 0, 0);
+    z_surface(0, 0) = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];
     cout << "z_surface" << z_surface << endl;
-    const Vector& tfr_p_grid =
-        t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-    Index N_p = tfr_p_grid.nelem();
+    const Vector& tfr_z_grid =
+        atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(GFIELD3_P_GRID);
+    Index N_p = tfr_z_grid.nelem();
 
-    vmr_field_raw[0] = vmr_field_raw_h2o;
+    atm_field[abs_species[0]] = vmr_field_raw_h2o;
 
     // the second element of the species.  the first 3 Tensors in the
     //array are the same .  They are pressure grid, latitude grid and
     // longitude grid.  The third tensor which is the vmr is set to a
     // constant value of 0.782.
-    vmr_field_raw[1].resize(vmr_field_raw[0]);
-    vmr_field_raw[1].copy_grids(vmr_field_raw[0]);
-    vmr_field_raw[1].data(joker, joker, joker) = 0.782;
+    atm_field[abs_species[1]] = 0.782;
 
     // the second element of the species.  the first 3 Tensors in the
     //array are the same .  They are pressure grid, latitude grid and
     // longitude grid.  The third tensor which is the vmr is set to a
     // constant value of 0.209.
-    vmr_field_raw[2].resize(vmr_field_raw[0]);
-    vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
-    vmr_field_raw[2].data(joker, joker, joker) = 0.209;
+    atm_field[abs_species[2]] = 0.209;
 
     //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
     //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
@@ -619,19 +605,17 @@ void ybatchMetProfilesClear(Workspace& ws,
     // this is because of the extrapolation problem.
 
     VectorNLogSpace(
-        p_grid, nelem_p_grid, tfr_p_grid[0], tfr_p_grid[N_p - 1], verbosity);
-    cout << "t_field_raw[0](0,0,0)" << tfr_p_grid[0] << endl;
-    cout << "t_field_raw[0](N_p -1,0,0)" << tfr_p_grid[N_p - 1] << endl;
-    xml_write_to_file("p_grid.xml", p_grid, FILE_TYPE_ASCII, 0, verbosity);
+        z_grid, nelem_p_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1], verbosity);
+    cout << "t_field_raw[0](0,0,0)" << tfr_z_grid[0] << endl;
+    cout << "t_field_raw[0](N_p -1,0,0)" << tfr_z_grid[N_p - 1] << endl;
+    xml_write_to_file("p_grid.xml", z_grid, FILE_TYPE_ASCII, 0, verbosity);
 
     // executing the met_profile_calc_agenda
     met_profile_calc_agendaExecute(ws,
                                    y,
-                                   t_field_raw,
-                                   vmr_field_raw,
-                                   z_field_raw,
+                                   atm_field,
                                    pnd_field_raw,
-                                   p_grid,
+                                   z_grid,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,

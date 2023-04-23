@@ -2294,8 +2294,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
         "p_grid",
          //            "lat_grid",
          //            "lon_grid",
-         "t_field",
-         "vmr_field",
+         "atm_field",
          "atmfields_checked",
          "abs_species",
          "abs_p_interp_order",
@@ -3693,22 +3692,18 @@ Available models:
       OUT("p_grid",
           "lat_grid",
           "lon_grid",
-          "t_field",
-          "z_field",
-          "vmr_field",
+          "atm_field",
           "particle_bulkprop_field",
           "particle_bulkprop_names"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species", "atm_fields_compact"),
-      GIN("delim", "p_min", "check_gridnames"),
-      GIN_TYPE("String", "Numeric", "Index"),
-      GIN_DEFAULT("-", "0", "0"),
+      GIN("delim", "check_gridnames"),
+      GIN_TYPE("String", "Index"),
+      GIN_DEFAULT("-", "0"),
       GIN_DESC(/* delim */
                "Delimiter string of *scat_species* elements.",
-               /* p_min */
-               "Minimum-pressure level to consider (for TOA).",
                /* check_gridnames */
                "A flag with value 1 or 0. If set to one, the gridnames of \n"
                " the *atm_fields_compact* are checked.")));
@@ -3750,14 +3745,7 @@ Available models:
          "lat_grid",
          "lon_grid",
          "abs_species",
-         "t_field",
-         "vmr_field",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
+         "atm_field",
          "abs_f_interp_order"),
       GIN("negative_vmr_ok"),
       GIN_TYPE("Index"),
@@ -4945,7 +4933,7 @@ After this method is called, all existing fields have a regular shape.
          "doit_scat_field",
          "cloudbox_limits",
          "propmat_clearsky_agenda",
-         "vmr_field",
+         "atm_field",
          "spt_calc_agenda",
          "za_grid",
          "pnd_field",
@@ -4953,9 +4941,7 @@ After this method is called, all existing fields have a regular shape.
          "ppath_lmax",
          "ppath_lraytrace",
          "p_grid",
-         "z_field",
          "refellipsoid",
-         "t_field",
          "f_grid",
          "f_index",
          "surface_rtprop_agenda",
@@ -4984,7 +4970,7 @@ After this method is called, all existing fields have a regular shape.
          "doit_scat_field",
          "cloudbox_limits",
          "propmat_clearsky_agenda",
-         "vmr_field",
+         "atm_field",
          "spt_calc_agenda",
          "za_grid",
          "aa_grid",
@@ -4993,9 +4979,7 @@ After this method is called, all existing fields have a regular shape.
          "ppath_lmax",
          "ppath_lraytrace",
          "p_grid",
-         "z_field",
          "refellipsoid",
-         "t_field",
          "f_grid",
          "f_index",
          "surface_rtprop_agenda",
@@ -5030,13 +5014,11 @@ After this method is called, all existing fields have a regular shape.
          "doit_scat_field",
          "cloudbox_limits",
          "propmat_clearsky_agenda",
-         "vmr_field",
+         "atm_field",
+         "abs_species",
          "spt_calc_agenda",
          "za_grid",
          "pnd_field",
-         "p_grid",
-         "z_field",
-         "t_field",
          "f_grid",
          "f_index"),
       GIN(),
@@ -5065,7 +5047,7 @@ After this method is called, all existing fields have a regular shape.
          "doit_scat_field",
          "cloudbox_limits",
          "propmat_clearsky_agenda",
-         "vmr_field",
+         "atm_field",
          "spt_calc_agenda",
          "za_grid",
          "aa_grid",
@@ -5076,9 +5058,7 @@ After this method is called, all existing fields have a regular shape.
          "p_grid",
          "lat_grid",
          "lon_grid",
-         "z_field",
          "refellipsoid",
-         "t_field",
          "f_grid",
          "f_index",
          "doit_za_interp"),
@@ -5987,9 +5967,7 @@ After this method is called, all existing fields have a regular shape.
          "propmat_clearsky_agenda",
          "gas_scattering_agenda",
          "pnd_field",
-         "t_field",
-         "z_field",
-         "vmr_field",
+         "atm_field",
          "p_grid",
          "lat_true",
          "lon_true",
@@ -6063,9 +6041,7 @@ After this method is called, all existing fields have a regular shape.
          "surface_rtprop_agenda",
          "gas_scattering_agenda",
          "pnd_field",
-         "t_field",
-         "z_field",
-         "vmr_field",
+         "atm_field",
          "p_grid",
          "lat_true",
          "lon_true",
@@ -6131,9 +6107,7 @@ After this method is called, all existing fields have a regular shape.
          "atmgeom_checked",
          "propmat_clearsky_agenda",
          "gas_scattering_agenda",
-         "t_field",
-         "z_field",
-         "vmr_field",
+         "atm_field",
          "p_grid",
          "lat_true",
          "lon_true",
@@ -6206,9 +6180,7 @@ After this method is called, all existing fields have a regular shape.
          "propmat_clearsky_agenda",
          "gas_scattering_agenda",
          "pnd_field",
-         "t_field",
-         "z_field",
-         "vmr_field",
+         "atm_field",
          "p_grid",
          "lat_true",
          "lon_true",
@@ -6657,7 +6629,7 @@ After this method is called, all existing fields have a regular shape.
           "cloudbox_limits",
           "cloudbox_field_mono",
           "pha_mat_doit",
-          "vmr_field",
+          "atm_field",
           "p_grid_orig"),
       GOUT(),
       GOUT_TYPE(),
@@ -6670,7 +6642,7 @@ After this method is called, all existing fields have a regular shape.
          "cloudbox_limits",
          "cloudbox_field_mono",
          "pha_mat_doit",
-         "vmr_field",
+         "atm_field",
          "f_grid",
          "f_index",
          "propmat_clearsky_agenda"),
@@ -8837,89 +8809,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  /*
-  md_data_raw.push_back
-    ( create_mdrecord
-      ( NAME( "iyFOS" ),
-        DESCRIPTION
-        (
-         "Method in development. Don't use without contacting Patrick.\n"
-         "\n"
-         "Regarding radiance unit, works exactly as *iyEmissionStandard*.\n"
-         "\n"
-         "The *fos_n* argument determines the maximum scattering order that\n"
-         "will be considered. For example, 1 corresponds to that only single\n"
-         "scattering is considered. The value 0 is accepted and results\n"
-         "in calculations of clear-sky type. In the later case, particle\n"
-         "absorption/emission is considered if cloudbox is active. If\n"
-         "cloudbox is not active,clear-sky results are returned for all\n"
-         "values of *fos_n*.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Pressure\": The pressure along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Temperature\": The temperature along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
-         "     For example, adding the string \"VMR, species 0\" extracts the\n"
-         "     VMR of the first species. Size: [1,1,1,np].\n"
-         "  \"Absorption, summed\": The total absorption matrix along the\n"
-         "     path. Size: [nf,ns,ns,np].\n"
-         "  \"Absorption, species X\": The absorption matrix along the path\n"
-         "     for an individual species (X works as for VMR).\n"
-         "     Size: [nf,ns,ns,np].\n"
-         "  \"PND, type X\": The particle number density for scattering element\n"
-         "       type X (ie. corresponds to book X in pnd_field).\n"
-         "       Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The mass content for scattering element X.\n"
-         "       This corresponds to column X in *particle_masses* (zero-\n"
-         "       based indexing). Size: [1,1,1,np].\n"
-         "* \"Radiative background\": Index value flagging the radiative\n"
-         "     background. The following coding is used: 0=space and\n"
-         "     and 1=surface. Size: [nf,1,1,1].\n"
-         "  \"iy\": The radiance at each point along the path (*iy_unit* is.\n"
-         "     considered). Size: [nf,ns,1,np].\n"
-         "* \"Optical depth\": The scalar optical depth between the\n"
-         "     observation point and the end of the primary propagation path\n"
-         "     (ie. the optical depth to the surface or space.). Calculated\n"
-         "     in a pure scalar manner, and not dependent on direction.\n"
-         "     Size: [nf,1,1,1].\n"
-         "where\n"
-         "  nf: Number of frequencies.\n"
-         "  ns: Number of Stokes elements.\n"
-         "  np: Number of propagation path points.\n"
-         "\n"
-         "The auxiliary data are returned in *iy_aux* with quantities\n"
-         "selected by *iy_aux_vars*. Most variables require that the method\n"
-         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
-         "the selection is restricted to the variables marked with *.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "diy_dx", "stokes_dim", "f_grid",
-            "p_grid", "z_field", "t_field", "vmr_field", "abs_species",
-            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field", "cloudbox_on", "cloudbox_limits",
-            "pnd_field", "scat_data",
-            "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do",
-            "ppath_agenda",
-            "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda",
-            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance",
-            "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v",
-            "ppath_lmax", "ppath_lraytrace",
-            "fos_scatint_angles", "fos_iyin_za_angles"
-            ),
-        GIN( "fos_za_interporder", "fos_n" ),
-        GIN_TYPE( "Index", "Index" ),
-        GIN_DEFAULT( "1", "1" ),
-        GIN_DESC( "Polynomial order for zenith angle interpolation.",
-                  "Max scattering order to consider." )
-        ));
-  */
-
   md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
       DESCRIPTION(
@@ -9149,124 +9038,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_DESC("Interpolation order of temperature for scattering data (so"
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
-
-  /*
-  md_data_raw.push_back
-    ( create_mdrecord
-      ( NAME( "iyRadioLink" ),
-        DESCRIPTION
-        (
-         "Radiative transfer for (active) radio links.\n"
-         "\n"
-         "The method assumes that *ppath_agenda* is set up to return the\n"
-         "propagation path between the transmitter and the receiver. The\n"
-         "position of the transmitter is given as *rte_pos*, and the\n"
-         "\"sensor\" is taken as the receiver.\n"
-         "\n"
-         "The primary output (*y*) is the received signal, where the signal\n"
-         "transmitted is taken from *iy_transmitter_agenda*. That is, *y*\n"
-         "is a Stokes vector for each frequency considered. Several other\n"
-         "possible measurements quantities, such as the bending angle, can\n"
-         "be obtained as the auxiliary data (see lost below).\n"
-         "\n"
-         "If it is found that no link can be obtained due to intersection of\n"
-         "the ground, all data are set to zero. If no link could be\n"
-         "determined for other reasons (due to critical refraction or\n"
-         "numerical problems), all data are set to NaN.\n"
-         "\n"
-         "This method is just intended for approximative calculations for\n"
-         "cases corresponding to relatively simple ray tracing. A detailed,\n"
-         "and more exact, treatment of several effects require more advanced\n"
-         "calculation approaches. Here a simple geometrical optics approach\n"
-         "is followed. See the user guide for details.\n"
-         "\n"
-         "Defocusing is a special consideration for radio links. Two\n"
-         "algorithms are at hand for estimating defocusing, simply denoted\n"
-         "as method 1 and 2:\n"
-         " 1: This algorithm is of general character. Defocusing is estimated\n"
-         "    by making two path calculations with slightly shifted zenith\n"
-         "    angles.\n"
-         " 2: This method is restricted to satellite-to-satellite links, and\n"
-         "    using a standard expression for such links, based on the\n"
-         "    vertical gradient of the bending angle.\n"
-         "Both methods are described more in detail in the user guide.\n"
-         "The argument *defocus_shift* is used by both methods.\n"
-         "\n"
-         "The following auxiliary data can be obtained:\n"
-         "  \"Pressure\": The pressure along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"Temperature\": The temperature along the propagation path.\n"
-         "     Size: [1,1,1,np].\n"
-         "  \"VMR, species X\": VMR of the species with index X (zero based).\n"
-         "     For example, adding the string \"VMR, species 0\" extracts the\n"
-         "     VMR of the first species. Size: [1,1,1,np].\n"
-         "  \"Absorption, summed\": The total absorption matrix along the\n"
-         "     path. Size: [nf,ns,ns,np].\n"
-         "  \"Absorption, species X\": The absorption matrix along the path\n"
-         "     for an individual species (X works as for VMR).\n"
-         "     Size: [nf,ns,ns,np].\n"
-         "  \"Particle extinction, summed\": The total extinction matrix over\n"
-         "       all scattering elements along the path. Size: [nf,ns,ns,np].\n"
-         "  \"PND, type X\": The particle number density for scattering element\n"
-         "       type X (ie. corresponds to book X in pnd_field).\n"
-         "       Size: [1,1,1,np].\n"
-         "  \"Mass content, X\": The mass content for scattering element X.\n"
-         "       This corresponds to column X in *particle_masses* (zero-\n"
-         "       based indexing). Size: [1,1,1,np].\n"
-         "* \"Impact parameter\": As normally defined for GNRSS radio\n"
-         "       occultations (this equals the propagation path constant,\n"
-         "       r*n*sin(theta)). Size: [1,1,1,1].\n"
-         "* \"Free space loss\": The total loss due to the inverse square\n"
-         "       law. Size: [1,1,1,1].\n"
-         "  \"Free space attenuation\": The local attenuation due to the\n"
-         "       inverse square law. Size: [1,1,1,np].\n"
-         "* \"Atmospheric loss\": Total atmospheric attenuation, reported as\n"
-         "       the transmittance. Size: [nf,1,1,1].\n"
-         "* \"Defocusing loss\": The total loss between the transmitter and\n"
-         "       receiver due to defocusing. Given as a transmittance.\n"
-         "       Size: [1,1,1,1].\n"
-         "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
-         "     each frequency. Size: [nf,1,1,1].\n"
-         "* \"Faraday speed\": The rotation per length unit [deg/m], at each\n"
-         "     path point and each frequency. Size: [nf,1,1,np].\n"
-         "* \"Extra path delay\": The time delay of the signal [s], compared\n"
-         "       to the case of propagation through vacuum. Size: [1,1,1,1].\n"
-         "* \"Bending angle\": As normally defined for GNRSS radio\n"
-         "       occultations, in [deg]. Size: [1,1,1,1].\n"
-         "where\n"
-         "  nf: Number of frequencies.\n"
-         "  ns: Number of Stokes elements.\n"
-         "  np: Number of propagation path points.\n"
-         "\n"
-         "The auxiliary data are returned in *iy_aux* with quantities\n"
-         "selected by *iy_aux_vars*. Most variables require that the method\n"
-         "is called directly or by *iyCalc*. For calculations using *yCalc*,\n"
-         "the selection is restricted to the variables marked with *.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "ppath", "diy_dx" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "stokes_dim", "f_grid",
-            "p_grid", "lat_grid", "lon_grid",
-            "z_field", "t_field", "vmr_field", "abs_species",
-            "wind_u_field", "wind_v_field", "wind_w_field", "mag_u_field",
-            "mag_v_field", "mag_w_field",
-            "refellipsoid", "z_surface", "cloudbox_on", "cloudbox_limits",
-            "pnd_field", "scat_data",
-            "particle_masses", "iy_aux_vars", "jacobian_do",
-            "ppath_agenda", "ppath_step_agenda",
-            "propmat_clearsky_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los",
-            "rte_pos2", "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
-        GIN(      "defocus_method", "defocus_shift" ),
-        GIN_TYPE( "Index", "Numeric" ),
-        GIN_DEFAULT( "1", "3e-3" ),
-        GIN_DESC( "Selection of defocusing calculation method. See above.",
-                  "Angular shift to apply in defocusing estimates." )
-        ));
-  */
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyRadarSingleScat"),
@@ -12842,9 +12613,7 @@ After this method is called, all existing fields have a regular shape.
          "p_grid",
          "lat_grid",
          "lon_grid",
-         "t_field",
-         "z_field",
-         "vmr_field",
+         "atm_field",
          "z_surface",
          "atmfields_checked",
          "atmgeom_checked",
@@ -13679,9 +13448,7 @@ After this method is called, all existing fields have a regular shape.
          "p_grid",
          "lat_grid",
          "lon_grid",
-         "z_field",
-         "t_field",
-         "vmr_field",
+         "atm_field",
          "refellipsoid",
          "z_surface",
          "f_grid",
@@ -18111,14 +17878,14 @@ where N>=0 and the species name is something line "H2O".
           "instance of species 'particles' to *abs_species*.\n"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data_raw",
-          "vmr_field_raw",
+          "atm_field",
           "abs_species",
           "propmat_clearsky_agenda_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("scat_data_raw",
-         "vmr_field_raw",
+         "atm_field",
          "abs_species",
          "propmat_clearsky_agenda_checked",
          "f_grid"),
@@ -21492,40 +21259,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("Tensor4", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Tensor.", "The value to be added to the tensor.")));
-  /*
-  md_data_raw.push_back
-    ( create_mdrecord
-      ( NAME( "Tensor4Clip" ),
-        DESCRIPTION
-        (
-         "Clipping of e.g. *vmr_field* and *particle_bulkprop_field*.\n"
-         "\n"
-         "The method allows you to apply hard limits the values of a\n"
-         "Tensor4. The quantati (book dimension) is specified by *iq*.\n"
-         "*All values of the quantity below *limit_low*, are simply\n"
-         "set to *limit_low*. And the same is performed with respect to\n"
-         "*limit_high*. That is, the data in x for the quantity are\n"
-         "forced to be inside the range [limit_low,limit_high].\n"
-         "\n"
-         "Setting iq=-1, is a shortcut for applying the limits on all\n"
-         "quantities.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT( "x" ),
-        GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "A Tensor4 holding data, with quantity as book-dimension,"
-                   "such as *vmr_field*." ),
-        IN(  ),
-        GIN( "x", "iq", "limit_low", "limit_high" ),
-        GIN_TYPE( "Tensor4", "Index", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF, NODEF, "-Inf", "Inf" ),
-        GIN_DESC( "See GOUT for a defintion.",
-                  "Quantity index (zero-based)",
-                  "Lower limit for clipping.",
-                  "Upper limit for clipping." )
-        ));
-  */
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4Multiply"),
@@ -22521,140 +22254,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
                GIN_DESC("Screen verbosity level")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("vmr_fieldClip"),
-      DESCRIPTION(
-          "Clipping of *vmr_field*.\n"
-          "\n"
-          "The method allows you to apply hard limits the values of *vmr_field*.\n"
-          "All values, of the species selected, below *limit_low*, are simply\n"
-          "set to *limit_low*. And the same is performed with respect to\n"
-          "*limit_high*. That is, the data in x for the retrieval quantity are\n"
-          "forced to be inside the range [limit_low,limit_high].\n"
-          "\n"
-          "Setting species=\"ALL\", is a shortcut for applying the limits on all\n"
-          "species.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("vmr_field", "abs_species"),
-      GIN("species", "limit_low", "limit_high"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "-Inf", "Inf"),
-      GIN_DESC("Name of species to consider, or \"ALL\".",
-               "Lower limit for clipping.",
-               "Upper limit for clipping.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("vmr_fieldPerturb"),
-      DESCRIPTION("Adds a perturbation to *vmr_field*.\n"
-                  "\n"
-                  "Works as *AtmFieldPerturb* but acts on *vmr_field*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("vmr_field",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "abs_species"),
-      GIN("species",
-          "p_ret_grid",
-          "lat_ret_grid",
-          "lon_ret_grid",
-          "pert_index",
-          "pert_size",
-          "pert_mode"),
-      GIN_TYPE(
-          "String", "Vector", "Vector", "Vector", "Index", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "absolute"),
-      GIN_DESC("Name of species to perturb.",
-               "Pressure retrieval grid.",
-               "Latitude retrieval grid.",
-               "Longitude retrieval grid.",
-               "Index of position where the perturbation shall be performed.",
-               "Size of perturbation.",
-               "Type of perturbation, "
-               "absolute"
-               " or "
-               "relative"
-               ".")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("vmr_fieldPerturbAtmGrids"),
-      DESCRIPTION(
-          "Adds a perturbation to *vmr_field*.\n"
-          "\n"
-          "Works as *AtmFieldPerturbAtmGrids* but acts on *vmr_field*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("vmr_field",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "abs_species"),
-      GIN("species", "pert_index", "pert_size", "pert_mode"),
-      GIN_TYPE("String", "Index", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "absolute"),
-      GIN_DESC("Name of species to perturb.",
-               "Index of position where the perturbation shall be performed.",
-               "Size of perturbation.",
-               "Type of perturbation, "
-               "absolute"
-               " or "
-               "relative"
-               ".")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("vmr_fieldSetAllConstant"),
-      DESCRIPTION(
-          "Sets the VMR of all species to a select constant value.\n"
-          "\n"
-          "The *vmr_field* WSM must have a correct size before calling this method.\n"
-          "The length of vmr_values and of abs_species must match.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("vmr_field", "abs_species"),
-      GIN("vmr_values"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("VMR value to apply for each abs_species.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("vmr_fieldSetRh"),
-      DESCRIPTION(
-          "Sets the first H2O species to have a constant relative humidity (RH).\n"
-          "\n"
-          "The water vapour saturation pressure is obtained by *water_p_eq_agenda*\n"
-          "and the setytings in this agenda determines if the RH is e.g. defined\n"
-          "with respect to liquid, or a combination of liquid and ice.\n"
-          "\n"
-          "Only the first H2O species is modified.\n"
-          "\n"
-          "The default value of *vmr_threshold* aims at avoiding changing VMRs\n"
-          "above the tropopause.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("vmr_field", "abs_species", "t_field", "p_grid", "water_p_eq_agenda"),
-      GIN("rh", "vmr_threshold"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT("1.0", "15.0e-6"),
-      GIN_DESC("Relative humidity to set.",
-               "Don't change H2O VMR values below this value.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("water_p_eq_fieldMK05"),
       DESCRIPTION(
           "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
@@ -22679,24 +22278,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Set to 1 to use liquid saturation pressure at all temperatures.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("vmr_fieldSetConstant"),
-      DESCRIPTION(
-          "Sets the VMR of a species to a constant value.\n"
-          "\n"
-          "The *vmr_field* WSM must have a correct size before calling this method.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("vmr_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("vmr_field", "abs_species"),
-      GIN("species", "vmr_value"),
-      GIN_TYPE("String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Species to set.",
-               "VMR value to apply for the selected species.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Wigner6Init"),
@@ -23014,22 +22595,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       IN("jacobian_quantities",
          "atmfields_checked",
          "atmgeom_checked",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
-         "vmr_field",
+         "atm_field",
          "abs_species",
          "cloudbox_on",
          "cloudbox_checked",
          "particle_bulkprop_field",
          "particle_bulkprop_names",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
          "surface_props_data",
          "surface_props_names",
          "water_p_eq_agenda"),
@@ -23086,28 +22657,14 @@ the ARTS codebase.  It is there to give an example of how the format looks.
           "\n"
           "Should only be used inside *inversion_iterate_agenda*.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("vmr_field",
-          "t_field",
+      OUT("atm_field",
           "particle_bulkprop_field",
-          "wind_u_field",
-          "wind_v_field",
-          "wind_w_field",
-          "mag_u_field",
-          "mag_v_field",
-          "mag_w_field",
           "surface_props_data"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("vmr_field",
-         "t_field",
+      IN("atm_field",
          "particle_bulkprop_field",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
          "surface_props_data",
          "jacobian_quantities",
          "x",
@@ -23433,7 +22990,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "lat_grid",
          "lon_grid",
          "scat_data"),
-      GIN("nelem_p_grid", "met_profile_path", "met_profile_pnd_path"),
+      GIN("nelem_z_grid", "met_profile_path", "met_profile_pnd_path"),
       GIN_TYPE("Index", "String", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC")));
@@ -23914,9 +23471,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "lat_true",
          "lon_true",
          "abs_species",
-         "t_field",
-         "z_field",
-         "vmr_field",
+         "atm_field",
          "refellipsoid",
          "z_surface",
          "atmfields_checked",
