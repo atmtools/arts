@@ -42,6 +42,7 @@
 #include "rte.h"
 #include "sorting.h"
 #include "special_interp.h"
+#include "species_tags.h"
 #include "xml_io.h"
 
 using GriddedFieldGrids::GFIELD3_P_GRID;
@@ -1174,7 +1175,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ScatElementsToabs_speciesAdd(  //WS Output:
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,
-    ArrayOfGriddedField3& vmr_field_raw,
+    AtmField& atm_field,
     ArrayOfArrayOfSpeciesTag& abs_species,
     Index& propmat_clearsky_agenda_checked,
     // WS Input (needed for checking the datafiles):
@@ -1212,10 +1213,16 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   ArrayOfString species(1);
   species[0] = "particles";
 
+  out2 << "  Append 'particle' field to abs_species\n";
+  abs_speciesAdd(abs_species,
+                  propmat_clearsky_agenda_checked,
+                  species,
+                  verbosity);
+
   for (Index i = 0; i < scat_data_files.nelem(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
     scat_data_raw[last_species].push_back(scat_data_single);
-    vmr_field_raw.push_back(pnd_field_data);
+    atm_field[abs_species.back()] = pnd_field_data;
 
     out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
     xml_read_from_file(
@@ -1238,14 +1245,14 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     } else {
       try {
         xml_read_from_file(pnd_field_files[i],
-                           vmr_field_raw[vmr_field_raw.nelem() - 1],
+                           atm_field[abs_species.back()].get<GriddedField3&>(),
                            verbosity);
       } catch (...) {
         ArrayOfGriddedField3 tmp;
         try {
           xml_read_from_file(pnd_field_files[i], tmp, verbosity);
           if (tmp.nelem() == 1) {
-            vmr_field_raw[vmr_field_raw.nelem() - 1] = tmp[0];
+            atm_field[abs_species.back()] = tmp[0];
           } else {
             ARTS_USER_ERROR (
               "The file ", pnd_field_files[i], "\n"
@@ -1258,17 +1265,11 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
         }
       }
 
-      chk_pnd_data(vmr_field_raw[vmr_field_raw.nelem() - 1],
+      chk_pnd_data(atm_field[abs_species.back()].get<const GriddedField3&>(),
                    pnd_field_files[i],
                    3,
                    verbosity);
     }
-
-    out2 << "  Append 'particle' field to abs_species\n";
-    abs_speciesAdd(abs_species,
-                   propmat_clearsky_agenda_checked,
-                   species,
-                   verbosity);
   }
   scat_dataCheck(scat_data_raw, "sane", 1e-2, verbosity);
 }
