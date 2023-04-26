@@ -37,6 +37,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "matpack_data.h"
 #include "wigner_functions.h"
 
@@ -44,212 +45,40 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 using  Cloudbox::LAT_LON_MIN;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
-                                 Index& abs_xsec_agenda_checked,
-                                 // WS Input:
-                                 const ArrayOfArrayOfSpeciesTag& abs_species,
-                                 const Agenda& abs_xsec_agenda,
-                                 const Verbosity&) {
-  bool needs_continua = false;
-  bool needs_cia = false;
-  // bool needs_hxsec = false;
+void atmfields_checkedCalc(Index &atmfields_checked,
+                           const ArrayOfArrayOfSpeciesTag &abs_species,
+                           const AtmField &atm_field, const Verbosity &) {
+  atm_field.throwing_check();
 
-  for (Index sp = 0; sp < abs_species.nelem(); sp++) {
-    for (Index tgs = 0; tgs < abs_species[sp].nelem(); tgs++) {
-      switch (abs_species[sp][tgs].Type()) {
-        case Species::TagType::Plain:
-          break;
-        case Species::TagType::Zeeman:
-          break;
-        case Species::TagType::Predefined:
-          break;
-        case Species::TagType::Cia:
-          needs_cia = true;
-          break;
-        case Species::TagType::FreeElectrons:
-          break;
-        case Species::TagType::Particles:
-          break;
-        case Species::TagType::XsecFit:
-          // needs_hxsec = true;
-          break;
-        default:
-          ARTS_USER_ERROR ("Unknown species type: ", abs_species[sp][tgs].Type())
-          break;
-      }
-    }
-  }
-
-  ARTS_USER_ERROR_IF (needs_continua &&
-      !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddConts"),
-        "*abs_species* contains continuum species but *abs_xsec_agenda*\n"
-        "does not contain *abs_xsec_per_speciesAddConts*.");
-
-  ARTS_USER_ERROR_IF (needs_cia && !abs_xsec_agenda.has_method("abs_xsec_per_speciesAddCIA"),
-        "*abs_species* contains CIA species but *abs_xsec_agenda*\n"
-        "does not contain *abs_xsec_per_speciesAddCIA*.");
-
-  // If here, all OK
-  abs_xsec_agenda_checked = 1;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void atmfields_checkedCalc(Index& atmfields_checked,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid,
-                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                           const Tensor3& t_field,
-                           const Tensor4& vmr_field,
-                           const Tensor3& wind_u_field,
-                           const Tensor3& wind_v_field,
-                           const Tensor3& wind_w_field,
-                           const Tensor3& mag_u_field,
-                           const Tensor3& mag_v_field,
-                           const Tensor3& mag_w_field,
-                           const Index& abs_f_interp_order,
-                           const Index& negative_vmr_ok,
-                           const Verbosity&) {
   // Consistency between dim, grids and atmospheric fields/surfaces
-  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
-  chk_atm_field("t_field", t_field, 3, p_grid, lat_grid, lon_grid);
-  chk_atm_field("vmr_field",
-                vmr_field,
-                3,
-                abs_species.nelem(),
-                p_grid,
-                lat_grid,
-                lon_grid);
+  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::p), "No pressure field")
+  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "No temperature field")
+  for (auto &spec : abs_species)
+    ARTS_USER_ERROR_IF(not atm_field.has(spec), "No ",
+                       std::quoted(var_string(spec)), " field")
 
-  // More for vmr_field.
-  ARTS_USER_ERROR_IF (!negative_vmr_ok && abs_species.nelem() && min(vmr_field) < 0,
-                      "All values in *vmr_field* must be >= 0.");
-
-  // More for t_field.
-  ARTS_USER_ERROR_IF (min(t_field) <= 0,
-                      "All temperatures in *t_field* must be > 0.");
-
-  // Winds
-  if (wind_w_field.npages() > 0) {
-    chk_atm_field("wind_w_field",
-                  wind_w_field,
-                  3,
-                  p_grid,
-                  lat_grid,
-                  lon_grid);
-  }
-  if (3 < 3 && wind_v_field.npages() > 0) {
-    chk_atm_field("wind_v_field",
-                  wind_v_field,
-                  3,
-                  p_grid,
-                  lat_grid,
-                  lon_grid);
-  }
-  if (3 > 2) {
-    if (wind_u_field.npages() > 0) {
-      if (wind_v_field.npages() > 0) {
-        bool chk_poles = false;
-        chk_atm_field("wind_u_field",
-                      wind_u_field,
-                      3,
-                      p_grid,
-                      lat_grid,
-                      lon_grid,
-                      chk_poles);
-        chk_atm_field("wind_v_field",
-                      wind_v_field,
-                      3,
-                      p_grid,
-                      lat_grid,
-                      lon_grid,
-                      chk_poles);
-        chk_atm_vecfield_lat90("wind_v_field",
-                               wind_v_field,
-                               "wind_u_field",
-                               wind_u_field,
-                               3,
-                               lat_grid);
-      } else {
-        chk_atm_field("wind_u_field",
-                      wind_u_field,
-                      3,
-                      p_grid,
-                      lat_grid,
-                      lon_grid);
-      }
-    } else {
-      if (wind_v_field.npages() > 0) {
-        chk_atm_field("wind_v_field",
-                      wind_v_field,
-                      3,
-                      p_grid,
-                      lat_grid,
-                      lon_grid);
-      }
+    {
+      const bool u = atm_field.has(Atm::Key::mag_u),
+                 v = atm_field.has(Atm::Key::mag_v),
+                 w = atm_field.has(Atm::Key::mag_w);
+      ARTS_USER_ERROR_IF(
+          (u or v or w) and (not u or not v or not w),
+          "If any magnetic field component exist, all three must.\n The "
+          "following component exists (1) and does not exist (0):\n",
+          "U: ", static_cast<int>(u), "V: ", static_cast<int>(v),
+          "W: ", static_cast<int>(w))
     }
-  }
 
-  // If any of the wind fields exist, abs_f_interp_order must not be zero.
-  if (wind_u_field.npages() > 0 || wind_v_field.npages() > 0 ||
-      wind_w_field.npages() > 0) {
-    ARTS_USER_ERROR_IF (abs_f_interp_order == 0,
-        "You have a wind field set, but abs_f_interp_order zero.\n"
-        "This is not allowed. Though abs_f_interp_order only is\n"
-        "required and has an effect if absorption lookup tables\n"
-        "are used, for safety reasons you also have to set it >0\n"
-        "in case of on-the-fly absorption.")
-  }
-
-  // Magnetic field
-  if (mag_w_field.npages() > 0) {
-    chk_atm_field("mag_w_field (vertical magfield component)",
-                  mag_w_field,
-                  3,
-                  p_grid,
-                  lat_grid,
-                  lon_grid);
-  }
-  if (mag_u_field.npages() > 0) {
-    if (mag_v_field.npages() > 0) {
-      bool chk_poles = false;
-      chk_atm_field("mag_v_field",
-                    mag_v_field,
-                    3,
-                    p_grid,
-                    lat_grid,
-                    lon_grid,
-                    chk_poles);
-      chk_atm_field("mag_u_field",
-                    mag_u_field,
-                    3,
-                    p_grid,
-                    lat_grid,
-                    lon_grid,
-                    chk_poles);
-      chk_atm_vecfield_lat90("mag_v_field",
-                             mag_v_field,
-                             "mag_u_field",
-                             mag_u_field,
-                             3,
-                             lat_grid);
-    } else {
-      chk_atm_field("mag_u_field",
-                    mag_u_field,
-                    3,
-                    p_grid,
-                    lat_grid,
-                    lon_grid);
-    }
-  } else {
-    if (mag_v_field.npages() > 0) {
-      chk_atm_field("mag_v_field",
-                    mag_v_field,
-                    3,
-                    p_grid,
-                    lat_grid,
-                    lon_grid);
-    }
+  {
+    const bool u = atm_field.has(Atm::Key::wind_u),
+               v = atm_field.has(Atm::Key::wind_v),
+               w = atm_field.has(Atm::Key::wind_w);
+    ARTS_USER_ERROR_IF(
+        (u or v or w) and (not u or not v or not w),
+        "If any wind field component exist, all three must.\n The "
+        "following component exists (1) and does not exist (0):\n",
+        "U: ", static_cast<int>(u), "V: ", static_cast<int>(v),
+        "W: ", static_cast<int>(w))
   }
 
   // If here, all OK

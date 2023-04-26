@@ -44,6 +44,7 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
+#include "matpack_view.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
@@ -800,11 +801,7 @@ void abs_lookupSetup(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_nls,
     Vector& abs_nls_pert,
     // WS Input:
-    const Vector& p_grid,
-    //                     const Vector& lat_grid,
-    //                     const Vector& lon_grid,
-    const Tensor3& t_field,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
     const Index& atmfields_checked,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Index& abs_p_interp_order,
@@ -816,6 +813,12 @@ void abs_lookupSetup(  // WS Output:
     const Numeric& h2o_step,
     const Verbosity& verbosity) {
   // Checks on input parameters:
+
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
+const auto& p_field =atm_field[Atm::Key::p].get<const Tensor3&>();
+const auto p_grid = p_field(joker, 0, 0);
+const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   if (atmfields_checked != 1)
     throw runtime_error(
@@ -1260,13 +1263,8 @@ void abs_lookupSetupBatch(  // WS Output:
 
     try {
       atmfields_checkedCalc(atmfields_checked,
-                            z_grid,
-                            lat_grid,
-                            lon_grid,
                             abs_species,
                             atm_field,
-                            abs_f_interp_order,
-                            0,
                             verbosity);
     } catch (const std::exception& e) {
       // If `robust`, skip field and continue, ...

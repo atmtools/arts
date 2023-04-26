@@ -2291,9 +2291,6 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-        "p_grid",
-         //            "lat_grid",
-         //            "lon_grid",
          "atm_field",
          "atmfields_checked",
          "abs_species",
@@ -3741,17 +3738,13 @@ Available models:
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
+      IN(
          "abs_species",
-         "atm_field",
-         "abs_f_interp_order"),
-      GIN("negative_vmr_ok"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Flag whether to accept vmr_field < 0."
-               )));
+         "atm_field"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atmgeom_checkedCalc"),
@@ -4545,7 +4538,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("p_grid", "lat_grid", "lon_grid"),
+      IN("atm_field"),
       GIN("fullfull"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
@@ -5966,7 +5959,6 @@ After this method is called, all existing fields have a regular shape.
          "gas_scattering_agenda",
          "pnd_field",
          "atm_field",
-         "p_grid",
          "lat_true",
          "lon_true",
          "refellipsoid",
@@ -6074,6 +6066,7 @@ After this method is called, all existing fields have a regular shape.
                "of streams (>30)\n",
                "Incidence angle, see above.\n")));
 
+
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcClearsky"),
       DESCRIPTION(
@@ -6105,7 +6098,6 @@ After this method is called, all existing fields have a regular shape.
          "propmat_clearsky_agenda",
          "gas_scattering_agenda",
          "atm_field",
-         "p_grid",
          "lat_true",
          "lon_true",
          "refellipsoid",
@@ -6133,6 +6125,7 @@ After this method is called, all existing fields have a regular shape.
                "Enables intensity correction. Importantant for low number of \n"
                "streams. Set to zero, if problems encounter or using a high number\n "
                "of streams (>30)\n")));
+
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcIrradiance"),
@@ -6178,7 +6171,6 @@ After this method is called, all existing fields have a regular shape.
          "gas_scattering_agenda",
          "pnd_field",
          "atm_field",
-         "p_grid",
          "lat_true",
          "lon_true",
          "refellipsoid",
@@ -22671,9 +22663,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "x",
          "atmfields_checked",
          "atmgeom_checked",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
          "abs_species",
          "cloudbox_on",
          "cloudbox_checked",
@@ -23437,6 +23426,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DESC("Number of pixels per swath.",
                "Flag for checking that channels do not vary in frequency.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),
       DESCRIPTION(
@@ -23484,6 +23474,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(
       create_mdrecord(NAME("PlanetSet"),

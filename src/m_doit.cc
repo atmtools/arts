@@ -790,7 +790,7 @@ void cloudbox_fieldUpdateSeq1D(
   out2 << "  ------------------------------------------------------------- \n";
 
 ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto z_grid = atm_field.grid[0];
+const auto& z_grid = atm_field.grid[0];
 const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------

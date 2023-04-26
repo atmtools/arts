@@ -33,7 +33,6 @@
 #include "arts.h"
 #include "xml_io_base.h"
 #include "xml_io_arts_types.h"
-#include <__concepts/same_as.h>
 #include <type_traits>
 
 ////////////////////////////////////////////////////////////////////////////

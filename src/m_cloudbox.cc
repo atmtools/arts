@@ -51,6 +51,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "file.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
@@ -264,16 +265,17 @@ void cloudboxSetFullAtm(  //WS Output
     Index& cloudbox_on,
     ArrayOfIndex& cloudbox_limits,
     // WS Input
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
+    const AtmField& atm_field,
     const Index& fullfull,
     const Verbosity&) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+
   cloudbox_on = 1;
   cloudbox_limits.resize(2 * 3);
 
   cloudbox_limits[0] = 0;
-  cloudbox_limits[1] = p_grid.nelem() - 1;
+  cloudbox_limits[1] = z_grid.nelem() - 1;
 
   if (3 > 1) {
     if (fullfull) {

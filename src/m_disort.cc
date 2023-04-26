@@ -62,10 +62,7 @@ void DisortCalc(Workspace& ws,
                     const Agenda& propmat_clearsky_agenda,
                     const Agenda& gas_scattering_agenda,
                     const Tensor4& pnd_field,
-                    const Tensor3& t_field,
-                    const Tensor3& z_field,
-                    const Tensor4& vmr_field,
-                    const Vector& p_grid,
+                    const AtmField& atm_field,
                     const Vector& lat_true,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
@@ -89,6 +86,12 @@ void DisortCalc(Workspace& ws,
                     const Index& emission,
                     const Index& intensity_correction,
                     const Verbosity& verbosity) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& z_grid = atm_field.grid[0];
+const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
     CREATE_OUT0;
@@ -137,8 +140,7 @@ void DisortCalc(Workspace& ws,
     sun_pos = {suns[0].distance, suns[0].latitude, suns[0].longitude};
 
     // Position of top of cloudbox
-    cloudboxtop_pos = {
-        z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
+    cloudboxtop_pos = {z_grid[cloudbox_limits[1]], lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
     rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
@@ -215,8 +217,8 @@ void DisortCalc(Workspace& ws,
               cloudbox_field,
               disort_aux,
               f_grid,
-              p_grid,
-              z_field(joker, 0, 0),
+              p_field(joker, 0, 0),
+              z_grid,
               z_surface(0, 0),
               t_field(joker, 0, 0),
               vmr_field(joker, joker, 0, 0),
@@ -287,8 +289,8 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Verbosity& verbosity) {
   ARTS_USER_ERROR_IF(not atm_field.regularized, "Not regular grid atmospheric field")
   const auto& z_grid = atm_field.grid[0];
-  const auto p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const auto t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
   const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // Don't do anything if there's no cloudbox defined.
@@ -475,10 +477,7 @@ void DisortCalcClearsky(Workspace& ws,
                     const Index& atmgeom_checked,
                     const Agenda& propmat_clearsky_agenda,
                     const Agenda& gas_scattering_agenda,
-                    const Tensor3& t_field,
-                    const Tensor3& z_field,
-                    const Tensor4& vmr_field,
-                    const Vector& p_grid,
+                    const AtmField& atm_field,
                     const Vector& lat_true,
                     const Vector& lon_true,
                     const Vector& refellipsoid,
@@ -512,9 +511,7 @@ void DisortCalcClearsky(Workspace& ws,
   //
   cloudboxSetFullAtm(cloudbox_on,
                      cloudbox_limits,
-                     p_grid,
-                     Vector(0),
-                     Vector(0),
+                     atm_field,
                      0.,
                      verbosity);
 
@@ -548,10 +545,7 @@ void DisortCalcClearsky(Workspace& ws,
                  propmat_clearsky_agenda,
                  gas_scattering_agenda,
                  pnd_field,
-                 t_field,
-                 z_field,
-                 vmr_field,
-                 p_grid,
+                 atm_field,
                  lat_true,
                  lon_true,
                  refellipsoid,
@@ -590,10 +584,7 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Agenda& propmat_clearsky_agenda,
                 const Agenda& gas_scattering_agenda,
                 const Tensor4& pnd_field,
-                const Tensor3& t_field,
-                const Tensor3& z_field,
-                const Tensor4& vmr_field,
-                const Vector& p_grid,
+                const AtmField& atm_field,
                 const Vector& lat_true,
                 const Vector& lon_true,
                 const Vector& refellipsoid,
@@ -615,15 +606,18 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Index& emission,
                 const Index& intensity_correction,
                 const Verbosity& verbosity) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& z_grid = atm_field.grid[0];
+const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // Set cloudbox to cover complete atmosphere
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
   cloudboxSetFullAtm(cloudbox_on,
                      cloudbox_limits,
-                     p_grid,
-                     Vector(0),
-                     Vector(0),
+                     atm_field,
                      0.,
                      verbosity);
 
@@ -664,8 +658,7 @@ void DisortCalcIrradiance(Workspace& ws,
     sun_pos = {suns[0].distance, suns[0].latitude, suns[0].longitude};
 
     // Position of top of cloudbox
-    cloudboxtop_pos = {
-        z_field(cloudbox_limits[1], 0, 0), lat_true[0], lon_true[0]};
+    cloudboxtop_pos = {z_grid[cloudbox_limits[1]], lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
     rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
@@ -721,8 +714,8 @@ void DisortCalcIrradiance(Workspace& ws,
                    spectral_irradiance_field,
                    disort_aux,
                    f_grid,
-                   p_grid,
-                   z_field(joker, 0, 0),
+                   p_field(joker, 0, 0),
+                   z_grid,
                    z_surface(0, 0),
                    t_field(joker, 0, 0),
                    vmr_field(joker, joker, 0, 0),
