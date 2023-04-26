@@ -584,7 +584,8 @@ void cloudbox_fieldUpdate1D(
     const ArrayOfIndex& cloudbox_limits,
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
     const Vector& za_grid,
@@ -593,11 +594,8 @@ void cloudbox_fieldUpdate1D(
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
-    const Vector& p_grid,
-    const Tensor3& z_field,
     const Vector& refellipsoid,
     // Calculate thermal emission:
-    const Tensor3& t_field,
     const Vector& f_grid,
     const Index& f_index,
     const Agenda& surface_rtprop_agenda,
@@ -609,6 +607,12 @@ void cloudbox_fieldUpdate1D(
   out2
       << "  cloudbox_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+  const auto& z_grid = atm_field.grid[0];
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // ---------- Check the input ----------------------------------------
 
@@ -627,12 +631,8 @@ void cloudbox_fieldUpdate1D(
   ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.,
                       "The range of *za_grid* must [0 180].");
 
-  ARTS_USER_ERROR_IF (p_grid.nelem() < 2,
+  ARTS_USER_ERROR_IF (z_grid.nelem() < 2,
                       "The length of *p_grid* must be >= 2.");
-  chk_if_decreasing("p_grid", p_grid);
-
-  chk_size("z_field", z_field, p_grid.nelem(), 1, 1);
-  chk_size("t_field", t_field, p_grid.nelem(), 1, 1);
 
   // Frequency grid
   //
@@ -735,8 +735,8 @@ void cloudbox_fieldUpdate1D(
                                    ppath_step_agenda,
                                    ppath_lmax,
                                    ppath_lraytrace,
-                                   p_grid,
-                                   z_field,
+                                   p_field(joker, 0, 0),
+                                   Tensor3View{z_grid},
                                    refellipsoid,
                                    t_field,
                                    f_grid,

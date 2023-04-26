@@ -4934,6 +4934,7 @@ After this method is called, all existing fields have a regular shape.
          "cloudbox_limits",
          "propmat_clearsky_agenda",
          "atm_field",
+         "abs_species",
          "spt_calc_agenda",
          "za_grid",
          "pnd_field",
@@ -6598,6 +6599,7 @@ After this method is called, all existing fields have a regular shape.
                "or whether to return NaNs in case of non-convergence at"
                "max_iterations")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("OptimizeDoitPressureGrid"),
       DESCRIPTION(
@@ -6648,6 +6650,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_DESC("Maximum scattering optical thickness",
                "Maximum single scattering albedo",
                "Maximum cloudbox size")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_scat_fieldCalc"),
