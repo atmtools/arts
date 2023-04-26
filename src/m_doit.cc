@@ -47,6 +47,7 @@
 #include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "doit.h"
 #include "geodetic_OLD.h"
 #include "lin_alg.h"
@@ -760,7 +761,8 @@ void cloudbox_fieldUpdateSeq1D(
     const ArrayOfIndex& cloudbox_limits,
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
-    const Tensor4& vmr_field,
+    const AtmField& atm_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
     const Vector& za_grid,
@@ -770,11 +772,8 @@ void cloudbox_fieldUpdateSeq1D(
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
-    const Vector& p_grid,
-    const Tensor3& z_field,
     const Vector& refellipsoid,
     // Calculate thermal emission:
-    const Tensor3& t_field,
     const Vector& f_grid,
     const Index& f_index,
     const Agenda& surface_rtprop_agenda,  //STR
@@ -789,6 +788,10 @@ void cloudbox_fieldUpdateSeq1D(
   out2
       << "  cloudbox_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
+
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto z_grid = atm_field.grid[0];
+const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------
 
@@ -808,12 +811,8 @@ void cloudbox_fieldUpdateSeq1D(
   ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.,
                       "The range of *za_grid* must [0 180].");
 
-  ARTS_USER_ERROR_IF (p_grid.nelem() < 2,
-                      "The length of *p_grid* must be >= 2.");
-  chk_if_decreasing("p_grid", p_grid);
-
-  chk_size("z_field", z_field, p_grid.nelem(), 1, 1);
-  chk_size("t_field", t_field, p_grid.nelem(), 1, 1);
+  ARTS_USER_ERROR_IF (z_grid.nelem() < 2,
+                      "The length of *z_grid* must be >= 2.");
 
   // Frequency grid
   //
@@ -878,8 +877,8 @@ void cloudbox_fieldUpdateSeq1D(
   // If theta is between 90° and the limiting value, the intersection point
   // is exactly at the same level as the starting point (cp. AUG)
   Numeric theta_lim =
-      180. - asin((refellipsoid[0] + z_field(cloudbox_limits[0], 0, 0)) /
-                  (refellipsoid[0] + z_field(cloudbox_limits[1], 0, 0))) *
+      180. - asin((refellipsoid[0] + z_grid[cloudbox_limits[0]]) /
+                  (refellipsoid[0] + z_grid[cloudbox_limits[1]])) *
                  RAD2DEG;
 
   // Epsilon for additional limb iterations
@@ -949,14 +948,12 @@ void cloudbox_fieldUpdateSeq1D(
                              cloudbox_limits,
                              doit_scat_field,
                              propmat_clearsky_agenda,
-                             vmr_field,
+                             atm_field,
+                             abs_species,
                              ppath_step_agenda,
                              ppath_lmax,
                              ppath_lraytrace,
-                             p_grid,
-                             z_field,
                              refellipsoid,
-                             t_field,
                              f_grid,
                              f_index,
                              ext_mat_field,
@@ -980,14 +977,12 @@ void cloudbox_fieldUpdateSeq1D(
                              cloudbox_limits,
                              doit_scat_field,
                              propmat_clearsky_agenda,
-                             vmr_field,
+                             atm_field,
+                             abs_species,
                              ppath_step_agenda,
                              ppath_lmax,
                              ppath_lraytrace,
-                             p_grid,
-                             z_field,
                              refellipsoid,
-                             t_field,
                              f_grid,
                              f_index,
                              ext_mat_field,
@@ -1027,14 +1022,12 @@ void cloudbox_fieldUpdateSeq1D(
                                  cloudbox_limits,
                                  doit_scat_field,
                                  propmat_clearsky_agenda,
-                                 vmr_field,
+                                 atm_field,
+                                 abs_species,
                                  ppath_step_agenda,
                                  ppath_lmax,
                                  ppath_lraytrace,
-                                 p_grid,
-                                 z_field,
                                  refellipsoid,
-                                 t_field,
                                  f_grid,
                                  f_index,
                                  ext_mat_field,
@@ -1082,7 +1075,8 @@ void cloudbox_fieldUpdateSeq3D(
     const ArrayOfIndex& cloudbox_limits,
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
-    const Tensor4& vmr_field,
+    const AtmField&atm_field,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
     const Vector& za_grid,
@@ -1092,13 +1086,8 @@ void cloudbox_fieldUpdateSeq3D(
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Tensor3& z_field,
     const Vector& refellipsoid,
     // Calculate thermal emission:
-    const Tensor3& t_field,
     const Vector& f_grid,
     const Index& f_index,
     const Index& doit_za_interp,
@@ -1109,6 +1098,10 @@ void cloudbox_fieldUpdateSeq3D(
   out2
       << "  cloudbox_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "  ------------------------------------------------------------- \n";
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+  const auto& z_grid = atm_field.grid[0];
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------
 
@@ -1133,15 +1126,6 @@ void cloudbox_fieldUpdateSeq3D(
 
   ARTS_USER_ERROR_IF (aa_grid[0] != 0. || aa_grid[N_scat_aa - 1] != 360.,
                       "The range of *za_grid* must [0 360].");
-
-  // Check atmospheric grids
-  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
-
-  // Check atmospheric fields
-  chk_size(
-      "z_field", z_field, p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
-  chk_size(
-      "t_field", t_field, p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
 
   // Frequency grid
   //
@@ -1240,8 +1224,8 @@ void cloudbox_fieldUpdateSeq3D(
 
       Vector stokes_vec(stokes_dim, 0.);
 
-      Numeric theta_lim = 180. - asin((refellipsoid[0] + z_field(p_low, 0, 0)) /
-                                      (refellipsoid[0] + z_field(p_up, 0, 0))) *
+      Numeric theta_lim = 180. - asin((refellipsoid[0] + z_grid[p_low]) /
+                                      (refellipsoid[0] + z_grid[p_up])) *
                                      RAD2DEG;
 
       // Sequential update for uplooking angles
@@ -1266,16 +1250,12 @@ void cloudbox_fieldUpdateSeq3D(
                                    cloudbox_limits,
                                    doit_scat_field,
                                    propmat_clearsky_agenda,
-                                   vmr_field,
+                                   atm_field,
+                                   abs_species,
                                    ppath_step_agenda,
                                    ppath_lmax,
                                    ppath_lraytrace,
-                                   p_grid,
-                                   lat_grid,
-                                   lon_grid,
-                                   z_field,
                                    refellipsoid,
-                                   t_field,
                                    f_grid,
                                    f_index,
                                    ext_mat_field,
@@ -1305,16 +1285,12 @@ void cloudbox_fieldUpdateSeq3D(
                                    cloudbox_limits,
                                    doit_scat_field,
                                    propmat_clearsky_agenda,
-                                   vmr_field,
+                                   atm_field,
+                                   abs_species,
                                    ppath_step_agenda,
                                    ppath_lmax,
                                    ppath_lraytrace,
-                                   p_grid,
-                                   lat_grid,
-                                   lon_grid,
-                                   z_field,
                                    refellipsoid,
-                                   t_field,
                                    f_grid,
                                    f_index,
                                    ext_mat_field,
@@ -1355,16 +1331,12 @@ void cloudbox_fieldUpdateSeq3D(
                                      cloudbox_limits,
                                      doit_scat_field,
                                      propmat_clearsky_agenda,
-                                     vmr_field,
+                                     atm_field,
+                                     abs_species,
                                      ppath_step_agenda,
                                      ppath_lmax,
                                      ppath_lraytrace,
-                                     p_grid,
-                                     lat_grid,
-                                     lon_grid,
-                                     z_field,
                                      refellipsoid,
-                                     t_field,
                                      f_grid,
                                      f_index,
                                      ext_mat_field,

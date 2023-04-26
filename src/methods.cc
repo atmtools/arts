@@ -4940,7 +4940,6 @@ After this method is called, all existing fields have a regular shape.
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
-         "p_grid",
          "refellipsoid",
          "f_grid",
          "f_index",
@@ -4971,6 +4970,7 @@ After this method is called, all existing fields have a regular shape.
          "cloudbox_limits",
          "propmat_clearsky_agenda",
          "atm_field",
+         "abs_species",
          "spt_calc_agenda",
          "za_grid",
          "aa_grid",
@@ -4978,7 +4978,6 @@ After this method is called, all existing fields have a regular shape.
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
-         "p_grid",
          "refellipsoid",
          "f_grid",
          "f_index",
@@ -5048,6 +5047,7 @@ After this method is called, all existing fields have a regular shape.
          "cloudbox_limits",
          "propmat_clearsky_agenda",
          "atm_field",
+         "abs_species",
          "spt_calc_agenda",
          "za_grid",
          "aa_grid",
@@ -5055,9 +5055,6 @@ After this method is called, all existing fields have a regular shape.
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
          "refellipsoid",
          "f_grid",
          "f_index",
@@ -6042,7 +6039,6 @@ After this method is called, all existing fields have a regular shape.
          "gas_scattering_agenda",
          "pnd_field",
          "atm_field",
-         "p_grid",
          "lat_true",
          "lon_true",
          "refellipsoid",
@@ -13417,6 +13413,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_DEFAULT(),
       GIN_DESC()));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepRefractionBasic"),
       DESCRIPTION(
@@ -13458,6 +13455,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathAddGridCrossings"),

@@ -43,6 +43,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "debug.h"
 #include "geodetic_OLD.h"
 #include "lin_alg.h"
 #include "logic.h"
@@ -55,6 +56,7 @@
 #include "rte.h"
 #include "sorting.h"
 #include "special_interp.h"
+#include "species_tags.h"
 #include "xml_io.h"
 
 inline constexpr Numeric PI=Constant::pi;
@@ -312,16 +314,14 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& propmat_clearsky_agenda,
-                          ConstTensor4View vmr_field,
+                          const AtmField& atm_field,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
                           const Numeric& ppath_lmax,
                           const Numeric& ppath_lraytrace,
-                          ConstVectorView p_grid,
-                          ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
                           // Calculate thermal emission:
-                          ConstTensor3View t_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
                           //particle optical properties
@@ -340,9 +340,14 @@ void cloud_ppath_update1D(Workspace& ws,
   // See documentation of ppath_init_structure for understanding
   // the parameters.
 
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+  const auto& z_grid = atm_field.grid[0];
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+
   // Assign value to ppath.pos:
-  ppath_step.pos(0, 0) = z_field(p_index, 0, 0);
-  ppath_step.r[0] = refellipsoid[0] + z_field(p_index, 0, 0);
+  ppath_step.pos(0, 0) = z_grid[p_index];
+  ppath_step.r[0] = refellipsoid[0] + z_grid[p_index];
 
   // Define the direction:
   ppath_step.los(0, 0) = za_grid[za_index];
@@ -372,7 +377,7 @@ void cloud_ppath_update1D(Workspace& ws,
     // Stokes dimension
     const Index stokes_dim = cloudbox_field_mono.ncols();
     // Number of species
-    const Index N_species = vmr_field.nbooks();
+    const Index N_species = abs_species.nelem();
 
     // Ppath_step normally has 2 points, the starting
     // point and the intersection point.
@@ -402,7 +407,7 @@ void cloud_ppath_update1D(Workspace& ws,
                          cloudbox_field_mono,
                          t_field,
                          vmr_field,
-                         p_grid,
+                         z_grid,
                          ppath_step,
                          cloudbox_limits,
                          za_grid,
@@ -1109,18 +1114,14 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& propmat_clearsky_agenda,
-                          ConstTensor4View vmr_field,
+                          const AtmField& atm_field,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
                           const Numeric& ppath_lmax,
                           const Numeric& ppath_lraytrace,
-                          ConstVectorView p_grid,
-                          ConstVectorView lat_grid,
-                          ConstVectorView lon_grid,
-                          ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
                           // Calculate thermal emission:
-                          ConstTensor3View t_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
                           //particle optical properties
@@ -1129,6 +1130,14 @@ void cloud_ppath_update3D(Workspace& ws,
                           const Index&,  //scat_za_interp
                           const Verbosity& verbosity) {
   CREATE_OUT3;
+
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid field")
+  const Vector& z_grid = atm_field.grid[0];
+  const Vector& lat_grid = atm_field.grid[1];
+  const Vector& lon_grid = atm_field.grid[2];
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   Ppath ppath_step;
   const Index stokes_dim = cloudbox_field_mono.ncols();
@@ -1151,7 +1160,7 @@ void cloud_ppath_update3D(Workspace& ws,
 
   ppath_step.pos(0, 2) = lon_grid[lon_index];
   ppath_step.pos(0, 1) = lat_grid[lat_index];
-  ppath_step.pos(0, 0) = z_field(p_index, lat_index, lon_index);
+  ppath_step.pos(0, 0) = z_grid[p_index];
   // As always on top of the lat. grid positions, OK to call refell2r:
   ppath_step.r[0] =
       refell2r(refellipsoid, ppath_step.pos(0, 1)) + ppath_step.pos(0, 0);
@@ -1343,7 +1352,7 @@ void cloud_ppath_update3D(Workspace& ws,
     }
 
     // Presssure (needed for the calculation of gas absorption)
-    itw2p(p_int, p_grid, ppath_step.gp_p, itw_p);
+    itw2p(p_int, VectorView{p_field(p_index, lat_index, lon_index)}, ppath_step.gp_p, itw_p);
 
     out3 << "Calculate radiative transfer inside cloudbox.\n";
     cloud_RT_no_background(ws,

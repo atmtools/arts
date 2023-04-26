@@ -175,32 +175,31 @@ void cloud_fieldsCalc(Workspace& ws,
   \date 2003-06-04
 */
 void cloud_ppath_update1D(Workspace& ws,
-                          Tensor6View i_field,
+                          // Input and output
+                          Tensor6View cloudbox_field_mono,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& za_index,
                           ConstVectorView za_grid,
                           const ArrayOfIndex& cloudbox_limits,
-                          ConstTensor6View scat_field,
+                          ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& propmat_clearsky_agenda,
-                          ConstTensor4View vmr_field,
-                          // Gas absorption:
+                          const AtmField& atm_field,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
                           const Numeric& ppath_lmax,
                           const Numeric& ppath_lraytrace,
-                          ConstVectorView p_grid,
-                          ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
                           // Calculate thermal emission:
-                          ConstTensor3View t_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
-                          //particle opticla properties
+                          //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
                           const Agenda& surface_rtprop_agenda,
+                          //const Agenda& surface_rtprop_agenda,
                           const Index& scat_za_interp,
                           const Verbosity& verbosity);
 
@@ -398,19 +397,14 @@ void cloud_ppath_update3D(Workspace& ws,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& propmat_clearsky_agenda,
-                          ConstTensor4View vmr_field,
-                          // Gas absorption:
+                          const AtmField& atm_field,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
                           const Numeric& ppath_lmax,
                           const Numeric& ppath_lraytrace,
-                          ConstVectorView p_grid,
-                          ConstVectorView lat_grid,
-                          ConstVectorView lon_grid,
-                          ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
                           // Calculate thermal emission:
-                          ConstTensor3View t_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
                           //particle optical properties
