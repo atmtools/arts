@@ -217,7 +217,7 @@ def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
             ret = eval(compile(Expression(expr), "<unknown>", 'eval'), context)
         except NameError:
             try:
-                from ast import unprse
+                from ast import unparse
                 errstr = f"the local Python variable `{unparse(expr)}`"
             except ImportError:
                 errstr = "a local Python variable"
