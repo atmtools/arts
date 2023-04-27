@@ -2390,39 +2390,6 @@ void vmr_fieldSetAllConstant(Tensor4& vmr_field,
   }
 }
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldSetRh(Workspace& ws,
-                    Tensor4& vmr_field,
-                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const Tensor3& t_field,
-                    const Vector& p_grid,
-                    const Agenda& water_p_eq_agenda,
-                    const Numeric& rh,
-                    const Numeric& vmr_threshold,
-                    const Verbosity&)
-{
-  // Locate H2O
-  const Index ih2o = find_first_species(abs_species, Species::fromShortName("H2O"));
-  ARTS_USER_ERROR_IF (ih2o < 0, "There is no H2O species in *abs_species*.")
-
-  // Calculate partial pressure matching selected RH
-  Tensor3 p_rh;
-  water_p_eq_agendaExecute(ws, p_rh, t_field, water_p_eq_agenda);
-  p_rh *= rh;
-
-  // Put in VMR
-  for (Index p=0; p<vmr_field.npages(); ++p) {
-    for (Index a=0; a<vmr_field.nrows(); ++a) {
-      for (Index o=0; o<vmr_field.ncols(); ++o) {
-        if (vmr_field(ih2o, p, a, o) > vmr_threshold) {
-          vmr_field(ih2o, p, a, o) = p_rh(p, a, o) / p_grid[p];
-        }
-      }
-    }
-  }
-}
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void atm_fieldLteExternalPartitionFunction(
     Index& nlte_do,

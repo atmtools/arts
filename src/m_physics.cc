@@ -120,9 +120,12 @@ void MatrixUnitIntensity(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
-                          const Tensor3& t_field,
+                          const AtmField& atm_field,
                           const Index& only_liquid,
                           const Verbosity&) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+
   const Index n1 = t_field.npages();
   const Index n2 = t_field.nrows();
   const Index n3 = t_field.ncols();

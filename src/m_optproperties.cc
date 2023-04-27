@@ -1351,11 +1351,14 @@ void DoitScatteringDataPrepare(
     const Index& scat_data_checked,
     const Index& f_index,
     const Index& stokes_dim,
-    const Tensor3& t_field,
+    const AtmField& atm_field,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
     const Agenda& pha_mat_spt_agenda,
     const Verbosity& verbosity) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+
   if (scat_data_checked != 1)
     throw runtime_error(
         "The scattering data must be flagged to have "

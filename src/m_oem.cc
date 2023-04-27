@@ -287,7 +287,7 @@ void xaStandard(Workspace& ws,
           regrid_atmfield_by_gp(
               t_x, 3, t_field, gp_p, gp_lat, gp_lon);
           Tensor3 water_p_eq;
-          water_p_eq_agendaExecute(ws, water_p_eq, t_x, water_p_eq_agenda);
+          water_p_eq_agendaExecute(ws, water_p_eq, atm_field, water_p_eq_agenda);
           // Calculate relative humidity (vmr*p/p_sat)
           Index i = 0;
           for (Index i3 = 0; i3 < vmr_x.ncols(); i3++) {
@@ -643,7 +643,7 @@ void x2artsAtmAndSurf(Workspace& ws,
       } else if (jacobian_quantities[q].Mode() == "rh") {
         // vmr = x * p_sat / p
         Tensor3 water_p_eq;
-        water_p_eq_agendaExecute(ws, water_p_eq, t_field, water_p_eq_agenda);
+        water_p_eq_agendaExecute(ws, water_p_eq, atm_field, water_p_eq_agenda);
         for (Index i3 = 0; i3 < x_field.ncols(); i3++) {
           for (Index i2 = 0; i2 < x_field.nrows(); i2++) {
             for (Index i1 = 0; i1 < x_field.npages(); i1++) {

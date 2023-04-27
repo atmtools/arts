@@ -2009,7 +2009,7 @@ void doit_scat_fieldCalc(Workspace& ws,
                          const Agenda& pha_mat_spt_agenda,
                          const Tensor6& cloudbox_field_mono,
                          const Tensor4& pnd_field,
-                         const Tensor3& t_field,
+                         const AtmField& atm_field,
                          const ArrayOfIndex& cloudbox_limits,
                          const Vector& za_grid,
                          const Vector& aa_grid,
@@ -2018,6 +2018,9 @@ void doit_scat_fieldCalc(Workspace& ws,
                          const Verbosity& verbosity)
 
 {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+
   CREATE_OUT2;
   CREATE_OUT3;
 
@@ -2278,7 +2281,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                              const Agenda& pha_mat_spt_agenda,
                              const Tensor6& cloudbox_field_mono,
                              const Tensor4& pnd_field,
-                             const Tensor3& t_field,
+                             const AtmField& atm_field,
                              const ArrayOfIndex& cloudbox_limits,
                              const Vector& za_grid,
                              const Vector& aa_grid,
@@ -2286,6 +2289,9 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                              const Index& doit_za_interp,
                              const Tensor7& pha_mat_doit,
                              const Verbosity& verbosity) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+
   CREATE_OUT2;
   CREATE_OUT3;
 

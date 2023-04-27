@@ -709,7 +709,7 @@ void define_agenda_data() {
       NAME("water_p_eq_agenda"),
       DESCRIPTION("Calculation of the saturation pressure of water.\n"),
       OUTPUT("water_p_eq_field"),
-      INPUT("t_field")));
+      INPUT("atm_field")));
 
   agenda_data.push_back(AgRecord(
       NAME("ybatch_calc_agenda"),

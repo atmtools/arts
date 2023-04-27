@@ -1887,11 +1887,13 @@ void rtmethods_jacobian_finalisation(
 
       else if (jacobian_quantities[iq].Mode() == "rh") {
         // Here x = (p_sat/p) * z
+        AtmField atm_field;
         Tensor3 t_data(ppvar_atm.nelem(), 1, 1);
         for (Index ip = 0; ip < np; ip++) {
           t_data(ip, 0, 0) = ppvar_atm[ip].temperature;
         }
-        water_p_eq_agendaExecute(ws, water_p_eq, t_data, water_p_eq_agenda);
+        ARTS_ASSERT(false)
+        water_p_eq_agendaExecute(ws, water_p_eq, atm_field, water_p_eq_agenda);
         for (Index ip = 0; ip < np; ip++) {
           diy_dpath[iq](ip, joker, joker) *= water_p_eq(ip, 0, 0) / ppvar_atm[ip].pressure;
         }
@@ -1935,14 +1937,18 @@ void rtmethods_jacobian_finalisation(
             }
             // Calculate water sat. pressure if not already done
             if (water_p_eq.npages() == 0) {
+              AtmField atm_field;
+              ARTS_ASSERT(false)
               water_p_eq_agendaExecute(
-                  ws, water_p_eq, t_data, water_p_eq_agenda);
+                  ws, water_p_eq, atm_field, water_p_eq_agenda);
             }
             // Sat.pressure for +1K
             Tensor3 water_p_eq1K;
             t_data(joker, 0, 0) += 1;
+              AtmField atm_field;
+              ARTS_ASSERT(false)
             water_p_eq_agendaExecute(
-                ws, water_p_eq1K, t_data, water_p_eq_agenda);
+                ws, water_p_eq1K, atm_field, water_p_eq_agenda);
 
             for (Index ip = 0; ip < np; ip++) {
               const Numeric p_eq = water_p_eq(ip, 0, 0);
