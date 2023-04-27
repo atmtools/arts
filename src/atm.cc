@@ -689,7 +689,7 @@ Tensor4 extract_partp_content(const Field &atm, const ArrayOfString &specs) {
   Tensor4 out(atm.npart(), atm.regularized_shape()[0],
               atm.regularized_shape()[1], atm.regularized_shape()[2]);
   std::transform(specs.begin(), specs.end(), out.begin(),
-                 [&](auto &spec) { return atm[ParticulatePropertyTag(spec)].template get<Tensor3>(); });
+                 [&](auto &spec) { return atm[ParticulatePropertyTag{spec}].template get<Tensor3>(); });
   return out;
 }
 
