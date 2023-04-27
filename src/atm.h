@@ -34,7 +34,7 @@ struct ParticulatePropertyTag {
 
 namespace std {
 template <> struct hash<ParticulatePropertyTag> {
-  constexpr std::size_t operator()(const ParticulatePropertyTag &pp) const {
+  std::size_t operator()(const ParticulatePropertyTag &pp) const {
     return std::hash<String>{}(pp.name);
   }
 };
