@@ -33,6 +33,7 @@
 #include "m_general.h"
 #include "m_xml.h"
 #include "math_funcs.h"
+#include "matpack_view.h"
 #include "messages.h"
 #include "ppath_OLD.h"
 #include "refraction.h"
@@ -876,7 +877,7 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
                                     const Numeric& ppath_lmax,
                                     const Numeric& ppath_lraytrace,
                                     const Index& atmgeom_checked,
-                                    const Tensor3& z_field,
+                                    const AtmField& atm_field,
                                     const Vector& f_grid,
                                     const Index& cloudbox_on,
                                     const Index& cloudbox_checked,
@@ -892,6 +893,9 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
                       "Not allowed for non-spherical planets");
   ARTS_USER_ERROR_IF (ppath_lmax >= 0,
                       "Only allowed for long paths (ppath_lmax < 0)");
+
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const ExhaustiveTensor3View z_field{atm_field.grid[0]};
 
   // Positions and angles of interest
   const Numeric zmin = z_field(0, 0, 0);
