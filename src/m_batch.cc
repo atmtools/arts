@@ -444,7 +444,6 @@ void ybatchMetProfiles(Workspace& ws,
                                    y,
                                    atm_field,
                                    pnd_field_raw,
-                                   z_grid,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,
@@ -608,14 +607,13 @@ void ybatchMetProfilesClear(Workspace& ws,
         z_grid, nelem_p_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1], verbosity);
     cout << "t_field_raw[0](0,0,0)" << tfr_z_grid[0] << endl;
     cout << "t_field_raw[0](N_p -1,0,0)" << tfr_z_grid[N_p - 1] << endl;
-    xml_write_to_file("p_grid.xml", z_grid, FILE_TYPE_ASCII, 0, verbosity);
+    xml_write_to_file("z_grid.xml", z_grid, FILE_TYPE_ASCII, 0, verbosity);
 
     // executing the met_profile_calc_agenda
     met_profile_calc_agendaExecute(ws,
                                    y,
                                    atm_field,
                                    pnd_field_raw,
-                                   z_grid,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,

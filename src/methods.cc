@@ -3743,6 +3743,7 @@ Available models:
       GIN_DEFAULT(),
       GIN_DESC()));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("atmgeom_checkedCalc"),
       DESCRIPTION(
@@ -3777,10 +3778,7 @@ Available models:
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
+         "atm_field",
          "refellipsoid",
          "z_surface",
          "lat_true",
@@ -3789,6 +3787,7 @@ Available models:
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("500"),
       GIN_DESC("The maximum allowed gradient of 500 hPa pressure level [m/100km].")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldLteInternalPartitionFunction"),
@@ -4595,7 +4594,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("z_field", "lat_grid", "lon_grid"),
+      IN("atm_field"),
       GIN("z1", "z2", "lat1", "lat2", "lon1", "lon2"),
       GIN_TYPE(
           "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric"),
@@ -6340,9 +6339,6 @@ After this method is called, all existing fields have a regular shape.
          "cloudbox_checked",
          "doit_is_initialized",
          "iy_main_agenda",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
          "atm_field",
          "cloudbox_on",
          "cloudbox_limits",
@@ -6379,9 +6375,6 @@ After this method is called, all existing fields have a regular shape.
          "cloudbox_checked",
          "doit_is_initialized",
          "iy_main_agenda",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
          "atm_field",
          "cloudbox_on",
          "cloudbox_limits",
@@ -7858,6 +7851,7 @@ After this method is called, all existing fields have a regular shape.
                "Interpolation order.",
                "Apply zero-padding.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldZToPRegrid"),
       DESCRIPTION(
@@ -7882,6 +7876,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_DESC("Raw input; Altitude-gridded field.",
                "Interpolation order.",
                "Apply zero-padding.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("heating_ratesFromIrradiance"),
@@ -8168,18 +8163,14 @@ After this method is called, all existing fields have a regular shape.
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
-      GOUT_TYPE("Numeric"),
+      GOUT_TYPE("AtmPoint"),
       GOUT_DESC("Value obtained by the interpolation."),
-      IN(
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
+      IN("atm_field",
          "rtp_pos"),
-      GIN("field"),
-      GIN_TYPE("Tensor3"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Field to interpolate.")));
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpGriddedField2ToPosition"),
@@ -8857,6 +8848,7 @@ After this method is called, all existing fields have a regular shape.
           "Flag to include particle category masses in *atm_fields_compact*."
           "Conversion is done by *particle_masses*.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("iyInterpCloudboxField"),
       DESCRIPTION(
@@ -8891,10 +8883,7 @@ After this method is called, all existing fields have a regular shape.
          "jacobian_do",
          "cloudbox_on",
          "cloudbox_limits",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
+         "atm_field",
          "z_surface",
          "stokes_dim",
          "za_grid",
@@ -8913,6 +8902,7 @@ After this method is called, all existing fields have a regular shape.
                "Flag whether to do zenith angle interpolation in cosine space.",
                "Maximum allowed extrapolation range in zenith angle.",
                "Azimuth angle interpolation order.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyLoopFrequencies"),
@@ -9499,10 +9489,6 @@ After this method is called, all existing fields have a regular shape.
          "rtp_pos",
          "stokes_dim",
          "f_grid",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
          "abs_species",
          "atm_field",
          "z_surface",
@@ -13186,7 +13172,7 @@ After this method is called, all existing fields have a regular shape.
          "ppath_lmax",
          "ppath_lraytrace",
          "atmgeom_checked",
-         "z_field",
+         "atm_field",
          "f_grid",
          "cloudbox_on",
          "cloudbox_checked",
@@ -13235,6 +13221,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_DEFAULT(),
       GIN_DESC()));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
       DESCRIPTION(
@@ -13261,10 +13248,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ppath_step_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
+         "atm_field",
          "f_grid",
          "refellipsoid",
          "z_surface",
@@ -13282,7 +13266,8 @@ After this method is called, all existing fields have a regular shape.
                "no solution is found.",
                "Lowest value ppath_lraytrace to consider. The calculations "
                "are halted if this length is passed.")));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathPlaneParallel"),
       DESCRIPTION(
@@ -13306,7 +13291,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "z_field",
+         "atm_field",
          "z_surface",
          "cloudbox_on",
          "cloudbox_limits",
@@ -13318,7 +13303,8 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathStepByStep"),
       DESCRIPTION(
@@ -13341,10 +13327,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_DESC(),
       IN("ppath_step_agenda",
          "ppath_inside_cloudbox_do",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
+         "atm_field",
          "f_grid",
          "refellipsoid",
          "z_surface",
@@ -13358,7 +13341,8 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepGeometric"),
       DESCRIPTION(
@@ -13381,9 +13365,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ppath_step",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
+         "atm_field",
          "refellipsoid",
          "z_surface",
          "ppath_lmax"),
@@ -13391,6 +13373,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
 /*
   md_data_raw.push_back(create_mdrecord(
@@ -15501,112 +15484,6 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                /* nfill */
                "Number of points to add between adjacent pressure points."
                "The default value (-1) results in an error.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("p_gridFromZRaw"),
-      DESCRIPTION(
-          "Sets *p_grid* according to input atmosphere's raw z_field, derived\n"
-          "e.g. from *AtmRawRead*.\n"
-          "Attention: as default only pressure values for altitudes >= 0 are\n"
-          "extracted. If negative altitudes shall also be selected, set no_neg=0.\n"),
-      AUTHORS("Claudia Emde, Jana Mendrok"),
-      OUT("p_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("z_field_raw"),
-      GIN("no_negZ"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Exclude negative altitudes.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("lat_gridFromZRaw"),
-      DESCRIPTION(
-          "Sets *lat_grid* according to input atmosphere's *z_field_raw*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("lat_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("z_field_raw"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("lon_gridFromZRaw"),
-      DESCRIPTION(
-          "Sets *lon_grid* according to input atmosphere's *z_field_raw*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("lon_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("z_field_raw"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("atm_gridsFromZRaw"),
-      DESCRIPTION(
-          "Calls *p_gridFromZRaw*, *lat_gridFromZRaw* and *lon_gridFromZRaw*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("p_grid", "lat_grid", "lon_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("z_field_raw"),
-      GIN("no_negZ"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Exclude negative altitudes.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("p_gridFromGasAbsLookup"),
-      DESCRIPTION("Sets *p_grid* to the pressure grid of *abs_lookup*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("p_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lookup"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("p_gridRefine"),
-      DESCRIPTION(
-          "Provides refined pressure grid.\n"
-          "\n"
-          "Created new pressure grid has (log10) spacings below a given\n"
-          "threshold.\n"
-          "\n"
-          "For safety, new grid and old grid Vectors are not allowed to be the\n"
-          "same variable (both will be needed later on for regridding of the\n"
-          "atmospheric fields), and atmospheric field related *checked WSV are\n"
-          "reset to 0 (unchecked).\n"),
-      AUTHORS("Stefan Buehler, Jana Mendrok"),
-      OUT("p_grid", "atmfields_checked", "atmgeom_checked", "cloudbox_checked"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("p_grid_old", "p_step"),
-      GIN_TYPE("Vector", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC(/* p_grid_old */
-               "A copy of the current (the old) p_grid. Not allowed to be "
-               "the same variable as the output *p_grid*.",
-               /* p_step */
-               "Maximum step in log10(p[Pa]). If the pressure grid is "
-               "coarser than this, additional points are added until each "
-               "log step is smaller than this.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RadarOnionPeelingTableCalc"),
@@ -17943,65 +17820,6 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  //TODO: Check if ScatSpeciesMerge can be removed
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ScatSpeciesMerge"),
-      DESCRIPTION(
-          "Merges single scattering data of all scattering elements into one\n"
-          "element of bulk properties.\n"
-          "\n"
-          "Before entering the scattering solver, this method prepares the\n"
-          "effective bulk single scattering properties of all scattering\n"
-          "elements. Done by calculating the particle number density weighted\n"
-          "sum of the single scattering properties of all scattering elements\n"
-          "per pressure level. Accordingly, *pnd_field* is resized to\n"
-          "[np, np, 1, 1], where np is the number of pressure levels inside\n"
-          "the cloudbox. The diagonal elements of the new *pnd_field* are set\n"
-          "to 1, all others to 0. *scat_data* is resized to np. Each new\n"
-          "scattering element represents the weighted sum of all particles at\n"
-          "one presssure level.\n"
-          "\n"
-          "The method also adapts *scat_species* and *scat_meta* such that\n"
-          "they remain consistent with *pnd_field* and can pass\n"
-          "*cloudbox_checkedCalc*.\n"
-          "\n"
-          "The method is suggested to be called directly after\n"
-          "*pnd_fieldCalcFromParticleBulkProps* (but also after\n"
-          "*cloudbox_checkedCalc*).\n"
-          "Its purpose is to speed up the scattering calculations.\n"
-          "\n"
-          "This is an experimental method currently only working for limited\n"
-          "cases. All scattering elements must be of the same ptype and must\n"
-          "share the same *f_grid*, *za_grid*, and *aa_grid*. That is, the\n"
-          "scattering matrix, extinction matrix, and absorption vector of all\n"
-          "scattering elements must have the same dimensions. No interpolation\n"
-          "(apart from temperature) is performed.\n"
-          "\n"
-          "This method can only be used with a 1D atmosphere.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("pnd_field",
-          "scat_data",
-          "scat_meta",
-          "scat_species",
-          "cloudbox_checked"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("pnd_field",
-         "scat_data",
-         "scat_meta",
-         "scat_species",
-         "cloudbox_checked",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "t_field",
-         "z_field",
-         "z_surface"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -22387,6 +22205,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT(),
       GIN_DESC()));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteMolTau"),
       DESCRIPTION(
@@ -22406,11 +22225,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("f_grid", "z_field", "propmat_clearsky_field"),
+      IN("f_grid", "atm_field", "propmat_clearsky_field"),
       GIN("filename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Name of the *molecular_tau_file*.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteNetCDF"),

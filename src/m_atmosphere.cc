@@ -1928,41 +1928,11 @@ void z_surfaceConstantAltitude(Matrix& z_surface,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpAtmFieldToPosition(Numeric& outvalue,
-                              const Vector& p_grid,
-                              const Vector& lat_grid,
-                              const Vector& lon_grid,
-                              const Tensor3& z_field,
+void InterpAtmFieldToPosition(AtmPoint& outvalue,
+                              const AtmField& atm_field,
                               const Vector& rtp_pos,
-                              const Tensor3& field,
-                              const Verbosity& verbosity) {
-  // Input checks
-  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
-  chk_atm_field("input argument *field*",
-                field,
-                3,
-                p_grid,
-                lat_grid,
-                lon_grid);
-  chk_rte_pos(3, rtp_pos);
-
-  // Determine grid positions
-  GridPos gp_p, gp_lat, gp_lon;
-  rte_pos2gridpos(gp_p,
-                  gp_lat,
-                  gp_lon,
-                  3,
-                  p_grid,
-                  lat_grid,
-                  lon_grid,
-                  z_field,
-                  rtp_pos);
-
-  // Interpolate
-  outvalue = interp_atmfield_by_gp(3, field, gp_p, gp_lat, gp_lon);
-
-  CREATE_OUT3;
-  out3 << "    Result = " << outvalue << "\n";
+                              const Verbosity&) {
+  outvalue = atm_field.at({rtp_pos[0]}, {rtp_pos[1]}, {rtp_pos[2]})[0];
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -572,9 +572,10 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         Index iy_id = i;
         Vector rte_los(1, za_grid[i]);
         Vector rte_pos(1, za_grid[i] < 90 ? z_surface(0, 0) : z_space);
-
+ARTS_ASSERT(false)
+/* FIXME: MUST HAVE PLANE PARALLEL NEW PPATH CODE HERE
         ppathPlaneParallel(ppath,
-                           Vector{z_grid}.reshape(nl, 1, 1),
+                           atm_field,
                            z_surface,
                            cloudbox_on,
                            cloudbox_limits,
@@ -583,6 +584,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            rte_los,
                            ppath_lmax,
                            verbosity);
+                           */
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
@@ -800,9 +802,10 @@ void spectral_radiance_fieldExpandCloudboxField(
         Index iy_id = i;
         Vector rte_los(1, za_grid[i]);
         Vector rte_pos(1, za_grid[i] < 90 ? z_top : z_space);
-
+ARTS_ASSERT(false)
+/*FIXME
         ppathPlaneParallel(ppath,
-                           Vector{z_grid}.reshape(nl, 1, 1),
+                           atm_field,
                            z_surface,
                            cloudbox_on,
                            cloudbox_limits,
@@ -811,6 +814,7 @@ void spectral_radiance_fieldExpandCloudboxField(
                            rte_los,
                            ppath_lmax,
                            verbosity);
+                           */
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
 

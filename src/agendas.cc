@@ -473,7 +473,6 @@ void define_agenda_data() {
       OUTPUT("y"),
       INPUT("atm_field",
             "pnd_field_raw",
-            "z_grid",
             "sensor_los",
             "cloudbox_on",
             "cloudbox_limits",

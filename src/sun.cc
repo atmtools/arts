@@ -363,17 +363,17 @@ void get_sun_ppaths(Workspace& ws,
                      const Vector& rte_pos,
                      const ArrayOfSun& suns,
                      const Vector& f_grid,
-                     const Index& atmosphere_dim,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
-                     const Tensor3& z_field,
+                     const AtmField& atm_field,
                      const Matrix& z_surface,
                      const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,
                      const Agenda& ppath_step_agenda,
                      const Verbosity& verbosity) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& lat_grid = atm_field.grid[1];
+const auto& lon_grid = atm_field.grid[2];
+
   Vector sun_pos(3);
   Vector sun_rte_los_isun(2);
   Numeric ppath_lraytrace2 = ppath_lraytrace;
@@ -388,7 +388,7 @@ void get_sun_ppaths(Workspace& ws,
     sun_pos[0] =
         sun_pos[0] -
         pos2refell_r(
-            atmosphere_dim, refellipsoid, lat_grid, lon_grid, sun_pos);
+            3, refellipsoid, lat_grid, lon_grid, sun_pos);
 
     // get the line of sight direction from sun i_sun to ppath point
     rte_losGeometricFromRtePosToRtePos2(sun_rte_los_isun,
@@ -400,15 +400,14 @@ void get_sun_ppaths(Workspace& ws,
                                         verbosity);
 
     // calculate ppath (sun path) from sun to ppath point
+    ARTS_ASSERT(false)
+    /*FIXME
     ppathFromRtePos2(ws,
                      sun_ppath,
                      sun_rte_los_isun,
                      ppath_lraytrace2,
                      ppath_step_agenda,
-                     p_grid,
-                     lat_grid,
-                     lon_grid,
-                     z_field,
+                     atm_field,
                      f_grid,
                      refellipsoid,
                      z_surface,
@@ -419,6 +418,7 @@ void get_sun_ppaths(Workspace& ws,
                      5.,
                      0.5,
                      verbosity);
+                     */
 
     sun_ppaths[i_sun] = sun_ppath;
     sun_rte_los[i_sun] = sun_rte_los_isun;

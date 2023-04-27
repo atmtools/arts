@@ -2813,9 +2813,6 @@ void DoitGetIncoming(Workspace& ws,
                      const Index& cloudbox_checked,
                      const Index& doit_is_initialized,
                      const Agenda& iy_main_agenda,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
-                     const Tensor3& z_field,
                      const AtmField& atm_field,
                      const Index& cloudbox_on,
                      const ArrayOfIndex& cloudbox_limits,
@@ -2826,6 +2823,11 @@ void DoitGetIncoming(Workspace& ws,
                      const Index& rigorous,
                      const Numeric& maxratio,
                      const Verbosity&) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& z_grid = atm_field.grid[0];
+const auto& lat_grid = atm_field.grid[1];
+const auto& lon_grid = atm_field.grid[2];
+
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
@@ -2870,100 +2872,8 @@ void DoitGetIncoming(Workspace& ws,
                       "*za_grid* must include 0 and 180 degrees as endpoints.");
   //--------------------------------------------------------------------------
 
-  if (3 == 1) {
-    //Define the variables for position and direction.
-    Vector los(1), pos(1);
-
-    //--- Get cloudbox_field at lower and upper boundary
-    //    (boundary=0: lower, boundary=1: upper)
-    for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index =
-          boundary ? cloudbox_field.nvitrines() - 1 : 0;
-      pos[0] = z_field(cloudbox_limits[boundary], 0, 0);
-
-      // doing the first angle separately for allowing dy between 2 angles
-      // in the loop
-      los[0] = za_grid[0];
-
-      iy_main_agendaExecute(ws,
-                            iy,
-                            iy_aux,
-                            ppath,
-                            diy_dx,
-                            geo_pos,
-                            1,
-                            iy_transmittance,
-                            iy_aux_vars,
-                            0,
-                            iy_unit,
-                            0,
-                            0,
-                            f_grid,
-                            atm_field,
-                            pos,
-                            los,
-                            Vector(0),
-                            iy_main_agenda);
-
-      cloudbox_field(joker, boundary_index, 0, 0, 0, 0, joker) = iy;
-
-      for (Index za_index = 1; za_index < Nza; za_index++) {
-        los[0] = za_grid[za_index];
-
-        iy_main_agendaExecute(ws,
-                              iy,
-                              iy_aux,
-                              ppath,
-                              diy_dx,
-                              geo_pos,
-                              1,
-                              iy_transmittance,
-                              iy_aux_vars,
-                              0,
-                              iy_unit,
-                              0,
-                              0,
-                              f_grid,
-                              atm_field,
-                              pos,
-                              los,
-                              Vector(0),
-                              iy_main_agenda);
-
-        cloudbox_field(joker, boundary_index, 0, 0, za_index, 0, joker) = iy;
-
-        if (rigorous) {
-          for (Index fi = 0; fi < Nf; fi++) {
-            ARTS_USER_ERROR_IF (cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
-                        cloudbox_field(
-                            fi, boundary_index, 0, 0, za_index, 0, 0) >
-                    maxratio ||
-                cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
-                        cloudbox_field(
-                            fi, boundary_index, 0, 0, za_index, 0, 0) <
-                    1 / maxratio,
-                "ERROR: Radiance difference between "
-                "interpolation points is too large (factor ", maxratio,
-                ")\n"
-                "to safely interpolate. This might be due to "
-                "za_grid being too coarse or the radiance field "
-                "being a step-like function.\n"
-                "Happens at boundary ", boundary_index,
-                " between zenith angles ", za_grid[za_index - 1],
-                " and ", za_grid[za_index], "deg\n"
-                "for frequency #", fi, ", where radiances are ",
-                cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0),
-                " and ",
-                cloudbox_field(fi, boundary_index, 0, 0, za_index, 0, 0),
-                " W/(sr m2 Hz).")
-          }
-        }
-      }
-    }
-  }
-
   //--- 3 = 3: --------------------------------------------------
-  else {
+ {
     Index Naa = aa_grid.nelem();
 
     ARTS_USER_ERROR_IF (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.,
@@ -2990,9 +2900,7 @@ void DoitGetIncoming(Workspace& ws,
         for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++) {
           pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
           pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-          pos[0] = z_field(cloudbox_limits[boundary],
-                           lat_index + cloudbox_limits[2],
-                           lon_index + cloudbox_limits[4]);
+          pos[0] = z_grid[cloudbox_limits[boundary]];
 
           for (Index za_index = 0; za_index < Nza; za_index++) {
             for (Index aa_index = 0; aa_index < Naa; aa_index++) {
@@ -3044,9 +2952,7 @@ void DoitGetIncoming(Workspace& ws,
         for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++) {
           pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
           pos[1] = lat_grid[cloudbox_limits[boundary + 2]];
-          pos[0] = z_field(p_index + cloudbox_limits[0],
-                           cloudbox_limits[boundary + 2],
-                           lon_index + cloudbox_limits[4]);
+          pos[0] = z_grid[p_index + cloudbox_limits[0]];
 
           for (Index za_index = 0; za_index < Nza; za_index++) {
             for (Index aa_index = 0; aa_index < Naa; aa_index++) {
@@ -3097,9 +3003,7 @@ void DoitGetIncoming(Workspace& ws,
         for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++) {
           pos[2] = lon_grid[cloudbox_limits[boundary + 4]];
           pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-          pos[0] = z_field(p_index + cloudbox_limits[0],
-                           lat_index + cloudbox_limits[2],
-                           cloudbox_limits[boundary + 4]);
+          pos[0] = z_grid[p_index + cloudbox_limits[0]];
 
           for (Index za_index = 0; za_index < Nza; za_index++) {
             for (Index aa_index = 0; aa_index < Naa; aa_index++) {
@@ -3154,9 +3058,6 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Index& cloudbox_checked,
                           const Index& doit_is_initialized,
                           const Agenda& iy_main_agenda,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid,
-                          const Tensor3& z_field,
                           const AtmField& atm_field,
                           const ArrayOfIndex& cloudbox_limits,
                           const Vector& f_grid,
@@ -3164,6 +3065,9 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Vector& za_grid,
                           const Vector& aa_grid,
                           const Verbosity&) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
@@ -3236,8 +3140,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
 
   // Calculate cloudbox_field on boundary
   for (Index p_index = 0; p_index < Np_cloud; p_index++) {
-    pos[0] = z_field(
-        cloudbox_limits[0] + p_index, cloudbox_limits[2], cloudbox_limits[4]);
+    pos[0] = z_grid[cloudbox_limits[0] + p_index];
 
     for (Index za_index = 0; za_index < Nza; za_index++) {
       los[0] = za_grid[za_index];

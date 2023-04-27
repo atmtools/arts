@@ -99,7 +99,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                  -1,
                                  1e99,
                                  1,
-                                 Vector{atm_field.grid[0]}.reshape(np, 1, 1),  // FIXME: SHOULD NOT TAKE FIELD
+                                 atm_field,
                                  f_grid,
                                  0,
                                  1,

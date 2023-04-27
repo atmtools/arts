@@ -48,6 +48,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -446,9 +447,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     Index& cloudbox_on,
     ArrayOfIndex& cloudbox_limits,
     // WS Input:
-    const Tensor3& z_field,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
+    const AtmField& atm_field,
     // Control Parameters:
     const Numeric& z1,
     const Numeric& z2,
@@ -457,6 +456,8 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     const Numeric& lon1,
     const Numeric& lon2,
     const Verbosity&) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
   // Check existing WSV
 
   // Check keyword arguments
@@ -499,18 +500,18 @@ void cloudboxSetManuallyAltitude(  // WS Output:
   cloudbox_limits.resize(3 * 2);
 
   // Pressure/altitude limits
-  if (z1 < z_field(1, 0, 0)) {
+  if (z1 < z_grid[1]) {
     cloudbox_limits[0] = 0;
   } else {
-    for (cloudbox_limits[0] = 1; z_field(cloudbox_limits[0] + 1, 0, 0) <= z1;
+    for (cloudbox_limits[0] = 1; z_grid[cloudbox_limits[0] + 1] <= z1;
          cloudbox_limits[0]++) {
     }
   }
-  if (z2 > z_field(z_field.npages() - 2, 0, 0)) {
-    cloudbox_limits[1] = z_field.npages() - 1;
+  if (z2 > z_grid[z_grid.nelem() - 2]) {
+    cloudbox_limits[1] = z_grid.nelem() - 1;
   } else {
-    for (cloudbox_limits[1] = z_field.npages() - 2;
-         z_field(cloudbox_limits[1] - 1, 0, 0) >= z2;
+    for (cloudbox_limits[1] = z_grid.nelem() - 2;
+         z_grid[cloudbox_limits[1] - 1] >= z2;
          cloudbox_limits[1]--) {
     }
   }

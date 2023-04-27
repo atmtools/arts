@@ -1241,10 +1241,6 @@ void iySurfaceLambertianDirect(
     const Vector& rtp_pos,
     const Index& stokes_dim,
     const Vector& f_grid,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Tensor3& z_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
     const Matrix& z_surface,
@@ -1270,6 +1266,10 @@ void iySurfaceLambertianDirect(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
+ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+const auto& lat_grid = atm_field.grid[1];
+const auto& lon_grid = atm_field.grid[2];
+
   //Allocate
   ArrayOfVector sun_rte_los(suns.nelem());
   ArrayOfMatrix transmitted_sunlight;
@@ -1307,11 +1307,7 @@ void iySurfaceLambertianDirect(
                     rtp_pos,
                     suns,
                     f_grid,
-                    3,
-                    p_grid,
-                    lat_grid,
-                    lon_grid,
-                    z_field,
+                    atm_field,
                     z_surface,
                     refellipsoid,
                     ppath_lmax,
