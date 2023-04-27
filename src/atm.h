@@ -23,6 +23,23 @@
 #include "species.h"
 #include "species_tags.h"
 
+//! A type to name particulates (and let them be type-independent)
+struct ParticulatePropertyTag {
+  String name;
+
+  constexpr auto operator<=>(const ParticulatePropertyTag &) const = default;
+
+  friend std::ostream& operator<<(std::ostream&, const ParticulatePropertyTag &);
+};
+
+namespace std {
+template <> struct hash<ParticulatePropertyTag> {
+  constexpr std::size_t operator()(const ParticulatePropertyTag &pp) const {
+    return std::hash<String>{}(pp.name);
+  }
+};
+} // namespace std
+
 namespace Atm {
 ENUMCLASS(Key,
           char,
@@ -36,6 +53,10 @@ ENUMCLASS(Key,
           mag_w)
 
 template <typename T>
+concept isParticulatePropertyTag =
+    std::is_same_v<std::remove_cvref_t<T>, ParticulatePropertyTag>;
+
+template <typename T>
 concept isArrayOfSpeciesTag =
     std::is_same_v<std::remove_cvref_t<T>, ArrayOfSpeciesTag>;
 
@@ -47,9 +68,9 @@ template <typename T>
 concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
 
 template <typename T>
-concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or isQuantumIdentifier<T>;
+concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
 
-using KeyVal = std::variant<Key, ArrayOfSpeciesTag, QuantumIdentifier>;
+using KeyVal = std::variant<Key, ArrayOfSpeciesTag, QuantumIdentifier, ParticulatePropertyTag>;
 
 template <typename T>
 concept ListKeyType = requires (T a) {
@@ -81,6 +102,7 @@ private:
 
   std::unordered_map<ArrayOfSpeciesTag, Numeric> specs{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
+  std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
 public:
   Numeric pressure{0};
@@ -103,6 +125,9 @@ public:
     if constexpr (isArrayOfSpeciesTag<T>) {
       auto y = specs.find(std::forward<T>(x));
       return y == specs.end() ? 0 : y->second;
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      auto y = partp.find(std::forward<T>(x));
+      return y == partp.end() ? 0 : y->second;
     } else if constexpr (isQuantumIdentifier<T>) {
       auto y = nlte.find(std::forward<T>(x));
       return y == nlte.end() ? 0 : y->second;
@@ -137,6 +162,8 @@ public:
       return specs[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte[std::forward<T>(x)];
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      return partp[std::forward<T>(x)];
     } else {
       switch (std::forward<T>(x)) {
         case Key::t:
@@ -193,6 +220,7 @@ public:
 
   [[nodiscard]] Index nelem() const;
   [[nodiscard]] Index nspec() const;
+  [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] static constexpr Index nother() {return static_cast<Index>(enumtyps::KeyTypes.size());}
 
@@ -316,6 +344,7 @@ struct Field {
   std::unordered_map<Key, Data> other{};
   std::unordered_map<ArrayOfSpeciesTag, Data> specs{};
   std::unordered_map<QuantumIdentifier, Data> nlte{};
+  std::unordered_map<ParticulatePropertyTag, Data> partp{};
  
   //! Grid if regularized
   std::array<Vector, 3> grid{};
@@ -338,6 +367,8 @@ struct Field {
       return specs[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte[std::forward<T>(x)];
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      return partp[std::forward<T>(x)];
     } else {
       return other[std::forward<T>(x)];
     }
@@ -348,6 +379,8 @@ struct Field {
       return specs.at(std::forward<T>(x));
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte.at(std::forward<T>(x));
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      return partp.at(std::forward<T>(x));
     } else {
       return other.at(std::forward<T>(x));
     }
@@ -358,6 +391,8 @@ struct Field {
       specs.erase(std::forward<T>(x));
     } else if constexpr (isQuantumIdentifier<T>) {
       nlte.erase(std::forward<T>(x));
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      partp.erase(std::forward<T>(x));
     } else {
       other.erase(std::forward<T>(x));
     }
@@ -389,6 +424,9 @@ struct Field {
         return other.end() not_eq other.find(std::forward<T>(k));
       else if constexpr (isQuantumIdentifier<T>)
         return nlte.end() not_eq nlte.find(std::forward<T>(k));
+      else if constexpr (isParticulatePropertyTag<T>)
+        return partp.end() not_eq partp.find(std::forward<T>(k));
+      else return false;
     };
 
     if constexpr (N > 0)
@@ -401,13 +439,13 @@ struct Field {
 
   [[nodiscard]] Index nelem() const;
   [[nodiscard]] Index nspec() const;
+  [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] Index nother() const;
 
   void throwing_check() const;
 
   [[nodiscard]] ArrayOfQuantumIdentifier nlte_keys() const;
-  [[nodiscard]] ArrayOfArrayOfSpeciesTag spec_keys() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Field &atm);
 };
@@ -461,13 +499,20 @@ public:
 };
 
 /** Extracts all the VMR from a regularized Field
- * 
  *  
  * @param[in] atm An atmosospheric field
  * @param[in] specs A list of atmospheric species
  * @return Tensor4 All gridded VMR
  */
 Tensor4 extract_specs_content(const Field& atm, const ArrayOfArrayOfSpeciesTag& specs);
+
+/** Extracts all the Particulate properties from a regularized Field
+ * 
+ * @param[in] atm An atmosospheric field
+ * @param[in] specs A list of atmospheric species
+ * @return Tensor4 All gridded particulate properties
+ */
+Tensor4 extract_partp_content(const Field& atm, const ArrayOfString& specs);
 } // namespace Atm
 
 using AtmField = Atm::Field;

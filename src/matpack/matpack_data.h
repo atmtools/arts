@@ -233,6 +233,12 @@ public:
   //! Return this object as a 1-dimensional object
   constexpr matpack_data<T, 1> flatten() && { return std::move(*this).reshape(size()); }
 
+  //! View this object as a 1-dimensional object
+  constexpr matpack_view<T, 1, true, false> flat_view() const { return {data.data(), {size()}}; }
+
+  //! View this object as a 1-dimensional object
+  constexpr matpack_view<T, 1, false, false> flat_view() { return {data.data(), {size()}}; }
+
   constexpr matpack_data& operator=(const matpack_data& x) {
     if (this not_eq &x) {
       resize(x.shape());
