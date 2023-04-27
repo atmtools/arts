@@ -44,6 +44,7 @@
 #include "array.h"
 #include "arts.h"
 #include "arts_constants.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -576,22 +577,22 @@ void pnd_fieldCalcFromParticleBulkProps(
     Workspace& ws,
     Tensor4& pnd_field,
     ArrayOfTensor4& dpnd_field_dx,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Tensor3& t_field,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfString& scat_species,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const ArrayOfArrayOfScatteringMetaData& scat_meta,
-    const Tensor4& particle_bulkprop_field,
+    const AtmField& atm_field,
     const ArrayOfString& particle_bulkprop_names,
     const ArrayOfAgenda& pnd_agenda_array,
     const ArrayOfArrayOfString& pnd_agenda_array_input_names,
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+  const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+  const auto& t_field=atm_field[Atm::Key::t].get<const Tensor3&>();
+  const auto particle_bulkprop_field = Atm::extract_partp_content(atm_field, particle_bulkprop_names);
 
   // Do nothing if cloudbox is inactive
   if (!cloudbox_on) {
@@ -602,13 +603,13 @@ void pnd_fieldCalcFromParticleBulkProps(
                       "*particle_bulkprop_field* is empty.");
 
   // Checks (not totally complete, but should cover most mistakes)
-  chk_atm_grids(3, p_grid, lat_grid, lon_grid);
-  chk_atm_field("t_field", t_field, 3, p_grid, lat_grid, lon_grid);
+  chk_atm_grids(3, z_grid, lat_grid, lon_grid);
+  chk_atm_field("t_field", t_field, 3, z_grid, lat_grid, lon_grid);
   chk_atm_field("particle_bulkprop_field",
                 particle_bulkprop_field,
                 3,
                 particle_bulkprop_names.nelem(),
-                p_grid,
+                z_grid,
                 lat_grid,
                 lon_grid);
 
@@ -628,7 +629,7 @@ void pnd_fieldCalcFromParticleBulkProps(
         "Length of *cloudbox_limits* incorrect with respect "
         "to *atmosphere_dim*.");
   ARTS_USER_ERROR_IF (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
-      cloudbox_limits[1] >= p_grid.nelem(),
+      cloudbox_limits[1] >= z_grid.nelem(),
                       "Invalid data in pressure part of *cloudbox_limits*.");
 
     ARTS_USER_ERROR_IF (cloudbox_limits[3] <= cloudbox_limits[2] || cloudbox_limits[2] < 0 ||
@@ -684,8 +685,8 @@ void pnd_fieldCalcFromParticleBulkProps(
     ip_offset++;
     pf_offset = 1;
   }
-  if (cloudbox_limits[1] != p_grid.nelem() - 1) {
-    const Index np_above = p_grid.nelem() + 1 - (np + ip_offset);
+  if (cloudbox_limits[1] != z_grid.nelem() - 1) {
+    const Index np_above = z_grid.nelem() + 1 - (np + ip_offset);
     ARTS_USER_ERROR_IF (max(particle_bulkprop_field(
             joker, Range(cloudbox_limits[1], np_above), joker, joker)) > 0 ||
         min(particle_bulkprop_field(

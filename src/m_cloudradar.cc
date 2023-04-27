@@ -815,12 +815,8 @@ void yRadar(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkpropRadarOnionPeeling(
     Workspace& ws,
-    Tensor4& particle_bulkprop_field,
+    AtmField& atm_field,
     ArrayOfString& particle_bulkprop_names,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const AtmField& atm_field,
     const Matrix& z_surface,
     const Index& atmfields_checked,
     const Index& atmgeom_checked,
@@ -843,8 +839,10 @@ void particle_bulkpropRadarOnionPeeling(
     const Verbosity&)
 {
   ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric fields")
-  const Tensor3& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const Vector& z_grid = atm_field.grid[0];
+  const auto& z_grid = atm_field.grid[0];
+  const auto& lat_grid = atm_field.grid[1];
+  const auto& lon_grid = atm_field.grid[2];
+  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   const Index np = t_field.npages();
   const Index nlat = t_field.nrows();
@@ -863,7 +861,7 @@ void particle_bulkpropRadarOnionPeeling(
                       "*dbze_noise* not covered by invtable[0]." );
   ARTS_USER_ERROR_IF (dbze_noise < invtable[1].get_numeric_grid(GFIELD3_DB_GRID)[0],
                       "*dbze_noise* not covered by invtable[1]." );    
-  chk_atm_field("GIN reflectivities", dBZe, 3, p_grid,
+  chk_atm_field("GIN reflectivities", dBZe, 3, z_grid,
                 lat_grid, lon_grid);
   chk_atm_surface("GIN incangles", incangles, 3, lat_grid,
                   lon_grid);
@@ -881,8 +879,7 @@ void particle_bulkpropRadarOnionPeeling(
   }
   
   // Init output
-  particle_bulkprop_field.resize(2, np, nlat, nlon);
-  particle_bulkprop_field = 0;
+  Tensor4 particle_bulkprop_field(2, np, nlat, nlon, 0);
   particle_bulkprop_names = scat_species;
 
   // We apply huge extrapolation in dbze, to handle values outside the table
@@ -1063,6 +1060,9 @@ void particle_bulkpropRadarOnionPeeling(
     for (const auto& msg : fail_msg) os << msg << '\n';
     ARTS_USER_ERROR(os.str());
   }
+
+  atm_field[ParticulatePropertyTag{scat_species[0]}] = Tensor3{particle_bulkprop_field[0]};
+  atm_field[ParticulatePropertyTag{scat_species[1]}] = Tensor3{particle_bulkprop_field[1]};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -102,6 +102,8 @@ std::vector<KeyVal> Point::keys() const {
     out.emplace_back(a.first);
   for (auto &a : nlte)
     out.emplace_back(a.first);
+  for (auto &a : partp)
+    out.emplace_back(a.first);
   return out;
 }
 
@@ -114,17 +116,21 @@ std::vector<KeyVal> Field::keys() const {
     out.emplace_back(a.first);
   for (auto &a : nlte)
     out.emplace_back(a.first);
+  for (auto &a : partp)
+    out.emplace_back(a.first);
   return out;
 }
 
 Index Point::nspec() const { return static_cast<Index>(specs.size()); }
+Index Point::npart() const { return static_cast<Index>(partp.size()); }
 Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
-Index Point::nelem() const { return nspec() + nnlte() + nother(); }
+Index Point::nelem() const { return nspec() + nnlte() + nother() + npart(); }
 
 Index Field::nspec() const { return static_cast<Index>(specs.size()); }
+Index Field::npart() const { return static_cast<Index>(partp.size()); }
 Index Field::nnlte() const { return static_cast<Index>(nlte.size()); }
 Index Field::nother() const { return static_cast<Index>(other.size()); }
-Index Field::nelem() const { return nspec() + nnlte() + nother(); }
+Index Field::nelem() const { return nspec() + nnlte() + nother() + npart(); }
 
 String Data::data_type() const {
   if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
@@ -233,6 +239,7 @@ Limits find_limits(const GriddedField3 &gf3) {
 
 Limits find_limits(const Tensor3 &) {
   ARTS_ASSERT(false, "This must be dealt with earlier");
+  return {};
 }
 
 Vector vec_interp(const Numeric& v, const Vector& alt, const Vector&, const Vector&) {
@@ -678,6 +685,14 @@ Tensor4 extract_specs_content(const Field &atm,
   return out;
 }
 
+Tensor4 extract_partp_content(const Field &atm, const ArrayOfString &specs) {
+  Tensor4 out(atm.npart(), atm.regularized_shape()[0],
+              atm.regularized_shape()[1], atm.regularized_shape()[2]);
+  std::transform(specs.begin(), specs.end(), out.begin(),
+                 [&](auto &spec) { return atm[ParticulatePropertyTag(spec)].template get<Tensor3>(); });
+  return out;
+}
+
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
 std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Allocator>& map) {
   std::vector<Key> out(map.size());
@@ -688,8 +703,6 @@ std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Alloc
 ArrayOfQuantumIdentifier Field::nlte_keys() const {
   return get_keys(nlte);
 }
-
-ArrayOfArrayOfSpeciesTag Field::spec_keys() const { return get_keys(specs); }
 
 const Data &Field::operator[](const KeyVal &x) const {
   return std::visit(
@@ -742,3 +755,7 @@ Numeric &Point::operator[](const KeyVal &k) {
       k);
 }
 } // namespace Atm
+
+std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
+  return os << ppt.name;
+}

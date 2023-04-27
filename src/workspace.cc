@@ -2759,21 +2759,6 @@ population distribution that depends on vibrational temperatures
       GROUP("String"), String{"ascii"}));
 
   wsv_data.push_back(WsvRecord(
-      NAME("particle_bulkprop_field"),
-      DESCRIPTION(
-          "Container for various data that describes scattering bulk properties.\n"
-          "\n"
-          "The number and order of bulk properties is free, as long as the data are\n"
-          "consistent with the content of *particle_bulkprop_names*. \n"
-          "\n"
-          "The data shall be given on the standard atmospheric grids. When actually\n"
-          "used, this variable must have zeros at all positions outside and at the\n"
-          "border of the cloudbox.\n"
-          "\n"
-          "Dimensions: [ particle_bulkprop_names, p_grid, lat_grid, lon_grid ]\n"),
-      GROUP("Tensor4"), Tensor4{}));
-
-  wsv_data.push_back(WsvRecord(
       NAME("particle_bulkprop_names"),
       DESCRIPTION(
           "Identification of the data in *particle_bulkprop_field*.\n"

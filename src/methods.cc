@@ -3686,11 +3686,8 @@ Available models:
           "pressure grid if it is too coarse. Or a version that interpolates\n"
           "onto given grids, instead of using and returning the original grids.\n"),
       AUTHORS("Jana Mendrok, Manfred Brath"),
-      OUT("p_grid",
-          "lat_grid",
-          "lon_grid",
+      OUT(
           "atm_field",
-          "particle_bulkprop_field",
           "particle_bulkprop_names"),
       GOUT(),
       GOUT_TYPE(),
@@ -12596,14 +12593,11 @@ After this method is called, all existing fields have a regular shape.
           "the estimated attenuation, and *atten_hyd_max* stops this by setting\n"
           "a maximum value to the hydrometeor attenuation.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("particle_bulkprop_field", "particle_bulkprop_names"),
+      OUT("atm_field", "particle_bulkprop_names"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
          "atm_field",
          "z_surface",
          "atmfields_checked",
@@ -12659,11 +12653,11 @@ After this method is called, all existing fields have a regular shape.
           "Setting species=\"ALL\", is a shortcut for applying the limits on all\n"
           "properties.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("particle_bulkprop_field"),
+      OUT("atm_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("particle_bulkprop_field", "particle_bulkprop_names"),
+      IN("atm_field"),
       GIN("bulkprop_name", "limit_low", "limit_high"),
       GIN_TYPE("String", "Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, "-Inf", "Inf"),
@@ -12671,6 +12665,7 @@ After this method is called, all existing fields have a regular shape.
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldPerturb"),
       DESCRIPTION(
@@ -12678,11 +12673,11 @@ After this method is called, all existing fields have a regular shape.
           "\n"
           "Works as *AtmFieldPerturb* but acts on *particle_bulkprop_field*.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("particle_bulkprop_field"),
+      OUT("atm_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("particle_bulkprop_field",
+      IN("atm_field",
          "p_grid",
          "lat_grid",
          "lon_grid",
@@ -12710,7 +12705,9 @@ After this method is called, all existing fields have a regular shape.
                " or "
                "relative"
                ".")));
+*/
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldPerturbAtmGrids"),
       DESCRIPTION(
@@ -12718,15 +12715,11 @@ After this method is called, all existing fields have a regular shape.
           "\n"
           "Works as *AtmFieldPerturbAtmGrids* but acts on *particle_bulkprop_field*.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("particle_bulkprop_field"),
+      OUT("atm_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("particle_bulkprop_field",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "particle_bulkprop_names"),
+      IN("atm_field"),
       GIN("particle_type", "pert_index", "pert_size", "pert_mode"),
       GIN_TYPE("String", "Index", "Numeric", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "absolute"),
@@ -12740,6 +12733,7 @@ After this method is called, all existing fields have a regular shape.
                " or "
                "relative"
                ".")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_massesFromMetaDataSingleCategory"),
@@ -13056,16 +13050,12 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
          "cloudbox_on",
          "cloudbox_limits",
          "scat_species",
          "scat_data",
          "scat_meta",
-         "particle_bulkprop_field",
+         "atm_field",
          "particle_bulkprop_names",
          "pnd_agenda_array",
          "pnd_agenda_array_input_names",
@@ -22592,7 +22582,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "abs_species",
          "cloudbox_on",
          "cloudbox_checked",
-         "particle_bulkprop_field",
          "particle_bulkprop_names",
          "surface_props_data",
          "surface_props_names",
@@ -22651,13 +22640,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
           "Should only be used inside *inversion_iterate_agenda*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("atm_field",
-          "particle_bulkprop_field",
           "surface_props_data"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atm_field",
-         "particle_bulkprop_field",
          "surface_props_data",
          "jacobian_quantities",
          "x",

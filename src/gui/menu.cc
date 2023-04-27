@@ -163,8 +163,7 @@ bool change_item(const char* name,
                               has,
                               ImGuiSelectableFlags_DontClosePopups)) {
           if (has) {
-            std::remove_if(jac.begin(), jac.end(), tpred);
-            jac.pop_back();
+            jac.erase(std::remove_if(jac.begin(), jac.end(), tpred), jac.end());
           } else {
             target.perturbation = 0.1;
             jac.emplace_back().Target() = target;
@@ -180,8 +179,7 @@ bool change_item(const char* name,
                               has,
                               ImGuiSelectableFlags_DontClosePopups)) {
           if (has) {
-            std::remove_if(jac.begin(), jac.end(), fpred);
-            jac.pop_back();
+            jac.erase(std::remove_if(jac.begin(), jac.end(), fpred), jac.end());
           } else {
             target.perturbation = 100;
             jac.emplace_back().Target() = target;

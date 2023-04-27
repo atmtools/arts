@@ -1249,11 +1249,7 @@ void abs_lookupSetupBatch(  // WS Output:
     // This closes the loophole when only calculating lookup tables.
     atm_fields_compact = batch_fields[i];
 
-    AtmFieldsAndParticleBulkPropFieldFromCompact(z_grid,
-                                                 lat_grid,
-                                                 lon_grid,
-                                                 atm_field,
-                                                 particle_bulkprop_field,
+    AtmFieldsAndParticleBulkPropFieldFromCompact(atm_field,
                                                  particle_bulkprop_names,
                                                  abs_species,
                                                  atm_fields_compact,

@@ -36,8 +36,10 @@
   === External declarations
   ===========================================================================*/
 
+#include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -62,29 +64,35 @@
 #endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
-                                 const ArrayOfString& particle_bulkprop_names,
+void particle_bulkprop_fieldClip(AtmField& atm_field,
                                  const String& bulkprop_name,
                                  const Numeric& limit_low,
                                  const Numeric& limit_high,
                                  const Verbosity&) {
-  Index iq = -1;
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+
+  const auto limit =
+      [low = std::isinf(limit_low) ? std::numeric_limits<Numeric>::lowest()
+                                   : limit_low,
+       high = std::isinf(limit_high) ? std::numeric_limits<Numeric>::max()
+                                     : limit_high](Tensor3 &t) {
+        std::transform(t.elem_begin(), t.elem_end(), t.elem_begin(),
+                       [low, high](Numeric x) -> Numeric {
+                         return std::clamp(x, low, high);
+                       });
+      };
+
   if (bulkprop_name == "ALL") {
-  }
+    for (auto& e: atm_field.partp) limit(e.second.get<Tensor3&>());
+  } else {
+    const ParticulatePropertyTag k{bulkprop_name};
 
-  else {
-    for (Index i = 0; i < particle_bulkprop_names.nelem(); i++) {
-      if (particle_bulkprop_names[i] == bulkprop_name) {
-        iq = i;
-        break;
-      }
-    }
-    ARTS_USER_ERROR_IF (iq < 0,
-      "Could not find ", bulkprop_name,
-      " in particle_bulkprop_names.\n")
-  }
+    ARTS_USER_ERROR_IF (atm_field.has(k),
+      "No particulate property tag ", std::quoted(bulkprop_name),
+      " in atm_field.\n")
 
-  Tensor4Clip(particle_bulkprop_field, iq, limit_low, limit_high);
+    limit(atm_field[k].get<Tensor3&>());
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -164,7 +172,6 @@ void xaStandard(Workspace& ws,
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 const Index& cloudbox_on,
                 const Index& cloudbox_checked,
-                const Tensor4& particle_bulkprop_field,
                 const ArrayOfString& particle_bulkprop_names,
                 const Tensor3& surface_props_data,
                 const ArrayOfString& surface_props_names,
@@ -319,11 +326,11 @@ void xaStandard(Workspace& ws,
     // Scattering species
     else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       if (cloudbox_on) {
-        ARTS_USER_ERROR_IF (particle_bulkprop_field.empty(),
+        ARTS_USER_ERROR_IF (atm_field.partp.empty(),
               "One jacobian quantity belongs to the "
               "scattering species category, but *particle_bulkprop_field* "
               "is empty.");
-        ARTS_USER_ERROR_IF (particle_bulkprop_field.nbooks() !=
+        ARTS_USER_ERROR_IF (atm_field.npart() !=
                             particle_bulkprop_names.nelem(),
               "Mismatch in size between "
               "*particle_bulkprop_field* and *particle_bulkprop_names*.");
@@ -348,7 +355,7 @@ void xaStandard(Workspace& ws,
         Tensor3 pbp_x;
         regrid_atmfield_by_gp(pbp_x,
                               3,
-                              particle_bulkprop_field(isp, joker, joker, joker),
+                              atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<const Tensor3&>(),
                               gp_p,
                               gp_lat,
                               gp_lon);
@@ -500,7 +507,6 @@ void xaStandard(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsAtmAndSurf(Workspace& ws,
                       AtmField& atm_field,
-                      Tensor4& particle_bulkprop_field,
                       Tensor3& surface_props_data,
                       const ArrayOfRetrievalQuantity& jacobian_quantities,
                       const Vector& x,
@@ -670,11 +676,11 @@ void x2artsAtmAndSurf(Workspace& ws,
     else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       // If no cloudbox, we assume that there is nothing to do
       if (cloudbox_on) {
-        ARTS_USER_ERROR_IF (particle_bulkprop_field.empty(),
+        ARTS_USER_ERROR_IF (atm_field.partp.empty(),
               "One jacobian quantity belongs to the "
               "scattering species category, but *particle_bulkprop_field* "
               "is empty.");
-        ARTS_USER_ERROR_IF (particle_bulkprop_field.nbooks() !=
+        ARTS_USER_ERROR_IF (atm_field.npart() !=
                             particle_bulkprop_names.nelem(),
               "Mismatch in size between "
               "*particle_bulkprop_field* and *particle_bulkprop_field*.");
@@ -708,7 +714,7 @@ void x2artsAtmAndSurf(Workspace& ws,
         Tensor3 pbfield;
         regrid_atmfield_by_gp_oem(
             pbfield, 3, pbfield_x, gp_p, gp_lat, gp_lon);
-        particle_bulkprop_field(isp, joker, joker, joker) = pbfield;
+        atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<Tensor3&>() = pbfield;
       }
     }
 

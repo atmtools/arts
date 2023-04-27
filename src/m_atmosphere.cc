@@ -42,6 +42,7 @@
 #include <vector>
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "debug.h"
 #include "species_tags.h"
 #include "absorption.h"
@@ -1736,11 +1737,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
-    Vector& z_grid,
-    Vector& lat_grid,
-    Vector& lon_grid,
     AtmField& atm_field,
-    Tensor4& particle_bulkprop_field,
     ArrayOfString& particle_bulkprop_names,
 
     // WS Input:
@@ -1753,6 +1750,10 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   // Make a handle on atm_fields_compact to save typing:
   const GriddedField4& c = atm_fields_compact;
 
+    Vector z_grid;
+    Vector lat_grid;
+    Vector lon_grid;
+
   // Check if the grids in our data match 3
   // (throws an error if the dimensionality is not correct):
   chk_atm_grids(3,
@@ -1762,15 +1763,12 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
   // Optional check for gridnames.
   if (check_gridnames == 1) {
-    chk_griddedfield_gridname(c, 1, "Pressure");
+    chk_griddedfield_gridname(c, 1, "Altitude");
     chk_griddedfield_gridname(c, 2, "Latitude");
     chk_griddedfield_gridname(c, 3, "Longitude");
   }
 
   const Index nf = c.get_grid_size(GFIELD4_FIELD_NAMES);
-  const Index np = c.get_grid_size(GFIELD4_P_GRID);
-  const Index nlat = std::max<Index>(1, c.get_grid_size(GFIELD4_LAT_GRID));
-  const Index nlon = std::max<Index>(1, c.get_grid_size(GFIELD4_LON_GRID));
 
   // Grids:
   z_grid = c.get_numeric_grid(GFIELD4_P_GRID);
@@ -1872,8 +1870,6 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   const Index nsp = Idx.size();
 
   // Extracting the required scattering species fields:
-  particle_bulkprop_field.resize(nsp, np, nlat, nlon);
-  particle_bulkprop_field = NAN;
   particle_bulkprop_names.resize(nsp);
 
   // put scat_species entries in particle_bulkprop_field
@@ -1888,9 +1884,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     parse_atmcompact_speciesname(
         species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[Idx[j]], delim);
 
-    particle_bulkprop_field[j] = c.data[Idx[j]];
-
     particle_bulkprop_names[j] = species_name + delim + scat_type;
+    atm_field[ParticulatePropertyTag{particle_bulkprop_names[j]}] = Tensor3{c.data[Idx[j]]};
   }
 }
 
