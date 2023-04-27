@@ -34,6 +34,7 @@
 
 #include "arts.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -211,14 +212,8 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_checkedCalc(Index& cloudbox_checked,
                           const Index& atmfields_checked,
-                          const Vector& p_grid,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid,
-                          const Tensor3& z_field,
+                          const AtmField& atm_field,
                           const Matrix& z_surface,
-                          const Tensor3& wind_u_field,
-                          const Tensor3& wind_v_field,
-                          const Tensor3& wind_w_field,
                           const Index& cloudbox_on,
                           const ArrayOfIndex& cloudbox_limits,
                           const Tensor4& pnd_field,
@@ -231,6 +226,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
                           const Index& demand_latlon_margin,
                           const Index& negative_pnd_ok,
                           const Verbosity&) {
+
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
@@ -238,13 +234,16 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
   chk_if_bool("cloudbox_on", cloudbox_on);
 
   if (cloudbox_on) {
+    ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+    const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+
     // Winds, must be empty variables (i.e. no winds allowed)
-    ARTS_USER_ERROR_IF (!wind_w_field.empty() ||
-                        !wind_v_field.empty() ||
-                        !wind_u_field.empty(),
-                        "The scattering methods are not (yet?) handling winds. For this\n"
-                        "reason, the WSVs for wind fields must all be empty with an\n."
-                        "active cloudbox.");
+    ARTS_USER_ERROR_IF(
+        atm_field.has(Atm::Key::wind_u) or atm_field.has(Atm::Key::wind_v) or
+            atm_field.has(Atm::Key::wind_w),
+        "The scattering methods are not (yet?) handling winds. For this\n"
+        "reason, the WSVs for wind fields must all be empty with an\n."
+        "active cloudbox.");
 
     // no "particles" in abs_species if cloudbox is on (they act on the same
     // scat_data! and there is no good reason to have some particles as
@@ -267,11 +266,11 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
         " the length shall be ", 3 * 2, " but it is ",
         cloudbox_limits.nelem(), ".")
     ARTS_USER_ERROR_IF (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
-                        cloudbox_limits[1] >= p_grid.nelem(),
+                        cloudbox_limits[1] >= z_grid.nelem(),
         "Incorrect value(s) for cloud box pressure limit(s) found."
         "\nValues are either out of range or upper limit is not "
         "greater than lower limit.\nWith present length of "
-        "*p_grid*, OK values are 0 - ", p_grid.nelem() - 1,
+        "*p_grid*, OK values are 0 - ", z_grid.nelem() - 1,
         ".\nThe pressure index limits are set to ", cloudbox_limits[0],
         " - ", cloudbox_limits[1], ".")
 
@@ -367,7 +366,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
     // Check with respect to z_surface
     for (Index o = 0; o < nlon; o++) {
       for (Index a = 0; a < nlat; a++) {
-        ARTS_USER_ERROR_IF (z_field(cloudbox_limits[1], a, o) <= z_surface(a, o),
+        ARTS_USER_ERROR_IF (z_grid[cloudbox_limits[1]] <= z_surface(a, o),
               "The upper vertical limit of the cloudbox must be above "
               "the surface altitude (for all latitudes and longitudes).");
       }
@@ -395,7 +394,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
     for (Index a = 0; a < g2.nelem(); a++) {
       for (Index o = 0; o < g3.nelem(); o++) {
         ARTS_USER_ERROR_IF (max(pnd_field(joker, 0, a, o)) > 0 &&
-            z_field(cloudbox_limits[0], a, o) > z_surface(a, o),
+            z_grid[cloudbox_limits[0]] > z_surface(a, o),
               "A non-zero value found in *pnd_field* at the"
               " lower altitude limit of the cloudbox (but the "
               "position is not at or below the surface altitude).");
@@ -404,7 +403,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
 
     // No non-zero pnd at upper boundary unless upper boundary is top of
     // atmosphere
-    if (cloudbox_limits[1] != p_grid.nelem() - 1)
+    if (cloudbox_limits[1] != z_grid.nelem() - 1)
       ARTS_USER_ERROR_IF (max(pnd_field(joker, g1.nelem() - 1, joker, joker)) > 0,
             "A non-zero value found in *pnd_field* at "
             "upper altitude limit of the cloudbox.");

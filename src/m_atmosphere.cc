@@ -2184,41 +2184,25 @@ void lon_gridFromRawField(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
-                                       const Vector& p_grid,
-                                       const Vector& lat_grid,
-                                       const Vector& lon_grid,
+void wind_u_fieldIncludePlanetRotation(AtmField& atm_field,
                                        const Vector& refellipsoid,
-                                       const Tensor3& z_field,
                                        const Numeric& planet_rotation_period,
                                        const Verbosity&) {
-  const Index np = p_grid.nelem();
-  const Index na = lat_grid.nelem();
-  const Index no = lon_grid.nelem();
+  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+  const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
 
-  chk_atm_field("z_field", z_field, 3, p_grid, lat_grid, lon_grid);
-  if (wind_u_field.npages() > 0) {
-    chk_atm_field("wind_u_field",
-                  wind_u_field,
-                  3,
-                  p_grid,
-                  lat_grid,
-                  lon_grid);
-  } else {
-    wind_u_field.resize(np, na, no);
-    wind_u_field = 0.;
-  }
+  const Index np = z_grid.nelem();
+  const Index na = lat_grid.nelem();
+
+  auto& wind_u_field = atm_field[Atm::Key::wind_u].get<Tensor3&>();
 
   const Numeric k1 = 2 * Constant::pi / planet_rotation_period;
 
   for (Index a = 0; a < na; a++) {
     const Numeric k2 = k1 * Conversion::cosd(lat_grid[a]);
     const Numeric re = refell2r(refellipsoid, lat_grid[a]);
-
-    for (Index o = 0; o < no; o++) {
-      for (Index p = 0; p < np; p++) {
-        wind_u_field(p, a, o) += k2 * (re + z_field(p, a, o));
-      }
+    for (Index p = 0; p < np; p++) {
+      wind_u_field(p, a, joker) += k2 * (re + z_grid[p]);
     }
   }
 }
