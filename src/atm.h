@@ -27,7 +27,7 @@
 struct ParticulatePropertyTag {
   String name;
 
-  constexpr auto operator<=>(const ParticulatePropertyTag &) const = default;
+  auto operator<=>(const ParticulatePropertyTag &) const = default;
 
   friend std::ostream& operator<<(std::ostream&, const ParticulatePropertyTag &);
 };
