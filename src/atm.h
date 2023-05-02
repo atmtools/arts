@@ -16,6 +16,7 @@
 #include "compare.h"
 #include "debug.h"
 #include "enums.h"
+#include "fieldmap.h"
 #include "gridded_fields.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
@@ -327,7 +328,7 @@ concept RawDataType =
 template <typename T>
 concept DataType = RawDataType<T> or isTensor3<T> or isData<T>;
 
-struct Field {
+struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag, QuantumIdentifier, ParticulatePropertyTag> {
   template <KeyType T, RawDataType U, typename... Ts, std::size_t N = sizeof...(Ts)>
   void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
     this->operator[](std::forward<T>(lhs)) = std::forward<U>(rhs);
@@ -335,17 +336,22 @@ struct Field {
   }
 
   [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
-
-  std::unordered_map<Key, Data> other{};
-  std::unordered_map<ArrayOfSpeciesTag, Data> specs{};
-  std::unordered_map<QuantumIdentifier, Data> nlte{};
-  std::unordered_map<ParticulatePropertyTag, Data> partp{};
  
   //! Grid if regularized
   std::array<Vector, 3> grid{};
 
   //! The below only exist if regularized is true
   bool regularized{false};
+
+  [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data>& nlte() const;
+  [[nodiscard]] const std::unordered_map<ArrayOfSpeciesTag, Data>& specs() const;
+  [[nodiscard]] const std::unordered_map<Key, Data>& other() const;
+  [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data>& partp() const;
+
+  [[nodiscard]] std::unordered_map<QuantumIdentifier, Data>& nlte();
+  [[nodiscard]] std::unordered_map<ArrayOfSpeciesTag, Data>& specs();
+  [[nodiscard]] std::unordered_map<Key, Data>& other();
+  [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data>& partp();
 
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
@@ -357,46 +363,6 @@ struct Field {
 
   [[nodiscard]] std::array<Index, 3> regularized_shape() const;
 
-  template <KeyType T> Data &operator[](T &&x) {
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      return specs[std::forward<T>(x)];
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte[std::forward<T>(x)];
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      return partp[std::forward<T>(x)];
-    } else {
-      return other[std::forward<T>(x)];
-    }
-  }
-
-  template <KeyType T> const Data &operator[](T &&x) const {
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      return specs.at(std::forward<T>(x));
-    } else if constexpr (isQuantumIdentifier<T>) {
-      return nlte.at(std::forward<T>(x));
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      return partp.at(std::forward<T>(x));
-    } else {
-      return other.at(std::forward<T>(x));
-    }
-  }
-
-  template <KeyType T> void erase_key(T &&x) {
-    if constexpr (isArrayOfSpeciesTag<T>) {
-      specs.erase(std::forward<T>(x));
-    } else if constexpr (isQuantumIdentifier<T>) {
-      nlte.erase(std::forward<T>(x));
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      partp.erase(std::forward<T>(x));
-    } else {
-      other.erase(std::forward<T>(x));
-    }
-  }
-
-  const Data &operator[](const KeyVal &) const;
-
-  Data &operator[](const KeyVal &);
-
   //! Regularizes the calculations so that all data is on a single grid
   Field &regularize(const Vector &, const Vector &, const Vector &);
 
@@ -404,29 +370,6 @@ struct Field {
   void at(std::vector<Point>& out, const Vector& alt, const Vector& lat, const Vector& lon) const;
   [[nodiscard]] std::vector<Point> at(const Vector& alt, const Vector& lat, const Vector& lon) const;
 
-  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
-  bool has(T &&key, Ts &&...keys) const {
-    const auto has_this_key = [this] (auto&& k) {
-      if constexpr (isArrayOfSpeciesTag<T>)
-        return specs.end() not_eq specs.find(std::forward<T>(k));
-      else if constexpr (isKey<T>)
-        return other.end() not_eq other.find(std::forward<T>(k));
-      else if constexpr (isQuantumIdentifier<T>)
-        return nlte.end() not_eq nlte.find(std::forward<T>(k));
-      else if constexpr (isParticulatePropertyTag<T>)
-        return partp.end() not_eq partp.find(std::forward<T>(k));
-      else return false;
-    };
-
-    if constexpr (N > 0)
-      return has_this_key(std::forward<T>(key)) and has(std::forward<Ts>(keys)...);
-    else
-      return has_this_key(std::forward<T>(key));
-  }
-
-  [[nodiscard]] std::vector<KeyVal> keys() const;
-
-  [[nodiscard]] Index nelem() const;
   [[nodiscard]] Index nspec() const;
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
@@ -486,6 +429,11 @@ public:
     return x0 * std::exp(-(alt - h0) / H);
   }
 };
+
+static_assert(
+    std::same_as<typename Field::KeyVal, KeyVal>,
+    "The order of arguments in the template of which Field inherits from is "
+    "wrong.  KeyVal must be defined in the same way for this to work.");
 
 /** Extracts all the VMR from a regularized Field
  *  

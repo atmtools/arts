@@ -2235,9 +2235,9 @@ void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
   open_tag.get_attribute_value("key", key);
   open_tag.get_attribute_value("type", type);
 
-  const auto get_extrapol = [&open_tag](auto &key) {
+  const auto get_extrapol = [&open_tag](auto &k) {
     String x;
-    open_tag.get_attribute_value(key, x);
+    open_tag.get_attribute_value(k, x);
     return Atm::toExtrapolationOrThrow(x);
   };
   data.alt_low = get_extrapol("alt_low");

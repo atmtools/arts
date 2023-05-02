@@ -70,7 +70,7 @@ void ArrayOfQuantumIdentifierFromLines(
 void atm_fieldRescalePopulationLevels(AtmField& atm_field,
                                        const Numeric& scale,
                                        const Verbosity&) {
-  for (auto& nlte: atm_field.nlte) {
+  for (auto& nlte: atm_field.nlte()) {
     nlte.second.rescale(scale);
   }
 }

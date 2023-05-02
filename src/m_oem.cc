@@ -83,7 +83,7 @@ void particle_bulkprop_fieldClip(AtmField& atm_field,
       };
 
   if (bulkprop_name == "ALL") {
-    for (auto& e: atm_field.partp) limit(e.second.get<Tensor3&>());
+    for (auto& e: atm_field.partp()) limit(e.second.get<Tensor3&>());
   } else {
     const ParticulatePropertyTag k{bulkprop_name};
 
@@ -326,7 +326,7 @@ void xaStandard(Workspace& ws,
     // Scattering species
     else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       if (cloudbox_on) {
-        ARTS_USER_ERROR_IF (atm_field.partp.empty(),
+        ARTS_USER_ERROR_IF (atm_field.partp().empty(),
               "One jacobian quantity belongs to the "
               "scattering species category, but *particle_bulkprop_field* "
               "is empty.");
@@ -676,7 +676,7 @@ void x2artsAtmAndSurf(Workspace& ws,
     else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       // If no cloudbox, we assume that there is nothing to do
       if (cloudbox_on) {
-        ARTS_USER_ERROR_IF (atm_field.partp.empty(),
+        ARTS_USER_ERROR_IF (atm_field.partp().empty(),
               "One jacobian quantity belongs to the "
               "scattering species category, but *particle_bulkprop_field* "
               "is empty.");

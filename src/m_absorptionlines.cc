@@ -2256,7 +2256,7 @@ void abs_lines_per_speciesPopulationNlteField(
     const Verbosity&) {
   atm_field.throwing_check();
 
-  if (atm_field.nlte.empty()) {
+  if (atm_field.nlte().empty()) {
     nlte_do = 0;
     return;
   }
@@ -2269,7 +2269,7 @@ void abs_lines_per_speciesPopulationNlteField(
   for (auto& spec_lines : abs_lines_per_species) {
     for (auto& band : spec_lines) {
       Index low = 0, upp = 0;
-      for (auto& id : atm_field.nlte) {
+      for (auto& id : atm_field.nlte()) {
         for (auto& line : band.lines) {
           const auto lt =
               poptyp == Absorption::PopulationType::NLTE
