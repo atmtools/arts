@@ -292,5 +292,5 @@ using Vector3 = matpack::matpack_constant_data<Numeric, 3>;
 //! Make the constant data structured, so "[a,b,c] = Vector3{1,2,3};" works
 namespace std {
   template <matpack::any_matpack_constant_data T> struct tuple_size<T> : std::integral_constant<size_t, T::size()> { };
-  template <std::size_t I, matpack::any_matpack_constant_data T> struct tuple_element<I, T> { using type = T::value_type; };
+  template <std::size_t I, matpack::any_matpack_constant_data T> struct tuple_element<I, T> { using type = typename T::value_type; };
 }  // namespace std
