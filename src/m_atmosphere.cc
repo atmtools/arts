@@ -2447,7 +2447,7 @@ void atm_fieldLteExternalPartitionFunction(
       out2 << "Did not find match among lines for: "
            << nlte_quantum_identifiers[in] << "\n";
     }
-    atm_field.nlte[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
+    atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
 }
 
@@ -2560,6 +2560,6 @@ void atm_fieldLteInternalPartitionFunction(
       nlte_tensor4(in, joker, joker, joker) /=
         part_fun(part_fun_pos[in], joker, joker, joker);
     }
-    atm_field.nlte[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
+    atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
 }

@@ -23,6 +23,30 @@
 #include "matpack_iter.h"
 
 namespace Atm {
+const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
+  return keymap<QuantumIdentifier>();
+}
+const std::unordered_map<ArrayOfSpeciesTag, Data> &Field::specs() const {
+  return keymap<ArrayOfSpeciesTag>();
+}
+const std::unordered_map<Key, Data> &Field::other() const {
+  return keymap<Key>();
+}
+const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
+  return keymap<ParticulatePropertyTag>();
+}
+
+std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
+  return keymap<QuantumIdentifier>();
+}
+std::unordered_map<ArrayOfSpeciesTag, Data> &Field::specs() {
+  return keymap<ArrayOfSpeciesTag>();
+}
+std::unordered_map<Key, Data> &Field::other() { return keymap<Key>(); }
+std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
+  return keymap<ParticulatePropertyTag>();
+}
+
 std::ostream& operator<<(std::ostream& os, const Point& atm) {
   os << "Temperature: " << atm.temperature << " K,\n";
   os << "Pressure: " << atm.pressure << " Pa,\n";
@@ -55,18 +79,19 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
     os << ",\nLatitude: [" << atm.grid[1] << "]";
     os << ",\nLongitude: [" << atm.grid[2] << "]";
   }
+  
 
-  for (auto& vals : atm.other) {
+  for (auto& vals : atm.other()) {
     os << ",\n" << vals.first << ":\n";
     std::visit(printer, vals.second.data);
   }
 
-  for (auto& vals : atm.specs) {
+  for (auto& vals : atm.specs()) {
     os << ",\n" << vals.first << ":\n";
     std::visit(printer, vals.second.data);
   }
 
-  for (auto& vals : atm.nlte) {
+  for (auto& vals : atm.nlte()) {
     os << ",\n" << vals.first << ":";
     std::visit(printer, vals.second.data);
   }
@@ -107,30 +132,15 @@ std::vector<KeyVal> Point::keys() const {
   return out;
 }
 
-std::vector<KeyVal> Field::keys() const {
-  std::vector<KeyVal> out;
-  out.reserve(nelem());
-  for (auto &a : other)
-    out.emplace_back(a.first);
-  for (auto &a : specs)
-    out.emplace_back(a.first);
-  for (auto &a : nlte)
-    out.emplace_back(a.first);
-  for (auto &a : partp)
-    out.emplace_back(a.first);
-  return out;
-}
-
 Index Point::nspec() const { return static_cast<Index>(specs.size()); }
 Index Point::npart() const { return static_cast<Index>(partp.size()); }
 Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
 Index Point::nelem() const { return nspec() + nnlte() + nother() + npart(); }
 
-Index Field::nspec() const { return static_cast<Index>(specs.size()); }
-Index Field::npart() const { return static_cast<Index>(partp.size()); }
-Index Field::nnlte() const { return static_cast<Index>(nlte.size()); }
-Index Field::nother() const { return static_cast<Index>(other.size()); }
-Index Field::nelem() const { return nspec() + nnlte() + nother() + npart(); }
+Index Field::nspec() const { return static_cast<Index>(specs().size()); }
+Index Field::npart() const { return static_cast<Index>(partp().size()); }
+Index Field::nnlte() const { return static_cast<Index>(nlte().size()); }
+Index Field::nother() const { return static_cast<Index>(other().size()); }
 
 String Data::data_type() const {
   if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
@@ -143,7 +153,7 @@ String Data::data_type() const {
 
 void Field::throwing_check() const {
   if (regularized) {
-    for (auto &key_val : other) {
+    for (auto &key_val : other()) {
       std::visit(
           [&](auto &&x) {
             if constexpr (not isTensor3<decltype(x)>) {
@@ -164,7 +174,7 @@ void Field::throwing_check() const {
           key_val.second.data);
     }
 
-    for (auto &key_val : specs) {
+    for (auto &key_val : specs()) {
       std::visit(
           [&](auto &&x) {
             if constexpr (not isTensor3<decltype(x)>) {
@@ -185,7 +195,7 @@ void Field::throwing_check() const {
           key_val.second.data);
     }
 
-    for (auto &key_val : nlte) {
+    for (auto &key_val : nlte()) {
       std::visit(
           [&](auto &&x) {
             if constexpr (not isTensor3<decltype(x)>) {
@@ -489,9 +499,9 @@ void Field::at(std::vector<Point>& out, const Vector& alt, const Vector& lat, co
       for (Index i=0; i<n; i++) out[i][key] = field_val[i];
     };
 
-    for (auto& d: nlte) compute(d.first, d.second);
-    for (auto& d: specs) compute(d.first, d.second);
-    for (auto& d: other) compute(d.first, d.second);
+    for (auto& d: nlte()) compute(d.first, d.second);
+    for (auto& d: specs()) compute(d.first, d.second);
+    for (auto& d: other()) compute(d.first, d.second);
   } else {
     detail::tensor_interpolator(out, *this, alt, lat, lon);
   }
@@ -510,13 +520,13 @@ Field& Field::regularize(const Vector& altitudes,
   ARTS_USER_ERROR_IF(regularized, "Cannot re-regularize a regularized grid")
 
   ArrayOfTensor3 specs_data(
-      specs.size(),
+      nspec(),
       Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
   ArrayOfTensor3 other_data(
-      other.size(),
+      nother(),
       Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
   ArrayOfTensor3 nlte_data(
-      nlte.size(),
+      nnlte(),
       Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
 
   const auto grids = matpack::repeat(altitudes, latitudes, longitudes);
@@ -531,11 +541,11 @@ Field& Field::regularize(const Vector& altitudes,
       for (Index i4 = 0; i4 < longitudes.size(); i4++) {
         const auto &pnt = pnts(i2, i3, i4);
 
-        for (Index i0{0}; auto &vals : specs)
+        for (Index i0{0}; auto &vals : specs())
           specs_data[i0++](i2, i3, i4) = pnt[vals.first];
-        for (Index i0{0}; auto &vals : other)
+        for (Index i0{0}; auto &vals : other())
           other_data[i0++](i2, i3, i4) = pnt[vals.first];
-        for (Index i0{0}; auto &vals : nlte)
+        for (Index i0{0}; auto &vals : nlte())
           nlte_data[i0++](i2, i3, i4) = pnt[vals.first];
       }
     }
@@ -545,12 +555,12 @@ Field& Field::regularize(const Vector& altitudes,
   grid = {altitudes, latitudes, longitudes};
   top_of_atmosphere = max(altitudes);
 
-  for (Index i0{0}; auto& vals : specs)
-    specs[vals.first] = std::move(specs_data[i0++]);
-  for (Index i0{0}; auto& vals : other)
-    other[vals.first] = std::move(other_data[i0++]);
-  for (Index i0{0}; auto& vals : nlte)
-    nlte[vals.first] = std::move(nlte_data[i0++]);
+  for (Index i0{0}; auto& vals : specs())
+    specs()[vals.first] = std::move(specs_data[i0++]);
+  for (Index i0{0}; auto& vals : other())
+    other()[vals.first] = std::move(other_data[i0++]);
+  for (Index i0{0}; auto& vals : nlte())
+    nlte()[vals.first] = std::move(nlte_data[i0++]);
 
   return *this;
 }
@@ -694,21 +704,7 @@ std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Alloc
 }
 
 ArrayOfQuantumIdentifier Field::nlte_keys() const {
-  return get_keys(nlte);
-}
-
-const Data &Field::operator[](const KeyVal &x) const {
-  return std::visit(
-      [this](auto &key) -> const Data & { return this->operator[](key); }, x);
-}
-
-Data &Field::operator[](const KeyVal &x) {
-  return std::visit(
-      [this](auto &key) -> Data & {
-        // FIXME: How do I catch this in a non-const manner?
-        return const_cast<Field *>(this)->operator[](key);
-      },
-      x);
+  return keys_key_type<QuantumIdentifier>();
 }
 
 void Data::rescale(Numeric x) {
