@@ -1860,10 +1860,6 @@ void abs_speciesAdd2(  // WS Output:
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     Index& propmat_clearsky_agenda_checked,
-    // WS Input:
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
     // WS Generic Input:
     const Vector& rq_p_grid,
     const Vector& rq_lat_grid,
@@ -1894,9 +1890,6 @@ void abs_speciesAdd2(  // WS Output:
   jacobianAddAbsSpecies(ws,
                         jq,
                         jacobian_agenda,
-                        p_grid,
-                        lat_grid,
-                        lon_grid,
                         rq_p_grid,
                         rq_lat_grid,
                         rq_lon_grid,

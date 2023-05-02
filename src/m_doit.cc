@@ -3540,7 +3540,8 @@ void cloudbox_fieldSetConst(  //WS Output:
   for (Index f_index = 0; f_index < cloudbox_field.nlibraries(); f_index++) {
     cloudbox_field_mono =
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
-
+ARTS_ASSERT(false)
+    /*
     cloudbox_field_monoSetConst(cloudbox_field_mono,
                                 p_grid,
                                 lat_grid,
@@ -3549,7 +3550,7 @@ void cloudbox_fieldSetConst(  //WS Output:
                                 stokes_dim,
                                 cloudbox_field_values,
                                 verbosity);
-
+*/
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
         cloudbox_field_mono;
   }
@@ -3584,7 +3585,8 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
     cloudbox_field_mono =
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
 
-    cloudbox_field_monoSetConst(cloudbox_field_mono,
+    ARTS_ASSERT(false)
+    /*cloudbox_field_monoSetConst(cloudbox_field_mono,
                                 p_grid,
                                 lat_grid,
                                 lon_grid,
@@ -3592,7 +3594,7 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
                                 stokes_dim,
                                 Vector{cloudbox_field_values(f_index, joker)},
                                 verbosity);
-
+*/
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
         cloudbox_field_mono;
   }

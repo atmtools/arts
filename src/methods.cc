@@ -2476,7 +2476,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_species", "p_grid", "lat_grid", "lon_grid"),
+      IN("abs_species"),
       GIN("gin1", "gin2", "gin3", "species", "unit"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "vmr"),
@@ -3565,85 +3565,6 @@ Available models:
       AGENDAMETHOD(true)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldPerturb"),
-      DESCRIPTION(
-          "Adds a perturbation to an atmospheric field.\n"
-          "\n"
-          "The shape and position of the perturbation follow the retrieval grids.\n"
-          "That is, the shape of the perturbation has a traingular shape, \n"
-          "with breake points at the retrieval grid points. The position is\n"
-          "given as an index. This index matches the column in the Jacobian\n"
-          "for the selected grid position.\n"
-          "\n"
-          "If the retrieval grids fully match the atmospheric grids, you can\n"
-          "use *AtmFieldPerturbAtmGrids*, that is faster. The description of\n"
-          "that method can help to understand this method.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("perturbed_field"),
-      GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Perturbed/modified field."),
-      IN("p_grid", "lat_grid", "lon_grid"),
-      GIN("original_field",
-          "p_ret_grid",
-          "lat_ret_grid",
-          "lon_ret_grid",
-          "pert_index",
-          "pert_size",
-          "pert_mode"),
-      GIN_TYPE("Tensor3",
-               "Vector",
-               "Vector",
-               "Vector",
-               "Index",
-               "Numeric",
-               "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "absolute"),
-      GIN_DESC("Original field, e.g. *t_field*.",
-               "Pressure retrieval grid.",
-               "Latitude retrieval grid.",
-               "Longitude retrieval grid.",
-               "Index of position where the perturbation shall be performed.",
-               "Size of perturbation.",
-               "Type of perturbation, "
-               "absolute"
-               " or "
-               "relative"
-               ".")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("AtmFieldPerturbAtmGrids"),
-      DESCRIPTION(
-          "As *AtmFieldPerturb*, but perturbation follows the atmospheric grids.\n"
-          "\n"
-          "The method effectively performs this\n"
-          "  perturbed_field = original_field\n"
-          "  perturbed_field(p_index,lat_index,lon_index) += pert_size\n"
-          "if not *pert_mode* is set to "
-          "relative"
-          " when this is done\n"
-          "  perturbed_field = original_field\n"
-          "  perturbed_field(p_index,lat_index,lon_index) *= 1*pert_size\n"
-          "where p_index etc. are derived from *pert_index*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("perturbed_field"),
-      GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Perturbed/modified field."),
-      IN("p_grid", "lat_grid", "lon_grid"),
-      GIN("original_field", "pert_index", "pert_size", "pert_mode"),
-      GIN_TYPE("Tensor3", "Index", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "absolute"),
-      GIN_DESC("Original field, e.g. *t_field*.",
-               "Index of position where the perturbation shall be performed.",
-               "Size of perturbation.",
-               "Type of perturbation, "
-               "absolute"
-               " or "
-               "relative"
-               ".")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the pressure dimension from\n"
@@ -4441,6 +4362,7 @@ After this method is called, all existing fields have a regular shape.
                "*abs_speciesSet* for correct format.",
                "Filename of HITRAN CIA data file.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxOff"),
       DESCRIPTION(
@@ -5072,6 +4994,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Compare"),
@@ -7011,24 +6934,6 @@ After this method is called, all existing fields have a regular shape.
                "The version of FASTEM to use.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("FieldFromGriddedField"),
-      DESCRIPTION("Extract the data from a GriddedField.\n"
-                  "\n"
-                  "A check is performed that the grids from the\n"
-                  "GriddedField match *p_grid*, *lat_grid* and *lon_grid*.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Matrix, Tensor3, Tensor4, Tensor4"),
-      GOUT_DESC("Extracted field."),
-      IN("p_grid", "lat_grid", "lon_grid"),
-      GIN("in"),
-      GIN_TYPE(
-          "GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Raw input gridded field.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("FlagOff"),
       DESCRIPTION("Sets an index variable that acts as an on/off flag to 0.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -7790,63 +7695,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_DESC("Raw input gridded field.", "Interpolation order.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("GriddedFieldPRegrid"),
-      DESCRIPTION(
-          "Interpolates the input field along the pressure dimension to *p_grid*.\n"
-          "\n"
-          "If zero-padding is applied (zeropadding=1), pressures that are\n"
-          "outside the *p_grid* are set to 0. This is thought, e.g., for VMR\n"
-          "fields that outside the given pressure can safely be assumed to be\n"
-          "zero.\n"
-          "Note: Using zeropadding for altitude and temperature fields is\n"
-          "strongly discouraged (it will work here, though, but likely trigger\n"
-          "errors later on).\n"
-          "Extrapolation is allowed within the common 0.5grid-step margin,\n"
-          "but is overruled by zeropadding.\n"
-          "in and out fields can be the same variable.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("GriddedField3, GriddedField4, ArrayOfGriddedField3"),
-      GOUT_DESC("Regridded gridded field."),
-      IN("p_grid"),
-      GIN("in", "interp_order", "zeropadding"),
-      GIN_TYPE("GriddedField3, GriddedField4, ArrayOfGriddedField3",
-               "Index",
-               "Index"),
-      GIN_DEFAULT(NODEF, "1", "0"),
-      GIN_DESC("Raw input gridded field.",
-               "Interpolation order.",
-               "Apply zero-padding.")));
-
-/*
-  md_data_raw.push_back(create_mdrecord(
-      NAME("GriddedFieldZToPRegrid"),
-      DESCRIPTION(
-          "Interpolates the input field along the vertical dimension to *p_grid*.\n"
-          "\n"
-          "This is done from z_field, and thus requires the atmosphere to be set \n"
-          "beforehand.\n"
-          "\n"
-          "The latitude and longitude grid of the input field must match *lat_grid*\n"
-          "and *lon_grid* for the method to work.\n"
-          "\n"
-          "BETA mode.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("GriddedField3"),
-      GOUT_DESC("Regridded output; Pressure-gridded field."),
-      IN("p_grid", "lat_grid", "lon_grid", "z_field"),
-      GIN("in", "interp_order", "zeropadding"),
-      GIN_TYPE("GriddedField3", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "1", "0"),
-      GIN_DESC("Raw input; Altitude-gridded field.",
-               "Interpolation order.",
-               "Apply zero-padding.")));
-*/
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("heating_ratesFromIrradiance"),
       DESCRIPTION(
           "Calculates heating rates from the *irradiance_field*.\n"
@@ -7860,7 +7708,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("p_grid", "irradiance_field", "specific_heat_capacity", "g0"),
+      IN("ppvar_atm", "irradiance_field", "specific_heat_capacity", "g0"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -8032,26 +7880,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_DESC("Input Index.", "Multiplier.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("IndexNumberOfAtmosphericPoints"),
-      DESCRIPTION(
-          "Counts number of points in the atmosphere.\n"
-          "\n"
-          "For a 3D atmosphere the method sets *n* to:\n"
-          "  p_grid.nelem()*lat_grid.nelem()*lon_grid.nelem()\n"
-          "For 1D and 2D the same calculation is done, but ignoring dimensions\n"
-          "not active.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("n"),
-      GOUT_TYPE("Index"),
-      GOUT_DESC("Variable to set with number of points."),
-      IN("p_grid", "lat_grid", "lon_grid"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("IndexSetToLast"),
       DESCRIPTION(
           "Set an Index to point towards last position of array-type variables.\n"
@@ -8158,12 +7986,13 @@ After this method is called, all existing fields have a regular shape.
       GOUT("out"),
       GOUT_TYPE("Numeric"),
       GOUT_DESC("Value obtained by interpolation."),
-      IN( "lat_grid", "lat_true", "lon_true", "rtp_pos"),
+      IN( "lat_true", "lon_true", "rtp_pos"),
       GIN("gfield2"),
       GIN_TYPE("GriddedField2"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Gridded field to interpolate.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpSurfaceFieldToPosition"),
       DESCRIPTION(
@@ -8189,7 +8018,9 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE("Matrix"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Field to interpolate.")));
+*/
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpSurfaceTypeMask"),
       DESCRIPTION(
@@ -8216,6 +8047,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricAltitude"),
@@ -9154,6 +8986,7 @@ After this method is called, all existing fields have a regular shape.
                "Wind direction. See further above.",
                "The version of FASTEM to use.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatReflectivity"),
       DESCRIPTION(
@@ -9205,6 +9038,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatReflectivityDirect"),
@@ -9732,10 +9566,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "species", "unit", "for_species_tag"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "String", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "vmr", "1"),
@@ -9973,10 +9804,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "component", "dB"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "1.0e-7"),
@@ -10014,10 +9842,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "energy_level_identity", "dx"),
       GIN_TYPE("Vector", "Vector", "Vector", "QuantumIdentifier", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "1.0e-3"),
@@ -10044,10 +9869,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "energy_level_identities", "dx"),
       GIN_TYPE(
           "Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "Numeric"),
@@ -10176,10 +9998,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "species", "quantity"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
@@ -10271,10 +10090,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "species"),
       GIN_TYPE("Vector", "Vector", "Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
@@ -10310,9 +10126,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "quantity"),
       GIN_TYPE("Vector", "Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF),
@@ -10358,10 +10172,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "hse"),
       GIN_TYPE("Vector", "Vector", "Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "on"),
@@ -10397,10 +10208,7 @@ After this method is called, all existing fields have a regular shape.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_quantities",
-         "jacobian_agenda",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "jacobian_agenda"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
@@ -10906,23 +10714,6 @@ After this method is called, all existing fields have a regular shape.
                "The name of the field (will become gfield2.name).")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("lat_gridFromRawField"),
-      DESCRIPTION(
-          "Sets *lat_grid* according to given raw atmospheric field's lat_grid.\n"
-          "Similar to *p_gridFromZRaw*, but acting on a generic *GriddedField3*\n"
-          "(e.g., a wind or magnetic field component).\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT("lat_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("field_raw"),
-      GIN_TYPE("GriddedField3"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("A raw atmospheric field.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("lbl_checkedCalc"),
       DESCRIPTION("Checks that the line-by-line parameters are OK.\n"
                   "\n"
@@ -10955,23 +10746,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("lon_gridFromRawField"),
-      DESCRIPTION(
-          "Sets *lon_grid* according to given raw atmospheric field's lat_grid.\n"
-          "Similar to *p_gridFromZRaw*, but acting on a generic *GriddedField3*\n"
-          "(e.g., a wind or magnetic field component).\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT("lon_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("field_raw"),
-      GIN_TYPE("GriddedField3"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("A raw atmospheric field.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixAdd"),
@@ -12613,76 +12387,6 @@ After this method is called, all existing fields have a regular shape.
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
 
-/*
-  md_data_raw.push_back(create_mdrecord(
-      NAME("particle_bulkprop_fieldPerturb"),
-      DESCRIPTION(
-          "Adds a perturbation to *particle_bulkprop_field*.\n"
-          "\n"
-          "Works as *AtmFieldPerturb* but acts on *particle_bulkprop_field*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("atm_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atm_field",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "particle_bulkprop_names"),
-      GIN("particle_type",
-          "p_ret_grid",
-          "lat_ret_grid",
-          "lon_ret_grid",
-          "pert_index",
-          "pert_size",
-          "pert_mode"),
-      GIN_TYPE(
-          "String", "Vector", "Vector", "Vector", "Index", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "absolute"),
-      GIN_DESC("Name of field to perturb, such as "
-               "IWC"
-               ".",
-               "Pressure retrieval grid.",
-               "Latitude retrieval grid.",
-               "Longitude retrieval grid.",
-               "Index of position where the perturbation shall be performed.",
-               "Size of perturbation.",
-               "Type of perturbation, "
-               "absolute"
-               " or "
-               "relative"
-               ".")));
-*/
-
-/*
-  md_data_raw.push_back(create_mdrecord(
-      NAME("particle_bulkprop_fieldPerturbAtmGrids"),
-      DESCRIPTION(
-          "Adds a perturbation to *particle_bulkprop_field*.\n"
-          "\n"
-          "Works as *AtmFieldPerturbAtmGrids* but acts on *particle_bulkprop_field*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("atm_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atm_field"),
-      GIN("particle_type", "pert_index", "pert_size", "pert_mode"),
-      GIN_TYPE("String", "Index", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "absolute"),
-      GIN_DESC("Name of field to perturb, such as "
-               "IWC"
-               ".",
-               "Index of position where the perturbation shall be performed.",
-               "Size of perturbation.",
-               "Type of perturbation, "
-               "absolute"
-               " or "
-               "relative"
-               ".")));
-*/
-
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_massesFromMetaDataSingleCategory"),
       DESCRIPTION(
@@ -13014,6 +12718,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_DEFAULT(),
       GIN_DESC()));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldCalcFrompnd_field_raw"),
       DESCRIPTION(
@@ -13043,6 +12748,7 @@ After this method is called, all existing fields have a regular shape.
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Allow zeropadding of pnd_field.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldExpand1D"),
@@ -13874,55 +13580,6 @@ of the derivatives out of this function is 2.
                AGENDAMETHOD(false),
                USES_TEMPLATES(true),
                PASSWORKSPACE(true)));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ZFromPSimple"),
-      DESCRIPTION(
-          "Simple conversion from pressure to altitude.\n"
-          "\n"
-          "This function converts a vector of pressure values to an approximate vector\n"
-          "of corresponding heights. The formula used to convert pressure to height is:\n"
-          "z = 16000 * (5.0 - log10(p))"
-          "That is, a pressure is  assumed to decrease by a factor of 10 every 16km.\n"
-          "\n"
-          "Note that all pressure values in the vector must be greater than 0.01.\n"),
-      AUTHORS("Simon Pfreundschuh"),
-      OUT(),
-      GOUT("z_grid"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Approximate heights of pressure grid points."),
-      IN(),
-      GIN("p_grid"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Pressure grid."),
-      SETMETHOD(false),
-      AGENDAMETHOD(false)));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("PFromZSimple"),
-      DESCRIPTION(
-          "Simple conversion from altitude to pressure.\n"
-          "\n"
-          "This function converts a vector of altitudes to an approximate vector\n"
-          "of corresponding pressures. The formula used to convert altitide z to height\n"
-          " is:\n"
-          "p = 10.0^(5.0 - z / 1600)\n"
-          "\n"
-          "Note that all altitude values in the vector must be less than 120 km, \n"
-          " otherwise an error will be thrown.\n"),
-      AUTHORS("Simon Pfreundschuh"),
-      OUT(),
-      GOUT("p_grid"),
-      GOUT_TYPE("Vector"),
-      GOUT_DESC("Approximate pressures of corresponding to given altitudes."),
-      IN(),
-      GIN("z_grid"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Altitude grid."),
-      SETMETHOD(false),
-      AGENDAMETHOD(false)));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddCIA"),
@@ -15421,39 +15078,6 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("p_gridDensify"),
-      DESCRIPTION(
-          "A simple way to make *p_grid* more dense.\n"
-          "\n"
-          "The method includes new values in *p_grid*. For each intermediate\n"
-          "pressure range, *nfill* points are added. That is, setting *nfill*\n"
-          "to zero returns an unmodified copy of *p_grid_old*. The number of\n"
-          "elements of the new *p_grid* is (n0-1)*(1+nfill)+1, where n0 is the\n"
-          "length of *p_grid_old*.\n"
-          "\n"
-          "The new points are distributed equidistant in log(p).\n"
-          "\n"
-          "For safety, new grid and old grid Vectors are not allowed to be the\n"
-          "same variable (both will be needed later on for regridding of the\n"
-          "atmospheric fields), and atmospheric field related *checked WSV are\n"
-          "reset to 0 (unchecked).\n"),
-      AUTHORS("Patrick Eriksson, Jana Mendrok"),
-      OUT("p_grid", "atmfields_checked", "atmgeom_checked", "cloudbox_checked"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("p_grid_old", "nfill"),
-      GIN_TYPE("Vector", "Index"),
-      GIN_DEFAULT(NODEF, "-1"),
-      GIN_DESC(/* p_grid_old */
-               "A copy of the current (the old) p_grid. Not allowed to be "
-               "the same variable as the output *p_grid*.",
-               /* nfill */
-               "Number of points to add between adjacent pressure points."
-               "The default value (-1) results in an error.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("RadarOnionPeelingTableCalc"),
       DESCRIPTION(
           "Creates a radar inversion table.\n"
@@ -16680,10 +16304,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "g3", "species", "unit", "for_species_tag"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "String", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "rel", "1"),
@@ -16844,10 +16465,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "g3", "component", "dB"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "1.0e-7"),
@@ -16943,10 +16561,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "g3", "species", "quantity"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
@@ -17017,10 +16632,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "g3", "species"),
       GIN_TYPE("Vector", "Vector", "Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
@@ -17052,9 +16664,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "quantity"),
       GIN_TYPE("Vector", "Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF),
@@ -17081,10 +16691,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "g3", "hse"),
       GIN_TYPE("Vector", "Vector", "Vector", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "on"),
@@ -17112,10 +16719,7 @@ where N>=0 and the species name is something line "H2O".
          "jacobian_quantities",
          "jacobian_agenda",
          "covmat_block",
-         "covmat_inv_block",
-         "p_grid",
-         "lat_grid",
-         "lon_grid"),
+         "covmat_inv_block"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
@@ -17397,6 +17001,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT("artscomponents/polradtran/testdata/"),
       GIN_DESC("Folder containing arts-xml converted test case input data.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losGeometricFromRtePosToRtePos2"),
       DESCRIPTION(
@@ -17425,6 +17030,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losGeometricToPosition"),
@@ -19491,6 +19097,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT("1"),
       GIN_DESC("Flag to select parallelization over zenith angles.\n")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldCopyCloudboxField"),
       DESCRIPTION(
@@ -19513,6 +19120,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldExpandCloudboxField"),
@@ -19582,6 +19190,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to control if surface slope is considered or not.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalcOld"),
       DESCRIPTION(
@@ -19616,6 +19225,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to control if surface slope is consdered or not.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalcOldNoTopography"),
@@ -19905,6 +19515,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to control if surface slope is considered or not.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceFromFileAndGrid"),
       DESCRIPTION(
@@ -19922,7 +19533,9 @@ the ARTS codebase.  It is there to give an example of how the format looks.
           "File of GriddedField2 with surface altitudes gridded",
           "Interpolation order",
           "Index that sets the lowest altitude to 0 to ignore sub-surface pressures/altitudes")));
+*/
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceConstantAltitude"),
       DESCRIPTION(
@@ -19937,6 +19550,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0"),
       GIN_DESC("The constant altitude.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceBlackbody"),
@@ -20218,6 +19832,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT(NODEF),
       GIN_DESC("Polarisation angle, see above.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTelsem"),
       DESCRIPTION(
@@ -20275,6 +19890,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
                "Maximum allowed distance in meters for nearest neighbor"
                " interpolation in meters. Set to a negative value or zero "
                " to disable interpolation.")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTessem"),
@@ -20310,6 +19926,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT("0.035", NODEF),
       GIN_DESC("Salinity, 0-1. That is, 3% is given as 0.03.", "Wind speed.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_complex_refr_indexFromGriddedField5"),
       DESCRIPTION(
@@ -20345,7 +19962,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("GriddedField5"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of complex refractive index.")));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_reflectivityFromGriddedField6"),
       DESCRIPTION(
@@ -20397,7 +20015,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("GriddedField6"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of surface reflectivities")));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesAverage"),
       DESCRIPTION(
@@ -20441,7 +20060,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
+*/
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesManual"),
       DESCRIPTION(
@@ -20466,6 +20085,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT(NODEF),
       GIN_DESC("Selected surface type")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesNearest"),
       DESCRIPTION(
@@ -20495,6 +20115,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropInterpFreq"),
@@ -20520,6 +20141,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT(NODEF),
       GIN_DESC("New frequency grid")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromGriddedField4"),
       DESCRIPTION(
@@ -20565,6 +20187,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("GriddedField4"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of scalar surface reflectivities")));
+*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromSurface_rmatrix"),
@@ -20584,6 +20207,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT(),
       GIN_DESC()));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceBlackbody"),
       DESCRIPTION(
@@ -20622,7 +20246,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),
       DESCRIPTION(
@@ -20653,7 +20278,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceFastem"),
       DESCRIPTION(
@@ -20705,7 +20331,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DESC("Transmittance along path of downwelling radiation. A vector "
                "with the same length as *f_grid*.",
                "The version of FASTEM to use.")));
-
+*/
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceFlatScalarReflectivity"),
       DESCRIPTION(
@@ -20761,7 +20388,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("Vector"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Frequency retrieval grid, see above.")));
-  
+      */
+  /*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceTessem"),
       DESCRIPTION(
@@ -20834,7 +20462,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
                "The Telsem atlas to use.",
                "The maximum allowed distance for nearest neighbor"
                " interpolation in meters.")));
-
+*/
   md_data_raw.push_back(create_mdrecord(
       NAME("telsemAtlasLookup"),
       DESCRIPTION(
@@ -20859,6 +20487,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
                "The latitude for which to compute the emissivities.",
                "The Telsem atlas to use.")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("telsemSurfaceTypeLandSea"),
       DESCRIPTION(
@@ -20877,7 +20506,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("TelsemAtlas"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("The telsem atlas from which to lookup the surface type.")));
-
+*/
   md_data_raw.push_back(create_mdrecord(
       NAME("telsem_atlasReadAscii"),
       DESCRIPTION(
@@ -22707,6 +22336,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
                "Hot load temperature",
                "Flag for calibration scheme, false means system temperature is computed")));
 
+/*
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
       DESCRIPTION(
@@ -22749,7 +22379,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE("Index", "String", "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC")));
-
+*/
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfilesClear"),
       DESCRIPTION(

@@ -116,13 +116,14 @@ void ppathFromRtePos2(Workspace& ws,
 
   // Geometric LOS from rte_pos to rte_pos2
   Vector rte_los_geom;
-  rte_losGeometricFromRtePosToRtePos2(rte_los_geom,
+  ARTS_ASSERT(false)
+    /*rte_losGeometricFromRtePosToRtePos2(rte_los_geom,
                                       lat_grid,
                                       lon_grid,
                                       refellipsoid,
                                       rte_pos,
                                       rte_pos2,
-                                      verbosity);
+                                      verbosity);*/
 
   // Radius of rte_pos and rte_pos2
   const Numeric r1 =
@@ -285,13 +286,14 @@ void ppathFromRtePos2(Workspace& ws,
                      3, refellipsoid, lat_grid, lon_grid, posc);
       }
       //
-      rte_losGeometricFromRtePosToRtePos2(los,
+      ARTS_ASSERT(false)
+    /*rte_losGeometricFromRtePosToRtePos2(los,
                                           lat_grid,
                                           lon_grid,
                                           refellipsoid,
                                           rte_pos,
                                           posc,
-                                          verbosity);
+                                          verbosity);*/
       //
       dza = los[0] - rte_los_geom[0];
 

@@ -89,9 +89,6 @@ void jacobianOff(Workspace& ws,
 void jacobianAddAbsSpecies(Workspace&,
                            ArrayOfRetrievalQuantity& jq,
                            Agenda& jacobian_agenda,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid,
                            const Vector& rq_p_grid,
                            const Vector& rq_lat_grid,
                            const Vector& rq_lon_grid,
@@ -122,26 +119,6 @@ void jacobianAddAbsSpecies(Workspace&,
       "as: ", jq[it])
   }
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               rq_p_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval pressure grid",
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
-  }
-
   // Check that mode is correct
   if (mode != "vmr" && mode != "nd" && mode != "rel" && mode != "rh" &&
       mode != "q") {
@@ -159,7 +136,7 @@ void jacobianAddAbsSpecies(Workspace&,
   RetrievalQuantity rq;
   rq.Subtag(species);
   rq.Mode(mode);
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
   if (for_species_tag == 0) {
     rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi, qi.Species()));
   } else {
@@ -979,9 +956,6 @@ void jacobianCalcPolyfit(Matrix& jacobian,
 void jacobianAddScatSpecies(Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
-                            const Vector& p_grid,
-                            const Vector& lat_grid,
-                            const Vector& lon_grid,
                             const Vector& rq_p_grid,
                             const Vector& rq_lat_grid,
                             const Vector& rq_lon_grid,
@@ -1004,32 +978,12 @@ void jacobianAddScatSpecies(Workspace&,
     }
   }
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               rq_p_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval pressure grid",
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
-  }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Special::ScatteringString, species);
   rq.Subtag(species);
   rq.SubSubtag(quantity);
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1215,8 +1169,6 @@ void jacobianCalcSinefit(Matrix& jacobian,
 void jacobianAddSurfaceQuantity(Workspace&,
                                 ArrayOfRetrievalQuantity& jq,
                                 Agenda& jacobian_agenda,
-                                const Vector& lat_grid,
-                                const Vector& lon_grid,
                                 const Vector& rq_lat_grid,
                                 const Vector& rq_lon_grid,
                                 const String& quantity,
@@ -1234,28 +1186,11 @@ void jacobianAddSurfaceQuantity(Workspace&,
     }
   }
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(2);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               lat_grid,
-                               lon_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
-  }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Special::SurfaceString, quantity);
   rq.Subtag(quantity);
-  rq.Grids(grids);
+  rq.Grids({rq_lat_grid, rq_lon_grid});
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1272,9 +1207,6 @@ void jacobianAddSurfaceQuantity(Workspace&,
 void jacobianAddTemperature(Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
-                            const Vector& p_grid,
-                            const Vector& lat_grid,
-                            const Vector& lon_grid,
                             const Vector& rq_p_grid,
                             const Vector& rq_lat_grid,
                             const Vector& rq_lon_grid,
@@ -1290,26 +1222,6 @@ void jacobianAddTemperature(Workspace&,
       os << "Temperature is already included in *jacobian_quantities*.";
       throw runtime_error(os.str());
     }
-  }
-
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               rq_p_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval pressure grid",
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
   }
 
   // Set subtag
@@ -1328,7 +1240,7 @@ void jacobianAddTemperature(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Subtag(subtag);
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().perturbation = 0.1;
 
@@ -1346,9 +1258,6 @@ void jacobianAddTemperature(Workspace&,
 void jacobianAddWind(Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
                      const Vector& rq_p_grid,
                      const Vector& rq_lat_grid,
                      const Vector& rq_lon_grid,
@@ -1385,28 +1294,8 @@ void jacobianAddWind(Workspace&,
       "is already included in *jacobian_quantities*.")
   }
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               rq_p_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval pressure grid",
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
-  }
-
   rq.Subtag(component);  // nb.  This should be possible to remove...
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
   rq.Target().perturbation = dfrequency;
 
   // Add it to the *jacobian_quantities*
@@ -1424,9 +1313,6 @@ void jacobianAddWind(Workspace&,
 void jacobianAddMagField(Workspace&,
                          ArrayOfRetrievalQuantity& jq,
                          Agenda& jacobian_agenda,
-                         const Vector& p_grid,
-                         const Vector& lat_grid,
-                         const Vector& lon_grid,
                          const Vector& rq_p_grid,
                          const Vector& rq_lat_grid,
                          const Vector& rq_lon_grid,
@@ -1463,27 +1349,7 @@ void jacobianAddMagField(Workspace&,
                         "is already included in *jacobian_quantities*.")
   }
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               rq_p_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval pressure grid",
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
-  }
-
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
   rq.Target().perturbation = dB;
 
   // Add it to the *jacobian_quantities*
@@ -1642,9 +1508,6 @@ void jacobianAddBasicCatalogParameters(
 void jacobianAddNLTE(Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
-                     const Vector& p_grid,
-                     const Vector& lat_grid,
-                     const Vector& lon_grid,
                      const Vector& rq_p_grid,
                      const Vector& rq_lat_grid,
                      const Vector& rq_lon_grid,
@@ -1665,31 +1528,11 @@ void jacobianAddNLTE(Workspace&,
     }
   }
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (not check_retrieval_grids(grids,
-                                  os,
-                                  p_grid,
-                                  lat_grid,
-                                  lon_grid,
-                                  rq_p_grid,
-                                  rq_lat_grid,
-                                  rq_lon_grid,
-                                  "retrieval pressure grid",
-                                  "retrieval latitude grid",
-                                  "retrievallongitude_grid",
-                                  3))
-      throw runtime_error(os.str());
-  }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity, energy_level_identity.Species()));
   rq.Target().perturbation = dx;
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
   
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1702,9 +1545,6 @@ void jacobianAddNLTE(Workspace&,
 void jacobianAddNLTEs(Workspace& ws,
                       ArrayOfRetrievalQuantity& jq,
                       Agenda& jacobian_agenda,
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
                       const Vector& rq_p_grid,
                       const Vector& rq_lat_grid,
                       const Vector& rq_lon_grid,
@@ -1715,9 +1555,6 @@ void jacobianAddNLTEs(Workspace& ws,
     jacobianAddNLTE(ws,
                     jq,
                     jacobian_agenda,
-                    p_grid,
-                    lat_grid,
-                    lon_grid,
                     rq_p_grid,
                     rq_lat_grid,
                     rq_lon_grid,
@@ -1730,9 +1567,6 @@ void jacobianAddNLTEs(Workspace& ws,
 void jacobianAddSpecialSpecies(Workspace&,
                                ArrayOfRetrievalQuantity& jq,
                                Agenda& jacobian_agenda,
-                               const Vector& p_grid,
-                               const Vector& lat_grid,
-                               const Vector& lon_grid,
                                const Vector& rq_p_grid,
                                const Vector& rq_lat_grid,
                                const Vector& rq_lon_grid,
@@ -1741,29 +1575,9 @@ void jacobianAddSpecialSpecies(Workspace&,
   CREATE_OUT2;
   CREATE_OUT3;
 
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(3);
-  {
-    ostringstream os;
-    if (!check_retrieval_grids(grids,
-                               os,
-                               p_grid,
-                               lat_grid,
-                               lon_grid,
-                               rq_p_grid,
-                               rq_lat_grid,
-                               rq_lon_grid,
-                               "retrieval pressure grid",
-                               "retrieval latitude grid",
-                               "retrievallongitude_grid",
-                               3))
-      throw runtime_error(os.str());
-  }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.Grids(grids);
+  rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
 
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {
@@ -1919,9 +1733,6 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldPerturb(Tensor3& perturbed_field,
-                    const Vector& p_grid,
-                    const Vector& lat_grid,
-                    const Vector& lon_grid,
                     const Tensor3& original_field,
                     const Vector& p_ret_grid,
                     const Vector& lat_ret_grid,
@@ -1930,14 +1741,6 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
                     const Numeric& pert_size,
                     const String& pert_mode,
                     const Verbosity&) {
-  // Input checks (more below)
-  chk_atm_field("original_field",
-                original_field,
-                3,
-                p_grid,
-                lat_grid,
-                lon_grid,
-                false );
 
   // Pack retrieval grids into an ArrayOfVector
   ArrayOfVector ret_grids(3);
@@ -1948,7 +1751,8 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
   // Find mapping from retrieval grids to atmospheric grids
   ArrayOfGridPos gp_p, gp_lat, gp_lon;
   Index n_p, n_lat, n_lon;
-  get_gp_rq_to_atmgrids(gp_p,
+  ARTS_ASSERT(false)
+    /*get_gp_rq_to_atmgrids(gp_p,
                         gp_lat,
                         gp_lon,
                         n_p,
@@ -1958,7 +1762,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
                         3,
                         p_grid,
                         lat_grid,
-                        lon_grid);
+                        lon_grid);*/
 
   // Now we can chec *pert_index*
   if (pert_index<0){
@@ -2131,9 +1935,6 @@ void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
   Tensor3 original_field, perturbed_field;
   original_field = particle_bulkprop_field(iq,joker,joker,joker);
   AtmFieldPerturb(perturbed_field,
-                  p_grid,
-                  lat_grid,
-                  lon_grid,
                   original_field,
                   p_ret_grid,
                   lat_ret_grid,
@@ -2209,9 +2010,6 @@ void vmr_fieldPerturb(Tensor4& vmr_field,
   Tensor3 original_field, perturbed_field;
   original_field = vmr_field(iq,joker,joker,joker);
   AtmFieldPerturb(perturbed_field,
-                  p_grid,
-                  lat_grid,
-                  lon_grid,
                   original_field,
                   p_ret_grid,
                   lat_ret_grid,

@@ -132,7 +132,6 @@ void FastemStandAlone(Matrix& emissivity,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpGriddedField2ToPosition(Numeric& outvalue,
-                                   const Vector& lat_grid,
                                    const Vector& lat_true,
                                    const Vector& lon_true,
                                    const Vector& rtp_pos,
@@ -143,7 +142,6 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
   Index gfield_lonID = 1;
 
   // Basic checks and sizes
-  chk_latlon_true(3, lat_grid, lat_true, lon_true);
   chk_rte_pos(3, rtp_pos);
   gfield2.checksize_strict();
   //
@@ -166,7 +164,7 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
   // Determine true geographical position
   Vector lat(1), lon(1);
   pos2true_latlon(
-      lat[0], lon[0], 3, lat_grid, lat_true, lon_true, rtp_pos);
+      lat[0], lon[0], 3, lat_true, lat_true, lon_true, rtp_pos);
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
@@ -428,7 +426,8 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   }
 
   //get specular line of sight
-  specular_losCalcOld(specular_los,
+  ARTS_ASSERT(false)
+    /*specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -437,7 +436,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                    refellipsoid,
                    z_surface,
                    0,
-                   verbosity);
+                   verbosity);*/
 
   // Calculate incoming radiation directions, surface reflection matrix and
   // emission vector
@@ -706,7 +705,8 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
   }
 
   //get specular line of sight
-  specular_losCalcOld(specular_los,
+  ARTS_ASSERT(false)
+    /*specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -715,7 +715,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                    refellipsoid,
                    z_surface,
                    0,
-                   verbosity);
+                   verbosity);*/
 
   // Calculate incoming radiation directions, surface reflection matrix and
   // emission vector
@@ -1151,7 +1151,8 @@ const Vector& lon_grid = atm_field.grid[2];
   }
 
   Vector specular_los, surface_normal;
-  specular_losCalcOld(specular_los,
+  ARTS_ASSERT(false)
+    /*specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -1160,7 +1161,7 @@ const Vector& lon_grid = atm_field.grid[2];
                    refellipsoid,
                    z_surface,
                    0,
-                   verbosity);
+                   verbosity);*/
 
   //Surface emission
   Vector b(nf);
@@ -1333,7 +1334,8 @@ const auto& lon_grid = atm_field.grid[2];
         Vector incoming_los;
         mirror_los(incoming_los,sun_rte_los[i_sun], 3);
 
-        specular_losCalcOld(specular_los,
+        ARTS_ASSERT(false)
+    /*specular_losCalcOld(specular_los,
                          surface_normal,
                          rtp_pos,
                          incoming_los,
@@ -1342,7 +1344,7 @@ const auto& lon_grid = atm_field.grid[2];
                          refellipsoid,
                          z_surface,
                          0,
-                         verbosity);
+                         verbosity);*/
 
         // Only the first component of transmitted_sunlight is relevant.
         // Comment taken from surfaceLambertianSimple.
@@ -3017,7 +3019,8 @@ void surface_rtpropFromTypesAverage(
   
   // Loop los-es to sample
   for (Index i=0; i<nlos; ++i) {
-    surface_rtpropFromTypesNearest(ws,
+    ARTS_ASSERT(false)
+    /*surface_rtpropFromTypesNearest(ws,
                                    tmp_type_mix,
                                    tmp_skin_t,
                                    tmp_los,
@@ -3031,7 +3034,7 @@ void surface_rtpropFromTypesAverage(
                                    Vector{ground_los(i, joker)},
                                    surface_type_mask,
                                    surface_rtprop_agenda_array,
-                                   verbosity);
+                                   verbosity);*/
     ARTS_USER_ERROR_IF(tmp_los.nrows() != 1,
                        "This method requires that all surface types "
                        "returns a *surface_los* with one row.");
