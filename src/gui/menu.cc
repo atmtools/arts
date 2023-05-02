@@ -246,8 +246,8 @@ bool change_item(const char* name,
 
 
 bool change_item(const char* name,
-                 std::array<Numeric, 3>& vec,
-                 std::array<Numeric, 3>& old,
+                 Vector3& vec,
+                 Vector3& old,
                  const std::array<String, 3>& keys) {
   constexpr Index n = 3;
   bool did_something = false;
@@ -282,8 +282,8 @@ bool change_item(const char* name,
 }
 
 bool change_item(const char* name,
-                 std::array<Numeric, 3>& vec,
-                 std::array<Numeric, 3>& old,
+                 Vector3& vec,
+                 Vector3& old,
                  const ArrayOfString& keys) {
   const Index n = 3;
   ARTS_ASSERT(n == keys.nelem())

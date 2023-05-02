@@ -107,17 +107,12 @@ private:
 public:
   Numeric pressure{0};
   Numeric temperature{0};
-  std::array<Numeric, 3> wind{0., 0., 0.};
-  std::array<Numeric, 3> mag{0., 0., 0.};
+  Vector3 wind{0., 0., 0.};
+  Vector3 mag{0., 0., 0.};
 
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
   Point(Ts&&... ts) requires((N % 2) == 0) {
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
-  }
-
-  void reserve(Index nspec, Index nnlte) {
-    specs.reserve(nspec);
-    nlte.reserve(nnlte);
   }
 
   template<KeyType T>

@@ -31,7 +31,7 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
                                Vector &,Vector &,
                                const ArrayOfString &keys);
 [[nodiscard]] bool change_item(const char *,
-                               std::array<Numeric, 3> &,std::array<Numeric, 3> &,
+                               Vector3 &,Vector3 &,
                                const std::array<String, 3> &keys);
 [[nodiscard]] bool change_item(const char *,
                                AtmPoint &,AtmPoint &,
@@ -44,7 +44,7 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
     Numeric max = std::numeric_limits<Numeric>::max());
 [[nodiscard]] bool change_item(
     const char *,
-    std::array<Numeric, 3> &,std::array<Numeric, 3> &,
+    Vector3 &, Vector3 &,
     Numeric min = std::numeric_limits<Numeric>::lowest(),
     Numeric max = std::numeric_limits<Numeric>::max());
 
