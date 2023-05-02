@@ -19,6 +19,7 @@
 /*===========================================================================
   ===  File description
   ===========================================================================*/
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include "absorption.h"
@@ -191,12 +192,18 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void heating_ratesFromIrradiance(Tensor3& heating_rates,
-                                 const Vector& p_grid,
-                                 const Tensor4& irradiance_field,
-                                 const Tensor3& specific_heat_capacity,
-                                 const Numeric& g0,
-                                 const Verbosity&) {
+void heating_ratesFromIrradiance(Tensor3 &heating_rates,
+                                 const ArrayOfAtmPoint &ppvar_atm,
+                                 const Tensor4 &irradiance_field,
+                                 const Tensor3 &specific_heat_capacity,
+                                 const Numeric &g0, const Verbosity &) {
+  const Vector p_grid = [&] {
+    Vector out(ppvar_atm.nelem());
+    std::transform(ppvar_atm.begin(), ppvar_atm.end(), out.begin(),
+                   [](auto &point) { return point.pressure; });
+    return out;
+  }();
+
   //allocate
   heating_rates.resize(irradiance_field.nbooks(),
                        irradiance_field.npages(),
@@ -509,7 +516,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
   // Check input
-  ARTS_USER_ERROR_IF (not atm_field.regularized_atmosphere_dim(1), "This method only works for 1D regular grids.");
+  ARTS_USER_ERROR_IF (false, "This method only works for 1D regular grids.");
 
   const auto& z_grid = atm_field.grid[0];
   ARTS_USER_ERROR_IF(z_grid.nelem() < 2, "Need an altitude grid")
@@ -729,7 +736,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
   // Check input
-  ARTS_USER_ERROR_IF(not atm_field.regularized_atmosphere_dim(1), "This method only works for atmosphere_dim = 1.");
+  ARTS_USER_ERROR_IF(false, "This method only works for atmosphere_dim = 1.");
   if (!cloudbox_on)
     throw runtime_error("No ned to use this method with cloudbox=0.");
   if (cloudbox_limits[0])

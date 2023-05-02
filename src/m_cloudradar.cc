@@ -238,8 +238,7 @@ void iyRadarSingleScat(Workspace& ws,
                           ppvar_pnd,
                           ppvar_dpnd_dx,
                           ppath,
-                          atm_field.old_atmosphere_dim_est(),
-                          cloudbox_limits,
+                          3,                          cloudbox_limits,
                           pnd_field,
                           dpnd_field_dx);
     else {
@@ -306,7 +305,7 @@ void iyRadarSingleScat(Workspace& ws,
                                         scat_data,
                                         ppath.los(ip, joker),
                                         ExhaustiveVectorView{ppvar_atm[ip].temperature},
-                                        atm_field.old_atmosphere_dim_est(),
+                                        3,
                                         trans_in_jacobian && jacobian_do);
 
         if (abs(pext_scaling - 1) > 1e-6) {
@@ -337,12 +336,12 @@ void iyRadarSingleScat(Workspace& ws,
         {
           // Direction of outgoing scattered radiation (which is reverse to LOS).
           Vector los_sca;
-          mirror_los(los_sca, ppath.los(ip, joker), atm_field.old_atmosphere_dim_est());
+          mirror_los(los_sca, ppath.los(ip, joker), 3);
           mlos_sca(0, joker) = los_sca;
 
           // Obtain a length-2 vector for incoming direction
           Vector los_inc;
-          if (atm_field.old_atmosphere_dim_est() == 3) {
+          if (3 == 3) {
             los_inc = ppath.los(ip, joker);
           } else { // Mirror back to get a correct 3D LOS
             mirror_los(los_inc, los_sca, 3);

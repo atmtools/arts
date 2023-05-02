@@ -118,7 +118,7 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
   ARTS_USER_ERROR_IF (nlevels >= nlines,
         "Bad number of lines... overlapping lines in nlte_level_identifiers?");
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized_atmosphere_dim(1), "Must be regular and 1D")
+  ARTS_USER_ERROR_IF(false, "Must be regular and 1D")
   const auto keys = atm_field.nlte_keys();
   const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
   const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();

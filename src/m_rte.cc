@@ -643,7 +643,7 @@ This feature will be added in a future version.
                         ppath,
                         f_grid,
                         stokes_dim,
-                        atm_field.old_atmosphere_dim_est(),
+                        3,
                         refellipsoid);
 
     if (stars_visible) {
@@ -865,7 +865,7 @@ void iyEmissionHybrid(Workspace& ws,
   const Index rbi = ppath_what_background(ppath);
 
   // Throw error if unsupported features are requested
-  ARTS_USER_ERROR_IF(not atm_field.regularized_atmosphere_dim(1), "With cloudbox on, this method handles only 1D calculations.");
+  ARTS_USER_ERROR_IF(false, "With cloudbox on, this method handles only 1D calculations.");
   if (Naa < 3) throw runtime_error("Naa must be > 2.");
   if (jacobian_do)
     if (dpnd_field_dx.nelem() != jacobian_quantities.nelem())
@@ -2133,9 +2133,6 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                              iy_transmittance,
                                              iy_aux_vars,
                                              iy_id,
-                                             p1,
-                                             lat1,
-                                             lon1,
                                              lat_true1,
                                              lon_true1,
                                              atm_field,

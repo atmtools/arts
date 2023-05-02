@@ -2089,34 +2089,6 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
                                GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("lat_grid"),
-      DESCRIPTION(
-          "The latitude grid.\n"
-          "\n"
-          "The latitudes for which the atmospheric fields are defined. The\n"
-          "atmosphere is undefined outside the range covered by the grid.\n"
-          "The grid must be sorted in increasing order, with no repetitions.\n"
-          "\n"
-          "Geocentric latitudes are used.\n"
-          "\n"
-          "For 1D calculations this vector shall be set to be empty.\n"
-          "\n"
-          "For 2D cases the latitudes shall be interpreted as the angular\n"
-          "distance inside the orbit plane from the equator (values\n"
-          "outside +-90 deg are allowed).\n"
-          "\n"
-          "For 3D, the valid latitude range is [-90,90].\n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
-          "\n"
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  degrees\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("lat_true"),
       DESCRIPTION(
           "Latitudinal geolocation for 1D and 2D data.\n"
@@ -2195,31 +2167,6 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
                                            "\n"
                                            "Unit:  degrees\n"),
                                GROUP("Numeric")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("lon_grid"),
-      DESCRIPTION(
-          "The longitude grid.\n"
-          "\n"
-          "The longitudes for which the atmospheric fields are defined. The\n"
-          "atmosphere is undefined outside the range covered by the grid.\n"
-          "The grid must be sorted in increasing order, with no repetitions.\n"
-          "\n"
-          "For 1D and 2D, this WSV shall be set to be empty.\n"
-          "\n"
-          "Allowed values for longitudes is the range [-360,360]. The difference\n"
-          "between last and first value can not exceed 360 degrees. A difference\n"
-          "of exactly 360 deg. means that the complete globe is covered and no\n"
-          "propagation paths will reach a longitude edge.\n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
-          "\n"
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  degrees\n"),
-      GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("lon_true"),
@@ -3246,28 +3193,6 @@ Can currently only contain data for new MT CKD models of water.
           "and mass.\n"
           "\n"
           "Dimension: [ n_sizes ]\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("p_grid"),
-      DESCRIPTION(
-          "The pressure grid.\n"
-          "\n"
-          "The pressure levels on which the atmospheric fields are defined.\n"
-          "This variable must always be defined. The grid must be sorted in\n"
-          "decreasing order, with no repetitions.\n"
-          "\n"
-          "No gap between the lowermost pressure level and the surface is \n"
-          "allowed. The uppermost pressure level defines the practical upper\n"
-          "limit of the atmosphere as vacuum is assumed above.\n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
-          "\n"
-          "Usage: Set by the user.\n"
-          "\n"
-          "Unit:  Pa\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(

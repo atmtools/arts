@@ -280,7 +280,8 @@ void surface_get_incoming_direct(
   Matrix iy_sun_toa;
 
   //get specular line of sight
-  specular_losCalcOld(specular_los,
+  ARTS_ASSERT(false)
+    /*specular_losCalcOld(specular_los,
                    surface_normal,
                    rtp_pos,
                    rtp_los,
@@ -289,7 +290,7 @@ void surface_get_incoming_direct(
                    refellipsoid,
                    z_surface,
                    0,
-                   verbosity);
+                   verbosity);*/
 
   //calculate propagation path from the surface to the space in line of sight
   Ppath ppath;
@@ -297,7 +298,7 @@ void surface_get_incoming_direct(
   ppath_calc(ws,
              ppath,
              ppath_step_agenda,
-             atm_field.old_atmosphere_dim_est(),
+             3,
              z_grid,
              lat_grid,
              lon_grid,
@@ -325,7 +326,7 @@ void surface_get_incoming_direct(
                       ppath,
                       f_grid,
                       stokes_dim,
-                      atm_field.old_atmosphere_dim_est(),
+                      3,
                       refellipsoid);
 
   if (stars_visible){

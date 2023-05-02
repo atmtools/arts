@@ -337,8 +337,11 @@ Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, 
                         return tvec_interp<1, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
 }
 
-Vector vec_interp(const Tensor3&, const Vector&, const Vector&, const Vector&) {
-    ARTS_ASSERT(false, "This must be dealt with earlier")}
+Vector vec_interp(const Tensor3 &, const Vector &, const Vector &,
+                  const Vector &) {
+  ARTS_ASSERT(false, "This must be dealt with earlier")
+  return {};
+}
 
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
   ARTS_ASSERT(lim.type not_eq Extrapolation::FINAL)
@@ -665,16 +668,6 @@ Numeric Point::operator[](Species::Species x) const noexcept {
 }
 
 bool Point::is_lte() const noexcept { return nlte.empty(); }
-
-Index Field::old_atmosphere_dim_est() const {
-  return static_cast<Index>(grid[0].size() > 1) +
-         static_cast<Index>(grid[1].size() > 1) +
-         static_cast<Index>(grid[2].size() > 1);
-}
-
-bool Field::regularized_atmosphere_dim(Index dim) const {
-  return regularized and dim == old_atmosphere_dim_est();
-}
 
 Tensor4 extract_specs_content(const Field &atm,
                               const ArrayOfArrayOfSpeciesTag &specs) {

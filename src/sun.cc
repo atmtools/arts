@@ -271,7 +271,7 @@ void get_direct_radiation(Workspace& ws,
       sun_pos[0] =
           sun_pos[0] -
           pos2refell_r(
-              atm_field.old_atmosphere_dim_est(), refellipsoid, lat_grid, lon_grid, sun_pos);
+              3, refellipsoid, lat_grid, lon_grid, sun_pos);
 
 
       if (irradiance_flag) {
@@ -301,8 +301,8 @@ void get_direct_radiation(Workspace& ws,
         //Get the spectral radiance instead
 
         //Set sun position
-        rtp_pos.resize(atm_field.old_atmosphere_dim_est());
-        rtp_pos = sun_ppaths[i_sun].pos(np - 1, Range(0, atm_field.old_atmosphere_dim_est()));
+        rtp_pos.resize(3);
+        rtp_pos = sun_ppaths[i_sun].pos(np - 1, Range(0, 3));
         rtp_los.resize(sun_ppaths[i_sun].los.ncols());
         rtp_los = sun_ppaths[i_sun].los(np - 1, joker);
 
@@ -391,13 +391,14 @@ const auto& lon_grid = atm_field.grid[2];
             3, refellipsoid, lat_grid, lon_grid, sun_pos);
 
     // get the line of sight direction from sun i_sun to ppath point
-    rte_losGeometricFromRtePosToRtePos2(sun_rte_los_isun,
+    ARTS_ASSERT(false)
+    /*rte_losGeometricFromRtePosToRtePos2(sun_rte_los_isun,
                                         lat_grid,
                                         lon_grid,
                                         refellipsoid,
                                         rte_pos,
                                         sun_pos,
-                                        verbosity);
+                                        verbosity);*/
 
     // calculate ppath (sun path) from sun to ppath point
     ARTS_ASSERT(false)

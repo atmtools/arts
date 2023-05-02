@@ -143,6 +143,8 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
     cloudboxtop_pos = {z_grid[cloudbox_limits[1]], lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
+    ARTS_ASSERT(false)
+    /*
     rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
                                         lat_grid,
                                         lon_grid,
@@ -150,6 +152,7 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
                                         cloudboxtop_pos,
                                         sun_pos,
                                         verbosity);
+*/
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
     // local position of sun via ppathFromRtePos2. The question is, is this needed,
@@ -345,6 +348,8 @@ void DisortCalcWithARTSSurface(Workspace& ws,
         z_grid[cloudbox_limits[1]], lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
+    ARTS_ASSERT(false)
+    /*
     rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
                                         lat_grid,
                                         lon_grid,
@@ -352,7 +357,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                                         cloudboxtop_pos,
                                         sun_pos,
                                         verbosity);
-
+*/
     //FIXME: IF we want to be correct and include refraction, we must calculate the
     // local position of sun via ppathFromRtePos2. The question is, is this needed,
     // because DISORT does not handle refraction at all.
@@ -509,11 +514,14 @@ void DisortCalcClearsky(Workspace& ws,
   ArrayOfIndex cloudbox_limits;
   const Index cloudbox_checked = 1;
   //
+  ARTS_ASSERT(false)
+  /*
   cloudboxSetFullAtm(cloudbox_on,
                      cloudbox_limits,
                      atm_field,
                      0.,
                      verbosity);
+*/
 
   // Create data matching no particles
   Tensor4 pnd_field;
@@ -615,12 +623,14 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
   // Set cloudbox to cover complete atmosphere
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
+  ARTS_ASSERT(false)
+  /*
   cloudboxSetFullAtm(cloudbox_on,
                      cloudbox_limits,
                      atm_field,
                      0.,
                      verbosity);
-
+*/
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
@@ -661,6 +671,8 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
     cloudboxtop_pos = {z_grid[cloudbox_limits[1]], lat_true[0], lon_true[0]};
 
     // calculate local position of sun at top of cloudbox
+    ARTS_ASSERT(false)
+    /*
     rte_losGeometricFromRtePosToRtePos2(sun_rte_los,
                                         lat_grid,
                                         lon_grid,
@@ -668,7 +680,7 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
                                         cloudboxtop_pos,
                                         sun_pos,
                                         verbosity);
-
+*/
     //FIXME: IF we want to be correct and include refraction, we must calculate the
     // local position of sun via ppathFromRtePos2. The question is, is this needed,
     // because DISORT does not handle refraction at all.

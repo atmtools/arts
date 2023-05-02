@@ -420,6 +420,8 @@ void ybatchMetProfiles(Workspace& ws,
     }
 
     //Cloudbox is set.
+    ARTS_ASSERT(false)
+    /*
     cloudboxSetManually(cloudbox_on,
                         cloudbox_limits,
                         z_grid,
@@ -432,7 +434,7 @@ void ybatchMetProfiles(Workspace& ws,
                         0,
                         0,
                         verbosity);
-
+*/
     /*executing the met_profile_calc_agenda
     Agenda communication variables are
     Output of met_profile_calc_agenda : y

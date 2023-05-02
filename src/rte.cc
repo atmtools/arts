@@ -766,8 +766,8 @@ void get_iy_of_background(Workspace& ws,
   // shall be copied.
   //
   Vector rtp_pos, rtp_los;
-  rtp_pos.resize(atm_field.old_atmosphere_dim_est());
-  rtp_pos = ppath.pos(np - 1, Range(0, atm_field.old_atmosphere_dim_est()));
+  rtp_pos.resize(3);
+  rtp_pos = ppath.pos(np - 1, Range(0, 3));
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 

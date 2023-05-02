@@ -405,12 +405,6 @@ struct Field {
   //! Regularizes the calculations so that all data is on a single grid
   Field &regularize(const Vector &, const Vector &, const Vector &);
 
-  //! Estimate the old atmospheric dim (ARTS-2 atmosphere_dim)
-  [[deprecated, nodiscard]] Index old_atmosphere_dim_est() const;
-
-  //! Checks that exactly dim number of dimensions have size greater than 1
-  [[nodiscard]] bool regularized_atmosphere_dim(Index dim) const;
-
   //! Compute the values at a single point
   void at(std::vector<Point>& out, const Vector& alt, const Vector& lat, const Vector& lon) const;
   [[nodiscard]] std::vector<Point> at(const Vector& alt, const Vector& lat, const Vector& lon) const;
