@@ -17,6 +17,7 @@
 #include <cfloat>
 #include <stdexcept>
 #include "nlte.h"
+#include "surf.h"
 #include "xml_io_general_types.h"
 #include "absorption.h"
 #include "agenda_class.h"
@@ -42,6 +43,7 @@
 #include "propagationmatrix.h"
 #include <predefined/predef_data.h>
 #include "sun.h"
+#include "surf.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "transmissionmatrix.h"
@@ -102,6 +104,8 @@ TMPL_XML_READ_WRITE_STREAM(SLIData2)
 TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
 TMPL_XML_READ_WRITE_STREAM(Sun)
+TMPL_XML_READ_WRITE_STREAM(SurfField)
+TMPL_XML_READ_WRITE_STREAM(SurfPoint)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)

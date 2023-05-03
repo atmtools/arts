@@ -253,6 +253,7 @@ add_library (artscore STATIC
   species_info.cc
   species_tags.cc
   sun.cc
+  surf.cc
   surface.cc
   telsem.cc
   tessem.cc
