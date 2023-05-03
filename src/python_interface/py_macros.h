@@ -67,7 +67,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             return x;                                                      \
           },                                                               \
           py::arg("file").none(false),                                     \
-          py::doc("Create :class:`" #Type "` from file\n"                    \
+          py::doc("Create :class:`" #Type "` from file\n"                  \
                   "\n"                                                     \
                   "Parameters:\n"                                          \
                   "    file (str): A file that can be read\n"              \
