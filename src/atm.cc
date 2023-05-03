@@ -24,27 +24,27 @@
 
 namespace Atm {
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
-  return keymap<QuantumIdentifier>();
+  return map<QuantumIdentifier>();
 }
 const std::unordered_map<ArrayOfSpeciesTag, Data> &Field::specs() const {
-  return keymap<ArrayOfSpeciesTag>();
+  return map<ArrayOfSpeciesTag>();
 }
 const std::unordered_map<Key, Data> &Field::other() const {
-  return keymap<Key>();
+  return map<Key>();
 }
 const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
-  return keymap<ParticulatePropertyTag>();
+  return map<ParticulatePropertyTag>();
 }
 
 std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
-  return keymap<QuantumIdentifier>();
+  return map<QuantumIdentifier>();
 }
 std::unordered_map<ArrayOfSpeciesTag, Data> &Field::specs() {
-  return keymap<ArrayOfSpeciesTag>();
+  return map<ArrayOfSpeciesTag>();
 }
-std::unordered_map<Key, Data> &Field::other() { return keymap<Key>(); }
+std::unordered_map<Key, Data> &Field::other() { return map<Key>(); }
 std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
-  return keymap<ParticulatePropertyTag>();
+  return map<ParticulatePropertyTag>();
 }
 
 std::ostream& operator<<(std::ostream& os, const Point& atm) {
@@ -475,7 +475,6 @@ void tensor_interpolator(std::vector<Point>& out, const Field& f, const Vector& 
   else if (d2)          tensor_interpolator_fun<1, 0, 1>(out, f, alt, lat, lon);
   else if (d3)          tensor_interpolator_fun<1, 1, 0>(out, f, alt, lat, lon);
   else                  tensor_interpolator_fun<1, 1, 1>(out, f, alt, lat, lon);
-
 }
 }  // namespace detail
 
@@ -704,7 +703,7 @@ std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Alloc
 }
 
 ArrayOfQuantumIdentifier Field::nlte_keys() const {
-  return keys_key_type<QuantumIdentifier>();
+  return keys<QuantumIdentifier>();
 }
 
 void Data::rescale(Numeric x) {

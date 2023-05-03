@@ -37,6 +37,7 @@
 #include "predefined/predef_data.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
+#include "surf.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
 #include <iomanip>
@@ -2456,6 +2457,8 @@ void xml_read_from_stream(istream& is_xml,
     } else if (nnlte > 0) {
       atm[QuantumIdentifier(k)] = v;
       nnlte--;
+    } else {
+      ARTS_ASSERT(false)
     }
   }
   ARTS_ASSERT((nspec+nnlte+nother) == 0)
@@ -2504,6 +2507,270 @@ void xml_write_to_stream(ostream& os_xml,
   }
 
   close_tag.set_name("/AtmPoint");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+
+
+//=== SurfField =========================================
+void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
+                                 Surf::Data &data, bifstream *pbifs,
+                                 const Verbosity &verbosity) {
+  data = Surf::Data{}; // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("SurfData");
+
+  String keytype, key, type;
+  open_tag.get_attribute_value("keytype", keytype);
+  open_tag.get_attribute_value("key", key);
+  open_tag.get_attribute_value("type", type);
+
+  const auto get_extrapol = [&open_tag](auto &k) {
+    String x;
+    open_tag.get_attribute_value(k, x);
+    return Surf::toExtrapolationOrThrow(x);
+  };
+  data.lat_low = get_extrapol("lat_low");
+  data.lat_upp = get_extrapol("lat_upp");
+  data.lon_low = get_extrapol("lon_low");
+  data.lon_upp = get_extrapol("lon_upp");
+
+  if (keytype == "Surf::Key")
+    key_val = Surf::toKeyOrThrow(key);
+  else if (keytype == "SurfaceTypeTag")
+    key_val = SurfaceTypeTag(key);
+  else
+    ARTS_USER_ERROR("Cannot understand the keytype: ", std::quoted(keytype))
+
+  if (type == "GriddedField2")
+    data.data = GriddedField2{};
+  else if (type == "Numeric")
+    data.data = Numeric{};
+  else if (type == "FunctionalData")
+    data.data =
+        Surf::FunctionalDataAlwaysThrow{"Cannot restore functional data"};
+  else
+    ARTS_USER_ERROR("Cannot understand the data type: ", std::quoted(type))
+
+  std::visit(
+      [&](auto &v) {
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(v)>,
+                                   Surf::FunctionalData>) {
+          String x;
+          xml_read_from_stream(is_xml, x, pbifs, verbosity);
+          v = Surf::FunctionalDataAlwaysThrow{x};
+        } else {
+          xml_read_from_stream(is_xml, v, pbifs, verbosity);
+        }
+      },
+      data.data);
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/SurfData");
+}
+
+/*!
+ * \param is_xml     XML Input stream
+ * \param atm        SurfField return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          SurfField& surf,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  surf = SurfField{};  // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("SurfField");
+
+  Index n;
+  open_tag.get_attribute_value("nelem", n);
+
+  for (Index i = 0; i < n; i++) {
+    Surf::KeyVal key;
+    Surf::Data data;
+    xml_read_from_stream_helper(is_xml, key, data, pbifs, verbosity);
+    surf[key] = std::move(data);
+  }
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/SurfField");
+}
+
+void xml_write_to_stream_helper(ostream &os_xml, const Surf::KeyVal &key,
+                                const Surf::Data &data, bofstream *pbofs,
+                                const Verbosity &verbosity) {
+  ArtsXMLTag open_data_tag(verbosity);
+  open_data_tag.set_name("SurfData");
+
+  std::visit([&](auto& key_val){
+    if constexpr (Surf::isKey<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "Atm::Key");
+    else if constexpr (Surf::isSurfaceTypeTag<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "SurfaceTypeTag");
+    else ARTS_ASSERT(false, "New key type is not yet handled by writing routine!")
+    
+    open_data_tag.add_attribute("key", var_string(key_val));
+    open_data_tag.add_attribute("type", data.data_type());
+    open_data_tag.add_attribute("lat_low", toString(data.lat_low));
+    open_data_tag.add_attribute("lat_upp", toString(data.lat_upp));
+    open_data_tag.add_attribute("lon_low", toString(data.lon_low));
+    open_data_tag.add_attribute("lon_upp", toString(data.lon_upp));
+    open_data_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+
+    std::visit(
+        [&](auto &&data_type [[maybe_unused]]) {
+          if constexpr (std::same_as<std::remove_cvref_t<decltype(data_type)>,
+                                    Surf::FunctionalData>)
+            xml_write_to_stream(
+                os_xml,
+                var_string(
+                    "Data for ", key_val,
+                    " read from file as functional must be set explicitly"),
+                pbofs, "Functional Data Error", verbosity);
+          else
+            xml_write_to_stream(os_xml, data_type, pbofs, "Data", verbosity);
+        },
+        data.data);
+  }, key);
+
+  ArtsXMLTag close_data_tag(verbosity);
+  close_data_tag.set_name("/SurfData");
+  close_data_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param atm        Surfield
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const SurfField& surf,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("SurfField");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  //! List of all KEY values
+  const auto keys = surf.keys();
+
+  xml_set_stream_precision(os_xml);
+
+  open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (auto &key : keys) {
+    xml_write_to_stream_helper(os_xml, key, surf[key], pbofs, verbosity);
+  }
+
+  close_tag.set_name("/SurfField");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== SurfPoint =========================================
+/*!
+ * \param is_xml     XML Input stream
+ * \param surf        SurfPoint return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          SurfPoint& surf,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  surf = SurfPoint{};  // overwrite
+
+  CREATE_OUT2;
+  ArtsXMLTag open_tag(verbosity);
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("SurfPoint");
+
+  Index ntype, nother;
+  open_tag.get_attribute_value("ntype", ntype);
+  open_tag.get_attribute_value("nother", nother);
+  open_tag.get_attribute_value("zenith", surf.normal[0]);
+  open_tag.get_attribute_value("azimuth", surf.normal[1]);
+
+  const Index n = ntype+nother;
+  for (Index i = 0; i < n; i++) {
+    Numeric v;
+    String k;
+    xml_read_from_stream(is_xml, k, pbifs, verbosity);
+    xml_read_from_stream(is_xml, v, pbifs, verbosity);
+
+    if (nother > 0) {
+      surf[Surf::toKeyOrThrow(k)] = v;
+      nother--;
+    } else if (ntype > 0) {
+      surf[SurfaceTypeTag(k)] = v;
+      ntype--;
+    } else {
+      ARTS_ASSERT(false)
+    }
+  }
+  ARTS_ASSERT((ntype+nother) == 0)
+
+  ArtsXMLTag close_tag(verbosity);
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/SurfPoint");
+}
+
+/*!
+ * \param os_xml     XML Output stream
+ * \param surf       SurfPoint
+ * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+ * \param name       Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const SurfPoint& surf,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("SurfPoint");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("zenith", surf.normal[0]);
+  open_tag.add_attribute("azimuth", surf.normal[1]);
+
+  //! List of all KEY values
+  auto keys = surf.keys();
+  const Index ntype = surf.ntype();
+  const Index nother = surf.nother();
+
+  open_tag.add_attribute("ntype", ntype);
+  open_tag.add_attribute("nother", nother);
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  for (auto& key: keys) {
+    std::visit([&](auto&& key_val) {
+      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "Data Key", verbosity);
+      xml_write_to_stream(os_xml, surf[key_val], pbofs, "Data", verbosity);
+    }, key);
+  }
+
+  close_tag.set_name("/SurfPoint");
   close_tag.write_to_stream(os_xml);
 
   os_xml << '\n';

@@ -32,6 +32,7 @@ int main() {
 #include "optproperties.h"
 #include "sun.h"
 #include "supergeneric.h"
+#include "surf.h"
 #include "telsem.h"
 #include "tessem.h"
 #include "timer_struct.h"

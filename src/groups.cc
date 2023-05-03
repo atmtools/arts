@@ -415,6 +415,13 @@ This is often used to compute the source emission with the help of a *Propagatio
 
   wsv_groups.emplace_back("String", "Basic string type");
 
+  wsv_groups.emplace_back("SurfField",
+                          R"--(A surface field that keeps relevant surface parameters)--");
+
+  wsv_groups.emplace_back("SurfPoint",
+                          R"--(A surface point, to keep point values for the surface,
+including the local normal vector)--");
+
   wsv_groups.emplace_back("TelsemAtlas", R"--(A telsem atlas
 
 Represents a Telsem2 atlas containing land surface microwave emissivities.

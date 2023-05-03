@@ -62,8 +62,8 @@ bool try_read(AtmField &atm_field, const Atm::KeyVal &key_val,
   } catch (...) {
     //! CONTROL FLOW --- ARTS CANNOT READ VARIADICALLY
 
-    // We must clean the atm_field so it can work again in the  future
-    std::visit([&](auto &key) { atm_field.erase_key(key); }, key_val);
+    // We must clean the atm_field so it can work again in the future
+    std::visit([&](auto &key) { atm_field.erase(key); }, key_val);
 
     // Return failure state
     return false;
