@@ -24,16 +24,30 @@ struct SurfaceTypeTag {
   friend std::ostream &operator<<(std::ostream &, const SurfaceTypeTag &);
 };
 
+struct SurfacePropertyTag {
+  String name;
+
+  auto operator<=>(const SurfacePropertyTag &x) const = default;
+
+  friend std::ostream &operator<<(std::ostream &, const SurfacePropertyTag &);
+};
+
 namespace std {
 template <> struct hash<SurfaceTypeTag> {
-  std::size_t operator()(const SurfaceTypeTag &pp) const {
+  std::size_t operator()(const SurfaceTypeTag &pp) const noexcept {
+    return std::hash<String>{}(pp.name);
+  }
+};
+
+template <> struct hash<SurfacePropertyTag> {
+  std::size_t operator()(const SurfacePropertyTag &pp) const noexcept {
     return std::hash<String>{}(pp.name);
   }
 };
 } // namespace std
 
 namespace Surf {
-ENUMCLASS(Key, char, z, t, wind_u, wind_v, wind_w)
+ENUMCLASS(Key, char, h, t, wind_u, wind_v, wind_w)
 
 template <typename T>
 concept isKey = std::same_as<std::remove_cvref_t<T>, Key>;
@@ -42,22 +56,26 @@ template <typename T>
 concept isSurfaceTypeTag = std::same_as<std::remove_cvref_t<T>, SurfaceTypeTag>;
 
 template <typename T>
-concept KeyType = isKey<T> or isSurfaceTypeTag<T>;
+concept isSurfacePropertyTag = std::same_as<std::remove_cvref_t<T>, SurfacePropertyTag>;
 
-using KeyVal = std::variant<Key, SurfaceTypeTag>;
+template <typename T>
+concept KeyType = isKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
+
+using KeyVal = std::variant<Key, SurfaceTypeTag, SurfacePropertyTag>;
 
 struct Point {
-  Numeric altitude;
+  Numeric elevation;
   Numeric temperature;
   Vector3 wind;
   Vector2 normal;
   std::unordered_map<SurfaceTypeTag, Numeric> type;
+  std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
   template <KeyType Key> Numeric &operator[](Key &&x) {
     if constexpr (isKey<Key>) {
       switch (std::forward<Key>(x)) {
-      case Surf::Key::z:
-        return altitude;
+      case Surf::Key::h:
+        return elevation;
       case Surf::Key::t:
         return temperature;
       case Surf::Key::wind_u:
@@ -71,14 +89,16 @@ struct Point {
       }
     } else if constexpr (isSurfaceTypeTag<Key>) {
       return type[std::forward<Key>(x)];
+    } else if constexpr (isSurfacePropertyTag<Key>) {
+      return prop[std::forward<Key>(x)];
     }
   }
 
   template <KeyType Key> Numeric operator[](Key &&x) const {
     if constexpr (isKey<Key>) {
       switch (std::forward<Key>(x)) {
-      case Surf::Key::z:
-        return altitude;
+      case Surf::Key::h:
+        return elevation;
       case Surf::Key::t:
         return temperature;
       case Surf::Key::wind_u:
@@ -92,6 +112,8 @@ struct Point {
       }
     } else if constexpr (isSurfaceTypeTag<Key>) {
       return type.at(std::forward<Key>(x));
+    } else if constexpr (isSurfacePropertyTag<Key>) {
+      return prop.at(std::forward<Key>(x));
     }
   }
 
@@ -107,21 +129,20 @@ struct Point {
     return static_cast<Index>(enumtyps::KeyTypes.size());
   }
 
-  template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
-  constexpr bool has(T &&key, Ts &&...keys) const {
-    const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
-      if constexpr (isSurfaceTypeTag<T>)
-        return x.specs.end() not_eq x.specs.find(std::forward<T>(k));
-      else if constexpr (isKey<T>)
-        return true;
-      else return false;
-    };
-
-    if constexpr (N > 0)
-      return has_(*this, std::forward<T>(key)) and
-             has(std::forward<Ts>(keys)...);
+  template <KeyType T> constexpr bool contains(T &&k) const {
+    if constexpr (isSurfaceTypeTag<T>)
+      return type.contains(std::forward<T>(k));
+    if constexpr (isSurfacePropertyTag<T>)
+      return prop.contains(std::forward<T>(k));
+    else if constexpr (isKey<T>)
+      return true;
     else
-      return has_(*this, std::forward<T>(key));
+      return false;
+  }
+
+  template <KeyType... Ts>
+  constexpr bool has(Ts &&...keys) const {
+    return (contains<Ts>(std::forward<Ts>(keys)) and ...);
   }
 
   friend std::ostream &operator<<(std::ostream &, const Point &);
@@ -199,7 +220,7 @@ struct Data {
   void rescale(Numeric);
 };
 
-struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag> {
+struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag> {
   /** Compute the values at a single point
    *
    * Note that this method uses the pos's alt to compute the normal only,
@@ -233,5 +254,5 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 } // namespace Surf
 
-using SurfPoint = Surf::Point;
-using SurfField = Surf::Field;
+using SurfacePoint = Surf::Point;
+using SurfaceField = Surf::Field;

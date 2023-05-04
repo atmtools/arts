@@ -2514,7 +2514,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 
 
-//=== SurfField =========================================
+//=== SurfaceField =========================================
 void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
                                  Surf::Data &data, bifstream *pbifs,
                                  const Verbosity &verbosity) {
@@ -2523,7 +2523,7 @@ void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
   CREATE_OUT2;
   ArtsXMLTag open_tag(verbosity);
   open_tag.read_from_stream(is_xml);
-  open_tag.check_name("SurfData");
+  open_tag.check_name("SurfaceData");
 
   String keytype, key, type;
   open_tag.get_attribute_value("keytype", keytype);
@@ -2572,24 +2572,24 @@ void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/SurfData");
+  close_tag.check_name("/SurfaceData");
 }
 
 /*!
  * \param is_xml     XML Input stream
- * \param atm        SurfField return value
+ * \param surf       SurfaceField return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
 void xml_read_from_stream(istream& is_xml,
-                          SurfField& surf,
+                          SurfaceField& surf,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  surf = SurfField{};  // overwrite
+  surf = SurfaceField{};  // overwrite
 
   CREATE_OUT2;
   ArtsXMLTag open_tag(verbosity);
   open_tag.read_from_stream(is_xml);
-  open_tag.check_name("SurfField");
+  open_tag.check_name("SurfaceField");
 
   Index n;
   open_tag.get_attribute_value("nelem", n);
@@ -2603,14 +2603,14 @@ void xml_read_from_stream(istream& is_xml,
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/SurfField");
+  close_tag.check_name("/SurfaceField");
 }
 
 void xml_write_to_stream_helper(ostream &os_xml, const Surf::KeyVal &key,
                                 const Surf::Data &data, bofstream *pbofs,
                                 const Verbosity &verbosity) {
   ArtsXMLTag open_data_tag(verbosity);
-  open_data_tag.set_name("SurfData");
+  open_data_tag.set_name("SurfaceData");
 
   std::visit([&](auto& key_val){
     if constexpr (Surf::isKey<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "Atm::Key");
@@ -2643,26 +2643,26 @@ void xml_write_to_stream_helper(ostream &os_xml, const Surf::KeyVal &key,
   }, key);
 
   ArtsXMLTag close_data_tag(verbosity);
-  close_data_tag.set_name("/SurfData");
+  close_data_tag.set_name("/SurfaceData");
   close_data_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
 /*!
  * \param os_xml     XML Output stream
- * \param atm        Surfield
+ * \param surf       SurfaceField
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
 void xml_write_to_stream(ostream& os_xml,
-                         const SurfField& surf,
+                         const SurfaceField& surf,
                          bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity) {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name("SurfField");
+  open_tag.set_name("SurfaceField");
   if (name.length()) open_tag.add_attribute("name", name);
 
   //! List of all KEY values
@@ -2678,28 +2678,28 @@ void xml_write_to_stream(ostream& os_xml,
     xml_write_to_stream_helper(os_xml, key, surf[key], pbofs, verbosity);
   }
 
-  close_tag.set_name("/SurfField");
+  close_tag.set_name("/SurfaceField");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
 
 
-//=== SurfPoint =========================================
+//=== SurfacePoint =========================================
 /*!
  * \param is_xml     XML Input stream
- * \param surf        SurfPoint return value
+ * \param surf       SurfacePoint return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
 void xml_read_from_stream(istream& is_xml,
-                          SurfPoint& surf,
+                          SurfacePoint& surf,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
-  surf = SurfPoint{};  // overwrite
+  surf = SurfacePoint{};  // overwrite
 
   CREATE_OUT2;
   ArtsXMLTag open_tag(verbosity);
   open_tag.read_from_stream(is_xml);
-  open_tag.check_name("SurfPoint");
+  open_tag.check_name("SurfacePoint");
 
   Index ntype, nother;
   open_tag.get_attribute_value("ntype", ntype);
@@ -2728,24 +2728,24 @@ void xml_read_from_stream(istream& is_xml,
 
   ArtsXMLTag close_tag(verbosity);
   close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/SurfPoint");
+  close_tag.check_name("/SurfacePoint");
 }
 
 /*!
  * \param os_xml     XML Output stream
- * \param surf       SurfPoint
+ * \param surf       SurfacePoint
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
 void xml_write_to_stream(ostream& os_xml,
-                         const SurfPoint& surf,
+                         const SurfacePoint& surf,
                          bofstream* pbofs,
                          const String& name,
                          const Verbosity& verbosity) {
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
-  open_tag.set_name("SurfPoint");
+  open_tag.set_name("SurfacePoint");
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("zenith", surf.normal[0]);
@@ -2770,7 +2770,7 @@ void xml_write_to_stream(ostream& os_xml,
     }, key);
   }
 
-  close_tag.set_name("/SurfPoint");
+  close_tag.set_name("/SurfacePoint");
   close_tag.write_to_stream(os_xml);
 
   os_xml << '\n';

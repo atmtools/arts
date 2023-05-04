@@ -4477,6 +4477,15 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("surface_field"),
+      DESCRIPTION(R"--(The surface field describes the surface properties.
+
+Connected to *surface_point*, this describes the global surface values, such as elevation and 
+temperature but also entirerly abstract properties and types.
+)--"),
+      GROUP("SurfaceField")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("surface_los"),
       DESCRIPTION(
           "Downwelling radiation directions to consider in surface reflection.\n"
@@ -4501,6 +4510,16 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Size:  [ 2 ]\n"),
       GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("surface_point"),
+      DESCRIPTION(R"--(The surface point describes the surface properties.
+
+Connected to *surface_field*, this describes the local surface values, such as elevation and 
+temperature but also entirerly abstract properties and types.  As the elevation field is not
+known for a single point, the normal of the surface at the position is also stored.
+)--"),
+      GROUP("SurfacePoint")));
 
   wsv_data.push_back(WsvRecord(
       NAME("surface_props_data"),
@@ -5281,34 +5300,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Unit:  m\n"),
       GROUP("Numeric")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("z_surface"),
-      DESCRIPTION(
-          "The surface altitude.\n"
-          "\n"
-          "This variable defines the shape of the surface, by giving the\n"
-          "geometrical altitude above the geiod for each crossing of the \n"
-          "latitude and longitude grids. Any shape of the surface is accepted.\n"
-          "No gap between the surface and the lowermost pressure level is \n"
-          "allowed.\n"
-          "\n"
-          "The radius (from the coordinate centre) for a point between the grid\n"
-          "crossings is obtained by a linear (1D) or bi-linear (2D) \n"
-          "interpolation of the sum of the ellipsoid radius and *z_surface*.\n"
-          "That is, the radius for the surface is assumed to vary linear along \n"
-          "the latitudes and longitudes in *lat_grid* and *lon_grid*.\n"
-          "\n"
-          "See further the ARTS user guide (AUG). Use the index to find where\n"
-          "this variable is discussed. The variable is listed as a subentry to\n"
-          "\"workspace variables\".\n"
-          "\n"
-          "Usage:      Set by user.\n"
-          "\n"
-          "Unit:       m\n"
-          "\n"
-          "Dimensions: [ lat_grid, lon_grid ]\n"),
-      GROUP("Matrix")));
 
   std::sort(wsv_data.begin(), wsv_data.end(), [](auto& a, auto& b) {
     return a.Name() < b.Name();

@@ -243,8 +243,6 @@ void ybatchMetProfiles(Workspace& ws,
                        const Matrix& met_amsu_data,
                        const Matrix& sensor_pos,
                        const Vector& refellipsoid,
-                       const Vector& lat_grid,
-                       const Vector& lon_grid,
                        const ArrayOfArrayOfSingleScatteringData& scat_data,
                        //Keyword
                        const Index& nelem_z_grid,
@@ -257,7 +255,7 @@ void ybatchMetProfiles(Workspace& ws,
   Matrix sensor_los;
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
-  Matrix z_surface;
+  SurfaceField surface_field;
   Vector y;
   Index no_profiles = met_amsu_data.nrows();
 
@@ -278,8 +276,6 @@ void ybatchMetProfiles(Workspace& ws,
   // profiles
   ConstVectorView lat = met_amsu_data(Range(joker), 0);
   ConstVectorView lon = met_amsu_data(Range(joker), 1);
-
-  z_surface.resize(1, 1);
 
   // The spectra .
   y.resize(f_grid.nelem());
@@ -350,7 +346,7 @@ void ybatchMetProfiles(Workspace& ws,
     // xml_write_to_file("profile_number.xml", i);
 
     // Set z_surface from lowest level of z_field
-    z_surface(0, 0) = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];;
+    surface_field[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];;
 
     /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
      array is for species.
@@ -449,7 +445,7 @@ void ybatchMetProfiles(Workspace& ws,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,
-                                   z_surface,
+                                   surface_field,
                                    met_profile_calc_agenda);
 
     //putting in the spectra *y* for each profile, thus assigning y

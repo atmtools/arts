@@ -415,10 +415,10 @@ This is often used to compute the source emission with the help of a *Propagatio
 
   wsv_groups.emplace_back("String", "Basic string type");
 
-  wsv_groups.emplace_back("SurfField",
+  wsv_groups.emplace_back("SurfaceField",
                           R"--(A surface field that keeps relevant surface parameters)--");
 
-  wsv_groups.emplace_back("SurfPoint",
+  wsv_groups.emplace_back("SurfacePoint",
                           R"--(A surface point, to keep point values for the surface,
 including the local normal vector)--");
 

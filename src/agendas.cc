@@ -297,7 +297,7 @@ void define_agenda_data() {
             "lat_true",
             "lon_true",
             "atm_field",
-            "z_surface",
+            "surface_field",
             "ppath_lmax",
             "ppath_lraytrace",
             "cloudbox_on",
@@ -473,7 +473,7 @@ void define_agenda_data() {
             "sensor_los",
             "cloudbox_on",
             "cloudbox_limits",
-            "z_surface")));
+            "surface_field")));
 
   agenda_data.push_back(AgRecord(
       NAME("pha_mat_spt_agenda"),

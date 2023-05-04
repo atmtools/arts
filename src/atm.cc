@@ -334,9 +334,7 @@ Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, 
   const bool d3 = v.get_grid_size(2) == 1;
 
   const Index n=alt.nelem();
-
-
-
+  
   if (d1 and d2 and d3) return Vector(n, v.data(0, 0, 0));
   if (d1 and d2)        return tvec_interp<0, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
   if (d1 and d3)        return tvec_interp<0, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
@@ -344,7 +342,7 @@ Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, 
   if (d1)               return tvec_interp<0, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
   if (d2)               return tvec_interp<1, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
   if (d3)               return tvec_interp<1, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-                        return tvec_interp<1, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  return tvec_interp<1, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
 }
 
 Vector vec_interp(const Tensor3 &, const Vector &, const Vector &,
@@ -498,9 +496,7 @@ void Field::at(std::vector<Point>& out, const Vector& alt, const Vector& lat, co
       for (Index i=0; i<n; i++) out[i][key] = field_val[i];
     };
 
-    for (auto& d: nlte()) compute(d.first, d.second);
-    for (auto& d: specs()) compute(d.first, d.second);
-    for (auto& d: other()) compute(d.first, d.second);
+    for (auto&& key: keys()) compute(key, operator[](key));
   } else {
     detail::tensor_interpolator(out, *this, alt, lat, lon);
   }
