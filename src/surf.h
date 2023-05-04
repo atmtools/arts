@@ -245,6 +245,8 @@ struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag
   normal(Vector2 ellipsoid, Numeric lat, Numeric lon,
          Numeric alt = std::numeric_limits<Numeric>::quiet_NaN()) const;
 
+  [[nodiscard]] Numeric single_value(const KeyVal& key, Numeric lat, Numeric lon) const;
+
   friend std::ostream &operator<<(std::ostream &, const Field &);
 };
 

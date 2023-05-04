@@ -47,7 +47,7 @@ void RT4Calc(Workspace& ws,
              const ArrayOfArrayOfSpeciesTag& abs_species,
              const Vector& f_grid,
              const Index& stokes_dim,
-             const Matrix& z_surface,
+             const SurfaceField& surface_field,
              const Index& nstreams,
              const String& pfct_method,
              const String& quadtype,
@@ -65,6 +65,9 @@ void RT4Calc(Workspace& ws,
     out1 << "  Cloudbox is off, RT4 calculation is skipped.\n";
     return;
   }
+
+  //! Fixme: Must have lat and lon
+  const Numeric surf_alt = surface_field.single_value(Surf::Key::h, 0, 0);
 
   const String quad_type = quadtype.toupper();
   Index nhza, nhstreams, nummu;
@@ -131,7 +134,7 @@ void RT4Calc(Workspace& ws,
                    mu_values,
                    quad_weights,
                    stokes_dim,
-                   z_surface(0, 0));
+                   surf_alt);
 
   run_rt4(ws,
           cloudbox_field,
@@ -154,7 +157,7 @@ void RT4Calc(Workspace& ws,
           surf_refl_mat,
           surf_emis_vec,
           surface_rtprop_agenda,
-          z_surface(0, 0),
+          surf_alt,
           quad_type,
           mu_values,
           quad_weights,
@@ -191,7 +194,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                            const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& f_grid,
                            const Index& stokes_dim,
-                           const Matrix& z_surface,
+                           const SurfaceField& surface_field,
                            const Numeric& surface_skin_t,
                            const Vector& surface_scalar_reflectivity,
                            const Tensor3& surface_reflectivity,
@@ -308,7 +311,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           surf_refl_mat,
           surf_emis_vec,
           dummy_agenda,
-          z_surface(0, 0),
+          surface_field.single_value(Surf::Key::h, 0, 0),  // FIXME: Must know lat and lon
           quad_type,
           mu_values,
           quad_weights,
