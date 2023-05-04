@@ -3845,7 +3845,7 @@ void SurfaceTessem(Matrix& surface_los,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void specular_losCalc(Vector& specular_los,
                       const Vector& refellipsoid,
-                      const GriddedField2& surface_elevation,
+                      const SurfaceField& surface_field,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
                       const Index& ignore_topography,
@@ -3857,7 +3857,7 @@ void specular_losCalc(Vector& specular_los,
   specular_los.resize(2);
   specular_los_calc(specular_los,
                     refellipsoid,
-                    surface_elevation,
+                    surface_field,
                     rtp_pos[Range(1, 2)],
                     rtp_los,
                     ignore_topography);
@@ -3867,7 +3867,7 @@ void specular_losCalc(Vector& specular_los,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_normalCalc(Vector& surface_normal,
                         const Vector& refellipsoid,
-                        const GriddedField2& surface_elevation,
+                        const SurfaceField& surface_field,
                         const Vector& rtp_pos,
                         const Index& ignore_topography,
                         const Verbosity&)
@@ -3877,8 +3877,7 @@ void surface_normalCalc(Vector& surface_normal,
   surface_normal.resize(2);
   
   // No surface tilt if told so or surface_elevation.data has size (1,1)
-  if (ignore_topography || (surface_elevation.data.nrows() == 1 &&
-                            surface_elevation.data.ncols() == 1)) {
+  if (ignore_topography || surface_field.constant_value(Surf::Key::h)) {
     surface_normal = 0;
 
   } else {
@@ -3887,7 +3886,7 @@ void surface_normalCalc(Vector& surface_normal,
                         ecef,
                         decef,
                         refellipsoid,
-                        surface_elevation,
+                        surface_field,
                         rtp_pos[Range(1, 2)]);
   
     ecef2geodetic_los(pos, surface_normal, ecef, decef, refellipsoid);

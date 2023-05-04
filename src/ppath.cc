@@ -46,13 +46,12 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
                                      const Vector ecef,
                                      const Vector decef,
                                      const Vector& refellipsoid,
-                                     const GriddedField2& surface_elevation,
+                                     const SurfaceField& surface_field,
                                      const Numeric& surface_search_accuracy,
                                      const Index& surface_search_safe)
 {
   // Find min and max surface altitude
-  const Numeric z_min = min(surface_elevation.data);
-  const Numeric z_max = max(surface_elevation.data);
+  const auto [z_min, z_max] = surface_field.minmax_single_value(Surf::Key::h);
 
   // Catch upward looking cases that can not have a surface intersection
   if (rte_pos[0] >= z_max && rte_los[0] <= 90) {
@@ -61,7 +60,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 
   // Check that observation position is above ground
   if (rte_pos[0] < z_max) {
-    Numeric z_surf = interp_gfield2(surface_elevation, Vector{rte_pos[Range(1, 2)]});
+    Numeric z_surf = surface_field.single_value(Surf::Key::h, rte_pos[1], rte_pos[2]);
     if (rte_pos[0] < z_surf - surface_search_accuracy)
       ARTS_USER_ERROR(
           "The sensor is below the surface. Not allowed!\n"
@@ -124,7 +123,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
         l_test += surface_search_accuracy;
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
-        Numeric z_surf = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
+        Numeric z_surf = surface_field.single_value(Surf::Key::h, pos[1], pos[2]);
         if (pos[0] < z_surf) above_surface = false;
       }
       if (above_surface) {
@@ -142,7 +141,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
       if (l_max_could_be_above_surface) {
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_max);
-        Numeric z_surf = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
+        Numeric z_surf = surface_field.single_value(Surf::Key::h, pos[1], pos[2]);;
         if (pos[0] > z_surf) return -1;
       }
       // Start bisection
@@ -150,7 +149,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
         const Numeric l_test = (l_min + l_max) / 2;
         Vector pos(3);
         pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
-        Numeric z_surf = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
+        Numeric z_surf = surface_field.single_value(Surf::Key::h, pos[1], pos[2]);;
         if (pos[0] >= z_surf)
           l_min = l_test;
         else
@@ -506,7 +505,7 @@ void refracted_link_basic(Workspace& ws,
                           const Numeric& ppath_lstep,
                           const Numeric& ppath_lraytrace,
                           const Vector& refellipsoid,
-                          const GriddedField2& surface_elevation,
+                          const SurfaceField& surface_field,
                           const Numeric& surface_search_accuracy,
                           const Numeric& z_toa,
                           const Index& do_horizontal_gradients,
@@ -528,8 +527,8 @@ void refracted_link_basic(Workspace& ws,
   Vector ecef_false = ecef_target;
 
   // Surface elevation to use if downward looking
-  GriddedField2 surface_elevation_m10km;
-  LatLonFieldSetConstant(surface_elevation_m10km, -10e3, "", Verbosity());
+  SurfaceField surface_field_m10km;
+  surface_field_m10km[Surf::Key::h] = -10e3;
 
   // Various variables used below
   Numeric l2false;
@@ -568,7 +567,7 @@ void refracted_link_basic(Workspace& ws,
                    l2false,
                    ppath_lraytrace,
                    refellipsoid,
-                   downward ? surface_elevation_m10km : surface_elevation,
+                   downward ? surface_field_m10km : surface_field,
                    surface_search_accuracy,
                    z_toa,
                    do_horizontal_gradients,
@@ -639,7 +638,7 @@ void refracted_link_basic(Workspace& ws,
                    l2false,
                    ppath_lraytrace,
                    refellipsoid,
-                   surface_elevation,
+                   surface_field,
                    surface_search_accuracy,
                    z_toa,
                    do_horizontal_gradients,
@@ -679,7 +678,7 @@ void refracted_link_basic(Workspace& ws,
 
 void specular_los_calc(VectorView los_new,
                        const Vector& refellipsoid,
-                       const GriddedField2& surface_elevation,
+                       const SurfaceField& surface_field,
                        ConstVectorView pos2D,
                        ConstVectorView los,
                        const bool& ignore_topography)
@@ -689,15 +688,14 @@ void specular_los_calc(VectorView los_new,
   ARTS_ASSERT(los.nelem() == 2);
 
   // No surface tilt if told so or surface_elevation.data has size (1,1)
-  if (ignore_topography || (surface_elevation.data.nrows() == 1 &&
-                            surface_elevation.data.ncols() == 1)) {
+  if (ignore_topography || surface_field.constant_value(Surf::Key::h)) {
     los_new[0] = 180 - los[0];
     los_new[1] = los[1];
 
   } else {
     // Determine surface normal
     Vector pos(3), ecef(3), decef(3);
-    surface_normal_calc(pos, ecef, decef, refellipsoid, surface_elevation, pos2D);
+    surface_normal_calc(pos, ecef, decef, refellipsoid, surface_field, pos2D);
 
     // Convert los to ECEF direction (ECEF recalculated!)
     Vector decef_los(3);

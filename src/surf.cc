@@ -4,8 +4,11 @@
 #include "debug.h"
 #include "gridded_fields.h"
 #include "interp.h"
+#include "matpack_math.h"
+
 #include <cmath>
 #include <exception>
+#include <limits>
 #include <stdexcept>
 #include <variant>
 
@@ -308,12 +311,49 @@ Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
   return out;
 }
 
-Numeric Field::single_value(const KeyVal& key, Numeric lat, Numeric lon) const {
-  ARTS_USER_ERROR_IF (not std::visit([this](auto& k){return this->contains(k);}, key), "Surface field has no elevation")
+std::ostream& operator<<(std::ostream& os, const KeyVal& key) {
+  std::visit([&](auto& k){os << k;}, key);
+  return os;
+}
+
+Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
+  ARTS_USER_ERROR_IF(
+      not std::visit([this](auto &k) { return this->contains(k); }, key),
+      "Surface field does not possess the key: ", key)
 
   const auto interp = detail::interpolation_function(lat, lon);
-  
+
   return interp(this->operator[](key));
+}
+
+namespace detail {
+constexpr std::pair<Numeric, Numeric> minmax(Numeric x) { return {x, x}; }
+
+std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
+  ARTS_USER_ERROR("Cannot extract minmax from functional data");
+  return {std::numeric_limits<Numeric>::lowest(),
+          std::numeric_limits<Numeric>::max()};
+}
+
+std::pair<Numeric, Numeric> minmax(const GriddedField2 &x) {
+  return ::minmax(x.data);
+}
+} // namespace detail
+
+std::pair<Numeric, Numeric>
+Field::minmax_single_value(const KeyVal &key) const {
+  ARTS_USER_ERROR_IF(
+      not std::visit([this](auto &k) { return this->contains(k); }, key),
+      "Surface field does not possess the key: ", key)
+  return std::visit([](auto& a){return detail::minmax(a);}, this->operator[](key).data);
+}
+
+bool Field::constant_value(const KeyVal &key) const {
+  ARTS_USER_ERROR_IF(
+      not std::visit([this](auto &k) { return this->contains(k); }, key),
+      "Surface field does not possess the key: ", key)
+
+  return std::holds_alternative<Numeric>(this->operator[](key).data);
 }
 } // namespace Surf
 

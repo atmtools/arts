@@ -267,7 +267,7 @@ void ppathGeometric(Ppath& ppath,
                     const Numeric& ppath_lstep,
                     const Numeric& ppath_ltotal,
                     const Vector& refellipsoid,
-                    const GriddedField2& surface_elevation,
+                    const SurfaceField& surface_field,
                     const Numeric& surface_search_accuracy,
                     const Index& surface_search_safe,
                     const AtmField& atm_field,
@@ -277,7 +277,7 @@ void ppathGeometric(Ppath& ppath,
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
   chk_refellipsoidZZZ(refellipsoid);
-  chk_surface_elevation(surface_elevation);
+  //chk_surface_elevation(surface_elevation);
 
   const Numeric z_toa = atm_field.top_of_atmosphere;
   chk_if_positive("z_toa", z_toa);
@@ -318,7 +318,7 @@ void ppathGeometric(Ppath& ppath,
                                             ecef,
                                             decef,
                                             refellipsoid,
-                                            surface_elevation,
+                                            surface_field,
                                             surface_search_accuracy,
                                             surface_search_safe);
     l_inside -= l_outside;
@@ -399,7 +399,7 @@ void ppathGeometric(Ppath& ppath,
     Vector los(2);
     specular_los_calc(los,
                       refellipsoid,
-                      surface_elevation,
+                      surface_field,
                       pos[Range(1, 2)],
                       ppath.los(ppath.np-1, joker));
     
@@ -410,7 +410,7 @@ void ppathGeometric(Ppath& ppath,
                    ppath_lstep,
                    ppath_ltotal - sum(ppath.lstep),
                    refellipsoid,
-                   surface_elevation,
+                   surface_field,
                    surface_search_accuracy,
                    surface_search_safe,
                    atm_field,
@@ -436,7 +436,7 @@ void ppathRefracted(Workspace& ws,
                     const Numeric& ppath_ltotal,
                     const Numeric& ppath_lraytrace,
                     const Vector& refellipsoid,
-                    const GriddedField2& surface_elevation,
+                    const SurfaceField& surface_field,
                     const Numeric& surface_search_accuracy,
                     const Numeric& z_toa,
                     const Index& do_horizontal_gradients,
@@ -447,7 +447,7 @@ void ppathRefracted(Workspace& ws,
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
   chk_refellipsoidZZZ(refellipsoid);
-  chk_surface_elevation(surface_elevation);
+  //chk_surface_elevation(surface_elevation);
   chk_if_positive("z_toa", z_toa);
   chk_if_positive("ppath_lstep", ppath_lstep);
 
@@ -563,8 +563,7 @@ void ppathRefracted(Workspace& ws,
 
         // Below surface?
       } else {
-        const Numeric z_surface = interp_gfield2(surface_elevation,
-                                                 Vector{pos_try[Range(1, 2)]});
+        const Numeric z_surface = surface_field.single_value(Surf::Key::h, pos_try[1], pos_try[2]);;
         if (pos_try[0] <= z_surface) {
           inside = false;
           background = PpathBackground::Surface;
@@ -573,7 +572,7 @@ void ppathRefracted(Workspace& ws,
                                                 ecef0,
                                                 decef0,
                                                 refellipsoid,
-                                                surface_elevation,
+                                                surface_field,
                                                 surface_search_accuracy,
                                                 0);
           ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
@@ -716,7 +715,7 @@ void ppathRefracted(Workspace& ws,
     Vector los(2);
     specular_los_calc(los,
                       refellipsoid,
-                      surface_elevation,
+                      surface_field,
                       pos[Range(1, 2)],
                       ppath.los(ppath.np-1, joker));
     
@@ -730,7 +729,7 @@ void ppathRefracted(Workspace& ws,
                    ppath_ltotal - sum(ppath.lstep),
                    ppath_lraytrace,
                    refellipsoid,
-                   surface_elevation,
+                   surface_field,
                    surface_search_accuracy,
                    z_toa,
                    do_horizontal_gradients,

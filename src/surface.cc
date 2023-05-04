@@ -45,6 +45,7 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
+#include "surf.h"
 #include "variousZZZ.h"
 #include "workspace_ng.h"
 
@@ -390,7 +391,7 @@ void surface_normal_calc(VectorView pos,
                          VectorView ecef,
                          VectorView decef,
                          const Vector& refellipsoid,
-                         const GriddedField2& surface_elevation,
+                         const SurfaceField& surface_field,
                          ConstVectorView pos2D)
 {
   ARTS_ASSERT(pos.nelem() == 3); 
@@ -418,7 +419,7 @@ void surface_normal_calc(VectorView pos,
   //
   pos[1] = lat;
   pos[2] = pos2D[1];
-  pos[0] = interp_gfield2(surface_elevation, Vector{pos[Range(1, 2)]});
+  pos[0] = surface_field.single_value(Surf::Key::h, pos[0], pos[2]);
 
   // Radius at pos0
   const Numeric r = pos[0] + prime_vertical_radius(refellipsoid, lat);
@@ -447,8 +448,8 @@ void surface_normal_calc(VectorView pos,
       posWE[2] -= 360;
   }
   //
-  posSN[0] = interp_gfield2(surface_elevation, Vector{posSN[Range(1, 2)]});
-  posWE[0] = interp_gfield2(surface_elevation, Vector{posWE[Range(1, 2)]});
+  posSN[0] = surface_field.single_value(Surf::Key::h, posSN[1], posSN[2]);
+  posWE[0] = surface_field.single_value(Surf::Key::h, posWE[1], posWE[2]);
   
   // Convert all three positions to ECEF
   Vector ecefSN(3), ecefWE(3);

@@ -186,13 +186,13 @@ void IntersectionGeometricSurface(Matrix& pos,
                                   const Matrix& sensor_pos,
                                   const Matrix& sensor_los,
                                   const Vector& refellipsoid,
-                                  const GriddedField2& surface_elevation,
+                                  const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy,
                                   const Index& surface_search_safe,
                                   const Verbosity&) {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoid(refellipsoid);
-  chk_surface_elevation(surface_elevation);
+  //chk_surface_elevation(surface_elevation);
   chk_if_positive("surface_search_accuracy", surface_search_accuracy);
   chk_if_bool("surface_search_safe", surface_search_safe);
 
@@ -212,7 +212,7 @@ void IntersectionGeometricSurface(Matrix& pos,
                                                    ecef,
                                                    decef,
                                                    refellipsoid,
-                                                   surface_elevation,
+                                                   surface_field,
                                                    surface_search_accuracy,
                                                    surface_search_safe);
     if (l<0) {

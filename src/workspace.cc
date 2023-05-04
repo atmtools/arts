@@ -4440,32 +4440,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       GROUP("GriddedField3")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("surface_elevation"),
-      DESCRIPTION(
-          "Surface elevation gridded as a function of latitude and longitude.\n"
-          "\n"
-          "Elevation is the height above the reference ellipsoid.\n"
-          "\n"
-          "The full planet is covered, either by linear interpolation inside the\n"
-          "domain covered by the latitude and longitude grids, or by extrapolation.\n"
-          "A nearest neighbour interpolation is used outside of the range of the\n"
-          "latitude and longitude grids. That is, end values are applied outside\n"
-          "of the grid range.\n"
-          "\n"
-          "Both grids can both have length one, independently of each others. The\n"
-          "given value is then valid for all latitudes or longitudes, following\n"
-          "the general extrapolation approach.\n"
-          "\n"
-          "The longitude grid should be inside either [-180, 180] or [0, 360].\n"
-          "\n"
-          "Dimensions: \n"
-          "   GriddedField2:\n"
-          "      Vector Latitude [N_lat]\n"
-          "      Vector Longitude [N_lon]\n"
-          "      Matrix data [N_lat][N_lon]\n"),
-      GROUP("GriddedField2")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("surface_emission"),
       DESCRIPTION(
           "The emission from the surface.\n"
@@ -4791,28 +4765,6 @@ known for a single point, the normal of the surface at the position is also stor
           "\n"
           "Unit:  [ m, degrees, degrees ]\n"),
       GROUP("Matrix"), Matrix{}));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("t_surface"),
-      DESCRIPTION(
-          "The surface temperature.\n"
-          "\n"
-          "This variable holds the temperature of the surface at each latitude\n"
-          "and longitude grid crossing. The normal case should be that this \n"
-          "temperature field is interpolated to obtain *surface_skin_t*.\n"
-          "Accordingly, for 1D cases it could be a better idea to specify\n"
-          "*surface_skin_t* directly.\n"
-          "\n"
-          "These temperature shall be selected considering the radiative\n"
-          "properties of the surface, and can differ from the \"bulk\"\n"
-          "temperatures.\n"
-          "\n"
-          "Usage:      Set by user.\n"
-          "\n"
-          "Unit:       K\n"
-          "\n"
-          "Dimensions: [ lat_grid, lon_grid ]\n"),
-      GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("verbosity"),
