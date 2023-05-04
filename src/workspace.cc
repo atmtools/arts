@@ -4496,20 +4496,6 @@ known for a single point, the normal of the surface at the position is also stor
       GROUP("SurfacePoint")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("surface_props_data"),
-      DESCRIPTION(
-          "Various surface properties.\n"
-          "\n"
-          "A general container for passing data to surface methods. Each surface\n"
-          "property shall be specified on the grid set by *lat_grid* and *lon_grid*.\n"
-          "\n"
-          "The properties are identified by the accompanying variable\n"
-          "*surface_props_names*.\n"
-          "\n"
-          "Size:  [ number of props., lat_grid, lon_grid ]\n"),
-      GROUP("Tensor3"), Tensor3{}));
-
-  wsv_data.push_back(WsvRecord(
       NAME("surface_props_names"),
       DESCRIPTION(
           "Name on surface properties found in *surface_props_data*.\n"

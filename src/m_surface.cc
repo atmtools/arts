@@ -388,7 +388,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const Vector& rte_pos2,
                          const String& iy_unit,
                          const Tensor3& surface_reflectivity,
-                         const Tensor3& surface_props_data,
+                         const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names,
                          const ArrayOfString& dsurface_names,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -405,7 +405,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Interplation grid positions and weights
@@ -423,7 +423,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   chk_not_negative("surface_skin_t", surface_skin_t[0]);
@@ -665,7 +665,6 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const Vector& rte_pos2,
                                const String& iy_unit,
                                const GriddedField3& surface_complex_refr_index,
-                               const Tensor3& surface_props_data,
                                const ArrayOfString& surface_props_names,
                                const ArrayOfString& dsurface_names,
                                const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -685,7 +684,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Interplation grid positions and weights
@@ -703,7 +702,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   chk_not_negative("surface_skin_t", surface_skin_t[0]);
@@ -953,7 +952,6 @@ void iySurfaceLambertian(Workspace& ws,
                          const Vector& rte_pos2,
                          const String& iy_unit,
                          const Vector& surface_scalar_reflectivity,
-                         const Tensor3& surface_props_data,
                          const ArrayOfString& surface_props_names,
                          const ArrayOfString& dsurface_names,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -985,7 +983,7 @@ const Vector& lon_grid = atm_field.grid[2];
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Interplation grid positions and weights
@@ -1003,7 +1001,7 @@ const Vector& lon_grid = atm_field.grid[2];
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   chk_not_negative("surface_skin_t", surface_skin_t[0]);
@@ -3212,7 +3210,7 @@ void SurfaceBlackbody(Matrix& surface_los,
                       const Vector& f_grid,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
-                      const Tensor3& surface_props_data,
+                      const SurfaceField& surface_field,
                       const ArrayOfString& surface_props_names,
                       const ArrayOfString& dsurface_names,
                       const Index& jacobian_do,
@@ -3221,7 +3219,7 @@ void SurfaceBlackbody(Matrix& surface_los,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Interplation grid positions and weights
@@ -3239,7 +3237,7 @@ void SurfaceBlackbody(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   surfaceBlackbody(surface_los,
@@ -3284,7 +3282,7 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
                   ArrayOfMatrix& dsurface_emission_dx,
                   const Vector& lat_grid,
                   const Vector& lon_grid,
-                  const Tensor3& surface_props_data,
+                  const SurfaceField& surface_field,
                   const ArrayOfString& surface_props_names,
                   const ArrayOfString& dsurface_names,
                   const Index& jacobian_do,
@@ -3296,7 +3294,7 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   if (jacobian_do) {
@@ -3319,7 +3317,7 @@ void SurfaceFastem(Matrix& surface_los,
                    const Vector& f_grid,
                    const Vector& rtp_pos,
                    const Vector& rtp_los,
-                   const Tensor3& surface_props_data,
+                   const SurfaceField& surface_field,
                    const ArrayOfString& surface_props_names,
                    const ArrayOfString& dsurface_names,
                    const Index& jacobian_do,
@@ -3330,7 +3328,7 @@ void SurfaceFastem(Matrix& surface_los,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Interplation grid positions and weights
@@ -3348,7 +3346,7 @@ void SurfaceFastem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Wind speed
@@ -3359,7 +3357,7 @@ void SurfaceFastem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Wind direction
@@ -3370,7 +3368,7 @@ void SurfaceFastem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Salinity
@@ -3381,7 +3379,7 @@ void SurfaceFastem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Call FASTEM
@@ -3529,7 +3527,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                                    const Vector& rtp_pos,
                                    const Vector& rtp_los,
                                    const Vector& specular_los,
-                                   const Tensor3& surface_props_data,
+                                   const SurfaceField& surface_field,
                                    const ArrayOfString& surface_props_names,
                                    const ArrayOfString& dsurface_names,
                                    const Index& jacobian_do,
@@ -3539,7 +3537,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Check of GINs
@@ -3564,7 +3562,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Reflectivities
@@ -3580,7 +3578,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                          gp_lat,
                          gp_lon,
                          itw,
-                         surface_props_data,
+                         surface_field,
                          surface_props_names);
     reflectivities[i] = rv[0];
   }
@@ -3688,7 +3686,7 @@ void SurfaceTessem(Matrix& surface_los,
                    const Vector& rtp_los,
                    const TessemNN& net_h,
                    const TessemNN& net_v,
-                   const Tensor3& surface_props_data,
+                   const SurfaceField& surface_field,
                    const ArrayOfString& surface_props_names,
                    const ArrayOfString& dsurface_names,
                    const Index& jacobian_do,
@@ -3697,7 +3695,7 @@ void SurfaceTessem(Matrix& surface_los,
   surface_props_check(3,
                       lat_grid,
                       lon_grid,
-                      surface_props_data,
+                      surface_field,
                       surface_props_names);
 
   // Interplation grid positions and weights
@@ -3715,7 +3713,7 @@ void SurfaceTessem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Wind speed
@@ -3726,7 +3724,7 @@ void SurfaceTessem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Salinity
@@ -3737,7 +3735,7 @@ void SurfaceTessem(Matrix& surface_los,
                        gp_lat,
                        gp_lon,
                        itw,
-                       surface_props_data,
+                       surface_field,
                        surface_props_names);
 
   // Call TESSEM

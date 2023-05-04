@@ -34,6 +34,7 @@
 
 #include "surface.h"
 #include <cmath>
+#include <iomanip>
 #include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
@@ -150,22 +151,20 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
 void surface_props_check(const Index& atmosphere_dim,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
-                         const Tensor3& surface_props_data,
+                         const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names) {
   // Check sizes
-  ARTS_USER_ERROR_IF (surface_props_data.npages() != surface_props_names.nelem(),
+  ARTS_USER_ERROR_IF (surface_field.nelem<SurfacePropertyTag>() != surface_props_names.nelem(),
         "The number of pages in *surface_props_data* and "
         "length of *surface_props_names* differ.");
   // If no surface properties, then we are ready
   if (surface_props_names.nelem() == 0) {
     return;
   }
-  ARTS_USER_ERROR_IF (surface_props_data.nrows() !=
-      (atmosphere_dim == 1 ? 1 : lat_grid.nelem()),
-                      "Row-size of *surface_props_data* not as expected.");
-  ARTS_USER_ERROR_IF (surface_props_data.ncols() !=
-      (atmosphere_dim <= 2 ? 1 : lon_grid.nelem()),
-                      "Column-size of *surface_props_data* not as expected.");
+
+  for (auto &name : surface_props_names)
+    ARTS_USER_ERROR_IF(not surface_field.contains(SurfacePropertyTag{name}),
+                       "No ", std::quoted(name), " field in surface_field")
 
   for (Index i = 0; i < surface_props_names.nelem(); i++) {
     ARTS_USER_ERROR_IF (surface_props_names[i].nelem() == 0,
@@ -187,27 +186,22 @@ void surface_props_interp(Vector& v,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon,
                           const Matrix& itw,
-                          const Tensor3& surface_props_data,
+                          const SurfaceField& surface_field,
                           const ArrayOfString& surface_props_names) {
   ARTS_ASSERT(v.nelem() == 1);
-  ARTS_ASSERT(surface_props_data.npages() == surface_props_names.nelem());
 
-  for (Index i = 0; i < surface_props_names.nelem(); i++) {
-    if (surface_props_names[i] == vname) {
-      interp_atmsurface_by_itw(v,
-                               atmosphere_dim,
-                               surface_props_data(i, joker, joker),
-                               gp_lat,
-                               gp_lon,
-                               itw);
-      return;
-    }
-  }
+  const auto key = SurfacePropertyTag{vname};
 
-  ARTS_USER_ERROR (
+  ARTS_USER_ERROR_IF (not surface_field.contains(key),
                       "The following property was requested\n"
-                      "   ", vname, '\n',
-                      "but it could not be found in *surface_props_names*.")
+                      "   ", std::quoted(vname), '\n',
+                      "but it could not be found")
+
+      ARTS_ASSERT(false, "We must have lat and lon...")
+      /*
+  for (Index i=0; i<lat.nelem(); i++){
+    v[i] = surface_field.single_value(key, lat[i], lon[i]);
+  }*/
 }
 
 void dsurface_check(const ArrayOfString& surface_props_names,

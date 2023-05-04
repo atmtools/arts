@@ -46,7 +46,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const AtmField& atm_field,
     const Vector& refellipsoid,
-    const Tensor3& surface_props_data,
+    const SurfaceField& surface_field,
     const Agenda& ppath_agenda,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,
@@ -202,7 +202,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                 iy_space_agenda,
                                 iy_surface_agenda,
                                 iy_cloudbox_agenda,
-                                surface_props_data,
+                                surface_field,
                                 verbosity);
     
     for (Index ip_path = 0; ip_path < path.np; ip_path++) {

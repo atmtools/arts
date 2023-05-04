@@ -142,7 +142,7 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
 void surface_props_check(const Index& atmosphere_dim,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
-                         const Tensor3& surface_props_data,
+                         const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names);
 
 /**
@@ -169,7 +169,7 @@ void surface_props_interp(Vector& v,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon,
                           const Matrix& itw,
-                          const Tensor3& surface_props_data,
+                          const SurfaceField& surface_field,
                           const ArrayOfString& surface_props_names);
 
 /**

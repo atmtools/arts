@@ -423,7 +423,7 @@ void define_agenda_data() {
             "rtp_pos",
             "rtp_los",
             "rte_pos2",
-            "surface_props_data",
+            "surface_field",
             "dsurface_names")));
 
   agenda_data.push_back(AgRecord(

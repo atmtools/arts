@@ -54,6 +54,7 @@
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "surf.h"
 #include "surface.h"
 #include "check_input.h"
 
@@ -173,7 +174,7 @@ void xaStandard(Workspace& ws,
                 const Index& cloudbox_on,
                 const Index& cloudbox_checked,
                 const ArrayOfString& particle_bulkprop_names,
-                const Tensor3& surface_props_data,
+                const SurfaceField& surface_field,
                 const ArrayOfString& surface_props_names,
                 const Agenda& water_p_eq_agenda,
                 const Verbosity&) {
@@ -454,9 +455,9 @@ void xaStandard(Workspace& ws,
       surface_props_check(3,
                           lat_grid,
                           lon_grid,
-                          surface_props_data,
+                          surface_field,
                           surface_props_names);
-      ARTS_USER_ERROR_IF (surface_props_data.empty(),
+      ARTS_USER_ERROR_IF (surface_field.nelem<SurfacePropertyTag>() == 0,
             "One jacobian quantity belongs to the "
             "surface category, but *surface_props_data* is empty.");
 
@@ -476,11 +477,14 @@ void xaStandard(Workspace& ws,
                            lat_grid,
                            lon_grid);
       Matrix surf_x;
+      ARTS_ASSERT(false)
+      /* FIXME: HOW TO RETURN DATA TO THE SURFACE FIELD?
       regrid_atmsurf_by_gp_oem(surf_x,
                                3,
                                surface_props_data(isu, joker, joker),
                                gp_lat,
                                gp_lon);
+                               */
       flat(xa[ind], surf_x);
     }
 
@@ -507,7 +511,7 @@ void xaStandard(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void x2artsAtmAndSurf(Workspace& ws,
                       AtmField& atm_field,
-                      Tensor3& surface_props_data,
+                      SurfaceField& surface_field,
                       const ArrayOfRetrievalQuantity& jacobian_quantities,
                       const Vector& x,
                       const Index& atmfields_checked,
@@ -823,9 +827,9 @@ auto& mag_w_field = atm_field[Atm::Key::mag_w].get<Tensor3&>();
       surface_props_check(3,
                           lat_grid,
                           lon_grid,
-                          surface_props_data,
+                          surface_field,
                           surface_props_names);
-      ARTS_USER_ERROR_IF (surface_props_data.empty(),
+      ARTS_USER_ERROR_IF (surface_field.nelem<SurfacePropertyTag>() == 0,
             "One jacobian quantity belongs to the "
             "surface category, but *surface_props_data* is empty.");
 
@@ -854,7 +858,9 @@ auto& mag_w_field = atm_field[Atm::Key::mag_w].get<Tensor3&>();
       reshape(surf_x, x_t[ind]);
       Matrix surf;
       regrid_atmsurf_by_gp_oem(surf, 3, surf_x, gp_lat, gp_lon);
-      surface_props_data(isu, joker, joker) = surf;
+      //FIXME: HOW TO RETURN DATA TO SURFACE PROPERTIES?
+      ARTS_ASSERT(false)
+      //surface_props_data(isu, joker, joker) = surf;
     }
   }
 }

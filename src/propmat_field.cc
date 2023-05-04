@@ -122,7 +122,7 @@ void emission_from_propmat_field(
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
-    const Tensor3& surface_props_data,
+    const SurfaceField& surface_field,
     const Verbosity& verbosity)
 {
   // Size of problem
@@ -212,7 +212,7 @@ void emission_from_propmat_field(
                        1,
                        f_grid,
                        "1",
-                       surface_props_data,
+                       surface_field,
                        iy_main_agenda,
                        iy_space_agenda,
                        iy_surface_agenda,

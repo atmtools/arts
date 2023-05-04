@@ -512,7 +512,6 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Numeric& ppath_lmax,
     const Numeric& rte_alonglos_v,
     const String& rt_integration_option,
-    const Tensor3& surface_props_data,
     const Vector& za_grid,
     const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
@@ -733,7 +732,6 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Numeric& ppath_lmax,
     const Numeric& rte_alonglos_v,
     const String& rt_integration_option,
-    const Tensor3& surface_props_data,
     const Vector& za_grid,
     const Index& use_parallel_za  [[maybe_unused]],
     const Verbosity& verbosity) {
