@@ -250,11 +250,11 @@ Vector2 Field::normal(Vector2 ellipsoid, Numeric lat, Numeric lon,
                       Numeric alt) const try {
   constexpr Vector2 up{180, 0};
 
-  if (not contains(Key::z)) {
+  if (not contains(Key::h)) {
     return up;
   }
 
-  const auto &z = this->operator[](Key::z);
+  const auto &z = this->operator[](Key::h);
 
   if (std::holds_alternative<Numeric>(z.data)) {
     return up;
@@ -306,6 +306,14 @@ Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
   out.normal = normal(ellipsoid, lat, lon, out.elevation);
 
   return out;
+}
+
+Numeric Field::single_value(const KeyVal& key, Numeric lat, Numeric lon) const {
+  ARTS_USER_ERROR_IF (not std::visit([this](auto& k){return this->contains(k);}, key), "Surface field has no elevation")
+
+  const auto interp = detail::interpolation_function(lat, lon);
+  
+  return interp(this->operator[](key));
 }
 } // namespace Surf
 

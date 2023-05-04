@@ -51,6 +51,7 @@
 #include "rng.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "surf.h"
 #include "xml_io.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -107,7 +108,7 @@ void MCGeneral(Workspace& ws,
                const Agenda& surface_rtprop_agenda,
                const Agenda& propmat_clearsky_agenda,
                const Vector& refellipsoid,
-               const Matrix& z_surface,
+               const SurfaceField& surface_field,
                const AtmField& atm_field,
                const Index& cloudbox_on,
                const ArrayOfIndex& cloudbox_limits,
@@ -327,7 +328,7 @@ void MCGeneral(Workspace& ws,
                            f_index,
                            f_grid,
                            refellipsoid,
-                           z_surface,
+                           surface_field,
                            atm_field,
                            cloudbox_limits,
                            pnd_field,
@@ -555,7 +556,7 @@ void MCRadar(  // Workspace reference:
     const Numeric& ppath_lraytrace,
     const Agenda& propmat_clearsky_agenda,
     const Vector& refellipsoid,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const AtmField& atm_field,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
@@ -802,7 +803,7 @@ void MCRadar(  // Workspace reference:
                        f_grid,
                        Ihold,
                        refellipsoid,
-                       z_surface,
+                       surface_field,
                        atm_field,
                        cloudbox_limits,
                        pnd_field,

@@ -39,6 +39,7 @@
 #include "atm.h"
 #include "gridded_fields.h"
 #include "matpack_concepts.h"
+#include "surf.h"
 #include "transmissionmatrix.h"
 #include "optproperties.h"
 
@@ -252,7 +253,7 @@ void get_sun_ppaths(Workspace& ws,
                      const ArrayOfSun& suns,
                      const Vector& f_grid,
                      const AtmField& atm_field,
-                     const Matrix& z_surface,
+                     const SurfaceField& surface_field,
                      const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,

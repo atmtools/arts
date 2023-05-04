@@ -53,6 +53,7 @@
 #include "special_interp.h"
 #include "species_tags.h"
 #include "sun.h"
+#include "surf.h"
 #include "transmissionmatrix.h"
 #include <cmath>
 #include <iterator>
@@ -185,7 +186,7 @@ void iyClearsky(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const Vector& refellipsoid,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
@@ -430,7 +431,7 @@ This feature will be added in a future version.
                             suns,
                             f_grid,
                             atm_field,
-                            z_surface,
+                            surface_field,
                             refellipsoid,
                             ppath_lmax,
                             ppath_lraytrace,
@@ -2030,8 +2031,8 @@ void iyIndependentBeamApproximation(Workspace& ws,
   }  FIXME: MUST INTERPOLATE SOMETHING? */
 
   // 1D surface altitude
-  Matrix zsurf1(1, 1);
-  zsurf1(0, 0) = z1(0, 0, 0);
+  SurfaceField surface_field;
+  surface_field[Surf::Key::h] = z1(0, 0, 0);
 
   // 1D version of rte_pos/los
   Vector pos1(1);
@@ -2136,7 +2137,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                              lat_true1,
                                              lon_true1,
                                              atm_field,
-                                             zsurf1,
+                                             surface_field,
                                              lmax1,
                                              ppath_lraytrace,
                                              cbox_on1,
@@ -2311,7 +2312,7 @@ void iyMC(Workspace& ws,
           const Index& jacobian_do,
           const AtmField& atm_field,
           const Vector& refellipsoid,
-          const Matrix& z_surface,
+          const SurfaceField& surface_field,
           const Index& cloudbox_on,
           const ArrayOfIndex& cloudbox_limits,
           const Index& stokes_dim,
@@ -2420,7 +2421,7 @@ void iyMC(Workspace& ws,
                   surface_rtprop_agenda,
                   propmat_clearsky_agenda,
                   refellipsoid,
-                  z_surface,
+                  surface_field,
                   atm_field,
                   cloudbox_on,
                   cloudbox_limits,

@@ -816,7 +816,7 @@ void particle_bulkpropRadarOnionPeeling(
     Workspace& ws,
     AtmField& atm_field,
     ArrayOfString& particle_bulkprop_names,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const Index& atmfields_checked,
     const Index& atmgeom_checked,
     const Vector& f_grid,
@@ -907,7 +907,7 @@ void particle_bulkpropRadarOnionPeeling(
 
           for (Index ip = np - 1; ip >= 0; ip--) {
             // Above clutter zone
-            if (z_grid[ip] >= z_surface(ilat, ilon) + hclutterm(ilat, ilon)) {
+            if (z_grid[ip] >= surface_field.single_value(Surf::Key::h, lat_grid[ilat], lon_grid[ilon]) + hclutterm(ilat, ilon)) {
               // Local dBZe, roughly corrected with attenuation for previous point
               Numeric dbze =
                   dBZe(ip, ilat, ilon) + dbze_corr_abs + dbze_corr_hyd;

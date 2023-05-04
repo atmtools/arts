@@ -248,7 +248,7 @@ void surface_get_incoming_direct(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,
@@ -294,7 +294,9 @@ void surface_get_incoming_direct(
 
   //calculate propagation path from the surface to the space in line of sight
   Ppath ppath;
+  ARTS_ASSERT(false)
   // FIXME: THIS FUNCTION SWITCHES Z AND P AROUND BECAUSE OF MISMATCH IN OLD/NEW PPATH...
+  /*
   ppath_calc(ws,
              ppath,
              ppath_step_agenda,
@@ -305,7 +307,7 @@ void surface_get_incoming_direct(
              p_field,
              f_grid,
              refellipsoid,
-             z_surface,
+             surface_field,
              cloudbox_on,
              cloudbox_limits,
              rtp_pos,
@@ -313,7 +315,7 @@ void surface_get_incoming_direct(
              ppath_lmax,
              ppath_lraytrace,
              ppath_inside_cloudbox_do,
-             verbosity);
+             verbosity);*/
 
 
   //get the incoming spectral radiance of the sun at toa. If there is no in

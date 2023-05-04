@@ -43,6 +43,7 @@
 #include "propagationmatrix.h"
 #include "geodetic_OLD.h"
 #include "arts.h"
+#include "surf.h"
 #include "workspace_ng.h"
 
 using Constant::sigma;
@@ -364,7 +365,7 @@ void get_sun_ppaths(Workspace& ws,
                      const ArrayOfSun& suns,
                      const Vector& f_grid,
                      const AtmField& atm_field,
-                     const Matrix& z_surface,
+                     const SurfaceField& surface_field,
                      const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,

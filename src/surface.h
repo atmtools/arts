@@ -248,7 +248,7 @@ void surface_get_incoming_direct(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,

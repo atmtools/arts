@@ -36,6 +36,7 @@
 #include "matpack_data.h"
 #include "messages.h"
 #include "sorting.h"
+#include "surf.h"
 #include "surface.h"
 #include "workspace_ng.h"
 #include "check_input.h"
@@ -507,7 +508,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const Numeric& ppath_lmax,
     const Numeric& rte_alonglos_v,
     const String& rt_integration_option,
@@ -554,7 +555,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");
 
   // Index in p_grid where field at surface shall be placed
-  const Index i0 = index_of_zsurface(z_surface(0, 0), z_grid);
+  const Numeric surf_alt = surface_field.single_value(Surf::Key::h, 0, 0); // FIXME: Need lat and lon?
+  const Index i0 = index_of_zsurface(surf_alt, z_grid);
 
   // Loop zenith angles
   //
@@ -578,7 +580,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
 
         Index iy_id = i;
         Vector rte_los(1, za_grid[i]);
-        Vector rte_pos(1, za_grid[i] < 90 ? z_surface(0, 0) : z_space);
+        Vector rte_pos(1, za_grid[i] < 90 ? surf_alt : z_space);
 ARTS_ASSERT(false)
 /* FIXME: MUST HAVE PLANE PARALLEL NEW PPATH CODE HERE
         ppathPlaneParallel(ppath,
@@ -724,7 +726,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
-    const Matrix& z_surface,
+    const SurfaceField& surface_field,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor7& cloudbox_field,

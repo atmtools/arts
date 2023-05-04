@@ -476,7 +476,7 @@ void ybatchMetProfilesClear(Workspace& ws,
   Matrix sensor_los;
   Index cloudbox_on = 0;
   ArrayOfIndex cloudbox_limits;
-  Matrix z_surface;
+  SurfaceField surface_field;
   Vector y;
   Index no_profiles = met_amsu_data.nrows();
   //Index no_profiles = met_profile_basenames.nelem();
@@ -500,7 +500,6 @@ void ybatchMetProfilesClear(Workspace& ws,
 //   Vector oro_height;
 //   oro_height = met_amsu_data(Range(joker), 5);
 
-  z_surface.resize(1, 1);
   for (Index i = 0; i < no_profiles; ++i) {
     ostringstream lat_os, lon_os;
 
@@ -575,8 +574,8 @@ void ybatchMetProfilesClear(Workspace& ws,
 
     // N_p is the number of elements in the pressure grid
     //z_surface(0,0) = oro_height[i]+ 0.01;
-    z_surface(0, 0) = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];
-    cout << "z_surface" << z_surface << endl;
+    surface_field[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];
+    cout << "z_surface" << surface_field << endl;
     const Vector& tfr_z_grid =
         atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(GFIELD3_P_GRID);
     Index N_p = tfr_z_grid.nelem();
@@ -615,7 +614,7 @@ void ybatchMetProfilesClear(Workspace& ws,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,
-                                   z_surface,
+                                   surface_field,
                                    met_profile_calc_agenda);
 
     //putting in the spectra *y* for each profile
