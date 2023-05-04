@@ -247,6 +247,10 @@ struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag
 
   [[nodiscard]] Numeric single_value(const KeyVal& key, Numeric lat, Numeric lon) const;
 
+  [[nodiscard]] std::pair<Numeric, Numeric> minmax_single_value(const KeyVal& key) const;
+
+  [[nodiscard]] bool constant_value(const KeyVal& key) const;
+
   friend std::ostream &operator<<(std::ostream &, const Field &);
 };
 

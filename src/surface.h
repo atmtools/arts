@@ -269,7 +269,7 @@ void surface_normal_calc(VectorView pos,
                          VectorView ecef,
                          VectorView decef,
                          const Vector& refellipsoid,
-                         const GriddedField2& surface_elevation,
+                         const SurfaceField& surface_field,
                          ConstVectorView pos2D);
 
 #endif  // surface_h
