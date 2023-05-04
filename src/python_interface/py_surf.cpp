@@ -58,34 +58,34 @@ void py_surf(py::module_ &m) {
   py::implicitly_convertible<Index, Surf::Data>();
   py::implicitly_convertible<Surf::FunctionalData, Surf::Data>();
 
-  auto pnt = py::class_<SurfPoint>(m, "SurfPoint").def(py::init([] {
-    return std::make_unique<SurfPoint>();
+  auto pnt = py::class_<SurfacePoint>(m, "SurfacePoint").def(py::init([] {
+    return std::make_unique<SurfacePoint>();
   }));
 
-  auto fld = py::class_<SurfField>(m, "SurfField").def(py::init([] {
-    return std::make_unique<SurfField>();
+  auto fld = py::class_<SurfaceField>(m, "SurfaceField").def(py::init([] {
+    return std::make_unique<SurfaceField>();
   }));
 
-  pnt.def_readwrite("temperature", &SurfPoint::temperature)
-      .def_readwrite("altitude", &SurfPoint::altitude)
-      .def_readwrite("normal", &SurfPoint::normal)
-      .def_readwrite("wind", &SurfPoint::wind)
+  pnt.def_readwrite("temperature", &SurfacePoint::temperature)
+      .def_readwrite("elevation", &SurfacePoint::elevation)
+      .def_readwrite("normal", &SurfacePoint::normal)
+      .def_readwrite("wind", &SurfacePoint::wind)
       .def(
           "__getitem__",
-          [](SurfPoint &surf, Surf::Key x) {
+          [](SurfacePoint &surf, Surf::Key x) {
             if (not surf.has(x))
               throw py::key_error(var_string(x));
             return surf[x];
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
-           [](SurfPoint &surf, Surf::Key x, Numeric data) { surf[x] = data; })
-      .PythonInterfaceCopyValue(SurfPoint)
-      .PythonInterfaceWorkspaceVariableConversion(SurfPoint)
-      .PythonInterfaceFileIO(SurfPoint)
-      .PythonInterfaceBasicRepresentation(SurfPoint)
+           [](SurfacePoint &surf, Surf::Key x, Numeric data) { surf[x] = data; })
+      .PythonInterfaceCopyValue(SurfacePoint)
+      .PythonInterfaceWorkspaceVariableConversion(SurfacePoint)
+      .PythonInterfaceFileIO(SurfacePoint)
+      .PythonInterfaceBasicRepresentation(SurfacePoint)
       .def(py::pickle(
-          [](const SurfPoint &t) {
+          [](const SurfacePoint &t) {
             auto k = t.keys();
             std::vector<Numeric> v;
             v.reserve(k.size());
@@ -101,7 +101,7 @@ void py_surf(py::module_ &m) {
             auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_unique<SurfPoint>();
+            auto out = std::make_unique<SurfacePoint>();
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
                   [&](auto &&key) -> Numeric & { return out->operator[](key); },
@@ -109,25 +109,25 @@ void py_surf(py::module_ &m) {
 
             return out;
           }))
-      .PythonInterfaceWorkspaceDocumentation(SurfPoint);
+      .PythonInterfaceWorkspaceDocumentation(SurfacePoint);
 
   fld.def(
          "__getitem__",
-         [](SurfField &surf, Surf::Key x) -> Surf::Data & {
+         [](SurfaceField &surf, Surf::Key x) -> Surf::Data & {
            if (not surf.has(x))
              throw py::key_error(var_string(x));
            return surf[x];
          },
          py::return_value_policy::reference_internal)
-      .def("__setitem__", [](SurfField &surf, Surf::Key x,
+      .def("__setitem__", [](SurfaceField &surf, Surf::Key x,
                              const Surf::Data &data) { surf[x] = data; })
-      .def("at", [](const SurfField &surf, Numeric lat, Numeric lon, Vector2 ell) { return surf.at(lat, lon, ell); })
-      .PythonInterfaceCopyValue(SurfField)
-      .PythonInterfaceWorkspaceVariableConversion(SurfField)
-      .PythonInterfaceFileIO(SurfField)
-      .PythonInterfaceBasicRepresentation(SurfField)
+      .def("at", [](const SurfaceField &surf, Numeric lat, Numeric lon, Vector2 ell) { return surf.at(lat, lon, ell); })
+      .PythonInterfaceCopyValue(SurfaceField)
+      .PythonInterfaceWorkspaceVariableConversion(SurfaceField)
+      .PythonInterfaceFileIO(SurfaceField)
+      .PythonInterfaceBasicRepresentation(SurfaceField)
       .def(py::pickle(
-          [](const SurfField &t) {
+          [](const SurfaceField &t) {
             auto k = t.keys();
             std::vector<Surf::Data> v;
             v.reserve(k.size());
@@ -143,7 +143,7 @@ void py_surf(py::module_ &m) {
             auto v = t[1].cast<std::vector<Surf::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_unique<SurfField>();
+            auto out = std::make_unique<SurfaceField>();
 
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
@@ -154,6 +154,6 @@ void py_surf(py::module_ &m) {
 
             return out;
           }))
-      .PythonInterfaceWorkspaceDocumentation(SurfField);
+      .PythonInterfaceWorkspaceDocumentation(SurfaceField);
 }
 } // namespace Python

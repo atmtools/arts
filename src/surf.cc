@@ -72,7 +72,7 @@ Vector2 from_xyz_dxyz(Vector3 xyz, Vector3 dxyz) {
 
 namespace Surf {
 std::ostream &operator<<(std::ostream &os, const Point &surf) {
-  os << "Altitude: " << surf.altitude << " m,\n";
+  os << "Elevation: " << surf.elevation << " m,\n";
   os << "Temperature: " << surf.temperature << " K\n,";
   os << "Wind Field: [u: " << surf.wind[0] << ", v: " << surf.wind[1]
      << ", w: " << surf.wind[2] << "] m/s,\n";
@@ -303,12 +303,16 @@ Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
     a.second *= div;
   }
 
-  out.normal = normal(ellipsoid, lat, lon, out.altitude);
+  out.normal = normal(ellipsoid, lat, lon, out.elevation);
 
   return out;
 }
 } // namespace Surf
 
 std::ostream &operator<<(std::ostream &os, const SurfaceTypeTag &ppt) {
+  return os << ppt.name;
+}
+
+std::ostream &operator<<(std::ostream &os, const SurfacePropertyTag &ppt) {
   return os << ppt.name;
 }
