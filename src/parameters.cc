@@ -116,9 +116,7 @@ bool get_parameters(int argc, char **argv) {
   */
   struct option longopts[] = {
       {"basename", required_argument, NULL, 'b'},
-#ifdef ENABLE_DOCSERVER
       {"check-docs", no_argument, NULL, 'C'},
-#endif
       {"describe", required_argument, NULL, 'd'},
       {"groups", no_argument, NULL, 'g'},
       {"help", no_argument, NULL, 'h'},
@@ -130,11 +128,9 @@ bool get_parameters(int argc, char **argv) {
       {"outdir", required_argument, NULL, 'o'},
       {"plain", no_argument, NULL, 'p'},
       {"reporting", required_argument, NULL, 'r'},
-#ifdef ENABLE_DOCSERVER
       {"docserver", optional_argument, NULL, 's'},
       {"docdaemon", optional_argument, NULL, 'S'},
       {"baseurl", required_argument, NULL, 'U'},
-#endif
       {"workspacevariables", required_argument, NULL, 'w'},
       {"version", no_argument, NULL, 'v'},
       {NULL, no_argument, NULL, 0}};
@@ -268,9 +264,6 @@ bool get_parameters(int argc, char **argv) {
       case 'h':
         parameters.help = true;
         break;
-      case 'C':
-        parameters.check_docs = true;
-        break;
       case 'b':
         parameters.basename = optarg;
         break;
@@ -325,6 +318,10 @@ bool get_parameters(int argc, char **argv) {
         }
         break;
       }
+#ifdef ENABLE_DOCSERVER
+      case 'C':
+        parameters.check_docs = true;
+        break;
       case 's': {
         if (optarg) {
           istringstream iss(optarg);
@@ -354,6 +351,16 @@ bool get_parameters(int argc, char **argv) {
       case 'U':
         parameters.baseurl = optarg;
         break;
+#else // ENABLE_DOCSERVER
+      case 'C': [[fallthrough]];
+      case 's': [[fallthrough]];
+      case 'S': [[fallthrough]];
+      case 'U':
+        cerr << "This version of ARTS was compiled without documentation "
+                "server support.\n";
+        arts_exit();
+        break;
+#endif // ENABLE_DOCSERVER
       case 'v':
         parameters.version = true;
         break;
