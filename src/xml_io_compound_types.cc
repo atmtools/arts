@@ -2526,7 +2526,7 @@ void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
   if (keytype == "Surf::Key")
     key_val = Surf::toKeyOrThrow(key);
   else if (keytype == "SurfaceTypeTag")
-    key_val = SurfaceTypeTag(key);
+    key_val = SurfaceTypeTag{key};
   else
     ARTS_USER_ERROR("Cannot understand the keytype: ", std::quoted(keytype))
 
@@ -2701,7 +2701,7 @@ void xml_read_from_stream(istream& is_xml,
       surf[Surf::toKeyOrThrow(k)] = v;
       nother--;
     } else if (ntype > 0) {
-      surf[SurfaceTypeTag(k)] = v;
+      surf[SurfaceTypeTag{k}] = v;
       ntype--;
     } else {
       ARTS_ASSERT(false)

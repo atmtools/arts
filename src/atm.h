@@ -106,10 +106,10 @@ private:
   std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
 public:
-  Numeric pressure{0};
-  Numeric temperature{0};
-  Vector3 wind{0., 0., 0.};
-  Vector3 mag{0., 0., 0.};
+  Numeric pressure{std::numeric_limits<Numeric>::quiet_NaN()};
+  Numeric temperature{std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector3 wind{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector3 mag{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
 
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
   Point(Ts&&... ts) requires((N % 2) == 0) {

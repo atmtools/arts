@@ -64,10 +64,10 @@ concept KeyType = isKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
 using KeyVal = std::variant<Key, SurfaceTypeTag, SurfacePropertyTag>;
 
 struct Point {
-  Numeric elevation;
-  Numeric temperature;
-  Vector3 wind;
-  Vector2 normal;
+  Numeric elevation{std::numeric_limits<Numeric>::quiet_NaN()};
+  Numeric temperature{std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector3 wind{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector2 normal{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
   std::unordered_map<SurfaceTypeTag, Numeric> type;
   std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
