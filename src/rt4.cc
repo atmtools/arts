@@ -1378,7 +1378,7 @@ void surf_optpropCalc(Workspace& ws,
 
   for (Index rmu = 0; rmu < nummu; rmu++) {
     // Local output of surface_rtprop_agenda.
-    Numeric surface_skin_t;
+    SurfacePoint surface_point;
     Matrix surface_los;
     Tensor4 surface_rmatrix;
     Matrix surface_emission;
@@ -1390,7 +1390,7 @@ void surf_optpropCalc(Workspace& ws,
     Vector rtp_los(1, za_grid[nummu + rmu]);
 
     surface_rtprop_agendaExecute(ws,
-                                 surface_skin_t,
+                                 surface_point,
                                  surface_emission,
                                  surface_los,
                                  surface_rmatrix,
@@ -1415,10 +1415,10 @@ void surf_optpropCalc(Workspace& ws,
     // reflection matrix). For now, we use the rescaling approach.
     for (Index f_index = 0; f_index < nf; f_index++) {
       Numeric freq = f_grid[f_index];
-      Numeric B_freq = planck(freq, surface_skin_t);
+      Numeric B_freq = planck(freq, surface_point.temperature);
       Numeric B_lambda;
       Numeric wave = 1e6 * SPEED_OF_LIGHT / freq;
-      planck_function_(surface_skin_t, B_unit.c_str(), wave, B_lambda);
+      planck_function_(surface_point.temperature, B_unit.c_str(), wave, B_lambda);
       Numeric B_ratio = B_lambda / B_freq;
       surf_emis_vec(f_index, rmu, joker) = surface_emission(f_index, joker);
       surf_emis_vec(f_index, rmu, joker) *= B_ratio;

@@ -248,7 +248,7 @@ void MCGeneral(Workspace& ws,
   mc_source_domain = 0;
 
   //local versions of workspace
-  Numeric local_surface_skin_t;
+  SurfacePoint local_surface_point;
   Matrix local_iy(1, stokes_dim), local_surface_emission(1, stokes_dim);
   Matrix local_surface_los;
   Tensor4 local_surface_rmatrix;
@@ -364,7 +364,7 @@ void MCGeneral(Workspace& ws,
         } else if (termination_flag == 2) {
           //Calculate surface properties
           surface_rtprop_agendaExecute(ws,
-                                       local_surface_skin_t,
+                                       local_surface_point,
                                        local_surface_emission,
                                        local_surface_los,
                                        local_surface_rmatrix,

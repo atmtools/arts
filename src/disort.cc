@@ -1766,7 +1766,7 @@ void surf_albedoCalc(Workspace& ws,
   // coefficient
   for (Index rza = 0; rza < nrza; rza++) {
     // Local output of surface_rtprop_agenda.
-    Numeric surface_skin_t;
+    SurfacePoint surface_point;
     Matrix surface_los;
     Tensor4 surface_rmatrix;
     Matrix surface_emission;
@@ -1775,7 +1775,7 @@ void surf_albedoCalc(Workspace& ws,
     out2 << "Doing reflected dir #" << rza << " at " << rtp_los[0] << " degs\n";
 
     surface_rtprop_agendaExecute(ws,
-                                 surface_skin_t,
+                                 surface_point,
                                  surface_emission,
                                  surface_los,
                                  surface_rmatrix,
@@ -1791,8 +1791,8 @@ void surf_albedoCalc(Workspace& ws,
     }
 
     if (rza == 0)
-      btemp = surface_skin_t;
-    else if (surface_skin_t != btemp) {
+      btemp = surface_point.temperature;
+    else if (surface_point.temperature != btemp) {
       ostringstream os;
       os << "Something went wrong.\n"
          << "  *surface_rtprop_agenda* returned different surface_skin_t\n"
@@ -1901,13 +1901,13 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
   Vector rtp_pos(1, surf_alt); 
   Vector rtp_los(1, 180-inc_angle);
   
-  Numeric surface_skin_t;
+  SurfacePoint surface_point;
   Matrix surface_los;
   Tensor4 surface_rmatrix;
   Matrix surface_emission;
     
   surface_rtprop_agendaExecute(ws,
-                               surface_skin_t,
+                               surface_point,
                                surface_emission,
                                surface_los,
                                surface_rmatrix,
@@ -1928,7 +1928,7 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
     albedo[joker] = surface_rmatrix(0,joker,0,0);
   }
 
-  btemp = surface_skin_t;
+  btemp = surface_point.temperature;
   if (btemp < 0. || btemp > 1000.) {
     ostringstream os;
     os << "Surface temperature has been derived as " << btemp << " K,\n"

@@ -306,7 +306,8 @@ Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
     a.second *= div;
   }
 
-  out.normal = normal(ellipsoid, lat, lon, out.elevation);
+  if (has(Key::h))
+    out.normal = normal(ellipsoid, lat, lon, out.elevation);
 
   return out;
 }

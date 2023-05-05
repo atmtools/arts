@@ -37,11 +37,13 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <iomanip>
 #include "array.h"
 #include "arts.h"
 #include "arts_constants.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "matpack_complex.h"
 #include "fastem.h"
 #include "geodetic.h"
@@ -206,48 +208,37 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpSurfaceFieldToPosition(Numeric& outvalue,
-                                  const Vector& lat_grid,
-                                  const Vector& lon_grid,
+void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                                   const Vector& rtp_pos,
-                                  const Matrix& z_surface,
-                                  const Matrix& field,
+                                  const SurfaceField& surface_field,
+                                  const Vector& refellipsoid,
+                                  const Numeric& surface_search_accuracy,
                                   const Verbosity& verbosity) {
-  // Input checks
-  chk_atm_surface(
-      "input argument *field*", field, 3, lat_grid, lon_grid);
-  chk_rte_pos(3, rtp_pos);
-  //
-  const Numeric zmax = max(z_surface);
-  const Numeric zmin = min(z_surface);
-  const Numeric dzok = 1;
-  if (rtp_pos[0] < zmin - dzok || rtp_pos[0] > zmax + dzok) {
-    ostringstream os;
-    os << "The given position does not match *z_surface*.\nThe altitude in "
-       << "*rtp_pos* is " << rtp_pos[0] / 1e3 << " km.\n"
-       << "The altitude range covered by *z_surface* is [" << zmin / 1e3 << ","
-       << zmax / 1e3 << "] km.\n"
-       << "One possible mistake is to mix up *rtp_pos* and *rte_los*.";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(not surface_field.has(Surf::Key::h),
+      "No elevation in the surface field, required by method")
 
-  if (3 == 1) {
-    outvalue = field(0, 0);
-  } else {
-    chk_interpolation_grids("Latitude interpolation", lat_grid, rtp_pos[1]);
-    GridPos gp_lat, gp_lon;
-    gridpos(gp_lat, lat_grid, rtp_pos[1]);
-    if (3 == 3) {
-      chk_interpolation_grids("Longitude interpolation", lon_grid, rtp_pos[2]);
-      gridpos(gp_lon, lon_grid, rtp_pos[2]);
-    }
-    //
-    outvalue = interp_atmsurface_by_gp(3, field, gp_lat, gp_lon);
-  }
+  ARTS_USER_ERROR_IF(surface_search_accuracy < 0.0,
+                     "Cannot have negative surface search accuracy")
+
+  const Numeric alt = rtp_pos[0];
+  const Numeric lat = rtp_pos[1];
+  const Numeric lon = rtp_pos[2];
+  surface_point = surface_field.at(lat, lon, {refellipsoid[0], refellipsoid[0]});
+
+  const bool cmp = std::abs(alt - surface_point.elevation) > surface_search_accuracy;
+  ARTS_USER_ERROR_IF(cmp,
+                     "rtp_pos is not close enough to the surface.\nThe surface accuracy is: ",
+                     surface_search_accuracy,
+                     " m.\nThe surface altitude is: ",
+                     surface_point.elevation,
+                     " m.\nThe rtp_pos altitude is: ",
+                     alt, " m.\n")
 
   // Interpolate
   CREATE_OUT3;
-  out3 << "    Result = " << outvalue << "\n";
+  out3 << "    Result = " << surface_point << "\n";
+
+  std::cout << "TEST: " << surface_point << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1397,7 +1388,7 @@ const auto& lon_grid = atm_field.grid[2];
 void iySurfaceRtpropAgenda(Workspace& ws,
                            Matrix& iy,
                            ArrayOfTensor3& diy_dx,
-                           Numeric& surface_skin_t,
+                           SurfacePoint& surface_point,
                            Matrix& surface_los,
                            Tensor4& surface_rmatrix,
                            Matrix& surface_emission,
@@ -1422,7 +1413,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
 
   // Call *surface_rtprop_agenda*
   surface_rtprop_agendaExecute(ws,
-                               surface_skin_t,
+                               surface_point,
                                surface_emission,
                                surface_los,
                                surface_rmatrix,
@@ -1793,16 +1784,16 @@ void surfaceBlackbody(Matrix& surface_los,
                       const Index& stokes_dim,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
-                      const Numeric& surface_skin_t,
+                      const SurfacePoint& surface_point,
                       const Verbosity& verbosity) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
-  chk_not_negative("surface_skin_t", surface_skin_t);
+  chk_not_negative("surface_skin_t", surface_point.temperature);
 
   CREATE_OUT2;
   out2 << "  Sets variables to model a blackbody surface with a temperature "
-       << " of " << surface_skin_t << " K.\n";
+       << " of " << surface_point.temperature << " K.\n";
 
   surface_los.resize(0, 0);
   surface_rmatrix.resize(0, 0, 0, 0);
@@ -1810,7 +1801,7 @@ void surfaceBlackbody(Matrix& surface_los,
   const Index nf = f_grid.nelem();
 
   Vector b(nf);
-  planck(b, f_grid, surface_skin_t);
+  planck(b, f_grid, surface_point.temperature);
 
   surface_emission.resize(nf, stokes_dim);
   surface_emission = 0.0;
@@ -3211,6 +3202,7 @@ void SurfaceBlackbody(Matrix& surface_los,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
                       const SurfaceField& surface_field,
+                      const Vector& refellipsoid,
                       const ArrayOfString& surface_props_names,
                       const ArrayOfString& dsurface_names,
                       const Index& jacobian_do,
@@ -3228,17 +3220,9 @@ void SurfaceBlackbody(Matrix& surface_los,
   rte_pos2gridpos(
       gp_lat[0], gp_lon[0], 3, lat_grid, lon_grid, rtp_pos);
   interp_atmsurface_gp2itw(itw, 3, gp_lat, gp_lon);
-
-  // Skin temperature
-  Vector skin_t(1);
-  surface_props_interp(skin_t,
-                       "Skin temperature",
-                       3,
-                       gp_lat,
-                       gp_lon,
-                       itw,
-                       surface_field,
-                       surface_props_names);
+  
+  constexpr Numeric lat=0, lon=0;
+  const SurfacePoint surface_point = surface_field.at(lat, lon, {refellipsoid[0], refellipsoid[2]});
 
   surfaceBlackbody(surface_los,
                    surface_rmatrix,
@@ -3247,7 +3231,7 @@ void SurfaceBlackbody(Matrix& surface_los,
                    stokes_dim,
                    rtp_pos,
                    rtp_los,
-                   skin_t[0],
+                   surface_point,
                    verbosity);
 
   surface_rmatrix.resize(1, f_grid.nelem(), stokes_dim, stokes_dim);
@@ -3266,7 +3250,7 @@ void SurfaceBlackbody(Matrix& surface_los,
     irq = find_first(dsurface_names, String("Skin temperature"));
     if (irq >= 0) {
       Matrix dbdt(f_grid.nelem(), 1);
-      dplanck_dt(dbdt(joker, 0), f_grid, skin_t[0]);
+      dplanck_dt(dbdt(joker, 0), f_grid, surface_point.temperature);
       dsurface_emission_dx[irq] = dbdt;
       dsurface_rmatrix_dx[irq].resize(surface_rmatrix.nbooks(),
                                       surface_rmatrix.npages(),
@@ -3280,22 +3264,12 @@ void SurfaceBlackbody(Matrix& surface_los,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
                   ArrayOfMatrix& dsurface_emission_dx,
-                  const Vector& lat_grid,
-                  const Vector& lon_grid,
-                  const SurfaceField& surface_field,
                   const ArrayOfString& surface_props_names,
                   const ArrayOfString& dsurface_names,
                   const Index& jacobian_do,
                   const Verbosity&) {
-  if (surface_props_names.nelem())
-    throw runtime_error(
-        "When calling this method, *surface_props_names* should be empty.");
-
-  surface_props_check(3,
-                      lat_grid,
-                      lon_grid,
-                      surface_field,
-                      surface_props_names);
+  ARTS_USER_ERROR_IF (surface_props_names.nelem(),
+        "When calling this method, *surface_props_names* should be empty.")
 
   if (jacobian_do) {
     dsurface_check(surface_props_names,

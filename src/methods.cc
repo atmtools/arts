@@ -8024,7 +8024,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_DEFAULT(NODEF),
       GIN_DESC("Gridded field to interpolate.")));
 
-/*
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpSurfaceFieldToPosition"),
       DESCRIPTION(
@@ -8041,16 +8040,15 @@ After this method is called, all existing fields have a regular shape.
           "give a warning when the specified position is not consistent with\n"
           "the surface altitudes.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Numeric"),
-      GOUT_DESC("Value obtained by interpolation."),
-      IN( "lat_grid", "lon_grid", "rtp_pos", "surface_field"),
-      GIN("field"),
-      GIN_TYPE("Matrix"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Field to interpolate.")));
-*/
+      OUT("surface_point"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "rtp_pos", "surface_field", "refellipsoid", "surface_search_accuracy"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
 /*
   md_data_raw.push_back(create_mdrecord(
@@ -9363,7 +9361,7 @@ After this method is called, all existing fields have a regular shape.
       AUTHORS("Patrick Eriksson"),
       OUT("iy",
           "diy_dx",
-          "surface_skin_t",
+          "surface_point",
           "surface_los",
           "surface_rmatrix",
           "surface_emission"),
@@ -19580,6 +19578,66 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 */
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("surface_fieldInit"),
+      DESCRIPTION(
+          "Create new *surface_field*.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("surface_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_fieldSet"),
+      DESCRIPTION(
+          "Make the surface field hold value at the key.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("surface_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("surface_field"),
+      GIN("value", "key"),
+      GIN_TYPE("Numeric,GriddedField2", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Value to set", "Key to set value at")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_fieldSetProp"),
+      DESCRIPTION(
+          "Make the surface field hold value at the key.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("surface_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("surface_field"),
+      GIN("value", "key"),
+      GIN_TYPE("Numeric,GriddedField2", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Value to set", "Key to set value at")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("surface_fieldSetType"),
+      DESCRIPTION(
+          "Make the surface field hold value at the key.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("surface_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("surface_field"),
+      GIN("value", "key"),
+      GIN_TYPE("Numeric,GriddedField2", "String"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Value to set", "Key to set value at")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceBlackbody"),
       DESCRIPTION(
           "Creates variables to mimic a blackbody surface.\n"
@@ -19598,7 +19656,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "stokes_dim",
          "rtp_pos",
          "rtp_los",
-         "surface_skin_t"),
+         "surface_point"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -20274,7 +20332,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT(),
       GIN_DESC()));
 */
-/*
+
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),
       DESCRIPTION(
@@ -20295,9 +20353,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "lat_grid",
-         "lon_grid",
-         "surface_field",
          "surface_props_names",
          "dsurface_names",
          "jacobian_do"),
@@ -20305,7 +20360,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-*/
+
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceFastem"),

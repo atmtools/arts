@@ -250,6 +250,7 @@ add_library (artscore STATIC
   m_retrieval.cc
   m_sensor.cc
   m_sun.cc
+  m_surf.cc
   m_surface.cc
   m_telsem.cc
   m_tessem.cc

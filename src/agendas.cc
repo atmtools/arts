@@ -664,7 +664,7 @@ void define_agenda_data() {
           "within the agenda. Typical methods include *surfaceBlackbody*,\n"
           "*surfaceFlatScalarReflectivity*, *surfaceFlatReflectivity*,\n"
           "*surfaceFlatRefractiveIndex*, and *surfaceLambertianSimple*.\n"),
-      OUTPUT("surface_skin_t",
+      OUTPUT("surface_point",
              "surface_emission",
              "surface_los",
              "surface_rmatrix"),
