@@ -343,11 +343,9 @@ void get_disortsurf_props(  // Output
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
-                    ConstVectorView t_profile,
-                    ConstMatrixView vmr_profiles,
-                    ConstVectorView p_grid,
-                    ConstVectorView f_grid) {
-  const Index Np = p_grid.nelem();
+                    const ArrayOfAtmPoint& ppvar_atm,
+                    const Vector& f_grid) {
+  const Index Np = ppvar_atm.nelem();
 
   ARTS_ASSERT(ext_bulk_gas.nrows() == f_grid.nelem());
   ARTS_ASSERT(ext_bulk_gas.ncols() == Np);
@@ -371,9 +369,9 @@ void get_gasoptprop(Workspace& ws,
                                    partial_nlte_dummy,
                                    ArrayOfRetrievalQuantity(0),
                                    {},
-                                   Vector{f_grid},
+                                   f_grid,
                                    ppath_los_dummy,
-                                   AtmPoint{},  // FIXME: DUMMY VALUE
+                                   ppvar_atm[ip],
                                    propmat_clearsky_agenda);
     ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
   }
@@ -1076,7 +1074,18 @@ void run_cdisort(Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+  const ArrayOfAtmPoint ppvar_atm = [&](){
+    ArrayOfAtmPoint atm(p_grid.nelem());
+    for (Index ip=0; ip<p_grid.nelem(); ip++) {
+      atm[ip].pressure = p_grid[ip];
+      atm[ip].temperature = t_profile[ip];
+      for (Index ispec=0; ispec<specs.nelem(); ispec++) {
+        atm[ip][specs[ispec]] = vmr_profiles(ispec, ip);
+      }
+    }
+    return atm;
+  }();
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, ppvar_atm, Vector{f_grid});
 
   // Get particle bulk properties
   Index nang;
@@ -1466,7 +1475,18 @@ void run_cdisort_flux(Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+  const ArrayOfAtmPoint ppvar_atm = [&](){
+    ArrayOfAtmPoint atm(p.nelem());
+    for (Index ip=0; ip<p.nelem(); ip++) {
+      atm[ip].pressure = p[ip];
+      atm[ip].temperature = t[ip];
+      for (Index ispec=0; ispec<specs.nelem(); ispec++) {
+        atm[ip][specs[ispec]] = vmr(ispec, ip);
+      }
+    }
+    return atm;
+  }();
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, ppvar_atm, Vector{f_grid});
 
   // Get particle bulk properties
   Index nang;

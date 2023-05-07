@@ -334,10 +334,8 @@ void run_cdisort_flux(Workspace& ws,
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
-                    ConstVectorView t_profile,
-                    ConstMatrixView vmr_profiles,
-                    ConstVectorView p_grid,
-                    ConstVectorView f_grid);
+                    const ArrayOfAtmPoint& ppvar_atm,
+                    const Vector& f_grid);
 
 /** get_gas_scattering_properties
  *
