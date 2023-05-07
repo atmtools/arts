@@ -108,7 +108,7 @@ private:
 public:
   Numeric pressure{std::numeric_limits<Numeric>::quiet_NaN()};
   Numeric temperature{std::numeric_limits<Numeric>::quiet_NaN()};
-  Vector3 wind{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector3 wind{0, 0, 0};
   Vector3 mag{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
 
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
