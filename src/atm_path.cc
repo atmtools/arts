@@ -52,18 +52,18 @@ void forward_path_freq(ArrayOfVector &path_freq, const Vector &main_freq,
     const auto aa_f = std::atan2(u, v);
     const auto za_p = Conversion::deg2rad(180 - za);
     const auto aa_p = Conversion::deg2rad(aa + 180);
-    return f * (std::cos(za_f) * std::cos(za_p) +
-                std::sin(za_f) * std::sin(za_p) * std::cos(aa_f - aa_p));
+    return f * ((f == 0) ? 1.0
+                         : (std::cos(za_f) * std::cos(za_p) +
+                            std::sin(za_f) * std::sin(za_p) *
+                                std::cos(aa_f - aa_p)));
   };
 
   for (Index ip = 0; ip < atm_path.nelem(); ip++) {
-    std::transform(
-        main_freq.begin(), main_freq.end(), path_freq[ip].begin(),
-        [fac = 1.0 - (along_path_atm_speed +
-                      (atm_path[ip].zero_wind() ? 0.0 : dot_prod(ip))) /
-                         Constant::speed_of_light](const auto &f) {
-          return fac * f;
-        });
+    std::transform(main_freq.begin(), main_freq.end(), path_freq[ip].begin(),
+                   [fac = 1.0 - (along_path_atm_speed + dot_prod(ip)) /
+                                    Constant::speed_of_light](const auto &f) {
+                     return fac * f;
+                   });
   }
 }
 
