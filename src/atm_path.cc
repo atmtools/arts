@@ -3,6 +3,8 @@
 #include "arts_conversions.h"
 #include "atm.h"
 #include "auto_md.h"
+#include "gridded_fields.h"
+#include "matpack_concepts.h"
 #include "matpack_view.h"
 #include "propagationmatrix.h"
 #include "species_tags.h"
@@ -10,6 +12,8 @@
 
 #include <algorithm>
 #include <array>
+#include <memory>
+#include <vector>
 
 ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
                                  const Ppath &ppath) {
@@ -74,4 +78,71 @@ ArrayOfVector forward_path_freq(const Vector &main_freq, const Ppath &ppath,
   forward_path_freq(path_freq, main_freq, ppath, atm_path,
                     along_path_atm_speed);
   return path_freq;
+}
+
+/** Returns a unique z_grid and the positions of these values in the original path
+ * 
+ * @param ppath As WSV
+ * @return std::pair<Vector, ArrayOfArrayOfIndex> z_grid, list of positions
+ */
+std::pair<Vector, ArrayOfArrayOfIndex> unique_z_grid(const Ppath& ppath) {
+  const Vector z{ppath.pos(joker, 0)};
+  
+  Vector z_grid{z};
+  std::sort(z_grid.begin(), z_grid.end());
+  z_grid = Vector{std::vector<Numeric>{z_grid.begin(), std::unique(z_grid.begin(), z_grid.end())}};
+
+  ArrayOfArrayOfIndex pos(z_grid.nelem());
+  if (z.nelem() == z_grid.nelem()) {
+    // The grid is completely sorted with unique altitudes
+
+    if (z_grid.front() == z.front()) {
+      for (Index i=0; i<pos.nelem(); i++) {
+        pos[i] = ArrayOfIndex{i};
+      }
+    } else {
+      for (Index i=0; i<pos.nelem(); i++) {
+        pos[i] = ArrayOfIndex{pos.nelem() - i - 1};
+      }
+    }
+  } else {
+    // There are multiple values for some altitudes
+
+    for (Index i=0; i<pos.nelem(); i++) {
+      for (Index j=0; j<z_grid.nelem(); j++) {
+        if (z[j] == z_grid[i]) pos[i].push_back(j);
+      }
+    }
+  }
+
+  return {z_grid, pos};
+}
+
+AtmField forward_1d_atm_field(const ArrayOfAtmPoint& atm_path, const Ppath& ppath) {
+  ARTS_ASSERT(atm_path.nelem() == ppath.np);
+  ARTS_ASSERT(atm_path.nelem() > 0);
+
+  const auto [z, pos] = unique_z_grid(ppath);
+  AtmField atm;
+  atm.grid[0] = z;
+  atm.grid[1] = {ppath.pos(0, 1)};
+  atm.grid[2] = {ppath.pos(0, 2)};
+  atm.regularized = true;
+  atm.top_of_atmosphere = z.back();
+
+  const auto keys = atm_path.front().keys();
+
+  Tensor3 data(atm.regularized_shape());
+  for (auto& key: keys) {
+    for (Index i=0; i<z.nelem(); i++) {
+      data(i, 0, 0) = atm_path[pos[i][0]][key] / static_cast<Numeric>(pos[i].nelem());
+      for (Index j=1; j<pos[i].nelem(); j++) {
+        data(i, 0, 0) += atm_path[pos[i][j]][key] / static_cast<Numeric>(pos[i].nelem());
+      }
+    }
+
+    atm[key] = data;
+  }
+
+  return atm;
 }
