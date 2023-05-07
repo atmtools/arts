@@ -8,9 +8,6 @@
 #include "transmissionmatrix.h"
 #include <tuple>
 
-class Workspace;
-class Agenda;
-
 ArrayOfAtmPoint& atm_path_resize(ArrayOfAtmPoint&, const Ppath&);
 
 void forward_atm_path(ArrayOfAtmPoint&, const Ppath&, const AtmField&);
@@ -22,3 +19,5 @@ ArrayOfVector& path_freq_resize(ArrayOfVector&, const Vector&, const ArrayOfAtmP
 void forward_path_freq(ArrayOfVector&, const Vector&, const Ppath&, const ArrayOfAtmPoint&, const Numeric);
 
 ArrayOfVector forward_path_freq(const Vector&, const Ppath&, const ArrayOfAtmPoint&, const Numeric);
+
+AtmField forward_1d_atm_field(const ArrayOfAtmPoint&, const Ppath&);
