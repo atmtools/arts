@@ -92,6 +92,8 @@ struct Point {
     } else if constexpr (isSurfacePropertyTag<Key>) {
       return prop[std::forward<Key>(x)];
     }
+    
+    return temperature;
   }
 
   template <KeyType Key> Numeric operator[](Key &&x) const {
@@ -115,6 +117,8 @@ struct Point {
     } else if constexpr (isSurfacePropertyTag<Key>) {
       return prop.at(std::forward<Key>(x));
     }
+
+    return 0.0;
   }
 
   Numeric &operator[](const KeyVal &x);
