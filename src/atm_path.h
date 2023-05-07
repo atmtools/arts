@@ -1,12 +1,7 @@
 #pragma once
 
 #include "atm.h"
-#include "jacobian.h"
-#include "matpack_arrays.h"
 #include "ppath_struct.h"
-#include "propagationmatrix.h"
-#include "transmissionmatrix.h"
-#include <tuple>
 
 /** Helper function that resizes the input ArrayOfAtmPoint.
  *
