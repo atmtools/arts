@@ -299,9 +299,12 @@ Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
   }
 
   // Normalize the surface types
-  const auto div =
-      1.0 / std::reduce(out.type.begin(), out.type.end(), Numeric{0.0},
-                        [](auto &a, auto &x) { return a + x.second; });
+  const auto div = 1.0 / [&]() {
+    Numeric d = 0.0;
+    for (auto &x : out.type)
+      d += x.second;
+    return d;
+  }();
   for (auto &a : out.type) {
     a.second *= div;
   }
