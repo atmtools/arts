@@ -6,11 +6,17 @@
 #include <stdexcept>
 
 #include "arts_options.h"
+#include "debug.h"
+#include "enums.h"
 #include "transmissionmatrix.h"
 
 namespace AgendaManip {
 std::ostream& operator<<(std::ostream& os, const AgendaMethodVariable& x) {
   return os << x.name << "@" << x.ws_pos;
+}
+
+std::ostream& operator<<(std::ostream& os, const SetWsv& x) {
+  return os << std::quoted(x.str);
 }
 
 Array<AgendaMethodVariable> sorted_mdrecord(Workspace& ws,
@@ -85,14 +91,14 @@ std::pair<ArrayOfIndex, ArrayOfIndex> split_io(
   return {in, out};
 }
 
-SetWsv::SetWsv(const std::string& x, const std::string& y)
-    : test(opt::NameOnly), str(x + "=" + y) {}
+SetWsv::SetWsv(const std::string& x, const std::string& y) try
+    : test(opt::NameOnly), str(x + "=" + y) {} catch(std::exception& e) {throw std::logic_error(var_string("Cannot set ", std::quoted(x),'=',std::quoted(y), "\nWith error:\n", e.what()));}
 
-SetWsv::SetWsv(std::string_view x) : test(opt::NameOnly), str(x) {}
+SetWsv::SetWsv(std::string_view x) try : test(opt::NameOnly), str(x) {} catch(std::exception& e) {throw std::logic_error(var_string("Cannot set ", std::quoted(x), "\nWith error:\n", e.what()));}
 
 MethodVariable::MethodVariable(Workspace& ws,
                                const Array<AgendaMethodVariable>& list,
-                               const SetWsv& wsv) {
+                               const SetWsv& wsv) try {
   using enum SetWsv::opt;
   switch (wsv.test) {
     case NameOnly: {
@@ -100,7 +106,9 @@ MethodVariable::MethodVariable(Workspace& ws,
       auto equal_sign = expr.find('=');
       if (equal_sign == expr.npos) {
         positional = true;
-        ws_pos = ws.WsvMap_ptr->at(expr);
+        auto ptr = ws.WsvMap_ptr->find(expr);
+        if (ptr ==  ws.WsvMap_ptr->end()) throw std::logic_error(var_string(std::quoted(expr), " is not a valid workspace variable"));
+        ws_pos = ptr->second;
       } else {
         positional = false;
         auto rhs = expr;
@@ -119,7 +127,9 @@ MethodVariable::MethodVariable(Workspace& ws,
           rhs.remove_suffix(1);
 
         method_position(list, lhs);
-        ws_pos = ws.WsvMap_ptr->at(rhs);
+        auto ptr = ws.WsvMap_ptr->find(rhs);
+        if (ptr ==  ws.WsvMap_ptr->end()) throw std::logic_error(var_string(std::quoted(rhs), " is not a valid workspace variable"));
+        ws_pos = ptr->second;
       }
     } break;
     case ValueOnly:
@@ -132,9 +142,9 @@ MethodVariable::MethodVariable(Workspace& ws,
       wsv_position(ws, wsv.val);
       break;
   }
-}
+} catch(std::exception& e) {throw std::logic_error(var_string("Cannot create method variable:\n", wsv, "\nWith error:\n", e.what()));}
 
-void MethodVariable::add_del(Workspace& ws, Agenda& a) const {
+void MethodVariable::add_del(Workspace& ws, Agenda& a) const try {
   if (new_value)
     a.push_back(MRecord(
         global_data::MdMap.at(var_string(
@@ -144,9 +154,11 @@ void MethodVariable::add_del(Workspace& ws, Agenda& a) const {
         {ws_pos},
         {},
         Agenda{ws}));
+} catch (std::exception& e) {
+  throw std::logic_error(var_string("Cannot delete wsv group at position: ", ws_pos, "\nWith error:\n", e.what()));
 }
 
-void MethodVariable::add_set(Workspace& ws, Agenda& a) const {
+void MethodVariable::add_set(Workspace& ws, Agenda& a) const try {
   if (new_value)
     a.push_back(MRecord(
         global_data::MdMap.at(var_string(
@@ -157,15 +169,19 @@ void MethodVariable::add_set(Workspace& ws, Agenda& a) const {
         {},
         ws.wsv_data_ptr->at(ws_pos).default_value(),
         Agenda{ws}));
+} catch (std::exception& e) {
+  throw std::logic_error(var_string("Cannot set wsv group at position: ", ws_pos, "\nWith error:\n", e.what()));
 }
 
 void MethodVariable::method_position(const Array<AgendaMethodVariable>& list,
-                                     const std::string_view rhs) {
+                                     const std::string_view rhs) try {
   auto ptr = std::find_if(
       list.begin(), list.end(), [rhs](auto& x) { return x.name == rhs; });
   ARTS_ASSERT(
       ptr not_eq list.end(), "Wrongly named parameter selection: ", rhs);
   method_pos = std::distance(list.begin(), ptr);
+} catch (std::exception& e) {
+  throw std::logic_error(var_string("Cannot parameter: ", std::quoted(rhs), "\nWith error:\n", e.what()));
 }
 
 void MethodVariable::wsv_position(Workspace& ws, const TokVal& value) {
@@ -180,7 +196,7 @@ AgendaCreator::AgendaCreator(Workspace& workspace, const char* name)
 }
 
 //! Check the agenda and move it out of here
-Agenda AgendaCreator::finalize() {
+Agenda AgendaCreator::finalize() try {
   auto& agrecord = global_data::agenda_data.at(global_data::AgendaMap.at(agenda.name()));
 
   ArrayOfIndex input, output;
@@ -215,6 +231,8 @@ Agenda AgendaCreator::finalize() {
   agenda.check(ws, Verbosity{});
 
   return agenda;
+} catch(std::exception& e) {
+  throw std::logic_error(var_string("Error trying to finalize agenda:\n", std::quoted(agenda.name()), "\nWith error:\n", e.what()));
 }
 
 void AgendaCreator::set(const std::string_view var, const TokVal& value) {
@@ -819,6 +837,101 @@ Agenda get_rte_background_agenda(Workspace &ws, const String &option) {
   case FINAL:
       break;
   }
+
+  return agenda.finalize();
+}
+
+namespace detail {
+ENUMCLASS(rte_option, char, Emission, Transmission)
+
+void set_rte(AgendaCreator& a, const rte_option opt) {
+  using enum rte_option;
+  switch(opt) {
+    case Emission:
+      a.add("ppvar_radCalcEmission");
+      break;
+    case Transmission:
+      a.add("ppvar_radCalcTransmission");
+      break;
+    case FINAL:
+      ARTS_ASSERT(false, "This part cannot be reached")
+      std::terminate();
+  }
+}
+
+ENUMCLASS(background_option, char, Emission, None)
+
+void set_background(AgendaCreator& a, const background_option opt) {
+  using enum background_option;
+  switch(opt) {
+    case Emission:
+      a.add("iyBackground");
+      a.add("background_radFromMatrix", "iy_mat=iy");
+      break;
+    case None:
+      break;
+    case FINAL:
+      ARTS_ASSERT(false, "This part cannot be reached")
+      std::terminate();
+  }
+}
+
+ENUMCLASS(propagation_properties_option, char, FromPropmat)
+
+void set_propagation_properties(AgendaCreator& a, const propagation_properties_option opt) {
+  using enum propagation_properties_option;
+  switch(opt) {
+    case FromPropmat:
+      a.add("ppvar_propmatCalc");
+      a.add("ppvar_srcFromPropmat");
+      a.add("ppvar_tramatCalc");
+      a.add("ppvar_cumtramatForward");
+      break;
+    case FINAL:
+      ARTS_ASSERT(false, "This part cannot be reached")
+      std::terminate();
+  }
+}
+
+ENUMCLASS(ppath_option, char, Geometric)
+
+void set_ppath(AgendaCreator& a, const ppath_option opt) {
+  using enum ppath_option;
+  switch(opt) {
+    case Geometric:
+      a.add("ppathGeometric");
+      break;
+    case FINAL:
+      ARTS_ASSERT(false, "This part cannot be reached")
+      std::terminate();
+  }
+}
+}  // namespace detail
+
+Agenda get_iy_main_agenda(Workspace &ws, const String &rte_option,
+                          const String &propagation_properties_option,
+                          const String &background_option,
+                          const String &ppath_option) {
+  AgendaCreator agenda(ws, "iy_main_agenda");
+
+  const auto rte_opt = detail::torte_optionOrThrow(rte_option);
+  const auto bkg_opt = detail::tobackground_optionOrThrow(background_option);
+  const auto ppr_opt = detail::topropagation_properties_optionOrThrow(
+      propagation_properties_option);
+  const auto pth_opt = detail::toppath_optionOrThrow(ppath_option);
+
+  detail::set_ppath(agenda, pth_opt);
+  agenda.add("ppvar_atmFromPath");
+  agenda.add("ppvar_fFromPath");
+  detail::set_propagation_properties(agenda, ppr_opt);
+  agenda.add("background_transmittanceFromBack");
+  detail::set_background(agenda, bkg_opt);  // FIXME: This should be after ppath for a consistent program...
+  detail::set_rte(agenda, rte_opt);
+  agenda.add("iyCopyPath");
+  agenda.add("diy_dxTransform");
+  agenda.add("iyUnitConversion");
+  agenda.add("iy_auxFromVars");
+  agenda.set("geo_pos", Vector{});
 
   return agenda.finalize();
 }

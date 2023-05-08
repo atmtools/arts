@@ -13,6 +13,15 @@ void iy_main_agendaSet(Workspace& ws,
   out = get_iy_main_agenda(ws, option);
 }
 
+void iy_main_agendaSetByPart(Workspace &ws, Agenda &out,
+                             const String &rte_option,
+                             const String &propagation_properties_option,
+                             const String &background_option,
+                             const String &ppath_option, const Verbosity &) {
+  out = get_iy_main_agenda(ws, rte_option, propagation_properties_option,
+                           background_option, ppath_option);
+}
+
 void iy_loop_freqs_agendaSet(Workspace& ws,
                              Agenda& out,
                              const String& option,
