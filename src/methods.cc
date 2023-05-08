@@ -13415,6 +13415,24 @@ considered. The surface intersection point will appear twice in
       GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_radCalcEmission"),
+      DESCRIPTION("Gets the radiation along the path by linear emission calculations.\n"),
+      AUTHORS("Richard Larsson"), OUT("ppvar_rad", "ppvar_drad"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(),
+      IN("background_rad", "ppvar_src", "ppvar_dsrc", "ppvar_tramat",
+         "ppvar_cumtramat", "ppvar_dtramat"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("ppvar_radCalcTransmission"),
+      DESCRIPTION("Gets the radiation along the path by linear emission calculations.\n"),
+      AUTHORS("Richard Larsson"), OUT("ppvar_rad", "ppvar_drad"), GOUT(),
+      GOUT_TYPE(), GOUT_DESC(),
+      IN("ppvar_tramat",
+         "ppvar_cumtramat", "ppvar_dtramat"),
+      GIN(), GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_srcFromPropmat"),
       DESCRIPTION("Gets the source term along the path.\n"),
       AUTHORS("Richard Larsson"), OUT("ppvar_src", "ppvar_dsrc"), GOUT(),
@@ -23884,6 +23902,28 @@ Options are:
                       GIN_TYPE("String"),
                       GIN_DEFAULT(NODEF),
                       GIN_DESC("Default agenda option (see description)"),
+                      SETMETHOD(false),
+                      AGENDAMETHOD(false),
+                      USES_TEMPLATES(false),
+                      PASSWORKSPACE(true)));
+
+  md_data_raw.push_back(
+      create_mdrecord(NAME("iy_main_agendaSetByPart"),
+                      DESCRIPTION(R"--(Sets *ybatch_calc_agenda* to a default value
+
+Options are:
+    There are currently no options, calling this function is an error.
+)--"),
+                      AUTHORS("Richard Larsson"),
+                      OUT("iy_main_agenda"),
+                      GOUT(),
+                      GOUT_TYPE(),
+                      GOUT_DESC(),
+                      IN(),
+                      GIN("rte_option", "propagation_properties_option", "background_option", "ppath_option"),
+                      GIN_TYPE("String","String","String","String"),
+                      GIN_DEFAULT(NODEF,NODEF,NODEF,NODEF),
+                      GIN_DESC("Choice for RTE calculations", "Choice of propagation properties calculations", "Choice of background radiation calculations", "Choice of propagation path calculations"),
                       SETMETHOD(false),
                       AGENDAMETHOD(false),
                       USES_TEMPLATES(false),

@@ -2,10 +2,15 @@
 
 #include "agenda_class.h"
 #include "array.h"
+#include "debug.h"
 #include "global_data.h"
 #include "matpack_concepts.h"
 #include "mystring.h"
 #include "workspace_ng.h"
+#include <exception>
+#include <iomanip>
+#include <ostream>
+#include <stdexcept>
 
 namespace AgendaManip {
 //! A Complete Description of a Method Variable
@@ -49,6 +54,8 @@ struct SetWsv {
 
   //! For named value
   SetWsv(std::string_view x, ArtsType auto&& t) : test(opt::NameAndValue), str(x), val(std::forward<decltype(t)>(t)) {}
+
+  friend std::ostream& operator<<(std::ostream& os, const SetWsv& wsv);
 };
 
 struct MethodVariable {
@@ -102,10 +109,16 @@ const TokVal& to_tokval(Workspace& ws,
 }
 
 template <std::size_t N>
+std::ostream& operator<<(std::ostream& os, const std::array<SetWsv, N>& input) {
+  for (auto& wsv: input) os << wsv << '\n';
+  return os;
+}
+
+template <std::size_t N>
 void add_method_and_setters(Workspace& ws,
                             Agenda& a,
                             const std::string_view method,
-                            const std::array<SetWsv, N>& input) {
+                            const std::array<SetWsv, N>& input) try {
   auto list = sorted_mdrecord(ws, method);
 
   // List of all input data
@@ -120,11 +133,11 @@ void add_method_and_setters(Workspace& ws,
 
   for (auto& x : input_data) list[x.method_pos].ws_pos = x.ws_pos;
 
-  for (auto& io : list)
-    ARTS_USER_ERROR_IF(
-        io.ws_pos < 0,
-        "Not setting all input, this is a developer error.  Here is the data:\n",
-        list)
+  for (auto &io : list)
+    if (io.ws_pos < 0)
+      throw std::logic_error(var_string("Not setting all input, this is a "
+                                        "developer error.  Here is the data:\n",
+                                        list));
 
   auto [in, out] = split_io(list);
 
@@ -138,6 +151,8 @@ void add_method_and_setters(Workspace& ws,
   a.push_back(MRecord(m_id, out, in, to_tokval(ws, input_data), Agenda{ws}));
   if (not ptr->SetMethod())
     for (auto& x : input_data) x.add_del(ws, a);
+} catch(std::exception& e) {
+  throw std::logic_error(var_string("Cannot add method ", std::quoted(method), "\nThe input list is:\n", input, "With error:\n", e.what()));
 }
 
 //! Helper class to create an agenda
@@ -152,7 +167,7 @@ struct AgendaCreator {
 
   //! Add a method with as many inputs as you want.  These inputs must be of type Wsv
   template <typename... Input>
-  void add(const std::string_view method, Input&&... input) {
+  void add(const std::string_view method, Input&&... input) try {
     if constexpr (sizeof...(Input) > 0)
       add_method_and_setters(
           ws,
@@ -161,6 +176,8 @@ struct AgendaCreator {
           stdarrayify<SetWsv>(SetWsv(std::forward<Input>(input))...));
     else
       add_method_and_setters(ws, agenda, method, std::array<SetWsv, 0>{});
+  } catch (std::exception& e) {
+    throw std::logic_error(var_string("Cannot set method ", std::quoted(method), "\nWith error:\n", e.what()));
   }
 
   //! Set a variable to a value
@@ -170,6 +187,9 @@ struct AgendaCreator {
   void ignore(const std::string_view var);
 };
 
+/**
+ * Single option agendas
+ */
 Agenda get_iy_main_agenda(Workspace& ws, const String& option);
 Agenda get_iy_loop_freqs_agenda(Workspace& ws, const String& option);
 Agenda get_iy_space_agenda(Workspace& ws, const String& option);
@@ -202,4 +222,13 @@ Agenda get_doit_mono_agenda(Workspace& ws, const String& option);
 Agenda get_doit_conv_test_agenda(Workspace& ws, const String& option);
 Agenda get_ppvar_rtprop_agenda(Workspace& ws, const String& option);
 Agenda get_rte_background_agenda(Workspace& ws, const String& option);
+
+
+/**
+ * Multiple options agendas
+ */
+Agenda get_iy_main_agenda(Workspace& ws, const String &rte_option,
+                          const String &propagation_properties_option,
+                          const String &background_option,
+                          const String &ppath_option);
 }  // namespace AgendaManip

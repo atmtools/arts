@@ -56,6 +56,7 @@
 #include "surf.h"
 #include "transmissionmatrix.h"
 #include <cmath>
+#include <exception>
 #include <iterator>
 #include <stdexcept>
 
@@ -1243,6 +1244,84 @@ void ppvar_fFromPath(ArrayOfVector &ppvar_f, const Vector &f_grid,
   forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm), f_grid, ppath,
                     ppvar_atm, rte_alonglos_v);
 } ARTS_METHOD_ERROR_CATCH
+
+void ppvar_radCalcEmission(ArrayOfRadiationVector &ppvar_rad,
+                   ArrayOfArrayOfRadiationVector &ppvar_drad,
+                   const RadiationVector &background_rad,
+                   const ArrayOfRadiationVector &ppvar_src,
+                   const ArrayOfArrayOfRadiationVector &ppvar_dsrc,
+                   const ArrayOfTransmissionMatrix &ppvar_tramat,
+                   const ArrayOfTransmissionMatrix &ppvar_cumtramat,
+                   const ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat,
+                   const Verbosity &) try {
+  const Index np = ppvar_src.nelem();
+
+  if (np == 0) {
+    ppvar_rad.resize(0);
+    ppvar_drad.resize(0);
+    return;
+  }
+
+  const Index nq = ppvar_dsrc.front().nelem();
+  const Index nf = ppvar_src.front().Frequencies();
+  const Index ns = ppvar_src.front().stokes_dim;
+
+  // Size of radiation vector, with all values set to input
+  ppvar_rad.resize(np, background_rad);
+
+  // Size of derivation radiation vector, with all values set to zero
+  ppvar_drad.resize(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
+  
+  for (Index ip = np - 2; ip >= 0; ip--) {
+    ppvar_rad[ip] = ppvar_rad[ip + 1];
+    update_radiation_vector(
+        ppvar_rad[ip], ppvar_drad[ip], ppvar_drad[ip + 1], ppvar_src[ip],
+        ppvar_src[ip + 1], ppvar_dsrc[ip], ppvar_dsrc[ip + 1],
+        ppvar_tramat[ip + 1], ppvar_cumtramat[ip], ppvar_dtramat[0][ip + 1],
+        ppvar_dtramat[1][ip + 1], PropagationMatrix(), PropagationMatrix(),
+        ArrayOfPropagationMatrix(), ArrayOfPropagationMatrix(), Numeric(),
+        Vector(), Vector(), 0, 0, RadiativeTransferSolver::Emission);
+  }
+} ARTS_METHOD_ERROR_CATCH
+
+void ppvar_radCalcTransmission(
+    ArrayOfRadiationVector &ppvar_rad,
+    ArrayOfArrayOfRadiationVector &ppvar_drad,
+    const ArrayOfTransmissionMatrix &ppvar_tramat,
+    const ArrayOfTransmissionMatrix &ppvar_cumtramat,
+    const ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat,
+    const Verbosity &) try {
+  const Index np = ppvar_tramat.nelem();
+
+  if (np == 0) {
+    ppvar_rad.resize(0);
+    ppvar_drad.resize(0);
+    return;
+  }
+
+  const Index nq = ppvar_dtramat.front().front().nelem();
+  const Index nf = ppvar_tramat.front().Frequencies();
+  const Index ns = ppvar_tramat.front().stokes_dim;
+
+  // Size of radiation vector, with all values set to input
+  ppvar_rad.resize(np, RadiationVector(nf, ns));
+  ppvar_rad.back().SetUnity();  // Sets it to unpolarized basis vector
+
+  // Size of derivation radiation vector, with all values set to zero
+  ppvar_drad.resize(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
+
+  for (Index ip = np - 2; ip >= 0; ip--) {
+    ppvar_rad[ip] = ppvar_rad[ip + 1];
+    update_radiation_vector(
+        ppvar_rad[ip], ppvar_drad[ip], ppvar_drad[ip + 1], RadiationVector(),
+        RadiationVector(), ArrayOfRadiationVector(), ArrayOfRadiationVector(),
+        ppvar_tramat[ip + 1], ppvar_cumtramat[ip], ppvar_dtramat[0][ip + 1],
+        ppvar_dtramat[1][ip + 1], PropagationMatrix(), PropagationMatrix(),
+        ArrayOfPropagationMatrix(), ArrayOfPropagationMatrix(), Numeric(),
+        Vector(), Vector(), 0, 0, RadiativeTransferSolver::Transmission);
+  }
+}
+ARTS_METHOD_ERROR_CATCH
 
 void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
                    ArrayOfArrayOfRadiationVector &ppvar_drad,
