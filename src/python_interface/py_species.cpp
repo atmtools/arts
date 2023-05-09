@@ -223,6 +223,8 @@ Returns
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
       .def(py::self == py::self)
+      .def(py::self != py::self)
+      .def("__hash__", [](const ArrayOfSpeciesTag& x){return std::hash<ArrayOfSpeciesTag>{}(x);})
       .def(py::init([]() { return std::make_unique<ArrayOfSpeciesTag>(); }))
       .def(py::init(
           [](const std::string& s) { return std::make_unique<ArrayOfSpeciesTag>(s); }))
