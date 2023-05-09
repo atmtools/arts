@@ -106,6 +106,7 @@ void py_atm(py::module_ &m) {
                              Numeric data) { atm[x] = data; })
       .def("__setitem__", [](AtmPoint &atm, const ArrayOfSpeciesTag &x,
                              Numeric data) { atm[x] = data; })
+      .def("keys", &AtmPoint::keys)
       .PythonInterfaceCopyValue(AtmPoint)
       .PythonInterfaceWorkspaceVariableConversion(AtmPoint)
       .PythonInterfaceFileIO(AtmPoint)

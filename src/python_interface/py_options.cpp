@@ -24,6 +24,12 @@
                 [](opt_namespace::opt_localname &x, const std::string &s) {    \
                   x = opt_namespace::to##opt_localname##OrThrow(s);            \
                 })                                                             \
+            .def(py::self == py::self)                                         \
+            .def(py::self != py::self)                                         \
+            .def("__hash__",                                                   \
+                 [](opt_namespace::opt_localname &x) {                         \
+                   return std::hash<opt_namespace::opt_localname>{}(x);        \
+                 })                                                            \
             .PythonInterfaceCopyValue(opt_namespace::opt_localname)            \
             .def("__repr__",                                                   \
                  [](opt_namespace::opt_localname &x) { return toString(x); })  \
