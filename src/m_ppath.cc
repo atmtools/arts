@@ -161,10 +161,10 @@ void ppathCheckEndPoint(const Ppath& ppath,
   const PpathBackground ppath_background = Options::toPpathBackgroundOrThrow(background);
 
   ARTS_USER_ERROR_IF(ppath_background != PpathBackground::Undefined &&
-                     ppath.backgroundZZZ != ppath_background,
+                     ppath.background != ppath_background,
       "Radiative background not as expected!\n"
       "  background in ppath: ",
-      ppath.backgroundZZZ, "\n  background expected: ", ppath_background);
+      ppath.background, "\n  background expected: ", ppath_background);
 
   ARTS_USER_ERROR_IF(np >= 0 && ppath.np != np,
                      "Number of ppath points not as expected!\n"
@@ -340,7 +340,7 @@ void ppathGeometric(Ppath& ppath,
   // Fill ppath
   ppath.np = np;
   ARTS_ASSERT(background != PpathBackground::Undefined);
-  ppath.backgroundZZZ = background;
+  ppath.background = background;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
   ppath.start_lstep = l_outside > 0 ? l_outside : 0;
@@ -376,7 +376,7 @@ void ppathGeometric(Ppath& ppath,
   }
 
   // If surface intersection, include part beyond?
-  if (include_specular_ppath && ppath.backgroundZZZ == PpathBackground::Surface) {
+  if (include_specular_ppath && ppath.background == PpathBackground::Surface) {
 
     Vector pos{ppath.pos(ppath.np-1, joker)};
     Vector los(2);
@@ -660,7 +660,7 @@ void ppathRefracted(Workspace& ws,
   // Fill ppath
   ppath.np = np;
   ARTS_ASSERT(background != PpathBackground::Undefined);
-  ppath.backgroundZZZ = background;
+  ppath.background = background;
   ppath.start_pos = rte_pos;
   ppath.start_los = rte_los;
   ppath.start_lstep = l_outside > 0 ? l_outside : 0;
@@ -692,7 +692,7 @@ void ppathRefracted(Workspace& ws,
   }
 
   // If surface intersection, include part beyond?
-  if (include_specular_ppath && ppath.backgroundZZZ == PpathBackground::Surface) {
+  if (include_specular_ppath && ppath.background == PpathBackground::Surface) {
 
     Vector pos{ppath.pos(ppath.np-1, joker)};
     Vector los(2);

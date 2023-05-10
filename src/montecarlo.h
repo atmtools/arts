@@ -32,7 +32,7 @@
 #include "messages.h"
 #include "optproperties.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "rng.h"
 #include "rte.h"
 #include "special_interp.h"

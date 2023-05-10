@@ -10,7 +10,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -164,7 +164,8 @@ Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat,
     for (Numeric i = -di; i < di; i += 1.0) {
       lat_new = lat + i * dlat;
       lon_new = lon - di * dlat;
-      cycle_lat_lon(lat_new, lon_new);
+      //cycle_lat_lon(lat_new, lon_new);
+      ARTS_USER_ERROR("ERROR")
       cellnum = calc_cellnum(lat_new, lon_new);
       if (contains(cellnum)) {
         return cellnum;
@@ -174,7 +175,8 @@ Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat,
     for (Numeric i = -di; i < di; i += 1.0) {
       lat_new = lat + i * dlat;
       lon_new = lon + di * dlat;
-      cycle_lat_lon(lat_new, lon_new);
+      //cycle_lat_lon(lat_new, lon_new);
+      ARTS_USER_ERROR("ERROR")
       cellnum = calc_cellnum(lat_new, lon_new);
       if (contains(cellnum)) {
         return cellnum;
@@ -184,7 +186,8 @@ Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat,
     for (Numeric i = -di; i < di; i += 1.0) {
       lat_new = lat - di * dlat;
       lon_new = lon + i * dlat;
-      cycle_lat_lon(lat_new, lon_new);
+      //cycle_lat_lon(lat_new, lon_new);
+      ARTS_USER_ERROR("ERROR")
       cellnum = calc_cellnum(lat_new, lon_new);
       if (contains(cellnum)) {
         return cellnum;
@@ -194,7 +197,8 @@ Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat,
     for (Numeric i = -di; i < di; i += 1.0) {
       lat_new = lat + di * dlat;
       lon_new = lon + i * dlat;
-      cycle_lat_lon(lat_new, lon_new);
+      //cycle_lat_lon(lat_new, lon_new);
+      ARTS_USER_ERROR("ERROR")
       cellnum = calc_cellnum(lat_new, lon_new);
       if (contains(cellnum)) {
         return cellnum;

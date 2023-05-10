@@ -242,7 +242,7 @@ public:
 
 //! All the field data; if these types grow too much we might want to reconsider...
 using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
-using FieldData = std::variant<GriddedField3, Tensor3, Numeric, FunctionalData>;
+using FieldData = std::variant<GriddedField3, Numeric, FunctionalData>;
 
 ENUMCLASS(Extrapolation, char, None, Zero, Nearest, Linear)
 
@@ -250,6 +250,20 @@ struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
   Numeric operator()(Numeric, Numeric, Numeric) const { ARTS_USER_ERROR(error) }
 };
+
+template <typename T>
+concept isGriddedField3 = std::is_same_v<std::remove_cvref_t<T>, GriddedField3>;
+
+template <typename T>
+concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
+
+template <typename T>
+concept isFunctionalDataType =
+    std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
+
+template <typename T>
+concept RawDataType =
+    isGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
 
 //! Hold all atmospheric data
 struct Data {
@@ -270,32 +284,28 @@ struct Data {
 
   // Allow copy and move construction implicitly from all types
   explicit Data(const GriddedField3& x) : data(x) {}
-  explicit Data(const Tensor3& x) : data(x) {}
   explicit Data(const Numeric& x) : data(x) {}
   explicit Data(const FunctionalData& x) : data(x) {}
   explicit Data(GriddedField3&& x) : data(std::move(x)) {}
-  explicit Data(Tensor3&& x) : data(std::move(x)) {}
   explicit Data(FunctionalData&& x) : data(std::move(x)) {}
 
   // Allow copy and move set implicitly from all types
   Data& operator=(const GriddedField3& x) {data=x; return *this;}
-  Data& operator=(const Tensor3& x) {data=x; return *this;}
   Data& operator=(const Numeric& x) {data=x; return *this;}
   Data& operator=(const FunctionalData& x) {data=x; return *this;}
   Data& operator=(GriddedField3&& x) {data=std::move(x); return *this;}
-  Data& operator=(Tensor3&& x) {data=std::move(x); return *this;}
   Data& operator=(FunctionalData&& x) {data=std::move(x); return *this;}
 
   [[nodiscard]] String data_type() const;
 
-  template <typename T>
+  template <RawDataType T>
   [[nodiscard]] T get() const {
     auto* out = std::get_if<std::remove_cvref_t<T>>(&data);
     ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
     return *out;
   }
 
-  template <typename T>
+  template <RawDataType T>
   [[nodiscard]] T get() {
     auto* out = std::get_if<std::remove_cvref_t<T>>(&data);
     ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
@@ -309,26 +319,12 @@ template <typename T>
 concept isData = std::is_same_v<std::remove_cvref_t<T>, Data>;
 
 template <typename T>
-concept isGriddedField3 = std::is_same_v<std::remove_cvref_t<T>, GriddedField3>;
-
-template <typename T>
-concept isTensor3 = std::is_same_v<std::remove_cvref_t<T>, Tensor3>;
-
-template <typename T>
-concept isNumeric = std::is_same_v<std::remove_cvref_t<T>, Numeric>;
-
-template <typename T>
-concept isFunctionalDataType =
-    std::is_same_v<std::remove_cvref_t<T>, FunctionalData>;
-
-template <typename T>
-concept RawDataType =
-    isGriddedField3<T> or isNumeric<T> or isFunctionalDataType<T>;
-
-template <typename T>
-concept DataType = RawDataType<T> or isTensor3<T> or isData<T>;
+concept DataType = RawDataType<T> or isData<T>;
 
 struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag, QuantumIdentifier, ParticulatePropertyTag> {
+  //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this altitude)
+  Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
+
   template <KeyType T, RawDataType U, typename... Ts, std::size_t N = sizeof...(Ts)>
   void internal_set(T&& lhs, U&& rhs, Ts&&... ts) {
     this->operator[](std::forward<T>(lhs)) = std::forward<U>(rhs);
@@ -336,12 +332,6 @@ struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag, QuantumIdentifi
   }
 
   [[nodiscard]] Point internal_fitting(Numeric alt_point, Numeric lat_point, Numeric lon_point) const;
- 
-  //! Grid if regularized
-  std::array<Vector, 3> grid{};
-
-  //! The below only exist if regularized is true
-  bool regularized{false};
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data>& nlte() const;
   [[nodiscard]] const std::unordered_map<ArrayOfSpeciesTag, Data>& specs() const;
@@ -353,18 +343,10 @@ struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag, QuantumIdentifi
   [[nodiscard]] std::unordered_map<Key, Data>& other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data>& partp();
 
-  //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this altitude)
-  Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
-
   template <typename... Ts, std::size_t N = sizeof...(Ts)>
   Field(Ts&&... ts) requires((N % 2) == 0) {
     if constexpr (N > 0) internal_set(std::forward<Ts>(ts)...);
   }
-
-  [[nodiscard]] std::array<Index, 3> regularized_shape() const;
-
-  //! Regularizes the calculations so that all data is on a single grid
-  Field &regularize(const Vector &, const Vector &, const Vector &);
 
   //! Compute the values at a single point
   void at(std::vector<Point>& out, const Vector& alt, const Vector& lat, const Vector& lon) const;
@@ -374,8 +356,6 @@ struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag, QuantumIdentifi
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] Index nother() const;
-
-  void throwing_check() const;
 
   [[nodiscard]] ArrayOfQuantumIdentifier nlte_keys() const;
 
@@ -434,22 +414,6 @@ static_assert(
     std::same_as<typename Field::KeyVal, KeyVal>,
     "The order of arguments in the template of which Field inherits from is "
     "wrong.  KeyVal must be defined in the same way for this to work.");
-
-/** Extracts all the VMR from a regularized Field
- *  
- * @param[in] atm An atmosospheric field
- * @param[in] specs A list of atmospheric species
- * @return Tensor4 All gridded VMR
- */
-Tensor4 extract_specs_content(const Field& atm, const ArrayOfArrayOfSpeciesTag& specs);
-
-/** Extracts all the Particulate properties from a regularized Field
- * 
- * @param[in] atm An atmosospheric field
- * @param[in] specs A list of atmospheric species
- * @return Tensor4 All gridded particulate properties
- */
-Tensor4 extract_partp_content(const Field& atm, const ArrayOfString& specs);
 } // namespace Atm
 
 using AtmField = Atm::Field;

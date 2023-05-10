@@ -29,12 +29,6 @@ void atm_fieldInit(AtmField &atm_field, const Numeric &top_of_atmosphere,
   atm_fieldTopOfAtmosphere(atm_field, top_of_atmosphere, verbosity);
 }
 
-void atm_fieldRegularize(AtmField &atm_field, const Vector &z,
-                         const Vector &lat, const Vector &lon,
-                         const Verbosity &) {
-  atm_field.regularize(z, lat, lon);
-}
-
 namespace detail {
 /** Tries to read a file as if it were some type T
  *
@@ -55,7 +49,6 @@ bool try_read(AtmField &atm_field, const Atm::KeyVal &key_val,
     T v;
     xml_read_from_file(filename, v, verbosity);
     std::visit([&](auto &key) { atm_field[key] = v; }, key_val);
-    atm_field.throwing_check();
 
     // Return success state
     return true;
@@ -94,7 +87,7 @@ void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
                                     const String &filename,
                                     const Atm::Extrapolation& extrapolation,
                                     const Verbosity &verbosity) {
-  const bool ok = try_reading<GriddedField3, Tensor3, Numeric>(
+  const bool ok = try_reading<GriddedField3, Numeric>(
       atm_field, key_val, filename, verbosity);
 
   ARTS_USER_ERROR_IF(not ok, "The file ", std::quoted(filename),
@@ -216,8 +209,6 @@ void atm_fieldRead(AtmField &atm_field,
     atm_fieldAddField(atm_field, file_name, 0, verbosity);
     out3 << "Read all NLTE fields from: " << std::quoted(file_name) << '\n';
   }
-
-  atm_field.throwing_check();
 }
 
 void atm_fieldSave(const AtmField &atm_field, const String &basename,
@@ -279,48 +270,10 @@ void atm_fieldSave(const AtmField &atm_field, const String &basename,
   }
 }
 
-void atm_fieldAddRegularData(AtmField &atm_field, const String &key,
-                             const Tensor3 &data, const Verbosity &) {
-  ARTS_USER_ERROR_IF(
-      not atm_field.regularized,
-      "Cannot add regular data to non-regularized atmospheric field")
-  ARTS_USER_ERROR_IF(data.shape() not_eq atm_field.regularized_shape(),
-                     "Size-mismatch: field ",
-                     matpack::shape_help{atm_field.regularized_shape()},
-                     " vs input ", matpack::shape_help{data.shape()})
-  atm_field[Atm::toKeyOrThrow(key)] = data;
-}
-
-void atm_fieldAddRegularData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
-                             const Tensor3 &data, const Verbosity &) {
-  ARTS_USER_ERROR_IF(
-      not atm_field.regularized,
-      "Cannot add regular data to non-regularized atmospheric field")
-  ARTS_USER_ERROR_IF(data.shape() not_eq atm_field.regularized_shape(),
-                     "Size-mismatch: field ",
-                     matpack::shape_help{atm_field.regularized_shape()},
-                     " vs input ", matpack::shape_help{data.shape()})
-  atm_field[key] = data;
-}
-
-void atm_fieldAddRegularData(AtmField &atm_field, const QuantumIdentifier &key,
-                             const Tensor3 &data, const Verbosity &) {
-  ARTS_USER_ERROR_IF(
-      not atm_field.regularized,
-      "Cannot add regular data to non-regularized atmospheric field")
-  ARTS_USER_ERROR_IF(data.shape() not_eq atm_field.regularized_shape(),
-                     "Size-mismatch: field ",
-                     matpack::shape_help{atm_field.regularized_shape()},
-                     " vs input ", matpack::shape_help{data.shape()})
-  atm_field[key] = data;
-}
-
 void atm_fieldAddGriddedData(AtmField &atm_field, const String &key,
                              const GriddedField3 &data, 
                                 const String &extrapolation_type,
                                 const Verbosity &) {
-  ARTS_USER_ERROR_IF(atm_field.regularized,
-                     "Cannot add gridded data to regularized atmospheric field")
   auto& fld = atm_field[Atm::toKeyOrThrow(key)] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
@@ -336,8 +289,6 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const String &key,
 void atm_fieldAddGriddedData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
                              const GriddedField3 &data,
                                 const String &extrapolation_type, const Verbosity &) {
-  ARTS_USER_ERROR_IF(atm_field.regularized,
-                     "Cannot add gridded data to regularized atmospheric field")
   auto& fld = atm_field[key] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
@@ -353,8 +304,6 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
 void atm_fieldAddGriddedData(AtmField &atm_field, const QuantumIdentifier &key,
                              const GriddedField3 &data,
                                 const String &extrapolation_type, const Verbosity &) {
-  ARTS_USER_ERROR_IF(atm_field.regularized,
-                     "Cannot add gridded data to regularized atmospheric field")
   auto& fld = atm_field[key] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
@@ -369,22 +318,16 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const QuantumIdentifier &key,
 
 void atm_fieldAddNumericData(AtmField &atm_field, const String &key,
                              const Numeric &data, const Verbosity &) {
-  ARTS_USER_ERROR_IF(atm_field.regularized,
-                     "Cannot add numeric data to regularized atmospheric field")
   atm_field[Atm::toKeyOrThrow(key)] = data;
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
                              const Numeric &data, const Verbosity &) {
-  ARTS_USER_ERROR_IF(atm_field.regularized,
-                     "Cannot add numeric data to regularized atmospheric field")
   atm_field[key] = data;
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field, const QuantumIdentifier &key,
                              const Numeric &data, const Verbosity &) {
-  ARTS_USER_ERROR_IF(atm_field.regularized,
-                     "Cannot add numeric data to regularized atmospheric field")
   atm_field[key] = data;
 }
 

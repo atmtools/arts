@@ -124,20 +124,24 @@ AtmField forward_1d_atm_field(const ArrayOfAtmPoint& atm_path, const Ppath& ppat
 
   const auto [z, pos] = unique_z_grid(ppath);
   AtmField atm;
-  atm.grid[0] = z;
-  atm.grid[1] = {ppath.pos(0, 1)};
-  atm.grid[2] = {ppath.pos(0, 2)};
-  atm.regularized = true;
   atm.top_of_atmosphere = z.back();
 
   const auto keys = atm_path.front().keys();
 
-  Tensor3 data(atm.regularized_shape());
+  GriddedField3 data;
+  data.data.resize(z.nelem(), 1, 1);
+  data.set_grid_name(0, "Altitude");
+  data.set_grid_name(1, "Latitude");
+  data.set_grid_name(2, "Longitude");
+  data.get_numeric_grid(0) = z;
+  data.get_numeric_grid(1) = {0.0};
+  data.get_numeric_grid(2) = {0.0};
+
   for (auto& key: keys) {
     for (Index i=0; i<z.nelem(); i++) {
-      data(i, 0, 0) = atm_path[pos[i][0]][key] / static_cast<Numeric>(pos[i].nelem());
+      data.data(i, 0, 0) = atm_path[pos[i][0]][key] / static_cast<Numeric>(pos[i].nelem());
       for (Index j=1; j<pos[i].nelem(); j++) {
-        data(i, 0, 0) += atm_path[pos[i][j]][key] / static_cast<Numeric>(pos[i].nelem());
+        data.data(i, 0, 0) += atm_path[pos[i][j]][key] / static_cast<Numeric>(pos[i].nelem());
       }
     }
 

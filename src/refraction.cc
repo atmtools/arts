@@ -19,7 +19,7 @@
 #include "arts_constants.h"
 #include "auto_md.h"
 #include "matpack_complex.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "interpolation.h"
 #include "special_interp.h"
 #include "check_input.h"
@@ -272,7 +272,7 @@ void get_refr_index_2d(Workspace& ws,
   z_at_lat_2d(z_grid, p_grid, lat_grid, z_field(joker, joker, 0), gp_lat[0]);
 
   // Determine the ellipsoid radius at *lat*
-  const Numeric rellips = refell2d(refellipsoid, lat_grid, gp_lat[0]);
+  const Numeric rellips =0;ARTS_USER_ERROR("ERROR")// refell2d(refellipsoid, lat_grid, gp_lat[0]);
 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos gp_p(1);
@@ -369,7 +369,7 @@ void get_refr_index_3d(Workspace& ws,
       z_grid, p_grid, lat_grid, lon_grid, z_field, gp_lat[0], gp_lon[0]);
 
   // Determine the elipsoid radius at *lat*
-  const Numeric rellips = refell2d(refellipsoid, lat_grid, gp_lat[0]);
+  const Numeric rellips =0;ARTS_USER_ERROR("ERROR")// refell2d(refellipsoid, lat_grid, gp_lat[0]);
 
   // Altitude (equal to pressure) grid position
   ArrayOfGridPos gp_p(1);
