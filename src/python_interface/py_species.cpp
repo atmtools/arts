@@ -224,35 +224,40 @@ Returns
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
       .def(py::self == py::self)
       .def(py::self != py::self)
-      .def("__hash__", [](const ArrayOfSpeciesTag& x){return std::hash<ArrayOfSpeciesTag>{}(x);})
+      .def("__hash__",
+           [](const ArrayOfSpeciesTag &x) {
+             return std::hash<ArrayOfSpeciesTag>{}(x);
+           })
       .def(py::init([]() { return std::make_unique<ArrayOfSpeciesTag>(); }))
-      .def(py::init(
-          [](const std::string& s) { return std::make_unique<ArrayOfSpeciesTag>(s); }))
-      .def(py::init(
-          [](Index a, SpeciesTag b) { return std::make_unique<ArrayOfSpeciesTag>(a, b); }))
-      .def(py::init([](const std::vector<SpeciesTag>& v) {
+      .def(py::init([](const std::string &s) {
+        return std::make_unique<ArrayOfSpeciesTag>(s);
+      }))
+      .def(py::init([](Index a, SpeciesTag b) {
+        return std::make_unique<ArrayOfSpeciesTag>(a, b);
+      }))
+      .def(py::init([](const std::vector<SpeciesTag> &v) {
         return std::make_unique<ArrayOfSpeciesTag>(v);
       }))
       .def(
           "append",
-          [](ArrayOfSpeciesTag& x, SpeciesTag y) { x.emplace_back(y); },
+          [](ArrayOfSpeciesTag &x, SpeciesTag y) { x.emplace_back(y); },
           py::doc("Appends a SpeciesTag at the end of the Array"))
       .def(
           "pop",
-          [](ArrayOfSpeciesTag& x) {
+          [](ArrayOfSpeciesTag &x) {
             SpeciesTag y = x.back();
             x.pop_back();
             return y;
           },
           py::doc("Pops a SpeciesTag from the end of the Array"))
       .def(py::pickle(
-          [](const ArrayOfSpeciesTag& v) {
+          [](const ArrayOfSpeciesTag &v) {
             auto n = v.size();
             std::vector<SpeciesTag> out(n);
             std::copy(v.begin(), v.end(), out.begin());
             return py::make_tuple(std::move(out));
           },
-          [](const py::tuple& t) {
+          [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<ArrayOfSpeciesTag>(t[0].cast<std::vector<SpeciesTag>>());
           }))
