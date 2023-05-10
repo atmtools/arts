@@ -49,8 +49,6 @@ using  Cloudbox::LAT_LON_MIN;
 void atmfields_checkedCalc(Index &atmfields_checked,
                            const ArrayOfArrayOfSpeciesTag &abs_species,
                            const AtmField &atm_field, const Verbosity &) {
-  atm_field.throwing_check();
-
   // Consistency between dim, grids and atmospheric fields/surfaces
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::p), "No pressure field")
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "No temperature field")
@@ -234,8 +232,11 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
   chk_if_bool("cloudbox_on", cloudbox_on);
 
   if (cloudbox_on) {
-    ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-    const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
 
     // Winds, must be empty variables (i.e. no winds allowed)
     ARTS_USER_ERROR_IF(

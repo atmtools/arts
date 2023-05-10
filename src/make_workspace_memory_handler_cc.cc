@@ -46,7 +46,7 @@ int main() {
         << "#include \"m_general.h\"\n"
         << "#include \"supergeneric.h\"\n"
         << "#include \"artstime.h\"\n"
-        << "#include \"ppath_OLD.h\"\n"
+        << "#include \"ppath_struct.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"
         << "#include \"linemixing_hitran.h\"\n"
         << "#include \"optproperties.h\"\n"

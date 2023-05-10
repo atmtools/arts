@@ -46,7 +46,7 @@
 #include "messages.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "refraction.h"
 #include "rng.h"
 #include "rte.h"
@@ -128,8 +128,6 @@ void MCGeneral(Workspace& ws,
                const Index& l_mc_scat_order,
                const Index& t_interp_order,
                const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must be a regular atmospheric field")
-
   // Checks of input
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -240,7 +238,12 @@ void MCGeneral(Workspace& ws,
 
   mc_iteration_count = 0;
   mc_error.resize(stokes_dim);
-  mc_points.resize(atm_field.regularized_shape());
+     // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;
+  ARTS_USER_ERROR("ERROR")
+  //mc_points.resize(atm_field.regularized_shape());
   mc_points = 0;
   mc_scat_order.resize(l_mc_scat_order);
   mc_scat_order = 0;

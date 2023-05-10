@@ -36,14 +36,15 @@
 #include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
+#include "ppath_struct.h"
 #include "refraction.h"
 #include "special_interp.h"
 #include "species_tags.h"
@@ -102,9 +103,9 @@ void adjust_los(VectorView los, const Index& atmosphere_dim) {
     // If any of the angles out-of-bounds, use cart2zaaa to resolve
     if (abs(los[0] - 90) > 90 || abs(los[1]) > 180) {
       Numeric dx, dy, dz;
-      zaaa2cart(dx, dy, dz, los[0], los[1]);
-      cart2zaaa(los[0], los[1], dx, dy, dz);
-    }
+//      zaaa2cart(dx, dy, dz, los[0], los[1]);
+  //    cart2zaaa(los[0], los[1], dx, dy, dz);
+    ARTS_USER_ERROR("ERROR")}
   }
 }
 
@@ -273,10 +274,11 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
   if (ppath.dim < 3) {
     theta = abs(ppath.start_pos[1] - ppath.end_pos[1]);
   } else {
-    theta = sphdist(ppath.start_pos[1],
-                    ppath.start_pos[2],
-                    ppath.end_pos[1],
-                    ppath.end_pos[2]);
+    // theta = sphdist(ppath.start_pos[1],
+    //                 ppath.start_pos[2],
+    //                 ppath.end_pos[1],
+    //                 ppath.end_pos[2]);
+    ARTS_USER_ERROR("ERROR")
   }
 
   // Eq 17 in Kursinski et al., TAO, 2000:
@@ -344,27 +346,28 @@ void defocusing_general_sub(Workspace& ws,
   // Calculate the ppath for disturbed rte_los
   Ppath ppx;
   //
-  ppath_calc(ws,
-             ppx,
-             ppath_step_agenda,
-             atmosphere_dim,
-             p_grid,
-             lat_grid,
-             lon_grid,
-             z_field,
-             f_grid,
-             refellipsoid,
-             z_surface,
-             0,
-             ArrayOfIndex(0),
-             rte_pos,
-             rte_los,
-             ppath_lmax,
-             ppath_lraytrace,
-             false,
-             verbosity);
-  //
-  background = ppath_what_background(ppx);
+  // ppath_calc(ws,
+  //            ppx,
+  //            ppath_step_agenda,
+  //            atmosphere_dim,
+  //            p_grid,
+  //            lat_grid,
+  //            lon_grid,
+  //            z_field,
+  //            f_grid,
+  //            refellipsoid,
+  //            z_surface,
+  //            0,
+  //            ArrayOfIndex(0),
+  //            rte_pos,
+  //            rte_los,
+  //            ppath_lmax,
+  //            ppath_lraytrace,
+  //            false,
+  //            verbosity);
+  // //
+  // background = ppath_what_background(ppx);
+  ARTS_USER_ERROR("ERROR")
 
   // Calcualte cumulative optical path for ppx
   Vector lox(ppx.np);
@@ -381,38 +384,40 @@ void defocusing_general_sub(Workspace& ws,
   if (lox[ilast] < lo0) {
     const Numeric dl = lo0 - lox[ilast];
     if (atmosphere_dim < 3) {
-      Numeric x, z, dx, dz;
-      poslos2cart(
-          x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast, 1), ppx.los(ilast, 0));
-      cart2pol(pos[0],
-               pos[1],
-               x + dl * dx,
-               z + dl * dz,
-               ppx.pos(ilast, 1),
-               ppx.los(ilast, 0));
+      // Numeric x, z, dx, dz;
+      // poslos2cart(
+      //     x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast, 1), ppx.los(ilast, 0));
+      // cart2pol(pos[0],
+      //          pos[1],
+      //          x + dl * dx,
+      //          z + dl * dz,
+      //          ppx.pos(ilast, 1),
+      //          ppx.los(ilast, 0));
+      ARTS_USER_ERROR("ERROR")
     } else {
-      Numeric x, y, z, dx, dy, dz;
-      poslos2cart(x,
-                  y,
-                  z,
-                  dx,
-                  dy,
-                  dz,
-                  ppx.r[ilast],
-                  ppx.pos(ilast, 1),
-                  ppx.pos(ilast, 2),
-                  ppx.los(ilast, 0),
-                  ppx.los(ilast, 1));
-      cart2sph(pos[0],
-               pos[1],
-               pos[2],
-               x + dl * dx,
-               y + dl * dy,
-               z + dl * dz,
-               ppx.pos(ilast, 1),
-               ppx.pos(ilast, 2),
-               ppx.los(ilast, 0),
-               ppx.los(ilast, 1));
+      // Numeric x, y, z, dx, dy, dz;
+      // poslos2cart(x,
+      //             y,
+      //             z,
+      //             dx,
+      //             dy,
+      //             dz,
+      //             ppx.r[ilast],
+      //             ppx.pos(ilast, 1),
+      //             ppx.pos(ilast, 2),
+      //             ppx.los(ilast, 0),
+      //             ppx.los(ilast, 1));
+      // cart2sph(pos[0],
+      //          pos[1],
+      //          pos[2],
+      //          x + dl * dx,
+      //          y + dl * dy,
+      //          z + dl * dz,
+      //          ppx.pos(ilast, 1),
+      //          ppx.pos(ilast, 2),
+      //          ppx.los(ilast, 0),
+      //          ppx.los(ilast, 1));
+      ARTS_USER_ERROR("ERROR")
     }
   }
 
@@ -523,10 +528,10 @@ void defocusing_general(Workspace& ws,
   if (backg1 == backg2) {
     Numeric l12;
     if (atmosphere_dim < 3) {
-      distance2D(l12, pos1[0], pos1[1], pos2[0], pos2[1]);
+     // distance2D(l12, pos1[0], pos1[1], pos2[0], pos2[1]);
     } else {
-      distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
-    }
+  //    distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
+    }ARTS_USER_ERROR("ERROR")
     //
     dlf = lp * 2 * Conversion::deg2rad(1) * dza / l12;
   }
@@ -535,20 +540,21 @@ void defocusing_general(Workspace& ws,
     Numeric l12;
     if (atmosphere_dim == 1) {
       const Numeric r = refellipsoid[0];
-      distance2D(l12, r + ppath.end_pos[0], 0, pos2[0], pos2[1]);
+  //    distance2D(l12, r + ppath.end_pos[0], 0, pos2[0], pos2[1]);
     } else if (atmosphere_dim == 2) {
-      const Numeric r = refell2r(refellipsoid, ppath.end_pos[1]);
-      distance2D(l12, r + ppath.end_pos[0], ppath.end_pos[1], pos2[0], pos2[1]);
+      const Numeric r =0;// refell2r(refellipsoid, ppath.end_pos[1]);
+    //  distance2D(l12, r + ppath.end_pos[0], ppath.end_pos[1], pos2[0], pos2[1]);
     } else {
-      const Numeric r = refell2r(refellipsoid, ppath.end_pos[1]);
-      distance3D(l12,
-                 r + ppath.end_pos[0],
-                 ppath.end_pos[1],
-                 ppath.end_pos[2],
-                 pos2[0],
-                 pos2[1],
-                 pos2[2]);
+      // const Numeric r = refell2r(refellipsoid, ppath.end_pos[1]);
+      // distance3D(l12,
+      //            r + ppath.end_pos[0],
+      //            ppath.end_pos[1],
+      //            ppath.end_pos[2],
+      //            pos2[0],
+      //            pos2[1],
+      //            pos2[2]);
     }
+    ARTS_USER_ERROR("ERROR")
     //
     dlf = lp * Conversion::deg2rad(1) * dza / l12;
   }
@@ -576,7 +582,8 @@ void defocusing_sat2sat(Workspace& ws,
 
   // Index of tangent point
   Index it;
-  find_tanpoint(it, ppath);
+  //find_tanpoint(it, ppath);
+  ARTS_USER_ERROR("ERROR")
   ARTS_ASSERT(it >= 0);
 
   // Length between tangent point and transmitter/reciver
@@ -606,62 +613,65 @@ void defocusing_sat2sat(Workspace& ws,
   //
   rte_los[0] -= dza;
   adjust_los(rte_los, atmosphere_dim);
-  ppath_calc(ws,
-             ppt,
-             ppath_step_agenda,
-             atmosphere_dim,
-             p_grid,
-             lat_grid,
-             lon_grid,
-             z_field,
-             f_grid,
-             refellipsoid,
-             z_surface,
-             0,
-             ArrayOfIndex(0),
-             rte_pos,
-             rte_los,
-             ppath_lmax,
-             ppath_lraytrace,
-             false,
-             verbosity);
+ARTS_USER_ERROR("ERROR")
+  // ppath_calc(ws,
+  //            ppt,
+  //            ppath_step_agenda,
+  //            atmosphere_dim,
+  //            p_grid,
+  //            lat_grid,
+  //            lon_grid,
+  //            z_field,
+  //            f_grid,
+  //            refellipsoid,
+  //            z_surface,
+  //            0,
+  //            ArrayOfIndex(0),
+  //            rte_pos,
+  //            rte_los,
+  //            ppath_lmax,
+  //            ppath_lraytrace,
+  //            false,
+  //            verbosity);
   bending_angle1d(alpha2, ppt);
   alpha2 *= Conversion::deg2rad(1);
   a2 = ppt.constant;
   //
   rte_los[0] += 2 * dza;
   adjust_los(rte_los, atmosphere_dim);
-  ppath_calc(ws,
-             ppt,
-             ppath_step_agenda,
-             atmosphere_dim,
-             p_grid,
-             lat_grid,
-             lon_grid,
-             z_field,
-             f_grid,
-             refellipsoid,
-             z_surface,
-             0,
-             ArrayOfIndex(0),
-             rte_pos,
-             rte_los,
-             ppath_lmax,
-             ppath_lraytrace,
-             false,
-             verbosity);
+  // ppath_calc(ws,
+  //            ppt,
+  //            ppath_step_agenda,
+  //            atmosphere_dim,
+  //            p_grid,
+  //            lat_grid,
+  //            lon_grid,
+  //            z_field,
+  //            f_grid,
+  //            refellipsoid,
+  //            z_surface,
+  //            0,
+  //            ArrayOfIndex(0),
+  //            rte_pos,
+  //            rte_los,
+  //            ppath_lmax,
+  //            ppath_lraytrace,
+  //            false,
+  //            verbosity);
+  ARTS_USER_ERROR("ERROR")
   // This path can hit the surface. And we need to check if ppt is OK.
   // (remember this function only deals with sat-to-sat links and OK
   // background here is be space)
   // Otherwise use the centre ray as the second one.
-  if (ppath_what_background(ppt) == 1) {
-    bending_angle1d(alpha1, ppt);
-    alpha1 *= Conversion::deg2rad(1);
-    a1 = ppt.constant;
-    dada = (alpha2 - alpha1) / (a2 - a1);
-  } else {
-    dada = (alpha2 - alpha0) / (a2 - a0);
-  }
+  // if (ppath_what_background(ppt) == 1) {
+  //   bending_angle1d(alpha1, ppt);
+  //   alpha1 *= Conversion::deg2rad(1);
+  //   a1 = ppt.constant;
+  //   dada = (alpha2 - alpha1) / (a2 - a1);
+  // } else {
+  //   dada = (alpha2 - alpha0) / (a2 - a0);
+  // }
+  ARTS_USER_ERROR("ERROR")
 
   // Zenith loss term (Eq 18 in Kursinski et al.)
   const Numeric zlt = 1 / (1 - dada * lf);
@@ -776,16 +786,17 @@ void get_iy_of_background(Workspace& ws,
   // Handle the different background cases
   //
   String agenda_name;
-  //
-  switch (ppath_what_background(ppath)) {
-    case 1:  //--- Space ----------------------------------------------------
+  
+  using enum Options::PpathBackground;
+  switch (ppath.background) {
+    case Space:  //--- Space ----------------------------------------------------
     {
       agenda_name = "iy_space_agenda";
       chk_not_empty(agenda_name, iy_space_agenda);
       iy_space_agendaExecute(ws, iy, f_grid, rtp_pos, rtp_los, iy_space_agenda);
     } break;
 
-    case 2:  //--- The surface -----------------------------------------------
+    case Surface:  //--- The surface -----------------------------------------------
     {
       agenda_name = "iy_surface_agenda";
       chk_not_empty(agenda_name, iy_surface_agenda);
@@ -826,8 +837,7 @@ void get_iy_of_background(Workspace& ws,
                                iy_surface_agenda);
     } break;
 
-    case 3:  //--- Cloudbox boundary or interior ------------------------------
-    case 4: {
+    case Cloudbox: {//--- Cloudbox boundary or interior ------------------------------
       agenda_name = "iy_cloudbox_agenda";
       chk_not_empty(agenda_name, iy_cloudbox_agenda);
       iy_cloudbox_agendaExecute(
@@ -836,7 +846,7 @@ void get_iy_of_background(Workspace& ws,
 
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
-      ARTS_ASSERT(false);
+      ARTS_ASSERT(false, "The background type is not recognised. It is: ", ppath.background);
   }
 
   ARTS_USER_ERROR_IF (iy.ncols() != stokes_dim || iy.nrows() != nf,
@@ -1393,12 +1403,13 @@ constexpr Index atmosphere_dim = 3;
       los[0] += mblock_dlos(ilos, 0);
       adjust_los(los, atmosphere_dim);
     } else {
-      add_za_aa(los[0],
-                los[1],
-                los[0],
-                los[1],
-                mblock_dlos(ilos, 0),
-                mblock_dlos(ilos, 1));
+      // add_za_aa(los[0],
+      //           los[1],
+      //           los[0],
+      //           los[1],
+      //           mblock_dlos(ilos, 0),
+      //           mblock_dlos(ilos, 1));
+      ARTS_USER_ERROR("ERROR")
     }
 
     //--- rtp_pos 1 and 2

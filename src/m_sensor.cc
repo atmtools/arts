@@ -51,7 +51,7 @@
 #include "math_funcs.h"
 #include "matpack_math.h"
 #include "messages.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "rte.h"
 #include "sensor.h"
 #include "sorting.h"

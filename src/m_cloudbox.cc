@@ -269,8 +269,11 @@ void cloudboxSetFullAtm(  //WS Output
     const AtmField& atm_field,
     const Index& fullfull,
     const Verbosity&) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
 
   cloudbox_on = 1;
   cloudbox_limits.resize(2 * 3);
@@ -456,8 +459,11 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     const Numeric& lon1,
     const Numeric& lon2,
     const Verbosity&) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
   // Check existing WSV
 
   // Check keyword arguments

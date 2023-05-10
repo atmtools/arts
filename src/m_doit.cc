@@ -49,7 +49,7 @@
 #include "check_input.h"
 #include "debug.h"
 #include "doit.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "m_general.h"
@@ -57,7 +57,7 @@
 #include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "species_tags.h"
@@ -608,11 +608,15 @@ void cloudbox_fieldUpdate1D(
       << "  cloudbox_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+    // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& z_grid = atm_field.grid[0];
+  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // ---------- Check the input ----------------------------------------
 
@@ -789,9 +793,13 @@ void cloudbox_fieldUpdateSeq1D(
       << "  cloudbox_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
 
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& z_grid = atm_field.grid[0];
-const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+//const auto& z_grid = atm_field.grid[0];
+//const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------
 
@@ -1099,9 +1107,13 @@ void cloudbox_fieldUpdateSeq3D(
       << "  cloudbox_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "  ------------------------------------------------------------- \n";
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+    // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& z_grid = atm_field.grid[0];
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------
 
@@ -1377,11 +1389,15 @@ void cloudbox_fieldUpdateSeq1DPP(
     const Vector& f_grid,
     const Index& f_index,
     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Requires regular atmospheric field")
-  const Vector& z_grid = atm_field.grid[0];
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+    // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //const Vector& z_grid = atm_field.grid[0];
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   CREATE_OUT2;
   CREATE_OUT3;
@@ -2018,8 +2034,12 @@ void doit_scat_fieldCalc(Workspace& ws,
                          const Verbosity& verbosity)
 
 {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+//const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   CREATE_OUT2;
   CREATE_OUT3;
@@ -2289,8 +2309,12 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                              const Index& doit_za_interp,
                              const Tensor7& pha_mat_doit,
                              const Verbosity& verbosity) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   CREATE_OUT2;
   CREATE_OUT3;
@@ -2829,10 +2853,14 @@ void DoitGetIncoming(Workspace& ws,
                      const Index& rigorous,
                      const Numeric& maxratio,
                      const Verbosity&) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& z_grid = atm_field.grid[0];
-const auto& lat_grid = atm_field.grid[1];
-const auto& lon_grid = atm_field.grid[2];
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+//const auto& z_grid = atm_field.grid[0];
+//const auto& lat_grid = atm_field.grid[1];
+//const auto& lon_grid = atm_field.grid[2];
 
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
@@ -3071,8 +3099,12 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Vector& za_grid,
                           const Vector& aa_grid,
                           const Verbosity&) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+//const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
 
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   ARTS_USER_ERROR_IF (atmfields_checked != 1,

@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, const Ppath& x) {
   os << "dim: " << x.dim << "\n";
   os << "np: " << x.np << "\n";
   //os << "constant: " << x.constant << "\n";   // ZZZ
-  os << "background: " << x.backgroundZZZ << "\n";  // ZZZ
+  os << "background: " << x.background << "\n";  // ZZZ
   os << "start_pos: " << x.start_pos << "\n";
   os << "start_los: " << x.start_los << "\n";
   os << "start_lstep: " << x.start_lstep << "\n";

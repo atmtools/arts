@@ -41,7 +41,7 @@
 #include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "arts.h"
 #include "surf.h"
 #include "workspace_ng.h"
@@ -133,11 +133,12 @@ void get_sun_background(Matrix& iy,
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 
-  if (ppath_what_background(ppath) == 9 || ppath_what_background(ppath) == 1){
-    for (Index i_sun = 0; i_sun < suns.nelem(); i_sun++) {
-      get_sun_radiation(iy, suns_visible, suns[i_sun], rtp_pos, rtp_los, refellipsoid);
-    }
-  }
+  // if (ppath_what_background(ppath) == 9 || ppath_what_background(ppath) == 1){
+  //   for (Index i_sun = 0; i_sun < suns.nelem(); i_sun++) {
+  //     get_sun_radiation(iy, suns_visible, suns[i_sun], rtp_pos, rtp_los, refellipsoid);
+  //   }
+  // }
+  ARTS_USER_ERROR("ERROR")
 }
 
 void get_sun_radiation(Matrix& iy,
@@ -149,7 +150,7 @@ void get_sun_radiation(Matrix& iy,
 
   //Calculate earth centric radial component of sun_pos and rtp_pos.
   const Numeric R_sun = sun.distance;
-  const Numeric R_rte = refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
+  const Numeric R_rte = 0;ARTS_USER_ERROR("ERROR")//refell2r(refellipsoid, rtp_pos[1]) + rtp_pos[0];
 
   //Transform to cartesian coordinate system
   Numeric r_sun_x, r_sun_y, r_sun_z;
@@ -157,20 +158,21 @@ void get_sun_radiation(Matrix& iy,
   Numeric r_los_x, r_los_y, r_los_z;
 
   // r_sun
-  sph2cart(r_sun_x, r_sun_y, r_sun_z, R_sun, sun.latitude, sun.longitude);
-
+  //sph2cart(r_sun_x, r_sun_y, r_sun_z, R_sun, sun.latitude, sun.longitude);
+ARTS_USER_ERROR("ERROR")
   // r_rte, r_los
-  poslos2cart(r_rte_x,
-              r_rte_y,
-              r_rte_z,
-              r_los_x,
-              r_los_y,
-              r_los_z,
-              R_rte,
-              rtp_pos[1],
-              rtp_pos[2],
-              rtp_los[0],
-              rtp_los[1]);
+  // poslos2cart(r_rte_x,
+  //             r_rte_y,
+  //             r_rte_z,
+  //             r_los_x,
+  //             r_los_y,
+  //             r_los_z,
+  //             R_rte,
+  //             rtp_pos[1],
+  //             rtp_pos[2],
+  //             rtp_los[0],
+  //             rtp_los[1]);
+  ARTS_USER_ERROR("ERROR")
 
   //Calculate vector of line of sight and unit vector pointing from
   //ppath point to the sun.
@@ -256,9 +258,10 @@ void get_direct_radiation(Workspace& ws,
   Vector rtp_pos, rtp_los;
   Index np;
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric fields")
-  const auto& lat_grid = atm_field.grid[1];
-  const auto& lon_grid = atm_field.grid[2];
+ARTS_USER_ERROR("ERROR")
+//  const auto& lat_grid = atm_field.grid[1];
+  //const auto& lon_grid = atm_field.grid[2];
+Vector lat_grid, lon_grid;
 
   for (Index i_sun = 0; i_sun < suns.nelem(); i_sun++) {
     np = sun_ppaths[i_sun].np;
@@ -269,29 +272,30 @@ void get_direct_radiation(Workspace& ws,
                   suns[i_sun].longitude};
 
       // we need the distance to the sun relative to the surface
-      sun_pos[0] =
-          sun_pos[0] -
-          pos2refell_r(
-              3, refellipsoid, lat_grid, lon_grid, sun_pos);
-
+      // sun_pos[0] =
+      //     sun_pos[0] -
+      //     pos2refell_r(
+      //         3, refellipsoid, lat_grid, lon_grid, sun_pos);
+ARTS_USER_ERROR("ERROR")
 
       if (irradiance_flag) {
         //Get the spectral irradiance
 
         //get the TOA distance to earth center.
-        Numeric R_TOA =
-            refell2r(refellipsoid, sun_ppaths[i_sun].pos(np - 1, 1)) +
-            sun_ppaths[i_sun].pos(np - 1, 0);
-
+        Numeric R_TOA;// =
+            // refell2r(refellipsoid, sun_ppaths[i_sun].pos(np - 1, 1)) +
+            // sun_ppaths[i_sun].pos(np - 1, 0);
+ARTS_USER_ERROR("ERROR")
         //get the distance between sun and sun_ppath at TOA
         Numeric R_Sun2Toa;
-        distance3D(R_Sun2Toa,
-                   R_TOA,
-                   sun_ppaths[i_sun].pos(np - 1, 1),
-                   sun_ppaths[i_sun].pos(np - 1, 2),
-                   sun_pos[0],
-                   sun_pos[1],
-                   sun_pos[2]);
+        // distance3D(R_Sun2Toa,
+        //            R_TOA,
+        //            sun_ppaths[i_sun].pos(np - 1, 1),
+        //            sun_ppaths[i_sun].pos(np - 1, 2),
+        //            sun_pos[0],
+        //            sun_pos[1],
+        //            sun_pos[2]);
+ARTS_USER_ERROR("ERROR")
 
         // Scale the incoming sun_irradiance spectrum
         radiation_toa = suns[i_sun].spectrum;
@@ -371,9 +375,10 @@ void get_sun_ppaths(Workspace& ws,
                      const Numeric& ppath_lraytrace,
                      const Agenda& ppath_step_agenda,
                      const Verbosity& verbosity) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& lat_grid = atm_field.grid[1];
-const auto& lon_grid = atm_field.grid[2];
+ARTS_USER_ERROR("ERROR")
+//const auto& lat_grid = atm_field.grid[1];
+//const auto& lon_grid = atm_field.grid[2];
+Vector lat_grid, lon_grid;
 
   Vector sun_pos(3);
   Vector sun_rte_los_isun(2);
@@ -386,10 +391,11 @@ const auto& lon_grid = atm_field.grid[2];
                 suns[i_sun].longitude};
 
     // we need the distance to the sun relative to the surface
-    sun_pos[0] =
-        sun_pos[0] -
-        pos2refell_r(
-            3, refellipsoid, lat_grid, lon_grid, sun_pos);
+    // sun_pos[0] =
+    //     sun_pos[0] -
+    //     pos2refell_r(
+    //         3, refellipsoid, lat_grid, lon_grid, sun_pos);
+ARTS_USER_ERROR("ERROR")
 
     // get the line of sight direction from sun i_sun to ppath point
     ARTS_ASSERT(false)
@@ -426,8 +432,9 @@ const auto& lon_grid = atm_field.grid[2];
     sun_rte_los[i_sun] = sun_rte_los_isun;
 
     // Check that sun path hast more than 1 ppath points and that space is background
-    suns_visible[i_sun] =
-        sun_ppath.np > 1 && ppath_what_background(sun_ppath) == 9;
+    // suns_visible[i_sun] =
+    //     sun_ppath.np > 1 && ppath_what_background(sun_ppath) == 9;
+    ARTS_USER_ERROR("ERROR")
   }
 }
 

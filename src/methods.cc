@@ -4065,23 +4065,6 @@ give the "H2O.xml" file because the internal data structure is unordered.
       GIN_DESC("Base for the name of the data files.", "See *WriteXML*", "See *WriteXML*")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("atm_fieldAddRegularData"),
-      DESCRIPTION(R"--(Adds data to the atm_field
-
-The field must be regular and the data must have the correct size
-)--"),
-      AUTHORS("Richard Larsson"),
-      OUT("atm_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atm_field"),
-      GIN("key", "data"),
-      GIN_TYPE("String,ArrayOfSpeciesTag,QuantumIdentifier", "Tensor3"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("See *atm_fieldAddCustomDataFile*", "Some data")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldAddGriddedData"),
       DESCRIPTION(R"--(Adds data to the atm_field
 
@@ -4132,26 +4115,6 @@ computations.
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
       GIN_DESC("Flag for parallel safety at 3X slowdown cost")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("atm_fieldRegularize"),
-      DESCRIPTION(R"--(Make the atmospheric field regular.
-
-After this method is called, all new fields to the atm_field must have the
-same shape.
-
-After this method is called, all existing fields have a regular shape.
-)--"),
-      AUTHORS("Richard Larsson"),
-      OUT("atm_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("alt", "lat", "lon"),
-      GIN_TYPE("Vector", "Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Altitude grid", "Latitude grid", "Longitude grid")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
@@ -12844,84 +12807,6 @@ After this method is called, all existing fields have a regular shape.
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppath_fieldFromDownUpLimbGeoms"),
-      DESCRIPTION(
-          "Computes ppath_field from \"standalone\" sensors looking upwards from\n"
-          "0 m altitude with zenith angles range [0, 90], downwards from the top\n"
-          "of the atmosphere covering the zenith angle range from 180 degrees to\n"
-          "the surface tangent minus 1e-4 degrees, and through the limb covering\n"
-          "at the same position as the downwards looking sensor covering the zenith\n"
-          "angle range from the surface tangent plus 1e-4 degrees to 90 degrees minus\n"
-          "1e-4 degrees.\n"
-          "\n"
-          "The top of the atmosphere is from *z_field*(-1, 0, 0) [python range notation].\n"
-          "\n"
-          "The field will consist of 3*nz arrays structured as [up, limb, down]\n"
-          "\n"
-          "The intent of this function is to generate a field so that calculations\n"
-          "of *ppvar_iy* of all the fields will cover the zenith angle space\n"
-          "of all positions in *z_field*.\n"
-          "\n"
-          "Only works for *atmosphere_dim* 1, spherical planets, and *ppath_lmax*<0\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("ppath_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppath_agenda",
-         "ppath_lmax",
-         "ppath_lraytrace",
-         "atmgeom_checked",
-         "atm_field",
-         "f_grid",
-         "cloudbox_on",
-         "cloudbox_checked",
-         "ppath_inside_cloudbox_do",
-         "rte_pos",
-         "rte_los",
-         "rte_pos2",
-         "refellipsoid"
-         ),
-      GIN("nz"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("3"),
-      GIN_DESC("Number of zenith angles per position")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("ppathCalc"),
-      DESCRIPTION(
-          "Stand-alone calculation of propagation paths.\n"
-          "\n"
-          "Beside a few checks of input data, the only operation of this\n"
-          "method is to execute *ppath_agenda*.\n"
-          "\n"
-          "Propagation paths are normally calculated as part of the radiative\n"
-          "transfer calculations, and this method is not part of the control\n"
-          "file. A reason to call this function directly would be to obtain a\n"
-          "propagation path for plotting. Anyhow, use this method instead\n"
-          "of calling e.g.*ppathStepByStep directly.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("ppath"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("ppath_agenda",
-         "ppath_lmax",
-         "ppath_lraytrace",
-         "atmgeom_checked",
-         "f_grid",
-         "cloudbox_on",
-         "cloudbox_checked",
-         "ppath_inside_cloudbox_do",
-         "rte_pos",
-         "rte_los",
-         "rte_pos2"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
@@ -15791,30 +15676,6 @@ where N>=0 and the species name is something line "H2O".
                GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidForAzimuth"),
-      DESCRIPTION(
-          "Conversion of 3D ellipsoid to 1D curvature radius.\n"
-          "\n"
-          "Calculates the curvature radius for the given latitude and azimuth\n"
-          "angle, and uses this to set a spherical reference ellipsoid\n"
-          "suitable for 1D calculations. The curvature radius is a better\n"
-          "local approximation than using the local ellipsoid radius.\n"
-          "\n"
-          "The used expression assumes a geodetic latitude, but also\n"
-          "latitudes should be OK as using this method anyhow signifies\n"
-          "an approximation.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("refellipsoid"),
-      GIN("latitude", "azimuth"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Latitude.", "Azimuth angle.")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidEuropa"),
       DESCRIPTION(
           "Io reference ellipsoids.\n"
@@ -16043,28 +15904,6 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("String"),
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidOrbitPlane"),
-      DESCRIPTION(
-          "Conversion of 3D ellipsoid to 2D orbit track geometry.\n"
-          "\n"
-          "Determines an approximate reference ellipsoid following an orbit\n"
-          "track. The new ellipsoid is determined simply, by determining the\n"
-          "radius at the maximum latitude and from this value calculate a new\n"
-          "new eccentricity. The orbit is specified by giving the orbit\n"
-          "inclination (*orbitinc*), that is normally a value around 100 deg\n"
-          "for polar sun-synchronous orbits.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("refellipsoid"),
-      GIN("orbitinc"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Orbit inclination.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidSet"),

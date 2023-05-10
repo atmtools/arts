@@ -481,8 +481,6 @@ add_custom_target(check-xmldata
     -R '\(\\.xmldata\\.\)'
   DEPENDS check-deps)
 
-add_dependencies(check-xmldata mkdir-arts-results)
-
 add_custom_target(check-planettoolbox
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS}
     -R '\(\\.planettoolbox\\.\)'
@@ -499,9 +497,6 @@ add_custom_target(check-all-controlfiles
   DEPENDS check-deps)
 
 add_custom_target(check-pyarts-only DEPENDS pyarts_tests)
-
-add_dependencies(check-all mkdir-arts-results)
-
 
 ########### subdirectories ###############
 

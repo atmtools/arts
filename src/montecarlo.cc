@@ -35,7 +35,7 @@
 #include "atm.h"
 #include "auto_md.h"
 #include "debug.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "mc_interp.h"
 #include "montecarlo.h"
 
@@ -923,11 +923,12 @@ void mcPathTraceGeneral(Workspace& ws,
                        */
 
   // Check if we have already has radiative background
-  if (ppath_what_background(ppath_step)) {
-    termination_flag = ppath_what_background(ppath_step);
-    g = 1;
-    return;
-  }
+  // if (ppath_what_background(ppath_step)) {
+  //   termination_flag = ppath_what_background(ppath_step);
+  //   g = 1;
+  //   return;
+  // }
+  ARTS_USER_ERROR("ERROR")
 
   // Index in ppath_step of end point considered presently
   Index ip = 0;
@@ -1112,7 +1113,8 @@ void mcPathTraceGeneral(Workspace& ws,
         ip--;
         ppath_try = 2;
         // If a background found in first try this has to be reset:
-        ppath_set_background(ppath_step, 0);
+        //ppath_set_background(ppath_step, 0);
+        ARTS_USER_ERROR("ERROR")
       }
     }  // while !oktuastep
 
@@ -1137,9 +1139,10 @@ void mcPathTraceGeneral(Workspace& ws,
       // if TOA is reached requires a special check.
       // But we are already ready if evol_op<=r
       if (ip == ppath_step.np - 1) {
-        if (ppath_what_background(ppath_step)) {
-          termination_flag = 2;
-        }  //we have hit the surface
+        // if (ppath_what_background(ppath_step)) {
+        //   termination_flag = 2;
+        // }  //we have hit the surface
+        ARTS_USER_ERROR("ERROR")
     ARTS_USER_ERROR("NOT PORTED")
     /*
         else if (fractional_gp(ppath_step.gp_p[ip]) >=
@@ -1467,13 +1470,14 @@ void mcPathTraceRadar(Workspace& ws,
       // if TOA is reached requires a special check.
       // But we are already ready if evol_op<=r
       if (ip >= ppath_step.np - 1) {
-        if (ppath_what_background(ppath_step)) {
-          termination_flag = 2;
-        }  //we have hit the surface
-        else if (fractional_gp(ppath_step.gp_p[ip]) >=
-                 (Numeric)(atm_field.regularized_shape()[0] - 1) - 1e-3) {
-          termination_flag = 1;
-        }  //we are at TOA
+        // if (ppath_what_background(ppath_step)) {
+        //   termination_flag = 2;
+        // }  //we have hit the surface
+        // else if (fractional_gp(ppath_step.gp_p[ip]) >=
+        //          (Numeric)(atm_field.regularized_shape()[0] - 1) - 1e-3) {
+        //   termination_flag = 1;
+        // }  //we are at TOA
+        ARTS_USER_ERROR("ERROR")
       }
     }
   }  // while

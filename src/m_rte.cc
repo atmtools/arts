@@ -37,7 +37,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "debug.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
 #include "logic.h"
@@ -47,7 +47,7 @@
 #include "messages.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "propagationmatrix.h"
 #include "rte.h"
 #include "special_interp.h"
@@ -224,7 +224,8 @@ void iyClearsky(
   const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
 
   // Radiative background index
-  const Index rbi = ppath_what_background(ppath);
+  const Index rbi = 0;//ppath_what_background(ppath);
+ARTS_USER_ERROR("ERROR")
 
   // Checks of input
   ARTS_USER_ERROR_IF (rbi < 1 || rbi > 9,
@@ -328,11 +329,14 @@ This feature will be added in a future version.
   ArrayOfVector dr_below(np, Vector(nq, 0));
   ArrayOfVector dr_above(np, Vector(nq, 0));
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Atmospheric field is not regular")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& lat_grid = atm_field.grid[1];
-  const auto& lon_grid = atm_field.grid[2];
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+//  const auto& z_grid = atm_field.grid[0];
+  //const auto& lat_grid = atm_field.grid[1];
+  //const auto& lon_grid = atm_field.grid[2];
+  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+
+ARTS_USER_ERROR("ERROR")
+Vector z_grid, lat_grid, lon_grid;
+Tensor3 p_field;
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
     ppvar_f.resize(0, 0);
@@ -410,9 +414,11 @@ This feature will be added in a future version.
 
           ArrayOfIndex suns_visible(suns.nelem());
 
-          Numeric maxZ = max(atm_field.grid[0]);
+          Numeric maxZ;//max(atm_field.grid[0]);
+ARTS_USER_ERROR("ERROR")
 
-          if (suns_do && atm_field.grid[0][ip] > maxZ) {
+          if (suns_do ){//&& atm_field.grid[0][ip] > maxZ) {
+            ARTS_USER_ERROR("ERROR")
             // We skip the uppermost altitude
             // level as there can be sometimes issue due
             // to the finite precision when calculating
@@ -863,7 +869,8 @@ void iyEmissionHybrid(Workspace& ws,
   const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
 
   // Radiative background index
-  const Index rbi = ppath_what_background(ppath);
+  const Index rbi = 0;//ppath_what_background(ppath);
+ARTS_USER_ERROR("ERROR")
 
   // Throw error if unsupported features are requested
   ARTS_USER_ERROR_IF(false, "With cloudbox on, this method handles only 1D calculations.");
@@ -1645,18 +1652,6 @@ void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize(naux);
 
-  // Radiative background index
-  const Index rbi = ppath_what_background(ppath);
-
-  // Checks of input
-  ARTS_USER_ERROR_IF(rbi < 1 || rbi > 9,
-                     "ppath.background is invalid. Check your "
-                     "calculation of *ppath*?");
-  ARTS_USER_ERROR_IF(!iy_agenda_call1 && np == 1 && rbi == 2,
-                     "A secondary propagation path starting at the "
-                     "surface and is going directly into the surface "
-                     "is found. This is not allowed.");
-
   if (np == 0) {
     return;
   }
@@ -1671,9 +1666,7 @@ void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
     iy_aux[i].resize(nf, ns);
     iy_aux[i] = 0;
 
-    if (iy_aux_vars[i] == "Radiative background")
-      iy_aux[i](joker, 0) = (Numeric)min((Index)2, rbi - 1);
-    else if (iy_aux_vars[i] == "Optical depth")
+    if (iy_aux_vars[i] == "Optical depth")
       auxOptDepth = i;
     else {
       ARTS_USER_ERROR("The only allowed strings in *iy_aux_vars* are:\n"
@@ -1997,7 +1990,8 @@ void iyIndependentBeamApproximation(Workspace& ws,
                       f_grid,
                       ppath_agenda);
   //
-  error_if_limb_ppath(ppath);
+  //error_if_limb_ppath(ppath);
+ARTS_USER_ERROR("ERROR")
 
   // If scattering and sensor inside atmosphere, we need a pseudo-ppath that
   // samples altitudes not covered by main ppath. We make this second path

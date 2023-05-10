@@ -47,14 +47,15 @@
 #include "matpack_complex.h"
 #include "fastem.h"
 #include "geodetic.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "interpolation.h"
 #include "math_funcs.h"
+#include "matpack_data.h"
 #include "matpack_math.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "surf.h"
@@ -190,7 +191,8 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
-  lon_shiftgrid(lon_shifted, GFlon, lon[0]);
+  //lon_shiftgrid(lon_shifted, GFlon, lon[0]);
+  ARTS_USER_ERROR("ERROR")
 
   // Check if lat/lon we need are actually covered
   chk_if_in_range("rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat - 1]);
@@ -237,8 +239,6 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
   // Interpolate
   CREATE_OUT3;
   out3 << "    Result = " << surface_point << "\n";
-
-  std::cout << "TEST: " << surface_point << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -668,8 +668,9 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
   chk_rte_los(3, rtp_los);
   chk_size("iy",iy,f_grid.nelem(),stokes_dim);
 
-  const Vector& lat_grid = atm_field.grid[1];
-  const Vector& lon_grid = atm_field.grid[2];
+  Vector lat_grid;// = atm_field.grid[1];
+  Vector lon_grid;// = atm_field.grid[2];
+ARTS_USER_ERROR("ERROR")
 
   // Check surface_data
   surface_props_check(3,
@@ -950,8 +951,9 @@ void iySurfaceLambertian(Workspace& ws,
                          const Index& N_za,
                          const Index& N_aa,
                          const Verbosity& verbosity) {
-const Vector& lat_grid = atm_field.grid[1];
-const Vector& lon_grid = atm_field.grid[2];
+Vector lat_grid;// = atm_field.grid[1];
+Vector lon_grid;// = atm_field.grid[2];
+ARTS_USER_ERROR("ERROR")
 
   // Input checks
   ARTS_USER_ERROR_IF(surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
@@ -1257,9 +1259,11 @@ void iySurfaceLambertianDirect(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& lat_grid = atm_field.grid[1];
-const auto& lon_grid = atm_field.grid[2];
+ARTS_USER_ERROR("ERROR")
+//const auto& lat_grid = atm_field.grid[1];
+//const auto& lon_grid = atm_field.grid[2];
+Vector lat_grid;
+Vector lon_grid;
 
   //Allocate
   ArrayOfVector sun_rte_los(suns.nelem());
@@ -1732,35 +1736,43 @@ void specular_losCalcOld(Vector& specular_los,
     specular_los.resize(2);
 
     // Calculate surface normal in South-North direction
-    chk_interpolation_grids("Latitude interpolation", lat_grid, rtp_pos[1]);
-    chk_interpolation_grids("Longitude interpolation", lon_grid, rtp_pos[2]);
+//    chk_interpolation_grids("Latitude interpolation", lat_grid, rtp_pos[1]);
+  //  chk_interpolation_grids("Longitude interpolation", lon_grid, rtp_pos[2]);
+  ARTS_USER_ERROR("ERROR")
+
     GridPos gp_lat, gp_lon;
     gridpos(gp_lat, lat_grid, rtp_pos[1]);
     gridpos(gp_lon, lon_grid, rtp_pos[2]);
     Numeric c1, c2;
-    plevel_slope_3d(c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, gp_lat,
-                    gp_lon, 0);
+  //  plevel_slope_3d(c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, gp_lat,
+    //                gp_lon, 0);
+    ARTS_USER_ERROR("ERROR")
     Vector itw(4);
     interpweights(itw, gp_lat, gp_lon);
-    const Numeric rv_surface = refell2d(refellipsoid, lat_grid, gp_lat) +
+    const Numeric rv_surface = //refell2d(refellipsoid, lat_grid, gp_lat) +
                                interp(itw, z_surface, gp_lat, gp_lon);
-    const Numeric zaSN = 90 - plevel_angletilt(rv_surface, c1);
+                               ARTS_USER_ERROR("ERROR")
+    const Numeric zaSN = 90;// - plevel_angletilt(rv_surface, c1);
+    ARTS_USER_ERROR("ERROR")
     // The same for East-West
-    plevel_slope_3d(c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, gp_lat,
-                    gp_lon, 90);
-    const Numeric zaEW = 90 - plevel_angletilt(rv_surface, c1);
+//    plevel_slope_3d(c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, gp_lat,
+  //                  gp_lon, 90);
+    const Numeric zaEW = 90;// - plevel_angletilt(rv_surface, c1);
+    ARTS_USER_ERROR("ERROR")
+
     // Convert to Cartesian, and determine normal by cross-product
     Vector tangentSN(3), tangentEW(3), normal(3);
-    zaaa2cart(tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0);
-    zaaa2cart(tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90);
+    //zaaa2cart(tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0);
+    //zaaa2cart(tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90);
+    ARTS_USER_ERROR("ERROR")
     cross3(normal, tangentSN, tangentEW);
     // Convert rtp_los to cartesian and flip direction
-    Vector di(3);
-    zaaa2cart(di[0], di[1], di[2], rtp_los[0], rtp_los[1]);
-    di *= -1;
+    Vector di(3);ARTS_USER_ERROR("ERROR")
+  //  zaaa2cart(di[0], di[1], di[2], rtp_los[0], rtp_los[1]);
+    di *= -1;ARTS_USER_ERROR("ERROR")
     // Set LOS normal vector
-    cart2zaaa(surface_normal[0], surface_normal[1], normal[0], normal[1],
-              normal[2]);
+ //   cart2zaaa(surface_normal[0], surface_normal[1], normal[0], normal[1],
+ //             normal[2]);
     if (abs(rtp_los[0] - surface_normal[0]) < 90) {
       throw runtime_error("Invalid zenith angle. The zenith angle corresponds "
                           "to observe the surface from below.");
@@ -1771,8 +1783,9 @@ void specular_losCalcOld(Vector& specular_los,
     for (Index i = 0; i < 3; i++) {
       speccart[i] = fac * normal[i] - di[i];
     }
-    cart2zaaa(specular_los[0], specular_los[1], speccart[0], speccart[1],
-              speccart[2]);
+   // cart2zaaa(specular_los[0], specular_los[1], speccart[0], speccart[1],
+      //        speccart[2]);
+      ARTS_USER_ERROR("ERROR")
   }
 }
 
@@ -1853,7 +1866,8 @@ void surfaceFastem(Matrix& surface_los,
   // minus the satellite azimuth angle.
   Numeric rel_azimuth = wind_direction;  // Always true for 1D
     rel_azimuth -= rtp_los[1];
-    resolve_lon(rel_azimuth, -180, 180);
+   // resolve_lon(rel_azimuth, -180, 180);
+ARTS_USER_ERROR("ERROR")
 
   // Call FASTEM
   Matrix emissivity, reflectivity;
@@ -2029,7 +2043,8 @@ void surfaceTelsem(Matrix& surface_los,
       cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
       Numeric lat_nn, lon_nn;
       std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
-      Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
+      Numeric d;// = sphdist(lat, lon, lat_nn, lon_nn);
+      ARTS_USER_ERROR("ERROR")
       if (d > d_max) {
         std::ostringstream out{};
         out << "Distance of nearest neighbour exceeds provided limit (";
@@ -2597,7 +2612,8 @@ void surface_complex_refr_indexFromGriddedField5(
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
-  lon_shiftgrid(lon_shifted, GFlon, lon[0]);
+  //lon_shiftgrid(lon_shifted, GFlon, lon[0]);
+ARTS_USER_ERROR("ERROR")
 
   // Check if lat/lon we need are actually covered
   chk_if_in_range("rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat - 1]);
@@ -2690,7 +2706,8 @@ void surface_reflectivityFromGriddedField6(Tensor3& surface_reflectivity,
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
-  lon_shiftgrid(lon_shifted, r_field.get_numeric_grid(5), lon[0]);
+ // lon_shiftgrid(lon_shifted, r_field.get_numeric_grid(5), lon[0]);
+ARTS_USER_ERROR("ERROR")
 
   // Interpolate in lat and lon
   Tensor4 r_f_za(nf_in, stokes_dim, stokes_dim, nza);
@@ -2813,7 +2830,8 @@ void surface_scalar_reflectivityFromGriddedField4(
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
-  lon_shiftgrid(lon_shifted, r_field.get_numeric_grid(3), lon[0]);
+ // lon_shiftgrid(lon_shifted, r_field.get_numeric_grid(3), lon[0]);
+ARTS_USER_ERROR("ERROR")
 
   // Interpolate in lat and lon
   Matrix r_f_za(nf_in, nza);
@@ -2928,7 +2946,8 @@ void InterpSurfaceTypeMask(Index& surface_type,
 
   // Ensure correct coverage of lon grid
   Vector lon_shifted;
-  lon_shiftgrid(lon_shifted, GFlon, lon[0]);
+ // lon_shiftgrid(lon_shifted, GFlon, lon[0]);
+ARTS_USER_ERROR("ERROR")
 
   // Check if lat/lon we need are actually covered
   chk_if_in_range("rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat - 1]);

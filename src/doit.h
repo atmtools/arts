@@ -35,7 +35,7 @@
 
 #include "agenda_class.h"
 #include "matpack_data.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "propagationmatrix.h"
 
 //! Solves monochromatic VRTE for an atmospheric slab with constant conditions.

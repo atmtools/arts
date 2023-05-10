@@ -123,8 +123,11 @@ void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
                           const AtmField& atm_field,
                           const Index& only_liquid,
                           const Verbosity&) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+//const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   const Index n1 = t_field.npages();
   const Index n2 = t_field.nrows();

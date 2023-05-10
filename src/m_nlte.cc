@@ -110,8 +110,12 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
 
   Matrix line_irradiance;
   Tensor3 line_transmission;
-
-  const Index np = atm_field.grid[0].nelem();
+   // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;
+  ARTS_USER_ERROR("ERROR")
+ // const Index np = atm_field.grid[0].nelem();
   ARTS_USER_ERROR_IF (nlevels < 5, "Must have more than a four levels");
 
   const Index nlines = nelem(abs_lines_per_species);
@@ -120,9 +124,9 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
 
   ARTS_USER_ERROR_IF(false, "Must be regular and 1D")
   const auto keys = atm_field.nlte_keys();
-  const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // Create basic compute vectors
   const Vector Aij = createAij(abs_lines_per_species);
@@ -166,9 +170,13 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
         nf,
         1.0,
         verbosity);
-
+   // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;Index np=0;
+  ARTS_USER_ERROR("ERROR")
     for (Index ip = 0; ip < np; ip++) {
-      for (Index il=0; il<nlevels; il++) r[il] = atm_field[keys[il]].get<const Tensor3&>()(ip, 0, 0);
+      for (Index il=0; il<nlevels; il++) ;//r[il] = atm_field[keys[il]].get<const Tensor3&>()(ip, 0, 0);
 
       nlte_collision_factorsCalcFromCoeffs(Cij,
                                            Cji,
@@ -208,11 +216,12 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
 
       set_constant_statistical_equilibrium_matrix(SEE, x, sum(r), unique);
       solve(r, SEE, x);
-
+   // FIXME: REQUIRES REGULAR GRIDS
+  ARTS_USER_ERROR("ERROR")
       for (Index il = 0; il < nlevels; il++) {
-        auto& nlte = atm_field[keys[il]].get<Tensor3&>()(ip, 0, 0);
-        max_change = max(abs(nlte - r[il]) / r[il], max_change);
-        nlte = r[il];
+        //auto& nlte = atm_field[keys[il]].get<Tensor3&>()(ip, 0, 0);
+        //max_change = max(abs(nlte - r[il]) / r[il], max_change);
+        //nlte = r[il];
       }
     }
     i++;

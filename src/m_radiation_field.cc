@@ -32,9 +32,10 @@
 #include "debug.h"
 #include "lineshape.h"
 #include "logic.h"
+#include "matpack_data.h"
 #include "matpack_iter.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "propmat_field.h"
 #include "radiation_field.h"
 
@@ -59,17 +60,16 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const Numeric& r,
     const Verbosity& verbosity)
 {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regularized atmospheric fields")
+ARTS_USER_ERROR("ERROR")
 
   ARTS_USER_ERROR_IF (abs_lines_per_species.nelem() not_eq 1,
                       "Only for one species...");
   ARTS_USER_ERROR_IF (nf % 2 not_eq 1,
                       "Must hit line center, nf % 2 must be 1.");
   const Index nl = nelem(abs_lines_per_species);
-  const Index np = atm_field.grid[0].nelem();
+  const Index np =0;// atm_field.grid[0].nelem();
 
-  ARTS_USER_ERROR_IF((atm_field.regularized_shape() not_eq std::array<Index, 3>{np, 1, 1}), matpack::shape_help<3>{atm_field.regularized_shape()},  " vs (", np, ", 1, 1)")
-
+ARTS_USER_ERROR("ERROR")
   // Compute variables
   ArrayOfTensor3 diy_dx;
   FieldOfPropagationMatrix propmat_field;
@@ -89,27 +89,31 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   }
   
   ARTS_USER_ERROR_IF(not is_increasing(f_grid), "Frequency grid is not increasing, abs_lines_per_species must be sorted and no overlap is allowed");
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  // const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  // const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  // const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  Tensor3 p_field;
+  Tensor3 t_field;
+  Tensor4 vmr_field;
 
-  ppath_fieldFromDownUpLimbGeoms(ws,
-                                 ppath_field,
-                                 ppath_agenda,
-                                 -1,
-                                 1e99,
-                                 1,
-                                 atm_field,
-                                 f_grid,
-                                 0,
-                                 1,
-                                 0,
-                                 Vector(1, 0),
-                                 Vector(1, 0),
-                                 Vector(0),
-                                 refellipsoid,
-                                 nz,
-                                 verbosity);
+  // ppath_fieldFromDownUpLimbGeoms(ws,
+  //                                ppath_field,
+  //                                ppath_agenda,
+  //                                -1,
+  //                                1e99,
+  //                                1,
+  //                                atm_field,
+  //                                f_grid,
+  //                                0,
+  //                                1,
+  //                                0,
+  //                                Vector(1, 0),
+  //                                Vector(1, 0),
+  //                                Vector(0),
+  //                                refellipsoid,
+  //                                nz,
+  //                                verbosity);
+ARTS_USER_ERROR("ERROR")
 
   ArrayOfArrayOfIndex sorted_index;
   ArrayOfVector cos_zenith_angles;

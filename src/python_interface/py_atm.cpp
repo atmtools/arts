@@ -24,8 +24,6 @@ void py_atm(py::module_ &m) {
         return std::make_unique<Atm::Data>(x);
       }))
       .def(py::init(
-          [](const Tensor3 &x) { return std::make_unique<Atm::Data>(x); }))
-      .def(py::init(
           [](const Numeric &x) { return std::make_unique<Atm::Data>(x); }))
       .def(py::init([](const Index &x) {
         return std::make_unique<Atm::Data>(static_cast<Numeric>(x));
@@ -59,7 +57,6 @@ void py_atm(py::module_ &m) {
             return out;
           }));
   py::implicitly_convertible<GriddedField3, Atm::Data>();
-  py::implicitly_convertible<Tensor3, Atm::Data>();
   py::implicitly_convertible<Numeric, Atm::Data>();
   py::implicitly_convertible<Index, Atm::Data>();
   py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
@@ -170,60 +167,7 @@ void py_atm(py::module_ &m) {
                              const Atm::Data &data) { atm[x] = data; })
       .def("at", [](const AtmField &atm, const Vector& h, const Vector& lat,
                     const Vector& lon) { return atm.at(h, lat, lon); })
-      .def("regularize", &AtmField::regularize)
-      .def("regularized_shape", &AtmField::regularized_shape)
       .def_readwrite("top_of_atmosphere", &AtmField::top_of_atmosphere)
-      .def_property(
-          "z_grid",
-          py::cpp_function(
-              [](AtmField &atm) -> Vector & {
-                ARTS_USER_ERROR_IF(
-                    not atm.regularized,
-                    "Can only extract a grid from a regular field")
-                return atm.grid[0];
-              },
-              py::return_value_policy::reference_internal),
-          [](AtmField &atm, const Vector &in) {
-            ARTS_USER_ERROR_IF(not atm.regularized,
-                               "Can only set a grid to a regular field")
-            ARTS_USER_ERROR_IF(atm.grid[0].nelem() == in.nelem(),
-                               "Must have same size")
-            atm.grid[0] = in;
-          })
-      .def_property(
-          "lat_grid",
-          py::cpp_function(
-              [](AtmField &atm) -> Vector & {
-                ARTS_USER_ERROR_IF(
-                    not atm.regularized,
-                    "Can only extract a grid from a regular field")
-                return atm.grid[1];
-              },
-              py::return_value_policy::reference_internal),
-          [](AtmField &atm, const Vector &in) {
-            ARTS_USER_ERROR_IF(not atm.regularized,
-                               "Can only set a grid to a regular field")
-            ARTS_USER_ERROR_IF(atm.grid[1].nelem() == in.nelem(),
-                               "Must have same size")
-            atm.grid[1] = in;
-          })
-      .def_property(
-          "lon_grid",
-          py::cpp_function(
-              [](AtmField &atm) -> Vector & {
-                ARTS_USER_ERROR_IF(
-                    not atm.regularized,
-                    "Can only extract a grid from a regular field")
-                return atm.grid[2];
-              },
-              py::return_value_policy::reference_internal),
-          [](AtmField &atm, const Vector &in) {
-            ARTS_USER_ERROR_IF(not atm.regularized,
-                               "Can only set a grid to a regular field")
-            ARTS_USER_ERROR_IF(atm.grid[2].nelem() == in.nelem(),
-                               "Must have same size")
-            atm.grid[2] = in;
-          })
       .PythonInterfaceCopyValue(AtmField)
       .PythonInterfaceWorkspaceVariableConversion(AtmField)
       .PythonInterfaceFileIO(AtmField)
@@ -236,20 +180,17 @@ void py_atm(py::module_ &m) {
             for (auto &kn : k)
               v.emplace_back(
                   std::visit([&](auto &&key) { return t[key]; }, kn));
-            return py::make_tuple(k, v, t.grid, t.regularized,
-                                  t.top_of_atmosphere);
+            return py::make_tuple(k, v, t.top_of_atmosphere);
           },
           [](const py::tuple &t) {
-            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
             auto k = t[0].cast<std::vector<Atm::KeyVal>>();
             auto v = t[1].cast<std::vector<Atm::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
             auto out = std::make_unique<AtmField>();
-            out->grid = t[2].cast<std::array<Vector, 3>>();
-            out->regularized = t[3].cast<bool>();
-            out->top_of_atmosphere = t[4].cast<Numeric>();
+            out->top_of_atmosphere = t[2].cast<Numeric>();
 
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(

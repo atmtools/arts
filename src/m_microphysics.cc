@@ -589,10 +589,14 @@ void pnd_fieldCalcFromParticleBulkProps(
     const Index& jacobian_do,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Verbosity&) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-  const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
-  const auto& t_field=atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto particle_bulkprop_field = Atm::extract_partp_content(atm_field, particle_bulkprop_names);
+   // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+ // const auto& t_field=atm_field[Atm::Key::t].get<const Tensor3&>();
+ // const auto particle_bulkprop_field = Atm::extract_partp_content(atm_field, particle_bulkprop_names);
 
   // Do nothing if cloudbox is inactive
   if (!cloudbox_on) {

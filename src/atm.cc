@@ -73,14 +73,7 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
     else
       os << data;
   };
-  os << "Regularized Field: " << (atm.regularized ? "true " : "false");
-  if (atm.regularized) {
-    os << ",\nAltitude: [" << atm.grid[0] << "]";
-    os << ",\nLatitude: [" << atm.grid[1] << "]";
-    os << ",\nLongitude: [" << atm.grid[2] << "]";
-  }
   
-
   for (auto& vals : atm.other()) {
     os << ",\n" << vals.first << ":\n";
     std::visit(printer, vals.second.data);
@@ -144,78 +137,10 @@ Index Field::nother() const { return static_cast<Index>(other().size()); }
 
 String Data::data_type() const {
   if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
-  if (std::holds_alternative<Tensor3>(data)) return "Tensor3";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
   ARTS_ASSERT(false, "Cannot be reached, you have added a new type but not doen the plumbing...")
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
-}
-
-void Field::throwing_check() const {
-  if (regularized) {
-    for (auto &key_val : other()) {
-      std::visit(
-          [&](auto &&x) {
-            if constexpr (not isTensor3<decltype(x)>) {
-              ARTS_USER_ERROR(
-                  "The data for ", key_val.first,
-                  " is not a Tensor3 even though the data is regularized")
-            } else {
-              ARTS_USER_ERROR_IF(x.npages() not_eq grid[0].nelem() or
-                                     x.nrows() not_eq grid[1].nelem() or
-                                     x.ncols() not_eq grid[2].nelem(),
-                                 "Mismatch dimensions.  Expects shape:\n[",
-                                 grid[0].nelem(), ", ", grid[1].nelem(), ", ",
-                                 grid[2].nelem(), "]\nGot shape:\n[", x.npages(),
-                                 ", ", grid[1].nelem(), ", ", grid[2].nelem(),
-                                 "]\nFor field: ", key_val.first)
-            }
-          },
-          key_val.second.data);
-    }
-
-    for (auto &key_val : specs()) {
-      std::visit(
-          [&](auto &&x) {
-            if constexpr (not isTensor3<decltype(x)>) {
-              ARTS_USER_ERROR(
-                  "The data for ", key_val.first,
-                  " is not a Tensor3 even though the data is regularized")
-            } else {
-              ARTS_USER_ERROR_IF(x.npages() not_eq grid[0].nelem() or
-                                     x.nrows() not_eq grid[1].nelem() or
-                                     x.ncols() not_eq grid[2].nelem(),
-                                 "Mismatch dimensions.  Expects shape:\n[",
-                                 grid[0].nelem(), ", ", grid[1].nelem(), ", ",
-                                 grid[2].nelem(), "]\nGot shape:\n[", x.npages(),
-                                 ", ", grid[1].nelem(), ", ", grid[2].nelem(),
-                                 "]\nFor field: ", key_val.first)
-            }
-          },
-          key_val.second.data);
-    }
-
-    for (auto &key_val : nlte()) {
-      std::visit(
-          [&](auto &&x) {
-            if constexpr (not isTensor3<decltype(x)>) {
-              ARTS_USER_ERROR(
-                  "The data for ", key_val.first,
-                  " is not a Tensor3 even though the data is regularized")
-            } else {
-              ARTS_USER_ERROR_IF(x.npages() not_eq grid[0].nelem() or
-                                     x.nrows() not_eq grid[1].nelem() or
-                                     x.ncols() not_eq grid[2].nelem(),
-                                 "Mismatch dimensions.  Expects shape:\n[",
-                                 grid[0].nelem(), ", ", grid[1].nelem(), ", ",
-                                 grid[2].nelem(), "]\nGot shape:\n[", x.npages(),
-                                 ", ", grid[1].nelem(), ", ", grid[2].nelem(),
-                                 "]\nFor field: ", key_val.first)
-            }
-          },
-          key_val.second.data);
-    }
-  }
 }
 
 namespace detail {
@@ -245,11 +170,6 @@ Limits find_limits(const GriddedField3 &gf3) {
   return {gf3.get_numeric_grid(0).front(), gf3.get_numeric_grid(0).back(),
           gf3.get_numeric_grid(1).front(), gf3.get_numeric_grid(1).back(),
           gf3.get_numeric_grid(2).front(), gf3.get_numeric_grid(2).back()};
-}
-
-Limits find_limits(const Tensor3 &) {
-  ARTS_ASSERT(false, "This must be dealt with earlier");
-  return {};
 }
 
 Vector vec_interp(const Numeric& v, const Vector& alt, const Vector&, const Vector&) {
@@ -343,12 +263,6 @@ Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, 
   if (d2)               return tvec_interp<1, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
   if (d3)               return tvec_interp<1, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
   return tvec_interp<1, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-}
-
-Vector vec_interp(const Tensor3 &, const Vector &, const Vector &,
-                  const Vector &) {
-  ARTS_ASSERT(false, "This must be dealt with earlier")
-  return {};
 }
 
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
@@ -447,59 +361,31 @@ Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const 
 
   return out;
 }
-
-template <Index poly_alt, Index poly_lat, Index poly_lon>
-void tensor_interpolator_fun(std::vector<Point>& out, const Field& f, const Vector& alt, const Vector& lat, const Vector& lon) {
-  const auto n = out.size();
-  const auto interpolator = interp_helper<poly_alt, poly_lat, poly_lon, true>(f.grid[0], f.grid[1], f.grid[2], alt, lat, lon);
-  for (const auto& key: f.keys()) {
-    const Vector f_vec = interpolator(f[key].get<const Tensor3&>());
-    for (std::size_t i=0; i<n; i++) {
-      out[i][key] = f_vec[i];
-    }
-  }
-}
-
-void tensor_interpolator(std::vector<Point>& out, const Field& f, const Vector& alt, const Vector& lat, const Vector& lon) {
-  const bool d1 = f.grid[0].nelem() == 1;
-  const bool d2 = f.grid[1].nelem() == 1;
-  const bool d3 = f.grid[2].nelem() == 1;
-
-  if (d1 and d2 and d3) tensor_interpolator_fun<0, 0, 0>(out, f, alt, lat, lon);
-  else if (d1 and d2)   tensor_interpolator_fun<0, 0, 1>(out, f, alt, lat, lon);
-  else if (d1 and d3)   tensor_interpolator_fun<0, 1, 0>(out, f, alt, lat, lon);
-  else if (d2 and d3)   tensor_interpolator_fun<1, 0, 0>(out, f, alt, lat, lon);
-  else if (d1)          tensor_interpolator_fun<0, 1, 1>(out, f, alt, lat, lon);
-  else if (d2)          tensor_interpolator_fun<1, 0, 1>(out, f, alt, lat, lon);
-  else if (d3)          tensor_interpolator_fun<1, 1, 0>(out, f, alt, lat, lon);
-  else                  tensor_interpolator_fun<1, 1, 1>(out, f, alt, lat, lon);
-}
 }  // namespace detail
 
-void Field::at(std::vector<Point>& out, const Vector& alt, const Vector& lat, const Vector& lon) const {
-  throwing_check();
+void Field::at(std::vector<Point> &out, const Vector &alt, const Vector &lat,
+               const Vector &lon) const {
   ARTS_USER_ERROR_IF(
       std::any_of(alt.begin(), alt.end(), Cmp::gt(top_of_atmosphere)),
       "Cannot get values above the top of the atmosphere, which is at: ",
       top_of_atmosphere, " m.\nYour max input altitude is: ", max(alt), " m.")
-  
+
   const auto n = static_cast<Index>(out.size());
   ARTS_ASSERT(n == alt.nelem() and n == lat.nelem() and n == lon.nelem())
-  
-  if (not regularized) {
-    const auto compute = [&](const auto& key, const Data& data) {
-      const auto interpolate = [&](const Vector& alts, const Vector& lats, const Vector& lons) -> Vector {
-        return detail::vec_interp(data, alts, lats, lons);
-      };
 
-      const Vector field_val = interpolate(alt, lat, lon);
-      for (Index i=0; i<n; i++) out[i][key] = field_val[i];
+  const auto compute = [&](const auto &key, const Data &data) {
+    const auto interpolate = [&](const Vector &alts, const Vector &lats,
+                                 const Vector &lons) -> Vector {
+      return detail::vec_interp(data, alts, lats, lons);
     };
 
-    for (auto&& key: keys()) compute(key, operator[](key));
-  } else {
-    detail::tensor_interpolator(out, *this, alt, lat, lon);
-  }
+    const Vector field_val = interpolate(alt, lat, lon);
+    for (Index i = 0; i < n; i++)
+      out[i][key] = field_val[i];
+  };
+
+  for (auto &&key : keys())
+    compute(key, operator[](key));
 }
 
 std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
@@ -508,62 +394,6 @@ std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector&
   return out;
 }
 
-//! Regularizes the calculations so that all data is on a single grid
-Field& Field::regularize(const Vector& altitudes,
-                         const Vector& latitudes,
-                         const Vector& longitudes) {
-  ARTS_USER_ERROR_IF(regularized, "Cannot re-regularize a regularized grid")
-
-  ArrayOfTensor3 specs_data(
-      nspec(),
-      Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
-  ArrayOfTensor3 other_data(
-      nother(),
-      Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
-  ArrayOfTensor3 nlte_data(
-      nnlte(),
-      Tensor3(altitudes.size(), latitudes.size(), longitudes.size()));
-
-  const auto grids = matpack::repeat(altitudes, latitudes, longitudes);
-  const Index nalt = altitudes.nelem(), nlat = latitudes.nelem(),
-              nlon = longitudes.nelem();
-  const auto pnts =
-      matpack::matpack_data<Point, 1>{at(grids[0], grids[1], grids[2])}.reshape(
-          nalt, nlat, nlon);
-
-  for (Index i2 = 0; i2 < altitudes.size(); i2++) {
-    for (Index i3 = 0; i3 < latitudes.size(); i3++) {
-      for (Index i4 = 0; i4 < longitudes.size(); i4++) {
-        const auto &pnt = pnts(i2, i3, i4);
-
-        for (Index i0{0}; auto &vals : specs())
-          specs_data[i0++](i2, i3, i4) = pnt[vals.first];
-        for (Index i0{0}; auto &vals : other())
-          other_data[i0++](i2, i3, i4) = pnt[vals.first];
-        for (Index i0{0}; auto &vals : nlte())
-          nlte_data[i0++](i2, i3, i4) = pnt[vals.first];
-      }
-    }
-  }
-
-  regularized = true;
-  grid = {altitudes, latitudes, longitudes};
-  top_of_atmosphere = max(altitudes);
-
-  for (Index i0{0}; auto& vals : specs())
-    specs()[vals.first] = std::move(specs_data[i0++]);
-  for (Index i0{0}; auto& vals : other())
-    other()[vals.first] = std::move(other_data[i0++]);
-  for (Index i0{0}; auto& vals : nlte())
-    nlte()[vals.first] = std::move(nlte_data[i0++]);
-
-  return *this;
-}
-
-std::array<Index, 3> Field::regularized_shape() const {
-  ARTS_USER_ERROR_IF(not regularized, "Error in atmospheric field:\nCalling a regularized function with an irregular field")
-  return {grid[0].nelem(), grid[1].nelem(), grid[2].nelem()};
-}
 namespace internal {
 using namespace Cmp;
 
@@ -673,23 +503,6 @@ Numeric Point::operator[](Species::Species x) const noexcept {
 }
 
 bool Point::is_lte() const noexcept { return nlte.empty(); }
-
-Tensor4 extract_specs_content(const Field &atm,
-                              const ArrayOfArrayOfSpeciesTag &specs) {
-  Tensor4 out(atm.nspec(), atm.regularized_shape()[0],
-              atm.regularized_shape()[1], atm.regularized_shape()[2]);
-  std::transform(specs.begin(), specs.end(), out.begin(),
-                 [&](auto &spec) { return atm[spec].template get<Tensor3>(); });
-  return out;
-}
-
-Tensor4 extract_partp_content(const Field &atm, const ArrayOfString &specs) {
-  Tensor4 out(atm.npart(), atm.regularized_shape()[0],
-              atm.regularized_shape()[1], atm.regularized_shape()[2]);
-  std::transform(specs.begin(), specs.end(), out.begin(),
-                 [&](auto &spec) { return atm[ParticulatePropertyTag{spec}].template get<Tensor3>(); });
-  return out;
-}
 
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
 std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Allocator>& map) {

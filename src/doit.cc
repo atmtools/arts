@@ -44,14 +44,14 @@
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "messages.h"
 #include "physics_funcs.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "propagationmatrix.h"
 #include "rte.h"
 #include "sorting.h"
@@ -336,14 +336,19 @@ void cloud_ppath_update1D(Workspace& ws,
   // where this function is called.
 
   //Initialize ppath for 1D.
-  ppath_init_structure(ppath_step, 1, 1);
+  //ppath_init_structure(ppath_step, 1, 1);
   // See documentation of ppath_init_structure for understanding
   // the parameters.
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+//FIXME: MUST HAVE REGULAR FIELD
+  Vector z_grid;
+  Tensor3 t_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+  //const auto& z_grid = atm_field.grid[0];
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // Assign value to ppath.pos:
   ppath_step.pos(0, 0) = z_grid[p_index];
@@ -418,8 +423,8 @@ void cloud_ppath_update1D(Workspace& ws,
     // radiative background.  More information in the
     // function get_iy_of_background.
     // if there is no background we proceed the RT
-    Index bkgr = ppath_what_background(ppath_step);
-
+    Index bkgr;// = ppath_what_background(ppath_step);
+  ARTS_USER_ERROR("ERROR")
     // Radiative transfer from one layer to the next, starting
     // at the intersection with the next layer and propagating
     // to the considered point.
@@ -498,7 +503,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   // where this function is called.
 
   //Initialize ppath for 1D.
-  ppath_init_structure(ppath_step, 1, 1);
+  //ppath_init_structure(ppath_step, 1, 1);
+  ARTS_USER_ERROR("ERROR")
   // See documentation of ppath_init_structure for understanding
   // the parameters.
 
@@ -575,7 +581,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
     // radiative background.  More information in the
     // function get_iy_of_background.
     // if there is no background we proceed the RT
-    Index bkgr = ppath_what_background(ppath_step);
+    Index bkgr;// = ppath_what_background(ppath_step);
+ARTS_USER_ERROR("ERROR")
 
     // if 0, there is no background
     // do this in any case. cause we need downwelling cloudbox_field_mono
@@ -1131,13 +1138,17 @@ void cloud_ppath_update3D(Workspace& ws,
                           const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid field")
-  const Vector& z_grid = atm_field.grid[0];
-  const Vector& lat_grid = atm_field.grid[1];
-  const Vector& lon_grid = atm_field.grid[2];
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+//FIXME: MUST HAVE REGULAR FIELD
+ Vector z_grid, lat_grid, lon_grid;
+ Tensor3 p_field, t_field;
+ Tensor4 vmr_field;
+//  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid field")
+  //const Vector& z_grid = atm_field.grid[0];
+ // const Vector& lat_grid = atm_field.grid[1];
+ // const Vector& lon_grid = atm_field.grid[2];
+ // const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+ // const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+ // const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   Ppath ppath_step;
   const Index stokes_dim = cloudbox_field_mono.ncols();
@@ -1149,7 +1160,8 @@ void cloud_ppath_update3D(Workspace& ws,
     aa_g[i] = aa_grid[i] - 180.;
 
   //Initialize ppath for 3D.
-  ppath_init_structure(ppath_step, 3, 1);
+  //ppath_init_structure(ppath_step, 3, 1);
+  ARTS_USER_ERROR("ERROR")
   // See documentation of ppath_init_structure for
   // understanding the parameters.
 
@@ -1162,8 +1174,9 @@ void cloud_ppath_update3D(Workspace& ws,
   ppath_step.pos(0, 1) = lat_grid[lat_index];
   ppath_step.pos(0, 0) = z_grid[p_index];
   // As always on top of the lat. grid positions, OK to call refell2r:
-  ppath_step.r[0] =
-      refell2r(refellipsoid, ppath_step.pos(0, 1)) + ppath_step.pos(0, 0);
+ // ppath_step.r[0] =
+   //   refell2r(refellipsoid, ppath_step.pos(0, 1)) + ppath_step.pos(0, 0);
+ARTS_USER_ERROR("ERROR")
 
   // Define the direction:
   ppath_step.los(0, 0) = za_grid[za_index];

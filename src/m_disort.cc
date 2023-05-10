@@ -44,7 +44,7 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "messages.h"
- #include "geodetic_OLD.h"
+ #include "geodetic.h"
 #include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -86,11 +86,15 @@ void DisortCalc(Workspace& ws,
                     const Index& emission,
                     const Index& intensity_correction,
                     const Verbosity& verbosity) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& z_grid = atm_field.grid[0];
-const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& z_grid = atm_field.grid[0];
+//const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+//const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+//const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
@@ -172,19 +176,19 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
     }
 
     //get the cloudbox top distance to earth center.
-    Numeric R_TOA = refell2r(refellipsoid,
-                             lat_true[0]) +
-                    cloudboxtop_pos[0];
+    Numeric R_TOA;// = refell2r(refellipsoid, lat_true[0]) + cloudboxtop_pos[0];
+ARTS_USER_ERROR("ERROR")
 
     //get the distance between sun and cloudbox top
     Numeric R_Sun2CloudboxTop;
-    distance3D(R_Sun2CloudboxTop,
+    ARTS_USER_ERROR("ERROR")
+  /*  distance3D(R_Sun2CloudboxTop,
                R_TOA,
                lat_true[0],
                lon_true[0],
                sun_pos[0],
                sun_pos[1],
-               sun_pos[2]);
+               sun_pos[2]);*/
 
     // Geometric scaling factor, scales the sun spectral irradiance at the surface
     // of the sun to the spectral irradiance of the sun at cloubbox top.
@@ -290,11 +294,15 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Index& intensity_correction,
                     const Numeric& inc_angle,
                     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Not regular grid atmospheric field")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& z_grid = atm_field.grid[0];
+  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
@@ -377,19 +385,21 @@ void DisortCalcWithARTSSurface(Workspace& ws,
     }
 
     //get the cloudbox top distance to earth center.
-    Numeric R_TOA = refell2r(refellipsoid,
-                             lat_true[0]) +
-                    cloudboxtop_pos[0];
+    Numeric R_TOA;// = refell2r(refellipsoid,
+                   //          lat_true[0]) +
+                   // cloudboxtop_pos[0];
+ARTS_USER_ERROR("ERROR")
 
     //get the distance between sun and cloudbox top
     Numeric R_Sun2CloudboxTop;
-    distance3D(R_Sun2CloudboxTop,
-               R_TOA,
-               lat_true[0],
-               lon_true[0],
-               sun_pos[0],
-               sun_pos[1],
-               sun_pos[2]);
+//    distance3D(R_Sun2CloudboxTop,
+  //             R_TOA,
+    //           lat_true[0],
+      //         lon_true[0],
+        //       sun_pos[0],
+          //     sun_pos[1],
+            //   sun_pos[2]);
+ARTS_USER_ERROR("ERROR")
 
     // Geometric scaling factor, scales the sun spectral irradiance at the surface
     // of the sun to the spectral irradiance of the sun at cloubbox top.
@@ -616,11 +626,15 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Index& emission,
                 const Index& intensity_correction,
                 const Verbosity& verbosity) {
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& z_grid = atm_field.grid[0];
-const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
+//const auto& z_grid = atm_field.grid[0];
+//const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+//const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+//const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // Set cloudbox to cover complete atmosphere
   Index cloudbox_on;
@@ -697,19 +711,21 @@ const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
     }
 
     //get the cloudbox top distance to earth center.
-    Numeric R_TOA = refell2r(refellipsoid,
-                             lat_true[0]) +
-                    cloudboxtop_pos[0];
+    Numeric R_TOA ;//= refell2r(refellipsoid,
+                     //        lat_true[0]) +
+                    //cloudboxtop_pos[0];
+ARTS_USER_ERROR("ERROR")
 
     //get the distance between sun and cloudbox top
     Numeric R_Sun2CloudboxTop;
-    distance3D(R_Sun2CloudboxTop,
-               R_TOA,
-               lat_true[0],
-               lon_true[0],
-               sun_pos[0],
-               sun_pos[1],
-               sun_pos[2]);
+//    distance3D(R_Sun2CloudboxTop,
+  //             R_TOA,
+    //           lat_true[0],
+      //         lon_true[0],
+        //       sun_pos[0],
+          //     sun_pos[1],
+            //   sun_pos[2]);
+ARTS_USER_ERROR("ERROR")
 
     // Geometric scaling factor, scales the sun spectral irradiance at the surface
     // of the sun to the spectral irradiance of the sun at cloubbox top.

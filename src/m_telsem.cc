@@ -26,7 +26,7 @@
 #include "arts_conversions.h"
 #include "file.h"
 #include "matpack_data.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "mystring.h"
 #include "rte.h"
 #include "telsem.h"
@@ -58,7 +58,8 @@ void telsemStandalone(Matrix &emis,
     cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
     Numeric lat_nn, lon_nn;
     std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
-    Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
+    Numeric d;// = sphdist(lat, lon, lat_nn, lon_nn);
+    ARTS_USER_ERROR("ERROR")
     ARTS_USER_ERROR_IF (d > d_max,
       "Distance of nearest neighbor exceeds provided limit (",
       d, " > ", d_max, ").")

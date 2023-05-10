@@ -59,12 +59,13 @@ void dlosDiffOfLos(Matrix& dlos,
   dlos.resize(nlos, 2);
 
   for (Index i = 0; i < nlos; i++) {
-    diff_za_aa(dlos(i, 0),
-               dlos(i, 1),
-               ref_los[0],
-               ref_los[1],
-               other_los(i, 0),
-               other_los(i, 1));
+    ARTS_USER_ERROR("ERROR")
+//    diff_za_aa(dlos(i, 0),
+  //             dlos(i, 1),
+    //           ref_los[0],
+      //         ref_los[1],
+        //       other_los(i, 0),
+          //     other_los(i, 1));
   }
 }
 
@@ -401,12 +402,13 @@ void sensor_losAddLosAndDlos(Matrix& sensor_los,
   sensor_los.resize(nlos, 2);
 
   for (Index i = 0; i < nlos; i++)
-    add_za_aa(sensor_los(i, 0),
-              sensor_los(i, 1),
-              ref_los[0],
-              ref_los[1],
-              dlos(i, 0),
-              dlos(i, 1));
+  ARTS_USER_ERROR("ERROR")
+ //   add_za_aa(sensor_los(i, 0),
+   //           sensor_los(i, 1),
+     //         ref_los[0],
+       //       ref_los[1],
+         //     dlos(i, 0),
+           //   dlos(i, 1));
 }
 
 

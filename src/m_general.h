@@ -35,7 +35,7 @@
 #include "cia.h"
 #include "messages.h"
 #include "mystring.h"
-#include "ppath_OLD.h"
+#include "ppath_struct.h"
 #include "special_interp.h"
 #include "tessem.h"
 #include "timer_struct.h"

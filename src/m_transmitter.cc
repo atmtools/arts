@@ -38,7 +38,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "auto_md.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "jacobian.h"
 #include "lin_alg.h"
 #include "logic.h"
@@ -697,7 +697,8 @@ void iyTransmissionStandard(Workspace& ws,
   const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
 
   // Radiative background index
-  const Index rbi = ppath_what_background(ppath);
+  const Index rbi = 0;;//ppath_what_background(ppath);
+ARTS_USER_ERROR("ERROR")
 
   // Checks of input
   // Throw error if unsupported features are requested

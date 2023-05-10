@@ -441,7 +441,7 @@ void ppath_extend(Ppath& ppath,
 
   // Create extended ppath
   ppath.np = ppath1.np + ppath2.np;
-  ppath.backgroundZZZ = ppath2.backgroundZZZ;
+  ppath.background = ppath2.background;
   // Start pos/los_lstep kept as given
   // but end pos/los_lstep should be taken from ppath2
   ppath.end_pos = ppath2.end_pos;
@@ -576,7 +576,7 @@ void refracted_link_basic(Workspace& ws,
                    Verbosity());
 
     // Intersection with surface?
-    if (ppath.backgroundZZZ == PpathBackground::Surface) {
+    if (ppath.background == PpathBackground::Surface) {
       if (robust) {
         any_failure = true;
         break;
@@ -588,7 +588,7 @@ void refracted_link_basic(Workspace& ws,
     }
     
     // Extend ppath into space?
-    if (ppath.backgroundZZZ == PpathBackground::Space) {
+    if (ppath.background == PpathBackground::Space) {
       const Numeric l2end = l2false - ppath.start_lstep - sum(ppath.lstep);
       if (l2end > 0) {
         geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
@@ -646,7 +646,7 @@ void refracted_link_basic(Workspace& ws,
                    0,
                    Verbosity());
     
-    if (ppath.backgroundZZZ == PpathBackground::Surface) {
+    if (ppath.background == PpathBackground::Surface) {
       if (robust) {
         any_failure = true;
       } else {
@@ -658,11 +658,11 @@ void refracted_link_basic(Workspace& ws,
   
   if (!any_failure) {
     // Just remains to set background
-    ppath.backgroundZZZ = PpathBackground::Transmitter;
+    ppath.background = PpathBackground::Transmitter;
 
   } else {
     // Set empty ppath
-    ppath.backgroundZZZ = PpathBackground::Undefined;
+    ppath.background = PpathBackground::Undefined;
     ppath.np = 0;
     ppath.pos.resize(0, 0);
     ppath.los.resize(0, 0);

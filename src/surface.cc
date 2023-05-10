@@ -41,7 +41,7 @@
 #include "debug.h"
 #include "matpack_complex.h"
 #include "geodetic.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "lin_alg.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
@@ -264,11 +264,13 @@ void surface_get_incoming_direct(
     const Agenda& gas_scattering_agenda,
     const Agenda& ppath_step_agenda,
     const Verbosity& verbosity) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regularized field")
-  const Vector& z_grid = atm_field.grid[0];
-  const Vector& lat_grid = atm_field.grid[1];
-  const Vector& lon_grid = atm_field.grid[2];
-  const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+ARTS_USER_ERROR("ERROR")
+//  const Vector& z_grid = atm_field.grid[0];
+  //const Vector& lat_grid = atm_field.grid[1];
+//  const Vector& lon_grid = atm_field.grid[2];
+  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
+Vector z_grid, lat_grid, lon_grid;
+Tensor3 p_field;
 
   //Allocate
   Vector surface_normal;

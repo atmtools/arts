@@ -61,7 +61,6 @@ void py_ppath(py::module_& m) {
                                   self.np,
                                   self.constant,
                                   self.background,
-                                  self.backgroundZZZ,
                                   self.start_pos,
                                   self.start_los,
                                   self.start_lstep,
@@ -79,27 +78,26 @@ void py_ppath(py::module_& m) {
                                   self.gp_lon);
           },
           [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 20, "Invalid state!")
+            ARTS_USER_ERROR_IF(t.size() != 19, "Invalid state!")
             return new Ppath{t[0].cast<Index>(),
                              t[1].cast<Index>(),
                              t[2].cast<Numeric>(),
-                             t[3].cast<String>(),
-                             t[4].cast<PpathBackground>(),
+                             t[3].cast<PpathBackground>(),
+                             t[4].cast<Vector>(),
                              t[5].cast<Vector>(),
-                             t[6].cast<Vector>(),
-                             t[7].cast<Numeric>(),
+                             t[6].cast<Numeric>(),
+                             t[7].cast<Matrix>(),
                              t[8].cast<Matrix>(),
-                             t[9].cast<Matrix>(),
+                             t[9].cast<Vector>(),
                              t[10].cast<Vector>(),
                              t[11].cast<Vector>(),
                              t[12].cast<Vector>(),
-                             t[13].cast<Vector>(),
-                             t[14].cast<Numeric>(),
+                             t[13].cast<Numeric>(),
+                             t[14].cast<Vector>(),
                              t[15].cast<Vector>(),
-                             t[16].cast<Vector>(),
+                             t[16].cast<ArrayOfGridPos>(),
                              t[17].cast<ArrayOfGridPos>(),
-                             t[18].cast<ArrayOfGridPos>(),
-                             t[19].cast<ArrayOfGridPos>()};
+                             t[18].cast<ArrayOfGridPos>()};
           }))
       .PythonInterfaceWorkspaceDocumentation(Ppath);
 

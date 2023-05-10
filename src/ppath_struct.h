@@ -45,8 +45,7 @@ struct Ppath {
   /** The propagation path constant (only used for 1D) */
   Numeric constant;            // To be removed
   /** Radiative background */
-  String background;
-  PpathBackground backgroundZZZ;   // New version
+  PpathBackground background;   // New version
   /** Start position */
   Vector start_pos;
   /** Start line-of-sight */
@@ -82,6 +81,6 @@ struct Ppath {
 };
 
 /** An array of propagation paths. */
-typedef Array<Ppath> ArrayOfPpath;
+using ArrayOfPpath = Array<Ppath>;
 
 #endif

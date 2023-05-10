@@ -813,12 +813,15 @@ void abs_lookupSetup(  // WS Output:
     const Numeric& h2o_step,
     const Verbosity& verbosity) {
   // Checks on input parameters:
-
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
-const auto& p_field =atm_field[Atm::Key::p].get<const Tensor3&>();
-const auto p_grid = p_field(joker, 0, 0);
-const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+//FIXME: MUST HAVE REGULAR FIELD
+ Vector z_grid, lat_grid, lon_grid, p_grid;
+ Tensor3 p_field, t_field;
+ Tensor4 vmr_field;
+//ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
+//const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
+//const auto& p_field =atm_field[Atm::Key::p].get<const Tensor3&>();
+//const auto p_grid = p_field(joker, 0, 0);
+//const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   if (atmfields_checked != 1)
     throw runtime_error(
@@ -2138,10 +2141,13 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
 
   // Number of frequencies:
   const Index n_frequencies = f_grid.nelem();
-
-const Vector& z_grid = atm_field.grid[0];
-const Vector& lat_grid = atm_field.grid[1];
-const Vector& lon_grid = atm_field.grid[2];
+//FIXME: MUST HAVE REGULAR FIELD
+ Vector z_grid, lat_grid, lon_grid, p_grid;
+ Tensor3 p_field, t_field;
+ Tensor4 vmr_field;
+//const Vector& z_grid = atm_field.grid[0];
+//const Vector& lat_grid = atm_field.grid[1];
+//const Vector& lon_grid = atm_field.grid[2];
 
   // Number of altitudes levels:
   const Index n_altitudes = z_grid.nelem();

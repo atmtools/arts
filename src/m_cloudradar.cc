@@ -102,8 +102,8 @@ void iyRadarSingleScat(Workspace& ws,
   const Index naux = iy_aux_vars.nelem();
 
   // Radiative background index
-  const Index rbi = ppath_what_background(ppath);
-
+  const Index rbi =0;// ppath_what_background(ppath);
+ARTS_USER_ERROR("ERROR")
   // Checks of input
   // Throw error if unsupported features are requested
   ARTS_USER_ERROR_IF (rbi < 1 || rbi > 9,
@@ -672,7 +672,8 @@ void yRadar(Workspace& ws,
     ARTS_USER_ERROR_IF (np == 1,
           "A path consisting of a single point found. "
           "This is not allowed.");
-    error_if_limb_ppath(ppath);
+    ARTS_USER_ERROR("ERROR")
+    //error_if_limb_ppath(ppath);
     ARTS_USER_ERROR_IF (iy.nrows() != nf * np,
           "The size of *iy* returned from *iy_radar_agenda* "
           "is not correct (for this method).");
@@ -837,11 +838,14 @@ void particle_bulkpropRadarOnionPeeling(
     const Numeric& atten_hyd_max,
     const Verbosity&)
 {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric fields")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& lat_grid = atm_field.grid[1];
-  const auto& lon_grid = atm_field.grid[2];
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+  //const auto& z_grid = atm_field.grid[0];
+  //const auto& lat_grid = atm_field.grid[1];
+  //const auto& lon_grid = atm_field.grid[2];
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   const Index np = t_field.npages();
   const Index nlat = t_field.nrows();
@@ -1059,9 +1063,10 @@ void particle_bulkpropRadarOnionPeeling(
     for (const auto& msg : fail_msg) os << msg << '\n';
     ARTS_USER_ERROR(os.str());
   }
-
-  atm_field[ParticulatePropertyTag{scat_species[0]}] = Tensor3{particle_bulkprop_field[0]};
-  atm_field[ParticulatePropertyTag{scat_species[1]}] = Tensor3{particle_bulkprop_field[1]};
+  // FIXME: REQUIRES REGULAR GRIDS
+  ARTS_USER_ERROR("ERROR")
+  //atm_field[ParticulatePropertyTag{scat_species[0]}] = Tensor3{particle_bulkprop_field[0]};
+  //atm_field[ParticulatePropertyTag{scat_species[1]}] = Tensor3{particle_bulkprop_field[1]};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

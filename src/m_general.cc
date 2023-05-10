@@ -318,10 +318,11 @@ void TestArrayOfAgenda(Workspace& ws,
 void Test(const Verbosity&) {
   Numeric za, aa, dza_new, daa_new;
   const Numeric za0 = 67, aa0 = 12, dza = 9, daa = 11;
-  add_za_aa(za, aa, za0, aa0, dza, daa);
+  //add_za_aa(za, aa, za0, aa0, dza, daa);
   cout << za << " " << aa << endl;
-  diff_za_aa(dza_new, daa_new, za0, aa0, za, aa);
+  //diff_za_aa(dza_new, daa_new, za0, aa0, za, aa);
   cout << dza_new << " " << daa_new << endl;
+  ARTS_USER_ERROR("ERROR")
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

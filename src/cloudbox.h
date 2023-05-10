@@ -34,7 +34,7 @@
 #include "matpack_data.h"
 #include "messages.h"
 #include "optproperties.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 
 namespace Cloudbox {
    /** Global constant, minimum distance of cloudbox to lat/lon_grid edges.

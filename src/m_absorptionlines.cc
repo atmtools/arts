@@ -2254,8 +2254,6 @@ void abs_lines_per_speciesPopulationNlteField(
     const AtmField& atm_field,
     const VibrationalEnergyLevels& nlte_vib_energies,
     const Verbosity&) {
-  atm_field.throwing_check();
-
   if (atm_field.nlte().empty()) {
     nlte_do = 0;
     return;

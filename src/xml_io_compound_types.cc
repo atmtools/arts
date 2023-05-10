@@ -34,6 +34,7 @@
 #include "gridded_fields.h"
 #include "isotopologues.h"
 #include "mystring.h"
+#include "ppath_struct.h"
 #include "predefined/predef_data.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
@@ -994,7 +995,9 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, ppath.dim, pbifs, verbosity);
   xml_read_from_stream(is_xml, ppath.np, pbifs, verbosity);
   xml_read_from_stream(is_xml, ppath.constant, pbifs, verbosity);
-  xml_read_from_stream(is_xml, ppath.background, pbifs, verbosity);
+  String background;
+  xml_read_from_stream(is_xml, background, pbifs, verbosity);
+  ppath.background = Options::toPpathBackgroundOrThrow(background);
   xml_read_from_stream(is_xml, ppath.start_pos, pbifs, verbosity);
   xml_read_from_stream(is_xml, ppath.start_los, pbifs, verbosity);
   xml_read_from_stream(is_xml, ppath.start_lstep, pbifs, verbosity);
@@ -1041,7 +1044,7 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(
       os_xml, ppath.constant, pbofs, "PropagationPathConstant", verbosity);
   xml_write_to_stream(
-      os_xml, ppath.background, pbofs, "RadiativeBackground", verbosity);
+      os_xml, String{toString(ppath.background)}, pbofs, "RadiativeBackground", verbosity);
   xml_write_to_stream(os_xml,
                       ppath.start_pos,
                       pbofs,
@@ -2257,9 +2260,7 @@ void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
   else
     ARTS_USER_ERROR("Cannot understand the keytype: ", std::quoted(keytype))
 
-  if (type == "Tensor3")
-    data.data = Tensor3{};
-  else if (type == "GriddedField3")
+  if (type == "GriddedField3")
     data.data = GriddedField3{};
   else if (type == "Numeric")
     data.data = Numeric{};
@@ -2306,17 +2307,7 @@ void xml_read_from_stream(istream& is_xml,
   Index n;
   open_tag.get_attribute_value("nelem", n);
 
-  Index regular;
-  open_tag.get_attribute_value("regular", regular);
-  atm.regularized = regular not_eq 0;
-
   open_tag.get_attribute_value("toa", atm.top_of_atmosphere);
-
-  if (atm.regularized) {
-    xml_read_from_stream(is_xml, atm.grid[0], pbifs, verbosity);
-    xml_read_from_stream(is_xml, atm.grid[1], pbifs, verbosity);
-    xml_read_from_stream(is_xml, atm.grid[2], pbifs, verbosity);
-  }
 
   for (Index i = 0; i < n; i++) {
     Atm::KeyVal key;
@@ -2398,16 +2389,9 @@ void xml_write_to_stream(ostream& os_xml,
   xml_set_stream_precision(os_xml);
 
   open_tag.add_attribute("nelem", static_cast<Index>(keys.size()));
-  open_tag.add_attribute("regular", Index(atm.regularized));
   open_tag.add_attribute("toa", atm.top_of_atmosphere);
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
-
-  if (atm.regularized) {
-    xml_write_to_stream(os_xml, atm.grid[0], pbofs, "Altitude Grid", verbosity);
-    xml_write_to_stream(os_xml, atm.grid[1], pbofs, "Latitude Grid", verbosity);
-    xml_write_to_stream(os_xml, atm.grid[2], pbofs, "Longitude Grid", verbosity);
-  }
 
   for (auto &key : keys) {
     xml_write_to_stream_helper(os_xml, key, atm[key], pbofs, verbosity);

@@ -518,7 +518,11 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Check input
   ARTS_USER_ERROR_IF (false, "This method only works for 1D regular grids.");
 
-  const auto& z_grid = atm_field.grid[0];
+    // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
   ARTS_USER_ERROR_IF(z_grid.nelem() < 2, "Need an altitude grid")
 
   // Sizes
@@ -743,7 +747,11 @@ void spectral_radiance_fieldExpandCloudboxField(
     throw runtime_error(
         "The first element of *cloudbox_limits* must be zero "
         "to use this method.");
-  const auto& z_grid = atm_field.grid[0];
+    // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field;
+  ARTS_USER_ERROR("ERROR")
   ARTS_USER_ERROR_IF(z_grid.nelem() < 2, "Need an altitude grid")
 
   // Sizes

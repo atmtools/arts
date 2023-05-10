@@ -26,7 +26,7 @@
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "sun.h"
 #include <iostream>
 
@@ -150,40 +150,44 @@ void sunsAddSingleFromGridAtLocation(
                       "but is ",location_altitude," m) ")
 
   // from local position to global position
-  Numeric toa_altitude = location_altitude + refell2r(refellipsoid, location_latitude);
-  
+  Numeric toa_altitude = location_altitude;// + refell2r(refellipsoid, location_latitude);
+  ARTS_USER_ERROR("ERROR")
+
   Numeric sun_altitude, sun_latitude, sun_longitude;
-  if (zenith < ANGTOL){
+  if (zenith){// < ANGTOL){
+    ARTS_USER_ERROR("ERROR")
     sun_altitude = distance + toa_altitude;
     sun_latitude = location_latitude;
     sun_longitude = location_longitude;
-  } else if (zenith > 180 - ANGTOL) {
+  } else if (zenith){// > 180 - ANGTOL) {
+    ARTS_USER_ERROR("ERROR")
     sun_altitude = distance - toa_altitude;
     sun_latitude = -location_latitude;
     sun_longitude = location_longitude + 180 - 360.0 * Numeric(round((location_longitude - 0.0) / 360.0));
   } else {
     Numeric x, y, z, dx, dy, dz;
-    poslos2cart(x,
-                y,
-                z,
-                dx,
-                dy,
-                dz,
-                toa_altitude,
-                location_latitude,
-                location_longitude,
-                zenith,
-                azimuth);
+    ARTS_USER_ERROR("ERROR")
+   // poslos2cart(x,
+     //           y,
+       //         z,
+         //       dx,
+           //     dy,
+             //   dz,
+               // toa_altitude,
+   //             location_latitude,
+     //           location_longitude,
+       //         zenith,
+         //       azimuth);
 
-    cart2sph(sun_altitude, 
-            sun_latitude,
-            sun_longitude,
-            x+distance*dx,
-            y+distance*dy,
-            z+distance*dz,
-            location_latitude,
-            location_longitude,
-            zenith, azimuth);
+ //   cart2sph(sun_altitude, 
+   //         sun_latitude,
+     //       sun_longitude,
+       //     x+distance*dx,
+         //   y+distance*dy,
+           // z+distance*dz,
+     //       location_latitude,
+       //     location_longitude,
+         //   zenith, azimuth);
   }
 
 

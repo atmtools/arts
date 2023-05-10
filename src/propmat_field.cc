@@ -43,9 +43,11 @@ void field_of_propagation(Workspace& ws,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
                           const Agenda& propmat_clearsky_agenda)
 {
-  const Index nalt = atm_field.regularized_shape()[0];
-  const Index nlat = atm_field.regularized_shape()[1];
-  const Index nlon = atm_field.regularized_shape()[2];
+//  const Index nalt = atm_field.regularized_shape()[0];
+//  const Index nlat = atm_field.regularized_shape()[1];
+//  const Index nlon = atm_field.regularized_shape()[2];
+ARTS_USER_ERROR("ERROR")
+Index nalt, nlat, nlon;
   const Index nq = jacobian_quantities.nelem();
   const Index nf = f_grid.nelem();
 
@@ -75,6 +77,7 @@ void field_of_propagation(Workspace& ws,
   for (Index i = 0; i < nalt; i++) {
     for (Index j = 0; j < nlat; j++) {
       for (Index k = 0; k < nlon; k++) {
+        ARTS_USER_ERROR("ERROR")
         get_stepwise_clearsky_propmat(
             wss,
             propmat_field(i, j, k),
@@ -85,7 +88,7 @@ void field_of_propagation(Workspace& ws,
             jacobian_quantities,
             f_grid,
             los,
-            atm_field.at({atm_field.grid[0][i]}, {atm_field.grid[1][j]}, {atm_field.grid[2][k]})[0],
+       AtmPoint{},  //   atm_field.at({atm_field.grid[0][i]}, {atm_field.grid[1][j]}, {atm_field.grid[2][k]})[0],
             false);
         absorption_field(i, j, k) = propmat_field(i, j, k);
       }

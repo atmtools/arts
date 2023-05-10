@@ -36,7 +36,7 @@
 #include "matpack_data.h"
 #include "messages.h"
 #include "optproperties.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 
 // ------------------------------------------------------
 // Macros to avoid duplication of code

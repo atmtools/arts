@@ -70,8 +70,6 @@ void particle_bulkprop_fieldClip(AtmField& atm_field,
                                  const Numeric& limit_low,
                                  const Numeric& limit_high,
                                  const Verbosity&) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-
   const auto limit =
       [low = std::isinf(limit_low) ? std::numeric_limits<Numeric>::lowest()
                                    : limit_low,
@@ -83,16 +81,24 @@ void particle_bulkprop_fieldClip(AtmField& atm_field,
                        });
       };
 
-  if (bulkprop_name == "ALL") {
-    for (auto& e: atm_field.partp()) limit(e.second.get<Tensor3&>());
+  if (bulkprop_name == "ALL") {   // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;
+  ARTS_USER_ERROR("ERROR")
+   // for (auto& e: atm_field.partp()) limit(e.second.get<Tensor3&>());
   } else {
     const ParticulatePropertyTag k{bulkprop_name};
 
     ARTS_USER_ERROR_IF (atm_field.has(k),
       "No particulate property tag ", std::quoted(bulkprop_name),
       " in atm_field.\n")
-
-    limit(atm_field[k].get<Tensor3&>());
+   // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;
+  ARTS_USER_ERROR("ERROR")
+   // limit(atm_field[k].get<Tensor3&>());
   }
 }
 
@@ -179,12 +185,16 @@ void xaStandard(Workspace& ws,
                 const Agenda& water_p_eq_agenda,
                 const Verbosity&) {
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Not regular grid atmospheric field")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& lat_grid = atm_field.grid[1];
-  const auto& lon_grid = atm_field.grid[2];
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-  const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
+   // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  Tensor4 vmr_field, particle_bulkprop_field;
+  ARTS_USER_ERROR("ERROR")
+ // const auto& z_grid = atm_field.grid[0];
+  //const auto& lat_grid = atm_field.grid[1];
+  //const auto& lon_grid = atm_field.grid[2];
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
                   
   // Basics
@@ -353,13 +363,14 @@ void xaStandard(Workspace& ws,
                               z_grid,
                               lat_grid,
                               lon_grid);
-        Tensor3 pbp_x;
-        regrid_atmfield_by_gp(pbp_x,
+        Tensor3 pbp_x;   // FIXME: REQUIRES REGULAR GRIDS
+  ARTS_USER_ERROR("ERROR")
+     /*   regrid_atmfield_by_gp(pbp_x,
                               3,
                               atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<const Tensor3&>(),
                               gp_p,
                               gp_lat,
-                              gp_lon);
+                              gp_lon);*/
         flat(xa[ind], pbp_x);
       } else {
         xa[ind] = 0;
@@ -367,12 +378,13 @@ void xaStandard(Workspace& ws,
     }
 
     // Wind
-    else if (jacobian_quantities[q].Target().isWind()) {
-      ConstTensor3View source_field(atm_field[Atm::Key::wind_u].get<const Tensor3&>());
+    else if (jacobian_quantities[q].Target().isWind()) { // FIXME: REQUIRES REGULAR GRIDS
+  ARTS_USER_ERROR("ERROR")
+      ConstTensor3View source_field;//(atm_field[Atm::Key::wind_u].get<const Tensor3&>());
       if (jacobian_quantities[q] == Jacobian::Atm::WindV) {
-        source_field.set(atm_field[Atm::Key::wind_v].get<const Tensor3&>());
+        //source_field.set(atm_field[Atm::Key::wind_v].get<const Tensor3&>());
       } else if (jacobian_quantities[q] == Jacobian::Atm::WindW) {
-        source_field.set(atm_field[Atm::Key::wind_w].get<const Tensor3&>());
+        //source_field.set(atm_field[Atm::Key::wind_w].get<const Tensor3&>());
       }
 
       // Determine grid positions for interpolation from retrieval grids back
@@ -410,12 +422,12 @@ void xaStandard(Workspace& ws,
 
         //all three component's hyoptenuse is the strength
         Tensor3 mag_u, mag_v, mag_w;
-        regrid_atmfield_by_gp(
-            mag_u, 3, atm_field[Atm::Key::mag_u].get<const Tensor3&>(), gp_p, gp_lat, gp_lon);
-        regrid_atmfield_by_gp(
-            mag_v, 3, atm_field[Atm::Key::mag_v].get<const Tensor3&>(), gp_p, gp_lat, gp_lon);
-        regrid_atmfield_by_gp(
-            mag_w, 3, atm_field[Atm::Key::mag_w].get<const Tensor3&>(), gp_p, gp_lat, gp_lon);
+       // regrid_atmfield_by_gp(
+   //        mag_u, 3, atm_field[Atm::Key::mag_u].get<const Tensor3&>(), gp_p, gp_lat, gp_lon);
+     //   regrid_atmfield_by_gp(
+      //      mag_v, 3, atm_field[Atm::Key::mag_v].get<const Tensor3&>(), gp_p, gp_lat, gp_lon);
+      // regrid_atmfield_by_gp(
+       //     mag_w, 3, atm_field[Atm::Key::mag_w].get<const Tensor3&>(), gp_p, gp_lat, gp_lon);
 
         Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
         for (Index i = 0; i < gp_p.nelem(); i++)
@@ -423,12 +435,13 @@ void xaStandard(Workspace& ws,
             for (Index k = 0; k < gp_lon.nelem(); k++)
               mag_x(i, j, k) = std::hypot(mag_u(i, j, k), mag_v(i, j, k), mag_w(i, j, k));
         flat(xa[ind], mag_x);
-      } else {
-        ConstTensor3View source_field(atm_field[Atm::Key::mag_u].get<const Tensor3&>());
+      } else { // FIXME: REQUIRES REGULAR GRIDS
+  ARTS_USER_ERROR("ERROR")
+        ConstTensor3View source_field;//(atm_field[Atm::Key::mag_u].get<const Tensor3&>());
         if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
-          source_field.set(atm_field[Atm::Key::mag_v].get<const Tensor3&>());
+   //       source_field.set(atm_field[Atm::Key::mag_v].get<const Tensor3&>());
         } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
-          source_field.set(atm_field[Atm::Key::mag_w].get<const Tensor3&>());
+      //    source_field.set(atm_field[Atm::Key::mag_w].get<const Tensor3&>());
         }
 
         // Determine grid positions for interpolation from retrieval grids back
@@ -523,12 +536,15 @@ void x2artsAtmAndSurf(Workspace& ws,
                       const ArrayOfString& surface_props_names,
                       const Agenda& water_p_eq_agenda,
                       const Verbosity&) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Not regular grid atmospheric field")
-  const auto& z_grid = atm_field.grid[0];
-  const auto& lat_grid = atm_field.grid[1];
-  const auto& lon_grid = atm_field.grid[2];
-  auto& p_field = atm_field[Atm::Key::p].get<Tensor3&>();
-  auto& t_field = atm_field[Atm::Key::t].get<Tensor3&>();
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+//  const auto& z_grid = atm_field.grid[0];
+//  const auto& lat_grid = atm_field.grid[1];
+ // const auto& lon_grid = atm_field.grid[2];
+ // auto& p_field = atm_field[Atm::Key::p].get<Tensor3&>();
+ // auto& t_field = atm_field[Atm::Key::t].get<Tensor3&>();
 
   // Basics
   //
@@ -625,22 +641,25 @@ void x2artsAtmAndSurf(Workspace& ws,
         regrid_atmfield_by_gp_oem(
             x_field, 3, t3_x, gp_p, gp_lat, gp_lon);
       }
-      //
-      auto& vmr_spec = atm_field[abs_species[isp]].get<Tensor3&>();
+      //  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, p_field, wind_u_field;
+  ARTS_USER_ERROR("ERROR")
+   //   auto& vmr_spec = atm_field[abs_species[isp]].get<Tensor3&>();
       if (jacobian_quantities[q].Mode() == "rel") {
         // vmr = vmr0 * x
-        vmr_spec *= x_field;
+ //       vmr_spec *= x_field;
       } else if (jacobian_quantities[q].Mode() == "vmr") {
         // vmr = x
-        vmr_spec = x_field;
+     //   vmr_spec = x_field;
       } else if (jacobian_quantities[q].Mode() == "nd") {
         // vmr = nd / nd_tot
         for (Index i3 = 0; i3 < x_field.ncols(); i3++) {
           for (Index i2 = 0; i2 < x_field.nrows(); i2++) {
             for (Index i1 = 0; i1 < x_field.npages(); i1++) {
-              vmr_spec(i1, i2, i3) =
-                  x_field(i1, i2, i3) /
-                  number_density(p_field(i1, i2, i3), t_field(i1, i2, i3));
+    //          vmr_spec(i1, i2, i3) =
+   //               x_field(i1, i2, i3) /
+   //               number_density(p_field(i1, i2, i3), t_field(i1, i2, i3));
             }
           }
         }
@@ -651,8 +670,8 @@ void x2artsAtmAndSurf(Workspace& ws,
         for (Index i3 = 0; i3 < x_field.ncols(); i3++) {
           for (Index i2 = 0; i2 < x_field.nrows(); i2++) {
             for (Index i1 = 0; i1 < x_field.npages(); i1++) {
-              vmr_spec(i1, i2, i3) =
-                  x_field(i1, i2, i3) * water_p_eq(i1, i2, i3) / p_field(i1, i2, i3);
+        //      vmr_spec(i1, i2, i3) =
+         //         x_field(i1, i2, i3) * water_p_eq(i1, i2, i3) / p_field(i1, i2, i3);
             }
           }
         }
@@ -666,7 +685,7 @@ void x2artsAtmAndSurf(Workspace& ws,
             for (Index i1 = 0; i1 < x_field.npages(); i1++) {
               const Numeric r = x_field(i1, i2, i3) / (1 - x_field(i1, i2, i3));
               const Numeric e = r * p_field(i1, i2, i3) / (0.622 + r);
-              vmr_spec(i1, i2, i3) = e / p_field(i1, i2, i3);
+         //     vmr_spec(i1, i2, i3) = e / p_field(i1, i2, i3);
             }
           }
         }
@@ -718,7 +737,8 @@ void x2artsAtmAndSurf(Workspace& ws,
         Tensor3 pbfield;
         regrid_atmfield_by_gp_oem(
             pbfield, 3, pbfield_x, gp_p, gp_lat, gp_lon);
-        atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<Tensor3&>() = pbfield;
+            ARTS_USER_ERROR("ERROR")
+       // atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<Tensor3&>() = pbfield;
       }
     }
 
@@ -745,10 +765,11 @@ void x2artsAtmAndSurf(Workspace& ws,
       Tensor3 wind_x(n_p, n_lat, n_lon);
       reshape(wind_x, x_t[ind]);
 
-auto& wind_u_field = atm_field[Atm::Key::wind_u].get<Tensor3&>();
-auto& wind_v_field = atm_field[Atm::Key::wind_v].get<Tensor3&>();
-auto& wind_w_field = atm_field[Atm::Key::wind_w].get<Tensor3&>();
-
+ARTS_USER_ERROR("ERROR")
+//auto& wind_u_field = atm_field[Atm::Key::wind_u].get<Tensor3&>();
+//auto& wind_v_field = atm_field[Atm::Key::wind_v].get<Tensor3&>();
+//auto& wind_w_field = atm_field[Atm::Key::wind_w].get<Tensor3&>();
+Tensor3 wind_u_field, wind_v_field, wind_w_field;
       Tensor3View target_field(wind_u_field);
 
       Tensor3 wind_field(
@@ -787,11 +808,11 @@ auto& wind_w_field = atm_field[Atm::Key::wind_w].get<Tensor3&>();
       // TODO Could be done without copying.
       Tensor3 mag_x(n_p, n_lat, n_lon);
       reshape(mag_x, x_t[ind]);
-
-auto& mag_u_field = atm_field[Atm::Key::mag_u].get<Tensor3&>();
-auto& mag_v_field = atm_field[Atm::Key::mag_v].get<Tensor3&>();
-auto& mag_w_field = atm_field[Atm::Key::mag_w].get<Tensor3&>();
-
+ARTS_USER_ERROR("ERROR")
+//auto& mag_u_field = atm_field[Atm::Key::mag_u].get<Tensor3&>();
+//auto& mag_v_field = atm_field[Atm::Key::mag_v].get<Tensor3&>();
+//auto& mag_w_field = atm_field[Atm::Key::mag_w].get<Tensor3&>();
+Tensor3 mag_u_field, mag_v_field, mag_w_field;
       Tensor3View target_field(mag_u_field);
 
       Tensor3 mag_field(

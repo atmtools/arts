@@ -345,11 +345,14 @@ void run_rt4(Workspace& ws,
   ArrayOfIndex cboxlims;
   Index ncboxremoved;
 
-ARTS_USER_ERROR_IF(not atm_field.regularized, "Requires regular field")
-const auto p_profile = atm_field[Atm::Key::p].get<const Tensor3&>()(joker, 0, 0);
-const auto t_profile = atm_field[Atm::Key::t].get<const Tensor3&>()(joker, 0, 0);
-const auto& z_grid = atm_field.grid[0];
-const auto vmr_profiles = Matrix{Atm::extract_specs_content(atm_field, abs_species)(joker, joker, 0, 0)};
+ARTS_USER_ERROR("ERROR")
+
+//const auto p_profile = atm_field[Atm::Key::p].get<const Tensor3&>()(joker, 0, 0);
+//const auto t_profile = atm_field[Atm::Key::t].get<const Tensor3&>()(joker, 0, 0);
+//const auto& z_grid = atm_field.grid[0];
+//const auto vmr_profiles = Matrix{Atm::extract_specs_content(atm_field, abs_species)(joker, joker, 0, 0)};
+Vector p_profile, t_profile, z_grid;
+Matrix vmr_profiles;
 
   //
   reduced_1datm(p,

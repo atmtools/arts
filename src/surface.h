@@ -35,7 +35,7 @@
 #include "matpack_complex.h"
 #include "matpack_data.h"
 #include "mystring.h"
-#include "ppath_OLD.h"
+#include "ppath.h"
 #include "optproperties.h"
 #include "sun.h"
 

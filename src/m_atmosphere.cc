@@ -51,7 +51,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
-#include "geodetic_OLD.h"
+#include "geodetic.h"
 #include "global_data.h"
 #include "gridded_fields.h"
 #include "igrf13.h"
@@ -1783,7 +1783,13 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   
   // Set TOA
   atm_fieldInit(atm_field, max(z_grid), verbosity);
-  atm_field.regularize(z_grid, lat_grid, lon_grid);
+  GriddedField3 field_data;
+  field_data.set_grid_name(0, "Altitude");
+  field_data.set_grid_name(1, "Latitude");
+  field_data.set_grid_name(2, "Longitude");
+  field_data.set_grid(0, z_grid);
+  field_data.set_grid(1, lat_grid);
+  field_data.set_grid(2, lon_grid);
 
   // In contrast to older versions, we allow the data entries to be in arbitrary
   // order. that is, we have to look for all fields individually. we require the
@@ -1809,7 +1815,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
           "Only one temperature ('T') field allowed,\n"
           "but found at least 2.")
       found = true;
-      atm_field[Atm::Key::t].get<Tensor3&>() = Tensor3{c.data[i]};
+      field_data.data = Tensor3{c.data[i]};
+      atm_field[Atm::Key::t] = field_data;
     }
   }
   ARTS_USER_ERROR_IF (!found,
@@ -1823,7 +1830,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
           "Only one pressure ('p') field allowed,\n"
           "but found at least 2.")
       found = true;
-      atm_field[Atm::Key::p].get<Tensor3&>() = Tensor3{c.data[i]};
+      field_data.data = Tensor3{c.data[i]};
+      atm_field[Atm::Key::p] = field_data;
     }
   }
   ARTS_USER_ERROR_IF (!found,
@@ -1845,7 +1853,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
             species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[i], delim);
         if (species_name == as_name) {
           found = true;
-          atm_field[abs_species[j]] = Tensor3{c.data[i]};
+          field_data.data = Tensor3{c.data[i]};
+          atm_field[abs_species[j]] = field_data;
         }
       }
       i++;
@@ -1885,7 +1894,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
         species_name, c.get_string_grid(GFIELD4_FIELD_NAMES)[Idx[j]], delim);
 
     particle_bulkprop_names[j] = species_name + delim + scat_type;
-    atm_field[ParticulatePropertyTag{particle_bulkprop_names[j]}] = Tensor3{c.data[Idx[j]]};
+    field_data.data = Tensor3{c.data[Idx[j]]};
+    atm_field[ParticulatePropertyTag{particle_bulkprop_names[j]}] = field_data;
   }
 }
 
@@ -2158,19 +2168,23 @@ void wind_u_fieldIncludePlanetRotation(AtmField& atm_field,
                                        const Vector& refellipsoid,
                                        const Numeric& planet_rotation_period,
                                        const Verbosity&) {
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Must have regular grid atmospheric field")
-  const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field, wind_u_field;
+  //const auto& [z_grid, lat_grid, lon_grid] = atm_field.grid;
 
   const Index np = z_grid.nelem();
   const Index na = lat_grid.nelem();
 
-  auto& wind_u_field = atm_field[Atm::Key::wind_u].get<Tensor3&>();
+  ARTS_USER_ERROR("ERROR: wind_u_fieldIncludePlanetRotation not implemented yet")
+  //auto& wind_u_field = atm_field[Atm::Key::wind_u].get<Tensor3&>();
 
   const Numeric k1 = 2 * Constant::pi / planet_rotation_period;
 
   for (Index a = 0; a < na; a++) {
     const Numeric k2 = k1 * Conversion::cosd(lat_grid[a]);
-    const Numeric re = refell2r(refellipsoid, lat_grid[a]);
+     Numeric re;// = refell2r(refellipsoid, lat_grid[a]);
+    ARTS_USER_ERROR("ERROR")
     for (Index p = 0; p < np; p++) {
       wind_u_field(p, a, joker) += k2 * (re + z_grid[p]);
     }
@@ -2261,7 +2275,8 @@ void z_fieldFromHSE(Workspace& ws,
     if (3 == 1) {
       re = refellipsoid[0];
     } else {
-      re = refell2r(refellipsoid, lat_grid[ilat]);
+      //re = refell2r(refellipsoid, lat_grid[ilat]);
+      ARTS_USER_ERROR("ERROR")
     }
 
     for (Index ilon = 0; ilon < nlon; ilon++) {
@@ -2399,9 +2414,11 @@ void atm_fieldLteExternalPartitionFunction(
     const Verbosity& verbosity) {
   using Constant::h;
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric field")
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field;
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   CREATE_OUT2;
   const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
@@ -2466,7 +2483,7 @@ void atm_fieldLteExternalPartitionFunction(
       out2 << "Did not find match among lines for: "
            << nlte_quantum_identifiers[in] << "\n";
     }
-    atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
+    //atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
 }
 
@@ -2479,9 +2496,11 @@ void atm_fieldLteInternalPartitionFunction(
     const Verbosity& verbosity) {
   using Constant::h;
 
-  ARTS_USER_ERROR_IF(not atm_field.regularized, "Only for regular atmospheric field")
+  // FIXME: REQUIRES REGULAR GRIDS
+  Vector z_grid, lat_grid, lon_grid;
+  Tensor3 t_field;
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
-  const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
+  //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   CREATE_OUT2;
   const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
@@ -2579,6 +2598,7 @@ void atm_fieldLteInternalPartitionFunction(
       nlte_tensor4(in, joker, joker, joker) /=
         part_fun(part_fun_pos[in], joker, joker, joker);
     }
-    atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
+    ARTS_USER_ERROR("ERROR: atm_fieldLteInternalPartitionFunction not implemented yet\n")
+    //atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
 }
