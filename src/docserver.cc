@@ -2057,6 +2057,9 @@ static MHD_Result ahc_echo(void* cls,
   return ret;
 }
 
+#endif /* ENABLE_DOCSERVER */
+
+#ifdef ENABLE_DOCSERVER
 void run_docserver(Index port, const String& baseurl, bool daemon) {
   if (daemon) {
     int pid = fork();
@@ -2072,5 +2075,10 @@ void run_docserver(Index port, const String& baseurl, bool daemon) {
     docserver.launch(daemon);
   }
 }
-
+#else /* ENABLE_DOCSERVER */
+void run_docserver(Index, const String &, bool) {
+  std::cerr << "This version of ARTS was compiled without documentation "
+          "server support.\n";
+}
 #endif /* ENABLE_DOCSERVER */
+
