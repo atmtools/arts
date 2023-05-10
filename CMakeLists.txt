@@ -557,8 +557,6 @@ endif()
 
 add_subdirectory (src)
 add_subdirectory (doc)
-add_subdirectory (controlfiles)
-add_subdirectory (controlfiles-python)
 add_subdirectory (python)
 add_subdirectory (examples)
 add_subdirectory (tests)
