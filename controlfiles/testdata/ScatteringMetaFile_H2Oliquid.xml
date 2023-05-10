@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<arts format="ascii" version="1">
-<Array type="String" nelem="4">
-<String>"testdata/scatData/MieAtmlab_Liquid_0.4um.meta.xml.gz"</String>
-<String>"testdata/scatData/MieAtmlab_Liquid_0.9um.meta.xml.gz"</String>
-<String>"testdata/scatData/MieAtmlab_Liquid_32.4um.meta.xml.gz"</String>
-<String>"testdata/scatData/MieAtmlab_Liquid_72.9um.meta.xml.gz"</String>
-</Array>
-</arts>

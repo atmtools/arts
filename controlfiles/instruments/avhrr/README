@@ -1,6 +1,0 @@
-Frequency responses for AVHRR/3 (NOAA15–NOAA19).
-Only channels 3B, 4 and 5 are included.
-Extracted from NOAA KLM User's Guide Appendix D with get_avhrr_srf.py.
-
-Sensor los calculated based on information in NOAA KLM User's Guide
-Appendix J.1. with get_sensor_los.py
