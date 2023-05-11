@@ -19,7 +19,6 @@
 #include <netcdf.h>
 
 #include "exceptions.h"
-#include "messages.h"
 #include "mystring.h"
 #include "species_tags.h"
 
