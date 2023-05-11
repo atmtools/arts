@@ -880,16 +880,6 @@ int main(int argc, char** argv) {
   // Now comes the global try block. Exceptions caught after this
   // one are general stuff like file opening errors.
   try {
-    // Output a short hello from each thread to out3:
-#ifdef _OPENMP
-#pragma omp parallel default(none)
-    {
-      ostringstream os;
-      int tn = arts_omp_get_thread_num();
-      os << "   Thread " << tn << ": ready.\n";
-    }
-#endif
-
     time_t rawtime;
     struct tm* timeinfo;
 

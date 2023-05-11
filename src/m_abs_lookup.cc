@@ -347,17 +347,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
         // The try block here is necessary to correctly handle
         // exceptions inside the parallel region.
         try {
-          if (0 != n_t_pert) {
-            // We first prepare the output in a string here,
-            // so that we can write it to out3 with a single
-            // operation. This avoids messy output from
-            // multiple threads.
-            ostringstream os;
-
-            os << "  Doing temperature variant " << j + 1 << " of " << n_t_pert
-               << ": " << these_t_pert[j] << ".\n";
-          }
-
           // Create perturbed temperature profile:
           this_t = abs_lookup.t_ref;
           this_t += these_t_pert[j];

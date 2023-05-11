@@ -337,7 +337,5 @@ void SetNumberOfThreads(const Index& nthreads) {
 #else
 void SetNumberOfThreads(const Index& /* nthreads */,
                     ) {
-  CREATE_OUT1;
-  out1 << "No OpenMP support. Can't change number of threads.\n";
 }
 #endif

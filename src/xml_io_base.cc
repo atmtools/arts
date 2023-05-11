@@ -599,8 +599,6 @@ void xml_read_header_from_stream(istream& is,
     etype = ENDIAN_TYPE_BIG;
   }
   if (strtype == "") {
-    /*      out1 << "  Warning: Endian type not specified in XML file, "
-              <<    "assuming little endian (PC)\n";*/
     etype = ENDIAN_TYPE_LITTLE;
   } else {
     ostringstream os;
@@ -616,8 +614,6 @@ void xml_read_header_from_stream(istream& is,
   } else if (strtype == "double") {
     ntype = NUMERIC_TYPE_DOUBLE;
   } else if (strtype == "") {
-    /*      out1 << "  Warning: Numeric type not specified in XML file, "
-              <<    "assuming double\n";*/
     ntype = NUMERIC_TYPE_DOUBLE;
   } else {
     ostringstream os;

@@ -1204,19 +1204,6 @@ void scat_dataCheck(  //Input:
                   Numeric Cabs_data = ABS_VEC_DATA(f, t, 0, 0, 0);
                   Numeric Csca_data = Cext_data - Cabs_data;
 
-                  /*
-                    out3 << "  Coefficients in database: "
-                         << "Cext: " << Cext_data << " Cabs: " << Cabs_data
-                         << " Csca: " << Csca_data << "\n"
-                         << "  Calculated coefficients: "
-                         << "Cabs calc: " << Cabs
-                         << " Csca calc: " << Csca << "\n"
-                         << "  Deviations "
-                         << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
-                         << "% Csca: " << 1e2*Csca/Csca_data-1e2
-                         << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
-                    */
-
                   //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
                   // below equivalent to the above
                   // (it's actually the (absolute) albedo deviation!)
@@ -1250,19 +1237,6 @@ void scat_dataCheck(  //Input:
                     //Numeric Cabs = Cext_data - Csca;
                     Numeric Cabs_data = ABS_VEC_DATA(f, t, iza, 0, 0);
                     Numeric Csca_data = Cext_data - Cabs_data;
-
-                    /*
-                      out3 << "  Coefficients in database: "
-                           << "Cext: " << Cext_data << " Cabs: " << Cabs_data
-                           << " Csca: " << Csca_data << "\n"
-                           << "  Calculated coefficients: "
-                           << "Cabs calc: " << Cabs
-                           << " Csca calc: " << Csca << "\n"
-                           << "  Deviations "
-                           << "Cabs: " << 1e2*Cabs/Cabs_data-1e2
-                           << "% Csca: " << 1e2*Csca/Csca_data-1e2
-                           << "% Alb: " << (Csca-Csca_data)/Cext_data << "\n";
-                      */
 
                     //if (abs(Csca/Csca_data-1.)*Csca_data/Cext_data > threshold)
                     // below equivalent to the above
