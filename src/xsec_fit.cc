@@ -52,10 +52,7 @@ void XsecRecord::SetVersion(const Index version) {
 void XsecRecord::Extract(VectorView result,
                          const Vector& f_grid,
                          const Numeric pressure,
-                         const Numeric temperature,
-                         const Verbosity& verbosity) const {
-  CREATE_OUTS;
-
+                         const Numeric temperature) const {
   const Index nf = f_grid.nelem();
 
   ARTS_ASSERT(result.nelem() == nf)
@@ -67,15 +64,6 @@ void XsecRecord::Extract(VectorView result,
     const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(0);
     const Numeric data_fmin = data_f_grid[0];
     const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
-
-    if (out3.sufficient_priority()) {
-      ostringstream os;
-      os << "    f_grid:      " << f_grid[0] << " - " << f_grid[nf - 1]
-         << " Hz\n"
-         << "    data_f_grid: " << data_fmin << " - " << data_fmax << " Hz\n"
-         << "    pressure: " << pressure << " K\n";
-      out3 << os.str();
-    }
 
     // We want to return result zero for all f_grid points that are outside the
     // data_f_grid, because xsec datasets are defined only where the absorption
@@ -95,13 +83,6 @@ void XsecRecord::Extract(VectorView result,
     if (i_fstart == nf || i_fstop == -1) continue;
 
     const Index f_extent = i_fstop - i_fstart + 1;
-
-    if (out3.sufficient_priority()) {
-      ostringstream os;
-      os << "    " << f_extent << " frequency extraction points starting at "
-         << "frequency index " << i_fstart << ".\n";
-      out3 << os.str();
-    }
 
     // If f_extent is less than one, then the entire data_f_grid is between two
     // grid points of f_grid. (So that we do not have any f_grid points inside

@@ -35,6 +35,7 @@
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "quantum_numbers.h"
+#include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* This template function covers all implementations of extracting
@@ -47,8 +48,7 @@ void Extract(
     // WS Input:
     // WS Generic Input:
     const Array<T>& arr,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= arr.nelem()) {
     ostringstream os;
     os << "The index " << index << " is outside the range of the array.";
@@ -64,8 +64,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const ArrayOfSpeciesTag& arr,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= arr.nelem()) {
     ostringstream os;
     os << "The index " << index << " is outside the range of the array.";
@@ -82,8 +81,7 @@ inline void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
     // WS Input:
     // WS Generic Input:
     const ArrayOfArrayOfIndex& aoaoi,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= aoaoi.nelem()) {
     ostringstream os;
     os << "The index " << index << " is outside the range of the Array.";
@@ -101,8 +99,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const Vector& v,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= v.nelem()) {
     ostringstream os;
     os << "The index " << index << " is outside the range of the Vector.";
@@ -119,8 +116,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const Tensor3& t3,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= t3.npages()) {
     ostringstream os;
     os << "The index " << index << " is outside the page range of the Tensor3.";
@@ -137,8 +133,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const Tensor4& t4,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= t4.nbooks()) {
     ostringstream os;
     os << "The index " << index << " is outside the book range of the Tensor4.";
@@ -156,8 +151,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const Tensor5& t5,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= t5.nshelves()) {
     ostringstream os;
     os << "The index " << index << "is outside the shelf range of the Tensor5.";
@@ -179,8 +173,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const ArrayOfArrayOfGriddedField3& aagf,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= aagf.nelem()) {
     ostringstream os;
     os << "The index " << index
@@ -203,8 +196,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const ArrayOfGriddedField4& agf4,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index >= agf4.nelem()) {
     ostringstream os;
     os << "The index " << index
@@ -224,8 +216,7 @@ inline void Extract(
     // WS Input:
     // WS Generic Input:
     const ArrayOfQuantumIdentifier& aoqi,
-    const Index& index,
-    const Verbosity&) {
+    const Index& index) {
   if (index > aoqi.nelem() or index < 0) throw std::runtime_error("Bad index");
   qi = aoqi[index];
 }

@@ -685,8 +685,7 @@ void get_ppath_transmat(Workspace& ws,
                         const AtmField& atm_field,
                         const ArrayOfIndex& cloudbox_limits,
                         const Tensor4& pnd_field,
-                        const ArrayOfArrayOfSingleScatteringData& scat_data,
-                        const Verbosity& verbosity) {
+                        const ArrayOfArrayOfSingleScatteringData& scat_data) {
   bool inside_cloud;
   const Index np = ppath.np;
   ArrayOfMatrix ext_matArray(2);
@@ -699,8 +698,6 @@ void get_ppath_transmat(Workspace& ws,
   Matrix incT(stokes_dim, stokes_dim, 0.0);
   Numeric temperature;
   Numeric dl = -999;
-
-  CREATE_OUT0;
 
   id_mat(trans_mat);
 
@@ -874,8 +871,7 @@ void mcPathTraceGeneral(Workspace& ws,
                         const AtmField& atm_field,
                         const ArrayOfIndex& cloudbox_limits,
                         const Tensor4& pnd_field,
-                        const ArrayOfArrayOfSingleScatteringData& scat_data,
-                        const Verbosity& verbosity) {
+                        const ArrayOfArrayOfSingleScatteringData& scat_data) {
   ArrayOfMatrix evol_opArray(2);
   ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
@@ -888,8 +884,6 @@ void mcPathTraceGeneral(Workspace& ws,
   Numeric ds, dl = -999;
   Index istep = 0;  // Counter for number of steps
   Matrix old_evol_op(stokes_dim, stokes_dim);
-
-  CREATE_OUT0;
 
   //at the start of the path the evolution operator is the identity matrix
   id_mat(evol_op);
@@ -1232,8 +1226,7 @@ void mcPathTraceRadar(Workspace& ws,
                       const AtmField& atm_field,
                       const ArrayOfIndex& cloudbox_limits,
                       const Tensor4& pnd_field,
-                      const ArrayOfArrayOfSingleScatteringData& scat_data,
-                      const Verbosity& verbosity) {
+                      const ArrayOfArrayOfSingleScatteringData& scat_data) {
   ArrayOfMatrix evol_opArray(2);
   ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
@@ -1247,8 +1240,6 @@ void mcPathTraceRadar(Workspace& ws,
   Index istep = 0;  // Counter for number of steps
   Matrix old_evol_op(stokes_dim, stokes_dim);
   Vector local_rte_los(2);
-
-  CREATE_OUT0;
 
   // Total path length starts at zero
   stot = 0.0;

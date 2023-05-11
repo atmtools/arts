@@ -572,8 +572,7 @@ void refracted_link_basic(Workspace& ws,
                    z_toa,
                    do_horizontal_gradients,
                    do_twosided_perturb,
-                   0,
-                   Verbosity());
+                   0);
 
     // Intersection with surface?
     if (ppath.background == PpathBackground::Surface) {
@@ -643,8 +642,7 @@ void refracted_link_basic(Workspace& ws,
                    z_toa,
                    do_horizontal_gradients,
                    do_twosided_perturb,
-                   0,
-                   Verbosity());
+                   0);
     
     if (ppath.background == PpathBackground::Surface) {
       if (robust) {

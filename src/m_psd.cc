@@ -38,7 +38,6 @@
 #include "check_input.h"
 #include "lin_alg.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "psd.h"
 
@@ -57,8 +56,7 @@ void psdMonoDispersive(Matrix& psd_data,
                        const Index& species_index,
                        const Numeric& t_min,
                        const Numeric& t_max,
-                       const Index& picky,
-                       const Verbosity& verbosity) {
+                       const Index& picky) {
   psd_mono_common(psd_data,
                   dpsd_data_dx,
                   "ntot",
@@ -70,8 +68,7 @@ void psdMonoDispersive(Matrix& psd_data,
                   species_index,
                   t_min,
                   t_max,
-                  picky,
-                  verbosity);
+                  picky);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -85,8 +82,7 @@ void psdMonoMass(Matrix& psd_data,
                  const Index& species_index,
                  const Numeric& t_min,
                  const Numeric& t_max,
-                 const Index& picky,
-                 const Verbosity& verbosity) {
+                 const Index& picky) {
   psd_mono_common(psd_data,
                   dpsd_data_dx,
                   "mass",
@@ -98,8 +94,7 @@ void psdMonoMass(Matrix& psd_data,
                   species_index,
                   t_min,
                   t_max,
-                  picky,
-                  verbosity);
+                  picky);
 }
 
 /*===========================================================================
@@ -120,8 +115,7 @@ void psdModifiedGamma(Matrix& psd_data,
                       const Numeric& ga,
                       const Numeric& t_min,
                       const Numeric& t_max,
-                      const Index& picky,
-                      const Verbosity&) {
+                      const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -260,8 +254,7 @@ void psdModifiedGammaMass(Matrix& psd_data,
                           const Numeric& ga,
                           const Numeric& t_min,
                           const Numeric& t_max,
-                          const Index& picky,
-                          const Verbosity&) {
+                          const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -469,8 +462,7 @@ void psdModifiedGammaMassNtot(Matrix& psd_data,
                               const Numeric& ga,
                               const Numeric& t_min,
                               const Numeric& t_max,
-                              const Index& picky,
-                              const Verbosity& verbosity) {
+                              const Index& picky) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "Ntot",
@@ -487,8 +479,7 @@ void psdModifiedGammaMassNtot(Matrix& psd_data,
                              ga,
                              t_min,
                              t_max,
-                             picky,
-                             verbosity);
+                             picky);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -507,8 +498,7 @@ void psdModifiedGammaMassMeanParticleMass(Matrix& psd_data,
                                           const Numeric& ga,
                                           const Numeric& t_min,
                                           const Numeric& t_max,
-                                          const Index& picky,
-                                          const Verbosity& verbosity) {
+                                          const Index& picky) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "mean particle mass",
@@ -525,8 +515,7 @@ void psdModifiedGammaMassMeanParticleMass(Matrix& psd_data,
                              ga,
                              t_min,
                              t_max,
-                             picky,
-                             verbosity);
+                             picky);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -545,8 +534,7 @@ void psdModifiedGammaMassXmean(Matrix& psd_data,
                                const Numeric& ga,
                                const Numeric& t_min,
                                const Numeric& t_max,
-                               const Index& picky,
-                               const Verbosity& verbosity) {
+                               const Index& picky) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "mean size",
@@ -563,8 +551,7 @@ void psdModifiedGammaMassXmean(Matrix& psd_data,
                              ga,
                              t_min,
                              t_max,
-                             picky,
-                             verbosity);
+                             picky);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -583,8 +570,7 @@ void psdModifiedGammaMassXmedian(Matrix& psd_data,
                                  const Numeric& ga,
                                  const Numeric& t_min,
                                  const Numeric& t_max,
-                                 const Index& picky,
-                                 const Verbosity& verbosity) {
+                                 const Index& picky) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "median size",
@@ -601,8 +587,7 @@ void psdModifiedGammaMassXmedian(Matrix& psd_data,
                              ga,
                              t_min,
                              t_max,
-                             picky,
-                             verbosity);
+                             picky);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -622,8 +607,7 @@ void psdModifiedGammaMassSingleMoment(
     const Numeric& gamma,
     const Numeric& t_min,
     const Numeric& t_max,
-    const Index& picky,
-    const Verbosity& verbosity) {
+    const Index& picky) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "generic",
@@ -640,8 +624,7 @@ void psdModifiedGammaMassSingleMoment(
                      gamma,
                      t_min,
                      t_max,
-                     picky,
-                     verbosity);
+                     picky);
 }
 
 /*===========================================================================
@@ -665,8 +648,7 @@ void psdDelanoeEtAl14(Matrix& psd_data,
                          const Numeric& t_min,
                          const Numeric& t_max,
                          const Numeric& dm_min,
-                         const Index& picky,
-                         const Verbosity&) {
+                         const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -859,8 +841,7 @@ void psdFieldEtAl07(Matrix& psd_data,
                     const Numeric& t_max_psd,
                     const Numeric& b_min,
                     const Numeric& b_max,
-                    const Index& picky,
-                    const Verbosity&) {
+                    const Index& picky) {
   // Standard checcks
   START_OF_PSD_METHODS();
 
@@ -966,8 +947,7 @@ void psdMcFarquaharHeymsfield97(Matrix& psd_data,
                                 const Numeric& t_min_psd,
                                 const Numeric& t_max_psd,
                                 const Index& picky,
-                                const Index& noisy,
-                                const Verbosity&) {
+                                const Index& noisy) {
   // Standard checcks
   START_OF_PSD_METHODS();
 
@@ -1060,8 +1040,7 @@ void psdAbelBoutle12(Matrix& psd_data,
                      const Numeric& scat_species_b,
                      const Numeric& t_min,
                      const Numeric& t_max,
-                     const Index& picky,
-                     const Verbosity& verbosity) {
+                     const Index& picky) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "Abel12",
@@ -1078,8 +1057,7 @@ void psdAbelBoutle12(Matrix& psd_data,
                      0,
                      t_min,
                      t_max,
-                     picky,
-                     verbosity);
+                     picky);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1094,8 +1072,7 @@ void psdWangEtAl16(Matrix& psd_data,
                    const Numeric& scat_species_b,
                    const Numeric& t_min,
                    const Numeric& t_max,
-                   const Index& picky,
-                   const Verbosity& verbosity) {
+                   const Index& picky) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "Wang16",
@@ -1112,8 +1089,7 @@ void psdWangEtAl16(Matrix& psd_data,
                      0,
                      t_min,
                      t_max,
-                     picky,
-                     verbosity);
+                     picky);
 }
 
 /*===========================================================================
@@ -1132,8 +1108,7 @@ void psdFieldEtAl19(Matrix& psd_data,
                     const Numeric& scat_species_b,
                     const Numeric& t_min,
                     const Numeric& t_max,
-                    const Index& picky,
-                    const Verbosity& verbosity) {
+                    const Index& picky) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "Field19",
@@ -1150,8 +1125,7 @@ void psdFieldEtAl19(Matrix& psd_data,
                      0,
                      t_min,
                      t_max,
-                     picky,
-                     verbosity);
+                     picky);
 }
 
 /*===========================================================================
@@ -1169,8 +1143,7 @@ void psdSeifertBeheng06(Matrix& psd_data,
                         const String& hydrometeor_type,
                         const Numeric& t_min,
                         const Numeric& t_max,
-                        const Index& picky,
-                        const Verbosity&) {
+                        const Index& picky) {
   // Some sizes
   const Index nin = pnd_agenda_input_names.nelem();
   const Index ndx = dpnd_data_dx_names.nelem();
@@ -1288,8 +1261,7 @@ void psdMilbrandtYau05(Matrix& psd_data,
                        const String& hydrometeor_type,
                        const Numeric& t_min,
                        const Numeric& t_max,
-                       const Index& picky,
-                       const Verbosity&) {
+                       const Index& picky) {
   // Some sizes
   const Index nin = pnd_agenda_input_names.nelem();
   const Index ndx = dpnd_data_dx_names.nelem();

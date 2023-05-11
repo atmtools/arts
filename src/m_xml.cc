@@ -28,21 +28,18 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void output_file_formatSetAscii(  // WS Output:
-    String& file_format,
-    const Verbosity&) {
+    String& file_format) {
   file_format = "ascii";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void output_file_formatSetZippedAscii(  // WS Output:
-    String& file_format,
-    const Verbosity&) {
+    String& file_format) {
   file_format = "zascii";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void output_file_formatSetBinary(  // WS Output:
-    String& file_format,
-    const Verbosity&) {
+    String& file_format) {
   file_format = "binary";
 }

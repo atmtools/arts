@@ -45,8 +45,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
     const Numeric& fmin,
     const Numeric& fmax,
     const Numeric& stot,
-    const String& mode,
-    const Verbosity&) {
+    const String& mode) {
   const lm_hitran_2017::ModeOfLineMixing intmode =
       lm_hitran_2017::toModeOfLineMixingOrThrow(mode);
 
@@ -115,8 +114,7 @@ void propmat_clearskyAddHitranLineMixingLines(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const AtmPoint& atm_point,
-    const Verbosity&) {
+    const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(jacobian_quantities.nelem(),
                      "Cannot support any Jacobian at this time");
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
@@ -152,8 +150,7 @@ void abs_lines_per_speciesAdaptHitranLineMixing(
     const HitranRelaxationMatrixData& abs_hitran_relmat_data,
     const Vector& t_grid,
     const Numeric& pressure,
-    const Index& order,
-    const Verbosity&) {
+    const Index& order) {
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       if (band.population == Absorption::PopulationType::ByHITRANFullRelmat or
@@ -177,8 +174,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const AtmPoint& atm_point,
-    const Index& lbl_checked,
-    const Verbosity&) {
+    const Index& lbl_checked) {
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                      "Bad size of input species+lines");
   ARTS_USER_ERROR_IF(not lbl_checked,
@@ -236,8 +232,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const AtmPoint& atm_point,
     const Vector& rtp_los,
-    const Index& lbl_checked,
-    const Verbosity&) {
+    const Index& lbl_checked) {
   ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
                      "Only for stokes dim 4");
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
@@ -357,8 +352,7 @@ void abs_linesAdaptOnTheFlyLineMixing(
     const Numeric& pressure,
     const Index& order,
     const Index& robust,
-    const Index& rosenkranz_adaptation,
-    const Verbosity& verbosity) {
+    const Index& rosenkranz_adaptation) {
   for (auto& band : abs_lines) {
     if (band.population ==
             Absorption::PopulationType::ByRovibLinearDipoleLineMixing or
@@ -370,8 +364,7 @@ void abs_linesAdaptOnTheFlyLineMixing(
           pressure,
           order,
           robust,
-          rosenkranz_adaptation,
-          verbosity);
+          rosenkranz_adaptation);
     }
   }
 }
@@ -383,8 +376,7 @@ void abs_lines_per_speciesAdaptOnTheFlyLineMixing(
     const Numeric& pressure,
     const Index& order,
     const Index& robust,
-    const Index& rosenkranz_adaptation,
-    const Verbosity& verbosity) {
+    const Index& rosenkranz_adaptation) {
   for (auto& abs_lines : abs_lines_per_species) {
     abs_linesAdaptOnTheFlyLineMixing(abs_lines,
                                      ecs_data,
@@ -392,12 +384,11 @@ void abs_lines_per_speciesAdaptOnTheFlyLineMixing(
                                      pressure,
                                      order,
                                      robust,
-                                     rosenkranz_adaptation,
-                                     verbosity);
+                                     rosenkranz_adaptation);
   }
 }
 
-void ecs_dataInit(MapOfErrorCorrectedSuddenData& ecs_data, const Verbosity&) {
+void ecs_dataInit(MapOfErrorCorrectedSuddenData& ecs_data) {
   ecs_data.resize(0);
 }
 
@@ -413,8 +404,7 @@ void ecs_dataAddSpeciesData(
     const String& lambda_type,
     const Vector& lambda,
     const String& collisional_distance_type,
-    const Vector& collisional_distance,
-    const Verbosity&) {
+    const Vector& collisional_distance) {
   const Species::Species spec = Species::fromShortName(species);
   ARTS_USER_ERROR_IF(not good_enum(spec), "Invalid species: ", species)
   auto& data = ecs_data[qid][spec];
@@ -432,8 +422,7 @@ void ecs_dataAddSpeciesData(
 
 void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
                         const Vector& vmrs,
-                        const ArrayOfSpeciesTag& specs,
-                        const Verbosity&) {
+                        const ArrayOfSpeciesTag& specs) {
   ARTS_USER_ERROR_IF(specs.nelem() not_eq vmrs.nelem(),
                      "Bad sizes of specs and vmrs\nspecs: [",
                      specs,
@@ -523,8 +512,7 @@ void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
 
 void ecs_dataAddMakarov2020(
     MapOfErrorCorrectedSuddenData& ecs_data,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
-    const Verbosity&) {
+    const SpeciesIsotopologueRatios& isotopologue_ratios) {
   // The band is ignored
   auto& ecs = ecs_data[QuantumIdentifier("O2-66")];
 
@@ -559,8 +547,7 @@ void ecs_dataAddMakarov2020(
 
 void ecs_dataAddRodrigues1997(
     MapOfErrorCorrectedSuddenData& ecs_data,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
-    const Verbosity&) {
+    const SpeciesIsotopologueRatios& isotopologue_ratios) {
   for (const auto* key : {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
 
@@ -605,8 +592,7 @@ void ecs_dataAddRodrigues1997(
 }
 
 void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
-                         const SpeciesIsotopologueRatios& isotopologue_ratios,
-                         const Verbosity&) {
+                         const SpeciesIsotopologueRatios& isotopologue_ratios) {
   auto& ecs = ecs_data[QuantumIdentifier("O2-66")];
 
   ecs[Species::Species::Oxygen].scaling =
@@ -633,8 +619,7 @@ void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
 }
 
 void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,
-                         const SpeciesIsotopologueRatios& isotopologue_ratios,
-                         const Verbosity&) {
+                         const SpeciesIsotopologueRatios& isotopologue_ratios) {
   for (const auto* key : {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
 

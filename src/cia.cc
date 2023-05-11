@@ -59,10 +59,7 @@ void cia_interpolation(VectorView result,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
-                       const Index& robust,
-                       const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+                       const Index& robust) {
   const Index nf = f_grid.nelem();
 
   // Assert that result vector has right size:
@@ -71,18 +68,6 @@ void cia_interpolation(VectorView result,
   // Get data grids:
   ConstVectorView data_f_grid = cia_data.get_numeric_grid(0);
   ConstVectorView data_T_grid = cia_data.get_numeric_grid(1);
-
-  if (out3.sufficient_priority()) {
-    // Some detailed information to the most verbose output stream:
-    ostringstream os;
-    os << "    f_grid:      " << f_grid[0] << " - " << f_grid[nf - 1] << " Hz\n"
-       << "    data_f_grid: " << data_f_grid[0] << " - "
-       << data_f_grid[data_f_grid.nelem() - 1] << " Hz\n"
-       << "    temperature: " << temperature << " K\n"
-       << "    data_T_grid: " << data_T_grid[0] << " - "
-       << data_T_grid[data_T_grid.nelem() - 1] << " K\n";
-    out3 << os.str();
-  }
 
   // Initialize result to zero (important for those frequencies outside the data grid).
   result = 0;
@@ -107,13 +92,6 @@ void cia_interpolation(VectorView result,
 
   // Extent for active frequency vector:
   const Index f_extent = i_fstop - i_fstart + 1;
-
-  if (out3.sufficient_priority()) {
-    ostringstream os;
-    os << "    " << f_extent << " frequency extraction points starting at "
-       << "frequency index " << i_fstart << ".\n";
-    out3 << os.str();
-  }
 
   // If f_extent is less than one, then the entire data_f_grid is between two
   // grid points of f_grid. (So that we do not have any f_grid points inside
@@ -240,14 +218,13 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 // Documentation in header file.
 void CIARecord::Extract(VectorView res, const ConstVectorView &f_grid,
                         const Numeric &temperature,
-                        const Numeric &T_extrapolfac, const Index &robust,
-                        const Verbosity &verbosity) const {
+                        const Numeric &T_extrapolfac, const Index &robust) const {
   res = 0;
   
   Vector result(res.nelem());
   for (auto &this_cia : mdata) {
     cia_interpolation(result, f_grid, temperature, this_cia, T_extrapolfac,
-                      robust, verbosity);
+                      robust);
     res += result;
   }
 }
@@ -289,13 +266,9 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
  \param[in]  verbosity.
  \return os
  */
-void CIARecord::ReadFromCIA(const String& filename,
-                            const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+void CIARecord::ReadFromCIA(const String& filename) {
   ifstream is;
 
-  out2 << "  Reading file: " << filename << "\n";
   open_input_file(is, filename);
 
   // Number of points for spectral range in current dataset

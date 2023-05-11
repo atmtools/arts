@@ -121,7 +121,6 @@ void emission_from_propmat_field(
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
-    const SurfaceField& surface_field,
-    const Verbosity& verbosity);
+    const SurfaceField& surface_field);
 
 #endif  // PROPAGATION_FIELD_HEADER

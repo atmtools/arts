@@ -50,7 +50,6 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 #include "logic.h"
 #include "math_funcs.h"
 #include "mc_antenna.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "psd.h"

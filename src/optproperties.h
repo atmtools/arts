@@ -35,7 +35,6 @@
 
 #include "gridded_fields.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "mystring.h"
 #include "propagationmatrix.h"
 
@@ -87,7 +86,7 @@ struct SingleScatteringData {
   Tensor5 ext_mat_data;
   Tensor5 abs_vec_data;
 
-  friend ostream& operator<<(ostream& os, const SingleScatteringData& ssd);
+  friend std::ostream& operator<<(std::ostream& os, const SingleScatteringData& ssd);
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
@@ -113,7 +112,7 @@ struct ScatteringMetaData {
   Numeric diameter_volume_equ;
   Numeric diameter_area_equ_aerodynamical;
 
-  friend ostream& operator<<(ostream& os, const ScatteringMetaData& ssd);
+  friend std::ostream& operator<<(std::ostream& os, const ScatteringMetaData& ssd);
 };
 
 typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;
@@ -230,8 +229,7 @@ void abs_vecTransform(  //Output and Input
     ConstVectorView aa_datagrid,
     const PType& ptype,
     const Numeric& za_sca,
-    const Numeric& aa_sca,
-    const Verbosity& verbosity);
+    const Numeric& aa_sca);
 
 void ext_matTransform(  //Output and Input
     PropagationMatrix& ext_mat_lab,
@@ -241,8 +239,7 @@ void ext_matTransform(  //Output and Input
     ConstVectorView aa_datagrid,
     const PType& ptype,
     const Numeric& za_sca,
-    const Numeric& aa_sca,
-    const Verbosity& verbosity);
+    const Numeric& aa_sca);
 
 void pha_matTransform(  //Output
     MatrixView pha_mat_lab,
@@ -256,8 +253,7 @@ void pha_matTransform(  //Output
     const Index& za_inc_idx,
     const Index& aa_inc_idx,
     ConstVectorView za_grid,
-    ConstVectorView aa_grid,
-    const Verbosity& verbosity);
+    ConstVectorView aa_grid);
 
 void ext_matFromabs_vec(  //Output
     MatrixView ext_mat,

@@ -5,7 +5,9 @@
 #include <Faddeeva/Faddeeva.hh>
 #include <vector>
 
+#include "array.h"
 #include "arts_conversions.h"
+#include "arts_omp.h"
 #include "debug.h"
 #include "lin_alg.h"
 #include "linemixing.h"
@@ -13,7 +15,6 @@
 #include "matpack_complex.h"
 #include "matpack_data.h"
 #include "matpack_eigen.h"
-#include "messages.h"
 #include "minimize.h"
 #include "physics_funcs.h"
 #include "quantum_numbers.h"
@@ -1455,9 +1456,7 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                                const Numeric P0,
                                const Index ord,
                                const bool robust,
-                               const bool rosenkranz_adaptation,
-                               const Verbosity& verbosity) {
-  CREATE_OUT3;
+                               const bool rosenkranz_adaptation) {
   ARTS_USER_ERROR_IF(P0 <= 0, P0, " Pa is not possible")
 
   ARTS_USER_ERROR_IF(not is_sorted(temperatures),
@@ -1481,8 +1480,6 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                        "Bad eigenvalue adaptation for band: ",
                        band.quantumidentity,
                        '\n')
-    out3 << "Bad eigenvalue adaptation for band: " << band.quantumidentity
-         << '\n';
 
     band.normalization = Absorption::NormalizationType::SFS;
     band.population = Absorption::PopulationType::LTE;

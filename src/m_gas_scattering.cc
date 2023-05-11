@@ -53,8 +53,7 @@ using Constant::boltzmann_constant;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void gas_scatteringOff(Workspace& ws,
                        Index& gas_scattering_do,
-                       Agenda& gas_scattering_agenda,
-                       const Verbosity&) {
+                       Agenda& gas_scattering_agenda) {
   // set flag to False (default)
   gas_scattering_do = 0;
 
@@ -68,8 +67,7 @@ void gas_scattering_coefXsecConst(PropagationMatrix& gas_scattering_coef,
                                  const Numeric& rtp_pressure,
                                  const Numeric& rtp_temperature,
                                  const Index& stokes_dim,
-                                 const Numeric& ConstXsec,
-                                 const Verbosity&) {
+                                 const Numeric& ConstXsec) {
   gas_scattering_coef = PropagationMatrix(f_grid.nelem(), stokes_dim, 1, 1, ConstXsec * number_density(rtp_pressure, rtp_temperature));
 }
 
@@ -78,8 +76,7 @@ void gas_scattering_coefAirSimple(PropagationMatrix& gas_scattering_coef,
                                   const Vector& f_grid,
                                   const Numeric& rtp_pressure,
                                   const Numeric& rtp_temperature,
-                                  const Index& stokes_dim,
-                                  const Verbosity&) {
+                                  const Index& stokes_dim) {
   static constexpr std::array coefficients{
       3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
@@ -105,8 +102,7 @@ void gas_scattering_matIsotropic(TransmissionMatrix& gas_scattering_mat,
                                    const Vector& gas_scattering_los_in,
                                    const Vector& gas_scattering_los_out,
                                    const Index& stokes_dim,
-                                   const Index& gas_scattering_output_type,
-                                   const Verbosity&) {
+                                   const Index& gas_scattering_output_type) {
   //out
   if (gas_scattering_output_type) {
     gas_scattering_fct_legendre.resize(1);
@@ -131,8 +127,7 @@ void gas_scattering_matRayleigh(TransmissionMatrix& gas_scattering_mat,
                                   const Vector& gas_scattering_los_out,
                                   const Index& stokes_dim,
                                   const Index& gas_scattering_output_type,
-                                  const Numeric& depolarization_factor,
-                                  const Verbosity&) {
+                                  const Numeric& depolarization_factor) {
 
   ARTS_USER_ERROR_IF(gas_scattering_los_in.nelem() != gas_scattering_los_out.nelem(),
     "The length of the vectors of incoming and outgoing direction must be the same.")

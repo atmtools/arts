@@ -22,7 +22,6 @@
   ===========================================================================*/
 
 #include "matpack_concepts.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "arts.h"
 #include "auto_md.h"
@@ -60,8 +59,7 @@ void sunsAddSingleBlackbody(ArrayOfSun &suns,
                          const Numeric &distance,
                          const Numeric &temperature,
                          const Numeric &latitude,
-                         const Numeric &longitude,
-                         const Verbosity &) {
+                         const Numeric &longitude) {
 
   // some sanity checks
   ARTS_USER_ERROR_IF (distance<radius,
@@ -99,8 +97,7 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
                          const Numeric &temperature,
                          const Numeric &latitude,
                          const Numeric &longitude,
-                         const String &description,
-                         const Verbosity &verbosity) {
+                         const String &description) {
 
   // some sanity checks
   ARTS_USER_ERROR_IF (distance<radius,
@@ -109,7 +106,7 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
 
   // init sun
   Sun& new_sun = suns.emplace_back();
-  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity); // set spectrum
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature); // set spectrum
   new_sun.description = description;
   new_sun.radius = radius;
   new_sun.distance = distance;
@@ -138,8 +135,7 @@ void sunsAddSingleFromGridAtLocation(
                          const String &description,
                          const Numeric &location_latitude,
                          const Numeric &location_longitude,
-                         const Numeric &location_altitude,
-                         const Verbosity &verbosity) {
+                         const Numeric &location_altitude) {
 
   // some sanity checks
   ARTS_USER_ERROR_IF (distance<radius,
@@ -199,7 +195,7 @@ void sunsAddSingleFromGridAtLocation(
   // init sun
   Sun& new_sun = suns.emplace_back();
 
-  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature, verbosity);
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature);
   new_sun.spectrum *= scale_factor; // scale to sun surface
 
   new_sun.description = description;
@@ -214,8 +210,7 @@ void sunsAddSingleFromGridAtLocation(
 }
 
 void sunsOff(Index &suns_do,
-             ArrayOfSun &suns,
-             const Verbosity &){
+             ArrayOfSun &suns){
 
   // set flag to False (default)
   suns_do = 0;

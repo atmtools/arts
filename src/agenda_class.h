@@ -32,7 +32,6 @@
 #include "matpack_concepts.h"
 #include "mystring.h"
 
-#include "messages.h"
 #include "tokval.h"
 #include "workspace_ng.h"
 
@@ -77,7 +76,7 @@ class Agenda final {
   Agenda(const Agenda& x) = default;
 
   void append(const String& methodname, const TokVal& keywordvalue);
-  void check(Workspace& ws_in, const Verbosity& verbosity);
+  void check(Workspace& ws_in);
   void push_back(const MRecord& n);
   void execute(Workspace& ws_in) const;
   void resize(Index n);
@@ -86,7 +85,7 @@ class Agenda final {
   [[nodiscard]] const Array<MRecord>& Methods() const { return mml; }
   [[nodiscard]] bool has_method(const String& methodname) const;
   void set_methods(const Array<MRecord>& ml);
-  void set_outputs_to_push_and_dup(const Verbosity& verbosity);
+  void set_outputs_to_push_and_dup();
   [[nodiscard]] bool is_input(Workspace& ws_in, Index var) const;
   [[nodiscard]] bool is_output(Index var) const;
   void set_name(const String& nname);

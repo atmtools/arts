@@ -45,9 +45,8 @@
 */
 void xml_read_from_stream(istream& is_xml,
                           Index& index,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
 
   tag.read_from_stream(is_xml);
   tag.check_name("Index");
@@ -78,10 +77,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Index& index,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Index");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -108,9 +106,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Matrix& matrix,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index nrows, ncols;
 
   tag.read_from_stream(is_xml);
@@ -150,10 +147,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Matrix& matrix,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Matrix");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -198,9 +194,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Numeric& numeric,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
 
   tag.read_from_stream(is_xml);
   tag.check_name("Numeric");
@@ -231,10 +226,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Numeric& numeric,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Numeric");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -263,9 +257,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Sparse& sparse,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index nrows, ncols, nnz;
 
   tag.read_from_stream(is_xml);
@@ -364,13 +357,12 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Sparse& sparse,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag sparse_tag(verbosity);
-  XMLTag row_tag(verbosity);
-  XMLTag col_tag(verbosity);
-  XMLTag data_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag sparse_tag;
+  XMLTag row_tag;
+  XMLTag col_tag;
+  XMLTag data_tag;
+  XMLTag close_tag;
 
   sparse_tag.set_name("Sparse");
   if (name.length()) sparse_tag.add_attribute("name", name);
@@ -459,9 +451,8 @@ void xml_write_to_stream(ostream& os_xml,
                  Ignored because strings are always stored in ASCII format. */
 void xml_read_from_stream(istream& is_xml,
                           String& str,
-                          bifstream* /* pbifs */,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* /* pbifs */) {
+  XMLTag tag;
   char dummy;
 
   tag.read_from_stream(is_xml);
@@ -520,10 +511,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const String& str,
                          bofstream* /* pbofs */,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("String");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -547,9 +537,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Tensor3& tensor,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index npages, nrows, ncols;
 
   tag.read_from_stream(is_xml);
@@ -593,10 +582,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Tensor3& tensor,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Tensor3");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -642,9 +630,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Tensor4& tensor,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index nbooks, npages, nrows, ncols;
 
   tag.read_from_stream(is_xml);
@@ -692,10 +679,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Tensor4& tensor,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Tensor4");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -744,9 +730,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Tensor5& tensor,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index nshelves, nbooks, npages, nrows, ncols;
 
   tag.read_from_stream(is_xml);
@@ -798,10 +783,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Tensor5& tensor,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Tensor5");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -853,9 +837,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Tensor6& tensor,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index nvitrines, nshelves, nbooks, npages, nrows, ncols;
 
   tag.read_from_stream(is_xml);
@@ -911,10 +894,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Tensor6& tensor,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Tensor6");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -969,9 +951,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Tensor7& tensor,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
   Index nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols;
 
   tag.read_from_stream(is_xml);
@@ -1031,10 +1012,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Tensor7& tensor,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
 
   open_tag.set_name("Tensor7");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -1094,8 +1074,7 @@ void xml_write_to_stream(ostream& os_xml,
 void xml_parse_from_stream(istream& is_xml,
                            Vector& vector,
                            bifstream* pbifs,
-                           XMLTag& tag,
-                           const Verbosity&) {
+                           XMLTag& tag) {
   Index nelem;
 
   tag.get_attribute_value("nelem", nelem);
@@ -1124,14 +1103,13 @@ void xml_parse_from_stream(istream& is_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           Vector& vector,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  XMLTag tag;
 
   tag.read_from_stream(is_xml);
   tag.check_name("Vector");
 
-  xml_parse_from_stream(is_xml, vector, pbifs, tag, verbosity);
+  xml_parse_from_stream(is_xml, vector, pbifs, tag);
 
   tag.read_from_stream(is_xml);
   tag.check_name("/Vector");
@@ -1147,10 +1125,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Vector& vector,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
   Index n = vector.nelem();
   ostringstream v;
 

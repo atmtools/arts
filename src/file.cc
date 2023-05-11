@@ -59,8 +59,7 @@
 */
 void filename_ascii(String& filename, const String& varname) {
   if ("" == filename) {
-    extern const String out_basename;
-    filename = out_basename + "." + varname + ".aa";
+    filename = varname + ".aa";
   }
 }
 
@@ -352,7 +351,7 @@ bool find_file(ArrayOfString& matches,
 
   @author Oliver Lemke
 */
-void find_xml_file(String& filename, const Verbosity& verbosity) {
+void find_xml_file(String& filename) {
   // Command line parameters which give us the include search path.
   extern const Parameters parameters;
   ArrayOfString allpaths = parameters.includepath;
@@ -367,15 +366,6 @@ void find_xml_file(String& filename, const Verbosity& verbosity) {
                      filename,
                      "\nSearch path: ",
                      allpaths);
-
-  if (matching_files.nelem() > 1) {
-    CREATE_OUT1;
-    out1
-        << "  WARNING: More than one file matching this name exists in the data path.\n"
-        << "  Using the first file (1) found:\n";
-    for (Index i = 0; i < matching_files.nelem(); i++)
-      out1 << "  (" << i + 1 << ") " << matching_files[i] << "\n";
-  }
 
   filename = matching_files[0];
 }

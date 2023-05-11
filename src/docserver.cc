@@ -38,7 +38,6 @@
 #include "global_data.h"
 #include "libmicrohttpd/microhttpd.h"
 #include "libmicrohttpd/platform.h"
-#include "messages.h"
 #include "methods.h"
 #include "tokval_io.h"
 #include "workspace_ng.h"

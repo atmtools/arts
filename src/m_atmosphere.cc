@@ -59,7 +59,6 @@
 #include "interp.h"
 #include "linescaling.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "xml_io.h"
@@ -104,8 +103,7 @@ inline constexpr Numeric EPSILON_LON_CYCLIC = 2 * DBL_EPSILON;
 void atm_fields_compactExpand(GriddedField4& af,
                               Index& nf,
                               const String& name,
-                              const Index& prepend,
-                              const Verbosity&) {
+                              const Index& prepend) {
   // Number of fields already present:
   nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
 
@@ -146,7 +144,7 @@ void atm_fields_compactExpand(GriddedField4& af,
  \param[in]     p_grid_out    New pressure grid
  \param[in]     p_grid_in     Old pressure grid
  \param[in]     interp_order  Interpolation order
- \param[in]     verbosity     Verbosity levels
+ \param levels
  */
 void AtmFieldPRegridHelper(Index& ing_min,
                            Index& ing_max,
@@ -154,12 +152,7 @@ void AtmFieldPRegridHelper(Index& ing_min,
                            Matrix& itw,
                            ConstVectorView p_grid_out,
                            ConstVectorView p_grid_in,
-                           const Index& interp_order,
-                           const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  out2 << "  Interpolation order: " << interp_order << "\n";
-
+                           const Index& interp_order) {
   ing_min = 0;
   ing_max = p_grid_out.nelem() - 1;
   chk_interpolation_pgrids(
@@ -182,8 +175,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
     const Tensor3& atmtensor_in_orig,
     const Vector& p_grid_new,
     const Vector& p_grid_old,
-    const Index& interp_order,
-    const Verbosity& verbosity) {
+    const Index& interp_order) {
   // check that p_grid_old is the p_grid associated with atmtensor_in_orig. we can
   // only check for consistent size with p_grid_old.
   ARTS_USER_ERROR_IF (atmtensor_in_orig.npages() != p_grid_old.nelem(),
@@ -217,8 +209,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
                         itw,
                         p_grid_new,
                         p_grid_old,
-                        interp_order,
-                        verbosity);
+                        interp_order);
 
   // Interpolate:
   ARTS_USER_ERROR_IF ((ing_max - ing_min < 0) ||
@@ -237,8 +228,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
     const Tensor4& atmtensor_in_orig,
     const Vector& p_grid_new,
     const Vector& p_grid_old,
-    const Index& interp_order,
-    const Verbosity& verbosity) {
+    const Index& interp_order) {
   const Tensor4* atmtensor_in_pnt;
   Tensor4 atmtensor_in_copy;
 
@@ -267,8 +257,7 @@ void AtmFieldPRegrid(  // WS Generic Output:
                         itw,
                         p_grid_new,
                         p_grid_old,
-                        interp_order,
-                        verbosity);
+                        interp_order);
 
   // Interpolate:
   ARTS_USER_ERROR_IF ((ing_max - ing_min < 0) ||
@@ -329,8 +318,7 @@ void FieldFromGriddedField(  // WS Generic Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     // WS Generic Input:
-    const GriddedField2& gfraw_in,
-    const Verbosity&) {
+    const GriddedField2& gfraw_in) {
   FieldFromGriddedFieldCheckLatLonHelper(lat_grid, lon_grid, 0, 1, gfraw_in);
 
   field_out = gfraw_in.data;
@@ -344,8 +332,7 @@ void FieldFromGriddedField(  // WS Generic Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     // WS Generic Input:
-    const GriddedField3& gfraw_in,
-    const Verbosity&) {
+    const GriddedField3& gfraw_in) {
   chk_griddedfield_gridname(gfraw_in, 0, "Pressure");
   chk_if_equal("p_grid", "gfield.p_grid", p_grid, gfraw_in.get_numeric_grid(0));
 
@@ -362,8 +349,7 @@ void FieldFromGriddedField(  // WS Generic Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     // WS Generic Input:
-    const GriddedField4& gfraw_in,
-    const Verbosity&) {
+    const GriddedField4& gfraw_in) {
   chk_griddedfield_gridname(gfraw_in, 1, "Pressure");
   chk_if_equal("p_grid", "gfield.p_grid", p_grid, gfraw_in.get_numeric_grid(0));
 
@@ -380,11 +366,8 @@ void FieldFromGriddedField(  // WS Generic Output:
     const Vector& lat_grid,
     const Vector& lon_grid,
     // WS Generic Input:
-    const ArrayOfGriddedField3& gfraw_in,
-    const Verbosity& verbosity) {
+    const ArrayOfGriddedField3& gfraw_in) {
   if (!gfraw_in.nelem()) {
-    CREATE_OUT1;
-    out1 << "   Warning: gfraw_in is empty, proceeding anyway\n";
     field_out.resize(0, 0, 0, 0);
   } else {
     field_out.resize(gfraw_in.nelem(),
@@ -409,8 +392,7 @@ void FieldFromGriddedField(  // WS Generic Output:
 void GriddedFieldLatLonExpand(  // WS Generic Output:
     GriddedField2& gfraw_out,
     // WS Generic Input:
-    const GriddedField2& gfraw_in_orig,
-    const Verbosity&) {
+    const GriddedField2& gfraw_in_orig) {
   const GriddedField2* gfraw_in_pnt;
   GriddedField2 gfraw_in_copy;
 
@@ -465,8 +447,7 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
 void GriddedFieldLatLonExpand(  // WS Generic Output:
     GriddedField3& gfraw_out,
     // WS Generic Input:
-    const GriddedField3& gfraw_in_orig,
-    const Verbosity&) {
+    const GriddedField3& gfraw_in_orig) {
   const GriddedField3* gfraw_in_pnt;
   GriddedField3 gfraw_in_copy;
 
@@ -526,8 +507,7 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
 void GriddedFieldLatLonExpand(  // WS Generic Output:
     GriddedField4& gfraw_out,
     // WS Generic Input:
-    const GriddedField4& gfraw_in_orig,
-    const Verbosity&) {
+    const GriddedField4& gfraw_in_orig) {
   const GriddedField4* gfraw_in_pnt;
   GriddedField4 gfraw_in_copy;
 
@@ -600,12 +580,11 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
 void GriddedFieldLatLonExpand(  // WS Generic Output:
     ArrayOfGriddedField3& gfraw_out,
     // WS Generic Input:
-    const ArrayOfGriddedField3& gfraw_in,
-    const Verbosity& verbosity) {
+    const ArrayOfGriddedField3& gfraw_in) {
   gfraw_out.resize(gfraw_in.nelem());
 
   for (Index i = 0; i < gfraw_in.nelem(); i++)
-    GriddedFieldLatLonExpand(gfraw_out[i], gfraw_in[i], verbosity);
+    GriddedFieldLatLonExpand(gfraw_out[i], gfraw_in[i]);
 }
 
 //! Calculate grid positions and interpolations weights for GriddedFieldPRegrid
@@ -625,7 +604,7 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
  \param[in]     p_grid        New pressure grid
  \param[in]     interp_order  Interpolation order
  \param[in]     zeropadding   Allow zero padding
- \param[in]     verbosity     Verbosity levels
+ \param levels
  */
 void GriddedFieldPRegridHelper(Index& ing_min,
                                Index& ing_max,
@@ -636,13 +615,8 @@ void GriddedFieldPRegridHelper(Index& ing_min,
                                const Index p_grid_index,
                                ConstVectorView p_grid,
                                const Index& interp_order,
-                               const Index& zeropadding,
-                               const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                               const Index& zeropadding) {
   chk_griddedfield_gridname(gfraw_in, p_grid_index, "Pressure");
-
-  out2 << "  Interpolation order: " << interp_order << "\n";
 
   const Vector& in_p_grid = gfraw_in.get_numeric_grid(p_grid_index);
 
@@ -685,8 +659,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
     // WS Generic Input:
     const GriddedField3& gfraw_in_orig,
     const Index& interp_order,
-    const Index& zeropadding,
-    const Verbosity& verbosity) {
+    const Index& zeropadding) {
   const GriddedField3* gfraw_in_pnt;
   GriddedField3 gfraw_in_copy;
 
@@ -722,8 +695,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
                             p_grid_index,
                             p_grid,
                             interp_order,
-                            zeropadding,
-                            verbosity);
+                            zeropadding);
 
   // Interpolate:
   if (ing_max - ing_min < 0)
@@ -756,8 +728,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
     // WS Generic Input:
     const GriddedField4& gfraw_in_orig,
     const Index& interp_order,
-    const Index& zeropadding,
-    const Verbosity& verbosity) {
+    const Index& zeropadding) {
   const GriddedField4* gfraw_in_pnt;
   GriddedField4 gfraw_in_copy;
 
@@ -797,8 +768,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
                             p_grid_index,
                             p_grid,
                             interp_order,
-                            zeropadding,
-                            verbosity);
+                            zeropadding);
 
   // Interpolate:
   if (ing_max - ing_min < 0)
@@ -835,8 +805,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
     // WS Generic Input:
     const ArrayOfGriddedField3& agfraw_in,
     const Index& interp_order,
-    const Index& zeropadding,
-    const Verbosity& verbosity) {
+    const Index& zeropadding) {
   agfraw_out.resize(agfraw_in.nelem());
 
   for (Index i = 0; i < agfraw_in.nelem(); i++) {
@@ -844,8 +813,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
                         p_grid,
                         agfraw_in[i],
                         interp_order,
-                        zeropadding,
-                        verbosity);
+                        zeropadding);
   }
 }
 
@@ -864,7 +832,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
  \param[in]     lat_true        New latitude grid
  \param[in]     lon_true        New longitude grid
  \param[in]     interp_order    Interpolation order
- \param[in]     verbosity       Verbosity levels
+ \param levels
  */
 void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
                                     ArrayOfLagrangeCyclic0to360Interpolation& lag_lon,
@@ -875,10 +843,7 @@ void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
                                     const Index lon_grid_index,
                                     ConstVectorView lat_true,
                                     ConstVectorView lon_true,
-                                    const Index& interp_order,
-                                    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                                    const Index& interp_order) {
   ARTS_USER_ERROR_IF (!lat_true.nelem(),
                       "The new latitude grid is not allowed to be empty.");
   ARTS_USER_ERROR_IF (!lon_true.nelem(),
@@ -889,8 +854,6 @@ void GriddedFieldLatLonRegridHelper(ArrayOfLagrangeInterpolation& lag_lat,
   ARTS_USER_ERROR_IF (gfraw_in.get_grid_size(lat_grid_index) == 1 ||
       gfraw_in.get_grid_size(lon_grid_index) == 1,
                       "Raw data has to be true 3D data (nlat>1 and nlon>1).");
-
-  out2 << "  Interpolation order: " << interp_order << "\n";
 
   const Vector& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
   const Vector& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
@@ -920,8 +883,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const Vector& lon_true,
     // WS Generic Input:
     const GriddedField2& gfraw_in_orig,
-    const Index& interp_order,
-    const Verbosity& verbosity) {
+    const Index& interp_order) {
   ARTS_USER_ERROR_IF (!lat_true.nelem(),
                       "The new latitude grid is not allowed to be empty.");
   ARTS_USER_ERROR_IF (!lon_true.nelem(),
@@ -988,8 +950,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
                                  lon_grid_index,
                                  lat_true,
                                  lon_true,
-                                 interp_order,
-                                 verbosity);
+                                 interp_order);
 
   // Interpolate:
   reinterp(gfraw_out.data, gfraw_in.data, itw, lag_lat, lag_lon);
@@ -1003,8 +964,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const Vector& lon_true,
     // WS Generic Input:
     const GriddedField3& gfraw_in_orig,
-    const Index& interp_order,
-    const Verbosity& verbosity) {
+    const Index& interp_order) {
   ARTS_USER_ERROR_IF (!lat_true.nelem(),
     "The new latitude grid is not allowed to be empty.");
   ARTS_USER_ERROR_IF (!lon_true.nelem(),
@@ -1078,8 +1038,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
                                  lon_grid_index,
                                  lat_true,
                                  lon_true,
-                                 interp_order,
-                                 verbosity);
+                                 interp_order);
 
   // Interpolate:
   for (Index i = 0; i < gfraw_in.data.npages(); i++)
@@ -1098,8 +1057,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const Vector& lon_true,
     // WS Generic Input:
     const GriddedField4& gfraw_in_orig,
-    const Index& interp_order,
-    const Verbosity& verbosity) {
+    const Index& interp_order) {
   ARTS_USER_ERROR_IF (!lat_true.nelem(),
                       "The new latitude grid is not allowed to be empty.");
   ARTS_USER_ERROR_IF (!lon_true.nelem(),
@@ -1147,8 +1105,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
                                  lon_grid_index,
                                  lat_true,
                                  lon_true,
-                                 interp_order,
-                                 verbosity);
+                                 interp_order);
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
@@ -1203,8 +1160,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const Vector& lon_true,
     // WS Generic Input:
     const ArrayOfGriddedField3& agfraw_in,
-    const Index& interp_order,
-    const Verbosity& verbosity) {
+    const Index& interp_order) {
   agfraw_out.resize(agfraw_in.nelem());
 
   for (Index i = 0; i < agfraw_in.nelem(); i++) {
@@ -1212,8 +1168,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
                              lat_true,
                              lon_true,
                              agfraw_in[i],
-                             interp_order,
-                             verbosity);
+                             interp_order);
   }
 }
 
@@ -1233,7 +1188,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
  \param[in]     z_grid        New z_grid grid
  \param[in]     interp_order  Interpolation order
  \param[in]     zeropadding   Allow zero padding
- \param[in]     verbosity     Verbosity levels
+ \param levels
  */
 void GriddedFieldZToPRegridHelper(Index& ing_min,
                                   Index& ing_max,
@@ -1243,13 +1198,8 @@ void GriddedFieldZToPRegridHelper(Index& ing_min,
                                   const Index z_grid_index,
                                   ConstVectorView z_grid,
                                   const Index& interp_order,
-                                  const Index& zeropadding,
-                                  const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                                  const Index& zeropadding) {
   chk_griddedfield_gridname(gfraw_in, z_grid_index, "Altitude");
-
-  out2 << "  Interpolation order: " << interp_order << "\n";
 
   const Vector& in_z_grid = gfraw_in.get_numeric_grid(z_grid_index);
 
@@ -1292,8 +1242,7 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
     // WS Generic Input:
     const GriddedField3& gfraw_in_orig,  //grid in Z
     const Index& interp_order,           // Only linear interpolation allowed
-    const Index& zeropadding,
-    const Verbosity& verbosity) {
+    const Index& zeropadding) {
   // z_field must be of the same size as its grids
   ARTS_USER_ERROR_IF (!((z_field.npages() == p_grid.nelem() &&
          z_field.nrows() == lat_grid.nelem()) &&
@@ -1356,8 +1305,7 @@ void GriddedFieldZToPRegrid(   // WS Generic Output:
                                    0,
                                    z_out,
                                    interp_order,
-                                   zeropadding,
-                                   verbosity);
+                                   zeropadding);
 
       if (ing_max - ing_min >= 0) {
         Range r = joker;
@@ -1383,8 +1331,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
     // WS Generic Input:
     const Matrix& im,
     // Control Parameters:
-    const ArrayOfString& field_names,
-    const Verbosity&) {
+    const ArrayOfString& field_names) {
   ARTS_USER_ERROR_IF (1 != 3,
     "Atmospheric dimension must be 1.")
 
@@ -1444,12 +1391,11 @@ void atm_fields_compactAddConstant(  // WS Output:
     const String& name,
     const Numeric& value,
     const Index& prepend,
-    const ArrayOfString& condensibles,
-    const Verbosity& verbosity) {
+    const ArrayOfString& condensibles) {
   Index nf;  // Will hold new size
 
   // Add book
-  atm_fields_compactExpand(af, nf, name, prepend, verbosity);
+  atm_fields_compactExpand(af, nf, name, prepend);
 
   if (condensibles.nelem()) {
     const Tensor4& vmrs = af.data;
@@ -1489,8 +1435,7 @@ void atm_fields_compactAddSpecies(  // WS Output:
     // WS Generic Input:
     const String& name,
     const GriddedField3& species,
-    const Index& prepend,
-    const Verbosity& verbosity) {
+    const Index& prepend) {
   ARTS_ASSERT(atm_fields_compact.checksize());
   ARTS_ASSERT(species.checksize());
 
@@ -1506,7 +1451,7 @@ void atm_fields_compactAddSpecies(  // WS Output:
 
   Index new_n_fields;  // To be set in next line
   atm_fields_compactExpand(
-      atm_fields_compact, new_n_fields, name, prepend, verbosity);
+      atm_fields_compact, new_n_fields, name, prepend);
 
   const Index insert_pos = (prepend) ? 0 : new_n_fields - 1;
 
@@ -1570,8 +1515,7 @@ void atm_fields_compactAddSpecies(  // WS Output:
 void atm_fields_compactCleanup(  //WS Output:
     GriddedField4& atm_fields_compact,
     //WS Input:
-    const Numeric& threshold,
-    const Verbosity&) {
+    const Numeric& threshold) {
   ARTS_ASSERT(atm_fields_compact.checksize());
   Tensor4View afd = atm_fields_compact.data;
 
@@ -1592,8 +1536,7 @@ void atm_fields_compactCreateFromField(  // WS Output:
     GriddedField4& atm_fields_compact,
     // WS Generic Input:
     const String& name,
-    const GriddedField3& field,
-    const Verbosity&) {
+    const GriddedField3& field) {
   ARTS_ASSERT(field.checksize());
 
   ConstVectorView sp_p_grid = field.get_numeric_grid(GFIELD3_P_GRID);
@@ -1621,15 +1564,13 @@ void batch_atm_fields_compactAddConstant(  // WS Output:
     const String& name,
     const Numeric& value,
     const Index& prepend,
-    const ArrayOfString& condensibles,
-    const Verbosity& verbosity) {
+    const ArrayOfString& condensibles) {
   for (Index i = 0; i < batch_atm_fields_compact.nelem(); i++) {
     atm_fields_compactAddConstant(batch_atm_fields_compact[i],
                                   name,
                                   value,
                                   prepend,
-                                  condensibles,
-                                  verbosity);
+                                  condensibles);
   }
 }
 
@@ -1640,8 +1581,7 @@ void batch_atm_fields_compactAddSpecies(  // WS Output:
     // WS Generic Input:
     const String& name,
     const GriddedField3& species,
-    const Index& prepend,
-    const Verbosity& verbosity) {
+    const Index& prepend) {
   const Index nelem = batch_atm_fields_compact.nelem();
 
   String fail_msg;
@@ -1654,7 +1594,7 @@ void batch_atm_fields_compactAddSpecies(  // WS Output:
   for (Index i = 0; i < nelem; i++) {
     try {
       atm_fields_compactAddSpecies(
-          batch_atm_fields_compact[i], name, species, prepend, verbosity);
+          batch_atm_fields_compact[i], name, species, prepend);
     } catch (const std::exception& e) {
 #pragma omp critical(batch_atm_fields_compactAddSpecies_fail)
       {
@@ -1672,11 +1612,10 @@ void batch_atm_fields_compactAddSpecies(  // WS Output:
 void batch_atm_fields_compactCleanup(  //WS Output:
     ArrayOfGriddedField4& batch_atm_fields_compact,
     //WS Input:
-    const Numeric& threshold,
-    const Verbosity& verbosity) {
+    const Numeric& threshold) {
   for (Index i = 0; i < batch_atm_fields_compact.nelem(); i++) {
     atm_fields_compactCleanup(
-        batch_atm_fields_compact[i], threshold, verbosity);
+        batch_atm_fields_compact[i], threshold);
   }
 }
 
@@ -1687,8 +1626,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     // WS Generic Input:
     const ArrayOfMatrix& am,
     // Control Parameters:
-    const ArrayOfString& field_names,
-    const Verbosity& verbosity) {
+    const ArrayOfString& field_names) {
   const Index amnelem = am.nelem();
 
   ARTS_USER_ERROR_IF (amnelem == 0,
@@ -1721,8 +1659,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     try {
       atm_fields_compactFromMatrix(batch_atm_fields_compact[i],
                                    am[i],
-                                   field_names,
-                                   verbosity);
+                                   field_names);
     } catch (const std::exception& e) {
 #pragma omp critical(batch_atm_fields_compactFromArrayOfMatrix_fail)
       {
@@ -1745,8 +1682,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     const GriddedField4& atm_fields_compact,
     const String& delim,
     // Control parameters:
-    const Index& check_gridnames,
-    const Verbosity& verbosity) {
+    const Index& check_gridnames) {
   // Make a handle on atm_fields_compact to save typing:
   const GriddedField4& c = atm_fields_compact;
 
@@ -1782,7 +1718,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     "There must be at least one absorption species.")
   
   // Set TOA
-  atm_fieldInit(atm_field, max(z_grid), verbosity);
+  atm_fieldInit(atm_field, max(z_grid));
   GriddedField3 field_data;
   field_data.set_grid_name(0, "Altitude");
   field_data.set_grid_name(1, "Latitude");
@@ -1905,21 +1841,15 @@ void z_surfaceFromFileAndGrid(Matrix& z_surface,
                               const Vector& lon_grid,
                               const String& filename,
                               const Index& interp_order,
-                              const Index& set_lowest_altitude_to_zero,
-                              const Verbosity& verbosity) {
-  CREATE_OUT3;
-
-  out3 << "Reading GriddedField2 surface altitude from " << filename << "\n";
+                              const Index& set_lowest_altitude_to_zero) {
   GriddedField2 z_surface_field;
-  xml_read_from_file(filename, z_surface_field, verbosity);
+  xml_read_from_file(filename, z_surface_field);
 
-  out3 << "Surface altitude field interpolated back to lat_grid and lon_grid\n";
   GriddedFieldLatLonRegrid(z_surface_field,
                            lat_grid,
                            lon_grid,
                            z_surface_field,
-                           interp_order,
-                           verbosity);
+                           interp_order);
   z_surface = z_surface_field.data;
   if (set_lowest_altitude_to_zero) {
     z_surface -= min(z_surface);
@@ -1930,18 +1860,14 @@ void z_surfaceFromFileAndGrid(Matrix& z_surface,
 void z_surfaceConstantAltitude(Matrix& z_surface,
                                const Vector& lat_grid,
                                const Vector& lon_grid,
-                               const Numeric& altitude,
-                               const Verbosity& verbosity) {
-  CREATE_OUT3;
-  out3 << "Setting surface to constant altitude of " << altitude << " m\n";
+                               const Numeric& altitude) {
   z_surface = Matrix(lat_grid.nelem() ? lat_grid.nelem() : 1, lon_grid.nelem() ? lon_grid.nelem() : 1, altitude);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToPosition(AtmPoint& outvalue,
                               const AtmField& atm_field,
-                              const Vector& rtp_pos,
-                              const Verbosity&) {
+                              const Vector& rtp_pos) {
   outvalue = atm_field.at({rtp_pos[0]}, {rtp_pos[1]}, {rtp_pos[2]})[0];
 }
 
@@ -1954,8 +1880,7 @@ void p_gridDensify(  // WS Output:
     // WS Input:
     const Vector& p_grid_old,
     // Control Parameters:
-    const Index& nfill,
-    const Verbosity& verbosity) {
+    const Index& nfill) {
   // Check that p_grid and p_grid_old are not the same variable (pointing to the
   // same memory space). this as p_grid will be overwritten, but we will need
   // both data later on for data regridding.
@@ -1986,7 +1911,7 @@ void p_gridDensify(  // WS Output:
     for (Index i = 1; i < n0; i++) {
       Vector pnew;
       VectorNLogSpace(
-          pnew, 2 + nfill, p_grid_old[i - 1], p_grid_old[i], verbosity);
+          pnew, 2 + nfill, p_grid_old[i - 1], p_grid_old[i]);
       for (Index j = 1; j < nfill + 2; j++) {
         iout += 1;
         p_grid[iout] = pnew[j];
@@ -2004,8 +1929,7 @@ void p_gridRefine(  // WS Output:
     // WS Input:
     const Vector& p_grid_old,
     // Control Parameters:
-    const Numeric& p_step10,
-    const Verbosity&) {
+    const Numeric& p_step10) {
   // Check that p_grid and p_grid_old are not the same variable (pointing to the
   // same memory space). this as p_grid will be overwritten, but we will need
   // both data later on for data regridding.
@@ -2087,8 +2011,7 @@ void p_gridFromZRaw(  //WS Output
     Vector& p_grid,
     //WS Input
     const GriddedField3& z_field_raw,
-    const Index& no_negZ,
-    const Verbosity&) {
+    const Index& no_negZ) {
   // original version excludes negative z. not clear, why this is. maybe is
   // currently a convention somehwere in ARTS (DOIT?). negative z seem, however,
   // to work fine for clear-sky cases. so we make the negative z exclude an
@@ -2117,8 +2040,7 @@ void p_gridFromZRaw(  //WS Output
 void lat_gridFromZRaw(  //WS Output
     Vector& lat_grid,
     //WS Input
-    const GriddedField3& z_field_raw,
-    const Verbosity&) {
+    const GriddedField3& z_field_raw) {
   lat_grid = z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
 }
 
@@ -2126,8 +2048,7 @@ void lat_gridFromZRaw(  //WS Output
 void lon_gridFromZRaw(  //WS Output
     Vector& lon_grid,
     //WS Input
-    const GriddedField3& z_field_raw,
-    const Verbosity&) {
+    const GriddedField3& z_field_raw) {
   lon_grid = z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 }
 
@@ -2138,19 +2059,17 @@ void atm_gridsFromZRaw(  //WS Output
     Vector& lon_grid,
     //WS Input
     const GriddedField3& z_field_raw,
-    const Index& no_negZ,
-    const Verbosity& v) {
-  p_gridFromZRaw(p_grid, z_field_raw, no_negZ, v);
-  lat_gridFromZRaw(lat_grid, z_field_raw, v);
-  lon_gridFromZRaw(lon_grid, z_field_raw, v);
+    const Index& no_negZ) {
+  p_gridFromZRaw(p_grid, z_field_raw, no_negZ);
+  lat_gridFromZRaw(lat_grid, z_field_raw);
+  lon_gridFromZRaw(lon_grid, z_field_raw);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void lat_gridFromRawField(  //WS Output
     Vector& lat_grid,
     //WS Input
-    const GriddedField3& field_raw,
-    const Verbosity&) {
+    const GriddedField3& field_raw) {
   lat_grid = field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
 }
 
@@ -2158,16 +2077,14 @@ void lat_gridFromRawField(  //WS Output
 void lon_gridFromRawField(  //WS Output
     Vector& lon_grid,
     //WS Input
-    const GriddedField3& field_raw,
-    const Verbosity&) {
+    const GriddedField3& field_raw) {
   lon_grid = field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void wind_u_fieldIncludePlanetRotation(AtmField& atm_field,
                                        const Vector& refellipsoid,
-                                       const Numeric& planet_rotation_period,
-                                       const Verbosity&) {
+                                       const Numeric& planet_rotation_period) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, wind_u_field;
@@ -2214,8 +2131,7 @@ void z_fieldFromHSE(Workspace& ws,
                     const Agenda& g0_agenda,
                     const Numeric& molarmass_dry_air,
                     const Numeric& p_hse,
-                    const Numeric& z_hse_accuracy,
-                    const Verbosity& verbosity) {
+                    const Numeric& z_hse_accuracy) {
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
@@ -2229,10 +2145,6 @@ void z_fieldFromHSE(Workspace& ws,
       abs_species, Species::fromShortName("H2O"));
 
   if (firstH2O < 0) {
-    CREATE_OUT1;
-    out1 << "No water vapour tag group in *abs_species*.\n"
-         << "Be aware that this leads to significant variations in atmospheres\n"
-         << "that contain considerable amounts of water vapour (e.g. Earth)!\n";
   }
   //
   ARTS_USER_ERROR_IF (p_hse > p_grid[0] || p_hse < p_grid[np - 1],
@@ -2367,8 +2279,7 @@ void z_fieldFromHSE(Workspace& ws,
 void vmr_fieldSetConstant(Tensor4& vmr_field,
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const String& species,
-                          const Numeric& vmr_value,
-                          const Verbosity&) {
+                          const Numeric& vmr_value) {
   // Check input
   chk_if_in_range("vmr_value", vmr_value, 0, 1);
   //
@@ -2386,22 +2297,17 @@ void vmr_fieldSetConstant(Tensor4& vmr_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void vmr_fieldSetAllConstant(Tensor4& vmr_field,
                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                             const Vector& vmr_values,
-                             const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                             const Vector& vmr_values) {
   const Index nspecies = abs_species.nelem();
 
   ARTS_USER_ERROR_IF (vmr_values.nelem() not_eq nspecies,
                       "Not same number of vmr_values as abs_species.");
 
-  out3 << "Setting all " << nspecies << " species to constant VMR\n";
-
   for (Index i = 0; i < nspecies; i++) {
     const ArrayOfSpeciesTag& a_abs_species = abs_species[i];
     const String species_tag_name = a_abs_species.Name();
     vmr_fieldSetConstant(
-        vmr_field, abs_species, species_tag_name, vmr_values[i], verbosity);
+        vmr_field, abs_species, species_tag_name, vmr_values[i]);
   }
 }
 
@@ -2410,8 +2316,7 @@ void atm_fieldLteExternalPartitionFunction(
     Index& nlte_do,
     AtmField& atm_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    const Verbosity& verbosity) {
+    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers) {
   using Constant::h;
 
   // FIXME: REQUIRES REGULAR GRIDS
@@ -2420,7 +2325,6 @@ void atm_fieldLteExternalPartitionFunction(
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
-  CREATE_OUT2;
   const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
               nlat = t_field.nrows(), nlon = t_field.ncols();
   if (nn == 0) return;
@@ -2480,8 +2384,6 @@ void atm_fieldLteExternalPartitionFunction(
   
   for (Index in = 0; in < nn; in++) {
     if (not checked[in]) {
-      out2 << "Did not find match among lines for: "
-           << nlte_quantum_identifiers[in] << "\n";
     }
     //atm_field[nlte_quantum_identifiers[in]] = Tensor3{nlte_tensor4[in]};
   }
@@ -2492,8 +2394,7 @@ void atm_fieldLteInternalPartitionFunction(
     Index& nlte_do,
     AtmField& atm_field,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-    const Verbosity& verbosity) {
+    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers) {
   using Constant::h;
 
   // FIXME: REQUIRES REGULAR GRIDS
@@ -2502,7 +2403,6 @@ void atm_fieldLteInternalPartitionFunction(
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
-  CREATE_OUT2;
   const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
               nlat = t_field.nrows(), nlon = t_field.ncols();
   if (nn == 0) return;
@@ -2588,8 +2488,6 @@ void atm_fieldLteInternalPartitionFunction(
   
   for (Index in = 0; in < nn; in++) {
     if (not checked[in]) {
-      out2 << "Did not find match among lines for: "
-           << nlte_quantum_identifiers[in] << "\n";
     }
   }
   

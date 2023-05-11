@@ -49,7 +49,6 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
@@ -175,14 +174,9 @@ void cloud_fieldsCalc(Workspace& ws,
                       const Index& aa_index,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field,
-                      ConstTensor4View pnd_field,
-                      const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                      ConstTensor4View pnd_field) {
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
-
-  out3 << "Calculate scattering properties in cloudbox \n";
 
   const Index atmosphere_dim = cloudbox_limits.nelem() / 2;
   const Index N_se = pnd_field.nbooks();
@@ -284,8 +278,7 @@ void cloud_fieldsCalc(Workspace& ws,
                           Tensor4{pnd_field},
                           scat_p_index_local,
                           scat_lat_index_local,
-                          scat_lon_index_local,
-                          verbosity);
+                          scat_lon_index_local);
 
         // Store coefficients in arrays for the whole cloudbox.
         abs_vec_field(scat_p_index_local,
@@ -329,8 +322,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstTensor4View abs_vec_field,
                           const Agenda& surface_rtprop_agenda,
                           //const Agenda& surface_rtprop_agenda,
-                          const Index& scat_za_interp,
-                          const Verbosity& verbosity) {
+                          const Index& scat_za_interp) {
   Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
@@ -416,8 +408,7 @@ void cloud_ppath_update1D(Workspace& ws,
                          ppath_step,
                          cloudbox_limits,
                          za_grid,
-                         scat_za_interp,
-                         verbosity);
+                         scat_za_interp);
 
     // ppath_what_background(ppath_step) tells the
     // radiative background.  More information in the
@@ -446,8 +437,7 @@ void cloud_ppath_update1D(Workspace& ws,
                            0,
                            0,
                            za_index,
-                           0,
-                           verbosity);
+                           0);
 
     // bkgr=2 indicates that the background is the surface
     if (bkgr == 2) {
@@ -496,8 +486,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstTensor5View ext_mat_field,
                                 ConstTensor4View abs_vec_field,
                                 const Agenda& surface_rtprop_agenda,
-                                const Index& scat_za_interp,
-                                const Verbosity& verbosity) {
+                                const Index& scat_za_interp) {
   Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
@@ -574,8 +563,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                          ppath_step,
                          cloudbox_limits,
                          za_grid,
-                         scat_za_interp,
-                         verbosity);
+                         scat_za_interp);
 
     // ppath_what_background(ppath_step) tells the
     // radiative background.  More information in the
@@ -609,8 +597,7 @@ ARTS_USER_ERROR("ERROR")
                            0,
                            0,
                            za_index,
-                           0,
-                           verbosity);
+                           0);
 
     if (bkgr == 2) {
       cloud_RT_surface(ws,
@@ -646,10 +633,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const Index& f_index,
                                         //particle opticla properties
                                         ConstTensor5View ext_mat_field,
-                                        ConstTensor4View abs_vec_field,
-                                        const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                                        ConstTensor4View abs_vec_field) {
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = cloudbox_field_mono.ncols();
   const Index atmosphere_dim = 1;
@@ -761,27 +745,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       //
       Numeric rte_planck_value = planck(f, rtp_temperature);
 
-      // Some messages:
-      if (out3.sufficient_priority()) {
-        vector_tmp = abs_vec.VectorAtPosition();
-        ext_mat.MatrixAtPosition(matrix_tmp);
-        out3 << "-----------------------------------------\n";
-        out3 << "Input for radiative transfer step \n"
-             << "calculation inside"
-             << " the cloudbox:"
-             << "\n";
-        out3 << "Stokes vector at intersection point: \n" << stokes_vec << "\n";
-        out3 << "lstep: ..." << lstep << "\n";
-        out3 << "------------------------------------------\n";
-        out3 << "Averaged coefficients: \n";
-        out3 << "Planck function: " << rte_planck_value << "\n";
-        out3 << "Scattering vector: " << sca_vec_av << "\n";
-        out3 << "Absorption vector: " << vector_tmp << "\n";
-        out3 << "Extinction matrix: " << matrix_tmp << "\n";
-
-        ARTS_ASSERT(!is_singular(matrix_tmp));
-      }
-
       // Radiative transfer step calculation. The Stokes vector
       // is updated until the considered point is reached.
       rte_step_doit_replacement(stokes_vec,
@@ -886,27 +849,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       // Calculate Planck function
       //
       Numeric rte_planck_value = planck(f, rtp_temperature);
-
-      // Some messages:
-      if (out3.sufficient_priority()) {
-        vector_tmp = abs_vec.VectorAtPosition();
-        ext_mat.MatrixAtPosition(matrix_tmp);
-        out3 << "-----------------------------------------\n";
-        out3 << "Input for radiative transfer step \n"
-             << "calculation inside"
-             << " the cloudbox:"
-             << "\n";
-        out3 << "Stokes vector at intersection point: \n" << stokes_vec << "\n";
-        out3 << "lstep: ..." << lstep << "\n";
-        out3 << "------------------------------------------\n";
-        out3 << "Averaged coefficients: \n";
-        out3 << "Planck function: " << rte_planck_value << "\n";
-        out3 << "Scattering vector: " << sca_vec_av << "\n";
-        out3 << "Absorption vector: " << vector_tmp << "\n";
-        out3 << "Extinction matrix: " << matrix_tmp << "\n";
-
-        ARTS_ASSERT(!is_singular(matrix_tmp));
-      }
 
       // Radiative transfer step calculation. The Stokes vector
       // is updated until the considered point is reached.
@@ -1134,10 +1076,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Index&,  //scat_za_interp
-                          const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                          const Index&) {
 //FIXME: MUST HAVE REGULAR FIELD
  Vector z_grid, lat_grid, lon_grid;
  Tensor3 p_field, t_field;
@@ -1282,7 +1221,6 @@ ARTS_USER_ERROR("ERROR")
     for (Index i = 0; i < stokes_dim; i++) {
       // Extinction matrix requires a second loop
       // over stokes_dim
-      out3 << "Interpolate ext_mat:\n";
       for (Index j = 0; j < stokes_dim; j++) {
         //
         // Interpolation of ext_mat
@@ -1309,7 +1247,6 @@ ARTS_USER_ERROR("ERROR")
       //
       // Interpolation of sca_vec:
       //
-      out3 << "Interpolate doit_scat_field:\n";
       interp(sca_vec_int(i, joker),
              itw_p_za,
              doit_scat_field(joker, joker, joker, joker, joker, i),
@@ -1318,7 +1255,6 @@ ARTS_USER_ERROR("ERROR")
              cloud_gp_lon,
              gp_za,
              gp_aa);
-      out3 << "Interpolate cloudbox_field_mono:\n";
       interp(cloudbox_field_mono_int(i, joker),
              itw_p_za,
              cloudbox_field_mono(joker, joker, joker, joker, joker, i),
@@ -1333,7 +1269,6 @@ ARTS_USER_ERROR("ERROR")
     //
     // Interpolate temperature field
     //
-    out3 << "Interpolate temperature field\n";
     interp(t_int,
            itw,
            t_field(joker, joker, joker),
@@ -1353,7 +1288,6 @@ ARTS_USER_ERROR("ERROR")
     Matrix vmr_list_int(N_species, ppath_step.np);
 
     for (Index i = 0; i < N_species; i++) {
-      out3 << "Interpolate vmr field\n";
       interp(vmr_int,
              itw,
              vmr_field(i, joker, joker, joker),
@@ -1367,7 +1301,6 @@ ARTS_USER_ERROR("ERROR")
     // Presssure (needed for the calculation of gas absorption)
     itw2p(p_int, VectorView{p_field(p_index, lat_index, lon_index)}, ppath_step.gp_p, itw_p);
 
-    out3 << "Calculate radiative transfer inside cloudbox.\n";
     cloud_RT_no_background(ws,
                            cloudbox_field_mono,
                            propmat_clearsky_agenda,
@@ -1386,8 +1319,7 @@ ARTS_USER_ERROR("ERROR")
                            lat_index,
                            lon_index,
                            za_index,
-                           aa_index,
-                           verbosity);
+                           aa_index);
   }  //end if inside cloudbox
 }
 
@@ -1411,10 +1343,7 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& lat_index,
                             const Index& lon_index,
                             const Index& za_index,
-                            const Index& aa_index,
-                            const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                            const Index& aa_index) {
   const Index N_species = vmr_list_int.nrows();
   const Index stokes_dim = cloudbox_field_mono.ncols();
   const Index atmosphere_dim = cloudbox_limits.nelem() / 2;
@@ -1500,27 +1429,6 @@ void cloud_RT_no_background(Workspace& ws,
 
     // Length of the path between the two layers.
     Numeric lstep = ppath_step.lstep[k];
-
-    // Some messages:
-    if (out3.sufficient_priority()) {
-      vector_tmp = abs_vec_local.VectorAtPosition();
-      ext_mat_local.MatrixAtPosition(matrix_tmp);
-      out3 << "-----------------------------------------\n";
-      out3 << "Input for radiative transfer step \n"
-           << "calculation inside"
-           << " the cloudbox:"
-           << "\n";
-      out3 << "Stokes vector at intersection point: \n" << stokes_vec << "\n";
-      out3 << "lstep: ..." << lstep << "\n";
-      out3 << "------------------------------------------\n";
-      out3 << "Averaged coefficients: \n";
-      out3 << "Planck function: " << rte_planck_value << "\n";
-      out3 << "Scattering vector: " << sca_vec_av << "\n";
-      out3 << "Absorption vector: " << vector_tmp << "\n";
-      out3 << "Extinction matrix: " << matrix_tmp << "\n";
-
-      ARTS_ASSERT(!is_singular(matrix_tmp));
-    }
 
     // Radiative transfer step calculation. The Stokes vector
     // is updated until the considered point is reached.
@@ -1622,8 +1530,7 @@ void cloud_RT_surface(Workspace& ws,
 
 void cloudbox_field_ngAcceleration(Tensor6& cloudbox_field_mono,
                                  const ArrayOfTensor6& acceleration_input,
-                                 const Index& accelerated,
-                                 const Verbosity&) {
+                                 const Index& accelerated) {
   const Index N_p = cloudbox_field_mono.nvitrines();
   const Index N_za = cloudbox_field_mono.npages();
 
@@ -1714,10 +1621,7 @@ void interp_cloud_coeff1D(  //Output
     const Ppath& ppath_step,
     const ArrayOfIndex& cloudbox_limits,
     ConstVectorView za_grid,
-    const Index& scat_za_interp,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const Index& scat_za_interp) {
   // Stokes dimension
   const Index stokes_dim = cloudbox_field_mono.ncols();
 
@@ -1756,7 +1660,6 @@ void interp_cloud_coeff1D(  //Output
   for (Index i = 0; i < stokes_dim; i++) {
     // Extinction matrix requires a second loop
     // over stokes_dim
-    out3 << "Interpolate ext_mat:\n";
     for (Index j = 0; j < stokes_dim; j++) {
       //
       // Interpolation of ext_mat
@@ -1770,7 +1673,6 @@ void interp_cloud_coeff1D(  //Output
     //
     // Interpolation of abs_vec
     //  //
-    out3 << "Interpolate abs_vec:\n";
     interp(
         abs_vec_int(i, joker), itw, abs_vec_field(joker, 0, 0, i), cloud_gp_p);
     //
@@ -1778,7 +1680,6 @@ void interp_cloud_coeff1D(  //Output
     //
     //
 
-    out3 << "Interpolate doit_scat_field and cloudbox_field_mono:\n";
     if (scat_za_interp == 0)  // linear interpolation
     {
       interp(sca_vec_int(i, joker),
@@ -1805,7 +1706,6 @@ void interp_cloud_coeff1D(  //Output
                itw,
                doit_scat_field(joker, 0, 0, za, 0, i),
                cloud_gp_p);
-        out3 << "Interpolate cloudbox_field_mono:\n";
         interp(cloudbox_field_mono_int_za(i, joker, za),
                itw,
                cloudbox_field_mono(joker, 0, 0, za, 0, i),
@@ -1829,7 +1729,6 @@ void interp_cloud_coeff1D(  //Output
   //
   // Interpolate temperature field
   //
-  out3 << "Interpolate temperature field\n";
   interp(t_int, itw, t_field(joker, 0, 0), ppath_step.gp_p);
   //
   // The vmr_field is needed for the gaseous absorption
@@ -1843,7 +1742,6 @@ void interp_cloud_coeff1D(  //Output
   Vector vmr_int(ppath_step.np);
 
   for (Index i_sp = 0; i_sp < N_species; i_sp++) {
-    out3 << "Interpolate vmr field\n";
     interp(vmr_int, itw, vmr_field(i_sp, joker, 0, 0), ppath_step.gp_p);
     vmr_list_int(i_sp, joker) = vmr_int;
   }
@@ -1970,13 +1868,9 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Tensor4& pnd_field,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
-                              const Index& norm_debug,
-                              const Verbosity& verbosity) {
+                              const Index& norm_debug) {
   ARTS_USER_ERROR_IF (atmosphere_dim != 1,
                       "Only 1D is supported here for now");
-
-  CREATE_OUT0;
-  CREATE_OUT2;
 
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();
@@ -2030,8 +1924,7 @@ void doit_scat_fieldNormalize(Workspace& ws,
                      aa_index_local,
                      cloudbox_limits,
                      t_field,
-                     pnd_field,
-                     verbosity);
+                     pnd_field);
 
     for (Index p_index = 0;
          p_index <= (cloudbox_limits[1] - cloudbox_limits[0]);
@@ -2072,27 +1965,17 @@ void doit_scat_fieldNormalize(Workspace& ws,
         corr_max_p_index = p_index;
       }
       if (norm_debug) {
-        out0 << "  DOIT corr_factor: " << 1. - corr_factor
-             << " ( scat_ext_int: " << scat_ext_int
-             << ", scat_int: " << scat_int << ")"
-             << " at p_index " << p_index << "\n";
       }
       ARTS_USER_ERROR_IF (abs(1. - corr_factor) > norm_error_threshold,
           "ERROR: DOIT correction factor exceeds threshold (=",
           norm_error_threshold, "): ", setprecision(4),
           1. - corr_factor, " at p_index ", p_index, "\n")
       if (abs(1. - corr_factor) > norm_error_threshold / 2.) {
-        out0 << "  WARNING: DOIT correction factor above threshold/2: "
-             << 1. - corr_factor << " at p_index " << p_index << "\n";
       }
 
       // Scale scattered field with correction factor
       doit_scat_field(p_index, 0, 0, joker, 0, joker) *= corr_factor;
     } else if (norm_debug) {
-      out0 << "  DOIT corr_factor ignored: " << 1. - corr_factor
-           << " ( scat_ext_int: " << scat_ext_int << ", scat_int: " << scat_int
-           << ")"
-           << " at p_index " << p_index << "\n";
     }
   }
 
@@ -2103,9 +1986,4 @@ void doit_scat_fieldNormalize(Workspace& ws,
   } else {
     os << "  No DOIT correction performed in this iteration.\n";
   }
-
-  if (norm_debug)
-    out0 << os.str();
-  else
-    out2 << os.str();
 }

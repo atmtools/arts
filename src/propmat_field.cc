@@ -125,8 +125,7 @@ void emission_from_propmat_field(
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
-    const SurfaceField& surface_field,
-    const Verbosity& verbosity)
+    const SurfaceField& surface_field)
 {
   // Size of problem
   const Index nf = f_grid.nelem();
@@ -220,8 +219,7 @@ void emission_from_propmat_field(
                        iy_space_agenda,
                        iy_surface_agenda,
                        iy_cloudbox_agenda,
-                       1,
-                       verbosity);
+                       1);
   lvl_rad[np - 1] = RadiationVector{iy};
 
   // Radiative transfer calculations

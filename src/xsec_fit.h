@@ -31,7 +31,6 @@
 #include "bifstream.h"
 #include "gridded_fields.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "mystring.h"
 #include "species.h"
 
@@ -71,8 +70,7 @@ class XsecRecord {
   void Extract(VectorView result,
                const Vector& f_grid,
                Numeric pressure,
-               Numeric temperature,
-               const Verbosity& verbosity) const;
+               Numeric temperature) const;
 
   /************ VERSION 2 *************/
   /** Get mininum pressures from fit */

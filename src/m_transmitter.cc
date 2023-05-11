@@ -44,7 +44,6 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_complex.h"
-#include "messages.h"
 #include "rte.h"
 #include "sensor.h"
 #include <cmath>
@@ -101,8 +100,7 @@ void iyRadioLink(
    const Numeric&                     ppath_lmax,
    const Numeric&                     ppath_lraytrace,
    const Index&                       defocus_method,
-   const Numeric&                     defocus_shift,
-   const Verbosity&                   verbosity )
+   const Numeric&                     defocus_shift)
 {
   // Throw error if unsupported features are requested
   if( !iy_agenda_call1 )
@@ -685,8 +683,7 @@ void iyTransmissionStandard(Workspace& ws,
                             const Agenda& gas_scattering_agenda,
                             const Index& iy_agenda_call1,
                             const Tensor3& iy_transmittance,
-                            const Numeric& rte_alonglos_v,
-                            const Verbosity&) {
+                            const Numeric& rte_alonglos_v) {
   //  Init Jacobian quantities?
   const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<1>(jacobian_quantities) : 0;
     
@@ -1015,8 +1012,7 @@ This feature will be added in a future version.
 void iy_transmitterMultiplePol(Matrix& iy_transmitter,
                                const Index& stokes_dim,
                                const Vector& f_grid,
-                               const ArrayOfIndex& instrument_pol,
-                               const Verbosity&) {
+                               const ArrayOfIndex& instrument_pol) {
   const Index nf = f_grid.nelem();
 
   if (instrument_pol.nelem() != nf)
@@ -1035,8 +1031,7 @@ void iy_transmitterMultiplePol(Matrix& iy_transmitter,
 void iy_transmitterSinglePol(Matrix& iy_transmitter,
                              const Index& stokes_dim,
                              const Vector& f_grid,
-                             const ArrayOfIndex& instrument_pol,
-                             const Verbosity&) {
+                             const ArrayOfIndex& instrument_pol) {
   const Index nf = f_grid.nelem();
 
   if (instrument_pol.nelem() != 1)

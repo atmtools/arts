@@ -51,7 +51,6 @@ extern "C" {
 #include "interpolation.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "rte.h"
 #include "xml_io.h"
 
@@ -786,18 +785,10 @@ void get_scat_bulk_layer(MatrixView sca_bulk_layer,
     }
 }
 
-// Use a thread_local variable to communicate the Verbosity to the
-// Disort error and warning functions. Ugly workaround, to avoid
-// passing a Verbosity argument throughout the whole cdisort code.
-// We want to avoid changes to the original code to keep it maintainable
-// in respect to upstream updates.
-thread_local Verbosity disort_verbosity;
-
 #define MAX_WARNINGS 100
 
 /** Verbosity enabled replacement for the original cdisort function. */
 void c_errmsg(const char* messag, int type) {
-  Verbosity verbosity = disort_verbosity;
   static int warning_limit = FALSE, num_warnings = 0;
 
   ARTS_USER_ERROR_IF(type == DS_ERROR, "DISORT ERROR >>>  ", messag);
@@ -805,12 +796,7 @@ void c_errmsg(const char* messag, int type) {
   if (warning_limit) return;
 
   if (++num_warnings <= MAX_WARNINGS) {
-    CREATE_OUT1;
-    out1 << "DISORT WARNING >>>  " << messag << "\n";
   } else {
-    CREATE_OUT1;
-    out1 << "DISORT TOO MANY WARNING MESSAGES --  They will no longer be "
-            "printed  <<<<<<<\n\n";
     warning_limit = TRUE;
   }
 
@@ -826,9 +812,6 @@ int c_write_bad_var(int quiet, const char* varnam) {
 
   nummsg++;
   if (quiet != QUIET) {
-    Verbosity verbosity = disort_verbosity;
-    CREATE_OUT1;
-    out1 << "  ****  Input variable " << varnam << " in error  ****\n";
     if (nummsg == maxmsg) {
       c_errmsg("Too many input errors.  Aborting...", DS_ERROR);
     }
@@ -840,10 +823,6 @@ int c_write_bad_var(int quiet, const char* varnam) {
 /** Verbosity enabled replacement for the original cdisort function. */
 int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
   if (quiet != QUIET) {
-    Verbosity verbosity = disort_verbosity;
-    CREATE_OUT1;
-    out1 << "  ****  Symbolic dimension " << dimnam
-         << " should be increased to at least " << minval << "  ****\n";
   }
 
   return TRUE;
@@ -955,8 +934,7 @@ void run_cdisort(Workspace& ws,
                  const Index& only_tro,
                  const Index& quiet,
                  const Index& emission,
-                 const Index& intensity_correction,
-                 const Verbosity& verbosity) {
+                 const Index& intensity_correction) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -980,11 +958,6 @@ void run_cdisort(Workspace& ws,
 
   disort_state ds;
   disort_output out;
-
-  if (quiet == 0)
-    disort_verbosity = verbosity;
-  else
-    disort_verbosity = Verbosity(0, 0, 0);
 
   const Index nf = f_grid.nelem();
 
@@ -1242,12 +1215,6 @@ void run_cdisort(Workspace& ws,
 
           const Numeric shift =
               abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
-          CREATE_OUT1;
-          out1
-              << "Solar zenith angle coincided with one of the quadrature angles\n"
-              << "We needed to shift the solar sun angle by " << shift
-              << "deg.\n";
-
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
         } else
@@ -1361,8 +1328,7 @@ void run_cdisort_flux(Workspace& ws,
                       const Index& only_tro,
                       const Index& quiet,
                       const Index& emission,
-                      const Index& intensity_correction,
-                      const Verbosity& verbosity) {
+                      const Index& intensity_correction) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -1386,11 +1352,6 @@ void run_cdisort_flux(Workspace& ws,
 
   disort_state ds;
   disort_output out;
-
-  if (quiet == 0)
-    disort_verbosity = verbosity;
-  else
-    disort_verbosity = Verbosity(0, 0, 0);
 
   const Index nf = f_grid.nelem();
 
@@ -1736,8 +1697,7 @@ void surf_albedoCalc(Workspace& ws,
                      const Agenda& surface_rtprop_agenda,
                      ConstVectorView f_grid,
                      ConstVectorView scat_za_grid,
-                     const Numeric& surf_alt,
-                     const Verbosity& verbosity) {
+                     const Numeric& surf_alt) {
   // Here, we derive an average surface albedo of the setup as given by ARTS'
   // surface_rtprop_agenda to use with Disorts's proprietary Lambertian surface.
   // In this way, ARTS-Disort can approximately mimick all surface reflection
@@ -1761,8 +1721,6 @@ void surf_albedoCalc(Workspace& ws,
   // We do all frequencies here at once (assuming this is the faster variant as
   // the agenda anyway (can) provide output for full f_grid at once and as we
   // have to apply the same inter/extrapolation to all the frequencies).
-
-  CREATE_OUT2;
 
   chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
 
@@ -1792,7 +1750,6 @@ void surf_albedoCalc(Workspace& ws,
     Matrix surface_emission;
 
     Vector rtp_los(1, scat_za_grid[rza + frza]);
-    out2 << "Doing reflected dir #" << rza << " at " << rtp_los[0] << " degs\n";
 
     surface_rtprop_agendaExecute(ws,
                                  surface_point,
@@ -1826,8 +1783,6 @@ void surf_albedoCalc(Workspace& ws,
         dir_refl_coeff(rza, f_index) =
             sum(surface_rmatrix(joker, f_index, 0, 0));
     }
-    out2 << "  directional albedos[f_grid] = " << dir_refl_coeff(rza, joker)
-         << "\n";
   }
 
   if (btemp < 0. || btemp > 1000.) {
@@ -1896,8 +1851,6 @@ void surf_albedoCalc(Workspace& ws,
   // eventually sum up the weighted directional power reflection coefficients
   for (Index f_index = 0; f_index < nf; f_index++) {
     albedo[f_index] = sum(dir_refl_coeff(joker, f_index));
-    out2 << "at f=" << f_grid[f_index] * 1e-9
-         << " GHz, ending up with albedo=" << albedo[f_index] << "\n";
     if (albedo[f_index] < 0 || albedo[f_index] > 1.) {
       ostringstream os;
       os << "Something went wrong: Albedo must be inside [0,1],\n"

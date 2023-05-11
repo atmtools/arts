@@ -2,7 +2,6 @@
 
 #include "math_funcs.h"
 #include "matpack_concepts.h"
-#include "messages.h"
 #include "mystring.h"
 #include "partfun.h"
 
@@ -13,9 +12,7 @@ void WriteBuiltinPartitionFunctionsXML(
   const String& dir,
   const Numeric& Tlow,
   const Numeric& Tupp,
-  const Index& N,
-  const Verbosity& verbosity) {
-  CREATE_OUT2;
+  const Index& N) {
   ARTS_USER_ERROR_IF(Tupp <= Tlow, "Need a range [low, high], has [", Tlow, ", ", Tupp, "]")
   ARTS_USER_ERROR_IF(N < 2, "Need a positive step counter 2 or larger, has: ", N)
   
@@ -35,7 +32,7 @@ void WriteBuiltinPartitionFunctionsXML(
       }
       
       xml_write_to_file(String((d / (ir.FullName() + ".xml").c_str()).native()),
-                        data, ftype, 0, verbosity);
+                        data, ftype, 0);
     }
   }
 }

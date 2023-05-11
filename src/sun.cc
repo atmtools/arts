@@ -38,7 +38,6 @@
 #include "check_input.h"
 #include "debug.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
 #include "geodetic.h"
@@ -235,8 +234,7 @@ void get_direct_radiation(Workspace& ws,
                           const Agenda& propmat_clearsky_agenda,
                           const Agenda& water_p_eq_agenda,
                           const Agenda& gas_scattering_agenda,
-                          const Numeric& rte_alonglos_v,
-                          const Verbosity& verbosity) {
+                          const Numeric& rte_alonglos_v) {
   Vector sun_pos(3);
 
   //dummy variables needed for the output and input of iyTransmission and
@@ -350,8 +348,7 @@ ARTS_USER_ERROR("ERROR")
                              gas_scattering_agenda,
                              1,
                              Tensor3(),
-                             rte_alonglos_v,
-                             verbosity);
+                             rte_alonglos_v);
 
       if (jacobian_do && dradiation_trans.nelem()){
         ddirect_radiation_dx[i_sun] = dradiation_trans;
@@ -373,8 +370,7 @@ void get_sun_ppaths(Workspace& ws,
                      const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,
-                     const Agenda& ppath_step_agenda,
-                     const Verbosity& verbosity) {
+                     const Agenda& ppath_step_agenda) {
 ARTS_USER_ERROR("ERROR")
 //const auto& lat_grid = atm_field.grid[1];
 //const auto& lon_grid = atm_field.grid[2];
@@ -441,10 +437,7 @@ ARTS_USER_ERROR("ERROR")
 Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
                           const Vector &f_grid,
                           const Index &stokes_dim,
-                          const Numeric &temperature,                        
-                          const Verbosity &verbosity){
-  CREATE_OUTS;
-  
+                          const Numeric &temperature){
   const Index nf = f_grid.nelem();
   const Vector data_f_grid = sun_spectrum_raw.get_numeric_grid(0);
   const Numeric data_fmin = data_f_grid[0];
@@ -452,14 +445,6 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
 
     // Result array
   Matrix int_data(f_grid.nelem(), stokes_dim, 0.);
-  
-  if (out3.sufficient_priority()) {
-    ostringstream os;
-    os << "    f_grid:      " << f_grid[0] << " - " << f_grid[nf - 1]
-      << " Hz\n"
-      << "    data_f_grid: " << data_fmin << " - " << data_fmax << " Hz\n";
-    out3 << os.str();
-  }
 
   const Numeric* f_grid_begin = f_grid.unsafe_data_handle();
   const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
@@ -473,24 +458,14 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
 
   // Ignore band if all frequencies are below or above data_f_grid:
   if (i_fstart == nf || i_fstop == -1) {
-    out3 << "All frequencies are below or above the sun spectrum data";
   }
 
   const Index f_extent = i_fstop - i_fstart + 1;
-
-  if (out3.sufficient_priority()) {
-    ostringstream os;
-    os << "    " << f_extent << " frequency extraction points starting at "
-        << "frequency index " << i_fstart << ".\n";
-    out3 << os.str();
-  }
 
   // If f_extent is less than one, then the entire data_f_grid is between two
   // grid points of f_grid. (So that we do not have any f_grid points inside
   // data_f_grid.) Return also in this case.
   if (f_extent < 1){
-    out3 << "The entire data lies inbetween two f_grid points (So no f_grid"
-        << " point inside the data_f_grid)";
   }
 
   // This is the part of f_grid that lies inside the spectrum data band

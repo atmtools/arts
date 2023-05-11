@@ -134,12 +134,11 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Vector& i,
-    const Verbosity&) {
+    const Vector& i) {
   if (i.nelem() == 1)
     o = i[0];
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Vector is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -151,12 +150,11 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Matrix& i,
-    const Verbosity&) {
+    const Matrix& i) {
   if (i.ncols() == 1 && i.nrows() == 1)
     o = i(0, 0);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Matrix is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -168,12 +166,11 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor3& i,
-    const Verbosity&) {
+    const Tensor3& i) {
   if (i.ncols() == 1 && i.nrows() == 1 && i.npages() == 1)
     o = i(0, 0, 0);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor3 is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -185,12 +182,11 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor4& i,
-    const Verbosity&) {
+    const Tensor4& i) {
   if (i.ncols() == 1 && i.nrows() == 1 && i.npages() == 1 && i.nbooks() == 1)
     o = i(0, 0, 0, 0);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor4 is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -202,13 +198,12 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor5& i,
-    const Verbosity&) {
+    const Tensor5& i) {
   if (i.ncols() == 1 && i.nrows() == 1 && i.npages() == 1 && i.nbooks() == 1 &&
       i.nshelves() == 1)
     o = i(0, 0, 0, 0, 0);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor5 is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -220,13 +215,12 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor6& i,
-    const Verbosity&) {
+    const Tensor6& i) {
   if (i.ncols() == 1 && i.nrows() == 1 && i.npages() == 1 && i.nbooks() == 1 &&
       i.nshelves() == 1 && i.nvitrines() == 1)
     o = i(0, 0, 0, 0, 0, 0);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor6 is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -238,13 +232,12 @@ inline void Reduce(
     Numeric& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   if (i.ncols() == 1 && i.nrows() == 1 && i.npages() == 1 && i.nbooks() == 1 &&
       i.nshelves() == 1 && i.nvitrines() == 1 && i.nlibraries() == 1)
     o = i(0, 0, 0, 0, 0, 0, 0);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 is not also a Numeric";
     throw std::runtime_error(os.str());
   }
@@ -258,8 +251,7 @@ inline void Reduce(
     Vector& o,
     // WS Input:
     // WS Generic Input:
-    const Matrix& i,
-    const Verbosity&) {
+    const Matrix& i) {
   ArrayOfIndex dim_sizes;
   Index test = 1;
 
@@ -271,7 +263,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Matrix of size (" << dim_sizes << ") \n"
        << "does not fit a Vector";
     throw std::runtime_error(os.str());
@@ -284,8 +276,7 @@ inline void Reduce(
     Vector& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor3& i,
-    const Verbosity&) {
+    const Tensor3& i) {
   ArrayOfIndex dim_sizes;
   Index test = 1;
 
@@ -297,7 +288,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor3 of size (" << dim_sizes << ") \n"
        << "does not fit a Vector";
     throw std::runtime_error(os.str());
@@ -310,8 +301,7 @@ inline void Reduce(
     Vector& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor4& i,
-    const Verbosity&) {
+    const Tensor4& i) {
   ArrayOfIndex dim_sizes;
   Index test = 1;
 
@@ -323,7 +313,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor4 of size (" << dim_sizes << ") \n"
        << "does not fit a Vector";
     throw std::runtime_error(os.str());
@@ -336,8 +326,7 @@ inline void Reduce(
     Vector& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor5& i,
-    const Verbosity&) {
+    const Tensor5& i) {
   ArrayOfIndex dim_sizes;
   Index test = 1;
 
@@ -349,7 +338,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor5 of size (" << dim_sizes << ") \n"
        << "does not fit a Vector";
     throw std::runtime_error(os.str());
@@ -362,8 +351,7 @@ inline void Reduce(
     Vector& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor6& i,
-    const Verbosity&) {
+    const Tensor6& i) {
   ArrayOfIndex dim_sizes;
   Index test = 1;
 
@@ -375,7 +363,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor6 of size (" << dim_sizes << ") \n"
        << "does not fit a Vector";
     throw std::runtime_error(os.str());
@@ -388,8 +376,7 @@ inline void Reduce(
     Vector& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   ArrayOfIndex dim_sizes;
   Index test = 1;
 
@@ -401,7 +388,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 of size (" << dim_sizes << ") \n"
        << "does not fit a Vector";
     throw std::runtime_error(os.str());
@@ -416,8 +403,7 @@ inline void Reduce(
     Matrix& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor3& i,
-    const Verbosity&) {
+    const Tensor3& i) {
   ArrayOfIndex dim_sizes;
   Index test = 2;
 
@@ -429,7 +415,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor3 of size (" << dim_sizes << ") \n"
        << "does not fit a Matrix";
     throw std::runtime_error(os.str());
@@ -442,8 +428,7 @@ inline void Reduce(
     Matrix& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor4& i,
-    const Verbosity&) {
+    const Tensor4& i) {
   ArrayOfIndex dim_sizes;
   Index test = 2;
 
@@ -455,7 +440,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor4 of size (" << dim_sizes << ") \n"
        << "does not fit a Matrix";
     throw std::runtime_error(os.str());
@@ -468,8 +453,7 @@ inline void Reduce(
     Matrix& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor5& i,
-    const Verbosity&) {
+    const Tensor5& i) {
   ArrayOfIndex dim_sizes;
   Index test = 2;
 
@@ -481,7 +465,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor5 of size (" << dim_sizes << ") \n"
        << "does not fit a Matrix";
     throw std::runtime_error(os.str());
@@ -494,8 +478,7 @@ inline void Reduce(
     Matrix& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor6& i,
-    const Verbosity&) {
+    const Tensor6& i) {
   ArrayOfIndex dim_sizes;
   Index test = 2;
 
@@ -507,7 +490,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor6 of size (" << dim_sizes << ") \n"
        << "does not fit a Matrix";
     throw std::runtime_error(os.str());
@@ -520,8 +503,7 @@ inline void Reduce(
     Matrix& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   ArrayOfIndex dim_sizes;
   Index test = 2;
 
@@ -533,7 +515,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 of size (" << dim_sizes << ") \n"
        << "does not fit a Matrix";
     throw std::runtime_error(os.str());
@@ -548,8 +530,7 @@ inline void Reduce(
     Tensor3& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor4& i,
-    const Verbosity&) {
+    const Tensor4& i) {
   ArrayOfIndex dim_sizes;
   Index test = 3;
 
@@ -561,7 +542,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor4 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor3";
     throw std::runtime_error(os.str());
@@ -574,8 +555,7 @@ inline void Reduce(
     Tensor3& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor5& i,
-    const Verbosity&) {
+    const Tensor5& i) {
   ArrayOfIndex dim_sizes;
   Index test = 3;
 
@@ -587,7 +567,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor5 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor3";
     throw std::runtime_error(os.str());
@@ -600,8 +580,7 @@ inline void Reduce(
     Tensor3& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor6& i,
-    const Verbosity&) {
+    const Tensor6& i) {
   ArrayOfIndex dim_sizes;
   Index test = 3;
 
@@ -613,7 +592,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor6 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor3";
     throw std::runtime_error(os.str());
@@ -626,8 +605,7 @@ inline void Reduce(
     Tensor3& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   ArrayOfIndex dim_sizes;
   Index test = 3;
 
@@ -639,7 +617,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor3";
     throw std::runtime_error(os.str());
@@ -654,8 +632,7 @@ inline void Reduce(
     Tensor4& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor5& i,
-    const Verbosity&) {
+    const Tensor5& i) {
   ArrayOfIndex dim_sizes;
   Index test = 4;
 
@@ -667,7 +644,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor5 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor4";
     throw std::runtime_error(os.str());
@@ -680,8 +657,7 @@ inline void Reduce(
     Tensor4& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor6& i,
-    const Verbosity&) {
+    const Tensor6& i) {
   ArrayOfIndex dim_sizes;
   Index test = 4;
 
@@ -693,7 +669,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor6 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor4";
     throw std::runtime_error(os.str());
@@ -706,8 +682,7 @@ inline void Reduce(
     Tensor4& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   ArrayOfIndex dim_sizes;
   Index test = 4;
 
@@ -719,7 +694,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor4";
     throw std::runtime_error(os.str());
@@ -734,8 +709,7 @@ inline void Reduce(
     Tensor5& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor6& i,
-    const Verbosity&) {
+    const Tensor6& i) {
   ArrayOfIndex dim_sizes;
   Index test = 5;
 
@@ -748,7 +722,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor6 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor5";
     throw std::runtime_error(os.str());
@@ -761,8 +735,7 @@ inline void Reduce(
     Tensor5& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   ArrayOfIndex dim_sizes;
   Index test = 5;
 
@@ -775,7 +748,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor5";
     throw std::runtime_error(os.str());
@@ -790,8 +763,7 @@ inline void Reduce(
     Tensor6& o,
     // WS Input:
     // WS Generic Input:
-    const Tensor7& i,
-    const Verbosity&) {
+    const Tensor7& i) {
   ArrayOfIndex dim_sizes;
   Index test = 6;
 
@@ -808,7 +780,7 @@ inline void Reduce(
            i.data_handle(),
            sizeof(Numeric) * num_elem_from_dim_sizes(dim_sizes));
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The Tensor7 of size (" << dim_sizes << ") \n"
        << "does not fit a Tensor6";
     throw std::runtime_error(os.str());

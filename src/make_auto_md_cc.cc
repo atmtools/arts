@@ -322,32 +322,6 @@ int main() {
         ofs << "mr.Tasks()";
       }
 
-      // Flag that is set to false if the WSM has verbosity as an input or
-      // output already. Otherwise it's passed as the last parameter.
-      bool pass_verbosity = true;
-
-      // Find out if the WSM has the verbosity as input.
-      for (Index j = 0; pass_verbosity && j < mdd.In().nelem(); j++) {
-        if (wsv_data[mdd.In()[j]].Name() == "verbosity") {
-          pass_verbosity = false;
-        }
-      }
-
-      // Find out if the WSM has the verbosity as output.
-      for (Index j = 0; pass_verbosity && j < mdd.Out().nelem(); j++) {
-        if (wsv_data[mdd.Out()[j]].Name() == "verbosity") {
-          pass_verbosity = false;
-        }
-      }
-
-      if (pass_verbosity) {
-        static Index verbosity_wsv_id = global_data::WsvMap.at("verbosity");
-        static Index verbosity_group_id = get_wsv_group_id("Verbosity");
-        align(ofs, is_first_parameter, indent);
-        ofs << "*(static_cast<" << wsv_groups[verbosity_group_id] << "*>(ws["
-            << verbosity_wsv_id << "].get()))";
-      }
-
       ofs << ");\n";
       ofs << "}\n\n";
     }
@@ -524,7 +498,7 @@ int main() {
 
       if (it == "Agenda") ofs << "Workspace& ws, ";
 
-      ofs << it << "& var, const Verbosity&)\n"
+      ofs << it << "& var)\n"
           << "{ ";
 
       // Treat atomic types separately.
@@ -544,7 +518,7 @@ int main() {
       if (it not_eq "Agenda" and it not_eq "ArrayOfAgenda") {
         ofs << "/* Workspace method: Doxygen documentation will be auto-generated */\n"
             << "void " << it << "Set(" << it << "& out, const " << it
-            << "& value, const Verbosity&) { out = value; }\n\n";
+            << "& value) { out = value; }\n\n";
       }
     }
   } catch (const std::runtime_error& x) {

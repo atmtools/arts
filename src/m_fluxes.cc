@@ -34,7 +34,6 @@
 #include "legendre.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "sorting.h"
 #include "surf.h"
 #include "surface.h"
@@ -67,8 +66,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
                              // Keywords:
                              const Index& N_za_grid,
                              const Index& N_aa_grid,
-                             const String& za_grid_type,
-                             const Verbosity&) {
+                             const String& za_grid_type) {
   // Azimuth angle grid
   if (N_aa_grid > 1)
     nlinspace(aa_grid, -180, 180, N_aa_grid);
@@ -197,7 +195,7 @@ void heating_ratesFromIrradiance(Tensor3 &heating_rates,
                                  const ArrayOfAtmPoint &ppvar_atm,
                                  const Tensor4 &irradiance_field,
                                  const Tensor3 &specific_heat_capacity,
-                                 const Numeric &g0, const Verbosity &) {
+                                 const Numeric &g0) {
   const Vector p_grid = [&] {
     Vector out(ppvar_atm.nelem());
     std::transform(ppvar_atm.begin(), ppvar_atm.end(), out.begin(),
@@ -272,8 +270,7 @@ void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
                                   const Tensor5& radiance_field,
                                   const Vector& za_grid,
                                   const Vector& aa_grid,
-                                  const Vector& za_grid_weights,
-                                  const Verbosity&) {
+                                  const Vector& za_grid_weights) {
   // Number of zenith angles.
   const Index N_scat_za = za_grid.nelem();
   const Index N_scat_aa = aa_grid.nelem();
@@ -342,8 +339,7 @@ void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
                                      const Vector& f_grid,
-                                     const Tensor5& spectral_radiation_field,
-                                     const Verbosity&) {
+                                     const Tensor5& spectral_radiation_field) {
   if (f_grid.nelem() != spectral_radiation_field.nshelves()) {
     throw runtime_error(
         "The length of f_grid does not match with\n"
@@ -379,8 +375,7 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
                                      const Vector& f_grid,
-                                     const Tensor7& spectral_radiation_field,
-                                     const Verbosity&) {
+                                     const Tensor7& spectral_radiation_field) {
   if (f_grid.nelem() != spectral_radiation_field.nlibraries()) {
     throw runtime_error(
         "The length of f_grid does not match with\n"
@@ -422,8 +417,7 @@ void spectral_irradiance_fieldFromSpectralRadianceField(
     const Tensor7& spectral_radiance_field,
     const Vector& za_grid,
     const Vector& aa_grid,
-    const Vector& za_grid_weights,
-    const Verbosity&) {
+    const Vector& za_grid_weights) {
   // Number of zenith angles.
   const Index N_scat_za = spectral_radiance_field.npages();
   const Index N_scat_aa = spectral_radiance_field.nrows();
@@ -513,8 +507,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Numeric& rte_alonglos_v,
     const String& rt_integration_option,
     const Vector& za_grid,
-    const Index& use_parallel_za  [[maybe_unused]],
-    const Verbosity& verbosity) {
+    const Index& use_parallel_za  [[maybe_unused]]) {
   // Check input
   ARTS_USER_ERROR_IF (false, "This method only works for 1D regular grids.");
 
@@ -702,8 +695,7 @@ void spectral_radiance_fieldCopyCloudboxField(
     const Vector& p_grid,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Tensor7& cloudbox_field,
-    const Verbosity&) {
+    const Tensor7& cloudbox_field) {
   throw runtime_error("This method can only be used for 1D calculations.\n");
   if (!cloudbox_on)
     throw runtime_error("Cloudbox is off. This is not handled by this method.");
@@ -737,8 +729,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Numeric& rte_alonglos_v,
     const String& rt_integration_option,
     const Vector& za_grid,
-    const Index& use_parallel_za  [[maybe_unused]],
-    const Verbosity& verbosity) {
+    const Index& use_parallel_za  [[maybe_unused]]) {
   // Check input
   ARTS_USER_ERROR_IF(false, "This method only works for atmosphere_dim = 1.");
   if (!cloudbox_on)

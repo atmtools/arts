@@ -53,7 +53,6 @@
 #include "matpack_data.h"
 #include "mc_antenna.h"
 #include "mc_interp.h"
-#include "messages.h"
 #include "optproperties.h"
 #include "template_partfun.h"
 #include "ppath_struct.h"
@@ -69,14 +68,10 @@
 #include "linemixing.h"
 #include "callback.h"
 
-#define TMPL_XML_READ_WRITE_STREAM(what)                  \
-  void xml_read_from_stream(                              \
-      istream &, what &, bifstream *, const Verbosity &); \
-  void xml_write_to_stream(ostream &,                     \
-                           const what &,                  \
-                           bofstream *,                   \
-                           const String &,                \
-                           const Verbosity &);
+#define TMPL_XML_READ_WRITE_STREAM(what)                                       \
+  void xml_read_from_stream(std::istream &, what &, bifstream *);                   \
+  void xml_write_to_stream(std::ostream &, const what &, bofstream *,               \
+                           const String &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
@@ -126,7 +121,6 @@ TMPL_XML_READ_WRITE_STREAM(SurfacePoint)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
-TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 //=== Array Types ==========================================================
 

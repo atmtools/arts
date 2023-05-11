@@ -199,8 +199,6 @@ void XMLTag::get_attribute_value(const String& aname, Numeric& value) {
   \param is Input stream
 */
 void XMLTag::read_from_stream(istream& is) {
-  CREATE_OUT3;
-
   String token;
   stringbuf tag;
   istringstream sstr("");
@@ -234,7 +232,6 @@ void XMLTag::read_from_stream(istream& is) {
   }
 
   sstr.str(tag.str() + '>');
-  out3 << "Read: " << sstr.str() << '\n';
 
   sstr >> name;
 
@@ -247,7 +244,6 @@ void XMLTag::read_from_stream(istream& is) {
     // Tag may have attributes, so read next token
     sstr >> token;
   }
-  out3 << "Name: " << name << '\n';
 
   //extract attributes
   while (token != ">") {
@@ -284,17 +280,12 @@ void XMLTag::read_from_stream(istream& is) {
 
     attribs.push_back(attr);
 
-    out3 << "Attr: " << attr.name << '\n';
-    out3 << "Value: " << attr.value << '\n';
-
     if (token[token.length() - 1] == '>') {
       token = ">";
     } else {
       sstr >> token;
     }
   }
-
-  out3 << '\n';
 
   // Skip comments
   if (name == "comment") {
@@ -447,9 +438,7 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   \param name  Filename
 */
 void xml_open_input_file(ifstream& ifs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  CREATE_OUT3;
+                         const String& name) {
 
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
@@ -476,8 +465,6 @@ void xml_open_input_file(ifstream& ifs,
        << "Maybe the file does not exist?";
     throw runtime_error(os.str());
   }
-
-  out3 << "- Reading input file " << name << "\n";
 }
 
 #ifdef ENABLE_ZLIB
@@ -490,10 +477,7 @@ void xml_open_input_file(ifstream& ifs,
   \param name  Filename
 */
 void xml_open_input_file(igzstream& ifs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                         const String& name) {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
@@ -519,8 +503,6 @@ void xml_open_input_file(igzstream& ifs,
        << "Maybe the file does not exist?";
     throw runtime_error(os.str());
   }
-
-  out3 << "- Reading input file " << name << "\n";
 }
 
 #endif /* ENABLE_ZLIB */
@@ -574,11 +556,10 @@ void xml_data_parse_error(XMLTag& tag, const String& str_error) {
 void xml_read_header_from_stream(istream& is,
                                  FileType& ftype,
                                  NumericType& ntype,
-                                 EndianType& etype,
-                                 const Verbosity& verbosity) {
+                                 EndianType& etype) {
   char str[6];
   stringbuf strbuf;
-  XMLTag tag(verbosity);
+  XMLTag tag;
   String strtype;
 
   while (!is.fail() && isspace(is.peek())) is.get();
@@ -652,8 +633,8 @@ void xml_read_header_from_stream(istream& is,
 
   \param is  Input stream
 */
-void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+void xml_read_footer_from_stream(istream& is) {
+  XMLTag tag;
 
   tag.read_from_stream(is);
   tag.check_name("/arts");
@@ -665,9 +646,8 @@ void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity) {
   \param ftype  File type
 */
 void xml_write_header_to_stream(ostream& os,
-                                FileType ftype,
-                                const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                                FileType ftype) {
+  XMLTag tag;
 
   os << "<?xml version=\"1.0\"?>" << '\n';
 
@@ -693,8 +673,8 @@ void xml_write_header_to_stream(ostream& os,
 /*!
   \param os Output stream
 */
-void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+void xml_write_footer_to_stream(ostream& os) {
+  XMLTag tag;
 
   tag.set_name("/arts");
   tag.write_to_stream(os);

@@ -39,7 +39,6 @@
 #include <vector>
 
 #include "arts.h"
-#include "messages.h"
 
 /**
 Constructor creates instance of gsl_rng of type gsl_rng_mt19937
@@ -51,7 +50,7 @@ Destructor frees memory allocated to gsl_rng
 */
 Rng::~Rng() { gsl_rng_free(r); }
 
-void Rng::seed(unsigned long int n, const Verbosity &verbosity) {
+void Rng::seed(unsigned long int n) {
   // Static pool of previously used seeds.
   static vector<unsigned long int> seeds;
 
@@ -68,9 +67,6 @@ void Rng::seed(unsigned long int n, const Verbosity &verbosity) {
       // If all possible seeds were already used, we empty the pool and
       // start over.
       if (n == n_orig) {
-        CREATE_OUT0;
-        out0
-            << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
         seeds.clear();
         break;
       }

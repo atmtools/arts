@@ -25,7 +25,8 @@
  */
 
 
-#include "artstime.h"
+#include <arts_omp.h>
+#include <artstime.h>
 #include "raw.h"
 
 
@@ -35,8 +36,7 @@ void yColdAtmHot(Vector& y,
                  const Vector& hot,
                  const Numeric& cold_temp,
                  const Numeric& hot_temp,
-                 const Index& calib,
-                 const Verbosity&)
+                 const Index& calib)
 {
   ARTS_USER_ERROR_IF (cold.nelem() not_eq atm.nelem() or atm.nelem() not_eq hot.nelem(),
                       "Length of vectors must be correct");
@@ -56,8 +56,7 @@ void ybatchColdAtmHotAtmCycle(ArrayOfVector& ybatch,
                               const ArrayOfTime& level0_time,
                               const Vector& cold_temp,
                               const Vector& hot_temp,
-                              const Index& first_c_index,
-                              const Verbosity&)
+                              const Index& first_c_index)
 {
   ARTS_USER_ERROR_IF(level0_data.nelem() not_eq cold_temp.nelem() or
                      level0_data.nelem() not_eq hot_temp.nelem(),
@@ -84,8 +83,7 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
                          ArrayOfTime& sensor_time,
                          const String& time_step,
                          const Index& disregard_first,
-                         const Index& disregard_last,
-                         const Verbosity&)
+                         const Index& disregard_last)
 {
   // Size of problem
   const Index n=sensor_time.nelem();
@@ -148,8 +146,7 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
                                                     ArrayOfVector& ybatch,
                                                     const ArrayOfIndex& range,
                                                     const Vector& trop_temp,
-                                                    const Numeric& targ_temp,
-                                                    const Verbosity&)
+                                                    const Numeric& targ_temp)
 {
   // Size of problem
   const Index n=ybatch.nelem();
@@ -185,8 +182,7 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
 
 
 void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
-                                                    const ArrayOfVector& ybatch_corr,
-                                                    const Verbosity&)
+                                                    const ArrayOfVector& ybatch_corr)
 {
   // Size of problem
   const Index n=ybatch.nelem();
@@ -202,8 +198,7 @@ void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
 }
 
 void yMaskOutsideMedianRange(Vector& y,
-                             const Numeric& dx,
-                             const Verbosity&) {
+                             const Numeric& dx) {
   const Numeric median = Raw::Average::nanmedian(y);
   auto mask = Raw::Mask::out_of_bounds(y, median-dx, median+dx);
   
@@ -213,16 +208,14 @@ void yMaskOutsideMedianRange(Vector& y,
 }
 
 void ybatchMaskOutsideMedianRange(ArrayOfVector& ybatch,
-                                  const Numeric& dx,
-                                  const Verbosity& verbosity) {
-  for (Vector& y: ybatch) yMaskOutsideMedianRange(y, dx, verbosity);
+                                  const Numeric& dx) {
+  for (Vector& y: ybatch) yMaskOutsideMedianRange(y, dx);
 }
 
 void yDoublingMeanFocus(Vector& f_grid,
                         Vector& y,
                         const Numeric& f0,
-                        const Numeric& df,
-                        const Verbosity&) {
+                        const Numeric& df) {
   if (f_grid.nelem() not_eq y.nelem()) {
     throw std::runtime_error("f_grid and y must have the same size");
   }
@@ -251,8 +244,7 @@ void yDoublingMeanFocus(Vector& f_grid,
 void ybatchDoublingMeanFocus(Vector& f_grid,
                              ArrayOfVector& ybatch,
                              const Numeric& f0,
-                             const Numeric& df,
-                             const Verbosity&) {
+                             const Numeric& df) {
   for (Vector& y: ybatch) {
     if (f_grid.nelem() not_eq y.nelem()) {
       throw std::runtime_error("f_grid and all of ybatch must have the same size");

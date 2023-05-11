@@ -42,7 +42,6 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "mystring.h"
 
 /** A telsem atlas
@@ -287,13 +286,11 @@ class TelsemAtlas {
   friend void xml_write_to_stream(ostream &,
                                   const TelsemAtlas &,
                                   bofstream *,
-                                  const String &,
-                                  const Verbosity &);
+                                  const String &);
 
   friend void xml_read_from_stream(istream &,
                                    TelsemAtlas &,
-                                   bifstream *,
-                                   const Verbosity &);
+                                   bifstream *);
 
   // Number of lines in the Atlas.
   Index& DataCount() {return ndat;}

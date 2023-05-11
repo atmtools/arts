@@ -45,14 +45,13 @@ void ReadXML(  // WS Generic Output:
     // WS Generic Input:
     const String& f,
     // WS Generic Input Names:
-    const String& f_name _U_,
-    const Verbosity& verbosity) {
+    const String& f_name _U_) {
   String filename = f;
 
   // Create default filename if empty
   filename_xml(filename, v_name);
 
-  xml_read_from_file(filename, v, verbosity);
+  xml_read_from_file(filename, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -65,9 +64,8 @@ void ReadXML(Workspace& ws _U_,
              // WS Generic Input:
              const String& f,
              // WS Generic Input Names:
-             const String& f_name,
-             const Verbosity& verbosity) {
-  ReadXML(v, v_name, f, f_name, verbosity);
+             const String& f_name) {
+  ReadXML(v, v_name, f, f_name);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -83,14 +81,13 @@ void ReadXMLIndexed(  // WS Generic Output:
     const Index& digits,
     // WS Generic Input Names:
     const String& f_name _U_,
-    const String& digits_name _U_,
-    const Verbosity& verbosity) {
+    const String& digits_name _U_) {
   String filename = f;
 
   // Create default filename if empty
   filename_xml_with_index(filename, file_index, v_name, digits);
 
-  xml_read_from_file(filename, v, verbosity);
+  xml_read_from_file(filename, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -107,10 +104,9 @@ void ReadXMLIndexed(Workspace& ws _U_,
                     const Index& digits,
                     // WS Generic Input Names:
                     const String& f_name,
-                    const String& digits_name,
-                    const Verbosity& verbosity) {
+                    const String& digits_name) {
   ReadXMLIndexed(
-      v, v_name, file_index, f, digits, f_name, digits_name, verbosity);
+      v, v_name, file_index, f, digits, f_name, digits_name);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -124,8 +120,7 @@ void WriteXML(  //WS Input:
     // WS Generic Input Names:
     const String& v_name,
     const String& f_name _U_,
-    const String& no_clobber_name _U_,
-    const Verbosity& verbosity)
+    const String& no_clobber_name _U_)
 
 {
   // If MPI is enabled make sure only master process performs the write.
@@ -154,7 +149,7 @@ void WriteXML(  //WS Input:
 #pragma omp critical(WriteXML_critical_region)
   {
     try {
-      xml_write_to_file(filename, v, ftype, no_clobber, verbosity);
+      xml_write_to_file(filename, v, ftype, no_clobber);
     } catch (const std::exception& e) {
       errmsg = e.what();
     }
@@ -175,16 +170,14 @@ void WriteXML(Workspace& ws _U_,
               // WS Generic Input Names:
               const String& v_name,
               const String& f_name,
-              const String& no_clobber_name,
-              const Verbosity& verbosity) {
+              const String& no_clobber_name) {
   WriteXML(file_format,
            v,
            f,
            no_clobber,
            v_name,
            f_name,
-           no_clobber_name,
-           verbosity);
+           no_clobber_name);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -199,14 +192,13 @@ void WriteXMLIndexed(  //WS Input:
     // WS Generic Input Names:
     const String& v_name,
     const String& f_name,
-    const String& digits_name _U_,
-    const Verbosity& verbosity) {
+    const String& digits_name _U_) {
   String filename = f;
 
   // Create default filename if empty
   filename_xml_with_index(filename, file_index, v_name, digits);
 
-  WriteXML(file_format, v, filename, 0, v_name, f_name, "", verbosity);
+  WriteXML(file_format, v, filename, 0, v_name, f_name, "");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -222,8 +214,7 @@ void WriteXMLIndexed(Workspace& ws _U_,
                      // WS Generic Input Names:
                      const String& v_name,
                      const String& f_name,
-                     const String& digits_name,
-                     const Verbosity& verbosity) {
+                     const String& digits_name) {
   WriteXMLIndexed(file_format,
                   file_index,
                   v,
@@ -231,8 +222,7 @@ void WriteXMLIndexed(Workspace& ws _U_,
                   digits,
                   v_name,
                   f_name,
-                  digits_name,
-                  verbosity);
+                  digits_name);
 }
 
 #endif  // m_xml_h

@@ -36,7 +36,6 @@
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "matpack_concepts.h"
-#include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
 
@@ -51,13 +50,12 @@
 // ncolsGet,etc. for data types (groups) which do not provide the
 // requested attribute. A runtime error is thrown.
 
-#define TMPL_NGET_GENERIC(what)                                     \
-  template <typename T>                                             \
-  void what##Get(Index& n, const T& x, const Verbosity&) {          \
-    if constexpr (matpack::has_##what<T>)                           \
-      n = x.what();                                                 \
-    else                                                            \
-      ARTS_USER_ERROR("The variable has no " #what " attribute.\n") \
+#define TMPL_NGET_GENERIC(what)                                                \
+  template <typename T> void what##Get(Index &n, const T &x) {                 \
+    if constexpr (matpack::has_##what<T>)                                      \
+      n = x.what();                                                            \
+    else                                                                       \
+      ARTS_USER_ERROR("The variable has no " #what " attribute.\n")            \
   }
 
 TMPL_NGET_GENERIC(nelem)
@@ -73,7 +71,7 @@ TMPL_NGET_GENERIC(nlibraries)
 #undef TMPL_NGET_GENERIC
 
 #define TMPL_NGET_AGENDA(what)                                                 \
-inline void what##Get(Workspace& ws _U_, Index&, const Agenda&, const Verbosity&) { \
+  inline void what##Get(Workspace &ws _U_, Index &, const Agenda &) {          \
     ostringstream os;                                                          \
     os << "The variable has no such attribute.\n";                             \
     throw runtime_error(os.str());                                             \
@@ -92,7 +90,7 @@ TMPL_NGET_AGENDA(nlibraries)
 #undef TMPL_NGET_AGENDA
 
 template <typename T>
-void IndexSetToLast(Index& n, const T& x, const Verbosity&) {
+void IndexSetToLast(Index& n, const T& x) {
   if constexpr (matpack::has_nelem<T>)
     n = x.nelem() - 1;
   else
@@ -105,12 +103,12 @@ void IndexSetToLast(Index& n, const T& x, const Verbosity&) {
 // value of the requested attribute.
 
 #define NGET_GENERIC(what, type)                                 \
-inline void what##Get(Index& what, const type& x, const Verbosity&) { \
+inline void what##Get(Index& what, const type& x) { \
     what = x.what();                                             \
   }
 
 #define SET_TO_LAST_GENERIC(type)                                  \
-inline void IndexSetToLast(Index& i, const type& x, const Verbosity&) { \
+inline void IndexSetToLast(Index& i, const type& x) { \
     i = x.nelem() - 1;                                             \
   }
 
@@ -229,15 +227,13 @@ NGET_GENERIC(nlibraries, Tensor7)
 
 inline void nelemGet(Workspace& /* ws */,
               Index& nelem,
-              const ArrayOfAgenda& x,
-              const Verbosity&) {
+              const ArrayOfAgenda& x) {
   nelem = x.nelem();
 }
 
 inline void IndexSetToLast(Workspace& /* ws */,
                     Index& nelem,
-                    const ArrayOfAgenda& x,
-                    const Verbosity&) {
+                    const ArrayOfAgenda& x) {
   nelem = x.nelem() - 1;
 }
 

@@ -27,7 +27,6 @@
 #include "agenda_record.h"
 #include "debug.h"
 #include "global_data.h"
-#include "messages.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"
 
@@ -37,11 +36,7 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AgendaExecute(Workspace& ws [[maybe_unused]],
                    // WS Generic Input:
-                   const Agenda& this_agenda,
-                   const Verbosity& verbosity) {
-  CREATE_OUT3;
-  out3 << "  Manual agenda execution\n";
-
+                   const Agenda& this_agenda) {
   if (!this_agenda.checked()) {
     std::ostringstream os;
     if (this_agenda.name().nelem() == 0)
@@ -110,27 +105,22 @@ void AgendaExecute(Workspace& ws [[maybe_unused]],
 void ArrayOfAgendaExecute(Workspace& ws,
                           // WS Generic Input:
                           const Index& agenda_array_index,
-                          const ArrayOfAgenda& agenda_array,
-                          const Verbosity& verbosity) {
+                          const ArrayOfAgenda& agenda_array) {
   if (agenda_array_index < 0 || agenda_array_index >= agenda_array.nelem()) {
     std::ostringstream os;
     os << "Agenda index " << agenda_array_index
        << " out of bounds. 0 <= index < " << agenda_array.nelem();
     throw std::runtime_error(os.str());
   }
-  AgendaExecute(ws, agenda_array[agenda_array_index], verbosity);
+  AgendaExecute(ws, agenda_array[agenda_array_index]);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AgendaExecuteExclusive(Workspace& ws,
                             // WS Generic Input:
-                            const Agenda& this_agenda,
-                            const Verbosity& verbosity) {
-  CREATE_OUT3;
-  out3 << "  Manual, exclusive agenda execution\n";
-
+                            const Agenda& this_agenda) {
 #pragma omp critical(AgendaExecuteExclusive_region)
-  AgendaExecute(ws, this_agenda, verbosity);
+  AgendaExecute(ws, this_agenda);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -140,13 +130,12 @@ void AgendaSet(Workspace& ws,
                // WS Generic Output Names:
                const String& agenda_name,
                // Agenda from controlfile:
-               const Agenda& input_agenda,
-               const Verbosity& verbosity) {
+               const Agenda& input_agenda) {
   output_agenda = input_agenda;
   
   output_agenda.set_name(agenda_name);
 
-  output_agenda.check(ws, verbosity);
+  output_agenda.check(ws);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -156,14 +145,13 @@ void ArrayOfAgendaAppend(Workspace& ws,
                          // WS Generic Names:
                          const String& agenda_name,
                          // Agenda from controlfile:
-                         const Agenda& input_agenda,
-                         const Verbosity& verbosity) {
+                         const Agenda& input_agenda) {
   out.push_back(input_agenda);
 
   Agenda& appended_agenda = out[out.nelem() - 1];
   appended_agenda.set_name(agenda_name);
 
-  appended_agenda.check(ws, verbosity);
+  appended_agenda.check(ws);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -177,8 +165,7 @@ void AgendaAppend(Workspace& ws [[maybe_unused]],
                   // WS Generic Input Names:
                   const String& in_agenda_name,
                   // Agenda from controlfile:
-                  const Agenda& input_agenda,
-                  const Verbosity& verbosity) {
+                  const Agenda& input_agenda) {
   if (output_agenda_name != in_agenda_name) {
     ostringstream os;
     os << "Output and input agenda must be the same!" << endl
@@ -192,35 +179,20 @@ void AgendaAppend(Workspace& ws [[maybe_unused]],
     methods.push_back(input_agenda.Methods()[i]);
 
   output_agenda.set_methods(methods);
-  output_agenda.check(ws, verbosity);
+  output_agenda.check(ws);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Arts(Workspace&,
           // Agenda from controlfile:
-          const Agenda&,
-          const Verbosity& verbosity) {
-  CREATE_OUT0;
+          const Agenda&) {
   arts_exit_with_error_message(
-      "The 'Arts' method is obsolete. Arts1 controlfiles are no longer supported.",
-      out0);
+      "The 'Arts' method is obsolete. Arts1 controlfiles are no longer supported.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Arts2(Workspace& ws,
            // Agenda from controlfile:
-           const Agenda& input_agenda,
-           const Verbosity& verbosity) {
-  Verbosity* v = static_cast<Verbosity*>(ws[ws.WsvMap_ptr->find("verbosity") -> second].get());
-
-  // If the verbosity in the current workspace and the verbosity parameter point
-  // to the same variable in memory, that means we were called
-  // from inside a controlfile by the user. That is not permitted.
-  if (v == &verbosity) {
-    CREATE_OUT0;
-    arts_exit_with_error_message("The 'Arts2' method can't be called directly.",
-                                 out0);
-  }
-  (*v) = verbosity;
+           const Agenda& input_agenda) {
   input_agenda.execute(ws);
 }

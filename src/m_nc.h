@@ -44,11 +44,10 @@ void ReadNetCDF(  // WS Generic Input:
     const String& v_name _U_,
     const String& f,
     // WS Generic Input Names:
-    const String& f_name _U_,
-    const Verbosity& verbosity)
+    const String& f_name _U_)
 
 {
-  nca_read_from_file(f, v, verbosity);
+  nca_read_from_file(f, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -58,8 +57,7 @@ void WriteNetCDF(  // WS Generic Input:
     const String& f,
     // WS Generic Input Names:
     const String& v_name,
-    const String& f_name _U_,
-    const Verbosity& verbosity)
+    const String& f_name _U_)
 
 {
   String filename = f;
@@ -67,7 +65,7 @@ void WriteNetCDF(  // WS Generic Input:
   // Create default filename if empty
   nca_filename(filename, v_name);
 
-  nca_write_to_file(filename, v, verbosity);
+  nca_write_to_file(filename, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -79,8 +77,7 @@ void WriteNetCDFIndexed(  //WS Input:
     const String& f,
     // WS Generic Input Names:
     const String& v_name,
-    const String& f_name,
-    const Verbosity& verbosity)
+    const String& f_name)
 
 {
   String filename = f;
@@ -88,7 +85,7 @@ void WriteNetCDFIndexed(  //WS Input:
   // Create default filename if empty
   nca_filename_with_index(filename, file_index, v_name);
 
-  WriteNetCDF(v, filename, v_name, f_name, verbosity);
+  WriteNetCDF(v, filename, v_name, f_name);
 }
 
 #else  // NetCDF not enabled
@@ -100,8 +97,7 @@ void ReadNetCDF(  // WS Generic Input:
     const String&,
     const String&,
     // WS Generic Input Names:
-    const String&,
-    const Verbosity&)
+    const String&)
 
 {
   throw runtime_error(
@@ -115,8 +111,7 @@ void WriteNetCDF(  // WS Generic Input:
     const String&,
     // WS Generic Input Names:
     const String&,
-    const String&,
-    const Verbosity&)
+    const String&)
 
 {
   throw runtime_error(
@@ -132,8 +127,7 @@ void WriteNetCDFIndexed(  //WS Input:
     const String&,
     // WS Generic Input Names:
     const String&,
-    const String&,
-    const Verbosity&)
+    const String&)
 
 {
   throw runtime_error(
@@ -150,11 +144,10 @@ void ReadNetCDF(Workspace& ws _U_,
                 const String& v_name,
                 const String& f,
                 // WS Generic Input Names:
-                const String& f_name,
-                const Verbosity& verbosity)
+                const String& f_name)
 
 {
-  ReadNetCDF(v, f, v_name, f_name, verbosity);
+  ReadNetCDF(v, f, v_name, f_name);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -164,9 +157,8 @@ inline void WriteNetCDF(Workspace& ws _U_,
                  const String& f,
                  // WS Generic Input Names:
                  const String& v_name,
-                 const String& f_name,
-                 const Verbosity& verbosity) {
-  WriteNetCDF(v, f, v_name, f_name, verbosity);
+                 const String& f_name) {
+  WriteNetCDF(v, f, v_name, f_name);
 }
 
 #endif  // m_nc_h

@@ -30,7 +30,6 @@
 
 #include "agenda_class.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
 
@@ -40,8 +39,7 @@ void Select(  // WS Generic Output:
     Array<T>& needles,
     // WS Generic Input:
     const Array<T>& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity&) {
+    const ArrayOfIndex& needleind) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
@@ -78,8 +76,7 @@ inline void Select(  // WS Generic Output:
 ArrayOfSpeciesTag& needles,
 // WS Generic Input:
 const ArrayOfSpeciesTag& haystack,
-const ArrayOfIndex& needleind,
-const Verbosity&) {
+const ArrayOfIndex& needleind) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
@@ -117,9 +114,8 @@ inline void Select(Workspace& /* ws */,
             ArrayOfAgenda& needles,
             // WS Generic Input:
             const ArrayOfAgenda& haystack,
-            const ArrayOfIndex& needleind,
-            const Verbosity& verbosity) {
-  Select(needles, haystack, needleind, verbosity);
+            const ArrayOfIndex& needleind) {
+  Select(needles, haystack, needleind);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -127,8 +123,7 @@ inline void Select(  // WS Generic Output:
     Vector& needles,
     // WS Generic Input:
     const Vector& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity&) {
+    const ArrayOfIndex& needleind) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
@@ -165,8 +160,7 @@ inline void Select(  // WS Generic Output:
     Matrix& needles,
     // WS Generic Input:
     const Matrix& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity&) {
+    const ArrayOfIndex& needleind) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
@@ -203,10 +197,7 @@ inline void Select(  // WS Generic Output:
     Sparse& needles,
     // WS Generic Input:
     const Sparse& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const ArrayOfIndex& needleind) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
@@ -245,10 +236,7 @@ inline void Select(  // WS Generic Output:
 
   if (dummy.nnz() == haystack.nnz()) {
     // No data was actually removed.
-    out3 << "  Number of nonzero elements has stayed the same.\n";
   } else {
-    out3 << "  Number of nonzero elements reduced from " << haystack.nnz()
-         << " to " << dummy.nnz() << ".\n";
   }
 
   needles = dummy;

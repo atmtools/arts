@@ -234,8 +234,7 @@ void run_cdisort(Workspace& ws,
                  const Index& only_tro,
                  const Index& quiet,
                  const Index& emission,
-                 const Index& intensity_correction,
-                 const Verbosity& verbosity);
+                 const Index& intensity_correction);
 
 /** Calculate  spectral_irradiance_field with Disort including a sun source.
  *
@@ -313,8 +312,7 @@ void run_cdisort_flux(Workspace& ws,
                       const Index& only_tro,
                       const Index& quiet,
                       const Index& emission,
-                      const Index& intensity_correction,
-                      const Verbosity& verbosity);
+                      const Index& intensity_correction);
 
 /** get_gasoptprop.
  *
@@ -584,8 +582,7 @@ void surf_albedoCalc(Workspace& ws,
                      const Agenda& surface_rtprop_agenda,
                      ConstVectorView f_grid,
                      ConstVectorView scat_za_grid,
-                     const Numeric& surf_alt,
-                     const Verbosity& verbosity);
+                     const Numeric& surf_alt);
 
 /** surf_albedoCalcSingleAngle
  *

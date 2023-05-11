@@ -33,7 +33,6 @@
 #include <fstream>
 
 #include "double_imanip.h"
-#include "messages.h"
 #include "mystring.h"
 
 ////////////////////////////////////////////////////////////////////////////
@@ -69,7 +68,7 @@ bool find_file(ArrayOfString& matches,
                const ArrayOfString& paths,
                const ArrayOfString& extensions = {""});
 
-void find_xml_file(String& filename, const Verbosity& verbosity);
+void find_xml_file(String& filename);
 
 [[nodiscard]] bool find_xml_file_existence(String& filename);
 

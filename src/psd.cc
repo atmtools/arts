@@ -46,7 +46,6 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "mc_antenna.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rng.h"
@@ -94,7 +93,7 @@ void psd_cloudice_MH97(Vector& psd,
     Rng rng;  //Random Number generator
     Index mc_seed;
     mc_seed = (Index)time(NULL);
-    rng.seed(mc_seed, Verbosity());
+    rng.seed(mc_seed);
 
     sig_a = 0.068, sig_b1 = 0.054;
     sig_b2 = 5.5e-3, sig_m = 0.0029;
@@ -209,8 +208,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                                 const Numeric& ga,
                                 const Numeric& t_min,
                                 const Numeric& t_max,
-                                const Index& picky,
-                                const Verbosity&) {
+                                const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -623,8 +621,7 @@ void psd_mono_common(Matrix& psd_data,
                      const Index& species_index,
                      const Numeric& t_min,
                      const Numeric& t_max,
-                     const Index& picky,
-                     const Verbosity&) {
+                     const Index& picky) {
   // Standard checcks
   const Vector psd_size_grid(1, 0);  // As this WSV is not input for thse WSM
   START_OF_PSD_METHODS();
@@ -748,8 +745,7 @@ void psd_mgd_smm_common(Matrix& psd_data,
                         const Numeric& gamma_in,
                         const Numeric& t_min,
                         const Numeric& t_max,
-                        const Index& picky,
-                        const Verbosity&) {
+                        const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 

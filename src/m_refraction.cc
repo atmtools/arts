@@ -42,7 +42,6 @@
 #include "check_input.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "refraction.h"
 #include "special_interp.h"
@@ -63,8 +62,7 @@ void refr_index_airFreeElectrons(Numeric& refr_index_air,
                                  const Vector& f_grid,
                                  const ArrayOfArrayOfSpeciesTag& abs_species,
                                  const Vector& rtp_vmr,
-                                 const Index& demand_vmr_value,
-                                 const Verbosity&) {
+                                 const Index& demand_vmr_value) {
   // The expression used is found in many textbooks, e.g. Rybicki and Lightman
   // (1979). Note that the refractive index corresponds to the phase velocity.
 
@@ -121,8 +119,7 @@ void refr_index_airFreeElectrons(Numeric& refr_index_air,
 void refr_index_airInfraredEarth(Numeric& refr_index_air,
                                  Numeric& refr_index_air_group,
                                  const Numeric& rtp_pressure,
-                                 const Numeric& rtp_temperature,
-                                 const Verbosity&) {
+                                 const Numeric& rtp_temperature) {
   static const Numeric bn0 = 1.000272620045304;
   static const Numeric bn02 = bn0 * bn0;
   static const Numeric bk = 288.16 * (bn02 - 1.0) / (1013.25 * (bn02 + 2.0));
@@ -145,8 +142,7 @@ void refr_index_airMicrowavesEarth(Numeric& refr_index_air,
                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                    const Numeric& k1,
                                    const Numeric& k2,
-                                   const Numeric& k3,
-                                   const Verbosity&) {
+                                   const Numeric& k3) {
   if (abs_species.nelem() != rtp_vmr.nelem())
     throw runtime_error(
         "The number of tag groups differ between "
@@ -178,8 +174,7 @@ void refr_index_airMicrowavesGeneral(
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const Vector& rtp_vmr,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Verbosity&) {
+    const ArrayOfArrayOfSpeciesTag& abs_species) {
   //FIXME: Shall n be rescaled for sum(VMW)=1? Doing so now, but is it correct?
   //       Short sensitivity test (tropical, dry air, ~11km tanh) shows that
   //       vmr-normalized n fits significantly better (dtanh~0.5m) than
@@ -305,8 +300,7 @@ void complex_refr_indexWaterVisibleNIRHarvey98(GriddedField3& complex_refr_index
                                 const Vector& data_f_grid,
                                 const Vector& data_t_grid,
                                 const Vector& density_water,    //Gin
-                                const Index& only_valid_range,  //Gin
-                                const Verbosity&) {
+                                const Index& only_valid_range) {
   const Index N_f = data_f_grid.nelem();
   const Index N_t = data_t_grid.nelem();
   const Index N_d = density_water.nelem();
@@ -350,8 +344,7 @@ density_water must be a Vector of size 1 or must be of the size of *data_t_grid*
 /* Workspace method: Doxygen documentation will be auto-generated */
 void complex_refr_indexConstant(GriddedField3& complex_refr_index,
                                 const Numeric& refr_index_real,
-                                const Numeric& refr_index_imag,
-                                const Verbosity&) {
+                                const Numeric& refr_index_imag) {
   complex_refr_index.resize(1, 1, 2);
   complex_refr_index.set_grid_name(0, "Frequency");
   complex_refr_index.set_grid(0, Vector(1, 0));
@@ -367,13 +360,8 @@ void complex_refr_indexConstant(GriddedField3& complex_refr_index,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
                                     const Vector& f_grid,
-                                    const Vector& t_grid,
-                                    const Verbosity& verbosity) {
+                                    const Vector &t_grid) {
   if (min(t_grid) < 250) {
-    CREATE_OUT1;
-    out1 << "WARNING! The minimum chosen temperature is " << min(t_grid)
-         << ". Temperatures below 250 K may lead to incorrect values of"
-            " *complex_refr_index*.\n";
   }
 
   const Index nf = f_grid.nelem();
@@ -397,8 +385,7 @@ void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
                                     const Vector& f_grid,
-                                    const Vector& t_grid,
-                                    const Verbosity&) {
+                                    const Vector& t_grid) {
   const Index nf = f_grid.nelem();
   const Index nt = t_grid.nelem();
 
@@ -438,8 +425,7 @@ void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
                                  const Vector& f_grid,
                                  const Vector& refr_index_real,
                                  const Vector& refr_index_imag,
-                                 const Numeric& temperature,
-                                 const Verbosity&) {
+                                 const Numeric& temperature) {
   chk_vector_length("f_grid","refr_index_real",f_grid,refr_index_real);
   chk_vector_length("f_grid","refr_index_imag",f_grid,refr_index_imag);
 
@@ -461,8 +447,7 @@ void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void complex_refr_indexIceWarren84(GriddedField3& complex_refr_index,
                                    const Vector& f_grid,
-                                   const Vector& t_grid,
-                                   const Verbosity&) {
+                                   const Vector& t_grid) {
   static constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
   const Index nf = f_grid.nelem();
   const Index nt = t_grid.nelem();
@@ -506,8 +491,7 @@ void complex_refr_indexIceWarren84(  // Generic output:
     GriddedField3&,
     // Generic input:
     const Vector&,
-    const Vector&,
-    const Verbosity&) {
+    const Vector&) {
   throw std::runtime_error("ARTS was not compiled with Fortran support.");
 }
 

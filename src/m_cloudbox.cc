@@ -60,7 +60,6 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "microphysics.h"
 #include "optproperties.h"
 #include "parameters.h"
@@ -97,8 +96,7 @@ void cloudboxOff(Workspace& ws,
                  ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                  Index& scat_data_checked,
                  Matrix& particle_masses,
-                 const ArrayOfRetrievalQuantity& jacobian_quantities,
-                 const Verbosity&) {
+                 const ArrayOfRetrievalQuantity& jacobian_quantities) {
   cloudbox_on = 0;
   ppath_inside_cloudbox_do = 0;
   cloudbox_limits.resize(0);
@@ -128,8 +126,7 @@ void cloudboxSetAutomatically(  // WS Output:
     const Vector& lon_grid,
     const Tensor4& particle_field,
     // Control Parameters
-    const Numeric& cloudbox_margin,
-    const Verbosity& verbosity) {
+    const Numeric& cloudbox_margin) {
   // Check existing WSV
   // includes p_grid chk_if_decreasing
   chk_atm_grids(3, p_grid, lat_grid, lon_grid);
@@ -211,9 +208,6 @@ void cloudboxSetAutomatically(  // WS Output:
     // set upper cloudbox_limit
     // if cloudbox reaches to the upper most pressure level
     if (p2 >= np - 1) {
-      CREATE_OUT2;
-      out2 << "The cloud reaches to TOA!\n"
-           << "Check your *particle_field* data, if realistic!\n";
     }
     cloudbox_limits[1] = p2;
 
@@ -252,11 +246,9 @@ void cloudboxSetAutomatically(  // WS Output:
   // if all particle fields are zero at each level and cloudbox was not preset,
   // switch cloudbox off.
   {
-    CREATE_OUT0;
     cloudbox_on = 0;
     cloudbox_limits[1] =
         -1;  // just for consistency with cloudboxSetAutomatically
-    out0 << "Cloudbox is switched off!\n";
   }
 }
 
@@ -267,8 +259,7 @@ void cloudboxSetFullAtm(  //WS Output
     ArrayOfIndex& cloudbox_limits,
     // WS Input
     const AtmField& atm_field,
-    const Index& fullfull,
-    const Verbosity&) {
+    const Index& fullfull) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, wind_u_field;
@@ -361,8 +352,7 @@ void cloudboxSetManually(  // WS Output:
     const Numeric& lat1,
     const Numeric& lat2,
     const Numeric& lon1,
-    const Numeric& lon2,
-    const Verbosity&) {
+    const Numeric& lon2) {
   // Check existing WSV
   chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 
@@ -457,8 +447,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
     const Numeric& lat1,
     const Numeric& lat2,
     const Numeric& lon1,
-    const Numeric& lon2,
-    const Verbosity&) {
+    const Numeric& lon2) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, wind_u_field;
@@ -567,8 +556,7 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Index& za_restrict,
                            const Index& cos_za_interp,
                            const Numeric& za_extpolfac,
-                           const Index& aa_interp_order,
-                           const Verbosity&) {
+                           const Index& aa_interp_order) {
   //--- Check input -----------------------------------------------------------
   ARTS_USER_ERROR_IF (!(3 == 1 || 3 == 3),
                       "The atmospheric dimensionality must be 1 or 3.");
@@ -932,8 +920,7 @@ void cloudbox_fieldInterp2Azimuth(
                            const Index& cloudbox_on,
                            const Vector& aa_grid,
                            const Numeric& local_los_azimuth_angle,
-                           const Index& aa_interp_order,
-                           const Verbosity&) {
+                           const Index& aa_interp_order) {
   //--- Check input -----------------------------------------------------------
   ARTS_USER_ERROR_IF (!cloudbox_on,
                      "No need to use this method with cloudbox=0.");
@@ -996,8 +983,7 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
                         const Index& new_limit2,
                         const Index& new_limit3,
                         const Index& new_limit4,
-                        const Index& new_limit5,
-                        const Verbosity&) {
+                        const Index& new_limit5) {
   ARTS_USER_ERROR_IF (!cloudbox_on,
                       "No need to use this method with cloudbox=0.");
   ARTS_USER_ERROR_IF (new_limit0 < cloudbox_limits[0],
@@ -1065,8 +1051,7 @@ void particle_fieldCleanup(  //WS Output:
     Tensor4& particle_field_out,
     //WS Input:
     const Tensor4& particle_field_in,
-    const Numeric& threshold,
-    const Verbosity&) {
+    const Numeric& threshold) {
   if (&particle_field_out != &particle_field_in) {
     particle_field_out = particle_field_in;
   }
@@ -1092,8 +1077,7 @@ void ScatSpeciesInit(  //WS Output:
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,
     ArrayOfArrayOfScatteringMetaData& scat_meta,
     Index& scat_data_checked,
-    ArrayOfGriddedField3& pnd_field_raw,
-    const Verbosity&) {
+    ArrayOfGriddedField3& pnd_field_raw) {
   scat_species.resize(0);
   scat_data_raw.resize(0);
   scat_meta.resize(0);
@@ -1108,10 +1092,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
     // WS Input (needed for checking the datafiles):
     // Keywords:
     const ArrayOfString& scat_data_files,
-    const ArrayOfString& pnd_field_files,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const ArrayOfString& pnd_field_files) {
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
@@ -1138,26 +1119,18 @@ void ScatElementsPndAndScatAdd(  //WS Output:
     scat_data_raw[last_species].push_back(scat_data_single);
     pnd_field_raw.push_back(pnd_field_data);
 
-    out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
     xml_read_from_file(
         scat_data_files[i],
-        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1],
-        verbosity);
+        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]);
 
-    out2 << "  Read particle number density field\n";
     if (pnd_field_files[i].nelem() < 1) {
-      CREATE_OUT1;
-      out1 << "Warning: No pnd_field_file specified. Ignored here,\n"
-           << "but user HAS TO add that later on!. \n";
     } else {
       xml_read_from_file(pnd_field_files[i],
-                         pnd_field_raw[pnd_field_raw.nelem() - 1],
-                         verbosity);
+                         pnd_field_raw[pnd_field_raw.nelem() - 1]);
 
       chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem() - 1],
                    pnd_field_files[i],
-                   3,
-                   verbosity);
+                   3);
     }
   }
 }
@@ -1169,10 +1142,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
     // WS Input(needed for checking the datafiles):
     // Keywords:
     const ArrayOfString& scat_data_files,
-    const String& pnd_fieldarray_file,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const String& pnd_fieldarray_file) {
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
@@ -1183,8 +1153,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   arr_ssd.resize(scat_data_files.nelem());
 
   for (Index i = 0; i < scat_data_files.nelem(); i++) {
-    out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
-    xml_read_from_file(scat_data_files[i], arr_ssd[i], verbosity);
+    xml_read_from_file(scat_data_files[i], arr_ssd[i]);
   }
 
   // append as new scattering species
@@ -1194,11 +1163,10 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   } else
     scat_data_raw.push_back(arr_ssd);
 
-  out2 << "  Read particle number density data \n";
   ArrayOfGriddedField3 pnd_tmp;
-  xml_read_from_file(pnd_fieldarray_file, pnd_tmp, verbosity);
+  xml_read_from_file(pnd_fieldarray_file, pnd_tmp);
 
-  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file, 3, verbosity);
+  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file, 3);
 
   // append to pnd_field_raw
   for (Index i = 0; i < pnd_tmp.nelem(); ++i)
@@ -1215,10 +1183,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     const Vector& f_grid,
     // Keywords:
     const ArrayOfString& scat_data_files,
-    const ArrayOfString& pnd_field_files,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const ArrayOfString& pnd_field_files) {
   //--- Check input ---------------------------------------------------------
 
   // Atmosphere
@@ -1246,44 +1211,34 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   ArrayOfString species(1);
   species[0] = "particles";
 
-  out2 << "  Append 'particle' field to abs_species\n";
   abs_speciesAdd(abs_species,
                   propmat_clearsky_agenda_checked,
-                  species,
-                  verbosity);
+                  species);
 
   for (Index i = 0; i < scat_data_files.nelem(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
     scat_data_raw[last_species].push_back(scat_data_single);
     atm_field[abs_species.back()] = pnd_field_data;
 
-    out2 << "  Read single scattering data file " << scat_data_files[i] << "\n";
     xml_read_from_file(
         scat_data_files[i],
-        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1],
-        verbosity);
+        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]);
 
-    out2 << "  Check single scattering properties\n";
     chk_interpolation_grids(
         "scat_data_single.f_grid to f_grid",
         scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]
             .f_grid,
         f_grid);
 
-    out2 << "  Read particle number density field\n";
     if (pnd_field_files[i].nelem() < 1) {
-      CREATE_OUT1;
-      out1 << "Warning: No pnd_field_file specified. Ignored here,\n"
-           << "but user HAS TO add that later on!\n";
     } else {
       try {
         xml_read_from_file(pnd_field_files[i],
-                           atm_field[abs_species.back()].get<GriddedField3&>(),
-                           verbosity);
+                           atm_field[abs_species.back()].get<GriddedField3&>());
       } catch (...) {
         ArrayOfGriddedField3 tmp;
         try {
-          xml_read_from_file(pnd_field_files[i], tmp, verbosity);
+          xml_read_from_file(pnd_field_files[i], tmp);
           if (tmp.nelem() == 1) {
             atm_field[abs_species.back()] = tmp[0];
           } else {
@@ -1300,11 +1255,10 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
 
       chk_pnd_data(atm_field[abs_species.back()].get<const GriddedField3&>(),
                    pnd_field_files[i],
-                   3,
-                   verbosity);
+                   3);
     }
   }
-  scat_dataCheck(scat_data_raw, "sane", 1e-2, verbosity);
+  scat_dataCheck(scat_data_raw, "sane", 1e-2);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1312,11 +1266,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,
     ArrayOfArrayOfScatteringMetaData& scat_meta,
     // Keywords:
-    const ArrayOfString& scat_data_files,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+    const ArrayOfString& scat_data_files) {
   //--- Reading the data ---------------------------------------------------
   ArrayOfSingleScatteringData arr_ssd;
   ArrayOfScatteringMetaData arr_smd;
@@ -1327,8 +1277,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
   Index meta_naming_conv = 0;
 
   for (Index i = 0; i < 1 && i < scat_data_files.nelem(); i++) {
-    out3 << "  Read single scattering data file " << scat_data_files[i] << "\n";
-    xml_read_from_file(scat_data_files[i], arr_ssd[i], verbosity);
+    xml_read_from_file(scat_data_files[i], arr_ssd[i]);
 
     // make meta data name from scat data name
     ArrayOfString strarr;
@@ -1339,14 +1288,12 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
       scat_meta_file = strarr[0] + ".meta.xml";
 
       try {
-        find_xml_file(scat_meta_file, verbosity);
+        find_xml_file(scat_meta_file);
       } catch (const runtime_error&) {
       }
 
       if (file_exists(scat_meta_file)) {
-        out3 << "  Read scattering meta data\n";
-
-        xml_read_from_file(scat_meta_file, arr_smd[i], verbosity);
+        xml_read_from_file(scat_meta_file, arr_smd[i]);
 
         meta_naming_conv = 1;
       } else {
@@ -1356,8 +1303,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
                 "Splitting scattering data filename up at 'scat_data' also failed.");
           scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
 
-          out3 << "  Read scattering meta data\n";
-          xml_read_from_file(scat_meta_file, arr_smd[i], verbosity);
+          xml_read_from_file(scat_meta_file, arr_smd[i]);
 
           meta_naming_conv = 2;
         } catch (const std::runtime_error& e) {
@@ -1381,7 +1327,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
                              scat_data_files.nelem() > 1)                     \
     num_threads(arts_omp_get_max_threads() > 16 ? 16                          \
                                                 : arts_omp_get_max_threads()) \
-        shared(out3, scat_data_files, arr_ssd, arr_smd)
+        shared(scat_data_files, arr_ssd, arr_smd)
   for (Index i = 1; i < scat_data_files.nelem(); i++) {
     // make meta data name from scat data name
     ArrayOfString strarr;
@@ -1390,9 +1336,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     ScatteringMetaData smd;
 
     try {
-      out3 << "  Read single scattering data file " << scat_data_files[i]
-           << "\n";
-      xml_read_from_file(scat_data_files[i], ssd, verbosity);
+      xml_read_from_file(scat_data_files[i], ssd);
 
       scat_data_files[i].split(strarr, ".xml");
       scat_meta_file = strarr[0] + ".meta.xml";
@@ -1401,14 +1345,12 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
         scat_data_files[i].split(strarr, ".xml");
         scat_meta_file = strarr[0] + ".meta.xml";
 
-        out3 << "  Read scattering meta data\n";
-        xml_read_from_file(scat_meta_file, smd, verbosity);
+        xml_read_from_file(scat_meta_file, smd);
       } else {
         scat_data_files[i].split(strarr, "scat_data");
         scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
 
-        out3 << "  Read scattering meta data\n";
-        xml_read_from_file(scat_meta_file, smd, verbosity);
+        xml_read_from_file(scat_meta_file, smd);
       }
     } catch (const std::exception& e) {
       ostringstream os;
@@ -1418,7 +1360,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     }
 
     //FIXME: currently nothing is done in chk_scattering_meta_data!
-    chk_scattering_meta_data(smd, scat_meta_file, verbosity);
+    chk_scattering_meta_data(smd, scat_meta_file);
 
 #pragma omp critical(ScatSpeciesScatAndMetaRead_assign_ssd)
     arr_ssd[i] = std::move(ssd);
@@ -1434,7 +1376,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
   }
 
   // check if arrays have same size
-  chk_scattering_data(arr_ssd, arr_smd, verbosity);
+  chk_scattering_data(arr_ssd, arr_smd);
 
   // append as new scattering species
   scat_data_raw.push_back(std::move(arr_ssd));
@@ -1452,8 +1394,7 @@ void ScatElementsSelect(  //WS Output:
     const Numeric& sizemin,
     const Numeric& sizemax,
     const Numeric& tolerance,
-    const String& delim,
-    const Verbosity&) {
+    const String& delim) {
   // first check that sizes of scat_species and scat_data_raw/scat_meta agree
   Index nspecies = scat_species.nelem();
   ARTS_USER_ERROR_IF (nspecies != scat_data_raw.nelem() || nspecies != scat_meta.nelem(),
@@ -1549,8 +1490,7 @@ void ScatSpeciesExtendTemperature(  //WS Output:
     const String& species,
     const String& scat_species_delim,
     const Numeric& T_low,
-    const Numeric& T_high,
-    const Verbosity&) {
+    const Numeric& T_high) {
   const bool do_tl = (T_low >= 0.);
   const bool do_th = (T_high >= 0.);
 
@@ -1694,8 +1634,7 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
     const ArrayOfGriddedField3& pnd_field_raw,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Index& zeropadding,
-    const Verbosity& verbosity) {
+    const Index& zeropadding) {
   // Basic checks of input variables
   //
   // Particle number density data
@@ -1775,12 +1714,6 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
   const Index Nlon_cloud =
       cloudbox_limits_tmp[5] - cloudbox_limits_tmp[4] + 1;
 
-  if (zeropadding) {
-    // FIXME: OLE: Implement this
-    CREATE_OUT0;
-    out0 << "WARNING: zeropadding currently only supported for 1D.";
-  }
-
   ConstVectorView lat_grid_cloud =
       lat_grid[Range(cloudbox_limits_tmp[2], Nlat_cloud)];
   ConstVectorView lon_grid_cloud =
@@ -1830,8 +1763,7 @@ void pnd_fieldCalcFrompnd_field_raw(  //WS Output:
 void pnd_fieldExpand1D(Tensor4& pnd_field,
                        const Index& cloudbox_on,
                        const ArrayOfIndex& cloudbox_limits,
-                       const Index& nzero,
-                       const Verbosity&) {
+                       const Index& nzero) {
   /*  if( !cloudbox_checked )
     throw runtime_error( "The cloudbox must be flagged to have passed a "
                          "consistency check (cloudbox_checked=1)." );
@@ -1879,8 +1811,7 @@ void pnd_fieldZero(  //WS Output:
     //WS Input:
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Verbosity&) {
+    const ArrayOfRetrievalQuantity& jacobian_quantities) {
 
   ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"

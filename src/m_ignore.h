@@ -31,40 +31,34 @@
 
 #include "agenda_class.h"
 #include "exceptions.h"
-#include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 inline void Ignore(Workspace&,
             // WS Generic Input:
-            const Agenda&,
-            const Verbosity&) {}
+            const Agenda&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 inline void Ignore(Workspace&,
             // WS Generic Input:
-            const ArrayOfAgenda&,
-            const Verbosity&) {}
+            const ArrayOfAgenda&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <class T>
 void Ignore(  // WS Generic Input:
-    const T&,
-    const Verbosity&) {}
+    const T&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 inline void Touch(Workspace& ws,
                   // WS Generic Output:
-                  Agenda& out,
-                  const Verbosity&) {
+                  Agenda& out) {
   out = Agenda{ws};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <class T>
 void Touch(  // WS Generic Output:
-    T&,
-    const Verbosity&) {}
+    T&) {}
 
 #endif  // m_ignore_h

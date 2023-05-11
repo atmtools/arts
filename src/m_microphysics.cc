@@ -54,7 +54,6 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "microphysics.h"
 #include "optproperties.h"
 #include "parameters.h"
@@ -81,8 +80,7 @@ void HydrotableCalc(Workspace& ws,
                     const Vector& f_grid,
                     const Index& iss,
                     const Vector& T_grid,
-                    const Vector& wc_grid,                    
-                    const Verbosity&)
+                    const Vector& wc_grid)
 {
   // Sizes
   const Index nss = scat_data.nelem(); 
@@ -180,8 +178,7 @@ void HydrotableCalc(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_massesFromMetaDataSingleCategory(
     Matrix& particle_masses,
-    const ArrayOfArrayOfScatteringMetaData& scat_meta,
-    const Verbosity&) {
+    const ArrayOfArrayOfScatteringMetaData& scat_meta) {
   const Index np_total = TotalNumberOfElements(scat_meta);
 
   particle_masses.resize(np_total, 1);
@@ -206,8 +203,7 @@ void particle_massesFromMetaDataSingleCategory(
 void particle_massesFromMetaData(  //WS Output:
     Matrix& particle_masses,
     // WS Input:
-    const ArrayOfArrayOfScatteringMetaData& scat_meta,
-    const Verbosity&) {
+    const ArrayOfArrayOfScatteringMetaData& scat_meta) {
   // resize particle_masses to required diemsions and properly initialize values
   particle_masses.resize(TotalNumberOfElements(scat_meta), scat_meta.nelem());
   particle_masses = 0.;
@@ -235,8 +231,7 @@ void pndFromPsdBasic(Matrix& pnd_data,
                      const Matrix& psd_data,
                      const Vector& psd_size_grid,
                      const Tensor3& dpsd_data_dx,
-                     const Index& quad_order,
-                     const Verbosity&) {
+                     const Index& quad_order) {
   // Some sizes
   const Index np = psd_data.nrows();
   const Index ng = psd_size_grid.nelem();
@@ -315,8 +310,7 @@ void pndFromPsd(Matrix& pnd_data,
                 const Index& scat_index,
                 const Numeric& threshold_rsec,
                 const Numeric& threshold_bext,
-                const Numeric& threshold_rpnd,
-                const Verbosity&) {
+                const Numeric& threshold_rpnd) {
   // Some sizes
   const Index np = psd_data.nrows();
   const Index ng = psd_size_grid.nelem();
@@ -587,8 +581,7 @@ void pnd_fieldCalcFromParticleBulkProps(
     const ArrayOfAgenda& pnd_agenda_array,
     const ArrayOfArrayOfString& pnd_agenda_array_input_names,
     const Index& jacobian_do,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Verbosity&) {
+    const ArrayOfRetrievalQuantity& jacobian_quantities) {
    // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -842,8 +835,7 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
                              const String& x_unit,
                              const Numeric& x_fit_start,
                              const Numeric& x_fit_end,
-                             const Index& do_only_x,
-                             const Verbosity&) {
+                             const Index& do_only_x) {
   // Checks
   const Index nss = scat_meta.nelem();
   ARTS_USER_ERROR_IF (nss == 0, "*scat_meta* is empty!");

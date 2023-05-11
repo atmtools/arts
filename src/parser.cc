@@ -37,13 +37,11 @@
     \author Oliver Lemke
 */
 ArtsParser::ArtsParser(Agenda& tasklist,
-                       String controlfile,
-                       const Verbosity& rverbosity)
+                       String controlfile)
     : mtasklist(tasklist),
       ws(tasklist.workspace()),
       mcfile(std::move(controlfile)),
-      mcfile_version(1),
-      verbosity(rverbosity) {
+      mcfile_version(1) {
   msource.AppendFile(mcfile);
 }
 
@@ -186,9 +184,6 @@ void ArtsParser::get_argument_index_by_name(Index& arg_index,
     \author Stefan Buehler, Oliver Lemke
 */
 void ArtsParser::parse_main() {
-  CREATE_OUT0;
-  CREATE_OUT3;
-
   try {
     using global_data::md_data;
 
@@ -203,8 +198,6 @@ void ArtsParser::parse_main() {
 
     ArrayOfIndex auto_vars;
     Array<TokVal> auto_vars_values;
-
-    out3 << "\nParsing control text:\n";
 
     msource.Init();
     eat_whitespace();
@@ -335,9 +328,6 @@ void ArtsParser::parse_main() {
     \author Stefan Buehler
 */
 void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
   using global_data::md_data;
 
   // For method ids:
@@ -389,9 +379,8 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
       }
 
       include_file = matching_files[0];
-      out2 << "- Including control file " << include_file << "\n";
 
-      ArtsParser include_parser(tasks, include_file, verbosity);
+      ArtsParser include_parser(tasks, include_file);
       include_parser.parse_tasklist();
 
       for (auto& method: tasks.Methods())
@@ -442,22 +431,9 @@ void ArtsParser::parse_agenda(Agenda& tasklist, const String& agenda_name) {
         // Everything in this block is just to generate some
         // informative output.
 
-        out3 << "- " << md_data[id].Name() << "\n";
-
         // Output workspace variables for generic methods:
         if (0 <
             md_data[id].GOutType().nelem() + md_data[id].GInType().nelem()) {
-          out3 << "   Output: ";
-          for (Index j = 0; j < output.nelem(); ++j) {
-            out3 << (*ws->wsv_data_ptr)[output[j]].Name() << " ";
-          }
-          out3 << "\n";
-
-          out3 << "   Input: ";
-          for (Index j = 0; j < input.nelem(); ++j) {
-            out3 << (*ws->wsv_data_ptr)[input[j]].Name() << " ";
-          }
-          out3 << "\n";
         }
       }
     }
@@ -505,8 +481,6 @@ void ArtsParser::parse_method(Index& id,
                               Array<TokVal>& auto_vars_values,
                               String& include_file,
                               bool no_eot) {
-  CREATE_OUT3;
-
   String methodname;  // We need this out here, since it is
   // set once and later modified.
 
@@ -561,10 +535,7 @@ void ArtsParser::parse_method(Index& id,
   // methods in the body, and normal methods, expecting keywords and
   // values. Let's take the agenda case first...
   if (mdd->AgendaMethod()) {
-    out3 << "- " << mdd->Name() << "\n";
-    out3 << "{\n";
     parse_agenda(tasks, methodname);
-    out3 << "}\n";
   }
 
   // Curly braces in non-agenda methods are not valid in v2 controlfiles

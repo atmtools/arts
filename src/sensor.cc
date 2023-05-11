@@ -42,7 +42,6 @@
 #include "logic.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
-#include "messages.h"
 #include "rte.h"
 #include "sensor.h"
 #include "sorting.h"
@@ -1106,10 +1105,7 @@ void find_effective_channel_boundaries(  // Output:
     // Input:
     const Vector& f_backend,
     const ArrayOfGriddedField1& backend_channel_response,
-    const Numeric& delta,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const Numeric& delta) {
   // How many channels in total:
   const Index n_chan = f_backend.nelem();
 
@@ -1138,9 +1134,6 @@ void find_effective_channel_boundaries(  // Output:
   }
 
   // Start the actual work.
-
-  out2 << "  Original channel characteristics:\n"
-       << "  min         nominal      max (all in Hz):\n";
 
   // count the number of passbands as defined by segments of filtershapes, backend_channel_response.data = [0,>0,>0,0]
   // Borders between passbands are identified as [...0,0...]
@@ -1219,11 +1212,6 @@ void find_effective_channel_boundaries(  // Output:
         }
         if ((backend_filter[idy] == 0) && (backend_filter[idy - 1] > 0)) {
           fmax_pb[pbIdx] = f_backend[idx] + backend_f_grid[idy] + delta;
-          out2 << "  "
-               << "fmin_pb " << fmin_pb[pbIdx] << "  "
-               << "f_backend" << f_backend[idx] << "  "
-               << "fmax_pb " << fmax_pb[pbIdx] << "  "
-               << "diff " << fmax_pb[pbIdx] - fmin_pb[pbIdx] << "\n";
           pbIdx++;
         }
       }
@@ -1234,10 +1222,6 @@ void find_effective_channel_boundaries(  // Output:
       fmax_pb[pbIdx] = f_backend[idx] +
                        backend_f_grid[backend_f_grid.nelem() - 1] +
                        delta;  ///delta;
-      out2 << "  "
-           << "fmin_pb " << fmin_pb[pbIdx] << "  "
-           << "f_backend" << f_backend[pbIdx] << "  "
-           << "fmax_pb " << fmax_pb[pbIdx] << "\n";
       pbIdx++;
     }
   }
@@ -1261,7 +1245,6 @@ void find_effective_channel_boundaries(  // Output:
 
   fmin.resize(numPB);
   fmax.resize(numPB);
-  out2 << " resize numPb " << numPB << "\n";
   for (Index idx = 0; idx < numPB; ++idx) {
     fmin[idx] = fmin_pb[isorted[idx]];
     fmax[idx] = fmax_pb[isorted[idx]];
@@ -1285,11 +1268,6 @@ void find_effective_channel_boundaries(  // Output:
       // In this case, we have to check again.
     }
   }
-
-  out2 << "  New channel characteristics:\n"
-       << "  min                       max (all in Hz):\n";
-  for (Index i = 0; i < fmin.nelem(); ++i)
-    out2 << "  " << fmin[i] << "               " << fmax[i] << "\n";
 }
 
 

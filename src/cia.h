@@ -34,7 +34,6 @@
 #include "arts.h"
 #include "gridded_fields.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "mystring.h"
 #include "species.h"
 
@@ -50,8 +49,7 @@ void cia_interpolation(VectorView result,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
-                       const Index& robust,
-                       const Verbosity& verbosity);
+                       const Index& robust);
 
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
                     const Species::Species sp1,
@@ -166,8 +164,7 @@ class CIARecord {
                const ConstVectorView& f_grid,
                const Numeric& temperature,
                const Numeric& T_extrapolfac,
-               const Index& robust,
-               const Verbosity& verbosity) const;
+               const Index& robust) const;
 
   /** Scalar version of extract.
      
@@ -184,8 +181,7 @@ class CIARecord {
   [[nodiscard]] Numeric Extract(const Numeric& frequency,
                                 const Numeric& temperature,
                                 const Numeric& T_extrapolfac,
-                                const Index& robust,
-                                const Verbosity& verbosity) const {
+                                const Index& robust) const {
     Vector result(1);
     const Vector freqvec(1, frequency);
 
@@ -193,19 +189,17 @@ class CIARecord {
             freqvec,
             temperature,
             T_extrapolfac,
-            robust,
-            verbosity);
+            robust);
 
     return result[0];
   }
 
   /** Read CIA catalog file. */
-  void ReadFromCIA(const String& filename, const Verbosity& verbosity);
+  void ReadFromCIA(const String& filename);
 
   friend void xml_read_from_stream(istream& is_xml,
                                    CIARecord& cr,
-                                   bifstream* pbifs,
-                                   const Verbosity& verbosity);
+                                   bifstream* pbifs);
 
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);

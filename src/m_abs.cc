@@ -58,7 +58,6 @@
 #include "m_xml.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "methods.h"
 #include "montecarlo.h"
 #include "nlte.h"
@@ -86,8 +85,7 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     // WS Input:
     const ArrayOfAbsorptionLines& abs_lines,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Verbosity&) {
+    const ArrayOfArrayOfSpeciesTag& abs_species) {
   // Size is set but inner size will now change from the original definition of species tags...
   abs_lines_per_species.resize(abs_species.nelem());
 
@@ -157,10 +155,7 @@ void abs_speciesDefineAllInScenario(  // WS Output:
     ArrayOfArrayOfSpeciesTag& tgs,
     Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
-    const String& basename,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const String& basename) {
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
 
@@ -178,7 +173,7 @@ void abs_speciesDefineAllInScenario(  // WS Output:
     filename += specname;
 
     try {
-      find_xml_file(filename, verbosity);
+      find_xml_file(filename);
       // Add to included list:
       included.push_back(specname);
 
@@ -189,23 +184,12 @@ void abs_speciesDefineAllInScenario(  // WS Output:
       excluded.push_back(specname);
     }
   }
-
-  // Some nice output:
-  out2 << "  Included Species (" << included.nelem() << "):\n";
-  for (Index i = 0; i < included.nelem(); ++i)
-    out2 << "     " << included[i] << "\n";
-
-  out2 << "  Excluded Species (" << excluded.nelem() << "):\n";
-  for (Index i = 0; i < excluded.nelem(); ++i)
-    out2 << "     " << excluded[i] << "\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesDefineAll(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& propmat_clearsky_agenda_checked,
-    // Control Parameters:
-    const Verbosity& verbosity) {
+    Index& propmat_clearsky_agenda_checked) {
   // Species lookup data:
 
   // We want to make lists of all species
@@ -219,8 +203,7 @@ void abs_speciesDefineAll(  // WS Output:
   // Set the values
   abs_speciesSet(abs_species,
                  propmat_clearsky_agenda_checked,
-                 specs,
-                 verbosity);
+                 specs);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -231,8 +214,7 @@ void AbsInputFromAtmFields(  // WS Output:
     // WS Input:
     const Vector& p_grid,
     const Tensor3& t_field,
-    const Tensor4& vmr_field,
-    const Verbosity&) {
+    const Tensor4& vmr_field) {
   // First, make sure that we really have a 1D atmosphere:
   ARTS_USER_ERROR_IF(1 != 3,
                      "Atmospheric dimension must be 1D, but 3 is ",
@@ -258,8 +240,7 @@ void propmat_clearskyInit(  //WS Output
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
     const Index& stokes_dim,
-    const Index& propmat_clearsky_agenda_checked,
-    const Verbosity&) {
+    const Index& propmat_clearsky_agenda_checked) {
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_quantities.nelem();
 
@@ -328,8 +309,7 @@ void propmat_clearskyAddFaraday(
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const AtmPoint& atm_point,
-    const Vector& rtp_los,
-    const Verbosity&) {
+    const Vector& rtp_los) {
   Index ife = -1;
   for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
@@ -433,11 +413,7 @@ void propmat_clearskyAddParticles(
     const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
-    const Index& use_abs_as_ext,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
-
+    const Index& use_abs_as_ext) {
   ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
   We do not yet support select_abs_species for lookup table calculations
   )--")
@@ -504,8 +480,6 @@ void propmat_clearskyAddParticles(
   // clear-sky freq perturbations yield insignificant effects in particle
   // properties. Hence, this feature is neglected here.
   if (do_jac_frequencies) {
-    out1 << "WARNING:\n"
-         << "Frequency perturbation not available for absorbing particles.\n";
   }
 
   // creating temporary output containers
@@ -688,9 +662,7 @@ void propmat_clearskyAddParticles(
 void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
                                     const Vector& f_grid,
                                     const Numeric& sparse_df,
-                                    const String& speedup_option,
-                                    // Verbosity object:
-                                    const Verbosity&) {
+                                    const String& speedup_option) {
   // Return empty for nothing
   if (not f_grid.nelem()) {
     sparse_f_grid.resize(0);
@@ -715,12 +687,10 @@ void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
 
 Vector create_sparse_f_grid_internal(const Vector& f_grid,
                                      const Numeric& sparse_df,
-                                     const String& speedup_option,
-                                     // Verbosity object:
-                                     const Verbosity& verbosity) {
+                                     const String& speedup_option) {
   Vector sparse_f_grid;
   sparse_f_gridFromFrequencyGrid(
-      sparse_f_grid, f_grid, sparse_df, speedup_option, verbosity);
+      sparse_f_grid, f_grid, sparse_df, speedup_option);
   return sparse_f_grid;
 }
 
@@ -746,9 +716,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
     const String& speedup_option,
-    const Index& robust,
-    // Verbosity object:
-    const Verbosity& verbosity) {
+    const Index& robust) {
   // Size of problem
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_quantities.nelem();
@@ -792,7 +760,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
   // Deal with sparse computational grid
   const Vector f_grid_sparse = create_sparse_f_grid_internal(
-      f_grid, sparse_df, speedup_option, verbosity);
+      f_grid, sparse_df, speedup_option);
   const Options::LblSpeedup speedup_type =
       f_grid_sparse.nelem() ? Options::toLblSpeedupOrThrow(speedup_option)
                             : Options::LblSpeedup::None;
@@ -926,27 +894,25 @@ void propmat_clearskyAddLines(  // Workspace reference:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyZero(PropagationMatrix& propmat_clearsky,
                           const Vector& f_grid,
-                          const Index& stokes_dim,
-                          const Verbosity&) {
+                          const Index& stokes_dim) {
   propmat_clearsky = PropagationMatrix(f_grid.nelem(), stokes_dim);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyForceNegativeToZero(PropagationMatrix& propmat_clearsky,
-                                         const Verbosity&) {
+void propmat_clearskyForceNegativeToZero(PropagationMatrix& propmat_clearsky) {
   for (Index i = 0; i < propmat_clearsky.NumberOfFrequencies(); i++)
     if (propmat_clearsky.Kjj()[i] < 0.0) propmat_clearsky.SetAtPosition(0.0, i);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromBuiltin(
-    SpeciesIsotopologueRatios& isotopologue_ratios, const Verbosity&) {
+    SpeciesIsotopologueRatios& isotopologue_ratios) {
   isotopologue_ratios = Species::isotopologue_ratiosInitFromBuiltin();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void isotopologue_ratiosInitFromHitran(
-    SpeciesIsotopologueRatios& isotopologue_ratios, const Verbosity&) {
+    SpeciesIsotopologueRatios& isotopologue_ratios) {
   isotopologue_ratios = Hitran::isotopologue_ratios();
 }
 
@@ -958,8 +924,7 @@ void WriteMolTau(  //WS Input
     const Tensor3& z_field,
     const Tensor7& propmat_clearsky_field,
     //Keyword
-    const String& filename,
-    const Verbosity&) {
+    const String& filename) {
   int retval, ncid;
   int nlev_dimid, nlyr_dimid, nwvl_dimid, stokes_dimid, none_dimid;
   int dimids[4];
@@ -1110,8 +1075,7 @@ void WriteMolTau(  //WS Input
     const Tensor3& z_field _U_,
     const Tensor7& propmat_clearsky_field _U_,
     //Keyword
-    const String& filename _U_,
-    const Verbosity&) {
+    const String& filename _U_) {
   ARTS_USER_ERROR_IF(true,
                      "The workspace method WriteMolTau is not available"
                      "because ARTS was compiled without NetCDF support.");
@@ -1142,9 +1106,7 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
     const Index& no_negatives,
     const Numeric& theta,
     const Index& use_abs_as_ext,
-    const Index& use_abs_lookup_ind,
-    // Verbosity object:
-    const Verbosity& verbosity) {
+    const Index& use_abs_lookup_ind) {
   using namespace AgendaManip;
 
   propmat_clearsky_agenda_checked = 0;  // In case of crash
@@ -1243,10 +1205,4 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda = agenda.finalize();
   propmat_clearsky_agenda_checked = 1;
-
-  CREATE_OUT3;
-  if (out3.sufficient_priority()) {
-    out3 << "propmat_clearsky_agendaAuto sets propmat_clearsky_agenda to:\n\n"
-         << propmat_clearsky_agenda << '\n';
-  }
 }

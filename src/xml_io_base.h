@@ -69,8 +69,6 @@ class XMLAttribute {
 */
 class XMLTag {
  public:
-  XMLTag(const Verbosity& rverbosity) : verbosity(rverbosity){};
-
   String& get_name() { return name; }
 
   void check_name(const String& expected_name);
@@ -119,7 +117,6 @@ class XMLTag {
  protected:
   String name;                 /*!< Tag name */
   Array<XMLAttribute> attribs; /*!< List of attributes */
-  const Verbosity& verbosity;
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -135,10 +132,10 @@ void xml_set_stream_precision(ostream& os);
 void parse_xml_tag_content_as_string(std::istream& is_xml, String& content);
 
 void xml_parse_from_stream(
-    istream &, Vector &, bifstream *, XMLTag &, const Verbosity &verbosity);
+    istream &, Vector &, bifstream *, XMLTag &);
 
 void xml_parse_from_stream(
-    istream &, ArrayOfString &, bifstream *, XMLTag &, const Verbosity &);
+    istream &, ArrayOfString &, bifstream *, XMLTag &);
 
 FileType string2filetype(const String& file_format);
 
@@ -159,8 +156,7 @@ FileType string2filetype(const String& file_format);
 void xml_read_header_from_stream(istream& is,
                                  FileType& ftype,
                                  NumericType& ntype,
-                                 EndianType& etype,
-                                 const Verbosity& verbosity);
+                                 EndianType& etype);
 
 //! Reads closing root tag
 /*!
@@ -168,7 +164,7 @@ void xml_read_header_from_stream(istream& is,
 
   \param is  Input stream
 */
-void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity);
+void xml_read_footer_from_stream(istream& is);
 
 //! Writes XML header and root tag
 /*!
@@ -176,14 +172,13 @@ void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity);
   \param ftype  File type
 */
 void xml_write_header_to_stream(ostream& os,
-                                FileType ftype,
-                                const Verbosity& verbosity);
+                                FileType ftype);
 
 //! Write closing root tag
 /*!
   \param os Output stream
 */
-void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity);
+void xml_write_footer_to_stream(ostream& os);
 
 //! Open file for XML input
 /*!
@@ -193,8 +188,7 @@ void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity);
   \param name  Filename
 */
 void xml_open_input_file(ifstream& ifs,
-                         const String& name,
-                         const Verbosity& verbosity);
+                         const String& name);
 
 //! Open file for XML output
 /*!
@@ -215,8 +209,7 @@ void xml_open_output_file(ofstream& file, const String& name);
   \param name  Filename
 */
 void xml_open_input_file(igzstream& ifs,
-                         const String& name,
-                         const Verbosity& verbosity);
+                         const String& name);
 
 //! Open file for zipped XML output
 /*!
@@ -243,12 +236,7 @@ void xml_open_output_file(ogzstream& file, const String& name);
 */
 template <typename T>
 void xml_read_from_file_base(const String& filename,
-                        T& type,
-                        const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  out2 << "  Reading " + filename + '\n';
-
+                        T& type) {
   // Open input stream:
   std::unique_ptr<istream> ifs;
   if (filename.nelem() > 2 &&
@@ -257,7 +245,7 @@ void xml_read_from_file_base(const String& filename,
   {
     ifs = std::make_unique<igzstream>();
     xml_open_input_file(
-        *static_cast<igzstream*>(ifs.get()), filename, verbosity);
+        *static_cast<igzstream*>(ifs.get()), filename);
   }
 #else
   {
@@ -269,7 +257,7 @@ void xml_read_from_file_base(const String& filename,
   else {
     ifs = std::make_unique<ifstream>();
     xml_open_input_file(
-        *static_cast<ifstream*>(ifs.get()), filename, verbosity);
+        *static_cast<ifstream*>(ifs.get()), filename);
   }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -283,15 +271,15 @@ void xml_read_from_file_base(const String& filename,
     NumericType ntype;
     EndianType etype;
 
-    xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
+    xml_read_header_from_stream(*ifs, ftype, ntype, etype);
     if (ftype == FILE_TYPE_ASCII) {
-      xml_read_from_stream(*ifs, type, NULL, verbosity);
+      xml_read_from_stream(*ifs, type, nullptr);
     } else {
       String bfilename = filename + ".bin";
       bifstream bifs(bfilename.c_str());
-      xml_read_from_stream(*ifs, type, &bifs, verbosity);
+      xml_read_from_stream(*ifs, type, &bifs);
     }
-    xml_read_footer_from_stream(*ifs, verbosity);
+    xml_read_footer_from_stream(*ifs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading file: " << filename << '\n' << e.what();
@@ -312,13 +300,9 @@ void xml_read_from_file_base(const String& filename,
 template <typename T>
 void xml_write_to_file_base(const String& filename,
                             const T& type,
-                            const FileType ftype,
-                            const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                            const FileType ftype) {
   std::unique_ptr<ostream> ofs;
 
-  out2 << "  Writing " << filename << '\n';
   if (ftype == FILE_TYPE_ZIPPED_ASCII)
 #ifdef ENABLE_ZLIB
   {
@@ -338,16 +322,16 @@ void xml_write_to_file_base(const String& filename,
   }
 
   try {
-    xml_write_header_to_stream(*ofs, ftype, verbosity);
+    xml_write_header_to_stream(*ofs, ftype);
     if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII) {
-      xml_write_to_stream(*ofs, type, NULL, "", verbosity);
+      xml_write_to_stream(*ofs, type, NULL, "");
     } else {
       String bfilename = filename + ".bin";
       bofstream bofs(bfilename.c_str());
-      xml_write_to_stream(*ofs, type, &bofs, "", verbosity);
+      xml_write_to_stream(*ofs, type, &bofs, "");
     }
 
-    xml_write_footer_to_stream(*ofs, verbosity);
+    xml_write_footer_to_stream(*ofs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error writing file: " << filename << '\n' << e.what();

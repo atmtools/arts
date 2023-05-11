@@ -45,7 +45,6 @@
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "propagationmatrix.h"
 #include "rng.h"
@@ -55,13 +54,8 @@ using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
 using GriddedFieldGrids::GFIELD4_P_GRID;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupInit(GasAbsLookup& x, const Verbosity& verbosity) {
-  ArtsOut2 out2(verbosity);
-  // Nothing to do here.
-  // That means, we rely on the default constructor.
-
+void abs_lookupInit(GasAbsLookup& x) {
   x = GasAbsLookup();
-  out2 << "  Created an empty gas absorption lookup table.\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -81,12 +75,7 @@ void abs_lookupCalc(  // Workspace reference:
     const Vector& abs_nls_pert,
     const Agenda& propmat_clearsky_agenda,
     // GIN
-    const Numeric& lowest_vmr,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+    const Numeric& lowest_vmr) {
   ARTS_USER_ERROR_IF(
       propmat_clearsky_agenda.name() not_eq "propmat_clearsky_agenda",
       R"--(
@@ -149,9 +138,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
     ARTS_USER_ERROR_IF(n_nls > 0,
                        "If you have nonlinear species, at least one\n"
                        "species must be a H2O species.")
-
-    out2 << "  You have no H2O species. Absorption continua will not work.\n"
-         << "  You should get a runtime error if you try them anyway.\n";
   }
 
   // abs_species, f_grid, and p_grid should not be empty:
@@ -250,11 +236,9 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   // same loop over the perturbations, independent of
   // whether we have temperature perturbations or not.
   if (0 != n_t_pert) {
-    out2 << "  With temperature perturbations.\n";
     these_t_pert.resize(n_t_pert);
     these_t_pert = abs_t_pert;
   } else {
-    out2 << "  No temperature perturbations.\n";
     these_t_pert.resize(1);
     these_t_pert = 0;
   }
@@ -277,10 +261,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
 
     // spec is the index for the second dimension of abs_lookup.xsec.
 
-    // Prepare absorption agenda input for this species:
-    out2 << "  Doing species " << i + 1 << " of " << n_species << ": "
-         << abs_species[i] << ".\n";
-
     // Set active species:
     abs_species_active[0] = i;
 
@@ -292,7 +272,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
     // same loop over the perturbations, independent of
     // whether we have nonlinear species or not.
     if (non_linear[i]) {
-      out2 << "  This is a species with H2O VMR perturbations.\n";
       these_nls_pert.resize(n_nls_pert);
       these_nls_pert = abs_nls_pert;
     } else {
@@ -306,8 +285,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
       // abs_lookup.xsec
 
       if (non_linear[i]) {
-        out2 << "  Doing H2O VMR variant " << s + 1 << " of " << n_nls_pert
-             << ": " << abs_nls_pert[s] << ".\n";
       }
 
       // Make a local copy of the VMRs, and manipulate the H2O VMR within it.
@@ -379,8 +356,6 @@ Your current lowest_vmr value is: )--", lowest_vmr)
 
             os << "  Doing temperature variant " << j + 1 << " of " << n_t_pert
                << ": " << these_t_pert[j] << ".\n";
-
-            out3 << os.str();
           }
 
           // Create perturbed temperature profile:
@@ -472,10 +447,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   \date   2007-11-16
 */
 void find_nonlinear_continua(ArrayOfIndex& cont,
-                             const ArrayOfArrayOfSpeciesTag& abs_species,
-                             const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                             const ArrayOfArrayOfSpeciesTag& abs_species) {
   cont.resize(0);
 
   // This is quite complicated, unfortunately. The approach here
@@ -491,7 +463,6 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
           abs_species[i][s].type == Species::TagType::Cia) {
         const String thisname = abs_species[i][s].Name();
         // Ok, now we know this is a continuum tag.
-        out3 << "  Continuum tag: " << thisname;
 
         // Check whether we want nonlinear treatment for
         // this or not. We have three classes of continua:
@@ -516,14 +487,12 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
             "CH4-CIA" == thisname.substr(0, 7) ||
             "liquidcloud-MPM93" == thisname.substr(0, 17) ||
             "liquidcloud-ELL07" == thisname.substr(0, 17)) {
-          out3 << " --> not added.\n";
           break;
         }
 
         // 2. Continua known to use h2o_abs
         if ("O2-" == thisname.substr(0, 3)) {
           cont.push_back(i);
-          out3 << " --> added to abs_nls.\n";
           break;
         }
 
@@ -540,7 +509,6 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
         // If we get here, then the tag was neither in the
         // posivitive nor in the negative list. We through a
         // runtime error.
-        out3 << " --> unknown.\n";
         ostringstream os;
         os << "Unknown whether tag " << thisname
            << " is a nonlinear species (i.e. uses h2o_abs) or not.\n"
@@ -561,10 +529,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   \param[in]  abs_species Absorption species.
 */
 void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
-                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                    const ArrayOfArrayOfSpeciesTag& abs_species) {
   abs_nls.resize(0);
 
   // Add all H2O species as non-linear:
@@ -579,21 +544,11 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   // Certain continuum models also depend on abs_h2o. There is a
   // helper function that contains a list of these.
   ArrayOfIndex cont;
-  find_nonlinear_continua(cont, abs_species, verbosity);
+  find_nonlinear_continua(cont, abs_species);
 
   // Add these to abs_nls:
   for (Index i = 0; i < cont.nelem(); ++i) {
     abs_nls.push_back(abs_species[cont[i]]);
-  }
-
-  out2 << "  Species marked for nonlinear treatment:\n";
-  for (Index i = 0; i < abs_nls.nelem(); ++i) {
-    out2 << "  ";
-    for (Index j = 0; j < abs_nls[i].nelem(); ++j) {
-      if (j != 0) out2 << ", ";
-      out2 << abs_nls[i][j].Name();
-    }
-    out2 << "\n";
   }
 }
 
@@ -617,11 +572,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
                        ConstVectorView tmax,
                        const Numeric& step,
                        const Index& p_interp_order,
-                       const Index& t_interp_order,
-                       const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                       const Index& t_interp_order) {
   // The code to find out the range for perturbation is a bit
   // complicated. The problem is that, since we use higher order
   // interpolation for p, we may require temperatures well outside the
@@ -651,8 +602,6 @@ void choose_abs_t_pert(Vector& abs_t_pert,
     }
   }
 
-  out3 << "  abs_t_pert: mindev/maxdev : " << mindev << " / " << maxdev << "\n";
-
   // We divide the interval between mindev and maxdev, so that the
   // steps are of size *step* or smaller. But we also need at least
   // *t_interp_order*+1 points.
@@ -664,10 +613,6 @@ void choose_abs_t_pert(Vector& abs_t_pert,
   } while (effective_step > step);
 
   abs_t_pert =uniform_grid(mindev, div, effective_step);
-
-  out2 << "  abs_t_pert: " << abs_t_pert[0] << " K to "
-       << abs_t_pert[abs_t_pert.nelem() - 1] << " K in steps of "
-       << effective_step << " K (" << abs_t_pert.nelem() << " grid points)\n";
 }
 
 //! Chose the H2O perturbations abs_nls_pert
@@ -690,11 +635,7 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
                          ConstVectorView maxprof,
                          const Numeric& step,
                          const Index& p_interp_order,
-                         const Index& nls_interp_order,
-                         const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                         const Index& nls_interp_order) {
   // The code to find out the range for perturbation is a bit
   // complicated. The problem is that, since we use higher order
   // interpolation for p, we may require humidities well outside the
@@ -739,21 +680,13 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
     }
   }
 
-  out3 << "  abs_nls_pert: mindev/maxdev : " << mindev << " / " << maxdev
-       << "\n";
-
   bool allownegative = false;
   if (mindev < 0) {
-    out2
-        << "  Warning: I am getting a negative fractional distance to the H2O\n"
-        << "  reference profile. Some of your H2O fields may contain negative values.\n"
-        << "  Will allow negative values also for abs_nls_pert.\n";
     allownegative = true;
   }
 
   if (!allownegative) {
     mindev = 0;
-    out3 << "  Adjusted mindev : " << mindev << "\n";
   }
 
   if (std::isinf(maxdev)) {
@@ -779,17 +712,8 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
   // If there are negative values, we also add 0. The reason for this
   // is that 0 is a turning point.
   if (allownegative) {
-    VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, {0}, verbosity);
-    out2
-        << "  I am including also 0 in the abs_nls_pert, because it is a turning \n"
-        << "  point. Consider to use a higher abs_nls_interp_order, for example 4.\n";
+    VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, {0});
   }
-
-  out2 << "  abs_nls_pert: " << abs_nls_pert[0] << " to "
-       << abs_nls_pert[abs_nls_pert.nelem() - 1]
-       << " (fractional units) in steps of "
-       << abs_nls_pert[1] - abs_nls_pert[0] << " (" << abs_nls_pert.nelem()
-       << " grid points)\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -810,8 +734,7 @@ void abs_lookupSetup(  // WS Output:
     // Control Parameters:
     const Numeric& p_step10,
     const Numeric& t_step,
-    const Numeric& h2o_step,
-    const Verbosity& verbosity) {
+    const Numeric& h2o_step) {
   // Checks on input parameters:
 //FIXME: MUST HAVE REGULAR FIELD
  Vector z_grid, lat_grid, lon_grid, p_grid;
@@ -959,7 +882,7 @@ void abs_lookupSetup(  // WS Output:
     // 2D or 3D case. We have to set up T and nonlinear species variations.
 
     // Make an intelligent choice for the nonlinear species.
-    choose_abs_nls(abs_nls, abs_species, verbosity);
+    choose_abs_nls(abs_nls, abs_species);
 
     // Now comes a part where we analyse the atmospheric fields.
     // We need to find the max, min, and mean profile for
@@ -1035,8 +958,7 @@ void abs_lookupSetup(  // WS Output:
                       tmax,
                       t_step,
                       abs_p_interp_order,
-                      abs_t_interp_order,
-                      verbosity);
+                      abs_t_interp_order);
     //       cout << "abs_t_pert: " << abs_t_pert << "\n";
 
     // Reference VMR profiles,
@@ -1053,8 +975,7 @@ void abs_lookupSetup(  // WS Output:
                           h2omax,
                           h2o_step,
                           abs_p_interp_order,
-                          abs_nls_interp_order,
-                          verbosity);
+                          abs_nls_interp_order);
     } else {
       // Empty abs_nls_pert:
       abs_nls_pert.resize(0);
@@ -1083,12 +1004,7 @@ void abs_lookupSetupBatch(  // WS Output:
     const Numeric& h2o_step,
     const Vector& extremes,
     const Index& robust,
-    const Index& check_gridnames,
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+    const Index& check_gridnames) {
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
   // convert it here to the natural log:
@@ -1224,7 +1140,7 @@ void abs_lookupSetupBatch(  // WS Output:
   // FIXME: Adjustment of min/max values for Jacobian perturbations is still missing.
 
   // Make an intelligent choice for the nonlinear species.
-  choose_abs_nls(abs_nls, abs_species, verbosity);
+  choose_abs_nls(abs_nls, abs_species);
 
   // Find out maximum and minimum pressure and check that pressure grid is decreasing.
   Numeric maxp = batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[0];
@@ -1257,21 +1173,15 @@ void abs_lookupSetupBatch(  // WS Output:
                                                  abs_species,
                                                  atm_fields_compact,
                                                  "-",
-                                                 check_gridnames,
-                                                 verbosity);
+                                                 check_gridnames);
 
     try {
       atmfields_checkedCalc(atmfields_checked,
                             abs_species,
-                            atm_field,
-                            verbosity);
+                            atm_field);
     } catch (const std::exception& e) {
       // If `robust`, skip field and continue, ...
       if (robust) {
-        out1 << "  WARNING! Skipped invalid atmfield "
-             << "at batch_atmfield index " << i << ".\n"
-             << "The runtime error produced was:\n"
-             << e.what() << "\n";
         continue;
       }
       // ... else throw an error.
@@ -1297,8 +1207,6 @@ void abs_lookupSetupBatch(  // WS Output:
 
   // Information on the number of skipped atmospheres.
   if (batch_fields.nelem() > valid_field_indices.nelem()) {
-    out1 << "  " << batch_fields.nelem() - valid_field_indices.nelem()
-         << " out of " << batch_fields.nelem() << " atmospheres ignored.\n";
   }
 
   // Throw error if no atmfield passed the check.
@@ -1333,9 +1241,6 @@ void abs_lookupSetupBatch(  // WS Output:
 
   abs_p.resize(np);
   transform(abs_p, exp, log_abs_p);
-  out2 << "  abs_p: " << abs_p[0] << " Pa to " << abs_p[np - 1]
-       << " Pa in log10 steps of " << p_step10 << " (" << np
-       << " grid points)\n";
 
   // Now we have to determine the statistics of T and VMRs, we need
   // profiles of min, max, and mean of these, on the abs_p grid.
@@ -1522,11 +1427,6 @@ void abs_lookupSetupBatch(  // WS Output:
       }
   }
 
-  out2 << "  Global statistics:\n"
-       << "  min(p)   / max(p)   [Pa]:  " << minp << " / " << maxp << "\n"
-       << "  min(T)   / max(T)   [K]:   " << mint << " / " << maxt << "\n"
-       << "  min(H2O) / max(H2O) [VMR]: " << minh2o << " / " << maxh2o << "\n";
-
   // Divide mean by mean_norm to get the mean:
   ARTS_ASSERT(np == mean_norm.nelem());
   for (Index fi = 0; fi < datamean.nrows(); ++fi)
@@ -1589,7 +1489,6 @@ void abs_lookupSetupBatch(  // WS Output:
     if (mean_h2o <= 0) {
       mean_h2o = 1e-9;
       max_h2o = 1e-9;
-      out3 << "  H2O profile contained zero values, adjusted to 1e-9.\n";
     }
   }
 
@@ -1615,8 +1514,7 @@ void abs_lookupSetupBatch(  // WS Output:
                     tmax,
                     t_step,
                     abs_p_interp_order,
-                    abs_t_interp_order,
-                    verbosity);
+                    abs_t_interp_order);
   //  cout << "abs_t_pert: " << abs_t_pert << "\n";
 
   // Construct abs_nls_pert:
@@ -1628,8 +1526,7 @@ void abs_lookupSetupBatch(  // WS Output:
                       h2omax,
                       h2o_step,
                       abs_p_interp_order,
-                      abs_nls_interp_order,
-                      verbosity);
+                      abs_nls_interp_order);
   //  cout << "abs_nls_pert: " << abs_nls_pert << "\n";
 
   // Append the explicitly given user extreme values, if necessary:
@@ -1648,8 +1545,6 @@ void abs_lookupSetupBatch(  // WS Output:
       abs_t_pert.resize(abs_t_pert.nelem() + 1);
       abs_t_pert[0] = extremes[0];
       abs_t_pert[Range(1, dummy.nelem())] = dummy;
-      out2 << "  Added min extreme value for abs_t_pert: " << abs_t_pert[0]
-           << "\n";
     }
 
     // t_max:
@@ -1658,8 +1553,6 @@ void abs_lookupSetupBatch(  // WS Output:
       abs_t_pert.resize(abs_t_pert.nelem() + 1);
       abs_t_pert[Range(0, dummy.nelem())] = dummy;
       abs_t_pert[abs_t_pert.nelem() - 1] = extremes[1];
-      out2 << "  Added max extreme value for abs_t_pert: "
-           << abs_t_pert[abs_t_pert.nelem() - 1] << "\n";
     }
 
     // nls_min:
@@ -1668,8 +1561,6 @@ void abs_lookupSetupBatch(  // WS Output:
       abs_nls_pert.resize(abs_nls_pert.nelem() + 1);
       abs_nls_pert[0] = extremes[2];
       abs_nls_pert[Range(1, dummy.nelem())] = dummy;
-      out2 << "  Added min extreme value for abs_nls_pert: " << abs_nls_pert[0]
-           << "\n";
     }
 
     // nls_max:
@@ -1678,8 +1569,6 @@ void abs_lookupSetupBatch(  // WS Output:
       abs_nls_pert.resize(abs_nls_pert.nelem() + 1);
       abs_nls_pert[Range(0, dummy.nelem())] = dummy;
       abs_nls_pert[abs_nls_pert.nelem() - 1] = extremes[3];
-      out2 << "  Added max extreme value for abs_nls_pert: "
-           << abs_nls_pert[abs_nls_pert.nelem() - 1] << "\n";
     }
   }
 }
@@ -1703,9 +1592,7 @@ void abs_lookupSetupWide(  // WS Output:
     const Numeric& t_min,
     const Numeric& t_max,
     const Numeric& h2o_min,
-    const Numeric& h2o_max,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
+    const Numeric& h2o_max) {
 
   // For consistency with other code around arts (e.g., correlation
   // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
@@ -1713,7 +1600,7 @@ void abs_lookupSetupWide(  // WS Output:
   const Numeric p_step = log(pow(10.0, p_step10));
 
   // Make an intelligent choice for the nonlinear species.
-  choose_abs_nls(abs_nls, abs_species, verbosity);
+  choose_abs_nls(abs_nls, abs_species);
 
   // 1. Fix pressure grid abs_p
   // --------------------------
@@ -1733,9 +1620,6 @@ void abs_lookupSetupWide(  // WS Output:
 
   abs_p.resize(np);
   transform(abs_p, exp, log_abs_p);
-  out2 << "  abs_p: " << abs_p[0] << " Pa to " << abs_p[np - 1]
-       << " Pa in log10 steps of " << p_step10 << " (" << np
-       << " grid points)\n";
 
   // 2. Fix reference temperature profile abs_t and temperature perturbations
   // ------------------------------------------------------------------------
@@ -1760,8 +1644,7 @@ void abs_lookupSetupWide(  // WS Output:
                     max_prof,
                     20,
                     abs_p_interp_order,
-                    abs_t_interp_order,
-                    verbosity);
+                    abs_t_interp_order);
 
   // 3. Fix reference H2O profile and abs_nls_pert
   // ---------------------------------------------
@@ -1825,14 +1708,8 @@ void abs_lookupSetupWide(  // WS Output:
                         max_prof,
                         1e99,
                         abs_p_interp_order,
-                        abs_nls_interp_order,
-                        verbosity);
+                        abs_nls_interp_order);
   } else {
-    CREATE_OUT1;
-    out1 << "  WARNING:\n"
-         << "  You have no species that require H2O variations.\n"
-         << "  This case might work, but it has never been tested.\n"
-         << "  Please test it, then remove this warning.\n";
   }
 }
 
@@ -1841,10 +1718,7 @@ void abs_speciesAdd(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
     Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
-    const ArrayOfString& names,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const ArrayOfString& names) {
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
 
@@ -1861,16 +1735,6 @@ void abs_speciesAdd(  // WS Output:
   }
 
   check_abs_species(abs_species);
-
-  // Print list of tag groups to the most verbose output stream:
-  out3 << "  Added tag groups:";
-  for (Index i = n_gs; i < abs_species.nelem(); ++i) {
-    out3 << "\n  " << i << ":";
-    for (Index s = 0; s < abs_species[i].nelem(); ++s) {
-      out3 << " " << abs_species[i][s].Name();
-    }
-  }
-  out3 << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1886,10 +1750,7 @@ void abs_speciesAdd2(  // WS Output:
     const Vector& rq_lon_grid,
     // Control Parameters:
     const String& species,
-    const String& mode,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const String& mode) {
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
 
@@ -1897,14 +1758,6 @@ void abs_speciesAdd2(  // WS Output:
   abs_species.emplace_back(species);
 
   check_abs_species(abs_species);
-
-  // Print list of added tag group to the most verbose output stream:
-  out3 << "  Appended tag group:";
-  out3 << "\n  " << abs_species.nelem() - 1 << ":";
-  for (Index s = 0; s < abs_species.back().nelem(); ++s) {
-    out3 << " " << abs_species.back()[s].Name();
-  }
-  out3 << '\n';
 
   // Do retrieval part
   jacobianAddAbsSpecies(ws,
@@ -1915,12 +1768,11 @@ void abs_speciesAdd2(  // WS Output:
                         rq_lon_grid,
                         species,
                         mode,
-                        1,
-                        verbosity);
+                        1);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species, const Verbosity&) {
+void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species) {
   abs_species.resize(0);
 }
 
@@ -1929,10 +1781,7 @@ void abs_speciesSet(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
     Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
-    const ArrayOfString& names,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const ArrayOfString& names) {
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
 
@@ -1949,24 +1798,14 @@ void abs_speciesSet(  // WS Output:
   }
 
   check_abs_species(abs_species);
-
-  // Print list of tag groups to the most verbose output stream:
-  out3 << "  Defined tag groups: ";
-  for (Index i = 0; i < abs_species.nelem(); ++i) {
-    out3 << "\n  " << i << ":";
-    for (Index s = 0; s < abs_species[i].nelem(); ++s)
-      out3 << " " << abs_species[i][s].Name();
-  }
-  out3 << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupAdapt(GasAbsLookup& abs_lookup,
                      Index& abs_lookup_is_adapted,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Vector& f_grid,
-                     const Verbosity& verbosity) {
-  abs_lookup.Adapt(abs_species, f_grid, verbosity);
+                     const Vector& f_grid) {
+  abs_lookup.Adapt(abs_species, f_grid);
   abs_lookup_is_adapted = 1;
 }
 
@@ -1986,10 +1825,7 @@ void propmat_clearskyAddFromLookup(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const Numeric& extpolfac,
-    const Index& no_negatives,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const Index& no_negatives) {
   // Variables needed by abs_lookup.Extract:
   Matrix abs_scalar_gas, dabs_scalar_gas_df, dabs_scalar_gas_dt;
 
@@ -2120,11 +1956,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                 const Agenda& abs_agenda,
                                 // WS Generic Input:
                                 const Vector& doppler,
-                                const Vector& los,
-                                const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                                const Vector& los) {
   if (atmfields_checked != 1)
     throw runtime_error(
         "The atmospheric fields must be flagged to have "
@@ -2165,16 +1997,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
        << "p_grid.";
     throw runtime_error(os.str());
   }
-
-  // Resize output field.
-  // The dimension in lat and lon must be at least one, even if these
-  // grids are empty.
-  out2 << "  Creating propmat field with dimensions:\n"
-       << "    " << n_species << "   gas species,\n"
-       << "    " << n_frequencies << "   frequencies,\n"
-       << "    " << n_altitudes << "   altitudes,\n"
-       << "    " << n_latitudes << "   latitudes,\n"
-       << "    " << n_longitudes << "   longitudes.\n";
 
   propmat_clearsky_field.resize(n_species,
                                 n_frequencies,
@@ -2226,7 +2048,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
         {
           ostringstream os;
           os << "  z_grid[" << ial << "] = " << a_altitude << "\n";
-          out3 << os.str();
         }
 
         for (Index ila = 0; ila < n_latitudes; ++ila)     // Latitude:  ila
@@ -2301,8 +2122,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromGasAbsLookup(Vector& f_grid,
-                            const GasAbsLookup& abs_lookup,
-                            const Verbosity&) {
+                            const GasAbsLookup& abs_lookup) {
   const Vector& lookup_f_grid = abs_lookup.GetFgrid();
   f_grid.resize(lookup_f_grid.nelem());
   f_grid = lookup_f_grid;
@@ -2310,8 +2130,7 @@ void f_gridFromGasAbsLookup(Vector& f_grid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void p_gridFromGasAbsLookup(Vector& p_grid,
-                            const GasAbsLookup& abs_lookup,
-                            const Verbosity&) {
+                            const GasAbsLookup& abs_lookup) {
   const Vector& lookup_p_grid = abs_lookup.GetPgrid();
   p_grid.resize(lookup_p_grid.nelem());
   p_grid = lookup_p_grid;

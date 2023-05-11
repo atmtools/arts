@@ -30,35 +30,34 @@
 #include "debug.h"
 #include "matpack_data.h"
 #include "artstime.h"
-#include "messages.h"
 #include "sorting.h"
 
 
-void timeNow(Time& time, const Verbosity&)
+void timeNow(Time& time)
 {
   time = Time();
 }
 
 
-void Duration(Numeric& duration, const Time& t0, const Time& t1, const Verbosity&)
+void Duration(Numeric& duration, const Time& t0, const Time& t1)
 {
   duration = std::chrono::duration_cast<TimeStep>(t1 - t0).count();
 }
 
 
-void Sleep(const Numeric& duration, const Verbosity&)
+void Sleep(const Numeric& duration)
 {
   std::this_thread::sleep_for(TimeStep(duration));
 }
 
 
-void timeSleep(const Time& time, const Verbosity&)
+void timeSleep(const Time& time)
 {
   std::this_thread::sleep_until(time.time);
 }
 
 
-void LocalTimeOffset(Numeric& dt, const Verbosity&)
+void LocalTimeOffset(Numeric& dt)
 {
   const Time time;
   const Time localtime = Time(time.toStruct());
@@ -67,20 +66,20 @@ void LocalTimeOffset(Numeric& dt, const Verbosity&)
 }
 
 
-void timeOffset(Time& time, const Numeric& offset, const Verbosity&)
+void timeOffset(Time& time, const Numeric& offset)
 {
   time += TimeStep(offset);
 }
 
 
-void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset, const Verbosity& verbosity)
+void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset)
 {
   for (Time& time: time_grid)
-    timeOffset(time, offset, verbosity);
+    timeOffset(time, offset);
 }
 
 
-void timeSet(Time& time, const String& time_str, const Verbosity&) try {
+void timeSet(Time& time, const String& time_str) try {
   time = Time{time_str};
 } catch(std::runtime_error& e) {
   // We perform some checks on the string's validity

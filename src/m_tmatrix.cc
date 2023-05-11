@@ -30,7 +30,6 @@
 #include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "refraction.h"
 #include "special_interp.h"
 #include "tmatrix.h"
@@ -42,8 +41,7 @@ void diameter_maxFromDiameter_volume_equ(Numeric& diameter_max,
                                          Numeric& diameter_aspect_area_max,
                                          const String& shape,
                                          const Numeric& diameter_volume_equ,
-                                         const Numeric& aspect_ratio,
-                                         const Verbosity&) {
+                                         const Numeric& aspect_ratio) {
   const Numeric volume = (PI * pow(diameter_volume_equ, 3)) / 6.;
 
   if (shape == "spheroidal") {
@@ -84,8 +82,7 @@ void diameter_volume_equFromDiameter_max(Numeric& diameter_volume_equ,
                                          Numeric& volume,
                                          const String& shape,
                                          const Numeric& diameter_max,
-                                         const Numeric& aspect_ratio,
-                                         const Verbosity&) {
+                                         const Numeric& aspect_ratio) {
   if (shape == "spheroidal") {
     if (aspect_ratio < 1)  // prolate spheroid
     {
@@ -130,8 +127,7 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
                              const String& cri_source,
                              const Index& ndgs,
                              const Index& robust,
-                             const Index& quiet,
-                             const Verbosity& verbosity) {
+                             const Index& quiet) {
   // Get internal coding for ptype
   scat_data_single.ptype = PTypeFromString(ptype);
 
@@ -267,8 +263,7 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
                                       area_max,
                                       shape,
                                       diameter_volume_equ,
-                                      aspect_ratio,
-                                      verbosity);
+                                      aspect_ratio);
   //
   scat_meta_single.mass = mass;
   scat_meta_single.diameter_max = diameter_max;
@@ -276,9 +271,9 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
   scat_meta_single.diameter_area_equ_aerodynamical = area_max;
 }
 
-void TMatrixTest(const Verbosity& verbosity) {
-  tmatrix_tmd_test(verbosity);
-  tmatrix_ampld_test(verbosity);
-  calc_ssp_random_test(verbosity);
-  calc_ssp_fixed_test(verbosity);
+void TMatrixTest() {
+  tmatrix_tmd_test();
+  tmatrix_ampld_test();
+  calc_ssp_random_test();
+  calc_ssp_fixed_test();
 }

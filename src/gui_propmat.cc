@@ -15,7 +15,6 @@
 #include "debug.h"
 #include "jacobian.h"
 #include "matpack_math.h"
-#include "messages.h"
 #include "propagationmatrix.h"
 #include "species_tags.h"
 #include "transmissionmatrix.h"
@@ -115,8 +114,7 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
                                 const Agenda& propmat_clearsky_agenda [[maybe_unused]],
                                 const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
-                                const Index& load [[maybe_unused]],
-                                const Verbosity& verbosity [[maybe_unused]]) {
+                                const Index& load [[maybe_unused]]) {
 #ifdef ARTS_GUI_ENABLED
   ARTSGUI::PropmatClearsky::ResultsArray res;
   ARTSGUI::PropmatClearsky::Control ctrl;
@@ -154,9 +152,6 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
                             std::ref(transmission_distance));
 
   if (std::getenv("ARTS_HEADLESS")) {
-    CREATE_OUT1;
-    out1 << "Omitting GUI because ARTS_HEADLESS is set.\n";
-
     ctrl.run.store(true);
     while (not(res[0].ok.load() or ctrl.exit.load())) {
       std::this_thread::sleep_for(10ms);

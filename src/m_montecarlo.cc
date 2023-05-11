@@ -43,7 +43,6 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "mc_interp.h"
-#include "messages.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -68,8 +67,7 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 void mc_antennaSetGaussian(MCAntenna& mc_antenna,
                            //keyword arguments
                            const Numeric& za_sigma,
-                           const Numeric& aa_sigma,
-                           const Verbosity&) {
+                           const Numeric& aa_sigma) {
   mc_antenna.set_gaussian(za_sigma, aa_sigma);
 }
 
@@ -77,13 +75,12 @@ void mc_antennaSetGaussian(MCAntenna& mc_antenna,
 void mc_antennaSetGaussianByFWHM(MCAntenna& mc_antenna,
                                  //keyword arguments
                                  const Numeric& za_fwhm,
-                                 const Numeric& aa_fwhm,
-                                 const Verbosity&) {
+                                 const Numeric& aa_fwhm) {
   mc_antenna.set_gaussian_fwhm(za_fwhm, aa_fwhm);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mc_antennaSetPencilBeam(MCAntenna& mc_antenna, const Verbosity&) {
+void mc_antennaSetPencilBeam(MCAntenna& mc_antenna) {
   mc_antenna.set_pencil_beam();
 }
 
@@ -126,8 +123,7 @@ void MCGeneral(Workspace& ws,
                const Index& min_iter,
                const Numeric& taustep_limit,
                const Index& l_mc_scat_order,
-               const Index& t_interp_order,
-               const Verbosity& verbosity) {
+               const Index& t_interp_order) {
   // Checks of input
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -214,7 +210,7 @@ void MCGeneral(Workspace& ws,
     }
   }
 
-  rng.seed(mc_seed, verbosity);
+  rng.seed(mc_seed);
   Numeric g, temperature, albedo, g_los_csc_theta;
   Matrix A(stokes_dim, stokes_dim), Q(stokes_dim, stokes_dim);
   Matrix evol_op(stokes_dim, stokes_dim), ext_mat_mono(stokes_dim, stokes_dim);
@@ -230,8 +226,6 @@ void MCGeneral(Workspace& ws,
   const Numeric f_mono = f_grid[f_index];
   const Numeric prop_dir =
       -1.0;  // propagation direction opposite of los angles
-
-  CREATE_OUT0;
 
   y.resize(stokes_dim);
   y = 0;
@@ -335,8 +329,7 @@ void MCGeneral(Workspace& ws,
                            atm_field,
                            cloudbox_limits,
                            pnd_field,
-                           scat_data,
-                           verbosity);
+                           scat_data);
 
         // GH 2011-09-08: if the lowest layer has large
         // extent and a thick cloud, g may be 0 due to
@@ -350,8 +343,6 @@ void MCGeneral(Workspace& ws,
           keepgoing = false;
           oksampling = false;
           mc_iteration_count -= 1;
-          out0 << "WARNING: A rejected path sampling (g=0)!\n(if this"
-               << "happens repeatedly, try to decrease *ppath_lmax*)";
         } else if (termination_flag == 1) {
           iy_space_agendaExecute(ws,
                                  local_iy,
@@ -520,7 +511,6 @@ void MCGeneral(Workspace& ws,
     catch (const std::runtime_error& e) {
       mc_iteration_count += 1;
       nfails += 1;
-      out0 << "WARNING: A MC path sampling failed! Error was:\n";
       cout << e.what() << endl;
       if (nfails >= 5) {
         throw runtime_error(
@@ -577,11 +567,7 @@ void MCRadar(  // Workspace reference:
     const Index& mc_max_iter,
     const Numeric& ze_tref,
     const Numeric& k2,
-    const Index& t_interp_order,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUT0;
-
+    const Index& t_interp_order) {
   // Important constants
   const Index nbins = range_bins.nelem() - 1;
   const Numeric r_min = min(range_bins);
@@ -664,7 +650,7 @@ void MCRadar(  // Workspace reference:
       N_se);  //Vector of particle number densities used at each point
   bool anyptype_nonTotRan = is_anyptype_nonTotRan(scat_data);
   bool is_dist = max(range_bins) > 1;  // Is it round trip time or distance
-  rng.seed(mc_seed, verbosity);
+  rng.seed(mc_seed);
   Numeric ppath_lraytrace_var;
   //Numeric temperature, albedo;
   Numeric albedo;
@@ -699,7 +685,7 @@ void MCRadar(  // Workspace reference:
   // extract that here (but in its local container, not into the WSV
   // scat_data_mono).
   //ArrayOfArrayOfSingleScatteringData this_scat_data_mono;
-  //scat_data_monoExtract( this_scat_data_mono, scat_data, f_index, verbosity );
+  //scat_data_monoExtract( this_scat_data_mono, scat_data, f_index );
 
   const Numeric f_mono = f_grid[f_index];
   const Numeric tx_dir = 1.0;
@@ -810,8 +796,7 @@ void MCRadar(  // Workspace reference:
                        atm_field,
                        cloudbox_limits,
                        pnd_field,
-                       scat_data,
-                       verbosity);
+                       scat_data);
       pnds(joker, 0) = pnd_vec;
       if (!inside_cloud || termination_flag != 0) {
         keepgoing = false;
@@ -856,8 +841,7 @@ void MCRadar(  // Workspace reference:
                                               lon_grid,
                                               refellipsoid,
                                               local_rte_pos,
-                                              Vector{sensor_pos(0, joker)},
-                                              verbosity);
+                                              Vector{sensor_pos(0, joker)});
                                               */
         }
 
@@ -878,8 +862,7 @@ void MCRadar(  // Workspace reference:
                                             lon_grid,
                                             refellipsoid,
                                             Vector{sensor_pos(0, joker)},
-                                            local_rte_pos,
-                                            verbosity);
+                                            local_rte_pos);
                                             */
 
           /*  FIXME: OLD PPATH
@@ -900,8 +883,7 @@ void MCRadar(  // Workspace reference:
                          ppath_lmax,
                          za_accuracy,
                          pplrt_factor,
-                         pplrt_lowest,
-                         verbosity);
+                         pplrt_lowest);
                          */
 
         // Return distance
@@ -938,8 +920,7 @@ void MCRadar(  // Workspace reference:
                              atm_field,
                              cloudbox_limits,
                              pnd_field,
-                             scat_data,
-                             verbosity);
+                             scat_data);
 
           // Obtain scattering matrix given incident and scattered angles
           Matrix P(stokes_dim, stokes_dim);
@@ -1077,6 +1058,6 @@ void MCRadar(  // Workspace reference:
 }  // end MCRadar
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MCSetSeedFromTime(Index& mc_seed, const Verbosity&) {
+void MCSetSeedFromTime(Index& mc_seed) {
   mc_seed = (Index)time(NULL);
 }

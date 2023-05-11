@@ -50,7 +50,6 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "montecarlo.h"
 #include "optproperties.h"
 #include "sorting.h"
@@ -88,8 +87,7 @@ void pha_mat_sptFromData(  // Output:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity& verbosity) {
+    const Index& scat_lon_index) {
   const Index stokes_dim = pha_mat_spt.ncols();
   if (stokes_dim > 4 || stokes_dim < 1) {
     throw runtime_error(
@@ -263,8 +261,7 @@ void pha_mat_sptFromData(  // Output:
                 za_inc_idx,
                 aa_inc_idx,
                 za_grid,
-                aa_grid,
-                verbosity);
+                aa_grid);
           }
         }
       }
@@ -287,8 +284,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity&) {
+    const Index& scat_lon_index) {
   const Index N_se_total = TotalNumberOfElements(scat_data_mono);
 
   if (N_se_total != pnd_field.nbooks()) {
@@ -471,8 +467,7 @@ void opt_prop_sptFromData(  // Output and Input:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity& verbosity) {
+    const Index& scat_lon_index) {
   const Index N_ss = scat_data.nelem();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
@@ -639,8 +634,7 @@ void opt_prop_sptFromData(  // Output and Input:
                          AA_DATAGRID,
                          PART_TYPE,
                          za_sca,
-                         aa_sca,
-                         verbosity);
+                         aa_sca);
         //
         // Absorption vector:
         //
@@ -650,8 +644,7 @@ void opt_prop_sptFromData(  // Output and Input:
                          AA_DATAGRID,
                          PART_TYPE,
                          za_sca,
-                         aa_sca,
-                         verbosity);
+                         aa_sca);
       }
 
       i_se_flat++;
@@ -675,8 +668,7 @@ void opt_prop_sptFromScat_data(  // Output and Input:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity& verbosity) {
+    const Index& scat_lon_index) {
   if (scat_data_checked != 1)
     throw runtime_error(
         "The scattering data must be flagged to have "
@@ -838,8 +830,7 @@ void opt_prop_sptFromScat_data(  // Output and Input:
                          AA_DATAGRID,
                          PART_TYPE,
                          za_sca,
-                         aa_sca,
-                         verbosity);
+                         aa_sca);
         // Absorption vector:
         abs_vecTransform(abs_vec_spt[i_se_flat],
                          abs_vec_data_int,
@@ -847,8 +838,7 @@ void opt_prop_sptFromScat_data(  // Output and Input:
                          AA_DATAGRID,
                          PART_TYPE,
                          za_sca,
-                         aa_sca,
-                         verbosity);
+                         aa_sca);
       }
       i_se_flat++;
     }
@@ -865,8 +855,7 @@ void opt_prop_bulkCalc(  // Output and Input:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity&) {
+    const Index& scat_lon_index) {
   Index N_se = abs_vec_spt.nelem();
   //ARTS_ASSERT( ext_mat_spt.npages()==N_se )
   if (ext_mat_spt.nelem() not_eq N_se) {
@@ -917,8 +906,7 @@ void opt_prop_bulkCalc(  // Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas(PropagationMatrix& ext_mat,
-                   const PropagationMatrix& propmat_clearsky,
-                   const Verbosity&) {
+                   const PropagationMatrix& propmat_clearsky) {
   // Number of Stokes parameters:
   const Index stokes_dim = ext_mat.StokesDimensions();
 
@@ -942,8 +930,7 @@ void ext_matAddGas(PropagationMatrix& ext_mat,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddGas(StokesVector& abs_vec,
-                   const PropagationMatrix& propmat_clearsky,
-                   const Verbosity&) {
+                   const PropagationMatrix& propmat_clearsky) {
   // Number of frequencies:
   const Index f_dim = abs_vec.NumberOfFrequencies();
   const Index stokes_dim = abs_vec.StokesDimensions();
@@ -968,8 +955,7 @@ void abs_vecAddGas(StokesVector& abs_vec,
 /* Workspace method: Doxygen documentation will be auto-generated */
 /*
 void ext_matAddGasZeeman( Tensor3&      ext_mat,
-                          const Tensor3&  ext_mat_zee,
-                          const Verbosity&)
+                          const Tensor3&  ext_mat_zee)
 {
   // Number of Stokes parameters:
   const Index stokes_dim = ext_mat.ncols();
@@ -995,8 +981,7 @@ void ext_matAddGasZeeman( Tensor3&      ext_mat,
 /* Workspace method: Doxygen documentation will be auto-generated */
 /*
 void abs_vecAddGasZeeman( Matrix&      abs_vec,
-                          const Matrix& abs_vec_zee,
-                          const Verbosity&)
+                          const Matrix& abs_vec_zee)
 {
   // Number of Stokes parameters:
   const Index stokes_dim = abs_vec_zee.ncols();
@@ -1014,8 +999,7 @@ void pha_matCalc(Tensor4& pha_mat,
                  const Tensor4& pnd_field,
                  const Index& scat_p_index,
                  const Index& scat_lat_index,
-                 const Index& scat_lon_index,
-                 const Verbosity&) {
+                 const Index& scat_lon_index) {
   Index N_se = pha_mat_spt.nshelves();
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
@@ -1090,13 +1074,7 @@ void pha_matCalc(Tensor4& pha_mat,
 void scat_dataCheck(  //Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const String& check_type,
-    const Numeric& threshold,
-    const Verbosity& verbosity) {
-  CREATE_OUT0;
-  CREATE_OUT1;
-  CREATE_OUT2;
-  //CREATE_OUT3;
-
+    const Numeric& threshold) {
   // FIXME:
   // so far, this works for both scat_data and scat_data_raw. Needs to be
   // adapted, though, once we have WSM that can create Z/K/a with different
@@ -1109,7 +1087,6 @@ void scat_dataCheck(  //Input:
   // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
 
   // Loop over the included scattering species
-  out2 << " checking for negative values in Z11, K11, and a1, and for K11<a1\n";
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
     const Index N_se = scat_data[i_ss].nelem();
 
@@ -1159,7 +1136,6 @@ void scat_dataCheck(  //Input:
   }
 
   // Loop over the included scattering species
-  out2 << " checking for NaN anywhere in Z, K, and a\n";
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
     const Index N_se = scat_data[i_ss].nelem();
 
@@ -1212,7 +1188,6 @@ void scat_dataCheck(  //Input:
 
   if (check_type.toupper() == "ALL") {
     // Loop over the included scattering species
-    out2 << " checking normalization of scattering matrix\n";
     for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
       const Index N_se = scat_data[i_ss].nelem();
 
@@ -1312,23 +1287,10 @@ void scat_dataCheck(  //Input:
             }
 
             default: {
-              out0
-                  << "  WARNING:\n"
-                  << "  scat_data consistency check not implemented (yet?!) for\n"
-                  << "  ptype " << PART_TYPE << "!\n";
             }
           }
-        else
-          out2 << "  WARNING:\n"
-               << "  scat_data norm check can not be performed for pha_mat-only"
-               << " T-reduced scattering elements\n"
-               << "  as found in scatt element #" << i_se
-               << " of scatt species #" << i_ss << "!\n";
     }
   } else if (check_type.toupper() == "SANE") {
-    out1 << "  WARNING:\n"
-         << "  Normalization check on pha_mat switched off.\n"
-         << "  Scattering solution might be wrong.\n";
   } else {
     ostringstream os;
     os << "Invalid value for argument *check_type*: '" << check_type << "'.\n";
@@ -1354,8 +1316,7 @@ void DoitScatteringDataPrepare(
     const AtmField& atm_field,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
-    const Agenda& pha_mat_spt_agenda,
-    const Verbosity& verbosity) {
+    const Agenda& pha_mat_spt_agenda) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -1390,7 +1351,7 @@ void DoitScatteringDataPrepare(
                             0.);
 
   // Interpolate all the data in frequency
-  scat_data_monoExtract(scat_data_mono, scat_data, f_index, verbosity);
+  scat_data_monoExtract(scat_data_mono, scat_data, f_index);
 
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
@@ -1456,8 +1417,7 @@ void DoitScatteringDataPrepare(
                     za_inc_idx,
                     aa_inc_idx,
                     za_grid,
-                    aa_grid,
-                    verbosity);
+                    aa_grid);
               }
             }
           }
@@ -1510,8 +1470,7 @@ void DoitScatteringDataPrepare(
                     pnd_field,
                     p_index,
                     0,
-                    0,
-                    verbosity);
+                    0);
         pha_mat_doit(
             p_index, za_index_local, 0, joker, joker, joker, joker) =
             pha_mat_local;
@@ -1529,8 +1488,7 @@ void DoitScatteringDataPrepare(
 void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
                    const ArrayOfArrayOfSingleScatteringData& scat_data_raw,
                    const Vector& f_grid,
-                   const Index& interp_order,
-                   const Verbosity&)
+                   const Index& interp_order)
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
 // the scatt solvers needs to be reviewed again and adaptedto this!
 {
@@ -1724,8 +1682,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                       const Numeric& T,
                       const Index& interp_order,
                       const Index& phamat_only,
-                      const Numeric& threshold,
-                      const Verbosity&) {
+                      const Numeric& threshold) {
   // We are directly acting on the scat_data entries, modifying them
   // individually. That is, we don't need to resize these arrays. Only the
   // pha_mat and probably ext_mat and abs_vec Tensors (in the latter case also
@@ -2057,8 +2014,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
 void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                         const ArrayOfArrayOfSingleScatteringData& scat_data,
                         const Vector& f_grid,
-                        const Index& f_index,
-                        const Verbosity&) {
+                        const Index& f_index) {
   //Extrapolation factor:
   //const Numeric extpolfac = 0.5;
 
@@ -2187,8 +2143,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                            const ArrayOfArrayOfSingleScatteringData& scat_data,
-                           const Index& f_index,
-                           const Verbosity&) {
+                           const Index& f_index) {
   //Initialise scat_data_mono
   scat_data_mono.resize(scat_data.nelem());
 
@@ -2264,8 +2219,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity& verbosity) {
+    const Index& scat_lon_index) {
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
   const Numeric za_sca = za_grid[za_index];
@@ -2363,8 +2317,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
                            scat_data_mono[i_ss][i_se].aa_grid,
                            scat_data_mono[i_ss][i_se].ptype,
                            za_sca,
-                           aa_sca,
-                           verbosity);
+                           aa_sca);
         } else {
           ext_matTransform(ext_mat_spt[i_se_flat],
                            scat_data_mono[i_ss][i_se].ext_mat_data(
@@ -2373,8 +2326,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
                            scat_data_mono[i_ss][i_se].aa_grid,
                            scat_data_mono[i_ss][i_se].ptype,
                            za_sca,
-                           aa_sca,
-                           verbosity);
+                           aa_sca);
         }
         //
         // Absorption vector:
@@ -2400,8 +2352,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
                            scat_data_mono[i_ss][i_se].aa_grid,
                            scat_data_mono[i_ss][i_se].ptype,
                            za_sca,
-                           aa_sca,
-                           verbosity);
+                           aa_sca);
         } else {
           abs_vecTransform(abs_vec_spt[i_se_flat],
                            scat_data_mono[i_ss][i_se].abs_vec_data(
@@ -2410,8 +2361,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
                            scat_data_mono[i_ss][i_se].aa_grid,
                            scat_data_mono[i_ss][i_se].ptype,
                            za_sca,
-                           aa_sca,
-                           verbosity);
+                           aa_sca);
         }
       }
 
@@ -2433,8 +2383,7 @@ void pha_mat_sptFromMonoData(  // Output:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity& verbosity) {
+    const Index& scat_lon_index) {
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
@@ -2548,8 +2497,7 @@ void pha_mat_sptFromMonoData(  // Output:
                     za_inc_idx,
                     aa_inc_idx,
                     za_grid,
-                    aa_grid,
-                    verbosity);
+                    aa_grid);
               }
 
               for (Index i = 0; i < stokes_dim; i++) {
@@ -2572,8 +2520,7 @@ void pha_mat_sptFromMonoData(  // Output:
                   za_inc_idx,
                   aa_inc_idx,
                   za_grid,
-                  aa_grid,
-                  verbosity);
+                  aa_grid);
             }
           }
         }
@@ -2599,8 +2546,7 @@ void pha_mat_sptFromScat_data(  // Output:
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index,
-    const Verbosity& verbosity) {
+    const Index& scat_lon_index) {
   if (scat_data_checked != 1)
     throw runtime_error(
         "The scattering data must be flagged to have "
@@ -2759,8 +2705,7 @@ void pha_mat_sptFromScat_data(  // Output:
                 za_inc_idx,
                 aa_inc_idx,
                 za_grid,
-                aa_grid,
-                verbosity);
+                aa_grid);
           }
         }
       }
@@ -2781,8 +2726,7 @@ void ScatSpeciesMerge(  //WS Output:
     const ArrayOfIndex& cloudbox_limits,
     const Tensor3& t_field,
     const Tensor3& z_field,
-    const Matrix& z_surface,
-    const Verbosity& /*verbosity*/) {
+    const Matrix &z_surface) {
   // FIXME:
   // so far, this works for both scat_data and scat_data_raw. Needs to be
   // adapted, though, once we have WSM that can create Z/K/a with different
@@ -3084,8 +3028,7 @@ void ExtractFromMetaSingleScatSpecies(
     //WS Input:
     const ArrayOfArrayOfScatteringMetaData& scat_meta,
     const String& meta_name,
-    const Index& scat_species_index,
-    const Verbosity& /*verbosity*/) {
+    const Index &scat_species_index) {
   if (scat_species_index < 0) {
     ostringstream os;
     os << "scat_species_index can't be <0!";

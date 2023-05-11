@@ -30,14 +30,12 @@
 #include "xsec_fit.h"
 #include "jacobian.h"
 #include "m_xml.h"
-#include "messages.h"
 #include "physics_funcs.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const String& basename,
-                  const Verbosity& verbosity) {
+                  const String& basename) {
   // Build a set of species indices. Duplicates are ignored.
   std::set<Species::Species> unique_species;
   for (auto& asp : abs_species) {
@@ -61,7 +59,7 @@ void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
                           String(Species::toShortName(species_name)) + ".xml"};
 
     try {
-      ReadXML(xsec_coeffs, "", filename, "", verbosity);
+      ReadXML(xsec_coeffs, "", filename, "");
 
       xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
@@ -83,11 +81,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     const AtmPoint& atm_point,
     const ArrayOfXsecRecord& xsec_fit_data,
     const Numeric& force_p,
-    const Numeric& force_t,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+    const Numeric& force_t) {
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(
       propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
@@ -171,14 +165,14 @@ void propmat_clearskyAddXsecFit(  // WS Output:
       const Numeric current_t = force_t < 0 ? atm_point.temperature : force_t;
 
       // Get the absorption cross sections from the HITRAN data:
-      this_xdata.Extract(xsec_temp, f_grid, current_p, current_t, verbosity);
+      this_xdata.Extract(xsec_temp, f_grid, current_p, current_t);
       if (do_freq_jac) {
         this_xdata.Extract(
-            dxsec_temp_dF, dfreq, current_p, current_t, verbosity);
+            dxsec_temp_dF, dfreq, current_p, current_t);
       }
       if (do_temp_jac) {
         this_xdata.Extract(
-            dxsec_temp_dT, f_grid, current_p, current_t + dt, verbosity);
+            dxsec_temp_dT, f_grid, current_p, current_t + dt);
       }
     }
 
@@ -230,11 +224,7 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
     const Vector& abs_t,
     const ArrayOfXsecRecord& xsec_fit_data,
     const Numeric& force_p,
-    const Numeric& force_t,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+    const Numeric& force_t) {
   {
     // Check that all parameters that should have the number of tag
     // groups as a dimension are consistent:
@@ -312,8 +302,7 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
           this_xdata.Extract(xsec_temp,
                              f_grid,
                              current_p,
-                             current_t,
-                             verbosity);
+                             current_t);
         } catch (runtime_error& e) {
           ostringstream os;
           os << "Problem with HITRAN cross section species "

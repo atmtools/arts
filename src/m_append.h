@@ -45,8 +45,7 @@ void Append(  // WS Generic Output:
     const Array<T>& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   const Array<T>* in_pnt;
   Array<T> in_copy;
 
@@ -71,8 +70,7 @@ inline void Append(  // WS Generic Output:
     const ArrayOfSpeciesTag& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   const ArrayOfSpeciesTag* in_pnt;
   ArrayOfSpeciesTag in_copy;
 
@@ -99,8 +97,7 @@ void Append(  // WS Generic Output:
     const T& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // Append in to end of out:
   out.push_back(in);
 }
@@ -113,8 +110,7 @@ inline void Append(  // WS Generic Output:
     const SpeciesTag& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // Append in to end of out:
   out.push_back(in);
 }
@@ -128,12 +124,11 @@ inline void Append(Workspace& ws,
             const Agenda& in,
             const String& direction _U_,
             const String& /* in_name */,
-            const String& /* direction_name */,
-            const Verbosity& verbosity) {
+            const String& /* direction_nam verbosity */) {
   // Append in to end of out:
   auto& newag = out.emplace_back(in);
   newag.set_name(out_name);
-  newag.check(ws, verbosity);
+  newag.check(ws);
 }
 
 /* Implementation for array types to append single element */
@@ -145,13 +140,12 @@ inline void Append(Workspace& ws_in,
             const ArrayOfAgenda& in,
             const String& direction _U_,
             const String& /* in_name */,
-            const String& /* direction_name */,
-            const Verbosity& verbosity) {
+            const String& /* direction_nam verbosity */) {
   // Append in to end of out:
   for (const auto & it : in) {
     auto& newag = out.emplace_back(it);
     newag.set_name(out_name);
-    newag.check(ws_in, verbosity);
+    newag.check(ws_in);
   }
 }
 
@@ -163,8 +157,7 @@ inline void Append(  // WS Generic Output:
     const Vector& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   const Vector* in_pnt;
   Vector in_copy;
 
@@ -197,8 +190,7 @@ inline void Append(  // WS Generic Output:
     const Matrix& in,
     const String& direction,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   const Matrix* in_pnt;
   Matrix in_copy;
 
@@ -252,8 +244,7 @@ inline void Append(  // WS Generic Output:
     const Vector& in,
     const String& direction,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // Get backup of out:
   Matrix dummy = out;
 
@@ -296,8 +287,7 @@ inline void Append(  // WS Generic Output:
     const Numeric& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // Get backup of out:
   Vector dummy = out;
 
@@ -320,8 +310,7 @@ inline void Append(  // WS Generic Output:
     //            const String& direction,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // Get backup of out:
   Tensor3 dummy = out;
 
@@ -351,8 +340,7 @@ inline void Append(  // WS Generic Output:
     //            const String& direction,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   const Tensor3* in_pnt;
   Tensor3 in_copy;
 
@@ -394,8 +382,7 @@ inline void Append(  // WS Generic Output:
     //            const String& direction,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // Get backup of out:
   Tensor4 dummy = out;
 
@@ -431,8 +418,7 @@ inline void Append(  // WS Generic Output:
     //            const String& direction,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   const Tensor4* in_pnt;
   Tensor4 in_copy;
 
@@ -480,8 +466,7 @@ inline void Append(  // WS Generic Output:
     const String& in,
     const String& direction _U_,
     const String& /* in_name */,
-    const String& /* direction_name */,
-    const Verbosity&) {
+    const String& /* direction_name */) {
   // String stream for easy string operations:
   ostringstream os;
 

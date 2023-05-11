@@ -36,7 +36,6 @@
 #include "auto_md.h"
 #include "disort.h"
 #include "m_xml.h"
-#include "messages.h"
 #include "rt4.h"
 #include "species_tags.h"
 
@@ -76,11 +75,8 @@ void RT4Calc(Workspace& ws,
              const Index& robust,
              const Index& za_interp_order,
              const Index& cos_za_interp,
-             const Numeric& max_delta_tau,
-             const Verbosity& verbosity) {
+             const Numeric& max_delta_tau) {
   if (!cloudbox_on) {
-    CREATE_OUT1;
-    out1 << "  Cloudbox is off, RT4 calculation is skipped.\n";
     return;
   }
 
@@ -186,8 +182,7 @@ void RT4Calc(Workspace& ws,
           pfct_method,
           pfct_aa_grid_size,
           pfct_threshold,
-          max_delta_tau,
-          verbosity);
+          max_delta_tau);
 
   za_grid_adjust(za_grid, mu_values, nummu);
 }
@@ -228,11 +223,8 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                            const Index& robust,
                            const Index& za_interp_order,
                            const Index& cos_za_interp,
-                           const Numeric& max_delta_tau,
-                           const Verbosity& verbosity) {
+                           const Numeric& max_delta_tau) {
   if (!cloudbox_on) {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, RT4 calculation will be skipped.\n";
     return;
   }
 
@@ -340,8 +332,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           pfct_method,
           pfct_aa_grid_size,
           pfct_threshold,
-          max_delta_tau,
-          verbosity);
+          max_delta_tau);
 
   za_grid_adjust(za_grid, mu_values, nummu);
 }
@@ -379,8 +370,7 @@ void RT4Calc(Workspace& ws,
              const Index& robust,
              const Index& za_interp_order,
              const Index& cos_za_interp,
-             const Numeric& max_delta_tau,
-             const Verbosity& verbosity) {
+             const Numeric& max_delta_tau) {
   ARTS_USER_ERROR("This version of ARTS was compiled without RT4 support.");
 }
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -419,8 +409,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                            const Index& robust,
                            const Index& za_interp_order,
                            const Index& cos_za_interp,
-                           const Numeric& max_delta_tau,
-                           const Verbosity& verbosity) {
+                           const Numeric& max_delta_tau) {
   ARTS_USER_ERROR("This version of ARTS was compiled without RT4 support.");
 }
 
@@ -429,12 +418,11 @@ void RT4CalcWithRT4Surface(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef ENABLE_RT4
 void RT4Test(Tensor4& out_rad,
-             const String& datapath,
-             const Verbosity& verbosity) {
-  rt4_test(out_rad, datapath, verbosity);
+             const String& datapath) {
+  rt4_test(out_rad, datapath);
 }
 #else
-void RT4Test(Tensor4&, const String&, const Verbosity&) {
+void RT4Test(Tensor4&, const String&) {
   ARTS_USER_ERROR ("This version of ARTS was compiled without RT4 support.");
 }
 #endif

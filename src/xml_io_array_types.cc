@@ -54,9 +54,8 @@
 */
 void xml_read_from_stream(istream& is_xml,
                           ArrayOfGridPos& agpos,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index nelem;
 
   tag.read_from_stream(is_xml);
@@ -69,7 +68,7 @@ void xml_read_from_stream(istream& is_xml,
   Index n;
   try {
     for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, agpos[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, agpos[n], pbifs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading ArrayOfGridPos: "
@@ -92,10 +91,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const ArrayOfGridPos& agpos,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -107,7 +105,7 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   for (Index n = 0; n < agpos.nelem(); n++)
-    xml_write_to_stream(os_xml, agpos[n], pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, agpos[n], pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -125,9 +123,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           ArrayOfRetrievalQuantity& arq,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index nelem;
 
   tag.read_from_stream(is_xml);
@@ -140,7 +137,7 @@ void xml_read_from_stream(istream& is_xml,
   Index n;
   try {
     for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, arq[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, arq[n], pbifs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading ArrayOfRetrievalQuantity: "
@@ -163,10 +160,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const ArrayOfRetrievalQuantity& arq,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -178,7 +174,7 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   for (Index n = 0; n < arq.nelem(); n++)
-    xml_write_to_stream(os_xml, arq[n], pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, arq[n], pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -196,9 +192,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           ArrayOfSpeciesTag& astag,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index nelem;
 
   tag.read_from_stream(is_xml);
@@ -211,7 +206,7 @@ void xml_read_from_stream(istream& is_xml,
   Index n;
   try {
     for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, astag[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, astag[n], pbifs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading ArrayOfSpeciesTag: "
@@ -234,10 +229,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const ArrayOfSpeciesTag& astag,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -249,7 +243,7 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   for (Index n = 0; n < astag.nelem(); n++)
-    xml_write_to_stream(os_xml, astag[n], pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, astag[n], pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -268,9 +262,8 @@ void xml_write_to_stream(ostream& os_xml,
 */
 void xml_read_from_stream(istream& is_xml,
                           ArrayOfSun& astar,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index nelem;
 
   tag.read_from_stream(is_xml);
@@ -283,7 +276,7 @@ void xml_read_from_stream(istream& is_xml,
   Index n;
   try {
     for (n = 0; n < nelem; n++) {
-      xml_read_from_stream(is_xml, astar[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, astar[n], pbifs);
     }
   } catch (const std::runtime_error& e) {
     ostringstream os;
@@ -307,10 +300,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const ArrayOfSun& astar,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -322,7 +314,7 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   for (Index n = 0; n < astar.nelem(); n++) {
-    xml_write_to_stream(os_xml, astar[n], pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, astar[n], pbofs, "");
   }
 
   close_tag.set_name("/Array");
@@ -343,8 +335,7 @@ void xml_write_to_stream(ostream& os_xml,
 void xml_parse_from_stream(istream& is_xml,
                            ArrayOfString& astring,
                            bifstream* pbifs,
-                           XMLTag& tag,
-                           const Verbosity& verbosity) {
+                           XMLTag& tag) {
   Index nelem;
 
   tag.check_attribute("type", "String");
@@ -355,7 +346,7 @@ void xml_parse_from_stream(istream& is_xml,
   Index n;
   try {
     for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, astring[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, astring[n], pbifs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading ArrayOfString: "
@@ -375,9 +366,8 @@ void xml_parse_from_stream(istream& is_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           ArrayOfXsecRecord& axd,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index nelem;
 
   tag.read_from_stream(is_xml);
@@ -390,7 +380,7 @@ void xml_read_from_stream(istream& is_xml,
   Index n;
   try {
     for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, axd[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, axd[n], pbifs);
   } catch (const std::runtime_error& e) {
     ostringstream os;
     os << "Error reading ArrayOfXsecRecord: "
@@ -413,10 +403,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const ArrayOfXsecRecord& axd,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -428,7 +417,7 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   for (Index n = 0; n < axd.nelem(); n++)
-    xml_write_to_stream(os_xml, axd[n], pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, axd[n], pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -441,12 +430,11 @@ template <typename T>
 concept array_of_group = ArtsType<T> and ArtsType<decltype(T{}[0])>;
 
 template <array_of_group T>
-void xml_read(istream &is_xml, T &at, bifstream *pbifs,
-              const Verbosity &verbosity) try {
+void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
   const static String subtype =
       WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
 
-  ArtsXMLTag tag(verbosity);
+  ArtsXMLTag tag;
   Index nelem;
 
   tag.read_from_stream(is_xml);
@@ -459,7 +447,7 @@ void xml_read(istream &is_xml, T &at, bifstream *pbifs,
   Index n;
   try {
     for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, at[n], pbifs, verbosity);
+      xml_read_from_stream(is_xml, at[n], pbifs);
   } catch (const std::runtime_error &e) {
     ostringstream os;
     os << "Error reading "
@@ -480,12 +468,12 @@ void xml_read(istream &is_xml, T &at, bifstream *pbifs,
 
 template <array_of_group T>
 void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
-               const String &name, const Verbosity &verbosity) try {
+               const String &name) try {
   const static String subtype =
       WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
 
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Array");
   if (name.length())
@@ -498,7 +486,7 @@ void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
   os_xml << '\n';
 
   for (Index n = 0; n < at.nelem(); n++)
-    xml_write_to_stream(os_xml, at[n], pbofs, "", verbosity);
+    xml_write_to_stream(os_xml, at[n], pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -513,14 +501,13 @@ void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
 
 //! Helper macro for when both Array<T> and T are ARTS groups
 #define TMPL_XML_READ_WRITE_STREAM(T)                                          \
-  void xml_read_from_stream(istream &is_xml, T &at, bifstream *pbifs,          \
-                            const Verbosity &verbosity) {                      \
-    xml_read(is_xml, at, pbifs, verbosity);                                    \
+  void xml_read_from_stream(istream &is_xml, T &at, bifstream *pbifs) {        \
+    xml_read(is_xml, at, pbifs);                                               \
   }                                                                            \
                                                                                \
   void xml_write_to_stream(ostream &os_xml, const T &at, bofstream *pbofs,     \
-                           const String &name, const Verbosity &verbosity) {   \
-    xml_write(os_xml, at, pbofs, name, verbosity);                             \
+                           const String &name) {                               \
+    xml_write(os_xml, at, pbofs, name);                                        \
   }
 
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionLines)

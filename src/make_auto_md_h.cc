@@ -492,31 +492,6 @@ void write_method_header(ofstream& ofs, const MdRecord& mdd) {
     ofs << "const Agenda& input_agenda";
   }
 
-  // Flag that is set to false if the WSM has verbosity as an input or
-  // output already. Otherwise it's passed as the last parameter.
-  bool pass_verbosity = true;
-
-  // Find out if the WSM has the verbosity as input.
-  for (Index j = 0; pass_verbosity && j < mdd.In().nelem(); j++) {
-    if (wsv_data[mdd.In()[j]].Name() == "verbosity") {
-      pass_verbosity = false;
-    }
-  }
-
-  // Find out if the WSM has the verbosity as output.
-  for (Index j = 0; pass_verbosity && j < mdd.Out().nelem(); j++) {
-    if (wsv_data[mdd.Out()[j]].Name() == "verbosity") {
-      pass_verbosity = false;
-    }
-  }
-
-  if (pass_verbosity) {
-    align(ofs, is_first_parameter, indent);
-    ofs << "// Verbosity object:\n";
-    ofs << indent;
-    ofs << "const Verbosity& verbosity";
-  }
-
   ofs << ");\n\n";
 }
 

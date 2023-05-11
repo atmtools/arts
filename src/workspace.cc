@@ -4753,24 +4753,6 @@ known for a single point, the normal of the surface at the position is also stor
       GROUP("Matrix"), Matrix{}));
 
   wsv_data.push_back(WsvRecord(
-      NAME("verbosity"),
-      DESCRIPTION(
-          "ARTS verbosity.\n"
-          "\n"
-          "The verbosity variable is implicitly passed to all workspace methods.\n"
-          "It can be used to dynamically control the reporting level during\n"
-          "runtime.\n"
-          "\n"
-          "Usage:    Set by user.\n"
-          "\n"
-          "See also: *verbosityInit*\n"
-          "          *verbositySet*\n"
-          "          *verbositySetAgenda*\n"
-          "          *verbositySetScreen*\n"
-          "          *verbositySetFile*\n"),
-      GROUP("Verbosity")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("water_p_eq_agenda"),
       DESCRIPTION("Agenda to calculate the saturation pressure of water.\n"),
       GROUP("Agenda")));

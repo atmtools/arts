@@ -31,7 +31,6 @@
 #include "matpack_complex.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "optproperties.h"
 
 void calc_phamat(Matrix& z,
@@ -1033,7 +1032,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
       Vector f34;
       Matrix mono_pha_mat_data(nza, 6, NAN);
 
-      ostringstream os;
+      std::ostringstream os;
       os << "Calculation of SingleScatteringData properties failed for\n\n";
       bool anyfailed = false;
 #pragma omp critical(tmatrix_ssp)
@@ -1069,7 +1068,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
             //throw std::runtime_error(os.str());
             thisfailed = true;
             anyfailed = true;
-            cout << "\n\n";
+            std::cout << "\n\n";
           }
 
           if (!thisfailed) {
@@ -1090,7 +1089,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
         }
       if (anyfailed)
         if (robust)
-          cout << os.str();
+          std::cout << os.str();
         else
           throw std::runtime_error(os.str());
       else {
@@ -1135,7 +1134,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                       ref_index_imag(f_index, T_index),
                                       precision);
           } catch (const std::runtime_error& e) {
-            ostringstream os;
+            std::ostringstream os;
             os << "Calculation of SingleScatteringData properties failed for\n"
                << "f_grid[" << f_index << "] = " << ssd.f_grid[f_index] << "\n"
                << "T_grid[" << T_index << "] = " << ssd.T_grid[T_index] << "\n"
@@ -1295,14 +1294,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
 }
 
 // Documentation in header file.
-void tmatrix_ampld_test(const Verbosity& verbosity) {
-  CREATE_OUT0;
-
-  out0 << "======================================================\n";
-  out0 << "Test for nonspherical particles in a fixed orientation\n";
-  out0 << "Output should match 3rdparty/tmatrix/tmatrix_ampld.ref\n";
-  out0 << "======================================================\n";
-
+void tmatrix_ampld_test() {
   // Same inputs as in example included in original ampld.lp.f
   Numeric rat = 1.;
   Numeric axi = 10.;  //[um]
@@ -1324,12 +1316,6 @@ void tmatrix_ampld_test(const Verbosity& verbosity) {
   tmatrix_(
       rat, axi, np, lam, eps, mrr, mri, ddelt, quiet, nmax, csca, cext, errmsg);
 
-  out0 << "nmax: " << nmax << "\n";
-  out0 << "csca: " << csca << " um2\n";
-  out0 << "cext: " << cext << " um2\n";
-
-  out0 << "Error message: " << (strlen(errmsg) ? errmsg : "None") << "\n";
-
   // Same inputs as in example included in original ampld.lp.f
   Numeric alpha = 145.;
   Numeric beta = 52.;
@@ -1345,28 +1331,13 @@ void tmatrix_ampld_test(const Verbosity& verbosity) {
   Complex s22;
   ampl_(nmax, lam, thet0, thet, phi0, phi, alpha, beta, s11, s12, s21, s22);
 
-  out0 << "AMPLITUDE MATRIX (all in [um]): \n";
-  out0 << "s11: " << s11 << "\n";
-  out0 << "s12: " << s12 << "\n";
-  out0 << "s21: " << s21 << "\n";
-  out0 << "s22: " << s22 << "\n";
-
   Matrix z;
   ampmat_to_phamat(z, s11, s12, s21, s22);
   //z *= 1e12; // meter^2 to micron^2 for comparison with original results
-
-  out0 << "PHASE MATRIX (all un [um2]): \n" << z << "\n";
 }
 
 // Documentation in header file.
-void tmatrix_tmd_test(const Verbosity& verbosity) {
-  CREATE_OUT0;
-
-  out0 << "======================================================\n";
-  out0 << "Test for randomly oriented nonspherical particles\n";
-  out0 << "Output should match 3rdparty/tmatrix/tmatrix_tmd.ref\n";
-  out0 << "======================================================\n";
-
+void tmatrix_tmd_test() {
   // Same inputs as in example included in original tmd.lp.f
   Numeric rat = 0.5;
   Index ndistr = 3;
@@ -1434,31 +1405,10 @@ void tmatrix_tmd_test(const Verbosity& verbosity) {
        f12.unsafe_data_handle(),
        f34.unsafe_data_handle(),
        errmsg);
-
-  out0 << "reff: " << reff << " um\n";
-  out0 << "veff: " << veff << "\n";
-  out0 << "cext: " << cext << " um2\n";
-  out0 << "csca: " << csca << " um2\n";
-  out0 << "walb: " << walb << "\n";
-  out0 << "asymm: " << asymm << "\n";
-  out0 << "f11: " << f11 << "\n";
-  out0 << "f22: " << f22 << "\n";
-  out0 << "f33: " << f33 << "\n";
-  out0 << "f44: " << f44 << "\n";
-  out0 << "f12: " << f12 << "\n";
-  out0 << "f34: " << f34 << "\n";
-
-  out0 << "Error message: " << (strlen(errmsg) ? errmsg : "None") << "\n";
 }
 
 // Documentation in header file.
-void calc_ssp_random_test(const Verbosity& verbosity) {
-  CREATE_OUT0;
-  out0 << "======================================================\n";
-  out0 << "Test calculation of single scattering data\n";
-  out0 << "for randomly oriented, oblate particles\n";
-  out0 << "======================================================\n";
-
+void calc_ssp_random_test() {
   SingleScatteringData ssd;
 
   ssd.ptype = PTYPE_TOTAL_RND;
@@ -1484,34 +1434,11 @@ void calc_ssp_random_test(const Verbosity& verbosity) {
 
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 1.5);
 
-  out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
-       << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
-
-  out0 << "ssd.ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
-  out0 << "ssd.abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
-
-  out0 << "======================================================\n";
-  out0 << "Test calculation of single scattering data\n";
-  out0 << "for randomly oriented, prolate particles\n";
-  out0 << "======================================================\n";
-
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 0.7);
-
-  out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
-       << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
-
-  out0 << "ssd.ext_mat_data:\n" << ssd.ext_mat_data << "\n\n";
-  out0 << "ssd.abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
 }
 
 // Documentation in header file.
-void calc_ssp_fixed_test(const Verbosity& verbosity) {
-  CREATE_OUT0;
-  out0 << "======================================================\n";
-  out0 << "Test calculation of single scattering data\n";
-  out0 << "for oblate particles with fixed orientation\n";
-  out0 << "======================================================\n";
-
+void calc_ssp_fixed_test() {
   SingleScatteringData ssd;
 
   ssd.ptype = PTYPE_AZIMUTH_RND;
@@ -1536,26 +1463,5 @@ void calc_ssp_fixed_test(const Verbosity& verbosity) {
   mri(1, 1) = 0.00523012;
 
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 1.5);
-
-  out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
-       << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
-
-  out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
-       << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
-
-  out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
-
-  out0 << "======================================================\n";
-  out0 << "Test calculation of single scattering data\n";
-  out0 << "for prolate particles with fixed orientation\n";
-  out0 << "======================================================\n";
   calcSingleScatteringDataProperties(ssd, mrr, mri, 200.e-6, -1, 0.7);
-
-  out0 << "ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker):\n"
-       << ssd.pha_mat_data(0, 0, joker, 0, 0, joker, joker) << "\n\n";
-
-  out0 << "ssd.ext_mat_data(0, 0, joker, joker, joker):\n"
-       << ssd.ext_mat_data(0, 0, joker, joker, joker) << "\n\n";
-
-  out0 << "abs_vec_data:\n" << ssd.abs_vec_data << "\n\n";
 }

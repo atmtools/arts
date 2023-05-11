@@ -219,8 +219,7 @@ void get_direct_radiation(Workspace& ws,
                      const Agenda& propmat_clearsky_agenda,
                      const Agenda& water_p_eq_agenda,
                      const Agenda& gas_scattering_agenda,
-                     const Numeric& rte_alonglos_v,
-                     const Verbosity& verbosity);
+                     const Numeric& rte_alonglos_v);
 
 /** Calculates the ppath towards the suns from a given position and indicates
  *  if sun is visible or not.
@@ -257,8 +256,7 @@ void get_sun_ppaths(Workspace& ws,
                      const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,
-                     const Agenda& ppath_step_agenda,
-                     const Verbosity& verbosity);
+                     const Agenda& ppath_step_agenda);
  
  /** regrid_sun_spectrum
  *
@@ -282,7 +280,6 @@ void get_sun_ppaths(Workspace& ws,
 Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
                           const Vector &f_grid,
                           const Index &stokes_dim,
-                          const Numeric &temperature,
-                          const Verbosity &verbosity);
+                          const Numeric &temperature);
 
 #endif /* star_h */

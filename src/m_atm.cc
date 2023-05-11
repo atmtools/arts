@@ -3,7 +3,6 @@
 #include "gridded_fields.h"
 #include "igrf13.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "quantum_numbers.h"
 #include "species_tags.h"
 #include "xml_io.h"
@@ -18,15 +17,13 @@
 #include <variant>
 
 void atm_fieldTopOfAtmosphere(AtmField &atm_field,
-                              const Numeric &top_of_atmosphere,
-                              const Verbosity &) {
+                              const Numeric &top_of_atmosphere) {
   atm_field.top_of_atmosphere = top_of_atmosphere;
 }
 
-void atm_fieldInit(AtmField &atm_field, const Numeric &top_of_atmosphere,
-                   const Verbosity &verbosity) {
+void atm_fieldInit(AtmField &atm_field, const Numeric &top_of_atmosphere) {
   atm_field = AtmField{};
-  atm_fieldTopOfAtmosphere(atm_field, top_of_atmosphere, verbosity);
+  atm_fieldTopOfAtmosphere(atm_field, top_of_atmosphere);
 }
 
 namespace detail {
@@ -44,10 +41,10 @@ namespace detail {
  */
 template <typename T>
 bool try_read(AtmField &atm_field, const Atm::KeyVal &key_val,
-              const String &filename, const Verbosity &verbosity) {
+              const String& filename) {
   try {
     T v;
-    xml_read_from_file(filename, v, verbosity);
+    xml_read_from_file(filename, v);
     std::visit([&](auto &key) { atm_field[key] = v; }, key_val);
 
     // Return success state
@@ -78,17 +75,16 @@ bool try_read(AtmField &atm_field, const Atm::KeyVal &key_val,
  */
 template <typename... T>
 bool try_reading(AtmField &atm_field, const Atm::KeyVal &key_val,
-                 const String &filename, const Verbosity &verbosity) {
-  return (try_read<T>(atm_field, key_val, filename, verbosity) or ...);
+                 const String& filename) {
+  return (try_read<T>(atm_field, key_val, filename) or ...);
 }
 
 void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
                                     const Atm::KeyVal &key_val,
                                     const String &filename,
-                                    const Atm::Extrapolation& extrapolation,
-                                    const Verbosity &verbosity) {
+                                    const Atm::Extrapolation& extrapolation) {
   const bool ok = try_reading<GriddedField3, Numeric>(
-      atm_field, key_val, filename, verbosity);
+      atm_field, key_val, filename);
 
   ARTS_USER_ERROR_IF(not ok, "The file ", std::quoted(filename),
                      " cannot be understood as atmospheric field data.\n"
@@ -109,38 +105,34 @@ void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
 void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const String &atmospheric_key,
                                 const String &filename,
-                                const String &extrapolation_type,
-                                const Verbosity &verbosity) {
+                                const String &extrapolation_type) {
   detail::atm_fieldAddCustomDataFileImpl(
       atm_field, Atm::toKeyOrThrow(atmospheric_key), filename,
-      Atm::toExtrapolationOrThrow(extrapolation_type), verbosity);
+      Atm::toExtrapolationOrThrow(extrapolation_type));
 }
 
 void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const QuantumIdentifier &nlte_key,
                                 const String &filename,
-                                const String &extrapolation_type,
-                                const Verbosity &verbosity) {
+                                const String &extrapolation_type) {
   detail::atm_fieldAddCustomDataFileImpl(
       atm_field, Atm::KeyVal{nlte_key}, filename,
-      Atm::toExtrapolationOrThrow(extrapolation_type), verbosity);
+      Atm::toExtrapolationOrThrow(extrapolation_type));
 }
 
 void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const ArrayOfSpeciesTag &spec_key,
                                 const String &filename,
-                                const String &extrapolation_type,
-                                const Verbosity &verbosity) {
+                                const String &extrapolation_type) {
   detail::atm_fieldAddCustomDataFileImpl(
       atm_field, Atm::KeyVal{spec_key}, filename,
-      Atm::toExtrapolationOrThrow(extrapolation_type), verbosity);
+      Atm::toExtrapolationOrThrow(extrapolation_type));
 }
 
 void atm_fieldAddField(AtmField &atm_field, const String &filename,
-                       const Index &set_top_of_atmosphere,
-                       const Verbosity &verbosity) {
+                       const Index &set_top_of_atmosphere) {
   AtmField atm_field_other;
-  xml_read_from_file(filename, atm_field_other, verbosity);
+  xml_read_from_file(filename, atm_field_other);
   for (auto &key : atm_field_other.keys()) {
     atm_field[key] = atm_field_other[key];
   }
@@ -154,10 +146,8 @@ void atm_fieldRead(AtmField &atm_field,
                    const String &basename, const Numeric &top_of_atmosphere,
                    const Index &read_tp, const Index &read_mag,
                    const Index &read_wind, const Index &read_specs,
-                   const Index &read_nlte, const Verbosity &verbosity) {
+                   const Index& read_nlte) {
   using enum Atm::Key;
-
-  CREATE_OUT3;
 
   // Fix filename
   String tmp_basename = basename;
@@ -165,32 +155,26 @@ void atm_fieldRead(AtmField &atm_field,
     tmp_basename += ".";
 
   // Reset and initialize
-  atm_fieldInit(atm_field, top_of_atmosphere, verbosity);
+  atm_fieldInit(atm_field, top_of_atmosphere);
 
   if (read_tp) {
     for (auto &key : {t, p}) {
       const String file_name{var_string(tmp_basename, key, ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0, verbosity);
-      out3 << key << " field read from file: " << std::quoted(file_name)
-           << '\n';
+      atm_fieldAddField(atm_field, file_name, 0);
     }
   }
 
   if (read_mag) {
     for (auto &key : {mag_u, mag_v, mag_w}) {
       const String file_name{var_string(tmp_basename, key, ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0, verbosity);
-      out3 << key << " field read from file: " << std::quoted(file_name)
-           << '\n';
+      atm_fieldAddField(atm_field, file_name, 0);
     }
   }
 
   if (read_wind) {
     for (auto &key : {wind_u, wind_v, wind_w}) {
       const String file_name{var_string(tmp_basename, key, ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0, verbosity);
-      out3 << key << " field read from file: " << std::quoted(file_name)
-           << '\n';
+      atm_fieldAddField(atm_field, file_name, 0);
     }
   }
 
@@ -198,22 +182,18 @@ void atm_fieldRead(AtmField &atm_field,
     for (auto &spec : abs_species) {
       const String file_name{
           var_string(tmp_basename, toShortName(spec.Species()), ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0, verbosity);
-      out3 << std::quoted(var_string(spec))
-           << " profile read from file: " << std::quoted(file_name) << "\n";
+      atm_fieldAddField(atm_field, file_name, 0);
     }
   }
 
   if (read_nlte) {
     const String file_name{var_string(tmp_basename, "nlte.xml")};
-    atm_fieldAddField(atm_field, file_name, 0, verbosity);
-    out3 << "Read all NLTE fields from: " << std::quoted(file_name) << '\n';
+    atm_fieldAddField(atm_field, file_name, 0);
   }
 }
 
 void atm_fieldSave(const AtmField &atm_field, const String &basename,
-                   const String &filetype, const Index &no_clobber,
-                   const Verbosity &verbosity) {
+                   const String &filetype, const Index &no_clobber) {
   const auto ftype = string2filetype(filetype);
 
   // Fix filename
@@ -260,20 +240,19 @@ void atm_fieldSave(const AtmField &atm_field, const String &basename,
       out.top_of_atmosphere = atm_field.top_of_atmosphere;
       out[key] = atm_field[key];
       const String filename{var_string(tmp_basename, keyname, ".xml")};
-      xml_write_to_file(filename, out, ftype, no_clobber, verbosity);
+      xml_write_to_file(filename, out, ftype, no_clobber);
     }
   }
 
   if (nlte.nnlte()) {
     const String filename{var_string(tmp_basename, "nlte.xml")};
-    xml_write_to_file(filename, nlte, ftype, no_clobber, verbosity);
+    xml_write_to_file(filename, nlte, ftype, no_clobber);
   }
 }
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const String &key,
                              const GriddedField3 &data, 
-                                const String &extrapolation_type,
-                                const Verbosity &) {
+                                const String &extrapolation_type) {
   auto& fld = atm_field[Atm::toKeyOrThrow(key)] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
@@ -288,7 +267,7 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const String &key,
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
                              const GriddedField3 &data,
-                                const String &extrapolation_type, const Verbosity &) {
+                                const String& extrapolation_type) {
   auto& fld = atm_field[key] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
@@ -303,7 +282,7 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
 
 void atm_fieldAddGriddedData(AtmField &atm_field, const QuantumIdentifier &key,
                              const GriddedField3 &data,
-                                const String &extrapolation_type, const Verbosity &) {
+                                const String& extrapolation_type) {
   auto& fld = atm_field[key] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
@@ -317,22 +296,21 @@ void atm_fieldAddGriddedData(AtmField &atm_field, const QuantumIdentifier &key,
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field, const String &key,
-                             const Numeric &data, const Verbosity &) {
+                             const Numeric& data) {
   atm_field[Atm::toKeyOrThrow(key)] = data;
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field, const ArrayOfSpeciesTag &key,
-                             const Numeric &data, const Verbosity &) {
+                             const Numeric& data) {
   atm_field[key] = data;
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field, const QuantumIdentifier &key,
-                             const Numeric &data, const Verbosity &) {
+                             const Numeric& data) {
   atm_field[key] = data;
 }
 
-void atm_fieldIGRF(AtmField &atm_field, const Time &time, const Index &parsafe,
-                   const Verbosity &) {
+void atm_fieldIGRF(AtmField &atm_field, const Time &time, const Index &parsafe) {
   using namespace IGRF;
 
   //! We need explicit planet-size as IGRF requires the radius

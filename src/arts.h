@@ -116,18 +116,12 @@ using namespace std;
 //---------------< Global function declarations: >---------------
 // Documentations are with function definitions.
 // FIXME: OLE: These should be moved to a separate header file.
-class ArtsOut;
-
 void define_wsv_groups();
 bool is_valid_keyword_group(const Index name);
 
 void arts_exit(int status = EXIT_FAILURE);
-void arts_exit_with_error_message(const String& m, ArtsOut& os);
+void arts_exit_with_error_message(const String& m);
 std::string_view arts_get_version_string();
-
-//
-// Physical constants are now in constants.cc
-//
 
 //---------------< Global macro definitions: >---------------
 

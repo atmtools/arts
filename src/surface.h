@@ -267,8 +267,7 @@ void surface_get_incoming_direct(
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
-    const Agenda& ppath_step_agenda,
-    const Verbosity& verbosity);
+    const Agenda& ppath_step_agenda);
 
 
 /** Determines the normal vector of the surface

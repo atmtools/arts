@@ -51,8 +51,7 @@ void propmat_clearskyAddZeeman(
     const Index& manual_zeeman_tag,
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
-    const Numeric& manual_zeeman_eta,
-    const Verbosity&) {
+    const Numeric& manual_zeeman_eta) {
   if (abs_lines_per_species.nelem() == 0) return;
   
   ARTS_USER_ERROR_IF((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag),
@@ -88,8 +87,7 @@ void propmat_clearskyAddZeeman(
 
 void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                  const ArrayOfQuantumIdentifier& qid,
-                                 const Vector& gs,
-                                 const Verbosity&) {
+                                 const Vector& gs) {
   ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
   for (Index i=0; i<qid.nelem(); i++) {
     const QuantumIdentifier& id = qid[i];
@@ -110,11 +108,10 @@ void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
 
 void abs_lines_per_speciesZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                 const ArrayOfQuantumIdentifier& qid,
-                                                const Vector& gs,
-                                                const Verbosity& verbosity) {
+                                                const Vector& gs) {
   for (auto& abs_lines: abs_lines_per_species) {
     for (Index i=0; i<qid.nelem(); i++) {
-      abs_linesZeemanCoefficients(abs_lines, qid, gs, verbosity);
+      abs_linesZeemanCoefficients(abs_lines, qid, gs);
     }
   }
 }

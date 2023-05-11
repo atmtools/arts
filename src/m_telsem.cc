@@ -42,8 +42,7 @@ void telsemStandalone(Matrix &emis,
                       const Numeric &theta,
                       const Vector &f,
                       const TelsemAtlas &atlas,
-                      const Numeric &d_max,
-                      const Verbosity &) {
+                      const Numeric &d_max) {
   chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
   chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
 
@@ -83,8 +82,7 @@ void telsemSurfaceTypeLandSea(Index &surface_type,
                               const Vector &lat_true,
                               const Vector &lon_true,
                               const Vector &rtp_pos,
-                              const TelsemAtlas &atlas,
-                              const Verbosity &) {
+                              const TelsemAtlas &atlas) {
   // Checks
   chk_latlon_true(3, lat_grid, lat_true, lon_true);
 
@@ -106,8 +104,7 @@ void telsemSurfaceTypeLandSea(Index &surface_type,
 void telsemAtlasLookup(Vector &emis,
                        const Numeric &lat,
                        const Numeric &lon,
-                       const TelsemAtlas &atlas,
-                       const Verbosity &) {
+                       const TelsemAtlas &atlas) {
   chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
   chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
 
@@ -123,9 +120,7 @@ void telsemAtlasLookup(Vector &emis,
 void telsem_atlasReadAscii(TelsemAtlas &atlas,
                            const String &directory,
                            const Index &month,
-                           const String &filename_pattern,
-                           const Verbosity &verbosity) {
-  CREATE_OUT2;
+                           const String &filename_pattern) {
   const Index imonth = filename_pattern.find("@MM@");
   ARTS_USER_ERROR_IF(imonth == String::npos,
                      "Substring '@MM@' not found in filename_pattern for\n",
@@ -144,13 +139,11 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
   this_filename.replace(imonth, 4, month_ss.str());
   this_filename = directory + '/' + this_filename;
 
-  out2 << "Reading TELSEM atlas: " << this_filename << '\n';
   open_input_file(is, this_filename);
   atlas.read(is);
   atlas.set_month(month);
 
   String corr_filename = directory + '/' + "correlations";
-  out2 << "Reading correlations: " << corr_filename << '\n';
   std::ifstream corr_is;
   open_input_file(corr_is, corr_filename);
   Tensor3 correlation(10, 7, 7);
@@ -172,9 +165,7 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
                              const String &directory,
-                             const String &filename_pattern,
-                             const Verbosity &verbosity) {
-  CREATE_OUT2;
+                             const String &filename_pattern) {
   const Index imonth = filename_pattern.find("@MM@");
   ARTS_USER_ERROR_IF(imonth == String::npos,
                      "Substring '@MM@' not found in filename_pattern for\n",
@@ -191,7 +182,6 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
     this_filename.replace(imonth, 4, month.str());
     this_filename = directory + '/' + this_filename;
 
-    out2 << "Reading TELSEM atlas: " << this_filename << '\n';
     open_input_file(is, this_filename);
     telsem_atlases[i - 1].read(is);
     telsem_atlases[i - 1].set_month(i);
@@ -199,7 +189,6 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
 
   std::ifstream is;
   String corr_filename = directory + '/' + "correlations";
-  out2 << "Reading correlations: " << corr_filename << '\n';
   open_input_file(is, corr_filename);
   Tensor3 correlation(10, 7, 7);
   String s;

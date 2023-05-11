@@ -37,7 +37,6 @@
 #include "auto_md.h"
 #include "debug.h"
 #include "global_data.h"
-#include "messages.h"
 #include "methods.h"
 #include "tokval.h"
 #include "workspace_ng.h"
@@ -106,7 +105,7 @@ void Agenda::append(const String& methodname, const TokVal& keywordvalue) {
   Checks that the input used by the agenda and the output produced by the
   actual methods corresponds to what is desired in the lookup data.
 */
-void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
+void Agenda::check(Workspace& ws_in) {
   // Check that this agenda has a default workspace
   if (not workspace().get()) {
     mchecked = false;
@@ -174,7 +173,7 @@ void Agenda::check(Workspace& ws_in, const Verbosity& verbosity) {
     }
   }
 
-  set_outputs_to_push_and_dup(verbosity);
+  set_outputs_to_push_and_dup();
 
   mchecked = true;
 }
@@ -217,41 +216,13 @@ There are three possible causes for this:
   const Index wsv_id_verbosity = ws_in.WsvMap_ptr->at("verbosity");
   ws_in.duplicate(wsv_id_verbosity);
 
-  Verbosity& averbosity =
-      *(static_cast<Verbosity*>(ws_in[wsv_id_verbosity].get()));
-
-  averbosity.set_main_agenda(is_main_agenda());
-
-  ArtsOut1 aout1(averbosity);
-  {
-    //    ostringstream os;  // disabled for performance reasons
-    //    os << "Executing " << name() << "\n"
-    //       << "{\n";
-    //    aout1 << os.str();
-    aout1 << "Executing " << name() << "\n"
-          << "{\n";
-  }
-
   for (Index i = 0; i < mml.nelem(); ++i) {
-    const Verbosity& verbosity =
-        *static_cast<Verbosity*>(ws_in[wsv_id_verbosity].get());
-    CREATE_OUT1;
-    CREATE_OUT3;
-
     // Runtime method data for this method:
     const MRecord& mrr = mml[i];
     // Method data for this method:
     const MdRecord& mdd = md_data[mrr.Id()];
 
     try {
-      {
-        if (mrr.isInternal()) {
-          out3 << "- " + mdd.Name() + "\n";
-        } else {
-          out1 << "- " + mdd.Name() + "\n";
-        }
-      }
-
       {  // Check if all input variables are initialized:
         const ArrayOfIndex& v(mrr.In());
         for (Index s = 0; s < v.nelem(); ++s) {
@@ -277,8 +248,6 @@ There are three possible causes for this:
       getaways[mrr.Id()](ws_in, mrr);
 
     } catch (const std::bad_alloc& x) {
-      aout1 << "}\n";
-
       ostringstream os;
       os << "Memory allocation error in method: " << mdd.Name() << '\n'
          << "For memory intensive jobs it could help to limit the\n"
@@ -287,16 +256,12 @@ There are three possible causes for this:
 
       throw runtime_error(os.str());
     } catch (const std::exception& x) {
-      aout1 << "}\n";
-
       ostringstream os;
       os << "Run-time error in method: " << mdd.Name() << '\n' << x.what();
 
       throw runtime_error(os.str());
     }
   }
-
-  aout1 << "}\n";
 
   ws_in.pop(wsv_id_verbosity);
 }
@@ -307,7 +272,7 @@ There are three possible causes for this:
   duplicated or pushed on the WSV stack before the agenda
   is executed.
 */
-void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
+void Agenda::set_outputs_to_push_and_dup() {
   using global_data::agenda_data;
   using global_data::AgendaMap;
   using global_data::md_data;
@@ -493,34 +458,14 @@ void Agenda::set_outputs_to_push_and_dup(const Verbosity& verbosity) {
                    insert_iterator<ArrayOfIndex>(
                        agenda_only_in_wsm_out, agenda_only_in_wsm_out.begin()));
 
-  CREATE_OUT3;
-
-  out3 << "  [Agenda::pushpop]                 : " << name() << "\n";
-  out3 << "  [Agenda::pushpop] - # Funcs in Ag : " << mml.nelem() << "\n";
-  out3 << "  [Agenda::pushpop] - AgOut         : ";
-  PrintWsvNames(out3, *workspace(), aout);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - AgIn          : ";
-  PrintWsvNames(out3, *workspace(), ain);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - All WSM output: ";
-  PrintWsvNames(out3, *workspace(), outputs);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - All WSM input : ";
-  PrintWsvNames(out3, *workspace(), inputs);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - Output WSVs push     : ";
-  PrintWsvNames(out3, *workspace(), moutput_push);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - Output WSVs dup      : ";
-  PrintWsvNames(out3, *workspace(), moutput_dup);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - Ag inp dup    : ";
-  PrintWsvNames(out3, *workspace(), agenda_only_in_wsm_out);
-  out3 << "\n";
-  out3 << "  [Agenda::pushpop] - Ag out dup    : ";
-  PrintWsvNames(out3, *workspace(), agenda_only_out_wsm_in);
-  out3 << "\n";
+  PrintWsvNames(std::cout, *workspace(), aout);
+  PrintWsvNames(std::cout, *workspace(), ain);
+  PrintWsvNames(std::cout, *workspace(), outputs);
+  PrintWsvNames(std::cout, *workspace(), inputs);
+  PrintWsvNames(std::cout, *workspace(), moutput_push);
+  PrintWsvNames(std::cout, *workspace(), moutput_dup);
+  PrintWsvNames(std::cout, *workspace(), agenda_only_in_wsm_out);
+  PrintWsvNames(std::cout, *workspace(), agenda_only_out_wsm_in);
 }
 
 //! Check if given variable is agenda input.

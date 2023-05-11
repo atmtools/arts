@@ -69,7 +69,7 @@ void add_scalar_variance(CovarianceMatrix& covmat,
 // Simple Pressure-Height Conversion
 ////////////////////////////////////////////////////////////////////////////////
 
-void ZFromPSimple(Vector& z_grid, const Vector& p_grid, const Verbosity&) {
+void ZFromPSimple(Vector& z_grid, const Vector& p_grid) {
   z_grid = Vector(p_grid.nelem());
 
   for (Index i = 0; i < p_grid.nelem(); ++i) {
@@ -82,7 +82,7 @@ void ZFromPSimple(Vector& z_grid, const Vector& p_grid, const Verbosity&) {
   }
 }
 
-void PFromZSimple(Vector& p_grid, const Vector& z_grid, const Verbosity&) {
+void PFromZSimple(Vector& p_grid, const Vector& z_grid) {
   p_grid = Vector(z_grid.nelem());
 
   for (Index i = 0; i < p_grid.nelem(); ++i) {
@@ -130,8 +130,7 @@ void insert_elements(Matrix& matrix,
 template <typename MatrixType>
 void covmatDiagonal(MatrixType& block,
                     MatrixType& block_inv,
-                    const Vector& vars,
-                    const Verbosity&) {
+                    const Vector& vars) {
   ARTS_USER_ERROR_IF (vars.empty(),
         "Cannot pass empty vector of variances to covmat_blockSetDiagonal");
   Index n = vars.nelem();
@@ -152,12 +151,10 @@ void covmatDiagonal(MatrixType& block,
 
 template void covmatDiagonal(Matrix& block,
                              Matrix& block_inv,
-                             const Vector& vars,
-                             const Verbosity&);
+                             const Vector& vars);
 template void covmatDiagonal(Sparse& block,
                              Sparse& block_inv,
-                             const Vector& vars,
-                             const Verbosity&);
+                             const Vector& vars);
 
 template <typename MatrixType>
 void covmat1DMarkov(MatrixType& block,
@@ -165,8 +162,7 @@ void covmat1DMarkov(MatrixType& block,
                     const Vector& grid,
                     const Vector& sigma,
                     const Numeric& lc,
-                    const Numeric& /*co*/,
-                    const Verbosity&) {
+                    const Numeric& /*co*/) {
   Index n = grid.nelem();
   ArrayOfIndex row_indices, column_indices;
   Vector elements, elements_inv;
@@ -229,16 +225,14 @@ template void covmat1DMarkov(Matrix& block,
                              const Vector& grid,
                              const Vector& sigma,
                              const Numeric& lc,
-                             const Numeric& /*co*/,
-                             const Verbosity&);
+                             const Numeric& /*co*/);
 
 template void covmat1DMarkov(Sparse& block,
                              Sparse& block_inv,
                              const Vector& grid,
                              const Vector& sigma,
                              const Numeric& lc,
-                             const Numeric& /*co*/,
-                             const Verbosity&);
+                             const Numeric& /*co*/);
 
 template <typename MatrixType>
 void covmat1D(MatrixType& block,
@@ -249,8 +243,7 @@ void covmat1D(MatrixType& block,
               const Vector& lc1,
               const Vector& lc2,
               const Numeric& co,
-              const String& fname,
-              const Verbosity&) {
+              const String& fname) {
   Index m = grid1.nelem();
   Vector sigma1_copy(sigma1), lc1_copy(lc1);
 
@@ -368,8 +361,7 @@ template void covmat1D(Matrix& block,
                        const Vector& lc1,
                        const Vector& lc2,
                        const Numeric& co,
-                       const String& fname,
-                       const Verbosity&);
+                       const String& fname);
 
 template void covmat1D(Sparse& block,
                        const Vector& grid1,
@@ -379,8 +371,7 @@ template void covmat1D(Sparse& block,
                        const Vector& lc1,
                        const Vector& lc2,
                        const Numeric& co,
-                       const String& fname,
-                       const Verbosity&);
+                       const String& fname);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Manipulation of covmat_se and covmat_sx
@@ -390,8 +381,7 @@ template <typename MatrixType>
 void covmat_seAddBlock(CovarianceMatrix& covmat_se,
                        const MatrixType& block,
                        const Index& i,
-                       const Index& j,
-                       const Verbosity&) {
+                       const Index& j) {
   Index m = block.nrows();
   Index n = block.ncols();
 
@@ -457,21 +447,18 @@ void covmat_seAddBlock(CovarianceMatrix& covmat_se,
 template void covmat_seAddBlock(CovarianceMatrix& covmat_se,
                                 const Matrix& block,
                                 const Index& i,
-                                const Index& j,
-                                const Verbosity&);
+                                const Index& j);
 
 template void covmat_seAddBlock(CovarianceMatrix& covmat_se,
                                 const Sparse& block,
                                 const Index& i,
-                                const Index& j,
-                                const Verbosity&);
+                                const Index& j);
 
 template <typename MatrixType>
 void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
                               const MatrixType& inv_block,
                               const Index& i,
-                              const Index& j,
-                              const Verbosity&) {
+                              const Index& j) {
   ARTS_USER_ERROR_IF (covmat_se.ndiagblocks() == 0,
                       "Need at least one non-inverse block in the matrix"
                       " before an inverse block can be added.");
@@ -505,14 +492,12 @@ void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
 template void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
                                        const Matrix& block,
                                        const Index& i,
-                                       const Index& j,
-                                       const Verbosity&);
+                                       const Index& j);
 
 template void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
                                        const Sparse& block,
                                        const Index& i,
-                                       const Index& j,
-                                       const Verbosity&);
+                                       const Index& j);
 
 template <typename MatrixType>
 void setCovarianceMatrix(CovarianceMatrix& covmat, const MatrixType& block) {
@@ -537,49 +522,40 @@ void setCovarianceMatrix(CovarianceMatrix& covmat,
 
 template <typename MatrixType>
 void covmat_seSet(CovarianceMatrix& covmat,
-                  const MatrixType& block,
-                  const Verbosity& /*v*/) {
+                  const MatrixType &block) {
   setCovarianceMatrix(covmat, block);
 }
 
 template void covmat_seSet(CovarianceMatrix& covmat,
-                           const CovarianceMatrix& block,
-                           const Verbosity& /*v*/);
+                           const CovarianceMatrix& );
 
 template void covmat_seSet(CovarianceMatrix& covmat,
-                           const Matrix& block,
-                           const Verbosity& /*v*/);
+                           const Matrix& );
 
 template void covmat_seSet(CovarianceMatrix& covmat,
-                           const Sparse& block,
-                           const Verbosity& /*v*/);
+                           const Sparse& );
 
 template <typename MatrixType>
 void covmat_sxSet(CovarianceMatrix& covmat,
-                  const MatrixType& block,
-                  const Verbosity& /*v*/) {
+                  const MatrixType &block) {
   setCovarianceMatrix(covmat, block);
 }
 
 template void covmat_sxSet(CovarianceMatrix& covmat,
-                           const CovarianceMatrix& block,
-                           const Verbosity& /*v*/);
+                           const CovarianceMatrix& );
 
 template void covmat_sxSet(CovarianceMatrix& covmat,
-                           const Matrix& block,
-                           const Verbosity& /*v*/);
+                           const Matrix& );
 
 template void covmat_sxSet(CovarianceMatrix& covmat,
-                           const Sparse& block,
-                           const Verbosity& /*v*/);
+                           const Sparse& );
 
 template <typename MatrixType>
 void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
                        const ArrayOfRetrievalQuantity& jq,
                        const MatrixType& block,
                        const Index& i,
-                       const Index& j,
-                       const Verbosity& /*v*/) {
+                       const Index&j ) {
   Index ii(i), jj(j);
   if ((ii < 0) && (jj < 0)) {
     ii = covmat_sx.ndiagblocks();
@@ -635,23 +611,20 @@ template void covmat_sxAddBlock(CovarianceMatrix&,
                                 const ArrayOfRetrievalQuantity&,
                                 const Matrix&,
                                 const Index&,
-                                const Index&,
-                                const Verbosity&);
+                                const Index&);
 
 template void covmat_sxAddBlock(CovarianceMatrix&,
                                 const ArrayOfRetrievalQuantity&,
                                 const Sparse&,
                                 const Index&,
-                                const Index&,
-                                const Verbosity&);
+                                const Index&);
 
 template <typename MatrixType>
 void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
                               const ArrayOfRetrievalQuantity& jq,
                               const MatrixType& block_inv,
                               const Index& i,
-                              const Index& j,
-                              const Verbosity& /*v*/) {
+                              const Index&j ) {
   ARTS_USER_ERROR_IF (covmat_sx.ndiagblocks() == 0,
                       "Need at least one non-inverse block in the matrix"
                       " before an inverse block can be added.");
@@ -712,19 +685,16 @@ template void covmat_sxAddInverseBlock(CovarianceMatrix&,
                                        const ArrayOfRetrievalQuantity&,
                                        const Matrix&,
                                        const Index&,
-                                       const Index&,
-                                       const Verbosity&);
+                                       const Index&);
 
 template void covmat_sxAddInverseBlock(CovarianceMatrix&,
                                        const ArrayOfRetrievalQuantity&,
                                        const Sparse&,
                                        const Index&,
-                                       const Index&,
-                                       const Verbosity&);
+                                       const Index&);
 
 void covmat_sxExtractSqrtDiagonal(Vector& x_norm,
-                                  const CovarianceMatrix& covmat_sx,
-                                  const Verbosity&) {
+                                  const CovarianceMatrix& covmat_sx) {
   x_norm = covmat_sx.diagonal();
   for (Index i = 0; i < x_norm.nelem(); ++i) {
     x_norm[i] = sqrt(x_norm[i]);
@@ -746,8 +716,7 @@ void retrievalAddAbsSpecies(Workspace& ws,
                             const Vector& rq_lon_grid,
                             const String& species,
                             const String& mode,
-                            const Index& for_species_tag,
-                            const Verbosity& verbosity) {
+                            const Index &for_species_tag) {
   jacobianAddAbsSpecies(ws,
                         jacobian_quantities,
                         jacobian_agenda,
@@ -756,8 +725,7 @@ void retrievalAddAbsSpecies(Workspace& ws,
                         rq_lon_grid,
                         species,
                         mode,
-                        for_species_tag,
-                        verbosity);
+                        for_species_tag);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -773,10 +741,9 @@ void retrievalAddFreqShift(Workspace& ws,
                            const Sparse& covmat_block,
                            const Sparse& covmat_inv_block,
                            const Vector& f_grid,
-                           const Numeric& df,
-                           const Verbosity& verbosity) {
+                           const Numeric &df) {
   jacobianAddFreqShift(
-      ws, jacobian_quantities, jacobian_agenda, f_grid, df, verbosity);
+      ws, jacobian_quantities, jacobian_agenda, f_grid, df);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -792,10 +759,9 @@ void retrievalAddFreqStretch(Workspace& ws,
                              const Vector& f_grid,
                              const Sparse& covmat_block,
                              const Sparse& covmat_inv_block,
-                             const Numeric& df,
-                             const Verbosity& verbosity) {
+                             const Numeric&df) {
   jacobianAddFreqStretch(
-      ws, jacobian_quantities, jacobian_agenda, f_grid, df, verbosity);
+      ws, jacobian_quantities, jacobian_agenda, f_grid, df);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -810,14 +776,12 @@ void retrievalAddCatalogParameter(Workspace& ws,
                                   Agenda& jacobian_agenda,
                                   const QuantumIdentifier& catalog_identity,
                                   const String& catalog_parameter,
-                                  const Numeric& var,
-                                  const Verbosity& verbosity) {
+                                  const Numeric &var) {
   jacobianAddBasicCatalogParameter(ws,
                                    jacobian_quantities,
                                    jacobian_agenda,
                                    catalog_identity,
-                                   catalog_parameter,
-                                   verbosity);
+                                   catalog_parameter);
   add_scalar_variance(covmat_sx, jacobian_quantities, var);
 }
 
@@ -829,14 +793,12 @@ void retrievalAddCatalogParameters(
     const Sparse& covmat_block,
     const Sparse& covmat_inv_block,
     const ArrayOfQuantumIdentifier& catalog_identities,
-    const ArrayOfString& catalog_parameters,
-    const Verbosity& verbosity) {
+    const ArrayOfString &catalog_parameters) {
   jacobianAddBasicCatalogParameters(ws,
                                     jacobian_quantities,
                                     jacobian_agenda,
                                     catalog_identities,
-                                    catalog_parameters,
-                                    verbosity);
+                                    catalog_parameters);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -855,8 +817,7 @@ void retrievalAddMagField(Workspace& ws,
                           const Vector& rq_lat_grid,
                           const Vector& rq_lon_grid,
                           const String& component,
-                          const Numeric& dB,
-                          const Verbosity& verbosity) {
+                          const Numeric &dB) {
   jacobianAddMagField(ws,
                       jacobian_quantities,
                       jacobian_agenda,
@@ -864,8 +825,7 @@ void retrievalAddMagField(Workspace& ws,
                       rq_lat_grid,
                       rq_lon_grid,
                       component,
-                      dB,
-                      verbosity);
+                      dB);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -884,8 +844,7 @@ void retrievalAddPointingZa(Workspace& ws,
                             const ArrayOfTime& sensor_time,
                             const Index& poly_order,
                             const String& calcmode,
-                            const Numeric& dza,
-                            const Verbosity& verbosity) {
+                            const Numeric &dza) {
   jacobianAddPointingZa(ws,
                         jacobian_quantities,
                         jacobian_agenda,
@@ -893,8 +852,7 @@ void retrievalAddPointingZa(Workspace& ws,
                         sensor_time,
                         poly_order,
                         calcmode,
-                        dza,
-                        verbosity);
+                        dza);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -915,8 +873,7 @@ void retrievalAddPolyfit(Workspace& ws,
                          const Index& poly_order,
                          const Index& no_pol_variation,
                          const Index& no_los_variation,
-                         const Index& no_mblock_variation,
-                         const Verbosity& verbosity) {
+                         const Index &no_mblock_variation) {
   size_t jq_start = jacobian_quantities.size();
   jacobianAddPolyfit(ws,
                      jacobian_quantities,
@@ -927,8 +884,7 @@ void retrievalAddPolyfit(Workspace& ws,
                      poly_order,
                      no_pol_variation,
                      no_los_variation,
-                     no_mblock_variation,
-                     verbosity);
+                     no_mblock_variation);
   for (Index i = 0; i <= poly_order; ++i) {
     check_and_add_block(covmat_sx,
                         jacobian_quantities[jq_start + i],
@@ -949,8 +905,7 @@ void retrievalAddScatSpecies(Workspace& ws,
                              const Vector& rq_lat_grid,
                              const Vector& rq_lon_grid,
                              const String& species,
-                             const String& quantity,
-                             const Verbosity& verbosity) {
+                             const String& quantity) {
   jacobianAddScatSpecies(ws,
                          jacobian_quantities,
                          jacobian_agenda,
@@ -958,8 +913,7 @@ void retrievalAddScatSpecies(Workspace& ws,
                          rq_lat_grid,
                          rq_lon_grid,
                          species,
-                         quantity,
-                         verbosity);
+                         quantity);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -980,8 +934,7 @@ void retrievalAddSinefit(Workspace& ws,
                          const Vector& period_lengths,
                          const Index& no_pol_variation,
                          const Index& no_los_variation,
-                         const Index& no_mblock_variation,
-                         const Verbosity& verbosity) {
+                         const Index &no_mblock_variation) {
   size_t jq_start = jacobian_quantities.size();
   jacobianAddSinefit(ws,
                      jacobian_quantities,
@@ -992,8 +945,7 @@ void retrievalAddSinefit(Workspace& ws,
                      period_lengths,
                      no_pol_variation,
                      no_los_variation,
-                     no_mblock_variation,
-                     verbosity);
+                     no_mblock_variation);
   for (Index i = 0; i < period_lengths.nelem(); ++i) {
     check_and_add_block(covmat_sx,
                         jacobian_quantities[jq_start + i],
@@ -1013,16 +965,14 @@ void retrievalAddSpecialSpecies(Workspace& ws,
                                 const Vector& rq_p_grid,
                                 const Vector& rq_lat_grid,
                                 const Vector& rq_lon_grid,
-                                const String& species,
-                                const Verbosity& verbosity) {
+                                const String &species) {
   jacobianAddSpecialSpecies(ws,
                             jacobian_quantities,
                             jacobian_agenda,
                             rq_p_grid,
                             rq_lat_grid,
                             rq_lon_grid,
-                            species,
-                            verbosity);
+                            species);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -1041,8 +991,7 @@ void retrievalAddWind(Workspace& ws,
                       const Vector& rq_lat_grid,
                       const Vector& rq_lon_grid,
                       const String& component,
-                      const Numeric& dfrequency,
-                      const Verbosity& verbosity) {
+                      const Numeric &dfrequency) {
   jacobianAddWind(ws,
                   jacobian_quantities,
                   jacobian_agenda,
@@ -1050,8 +999,7 @@ void retrievalAddWind(Workspace& ws,
                   rq_lat_grid,
                   rq_lon_grid,
                   component,
-                  dfrequency,
-                  verbosity);
+                  dfrequency);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -1069,16 +1017,14 @@ void retrievalAddTemperature(Workspace& ws,
                              const Vector& rq_p_grid,
                              const Vector& rq_lat_grid,
                              const Vector& rq_lon_grid,
-                             const String& hse,
-                             const Verbosity& verbosity) {
+                             const String& hse) {
   jacobianAddTemperature(ws,
                          jacobian_quantities,
                          jacobian_agenda,
                          rq_p_grid,
                          rq_lat_grid,
                          rq_lon_grid,
-                         hse,
-                         verbosity);
+                         hse);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.nelem() - 1,
@@ -1095,15 +1041,13 @@ void retrievalAddSurfaceQuantity(Workspace& ws,
                                  const Sparse& covmat_inv_block,
                                  const Vector& rq_lat_grid,
                                  const Vector& rq_lon_grid,
-                                 const String& quantity,
-                                 const Verbosity& verbosity) {
+                                 const String &quantity) {
   jacobianAddSurfaceQuantity(ws,
                              jacobian_quantities,
                              jacobian_agenda,
                              rq_lat_grid,
                              rq_lon_grid,
-                             quantity,
-                             verbosity);
+                             quantity);
 
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
@@ -1119,10 +1063,9 @@ void retrievalDefClose(Workspace& ws,
                        Agenda& jacobian_agenda,
                        Index& retrieval_checked,
                        const CovarianceMatrix& covmat_sx,
-                       const ArrayOfRetrievalQuantity& jacobian_quantities,
-                       const Verbosity& verbosity) {
+                       const ArrayOfRetrievalQuantity &jacobian_quantities) {
   jacobianClose(
-      ws, jacobian_do, jacobian_agenda, jacobian_quantities, verbosity);
+      ws, jacobian_do, jacobian_agenda, jacobian_quantities);
 
   ArrayOfArrayOfIndex ji_t;
   bool any_affine;
@@ -1146,10 +1089,9 @@ void retrievalDefInit(Workspace& ws,
                       Sparse& covmat_inv_block,
                       ArrayOfRetrievalQuantity& jacobian_quantities,
                       Agenda& jacobian_agenda,
-                      const Index& initialize_jacobian,
-                      const Verbosity& verbosity) {
+                      const Index &initialize_jacobian) {
   if (initialize_jacobian == 1) {
-    jacobianInit(ws, jacobian_quantities, jacobian_agenda, verbosity);
+    jacobianInit(ws, jacobian_quantities, jacobian_agenda);
   }
 
   covmat_block = Sparse();
@@ -1161,8 +1103,7 @@ void retrievalDefInit(Workspace& ws,
 void retrievalErrorsExtract(Vector& retrieval_eo,
                             Vector& retrieval_ss,
                             const Matrix& covmat_so,
-                            const Matrix& covmat_ss,
-                            const Verbosity& /*v*/) {
+                            const Matrix&covmat_ss ) {
   Index n_so = covmat_so.nrows();
   Index n_ss = covmat_ss.nrows();
 

@@ -29,8 +29,9 @@
 #define methods_h
 
 #include <iosfwd>
+
 #include "matpack_data.h"
-#include "messages.h"
+#include "mystring.h"
 
 #define NODEF "@@THIS_KEYWORD_HAS_NO_DEFAULT_VALUE@@"
 
@@ -123,7 +124,7 @@ class MdRecord {
     @param os Output stream
     @param show_description Should the description string also be printed?
   */
-  ostream& PrintTemplate(ostream& os, bool show_description = true) const;
+  std::ostream& PrintTemplate(std::ostream& os, bool show_description = true) const;
 
   MdRecord& operator=(MdRecord&& m) = default;
   MdRecord& operator=(const MdRecord& m) = default;
@@ -131,7 +132,7 @@ class MdRecord {
   // Needed by make_auto_md_h.cc. See documentation there.
   friend void subst_any_with_group(MdRecord& mdd, Index g);
 
-  friend ostream& operator<<(ostream& os, const MdRecord& mdr);
+  friend std::ostream& operator<<(std::ostream& os, const MdRecord& mdr);
 
  private:
   //! The name of this method.

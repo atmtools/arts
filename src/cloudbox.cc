@@ -46,7 +46,6 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 #include "logic.h"
 #include "math_funcs.h"
 #include "mc_antenna.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rng.h"
@@ -67,10 +66,7 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 */
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
-                  const Index& atmosphere_dim,
-                  const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                  const Index& atmosphere_dim) {
   const Vector& pfr_lat_grid =
       pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& pfr_lon_grid =
@@ -79,8 +75,6 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
   // The consistency of the dimensions is checked in the reading routine.
   // Here we have to check whether the atmospheric dimension is correct and whether
   // the particle number density is 0 on the cloudbox boundary and outside the cloudbox.
-
-  out3 << "Check particle number density file " << pnd_field_file << "\n";
 
   ARTS_USER_ERROR_IF (atmosphere_dim == 1 &&
       (pfr_lat_grid.nelem() != 1 || pfr_lon_grid.nelem() != 1),
@@ -94,8 +88,6 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
          "number density file * ", pnd_field_file,
          " is for a 1D or a 2D atmosphere. \n")
   }
-
-  out3 << "Particle number density data is o.k. \n";
 }
 
 //! Check particle number density files (pnd_field_raw)
@@ -110,13 +102,9 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
 */
 void chk_pnd_raw_data(const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file,
-                      const Index& atmosphere_dim,
-                      const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                      const Index& atmosphere_dim) {
   for (Index i = 0; i < pnd_field_raw.nelem(); i++) {
-    out3 << "Element in pnd_field_raw_file:" << i << "\n";
-    chk_pnd_data(pnd_field_raw[i], pnd_field_file, atmosphere_dim, verbosity);
+    chk_pnd_data(pnd_field_raw[i], pnd_field_file, atmosphere_dim);
   }
 }
 
@@ -240,8 +228,7 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
 */
 
 void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
-                         const ArrayOfScatteringMetaData& scat_meta,
-                         const Verbosity&) {
+                         const ArrayOfScatteringMetaData& scat_meta) {
   ARTS_USER_ERROR_IF (scat_data.nelem() != scat_meta.nelem(),
       "The number of elements in in current scat_species'  *scat_data* and "
       "*scat_meta* do not match.\n"
@@ -259,11 +246,7 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
   \date 2010-12-02
 */
 void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
-                              const String& scat_meta_file,
-                              const Verbosity& verbosity) {
-  CREATE_OUT3;
-  out3 << "  Check scattering meta data file " << scat_meta_file << "\n";
-
+                              const String& scat_meta_file) {
   /* this check is outdated. type now is free from!
    however, we might want to have other things checked here!?
    - which parameters at least are needed? -> radius, ...?
@@ -290,10 +273,7 @@ void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
   \author Claudia Emde
   \date   2005-04-04
 */
-void chk_scat_data(const SingleScatteringData& scat_data_single,
-                   const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+void chk_scat_data(const SingleScatteringData& scat_data_single) {
   ARTS_ASSERT(scat_data_single.ptype == PTYPE_GENERAL ||
          scat_data_single.ptype == PTYPE_TOTAL_RND ||
          scat_data_single.ptype == PTYPE_AZIMUTH_RND);
@@ -335,8 +315,6 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
   switch (scat_data_single.ptype) {
     case PTYPE_GENERAL:
 
-      out3 << "  Data is for arbitrarily orientated particles. \n";
-
       chk_size(os_pha_mat.str(),
                scat_data_single.pha_mat_data,
                scat_data_single.f_grid.nelem(),
@@ -366,10 +344,6 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
 
     case PTYPE_TOTAL_RND:
 
-      out3 << "  Data is for macroscopically isotropic and mirror-symmetric "
-           << "scattering media, i.e. for totally randomly oriented particles "
-           << "with at least one plane of symmetry. \n";
-
       chk_size(os_pha_mat.str(),
                scat_data_single.pha_mat_data,
                scat_data_single.f_grid.nelem(),
@@ -398,8 +372,6 @@ void chk_scat_data(const SingleScatteringData& scat_data_single,
       break;
 
     case PTYPE_AZIMUTH_RND:
-
-      out3 << "  Data is for azimuthally randomly oriented particles. \n";
 
       chk_size(os_pha_mat.str(),
                scat_data_single.pha_mat_data,

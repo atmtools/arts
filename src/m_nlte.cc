@@ -37,8 +37,7 @@
 void ArrayOfQuantumIdentifierFromLines(
     ArrayOfQuantumIdentifier& qid,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Index& global,
-    const Verbosity&) {
+    const Index& global) {
   // Defined only as output not input so resizing
   qid.resize(0);
 
@@ -68,8 +67,7 @@ void ArrayOfQuantumIdentifierFromLines(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void atm_fieldRescalePopulationLevels(AtmField& atm_field,
-                                       const Numeric& scale,
-                                       const Verbosity&) {
+                                       const Numeric& scale) {
   for (auto& nlte: atm_field.nlte()) {
     nlte.second.rescale(scale);
   }
@@ -98,11 +96,8 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
     const Index& nz,
     const Index& nf,
     const Index& dampened,
-    const Index& iteration_limit,
-    const Verbosity& verbosity)
+    const Index& iteration_limit)
 {
-  CREATE_OUT2;
-
   ARTS_USER_ERROR_IF (not nlte_do, "Must be set to do NLTE");
 
   const Index nlevels = atm_field.nnlte();
@@ -168,8 +163,7 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
         df,
         nz,
         nf,
-        1.0,
-        verbosity);
+        1.0);
    // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -226,14 +220,6 @@ void atm_fieldForSingleSpeciesNonOverlappingLines(
     }
     i++;
   }
-
-  if (i < iteration_limit)
-    out2 << "Converged NLTE ratios (within convergence_limit) returned after "
-         << i << " iterations\n";
-  else
-    out2
-        << "No convergence of NLTE ratios (within convergence_limit) returned even after "
-        << iteration_limit << " iterations\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -241,8 +227,7 @@ void collision_coefficientsFromSplitFiles(
     ArrayOfArrayOfGriddedField1& collision_coefficients,
     ArrayOfQuantumIdentifier& collision_line_identifiers,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const String& basename,
-    const Verbosity& verbosity) {
+    const String &basename) {
   // Standard ARTS basename-assumption
   String tmp_basename = basename, filename;
   if (basename.length() && basename[basename.length() - 1] != '/')
@@ -250,7 +235,7 @@ void collision_coefficientsFromSplitFiles(
 
   // Read the identification file
   filename = tmp_basename + "qid.xml";
-  xml_read_from_file(filename, collision_line_identifiers, verbosity);
+  xml_read_from_file(filename, collision_line_identifiers);
   check_collision_line_identifiers(collision_line_identifiers);
 
   // Inner array size has to be this constantly
@@ -263,7 +248,7 @@ void collision_coefficientsFromSplitFiles(
 
     // Read the file for a species and check that the size is correct of the array
     filename = tmp_basename + String(Species::toShortName(abs_species[i].Species())) + ".xml";
-    xml_read_from_file(filename, aogf1, verbosity);
+    xml_read_from_file(filename, aogf1);
     ARTS_USER_ERROR_IF (aogf1.nelem() not_eq n,
           "Mismatch between collision_line_identifiers and some collision_coefficients");
     collision_coefficients[i] = aogf1;
@@ -271,7 +256,6 @@ void collision_coefficientsFromSplitFiles(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlteOff(Index& nlte_do,
-             const Verbosity&) {
+void nlteOff(Index& nlte_do) {
   nlte_do = 0;
 }

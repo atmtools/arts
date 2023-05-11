@@ -31,7 +31,6 @@
 #include "arts.h"
 #include "debug.h"
 #include "isotopologues.h"
-#include "messages.h"
 #include "quantum_numbers.h"
 #include "xml_io.h"
 #include <algorithm>
@@ -52,9 +51,8 @@
 */
 void xml_read_from_stream(istream& is_xml,
                           JacobianTarget& jt,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
   tag.check_name("JacobianTarget");
@@ -112,10 +110,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const JacobianTarget& jt,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   os_xml << '\n';
   open_tag.set_name("JacobianTarget");
@@ -159,9 +156,8 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           Rational& rational,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
 
   tag.read_from_stream(is_xml);
   tag.check_name("Rational");
@@ -192,10 +188,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Rational& rational,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Rational");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -222,9 +217,8 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           TransmissionMatrix& tm,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index stokes_dim, nf;
 
   tag.read_from_stream(is_xml);
@@ -263,10 +257,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const TransmissionMatrix& tm,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("TransmissionMatrix");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -298,9 +291,8 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           RadiationVector& rv,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
   Index stokes_dim, nf;
 
   tag.read_from_stream(is_xml);
@@ -339,10 +331,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const RadiationVector& rv,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("RadiationVector");
   if (name.length()) open_tag.add_attribute("name", name);
@@ -374,9 +365,8 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           Time& t,
-                          bifstream* pbifs [[maybe_unused]],
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
   
   tag.read_from_stream(is_xml);
   tag.check_name("Time");
@@ -405,10 +395,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const Time& t,
                          bofstream* pbofs [[maybe_unused]],
-                         const String&,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("Time");
   open_tag.add_attribute("version", t.Version());
@@ -433,11 +422,10 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           AbsorptionLines& al,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
+                          bifstream* pbifs) {
   static_assert(AbsorptionLines::version == 2, "The reading routine expects version 1 of the absorption lines data type to work");
   
-  ArtsXMLTag tag(verbosity);
+  ArtsXMLTag tag;
   
   tag.read_from_stream(is_xml);
   tag.check_name("AbsorptionLines");
@@ -596,19 +584,6 @@ void xml_read_from_stream(istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLines");
-
-  CREATE_OUT3;
-  if (out3.sufficient_priority_screen()) {
-    if (not al.quantumidentity.good()) {
-      out3 << "Bad data in absorption band " << al.MetaData() << '\n';
-    }
-    for (auto& line : al.lines) {
-      if (not line.localquanta.good()) {
-        out3 << "Bad data in absorption band " << al.MetaData() << '\n'
-             << "Line: " << line << '\n';
-      }
-    }
-  }
 }
 
 //! Writes AbsorptionLines to XML output stream
@@ -621,10 +596,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const AbsorptionLines& al,
                          bofstream* pbofs,
-                         const String&,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_comment_tag(verbosity);
-  ArtsXMLTag close_comment_tag(verbosity);
+                         const String&) {
+  ArtsXMLTag open_comment_tag;
+  ArtsXMLTag close_comment_tag;
   open_comment_tag.set_name("comment");
   open_comment_tag.write_to_stream(os_xml);
   os_xml << al.MetaData();
@@ -632,8 +606,8 @@ void xml_write_to_stream(ostream& os_xml,
   close_comment_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("AbsorptionLines");
   open_tag.add_attribute("version", al.version);
@@ -681,9 +655,8 @@ void xml_write_to_stream(ostream& os_xml,
  */
 void xml_read_from_stream(istream& is_xml,
                           VibrationalEnergyLevels& vib,
-                          bifstream* pbifs [[maybe_unused]],
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
+                          bifstream* pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
   
   tag.read_from_stream(is_xml);
   tag.check_name("VibrationalEnergyLevels");
@@ -717,10 +690,9 @@ void xml_read_from_stream(istream& is_xml,
 void xml_write_to_stream(ostream& os_xml,
                          const VibrationalEnergyLevels& vib,
                          bofstream* pbofs [[maybe_unused]],
-                         const String&,
-                         const Verbosity& verbosity) {
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
 
   open_tag.set_name("VibrationalEnergyLevels");
   open_tag.add_attribute("nelem", vib.nelem());
@@ -728,13 +700,13 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   for (auto& a: vib) {
-    ArtsXMLTag open_data_tag(verbosity);
+    ArtsXMLTag open_data_tag;
     open_data_tag.set_name("Data");
     open_data_tag.add_attribute("key", var_string(a.first));
     open_data_tag.write_to_stream(os_xml);
     if (pbofs) *pbofs << a.second;
     else os_xml << ' ' << a.second << ' ';
-    ArtsXMLTag close_data_tag(verbosity);
+    ArtsXMLTag close_data_tag;
     close_data_tag.set_name("/Data");
     close_data_tag.write_to_stream(os_xml);
     os_xml << '\n';
@@ -754,15 +726,13 @@ void xml_write_to_stream(ostream& os_xml,
 
 void xml_read_from_stream(istream&,
                           Timer&,
-                          bifstream* /* pbifs */,
-                          const Verbosity&) {
+                          bifstream* /* pbifs */) {
   ARTS_USER_ERROR_IF(true, "Method not implemented!");
 }
 
 void xml_write_to_stream(ostream&,
                          const Timer&,
                          bofstream* /* pbofs */,
-                         const String& /* name */,
-                         const Verbosity&) {
+                         const String& /* name */) {
   ARTS_USER_ERROR_IF(true, "Method not implemented!");
 }

@@ -38,16 +38,11 @@
 #include "bofstream.h"
 #include "matpack_data.h"
 #include "matpack_sparse.h"
-#include "messages.h"
 
-#define TMPL_XML_READ_WRITE_STREAM(what)                  \
-  void xml_read_from_stream(                              \
-      istream &, what &, bifstream *, const Verbosity &); \
-  void xml_write_to_stream(ostream &,                     \
-                           const what &,                  \
-                           bofstream *,                   \
-                           const String &,                \
-                           const Verbosity &);
+#define TMPL_XML_READ_WRITE_STREAM(what)                                       \
+  void xml_read_from_stream(std::istream &, what &, bifstream *);                   \
+  void xml_write_to_stream(std::ostream &, const what &, bofstream *,               \
+                           const String &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams

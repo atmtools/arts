@@ -214,8 +214,7 @@ void defocusing_general(Workspace& ws,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
-                        const Numeric& dza,
-                        const Verbosity& verbosity);
+                        const Numeric& dza);
 
 /** Calculates defocusing for limb measurements between two satellites.
 
@@ -261,8 +260,7 @@ void defocusing_sat2sat(Workspace& ws,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
-                        const Numeric& dza,
-                        const Verbosity& verbosity);
+                        const Numeric& dza);
 
 /** Calculates the dot product between a field and a LOS
 
@@ -369,8 +367,7 @@ void get_iy_of_background(Workspace& ws,
                           const Agenda& iy_space_agenda,
                           const Agenda& iy_surface_agenda,
                           const Agenda& iy_cloudbox_agenda,
-                          const Index& iy_agenda_call1,
-                          const Verbosity& verbosity);
+                          const Index& iy_agenda_call1y);
 
 /** Determines the particle fields along a propagation path.
 
@@ -622,8 +619,7 @@ void iyb_calc(Workspace& ws,
               const Index& j_analytical_do,
               const ArrayOfRetrievalQuantity& jacobian_quantities,
               const ArrayOfArrayOfIndex& jacobian_indices,
-              const ArrayOfString& iy_aux_vars,
-              const Verbosity& verbosity);
+              const ArrayOfString& iy_aux_vars);
 
 /** Multiplicates iy_transmittance with transmissions.
 
@@ -875,7 +871,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const ArrayOfArrayOfIndex& jacobian_indices,
                             const ArrayOfString& iy_aux_vars,
-                            const Verbosity& verbosity,
                             const Index& mblock_index,
                             const Index& n1y,
                             const Index& j_analytical_do);

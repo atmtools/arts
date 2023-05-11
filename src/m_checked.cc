@@ -48,7 +48,7 @@ using  Cloudbox::LAT_LON_MIN;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void atmfields_checkedCalc(Index &atmfields_checked,
                            const ArrayOfArrayOfSpeciesTag &abs_species,
-                           const AtmField &atm_field, const Verbosity &) {
+                           const AtmField &atm_field) {
   // Consistency between dim, grids and atmospheric fields/surfaces
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::p), "No pressure field")
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "No temperature field")
@@ -94,8 +94,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
                          const Matrix& z_surface,
                          const Vector& lat_true,
                          const Vector& lon_true,
-                         const Numeric& max500hpa_gradient,
-                         const Verbosity&) {
+                         const Numeric& max500hpa_gradient) {
   // A repetition from atmfields_checked, but we do this to make the two parts
   // independent (the other option would be to demand atmfields_checkec == 1)
   chk_atm_grids(3, p_grid, lat_grid, lon_grid);
@@ -222,9 +221,7 @@ void cloudbox_checkedCalc(Index& cloudbox_checked,
                           const Matrix& particle_masses,
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const Index& demand_latlon_margin,
-                          const Index& negative_pnd_ok,
-                          const Verbosity&) {
-
+                          const Index& negative_pnd_ok) {
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
@@ -462,8 +459,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
                            const Vector& f_grid,
                            const Numeric& dfrel_threshold,
                            const String& check_level,
-                           const Numeric& sca_mat_threshold,
-                           const Verbosity& verbosity)
+                           const Numeric& sca_mat_threshold)
 // FIXME: when we allow K, a, Z to be on different f and T grids, their use in
 // the scatt solvers needs to be reviewed again and adapted to this!
 {
@@ -567,7 +563,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
     // 3) sca_mat norm sufficiently good (int(Z11)~=K11-a1?)
     // 1) & 2) always done
     // 3) only done if scat_data_check_level is "all"
-    scat_dataCheck(scat_data, check_level, sca_mat_threshold, verbosity);
+    scat_dataCheck(scat_data, check_level, sca_mat_threshold);
   }
 
   // If here, all OK
@@ -578,8 +574,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
 void lbl_checkedCalc(Index& lbl_checked,
                      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const SpeciesIsotopologueRatios& isotopologue_ratios,
-                     const Verbosity&)
+                     const SpeciesIsotopologueRatios& isotopologue_ratios)
 {
   checkIsotopologueRatios(abs_lines_per_species, isotopologue_ratios);
   checkPartitionFunctions(abs_lines_per_species);
@@ -698,8 +693,7 @@ void propmat_clearsky_agenda_checkedCalc(
     Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Agenda& propmat_clearsky_agenda,
-    const Verbosity&) {
+    const Agenda& propmat_clearsky_agenda) {
   bool needs_lines = false;
   bool needs_zeeman = false;
   bool needs_predefined = false;
@@ -814,8 +808,7 @@ void sensor_checkedCalc(Index& sensor_checked,
                         const Sparse& sensor_response,
                         const Vector& sensor_response_f,
                         const ArrayOfIndex& sensor_response_pol,
-                        const Matrix& sensor_response_dlos,
-                        const Verbosity&) {
+                        const Matrix& sensor_response_dlos) {
   // Some sizes
   const Index nf = f_grid.nelem();
   const Index nlos = mblock_dlos.nrows();

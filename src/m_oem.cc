@@ -68,8 +68,7 @@
 void particle_bulkprop_fieldClip(AtmField& atm_field,
                                  const String& bulkprop_name,
                                  const Numeric& limit_low,
-                                 const Numeric& limit_high,
-                                 const Verbosity&) {
+                                 const Numeric& limit_high) {
   const auto limit =
       [low = std::isinf(limit_low) ? std::numeric_limits<Numeric>::lowest()
                                    : limit_low,
@@ -107,8 +106,7 @@ void vmr_fieldClip(Tensor4& vmr_field,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
                    const String& species,
                    const Numeric& limit_low,
-                   const Numeric& limit_high,
-                   const Verbosity&) {
+                   const Numeric& limit_high) {
   Index iq = -1;
   if (species == "ALL") {
   }
@@ -132,8 +130,7 @@ void xClip(Vector& x,
            const ArrayOfRetrievalQuantity& jacobian_quantities,
            const Index& ijq,
            const Numeric& limit_low,
-           const Numeric& limit_high,
-           const Verbosity&) {
+           const Numeric& limit_high) {
   // Sizes
   const Index nq = jacobian_quantities.nelem();
 
@@ -182,8 +179,7 @@ void xaStandard(Workspace& ws,
                 const ArrayOfString& particle_bulkprop_names,
                 const SurfaceField& surface_field,
                 const ArrayOfString& surface_props_names,
-                const Agenda& water_p_eq_agenda,
-                const Verbosity&) {
+                const Agenda& water_p_eq_agenda) {
 
    // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
@@ -534,8 +530,7 @@ void x2artsAtmAndSurf(Workspace& ws,
                       const Index& cloudbox_checked,
                       const ArrayOfString& particle_bulkprop_names,
                       const ArrayOfString& surface_props_names,
-                      const Agenda& water_p_eq_agenda,
-                      const Verbosity&) {
+                      const Agenda& water_p_eq_agenda) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -903,8 +898,7 @@ void x2artsSensor(Workspace& ws,
                   const Vector& x,
                   const Agenda& sensor_response_agenda,
                   const Index& sensor_checked,
-                  const ArrayOfTime& sensor_time,
-                  const Verbosity&) {
+                  const ArrayOfTime& sensor_time) {
   // Basics
   //
   ARTS_USER_ERROR_IF (sensor_checked != 1,
@@ -1042,7 +1036,7 @@ void x2artsSensor(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void x2artsSpectroscopy(const Verbosity&) {
+void x2artsSpectroscopy() {
   ARTS_USER_ERROR ( "Retrievals of spectroscopic variables not yet handled.");
 }
 
@@ -1070,8 +1064,7 @@ void OEM(Workspace& ws,
          const Numeric& stop_dx,
          const Vector& lm_ga_settings,
          const Index& clear_matrices,
-         const Index& display_progress,
-         const Verbosity&) {
+         const Index& display_progress) {
   // Main sizes
   const Index n = covmat_sx.nrows();
   const Index m = y.nelem();
@@ -1334,8 +1327,7 @@ void OEM(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void covmat_soCalc(Matrix& covmat_so,
                    const Matrix& dxdy,
-                   const CovarianceMatrix& covmat_se,
-                   const Verbosity& /*v*/) {
+                   const CovarianceMatrix &covmat_se) {
   Index n(dxdy.nrows()), m(dxdy.ncols());
   Matrix tmp1(m, n);
 
@@ -1352,8 +1344,7 @@ void covmat_soCalc(Matrix& covmat_so,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void covmat_ssCalc(Matrix& covmat_ss,
                    const Matrix& avk,
-                   const CovarianceMatrix& covmat_sx,
-                   const Verbosity& /*v*/) {
+                   const CovarianceMatrix &covmat_sx) {
   Index n(avk.ncols());
   Matrix tmp1(n, n), tmp2(n, n);
 
@@ -1374,16 +1365,14 @@ void covmat_ssCalc(Matrix& covmat_ss,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixFromCovarianceMatrix(Matrix& S,
-                                const CovarianceMatrix& Sc,
-                                const Verbosity& /*v*/) {
+                                const CovarianceMatrix &Sc) {
   S = Matrix(Sc);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void avkCalc(Matrix& avk,
              const Matrix& dxdy,
-             const Matrix& jacobian,
-             const Verbosity& /*v*/) {
+             const Matrix &jacobian) {
   Index m(jacobian.nrows()), n(jacobian.ncols());
   ARTS_USER_ERROR_IF ((m == 0) || (n == 0),
                       "The Jacobian matrix is empty.");
@@ -1402,8 +1391,7 @@ void avkCalc(Matrix& avk,
 
 void covmat_soCalc(Matrix& /* covmat_so */,
                    const Matrix& /* dxdy */,
-                   const CovarianceMatrix& /* covmat_se*/,
-                   const Verbosity& /*v*/) {
+                   const CovarianceMatrix& /* covmat_ /*v*/) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
@@ -1411,8 +1399,7 @@ void covmat_soCalc(Matrix& /* covmat_so */,
 
 void covmat_ssCalc(Matrix& /*covmat_ss*/,
                    const Matrix& /*avk*/,
-                   const CovarianceMatrix& /*covmat_sx*/,
-                   const Verbosity& /*v*/) {
+                   const CovarianceMatrix& /*covmat_ /*v*/) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
@@ -1420,8 +1407,7 @@ void covmat_ssCalc(Matrix& /*covmat_ss*/,
 
 void avkCalc(Matrix& /* avk */,
              const Matrix& /* dxdy */,
-             const Matrix& /* jacobian */,
-             const Verbosity& /*v*/) {
+             const Matrix& /* jacobia /*v*/) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
@@ -1450,8 +1436,7 @@ void OEM(Workspace&,
          const Numeric&,
          const Vector&,
          const Index&,
-         const Index&,
-         const Verbosity&) {
+         const Index&) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
@@ -1542,8 +1527,7 @@ void OEM_MPI(Workspace& ws,
              const Numeric& stop_dx,
              const Vector& lm_ga_settings,
              const Index& clear_matrices,
-             const Index& display_progress,
-             const Verbosity& /*v*/) {
+             const Index /*v*/) {
   // Main sizes
   const Index n = covmat_sx.nrows();
   const Index m = y.nelem();
@@ -1701,8 +1685,7 @@ void OEM_MPI(Workspace&,
              const Numeric&,
              const Vector&,
              const Index&,
-             const Index&,
-             const Verbosity&) {
+             const Index&) {
   ARTS_USER_ERROR (
       "You have to compile ARTS with OEM support "
       " and enable MPI to use OEM_MPI.");

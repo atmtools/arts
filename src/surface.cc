@@ -262,8 +262,7 @@ void surface_get_incoming_direct(
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
-    const Agenda& ppath_step_agenda,
-    const Verbosity& verbosity) {
+    const Agenda& ppath_step_agenda) {
 ARTS_USER_ERROR("ERROR")
 //  const Vector& z_grid = atm_field.grid[0];
   //const Vector& lat_grid = atm_field.grid[1];
@@ -373,8 +372,7 @@ Tensor3 p_field;
                            gas_scattering_agenda,
                            1,
                            Tensor3(),
-                           rte_alonglos_v,
-                           verbosity);
+                           rte_alonglos_v);
 
   } else {
     iy_incoming.resize(f_grid.nelem(),stokes_dim);

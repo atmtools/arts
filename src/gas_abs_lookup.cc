@@ -31,7 +31,6 @@
 #include "interpolation.h"
 #include "logic.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "physics_funcs.h"
 
 //! Find positions of new grid points in old grid.
@@ -48,10 +47,7 @@
 */
 void find_new_grid_in_old_grid(ArrayOfIndex& pos,
                                ConstVectorView old_grid,
-                               ConstVectorView new_grid,
-                               const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                               ConstVectorView new_grid) {
   const Index n_new_grid = new_grid.nelem();
   const Index n_old_grid = old_grid.nelem();
 
@@ -79,7 +75,6 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
     }
 
     pos[i] = j;
-    out3 << "    " << new_grid[i] << " found, index = " << pos[i] << ".\n";
   }
 }
 
@@ -117,11 +112,7 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
   \date 2002-12-12
 */
 void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
-                         ConstVectorView current_f_grid,
-                         const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                         ConstVectorView current_f_grid) {
   // Some constants we will need:
   const Index n_current_species = current_species.nelem();
   const Index n_current_f_grid = current_f_grid.nelem();
@@ -132,23 +123,10 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   const Index n_f_grid = f_grid.nelem();
   const Index n_p_grid = p_grid.nelem();
 
-  out2 << "  Original table: " << n_species << " species, " << n_f_grid
-       << " frequencies.\n"
-       << "  Adapt to:       " << n_current_species << " species, "
-       << n_current_f_grid << " frequencies.\n";
-
-  if (0 == n_nls) {
-    out2 << "  Table contains no nonlinear species.\n";
-  }
-
   // Set up a logical array for the nonlinear species
   ArrayOfIndex non_linear(n_species, 0);
   for (Index s = 0; s < n_nls; ++s) {
     non_linear[nonlinear_species[s]] = 1;
-  }
-
-  if (0 == t_pert.nelem()) {
-    out2 << "  Table contains no temperature perturbations.\n";
   }
 
   // We are constructing a new lookup table, containing just the
@@ -280,9 +258,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   //    lookup table. At the same time verify that each species is
   //    included in the table exactly once.
   ArrayOfIndex i_current_species(n_current_species);
-  out3 << "  Looking for species in lookup table:\n";
   for (Index i = 0; i < n_current_species; ++i) {
-    out3 << "  " << current_species[i].Name() << ": ";
 
     try {
       i_current_species[i] =
@@ -303,8 +279,6 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
         throw runtime_error(os.str());
       }
     }
-
-    out3 << "found (or trivial).\n";
   }
 
   // 1a. Find out which of the current species are nonlinear species:
@@ -314,13 +288,11 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
                                                           // current species are
                                                           // nonlinear.
 
-  out3 << "  Finding out which of the current species are nonlinear:\n";
   for (Index i = 0; i < n_current_species; ++i) {
     if (i_current_species[i] >= 0)  // Jump over trivial species here.
     {
       // Check if this is a nonlinear species:
       if (non_linear[i_current_species[i]]) {
-        out3 << "  " << current_species[i] << "\n";
 
         current_non_linear[i] = 1;
         ++n_current_nonlinear_species;
@@ -336,13 +308,12 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   // Numerics. Let's see how well this works in practice.
 
   ArrayOfIndex i_current_f_grid(n_current_f_grid);
-  out3 << "  Looking for Frequencies in lookup table:\n";
 
   // We need no error checking for the next statement, since the
   // function called throws a runtime error if a frequency
   // is not found, or if the grids are not ok.
   find_new_grid_in_old_grid(
-      i_current_f_grid, f_grid, current_f_grid, verbosity);
+      i_current_f_grid, f_grid, current_f_grid);
 
   // 3. Use the species and frequency index lists to build the new lookup
   // table.

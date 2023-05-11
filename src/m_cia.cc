@@ -36,7 +36,6 @@
 #include "cia.h"
 #include "debug.h"
 #include "file.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "species.h"
 #include "species_tags.h"
@@ -59,11 +58,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
     const ArrayOfCIARecord& abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
-    const Index& robust,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+    const Index& robust) {
   {
     // Check that all parameters that should have the number of tag
     // groups as a dimension are consistent:
@@ -152,11 +147,6 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
       const CIARecord& this_cia = abs_cia_data[this_cia_index];
       Matrix& this_xsec = abs_xsec_per_species[i];
 
-      if (out2.sufficient_priority()) {
-        // Some nice output to out2:
-        out2 << "  CIA Species found: " + this_species.Name() + "\n";
-      }
-
       // Check that the dimension of this_xsec is
       // consistent with abs_p and f_grid.
       ARTS_USER_ERROR_IF (this_xsec.nrows() != f_grid.nelem(),
@@ -188,22 +178,19 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
                            f_grid,
                            abs_t[ip],
                            T_extrapolfac,
-                           robust,
-                           verbosity);
+                           robust);
           if (do_freq_jac)
             this_cia.Extract(dxsec_temp_dF,
                              dfreq,
                              abs_t[ip],
                              T_extrapolfac,
-                             robust,
-                             verbosity);
+                             robust);
           if (do_temp_jac)
             this_cia.Extract(dxsec_temp_dT,
                              f_grid,
                              dabs_t[ip],
                              T_extrapolfac,
-                             robust,
-                             verbosity);
+                             robust);
         } catch (const std::runtime_error& e) {
           ARTS_USER_ERROR ("Problem with CIA species ",
                            this_species.Name(), ":\n", e.what())
@@ -265,11 +252,7 @@ void propmat_clearskyAddCIA(  // WS Output:
     const ArrayOfCIARecord& abs_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
-    const Index& ignore_errors,
-    // Verbosity object:
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+    const Index& ignore_errors) {
   // Size of problem
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_quantities.nelem();
@@ -362,11 +345,6 @@ void propmat_clearskyAddCIA(  // WS Output:
 
       const CIARecord& this_cia = abs_cia_data[this_cia_index];
 
-      if (out2.sufficient_priority()) {
-        // Some nice output to out2:
-        out2 << "  CIA Species found: " + this_species.Name() + "\n";
-      }
-
       // Find out index of VMR for the second CIA species.
       // (The index for the first species is simply i.)
       Index i_sec = find_first_species(abs_species, this_cia.Species(1));
@@ -394,23 +372,20 @@ void propmat_clearskyAddCIA(  // WS Output:
                          f_grid,
                          atm_point.temperature,
                          T_extrapolfac,
-                         ignore_errors,
-                         verbosity);
+                         ignore_errors);
         if (do_wind_jac) {
           this_cia.Extract(dxsec_temp_dF,
                            dfreq,
                            atm_point.temperature,
                            T_extrapolfac,
-                           ignore_errors,
-                           verbosity);
+                           ignore_errors);
         }
         if (do_temp_jac) {
           this_cia.Extract(dxsec_temp_dT,
                            f_grid,
                            atm_point.temperature + dt,
                            T_extrapolfac,
-                           ignore_errors,
-                           verbosity);
+                           ignore_errors);
         }
       } catch (const std::runtime_error& e) {
         ARTS_USER_ERROR(
@@ -472,9 +447,7 @@ void CIARecordReadFromFile(  // WS GOutput:
     CIARecord& cia_record,
     // WS Generic Input:
     const String& species_tag,
-    const String& filename,
-    // Verbosity object:
-    const Verbosity& verbosity) {
+    const String& filename) {
   SpeciesTag species(species_tag);
 
   ARTS_USER_ERROR_IF (species.Type() != Species::TagType::Cia,
@@ -482,7 +455,7 @@ void CIARecordReadFromFile(  // WS GOutput:
       "This is not recognized as a CIA type.\n")
 
   cia_record.SetSpecies(species.Spec(), species.cia_2nd_species);
-  cia_record.ReadFromCIA(filename, verbosity);
+  cia_record.ReadFromCIA(filename);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -490,9 +463,7 @@ void abs_cia_dataAddCIARecord(  // WS Output:
     ArrayOfCIARecord& abs_cia_data,
     // WS GInput:
     const CIARecord& cia_record,
-    const Index& clobber,
-    // WS Input:
-    const Verbosity&) {
+    const Index& clobber) {
   Index cia_index =
       cia_get_index(abs_cia_data, cia_record.Species(0), cia_record.Species(1));
   if (cia_index == -1)
@@ -508,8 +479,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
     ArrayOfCIARecord& abs_cia_data,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const String& catalogpath,
-    const Verbosity& verbosity) {
+    const String& catalogpath) {
   ArrayOfString subfolders;
   subfolders.push_back("Main-Folder/");
   subfolders.push_back("Alternate-Folder/");
@@ -571,7 +541,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
             ciar.SetSpecies(abs_species[sp][iso].Spec(),
                             abs_species[sp][iso].cia_2nd_species);
-            ciar.ReadFromCIA(catfile, verbosity);
+            ciar.ReadFromCIA(catfile);
 
             abs_cia_data.push_back(ciar);
           }
@@ -591,9 +561,8 @@ void abs_cia_dataReadFromXML(  // WS Output:
     ArrayOfCIARecord& abs_cia_data,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const String& filename,
-    const Verbosity& verbosity) {
-  xml_read_from_file(filename, abs_cia_data, verbosity);
+    const String& filename) {
+  xml_read_from_file(filename, abs_cia_data);
 
   // Check that all CIA tags from abs_species are present in the
   // XML file
@@ -640,10 +609,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void CIAInfo(  // Generic Input:
     const String& catalogpath,
-    const ArrayOfString& cia_tags,
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
-
+    const ArrayOfString& cia_tags) {
   ArrayOfArrayOfSpeciesTag species_tags;
 
   for (Index i = 0; i < cia_tags.nelem(); i++) {
@@ -664,17 +630,16 @@ void CIAInfo(  // Generic Input:
 
   ArrayOfCIARecord cia_data;
 
-  abs_cia_dataReadFromCIA(cia_data, species_tags, catalogpath, verbosity);
+  abs_cia_dataReadFromCIA(cia_data, species_tags, catalogpath);
 
-  Print(cia_data, 1, verbosity);
+  Print(cia_data, 1);
 }
 
 void abs_cia_dataReadSpeciesSplitCatalog(
     ArrayOfCIARecord& abs_cia_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
-    const Index& robust,
-    const Verbosity& verbosity) {
+    const Index& robust) {
   ArrayOfString names{};
   for (auto& spec : abs_species) {
     for (auto& tag : spec) {
@@ -700,7 +665,7 @@ void abs_cia_dataReadSpeciesSplitCatalog(
       fil += "." + name + ".xml";
     }
 
-    xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back(), verbosity);
+    xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back());
 
     ARTS_USER_ERROR_IF(robust == 0 and abs_cia_data.back().DatasetCount() == 0,
                        "Cannot find any data for ", std::quoted(name),

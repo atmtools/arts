@@ -33,7 +33,6 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "cia.h"
-#include "messages.h"
 #include "mystring.h"
 #include "ppath_struct.h"
 #include "special_interp.h"
@@ -42,38 +41,15 @@
 
 class Workspace;
 
-#define SWITCH_OUTPUT(x, y)                                           \
-  {                                                                   \
-    ostringstream so_os;                                              \
-    so_os << y << '\n';                                               \
-    switch (x) {                                                      \
-      case 0:                                                         \
-        out0 << so_os.str();                                          \
-        break;                                                        \
-      case 1:                                                         \
-        out1 << so_os.str();                                          \
-        break;                                                        \
-      case 2:                                                         \
-        out2 << so_os.str();                                          \
-        break;                                                        \
-      case 3:                                                         \
-        out3 << so_os.str();                                          \
-        break;                                                        \
-      default:                                                        \
-        throw runtime_error("Output level must have value from 0-3"); \
-    }                                                                 \
-  }
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <typename T>
 void Print(
     // WS Generic Input:
     const T& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity) {
-  CREATE_OUTS;
-  SWITCH_OUTPUT(level, x)
+    const Index& level) {
+  if (level) std::cerr << x << '\n';
+  else std::cout << x << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -81,65 +57,56 @@ void Print(Workspace& ws,
            // WS Generic Input:
            const Agenda& x,
            // Keywords:
-           const Index& level,
-           const Verbosity& verbosity);
+           const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(Workspace& ws,
            // WS Generic Input:
            const ArrayOfAgenda& x,
            // Keywords:
-           const Index& level,
-           const Verbosity& verbosity);
+           const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const ArrayOfGridPos& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const ArrayOfCIARecord& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const ArrayOfString& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const ArrayOfPpath& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const Timer& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(  // WS Generic Input:
     const TessemNN& x,
     // Keywords:
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(  // Workspace reference
     Workspace& ws,
     // Keywords:
     const Index& only_allocated,
-    const Index& level,
-    const Verbosity& verbosity);
+    const Index& level);
 
 #endif /* m_general_h */

@@ -387,13 +387,11 @@ class CovarianceMatrix {
 
   friend void xml_read_from_stream(istream &,
                                    CovarianceMatrix &,
-                                   bifstream *,
-                                   const Verbosity &);
+                                   bifstream *);
   friend void xml_write_to_stream(ostream &,
                                   const CovarianceMatrix &,
                                   bofstream *,
-                                  const String &,
-                                  const Verbosity &);
+                                  const String &);
   friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
  private:

@@ -31,7 +31,6 @@
 
 #include "agenda_class.h"
 #include "debug.h"
-#include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
 
@@ -42,8 +41,7 @@ void Copy(  // WS Generic Output:
     const String& /* out_name */,
     // WS Generic Input:
     const T& in,
-    const String& /* in_name */,
-    const Verbosity&) {
+    const String& /* in_name */) {
   out = in;
 }
 
@@ -54,11 +52,10 @@ inline void Copy(Workspace& ws,
           const String& out_name,
           // WS Generic Input:
           const Agenda& in,
-          const String& /* in_name */,
-          const Verbosity& verbosity) {
+          const String& /* in_name */) {
   out = in;
   out.set_name(out_name);
-  out.check(ws, verbosity);
+  out.check(ws);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -68,12 +65,11 @@ inline void Copy(Workspace& ws,
           const String& out_name,
           // WS Generic Input:
           const ArrayOfAgenda& in,
-          const String& /* in_name */,
-          const Verbosity& verbosity) {
+          const String& /* in_name */) {
   out = in;
   for (auto & it : out) {
     it.set_name(out_name);
-    it.check(ws, verbosity);
+    it.check(ws);
   }
 }
 

@@ -49,8 +49,7 @@ inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void dlosDiffOfLos(Matrix& dlos,
                    const Vector& ref_los,
-                   const Matrix& other_los,
-                   const Verbosity&)
+                   const Matrix& other_los)
 {
   chk_rte_los("ref_los", ref_los);
   chk_sensor_los("other_los", other_los);
@@ -75,8 +74,7 @@ void dlosGauss(Matrix& dlos,
                Vector& dlos_weight_vector,
                const Numeric& fwhm_deg,
                const Index& npoints,
-               const Index& include_response_in_weight,
-               const Verbosity&) {
+               const Index& include_response_in_weight) {
   // Use FWHM and sigma in radians to get solid angles right
   const Numeric fwhm = DEG2RAD *fwhm_deg;
   const Numeric si = fwhm / (2 * sqrt(2 * NAT_LOG_2));
@@ -93,7 +91,7 @@ void dlosGauss(Matrix& dlos,
   {
     linspace(xp, 0, 2.0*fwhm, 0.02*fwhm);
     Vector gx;
-    VectorGaussian(gx, xp, 0, -1.0, fwhm, Verbosity());
+    VectorGaussian(gx, xp, 0, -1.0, fwhm);
     gx *= xp;  // Weight with radius, no need to include pi
     const Index np = gx.nelem();
     cx.resize(np);
@@ -129,7 +127,7 @@ void dlosGauss(Matrix& dlos,
   // Otherwise, we need to divide with value of 2D Gauss for radius:
   Vector gv(npoints);
   if (!include_response_in_weight) {
-    VectorGaussian(gv, r, 0, -1.0, fwhm, Verbosity());
+    VectorGaussian(gv, r, 0, -1.0, fwhm);
   }
 
   // Calculate
@@ -152,8 +150,7 @@ void dlosUniform(Matrix& dlos,
                  Vector& dlos_weight_vector,
                  const Numeric& width,
                  const Index& npoints,
-                 const Index& crop_circular,
-                 const Verbosity&)
+                 const Index& crop_circular)
 {
   ARTS_USER_ERROR_IF(npoints < 2, "GIN npoints must be > 1.");
 
@@ -211,8 +208,7 @@ void dlosUniform(Matrix& dlos,
 void rte_losGeometricToPosition(Vector& rte_los,
                                 const Vector& refellipsoid,
                                 const Vector& rte_pos,
-                                const Vector& target_pos,
-                                const Verbosity&)
+                                const Vector& target_pos)
 {
     chk_rte_pos("rte_pos", rte_pos);
     chk_rte_pos("target_pos", target_pos);
@@ -246,8 +242,7 @@ void rte_losRefractedToPosition(Workspace& ws,
                                 const Index& robust,
                                 const Numeric& z_toa,
                                 const Index& do_horizontal_gradients,
-                                const Index& do_twosided_perturb,
-                                const Verbosity&)
+                                const Index& do_twosided_perturb)
 {
     chk_rte_pos("rte_pos", rte_pos);
     chk_rte_pos("target_pos", target_pos);
@@ -279,8 +274,7 @@ void rte_losRefractedToPosition(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losReverse(Vector& rte_los,
-                    const Verbosity&)
+void rte_losReverse(Vector& rte_los)
 {
   reverse_los(rte_los, rte_los);
 }
@@ -289,8 +283,7 @@ void rte_losReverse(Vector& rte_los,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(Vector& rte_los,
                 const Numeric& za,
-                const Numeric& aa,
-                const Verbosity&)
+                const Numeric& aa)
 {
   rte_los.resize(2);
   rte_los[0] = za;
@@ -303,8 +296,7 @@ void rte_losSet(Vector& rte_los,
 void rte_posSet(Vector& rte_pos,
                 const Numeric& z,
                 const Numeric& lat,
-                const Numeric& lon,
-                const Verbosity&)
+                const Numeric& lon)
 {
   rte_pos.resize(3);
   rte_pos[0] = z;
@@ -319,8 +311,7 @@ void rte_pos_losBackwardToAltitude(Vector& rte_pos,
                                    Vector& rte_los,
                                    const Vector& refellipsoid,
                                    const Numeric& altitude,
-                                   const Index& los_is_reversed,
-                                   const Verbosity& verbosity)
+                                   const Index &los_is_reversed)
 {
   // Find los to apply in next step
   Vector los2use;
@@ -339,8 +330,7 @@ void rte_pos_losBackwardToAltitude(Vector& rte_pos,
                                 start_pos,
                                 start_los,
                                 refellipsoid,
-                                altitude,
-                                verbosity);
+                                altitude);
 
   // Extract final values
   rte_pos = end_pos(0, joker);
@@ -352,8 +342,7 @@ void rte_pos_losBackwardToAltitude(Vector& rte_pos,
 void rte_pos_losForwardToAltitude(Vector& rte_pos,
                                    Vector& rte_los,
                                    const Vector& refellipsoid,
-                                   const Numeric& altitude,
-                                   const Verbosity& verbosity)
+                                   const Numeric &altitude)
 {
   // Move in altitude
   Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
@@ -364,8 +353,7 @@ void rte_pos_losForwardToAltitude(Vector& rte_pos,
                                 start_pos,
                                 start_los,
                                 refellipsoid,
-                                altitude,
-                                verbosity);
+                                altitude);
 
   // Extract final values
   rte_pos = end_pos(0, joker);
@@ -376,8 +364,7 @@ void rte_pos_losForwardToAltitude(Vector& rte_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losEndOfPpath(Vector& rte_pos,
                            Vector& rte_los,
-                           const Ppath& ppath,
-                           const Verbosity&)
+                           const Ppath& ppath)
 {
   const Index np = ppath.np;
 
@@ -392,8 +379,7 @@ void rte_pos_losEndOfPpath(Vector& rte_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losAddLosAndDlos(Matrix& sensor_los,
                              const Vector& ref_los,
-                             const Matrix& dlos,
-                             const Verbosity&)
+                             const Matrix& dlos)
 {
   chk_rte_los("ref_los", ref_los);
   ARTS_USER_ERROR_IF (dlos.ncols() != 2, "*dlos* must have two columns.");
@@ -416,8 +402,7 @@ void sensor_losAddLosAndDlos(Matrix& sensor_los,
 void sensor_losGeometricToPosition(Matrix& sensor_los,
                                    const Vector& refellipsoid,
                                    const Matrix& sensor_pos,
-                                   const Vector& target_pos,
-                                   const Verbosity&)
+                                   const Vector& target_pos)
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_rte_pos("target_pos", target_pos);
@@ -441,8 +426,7 @@ void sensor_losGeometricToPosition(Matrix& sensor_los,
 void sensor_losGeometricToPositions(Matrix& sensor_los,
                                     const Vector& refellipsoid,
                                     const Matrix& sensor_pos,
-                                    const Matrix& target_pos,
-                                    const Verbosity&)
+                                    const Matrix& target_pos)
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_sensor_pos("target_pos", target_pos);
@@ -481,8 +465,7 @@ void sensor_losRefractedToPosition(Workspace& ws,
                                    const Index& robust,
                                    const Numeric& z_toa,
                                    const Index& do_horizontal_gradients,
-                                   const Index& do_twosided_perturb,
-                                   const Verbosity&)
+                                   const Index& do_twosided_perturb)
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_rte_pos("target_pos", target_pos);
@@ -535,8 +518,7 @@ void sensor_losRefractedToPositions(Workspace& ws,
                                     const Index& robust,
                                     const Numeric& z_toa,
                                     const Index& do_horizontal_gradients,
-                                    const Index& do_twosided_perturb,
-                                    const Verbosity&)
+                                    const Index& do_twosided_perturb)
 {
     chk_sensor_pos("sensor_pos", sensor_pos);
     chk_sensor_pos("target_pos", target_pos);
@@ -576,8 +558,7 @@ void sensor_losRefractedToPositions(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losReverse(
-    Matrix& sensor_los,
-    const Verbosity&)
+    Matrix& sensor_los)
 {
   for (Index i = 0; i < sensor_los.nrows(); i++)
     reverse_los(sensor_los(i, joker), sensor_los(i, joker));
@@ -589,13 +570,12 @@ void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
                                       Matrix& sensor_los,
                                       const Vector& refellipsoid,
                                       const Numeric& altitude,
-                                      const Index& los_is_reversed,
-                                      const Verbosity& verbosity)
+                                      const Index &los_is_reversed)
 {
   // Find los to apply in next step
   Matrix los2use = sensor_los;
   if (!los_is_reversed) {
-    sensor_losReverse(los2use, verbosity);
+    sensor_losReverse(los2use);
   }
 
   // Move in altitude
@@ -605,13 +585,12 @@ void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
                                 sensor_pos,
                                 los2use,
                                 refellipsoid,
-                                altitude,
-                                verbosity);
+                                altitude);
 
   // Extract final values
   sensor_pos = end_pos;
   sensor_los = end_los;
-  sensor_losReverse(sensor_los, verbosity);
+  sensor_losReverse(sensor_los);
 }
 
 
@@ -619,8 +598,7 @@ void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
 void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
                                      Matrix& sensor_los,
                                      const Vector& refellipsoid,
-                                     const Numeric& altitude,
-                                     const Verbosity& verbosity)
+                                     const Numeric &altitude)
 {
   // Move in altitude
   Matrix end_pos, end_los;
@@ -629,8 +607,7 @@ void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
                                 sensor_pos,
                                 sensor_los,
                                 refellipsoid,
-                                altitude,
-                                verbosity);
+                                altitude);
 
   // Extract final values
   sensor_pos = end_pos;

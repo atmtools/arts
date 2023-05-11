@@ -31,9 +31,8 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void TessemNNReadAscii(TessemNN& net,
-                       const String& net_file,
-                       const Verbosity&) {
-  ifstream net_is;
+                       const String& net_file) {
+  std::ifstream net_is;
 
   open_input_file(net_is, net_file);
   tessem_read_ascii(net_is, net);
@@ -42,11 +41,7 @@ void TessemNNReadAscii(TessemNN& net,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void TestTessem(Vector& outvalues,
                 const TessemNN& net,
-                const Vector& invalues,
-                const Verbosity& verbosity) {
-  CREATE_OUT1;
+                const Vector& invalues) {
   outvalues.resize(net.nb_outputs);
   tessem_prop_nn(outvalues, net, invalues);
-  out1 << "Input values    : " << invalues << "\n";
-  out1 << "Output values   : " << outvalues << "\n";
 }

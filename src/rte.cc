@@ -331,8 +331,7 @@ void defocusing_general_sub(Workspace& ws,
                             const Tensor3& z_field,
                             const Vector& f_grid,
                             const Vector& refellipsoid,
-                            const Matrix& z_surface,
-                            const Verbosity& verbosity) {
+                            const Matrix& z_surface) {
   // Special treatment of 1D around zenith/nadir
   // (zenith angles outside [0,180] are changed by *adjust_los*)
   bool invert_lat = false;
@@ -363,8 +362,7 @@ void defocusing_general_sub(Workspace& ws,
   //            rte_los,
   //            ppath_lmax,
   //            ppath_lraytrace,
-  //            false,
-  //            verbosity);
+  //            false,);
   // //
   // background = ppath_what_background(ppx);
   ARTS_USER_ERROR("ERROR")
@@ -454,8 +452,7 @@ void defocusing_general(Workspace& ws,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
-                        const Numeric& dza,
-                        const Verbosity& verbosity) {
+                        const Numeric& dza) {
   // Optical and physical path between transmitter and reciver
   Numeric lo = ppath.start_lstep + ppath.end_lstep;
   Numeric lp = lo;
@@ -494,8 +491,7 @@ void defocusing_general(Workspace& ws,
                          z_field,
                          f_grid,
                          refellipsoid,
-                         z_surface,
-                         verbosity);
+                         z_surface);
 
   // Same thing with negative zenit angle off-set
   Vector pos2;
@@ -520,8 +516,7 @@ void defocusing_general(Workspace& ws,
                          z_field,
                          f_grid,
                          refellipsoid,
-                         z_surface,
-                         verbosity);
+                         z_surface);
 
   // Calculate distance between pos1 and 2, and derive the loss factor
   // All appears OK:
@@ -574,8 +569,7 @@ void defocusing_sat2sat(Workspace& ws,
                         const Ppath& ppath,
                         const Numeric& ppath_lmax,
                         const Numeric& ppath_lraytrace,
-                        const Numeric& dza,
-                        const Verbosity& verbosity) {
+                        const Numeric& dza) {
   ARTS_USER_ERROR_IF (ppath.end_los[0] < 90 || ppath.start_los[0] > 90,
         "The function *defocusing_sat2sat* can only be used "
         "for limb sounding geometry.");
@@ -631,8 +625,7 @@ ARTS_USER_ERROR("ERROR")
   //            rte_los,
   //            ppath_lmax,
   //            ppath_lraytrace,
-  //            false,
-  //            verbosity);
+  //            false,);
   bending_angle1d(alpha2, ppt);
   alpha2 *= Conversion::deg2rad(1);
   a2 = ppt.constant;
@@ -656,8 +649,7 @@ ARTS_USER_ERROR("ERROR")
   //            rte_los,
   //            ppath_lmax,
   //            ppath_lraytrace,
-  //            false,
-  //            verbosity);
+  //            false,);
   ARTS_USER_ERROR("ERROR")
   // This path can hit the surface. And we need to check if ppt is OK.
   // (remember this function only deals with sat-to-sat links and OK
@@ -761,10 +753,7 @@ void get_iy_of_background(Workspace& ws,
                           const Agenda& iy_space_agenda,
                           const Agenda& iy_surface_agenda,
                           const Agenda& iy_cloudbox_agenda,
-                          const Index& iy_agenda_call1,
-                          const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                          const Index& iy_agenda_call1) {
   // Some sizes
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
@@ -780,8 +769,6 @@ void get_iy_of_background(Workspace& ws,
   rtp_pos = ppath.pos(np - 1, Range(0, 3));
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
-
-  out3 << "Radiative background: " << ppath.background << "\n";
 
   // Handle the different background cases
   //
@@ -1503,10 +1490,7 @@ void iyb_calc(Workspace& ws,
               const Index& j_analytical_do,
               const ArrayOfRetrievalQuantity& jacobian_quantities,
               const ArrayOfArrayOfIndex& jacobian_indices,
-              const ArrayOfString& iy_aux_vars,
-              const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+              const ArrayOfString& iy_aux_vars) {
   // Sizes
   const Index nf = f_grid.nelem();
   const Index nlos = mblock_dlos.nrows();
@@ -1533,9 +1517,6 @@ void iyb_calc(Workspace& ws,
   String fail_msg;
   bool failed = false;
   if (nlos >= arts_omp_get_max_threads() || nlos * 10 >= nf) {
-    out3 << "  Parallelizing los loop (" << nlos << " iterations, " << nf
-         << " frequencies)\n";
-
     WorkspaceOmpParallelCopyGuard wss{ws};
 
     // Start of actual calculations
@@ -1578,9 +1559,6 @@ void iyb_calc(Workspace& ws,
       if (failed) continue;
     }
   } else {
-    out3 << "  Not parallelizing los loop (" << nlos << " iterations, " << nf
-         << " frequencies)\n";
-
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -2054,7 +2032,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             const ArrayOfRetrievalQuantity& jacobian_quantities,
                             const ArrayOfArrayOfIndex& jacobian_indices,
                             const ArrayOfString& iy_aux_vars,
-                            const Verbosity& verbosity,
                             const Index& mblock_index,
                             const Index& n1y,
                             const Index& j_analytical_do) {
@@ -2084,8 +2061,7 @@ void yCalc_mblock_loop_body(bool& failed,
              j_analytical_do,
              jacobian_quantities,
              jacobian_indices,
-             iy_aux_vars,
-             verbosity);
+             iy_aux_vars);
 
     // Apply sensor response matrix on iyb, and put into y
     //

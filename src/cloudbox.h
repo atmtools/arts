@@ -32,7 +32,6 @@
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "optproperties.h"
 #include "ppath.h"
 
@@ -46,13 +45,11 @@ namespace Cloudbox {
 
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
-                  const Index& atmosphere_dim,
-                  const Verbosity& verbosity);
+                  const Index& atmosphere_dim);
 
 void chk_pnd_raw_data(const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file,
-                      const Index& atmosphere_dim,
-                      const Verbosity& verbosity);
+                      const Index& atmosphere_dim);
 
 void chk_pnd_field_raw_only_in_cloudbox(
     const Index& dim,
@@ -65,15 +62,12 @@ void chk_pnd_field_raw_only_in_cloudbox(
 void chk_scat_species(const ArrayOfString& scat_species, const String& delim);
 
 void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
-                         const ArrayOfScatteringMetaData& scat_meta,
-                         const Verbosity& verbosity);
+                         const ArrayOfScatteringMetaData& scat_meta);
 
 void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single,
-                              const String& scat_meta_file,
-                              const Verbosity& verbosity);
+                              const String& scat_meta_file);
 
-void chk_scat_data(const SingleScatteringData& scat_data,
-                   const Verbosity& verbosity);
+void chk_scat_data(const SingleScatteringData& scat_data);
 
 bool is_gp_inside_cloudbox(const GridPos& gp_p,
                            const GridPos& gp_lat,

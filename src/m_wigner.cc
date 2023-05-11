@@ -24,27 +24,24 @@
  * @brief Wigner symbol interactions
  */
 
-#include "messages.h"
 #include "wigner_functions.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner6Init(Index& wigner_initialized,
                  const Index& fast_wigner_stored_symbols,
-                 const Index& largest_wigner_symbol_parameter,
-                 const Verbosity&) {
+                 const Index& largest_wigner_symbol_parameter) {
   wigner_initialized = make_wigner_ready(int(largest_wigner_symbol_parameter), int(fast_wigner_stored_symbols), 6);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner3Init(Index& wigner_initialized,
                  const Index& fast_wigner_stored_symbols,
-                 const Index& largest_wigner_symbol_parameter,
-                 const Verbosity&) {
+                 const Index& largest_wigner_symbol_parameter) {
   wigner_initialized = make_wigner_ready(int(largest_wigner_symbol_parameter), int(fast_wigner_stored_symbols), 3);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void WignerFastInfoPrint(const Index& wigner_initialized, const Verbosity&) {
+void WignerFastInfoPrint(const Index& wigner_initialized) {
   ARTS_USER_ERROR_IF (not wigner_initialized,
                       "Must first initialize wigner...");
 
@@ -57,7 +54,7 @@ void WignerFastInfoPrint(const Index& wigner_initialized, const Verbosity&) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Wigner6Unload(Index& wigner_initialized, const Verbosity&) {
+void Wigner6Unload(Index& wigner_initialized) {
   ARTS_USER_ERROR_IF (not wigner_initialized,
                       "Must first initialize wigner...");
   wigner_initialized = 0;
@@ -70,7 +67,7 @@ void Wigner6Unload(Index& wigner_initialized, const Verbosity&) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Wigner3Unload(Index& wigner_initialized, const Verbosity&) {
+void Wigner3Unload(Index& wigner_initialized) {
   ARTS_USER_ERROR_IF (not wigner_initialized,
                       "Must first initialize wigner...");
   wigner_initialized = 0;
