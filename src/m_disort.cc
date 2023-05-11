@@ -151,7 +151,7 @@ void DisortCalc(Workspace& ws,
                                         refellipsoid,
                                         cloudboxtop_pos,
                                         sun_pos,
-                                        verbosity);
+                                        );
 */
 
     //FIXME: IF we want to be correct and include refraction, we must calculate the
@@ -347,7 +347,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                                         refellipsoid,
                                         cloudboxtop_pos,
                                         sun_pos,
-                                        verbosity);
+                                        );
 */
     //FIXME: IF we want to be correct and include refraction, we must calculate the
     // local position of sun via ppathFromRtePos2. The question is, is this needed,
@@ -503,7 +503,7 @@ void DisortCalcClearsky(Workspace& ws,
                      cloudbox_limits,
                      atm_field,
                      0.,
-                     verbosity);
+                     );
 */
 
   // Create data matching no particles
@@ -613,7 +613,7 @@ void DisortCalcIrradiance(Workspace& ws,
                      cloudbox_limits,
                      atm_field,
                      0.,
-                     verbosity);
+                     );
 */
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
@@ -663,7 +663,7 @@ void DisortCalcIrradiance(Workspace& ws,
                                         refellipsoid,
                                         cloudboxtop_pos,
                                         sun_pos,
-                                        verbosity);
+                                        );
 */
     //FIXME: IF we want to be correct and include refraction, we must calculate the
     // local position of sun via ppathFromRtePos2. The question is, is this needed,

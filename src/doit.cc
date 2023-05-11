@@ -268,7 +268,7 @@ void cloud_fieldsCalc(Workspace& ws,
                                         scat_p_index_local,
                                         scat_lat_index_local,
                                         scat_lon_index_local,
-                                        verbosity);
+                                        );
 */
 
         opt_prop_bulkCalc(ext_mat_local,

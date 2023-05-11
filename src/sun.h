@@ -193,7 +193,6 @@ void get_sun_radiation(Matrix& iy,
  * @param[in] gas_scattering_agenda As the WSV.
  * @param[in] ppath_step_agenda As the WSV.
  * @param[in] rte_alonglos_v As the WSV.
- * @param[in] verbosity Verbosity.
  */
 void get_direct_radiation(Workspace& ws,
                      ArrayOfMatrix& direct_radiation,
@@ -242,7 +241,6 @@ void get_direct_radiation(Workspace& ws,
  * @param[in] ppath_lmax As the WSV.
  * @param[in] ppath_lraytrace As the WSV.
  * @param[in] ppath_step_agenda As the WSV.
- * @param[in] verbosity Verbosity.
  */
 void get_sun_ppaths(Workspace& ws,
                      ArrayOfPpath& sun_ppaths,

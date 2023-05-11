@@ -111,7 +111,7 @@ ARTS_USER_ERROR("ERROR")
   //                                Vector(0),
   //                                refellipsoid,
   //                                nz,
-  //                                verbosity);
+  //                                );
 ARTS_USER_ERROR("ERROR")
 
   ArrayOfArrayOfIndex sorted_index;

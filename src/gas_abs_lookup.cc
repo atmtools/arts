@@ -107,7 +107,6 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
 
   \param[in] current_species The list of species for the current calculation.
   \param[in] current_f_grid  The list of frequencies for the current calculation.
-  \param[in] verbosity       Verbosity settings.
 
   \date 2002-12-12
 */

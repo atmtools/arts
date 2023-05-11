@@ -299,7 +299,7 @@ void TestArrayOfAgenda(Workspace& ws,
 void GetEnvironmentVariable(  // WS Generic Output:
     String& str,
     // WS Generic Input:
-    const String& envvar /* verbosity */) {
+    const String& envvar) {
   char* cstr;
   cstr = std::getenv(envvar.c_str());
   ARTS_USER_ERROR_IF (cstr == NULL,
@@ -316,7 +316,7 @@ void GetNumberOfThreads(Index& nthreads) {
 void GetEnvironmentVariable(  // WS Generic Output:
     Index& i,
     // WS Generic Input:
-    const String& envvar /* verbosity */) {
+    const String& envvar) {
   char* cstr;
   cstr = std::getenv(envvar.c_str());
   ARTS_USER_ERROR_IF (cstr == NULL || std::strlen(cstr) == 0,

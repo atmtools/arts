@@ -273,7 +273,7 @@ void xml_read_from_file_base(const String& filename,
 
     xml_read_header_from_stream(*ifs, ftype, ntype, etype);
     if (ftype == FILE_TYPE_ASCII) {
-      xml_read_from_stream(*ifs, type, nullptr);
+      xml_read_from_stream(*ifs, type, static_cast<bifstream *>(nullptr));
     } else {
       String bfilename = filename + ".bin";
       bifstream bifs(bfilename.c_str());
@@ -324,7 +324,7 @@ void xml_write_to_file_base(const String& filename,
   try {
     xml_write_header_to_stream(*ofs, ftype);
     if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII) {
-      xml_write_to_stream(*ofs, type, NULL, "");
+      xml_write_to_stream(*ofs, type, static_cast<bofstream *>(nullptr), "");
     } else {
       String bfilename = filename + ".bin";
       bofstream bofs(bfilename.c_str());

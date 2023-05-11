@@ -345,7 +345,6 @@ bool find_file(ArrayOfString& matches,
   The filename will be modified to contain the full path to the found match.
 
   @param[in,out] filename   File to check.
-  @param[in]     verbosity  Verbosity
 
   @throw runtime_error if file is not found.
 

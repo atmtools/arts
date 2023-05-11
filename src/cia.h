@@ -158,7 +158,6 @@ class CIARecord {
      \param[in] temperature Scalar temparature.
      \param[in] dataset Index of dataset to use.
      \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
-     \param[in] verbosity   Standard verbosity object.
      */
   void Extract(VectorView result,
                const ConstVectorView& f_grid,
@@ -176,7 +175,6 @@ class CIARecord {
      \param[in] temperature Scalar temparature
      \param[in] dataset Index of dataset to use 
      \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
-     \param[in] verbosity   Standard verbosity object.
      */
   [[nodiscard]] Numeric Extract(const Numeric& frequency,
                                 const Numeric& temperature,

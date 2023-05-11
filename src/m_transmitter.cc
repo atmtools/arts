@@ -395,7 +395,7 @@ void iyRadioLink(
           get_ppath_partopt( pnd_abs_vec, pnd_ext_mat, scat_data_single,
                              clear2cloudy, ppath_pnd, ppath, ppath_t,
                              stokes_dim, ppath_f, atmosphere_dim, scat_data,
-                             verbosity );
+                              );
 
           get_ppath_trans2( trans_partial, extmat_case, trans_cumulat, 
                             scalar_tau, ppath, ppath_ext, f_grid, stokes_dim, 
@@ -598,14 +598,14 @@ void iyRadioLink(
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, f_grid, refellipsoid, 
                               z_surface, ppath, ppath_lmax, ppath_lraytrace,
-                              defocus_shift, verbosity );
+                              defocus_shift );
         }
       else if( defocus_method == 2 )
         { defocusing_sat2sat( ws, dfl, ppath_step_agenda, atmosphere_dim, 
                               p_grid, lat_grid, lon_grid, t_field, z_field, 
                               vmr_field, f_grid, refellipsoid, 
                               z_surface, ppath, ppath_lmax, ppath_lraytrace, 
-                              defocus_shift, verbosity ); 
+                              defocus_shift ); 
         }
       if( auxDefocusingLoss >= 0 )
         { iy_aux[auxDefocusingLoss] = dfl; }

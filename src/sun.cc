@@ -401,7 +401,7 @@ ARTS_USER_ERROR("ERROR")
                                         refellipsoid,
                                         rte_pos,
                                         sun_pos,
-                                        verbosity);*/
+                                        );*/
 
     // calculate ppath (sun path) from sun to ppath point
     ARTS_ASSERT(false)
@@ -421,7 +421,7 @@ ARTS_USER_ERROR("ERROR")
                      2e-5,
                      5.,
                      0.5,
-                     verbosity);
+                     );
                      */
 
     sun_ppaths[i_sun] = sun_ppath;

@@ -195,7 +195,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
     @param[in]    ppath_lmax          As the WSV with the same name.
     @param[in]    ppath_lraytrace     As the WSV with the same name.
     @param[in]    dza                 Size of angular shift to apply.
-    @param[in]    verbosity           As the WSV with the same name.
 
     @author Patrick Eriksson 
     @date   2012-04-11
@@ -241,7 +240,6 @@ void defocusing_general(Workspace& ws,
     @param[in]    ppath_lmax          As the WSV with the same name.
     @param[in]    ppath_lraytrace     As the WSV with the same name.
     @param[in]    dza                 Size of angular shift to apply.
-    @param[in]    verbosity           As the WSV with the same name.
 
     @author Patrick Eriksson 
     @date   2012-04-11

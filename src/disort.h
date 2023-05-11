@@ -199,7 +199,6 @@ void get_disortsurf_props(  // Output
  * @param[in]     quiet Silence warnings.
  * @param[in]     emission Enables blackbody emission.
  * @param[in]     intensity_correction Enables intensity correction (for low nstreams)
- * @param[in]     verbosity Verbosity setting.
  *
  * @author        Oliver Lemke, Manfred Brath
  * @date          2019-09-19, 2021-10-27
@@ -279,7 +278,6 @@ void run_cdisort(Workspace& ws,
  * @param[in]     quiet Silence warnings.
  * @param[in]     emission Enables blackbody emission.
  * @param[in]     intensity_correction Enables intensity correction (for low nstreams)
- * @param[in]     verbosity Verbosity setting.
  *
  * @author        Oliver Lemke, Manfred Brath
  * @date          2019-09-19, 2021-10-27
@@ -569,7 +567,6 @@ void reduced_1datm(Vector& p,
  * @param[in]      f_grid                  Frequency grid
  * @param[in]      scat_za_grid            Zenith angle grid
  * @param[in]      surface_alt             surface altitude
- * @param[in]      verbosity
  *
  * @author     Jana Mendrok
  * @date       2019-10-22

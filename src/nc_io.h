@@ -56,13 +56,11 @@ void nca_filename_with_index(String& filename,
 
 template <typename T>
 void nca_read_from_file(const String& filename,
-                        T& type,
-                        const Verbosity& verbosity);
+                        T& type);
 
 template <typename T>
 void nca_write_to_file(const String& filename,
-                       const T& type,
-                       const Verbosity& verbosity);
+                       const T& type);
 
 /*void nc_read_var(const int ncf, const int **ncvar,
                   const Index dims, const String& name);*/

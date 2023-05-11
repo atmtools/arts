@@ -213,9 +213,6 @@ There are three possible causes for this:
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
-  const Index wsv_id_verbosity = ws_in.WsvMap_ptr->at("verbosity");
-  ws_in.duplicate(wsv_id_verbosity);
-
   for (Index i = 0; i < mml.nelem(); ++i) {
     // Runtime method data for this method:
     const MRecord& mrr = mml[i];
@@ -262,8 +259,6 @@ There are three possible causes for this:
       throw runtime_error(os.str());
     }
   }
-
-  ws_in.pop(wsv_id_verbosity);
 }
 
 //! Retrieve indexes of all input and output WSVs

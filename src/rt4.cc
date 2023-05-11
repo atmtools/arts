@@ -1632,8 +1632,8 @@ void rt4_test(Tensor4& out_rad,
   //    units W/m^2 um sr
   //    dimensions [numlayers+1,nummu,nstokes]
   //    sorted from high to low (altitudes) and 0 to |1| (mu)
-  //WriteXML( "ascii", up_rad, "up_rad.xml", 0, "up_rad", "", "", verbosity );
-  //WriteXML( "ascii", down_rad, "down_rad.xml", 0, "down_rad", "", "", verbosity );
+  //WriteXML( "ascii", up_rad, "up_rad.xml", 0, "up_rad", "", "" );
+  //WriteXML( "ascii", down_rad, "down_rad.xml", 0, "down_rad", "", "" );
 
   //to be able to compare with RT4 reference results, reshape output into
   //RT4-output type table (specifically, resort up_rad such that it runs from
@@ -1645,7 +1645,7 @@ void rt4_test(Tensor4& out_rad,
     out_rad(joker, 0, ii, joker) = up_rad(joker, nummu - 1 - ii, joker);
   //out_rad(joker,0,joker,joker) = up_rad;
   out_rad(joker, 1, joker, joker) = down_rad;
-  //WriteXML( "ascii", out_rad, "out_rad.xml", 0, "out_rad", "", "", verbosity );
+  //WriteXML( "ascii", out_rad, "out_rad.xml", 0, "out_rad", "", "" );
 }
 
 #endif /* ENABLE_RT4 */

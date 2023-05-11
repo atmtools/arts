@@ -124,7 +124,7 @@ inline void Append(Workspace& ws,
             const Agenda& in,
             const String& direction _U_,
             const String& /* in_name */,
-            const String& /* direction_nam verbosity */) {
+            const String& /* direction_nam */) {
   // Append in to end of out:
   auto& newag = out.emplace_back(in);
   newag.set_name(out_name);
@@ -140,7 +140,7 @@ inline void Append(Workspace& ws_in,
             const ArrayOfAgenda& in,
             const String& direction _U_,
             const String& /* in_name */,
-            const String& /* direction_nam verbosity */) {
+            const String& /* direction_nam */) {
   // Append in to end of out:
   for (const auto & it : in) {
     auto& newag = out.emplace_back(it);

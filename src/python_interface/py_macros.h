@@ -20,44 +20,40 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   return (i < 0) ? i + n : i;
 }
 
-#define PythonInterfaceFileIO(Type)                                        \
-  def(                                                                     \
-      "savexml",                                                           \
-      [](const Type& x,                                                    \
-         const char* const file,                                           \
-         const char* const type,                                           \
-         bool clobber) {                                                   \
-        xml_write_to_file(                                                 \
-            file, x, string2filetype(type), clobber ? 0 : 1, Verbosity()); \
-      },                                                                   \
-      py::arg("file").none(false),                                         \
-      py::arg("type").none(false) = "ascii",                               \
-      py::arg("clobber") = true,                                           \
-      py::doc("Saves :class:`" #Type "` to file\n"                         \
-              "\n"                                                         \
-              "Parameters:\n"                                              \
-              "    file (str): The path to which the file is written."     \
-              " Note that several of the options might modify the"         \
-              " name or write more files\n"                                \
-              "    type (str): Type of file to save (ascii. zascii,"       \
-              " or binary)\n"                                              \
-              "    clobber (bool): Overwrite existing files or add new"    \
-              " file with modified name?\n"                                \
-              "\n"                                                         \
-              "On Error:\n"                                                \
-              "    Throws RuntimeError for any failure to save"))          \
-      .def(                                                                \
-          "readxml",                                                       \
-          [](Type& x, const char* const file) {                            \
-            xml_read_from_file(file, x, Verbosity());                      \
-          },                                                               \
-          py::arg("file").none(false),                                     \
-          py::doc("Read :class:`" #Type "` from file\n"                    \
-                  "\n"                                                     \
-                  "Parameters:\n"                                          \
-                  "    file (str): A file that can be read\n"              \
-                  "\n"                                                     \
-                  "On Error:\n"                                            \
+#define PythonInterfaceFileIO(Type)                                            \
+  def(                                                                         \
+      "savexml",                                                               \
+      [](const Type &x, const char *const file, const char *const type,        \
+         bool clobber) {                                                       \
+        xml_write_to_file(file, x, string2filetype(type), clobber ? 0 : 1);    \
+      },                                                                       \
+      py::arg("file").none(false), py::arg("type").none(false) = "ascii",      \
+      py::arg("clobber") = true,                                               \
+      py::doc("Saves :class:`" #Type "` to file\n"                             \
+              "\n"                                                             \
+              "Parameters:\n"                                                  \
+              "    file (str): The path to which the file is written."         \
+              " Note that several of the options might modify the"             \
+              " name or write more files\n"                                    \
+              "    type (str): Type of file to save (ascii. zascii,"           \
+              " or binary)\n"                                                  \
+              "    clobber (bool): Overwrite existing files or add new"        \
+              " file with modified name?\n"                                    \
+              "\n"                                                             \
+              "On Error:\n"                                                    \
+              "    Throws RuntimeError for any failure to save"))              \
+      .def(                                                                    \
+          "readxml",                                                           \
+          [](Type &x, const char *const file) {                                \
+            xml_read_from_file(file, x);                                       \
+          },                                                                   \
+          py::arg("file").none(false),                                         \
+          py::doc("Read :class:`" #Type "` from file\n"                        \
+                  "\n"                                                         \
+                  "Parameters:\n"                                              \
+                  "    file (str): A file that can be read\n"                  \
+                  "\n"                                                         \
+                  "On Error:\n"                                                \
                   "    Throws RuntimeError for any failure to read"))
 
 #define PythonInterfaceIndexItemAccess(Type)                                \

@@ -52,8 +52,7 @@
 */
 void nca_filename(String &filename, const String &varname) {
   if ("" == filename) {
-    extern const String out_basename;
-    filename = out_basename + "." + varname + ".nc";
+    filename = varname + ".nc";
   }
 }
 
@@ -70,9 +69,8 @@ void nca_filename(String &filename, const String &varname) {
 void nca_filename_with_index(String &filename, const Index &file_index,
                              const String &varname) {
   if ("" == filename) {
-    extern const String out_basename;
     ostringstream os;
-    os << out_basename << "." << varname << "." << file_index << ".nc";
+    os << varname << "." << file_index << ".nc";
     filename = os.str();
   } else {
     ostringstream os;
@@ -85,18 +83,12 @@ void nca_filename_with_index(String &filename, const Index &file_index,
 /*!
  \param[in]  filename    NetCDF filename
  \param[out] type        Input variable
- \param[in]  verbosity   Verbosity
 
  \author Oliver Lemke
 */
 template <typename T>
-void nca_read_from_file(const String &filename, T &type,
-                        const Verbosity &verbosity) {
-  CREATE_OUT2;
-
+void nca_read_from_file(const String &filename, T &type) {
   String efilename = expand_path(filename);
-
-  out2 << "  Reading " << efilename << '\n';
 
   bool fail = false;
   String fail_msg;
@@ -108,7 +100,7 @@ void nca_read_from_file(const String &filename, T &type,
       fail_msg = "Error opening file. Does it exists?";
     } else {
       try {
-        nca_read_from_file(ncid, type, verbosity);
+        nca_read_from_file(ncid, type);
       } catch (const std::runtime_error &e) {
         fail = true;
         fail_msg = e.what();
@@ -125,18 +117,12 @@ void nca_read_from_file(const String &filename, T &type,
 /*!
  \param[in]  filename    NetCDF filename
  \param[in]  type        Output variable
- \param[in]  verbosity   Verbosity
 
  \author Oliver Lemke
 */
 template <typename T>
-void nca_write_to_file(const String &filename, const T &type,
-                       const Verbosity &verbosity) {
-  CREATE_OUT2;
-
+void nca_write_to_file(const String &filename, const T &type) {
   String efilename = add_basedir(filename);
-
-  out2 << "  Writing " << efilename << '\n';
 
   bool fail = false;
   String fail_msg;
@@ -148,7 +134,7 @@ void nca_write_to_file(const String &filename, const T &type,
       fail_msg = "Error opening file for writing.";
     } else {
       try {
-        nca_write_to_file(ncid, type, verbosity);
+        nca_write_to_file(ncid, type);
       } catch (const std::runtime_error &e) {
         fail = true;
         fail_msg = e.what();

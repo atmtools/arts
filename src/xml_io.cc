@@ -134,13 +134,9 @@ void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNum
 }
 
 void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
-                                  const String& filename,
-                                  const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                                  const String& filename) {
   String xml_file = filename;
-  find_xml_file(xml_file, verbosity);
-  out2 << "  Reading " << xml_file << '\n';
+  find_xml_file(xml_file);
 
   // Open input stream:
   if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
@@ -148,7 +144,7 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
   {
     ifs = std::shared_ptr<istream>(new igzstream());
     xml_open_input_file(
-        *(static_cast<igzstream*>(ifs.get())), xml_file, verbosity);
+        *(static_cast<igzstream*>(ifs.get())), xml_file);
   }
 #else
   {
@@ -160,7 +156,7 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
   else {
     ifs = shared_ptr<istream>(new ifstream());
     xml_open_input_file(
-        *(static_cast<ifstream*>(ifs.get())), xml_file, verbosity);
+        *(static_cast<ifstream*>(ifs.get())), xml_file);
   }
 }
 
@@ -199,8 +195,7 @@ void xml_data_parse_error(ArtsXMLTag& tag, String str_error) {
 */
 void filename_xml(String& filename, const String& varname) {
   if ("" == filename) {
-    extern const String out_basename;
-    filename = out_basename + "." + varname + ".xml";
+    filename = varname + ".xml";
   }
 }
 
@@ -218,9 +213,8 @@ void filename_xml_with_index(String& filename,
                              const String& varname,
                              const Index& digits) {
   if ("" == filename) {
-    extern const String out_basename;
     ostringstream os;
-    os << out_basename << "." << varname << "." << std::setw((int)digits)
+    os << varname << "." << std::setw((int)digits)
        << std::setfill('0') << file_index << ".xml";
     filename = os.str();
   } else {

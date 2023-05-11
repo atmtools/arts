@@ -38,9 +38,9 @@
 
 #define TMPL_NC_READ_WRITE_FILE(what)                \
   template void nca_write_to_file<what>(             \
-      const String&, const what&, const Verbosity&); \
+      const String&, const what&); \
   template void nca_read_from_file<what>(            \
-      const String&, what&, const Verbosity&);
+      const String&, what&);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for NetCDF streams
@@ -71,14 +71,13 @@ TMPL_NC_READ_WRITE_FILE(ArrayOfVector)
 #undef TMPL_NC_READ_WRITE_FILE
 
 /*void
-xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&, const Verbosity&);
+xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
 
 void
 xml_read_from_stream (istream&, ArrayOfLineRecord&,
-                      const Numeric, const Numeric, bifstream * = NULL,
-                      const Verbosity&);
+                      const Numeric, const Numeric, bifstream * = NULL);
 
 void
-xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&, const Verbosity&);*/
+xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);*/
 
 #endif /* nc_io_instantiation_h */

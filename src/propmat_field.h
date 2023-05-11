@@ -103,7 +103,6 @@ FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
  * @param[in] iy_surface_agenda As WSA
  * @param[in] iy_cloudbox_agenda As WSA
  * @param[in] surface_props_data As WSV
- * @param[in] verbosity Level of verbosity in underlying calls
  */
 void emission_from_propmat_field(
     Workspace& ws,

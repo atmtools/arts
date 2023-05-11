@@ -52,7 +52,6 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
  \param[in] temperature Scalar temperature.
  \param[in] cia_data    The CIA dataset to interpolate.
  \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
- \param[in] verbosity   Standard verbosity object.
  */
 void cia_interpolation(VectorView result,
                        const ConstVectorView& f_grid,
@@ -263,7 +262,6 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
  Reads the given CIA catalog file into this CIARecord.
 
  \param[in]  filename  Path of catalog file to read.
- \param[in]  verbosity.
  \return os
  */
 void CIARecord::ReadFromCIA(const String& filename) {

@@ -20824,26 +20824,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DESC("Tessem NeuralNet parameters.", "Input data.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("Test"),
-      DESCRIPTION(
-          "A dummy method that can be used for test purposes.\n"
-          "\n"
-          "This method can be used by ARTS developers to quickly test stuff.\n"
-          "The implementation is in file m_general.cc. This just saves you the\n"
-          "trouble of adding a dummy method everytime you want to try\n"
-          "something out quickly.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("time_gridOffset"),
       DESCRIPTION("Offsets a time grid by some seconds.\n"),
       AUTHORS("Richard Larsson"),

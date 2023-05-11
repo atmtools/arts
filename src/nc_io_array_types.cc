@@ -41,7 +41,7 @@
   \param ncf     NetCDF file descriptor
   \param v       ArrayOfIndex
 */
-void nca_read_from_file(const int ncid, ArrayOfIndex& v, const Verbosity&) {
+void nca_read_from_file(const int ncid, ArrayOfIndex& v) {
   Index nelem;
   nelem = nca_get_dim(ncid, "nelem");
 
@@ -54,7 +54,7 @@ void nca_read_from_file(const int ncid, ArrayOfIndex& v, const Verbosity&) {
   \param ncid    NetCDF file descriptor
   \param v       ArrayOfIndex
 */
-void nca_write_to_file(const int ncid, const ArrayOfIndex& v, const Verbosity&) {
+void nca_write_to_file(const int ncid, const ArrayOfIndex& v) {
   int retval;
   int ncdim, varid;
   if ((retval = nc_def_dim(ncid, "nelem", v.nelem(), &ncdim)))
@@ -73,7 +73,7 @@ void nca_write_to_file(const int ncid, const ArrayOfIndex& v, const Verbosity&) 
   \param ncid    NetCDF file descriptor
   \param aom     ArrayOfMatrix
 */
-void nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&) {
+void nca_read_from_file(const int ncid, ArrayOfMatrix& aom) {
   Index nelem;
   nelem = nca_get_dim(ncid, "nelem");
 
@@ -103,8 +103,7 @@ void nca_read_from_file(const int ncid, ArrayOfMatrix& aom, const Verbosity&) {
   \param aom     ArrayOfMatrix
 */
 void nca_write_to_file(const int ncid,
-                       const ArrayOfMatrix& aom,
-                       const Verbosity&) {
+                       const ArrayOfMatrix& aom) {
   int retval;
   int ncdim, varid_nrows, varid_ncols;
   int ncdim_total, varid;
@@ -159,7 +158,7 @@ void nca_write_to_file(const int ncid,
   \param ncid    NetCDF file descriptor
   \param aov     ArrayOfVector
 */
-void nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&) {
+void nca_read_from_file(const int ncid, ArrayOfVector& aov) {
   Index nelem;
   nelem = nca_get_dim(ncid, "nelem");
 
@@ -183,8 +182,7 @@ void nca_read_from_file(const int ncid, ArrayOfVector& aov, const Verbosity&) {
   \param aov     ArrayOfVector
 */
 void nca_write_to_file(const int ncid,
-                       const ArrayOfVector& aov,
-                       const Verbosity&) {
+                       const ArrayOfVector& aov) {
   int retval;
   int ncdim, varid_nelem;
   int ncdim_total, varid;
@@ -230,10 +228,10 @@ void nca_write_to_file(const int ncid,
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                    \
-  void nca_write_to_file(const int, const what &, const Verbosity &) {         \
+  void nca_write_to_file(const int, const what &) {         \
     ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
   }                                                                            \
-  void nca_read_from_file(const int, what &, const Verbosity &) {              \
+  void nca_read_from_file(const int, what &) {              \
     ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
   }
 

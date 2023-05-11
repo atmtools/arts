@@ -310,7 +310,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
     @param[in]    f_grid              As the WSV with the same name.
     @param[in]    refellipsoid        As the WSV with the same name.
     @param[in]    z_surface           As the WSV with the same name.
-    @param[in]    verbosity           As the WSV with the same name.
 
     @author Patrick Eriksson 
     @date   2012-04-11

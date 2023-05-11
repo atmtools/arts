@@ -286,7 +286,7 @@ Tensor3 p_field;
                    refellipsoid,
                    z_surface,
                    0,
-                   verbosity);*/
+                   );*/
 
   //calculate propagation path from the surface to the space in line of sight
   Ppath ppath;
@@ -311,7 +311,7 @@ Tensor3 p_field;
              ppath_lmax,
              ppath_lraytrace,
              ppath_inside_cloudbox_do,
-             verbosity);*/
+             );*/
 
 
   //get the incoming spectral radiance of the sun at toa. If there is no in

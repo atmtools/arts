@@ -119,7 +119,6 @@ void xml_parse_from_stream(
  *
  * \param[out] ifs Pointer to input file stream
  * \param[in]  filename Input filename
- * \param[in]  verbosity Verbosity
  */
 void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
                                   const String& filename);

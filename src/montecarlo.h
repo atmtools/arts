@@ -190,8 +190,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
  * @param[in]     cloudbox_limits         The limits of the cloud box.
  * @param[in]     pnd_field               Particle number density field.
  * @param[in]     scat_data               Array of single scattering data.
- * @param[in]     verbosity               Verbosity variable to dynamically control the reporting
- *                                        level during runtime.
  *
  *
  * @author        Ian S. Adams
@@ -270,8 +268,6 @@ bool is_anyptype_nonTotRan(
  * @param[in]     cloudbox_limits         The limits of the cloud box.
  * @param[in]     pnd_field               Particle number density field.
  * @param[in]     scat_data               Array of single scattering data.
- * @param[in]     verbosity               Verbosity variable to dynamically control the reporting
- *                                        level during runtime.
  *
  *
  * @author        Cory Davis
@@ -354,8 +350,6 @@ void mcPathTraceGeneral(Workspace& ws,
  * @param[in]     cloudbox_limits         The limits of the cloud box.
  * @param[in]     pnd_field               Particle number density field.
  * @param[in]     scat_data               Array of single scattering data.
- * @param[in]     verbosity               Verbosity variable to dynamically control the reporting
- *                                        level during runtime.
  *
  * @author        Cory Davis (mcPathTraceGeneral), Ian S. Adams
  * @date          2015-09-08

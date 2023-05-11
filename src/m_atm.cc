@@ -35,7 +35,6 @@ namespace detail {
  * @param atm_field As WSV
  * @param key_val A key value
  * @param filename A filename
- * @param verbosity As WSV
  * @return true If everything went well
  * @return false If everything went wrong
  */
@@ -69,7 +68,6 @@ bool try_read(AtmField &atm_field, const Atm::KeyVal &key_val,
  * @param atm_field As WSV
  * @param key_val A key value
  * @param filename A filename
- * @param verbosity As WSV
  * @return true If everything went well
  * @return false If everything went wrong
  */

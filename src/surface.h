@@ -235,7 +235,6 @@ void dsurface_check(const ArrayOfString& surface_props_names,
  * @param[in] water_p_eq_agenda As the WVS with the same name.
  * @param[in] gas_scattering_agenda As the WVS with the same name.
  * @param[in] ppath_step_agenda As the WVS with the same name.
- * @param[in] verbosity As the WVS with the same name.
  */
 void surface_get_incoming_direct(
     Workspace& ws,

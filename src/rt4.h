@@ -185,7 +185,6 @@ void get_rt4surf_props(  // Output
   \param[in]     pfct_threshold Requested scatter_matrix norm accuracy
                  (in terms of single scat albedo).
   \param[in]     max_delta_tau Maximum optical depth of infinitesimal layer
-  \param[in]     verbosity Verbosity setting
 
   \author Jana Mendrok
   \date   2017-02-22
@@ -331,7 +330,6 @@ void par_optpropCalc(  //Output
   \param[in]  pfct_threshold Requested scatter_matrix norm accuracy
               (in terms of single scat albedo)
   \param[in]  auto_inc_nstreams Flag whether to internally increase nstreams
-  \param[in]  verbosity Verbosity setting
 
   \author Jana Mendrok
   \date   2016-08-08
@@ -398,7 +396,6 @@ void surf_optpropCalc(Workspace& ws,
 
   \param[out] out_rad FIXMEDOC
   \param[in]  datapath FIXMEDOC
-  \param[in]  verbosity Verbosity setting
 
   \author Jana Mendrok
   \date 2016-05-24

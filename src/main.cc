@@ -48,7 +48,6 @@
 #include "exceptions.h"
 #include "file.h"
 #include "global_data.h"
-#include "messages.h"
 #include "methods.h"
 #include "mystring.h"
 #include "parameters.h"
@@ -78,40 +77,6 @@ void polite_goodby() {
  
    \author Stefan Buehler 
 */
-void set_reporting_level(Index r) {
-  extern Verbosity verbosity_at_launch;
-
-  if (-1 == r) {
-    // Reporting was not specified, set default. (No output from
-    // agendas (except main of course), only the important stuff to
-    // the screen, nothing to the file.)
-    verbosity_at_launch.set_agenda_verbosity(0);
-    verbosity_at_launch.set_screen_verbosity(1);
-    verbosity_at_launch.set_file_verbosity(0);
-  } else {
-    // Reporting was specified. Check consistency and set report
-    // level accordingly.
-
-    // Separate the three digits:
-    verbosity_at_launch.set_agenda_verbosity(r / 100);
-    verbosity_at_launch.set_screen_verbosity((r % 100) / 10);
-    verbosity_at_launch.set_file_verbosity(r % 10);
-
-    if (!verbosity_at_launch.valid()) {
-      cerr << "Illegal value specified for --reporting (-r).\n"
-           << "The specified value is " << r << ", which would be\n"
-           << "interpreted as:\n"
-           << "Verbosity for agendas:     "
-           << verbosity_at_launch.get_agenda_verbosity() << "\n"
-           << "Verbosity for screen:      "
-           << verbosity_at_launch.get_screen_verbosity() << "\n"
-           << "Verbosity for report file: "
-           << verbosity_at_launch.get_file_verbosity() << "\n"
-           << "Only values of 0-3 are allowed for each verbosity.\n";
-      arts_exit();
-    }
-  }
-}
 
 /** React to option `methods'. If given the argument `all', it
     should simply prints a list of all methods. If given the name of
@@ -897,56 +862,15 @@ int main(int argc, char** argv) {
     polite_goodby();
   }
 
-  // Set the basename according to the first control file, if not
-  // explicitly specified.
-  if ("" == parameters.basename) {
-    extern String out_basename;
-    ArrayOfString fileparts;
-    parameters.controlfiles[0].split(fileparts, "/");
-    out_basename = fileparts[fileparts.nelem() - 1];
-    // Find the last . in the name
-    String::size_type p = out_basename.rfind(".arts");
-
-    if (String::npos == p) {
-      // This is an error handler for the case that somebody gives
-      // a supposed file name that does not contain the extension
-      // ".arts"
-
-      cerr << "The controlfile must have the extension .arts.\n";
-      polite_goodby();
-    }
-
-    // Kill everything starting from the `.'
-    out_basename.erase(p);
-  } else {
-    extern String out_basename;
-    out_basename = parameters.basename;
-  }
-
-  // Set the global reporting level, either from reporting command line
-  // option or default.
-  set_reporting_level(parameters.reporting);
-
-  // Keep around a global copy of the verbosity levels at launch, so that
-  // verbosityInit() can be used to reset them in the control file
-  extern Verbosity verbosity_at_launch;
-  Verbosity verbosity;
-  verbosity = verbosity_at_launch;
-  verbosity.set_main_agenda(true);
-
-  CREATE_OUTS;
-
   //--------------------< Open report file >--------------------
   // This one needs its own little try block, because we have to
   // write error messages to cerr directly since the report file
   // will not exist.
   try {
-    extern String out_basename;   // Basis for file name
-    extern ofstream report_file;  // Report file pointer
     ostringstream report_file_ext;
 
     report_file_ext << ".rep";
-    open_output_file(report_file, out_basename + report_file_ext.str());
+    //open_output_file(report_file, report_file_ext.str());
   } catch (const std::runtime_error& x) {
     cerr << x.what() << "\n"
          << "I have to be able to write to my report file.\n";
@@ -956,70 +880,31 @@ int main(int argc, char** argv) {
   // Now comes the global try block. Exceptions caught after this
   // one are general stuff like file opening errors.
   try {
-    out1 << "Executing ARTS.\n";
-
-    // Output command line:
-    out1 << "Command line:\n";
-    for (Index i = 0; i < argc; ++i) {
-      out1 << argv[i] << " ";
-    }
-    out1 << "\n";
-
-    // Output full program name (with version number):
-    out1 << "Version: " << arts_get_version_string() << arts_mod_time(argv[0])
-         << "\n";
-
-    // Output more details about the compilation:
-    out2 << osfeatures.str() << "\n";
-
-    // Output some OpenMP specific information on output level 2:
-#ifdef _OPENMP
-    out2 << "Running with OpenMP, "
-         << "maximum number of threads = " << arts_omp_get_max_threads()
-         << ".\n";
-#else
-    out2 << "Running without OpenMP.\n";
-#endif
-
     // Output a short hello from each thread to out3:
 #ifdef _OPENMP
-#pragma omp parallel default(none) shared(out3)
+#pragma omp parallel default(none)
     {
       ostringstream os;
       int tn = arts_omp_get_thread_num();
       os << "   Thread " << tn << ": ready.\n";
-      out3 << os.str();
     }
 #endif
-    out2 << "\n";
 
     time_t rawtime;
     struct tm* timeinfo;
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    out2 << "Run started: " << asctime(timeinfo) << "\n";
 
-    // Output verbosity settings. This is not too interesting, it
-    // goes only to out3.
-    out3 << "Verbosity settings: Agendas:     "
-         << verbosity.get_agenda_verbosity() << "\n"
-         << "                    Screen:      "
-         << verbosity.get_screen_verbosity() << "\n"
-         << "                    Report file: "
-         << verbosity.get_file_verbosity() << "\n";
-
-    out3 << "\nReading control files:\n";
     for (Index i = 0; i < parameters.controlfiles.nelem(); ++i) {
       try {
-        out3 << "- " << parameters.controlfiles[i] << "\n";
 
         // The list of methods to execute and their keyword data from
         // the control file.
         Agenda tasklist{workspace};
 
         // Call the parser to parse the control text:
-        ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
+        ArtsParser arts_parser(tasklist, parameters.controlfiles[i]);
 
         arts_parser.parse_tasklist();
 
@@ -1028,7 +913,7 @@ int main(int argc, char** argv) {
         tasklist.set_main_agenda();
 
         // Execute main agenda:
-        Arts2(workspace, tasklist, verbosity);
+        Arts2(workspace, tasklist);
       } catch (const std::exception& x) {
         ostringstream os;
         os << "Run-time error in controlfile: " << parameters.controlfiles[i]
@@ -1038,15 +923,7 @@ int main(int argc, char** argv) {
       }
     }
   } catch (const std::runtime_error& x) {
-    out1 << "This run took " << fixed << setprecision(2)
-         << get_arts_runtime_in_sec(arts_realtime_start) << "s\n";
-
-    arts_exit_with_error_message(x.what(), out0);
+    arts_exit_with_error_message(x.what());
   }
-
-  out1 << "This run took " << fixed << setprecision(2)
-       << get_arts_runtime_in_sec(arts_realtime_start) << "s\n";
-
-  out1 << "Everything seems fine. Goodbye.\n";
   arts_exit(EXIT_SUCCESS);
 }

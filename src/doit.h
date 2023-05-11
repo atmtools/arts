@@ -113,7 +113,6 @@ void rte_step_doit_replacement(
   \param[in]    cloudbox_limits Cloudbox limits.
   \param[in]    t_field Temperature field
   \param[in]    pnd_field Particle number density field.
-  \param[in]    verbosity Verbosity setting
 
   \author Claudia Emde
   \date 2002-06-03
@@ -168,7 +167,6 @@ void cloud_fieldsCalc(Workspace& ws,
   \param[in]    surface_rtprop_agenda Provides radiative properties of the surface
   \param[in]    scat_za_interp Flag for interplation method in zenith angle
                 dimension
-  \param[in]    verbosity Verbosity setting
 
   \author Claudia Emde
   \date 2003-06-04
@@ -236,7 +234,6 @@ void cloud_ppath_update1D(Workspace& ws,
   \param[in]    surface_rtprop_agenda Provides radiative properties of the surface
   \param[in]    scat_za_interp Flag for interplation method in zenith angle
                 dimension
-  \param[in]    verbosity Verbosity setting
 
   \author Claudia Emde
   \date 2005-05-04
@@ -303,7 +300,6 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   \param[in]     f_index Frequency index
   \param[in]     ext_mat_field Extinction matrix field
   \param[in]     abs_vec_field Absorption matrix field
-  \param[in]     verbosity Verbosity setting
 
   \author Sreerekha Ravi
   \date 2003-11-17
@@ -373,7 +369,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   \param[in]     f_index Frequency index
   \param[in]     ext_mat_field Extinction matrix field
   \param[in]     abs_vec_field Absorption matrix field
-  \param[in]     verbosity Verbosity setting
 
   \author Claudia Emde
   \date 2003-06-04
@@ -433,7 +428,6 @@ void cloud_ppath_update3D(Workspace& ws,
   \param[in]     lon_index Longitude index
   \param[in]     za_index Zenith angle index in *cloudbox_field_mono*
   \param[in]     aa_index Azimuth angle index in *cloudbox_field_mono*
-  \param[in]     verbosity Verbosity setting
 
   \author Claudia Emde
   \date 2005-05-13
@@ -506,7 +500,6 @@ void cloud_RT_surface(Workspace& ws,
  \param[in]     acceleration_input Array of the previous three iteration steps
  \param[in]     accelerated Index wether to accelerate only the intensity or the
                 whole Stokes Vector
- \param[in]     verbosity Verbosity setting
 
  \author Jakob Doerr
  \date 2016-04-26
@@ -542,7 +535,6 @@ void cloudbox_field_ngAcceleration(  //Output
   \param[in]    za_grid Zenith angle grid
   \param[in]    scat_za_interp Flag for interplation method in zenith angle
                 dimension
-  \param[in]    verbosity Verbosity setting
 
   \author Claudia Emde
   \date 2003-06-06
@@ -619,7 +611,6 @@ void za_gridOpt(  //Output:
   \param[in]     t_field Atmospheric temperature field
   \param[in]     norm_error_threshold  Normalization error threshold
   \param[in]     norm_debug Flag for normalization debug output
-  \param[in]     verbosity Verbosity setting
 
   \author Oliver Lemke
   \date 2013-01-17
