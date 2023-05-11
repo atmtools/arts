@@ -316,7 +316,6 @@ void SetNumberOfThreads(const Index& nthreads) {
   omp_set_num_threads((int)nthreads);
 }
 #else
-void SetNumberOfThreads(const Index& /* nthreads */,
-                    ) {
+void SetNumberOfThreads(const Index&) {
 }
 #endif
