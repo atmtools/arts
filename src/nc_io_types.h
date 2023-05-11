@@ -39,7 +39,6 @@
 #include "array.h"
 #include "gas_abs_lookup.h"
 #include "matpack_arrays.h"
-#include "messages.h"
 #include "nc_io.h"
 
 #define TMPL_NC_READ_WRITE_FILE(what)                               \

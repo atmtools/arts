@@ -33,7 +33,6 @@
 
 #include "exceptions.h"
 #include "file.h"
-#include "messages.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
 
