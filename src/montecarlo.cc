@@ -913,7 +913,7 @@ void mcPathTraceGeneral(Workspace& ws,
                        false,
                        rte_pos,
                        rte_los,
-                       verbosity);
+                       );
                        */
 
   // Check if we have already has radiative background
@@ -1028,7 +1028,7 @@ void mcPathTraceGeneral(Workspace& ws,
           lmax = lmax_limit;
         }
         //cout << ppath_try << ", lmax = " << lmax << endl;
-        //Print( ppath_step, 0, verbosity );
+        //Print( ppath_step, 0 );
 
         ppath_step_agendaExecute(ws,
                                  ppath_step,
@@ -1272,7 +1272,7 @@ void mcPathTraceRadar(Workspace& ws,
                        false,
                        rte_pos,
                        rte_los,
-                       verbosity);
+                       );
                        */
 
   if (ppath_step.np == 0) {
@@ -1589,7 +1589,7 @@ void Sample_los(VectorView new_rte_los,
 
     //pha_mat_singleCalc( Z, sca_dir[0], sca_dir[1], inc_dir[0], inc_dir[1],
     //                    scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
-    //                    verbosity );
+    //                     );
 
     pdir(0, joker) = sca_dir;
     idir(0, joker) = inc_dir;

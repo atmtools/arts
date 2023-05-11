@@ -51,9 +51,9 @@ std::filesystem::path correct_include_path(
   return path;
 }
 
-std::unique_ptr<Agenda> parse_agenda(Workspace& ws, const char* filename, const Verbosity& verbosity) {
+std::unique_ptr<Agenda> parse_agenda(Workspace& ws, const char* filename) {
   std::unique_ptr<Agenda> a = std::make_unique<Agenda>(ws);
-  ArtsParser parser = ArtsParser(*a, filename, verbosity);
+  ArtsParser parser = ArtsParser(*a, filename);
 
   parser.parse_tasklist();
   a->set_name(filename);
@@ -334,8 +334,7 @@ void py_agenda(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
              return parse_agenda(w,
-                                 correct_include_path(path).c_str(),
-                                 *w.get<Verbosity>("verbosity"));
+                                 correct_include_path(path).c_str());
            }),
            py::keep_alive<0, 1>())
       .PythonInterfaceFileIO(Agenda)
@@ -345,8 +344,7 @@ void py_agenda(py::module_& m) {
       .def_property_readonly("output2dup", &Agenda::get_output2dup)
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a) {
-             a.set_outputs_to_push_and_dup(
-                 *a.workspace()->get<Verbosity>("verbosity"));
+             a.set_outputs_to_push_and_dup();
            })
       .def(
           "add_workspace_method",
@@ -620,8 +618,7 @@ Both agendas must be defined on the same workspace)--"),
       .def(
           "check",
           [](Agenda& a, Workspace& w) {
-            a.check(w,
-                    *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")));
+            a.check(w);
           },
           py::doc("Checks if the agenda works"))
       .def_property("name", &Agenda::name, &Agenda::set_name)
@@ -721,9 +718,7 @@ Both agendas must be defined on the same workspace)--"),
           "check",
           [](ArrayOfAgenda& aa, Workspace& w) {
             for (auto& a : aa)
-              a.check(
-                  w,
-                  *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")));
+              a.check(w);
           },
           py::doc("Checks if the agenda works"))
       .def_property(

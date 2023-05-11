@@ -28,7 +28,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
          const char* const type,                                           \
          bool clobber) {                                                   \
         xml_write_to_file(                                                 \
-            file, x, string2filetype(type), clobber ? 0 : 1, Verbosity()); \
+            file, x, string2filetype(type), clobber ? 0 : 1);              \
       },                                                                   \
       py::arg("file").none(false),                                         \
       py::arg("type").none(false) = "ascii",                               \
@@ -49,7 +49,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(                                                                \
           "readxml",                                                       \
           [](Type& x, const char* const file) {                            \
-            xml_read_from_file(file, x, Verbosity());                      \
+            xml_read_from_file(file, x);                                   \
           },                                                               \
           py::arg("file").none(false),                                     \
           py::doc("Read :class:`" #Type "` from file\n"                    \
@@ -63,7 +63,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           "fromxml",                                                       \
           [](const char* const file) {                                     \
             Type x;                                                        \
-            xml_read_from_file(file, x, Verbosity());                      \
+            xml_read_from_file(file, x);                                   \
             return x;                                                      \
           },                                                               \
           py::arg("file").none(false),                                     \

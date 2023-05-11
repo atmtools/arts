@@ -571,7 +571,7 @@ ARTS_ASSERT(false)
                            rte_pos,
                            rte_los,
                            ppath_lmax,
-                           verbosity);
+                           );
                            */
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
@@ -609,7 +609,7 @@ ARTS_ASSERT(false)
                            iy_transmittance,
                            rte_alonglos_v,
                            surface_props_data,
-                           verbosity);
+                           );
 */
         ARTS_ASSERT(iy.ncols() == stokes_dim);
 
@@ -802,7 +802,7 @@ ARTS_ASSERT(false)
                            rte_pos,
                            rte_los,
                            ppath_lmax,
-                           verbosity);
+                           );
                            */
         ARTS_ASSERT(ppath.gp_p[ppath.np - 1].idx == i0 ||
                ppath.gp_p[ppath.np - 1].idx == nl - 2);
@@ -840,7 +840,7 @@ ARTS_ASSERT(false)
                            iy_transmittance,
                            rte_alonglos_v,
                            surface_props_data,
-                           verbosity);
+                           );
 */
         ARTS_ASSERT(iy.ncols() == stokes_dim);
 

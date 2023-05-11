@@ -29,7 +29,7 @@
  
  \author Oliver Lemke
 */
-void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&) {
+void nca_read_from_file(const int ncid, GasAbsLookup& gal) {
   nca_get_data(ncid, "species", gal.species, true);
 
   ARTS_USER_ERROR_IF(!gal.species.nelem(),
@@ -54,8 +54,7 @@ void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&) {
  \author Oliver Lemke
 */
 void nca_write_to_file(const int ncid,
-                       const GasAbsLookup& gal,
-                       const Verbosity&) {
+                       const GasAbsLookup& gal) {
   int retval;
 
   int species_strings_varid;
@@ -142,10 +141,10 @@ void nca_write_to_file(const int ncid,
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                    \
-  void nca_write_to_file(const int, const what &, const Verbosity &) {         \
+  void nca_write_to_file(const int, const what &) {         \
     ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
   }                                                                            \
-  void nca_read_from_file(const int, what &, const Verbosity &) {              \
+  void nca_read_from_file(const int, what &) {              \
     ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
   }
 

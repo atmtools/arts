@@ -4,67 +4,10 @@
 #include <pybind11/operators.h>
 #include <pybind11/pytypes.h>
 
-#include "messages.h"
 #include "py_macros.h"
 
 namespace Python {
 void py_basic(py::module_& m) {
-  py::class_<Verbosity>(m, "Verbosity")
-      .def(py::init([]() { return std::make_unique<Verbosity>(); }))
-      .PythonInterfaceWorkspaceVariableConversion(Verbosity)
-      .PythonInterfaceCopyValue(Verbosity)
-      .def(py::init([](Index a, Index s, Index f) {
-             return std::make_unique<Verbosity>(a, s, f);
-           }),
-           py::arg("agenda") = 0,
-           py::arg("screen") = 0,
-           py::arg("file") = 0)
-      .PythonInterfaceFileIO(Verbosity)
-      .PythonInterfaceBasicRepresentation(Verbosity)
-      .def_property(
-          "agenda",
-          [](Verbosity& x) { return x.get_agenda_verbosity(); },
-          [](Verbosity& x, Index i) { return x.set_agenda_verbosity(i); },
-          py::doc("Agenda output level"))
-      .def_property(
-          "screen",
-          [](Verbosity& x) { return x.get_screen_verbosity(); },
-          [](Verbosity& x, Index i) { return x.set_screen_verbosity(i); },
-          py::doc("Screen output level"))
-      .def_property(
-          "file",
-          [](Verbosity& x) { return x.get_file_verbosity(); },
-          [](Verbosity& x, Index i) { return x.set_file_verbosity(i); },
-          py::doc("File output level"))
-      .def_property(
-          "main",
-          [](Verbosity& x) { return x.is_main_agenda(); },
-          [](Verbosity& x, bool i) { return x.set_main_agenda(i); },
-          py::doc("Main class flag"))
-      .def(py::pickle(
-          [](const Verbosity& self) {
-            Index va = self.get_agenda_verbosity();
-            Index vs = self.get_screen_verbosity();
-            Index vf = self.get_file_verbosity();
-            bool bm = self.is_main_agenda();
-
-            return py::make_tuple(va, vs, vf, bm);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-
-            const auto va = t[0].cast<Index>();
-            const auto vs = t[1].cast<Index>();
-            const auto vf = t[2].cast<Index>();
-            const auto bm = t[3].cast<bool>();
-
-            auto out = std::make_unique<Verbosity>(va, vs, vf);
-            out->set_main_agenda(bm);
-            return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(Verbosity);
-  py::implicitly_convertible<Index, Verbosity>();
-
   py::class_<String>(m, "String")
       .def(py::init([]() { return std::make_unique<String>(); }))
       .def(py::init([](const std::string& s) { return std::make_unique<String>(s); }))
@@ -165,8 +108,7 @@ object's instances (i.e., no element-wise comparisions))--");
             xml_write_to_file(file,
                               x.val,
                               string2filetype(type),
-                              clobber ? 0 : 1,
-                              Verbosity());
+                              clobber ? 0 : 1);
           },
           py::arg("file").none(false),
           py::arg("type").none(false) = "ascii",
@@ -187,7 +129,7 @@ object's instances (i.e., no element-wise comparisions))--");
       .def(
           "readxml",
           [](Numeric_& x, const char* const file) {
-            xml_read_from_file(file, x.val, Verbosity());
+            xml_read_from_file(file, x.val);
           },
           py::arg("file").none(false),
           py::doc("Read Numeric from file\n"
@@ -234,8 +176,7 @@ You can get copies and set the value by the "value" property)--");
             xml_write_to_file(file,
                               x.val,
                               string2filetype(type),
-                              clobber ? 0 : 1,
-                              Verbosity());
+                              clobber ? 0 : 1);
           },
           py::arg("file").none(false),
           py::arg("type").none(false) = "ascii",
@@ -256,7 +197,7 @@ You can get copies and set the value by the "value" property)--");
       .def(
           "readxml",
           [](Index_& x, const char* const file) {
-            xml_read_from_file(file, x.val, Verbosity());
+            xml_read_from_file(file, x.val);
           },
           py::arg("file").none(false),
           py::doc("Read Index from file\n"

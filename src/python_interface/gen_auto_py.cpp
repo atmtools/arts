@@ -419,8 +419,6 @@ void includes(std::ofstream& os) {
 }
 
 void workspace_variables(size_t n, const NameMaps& arts) {
-  const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
-
   std::vector<std::ofstream> oss(n);
   for (size_t i = 0; i < n; i++) {
     oss[i] =
@@ -445,12 +443,10 @@ void workspace_variables(size_t n, const NameMaps& arts) {
 
     if (data.varname_group == "Agenda")
       os << "    val.set_name(\"" << name
-         << "\");\n    val.check(w, *static_cast<Verbosity*>(w[" << verbpos
-         << "].get()));\n";
+         << "\");\n    val.check(w);\n";
     if (data.varname_group == "ArrayOfAgenda")
       os << "    for(auto& a : val) a.set_name(\"" << name
-         << "\");\n    for(auto& a : val) a.check(w, *static_cast<Verbosity*>(w["
-         << verbpos << "].get()));\n";
+         << "\");\n    for(auto& a : val) a.check(w);\n";
     os << "    " << data.varname_group << "& v = *static_cast<"
        << data.varname_group << " *>(w[" << data.artspos
        << "].get());\n    v = val;\n  }, py::doc(R\"-x-(" << data.varname_desc
@@ -465,8 +461,7 @@ void workspace_variables(size_t n, const NameMaps& arts) {
 
 void print_method_desc(std::ofstream& os,
                        const Method& method,
-                       const std::map<std::string, Group>& groups,
-                       bool pass_verbosity) {
+                       const std::map<std::string, Group>& groups) {
   os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << method.desc;
   os << "\nAuthor(s): ";
   for (auto& author : method.authors) {
@@ -517,15 +512,11 @@ void print_method_desc(std::ofstream& os,
     os << ')' << '\n';
   }
 
-  if (pass_verbosity)
-    os << "verbosity : pyarts.arts.Verbosity, optional\n    As WSV (IN)\n";
-
   os << "\n)-METHODS_DESC-\")";
 }
 
 void print_method_args(std::ofstream& os,
-                       const Method& method,
-                       bool pass_verbosity) {
+                       const Method& method) {
   for (const auto& i : method.out.varname) {
     os << ',' << '\n'
        << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i
@@ -557,9 +548,6 @@ void print_method_args(std::ofstream& os,
          << "py::arg(\"" << method.gin.name[i] << "\").none(false)";
     }
   }
-  if (pass_verbosity)
-    os << ',' << '\n'
-       << R"--(py::arg_v("verbosity", std::nullopt, "ws.verbosity"))--";
 }
 
 void workspace_method_create(size_t n, const NameMaps& arts) {
@@ -662,11 +650,6 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
                     }))
       continue;
 
-    const bool pass_verbosity = std::none_of(
-        method.out.varname.begin(), method.out.varname.end(), [](auto& var) {
-          return var == "verbosity";
-        });
-
     const bool pass_workspace =
         method.pass_workspace or method.agenda_method or
         std::any_of(
@@ -726,8 +709,6 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
       if (method.gin.hasdefs[i]) os << '>';
       os << ' ' << method.gin.name[i];
     }
-    if (pass_verbosity)
-      os << ",\nstd::optional<std::variant<const WorkspaceVariable *, Verbosity *>> verbosity";
     os << ") {\n";
     bool has_any = false;
 
@@ -811,13 +792,6 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
         os << "};\n";
       }
     }
-
-    // Verbosity?
-    if (pass_verbosity) {
-      os << "  const auto& arg" << counter++
-         << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
-         << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
-    }
     os << '\n';
 
     // Arguments from Arts side
@@ -835,10 +809,10 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
     os << ");\n}";
 
     // Name the paramters and show their defaults
-    print_method_args(os, method, pass_verbosity);
+    print_method_args(os, method);
 
     // Put description at the end
-    print_method_desc(os, method, arts.varname_group, pass_verbosity);
+    print_method_desc(os, method, arts.varname_group);
 
     os << ')' << ';' << '\n' << '\n';
 
@@ -903,11 +877,6 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
     if (ignore_methods.end() not_eq
         std::find(ignore_methods.begin(), ignore_methods.end(), method.name))
       continue;
-
-    const bool pass_verbosity = std::none_of(
-        method.out.varname.begin(), method.out.varname.end(), [](auto& var) {
-          return var == "verbosity";
-        });
 
     const bool pass_workspace =
         method.pass_workspace or method.agenda_method or
@@ -1090,8 +1059,6 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
       if (not arg.gen or arg.def) os << '>';
       os << ' ' << arg.name;
     }
-    if (pass_verbosity)
-      os << ",\nstd::optional<std::variant<const WorkspaceVariable *, Verbosity *>> verbosity";
     os << ") {\n";
 
     // Create defaults
@@ -1146,12 +1113,6 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
         os << "wvv(" << arg.name << ");";
       }
       os << '\n';
-    }
-
-    if (pass_verbosity) {
-      os << "  const auto& arg" << counter++
-         << "_ = select_in<Verbosity>(WorkspaceVariable{w_, "
-         << arts.varname_group.at("verbosity").artspos << "}, verbosity);\n";
     }
     os << '\n';
 
@@ -1261,7 +1222,6 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
         method_os << ", arg" << counter - (gins--) << "_name_";
       }
 
-      if (pass_verbosity) method_os << ", arg" << counter << "_";
       method_os << ");";
 
       const String method_call = method_os.str();
@@ -1392,19 +1352,15 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
         os << arg.types.front();
       counter++;
     }
-    if (pass_verbosity) {
-      if (has_any) os << ", ";
-      os << "verbosity : Verbosity";
-    }
     os << ")\"\n"
           "                    \"\\n\\n\"\n"
           "                    \"See method description for valid signatures\")\n  }\n}";
 
     // Name the paramters and show their defaults
-    print_method_args(os, method, pass_verbosity);
+    print_method_args(os, method);
 
     // Put description at the end
-    print_method_desc(os, method, arts.varname_group, pass_verbosity);
+    print_method_desc(os, method, arts.varname_group);
 
     os << ')' << ';' << '\n' << '\n';
 
@@ -1415,22 +1371,17 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
   // Delete
   {
     auto& os = *osptr;
-    const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
     auto method_ptr = std::find_if(arts.methodname_method.begin(),
                                    arts.methodname_method.end(),
                                    [](auto& m) { return m.name == "Delete"; });
-    const bool pass_verbosity =
-        std::none_of(method_ptr->out.varname.begin(),
-                     method_ptr->out.varname.end(),
-                     [](auto& var) { return var == "verbosity"; });
     ARTS_USER_ERROR_IF(method_ptr == arts.methodname_method.end(),
                        "The Delete method no longer exist")
 
-    os << R"--(ws.def("Delete", [](Workspace& w, WorkspaceVariable& x, std::optional<Verbosity> verbosity) {
-      Delete(w, Index(1), x.name(), verbosity.has_value() ? *verbosity : WorkspaceVariable{w, )--"
-       << verbpos << "});\n}";
-    print_method_args(os, *method_ptr, true);
-    print_method_desc(os, *method_ptr, arts.varname_group, pass_verbosity);
+    os << R"--(ws.def("Delete", [](Workspace& w, WorkspaceVariable& x) {
+      Delete(w, Index(1), x.name());
+    })--";
+    print_method_args(os, *method_ptr);
+    print_method_desc(os, *method_ptr, arts.varname_group);
     os << ");\n\n";
 
     osptr++;
@@ -1734,8 +1685,6 @@ WorkspaceVariable::operator Numeric&() const {return static_cast<Numeric_&>(*thi
 }
 
 void workspace_access(std::ofstream& os, const NameMaps& arts) {
-  const Index verbpos = arts.varname_group.find("verbosity")->second.artspos;
-
   for (auto& [name, group] : arts.group) {
     const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
     os << R"--(ws.def("_setattr_unchecked_", [](Workspace& w, const char* name, )--"
@@ -1746,11 +1695,9 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
        << group << R"--()) : varpos -> second;
 )--";
     if (name == "Agenda")
-      os << "  val.set_name(name);\n  val.check(w, *static_cast<Verbosity*>(w["
-         << verbpos << "].get()));\n";
+      os << "  val.set_name(name);\n  val.check(w);\n";
     if (name == "ArrayOfAgenda")
-      os << "  for (auto& y: val) y.set_name(name);\n  for (auto& y: val) y.check(w, *static_cast<Verbosity*>(w["
-         << verbpos << "].get()));\n";
+      os << "  for (auto& y: val) y.set_name(name);\n  for (auto& y: val) y.check(w);\n";
     os << "  *static_cast<" << name << "*>(w[i].get()) = val;";
     os << R"--(
 });
@@ -1778,11 +1725,9 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
        << "*>(&v);\n";
 
     if (name == "Agenda")
-      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *static_cast<Verbosity*>(w.ws["
-         << verbpos << "].get()));\n";
+      os << "        rh.set_name(w.name());\n        rh.check(w.ws);\n";
     if (name == "ArrayOfAgenda")
-      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *static_cast<Verbosity*>(w.ws["
-         << verbpos << "].get()));\n";
+      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws);\n";
 
     os << "        lh = rh;\n";
 
@@ -1794,11 +1739,9 @@ void workspace_access(std::ofstream& os, const NameMaps& arts) {
        << "*>();\n";
 
     if (name == "Agenda")
-      os << "        rh.set_name(w.name());\n        rh.check(w.ws, *static_cast<Verbosity*>(w.ws["
-         << verbpos << "].get()));\n";
+      os << "        rh.set_name(w.name());\n        rh.check(w.ws);\n";
     if (name == "ArrayOfAgenda")
-      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws, *static_cast<Verbosity*>(w.ws["
-         << verbpos << "].get()));\n";
+      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws);\n";
 
     os << "        lh = rh;\n";
 

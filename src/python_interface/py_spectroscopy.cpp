@@ -786,7 +786,7 @@ Note that the normalization assumes sum(VMR) is 1 for good results but does not 
 
             for (auto& cia_data: cia.Data()) {
               Vector result(f.nelem(), 0);
-              cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust, Verbosity{});
+              cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust);
               out += result;
             }
 

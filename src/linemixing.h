@@ -262,7 +262,6 @@ EquivalentLines eigenvalue_adaptation_of_relmat(const ComplexMatrix& W,
  * @param[in] ord The order of the parameters [1: Y; 2: Y, DF, G; 3: Y, DF, G, DG], the last is still not supported fully
  * @param[in] robust Doesn't throw on failure if true
  * @param[in] rosenkranz_adaptation Makes the explicit computation of Rosenkranz parameters
- * @param[in] verbosity As WSM
  * @return EXIT_FAILURE when some parameterization fit fails
  * @return EXIT_SUCCESS if all algorithms worked (independent of if the absorption will be reasonable)
  */

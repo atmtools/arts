@@ -48,7 +48,6 @@ class XsecRecord {
      \param[in] f_grid      Frequency grid.
      \param[in] pressure    Scalar pressure.
      \param[in] temperature Scalar temperature.
-     \param[in] verbosity   Verbosity.
      */
   void Extract(VectorView result,
                const Vector& f_grid,

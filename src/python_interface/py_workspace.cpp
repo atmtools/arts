@@ -176,12 +176,12 @@ Agenda unpickle_agenda(Workspace &ws, const py::tuple &t) {
   std::transform(mr_tup.begin(), mr_tup.end(), methods.begin(),
                  [&ws](auto &met) { return unpickle_mrecord(ws, met); });
   val.set_methods(methods);
-  val.set_outputs_to_push_and_dup(Verbosity{});
+  val.set_outputs_to_push_and_dup();
 
   if (t[2].cast<bool>())
     val.set_main_agenda();
   else
-    val.check(ws, Verbosity{});
+    val.check(ws);
 
   return val;
 }
@@ -190,8 +190,7 @@ std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
 std::unique_ptr<Agenda> parse_agenda(Workspace&,
-                                     const char* filename,
-                                     const Verbosity& verbosity);
+                                     const char* filename);
 
 void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>&,
                        py::class_<WorkspaceVariable>&);
@@ -208,14 +207,9 @@ auto get_group_types() {
 void py_workspace(py::module_& m,
                   py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
                   py::class_<WorkspaceVariable>& wsv) {
-  ws.def(py::init([](Index verbosity, Index agenda_verbosity) {
-           auto w = Workspace::create();
-           w->push_move(w->WsvMap_ptr->at("verbosity"),
-                   std::make_shared<Verbosity>(agenda_verbosity, verbosity, 0));
-           return w;
-         }),
-         py::arg("verbosity") = 0,
-         py::arg("agenda_verbosity") = 0)
+  ws.def(py::init([]() {
+           return Workspace::create();
+         }))
       .def(py::init([](Workspace& w) {return w.shallowcopy();}))
       .def(
           "__copy__",
@@ -230,8 +224,7 @@ void py_workspace(py::module_& m,
       .def("execute_controlfile",
            [](Workspace& w, const std::filesystem::path& path) {
              std::unique_ptr<Agenda> a{parse_agenda(w, 
-                 correct_include_path(path).c_str(),
-                 *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")))};
+                 correct_include_path(path).c_str())};
              a->execute(w);
            })
       .def_property_readonly("size", &Workspace::nelem)
