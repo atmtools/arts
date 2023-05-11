@@ -12,8 +12,6 @@
 
 #ifdef ENABLE_RT4
 
-#include "messages.h"
-
 //! Checks that input of RT4Calc* is sane.
 /*!
 
@@ -208,8 +206,7 @@ void run_rt4(Workspace& ws,
              const String& pfct_method,
              const Index& pfct_aa_grid_size,
              const Numeric& pfct_threshold,
-             const Numeric& max_delta_tau,
-             const Verbosity& verbosity);
+             const Numeric& max_delta_tau);
 
 //! Reset za_grid such that it is consistent with ARTS
 /*!
@@ -336,8 +333,7 @@ void sca_optpropCalc(  //Output
     const String& pfct_method,
     const Index& pfct_aa_grid_size,
     const Numeric& pfct_threshold,
-    const Index& auto_inc_nstreams,
-    const Verbosity& verbosity);
+    const Index& auto_inc_nstreams);
 
 //! Calculates bidirectional surface reflection matrices and emission direction
 /*!
@@ -390,8 +386,7 @@ void surf_optpropCalc(Workspace& ws,
   \date 2016-05-24
 */
 void rt4_test(Tensor4& out_rad,
-              const String& datapath,
-              const Verbosity& verbosity);
+              const String& datapath);
 
 extern "C" {
 

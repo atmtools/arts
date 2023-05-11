@@ -14,8 +14,7 @@
 #include "logic.h"
 #include "predefined_absorption_models.h"
 
-void predefined_model_dataInit(PredefinedModelData& predefined_model_data,
-                               const Verbosity&) {
+void predefined_model_dataInit(PredefinedModelData& predefined_model_data) {
   predefined_model_data = PredefinedModelData{};
 }
 
@@ -27,8 +26,7 @@ void predefined_model_dataAddWaterMTCKD400(
     const Vector& self_absco_ref,
     const Vector& for_absco_ref,
     const Vector& wavenumbers,
-    const Vector& self_texp,
-    const Verbosity&) {
+    const Vector& self_texp) {
   const auto sz = self_absco_ref.size();
 
   ARTS_USER_ERROR_IF(
@@ -67,8 +65,7 @@ void propmat_clearskyAddPredefined(
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
-    const AtmPoint& atm_point,
-    const Verbosity&) {
+    const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(
       propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
       "Mismatch dimensions on internal matrices of xsec and frequency");

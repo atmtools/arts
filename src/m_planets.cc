@@ -26,7 +26,6 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "matpack_data.h"
-#include "messages.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -42,7 +41,7 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void g0Earth(Numeric& g0, const Numeric& lat, const Verbosity&) {
+void g0Earth(Numeric& g0, const Numeric& lat) {
   // "Small g" at altitude=0, g0:
   // Expression for g0 taken from Wikipedia page "Gravity of Earth", that
   // is stated to be: International Gravity Formula 1967, the 1967 Geodetic
@@ -61,7 +60,7 @@ void g0Earth(Numeric& g0, const Numeric& lat, const Verbosity&) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void g0Jupiter(Numeric& g0, const Verbosity&) {
+void g0Jupiter(Numeric& g0) {
   // value from MPS, ESA-planetary
   g0 = 23.12;
   // value (1bar level) from http://nssdc.gsfc.nasa.gov/planetary/factsheet/jupiterfact.html
@@ -69,27 +68,26 @@ void g0Jupiter(Numeric& g0, const Verbosity&) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void g0Mars(Numeric& g0, const Verbosity&) {
+void g0Mars(Numeric& g0) {
   // value from MPS, ESA-planetary
   g0 = 3.690;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void g0Venus(Numeric& g0, const Verbosity&) {
+void g0Venus(Numeric& g0) {
   // value via MPS, ESA-planetary from Ahrens, 1995
   g0 = 8.870;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void g0Io(Numeric& g0, const Verbosity&) {
+void g0Io(Numeric& g0) {
   // value via Wikipedia
   g0 = 1.796;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidEarth(Vector& refellipsoid,
-                       const String& model,
-                       const Verbosity&) {
+                       const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -108,8 +106,7 @@ void refellipsoidEarth(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidJupiter(Vector& refellipsoid,
-                         const String& model,
-                         const Verbosity&) {
+                         const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -128,8 +125,7 @@ void refellipsoidJupiter(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidMars(Vector& refellipsoid,
-                      const String& model,
-                      const Verbosity&) {
+                      const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -148,8 +144,7 @@ void refellipsoidMars(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidMoon(Vector& refellipsoid,
-                      const String& model,
-                      const Verbosity&) {
+                      const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -171,8 +166,7 @@ void refellipsoidMoon(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidIo(Vector& refellipsoid,
-                    const String& model,
-                    const Verbosity&) {
+                    const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -187,8 +181,7 @@ void refellipsoidIo(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidEuropa(Vector& refellipsoid,
-                        const String& model,
-                        const Verbosity&) {
+                        const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -203,8 +196,7 @@ void refellipsoidEuropa(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidGanymede(Vector& refellipsoid,
-                          const String& model,
-                          const Verbosity&) {
+                          const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -219,8 +211,7 @@ void refellipsoidGanymede(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidVenus(Vector& refellipsoid,
-                       const String& model,
-                       const Verbosity&) {
+                       const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -236,8 +227,7 @@ void refellipsoidVenus(Vector& refellipsoid,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidSet(Vector& refellipsoid,
                      const Numeric& re,
-                     const Numeric& e,
-                     const Verbosity&) {
+                     const Numeric& e) {
   refellipsoid.resize(2);
 
   refellipsoid[0] = re;
@@ -246,8 +236,7 @@ void refellipsoidSet(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidEarthZZZ(Vector& refellipsoid,
-                       const String& model,
-                       const Verbosity&) {
+                       const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -267,8 +256,7 @@ void refellipsoidEarthZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidJupiterZZZ(Vector& refellipsoid,
-                         const String& model,
-                         const Verbosity&) {
+                         const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -287,8 +275,7 @@ void refellipsoidJupiterZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidMarsZZZ(Vector& refellipsoid,
-                      const String& model,
-                      const Verbosity&) {
+                      const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -307,8 +294,7 @@ void refellipsoidMarsZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidMoonZZZ(Vector& refellipsoid,
-                      const String& model,
-                      const Verbosity&) {
+                      const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -328,8 +314,7 @@ void refellipsoidMoonZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidIoZZZ(Vector& refellipsoid,
-                    const String& model,
-                    const Verbosity&) {
+                    const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -344,8 +329,7 @@ void refellipsoidIoZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidEuropaZZZ(Vector& refellipsoid,
-                        const String& model,
-                        const Verbosity&) {
+                        const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -360,8 +344,7 @@ void refellipsoidEuropaZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidGanymedeZZZ(Vector& refellipsoid,
-                          const String& model,
-                          const Verbosity&) {
+                          const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -376,8 +359,7 @@ void refellipsoidGanymedeZZZ(Vector& refellipsoid,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidVenusZZZ(Vector& refellipsoid,
-                       const String& model,
-                       const Verbosity&) {
+                       const String& model) {
   refellipsoid.resize(2);
 
   if (model == "Sphere") {
@@ -392,8 +374,7 @@ void refellipsoidVenusZZZ(Vector& refellipsoid,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidSetZZZ(Vector& refellipsoid,
                      const Numeric& r_equatorial,
-                     const Numeric& r_polar,
-                     const Verbosity&)
+                     const Numeric& r_polar)
 {
   refellipsoid.resize(2);
   refellipsoid[0] = r_equatorial;
@@ -407,8 +388,7 @@ void PlanetSet(Workspace& ws,
                Vector& refellipsoid,
                Numeric& molarmass_dry_air,
                Numeric& planet_rotation_period,
-               const String& option,
-               const Verbosity& verbosity) {
+               const String &option) {
   refellipsoid = Vector{};
   molarmass_dry_air = 0.0;
   planet_rotation_period = 0.0;
@@ -416,27 +396,27 @@ void PlanetSet(Workspace& ws,
   using enum Options::planetDefaultOptions;
   switch (Options::toplanetDefaultOptionsOrThrow(option)) {
     case Earth:
-      refellipsoidEarth(refellipsoid, "Sphere", verbosity);
+      refellipsoidEarth(refellipsoid, "Sphere");
       molarmass_dry_air = 28.966;
       planet_rotation_period = 86164.1;
       break;
     case Io:
-      refellipsoidIo(refellipsoid, "Sphere", verbosity);
+      refellipsoidIo(refellipsoid, "Sphere");
       molarmass_dry_air = 63.110068828000003;
       planet_rotation_period = 152853;
       break;
     case Jupiter:
-      refellipsoidJupiter(refellipsoid, "Sphere", verbosity);
+      refellipsoidJupiter(refellipsoid, "Sphere");
       molarmass_dry_air = 2.22;
       planet_rotation_period = 35730;
       break;
     case Mars:
-      refellipsoidMars(refellipsoid, "Sphere", verbosity);
+      refellipsoidMars(refellipsoid, "Sphere");
       molarmass_dry_air = 43.34;
       planet_rotation_period = 88643;
       break;
     case Venus:
-      refellipsoidVenus(refellipsoid, "Sphere", verbosity);
+      refellipsoidVenus(refellipsoid, "Sphere");
       molarmass_dry_air = 43.45;
       planet_rotation_period = -2.0997e7;
       break;

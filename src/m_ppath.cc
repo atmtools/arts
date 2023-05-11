@@ -31,8 +31,7 @@ inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posEndOfPpath(Vector& geo_pos,
-                       const Ppath& ppath,
-                       const Verbosity& verbosity) {
+                       const Ppath& ppath) {
   geo_pos.resize(5);
 
   if (ppath.np) {
@@ -42,16 +41,12 @@ void geo_posEndOfPpath(Vector& geo_pos,
   } else {
     geo_pos = NAN;
   }
-  
-  CREATE_OUT2;
-  out2 << "  Sets geo-position to:\n" << geo_pos;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posLowestAltitudeOfPpath(Vector& geo_pos,
-                                  const Ppath& ppath,
-                                  const Verbosity& verbosity) {
+                                  const Ppath& ppath) {
   geo_pos.resize(5);
 
   if (ppath.np) {
@@ -69,17 +64,13 @@ void geo_posLowestAltitudeOfPpath(Vector& geo_pos,
   } else {
     geo_pos = NAN;
   }
-
-  CREATE_OUT2;
-  out2 << "  Sets geo-position to:\n" << geo_pos;
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posWhereAltitudeIsPassed(Vector& geo_pos,
                                   const Ppath& ppath,
-                                  const Numeric& altitude,
-                                  const Verbosity& verbosity) {
+                                  const Numeric& altitude) {
   geo_pos.resize(5);
   geo_pos = NAN;
 
@@ -114,9 +105,6 @@ void geo_posWhereAltitudeIsPassed(Vector& geo_pos,
       geo_pos[4] = w * ppath.los(ihit, 1) + (1 - w) * ppath.los(ihit - 1, 1);
     }
   }
-  
-  CREATE_OUT2;
-  out2 << "  Sets geo-position to:\n" << geo_pos;
 }
 
 
@@ -126,8 +114,7 @@ void ppathAddGridCrossings(Ppath& ppath,
                            const Vector& refellipsoid,
                            const Vector& z_grid,
                            const Vector& lat_grid,
-                           const Vector& lon_grid,
-                           const Verbosity&)
+                           const Vector& lon_grid)
 {
   chk_if_positive("ppath_lstep", ppath_lstep);
 
@@ -153,8 +140,7 @@ void ppathCheckEndPoint(const Ppath& ppath,
                         const Numeric& zenith_angle,
                         const Numeric& dzenith_angle,
                         const Numeric& azimuth_angle,
-                        const Numeric& dazimuth_angle,
-                        const Verbosity&)
+                        const Numeric& dazimuth_angle)
 {
   // pos and los to check
   ConstVectorView pos = ppath.end_pos, los = ppath.end_los;
@@ -211,8 +197,7 @@ void ppathCheckInsideDomain(const Ppath& ppath,
                             const Numeric& lat_min,
                             const Numeric& lat_max,
                             const Numeric& lon_min,
-                            const Numeric& lon_max,
-                            const Verbosity&)
+                            const Numeric& lon_max)
 {
   // Start from end, as end point likely most outside
   for (Index i=ppath.np - 1; i>=0; --i)
@@ -231,15 +216,13 @@ void ppathCheckInsideDomain(const Ppath& ppath,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCheckInsideGrids(const Ppath& ppath,
                            const Vector& latitude_grid,
-                           const Vector& longitude_grid,
-                           const Verbosity& verbosity)
+                           const Vector& longitude_grid)
 {
   ppathCheckInsideDomain(ppath,
                          latitude_grid[0],
                          last(latitude_grid),
                          longitude_grid[0],
-                         last(longitude_grid),
-                         verbosity);
+                         last(longitude_grid));
 }
 
 
@@ -254,8 +237,7 @@ void ppathGeometric(Ppath& ppath,
                     const Numeric& surface_search_accuracy,
                     const Index& surface_search_safe,
                     const AtmField& atm_field,
-                    const Index& include_specular_ppath,
-                    const Verbosity& verbosity)
+                    const Index& include_specular_ppath)
 {
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
@@ -397,8 +379,7 @@ void ppathGeometric(Ppath& ppath,
                    surface_search_accuracy,
                    surface_search_safe,
                    atm_field,
-                   include_specular_ppath,
-                   verbosity);
+                   include_specular_ppath);
 
     ppath_extend(ppath, ppath2);
   } 
@@ -424,8 +405,7 @@ void ppathRefracted(Workspace& ws,
                     const Numeric& z_toa,
                     const Index& do_horizontal_gradients,
                     const Index& do_twosided_perturb,
-                    const Index& include_specular_ppath,
-                    const Verbosity& verbosity)
+                    const Index& include_specular_ppath)
 {
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
@@ -717,8 +697,7 @@ void ppathRefracted(Workspace& ws,
                    z_toa,
                    do_horizontal_gradients,
                    do_twosided_perturb,
-                   include_specular_ppath,
-                   verbosity);
+                   include_specular_ppath);
 
     ppath_extend(ppath, ppath2);
   }

@@ -30,7 +30,6 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "xml_io.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -1285,8 +1284,7 @@ void abs_vecTransform(  //Output and Input
     ConstVectorView aa_datagrid _U_,
     const PType& ptype,
     const Numeric& za_sca _U_,
-    const Numeric& aa_sca _U_,
-    const Verbosity& verbosity) {
+    const Numeric& aa_sca _U_) {
   const Index stokes_dim = abs_vec_lab.StokesDimensions();
   ARTS_ASSERT(abs_vec_lab.NumberOfFrequencies() == 1);
 
@@ -1304,9 +1302,6 @@ void abs_vecTransform(  //Output and Input
          but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
          adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
-
-      CREATE_OUT0;
-      out0 << "Case PTYPE_GENERAL not yet implemented. \n";
       break;
     }
     case PTYPE_TOTAL_RND: {
@@ -1345,8 +1340,6 @@ void abs_vecTransform(  //Output and Input
       break;
     }
     default: {
-      CREATE_OUT0;
-      out0 << "Not all ptype cases are implemented\n";
     }
   }
 }
@@ -1381,8 +1374,7 @@ void ext_matTransform(  //Output and Input
     ConstVectorView aa_datagrid _U_,
     const PType& ptype,
     const Numeric& za_sca,
-    const Numeric& aa_sca _U_,
-    const Verbosity& verbosity) {
+    const Numeric& aa_sca _U_) {
   const Index stokes_dim = ext_mat_lab.StokesDimensions();
   ARTS_ASSERT(ext_mat_lab.NumberOfFrequencies() == 1);
 
@@ -1400,9 +1392,6 @@ void ext_matTransform(  //Output and Input
          but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
          adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
-
-      CREATE_OUT0;
-      out0 << "Case PTYPE_GENERAL not yet implemented. \n";
       break;
     }
     case PTYPE_TOTAL_RND: {
@@ -1457,8 +1446,6 @@ void ext_matTransform(  //Output and Input
       break;
     }
     default: {
-      CREATE_OUT0;
-      out0 << "Not all ptype cases are implemented\n";
     }
   }
 }
@@ -1503,8 +1490,7 @@ void pha_matTransform(  //Output
     const Index& za_inc_idx,
     const Index& aa_inc_idx,
     ConstVectorView za_grid,
-    ConstVectorView aa_grid,
-    const Verbosity& verbosity) {
+    ConstVectorView aa_grid) {
   const Index stokes_dim = pha_mat_lab.ncols();
 
   Numeric za_sca = za_grid[za_sca_idx];
@@ -1526,9 +1512,6 @@ void pha_matTransform(  //Output
          but will be a problem for PTYPE_GENERAL, ie needs to be fixed BEFORE
          adding PTYPE_GENERAL support (see AUG appendix for more info).
       */
-
-      CREATE_OUT0;
-      out0 << "Case PTYPE_GENERAL not yet implemented. \n";
       break;
     }
     case PTYPE_TOTAL_RND: {
@@ -1731,8 +1714,6 @@ void pha_matTransform(  //Output
       }
 
     default: {
-      CREATE_OUT0;
-      out0 << "Not all ptype cases are implemented\n";
     }
   }
 }

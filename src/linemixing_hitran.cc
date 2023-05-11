@@ -13,6 +13,7 @@
 #include <functional>
 #include <numeric>
 
+#include "arts_omp.h"
 #include "lin_alg.h"
 #include "linemixing.h"
 #include "lineshapemodel.h"

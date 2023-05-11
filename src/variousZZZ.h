@@ -20,6 +20,9 @@
 
 #include "gridded_fields.h"
 
+class Workspace;
+class Agenda;
+
 /** Interpolates a GriddedField2 to a position
 
     Interpolating a gridded 2D field allowing length 1 grids and

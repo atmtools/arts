@@ -24,7 +24,6 @@
 #include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "physics_funcs.h"
 
 inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
@@ -40,8 +39,7 @@ void MatrixCBR(  // WS Output:
     // WS Input:
     const Index& stokes_dim,
     // WS Generic Input:
-    const Vector& f,
-    const Verbosity&) {
+    const Vector& f) {
   const Index n = f.nelem();
 
   if (n == 0) throw runtime_error("The given frequency vector is empty.");
@@ -59,15 +57,10 @@ void MatrixPlanck(  // WS Output:
     const Index& stokes_dim,
     // WS Generic Input:
     const Vector& f,
-    const Numeric& t,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const Numeric& t) {
   const Index n = f.nelem();
 
   if (n == 0) throw runtime_error("The given frequency vector is empty.");
-
-  out2 << "  Setting blackbody radiation for a temperature of " << t << " K.\n";
 
   m.resize(n, stokes_dim);
   m = 0;
@@ -81,15 +74,10 @@ void MatrixUnitIntensity(  // WS Output:
     // WS Input:
     const Index& stokes_dim,
     // WS Generic Input:
-    const Vector& f,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+    const Vector& f) {
   const Index n = f.nelem();
 
   if (n == 0) throw runtime_error("The given frequency vector is empty.");
-
-  out2 << "  Setting unpolarised radiation with an intensity of 1.\n";
 
   m.resize(n, stokes_dim);
   m = 0;
@@ -102,8 +90,7 @@ void MatrixUnitIntensity(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
                           const AtmField& atm_field,
-                          const Index& only_liquid,
-                          const Verbosity&) {
+                          const Index& only_liquid) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;

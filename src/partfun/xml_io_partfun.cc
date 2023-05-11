@@ -9,11 +9,11 @@
   \param data    PartitionFunctions::Data return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
+namespace PartitionFunctions {
 void xml_read_from_stream(std::istream& is_xml,
-                          PartitionFunctions::Data& data,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  XMLTag tag(verbosity);
+                          Data& data,
+                          bifstream* pbifs) {
+  XMLTag tag;
 
   tag.read_from_stream(is_xml);
   tag.check_name("PartitionFunctionsData");
@@ -22,11 +22,12 @@ void xml_read_from_stream(std::istream& is_xml,
   tag.get_attribute_value("type", type);
   data.type = PartitionFunctions::toTypeOrThrow(type);
   
-  xml_read_from_stream(is_xml, data.data, pbifs, verbosity);
+  xml_read_from_stream(is_xml, data.data, pbifs);
 
   tag.read_from_stream(is_xml);
   tag.check_name("/PartitionFunctionsData");
 }
+} // namespace PartitionFunctions
 
 //! Writes PartitionFunctions::Data to XML output stream
 /*!
@@ -38,10 +39,9 @@ void xml_read_from_stream(std::istream& is_xml,
 void xml_write_to_stream(std::ostream& os_xml,
                          const PartitionFunctions::Data& data,
                          bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity) {
-  XMLTag open_tag(verbosity);
-  XMLTag close_tag(verbosity);
+                         const String& name) {
+  XMLTag open_tag;
+  XMLTag close_tag;
   std::ostringstream v;
   
   open_tag.set_name("PartitionFunctionsData");
@@ -50,7 +50,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
   
-  xml_write_to_stream(os_xml, data.data, pbofs, "Data", verbosity);
+  xml_write_to_stream(os_xml, data.data, pbofs, "Data");
   
   close_tag.set_name("/PartitionFunctionsData");
   close_tag.write_to_stream(os_xml);
@@ -62,7 +62,7 @@ namespace PartitionFunctions {
 Data data_read_file(const std::filesystem::path& path) {
   Data out;
   
-  xml_read_from_file_base(String(path.native()), out, Verbosity());
+  xml_read_from_file_base(String(path.native()), out);
   
   return out;
 }

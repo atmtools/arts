@@ -21,9 +21,7 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
     const Agenda& propmat_clearsky_agenda,
     // WS Generic Input:
     const ArrayOfSpeciesTag& target,
-    const Numeric& scale,
-    // Verbosity object:
-    const Verbosity&) {
+    const Numeric& scale) {
   ARTS_USER_ERROR_IF(jacobian_quantities.nelem(), "Cannot use with derivatives")
 
   if (select_abs_species not_eq target) {

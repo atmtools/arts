@@ -20,7 +20,6 @@
 #include "lineshape.h"
 #include "logic.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "partfun.h"
 #include <algorithm>
 #include <cfloat>

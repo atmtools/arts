@@ -22,7 +22,6 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "matpack_sparse.h"
-#include "messages.h"
 
 /*===========================================================================
   === Functions from sensor.cc
@@ -282,8 +281,7 @@ void find_effective_channel_boundaries(  // Output:
     // Input:
     const Vector& f_backend,
     const ArrayOfGriddedField1& backend_channel_response,
-    const Numeric& delta,
-    const Verbosity& verbosity);
+    const Numeric& delta);
 
 
 

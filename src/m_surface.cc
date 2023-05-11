@@ -33,7 +33,6 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "ppath.h"
@@ -69,8 +68,7 @@ void FastemStandAlone(Matrix& emissivity,
                       const Numeric& wind_speed,
                       const Numeric& rel_aa,
                       const Vector& transmittance,
-                      const Index& fastem_version,
-                      const Verbosity&) {
+                      const Index& fastem_version) {
   const Index nf = f_grid.nelem();
 
   chk_if_in_range("zenith angle", za, 90, 180);
@@ -139,8 +137,7 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
                                    const Vector& lat_true,
                                    const Vector& lon_true,
                                    const Vector& rtp_pos,
-                                   const GriddedField2& gfield2,
-                                   const Verbosity&) {
+                                   const GriddedField2& gfield2) {
   // Set expected order of grids
   Index gfield_latID = 0;
   Index gfield_lonID = 1;
@@ -195,8 +192,7 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                                   const Vector& rtp_pos,
                                   const SurfaceField& surface_field,
                                   const Vector& refellipsoid,
-                                  const Numeric& surface_search_accuracy,
-                                  const Verbosity& verbosity) {
+                                  const Numeric& surface_search_accuracy) {
   ARTS_USER_ERROR_IF(not surface_field.has(Surf::Key::h),
       "No elevation in the surface field, required by method")
 
@@ -216,10 +212,6 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                      surface_point.elevation,
                      " m.\nThe rtp_pos altitude is: ",
                      alt, " m.\n")
-
-  // Interpolate
-  CREATE_OUT3;
-  out3 << "    Result = " << surface_point << "\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -242,8 +234,7 @@ void iySurfaceFastem(Workspace& ws,
                      const Numeric& salinity,
                      const Numeric& wind_speed,
                      const Numeric& wind_direction,
-                     const Index& fastem_version,
-                     const Verbosity& verbosity) {
+                     const Index& fastem_version) {
   // Most obvious input checks are performed in specular_losCalcOld and surfaceFastem
 
   // Obtain radiance and transmission for specular direction
@@ -252,8 +243,7 @@ void iySurfaceFastem(Workspace& ws,
   Vector specular_los, surface_normal;
   specular_losCalcOldNoTopography(specular_los,
                                surface_normal,
-                               rtp_los,
-                               verbosity);
+                               rtp_los);
 
   // Use iy_aux to get optical depth for downwelling radiation.
   ArrayOfString iy_aux_vars(1);
@@ -311,8 +301,7 @@ void iySurfaceFastem(Workspace& ws,
                 wind_speed,
                 wind_direction,
                 transmittance,
-                fastem_version,
-                verbosity);
+                fastem_version);
 
   // Add up
   //
@@ -364,8 +353,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const ArrayOfString& surface_props_names,
                          const ArrayOfString& dsurface_names,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                         const Agenda& iy_main_agenda,
-                         const Verbosity& verbosity) {
+                         const Agenda& iy_main_agenda) {
 
   // Input checks
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -427,8 +415,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                    lon_grid,
                    refellipsoid,
                    z_surface,
-                   0,
-                   verbosity);*/
+                   0);*/
 
   // Calculate incoming radiation directions, surface reflection matrix and
   // emission vector
@@ -441,8 +428,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                           rtp_los,
                           specular_los,
                           surface_skin_t[0],
-                          surface_reflectivity,
-                          verbosity);
+                          surface_reflectivity);
 
 
 
@@ -469,8 +455,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                                     rtp_los,
                                     specular_los,
                                     surface_skin_t[0]+dd,
-                                    surface_reflectivity,
-                                    verbosity);
+                                    surface_reflectivity);
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
       dsurface_emission_dx[irq] -= surface_emission;
@@ -500,8 +485,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                       rtp_los,
                       rte_pos2,
                       iy_unit,
-                      iy_main_agenda,
-                      verbosity);
+                      iy_main_agenda);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -536,8 +520,7 @@ void iySurfaceFlatReflectivityDirect(
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
-    const Agenda& ppath_step_agenda,
-    const Verbosity& verbosity) {
+    const Agenda& ppath_step_agenda) {
   //Check for correct unit
   ARTS_USER_ERROR_IF(iy_unit != "1" && suns_do,
                      "If suns are present only iy_unit=\"1\" can be used.");
@@ -580,8 +563,7 @@ void iySurfaceFlatReflectivityDirect(
                                 propmat_clearsky_agenda,
                                 water_p_eq_agenda,
                                 gas_scattering_agenda,
-                                ppath_step_agenda,
-                                verbosity);
+                                ppath_step_agenda);
 
     if (suns_visible) {
       Matrix surface_los;
@@ -601,8 +583,7 @@ void iySurfaceFlatReflectivityDirect(
                               rtp_los,
                               specular_los,
                               surface_skin_t_dummy,
-                              surface_reflectivity,
-                              verbosity);
+                              surface_reflectivity);
 
       surface_emission *= 0.;
 
@@ -640,8 +621,7 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const ArrayOfString& surface_props_names,
                                const ArrayOfString& dsurface_names,
                                const ArrayOfRetrievalQuantity& jacobian_quantities,
-                               const Agenda& iy_main_agenda,
-                               const Verbosity& verbosity) {
+                               const Agenda& iy_main_agenda) {
 
   // Input checks
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -706,8 +686,7 @@ ARTS_USER_ERROR("ERROR")
                    lon_grid,
                    refellipsoid,
                    z_surface,
-                   0,
-                   verbosity);*/
+                   0);*/
 
   // Calculate incoming radiation directions, surface reflection matrix and
   // emission vector
@@ -720,8 +699,7 @@ ARTS_USER_ERROR("ERROR")
                              rtp_los,
                              specular_los,
                              surface_skin_t[0],
-                             surface_complex_refr_index,
-                             verbosity);
+                             surface_complex_refr_index);
 
 
 
@@ -748,8 +726,7 @@ ARTS_USER_ERROR("ERROR")
                               rtp_los,
                               specular_los,
                               surface_skin_t[0]+dd,
-                                 surface_complex_refr_index,
-                              verbosity);
+                                 surface_complex_refr_index);
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
       dsurface_emission_dx[irq] -= surface_emission;
@@ -779,8 +756,7 @@ ARTS_USER_ERROR("ERROR")
                       rtp_los,
                       rte_pos2,
                       iy_unit,
-                      iy_main_agenda,
-                      verbosity);
+                      iy_main_agenda);
 
 
 }
@@ -817,8 +793,7 @@ void iySurfaceFlatRefractiveIndexDirect(
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
-    const Agenda& ppath_step_agenda,
-    const Verbosity& verbosity) {
+    const Agenda& ppath_step_agenda) {
   //Check for correct unit
   ARTS_USER_ERROR_IF(iy_unit != "1" && suns_do,
                      "If suns are present only iy_unit=\"1\" can be used.");
@@ -861,8 +836,7 @@ void iySurfaceFlatRefractiveIndexDirect(
                                 propmat_clearsky_agenda,
                                 water_p_eq_agenda,
                                 gas_scattering_agenda,
-                                ppath_step_agenda,
-                                verbosity);
+                                ppath_step_agenda);
 
     if (suns_visible) {
       Matrix surface_los;
@@ -882,8 +856,7 @@ void iySurfaceFlatRefractiveIndexDirect(
                                 rtp_los,
                                 specular_los,
                                 surface_skin_t_dummy,
-                                surface_complex_refr_index,
-                                verbosity);
+                                surface_complex_refr_index);
 
       surface_emission *= 0.;
 
@@ -900,8 +873,7 @@ void iySurfaceFlatRefractiveIndexDirect(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceInit(Matrix& iy,
                    const Vector& f_grid,
-                   const Index& stokes_dim,
-                   const Verbosity&) {
+                   const Index& stokes_dim) {
   iy.resize(f_grid.nelem(), stokes_dim);
   iy = 0.;
 }
@@ -930,8 +902,7 @@ void iySurfaceLambertian(Workspace& ws,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
                          const Agenda& iy_main_agenda,
                          const Index& N_za,
-                         const Index& N_aa,
-                         const Verbosity& verbosity) {
+                         const Index& N_aa) {
 Vector lat_grid;// = atm_field.grid[1];
 Vector lon_grid;// = atm_field.grid[2];
 ARTS_USER_ERROR("ERROR")
@@ -995,8 +966,7 @@ ARTS_USER_ERROR("ERROR")
                           za_grid_weights,
                           N_za * 2,
                           N_aa,
-                          "double_gauss",
-                          verbosity);
+                          "double_gauss");
 
   Tensor3 iy_trans_new;
 
@@ -1152,8 +1122,7 @@ ARTS_USER_ERROR("ERROR")
                    lon_grid,
                    refellipsoid,
                    z_surface,
-                   0,
-                   verbosity);*/
+                   0);*/
 
   //Surface emission
   Vector b(nf);
@@ -1238,8 +1207,7 @@ void iySurfaceLambertianDirect(
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
     const Agenda& gas_scattering_agenda,
-    const Agenda& ppath_step_agenda,
-    const Verbosity& verbosity) {
+    const Agenda& ppath_step_agenda) {
 ARTS_USER_ERROR("ERROR")
 //const auto& lat_grid = atm_field.grid[1];
 //const auto& lon_grid = atm_field.grid[2];
@@ -1288,8 +1256,7 @@ Vector lon_grid;
                     refellipsoid,
                     ppath_lmax,
                     ppath_lraytrace,
-                    ppath_step_agenda,
-                    verbosity);
+                    ppath_step_agenda);
 
     get_direct_radiation(ws,
                          transmitted_sunlight,
@@ -1315,8 +1282,7 @@ Vector lon_grid;
                          propmat_clearsky_agenda,
                          water_p_eq_agenda,
                          gas_scattering_agenda,
-                         rte_alonglos_v,
-                         verbosity);
+                         rte_alonglos_v);
 
     //loop over suns
     Vector specular_los, surface_normal;
@@ -1337,8 +1303,7 @@ Vector lon_grid;
                          lon_grid,
                          refellipsoid,
                          z_surface,
-                         0,
-                         verbosity);*/
+                         0);*/
 
         // Only the first component of transmitted_sunlight is relevant.
         // Comment taken from surfaceLambertianSimple.
@@ -1390,8 +1355,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
                            const Vector& rte_pos2,
                            const String& iy_unit,
                            const Agenda& iy_main_agenda,
-                           const Agenda& surface_rtprop_agenda,
-                           const Verbosity&) {
+                           const Agenda& surface_rtprop_agenda) {
   // Input checks
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -1533,8 +1497,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const Vector& rtp_los,
                          const Vector& rte_pos2,
                          const String& iy_unit,
-                         const Agenda& iy_main_agenda,
-                         const Verbosity&) {
+                         const Agenda& iy_main_agenda) {
   // Input checks
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -1685,8 +1648,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void specular_losCalcOldNoTopography(Vector &specular_los,
                                      Vector &surface_normal,
-                                     const Vector &rtp_los,
-                                     const Verbosity &) {
+                                     const Vector &rtp_los) {
   chk_rte_los(3, rtp_los);
 
   specular_los = {180 - rtp_los[0], rtp_los[1]};
@@ -1702,8 +1664,7 @@ void specular_losCalcOld(Vector& specular_los,
                       const Vector& lon_grid,
                       const Vector& refellipsoid,
                       const Matrix& z_surface,
-                      const Index& ignore_surface_slope,
-                      const Verbosity& verbosity) {
+                      const Index& ignore_surface_slope) {
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
   chk_if_in_range("ignore_surface_slope", ignore_surface_slope, 0, 1);
@@ -1711,7 +1672,7 @@ void specular_losCalcOld(Vector& specular_los,
   // Use special function if there is no slope, or it is ignored
   if (ignore_surface_slope) {
     specular_losCalcOldNoTopography(specular_los, surface_normal,
-                                    rtp_los, verbosity);
+                                    rtp_los);
   } else {
     surface_normal.resize(2);
     specular_los.resize(2);
@@ -1778,16 +1739,11 @@ void surfaceBlackbody(Matrix& surface_los,
                       const Index& stokes_dim,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
-                      const SurfacePoint& surface_point,
-                      const Verbosity& verbosity) {
+                      const SurfacePoint& surface_point) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
   chk_not_negative("surface_skin_t", surface_point.temperature);
-
-  CREATE_OUT2;
-  out2 << "  Sets variables to model a blackbody surface with a temperature "
-       << " of " << surface_point.temperature << " K.\n";
 
   surface_los.resize(0, 0);
   surface_rmatrix.resize(0, 0, 0, 0);
@@ -1821,8 +1777,7 @@ void surfaceFastem(Matrix& surface_los,
                    const Numeric& wind_speed,
                    const Numeric& wind_direction,
                    const Vector& transmittance,
-                   const Index& fastem_version,
-                   const Verbosity& verbosity) {
+                   const Index& fastem_version) {
   // Input checks
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -1834,8 +1789,7 @@ void surfaceFastem(Matrix& surface_los,
   Vector specular_los, surface_normal;
   specular_losCalcOldNoTopography(specular_los,
                                surface_normal,
-                               rtp_los,
-                               verbosity);
+                               rtp_los);
 
   // Determine relative azimuth
   //
@@ -1861,8 +1815,7 @@ ARTS_USER_ERROR("ERROR")
                    wind_speed,
                    rel_azimuth,
                    transmittance,
-                   fastem_version,
-                   verbosity);
+                   fastem_version);
 
   // Set surface_los
   surface_los.resize(1, specular_los.nelem());
@@ -1913,8 +1866,7 @@ ARTS_USER_ERROR("ERROR")
 void surfaceMapToLinearPolarisation(Matrix& surface_emission,
                                     Tensor4& surface_rmatrix,
                                     const Index& stokes_dim,
-                                    const Numeric& pol_angle,
-                                    const Verbosity& ) {
+                                    const Numeric& pol_angle) {
   ARTS_USER_ERROR_IF (stokes_dim != 1,
         "You should only use this method where the main calculations are "
         "done with *stokes_dim* set to 1.");
@@ -1986,8 +1938,7 @@ void surfaceTelsem(Matrix& surface_los,
                    const TelsemAtlas& atlas,
                    const Numeric& r_min,
                    const Numeric& r_max,
-                   const Numeric& d_max,
-                   const Verbosity& verbosity) {
+                   const Numeric& d_max) {
   // Input checks
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -2071,8 +2022,7 @@ void surfaceTelsem(Matrix& surface_los,
                   rtp_los,
                   specular_los,
                   surface_skin_t,
-                  surface_rv_rh,
-                  verbosity);
+                  surface_rv_rh);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2087,8 +2037,7 @@ void surfaceTessem(Matrix& surface_los,
                    const TessemNN& net_h,
                    const TessemNN& net_v,
                    const Numeric& salinity,
-                   const Numeric& wind_speed,
-                   const Verbosity& verbosity) {
+                   const Numeric& wind_speed) {
   // Input checks
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -2101,8 +2050,7 @@ void surfaceTessem(Matrix& surface_los,
   Vector specular_los, surface_normal;
   specular_losCalcOldNoTopography(specular_los,
                                surface_normal,
-                               rtp_los,
-                               verbosity);
+                               rtp_los);
 
   // TESSEM in and out
   //
@@ -2145,8 +2093,7 @@ void surfaceTessem(Matrix& surface_los,
                   rtp_los,
                   specular_los,
                   surface_skin_t,
-                  surface_rv_rh,
-                  verbosity);
+                  surface_rv_rh);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2159,11 +2106,7 @@ void surfaceFlatRefractiveIndex(Matrix& surface_los,
                                 const Vector& rtp_los,
                                 const Vector& specular_los,
                                 const Numeric& surface_skin_t,
-                                const GriddedField3& surface_complex_refr_index,
-                                const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                                const GriddedField3& surface_complex_refr_index) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -2182,9 +2125,6 @@ void surfaceFlatRefractiveIndex(Matrix& surface_los,
                    "surface_complex_refr_index",
                    f_grid,
                    Vector(1, surface_skin_t));
-
-  out2 << "  Sets variables to model a flat surface\n";
-  out3 << "     surface temperature: " << surface_skin_t << " K.\n";
 
   surface_los.resize(1, specular_los.nelem());
   surface_los(0, joker) = specular_los;
@@ -2227,10 +2167,7 @@ void surfaceFlatReflectivity(Matrix& surface_los,
                              const Vector& rtp_los,
                              const Vector& specular_los,
                              const Numeric& surface_skin_t,
-                             const Tensor3& surface_reflectivity,
-                             const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                             const Tensor3& surface_reflectivity) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -2262,8 +2199,6 @@ void surfaceFlatReflectivity(Matrix& surface_los,
        << surface_reflectivity.npages() << "\n";
     throw runtime_error(os.str());
   }
-
-  out2 << "  Sets variables to model a flat surface\n";
 
   surface_los.resize(1, specular_los.nelem());
   surface_los(0, joker) = specular_los;
@@ -2309,8 +2244,7 @@ void surfaceFlatRvRh(Matrix& surface_los,
                      const Vector& rtp_los,
                      const Vector& specular_los,
                      const Numeric& surface_skin_t,
-                     const Matrix& surface_rv_rh,
-                     const Verbosity&) {
+                     const Matrix& surface_rv_rh) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -2387,8 +2321,7 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
                                    const Vector& rtp_los,
                                    const Vector& specular_los,
                                    const Numeric& surface_skin_t,
-                                   const Vector& surface_scalar_reflectivity,
-                                   const Verbosity&) {
+                                   const Vector& surface_scalar_reflectivity) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(3, rtp_pos);
   chk_rte_los(3, rtp_los);
@@ -2453,8 +2386,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
                              const Numeric& surface_skin_t,
                              const Vector& surface_scalar_reflectivity,
                              const Index& lambertian_nza,
-                             const Numeric& za_pos,
-                             const Verbosity&) {
+                             const Numeric& za_pos) {
   const Index nf = f_grid.nelem();
 
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -2541,8 +2473,7 @@ void surface_complex_refr_indexFromGriddedField5(
     const Vector& lat_true,
     const Vector& lon_true,
     const Vector& rtp_pos,
-    const GriddedField5& complex_n_field,
-    const Verbosity&) {
+    const GriddedField5& complex_n_field) {
   // Set expected order of grids
   Index gfield_fID = 0;
   Index gfield_tID = 1;
@@ -2638,8 +2569,7 @@ void surface_reflectivityFromGriddedField6(Tensor3& surface_reflectivity,
                                            const Vector& lon_true,
                                            const Vector& rtp_pos,
                                            const Vector& rtp_los,
-                                           const GriddedField6& r_field,
-                                           const Verbosity&) {
+                                           const GriddedField6& r_field) {
   // Basic checks and sizes
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_latlon_true(3, lat_grid, lat_true, lon_true);
@@ -2772,8 +2702,7 @@ void surface_scalar_reflectivityFromGriddedField4(
     const Vector& lon_true,
     const Vector& rtp_pos,
     const Vector& rtp_los,
-    const GriddedField4& r_field,
-    const Verbosity&) {
+    const GriddedField4& r_field) {
   // Basic checks and sizes
   chk_if_in_range("stokes_dim", stokes_dim, 1, 1);
   chk_latlon_true(3, lat_grid, lat_true, lon_true);
@@ -2871,8 +2800,7 @@ ARTS_USER_ERROR("ERROR")
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_scalar_reflectivityFromSurface_rmatrix(
     Vector& surface_scalar_reflectivity,
-    const Tensor4& surface_rmatrix,
-    const Verbosity&) {
+    const Tensor4& surface_rmatrix) {
   const Index nf = surface_rmatrix.npages();
   const Index nlos = surface_rmatrix.nbooks();
 
@@ -2892,8 +2820,7 @@ void InterpSurfaceTypeMask(Index& surface_type,
                            const Vector& lat_true,
                            const Vector& lon_true,
                            const Vector& rtp_pos,
-                           const GriddedField2& surface_type_mask,
-                           const Verbosity&) {
+                           const GriddedField2& surface_type_mask) {
   // Set expected order of grids
   Index gfield_latID = 0;
   Index gfield_lonID = 1;
@@ -2974,8 +2901,7 @@ void surface_rtpropFromTypesAverage(
        const ArrayOfAgenda& surface_rtprop_agenda_array,
        const Numeric& z_sensor,
        const Matrix& dlos,
-       const Vector& dlos_weight_vector,
-       const Verbosity& verbosity)
+       const Vector& dlos_weight_vector)
 {
   // Determine satellite sensor_pos and sensor_los
   Vector sat_pos = rtp_pos;
@@ -2984,8 +2910,7 @@ void surface_rtpropFromTypesAverage(
                                 sat_los,
                                 refellipsoid,
                                 z_sensor,
-                                0,
-                                verbosity);
+                                0);
 
   // Some sizes
   const Index nf = f_grid.nelem();
@@ -2998,15 +2923,14 @@ void surface_rtpropFromTypesAverage(
   sensor_pos(joker, 0) = sat_pos[0];
   sensor_pos(joker, 1) = sat_pos[1];
   sensor_pos(joker, 2) = sat_pos[2];
-  sensor_losAddLosAndDlos(sensor_los, sat_los, dlos, verbosity);
+  sensor_losAddLosAndDlos(sensor_los, sat_los, dlos);
   //
   IntersectionGeometricAltitude(ground_pos,
                                 ground_los,
                                 sensor_pos,
                                 sensor_los,
                                 refellipsoid,
-                                rtp_pos[0],
-                                verbosity);
+                                rtp_pos[0]);
   
   // Prepare output variables
   surface_type_mix.resize(ntypes);
@@ -3042,8 +2966,7 @@ void surface_rtpropFromTypesAverage(
                                    Vector{ground_pos(i, joker)},
                                    Vector{ground_los(i, joker)},
                                    surface_type_mask,
-                                   surface_rtprop_agenda_array,
-                                   verbosity);*/
+                                   surface_rtprop_agenda_array);*/
     ARTS_USER_ERROR_IF(tmp_los.nrows() != 1,
                        "This method requires that all surface types "
                        "returns a *surface_los* with one row.");
@@ -3073,8 +2996,7 @@ void surface_rtpropFromTypesManual(Workspace& ws,
                                    const Vector& rtp_pos,
                                    const Vector& rtp_los,
                                    const ArrayOfAgenda& surface_rtprop_agenda_array,
-                                   const Index& surface_type,
-                                   const Verbosity&)
+                                   const Index& surface_type)
 {
   ARTS_USER_ERROR_IF(surface_type < 0 or
      surface_type >= surface_rtprop_agenda_array.nelem(),
@@ -3111,8 +3033,7 @@ void surface_rtpropFromTypesNearest(Workspace& ws,
                                     const Vector& rtp_pos,
                                     const Vector& rtp_los,
                                     const GriddedField2& surface_type_mask,
-                                    const ArrayOfAgenda& surface_rtprop_agenda_array,
-                                    const Verbosity& verbosity)
+                                    const ArrayOfAgenda& surface_rtprop_agenda_array)
 {
   Index surface_type;
   InterpSurfaceTypeMask(surface_type,
@@ -3120,8 +3041,7 @@ void surface_rtpropFromTypesNearest(Workspace& ws,
                         lat_true,
                         lon_true,
                         rtp_pos,
-                        surface_type_mask,
-                        verbosity);
+                        surface_type_mask);
   ARTS_USER_ERROR_IF(surface_type < 0 or
      surface_type >= surface_rtprop_agenda_array.nelem(),
      "Interpolation gave invalid surface type index (<0 or too "
@@ -3147,8 +3067,7 @@ void surface_rtpropFromTypesNearest(Workspace& ws,
 void surface_rtpropInterpFreq(Vector& f_grid,
                               Tensor4& surface_rmatrix,
                               Matrix& surface_emission,
-                              const Vector& f_new,
-                              const Verbosity&) {
+                              const Vector& f_new) {
   const Index nf = f_grid.nelem();
   const Index ns = surface_emission.ncols();
   const Index nlos = surface_rmatrix.nbooks();
@@ -3205,8 +3124,7 @@ void SurfaceBlackbody(Matrix& surface_los,
                       const Vector& refellipsoid,
                       const ArrayOfString& surface_props_names,
                       const ArrayOfString& dsurface_names,
-                      const Index& jacobian_do,
-                      const Verbosity& verbosity) {
+                      const Index& jacobian_do) {
   // Check surface_data
   surface_props_check(3,
                       lat_grid,
@@ -3231,8 +3149,7 @@ void SurfaceBlackbody(Matrix& surface_los,
                    stokes_dim,
                    rtp_pos,
                    rtp_los,
-                   surface_point,
-                   verbosity);
+                   surface_point);
 
   surface_rmatrix.resize(1, f_grid.nelem(), stokes_dim, stokes_dim);
   surface_rmatrix = 0.0;
@@ -3266,8 +3183,7 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
                   ArrayOfMatrix& dsurface_emission_dx,
                   const ArrayOfString& surface_props_names,
                   const ArrayOfString& dsurface_names,
-                  const Index& jacobian_do,
-                  const Verbosity&) {
+                  const Index& jacobian_do) {
   ARTS_USER_ERROR_IF (surface_props_names.nelem(),
         "When calling this method, *surface_props_names* should be empty.")
 
@@ -3296,8 +3212,7 @@ void SurfaceFastem(Matrix& surface_los,
                    const ArrayOfString& dsurface_names,
                    const Index& jacobian_do,
                    const Vector& transmittance,
-                   const Index& fastem_version,
-                   const Verbosity& verbosity) {
+                   const Index& fastem_version) {
   // Check surface_data
   surface_props_check(3,
                       lat_grid,
@@ -3369,8 +3284,7 @@ void SurfaceFastem(Matrix& surface_los,
                 wind_speed[0],
                 wind_direction[0],
                 transmittance,
-                fastem_version,
-                verbosity);
+                fastem_version);
 
   // Jacobian part
   if (jacobian_do) {
@@ -3398,8 +3312,7 @@ void SurfaceFastem(Matrix& surface_los,
                     wind_speed[0],
                     wind_direction[0],
                     transmittance,
-                    fastem_version,
-                    verbosity);
+                    fastem_version);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3424,8 +3337,7 @@ void SurfaceFastem(Matrix& surface_los,
                     wind_speed[0] + dd,
                     wind_direction[0],
                     transmittance,
-                    fastem_version,
-                    verbosity);
+                    fastem_version);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3450,8 +3362,7 @@ void SurfaceFastem(Matrix& surface_los,
                     wind_speed[0],
                     wind_direction[0] + dd,
                     transmittance,
-                    fastem_version,
-                    verbosity);
+                    fastem_version);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3476,8 +3387,7 @@ void SurfaceFastem(Matrix& surface_los,
                     wind_speed[0],
                     wind_direction[0],
                     transmittance,
-                    fastem_version,
-                    verbosity);
+                    fastem_version);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3505,8 +3415,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                                    const ArrayOfString& surface_props_names,
                                    const ArrayOfString& dsurface_names,
                                    const Index& jacobian_do,
-                                   const Vector& f_reflectivities,
-                                   const Verbosity& verbosity) {
+                                   const Vector& f_reflectivities) {
   // Check surface_data
   surface_props_check(3,
                       lat_grid,
@@ -3580,8 +3489,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                                 rtp_los,
                                 specular_los,
                                 surface_skin_t[0],
-                                surface_scalar_reflectivity,
-                                verbosity);
+                                surface_scalar_reflectivity);
   
   // Jacobian part
   if (jacobian_do) {
@@ -3606,8 +3514,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                                     rtp_los,
                                     specular_los,
                                     surface_skin_t[0]+dd,
-                                    surface_scalar_reflectivity,
-                                    verbosity);
+                                    surface_scalar_reflectivity);
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
       dsurface_emission_dx[irq] -= surface_emission;
@@ -3635,8 +3542,7 @@ void SurfaceFlatScalarReflectivity(Matrix& surface_los,
                                       rtp_los,
                                       specular_los,
                                       surface_skin_t[0],
-                                      surface_scalar_reflectivity,
-                                      verbosity);
+                                      surface_scalar_reflectivity);
         dsurface_rmatrix_dx[irq] -= surface_rmatrix;
         dsurface_rmatrix_dx[irq] /= dd;
         dsurface_emission_dx[irq] -= surface_emission;
@@ -3663,8 +3569,7 @@ void SurfaceTessem(Matrix& surface_los,
                    const SurfaceField& surface_field,
                    const ArrayOfString& surface_props_names,
                    const ArrayOfString& dsurface_names,
-                   const Index& jacobian_do,
-                   const Verbosity& verbosity) {
+                   const Index& jacobian_do) {
   // Check surface_data
   surface_props_check(3,
                       lat_grid,
@@ -3724,8 +3629,7 @@ void SurfaceTessem(Matrix& surface_los,
                 net_h,
                 net_v,
                 salinity[0],
-                wind_speed[0],
-                verbosity);
+                wind_speed[0]);
 
   // Jacobian part
   if (jacobian_do) {
@@ -3752,8 +3656,7 @@ void SurfaceTessem(Matrix& surface_los,
                     net_h,
                     net_v,
                     salinity[0],
-                    wind_speed[0],
-                    verbosity);
+                    wind_speed[0]);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3777,8 +3680,7 @@ void SurfaceTessem(Matrix& surface_los,
                     net_h,
                     net_v,
                     salinity[0],
-                    wind_speed[0] + dd,
-                    verbosity);
+                    wind_speed[0] + dd);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3802,8 +3704,7 @@ void SurfaceTessem(Matrix& surface_los,
                     net_h,
                     net_v,
                     salinity[0] + dd,
-                    wind_speed[0],
-                    verbosity);
+                    wind_speed[0]);
       //
       dsurface_rmatrix_dx[irq] -= surface_rmatrix;
       dsurface_rmatrix_dx[irq] /= dd;
@@ -3820,8 +3721,7 @@ void specular_losCalc(Vector& specular_los,
                       const SurfaceField& surface_field,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
-                      const Index& ignore_topography,
-                      const Verbosity&)
+                      const Index& ignore_topography)
 {
   chk_rte_pos("rtp_pos", rtp_pos);
   chk_rte_los("rtp_los", rtp_los);
@@ -3841,8 +3741,7 @@ void surface_normalCalc(Vector& surface_normal,
                         const Vector& refellipsoid,
                         const SurfaceField& surface_field,
                         const Vector& rtp_pos,
-                        const Index& ignore_topography,
-                        const Verbosity&)
+                        const Index& ignore_topography)
 {
   chk_rte_pos("rtp_pos", rtp_pos);
 
@@ -3869,8 +3768,7 @@ void surface_normalCalc(Vector& surface_normal,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void transmittanceFromIy_aux(Vector& transmittance,
                              const ArrayOfString& iy_aux_vars,
-                             const ArrayOfMatrix& iy_aux,
-                             const Verbosity&)
+                             const ArrayOfMatrix& iy_aux)
 {
   Index ihit = -1;
 

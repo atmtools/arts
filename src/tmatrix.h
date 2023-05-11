@@ -9,7 +9,6 @@
 #ifndef tmatrix_h
 #define tmatrix_h
 
-#include "messages.h"
 #include "optproperties.h"
 
 /** Calculate SingleScatteringData properties.
@@ -53,7 +52,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
 
  \author Oliver Lemke
  */
-void tmatrix_ampld_test(const Verbosity& verbosity);
+void tmatrix_ampld_test();
 
 /** T-Matrix validation test.
 
@@ -63,7 +62,7 @@ void tmatrix_ampld_test(const Verbosity& verbosity);
 
  \author Oliver Lemke
  */
-void tmatrix_tmd_test(const Verbosity& verbosity);
+void tmatrix_tmd_test();
 
 /** Single scattering properties calculation for randomly oriented particles.
 
@@ -109,7 +108,7 @@ s.calc()
 
  \author Oliver Lemke
  */
-void calc_ssp_random_test(const Verbosity& verbosity);
+void calc_ssp_random_test();
 
 /** Single scattering properties calculation for particles with fixed orientation.
 
@@ -157,6 +156,6 @@ s.calc()
 
  \author Oliver Lemke
  */
-void calc_ssp_fixed_test(const Verbosity& verbosity);
+void calc_ssp_fixed_test();
 
 #endif  //  tmatrix_h

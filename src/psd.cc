@@ -26,7 +26,6 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "mc_antenna.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rng.h"
@@ -186,8 +185,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                                 const Numeric& ga,
                                 const Numeric& t_min,
                                 const Numeric& t_max,
-                                const Index& picky,
-                                const Verbosity&) {
+                                const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -600,8 +598,7 @@ void psd_mono_common(Matrix& psd_data,
                      const Index& species_index,
                      const Numeric& t_min,
                      const Numeric& t_max,
-                     const Index& picky,
-                     const Verbosity&) {
+                     const Index& picky) {
   // Standard checcks
   const Vector psd_size_grid(1, 0);  // As this WSV is not input for thse WSM
   START_OF_PSD_METHODS();
@@ -725,8 +722,7 @@ void psd_mgd_smm_common(Matrix& psd_data,
                         const Numeric& gamma_in,
                         const Numeric& t_min,
                         const Numeric& t_max,
-                        const Index& picky,
-                        const Verbosity&) {
+                        const Index& picky) {
   // Standard checks
   START_OF_PSD_METHODS();
 

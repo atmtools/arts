@@ -12,7 +12,6 @@
 
 #include "debug.h"
 #include "groups.h"
-#include "messages.h"
 #include "workspace_global_data.h"
 #include "workspace_ng.h"
 #include "wsv_aux.h"

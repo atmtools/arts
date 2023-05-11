@@ -183,7 +183,7 @@ namespace Files {
       
       // Without popup, we save but otherwise we skip saving and wait
       if (save) {
-        xml_write_to_file(config.save_path.native(), data, FILE_TYPE_ASCII, 0, {});
+        xml_write_to_file(config.save_path.native(), data, FILE_TYPE_ASCII, 0);
         config.new_save_path = false;
         fileBrowser.ClearSelected();
       }

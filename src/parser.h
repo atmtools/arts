@@ -8,7 +8,7 @@
 
 class ArtsParser {
  public:
-  ArtsParser(Agenda& tasklist, String controlfile, const Verbosity& verbosity);
+  ArtsParser(Agenda& tasklist, String controlfile);
 
   void parse_tasklist();
 
@@ -155,8 +155,6 @@ class ArtsParser {
   SourceText msource;
 
   Index mcfile_version;
-
-  const Verbosity& verbosity;
 };
 
 #endif /* parser_h */

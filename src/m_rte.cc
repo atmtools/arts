@@ -25,7 +25,6 @@
 #include "math_funcs.h"
 #include "matpack_arrays.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "montecarlo.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -58,8 +57,7 @@ void iyApplyUnit(Matrix& iy,
                  const Index& stokes_dim,
                  const Vector& f_grid,
                  const ArrayOfString& iy_aux_vars,
-                 const String& iy_unit,
-                 const Verbosity&) {
+                 const String& iy_unit) {
   ARTS_USER_ERROR_IF (iy_unit == "1",
     "No need to use this method with *iy_unit* = \"1\".");
 
@@ -103,8 +101,7 @@ void iyCalc(Workspace& ws,
             const Vector& rte_los,
             const Vector& rte_pos2,
             const String& iy_unit,
-            const Agenda& iy_main_agenda,
-            const Verbosity&) {
+            const Agenda& iy_main_agenda) {
   // Basics
   //
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
@@ -193,8 +190,7 @@ void iyClearsky(
     const Agenda& ppath_step_agenda,
     const Index& iy_agenda_call1,
     const Tensor3& iy_transmittance,
-    const Numeric& rte_alonglos_v,
-    const Verbosity& verbosity) {
+    const Numeric& rte_alonglos_v) {
   //  Init Jacobian quantities?
   const Index j_analytical_do = jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -422,8 +418,7 @@ ARTS_USER_ERROR("ERROR")
                             refellipsoid,
                             ppath_lmax,
                             ppath_lraytrace,
-                            ppath_step_agenda,
-                            verbosity);
+                            ppath_step_agenda);
 
             ArrayOfMatrix transmitted_sunlight;
             ArrayOfArrayOfTensor3 dtransmitted_sunlight_dummy(suns.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
@@ -452,8 +447,7 @@ ARTS_USER_ERROR("ERROR")
                                  propmat_clearsky_agenda,
                                  water_p_eq_agenda,
                                  gas_scattering_agenda,
-                                 rte_alonglos_v,
-                                 verbosity);
+                                 rte_alonglos_v);
 
             //Loop over the different suns to get the total scattered starlight
             RadiationVector scattered_sunlight_isun(nf, ns);
@@ -611,8 +605,7 @@ ARTS_USER_ERROR("ERROR")
                        iy_space_agenda,
                        iy_surface_agenda,
                        iy_cloudbox_agenda,
-                       iy_agenda_call1,
-                       verbosity);
+                       iy_agenda_call1);
 
   // Direct radiative background
   Matrix iy_direct(nf, ns, 0.);
@@ -798,8 +791,7 @@ void iyEmissionHybrid(Workspace& ws,
               const Tensor7& cloudbox_field,
               const Vector& za_grid,
               const Index& Naa,
-              const Index& t_interp_order,
-              const Verbosity& verbosity) {
+              const Index& t_interp_order) {
   // If cloudbox off, switch to use clearsky method
   if (!cloudbox_on) {
     Tensor4 dummy;
@@ -835,8 +827,7 @@ void iyEmissionHybrid(Workspace& ws,
                        iy_agenda_call1,
                        iy_transmittance,
                        rte_alonglos_v,
-                       surface_props_data,
-                       verbosity);
+                       surface_props_data);
 */
     return;
   }
@@ -1150,8 +1141,7 @@ ARTS_USER_ERROR("ERROR")
                        iy_space_agenda,
                        iy_surface_agenda,
                        iy_cloudbox_agenda,
-                       iy_agenda_call1,
-                       verbosity);
+                       iy_agenda_call1);
 
   lvl_rad[np - 1] = RadiationVector{iy};
 
@@ -1222,13 +1212,13 @@ ARTS_USER_ERROR("ERROR")
 }
 
 void ppvar_atmFromPath(ArrayOfAtmPoint &ppvar_atm, const Ppath &ppath,
-                       const AtmField &atm_field, const Verbosity &) try {
+                       const AtmField &atm_field) try {
   forward_atm_path(atm_path_resize(ppvar_atm, ppath), ppath, atm_field);
 } ARTS_METHOD_ERROR_CATCH
 
 void ppvar_fFromPath(ArrayOfVector &ppvar_f, const Vector &f_grid,
                      const Ppath &ppath, const ArrayOfAtmPoint &ppvar_atm,
-                     const Numeric &rte_alonglos_v, const Verbosity &) try {
+                     const Numeric &rte_alonglos_v) try {
   forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm), f_grid, ppath,
                     ppvar_atm, rte_alonglos_v);
 } ARTS_METHOD_ERROR_CATCH
@@ -1240,8 +1230,7 @@ void ppvar_radCalcEmission(ArrayOfRadiationVector &ppvar_rad,
                    const ArrayOfArrayOfRadiationVector &ppvar_dsrc,
                    const ArrayOfTransmissionMatrix &ppvar_tramat,
                    const ArrayOfTransmissionMatrix &ppvar_cumtramat,
-                   const ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat,
-                   const Verbosity &) try {
+                   const ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat) try {
   const Index np = ppvar_src.nelem();
 
   if (np == 0) {
@@ -1277,8 +1266,7 @@ void ppvar_radCalcTransmission(
     ArrayOfArrayOfRadiationVector &ppvar_drad,
     const ArrayOfTransmissionMatrix &ppvar_tramat,
     const ArrayOfTransmissionMatrix &ppvar_cumtramat,
-    const ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat,
-    const Verbosity &) try {
+    const ArrayOfArrayOfArrayOfTransmissionMatrix &ppvar_dtramat) try {
   const Index np = ppvar_tramat.nelem();
 
   if (np == 0) {
@@ -1323,7 +1311,7 @@ void ppvar_radCalc(ArrayOfRadiationVector &ppvar_rad,
                    const ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
                    const Vector &ppvar_distance,
                    const ArrayOfArrayOfVector &ppvar_ddistance,
-                   const String &rte_option, const Verbosity &) try {
+                   const String &rte_option) try {
   const RadiativeTransferSolver rte_opt =
       toRadiativeTransferSolverOrThrow(rte_option);
 
@@ -1392,7 +1380,7 @@ void iyUnitConversion(Matrix &iy, ArrayOfTensor3 &diy_dx,
                       const Ppath &ppath,
                       const ArrayOfRetrievalQuantity &jacobian_quantities,
                       const String &iy_unit, const Index &jacobian_do,
-                      const Index &iy_agenda_call1, const Verbosity &) {
+                      const Index &iy_agenda_call1) {
   // Radiance unit conversions
   if (iy_agenda_call1) {
     rtmethods_unit_conversion(
@@ -1405,8 +1393,7 @@ void iyUnitConversion(Matrix &iy, ArrayOfTensor3 &diy_dx,
 void iy_transmittance_backgroundFromRte(Tensor3 &iy_transmittance_background,
                                         const Tensor3 &iy_transmittance,
                                         const TransmissionMatrix &cumtramat,
-                                        const Index &iy_agenda_call1,
-                                        const Verbosity &) {
+                                        const Index &iy_agenda_call1) {
   if (iy_agenda_call1) {
     iy_transmittance_background = cumtramat;
   } else {
@@ -1428,7 +1415,7 @@ void ppvar_propmatCalc(Workspace &ws, ArrayOfPropagationMatrix &ppvar_propmat,
                        const ArrayOfRetrievalQuantity &jacobian_quantities,
                        const ArrayOfVector &ppvar_f, const Ppath &ppath,
                        const ArrayOfAtmPoint &ppvar_atm,
-                       const Index &jacobian_do, const Verbosity &) try {
+                       const Index &jacobian_do) try {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1485,7 +1472,7 @@ void ppvar_srcFromPropmat(ArrayOfRadiationVector &ppvar_src,
                           const ArrayOfVector &ppvar_f,
                           const ArrayOfAtmPoint &ppvar_atm,
                           const ArrayOfRetrievalQuantity &jacobian_quantities,
-                          const Index &jacobian_do, const Verbosity &) try {
+                          const Index &jacobian_do) try {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1554,7 +1541,7 @@ void ppvar_tramatCalc(ArrayOfTransmissionMatrix &ppvar_tramat,
                       const ArrayOfArrayOfPropagationMatrix &ppvar_dpropmat,
                       const Ppath &ppath, const ArrayOfAtmPoint &ppvar_atm,
                       const ArrayOfRetrievalQuantity &jacobian_quantities,
-                      const Index &jacobian_do, const Verbosity &) try {
+                      const Index &jacobian_do) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
@@ -1625,8 +1612,7 @@ void ppvar_tramatCalc(ArrayOfTransmissionMatrix &ppvar_tramat,
 
 void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
                     const TransmissionMatrix &background_transmittance,
-                    const Ppath &ppath, const Index &iy_agenda_call1,
-                    const Verbosity &) {
+                    const Ppath &ppath, const Index &iy_agenda_call1) {
   const Index np = ppath.np;
 
   // Init iy_aux and fill where possible
@@ -1671,7 +1657,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
              const ArrayOfTransmissionMatrix &ppvar_cumtramat,
              const ArrayOfTransmissionMatrix &ppvar_tramat,
              const ArrayOfRetrievalQuantity &jacobian_quantities,
-             const Index &jacobian_do, const Verbosity &) {
+             const Index &jacobian_do) {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1712,8 +1698,7 @@ void diy_dxTransform(Workspace &ws, ArrayOfTensor3 &diy_dx,
                      const Tensor3 &iy_transmittance,
                      const Agenda &water_p_eq_agenda,
                      const ArrayOfRetrievalQuantity &jacobian_quantities,
-                     const Index &jacobian_do, const Index &iy_agenda_call1,
-                     const Verbosity &) {
+                     const Index &jacobian_do, const Index &iy_agenda_call1) {
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
@@ -1744,13 +1729,12 @@ void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
                    const Index &iy_id, const Index &iy_agenda_call1,
                    const Agenda &iy_main_agenda, const Agenda &iy_space_agenda,
                    const Agenda &iy_surface_agenda,
-                   const Agenda &iy_cloudbox_agenda, const String &iy_unit,
-                   const Verbosity &verbosity) try {
+                   const Agenda &iy_cloudbox_agenda, const String &iy_unit) try {
   // iy_transmittance
   Tensor3 iy_transmittance_background;
   iy_transmittance_backgroundFromRte(iy_transmittance_background,
                                      iy_transmittance, total_transmittance,
-                                     iy_agenda_call1, verbosity);
+                                     iy_agenda_call1);
 
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
@@ -1767,11 +1751,10 @@ void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
       ws, iy, diy_dx, iy_transmittance_background, iy_id, jacobian_do,
       jacobian_quantities, ppath, rte_pos2, atm_field, cloudbox_on, ns, f_grid,
       iy_unit, surface_field, iy_main_agenda, iy_space_agenda,
-      iy_surface_agenda, iy_cloudbox_agenda, iy_agenda_call1, verbosity);
+      iy_surface_agenda, iy_cloudbox_agenda, iy_agenda_call1);
 } ARTS_METHOD_ERROR_CATCH
 
-void background_radFromMatrix(RadiationVector &background_rad, const Matrix &iy,
-                              const Verbosity &) {
+void background_radFromMatrix(RadiationVector &background_rad, const Matrix &iy) {
   ARTS_USER_ERROR_IF(iy.ncols() > 5 or iy.ncols() < 1,
                      "Only for stokes dimensions [1, 4].")
   background_rad = RadiationVector{iy};
@@ -1779,28 +1762,26 @@ void background_radFromMatrix(RadiationVector &background_rad, const Matrix &iy,
 
 void background_transmittanceFromBack(
     TransmissionMatrix &background_transmittance,
-    const ArrayOfTransmissionMatrix &ppvar_cumtramat, const Verbosity &) {
+    const ArrayOfTransmissionMatrix &ppvar_cumtramat) {
   ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0, "Cannot extract from empty list.")
   background_transmittance = ppvar_cumtramat.back();
 }
 
 void background_transmittanceFromFront(
     TransmissionMatrix &background_transmittance,
-    const ArrayOfTransmissionMatrix &ppvar_cumtramat, const Verbosity &) {
+    const ArrayOfTransmissionMatrix &ppvar_cumtramat) {
   ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0, "Cannot extract from empty list.")
   background_transmittance = ppvar_cumtramat.front();
 }
 
 void ppvar_cumtramatForward(ArrayOfTransmissionMatrix &ppvar_cumtramat,
-                            const ArrayOfTransmissionMatrix &ppvar_tramat,
-                            const Verbosity &) {
+                            const ArrayOfTransmissionMatrix &ppvar_tramat) {
   ppvar_cumtramat =
       cumulative_transmission(ppvar_tramat, CumulativeTransmission::Forward);
 }
 
 void ppvar_cumtramatReverse(ArrayOfTransmissionMatrix &ppvar_cumtramat,
-                            const ArrayOfTransmissionMatrix &ppvar_tramat,
-                            const Verbosity &) {
+                            const ArrayOfTransmissionMatrix &ppvar_tramat) {
   ppvar_cumtramat =
       cumulative_transmission(ppvar_tramat, CumulativeTransmission::Reverse);
 }
@@ -1815,8 +1796,7 @@ void RadiativePropertiesCalc(
     Vector &ppvar_distance, ArrayOfArrayOfVector &ppvar_ddistance,
     ArrayOfTransmissionMatrix &ppvar_cumtramat, const Ppath &ppath,
     const ArrayOfAtmPoint &ppvar_atm, const ArrayOfVector &ppvar_f,
-    const Index &jacobian_do, const Agenda &ppvar_rtprop_agenda,
-    const Verbosity &) {
+    const Index &jacobian_do, const Agenda &ppvar_rtprop_agenda) {
   ppvar_rtprop_agendaExecute(
       ws, ppvar_propmat, ppvar_dpropmat, ppvar_src, ppvar_dsrc, ppvar_tramat,
       ppvar_dtramat, ppvar_distance, ppvar_ddistance, ppvar_cumtramat, ppath,
@@ -1829,8 +1809,7 @@ void RadiationBackgroundCalc(Workspace &ws, RadiationVector &background_rad,
                              const Tensor3 &iy_transmittance,
                              const TransmissionMatrix &background_transmittance,
                              const Index &jacobian_do,
-                             const Agenda &rte_background_agenda,
-                             const Verbosity &) {
+                             const Agenda &rte_background_agenda) {
   rte_background_agendaExecute(
       ws, background_rad, diy_dx, ppath, atm_field, f_grid, iy_transmittance,
       background_transmittance, jacobian_do, rte_background_agenda);
@@ -1859,13 +1838,12 @@ void iyEmissionStandard(
     const Agenda &rte_background_agenda,
     const Index &iy_agenda_call1, 
     const Tensor3 &iy_transmittance,
-    const Numeric &rte_alonglos_v,
-    const Verbosity &verbosity) {
+    const Numeric &rte_alonglos_v) {
   ArrayOfAtmPoint ppvar_atm;
-  ppvar_atmFromPath(ppvar_atm, ppath, atm_field, verbosity);
+  ppvar_atmFromPath(ppvar_atm, ppath, atm_field);
 
   ArrayOfVector ppvar_f;
-  ppvar_fFromPath(ppvar_f, f_grid, ppath, ppvar_atm, rte_alonglos_v, verbosity);
+  ppvar_fFromPath(ppvar_f, f_grid, ppath, ppvar_atm, rte_alonglos_v);
 
   ArrayOfPropagationMatrix K;
   ArrayOfArrayOfPropagationMatrix dK;
@@ -1877,38 +1855,38 @@ void iyEmissionStandard(
   ArrayOfArrayOfVector dr;
   RadiativePropertiesCalc(ws, K, dK, src_rad, dsrc_rad, lyr_tra, dlyr_tra, r,
                           dr, tot_tra, ppath, ppvar_atm, ppvar_f, jacobian_do,
-                          ppvar_rtprop_agenda, verbosity);
+                          ppvar_rtprop_agenda);
 
   RadiationVector background_rad;
   const auto &background_transmittance = tot_tra.back();
   RadiationBackgroundCalc(
       ws, background_rad, diy_dx, ppath, atm_field,
       f_grid, iy_transmittance, background_transmittance, jacobian_do,
-      rte_background_agenda, verbosity);
+      rte_background_agenda);
 
   ArrayOfRadiationVector lvl_rad;
   ArrayOfArrayOfRadiationVector dlvl_rad;
   ppvar_radCalc(lvl_rad, dlvl_rad, background_rad, src_rad, dsrc_rad, lyr_tra,
-                tot_tra, dlyr_tra, K, dK, r, dr, rte_option, verbosity);
+                tot_tra, dlyr_tra, K, dK, r, dr, rte_option);
 
   // Copy back to ARTS external style
   ArrayOfTensor3 diy_dpath;
   iyCopyPath(iy, ppvar_iy, ppvar_trans_cumulat, ppvar_trans_partial, diy_dpath,
              lvl_rad, dlvl_rad, tot_tra, lyr_tra, jacobian_quantities,
-             jacobian_do, verbosity);
+             jacobian_do);
 
   // Finalize analytical Jacobians
   diy_dxTransform(ws, diy_dx, diy_dpath, ppath, ppvar_atm, abs_species,
                   iy_transmittance, water_p_eq_agenda, jacobian_quantities,
-                  jacobian_do, iy_agenda_call1, verbosity);
+                  jacobian_do, iy_agenda_call1);
 
   // Radiance unit conversions
   iyUnitConversion(iy, diy_dx, ppvar_iy, f_grid, ppath, jacobian_quantities,
-                   iy_unit, jacobian_do, iy_agenda_call1, verbosity);
+                   iy_unit, jacobian_do, iy_agenda_call1);
 
   // AUX for some
   iy_auxFromVars(iy_aux, iy_aux_vars, background_transmittance, ppath,
-                 iy_agenda_call1, verbosity);
+                 iy_agenda_call1);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1940,8 +1918,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                     const Index& return_atm1d,
                                     const Index& skip_vmr,
                                     const Index& skip_pnd,
-                                    const Index& return_masses,
-                                    const Verbosity&) {
+                                    const Index& return_masses) {
   // Throw error if unsupported features are requested
   ARTS_USER_ERROR_IF (jacobian_do,
         "Jacobians not provided by the method, *jacobian_do* "
@@ -2295,8 +2272,7 @@ void iyLoopFrequencies(Workspace& ws,
                        const Vector& rte_pos2,
                        const Index& stokes_dim,
                        const Vector& f_grid,
-                       const Agenda& iy_loop_freqs_agenda,
-                       const Verbosity&) {
+                       const Agenda& iy_loop_freqs_agenda) {
   // Throw error if unsupported features are requested
   ARTS_USER_ERROR_IF (!iy_agenda_call1,
         "Recursive usage not possible (iy_agenda_call1 must be 1).");
@@ -2384,8 +2360,7 @@ void iyMC(Workspace& ws,
           const Index& mc_max_iter,
           const Index& mc_min_iter,
           const Numeric& mc_taustep_limit,
-          const Index& t_interp_order,
-          const Verbosity& verbosity) {
+          const Index& t_interp_order) {
   // Throw error if unsupported features are requested
   ARTS_USER_ERROR_IF (!cloudbox_on,
         "The cloudbox must be activated (cloudbox_on must be 1)");
@@ -2447,7 +2422,7 @@ void iyMC(Workspace& ws,
         // Seed reset for each loop. If not done, the errors
         // appear to be highly correlated.
         Index mc_seed;
-        MCSetSeedFromTime(mc_seed, verbosity);
+        MCSetSeedFromTime(mc_seed);
 
         Vector y, mc_error;
         Index mc_iteration_count;
@@ -2492,8 +2467,7 @@ void iyMC(Workspace& ws,
                   mc_min_iter,
                   mc_taustep_limit,
                   1,
-                  t_interp_order,
-                  verbosity);
+                  t_interp_order);
 
         ARTS_ASSERT(y.nelem() == stokes_dim);
 
@@ -2525,8 +2499,7 @@ void iyReplaceFromAux(Matrix& iy,
                       const ArrayOfMatrix& iy_aux,
                       const ArrayOfString& iy_aux_vars,
                       const Index& jacobian_do,
-                      const String& aux_var,
-                      const Verbosity&) {
+                      const String& aux_var) {
   ARTS_USER_ERROR_IF (iy_aux.nelem() != iy_aux_vars.nelem(),
         "*iy_aux* and *iy_aux_vars* must have the same "
         "number of elements.");
@@ -2552,8 +2525,7 @@ void iyReplaceFromAux(Matrix& iy,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppvar_optical_depthFromPpvar_trans_cumulat(
     Matrix& ppvar_optical_depth,
-    const Tensor4& ppvar_trans_cumulat,
-    const Verbosity&) {
+    const Tensor4& ppvar_trans_cumulat) {
   ppvar_optical_depth = ppvar_trans_cumulat(joker, joker, 0, 0);
   transform(ppvar_optical_depth, log, ppvar_optical_depth);
   ppvar_optical_depth *= -1;
@@ -2591,10 +2563,7 @@ void yCalc(Workspace& ws,
            const Agenda& jacobian_agenda,
            const Index& jacobian_do,
            const ArrayOfRetrievalQuantity& jacobian_quantities,
-           const ArrayOfString& iy_aux_vars,
-           const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+           const ArrayOfString& iy_aux_vars) {
   // Basics
   //
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
@@ -2673,8 +2642,6 @@ void yCalc(Workspace& ws,
 
   if (nmblock >= arts_omp_get_max_threads() ||
       (nf <= nmblock && nmblock >= nlos)) {
-    out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
-
     WorkspaceOmpParallelCopyGuard wss{ws};
 
 #pragma omp parallel for firstprivate(wss)
@@ -2712,14 +2679,11 @@ void yCalc(Workspace& ws,
                              jacobian_quantities,
                              jacobian_indices,
                              iy_aux_vars,
-                             verbosity,
                              mblock_index,
                              n1y,
                              j_analytical_do);
     }  // End mblock loop
   } else {
-    out3 << "  Not parallelizing mblock loop (" << nmblock << " iterations)\n";
-
     for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -2754,7 +2718,6 @@ void yCalc(Workspace& ws,
                              jacobian_quantities,
                              jacobian_indices,
                              iy_aux_vars,
-                             verbosity,
                              mblock_index,
                              n1y,
                              j_analytical_do);
@@ -2831,8 +2794,7 @@ void yCalcAppend(Workspace& ws,
                  const Index& jacobian_do,
                  const ArrayOfString& iy_aux_vars,
                  const ArrayOfRetrievalQuantity& jacobian_quantities_copy,
-                 const Index& append_instrument_wfs,
-                 const Verbosity& verbosity) {
+                 const Index& append_instrument_wfs) {
   // The jacobian indices of old and new part (without transformations)
   ArrayOfArrayOfIndex jacobian_indices, jacobian_indices_copy;
   {
@@ -2904,8 +2866,7 @@ void yCalcAppend(Workspace& ws,
         jacobian_agenda,
         jacobian_do,
         jacobian_quantities,
-        iy_aux_vars,
-        verbosity);
+        iy_aux_vars);
 
   // Consistency checks
   ARTS_USER_ERROR_IF (y_pos.ncols() != y_pos2.ncols(),
@@ -3118,8 +3079,7 @@ void yApplyUnit(Vector& y,
                 Matrix& jacobian,
                 const Vector& y_f,
                 const ArrayOfIndex& y_pol,
-                const String& iy_unit,
-                const Verbosity&) {
+                const String& iy_unit) {
   ARTS_USER_ERROR_IF (iy_unit == "1",
                       "No need to use this method with *iy_unit* = \"1\".");
 
@@ -3227,8 +3187,7 @@ void yApplyUnit(Vector& y,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void y_geo_seriesFromY_geo(Matrix& y_geo_series,
                            const Matrix& y_geo,
-                           const Vector& sensor_response_f_grid,
-                           const Verbosity&)
+                           const Vector& sensor_response_f_grid)
 {
   // Sizes
   const Index ly = y_geo.nrows();
@@ -3251,8 +3210,7 @@ void y_geo_seriesFromY_geo(Matrix& y_geo_series,
 void y_geo_swathFromY_geo(Tensor3& y_geo_swath,
                           const Matrix& y_geo,
                           const Vector& sensor_response_f_grid,
-                          const Index& npixel,
-                          const Verbosity&)
+                          const Index& npixel)
 {
   // Sizes
   const Index ly = y_geo.nrows();
@@ -3278,8 +3236,7 @@ void y_seriesFromY(Matrix& y_series,
                    const Vector& y,
                    const Vector& y_f,
                    const Vector& sensor_response_f_grid,
-                   const Index& safe,
-                   const Verbosity&)
+                   const Index& safe)
 {
   // Sizes
   const Index ly = y.nelem();
@@ -3309,8 +3266,7 @@ void y_swathFromY(Tensor3& y_swath,
                   const Vector& y_f,
                   const Vector& sensor_response_f_grid,
                   const Index& npixel,
-                  const Index& safe,
-                  const Verbosity&)
+                  const Index& safe)
 {
   // Sizes
   const Index ly = y.nelem();

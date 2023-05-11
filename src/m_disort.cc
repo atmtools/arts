@@ -25,7 +25,6 @@
 #include "m_general.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
  #include "geodetic.h"
 #include "species_tags.h"
 
@@ -66,8 +65,7 @@ void DisortCalc(Workspace& ws,
                     const Index& only_tro,
                     const Index& cdisort_quiet,
                     const Index& emission,
-                    const Index& intensity_correction,
-                    const Verbosity& verbosity) {
+                    const Index& intensity_correction) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -80,8 +78,6 @@ void DisortCalc(Workspace& ws,
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
 
@@ -150,11 +146,6 @@ void DisortCalc(Workspace& ws,
 
       //set number of azimuth angle to 1
       N_aa = 1;
-
-      CREATE_OUT0;
-      out0 << "Sun is below the horizon\n";
-      out0 << "Sun is ignored.\n";
-      out0 << "cloudbox_field will have no azimuthal dependency!\n";
     }
 
     //get the cloudbox top distance to earth center.
@@ -180,10 +171,6 @@ ARTS_USER_ERROR("ERROR")
 
 
   } else {
-    CREATE_OUT3;
-    out3 << "Disort calculation encountered aa_grid size larger than 1 in a case when it\n";
-    out3 << "does not use aa_grid. Calculations are performed as if there is no aa_grid.\n";
-
     // set number of azimuth angle to 1
     N_aa = 1;
   }
@@ -232,8 +219,7 @@ ARTS_USER_ERROR("ERROR")
               only_tro,
               cdisort_quiet,
               emission,
-              intensity_correction,
-              verbosity);
+              intensity_correction);
 }
 
 
@@ -274,8 +260,7 @@ void DisortCalcWithARTSSurface(Workspace& ws,
                     const Index& cdisort_quiet,
                     const Index& emission,
                     const Index& intensity_correction,
-                    const Numeric& inc_angle,
-                    const Verbosity& verbosity) {
+                    const Numeric& inc_angle) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -288,8 +273,6 @@ void DisortCalcWithARTSSurface(Workspace& ws,
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
 
@@ -359,11 +342,6 @@ void DisortCalcWithARTSSurface(Workspace& ws,
       // set number of azimuth angle to 1
       N_aa = 1;
 
-      CREATE_OUT0;
-      out0 << "Sun is below the horizon\n";
-      out0 << "Sun is ignored.\n";
-      out0 << "cloudbox_field will have no azimuthal dependency!\n";
-
     }
 
     //get the cloudbox top distance to earth center.
@@ -391,10 +369,6 @@ ARTS_USER_ERROR("ERROR")
 
 
   } else {
-    CREATE_OUT3;
-    out3 << "Disort calculation encountered aa_grid size larger than 1 in a case when it\n";
-    out3 << "does not use aa_grid. Calculations are performed as if there is no aa_grid.\n";
-
     // set number of azimuth angle to 1
     N_aa = 1;
   }
@@ -419,8 +393,7 @@ const Numeric surf_alt = surface_field.single_value(Surf::Key::h, lat_true[0], l
                     surface_rtprop_agenda,
                     f_grid,
                     za_grid,
-                    surf_alt,
-                    verbosity);
+                    surf_alt);
   } else {
     surf_albedoCalcSingleAngle(ws,
                                albedo,
@@ -461,8 +434,7 @@ const Numeric surf_alt = surface_field.single_value(Surf::Key::h, lat_true[0], l
               only_tro,
               cdisort_quiet,
               emission,
-              intensity_correction,
-              verbosity);
+              intensity_correction);
 }
 
 
@@ -495,8 +467,7 @@ void DisortCalcClearsky(Workspace& ws,
                     const Index& nstreams,
                     const Index& cdisort_quiet,
                     const Index& emission,
-                    const Index& intensity_correction,
-                    const Verbosity& verbosity) {
+                    const Index& intensity_correction) {
 
   if (3 != 1)
     throw runtime_error(
@@ -528,8 +499,7 @@ void DisortCalcClearsky(Workspace& ws,
                 scat_data,
                 f_grid,
                 cloudbox_limits,
-                ArrayOfRetrievalQuantity(0),
-                verbosity);
+                ArrayOfRetrievalQuantity(0));
 
   Matrix optical_depth_dummy;
 
@@ -569,8 +539,7 @@ void DisortCalcClearsky(Workspace& ws,
                  cdisort_quiet,
                  0,
                  emission,
-                 intensity_correction,
-                 verbosity);
+                 intensity_correction);
 
 }
 
@@ -606,8 +575,7 @@ void DisortCalcIrradiance(Workspace& ws,
                 const Index& only_tro,
                 const Index& cdisort_quiet,
                 const Index& emission,
-                const Index& intensity_correction,
-                const Verbosity& verbosity) {
+                const Index& intensity_correction) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -686,10 +654,6 @@ void DisortCalcIrradiance(Workspace& ws,
     // Check if sun is above horizon, if not switch it off
     if (sun_rte_los[0] >= 90) {
       sun_on = 0;
-
-      CREATE_OUT0;
-      out0 << "Sun is below the horizon\n";
-      out0 << "Sun is ignored.\n";
     }
 
     //get the cloudbox top distance to earth center.
@@ -750,6 +714,5 @@ ARTS_USER_ERROR("ERROR")
                    only_tro,
                    cdisort_quiet,
                    emission,
-                   intensity_correction,
-                   verbosity);
+                   intensity_correction);
 }

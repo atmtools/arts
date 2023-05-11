@@ -111,8 +111,7 @@ void cloud_fieldsCalc(Workspace& ws,
                       const Index& aa_index,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field,
-                      ConstTensor4View pnd_field,
-                      const Verbosity& verbosity);
+                      ConstTensor4View pnd_field);
 
 //! Calculates radiation field along a propagation path step for specified
 //! zenith direction and pressure level.
@@ -183,8 +182,7 @@ void cloud_ppath_update1D(Workspace& ws,
                           ConstTensor4View abs_vec_field,
                           const Agenda& surface_rtprop_agenda,
                           //const Agenda& surface_rtprop_agenda,
-                          const Index& scat_za_interp,
-                          const Verbosity& verbosity);
+                          const Index& scat_za_interp);
 
 //! Calculation of radiation field along a propagation path step for specified
 //! zenith direction and pressure level.
@@ -256,8 +254,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 ConstTensor5View ext_mat_field,
                                 ConstTensor4View abs_vec_field,
                                 const Agenda& surface_rtprop_agenda,
-                                const Index& scat_za_interp,
-                                const Verbosity& verbosity);
+                                const Index& scat_za_interp);
 
 //! Radiative transfer calculation inside cloudbox for planeparallel case.
 /*!
@@ -315,9 +312,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         const Index& f_index,
                                         //particle opticla properties
                                         ConstTensor5View ext_mat_field,
-                                        ConstTensor4View abs_vec_field,
-                                        // const Agenda& surface_agenda,
-                                        const Verbosity& verbosity);
+                                        ConstTensor4View abs_vec_field);
 
 //! Radiative transfer calculation along a path inside the cloudbox (3D).
 /*!
@@ -393,8 +388,7 @@ void cloud_ppath_update3D(Workspace& ws,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Index&,  //scat_za_interp
-                          const Verbosity& verbosity);
+                          const Index&);
 
 //! Calculates RT in the cloudbox (1D)
 /*!
@@ -447,8 +441,7 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& lat_index,
                             const Index& lon_index,
                             const Index& za_index,
-                            const Index& aa_index,
-                            const Verbosity& verbosity);
+                            const Index& aa_index);
 
 //! Calculates RT in the cloudbox
 /*!
@@ -506,8 +499,7 @@ void cloudbox_field_ngAcceleration(  //Output
     Tensor6& cloudbox_field_mono,
     //Input
     const ArrayOfTensor6& acceleration_input,
-    const Index& accelerated,
-    const Verbosity& verbosity);
+    const Index& accelerated);
 
 //! Interpolate all inputs of the VRTE on a propagation path step
 /*!
@@ -557,8 +549,7 @@ void interp_cloud_coeff1D(  //Output
     const Ppath& ppath_step,
     const ArrayOfIndex& cloudbox_limits,
     ConstVectorView za_grid,
-    const Index& scat_za_interp,
-    const Verbosity& verbosity);
+    const Index& scat_za_interp);
 
 //! Optimize the zenith angle grid
 /*!
@@ -627,7 +618,6 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Tensor4& pnd_field,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
-                              const Index& norm_debug,
-                              const Verbosity& verbosity);
+                              const Index& norm_debug);
 
 #endif  //doit_h

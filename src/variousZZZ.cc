@@ -31,7 +31,6 @@
 #include "interpolation.h"
 #include "lin_alg.h"
 #include "logic.h"
-#include "messages.h"
 #include "variousZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -44,8 +43,7 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
                        const Vector& latitude_grid,
                        const Vector& longitude_grid,
                        const Tensor3& data,
-                       const String& name,
-                       const Verbosity&) {
+                       const String& name) {
   ARTS_USER_ERROR_IF(!is_increasing(altitude_grid),
                      "*altitude_grid* must be strictly increasing.");
   ARTS_USER_ERROR_IF(!is_increasing(latitude_grid),
@@ -85,8 +83,7 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AltLatLonFieldSetConstant(GriddedField3& gfield3,
                                const Numeric& value,
-                               const String& name,
-                               const Verbosity&) {
+                               const String& name) {
   gfield3.set_name(name);
 
   gfield3.set_grid_name(0, "Altitude");
@@ -106,8 +103,7 @@ void LatLonFieldSet(GriddedField2& gfield2,
                     const Vector& latitude_grid,
                     const Vector& longitude_grid,
                     const Matrix& data,
-                    const String& name,
-                    const Verbosity&) {
+                    const String& name) {
   ARTS_USER_ERROR_IF(!is_increasing(latitude_grid),
                      "*latitude_grid* must be strictly increasing.");
   ARTS_USER_ERROR_IF(min(latitude_grid) < -90 || max(latitude_grid) > 90,
@@ -140,8 +136,7 @@ void LatLonFieldSet(GriddedField2& gfield2,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void LatLonFieldSetConstant(GriddedField2& gfield2,
                             const Numeric& value,
-                            const String& name,
-                            const Verbosity&) {
+                            const String& name) {
   gfield2.set_name(name);
 
   gfield2.set_grid_name(0, "Latitude");
@@ -157,8 +152,7 @@ void LatLonFieldSetConstant(GriddedField2& gfield2,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void NumericInterpAltLatLonField(Numeric& value,
                                  const GriddedField3& gfield3,
-                                 const Vector& pos,
-                                 const Verbosity&)
+                                 const Vector& pos)
 {
   ARTS_USER_ERROR_IF(gfield3.get_grid_name(0) != "Altitude",
                      "Name of first grid must be \"Altitude\".");
@@ -176,8 +170,7 @@ void NumericInterpAltLatLonField(Numeric& value,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void NumericInterpLatLonField(Numeric& value,
                               const GriddedField2& gfield2,
-                              const Vector& pos,
-                              const Verbosity&)
+                              const Vector& pos)
 {
   ARTS_USER_ERROR_IF(gfield2.get_grid_name(0) != "Latitude",
                      "Name of first grid must be \"Latitude\".");
@@ -224,8 +217,7 @@ void gridpos_local(ArrayOfGridPos& gp,
 void NumericInterpVector(Numeric& value,
                          const Vector& x,
                          const Vector& y,
-                         const Numeric& xv,
-                         const Verbosity&)
+                         const Numeric& xv)
 {
   ArrayOfGridPos gp(1);
   gridpos_local(gp, x, Vector(1, xv));

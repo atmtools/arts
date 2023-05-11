@@ -19,8 +19,7 @@ template <typename T>
 void GriddedFieldGetName(  // WS Generic Output:
     String& name,
     // WS Generic Input:
-    const T& gf,
-    const Verbosity&) {
+    const T& gf) {
   // Return the name of the given GriddedField.
   name = gf.get_name();
 }
@@ -30,8 +29,7 @@ template <typename T>
 void ArrayOfGriddedFieldGetNames(  // WS Generic Output:
     ArrayOfString& names,
     // WS Generic Input:
-    const Array<T>& aogf,
-    const Verbosity&) {
+    const Array<T>& aogf) {
   // Return the name of the given GriddedField.
   names.resize(aogf.nelem());
   for (Index i = 0; i < aogf.nelem(); i++) {

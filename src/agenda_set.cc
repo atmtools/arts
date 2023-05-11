@@ -228,7 +228,7 @@ Agenda AgendaCreator::finalize() try {
   }
 
   //! Finally check that the agenda is OK (it should be a developer error if this fails!)
-  agenda.check(ws, Verbosity{});
+  agenda.check(ws);
 
   return agenda;
 } catch(std::exception& e) {

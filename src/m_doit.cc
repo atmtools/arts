@@ -35,7 +35,6 @@
 #include "m_general.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rte.h"
@@ -59,8 +58,7 @@ void DOAngularGridsSet(  // WS Output:
     // Keywords:
     const Index& N_za_grid,
     const Index& N_aa_grid,
-    const String& za_grid_opt_file,
-    const Verbosity& verbosity) {
+    const String& za_grid_opt_file) {
   // Azimuth angle grid (the same is used for the scattering integral and
   // for the radiative transfer.
   if (N_aa_grid > 1)
@@ -87,7 +85,7 @@ void DOAngularGridsSet(  // WS Output:
       nlinspace(za_grid, 0, 180, N_za_grid);
     }
   else
-    xml_read_from_file(za_grid_opt_file, za_grid, verbosity);
+    xml_read_from_file(za_grid_opt_file, za_grid);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -100,11 +98,7 @@ void doit_conv_flagAbs(  //WS Input and Output:
     // Keyword:
     const Vector& epsilon,
     const Index& max_iterations,
-    const Index& throw_nonconv_error,
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
-  CREATE_OUT2;
-
+    const Index& throw_nonconv_error) {
   //------------Check the input---------------------------------------
   ARTS_USER_ERROR_IF (doit_conv_flag != 0,
         "Convergence flag is non-zero, which means that this\n"
@@ -135,7 +129,6 @@ void doit_conv_flagAbs(  //WS Input and Output:
   //-----------End of checks-------------------------------------------------
 
   doit_iteration_counter += 1;
-  out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
 
   if (doit_iteration_counter > max_iterations) {
     ostringstream out;
@@ -153,12 +146,9 @@ void doit_conv_flagAbs(  //WS Input and Output:
       //          os << "Error in DOIT calculation:\n"
       //             << out.str();
       //          throw runtime_error( os.str() );
-      out1 << "Warning in DOIT calculation (output set to NaN):\n" << out.str();
       cloudbox_field_mono = NAN;
       doit_conv_flag = 1;
     } else {
-      out1 << "Warning in DOIT calculation (output equals current status):\n"
-           << out.str();
       doit_conv_flag = 1;
     }
   } else {
@@ -187,7 +177,6 @@ void doit_conv_flagAbs(  //WS Input and Output:
                 // to *cloudbox_fieldIterarte* and do next iteration
 
                 if (abs(diff) > epsilon[stokes_index]) {
-                  out1 << "difference: " << diff << "\n";
                   return;
                 }
 
@@ -215,11 +204,7 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
     // Keyword:
     const Vector& epsilon,
     const Index& max_iterations,
-    const Index& throw_nonconv_error,
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
-  CREATE_OUT2;
-
+    const Index& throw_nonconv_error) {
   //------------Check the input---------------------------------------
 
   ARTS_USER_ERROR_IF (doit_conv_flag != 0,
@@ -261,7 +246,6 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
   //-----------End of checks--------------------------------
 
   doit_iteration_counter += 1;
-  out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
 
   //Numeric max_diff_bt = 0.;
   if (doit_iteration_counter > max_iterations) {
@@ -281,12 +265,9 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
       //          os << "Error in DOIT calculation:\n"
       //             << out.str();
       //          throw runtime_error( os.str() );
-      out1 << "Warning in DOIT calculation (output set to NaN):\n" << out.str();
       cloudbox_field_mono = NAN;
       doit_conv_flag = 1;
     } else {
-      out1 << "Warning in DOIT calculation (output equals current status):\n"
-           << out.str();
       doit_conv_flag = 1;
     }
   } else {
@@ -317,8 +298,6 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
                 //                        if( abs(diff_bt) > max_diff_bt )
                 //                          max_diff_bt = abs(diff_bt);
                 if (abs(diff_bt) > epsilon[stokes_index]) {
-                  out1 << "BT difference: " << diff_bt << " in stokes dim "
-                       << stokes_index << "\n";
                   //                            cout << "max BT difference in iteration #"
                   //                                 << doit_iteration_counter << ": "
                   //                                 << max_diff_bt << "\n";
@@ -350,11 +329,7 @@ void doit_conv_flagLsq(  //WS Output:
     // Keyword:
     const Vector& epsilon,
     const Index& max_iterations,
-    const Index& throw_nonconv_error,
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
-  CREATE_OUT2;
-
+    const Index& throw_nonconv_error) {
   //------------Check the input---------------------------------------
 
   ARTS_USER_ERROR_IF (doit_conv_flag != 0,
@@ -396,7 +371,6 @@ void doit_conv_flagLsq(  //WS Output:
   //-----------End of checks--------------------------------
 
   doit_iteration_counter += 1;
-  out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
 
   if (doit_iteration_counter > max_iterations) {
     ostringstream out;
@@ -413,12 +387,9 @@ void doit_conv_flagLsq(  //WS Output:
       //          os << "Error in DOIT calculation:\n"
       //             << out.str();
       //          throw runtime_error( os.str() );
-      out1 << "Warning in DOIT calculation (output set to NaN):\n" << out.str();
       cloudbox_field_mono = NAN;
       doit_conv_flag = 1;
     } else {
-      out1 << "Warning in DOIT calculation (output equals current status):\n"
-           << out.str();
       doit_conv_flag = 1;
     }
   } else {
@@ -457,7 +428,6 @@ void doit_conv_flagLsq(  //WS Output:
       if (lqs[i] >= epsilon[i]) doit_conv_flag = 0;
     }
     // end loop stokes_index
-    out1 << "lqs [I]: " << lqs[0] << "\n";
   }
 }
 
@@ -470,12 +440,9 @@ void cloudbox_field_monoIterate(Workspace& ws,
                                 const Agenda& doit_scat_field_agenda,
                                 const Agenda& doit_rte_agenda,
                                 const Agenda& doit_conv_test_agenda,
-                                const Index& accelerated,
-                                const Verbosity& verbosity)
+                                const Index& accelerated)
 
 {
-  CREATE_OUT2;
-
   //---------------Check input---------------------------------
   chk_not_empty("doit_scat_field_agenda", doit_scat_field_agenda);
   chk_not_empty("doit_rte_agenda", doit_rte_agenda);
@@ -524,12 +491,10 @@ void cloudbox_field_monoIterate(Workspace& ws,
     // 2.Calculate scattered field vector for all points in the cloudbox.
 
     // Calculate the scattered field.
-    out2 << "  Execute doit_scat_field_agenda. \n";
     doit_scat_field_agendaExecute(
         ws, doit_scat_field_local, cloudbox_field_mono, doit_scat_field_agenda);
 
     // Update cloudbox_field.
-    out2 << "  Execute doit_rte_agenda. \n";
     doit_rte_agendaExecute(
         ws, cloudbox_field_mono, doit_scat_field_local, doit_rte_agenda);
 
@@ -548,7 +513,7 @@ void cloudbox_field_monoIterate(Workspace& ws,
       // NG - Acceleration
       if (doit_iteration_counter_local % 4 == 0) {
         cloudbox_field_ngAcceleration(
-            cloudbox_field_mono, acceleration_input, accelerated, verbosity);
+            cloudbox_field_mono, acceleration_input, accelerated);
       }
     }
   }  //end of while loop, convergence is reached.
@@ -579,15 +544,7 @@ void cloudbox_fieldUpdate1D(
     const Vector& f_grid,
     const Index& f_index,
     const Agenda& surface_rtprop_agenda,
-    const Index& doit_za_interp,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
-  out2
-      << "  cloudbox_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
-  out2 << "  ------------------------------------------------------------- \n";
-
+    const Index& doit_za_interp) {
     // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -659,7 +616,6 @@ void cloudbox_fieldUpdate1D(
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox
   //=======================================================================
-  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -696,8 +652,7 @@ void cloudbox_fieldUpdate1D(
                      aa_index_local,
                      cloudbox_limits,
                      t_field,
-                     pnd_field,
-                     verbosity);
+                     pnd_field);
 
     //======================================================================
     // Radiative transfer inside the cloudbox
@@ -728,8 +683,7 @@ void cloudbox_fieldUpdate1D(
                                    ext_mat_field,
                                    abs_vec_field,
                                    surface_rtprop_agenda,
-                                   doit_za_interp,
-                                   verbosity);
+                                   doit_za_interp);
       }
     }
   }  // Closes loop over za_grid.
@@ -764,15 +718,7 @@ void cloudbox_fieldUpdateSeq1D(
     const Index& doit_za_interp,
     const Index& normalize,
     const Numeric& norm_error_threshold,
-    const Index& norm_debug,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
-  out2
-      << "  cloudbox_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
-  out2 << "  ------------------------------------------------------------- \n";
-
+    const Index& norm_debug) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -843,7 +789,6 @@ void cloudbox_fieldUpdateSeq1D(
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox
   //=======================================================================
-  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -894,8 +839,7 @@ void cloudbox_fieldUpdateSeq1D(
                              pnd_field,
                              t_field,
                              norm_error_threshold,
-                             norm_debug,
-                             verbosity);
+                             norm_debug);
   }
 
   //Loop over all directions, defined by za_grid
@@ -911,8 +855,7 @@ void cloudbox_fieldUpdateSeq1D(
                      aa_index_local,
                      cloudbox_limits,
                      t_field,
-                     pnd_field,
-                     verbosity);
+                     pnd_field);
 
     //======================================================================
     // Radiative transfer inside the cloudbox
@@ -947,8 +890,7 @@ void cloudbox_fieldUpdateSeq1D(
                              ext_mat_field,
                              abs_vec_field,
                              surface_rtprop_agenda,
-                             doit_za_interp,
-                             verbosity);
+                             doit_za_interp);
       }
     } else if (za_grid[za_index_local] >= theta_lim) {
       //
@@ -976,8 +918,7 @@ void cloudbox_fieldUpdateSeq1D(
                              ext_mat_field,
                              abs_vec_field,
                              surface_rtprop_agenda,
-                             doit_za_interp,
-                             verbosity);
+                             doit_za_interp);
       }  // Close loop over p_grid (inside cloudbox).
     }    // end if downlooking.
 
@@ -1021,8 +962,7 @@ void cloudbox_fieldUpdateSeq1D(
                                  ext_mat_field,
                                  abs_vec_field,
                                  surface_rtprop_agenda,
-                                 doit_za_interp,
-                                 verbosity);
+                                 doit_za_interp);
           }
         }
 
@@ -1041,14 +981,11 @@ void cloudbox_fieldUpdateSeq1D(
             // another iteration
             Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
             if (abs(diff_bt) > epsilon[stokes_index]) {
-              out2 << "Limb BT difference: " << diff_bt << " in stokes dim "
-                   << stokes_index << "\n";
               conv_flag = false;
             }
           }
         }
       }
-      out2 << "Limb iterations: " << limb_it << "\n";
     }
   }  // Closes loop over za_grid.
 }  // End of the function.
@@ -1078,15 +1015,7 @@ void cloudbox_fieldUpdateSeq3D(
     // Calculate thermal emission:
     const Vector& f_grid,
     const Index& f_index,
-    const Index& doit_za_interp,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
-  out2
-      << "  cloudbox_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
-  out2 << "  ------------------------------------------------------------- \n";
-
+    const Index& doit_za_interp) {
     // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -1160,7 +1089,6 @@ void cloudbox_fieldUpdateSeq3D(
   //=======================================================================
   // Calculate coefficients for all positions in the cloudbox
   //=======================================================================
-  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -1211,8 +1139,7 @@ void cloudbox_fieldUpdateSeq3D(
                        aa_index,
                        cloudbox_limits,
                        t_field,
-                       pnd_field,
-                       verbosity);
+                       pnd_field);
 
       Vector stokes_vec(stokes_dim, 0.);
 
@@ -1252,8 +1179,7 @@ void cloudbox_fieldUpdateSeq3D(
                                    f_index,
                                    ext_mat_field,
                                    abs_vec_field,
-                                   doit_za_interp,
-                                   verbosity);
+                                   doit_za_interp);
             }
           }
         }
@@ -1287,8 +1213,7 @@ void cloudbox_fieldUpdateSeq3D(
                                    f_index,
                                    ext_mat_field,
                                    abs_vec_field,
-                                   doit_za_interp,
-                                   verbosity);
+                                   doit_za_interp);
             }
           }
         }
@@ -1333,8 +1258,7 @@ void cloudbox_fieldUpdateSeq3D(
                                      f_index,
                                      ext_mat_field,
                                      abs_vec_field,
-                                     doit_za_interp,
-                                     verbosity);
+                                     doit_za_interp);
               }
             }
           }
@@ -1367,8 +1291,7 @@ void cloudbox_fieldUpdateSeq1DPP(
     const Tensor4& pnd_field,
     // Calculate thermal emission:
     const Vector& f_grid,
-    const Index& f_index,
-    const Verbosity& verbosity) {
+    const Index& f_index) {
     // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -1378,14 +1301,6 @@ void cloudbox_fieldUpdateSeq1DPP(
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
   //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
   //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
-
-  CREATE_OUT2;
-  CREATE_OUT3;
-
-  out2
-      << "  cloudbox_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
-  out2
-      << "  --------------------------------------------------------------------- \n";
 
   const Index stokes_dim = doit_scat_field.ncols();
   //  const Index 3 = 1;
@@ -1423,7 +1338,6 @@ void cloudbox_fieldUpdateSeq1DPP(
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox
   //=======================================================================
-  out3 << "Calculate optical properties of individual scattering elements\n";
 
   // At this place only the particle properties are calculated. Gaseous
   // absorption is calculated inside the radiative transfer part. Inter-
@@ -1456,8 +1370,7 @@ void cloudbox_fieldUpdateSeq1DPP(
                      aa_index,
                      cloudbox_limits,
                      t_field,
-                     pnd_field,
-                     verbosity);
+                     pnd_field);
 
     //======================================================================
     // Radiative transfer inside the cloudbox
@@ -1492,8 +1405,7 @@ void cloudbox_fieldUpdateSeq1DPP(
                                            f_grid,
                                            f_index,
                                            ext_mat_field,
-                                           abs_vec_field,
-                                           verbosity);
+                                           abs_vec_field);
       }
     } else if (za_grid[za_index] > 90) {
       //
@@ -1517,8 +1429,7 @@ void cloudbox_fieldUpdateSeq1DPP(
                                            f_grid,
                                            f_index,
                                            ext_mat_field,
-                                           abs_vec_field,
-                                           verbosity);
+                                           abs_vec_field);
       }  // Close loop over p_grid (inside cloudbox).
     }    // end if downlooking.
 
@@ -1537,12 +1448,8 @@ void DoitInit(  //WS Output
     const Vector& aa_grid,
     const Index& doit_za_grid_size,
     const Index& cloudbox_on,
-    const ArrayOfIndex& cloudbox_limits,
-    const Verbosity& verbosity) {
+    const ArrayOfIndex& cloudbox_limits) {
   if (!cloudbox_on) {
-    CREATE_OUT0;
-    doit_is_initialized = 0;
-    out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
     return;
     //throw runtime_error( "Cloudbox is off, no scattering calculations to be"
     //                     "performed." );
@@ -1564,9 +1471,6 @@ void DoitInit(  //WS Output
         "For accurate results, za_grid must have "
         "more than 15 elements.");
   if (N_scat_za > 100) {
-    CREATE_OUT1;
-    out1 << "Warning: za_grid is very large, which means that the \n"
-         << "calculation will be very slow.\n";
   }
 
   ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.,
@@ -1582,9 +1486,6 @@ void DoitInit(  //WS Output
         "For accurate results, aa_grid must have "
         "more than 5 elements.");
   if (N_scat_aa > 100) {
-    CREATE_OUT1;
-    out1 << "Warning: aa_grid is very large which means that the \n"
-         << "calculation will be very slow.\n";
   }
 
   ARTS_USER_ERROR_IF (aa_grid[0] != 0. || aa_grid[N_scat_aa - 1] != 360.,
@@ -1593,9 +1494,6 @@ void DoitInit(  //WS Output
   ARTS_USER_ERROR_IF (doit_za_grid_size < 16,
         "*doit_za_grid_size* must be greater than 15 for accurate results");
   if (doit_za_grid_size > 100) {
-    CREATE_OUT1;
-    out1 << "Warning: doit_za_grid_size is very large which means that the \n"
-         << "calculation will be very slow.\n";
   }
 
   ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
@@ -1629,8 +1527,7 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
     Tensor6& cloudbox_field_mono,
     const Vector& p_grid_orig,
     const Vector& p_grid,
-    const ArrayOfIndex& cloudbox_limits,
-    const Verbosity& /* verbosity */) {
+    const ArrayOfIndex& cloudbox_limits) {
   Tensor6 cloudbox_field_mono_opt(
       p_grid_orig.nelem(), 1, 1, cloudbox_field_mono.npages(), 1, 1);
   ArrayOfGridPos Z_gp(p_grid_orig.nelem());
@@ -1676,10 +1573,7 @@ void OptimizeDoitPressureGrid(
     const Agenda& propmat_clearsky_agenda,
     const Numeric& tau_scat_max,
     const Numeric& sgl_alb_max,
-    const Index& cloudbox_size_max,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
+    const Index& cloudbox_size_max) {
   // Make sure that stokes_dim = 1 and that ScatSpeciesMerge has been applied:
   ARTS_USER_ERROR_IF (cloudbox_field_mono.ncols() != 1,
         " This method currently only works for unpolarized radiation "
@@ -1776,13 +1670,6 @@ void OptimizeDoitPressureGrid(
   scat_data_insert_offset = 0;
   // Give warning if enhancement was too much and threshold had to be changed:
   if (was_too_much) {
-    out2
-        << "Warning: Pressure grid optimization with the thresholds tau_scat_max = "
-        << tau_scat_max << " and sgl_slb_max = " << sgl_alb_max
-        << " has lead to an enhancement larger than the value of"
-        << " cloudbox_size_max = " << cloudbox_size_max
-        << ". This is why I changed tau_scat_max to " << tau_scat_max_internal
-        << ". This may lead to errors of a too coarse grid! \n";
   }
 
   //--------------------------------------
@@ -1842,12 +1729,6 @@ void OptimizeDoitPressureGrid(
   cloudbox_limits_opt[1] = scat_data_insert_offset + cloudbox_limits[1];
   const Index cloudbox_opt_size =
       cloudbox_limits_opt[1] - cloudbox_limits_opt[0] + 1;
-  out3 << "Frequency: " << f_grid[f_index]
-       << " old: " << cloudbox_limits[1] - cloudbox_limits[0] + 1
-       << " new: " << cloudbox_opt_size << " Factor: "
-       << (Numeric)cloudbox_opt_size /
-              (Numeric)(cloudbox_limits[1] - cloudbox_limits[0] + 1)
-       << "\n";
 
   for (Index i = cloudbox_limits[1]; i < z_field.npages(); i++)
     z_grid_new.push_back(z_field(i, 0, 0));
@@ -1955,8 +1836,7 @@ void DoitWriteIterationFields(  //WS input
     const Index& f_index,
     //Keyword:
     const ArrayOfIndex& iterations,
-    const ArrayOfIndex& frequencies,
-    const Verbosity& verbosity) {
+    const ArrayOfIndex& frequencies) {
   if (!frequencies.nelem() || !iterations.nelem()) return;
 
   // If the number of iterations is less than a number specified in the
@@ -1968,7 +1848,7 @@ void DoitWriteIterationFields(  //WS input
   // All iterations for all frequencies are written to files
   if (frequencies[0] == -1 && iterations[0] == -1) {
     xml_write_to_file(
-        os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0, verbosity);
+        os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
   }
 
   for (Index j = 0; j < frequencies.nelem(); j++) {
@@ -1978,8 +1858,7 @@ void DoitWriteIterationFields(  //WS input
         xml_write_to_file(os.str() + ".xml",
                           cloudbox_field_mono,
                           FILE_TYPE_ASCII,
-                          0,
-                          verbosity);
+                          0);
       }
 
       // Only the iterations given by the keyword are written to a file
@@ -1989,8 +1868,7 @@ void DoitWriteIterationFields(  //WS input
             xml_write_to_file(os.str() + ".xml",
                               cloudbox_field_mono,
                               FILE_TYPE_ASCII,
-                              0,
-                              verbosity);
+                              0);
         }
       }
     }
@@ -2010,8 +1888,7 @@ void doit_scat_fieldCalc(Workspace& ws,
                          const Vector& za_grid,
                          const Vector& aa_grid,
                          const Index& doit_za_grid_size,
-                         const Tensor7& pha_mat_doit,
-                         const Verbosity& verbosity)
+                         const Tensor7& pha_mat_doit)
 
 {
   // FIXME: REQUIRES REGULAR GRIDS
@@ -2020,9 +1897,6 @@ void doit_scat_fieldCalc(Workspace& ws,
   Tensor4 vmr_field;
   ARTS_USER_ERROR("ERROR")
 //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-
-  CREATE_OUT2;
-  CREATE_OUT3;
 
   // ------------ Check the input -------------------------------
 
@@ -2128,7 +2002,6 @@ void doit_scat_fieldCalc(Workspace& ws,
 
   Tensor3 product_field(Nza, Naa, stokes_dim, 0);
 
-  out2 << "  Calculate the scattered field\n";
 
   if (3 == 1) {
     // Get pha_mat at the grid positions
@@ -2138,8 +2011,6 @@ void doit_scat_fieldCalc(Workspace& ws,
       //There is only loop over zenith angle grid ; no azimuth angle grid.
       for (Index za_index_local = 0; za_index_local < Nza; za_index_local++) {
         // Calculate the phase matrix of individual scattering elements
-        out3 << "Multiplication of phase matrix with incoming"
-             << " intensities \n";
 
         product_field = 0;
 
@@ -2205,7 +2076,6 @@ void doit_scat_fieldCalc(Workspace& ws,
                aa_index_local++) {
             for (Index za_index_local = 0; za_index_local < Nza;
                  za_index_local++) {
-              out3 << "Calculate phase matrix \n";
               pha_mat_spt_agendaExecute(ws,
                                         pha_mat_spt_local,
                                         za_index_local,
@@ -2221,8 +2091,7 @@ void doit_scat_fieldCalc(Workspace& ws,
                           pnd_field,
                           p_index,
                           lat_index,
-                          lon_index,
-                          verbosity);
+                          lon_index);
 
               product_field = 0;
 
@@ -2287,17 +2156,13 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                              const Vector& aa_grid,
                              const Index& doit_za_grid_size,
                              const Index& doit_za_interp,
-                             const Tensor7& pha_mat_doit,
-                             const Verbosity& verbosity) {
+                             const Tensor7& pha_mat_doit) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
   Tensor4 vmr_field;
   ARTS_USER_ERROR("ERROR")
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-
-  CREATE_OUT2;
-  CREATE_OUT3;
 
   // ------------ Check the input -------------------------------
 
@@ -2380,9 +2245,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
         "*doit_za_grid_size* must be greater than 15 for"
         "accurate results");
   if (doit_za_grid_size > 100) {
-    CREATE_OUT1;
-    out1 << "Warning: doit_za_grid_size is very large which means that the \n"
-         << "calculation will be very slow. The recommended value is 19.\n";
   }
 
   // ------ end of checks -----------------------------------------------
@@ -2464,8 +2326,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
       //There is only loop over zenith angle grid; no azimuth angle grid.
       for (Index za_index_local = 0; za_index_local < doit_za_grid_size;
            za_index_local++) {
-        out3 << "Multiplication of phase matrix with incoming"
-             << " intensities \n";
 
         product_field = 0;
 
@@ -2488,7 +2348,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
           }  //end aa_in loop
         }    //end za_in loop
 
-        out3 << "Compute integral. \n";
         if (Naa == 1) {
           for (Index i = 0; i < stokes_dim; i++) {
             doit_scat_field_org(za_index_local, i) =
@@ -2558,7 +2417,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
 
             for (Index za_index_local = 0; za_index_local < doit_za_grid_size;
                  za_index_local++) {
-              out3 << "Calculate phase matrix \n";
               pha_mat_spt_agendaExecute(ws,
                                         pha_mat_spt_local,
                                         za_index_local,
@@ -2574,15 +2432,12 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                           pnd_field,
                           p_index,
                           lat_index,
-                          lon_index,
-                          verbosity);
+                          lon_index);
 
               product_field = 0;
 
               //za_in and aa_in are the incoming directions
               //for which pha_mat_spt is calculated
-              out3 << "Multiplication of phase matrix with"
-                   << "incoming intensity \n";
 
               for (Index za_in = 0; za_in < doit_za_grid_size; za_in++) {
                 for (Index aa_in = 0; aa_in < Naa; ++aa_in) {
@@ -2597,8 +2452,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                   }
                 }  //end aa_in loop
               }    //end za_in loop
-
-              out3 << "Compute the integral \n";
 
               for (Index i = 0; i < stokes_dim; i++) {
                 doit_scat_field_org(za_index_local, i) =
@@ -2625,7 +2478,6 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
     doit_scat_field(joker, joker, joker, joker, 0, joker) =
         doit_scat_field(joker, joker, joker, joker, Naa - 1, joker);
   }  // end atm_dim=3
-  out2 << "  Finished scattered field.\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2636,9 +2488,7 @@ void doit_za_grid_optCalc(  //WS Output
     const Vector& za_grid,
     const Index& doit_za_interp,
     //Keywords:
-    const Numeric& acc,
-    const Verbosity& verbosity) {
-  CREATE_OUT1;
+    const Numeric& acc) {
   //-------- Check the input ---------------------------------
 
   // Here it is checked whether cloudbox_field is 1D and whether it is
@@ -2664,9 +2514,6 @@ void doit_za_grid_optCalc(  //WS Output
         "*doit_za_interpSet*.\n");
 
   if (za_grid.nelem() < 500) {
-    out1 << "Warning: The fine grid (*za_grid*) has less than\n"
-         << "500 grid points which is likely not sufficient for\n"
-         << "grid_optimization\n";
     /*    throw runtime_error("The fine grid (*za_grid*) has less than \n"
                         "500 grid points which is not sufficient for \n"
                         "grid_optimization");
@@ -2690,8 +2537,7 @@ void doit_za_grid_optCalc(  //WS Output
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_za_interpSet(Index& doit_za_interp,
                        //Keyword
-                       const String& method,
-                       const Verbosity&) {
+                       const String& method) {
   ARTS_USER_ERROR_IF (3 != 1 && method == "polynomial",
         "Polynomial interpolation is only implemented for\n"
         "1D DOIT calculations as \n"
@@ -2719,15 +2565,10 @@ void DoitCalc(Workspace& ws,
               const Index& cloudbox_on,
               const Vector& f_grid,
               const Agenda& doit_mono_agenda,
-              const Index& doit_is_initialized,
-              const Verbosity& verbosity)
+              const Index& doit_is_initialized)
 
 {
-  CREATE_OUT2;
-
   if (!cloudbox_on) {
-    CREATE_OUT0;
-    out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
     return;
     //throw runtime_error( "Cloudbox is off, no scattering calculations to be"
     //                     "performed." );
@@ -2785,7 +2626,6 @@ void DoitCalc(Workspace& ws,
       try {
         ostringstream os;
         os << "Frequency: " << f_grid[f_index] / 1e9 << " GHz \n";
-        out2 << os.str();
 
         Tensor6 cloudbox_field_mono_local{
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker)};
@@ -2831,8 +2671,7 @@ void DoitGetIncoming(Workspace& ws,
                      const Vector& za_grid,
                      const Vector& aa_grid,
                      const Index& rigorous,
-                     const Numeric& maxratio,
-                     const Verbosity&) {
+                     const Numeric& maxratio) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -3077,8 +2916,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Vector& f_grid,
                           const Index& stokes_dim,
                           const Vector& za_grid,
-                          const Vector& aa_grid,
-                          const Verbosity&) {
+                          const Vector& aa_grid) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -3237,8 +3075,7 @@ void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
                                   const Index& stokes_dim,
                                   const ArrayOfIndex& cloudbox_limits,
                                   const Index& doit_is_initialized,
-                                  const Tensor7& cloudbox_field_precalc,
-                                  const Verbosity&)  //verbosity)
+                                  const Tensor7& cloudbox_field_precalc)
 {
   // this is only for 1D atmo!
   ARTS_USER_ERROR_IF (3 != 1,
@@ -3322,10 +3159,7 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
                                const ArrayOfIndex& cloudbox_limits,
                                const Index& cloudbox_on,
                                const Index& doit_is_initialized,
-                               const Index& all_frequencies,
-                               const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                               const Index& all_frequencies) {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
 
@@ -3333,9 +3167,6 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
   ARTS_USER_ERROR_IF (!doit_is_initialized,
       "Initialization method *DoitInit* has to be called before "
       "*cloudbox_fieldSetClearsky*.")
-
-  out2
-      << "  Interpolate boundary clearsky field to obtain the initial field.\n";
 
   // Initial field only needs to be calculated from clearsky field for the
   // first frequency. For the next frequencies the solution field from the
@@ -3558,9 +3389,7 @@ void cloudbox_fieldSetConst(  //WS Output:
     const ArrayOfIndex& cloudbox_limits,
     const Index& stokes_dim,
     // Keyword
-    const Vector& cloudbox_field_values,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
+    const Vector& cloudbox_field_values) {
 
   Tensor6 cloudbox_field_mono(cloudbox_field.nvitrines(),
                               cloudbox_field.nshelves(),
@@ -3580,8 +3409,7 @@ ARTS_ASSERT(false)
                                 lon_grid,
                                 cloudbox_limits,
                                 stokes_dim,
-                                cloudbox_field_values,
-                                verbosity);
+                                cloudbox_field_values);
 */
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
         cloudbox_field_mono;
@@ -3598,9 +3426,7 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
     const ArrayOfIndex& cloudbox_limits,
     const Index& stokes_dim,
     // Keyword
-    const Matrix& cloudbox_field_values,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
+    const Matrix& cloudbox_field_values) {
 
   ARTS_USER_ERROR_IF (cloudbox_field.nlibraries() != cloudbox_field_values.nrows(),
         "Number of rows in *cloudbox_field_values* has to be equal"
@@ -3624,8 +3450,7 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
                                 lon_grid,
                                 cloudbox_limits,
                                 stokes_dim,
-                                Vector{cloudbox_field_values(f_index, joker)},
-                                verbosity);
+                                Vector{cloudbox_field_values(f_index, joker)});
 */
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
         cloudbox_field_mono;
@@ -3642,14 +3467,7 @@ void cloudbox_field_monoSetConst(  //WS Output:
     const ArrayOfIndex& cloudbox_limits,
     const Index& stokes_dim,
     // Keyword
-    const Vector& cloudbox_field_values,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
-  out2 << "  Set initial field to constant values: " << cloudbox_field_values
-       << "\n";
-
+    const Vector& cloudbox_field_values) {
   // Grids have to be adapted to 3.
   chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 

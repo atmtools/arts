@@ -13,7 +13,6 @@
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "optproperties.h"
 #include "ppath.h"
 
@@ -122,8 +121,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
                                 const Numeric& ga,
                                 const Numeric& t_min,
                                 const Numeric& t_max,
-                                const Index& picky,
-                                const Verbosity&);
+                                const Index& picky);
 
 /** Code common to PSDs of mono type
  *
@@ -153,8 +151,7 @@ void psd_mono_common(Matrix& psd_data,
                      const Index& species_index,
                      const Numeric& t_min,
                      const Numeric& t_max,
-                     const Index& picky,
-                     const Verbosity&);
+                     const Index& picky);
 
 /** The Wang16 rain DSD DEPRECATED BY NEW MGD_SMM_COMMON
  *  Only included for compatibility with "old" pnd_fieldCalcFromscat_speciesField
@@ -217,8 +214,7 @@ void psd_mgd_smm_common(Matrix& psd_data,
                         const Numeric& gamma_in,
                         const Numeric& t_min,
                         const Numeric& t_max,
-                        const Index& picky,
-                        const Verbosity&);
+                        const Index& picky);
 
 /** The F07 snow PSD
  *

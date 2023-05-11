@@ -47,8 +47,7 @@ add_executable (make_workspace_memory_handler_cc
                 arts.cc
                 groups.cc
                 file.cc
-                parameters.cc
-                messages.cc)
+                parameters.cc)
 target_link_libraries(make_workspace_memory_handler_cc PRIVATE matpack)
 add_custom_command (
         OUTPUT workspace_memory_handler.cc
@@ -65,7 +64,6 @@ add_executable (make_auto_md_h
         arts.cc
         file.cc
         make_auto_md_h.cc
-        messages.cc
         parameters.cc
         )
 
@@ -84,7 +82,6 @@ add_executable (make_auto_md_cc
         arts.cc
         file.cc
         make_auto_md_cc.cc
-        messages.cc
         parameters.cc
         )
 
@@ -222,7 +219,6 @@ add_library (artscore STATIC
   math_funcs.cc
   mc_antenna.cc
   mc_interp.cc
-  messages.cc
   microphysics.cc
   minimize.cc
   montecarlo.cc
@@ -321,7 +317,6 @@ endif (ENABLE_TMATRIX)
 ########### next target ###############
 
 add_library (xmliobase STATIC
-        messages.cc
         xml_io_base.cc
         xml_io_general_types.cc
         )

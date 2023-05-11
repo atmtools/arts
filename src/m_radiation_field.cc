@@ -39,8 +39,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const Numeric& df,
     const Index& nz,
     const Index& nf,
-    const Numeric& r,
-    const Verbosity& verbosity)
+    const Numeric& r)
 {
 ARTS_USER_ERROR("ERROR")
 
@@ -188,8 +187,7 @@ ARTS_USER_ERROR("ERROR")
                                 iy_space_agenda,
                                 iy_surface_agenda,
                                 iy_cloudbox_agenda,
-                                surface_field,
-                                verbosity);
+                                surface_field);
     
     for (Index ip_path = 0; ip_path < path.np; ip_path++) {
       const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);

@@ -23,7 +23,6 @@
 #include "m_xml.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "rte.h"
 
@@ -40,8 +39,7 @@
 void jacobianCalcDoNothing(Matrix& jacobian _U_,
                            const Index& mblock_index _U_,
                            const Vector& iyb _U_,
-                           const Vector& yb _U_,
-                           const Verbosity&) {
+                           const Vector& yb _U_) {
   /* Nothing to do here for the analytical case, this function just exists
    to satisfy the required inputs and outputs of the jacobian_agenda */
 }
@@ -50,22 +48,20 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 void jacobianClose(Workspace& ws_in,
                    Index& jacobian_do,
                    Agenda& jacobian_agenda,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const Verbosity& verbosity) {
+                   const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // Make sure that the array is not empty
   if (jacobian_quantities.empty())
     throw runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
-  jacobian_agenda.check(ws_in, verbosity);
+  jacobian_agenda.check(ws_in);
   jacobian_do = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianInit(Workspace& ws,
                   ArrayOfRetrievalQuantity& jacobian_quantities,
-                  Agenda& jacobian_agenda,
-                  const Verbosity&) {
+                  Agenda& jacobian_agenda) {
   jacobian_quantities.resize(0);
   jacobian_agenda = Agenda{ws};
   jacobian_agenda.set_name("jacobian_agenda");
@@ -75,10 +71,9 @@ void jacobianInit(Workspace& ws,
 void jacobianOff(Workspace& ws, 
                  Index& jacobian_do,
                  Agenda& jacobian_agenda,
-                 ArrayOfRetrievalQuantity& jacobian_quantities,
-                 const Verbosity& verbosity) {
+                 ArrayOfRetrievalQuantity& jacobian_quantities) {
   jacobian_do = 0;
-  jacobianInit(ws, jacobian_quantities, jacobian_agenda, verbosity);
+  jacobianInit(ws, jacobian_quantities, jacobian_agenda);
 }
 
 //----------------------------------------------------------------------------
@@ -94,11 +89,7 @@ void jacobianAddAbsSpecies(Workspace&,
                            const Vector& rq_lon_grid,
                            const String& species,
                            const String& mode,
-                           const Index& for_species_tag,
-                           const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                           const Index& for_species_tag) {
   QuantumIdentifier qi;
   if (not for_species_tag) {
     ArrayOfSpeciesTag test(species);
@@ -160,8 +151,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
                           ArrayOfRetrievalQuantity& jacobian_quantities,
                           Agenda& jacobian_agenda,
                           const Vector& f_grid,
-                          const Numeric& df,
-                          const Verbosity&) {
+                          const Numeric& df) {
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
@@ -219,8 +209,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
                            const Vector& f_grid,
                            const Matrix& mblock_dlos,
                            const Sparse& sensor_response,
-                           const ArrayOfRetrievalQuantity& jacobian_quantities,
-                           const Verbosity&) {
+                           const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // Set some useful (and needed) variables.
   RetrievalQuantity rq;
   ArrayOfIndex ji;
@@ -305,8 +294,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             Agenda& jacobian_agenda,
                             const Vector& f_grid,
-                            const Numeric& df,
-                            const Verbosity&) {
+                            const Numeric& df) {
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
@@ -364,8 +352,7 @@ void jacobianCalcFreqStretch(
     const ArrayOfIndex& sensor_response_pol_grid,
     const Vector& sensor_response_f_grid,
     const Matrix& sensor_response_dlos_grid,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Verbosity&) {
+    const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // The code here is close to identical to the one for Shift. The main
   // difference is that dy is weighted with poly_order 1 basis function.
 
@@ -475,8 +462,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
                            const ArrayOfTime& sensor_time,
                            const Index& poly_order,
                            const String& calcmode,
-                           const Numeric& dza,
-                           const Verbosity&) {
+                           const Numeric& dza) {
   // Check that poly_order is -1 or positive
   if (poly_order < -1)
     throw runtime_error(
@@ -551,8 +537,7 @@ void jacobianCalcPointingZaInterp(
     const Matrix& mblock_dlos,
     const Sparse& sensor_response,
     const ArrayOfTime& sensor_time,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Verbosity&) {
+    const ArrayOfRetrievalQuantity& jacobian_quantities) {
   if (mblock_dlos.nrows() < 2)
     throw runtime_error(
         "The method demands that *mblock_dlos* has "
@@ -687,8 +672,7 @@ void jacobianCalcPointingZaRecalc(
     const ArrayOfTime& sensor_time,
     const String& iy_unit,
     const Agenda& iy_main_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Verbosity& verbosity) {
+    const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // Set some useful variables.
   RetrievalQuantity rq;
   ArrayOfIndex ji;
@@ -745,8 +729,7 @@ void jacobianCalcPointingZaRecalc(
              0,
              ArrayOfRetrievalQuantity(),
              ArrayOfArrayOfIndex(),
-             ArrayOfString(),
-             verbosity);
+             ArrayOfString());
 
     // Apply sensor and take difference
     //
@@ -801,8 +784,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
                         const Index& poly_order,
                         const Index& no_pol_variation,
                         const Index& no_los_variation,
-                        const Index& no_mblock_variation,
-                        const Verbosity&) {
+                        const Index& no_mblock_variation) {
   // Check that poly_order is >= 0
   if (poly_order < 0)
     throw runtime_error("The polynomial order has to be >= 0.");
@@ -875,8 +857,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
                          const Vector& sensor_response_f_grid,
                          const Matrix& sensor_response_dlos_grid,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                         const Index& poly_coeff,
-                         const Verbosity&) {
+                         const Index& poly_coeff) {
   // Find the retrieval quantity related to this method
   RetrievalQuantity rq;
   ArrayOfIndex ji;
@@ -960,11 +941,7 @@ void jacobianAddScatSpecies(Workspace&,
                             const Vector& rq_lat_grid,
                             const Vector& rq_lon_grid,
                             const String& species,
-                            const String& quantity,
-                            const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                            const String& quantity) {
   // Check that this species+quantity combination is not already included in
   // the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
@@ -1005,8 +982,7 @@ void jacobianAddSinefit(Workspace& ws _U_,
                         const Vector& period_lengths,
                         const Index& no_pol_variation,
                         const Index& no_los_variation,
-                        const Index& no_mblock_variation,
-                        const Verbosity&) {
+                        const Index& no_mblock_variation) {
   const Index np = period_lengths.nelem();
 
   // Check that poly_order is >= 0
@@ -1080,8 +1056,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
                          const Vector& sensor_response_f_grid,
                          const Matrix& sensor_response_dlos_grid,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                         const Index& period_index,
-                         const Verbosity&) {
+                         const Index& period_index) {
   // Find the retrieval quantity related to this method
   RetrievalQuantity rq;
   ArrayOfIndex ji;
@@ -1171,11 +1146,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
                                 Agenda& jacobian_agenda,
                                 const Vector& rq_lat_grid,
                                 const Vector& rq_lon_grid,
-                                const String& quantity,
-                                const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                                const String& quantity) {
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
@@ -1210,10 +1181,7 @@ void jacobianAddTemperature(Workspace&,
                             const Vector& rq_p_grid,
                             const Vector& rq_lat_grid,
                             const Vector& rq_lon_grid,
-                            const String& hse,
-                            const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                            const String& hse) {
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
   for (Index it = 0; it < jq.nelem(); it++) {
@@ -1262,11 +1230,7 @@ void jacobianAddWind(Workspace&,
                      const Vector& rq_lat_grid,
                      const Vector& rq_lon_grid,
                      const String& component,
-                     const Numeric& dfrequency,
-                     const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-  
+                     const Numeric& dfrequency) {  
   // Create the new retrieval quantity
   const auto opt = Options::toWindMagJacobianOrThrow(component);
   RetrievalQuantity rq;
@@ -1301,7 +1265,6 @@ void jacobianAddWind(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  out3 << "  Calculations done by propagation matrix expression.\n";
   jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
 }
 
@@ -1317,11 +1280,7 @@ void jacobianAddMagField(Workspace&,
                          const Vector& rq_lat_grid,
                          const Vector& rq_lon_grid,
                          const String& component,
-                         const Numeric& dB,
-                         const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-  
+                         const Numeric& dB) {  
   // Create the new retrieval quantity
   const auto opt = Options::toWindMagJacobianOrThrow(component);
   RetrievalQuantity rq;
@@ -1370,14 +1329,8 @@ void jacobianAddShapeCatalogParameter(Workspace&,
                                       const QuantumIdentifier& line_identity,
                                       const String& species,
                                       const String& variable,
-                                      const String& coefficient,
-                                      const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                                      const String& coefficient) {
   const auto jpt = select_derivativeLineShape(variable, coefficient);
-
-  out3 << "Attempting to create RT tag for " << line_identity << " " << variable
-       << " " << coefficient << " for ";
 
   // Create the quantity
   RetrievalQuantity rq;
@@ -1392,7 +1345,6 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   } else {
     rq.Target(Jacobian::Target(jpt, line_identity, SpeciesTag(species).Spec()));
   }
-  out3 << species << ' ' << rq.Target().species_id << "\n";
 
   // Test this is not a copy
   for (auto& q : jq)
@@ -1401,7 +1353,6 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   // Append and do housekeeping
   jq.push_back(rq);
-  out3 << "Creation was successful!\n";
   jacobian_agenda.append("jacobianCalcDoNothing",
                          TokVal());  // old code activation
 }
@@ -1414,8 +1365,7 @@ void jacobianAddShapeCatalogParameters(
     const ArrayOfQuantumIdentifier& line_identities,
     const ArrayOfString& species,
     const ArrayOfString& variables,
-    const ArrayOfString& coefficients,
-    const Verbosity& verbosity) {
+    const ArrayOfString& coefficients) {
   if (not(line_identities.nelem() or species.nelem() or variables.nelem() or
           coefficients.nelem()))
     throw std::runtime_error("Must have at least 1-long lists for all GINs");
@@ -1437,7 +1387,7 @@ void jacobianAddShapeCatalogParameters(
       for (auto& v : vars)
         for (auto& c : coeffs)
           jacobianAddShapeCatalogParameter(
-              ws, jq, jacobian_agenda, l, s, v, c, verbosity);
+              ws, jq, jacobian_agenda, l, s, v, c);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1445,10 +1395,7 @@ void jacobianAddBasicCatalogParameter(Workspace&,
                                       ArrayOfRetrievalQuantity& jq,
                                       Agenda& jacobian_agenda,
                                       const QuantumIdentifier& catalog_identity,
-                                      const String& catalog_parameter,
-                                      const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                                      const String& catalog_parameter) {
   // Create the new retrieval quantity
   const auto opt = Options::toBasicCatParamJacobianOrThrow(catalog_parameter);
   RetrievalQuantity rq;
@@ -1476,8 +1423,6 @@ void jacobianAddBasicCatalogParameter(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  out3 << "  Calculations done by propagation matrix expressions.\n";
-
   jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
 }
 
@@ -1487,17 +1432,12 @@ void jacobianAddBasicCatalogParameters(
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     const ArrayOfQuantumIdentifier& catalog_identities,
-    const ArrayOfString& catalog_parameters,
-    const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  out2 << " Adding " << catalog_identities.nelem() * catalog_parameters.nelem()
-       << " expression(s) to the Jacobian calculations.\n";
+    const ArrayOfString& catalog_parameters) {
 
   for (auto& qi : catalog_identities)
     for (auto& param : catalog_parameters)
       jacobianAddBasicCatalogParameter(
-          ws, jq, jacobian_agenda, qi, param, verbosity);
+          ws, jq, jacobian_agenda, qi, param);
 }
 
 //----------------------------------------------------------------------------
@@ -1512,10 +1452,7 @@ void jacobianAddNLTE(Workspace&,
                      const Vector& rq_lat_grid,
                      const Vector& rq_lon_grid,
                      const QuantumIdentifier& energy_level_identity,
-                     const Numeric& dx,
-                     const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+                     const Numeric& dx) {
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Line::NLTE and
@@ -1537,8 +1474,6 @@ void jacobianAddNLTE(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  out3 << "  Calculations done by propagation matrix expressions.\n";
-
   jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
 }
 
@@ -1549,8 +1484,7 @@ void jacobianAddNLTEs(Workspace& ws,
                       const Vector& rq_lat_grid,
                       const Vector& rq_lon_grid,
                       const ArrayOfQuantumIdentifier& energy_level_identities,
-                      const Numeric& dx,
-                      const Verbosity& verbosity) {
+                      const Numeric& dx) {
   for (const auto& qi : energy_level_identities)
     jacobianAddNLTE(ws,
                     jq,
@@ -1559,8 +1493,7 @@ void jacobianAddNLTEs(Workspace& ws,
                     rq_lat_grid,
                     rq_lon_grid,
                     qi,
-                    dx,
-                    verbosity);
+                    dx);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1570,11 +1503,7 @@ void jacobianAddSpecialSpecies(Workspace&,
                                const Vector& rq_p_grid,
                                const Vector& rq_lat_grid,
                                const Vector& rq_lon_grid,
-                               const String& species,
-                               const Verbosity& verbosity) {
-  CREATE_OUT2;
-  CREATE_OUT3;
-
+                               const String& species) {
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Grids({rq_p_grid, rq_lat_grid, rq_lon_grid});
@@ -1621,8 +1550,7 @@ void jacobianAddSpecialSpecies(Workspace&,
 void jacobianAdjustAndTransform(
     Matrix& jacobian,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Vector& x,
-    const Verbosity&) {
+    const Vector& x) {
   // For flexibility inside inversion_iteration_agenda, we should accept empty
   // Jacobian
   if (jacobian.empty()) {
@@ -1662,9 +1590,7 @@ void jacobianAdjustAndTransform(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
                                      const Matrix& transformation_matrix,
-                                     const Vector& offset_vector,
-                                     const Verbosity& /*v*/
-) {
+                                     const Vector& offset_vector) {
   if (jqs.empty()) {
     runtime_error(
         "Jacobian quantities is empty, so there is nothing to add the "
@@ -1690,9 +1616,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
 void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
                                    const String& transformation_func,
                                    const Numeric& z_min,
-                                   const Numeric& z_max,
-                                   const Verbosity& /*v*/
-) {
+                                   const Numeric& z_max) {
   if (jqs.empty())
     throw runtime_error(
         "Jacobian quantities is empty, so there is nothing to add the "
@@ -1739,8 +1663,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
                     const Vector& lon_ret_grid,
                     const Index& pert_index,
                     const Numeric& pert_size,
-                    const String& pert_mode,
-                    const Verbosity&) {
+                    const String& pert_mode) {
 
   // Pack retrieval grids into an ArrayOfVector
   ArrayOfVector ret_grids(3);
@@ -1816,8 +1739,7 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
                              const Tensor3& original_field,
                              const Index& pert_index,
                              const Numeric& pert_size,
-                             const String& pert_mode,
-                             const Verbosity&) {
+                             const String& pert_mode) {
   // Some sizes
   const Index n_p = p_grid.nelem();
   const Index n_lat = lat_grid.nelem();
@@ -1866,8 +1788,7 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
 void IndexNumberOfAtmosphericPoints(Index& n,
                                     const Vector& p_grid,
                                     const Vector& lat_grid,
-                                    const Vector& lon_grid,
-                                    const Verbosity&) {
+                                    const Vector& lon_grid) {
   const Index n_p = p_grid.nelem();
   const Index n_lat = lat_grid.nelem();
   const Index n_lon = lon_grid.nelem();
@@ -1879,8 +1800,7 @@ void IndexNumberOfAtmosphericPoints(Index& n,
 void jacobianFromTwoY(Matrix& jacobian,
                     const Vector& y_pert,
                     const Vector& y,
-                    const Numeric& pert_size,
-                    const Verbosity&) {
+                    const Numeric& pert_size) {
   const Index n = y.nelem();
   if( y_pert.nelem() != n ){
     throw runtime_error("Inconsistency in length of *y_pert* and *y*.");
@@ -1894,8 +1814,7 @@ void jacobianFromTwoY(Matrix& jacobian,
 void jacobianFromYbatch(Matrix& jacobian,
                     const ArrayOfVector& ybatch,
                     const Vector& y,
-                    const Numeric& pert_size,
-                    const Verbosity&) {
+                    const Numeric& pert_size) {
   const Index n = y.nelem();
   const Index l = ybatch.nelem();
   if (l>0){
@@ -1922,8 +1841,7 @@ void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
                                     const Vector& lon_ret_grid,
                                     const Index& pert_index,
                                     const Numeric& pert_size,
-                                    const String& pert_mode,
-                                    const Verbosity& verbosity) {
+                                    const String& pert_mode) {
   // Locate particle_type among particle_bulkprop_names
   Index iq = find_first(particle_bulkprop_names, particle_type);
   if (iq < 0) {
@@ -1941,8 +1859,7 @@ void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
                   lon_ret_grid,
                   pert_index,
                   pert_size,
-                  pert_mode,
-                  verbosity);
+                  pert_mode);
   particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
 }
 
@@ -1955,8 +1872,7 @@ void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
                                             const String& particle_type,
                                             const Index& pert_index,
                                             const Numeric& pert_size,
-                                            const String& pert_mode,
-                                            const Verbosity& verbosity) {
+                                            const String& pert_mode) {
   // Locate particle_type among particle_bulkprop_names
   Index iq = find_first(particle_bulkprop_names, particle_type);
   if (iq < 0) {
@@ -1974,8 +1890,7 @@ void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
                           original_field,
                           pert_index,
                           pert_size,
-                          pert_mode,
-                          verbosity);
+                          pert_mode);
   particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
 }
 
@@ -1991,8 +1906,7 @@ void vmr_fieldPerturb(Tensor4& vmr_field,
                       const Vector& lon_ret_grid,
                       const Index& pert_index,
                       const Numeric& pert_size,
-                      const String& pert_mode,
-                      const Verbosity& verbosity) {
+                      const String& pert_mode) {
   // Locate vmr_species among abs_species
   Index iq = -1;
   for (Index i = 0; i < abs_species.nelem(); i++) {
@@ -2016,8 +1930,7 @@ void vmr_fieldPerturb(Tensor4& vmr_field,
                   lon_ret_grid,
                   pert_index,
                   pert_size,
-                  pert_mode,
-                  verbosity);
+                  pert_mode);
   vmr_field(iq,joker,joker,joker) = perturbed_field;
 }
 
@@ -2030,8 +1943,7 @@ void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
                               const String& species,
                               const Index& pert_index,
                               const Numeric& pert_size,
-                              const String& pert_mode,
-                              const Verbosity& verbosity) {
+                              const String& pert_mode) {
   // Locate vmr_species among abs_species
   Index iq = -1;
   for (Index i = 0; i < abs_species.nelem(); i++) {
@@ -2055,8 +1967,7 @@ void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
                           original_field,
                           pert_index,
                           pert_size,
-                          pert_mode,
-                          verbosity);
+                          pert_mode);
   vmr_field(iq,joker,joker,joker) = perturbed_field;
 }
 

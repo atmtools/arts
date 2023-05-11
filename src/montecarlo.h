@@ -29,7 +29,6 @@
 #include "lin_alg.h"
 #include "logic.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "optproperties.h"
 #include "physics_funcs.h"
 #include "ppath.h"
@@ -192,8 +191,7 @@ void get_ppath_transmat(
     const AtmField& atm_field,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
-    const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-    const Verbosity& verbosity);
+    const ArrayOfArrayOfSingleScatteringData& scat_data_mono);
 
 /** is_anyptype_nonTotRan.
  *
@@ -288,8 +286,7 @@ void mcPathTraceGeneral(Workspace& ws,
                         const AtmField& atm_field,
                         const ArrayOfIndex& cloudbox_limits,
                         const Tensor4& pnd_field,
-                        const ArrayOfArrayOfSingleScatteringData& scat_data,
-                        const Verbosity& verbosity);
+                        const ArrayOfArrayOfSingleScatteringData& scat_data);
 
 /** mcPathTraceRadar.
  *
@@ -374,8 +371,7 @@ void mcPathTraceRadar(Workspace& ws,
                       const AtmField& atm_field,
                       const ArrayOfIndex& cloudbox_limits,
                       const Tensor4& pnd_field,
-                      const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-                      const Verbosity& verbosity);
+                      const ArrayOfArrayOfSingleScatteringData& scat_data_mono);
 
 
 /** Sample_los.

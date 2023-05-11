@@ -272,8 +272,7 @@ void ecs_eigenvalue_adaptation(AbsorptionLines& band,
                                const Numeric P0,
                                const Index ord,
                                const bool robust,
-                               const bool rosenkranz_adaptation,
-                               const Verbosity& verbosity);
+                               const bool rosenkranz_adaptation);
 
 /*! Outputs the adaptation values used for ecs_eigenvalue_adaptation but as 
  * a function of pressure.  ecs_eigenvalue_adaptation makes strong assumptions

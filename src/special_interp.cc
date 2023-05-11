@@ -48,7 +48,6 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
-#include "messages.h"
 #include "special_interp.h"
 
 /*===========================================================================

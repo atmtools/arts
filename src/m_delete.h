@@ -25,8 +25,7 @@ void Delete(  // Workspace reference
     // WS Generic Input:
     const T& x _U_,
     // WS Generic Input Names:
-    const String& x_name,
-    const Verbosity&) {
+    const String& x_name) {
   ws.set_empty(ws.WsvMap_ptr->at(x_name));
 }
 

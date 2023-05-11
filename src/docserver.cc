@@ -20,7 +20,6 @@
 #include "agenda_record.h"
 #include "global_data.h"
 #include "microhttpd.h"
-#include "messages.h"
 #include "methods.h"
 #include "tokval_io.h"
 #include "workspace_ng.h"

@@ -10,7 +10,6 @@
 #include "artstime.h"
 #include "matpack_data.h"
 #include "matpack_arrays.h"
-#include "messages.h"
 #include "sorting.h"
 
 
@@ -35,7 +34,7 @@ Array<T> TimeSortTemplate(const Array<T>& arr, const ArrayOfTime& time_stamps)
 }
 
 #define TIME_SORT_MACRO(VAR) \
-void time_stampsSort(VAR & out, const ArrayOfTime& time_stamps, const VAR & in, const Verbosity&) \
+void time_stampsSort(VAR & out, const ArrayOfTime& time_stamps, const VAR & in) \
 {out = TimeSortTemplate(in, time_stamps);}
 
 TIME_SORT_MACRO(ArrayOfTime)
@@ -67,7 +66,7 @@ Array<T> FlattenArrayTemplate(const Array<Array<T>>& in)
 }
 
 #define FLATTEN_MACRO(VAR) \
-void Flatten(VAR & out, const Array< VAR > & in, const Verbosity&) \
+void Flatten(VAR & out, const Array< VAR > & in) \
 {out = FlattenArrayTemplate(in);}
 
 FLATTEN_MACRO(ArrayOfTime)
@@ -75,7 +74,7 @@ FLATTEN_MACRO(ArrayOfVector)
 
 #undef FLATTEN_MACRO
 
-void Flatten(Matrix& out, const ArrayOfVector& in, const Verbosity&)
+void Flatten(Matrix& out, const ArrayOfVector& in)
 {
   if (in.nelem() == 0) {
     out = Matrix(0, 0);
@@ -92,7 +91,7 @@ void Flatten(Matrix& out, const ArrayOfVector& in, const Verbosity&)
   }
 }
 
-void Flatten(Tensor3& out, const ArrayOfMatrix& in, const Verbosity&)
+void Flatten(Tensor3& out, const ArrayOfMatrix& in)
 {
   if (in.nelem() == 0) {
     out = Tensor3(0, 0, 0);
@@ -113,7 +112,7 @@ void Flatten(Tensor3& out, const ArrayOfMatrix& in, const Verbosity&)
   }
 }
 
-void Flatten(Tensor4& out, const ArrayOfTensor3& in, const Verbosity&)
+void Flatten(Tensor4& out, const ArrayOfTensor3& in)
 {
   if (in.nelem() == 0) {
     out = Tensor4(0, 0, 0, 0);
@@ -137,7 +136,7 @@ void Flatten(Tensor4& out, const ArrayOfTensor3& in, const Verbosity&)
   }
 }
 
-void Flatten(Tensor5& out, const ArrayOfTensor4& in, const Verbosity&)
+void Flatten(Tensor5& out, const ArrayOfTensor4& in)
 {
   if (in.nelem() == 0) {
     out = Tensor5(0, 0, 0, 0, 0);
@@ -164,7 +163,7 @@ void Flatten(Tensor5& out, const ArrayOfTensor4& in, const Verbosity&)
   }
 }
 
-void Flatten(Tensor6& out, const ArrayOfTensor5& in, const Verbosity&)
+void Flatten(Tensor6& out, const ArrayOfTensor5& in)
 {
   if (in.nelem() == 0) {
     out = Tensor6(0, 0, 0, 0, 0, 0);
@@ -194,7 +193,7 @@ void Flatten(Tensor6& out, const ArrayOfTensor5& in, const Verbosity&)
   }
 }
 
-void Flatten(Tensor7& out, const ArrayOfTensor6& in, const Verbosity&)
+void Flatten(Tensor7& out, const ArrayOfTensor6& in)
 {
   if (in.nelem() == 0) {
     out = Tensor7(0, 0, 0, 0, 0, 0, 0);

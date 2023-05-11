@@ -28,7 +28,7 @@
 */
 class ArtsXMLTag : public XMLTag {
  public:
-  ArtsXMLTag(const Verbosity& rverbosity) : XMLTag(rverbosity){};
+  ArtsXMLTag() {};
 
   using XMLTag::add_attribute;
   
@@ -87,10 +87,10 @@ class ArtsXMLTag : public XMLTag {
 ////////////////////////////////////////////////////////////////////////////
 
 void xml_parse_from_stream(
-    istream &, Vector &, bifstream *, ArtsXMLTag &, const Verbosity &verbosity);
+    istream &, Vector &, bifstream *, ArtsXMLTag &);
 
 void xml_parse_from_stream(
-    istream &, ArrayOfString &, bifstream *, ArtsXMLTag &, const Verbosity &);
+    istream &, ArrayOfString &, bifstream *, ArtsXMLTag &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -105,8 +105,7 @@ void xml_parse_from_stream(
  * \param[in]  verbosity Verbosity
  */
 void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
-                                  const String& filename,
-                                  const Verbosity& verbosity);
+                                  const String& filename);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
@@ -133,13 +132,10 @@ void filename_xml_with_index(String& filename,
 */
 template <typename T>
 void xml_read_from_file(const String& filename,
-                        T& type,
-                        const Verbosity& verbosity) requires (std::same_as<T, std::remove_const_t<T>>) {
-  CREATE_OUT2;
-
+                        T& type) requires (std::same_as<T, std::remove_const_t<T>>) {
   String xml_file = filename;
-  find_xml_file(xml_file, verbosity);
-  xml_read_from_file_base(xml_file, type, verbosity);
+  find_xml_file(xml_file);
+  xml_read_from_file_base(xml_file, type);
 }
 
 //! Write data to XML file
@@ -156,17 +152,14 @@ template <typename T>
 void xml_write_to_file(const String& filename,
                        const T& type,
                        const FileType ftype,
-                       const Index no_clobber,
-                       const Verbosity& verbosity) {
-  CREATE_OUT2;
-
+                       const Index no_clobber) {
   String efilename{add_basedir(filename)};
 
   std::unique_ptr<ostream> ofs;
 
   if (no_clobber) efilename = make_filename_unique(efilename, ".xml");
 
-  xml_write_to_file_base(efilename, type, ftype, verbosity);
+  xml_write_to_file_base(efilename, type, ftype);
 }
 
 #endif

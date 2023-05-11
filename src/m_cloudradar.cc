@@ -24,7 +24,6 @@
 #include "matpack_data.h"
 #include "matpack_eigen.h"
 #include "matpack_view.h"
-#include "messages.h"
 #include "montecarlo.h"
 #include "propagationmatrix.h"
 #include "rte.h"
@@ -68,8 +67,7 @@ void iyRadarSingleScat(Workspace& ws,
                        const Numeric& rte_alonglos_v,
                        const Index& trans_in_jacobian,
                        const Numeric& pext_scaling,
-                       const Index& t_interp_order,
-                       const Verbosity& verbosity [[maybe_unused]]) {
+                       const Index& t_interp_order) {
   //  Init Jacobian quantities?
   const Index j_analytical_do = jacobian_do ?
     do_analytical_jacobian<1>(jacobian_quantities) : 0;
@@ -501,8 +499,7 @@ void yRadar(Workspace& ws,
             const Vector& range_bins,
             const Numeric& ze_tref,
             const Numeric& k2,
-            const Numeric& dbze_min,
-            const Verbosity&) {
+            const Numeric& dbze_min) {
   // Important sizes
   const Index npos = sensor_pos.nrows();
   const Index nbins = range_bins.nelem() - 1;
@@ -816,8 +813,7 @@ void particle_bulkpropRadarOnionPeeling(
     const Index& do_atten_abs,
     const Index& do_atten_hyd,
     const Numeric& atten_hyd_scaling,
-    const Numeric& atten_hyd_max,
-    const Verbosity&)
+    const Numeric& atten_hyd_max)
 {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
@@ -1066,8 +1062,7 @@ void RadarOnionPeelingTableCalc(
     const Numeric& wc_min,
     const Numeric& wc_max,
     const Numeric& ze_tref,
-    const Numeric& k2,
-    const Verbosity& verbosity)
+    const Numeric& k2)
 {
   // Some index and sizes
   const Index nss = scat_data.nelem();
@@ -1135,7 +1130,7 @@ void RadarOnionPeelingTableCalc(
 
   // Create test grid for water content
   Vector wc_grid;
-  VectorLogSpace(wc_grid, wc_min, wc_max, 0.04, verbosity);
+  VectorLogSpace(wc_grid, wc_min, wc_max, 0.04);
   const Index nwc = wc_grid.nelem();
   
   // Calculate dBZe and extinction for wc_grid

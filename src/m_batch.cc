@@ -47,12 +47,8 @@ void ForLoop(Workspace& ws,
              // Control Parameters:
              const Index& start,
              const Index& stop,
-             const Index& step,
-             const Verbosity& verbosity) {
-  CREATE_OUT1;
-
+             const Index& step) {
   for (Index i = start; i <= stop; i += step) {
-    out1 << "  Executing for loop body, index: " << i << "\n";
     forloop_agendaExecute(ws, i, forloop_agenda);
   }
 }
@@ -68,10 +64,7 @@ void ybatchCalc(Workspace& ws,
                 const Index& ybatch_n,
                 const Agenda& ybatch_calc_agenda,
                 // Control Parameters:
-                const Index& robust,
-                const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+                const Index& robust) {
   Index first_ybatch_index = 0;
 
   ArrayOfString fail_msg;
@@ -119,7 +112,6 @@ void ybatchCalc(Workspace& ws,
         os << "  Job " << l_job_counter << " of " << ybatch_n << ", Index "
            << ybatch_start + ybatch_index << ", Thread-Id "
            << arts_omp_get_thread_num() << "\n";
-        out2 << os.str();
       }
 
       try {
@@ -175,7 +167,6 @@ void ybatchCalc(Workspace& ws,
              << "y Vector in output variable ybatch will be empty for this job.\n"
              << "The runtime error produced was:\n"
              << e.what() << "\n";
-          out0 << os.str();
         } else {
           // The user wants the batch job to fail if one of the
           // jobs goes wrong.
@@ -185,7 +176,6 @@ void ybatchCalc(Workspace& ws,
           ostringstream os;
           os << "  Job at ybatch_index " << ybatch_start + ybatch_index
              << " failed. Aborting...\n";
-          out1 << os.str();
         }
         ostringstream os;
         os << "Run-time error at ybatch_index " << ybatch_start + ybatch_index
@@ -208,8 +198,6 @@ void ybatchCalc(Workspace& ws,
 
     if (do_abort)
       throw runtime_error(os.str());
-    else
-      out0 << os.str();
   }
 }
 
@@ -228,8 +216,7 @@ void ybatchMetProfiles(Workspace& ws,
                        //Keyword
                        const Index& nelem_z_grid,
                        const String& met_profile_path,
-                       const String& met_profile_pnd_path,
-                       const Verbosity& verbosity) {
+                       const String& met_profile_pnd_path) {
   AtmField atm_field;
   ArrayOfGriddedField3 pnd_field_raw;
   Vector z_grid;
@@ -296,22 +283,19 @@ void ybatchMetProfiles(Workspace& ws,
     GriddedField3 gf3;
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".t.xml",
-                       gf3,
-                       verbosity);
+                       gf3);
     atm_field[Atm::Key::t] = gf3;
 
     //Reads the z_field_raw from file
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".p.xml",
-                       gf3,
-                       verbosity);
+                       gf3);
     atm_field[Atm::Key::p] = gf3;
 
     //Reads the humidity from file - it is only an ArrayofTensor3
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".H2O.xml",
-                       gf3,
-                       verbosity);
+                       gf3);
     atm_field[abs_species[0]] = gf3;
 
     //Reads the pnd_field_raw for one scattering element
@@ -321,8 +305,7 @@ void ybatchMetProfiles(Workspace& ws,
 
     xml_read_from_file(met_profile_pnd_path + "lwc_reff15/profile.lat_" +
                            lat_os.str() + ".lon_" + lon_os.str() + ".pnd15.xml",
-                       pnd_field_raw[0],
-                       verbosity);
+                       pnd_field_raw[0]);
     //Write the profile number into a file.
     // xml_write_to_file("profile_number.xml", i);
 
@@ -356,7 +339,7 @@ void ybatchMetProfiles(Workspace& ws,
 
     //Making a p_grid with the first and last element taken from the profile.
     VectorNLogSpace(
-        z_grid, nelem_z_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1], verbosity);
+        z_grid, nelem_z_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1]);
 
     /*To set the cloudbox limits, the lower and upper cloudbox limits
     are to be set.  The lower cloudbox limit is set to the lowest
@@ -409,8 +392,7 @@ void ybatchMetProfiles(Workspace& ws,
                         0,
                         0,
                         0,
-                        0,
-                        verbosity);
+                        0);
 */
     /*executing the met_profile_calc_agenda
     Agenda communication variables are
@@ -449,8 +431,7 @@ void ybatchMetProfilesClear(Workspace& ws,
                             const Vector& refellipsoid,
                             //Keyword
                             const Index& nelem_p_grid,
-                            const String& met_profile_path,
-                            const Verbosity& verbosity) {
+                            const String& met_profile_path) {
   AtmField atm_field;
   ArrayOfGriddedField3 pnd_field_raw;
   Vector z_grid;
@@ -519,15 +500,13 @@ void ybatchMetProfilesClear(Workspace& ws,
     GriddedField3 gf3;
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".t.xml",
-                       gf3,
-                       verbosity);
+                       gf3);
     atm_field[Atm::Key::t] = gf3;
 
     //Reads the z_field_raw from file
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".p.xml",
-                       gf3,
-                       verbosity);
+                       gf3);
     atm_field[Atm::Key::p] = gf3;
 
     //Reads the humidity from file - it is only an ArrayofTensor3
@@ -535,10 +514,9 @@ void ybatchMetProfilesClear(Workspace& ws,
     // array is for species
     xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
                            ".lon_" + lon_os.str() + ".H2O.xml",
-                       vmr_field_raw_h2o,
-                       verbosity);
+                       vmr_field_raw_h2o);
     //xml_read_from_file("/home/home01/rekha/uk/profiles/sat_vmr/profile.lat_"+lat_os.str()//+".lon_"+lon_os.str() + ".H2O_es.xml",
-    //                   vmr_field_raw_h2o, verbosity);
+    //                   vmr_field_raw_h2o);
 
     cout
         << "--------------------------------------------------------------------------"
@@ -550,7 +528,7 @@ void ybatchMetProfilesClear(Workspace& ws,
     cout
         << "--------------------------------------------------------------------------"
         << endl;
-    xml_write_to_file("profile_number.xml", i, FILE_TYPE_ASCII, 0, verbosity);
+    xml_write_to_file("profile_number.xml", i, FILE_TYPE_ASCII, 0);
     // the first element of the species is water vapour.
 
     // N_p is the number of elements in the pressure grid
@@ -582,10 +560,10 @@ void ybatchMetProfilesClear(Workspace& ws,
     // this is because of the extrapolation problem.
 
     VectorNLogSpace(
-        z_grid, nelem_p_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1], verbosity);
+        z_grid, nelem_p_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1]);
     cout << "t_field_raw[0](0,0,0)" << tfr_z_grid[0] << endl;
     cout << "t_field_raw[0](N_p -1,0,0)" << tfr_z_grid[N_p - 1] << endl;
-    xml_write_to_file("z_grid.xml", z_grid, FILE_TYPE_ASCII, 0, verbosity);
+    xml_write_to_file("z_grid.xml", z_grid, FILE_TYPE_ASCII, 0);
 
     // executing the met_profile_calc_agenda
     met_profile_calc_agendaExecute(ws,
@@ -613,10 +591,7 @@ void DOBatchCalc(Workspace& ws,
                  const Index& ybatch_start,
                  const Index& ybatch_n,
                  const Agenda& dobatch_calc_agenda,
-                 const Index& robust,
-                 const Verbosity& verbosity) {
-  CREATE_OUTS;
-
+                 const Index& robust) {
   Index first_ybatch_index = 0;
 
   ArrayOfString fail_msg;
@@ -660,7 +635,6 @@ void DOBatchCalc(Workspace& ws,
         os << "  Job " << l_job_counter << " of " << ybatch_n << ", Index "
            << ybatch_start + ybatch_index << ", Thread-Id "
            << arts_omp_get_thread_num() << "\n";
-        out2 << os.str();
       }
 
       try {
@@ -695,7 +669,6 @@ void DOBatchCalc(Workspace& ws,
              << "element in output variables will be empty for this job.\n"
              << "The runtime error produced was:\n"
              << e.what() << "\n";
-          out0 << os.str();
         } else {
           // The user wants the batch job to fail if one of the
           // jobs goes wrong.
@@ -705,7 +678,6 @@ void DOBatchCalc(Workspace& ws,
           ostringstream os;
           os << "  Job at ybatch_index " << ybatch_start + ybatch_index
              << " failed. Aborting...\n";
-          out1 << os.str();
         }
         ostringstream os;
         os << "Run-time error at ybatch_index " << ybatch_start + ybatch_index
@@ -728,7 +700,5 @@ void DOBatchCalc(Workspace& ws,
 
     if (do_abort)
       throw runtime_error(os.str());
-    else
-      out0 << os.str();
   }
 }

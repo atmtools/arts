@@ -319,8 +319,7 @@ void run_rt4(Workspace& ws,
              const String& pfct_method,
              const Index& pfct_aa_grid_size,
              const Numeric& pfct_threshold,
-             const Numeric& max_delta_tau,
-             const Verbosity& verbosity) {
+             const Numeric& max_delta_tau) {
   // Create an atmosphere starting at z_surface
   Vector p, z, t;
   Matrix vmr, pnd;
@@ -507,8 +506,7 @@ Matrix vmr_profiles;
                         pfct_method,
                         pfct_aa_grid_size,
                         pfct_threshold,
-                        auto_inc_nstreams,
-                        verbosity);
+                        auto_inc_nstreams);
       } else {
         pfct_failed = 1;
       }
@@ -621,8 +619,7 @@ Matrix vmr_profiles;
             pfct_method,
             pfct_aa_grid_size,
             pfct_threshold,
-            auto_inc_nstreams,
-            verbosity);
+            auto_inc_nstreams);
 
         if (pfct_failed) nummu_new = nummu_new + 1;
       }
@@ -641,10 +638,8 @@ Matrix vmr_profiles;
           "Try higher maximum number of allowed streams (ie. higher"
           " auto_inc_nstreams than ", auto_inc_nstreams, ").");
         
-        CREATE_OUT1;
         os << "Continuing with nstreams=" << 2 * nummu_new
             << ". Output for this frequency might be erroneous.";
-        out1 << os.str();
         pfct_failed = -1;
         sca_optpropCalc(
             scatter_matrix_new,
@@ -660,8 +655,7 @@ Matrix vmr_profiles;
             pfct_method,
             pfct_aa_grid_size,
             pfct_threshold,
-            0,
-            verbosity);
+            0);
       }
 
       // resize and calc remaining nstream-affected variables:
@@ -964,8 +958,7 @@ void sca_optpropCalc(  //Output
     const String& pfct_method,
     const Index& pfct_aa_grid_size,
     const Numeric& pfct_threshold,
-    const Index& auto_inc_nstreams,
-    const Verbosity& verbosity) {
+    const Index& auto_inc_nstreams) {
   // FIXME: this whole funtions needs revision/optimization regarding
   // - temperature dependence (using new-type scat_data)
   // - using redundancies in sca_mat data at least for totally random
@@ -1052,8 +1045,7 @@ void sca_optpropCalc(  //Output
                   iza,
                   0,
                   za_grid,
-                  aa_grid,
-                  verbosity);
+                  aa_grid);
 
               if (saa == 0 || saa == pfct_aa_grid_size - 1)
                 pha_mat *= (daa_totrand / 2.);
@@ -1269,12 +1261,6 @@ void sca_optpropCalc(  //Output
             }
           } else if (abs(w0_act - w0_nom) > pfct_threshold * 0.1 ||
                      abs(1. - pfct_norm) > 1e-2) {
-            CREATE_OUT2;
-            out2
-                << "Warning: The bulk scattering matrix is not well normalized\n"
-                << "Deviating from expected value by "
-                << 1e2 * abs(1. - pfct_norm) << "% (and "
-                << abs(w0_act - w0_nom) << " in terms of scattering albedo).\n";
           }
           // rescale scattering matrix to expected (0,0) value (and scale all
           // other elements accordingly)
@@ -1521,8 +1507,7 @@ void surf_optpropCalc(Workspace& ws,
 }
 
 void rt4_test(Tensor4& out_rad,
-              const String& datapath,
-              const Verbosity& verbosity) {
+              const String& datapath) {
   //emissivity.resize(4);
   //reflectivity.resize(4);
 
@@ -1545,12 +1530,12 @@ void rt4_test(Tensor4& out_rad,
   Tensor5 sca_data;
   Tensor4 ext_data;
   Tensor3 abs_data;
-  ReadXML(height, "height", datapath + "z.xml", "", verbosity);
-  ReadXML(temperatures, "temperatures", datapath + "T.xml", "", verbosity);
-  ReadXML(gas_extinct, "gas_extinct", datapath + "abs_gas.xml", "", verbosity);
-  ReadXML(abs_data, "abs_data", datapath + "abs_par.xml", "", verbosity);
-  ReadXML(ext_data, "ext_data", datapath + "ext_par.xml", "", verbosity);
-  ReadXML(sca_data, "sca_data", datapath + "sca_par.xml", "", verbosity);
+  ReadXML(height, "height", datapath + "z.xml", "");
+  ReadXML(temperatures, "temperatures", datapath + "T.xml", "");
+  ReadXML(gas_extinct, "gas_extinct", datapath + "abs_gas.xml", "");
+  ReadXML(abs_data, "abs_data", datapath + "abs_par.xml", "");
+  ReadXML(ext_data, "ext_data", datapath + "ext_par.xml", "");
+  ReadXML(sca_data, "sca_data", datapath + "sca_par.xml", "");
   Index num_layers = height.nelem() - 1;
   Index num_scatlayers = 3;
   Vector scatlayers(num_layers, 0.);

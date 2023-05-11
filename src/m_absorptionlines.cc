@@ -27,16 +27,14 @@
 //////////////////////////////////////////////////////// Basic removal and flattening
 /////////////////////////////////////////////////////////////////////////////////////
 
-void abs_linesRemoveEmptyBands(ArrayOfAbsorptionLines& abs_lines,
-                               const Verbosity&)
+void abs_linesRemoveEmptyBands(ArrayOfAbsorptionLines& abs_lines)
 {
   abs_lines.erase(std::remove_if(abs_lines.begin(), abs_lines.end(),
                                  [](auto& x){return x.NumLines() == 0;}),
                   abs_lines.end());
 }
 
-void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines,
-                      const Verbosity& verbosity)
+void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines)
 {
   const Index n = abs_lines.nelem();
   
@@ -54,13 +52,12 @@ void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines,
     }
   }
   
-  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+  abs_linesRemoveEmptyBands(abs_lines);
 }
 
-void abs_lines_per_speciesFlatten(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                  const Verbosity& verbosity)
+void abs_lines_per_speciesFlatten(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species)
 {
-  for (auto& abs_lines: abs_lines_per_species) abs_linesFlatten(abs_lines, verbosity);
+  for (auto& abs_lines: abs_lines_per_species) abs_linesFlatten(abs_lines);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -186,8 +183,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const String& lineshapetype_option,
                         const String& cutoff_option,
                         const Numeric& cutoff_value,
-                        const Numeric& linemixinglimit_value,
-                        const Verbosity& verbosity)
+                        const Numeric& linemixinglimit_value)
 {
   abs_lines.resize(0);
 
@@ -198,20 +194,17 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   const Array<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   ARTS_USER_ERROR_IF(not check_local(local_nums), "Can only have non-string values in the local state")
   
-  CREATE_OUT2;
-  
-  ArtsXMLTag tag(verbosity);
+  ArtsXMLTag tag;
   Index nelem;
   
   // ARTSCAT data
   shared_ptr<istream> ifs = nullptr;
-  xml_find_and_open_input_file(ifs, artscat_file, verbosity);
+  xml_find_and_open_input_file(ifs, artscat_file);
   istream& is_xml = *ifs;
   auto a = FILE_TYPE_ASCII;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
-  xml_read_header_from_stream(is_xml, a,b,c,
-                              verbosity);
+  xml_read_header_from_stream(is_xml, a,b,c);
   
   tag.read_from_stream(is_xml);
   tag.check_name("Array");
@@ -299,12 +292,12 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
   merge_local_lines(abs_lines, local_bands);
   
-  abs_linesNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesPopulation(abs_lines, population_option, verbosity);
-  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option);
+  abs_linesMirroring(abs_lines, mirroring_option);
+  abs_linesPopulation(abs_lines, population_option);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value);
   
   tag.read_from_stream(is_xml);
   tag.check_name("/Array");
@@ -323,8 +316,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                  const String& lineshapetype_option,
                  const String& cutoff_option,
                  const Numeric& cutoff_value,
-                 const Numeric& linemixinglimit_value,
-                 const Verbosity& verbosity)
+                 const Numeric& linemixinglimit_value)
 {
   abs_lines.resize(0);
 
@@ -335,20 +327,17 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   const Array<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   ARTS_USER_ERROR_IF(not check_local(local_nums), "Can only have non-string values in the local state")
   
-  CREATE_OUT2;
-  
-  ArtsXMLTag tag(verbosity);
+  ArtsXMLTag tag;
   Index nelem;
   
   // ARTSCAT data
   shared_ptr<istream> ifs = nullptr;
-  xml_find_and_open_input_file(ifs, artscat_file, verbosity);
+  xml_find_and_open_input_file(ifs, artscat_file);
   istream& is_xml = *ifs;
   auto a = FILE_TYPE_ASCII;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
-  xml_read_header_from_stream(is_xml, a,b,c,
-                              verbosity);
+  xml_read_header_from_stream(is_xml, a,b,c);
   
   tag.read_from_stream(is_xml);
   tag.check_name("ArrayOfLineRecord");
@@ -425,12 +414,12 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
   merge_local_lines(abs_lines, local_bands);
   
-  abs_linesNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesPopulation(abs_lines, population_option, verbosity);
-  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option);
+  abs_linesMirroring(abs_lines, mirroring_option);
+  abs_linesPopulation(abs_lines, population_option);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value);
   
   tag.read_from_stream(is_xml);
   tag.check_name("/ArrayOfLineRecord");
@@ -451,8 +440,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const String& lineshapetype_option,
                       const String& cutoff_option,
                       const Numeric& cutoff_value,
-                      const Numeric& linemixinglimit_value,
-                      const Verbosity& verbosity)
+                      const Numeric& linemixinglimit_value)
 {
   abs_lines.resize(0);
 
@@ -483,8 +471,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                   lineshapetype_option,
                   cutoff_option,
                   cutoff_value,
-                  linemixinglimit_value,
-                  verbosity);
+                  linemixinglimit_value);
       
       // Either find a line like this in the list of lines or start a new Lines
       for (auto& newband: more_abs_lines) {
@@ -527,8 +514,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& lineshapetype_option,
                 const String& cutoff_option,
                 const Numeric& cutoff_value,
-                const Numeric& linemixinglimit_value,
-                const Verbosity& verbosity)
+                const Numeric& linemixinglimit_value)
 {
   abs_lines.resize(0);
   
@@ -598,12 +584,12 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
 
   merge_local_lines(abs_lines, local_bands);
 
-  abs_linesNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesPopulation(abs_lines, population_option, verbosity);
-  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option);
+  abs_linesMirroring(abs_lines, mirroring_option);
+  abs_linesPopulation(abs_lines, population_option);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -619,8 +605,7 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
                 const String& lineshapetype_option,
                 const String& cutoff_option,
                 const Numeric& cutoff_value,
-                const Numeric& linemixinglimit_value,
-                const Verbosity& verbosity)
+                const Numeric& linemixinglimit_value)
 {
   abs_lines.resize(0);
   
@@ -664,12 +649,12 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
     x.pop_back();
   }
   
-  abs_linesNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesPopulation(abs_lines, population_option, verbosity);
-  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option);
+  abs_linesMirroring(abs_lines, mirroring_option);
+  abs_linesPopulation(abs_lines, population_option);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -685,8 +670,7 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
              const String& lineshapetype_option,
              const String& cutoff_option,
              const Numeric& cutoff_value,
-             const Numeric& linemixinglimit_value,
-             const Verbosity& verbosity)
+             const Numeric& linemixinglimit_value)
 {
   abs_lines.resize(0);
   
@@ -730,12 +714,12 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
     x.pop_back();
   }
   
-  abs_linesNormalization(abs_lines, normalization_option, verbosity);
-  abs_linesMirroring(abs_lines, mirroring_option, verbosity);
-  abs_linesPopulation(abs_lines, population_option, verbosity);
-  abs_linesLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
-  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
+  abs_linesNormalization(abs_lines, normalization_option);
+  abs_linesMirroring(abs_lines, mirroring_option);
+  abs_linesPopulation(abs_lines, population_option);
+  abs_linesLineShapeType(abs_lines, lineshapetype_option);
+  abs_linesCutoff(abs_lines, cutoff_option, cutoff_value);
+  abs_linesLinemixingLimit(abs_lines, linemixinglimit_value);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -745,8 +729,7 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
                                    const ArrayOfAbsorptionLines& abs_lines,
-                                   const String& basename,
-                                   const Verbosity& verbosity) {
+                                   const String& basename) {
   // Set the true name of the saving
   String true_basename = basename;
   if (not(true_basename.back() == '.' or true_basename.back() == '/'))
@@ -770,11 +753,11 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
   // Make all species into a species tag array
   Index throwaway;
   ArrayOfArrayOfSpeciesTag as;
-  abs_speciesSet(as, throwaway, specs, verbosity);
+  abs_speciesSet(as, throwaway, specs);
   
   // Split lines by species
   ArrayOfArrayOfAbsorptionLines alps;
-  abs_lines_per_speciesCreateFromLines(alps, abs_lines, as, verbosity);
+  abs_lines_per_speciesCreateFromLines(alps, abs_lines, as);
   
   // Save the arrays
   for (Index i=0; i<specs.nelem(); i++) {
@@ -783,15 +766,14 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
     
     WriteXML(output_format, lines,
              true_basename + name + ".xml",
-             0, "", "", "", verbosity);
+             0, "", "", "");
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesWriteSpeciesSplitCatalog(const String& output_format,
                                                const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                               const String& basename,
-                                               const Verbosity& verbosity) { 
+                                               const String& basename) { 
   // Compact to abs_lines
   ArrayOfAbsorptionLines abs_lines(0);
   for (auto& lines: abs_lines_per_species) {
@@ -801,17 +783,15 @@ void abs_lines_per_speciesWriteSpeciesSplitCatalog(const String& output_format,
   }
   
   // Save using the other function
-  abs_linesWriteSpeciesSplitCatalog(output_format, abs_lines, basename, verbosity);
+  abs_linesWriteSpeciesSplitCatalog(output_format, abs_lines, basename);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
                                       const String& basename,
-                                      const Index& robust,
-                                      const Verbosity& verbosity) {
+                                      const Index& robust) {
   abs_lines.resize(0);
   
-  CREATE_OUT3;
   std::size_t bands_found{0};
   
   String tmpbasename = basename;
@@ -825,7 +805,7 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
     String filename = tmpbasename + ir.FullName() + ".xml";
     if (find_xml_file_existence(filename)) {
       ArrayOfAbsorptionLines speclines;
-      xml_read_from_file(filename, speclines, verbosity);
+      xml_read_from_file(filename, speclines);
       for (auto& band: speclines) {
         abs_lines.push_back(band);
         bands_found++;
@@ -835,18 +815,14 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
   
   ARTS_USER_ERROR_IF (not bands_found and not robust,
                       "Cannot find any bands in the directory you are reading");
-  out3 << "Found " << bands_found << " bands\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                                   const ArrayOfArrayOfSpeciesTag& abs_species,
                                                   const String& basename,
-                                                  const Index& robust,
-                                                  const Verbosity& verbosity) {
+                                                  const Index& robust) {
   abs_lines_per_species.resize(0);
-  
-  CREATE_OUT3;
   
   // Build a set of species indices. Duplicates are ignored.
   const std::set<Species::Species> unique_species = lbl_species(abs_species);
@@ -876,7 +852,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
           String filename = tmpbasename + isot.FullName() + ".xml";
           if (find_xml_file_existence(filename)) {
             ArrayOfAbsorptionLines speclines;
-            xml_read_from_file(filename, speclines, verbosity);
+            xml_read_from_file(filename, speclines);
             for (auto& band: speclines) {
               par_abs_lines[i].push_back(std::move(band));
             }
@@ -896,7 +872,6 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   const Index bands_found = nelem(par_abs_lines);
   ARTS_USER_ERROR_IF (not bands_found and not robust,
                       "Cannot find any bands in the directory you are reading");
-  out3 << "Found " << bands_found << " bands\n";
   
   ArrayOfAbsorptionLines abs_lines;
   abs_lines.reserve(bands_found);
@@ -906,7 +881,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
     }
   }
 
-  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
+  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -914,7 +889,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
 /////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines, const Verbosity&)
+void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines)
 {
   for (auto& rlines: replacing_lines) {
     Index number_of_matching_bands = 0;
@@ -947,7 +922,7 @@ void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Index& safe, const Verbosity&)
+void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Index& safe)
 {
   if (safe) {
     std::vector<AbsorptionLines> addedlines(0);
@@ -991,7 +966,7 @@ void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteBadF0(ArrayOfAbsorptionLines& abs_lines, const Numeric& f0, const Index& lower, const Verbosity&)
+void abs_linesDeleteBadF0(ArrayOfAbsorptionLines& abs_lines, const Numeric& f0, const Index& lower)
 {
   for (auto& lines: abs_lines) {
     std::vector<Index> hits;
@@ -1012,7 +987,7 @@ void abs_linesDeleteBadF0(ArrayOfAbsorptionLines& abs_lines, const Numeric& f0, 
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
+void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines)
 {
   for (auto& dlines: deleting_lines) {
     for (auto& tlines: abs_lines) {
@@ -1045,7 +1020,7 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesEmptyBroadeningParameters(ArrayOfAbsorptionLines& abs_lines, const Verbosity& /*verbosity*/)
+void abs_linesEmptyBroadeningParameters(ArrayOfAbsorptionLines& abs_lines)
 {
   for (auto& band: abs_lines) {
     std::array<bool, LineShape::nVars> var_is_empty;
@@ -1075,7 +1050,7 @@ void abs_linesEmptyBroadeningParameters(ArrayOfAbsorptionLines& abs_lines, const
   }
 }
 
-void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifier& qid, const Verbosity&)
+void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifier& qid)
 {
   for (auto& band: abs_lines) {
     const Quantum::Number::StateMatch lt(qid, band.quantumidentity);
@@ -1085,8 +1060,7 @@ void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifie
   }
 }
 
-void CheckUnique(const ArrayOfAbsorptionLines& lines,
-                 const Verbosity&) {
+void CheckUnique(const ArrayOfAbsorptionLines& lines) {
   const Index nb = lines.nelem();
   for (Index i=0; i<nb; i++) {
     for (Index j=i+1; j<nb; j++) {
@@ -1099,8 +1073,7 @@ void CheckUnique(const ArrayOfAbsorptionLines& lines,
 }
 
 void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
-                           const ArrayOfAbsorptionLines& replacing_bands,
-                           const Verbosity&) {
+                           const ArrayOfAbsorptionLines& replacing_bands) {
   for (auto& replacement: replacing_bands) {
     struct {Index band;} pos{-1};
     
@@ -1124,8 +1097,7 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
 }
 
 void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
-                           const ArrayOfAbsorptionLines& replacing_lines,
-                           const Verbosity&) {
+                           const ArrayOfAbsorptionLines& replacing_lines) {
   const Index nb = abs_lines.nelem();  // Evaluate first so new bands are not counted
   
   for (auto& replacement: replacing_lines) {
@@ -1189,8 +1161,7 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesCutoff(ArrayOfAbsorptionLines& abs_lines,
                      const String& type,
-                     const Numeric& x,
-                     const Verbosity&) {
+                     const Numeric& x) {
   auto t = Absorption::toCutoffTypeOrThrow(type);
   for (auto& lines : abs_lines) {
     lines.cutoff = t;
@@ -1202,18 +1173,16 @@ void abs_linesCutoff(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesCutoff(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const String& type,
-    const Numeric& x,
-    const Verbosity& v) {
+    const Numeric& x) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesCutoff(abs_lines, type, x, v);
+    abs_linesCutoff(abs_lines, type, x);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesCutoffMatch(ArrayOfAbsorptionLines& abs_lines,
                           const String& type,
                           const Numeric& x,
-                          const QuantumIdentifier& QI,
-                          const Verbosity&) {
+                          const QuantumIdentifier& QI) {
   auto t = Absorption::toCutoffTypeOrThrow(type);
   for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
@@ -1229,10 +1198,9 @@ void abs_lines_per_speciesCutoffMatch(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const String& type,
     const Numeric& x,
-    const QuantumIdentifier& QI,
-    const Verbosity& verbosity) {
+    const QuantumIdentifier& QI) {
   for (auto& lines : abs_lines_per_species) {
-    abs_linesCutoffMatch(lines, type, x, QI, verbosity);
+    abs_linesCutoffMatch(lines, type, x, QI);
   }
 }
 
@@ -1242,16 +1210,15 @@ void abs_lines_per_speciesCutoffSpecies(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& type,
     const Numeric& x,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesCutoff(abs_lines_per_species[ispec], type, x, verbosity);
+      abs_linesCutoff(abs_lines_per_species[ispec], type, x);
     }
   }
 }
@@ -1262,8 +1229,7 @@ void abs_lines_per_speciesCutoffSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesMirroring(ArrayOfAbsorptionLines& abs_lines,
-                        const String& type,
-                        const Verbosity&) {
+                        const String& type) {
   auto t = Absorption::toMirroringTypeOrThrow(type);
   for (auto& lines : abs_lines) lines.mirroring = t;
 }
@@ -1271,17 +1237,15 @@ void abs_linesMirroring(ArrayOfAbsorptionLines& abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesMirroring(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const String& type,
-    const Verbosity& v) {
+    const String& type) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesMirroring(abs_lines, type, v);
+    abs_linesMirroring(abs_lines, type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesMirroringMatch(ArrayOfAbsorptionLines& abs_lines,
                              const String& type,
-                             const QuantumIdentifier& QI,
-                             const Verbosity&) {
+                             const QuantumIdentifier& QI) {
   auto t = Absorption::toMirroringTypeOrThrow(type);
   for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
@@ -1295,10 +1259,9 @@ void abs_linesMirroringMatch(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesMirroringMatch(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const String& type,
-    const QuantumIdentifier& QI,
-    const Verbosity& v) {
+    const QuantumIdentifier& QI) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesMirroringMatch(abs_lines, type, QI, v);
+    abs_linesMirroringMatch(abs_lines, type, QI);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1306,23 +1269,21 @@ void abs_lines_per_speciesMirroringSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& type,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesMirroring(abs_lines_per_species[ispec], type, verbosity);
+      abs_linesMirroring(abs_lines_per_species[ispec], type);
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesManualMirroring(ArrayOfAbsorptionLines& abs_lines,
-                              const Verbosity&) {
+void abs_linesManualMirroring(ArrayOfAbsorptionLines& abs_lines) {
   const ArrayOfAbsorptionLines abs_lines_copy = abs_lines;
   for (AbsorptionLines band : abs_lines_copy) {
     band.mirroring = Absorption::MirroringType::Manual;
@@ -1348,18 +1309,16 @@ void abs_linesManualMirroring(ArrayOfAbsorptionLines& abs_lines,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesManualMirroring(
-    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Verbosity& verbosity) {
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesManualMirroring(abs_lines, verbosity);
+    abs_linesManualMirroring(abs_lines);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesManualMirroringSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& species,
-    const Verbosity& verbosity) {
+    const ArrayOfSpeciesTag& species) {
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
                      "Mismatch abs_species and abs_lines_per_species sizes [",
                      abs_species.size(),
@@ -1371,7 +1330,7 @@ void abs_lines_per_speciesManualMirroringSpecies(
           abs_species.cbegin(),
           std::find(abs_species.cbegin(), abs_species.cend(), species));
       ind not_eq abs_species.nelem()) {
-    abs_linesManualMirroring(abs_lines_per_species[ind], verbosity);
+    abs_linesManualMirroring(abs_lines_per_species[ind]);
   } else {
     ARTS_USER_ERROR("Cannot find species: ",
                     species,
@@ -1387,8 +1346,7 @@ void abs_lines_per_speciesManualMirroringSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesPopulation(ArrayOfAbsorptionLines& abs_lines,
-                         const String& type,
-                         const Verbosity&) {
+                         const String& type) {
   auto t = Absorption::toPopulationTypeOrThrow(type);
   for (auto& lines : abs_lines) lines.population = t;
 }
@@ -1396,17 +1354,15 @@ void abs_linesPopulation(ArrayOfAbsorptionLines& abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesPopulation(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const String& type,
-    const Verbosity& v) {
+    const String& type) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesPopulation(abs_lines, type, v);
+    abs_linesPopulation(abs_lines, type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesPopulationMatch(ArrayOfAbsorptionLines& abs_lines,
                               const String& type,
-                              const QuantumIdentifier& QI,
-                              const Verbosity&) {
+                              const QuantumIdentifier& QI) {
   auto t = Absorption::toPopulationTypeOrThrow(type);
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
@@ -1420,10 +1376,9 @@ void abs_linesPopulationMatch(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesPopulationMatch(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const String& type,
-    const QuantumIdentifier& QI,
-    const Verbosity& v) {
+    const QuantumIdentifier& QI) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesPopulationMatch(abs_lines, type, QI, v);
+    abs_linesPopulationMatch(abs_lines, type, QI);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1431,16 +1386,15 @@ void abs_lines_per_speciesPopulationSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& type,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesPopulation(abs_lines_per_species[ispec], type, verbosity);
+      abs_linesPopulation(abs_lines_per_species[ispec], type);
     }
   }
 }
@@ -1451,8 +1405,7 @@ void abs_lines_per_speciesPopulationSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesNormalization(ArrayOfAbsorptionLines& abs_lines,
-                            const String& type,
-                            const Verbosity&) {
+                            const String& type) {
   auto t = Absorption::toNormalizationTypeOrThrow(type);
   for (auto& lines : abs_lines) lines.normalization = t;
 }
@@ -1460,17 +1413,15 @@ void abs_linesNormalization(ArrayOfAbsorptionLines& abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesNormalization(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const String& type,
-    const Verbosity& v) {
+    const String& type) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesNormalization(abs_lines, type, v);
+    abs_linesNormalization(abs_lines, type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesNormalizationMatch(ArrayOfAbsorptionLines& abs_lines,
                                  const String& type,
-                                 const QuantumIdentifier& QI,
-                                 const Verbosity&) {
+                                 const QuantumIdentifier& QI) {
   auto t = Absorption::toNormalizationTypeOrThrow(type);
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
@@ -1484,10 +1435,9 @@ void abs_linesNormalizationMatch(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesNormalizationMatch(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const String& type,
-    const QuantumIdentifier& QI,
-    const Verbosity& v) {
+    const QuantumIdentifier& QI) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesNormalizationMatch(abs_lines, type, QI, v);
+    abs_linesNormalizationMatch(abs_lines, type, QI);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1495,16 +1445,15 @@ void abs_lines_per_speciesNormalizationSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& type,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesNormalization(abs_lines_per_species[ispec], type, verbosity);
+      abs_linesNormalization(abs_lines_per_species[ispec], type);
     }
   }
 }
@@ -1515,8 +1464,7 @@ void abs_lines_per_speciesNormalizationSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesLineShapeType(ArrayOfAbsorptionLines& abs_lines,
-                            const String& type,
-                            const Verbosity&) {
+                            const String& type) {
   auto t = LineShape::toType(type);
   check_enum_error(t, "Cannot understand type: ", type);
   for (auto& lines : abs_lines) lines.lineshapetype = t;
@@ -1525,17 +1473,15 @@ void abs_linesLineShapeType(ArrayOfAbsorptionLines& abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesLineShapeType(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const String& type,
-    const Verbosity& v) {
+    const String& type) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesLineShapeType(abs_lines, type, v);
+    abs_linesLineShapeType(abs_lines, type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesLineShapeTypeMatch(ArrayOfAbsorptionLines& abs_lines,
                                  const String& type,
-                                 const QuantumIdentifier& QI,
-                                 const Verbosity&) {
+                                 const QuantumIdentifier& QI) {
   auto t = LineShape::toTypeOrThrow(type);
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
@@ -1549,10 +1495,9 @@ void abs_linesLineShapeTypeMatch(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesLineShapeTypeMatch(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const String& type,
-    const QuantumIdentifier& QI,
-    const Verbosity& v) {
+    const QuantumIdentifier& QI) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesLineShapeTypeMatch(abs_lines, type, QI, v);
+    abs_linesLineShapeTypeMatch(abs_lines, type, QI);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1560,16 +1505,15 @@ void abs_lines_per_speciesLineShapeTypeSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& type,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesLineShapeType(abs_lines_per_species[ispec], type, verbosity);
+      abs_linesLineShapeType(abs_lines_per_species[ispec], type);
     }
   }
 }
@@ -1580,25 +1524,22 @@ void abs_lines_per_speciesLineShapeTypeSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesLinemixingLimit(ArrayOfAbsorptionLines& abs_lines,
-                              const Numeric& x,
-                              const Verbosity&) {
+                              const Numeric& x) {
   for (auto& lines : abs_lines) lines.linemixinglimit = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesLinemixingLimit(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Numeric& x,
-    const Verbosity& v) {
+    const Numeric& x) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesLinemixingLimit(abs_lines, x, v);
+    abs_linesLinemixingLimit(abs_lines, x);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesLinemixingLimitMatch(ArrayOfAbsorptionLines& abs_lines,
                                       const Numeric& x,
-                                      const QuantumIdentifier& QI,
-                                      const Verbosity&) {
+                                      const QuantumIdentifier& QI) {
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -1611,10 +1552,9 @@ void abs_linesLinemixingLimitMatch(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesLinemixingLimitMatch(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& x,
-    const QuantumIdentifier& QI,
-    const Verbosity& v) {
+    const QuantumIdentifier& QI) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesLinemixingLimitMatch(abs_lines, x, QI, v);
+    abs_linesLinemixingLimitMatch(abs_lines, x, QI);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1622,16 +1562,15 @@ void abs_lines_per_speciesLinemixingLimitSpecies(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Numeric& x,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesLinemixingLimit(abs_lines_per_species[ispec], x, verbosity);
+      abs_linesLinemixingLimit(abs_lines_per_species[ispec], x);
     }
   }
 }
@@ -1642,24 +1581,21 @@ void abs_lines_per_speciesLinemixingLimitSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesT0(ArrayOfAbsorptionLines& abs_lines,
-                 const Numeric& x,
-                 const Verbosity&) {
+                 const Numeric& x) {
   for (auto& lines : abs_lines) lines.T0 = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesT0(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Numeric& x,
-    const Verbosity& v) {
-  for (auto& abs_lines : abs_lines_per_species) abs_linesT0(abs_lines, x, v);
+    const Numeric& x) {
+  for (auto& abs_lines : abs_lines_per_species) abs_linesT0(abs_lines, x);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesT0Match(ArrayOfAbsorptionLines& abs_lines,
                       const Numeric& x,
-                      const QuantumIdentifier& QI,
-                      const Verbosity&) {
+                      const QuantumIdentifier& QI) {
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -1672,10 +1608,9 @@ void abs_linesT0Match(ArrayOfAbsorptionLines& abs_lines,
 void abs_lines_per_speciesT0Match(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& x,
-    const QuantumIdentifier& QI,
-    const Verbosity& v) {
+    const QuantumIdentifier& QI) {
   for (auto& abs_lines : abs_lines_per_species)
-    abs_linesT0Match(abs_lines, x, QI, v);
+    abs_linesT0Match(abs_lines, x, QI);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1683,16 +1618,15 @@ void abs_lines_per_speciesT0Species(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Numeric& x,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
-      abs_linesT0(abs_lines_per_species[ispec], x, verbosity);
+      abs_linesT0(abs_lines_per_species[ispec], x);
     }
   }
 }
@@ -1706,8 +1640,7 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
                                                   const QuantumIdentifier& QI,
                                                   const String& parameter_name,
                                                   const Numeric& change,
-                                                  const Index& relative,
-                                                  const Verbosity&)
+                                                  const Index& relative)
 {
   Index parameter_switch = -1;
 
@@ -1801,11 +1734,10 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLines(ArrayOfArrayOfAbso
                                                               const QuantumIdentifier& QI,
                                                               const String& parameter_name,
                                                               const Numeric& change,
-                                                              const Index& relative,
-                                                              const Verbosity& verbosity)
+                                                              const Index& relative)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesChangeBaseParameterForMatchingLines(lines, QI, parameter_name, change, relative, verbosity);
+    abs_linesChangeBaseParameterForMatchingLines(lines, QI, parameter_name, change, relative);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1816,15 +1748,14 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
   const String& parameter_name,
   const Numeric& change,
   const Index& relative,
-  const String& species_tag,
-  const Verbosity& verbosity)
+  const String& species_tag)
 {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
-      abs_linesChangeBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, relative, verbosity);
+      abs_linesChangeBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, relative);
     }
   }
 }
@@ -1833,8 +1764,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
 void abs_linesBaseParameterMatchingLines(ArrayOfAbsorptionLines& abs_lines,
                                          const QuantumIdentifier& QI,
                                          const String& parameter_name,
-                                         const Numeric& x,
-                                         const Verbosity&) {
+                                         const Numeric& x) {
   Index parameter_switch = -1;
 
   ARTS_USER_ERROR_IF(parameter_name.nelem() == 0, "parameter_name is empty.\n");
@@ -1903,11 +1833,10 @@ void abs_lines_per_speciesBaseParameterMatchingLines(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const QuantumIdentifier& QI,
     const String& parameter_name,
-    const Numeric& change,
-    const Verbosity& verbosity) {
+    const Numeric& change) {
   for (auto& lines : abs_lines_per_species)
     abs_linesBaseParameterMatchingLines(
-        lines, QI, parameter_name, change, verbosity);
+        lines, QI, parameter_name, change);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1917,17 +1846,16 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
     const QuantumIdentifier& QI,
     const String& parameter_name,
     const Numeric& change,
-    const String& species_tag,
-    const Verbosity& verbosity) {
+    const String& species_tag) {
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, t1, {species_tag}, verbosity);
+  abs_speciesSet(target_species, t1, {species_tag});
   for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
       abs_linesBaseParameterMatchingLines(
-          abs_lines_per_species[ispec], QI, parameter_name, change, verbosity);
+          abs_lines_per_species[ispec], QI, parameter_name, change);
     }
   }
 }
@@ -1939,10 +1867,7 @@ void abs_linesLineShapeModelParametersMatchingLines(
     const String& parameter,
     const String& species,
     const String& temperaturemodel,
-    const Vector& new_values,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const Vector& new_values) {
   const bool do_self = species == LineShape::self_broadening;
   const bool do_bath = species == LineShape::bath_broadening;
 
@@ -1974,18 +1899,14 @@ void abs_linesLineShapeModelParametersMatchingLines(
           QI, band.lines[k].localquanta, band.quantumidentity);
       if (lt == Quantum::Number::StateMatchType::Full) {
         if (do_self and band.selfbroadening) {
-          out3 << "Changing self\n";
           band.lines[k].lineshape.Data().front().Data()[Index(var)] = newdata;
         } else if (do_bath and band.bathbroadening) {
-          out3 << "Changing bath\n";
           band.lines[k].lineshape.Data().back().Data()[Index(var)] = newdata;
         } else {
           for (Index i = band.selfbroadening;
                i < band.broadeningspecies.nelem() - band.bathbroadening;
                i++) {
             if (spec == band.broadeningspecies[i]) {
-              out3 << "Changing species: " << Species::toShortName(spec)
-                   << '\n';
               band.lines[k].lineshape.Data()[i].Data()[Index(var)] = newdata;
             }
           }
@@ -2002,11 +1923,10 @@ void abs_lines_per_speciesLineShapeModelParametersMatchingLines(
     const String& parameter,
     const String& species,
     const String& temperaturemodel,
-    const Vector& new_values,
-    const Verbosity& verbosity) {
+    const Vector& new_values) {
   for (auto& lines : abs_lines_per_species)
     abs_linesLineShapeModelParametersMatchingLines(
-        lines, QI, parameter, species, temperaturemodel, new_values, verbosity);
+        lines, QI, parameter, species, temperaturemodel, new_values);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -2018,8 +1938,7 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
                                                   const QuantumIdentifier& QI,
                                                   const String& parameter_name,
                                                   const Numeric& change,
-                                                  const Index& relative,
-                                                  const Verbosity&)
+                                                  const Index& relative)
 {
   Index parameter_switch = -1;
   
@@ -2085,11 +2004,10 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevel(ArrayOfArrayOfAbso
                                                               const QuantumIdentifier& QI,
                                                               const String& parameter_name,
                                                               const Numeric& change,
-                                                              const Index& relative,
-                                                              const Verbosity& verbosity)
+                                                              const Index& relative)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesChangeBaseParameterForMatchingLevel(lines, QI, parameter_name, change, relative, verbosity);
+    abs_linesChangeBaseParameterForMatchingLevel(lines, QI, parameter_name, change, relative);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2097,14 +2015,13 @@ void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_l
                                                    const ArrayOfQuantumIdentifier& QID,
                                                    const String& parameter_name,
                                                    const Vector& change,
-                                                   const Index& relative,
-                                                   const Verbosity& verbosity)
+                                                   const Index& relative)
 {
   ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
                       "Mismatch between QID and change input lengths not allowed");
   
   for (Index iq=0; iq<QID.nelem(); iq++)
-    abs_linesChangeBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], relative, verbosity);
+    abs_linesChangeBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], relative);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2112,23 +2029,21 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbs
                                                                const ArrayOfQuantumIdentifier& QID,
                                                                const String& parameter_name,
                                                                const Vector& change,
-                                                               const Index& relative,
-                                                               const Verbosity& verbosity)
+                                                               const Index& relative)
 {
   ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
                       "Mismatch between QID and change input lengths not allowed");
   
   for (Index iq=0; iq<QID.nelem(); iq++)
     for (auto& lines: abs_lines_per_species)
-      abs_linesChangeBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], relative, verbosity);
+      abs_linesChangeBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], relative);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesBaseParameterMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
                                          const QuantumIdentifier& QI,
                                          const String& parameter_name,
-                                         const Numeric& x,
-                                         const Verbosity&) {
+                                         const Numeric& x) {
   Index parameter_switch = -1;
 
   ARTS_USER_ERROR_IF(parameter_name.nelem() == 0, "parameter_name is empty.\n");
@@ -2183,26 +2098,24 @@ void abs_lines_per_speciesBaseParameterMatchingLevel(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const QuantumIdentifier& QI,
     const String& parameter_name,
-    const Numeric& change,
-    const Verbosity& verbosity) {
+    const Numeric& change) {
   for (auto& lines : abs_lines_per_species)
     abs_linesBaseParameterMatchingLevel(
-        lines, QI, parameter_name, change, verbosity);
+        lines, QI, parameter_name, change);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesBaseParameterMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
                                           const ArrayOfQuantumIdentifier& QID,
                                           const String& parameter_name,
-                                          const Vector& change,
-                                          const Verbosity& verbosity) {
+                                          const Vector& change) {
   ARTS_USER_ERROR_IF(
       QID.nelem() not_eq change.nelem(),
       "Mismatch between QID and change input lengths not allowed");
 
   for (Index iq = 0; iq < QID.nelem(); iq++)
     abs_linesBaseParameterMatchingLevel(
-        abs_lines, QID[iq], parameter_name, change[iq], verbosity);
+        abs_lines, QID[iq], parameter_name, change[iq]);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2210,8 +2123,7 @@ void abs_lines_per_speciesBaseParameterMatchingLevels(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfQuantumIdentifier& QID,
     const String& parameter_name,
-    const Vector& change,
-    const Verbosity& verbosity) {
+    const Vector& change) {
   ARTS_USER_ERROR_IF(
       QID.nelem() not_eq change.nelem(),
       "Mismatch between QID and change input lengths not allowed");
@@ -2219,7 +2131,7 @@ void abs_lines_per_speciesBaseParameterMatchingLevels(
   for (Index iq = 0; iq < QID.nelem(); iq++)
     for (auto& lines : abs_lines_per_species)
       abs_linesBaseParameterMatchingLevel(
-          lines, QID[iq], parameter_name, change[iq], verbosity);
+          lines, QID[iq], parameter_name, change[iq]);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -2231,8 +2143,7 @@ void abs_lines_per_speciesPopulationNlteField(
     Index& nlte_do,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const AtmField& atm_field,
-    const VibrationalEnergyLevels& nlte_vib_energies,
-    const Verbosity&) {
+    const VibrationalEnergyLevels& nlte_vib_energies) {
   if (atm_field.nlte().empty()) {
     nlte_do = 0;
     return;
@@ -2286,16 +2197,14 @@ void abs_lines_per_speciesPopulationNlteField(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetEmpty(
     ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Verbosity&) {
+    const ArrayOfArrayOfSpeciesTag& abs_species) {
   abs_lines_per_species = ArrayOfArrayOfAbsorptionLines(
       abs_species.nelem(), ArrayOfAbsorptionLines(0));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesCompact(ArrayOfAbsorptionLines & abs_lines,
-                      const Vector& f_grid,
-                      const Verbosity&) {
+                      const Vector& f_grid) {
   const Numeric fmax = max(f_grid);
   const Numeric fmin = min(f_grid);
 
@@ -2314,17 +2223,15 @@ void abs_linesCompact(ArrayOfAbsorptionLines & abs_lines,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCompact(
     ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
-    const Vector& f_grid,
-    const Verbosity& verbosity) {
+    const Vector& f_grid) {
   for (auto& lines : abs_lines_per_species) {
-    abs_linesCompact(lines, f_grid, verbosity);
+    abs_linesCompact(lines, f_grid);
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesRemoveBand(ArrayOfAbsorptionLines & abs_lines,
-                         const QuantumIdentifier& qid,
-                         const Verbosity&) {
+                         const QuantumIdentifier& qid) {
   for (Index i = 0; i < abs_lines.nelem(); i++) {
     const Quantum::Number::StateMatch lt(qid, abs_lines[i].quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -2362,8 +2269,7 @@ void f_gridFromAbsorptionLines(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& delta_f_low,
     const Numeric& delta_f_upp,
-    const Index& num_freqs,
-    const Verbosity&) {
+    const Index& num_freqs) {
   const Index n = nelem(abs_lines_per_species);
 
   ARTS_USER_ERROR_IF(delta_f_low >= delta_f_upp,
@@ -2409,8 +2315,7 @@ void remove_impl(ArrayOfAbsorptionLines & abs_lines,
                  const Numeric upper_frequency,
                  const Numeric lower_intensity,
                  const Index safe,
-                 const Index flip_flims,                 
-                 const Verbosity& verbosity) {
+                 const Index flip_flims) {
   const bool care_about_species = species.nelem();
 
   for (auto& band : abs_lines) {
@@ -2459,7 +2364,7 @@ void remove_impl(ArrayOfAbsorptionLines & abs_lines,
   }
 
   // Removes empty bands
-  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+  abs_linesRemoveEmptyBands(abs_lines);
 }
 
 void abs_linesRemoveLines(ArrayOfAbsorptionLines & abs_lines,
@@ -2467,16 +2372,14 @@ void abs_linesRemoveLines(ArrayOfAbsorptionLines & abs_lines,
                           const Numeric& upper_frequency,
                           const Numeric& lower_intensity,
                           const Index& safe,
-                          const Index& flip_flims,
-                          const Verbosity& verbosity) {
+                          const Index& flip_flims) {
   remove_impl(abs_lines,
               {},
               lower_frequency,
               upper_frequency,
               lower_intensity,
               safe,
-              flip_flims,
-              verbosity);
+              flip_flims);
 }
 
 void abs_lines_per_speciesRemoveLines(
@@ -2485,16 +2388,14 @@ void abs_lines_per_speciesRemoveLines(
     const Numeric& upper_frequency,
     const Numeric& lower_intensity,
     const Index& safe,
-    const Index& flip_flims,
-    const Verbosity& verbosity) {
+    const Index& flip_flims) {
   for (auto& abs_lines : abs_lines_per_species)
     abs_linesRemoveLines(abs_lines,
                          lower_frequency,
                          upper_frequency,
                          lower_intensity,
                          safe,
-                         flip_flims,
-                         verbosity);
+                         flip_flims);
 }
 
 void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines & abs_lines,
@@ -2503,8 +2404,7 @@ void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines & abs_lines,
                                      const Numeric& upper_frequency,
                                      const Numeric& lower_intensity,
                                      const Index& safe,
-                                     const Index& flip_flims,
-                                     const Verbosity& verbosity) {
+                                     const Index& flip_flims) {
   ARTS_USER_ERROR_IF(
       species.nelem() not_eq 1, "Must have a single species, got: ", species)
   ARTS_USER_ERROR_IF(species[0].Isotopologue().joker(),
@@ -2517,8 +2417,7 @@ void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines & abs_lines,
               upper_frequency,
               lower_intensity,
               safe,
-              flip_flims,
-              verbosity);
+              flip_flims);
 }
 
 void abs_lines_per_speciesRemoveLinesFromSpecies(
@@ -2528,8 +2427,7 @@ void abs_lines_per_speciesRemoveLinesFromSpecies(
     const Numeric& upper_frequency,
     const Numeric& lower_intensity,
     const Index& safe,
-    const Index& flip_flims,
-    const Verbosity& verbosity) {
+    const Index& flip_flims) {
   for (auto& abs_lines : abs_lines_per_species)
     abs_linesRemoveLinesFromSpecies(abs_lines,
                                     species,
@@ -2537,16 +2435,14 @@ void abs_lines_per_speciesRemoveLinesFromSpecies(
                                     upper_frequency,
                                     lower_intensity,
                                     safe,
-                                    flip_flims,
-                                    verbosity);
+                                    flip_flims);
 }
 
 void abs_linesSort(ArrayOfAbsorptionLines & abs_lines,
-                   const String& option,
-                   const Verbosity& verbosity) {
+                   const String& option) {
   const auto opt = Options::toSortingOptionOrThrow(option);
 
-  abs_linesRemoveEmptyBands(abs_lines, verbosity);
+  abs_linesRemoveEmptyBands(abs_lines);
 
   switch (opt) {
     case Options::SortingOption::ByFrequency:
@@ -2566,8 +2462,7 @@ void abs_linesSort(ArrayOfAbsorptionLines & abs_lines,
   }
 }
 
-void abs_linesTurnOffLineMixing(ArrayOfAbsorptionLines& abs_lines,
-                                const Verbosity&) {
+void abs_linesTurnOffLineMixing(ArrayOfAbsorptionLines& abs_lines) {
   for (auto& band : abs_lines) {
     for (auto& line : band.lines) {
       for (auto& slsm : line.lineshape) {
@@ -2581,9 +2476,8 @@ void abs_linesTurnOffLineMixing(ArrayOfAbsorptionLines& abs_lines,
 }
 
 void abs_lines_per_speciesTurnOffLineMixing(
-    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Verbosity& verbosity) {
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
   for (auto& abs_lines : abs_lines_per_species) {
-    abs_linesTurnOffLineMixing(abs_lines, verbosity);
+    abs_linesTurnOffLineMixing(abs_lines);
   }
 }

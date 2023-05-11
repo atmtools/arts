@@ -21,7 +21,6 @@
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpack_data.h"
-#include "messages.h"
 #include "variousZZZ.h"
 #include "ppath.h"
 
@@ -36,8 +35,7 @@ void IntersectionGeometricAltitude(Matrix& pos,
                                    const Matrix& sensor_pos,
                                    const Matrix& sensor_los,
                                    const Vector& refellipsoid,
-                                   const Numeric& altitude,
-                                   const Verbosity&)
+                                   const Numeric& altitude)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoidZZZ(refellipsoid);
@@ -86,8 +84,7 @@ void IntersectionGeometricLatitude(Matrix& pos,
                                    const Matrix& sensor_pos,
                                    const Matrix& sensor_los,
                                    const Vector& refellipsoid,
-                                   const Numeric& latitude,
-                                   const Verbosity&)
+                                   const Numeric& latitude)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoidZZZ(refellipsoid);
@@ -130,8 +127,7 @@ void IntersectionGeometricLongitude(Matrix& pos,
                                     const Matrix& sensor_pos,
                                     const Matrix& sensor_los,
                                     const Vector& refellipsoid,
-                                    const Numeric& longitude,
-                                    const Verbosity&)
+                                    const Numeric& longitude)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoidZZZ(refellipsoid);
@@ -176,8 +172,7 @@ void IntersectionGeometricSurface(Matrix& pos,
                                   const Vector& refellipsoid,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy,
-                                  const Index& surface_search_safe,
-                                  const Verbosity&) {
+                                  const Index& surface_search_safe) {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
   chk_refellipsoid(refellipsoid);
   //chk_surface_elevation(surface_elevation);
@@ -220,13 +215,12 @@ void TestBasicGeodeticAccuracy(Vector& rte_pos,
                                Vector& max_dlos,
                                const Vector& refellipsoid,
                                const Index& ntests,
-                               const Numeric& max_allowed_dl,
-                               const Verbosity& verbosity) {
+                               const Numeric& max_allowed_dl) {
   // Seed random generator
   Index seed;
-  MCSetSeedFromTime(seed, verbosity);
+  MCSetSeedFromTime(seed);
   Rng rng;
-  rng.seed(seed, verbosity);
+  rng.seed(seed);
 
   // Init GOUTs
   max_dl = 0;

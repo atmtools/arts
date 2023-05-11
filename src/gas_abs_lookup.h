@@ -13,7 +13,6 @@
 #include "absorption.h"
 #include "interp.h"
 #include "matpack_data.h"
-#include "messages.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -41,8 +40,7 @@ class GasAbsLookup {
 
   // Documentation is with the implementation!
   void Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
-             ConstVectorView current_f_grid,
-             const Verbosity& verbosity);
+             ConstVectorView current_f_grid);
 
   // Documentation is with the implementation!
   void Extract(Matrix& sga,
@@ -68,13 +66,11 @@ class GasAbsLookup {
   // IO functions must be friends:
   friend void xml_read_from_stream(istream& is_xml,
                                    GasAbsLookup& gal,
-                                   bifstream* pbifs,
-                                   const Verbosity& verbosity);
+                                   bifstream* pbifs);
   friend void xml_write_to_stream(ostream& os_xml,
                                   const GasAbsLookup& gal,
                                   bofstream* pbofs,
-                                  const String& name,
-                                  const Verbosity& verbosity);
+                                  const String& name);
 
   friend void abs_lookupCalc(  // Workspace reference:
       Workspace& ws,
@@ -92,9 +88,7 @@ class GasAbsLookup {
       const Vector& abs_nls_pert,
       const Agenda& abs_xsec_agenda,
       // GIN
-      const Numeric& lowest_vmr,
-      // Verbosity object:
-      const Verbosity& verbosity);
+      const Numeric& lowest_vmr);
 
   friend void abs_lookupTestAccuracy(  // Workspace reference:
       Workspace& ws,
@@ -104,9 +98,7 @@ class GasAbsLookup {
       const Index& abs_p_interp_order,
       const Index& abs_t_interp_order,
       const Index& abs_nls_interp_order,
-      const Agenda& abs_xsec_agenda,
-      // Verbosity object:
-      const Verbosity& verbosity);
+      const Agenda& abs_xsec_agenda);
 
   friend void abs_lookupTestAccMC(  // Workspace reference:
       Workspace& ws,
@@ -117,17 +109,13 @@ class GasAbsLookup {
       const Index& abs_t_interp_order,
       const Index& abs_nls_interp_order,
       const Index& mc_seed,
-      const Agenda& abs_xsec_agenda,
-      // Verbosity object:
-      const Verbosity& verbosity);
+      const Agenda& abs_xsec_agenda);
 
   friend void nca_read_from_file(const int ncid,
-                                 GasAbsLookup& gal,
-                                 const Verbosity&);
+                                 GasAbsLookup& gal);
 
   friend void nca_write_to_file(const int ncid,
-                                const GasAbsLookup& gal,
-                                const Verbosity&);
+                                const GasAbsLookup& gal);
 
   /** The species tags for which the table is valid */
   ArrayOfArrayOfSpeciesTag& Species() {return species;}
