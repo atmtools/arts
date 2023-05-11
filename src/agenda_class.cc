@@ -452,15 +452,6 @@ void Agenda::set_outputs_to_push_and_dup() {
                    sain_only.end(),
                    insert_iterator<ArrayOfIndex>(
                        agenda_only_in_wsm_out, agenda_only_in_wsm_out.begin()));
-
-  PrintWsvNames(std::cout, *workspace(), aout);
-  PrintWsvNames(std::cout, *workspace(), ain);
-  PrintWsvNames(std::cout, *workspace(), outputs);
-  PrintWsvNames(std::cout, *workspace(), inputs);
-  PrintWsvNames(std::cout, *workspace(), moutput_push);
-  PrintWsvNames(std::cout, *workspace(), moutput_dup);
-  PrintWsvNames(std::cout, *workspace(), agenda_only_in_wsm_out);
-  PrintWsvNames(std::cout, *workspace(), agenda_only_out_wsm_in);
 }
 
 //! Check if given variable is agenda input.

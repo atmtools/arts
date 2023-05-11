@@ -10,8 +10,6 @@ import pyarts
 import os
 import numpy as np
 
-testdir = os.path.dirname(__file__)
-
 arts = pyarts.workspace.Workspace()
 
 # %% Options
