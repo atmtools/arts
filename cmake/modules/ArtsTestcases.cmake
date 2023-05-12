@@ -111,3 +111,73 @@ macro (COLLECT_TEST_SUBDIR SUBDIR)
   endforeach()
 
 endmacro ()
+
+macro (SETUP_ARTS_CHECKS)
+  set(CTEST_ARGS ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS})
+
+  # This will be removed in ARTS-3, only here to work around currently broken controlfiles
+  set(EXCLUDED_FROM_CHECK '\(\\.nocheck\\.|\\.slow\\.|\\.xmldata\\.|\\.planettoolbox\\.\)')
+
+  add_custom_target(check-deps)
+
+  add_custom_target(check
+    COMMAND ${CTEST_ARGS}
+    -R '\(^ctlfile|^pytest|^pyarts|^doc|^cmdline|^cpp\)' -E ${EXCLUDED_FROM_CHECK}
+    DEPENDS check-deps pyarts)
+
+  add_custom_target(check-pyarts
+    COMMAND ${CTEST_ARGS}
+    -R '\(^pyarts\)' -E ${EXCLUDED_FROM_CHECK}
+    DEPENDS check-deps pyarts)
+
+  add_custom_target(check-controlfiles
+    COMMAND ${CTEST_ARGS}
+    -R '\(^ctlfile\)' -E ${EXCLUDED_FROM_CHECK}
+    DEPENDS check-deps)
+
+  add_custom_target(check-conversion
+    COMMAND ${CTEST_ARGS}
+    -R '\(^converted\)' -E ${EXCLUDED_FROM_CHECK}
+    DEPENDS check-deps python_conversion)
+
+  add_custom_target(check-examples
+    COMMAND ${CTEST_ARGS}
+    -R '\(\\.examples\\.\)' -E '\(^converted\)'
+    DEPENDS check-deps pyarts)
+
+  add_custom_target(check-tests
+    COMMAND ${CTEST_ARGS}
+    -R '\(\\.tests\\.\)' -E '\(^converted\)'
+    DEPENDS check-deps pyarts)
+
+  add_custom_target(check-doc
+    COMMAND ${CTEST_ARGS}
+    -R '\(^doc\)'
+    DEPENDS check-deps)
+
+  add_custom_target(check-pytest DEPENDS pyarts_tests)
+
+  # Everything below this point will go away in ARTS-3
+  add_custom_target(check-xmldata
+    COMMAND ${CTEST_ARGS}
+    -R '\(\\.xmldata\\.\)'
+    DEPENDS check-deps pyarts)
+  add_dependencies(check-xmldata mkdir-arts-results)
+
+  add_custom_target(check-planettoolbox
+    COMMAND ${CTEST_ARGS}
+    -R '\(\\.planettoolbox\\.\)'
+    DEPENDS check-deps)
+
+  add_custom_target(check-all
+    COMMAND ${CTEST_ARGS}
+    -E '\\.nocheck\\.'
+    DEPENDS check-deps python_conversion)
+  add_dependencies(check-all mkdir-arts-results)
+
+  add_custom_target(check-all-controlfiles
+    COMMAND ${CTEST_ARGS}
+    -R '\(^ctlfile\)' -E '\\.nocheck\\.'
+    DEPENDS check-deps)
+
+endmacro ()

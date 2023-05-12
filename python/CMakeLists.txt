@@ -20,21 +20,6 @@ endforeach()
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/controlfiles/)
 
 #
-# Controlfiles
-#
-
-file(GLOB_RECURSE ARTS_CONTROLFILES
-  RELATIVE ${ARTS_SOURCE_DIR}
-  ${ARTS_SOURCE_DIR}/controlfiles/general/*.arts)
-file(GLOB_RECURSE ARTS_CONTROLFILES_INSTRUMENTS
-  RELATIVE ${ARTS_SOURCE_DIR}
-  ${ARTS_SOURCE_DIR}/controlfiles/instruments/*.arts)
-list(APPEND ARTS_CONTROLFILES ${ARTS_CONTROLFILES_INSTRUMENTS})
-foreach(file ${ARTS_CONTROLFILES})
-  configure_file(${ARTS_SOURCE_DIR}/${file} pyarts/${file})
-endforeach()
-
-#
 # Install pyarts
 #
 
@@ -47,10 +32,25 @@ add_custom_target(pyarts
   DEPENDS pyarts_cpp
   COMMENT "Building ARTS python package.")
 set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/controlfiles)
-add_custom_target(python_tests
+add_custom_target(python_conversion_controlfiles
+  COMMAND ${ARTS_PYTHON_INTERPRETER} bin/arts_convert.py --nofail ${CONTROLFILE_DIR} -o controlfiles
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS pyarts
+  COMMENT "Converting *.arts controlfiles to Python")
+set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/tests)
+add_custom_target(python_conversion_tests
   COMMAND ${ARTS_PYTHON_INTERPRETER} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS pyarts_tests
+  DEPENDS pyarts
+  COMMENT "Converting *.arts controlfiles to Python")
+set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/examples)
+add_custom_target(python_conversion_examples
+  COMMAND ${ARTS_PYTHON_INTERPRETER} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS pyarts
+  COMMENT "Converting *.arts controlfiles to Python")
+add_custom_target(python_conversion
+  DEPENDS python_conversion_controlfiles python_conversion_tests python_conversion_examples
   COMMENT "Converting *.arts controlfiles to Python")
 
 add_custom_target(pyarts_tests
@@ -59,6 +59,13 @@ add_custom_target(pyarts_tests
   DEPENDS pyarts
   COMMENT "Run PyARTS tests")
 
+add_test(NAME pytest
+  COMMAND ${Python3_EXECUTABLE} -m pytest -v test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(
+  pytest PROPERTIES
+  DEPENDS pyarts
+)
 file(COPY test/plots/reference DESTINATION test/plots/)
 file(COPY test/reference DESTINATION test/)
 file(COPY test/xml/reference DESTINATION test/xml/)
