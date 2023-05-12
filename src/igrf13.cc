@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 
 #include "arts_conversions.h"
 #include "arts_omp.h"
@@ -315,12 +316,13 @@ constexpr Numeric r0{6371.2e3};
  * @return Radius [m]
  */
 Numeric radius(const Numeric h, const Numeric lat, const Numeric lon,
-               const Numeric a, const Numeric e) ARTS_NOEXCEPT {
+               const Numeric a, const Numeric b) ARTS_NOEXCEPT {
   using Conversion::cosd;
   using Conversion::sind;
   using Math::pow2;
   using std::sqrt;
 
+  const Numeric e = std::sqrt(1 - pow2(b / a));
   ARTS_ASSERT(e >= 0 and e < 1)
 
   const Numeric N = a / sqrt(1 - pow2(e * sind(lat)));
@@ -344,7 +346,7 @@ Numeric radius(const Numeric h, const Numeric lat, const Numeric lon,
  */
 void compute_impl(MagneticField &out, const Matrix &g, const Matrix &h,
                   const Tensor3 &z_field, const Vector &lat_grid,
-                  const Vector &lon_grid, const Vector &ell,
+                  const Vector &lon_grid, const Vector2 ell,
                   const Numeric scale) ARTS_NOEXCEPT {
   // Constant sizes
   const Index nz = z_field.npages();
@@ -377,7 +379,7 @@ void compute_impl(MagneticField &out, const Matrix &g, const Matrix &h,
 
 MagneticField compute(const Tensor3 &z_field, const Vector &lat_grid,
                       const Vector &lon_grid, const Time &time,
-                      const Vector &ell) {
+                      const Vector2 ell) {
   // Constant sizes
   const Index nz = z_field.npages();
   const Index nlat = z_field.nrows();

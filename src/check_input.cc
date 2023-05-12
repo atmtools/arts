@@ -1809,24 +1809,6 @@ void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los) {
   }
 }
 
-//! chk_refellipsoid
-/*! 
-    Performs all needed checks of refellipsoid
-    The function gives an error message if this is not the case.
-    \param   refellipsoid   As the WSV with the same name.
-    \author Patrick Eriksson 
-    \date   2021-07-30
-*/
-void chk_refellipsoid(ConstVectorView refellipsoid) {
-  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
-                      "*refellipsoid* must have two elements.");
-  ARTS_USER_ERROR_IF (refellipsoid[0] <= 0 || refellipsoid[1] <= 0,
-                      "All elements of *refellipsoid* must be > 0.");
-  ARTS_USER_ERROR_IF (abs(refellipsoid[1]/refellipsoid[0]-1) > 0.5,
-      "The ratio of the two radii in *refellipsoid* is outisde of [0.5,1.5].\n"
-      "Do you really want to have such a flat reference ellipsoid?");
-}
-
 
 /*===========================================================================
  === Functions related to GriddedFields.

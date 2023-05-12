@@ -40,6 +40,7 @@
 #include "cloudbox.h"
 #include "debug.h"
 #include "matpack_data.h"
+#include "surf.h"
 #include "wigner_functions.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -90,7 +91,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
                          const Tensor3& z_field,
-                         const Vector& refellipsoid,  // Adopt to new version ZZZ
+                         const SurfaceField& surface_field,  // Adopt to new version ZZZ
                          const Matrix& z_surface,
                          const Vector& lat_true,
                          const Vector& lon_true,
@@ -100,18 +101,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
   chk_atm_grids(3, p_grid, lat_grid, lon_grid);
 
   // *refellipsoid*
-  ARTS_USER_ERROR_IF (refellipsoid.nelem() != 2,
-        "The WSV *refellispoid* must be a vector of "
-        "length 2*.");
-  ARTS_USER_ERROR_IF (refellipsoid[0] <= 0,
-        "The first element of *refellipsoid* must "
-        "be > 0.");
-  ARTS_USER_ERROR_IF (refellipsoid[1] < 0 || refellipsoid[1] > 1,
-        "The second element of *refellipsoid* must be "
-        "inside [0,1].");
-  ARTS_USER_ERROR_IF (3 == 1 && refellipsoid[1] != 0,
-        "For 1D, the second element of *refellipsoid* "
-        "(the eccentricity) must be 0.");
+  chk_refellipsoid(surface_field.ellipsoid);
 
   chk_atm_field("z_field", z_field, 3, p_grid, lat_grid, lon_grid);
   chk_atm_surface("z_surface", z_surface, 3, lat_grid, lon_grid);

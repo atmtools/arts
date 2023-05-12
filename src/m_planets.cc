@@ -246,9 +246,9 @@ void surface_fieldInit(SurfaceField &surface_field, const Numeric &r_equatorial,
                        const Numeric &r_polar) {
   surface_field = {};
   surface_field[Surf::Key::h] = 0.0;
+  
   surface_field.ellipsoid[0] = r_equatorial;
   surface_field.ellipsoid[1] = r_polar;
-  surface_field[Surf::Key::h] = 0.0;
   chk_refellipsoid(surface_field.ellipsoid);
 }
 
