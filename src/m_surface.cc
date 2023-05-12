@@ -210,7 +210,6 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
 void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                                   const Vector& rtp_pos,
                                   const SurfaceField& surface_field,
-                                  const Vector& refellipsoid,
                                   const Numeric& surface_search_accuracy) {
   ARTS_USER_ERROR_IF(not surface_field.has(Surf::Key::h),
       "No elevation in the surface field, required by method")
@@ -221,7 +220,7 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
   const Numeric alt = rtp_pos[0];
   const Numeric lat = rtp_pos[1];
   const Numeric lon = rtp_pos[2];
-  surface_point = surface_field.at(lat, lon, {refellipsoid[0], refellipsoid[0]});
+  surface_point = surface_field.at(lat, lon);
 
   const bool cmp = std::abs(alt - surface_point.elevation) > surface_search_accuracy;
   ARTS_USER_ERROR_IF(cmp,
@@ -361,8 +360,6 @@ void iySurfaceFlatReflectivity(Workspace& ws,
                          const Vector& f_grid,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
-                         const Matrix& z_surface,
-                         const Vector& refellipsoid,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
                          const Vector& rte_pos2,
@@ -519,7 +516,6 @@ void iySurfaceFlatReflectivityDirect(
     const AtmField& atm_field,
     const SurfaceField& surface_field,
     const Tensor3& surface_reflectivity,
-    const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,
     const ArrayOfString& scat_species,
@@ -564,7 +560,6 @@ void iySurfaceFlatReflectivityDirect(
                                 abs_species,
                                 atm_field,
                                 surface_field,
-                                refellipsoid,
                                 pnd_field,
                                 dpnd_field_dx,
                                 scat_species,
@@ -631,7 +626,6 @@ void iySurfaceFlatRefractiveIndex(Workspace& ws,
                                const Index& stokes_dim,
                                const Vector& f_grid,
                                const SurfaceField& surface_field,
-                               const Vector& refellipsoid,
                                const Vector& rtp_pos,
                                const Vector& rtp_los,
                                const Vector& rte_pos2,
@@ -792,7 +786,6 @@ void iySurfaceFlatRefractiveIndexDirect(
     const AtmField& atm_field,
     const SurfaceField& surface_field,
     const GriddedField3& surface_complex_refr_index,
-    const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,
     const ArrayOfString& scat_species,
@@ -837,7 +830,6 @@ void iySurfaceFlatRefractiveIndexDirect(
                                 abs_species,
                                 atm_field,
                                 surface_field,
-                                refellipsoid,
                                 pnd_field,
                                 dpnd_field_dx,
                                 scat_species,
@@ -910,7 +902,6 @@ void iySurfaceLambertian(Workspace& ws,
                          const Index& stokes_dim,
                          const Vector& f_grid,
                          const SurfaceField& surface_field,
-                         const Vector& refellipsoid,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
                          const Vector& rte_pos2,
@@ -1207,7 +1198,6 @@ void iySurfaceLambertianDirect(
     const AtmField& atm_field,
     const SurfaceField& surface_field,
     const Vector& surface_scalar_reflectivity,
-    const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,
     const ArrayOfString& scat_species,
@@ -1272,7 +1262,6 @@ Vector lon_grid;
                     f_grid,
                     atm_field,
                     surface_field,
-                    refellipsoid,
                     ppath_lmax,
                     ppath_lraytrace,
                     ppath_step_agenda);
@@ -1291,7 +1280,7 @@ Vector lon_grid;
                          sun_ppaths,
                          suns,
                          suns_visible,
-                         refellipsoid,
+                         surface_field.ellipsoid,
                          pnd_field,
                          dpnd_field_dx,
                          scat_species,
@@ -1672,82 +1661,6 @@ void specular_losCalcOldNoTopography(Vector &specular_los,
 
   specular_los = {180 - rtp_los[0], rtp_los[1]};
   surface_normal = {0, 0};
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalcOld(Vector& specular_los,
-                      Vector& surface_normal,
-                      const Vector& rtp_pos,
-                      const Vector& rtp_los,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
-                      const Vector& refellipsoid,
-                      const Matrix& z_surface,
-                      const Index& ignore_surface_slope) {
-  chk_rte_pos(3, rtp_pos);
-  chk_rte_los(3, rtp_los);
-  chk_if_in_range("ignore_surface_slope", ignore_surface_slope, 0, 1);
-
-  // Use special function if there is no slope, or it is ignored
-  if (ignore_surface_slope) {
-    specular_losCalcOldNoTopography(specular_los, surface_normal,
-                                    rtp_los);
-  } else {
-    surface_normal.resize(2);
-    specular_los.resize(2);
-
-    // Calculate surface normal in South-North direction
-//    chk_interpolation_grids("Latitude interpolation", lat_grid, rtp_pos[1]);
-  //  chk_interpolation_grids("Longitude interpolation", lon_grid, rtp_pos[2]);
-  ARTS_USER_ERROR("ERROR")
-
-    GridPos gp_lat, gp_lon;
-    gridpos(gp_lat, lat_grid, rtp_pos[1]);
-    gridpos(gp_lon, lon_grid, rtp_pos[2]);
-    Numeric c1, c2;
-  //  plevel_slope_3d(c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, gp_lat,
-    //                gp_lon, 0);
-    ARTS_USER_ERROR("ERROR")
-    Vector itw(4);
-    interpweights(itw, gp_lat, gp_lon);
-    const Numeric rv_surface = //refell2d(refellipsoid, lat_grid, gp_lat) +
-                               interp(itw, z_surface, gp_lat, gp_lon);
-                               ARTS_USER_ERROR("ERROR")
-    const Numeric zaSN = 90;// - plevel_angletilt(rv_surface, c1);
-    ARTS_USER_ERROR("ERROR")
-    // The same for East-West
-//    plevel_slope_3d(c1, c2, lat_grid, lon_grid, refellipsoid, z_surface, gp_lat,
-  //                  gp_lon, 90);
-    const Numeric zaEW = 90;// - plevel_angletilt(rv_surface, c1);
-    ARTS_USER_ERROR("ERROR")
-
-    // Convert to Cartesian, and determine normal by cross-product
-    Vector tangentSN(3), tangentEW(3), normal(3);
-    //zaaa2cart(tangentSN[0], tangentSN[1], tangentSN[2], zaSN, 0);
-    //zaaa2cart(tangentEW[0], tangentEW[1], tangentEW[2], zaEW, 90);
-    ARTS_USER_ERROR("ERROR")
-    cross3(normal, tangentSN, tangentEW);
-    // Convert rtp_los to cartesian and flip direction
-    Vector di(3);ARTS_USER_ERROR("ERROR")
-  //  zaaa2cart(di[0], di[1], di[2], rtp_los[0], rtp_los[1]);
-    di *= -1;ARTS_USER_ERROR("ERROR")
-    // Set LOS normal vector
- //   cart2zaaa(surface_normal[0], surface_normal[1], normal[0], normal[1],
- //             normal[2]);
-    if (abs(rtp_los[0] - surface_normal[0]) < 90) {
-      throw runtime_error("Invalid zenith angle. The zenith angle corresponds "
-                          "to observe the surface from below.");
-    }
-    // Specular direction is 2(dn*di)dn-di, where dn is the normal vector
-    Vector speccart(3);
-    const Numeric fac = 2 * (normal * di);
-    for (Index i = 0; i < 3; i++) {
-      speccart[i] = fac * normal[i] - di[i];
-    }
-   // cart2zaaa(specular_los[0], specular_los[1], speccart[0], speccart[1],
-      //        speccart[2]);
-      ARTS_USER_ERROR("ERROR")
-  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2915,7 +2828,7 @@ void surface_rtpropFromTypesAverage(
        const Vector& lon_true,
        const Vector& rtp_pos,
        const Vector& rtp_los,
-       const Vector& refellipsoid,
+       const SurfaceField& surface_field,
        const GriddedField2& surface_type_mask,
        const ArrayOfAgenda& surface_rtprop_agenda_array,
        const Numeric& z_sensor,
@@ -2927,7 +2840,7 @@ void surface_rtpropFromTypesAverage(
   Vector sat_los = rtp_los;
   rte_pos_losBackwardToAltitude(sat_pos,
                                 sat_los,
-                                refellipsoid,
+                                surface_field,
                                 z_sensor,
                                 0);
 
@@ -2948,7 +2861,7 @@ void surface_rtpropFromTypesAverage(
                                 ground_los,
                                 sensor_pos,
                                 sensor_los,
-                                refellipsoid,
+                                surface_field,
                                 rtp_pos[0]);
   
   // Prepare output variables
@@ -3140,7 +3053,6 @@ void SurfaceBlackbody(Matrix& surface_los,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
                       const SurfaceField& surface_field,
-                      const Vector& refellipsoid,
                       const ArrayOfString& surface_props_names,
                       const ArrayOfString& dsurface_names,
                       const Index& jacobian_do) {
@@ -3159,7 +3071,7 @@ void SurfaceBlackbody(Matrix& surface_los,
   interp_atmsurface_gp2itw(itw, 3, gp_lat, gp_lon);
   
   constexpr Numeric lat=0, lon=0;
-  const SurfacePoint surface_point = surface_field.at(lat, lon, {refellipsoid[0], refellipsoid[2]});
+  const SurfacePoint surface_point = surface_field.at(lat, lon);
 
   surfaceBlackbody(surface_los,
                    surface_rmatrix,
@@ -3736,7 +3648,6 @@ void SurfaceTessem(Matrix& surface_los,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void specular_losCalc(Vector& specular_los,
-                      const Vector& refellipsoid,
                       const SurfaceField& surface_field,
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
@@ -3747,7 +3658,6 @@ void specular_losCalc(Vector& specular_los,
   
   specular_los.resize(2);
   specular_los_calc(specular_los,
-                    refellipsoid,
                     surface_field,
                     rtp_pos[Range(1, 2)],
                     rtp_los,
@@ -3757,7 +3667,6 @@ void specular_losCalc(Vector& specular_los,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_normalCalc(Vector& surface_normal,
-                        const Vector& refellipsoid,
                         const SurfaceField& surface_field,
                         const Vector& rtp_pos,
                         const Index& ignore_topography)
@@ -3775,11 +3684,10 @@ void surface_normalCalc(Vector& surface_normal,
     surface_normal_calc(pos,
                         ecef,
                         decef,
-                        refellipsoid,
                         surface_field,
                         rtp_pos[Range(1, 2)]);
   
-    ecef2geodetic_los(pos, surface_normal, ecef, decef, refellipsoid);
+    ecef2geodetic_los(pos, surface_normal, ecef, decef, surface_field.ellipsoid);
   }
 }
 

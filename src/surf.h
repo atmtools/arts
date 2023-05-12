@@ -224,7 +224,11 @@ struct Data {
   void rescale(Numeric);
 };
 
-struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag> {
+struct Field final
+    : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag> {
+  //! The ellipsoid used for the surface, in [a, b] in meters
+  Vector2 ellipsoid;
+
   /** Compute the values at a single point
    *
    * Note that this method uses the pos's alt to compute the normal only,
@@ -236,7 +240,7 @@ struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag
    * @param lon The longitude
    * @return Point values at the surface
    */
-  [[nodiscard]] Point at(Numeric lat, Numeric lon, Vector2 ellipsoid) const;
+  [[nodiscard]] Point at(Numeric lat, Numeric lon) const;
 
   /** Get the normal of the surface at a given position
    *
@@ -246,14 +250,16 @@ struct Field final : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag
    * @return Vector2 [za, aa]
    */
   [[nodiscard]] Vector2
-  normal(Vector2 ellipsoid, Numeric lat, Numeric lon,
+  normal(Numeric lat, Numeric lon,
          Numeric alt = std::numeric_limits<Numeric>::quiet_NaN()) const;
 
-  [[nodiscard]] Numeric single_value(const KeyVal& key, Numeric lat, Numeric lon) const;
+  [[nodiscard]] Numeric single_value(const KeyVal &key, Numeric lat,
+                                     Numeric lon) const;
 
-  [[nodiscard]] std::pair<Numeric, Numeric> minmax_single_value(const KeyVal& key) const;
+  [[nodiscard]] std::pair<Numeric, Numeric>
+  minmax_single_value(const KeyVal &key) const;
 
-  [[nodiscard]] bool constant_value(const KeyVal& key) const;
+  [[nodiscard]] bool constant_value(const KeyVal &key) const;
 
   friend std::ostream &operator<<(std::ostream &, const Field &);
 };

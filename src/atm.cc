@@ -551,6 +551,13 @@ Numeric &Point::operator[](const KeyVal &k) {
       [this](auto &key) -> Numeric & { return this->template operator[](key); },
       k);
 }
+
+void Point::set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x) {
+  ARTS_ASSERT(sp.nelem() == x.nelem())
+  for (Index i=0; i<sp.nelem(); i++) {
+   specs[sp[i]] = x[i];
+  }
+}
 } // namespace Atm
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {

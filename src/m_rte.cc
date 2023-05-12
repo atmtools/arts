@@ -185,7 +185,6 @@ void iyClearsky(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
-    const Vector& refellipsoid,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
     const Index& cloudbox_on,
@@ -434,7 +433,6 @@ ARTS_USER_ERROR("ERROR")
                             f_grid,
                             atm_field,
                             surface_field,
-                            refellipsoid,
                             ppath_lmax,
                             ppath_lraytrace,
                             ppath_step_agenda);
@@ -456,7 +454,7 @@ ARTS_USER_ERROR("ERROR")
                                  sun_ppaths,
                                  suns,
                                  suns_visible,
-                                 refellipsoid,
+                                 surface_field.ellipsoid,
                                  pnd_field_dummy,
                                  dpnd_field_dx_dummy,
                                  scat_species_dummy,
@@ -644,7 +642,7 @@ ARTS_USER_ERROR("ERROR")
                         f_grid,
                         stokes_dim,
                         3,
-                        refellipsoid);
+                        surface_field.ellipsoid);
 
     if (stars_visible) {
       for (Index iv = 0; iv < nf; iv++) {
@@ -2359,7 +2357,6 @@ void iyMC(Workspace& ws,
           const ArrayOfString& iy_aux_vars,
           const Index& jacobian_do,
           const AtmField& atm_field,
-          const Vector& refellipsoid,
           const SurfaceField& surface_field,
           const Index& cloudbox_on,
           const ArrayOfIndex& cloudbox_limits,
@@ -2467,7 +2464,6 @@ void iyMC(Workspace& ws,
                   iy_space_agenda,
                   surface_rtprop_agenda,
                   propmat_clearsky_agenda,
-                  refellipsoid,
                   surface_field,
                   atm_field,
                   cloudbox_on,

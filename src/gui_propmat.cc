@@ -122,13 +122,13 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
   // Initialize values to something
   ArrayOfRetrievalQuantity jacobian_quantities{};
   ArrayOfSpeciesTag select_abs_species{};
-  Vector f_grid=uniform_grid(1e9, 1000, 1e9);
+  Vector f_grid = uniform_grid(1e9, 1000, 1e9);
   Vector rtp_los(2, 0);
   Numeric transmission_distance{1'000};
-  AtmPoint atm_point{
-    Atm::Key::t, 300,
-    Atm::Key::p, 1000
-  };
+  AtmPoint atm_point;
+  atm_point[Atm::Key::t] = 300;
+  atm_point[Atm::Key::p] = 1000;
+
   for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.nelem());
 
   // Set some defaults

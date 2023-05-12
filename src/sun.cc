@@ -116,7 +116,7 @@ void get_sun_background(Matrix& iy,
                          const Vector& f_grid,
                          const Index& stokes_dim,
                          const Index& atmosphere_dim,
-                         const Vector& refellipsoid) {
+                         const Vector2 refellipsoid) {
   const Index np = ppath.np;
 
   //set visibilty flag to default
@@ -145,7 +145,7 @@ void get_sun_radiation(Matrix& iy,
                          const Sun& sun,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
-                         const Vector& refellipsoid) {
+                         const Vector2 refellipsoid) {
 
   //Calculate earth centric radial component of sun_pos and rtp_pos.
   const Numeric R_sun = sun.distance;
@@ -224,7 +224,7 @@ void get_direct_radiation(Workspace& ws,
                           const ArrayOfPpath& sun_ppaths,
                           const ArrayOfSun& suns,
                           const ArrayOfIndex& suns_visible,
-                          const Vector& refellipsoid,
+                          const Vector2 refellipsoid,
                           const Tensor4& pnd_field,
                           const ArrayOfTensor4& dpnd_field_dx,
                           const ArrayOfString& scat_species,
@@ -367,7 +367,6 @@ void get_sun_ppaths(Workspace& ws,
                      const Vector& f_grid,
                      const AtmField& atm_field,
                      const SurfaceField& surface_field,
-                     const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,
                      const Agenda& ppath_step_agenda) {

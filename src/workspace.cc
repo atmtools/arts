@@ -3293,46 +3293,6 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("refellipsoid"),
-      DESCRIPTION(
-          "Reference ellipsoid.\n"
-          "\n"
-          "This vector specifies the shape of the reference ellipsoid. The\n"
-          "vector must have length 2, where the two elements are:\n"
-          "  1: Equatorial radius.\n"
-          "  2: The eccentricity.\n"
-          "The eccentricity is sqrt(1-b*b/a*a) where a and b are equatorial and\n"
-          "polar radius, respectively. If the eccentricity is set to 0, an\n"
-          "average radius should be used instead of the equatorial one.\n"
-          "\n"
-          "The eccentricity must be 0 for 1D calculations, as a spherical Earth\n"
-          "is implied by setting *atmosphere_dim* to 1. For 2D, the selected\n"
-          "ellipsoid parameters should be selected according to cross-section\n"
-          "between the real ellipsoid and the 2D plane considered. That is\n"
-          "the applied ellipsoid shall have een converted to match the internal\n"
-          "treatment of 2D cases. For 3D, models can be used, such as WGS84.\n"
-          "\n"
-          "Usage:  Set by the user.\n"
-          "\n"
-          "Size:   [ 2 ]\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("refellipsoidZZZ"),
-      DESCRIPTION(
-          "Reference ellipsoid.\n"
-          "\n"
-          "This vector specifies the shape of the reference ellipsoid. The\n"
-          "vector must have length 2, where the two elements are:\n"
-          "  1: Equatorial radius.\n"
-          "  2: Polar radius.\n"          
-          "\n"
-          "Usage:  Set by the user.\n"
-          "\n"
-          "Size:   [ 2 ]\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("retrieval_checked"),
       DESCRIPTION(
           "Flag indicating completeness and consistency of retrieval setup.\n"

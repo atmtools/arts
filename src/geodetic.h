@@ -33,6 +33,7 @@
 #ifndef geodetic_h
 #define geodetic_h
 
+#include "matpack_constexpr.h"
 #include "matpack_data.h"
 
 
@@ -91,7 +92,7 @@ void ecef2geocentric_los(VectorView pos,
 */
 void ecef2geodetic(VectorView pos,
                    ConstVectorView ecef,
-                   ConstVectorView refellipsoid);
+                   const Vector2 refellipsoid);
 
 
 /** Conversion from ECEF to geodetic coordinates including a LOS
@@ -109,7 +110,7 @@ void ecef2geodetic_los(VectorView pos,
                        VectorView los,
                        ConstVectorView ecef,
                        ConstVectorView decef,
-                       ConstVectorView refellipsoid);
+                       const Vector2 refellipsoid);
 
 
 /** ECEF position at a given distance 
@@ -216,7 +217,7 @@ void geocentric_los2ecef(VectorView ecef,
 */
 void geodetic2ecef(VectorView ecef,
                    ConstVectorView pos,
-                   ConstVectorView refellipsoid);
+                   const Vector2 refellipsoid);
 
 
 /** Conversion from geodetic to ECEF coordinates including a LOS
@@ -234,7 +235,7 @@ void geodetic_los2ecef(VectorView ecef,
                        VectorView decef,
                        ConstVectorView pos,
                        ConstVectorView los,
-                       ConstVectorView refellipsoid);
+                       const Vector2 refellipsoid);
 
 
 /** Calculates the geometrical tangent point, approximately
@@ -261,7 +262,7 @@ void geodetic_los2ecef(VectorView ecef,
 void approx_geometrical_tangent_point(VectorView ecef_tan,
                                       ConstVectorView ecef,
                                       ConstVectorView decef,
-                                      ConstVectorView refellipsoid);
+                                      const Vector2 refellipsoid);
 
 
 /** Finds the distance to the intersection between an ECEF line and an ellipsoid
@@ -286,7 +287,7 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
 */
 Numeric intersection_altitude(ConstVectorView ecef,
                               ConstVectorView decef,
-                              ConstVectorView refellipsoid,
+                              const Vector2 refellipsoid,
                               const Numeric& altitude,
                               const Numeric& l_min = 0);
 
@@ -311,7 +312,7 @@ Numeric intersection_latitude(ConstVectorView ecef,
                               ConstVectorView decef,
                               ConstVectorView pos,
                               ConstVectorView los,
-                              ConstVectorView refellipsoid,
+                              const Vector2 refellipsoid,
                               const Numeric& lat);
 
 
@@ -350,7 +351,7 @@ Numeric intersection_longitude(ConstVectorView ecef,
    @author Patrick Eriksson
    @date   2021-07-28
 */
-bool is_ellipsoid_spherical(ConstVectorView ellipsoid);
+bool is_ellipsoid_spherical(const Vector2 ellipsoid);
 
 
 /** Converts local zenith and azimuth angles to ENU unit vector.
@@ -399,7 +400,7 @@ void poslos_at_distance(VectorView pos,
                         VectorView los,
                         ConstVectorView ecef,
                         ConstVectorView decef,
-                        ConstVectorView refellipsoid,
+                        const Vector2 refellipsoid,
                         const Numeric l);
 
 
@@ -417,7 +418,7 @@ void poslos_at_distance(VectorView pos,
 void pos_at_distance(VectorView pos,
                      ConstVectorView ecef,
                      ConstVectorView decef,
-                     ConstVectorView refellipsoid,
+                     const Vector2 refellipsoid,
                      const Numeric l);
 
 
@@ -436,7 +437,7 @@ void pos_at_distance(VectorView pos,
     @author  Patrick Eriksson
     @date    2023-01-06
 */
-Numeric prime_vertical_radius(ConstVectorView refellipsoid,
+Numeric prime_vertical_radius(const Vector2 refellipsoid,
                               const Numeric& lat);
 
 #endif  // geodetic_h

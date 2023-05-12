@@ -35,6 +35,7 @@
 #include "lin_alg.h"
 #include "ppath.h"
 #include "ppath_struct.h"
+#include "surf.h"
 #include "surface.h"
 #include "variousZZZ.h"
 
@@ -45,7 +46,6 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
                                      const Vector rte_los,
                                      const Vector ecef,
                                      const Vector decef,
-                                     const Vector& refellipsoid,
                                      const SurfaceField& surface_field,
                                      const Numeric& surface_search_accuracy,
                                      const Index& surface_search_safe)
@@ -76,7 +76,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     if (rte_pos[0] <= z_max) {
       return 0.0;
     } else {
-      return intersection_altitude(ecef, decef, refellipsoid, z_min);
+      return intersection_altitude(ecef, decef, surface_field.ellipsoid, z_min);
     }
 
     // The general case
@@ -87,7 +87,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     if (rte_pos[0] <= z_max)
       l_min = 0;
     else {
-      l_min = intersection_altitude(ecef, decef, refellipsoid, z_max);
+      l_min = intersection_altitude(ecef, decef, surface_field.ellipsoid, z_max);
       // No intersection if not even z_max is reached
       if (l_min < 0) return -1;
     }
@@ -98,18 +98,18 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     Numeric l_max;
     bool l_max_could_be_above_surface = false;
     if (rte_pos[0] <= z_max && rte_los[0] <= 90) {
-      l_max = intersection_altitude(ecef, decef, refellipsoid, z_max);
+      l_max = intersection_altitude(ecef, decef, surface_field.ellipsoid, z_max);
       l_max_could_be_above_surface = true;
     } else {
-      l_max = intersection_altitude(ecef, decef, refellipsoid, z_min);
+      l_max = intersection_altitude(ecef, decef, surface_field.ellipsoid, z_min);
     }
     if (l_max < 0) {
       Vector ecef_tan(3);
-      approx_geometrical_tangent_point(ecef_tan, ecef, decef, refellipsoid);
+      approx_geometrical_tangent_point(ecef_tan, ecef, decef, surface_field.ellipsoid);
       l_max = ecef_distance(ecef, ecef_tan);
       // To not miss intersections just after the tangent point, we add a
       // a distance that depends om planet radius (for Earth 111 km).
-      l_max += refellipsoid[0] * sin(DEG2RAD);
+      l_max += surface_field.ellipsoid[0] * sin(DEG2RAD);
       l_max_could_be_above_surface = true;
     }
 
@@ -122,7 +122,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
       while (above_surface && l_test < l_max) {
         l_test += surface_search_accuracy;
         Vector pos(3);
-        pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
+        pos_at_distance(pos, ecef, decef, surface_field.ellipsoid, l_test);
         Numeric z_surf = surface_field.single_value(Surf::Key::h, pos[1], pos[2]);
         if (pos[0] < z_surf) above_surface = false;
       }
@@ -140,7 +140,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
       // to check that point if status unclear
       if (l_max_could_be_above_surface) {
         Vector pos(3);
-        pos_at_distance(pos, ecef, decef, refellipsoid, l_max);
+        pos_at_distance(pos, ecef, decef, surface_field.ellipsoid, l_max);
         Numeric z_surf = surface_field.single_value(Surf::Key::h, pos[1], pos[2]);;
         if (pos[0] > z_surf) return -1;
       }
@@ -148,7 +148,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
       while (l_max - l_min > 2 * surface_search_accuracy) {
         const Numeric l_test = (l_min + l_max) / 2;
         Vector pos(3);
-        pos_at_distance(pos, ecef, decef, refellipsoid, l_test);
+        pos_at_distance(pos, ecef, decef, surface_field.ellipsoid, l_test);
         Numeric z_surf = surface_field.single_value(Surf::Key::h, pos[1], pos[2]);;
         if (pos[0] >= z_surf)
           l_min = l_test;
@@ -162,7 +162,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
 
 
 void ppath_add_grid_crossings(Ppath& ppath,
-                              const Vector& refellipsoid,
+                              const Vector2 refellipsoid,
                               const Vector& z_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
@@ -477,7 +477,7 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
                             ConstVectorView rte_los,
                             ConstVectorView ecef,
                             ConstVectorView decef,
-                            const Vector& refellipsoid,
+                            const Vector2 refellipsoid,
                             const Numeric& z_toa)
 {
   // Cases that are inside atmosphere
@@ -504,7 +504,6 @@ void refracted_link_basic(Workspace& ws,
                           const Agenda& refr_index_air_ZZZ_agenda,
                           const Numeric& ppath_lstep,
                           const Numeric& ppath_lraytrace,
-                          const Vector& refellipsoid,
                           const SurfaceField& surface_field,
                           const Numeric& surface_search_accuracy,
                           const Numeric& z_toa,
@@ -518,8 +517,8 @@ void refracted_link_basic(Workspace& ws,
 {
   // Start and target positions as ECEF
   Vector ecef_start(3), ecef_target(3);
-  geodetic2ecef(ecef_start, start_pos, refellipsoid);
-  geodetic2ecef(ecef_target, target_pos, refellipsoid);
+  geodetic2ecef(ecef_start, start_pos, surface_field.ellipsoid);
+  geodetic2ecef(ecef_target, target_pos, surface_field.ellipsoid);
 
   // The estimated geometric "false" target position
   // We take target_pos as first guess
@@ -546,7 +545,7 @@ void refracted_link_basic(Workspace& ws,
     Vector dummy(3);
     ecef_vector_distance(decef, ecef_start, ecef_false);
     decef /= norm2(decef);
-    ecef2geodetic_los(dummy, rte_los, ecef_start, decef, refellipsoid);
+    ecef2geodetic_los(dummy, rte_los, ecef_start, decef, surface_field.ellipsoid);
 
     // Geometric distance to false target
     l2false = ecef_distance(ecef_start, ecef_false);
@@ -566,7 +565,6 @@ void refracted_link_basic(Workspace& ws,
                    ppath_lstep,
                    l2false,
                    ppath_lraytrace,
-                   refellipsoid,
                    downward ? surface_field_m10km : surface_field,
                    surface_search_accuracy,
                    z_toa,
@@ -590,15 +588,15 @@ void refracted_link_basic(Workspace& ws,
     if (ppath.background == PpathBackground::Space) {
       const Numeric l2end = l2false - ppath.start_lstep - sum(ppath.lstep);
       if (l2end > 0) {
-        geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, refellipsoid);
+        geodetic_los2ecef(ecef, decef, ppath.end_pos, ppath.end_los, surface_field.ellipsoid);
         ecef_at_distance(ecef, ecef, decef, l2end);
-        ecef2geodetic_los(ppath.end_pos, ppath.end_los, ecef, decef, refellipsoid);
+        ecef2geodetic_los(ppath.end_pos, ppath.end_los, ecef, decef, surface_field.ellipsoid);
         ppath.end_lstep = l2end;
       }
     }
 
     // Distance to target
-    geodetic2ecef(ecef, ppath.end_pos, refellipsoid);
+    geodetic2ecef(ecef, ppath.end_pos, surface_field.ellipsoid);
     ecef_vector_distance(decef, ecef_target, ecef);
     Numeric dl = norm2(decef);
     if (iteration && dl < target_dl)
@@ -636,7 +634,6 @@ void refracted_link_basic(Workspace& ws,
                    ppath_lstep,
                    l2false,
                    ppath_lraytrace,
-                   refellipsoid,
                    surface_field,
                    surface_search_accuracy,
                    z_toa,
@@ -675,7 +672,6 @@ void refracted_link_basic(Workspace& ws,
 
 
 void specular_los_calc(VectorView los_new,
-                       const Vector& refellipsoid,
                        const SurfaceField& surface_field,
                        ConstVectorView pos2D,
                        ConstVectorView los,
@@ -693,11 +689,11 @@ void specular_los_calc(VectorView los_new,
   } else {
     // Determine surface normal
     Vector pos(3), ecef(3), decef(3);
-    surface_normal_calc(pos, ecef, decef, refellipsoid, surface_field, pos2D);
+    surface_normal_calc(pos, ecef, decef, surface_field, pos2D);
 
     // Convert los to ECEF direction (ECEF recalculated!)
     Vector decef_los(3);
-    geodetic_los2ecef(ecef, decef_los, pos, los, refellipsoid);
+    geodetic_los2ecef(ecef, decef_los, pos, los, surface_field.ellipsoid);
 
     // Dot product between normal and los should be negative.
     ARTS_USER_ERROR_IF(decef * decef_los > 0,
@@ -714,7 +710,7 @@ void specular_los_calc(VectorView los_new,
     decef_new_los += change;
 
     // Convert to LOS (pos recalculated and we use this for a rough assert)
-    ecef2geodetic_los(pos, los_new, ecef, decef_new_los, refellipsoid);
+    ecef2geodetic_los(pos, los_new, ecef, decef_new_los, surface_field.ellipsoid);
     ARTS_ASSERT(fabs(pos[1] - pos2D[0]) < 0.01);
     // We don't assert longitude to avoid problems at lat=90 and
     // possible shifts of 360 deg

@@ -389,7 +389,7 @@ void chk_rte_pos(const String& name,
     @author  Patrick Eriksson 
     @date    2021-07-30
 */
-void chk_refellipsoidZZZ(ConstVectorView refellipsoid);
+void chk_refellipsoid(const Vector2 refellipsoid);
 
 
 /** Checks if a matrix is a valid sensor_pos

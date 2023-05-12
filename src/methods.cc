@@ -3700,7 +3700,6 @@ Available models:
       GOUT_DESC(),
       IN(
          "atm_field",
-         "refellipsoid",
          "surface_field",
          "lat_true",
          "lon_true"),
@@ -4809,7 +4808,6 @@ computations.
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
-         "refellipsoid",
          "f_grid",
          "f_index",
          "surface_rtprop_agenda",
@@ -4847,7 +4845,6 @@ computations.
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
-         "refellipsoid",
          "f_grid",
          "f_index",
          "surface_rtprop_agenda",
@@ -4924,7 +4921,6 @@ computations.
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
-         "refellipsoid",
          "f_grid",
          "f_index",
          "doit_za_interp"),
@@ -5835,9 +5831,9 @@ computations.
          "gas_scattering_agenda",
          "pnd_field",
          "atm_field",
+         "surface_field",
          "lat_true",
          "lon_true",
-         "refellipsoid",
          "abs_species",
          "scat_data",
          "suns",
@@ -5845,7 +5841,6 @@ computations.
          "za_grid",
          "aa_grid",
          "stokes_dim",
-         "surface_field",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
@@ -5908,9 +5903,9 @@ computations.
          "gas_scattering_agenda",
          "pnd_field",
          "atm_field",
+         "surface_field",
          "lat_true",
          "lon_true",
-         "refellipsoid",
          "abs_species",
          "scat_data",
          "suns",
@@ -5918,7 +5913,6 @@ computations.
          "za_grid",
          "aa_grid",
          "stokes_dim",
-         "surface_field",
          "gas_scattering_do",
          "suns_do",
          "disort_aux_vars"),
@@ -5974,16 +5968,15 @@ computations.
          "propmat_clearsky_agenda",
          "gas_scattering_agenda",
          "atm_field",
+         "surface_field",
          "lat_true",
          "lon_true",
-         "refellipsoid",
          "abs_species",
          "suns",
          "f_grid",
          "za_grid",
          "aa_grid",
          "stokes_dim",
-         "surface_field",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
@@ -6047,15 +6040,14 @@ computations.
          "gas_scattering_agenda",
          "pnd_field",
          "atm_field",
+         "surface_field",
          "lat_true",
          "lon_true",
-         "refellipsoid",
          "abs_species",
          "scat_data",
          "suns",
          "f_grid",
          "stokes_dim",
-         "surface_field",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
@@ -8007,7 +7999,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "rtp_pos", "surface_field", "refellipsoid", "surface_search_accuracy"),
+      IN( "rtp_pos", "surface_field", "surface_search_accuracy"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -8064,7 +8056,7 @@ computations.
       GOUT_TYPE("Matrix", "Matrix"),
       GOUT_DESC("Position of intersections.",
                 "Line-of-sight at intersections."),
-      IN("sensor_pos", "sensor_los", "refellipsoidZZZ"),
+      IN("sensor_pos", "sensor_los", "surface_field"),
       GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0"),
@@ -8087,7 +8079,7 @@ computations.
       GOUT_TYPE("Matrix", "Matrix"),
       GOUT_DESC("Position of intersections.",
                 "Line-of-sight at intersections."),
-      IN("sensor_pos", "sensor_los", "refellipsoidZZZ"),
+      IN("sensor_pos", "sensor_los", "surface_field"),
       GIN("latitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -8110,7 +8102,7 @@ computations.
       GOUT_TYPE("Matrix", "Matrix"),
       GOUT_DESC("Position of intersections.",
                 "Line-of-sight at intersections."),
-      IN("sensor_pos", "sensor_los", "refellipsoidZZZ"),
+      IN("sensor_pos", "sensor_los", "surface_field"),
       GIN("longitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -8154,7 +8146,6 @@ computations.
                 "Line-of-sight at intersections."),
       IN("sensor_pos",
          "sensor_los",
-         "refellipsoidZZZ",
          "surface_field",
          "surface_search_accuracy",
          "surface_search_safe"),
@@ -8394,7 +8385,6 @@ computations.
          "abs_species",
          "atm_field",
          "surface_field",
-         "refellipsoid",
          "ppath_lmax",
          "ppath_lraytrace",
          "cloudbox_on",
@@ -8776,7 +8766,6 @@ computations.
          "iy_aux_vars",
          "jacobian_do",
          "atm_field",
-         "refellipsoid",
          "surface_field",
          "cloudbox_on",
          "cloudbox_limits",
@@ -9015,7 +9004,6 @@ computations.
          "lat_grid",
          "lon_grid",
          "surface_field",
-         "refellipsoid",
          "rtp_pos",
          "rtp_los",
          "rte_pos2",
@@ -9058,7 +9046,6 @@ computations.
          "atm_field",
          "surface_field",
          "surface_reflectivity",
-         "refellipsoid",
          "pnd_field",
          "dpnd_field_dx",
          "scat_species",
@@ -9118,7 +9105,6 @@ computations.
          "stokes_dim",
          "f_grid",
          "surface_field",
-         "refellipsoid",
          "rtp_pos",
          "rtp_los",
          "rte_pos2",
@@ -9159,7 +9145,6 @@ computations.
          "atm_field",
          "surface_field",
          "surface_complex_refr_index",
-         "refellipsoid",
          "pnd_field",
          "dpnd_field_dx",
          "scat_species",
@@ -9245,7 +9230,6 @@ computations.
          "stokes_dim",
          "f_grid",
          "surface_field",
-         "refellipsoid",
          "rtp_pos",
          "rtp_los",
          "rte_pos2",
@@ -9285,7 +9269,6 @@ computations.
          "atm_field",
          "surface_field",
          "surface_scalar_reflectivity",
-         "refellipsoid",
          "pnd_field",
          "dpnd_field_dx",
          "scat_species",
@@ -11264,7 +11247,6 @@ computations.
          "iy_space_agenda",
          "surface_rtprop_agenda",
          "propmat_clearsky_agenda",
-         "refellipsoid",
          "surface_field",
          "atm_field",
          "cloudbox_on",
@@ -11337,7 +11319,6 @@ computations.
          "ppath_step_agenda",
          "ppath_lraytrace",
          "propmat_clearsky_agenda",
-         "refellipsoid",
          "surface_field",
          "atm_field",
          "cloudbox_on",
@@ -11417,7 +11398,6 @@ computations.
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "propmat_clearsky_agenda",
-         "refellipsoid",
          "surface_field",
          "nlte_do"),
       GIN("df", "convergence_limit", "nz", "nf", "dampened", "iteration_limit"),
@@ -12836,7 +12816,6 @@ computations.
       IN("ppath_step_agenda",
          "atm_field",
          "f_grid",
-         "refellipsoid",
          "surface_field",
          "rte_pos",
          "rte_pos2",
@@ -12915,7 +12894,6 @@ computations.
          "ppath_inside_cloudbox_do",
          "atm_field",
          "f_grid",
-         "refellipsoid",
          "surface_field",
          "cloudbox_on",
          "cloudbox_limits",
@@ -12952,7 +12930,6 @@ computations.
       GOUT_DESC(),
       IN("ppath_step",
          "atm_field",
-         "refellipsoid",
          "surface_field",
          "ppath_lmax"),
       GIN(),
@@ -12994,7 +12971,6 @@ computations.
          "lat_grid",
          "lon_grid",
          "atm_field",
-         "refellipsoid",
          "surface_field",
          "f_grid",
          "ppath_lmax",
@@ -13031,7 +13007,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("ppath", "ppath_lstep", "refellipsoid"),
+      IN("ppath", "ppath_lstep", "surface_field"),
       GIN("z_grid",
           "lat_grid",
           "lon_grid"),
@@ -13178,7 +13154,6 @@ considered. The surface intersection point will appear twice in
          "rte_los",
          "ppath_lstep",
          "ppath_ltotal",
-         "refellipsoid",
          "surface_field",
          "surface_search_accuracy",
          "surface_search_safe",
@@ -13231,7 +13206,6 @@ considered. The surface intersection point will appear twice in
          "ppath_lstep",
          "ppath_ltotal",
          "ppath_lraytrace",
-         "refellipsoid",
          "surface_field",
          "surface_search_accuracy"),
       GIN("z_toa",
@@ -15085,7 +15059,6 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       IN("abs_species",
          "abs_lines_per_species",
          "atm_field",
-         "refellipsoid",
          "surface_field",
          "ppath_agenda",
          "iy_main_agenda",
@@ -15596,7 +15569,7 @@ where N>=0 and the species name is something line "H2O".
       USES_TEMPLATES(false)));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidEarth"),
+      NAME("surface_fieldEarth"),
       DESCRIPTION(
           "Earth reference ellipsoids.\n"
           "\n"
@@ -15609,31 +15582,7 @@ where N>=0 and the species name is something line "H2O".
           "   \"WGS84\" : The reference ellipsoid used by the GPS system.\n"
           "      Should be the standard choice for a non-spherical Earth.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidEarthZZZ"),
-      DESCRIPTION(
-          "Earth reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model the Earth,\n"
-          "following different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical Earth. The radius is set following\n"
-          "      the value set for the Earth radius in constants.cc.\n"
-          "\n"
-          "   \"WGS84\" : The reference ellipsoid used by the GPS system.\n"
-          "      Should be the standard choice for a non-spherical Earth.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoidZZZ"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -15644,28 +15593,12 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(
-      create_mdrecord(NAME("refellipsoidGanymede"),
+      create_mdrecord(NAME("surface_fieldGanymede"),
                DESCRIPTION("Ganymede reference ellipsoids.\n"
                            "\n"
                            "From Wikipedia\n"),
                AUTHORS("Takayoshi Yamada"),
-               OUT("refellipsoid"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN(),
-               GIN("model"),
-               GIN_TYPE("String"),
-               GIN_DEFAULT("Sphere"),
-               GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(
-      create_mdrecord(NAME("refellipsoidGanymedeZZZ"),
-               DESCRIPTION("Ganymede reference ellipsoids.\n"
-                           "\n"
-                           "From Wikipedia\n"),
-               AUTHORS("Takayoshi Yamada"),
-               OUT("refellipsoidZZZ"),
+               OUT("surface_field"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
@@ -15676,7 +15609,7 @@ where N>=0 and the species name is something line "H2O".
                GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidEuropa"),
+      NAME("surface_fieldEuropa"),
       DESCRIPTION(
           "Io reference ellipsoids.\n"
           "\n"
@@ -15686,7 +15619,7 @@ where N>=0 and the species name is something line "H2O".
           "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
           "      report of the IAU/IAG Working Group.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("refellipsoid"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -15697,7 +15630,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidEuropaZZZ"),
+      NAME("surface_fieldIo"),
       DESCRIPTION(
           "Io reference ellipsoids.\n"
           "\n"
@@ -15707,7 +15640,7 @@ where N>=0 and the species name is something line "H2O".
           "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
           "      report of the IAU/IAG Working Group.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("refellipsoidZZZ"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -15718,49 +15651,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidIo"),
-      DESCRIPTION(
-          "Io reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
-          "      report of the IAU/IAG Working Group.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("refellipsoid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidIoZZZ"),
-      DESCRIPTION(
-          "Io reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
-          "      report of the IAU/IAG Working Group.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("refellipsoidZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidJupiter"),
+      NAME("surface_fieldJupiter"),
       DESCRIPTION(
           "Jupiter reference ellipsoids.\n"
           "\n"
@@ -15773,7 +15664,7 @@ where N>=0 and the species name is something line "H2O".
           "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
           "      a report of the IAU/IAG Working Group.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -15784,31 +15675,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidJupiterZZZ"),
-      DESCRIPTION(
-          "Jupiter reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model Jupiter,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
-          "      a report of the IAU/IAG Working Group.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoidZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidMars"),
+      NAME("surface_fieldMars"),
       DESCRIPTION(
           "Mars reference ellipsoids.\n"
           "\n"
@@ -15821,7 +15688,7 @@ where N>=0 and the species name is something line "H2O".
           "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
           "      a report of the IAU/IAG Working Group.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -15832,31 +15699,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidMarsZZZ"),
-      DESCRIPTION(
-          "Mars reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model Mars,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
-          "      a report of the IAU/IAG Working Group.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoidZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidMoon"),
+      NAME("surface_fieldMoon"),
       DESCRIPTION(
           "Moon reference ellipsoids.\n"
           "\n"
@@ -15870,7 +15713,7 @@ where N>=0 and the species name is something line "H2O".
           "      Wikepedia (see code for details). The IAU/IAG working group\n"
           "      defines the Moon ellipsoid to be a sphere.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -15881,32 +15724,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidMoonZZZ"),
-      DESCRIPTION(
-          "Moon reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model Moon,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
-          "      Wikepedia (see code for details). The IAU/IAG working group\n"
-          "      defines the Moon ellipsoid to be a sphere.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoidZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidSet"),
+      NAME("surface_fieldInit"),
       DESCRIPTION(
           "Manual setting of the reference ellipsoid.\n"
           "\n"
@@ -15914,37 +15732,18 @@ where N>=0 and the species name is something line "H2O".
           "arguments correspond directly to first and second element of\n"
           "*refellipsoid*.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("re", "e"),
-      GIN_TYPE("Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("Average or equatorial radius.", "Eccentricity")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidSetZZZ"),
-      DESCRIPTION(
-          "Manual setting of the reference ellipsoid.\n"
-          "\n"
-          "The two values of *refellipsoid* can here be set manually. The two\n"
-          "arguments correspond directly to first and second element of\n"
-          "*refellipsoid*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoidZZZ"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("r_equatorial", "r_polar"),
+      GIN("a", "b"),
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Equatorial radius", "Polar radius")));
+      GIN_DESC("Average or equatorial radius.", "Average or polar radius.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidVenus"),
+      NAME("surface_fieldVenus"),
       DESCRIPTION(
           "Venus reference ellipsoids.\n"
           "\n"
@@ -15957,31 +15756,7 @@ where N>=0 and the species name is something line "H2O".
           "According to the report used above, the Venus ellipsoid lacks\n"
           "eccentricity and no further models should be required.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("model"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("Sphere"),
-      GIN_DESC("Model ellipsoid to use. Options listed above.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("refellipsoidVenusZZZ"),
-      DESCRIPTION(
-          "Venus reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (*refellipsoid*) is set to model Venus,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "According to the report used above, the Venus ellipsoid lacks\n"
-          "eccentricity and no further models should be required.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("refellipsoidZZZ"),
+      OUT("surface_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -16907,7 +16682,6 @@ where N>=0 and the species name is something line "H2O".
       IN(
          "lat_grid",
          "lon_grid",
-         "refellipsoid",
          "rte_pos",
          "rte_pos2"),
       GIN(),
@@ -16930,7 +16704,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("refellipsoid",
+      IN("surface_field",
          "rte_pos"),
       GIN("target_pos"),
       GIN_TYPE("Vector"),
@@ -16974,7 +16748,6 @@ where N>=0 and the species name is something line "H2O".
       IN("refr_index_air_ZZZ_agenda",
          "ppath_lstep",
          "ppath_lraytrace",
-         "refellipsoid",
          "surface_field",
          "surface_search_accuracy",
          "rte_pos"),
@@ -17077,7 +16850,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_pos", "rte_los", "refellipsoid"),
+      IN("rte_pos", "rte_los", "surface_field"),
       GIN("altitude", "los_is_reversed"),
       GIN_TYPE("Numeric", "Index"),
       GIN_DEFAULT(NODEF, "0"),
@@ -17120,7 +16893,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("rte_pos", "rte_los", "refellipsoid"),
+      IN("rte_pos", "rte_los", "surface_field"),
       GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -17879,7 +17652,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("refellipsoid",
+      IN("surface_field",
          "sensor_pos"),
       GIN("target_pos"),
       GIN_TYPE("Vector"),
@@ -17901,7 +17674,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("refellipsoid",
+      IN("surface_field",
          "sensor_pos"),
       GIN("target_pos"),
       GIN_TYPE("Matrix"),
@@ -17925,7 +17698,6 @@ where N>=0 and the species name is something line "H2O".
       IN("refr_index_air_ZZZ_agenda",
          "ppath_lstep",
          "ppath_lraytrace",
-         "refellipsoid",
          "surface_field",
          "surface_search_accuracy",
          "sensor_pos"),
@@ -17975,7 +17747,6 @@ where N>=0 and the species name is something line "H2O".
       IN("refr_index_air_ZZZ_agenda",
          "ppath_lstep",
          "ppath_lraytrace",
-         "refellipsoid",
          "surface_field",
          "surface_search_accuracy",
          "sensor_pos"),
@@ -18046,7 +17817,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("sensor_pos", "sensor_los", "refellipsoid"),
+      IN("sensor_pos", "sensor_los", "surface_field"),
       GIN("altitude", "los_is_reversed"),
       GIN_TYPE("Numeric", "Index"),
       GIN_DEFAULT(NODEF, "0"),
@@ -18070,7 +17841,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("sensor_pos", "sensor_los", "refellipsoid"),
+      IN("sensor_pos", "sensor_los", "surface_field"),
       GIN("altitude"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -19066,48 +18837,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("refellipsoid", "surface_field", "rtp_pos", "rtp_los"),
+      IN("surface_field", "rtp_pos", "rtp_los"),
       GIN("ignore_topography"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to control if surface slope is considered or not.")));
-
-/*
-  md_data_raw.push_back(create_mdrecord(
-      NAME("specular_losCalcOld"),
-      DESCRIPTION(
-          "Calculates the specular direction of surface reflections.\n"
-          "\n"
-          "A help method to set up the surface properties. This method\n"
-          "calculates *specular_los*, that is required in several methods\n"
-          "to convert zenith angles to incidence angles.\n"
-          "\n"
-          "The method also returns the line-of-sight matching the surface normal.\n"
-          "\n"
-          "The default is to consider the surface slope when calculating the\n"
-          "specular direction. That is, the variation of *z_surface* (as well as\n"
-          "the geoid radius) is considered and the specular direction is calculated\n"
-          "including the specified topography. This part can be deactivated by\n"
-          "setting *ignore_surface_slope* to 1. In this case, the zenith angle of\n"
-          "the specular direction is simply 180-rtp_los[0]. *ignore_surface_slope*\n"
-          "has only an effect for 2D and 3D, as 1D implies a constant radius of\n"
-          "the surface (i.e. no topography).\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("specular_los", "surface_normal"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("rtp_pos",
-         "rtp_los",
-         "lat_grid",
-         "lon_grid",
-         "refellipsoid",
-         "surface_field"),
-      GIN("ignore_surface_slope"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Flag to control if surface slope is consdered or not.")));
-*/
 
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalcOldNoTopography"),
@@ -19268,7 +19002,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       IN("suns",
           "f_grid",
           "stokes_dim",
-          "refellipsoid"),
+          "surface_field"),
       GIN("sun_spectrum_raw",
           "radius",
           "distance",
@@ -19391,7 +19125,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("refellipsoid", "surface_field", "rtp_pos"),
+      IN("surface_field", "rtp_pos"),
       GIN("ignore_topography"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
@@ -19433,21 +19167,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DEFAULT("0"),
       GIN_DESC("The constant altitude.")));
 */
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("surface_fieldInit"),
-      DESCRIPTION(
-          "Create new *surface_field*.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("surface_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldSet"),
@@ -19992,7 +19711,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "lon_true",
          "rtp_pos",
          "rtp_los",
-         "refellipsoid",
          "surface_type_mask",
          "surface_rtprop_agenda_array",
          "z_sensor",
@@ -20776,7 +20494,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC("Maximum error in term of distance.",
                 "The maximum error for each position component.",
                 "The maximum error for each LOS component."),
-      IN("refellipsoidZZZ"),
+      IN("surface_field"),
       GIN("ntests","max_allowed_dl"),
       GIN_TYPE("Index","Numeric"),
       GIN_DEFAULT(NODEF,"0.1"),
@@ -21598,8 +21316,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("atm_field",
-         "refellipsoid",
+      IN("atm_field", "surface_field",
          "planet_rotation_period"),
       GIN(),
       GIN_TYPE(),
@@ -22203,7 +21920,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "f_grid",
          "met_amsu_data",
          "sensor_pos",
-         "refellipsoid",
          "lat_grid",
          "lon_grid",
          "scat_data"),
@@ -22247,7 +21963,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "f_grid",
          "met_amsu_data",
          "sensor_pos",
-         "refellipsoid"),
+         "surface_field"),
       GIN("nelem_p_grid", "met_profile_path"),
       GIN_TYPE("Index", "String"),
       GIN_DEFAULT(NODEF, NODEF),
@@ -22690,7 +22406,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "lon_true",
          "abs_species",
          "atm_field",
-         "refellipsoid",
          "surface_field",
          "atmfields_checked",
          "g0_agenda",
@@ -22740,7 +22455,7 @@ Options are:
         Sets *planet_rotation_period* to -2.0997e7
 )--"),
                       AUTHORS("Richard Larsson"),
-                      OUT("g0_agenda", "refellipsoid", "molarmass_dry_air", "planet_rotation_period"),
+                      OUT("g0_agenda", "surface_field", "molarmass_dry_air", "planet_rotation_period"),
                       GOUT(),
                       GOUT_TYPE(),
                       GOUT_DESC(),

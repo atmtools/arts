@@ -46,7 +46,6 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const AtmField& atm_field,
-    const Vector& refellipsoid,
     const SurfaceField& surface_field,
     const Agenda& ppath_agenda,
     const Agenda& iy_main_agenda,

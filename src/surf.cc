@@ -117,24 +117,32 @@ std::ostream &operator<<(std::ostream &os, const Field &surf) {
 }
 
 String Data::data_type() const {
-  if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
-  if (std::holds_alternative<Numeric>(data)) return "Numeric";
-  if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
-  ARTS_ASSERT(false, "Cannot be reached, you have added a new type but not doen the plumbing...")
+  if (std::holds_alternative<GriddedField2>(data))
+    return "GriddedField2";
+  if (std::holds_alternative<Numeric>(data))
+    return "Numeric";
+  if (std::holds_alternative<FunctionalData>(data))
+    return "FunctionalData";
+  ARTS_ASSERT(false, "Cannot be reached, you have added a new type but not "
+                     "doen the plumbing...")
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
-  [[nodiscard]] std::vector<KeyVal> Point::keys() const {
-    std::vector<KeyVal> out;
-    out.reserve(enumtyps::KeyTypes.size() + type.size());
-    for (auto key: enumtyps::KeyTypes) out.emplace_back(key);
-    for (auto& key: type) out.emplace_back(key.first);
-    return out;
-  }
+[[nodiscard]] std::vector<KeyVal> Point::keys() const {
+  std::vector<KeyVal> out;
+  out.reserve(enumtyps::KeyTypes.size() + type.size());
+  for (auto key : enumtyps::KeyTypes)
+    out.emplace_back(key);
+  for (auto &key : type)
+    out.emplace_back(key.first);
+  return out;
+}
 
-  [[nodiscard]] Index Point::ntype() const {return static_cast<Index>(type.size());}
+[[nodiscard]] Index Point::ntype() const {
+  return static_cast<Index>(type.size());
+}
 
-  [[nodiscard]] Index Point::nelem() const {return nother() + ntype();}
+[[nodiscard]] Index Point::nelem() const { return nother() + ntype(); }
 
 Numeric &Point::operator[](const KeyVal &x) {
   return std::visit(
@@ -249,8 +257,7 @@ auto interpolation_function(Numeric lat, Numeric lon) {
 }
 } // namespace detail
 
-Vector2 Field::normal(Vector2 ellipsoid, Numeric lat, Numeric lon,
-                      Numeric alt) const try {
+Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   constexpr Vector2 up{180, 0};
 
   if (not contains(Key::h)) {
@@ -289,7 +296,7 @@ Vector2 Field::normal(Vector2 ellipsoid, Numeric lat, Numeric lon,
                  lon, "\nThe internal error reads: ", e.what()));
 }
 
-Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
+Point Field::at(Numeric lat, Numeric lon) const {
   Point out;
 
   const auto interp = detail::interpolation_function(lat, lon);
@@ -310,13 +317,13 @@ Point Field::at(Numeric lat, Numeric lon, Vector2 ellipsoid) const {
   }
 
   if (has(Key::h))
-    out.normal = normal(ellipsoid, lat, lon, out.elevation);
+    out.normal = normal(lat, lon, out.elevation);
 
   return out;
 }
 
-std::ostream& operator<<(std::ostream& os, const KeyVal& key) {
-  std::visit([&](auto& k){os << k;}, key);
+std::ostream &operator<<(std::ostream &os, const KeyVal &key) {
+  std::visit([&](auto &k) { os << k; }, key);
   return os;
 }
 
@@ -349,7 +356,8 @@ Field::minmax_single_value(const KeyVal &key) const {
   ARTS_USER_ERROR_IF(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
       "Surface field does not possess the key: ", key)
-  return std::visit([](auto& a){return detail::minmax(a);}, this->operator[](key).data);
+  return std::visit([](auto &a) { return detail::minmax(a); },
+                    this->operator[](key).data);
 }
 
 bool Field::constant_value(const KeyVal &key) const {

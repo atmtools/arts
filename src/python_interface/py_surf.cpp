@@ -121,7 +121,7 @@ void py_surf(py::module_ &m) {
          py::return_value_policy::reference_internal)
       .def("__setitem__", [](SurfaceField &surf, Surf::Key x,
                              const Surf::Data &data) { surf[x] = data; })
-      .def("at", [](const SurfaceField &surf, Numeric lat, Numeric lon, Vector2 ell) { return surf.at(lat, lon, ell); })
+      .def("at", [](const SurfaceField &surf, Numeric lat, Numeric lon) { return surf.at(lat, lon); })
       .PythonInterfaceCopyValue(SurfaceField)
       .PythonInterfaceWorkspaceVariableConversion(SurfaceField)
       .PythonInterfaceFileIO(SurfaceField)

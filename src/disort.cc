@@ -399,12 +399,17 @@ void get_gas_scattering_properties(Workspace& ws,
 
   // calculate gas scattering properties on level
   for (Index ip = 0; ip < Np; ip++) {
+    AtmPoint atm_point;
+    atm_point[Atm::Key::p] = p[ip];
+    atm_point[Atm::Key::t] = t[ip];
+    atm_point.set(specs, vmr(joker, ip));
+
     gas_scattering_agendaExecute(ws,
                                  K_sca_gas_temp,
                                  sca_mat_dummy,
                                  sca_fct_temp,
                                  Vector{f_grid},
-                                 AtmPoint(Atm::Key::p, p[ip], Atm::Key::t, t[ip], specs, vmr(joker, ip)),
+                                 atm_point,
                                  dummy,
                                  dummy,
                                  1,

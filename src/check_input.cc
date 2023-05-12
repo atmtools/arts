@@ -1630,10 +1630,8 @@ void chk_rte_pos(const String& name,
 }
 
 
-void chk_refellipsoidZZZ(ConstVectorView refellipsoid)
+void chk_refellipsoid(const Vector2 refellipsoid)
 {
-  ARTS_USER_ERROR_IF(refellipsoid.nelem() != 2,
-                     "*refellipsoid* must have two elements.");
   ARTS_USER_ERROR_IF(refellipsoid[0] <= 0 || refellipsoid[1] <= 0,
                      "All elements of *refellipsoid* must be > 0.");
   ARTS_USER_ERROR_IF(abs(refellipsoid[1]/refellipsoid[0]-1) > 0.5,

@@ -100,13 +100,6 @@ arts.propmat_clearsky_agendaAuto(manual_mag_field=not DYNMAG,
                                          theta=MAGTHE,
                                          eta=MAGETA)
 
-# %% Grids and planet
-
-arts.refellipsoidEarth(model = "Sphere")
-arts.surface_fieldInit()
-arts.surface_fieldSet(value=0.0, key="h")
-arts.surface_fieldSet(value=200.0, key="t")
-
 # %% Atmosphere
 arts.Touch(arts.time)
 arts.atm_fieldInit(toa=95e3)
@@ -137,8 +130,8 @@ arts.sensor_checkedCalc()
 arts.propmat_clearsky_agenda_checkedCalc()
 
 # %% SURFACE
-arts.surface_elevation = pyarts.arts.GriddedField2([[0], [0]], [[0]], ["Latitude", "Longitude"])
-arts.refellipsoidEarthZZZ(refellipsoidZZZ=arts.refellipsoid, model="Sphere")
+arts.PlanetSet(option="Earth")
+arts.surface_fieldSet(value=200.0, key="t")
 
 arts.Touch(arts.iy_cloudbox_agenda)
 

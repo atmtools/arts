@@ -122,7 +122,7 @@ void get_scattered_sunsource(Workspace& ws,
  * @param[in] f_grid Vector as the WSV.
  * @param[in] stokes_dim Index as the WSV.
  * @param[in] atmosphere_dim Index as the WSV.
- * @param[in] refellipsoid Vector as the WSV.
+ * @param[in] refellipsoid Reference ellipsoid
  */
 void get_sun_background(Matrix& iy,
                          Index& suns_visible,
@@ -131,7 +131,7 @@ void get_sun_background(Matrix& iy,
                          const Vector& f_grid,
                          const Index& stokes_dim,
                          const Index& atmosphere_dim,
-                         const Vector& refellipsoid);
+                         const Vector2 refellipsoid);
 
 /** Checks and adds sun radiance if sun is in line of sight.
  *
@@ -140,14 +140,14 @@ void get_sun_background(Matrix& iy,
  * @param[in] sun Sun-structure.
  * @param[in] rtp_pos The position of the ppath point.
  * @param[in] rtp_los The line of sight of the ppath.
- * @param[in] refellipsoid As the WSV with the same name.
+ * @param[in] refellipsoid Reference ellipsoid
   */
 void get_sun_radiation(Matrix& iy,
                         Index& suns_visible,
                          const Sun& sun,
                          const Vector& rtp_pos,
                          const Vector& rtp_los,
-                         const Vector& refellipsoid);
+                         const Vector2 refellipsoid);
 
 /** Calculates the transmitted sun radiation at the end position of the ppath
  *
@@ -181,7 +181,6 @@ void get_sun_radiation(Matrix& iy,
  * @param[in] sun_ppaths ArrayOfPpath Propagation path towards each sun.
  * @param[in] suns As the WSV.
  * @param[in] suns_visible ArrayOfIndex Flag indicating if eah sun is visible.
- * @param[in] refellipsoid As the WSV.
  * @param[in] pnd_field As the WSV.
  * @param[in] dpnd_field_dx As the WSV.
  * @param[in] scat_species As the WSV.
@@ -208,7 +207,7 @@ void get_direct_radiation(Workspace& ws,
                      const ArrayOfPpath& sun_ppaths,
                      const ArrayOfSun& suns,
                      const ArrayOfIndex& suns_visible,
-                     const Vector& refellipsoid,
+                     const Vector2 refellipsoid,
                      const Tensor4& pnd_field,
                      const ArrayOfTensor4& dpnd_field_dx,
                      const ArrayOfString& scat_species,
@@ -237,7 +236,6 @@ void get_direct_radiation(Workspace& ws,
  * @param[in] lon_grid As the WSV.
  * @param[in] z_field As the WSV.
  * @param[in] z_surface As the WSV.
- * @param[in] refellipsoid As the WSV.
  * @param[in] ppath_lmax As the WSV.
  * @param[in] ppath_lraytrace As the WSV.
  * @param[in] ppath_step_agenda As the WSV.
@@ -251,7 +249,6 @@ void get_sun_ppaths(Workspace& ws,
                      const Vector& f_grid,
                      const AtmField& atm_field,
                      const SurfaceField& surface_field,
-                     const Vector& refellipsoid,
                      const Numeric& ppath_lmax,
                      const Numeric& ppath_lraytrace,
                      const Agenda& ppath_step_agenda);

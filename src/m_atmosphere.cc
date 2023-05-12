@@ -61,6 +61,7 @@
 #include "matpack_data.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "surf.h"
 #include "xml_io.h"
 
 using GriddedFieldGrids::GFIELD3_P_GRID;
@@ -2083,7 +2084,7 @@ void lon_gridFromRawField(  //WS Output
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void wind_u_fieldIncludePlanetRotation(AtmField& atm_field,
-                                       const Vector& refellipsoid,
+                                       const SurfaceField& surface_field,
                                        const Numeric& planet_rotation_period) {
   // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
@@ -2112,203 +2113,6 @@ void wind_u_fieldIncludePlanetRotation(AtmField& atm_field,
 void z2g(Numeric& g, const Numeric& r, const Numeric& g0, const Numeric& z) {
   const Numeric x = r / (r + z);
   g = g0 * x * x;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void z_fieldFromHSE(Workspace& ws,
-                    Tensor3& z_field,
-                    const Vector& p_grid,
-                    const Vector& lat_grid,
-                    const Vector& lon_grid,
-                    const Vector& lat_true,
-                    const Vector& lon_true,
-                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const Tensor3& t_field,
-                    const Tensor4& vmr_field,
-                    const Vector& refellipsoid,
-                    const Matrix& z_surface,
-                    const Index& atmfields_checked,
-                    const Agenda& g0_agenda,
-                    const Numeric& molarmass_dry_air,
-                    const Numeric& p_hse,
-                    const Numeric& z_hse_accuracy) {
-  ARTS_USER_ERROR_IF (atmfields_checked != 1,
-        "The atmospheric fields must be flagged to have "
-        "passed a consistency check (atmfields_checked=1).");
-
-  // Some general variables
-  const Index np = p_grid.nelem();
-  const Index nlat = t_field.nrows();
-  const Index nlon = t_field.ncols();
-  //
-  const Index firstH2O = find_first_species(
-      abs_species, Species::fromShortName("H2O"));
-
-  if (firstH2O < 0) {
-  }
-  //
-  ARTS_USER_ERROR_IF (p_hse > p_grid[0] || p_hse < p_grid[np - 1],
-      "The value of *p_hse* must be inside the range of *p_grid*:"
-      "  p_hse  = ", p_hse, " Pa\n"
-      "  p_grid = ", p_grid[np-1],
-      " - ", p_grid[0], " Pa\n")
-  //
-  ARTS_USER_ERROR_IF (z_hse_accuracy <= 0,
-                      "The value of *z_hse_accuracy* must be > 0.");
-  //
-  chk_latlon_true(3, lat_grid, lat_true, lon_true);
-
-  // Determine interpolation weights for p_hse
-  //
-  ArrayOfGridPos gp(1);
-  Matrix itw(1, 2);
-  p2gridpos(gp, p_grid, Vector(1, p_hse));
-  interpweights(itw, gp);
-
-  // // Molecular weight of water vapour
-  const Numeric mw = 18.016;
-
-  // mw/molarmass_dry_air matches eps in Eq. 3.14 in Wallace&Hobbs:
-  const Numeric k = 1 - mw / molarmass_dry_air;
-
-  // Gas constant for 1kg dry air:
-  const Numeric rd = 1e3 * GAS_CONSTANT / molarmass_dry_air;
-
-  // The calculations
-  //
-  for (Index ilat = 0; ilat < nlat; ilat++) {
-    // The reference ellipsoid is already adjusted to internal 1D or 2D
-    // views, and lat_grid is the relevant grid for *refellipsoid*, also
-    // for 2D. On the other hand, extraction of g0 requires that the true
-    // position is determined.
-
-    // Radius of reference ellipsoid
-    Numeric re;
-    if (3 == 1) {
-      re = refellipsoid[0];
-    } else {
-      //re = refell2r(refellipsoid, lat_grid[ilat]);
-      ARTS_USER_ERROR("ERROR")
-    }
-
-    for (Index ilon = 0; ilon < nlon; ilon++) {
-      // Determine true latitude and longitude
-      Numeric lat, lon;
-      Vector pos(3);  // pos[0] can be a dummy value
-      if (3 >= 2) {
-        pos[1] = lat_grid[ilat];
-        if (3 == 3) {
-          pos[2] = lon_grid[ilon];
-        }
-      }
-      pos2true_latlon(
-          lat, lon, 3, lat_grid, lat_true, lon_true, pos);
-
-      // Get g0
-      Numeric g0;
-      g0_agendaExecute(ws, g0, lat, lon, g0_agenda);
-
-      // Determine altitude for p_hse
-      Vector z_hse(1);
-      interp(z_hse, itw, z_field(joker, ilat, ilon), gp);
-
-      Numeric z_acc = 2 * z_hse_accuracy;
-
-      while (z_acc > z_hse_accuracy) {
-        z_acc = 0;
-        Numeric g2 = g0;
-
-        for (Index ip = 0; ip < np - 1; ip++) {
-          // Calculate average g
-          if (ip == 0) {
-            z2g(g2, re, g0, z_field(ip, ilat, ilon));
-          }
-          const Numeric g1 = g2;
-          z2g(g2, re, g0, z_field(ip + 1, ilat, ilon));
-          //
-          const Numeric g = (g1 + g2) / 2.0;
-
-          //Average water vapour VMR
-          Numeric hm;
-          if (firstH2O < 0) {
-            hm = 0.0;
-          } else {
-            hm = 0.5 * (vmr_field(firstH2O, ip, ilat, ilon) +
-                        vmr_field(firstH2O, ip + 1, ilat, ilon));
-          }
-
-          // Average virtual temperature (no liquid water)
-          // (cf. e.g. Eq. 3.16 in Wallace&Hobbs)
-          const Numeric tv =
-              (1 / (2 * (1 - hm * k))) *
-              (t_field(ip, ilat, ilon) + t_field(ip + 1, ilat, ilon));
-
-          // Change in vertical altitude from ip to ip+1
-          //  (cf. e.g. Eq. 3.24 in Wallace&Hobbs)
-          const Numeric dz = rd * (tv / g) * log(p_grid[ip] / p_grid[ip + 1]);
-
-          // New altitude
-          Numeric znew = z_field(ip, ilat, ilon) + dz;
-          z_acc = max(z_acc, fabs(znew - z_field(ip + 1, ilat, ilon)));
-          z_field(ip + 1, ilat, ilon) = znew;
-        }
-
-        // Adjust to z_hse
-        Vector z_tmp(1);
-        interp(z_tmp, itw, z_field(joker, ilat, ilon), gp);
-        z_field(joker, ilat, ilon) -= z_tmp[0] - z_hse[0];
-      }
-    }
-  }
-
-  // Check that there is no gap between the surface and lowest pressure
-  // level
-  // (This code is copied from *basics_checkedCalc*. Make this to an internal
-  // function if used in more places.)
-  for (Index row = 0; row < z_surface.nrows(); row++) {
-    for (Index col = 0; col < z_surface.ncols(); col++) {
-      ARTS_USER_ERROR_IF (z_surface(row, col) < z_field(0, row, col) ||
-                          z_surface(row, col) >= z_field(z_field.npages() - 1, row, col),
-          "The surface altitude (*z_surface*) cannot be outside "
-          "of the altitudes in *z_field*.")
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldSetConstant(Tensor4& vmr_field,
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const String& species,
-                          const Numeric& vmr_value) {
-  // Check input
-  chk_if_in_range("vmr_value", vmr_value, 0, 1);
-  //
-  ARTS_USER_ERROR_IF (abs_species.nelem() != vmr_field.nbooks(),
-        "Size of *vmr_field* and length of *abs_species* do not agree.");
-
-  // Find position for this species.
-  const ArrayOfSpeciesTag tag(species);
-  Index si = chk_contains("species", abs_species, tag);
-
-  // Apply value
-  vmr_field(si, joker, joker, joker) = vmr_value;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldSetAllConstant(Tensor4& vmr_field,
-                             const ArrayOfArrayOfSpeciesTag& abs_species,
-                             const Vector& vmr_values) {
-  const Index nspecies = abs_species.nelem();
-
-  ARTS_USER_ERROR_IF (vmr_values.nelem() not_eq nspecies,
-                      "Not same number of vmr_values as abs_species.");
-
-  for (Index i = 0; i < nspecies; i++) {
-    const ArrayOfSpeciesTag& a_abs_species = abs_species[i];
-    const String species_tag_name = a_abs_species.Name();
-    vmr_fieldSetConstant(
-        vmr_field, abs_species, species_tag_name, vmr_values[i]);
-  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

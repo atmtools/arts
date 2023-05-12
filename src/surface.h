@@ -248,7 +248,6 @@ void surface_get_incoming_direct(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
-    const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,
     const ArrayOfString& scat_species,
@@ -284,7 +283,6 @@ void surface_get_incoming_direct(
 void surface_normal_calc(VectorView pos,
                          VectorView ecef,
                          VectorView decef,
-                         const Vector& refellipsoid,
                          const SurfaceField& surface_field,
                          ConstVectorView pos2D);
 

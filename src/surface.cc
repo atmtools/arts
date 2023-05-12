@@ -244,7 +244,6 @@ void surface_get_incoming_direct(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
     const SurfaceField& surface_field,
-    const Vector& refellipsoid,
     const Tensor4& pnd_field,
     const ArrayOfTensor4& dpnd_field_dx,
     const ArrayOfString& scat_species,
@@ -325,7 +324,7 @@ Tensor3 p_field;
                       f_grid,
                       stokes_dim,
                       3,
-                      refellipsoid);
+                      surface_field.ellipsoid);
 
   if (stars_visible){
 
@@ -384,7 +383,6 @@ Tensor3 p_field;
 void surface_normal_calc(VectorView pos,
                          VectorView ecef,
                          VectorView decef,
-                         const Vector& refellipsoid,
                          const SurfaceField& surface_field,
                          ConstVectorView pos2D)
 {
@@ -402,7 +400,7 @@ void surface_normal_calc(VectorView pos,
   // side. These points are shifted to be at the pole.
   //
   const Numeric dl = 1.0;  
-  const Numeric lat_limit = 90.0 - RAD2DEG * 5 * dl / refellipsoid[1];
+  const Numeric lat_limit = 90.0 - RAD2DEG * 5 * dl / surface_field.ellipsoid[1];
 
   // Determine 3D pos at pos
   Numeric lat = pos2D[0];
@@ -416,7 +414,7 @@ void surface_normal_calc(VectorView pos,
   pos[0] = surface_field.single_value(Surf::Key::h, pos[0], pos[2]);
 
   // Radius at pos0
-  const Numeric r = pos[0] + prime_vertical_radius(refellipsoid, lat);
+  const Numeric r = pos[0] + prime_vertical_radius(surface_field.ellipsoid, lat);
 
   // Shifted positions
   Vector posWE{pos};
@@ -447,9 +445,9 @@ void surface_normal_calc(VectorView pos,
   
   // Convert all three positions to ECEF
   Vector ecefSN(3), ecefWE(3);
-  geodetic2ecef(ecef, pos, refellipsoid);
-  geodetic2ecef(ecefSN, posSN, refellipsoid);
-  geodetic2ecef(ecefWE, posWE, refellipsoid);
+  geodetic2ecef(ecef, pos, surface_field.ellipsoid);
+  geodetic2ecef(ecefSN, posSN, surface_field.ellipsoid);
+  geodetic2ecef(ecefWE, posWE, surface_field.ellipsoid);
 
   // Directional vectors to shifted positions
   Vector decefSN(3), decefWE(3);

@@ -261,7 +261,6 @@ bool is_anyptype_nonTotRan(
  * @param[in]     lat_grid                Latitude grid.
  * @param[in]     lon_grid                Longitude grid.
  * @param[in]     z_field                 The field of geometrical altitudes.
- * @param[in]     refellipsoid            Reference ellipsoid.
  * @param[in]     z_surface               The surface altitude.
  * @param[in]     t_field                 The temperature grid.
  * @param[in]     vmr_field               VMR field.
@@ -294,7 +293,6 @@ void mcPathTraceGeneral(Workspace& ws,
                         const Index stokes_dim,
                         const Index f_index,
                         const Vector& f_grid,
-                        const Vector& refellipsoid,
                         const SurfaceField& surface_field,
                         const AtmField& atm_field,
                         const ArrayOfIndex& cloudbox_limits,
@@ -343,7 +341,6 @@ void mcPathTraceGeneral(Workspace& ws,
  * @param[in]     lat_grid                Latitude grid.
  * @param[in]     lon_grid                Longitude grid.
  * @param[in]     z_field                 The field of geometrical altitudes.
- * @param[in]     refellipsoid            Reference ellipsoid.
  * @param[in]     z_surface               The surface altitude.
  * @param[in]     t_field                 The temperature grid.
  * @param[in]     vmr_field               VMR field.
@@ -377,7 +374,6 @@ void mcPathTraceRadar(Workspace& ws,
                       const Index f_index,
                       const Vector& f_grid,
                       const Vector& Iprop,
-                      const Vector& refellipsoid,
                       const SurfaceField& surface_field,
                       const AtmField& atm_field,
                       const ArrayOfIndex& cloudbox_limits,
