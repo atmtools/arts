@@ -595,7 +595,7 @@ target_link_libraries (test_isotope species matpack)
 add_executable(test_partfun test_partfun.cc partfun.cc)
 target_link_libraries(test_partfun ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_partfun)
-add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
+add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
 
 ########################################################################################
@@ -603,7 +603,7 @@ add_test(NAME "arts.cpp.fast.test_partfun" COMMAND test_partfun)
 add_executable(test_predefined test_predefined.cc)
 target_link_libraries(test_predefined ${ALL_ARTS_LIBRARIES})
 add_dependencies(check-deps test_predefined)
-add_test(NAME "arts.cpp.fast.test_predefined" COMMAND test_predefined)
+add_test(NAME "cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################
 
 ########### next testcase ###############
@@ -660,7 +660,7 @@ target_link_libraries(test_omp PUBLIC ${ALL_ARTS_LIBRARIES})
 # Test Eigen
 add_executable(test_matpack_eigen test_matpack_eigen.cc)
 target_link_libraries(test_matpack_eigen PUBLIC matpack)
-add_test(NAME "arts.cpp.fast.test_matpack_eigen" COMMAND test_matpack_eigen)
+add_test(NAME "cpp.fast.test_matpack_eigen" COMMAND test_matpack_eigen)
 add_dependencies(check-deps test_matpack_eigen)
 ########################################################################################
 
@@ -671,7 +671,7 @@ target_link_libraries(run_partfun PRIVATE artscore)
 add_subdirectory(matpack)
 add_executable(test_mdspan test_mdspan.cc)
 target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack)
-add_test(NAME "arts.cpp.fast.test_mdspan" COMMAND test_mdspan)
+add_test(NAME "cpp.fast.test_mdspan" COMMAND test_mdspan)
 add_dependencies(check-deps test_mdspan)
 
 #####
