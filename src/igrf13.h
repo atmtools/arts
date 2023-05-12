@@ -2,6 +2,7 @@
 #define igrf13_h
 
 #include "artstime.h"
+#include "matpack_constexpr.h"
 #include "matpack_data.h"
 
 namespace IGRF {
@@ -31,7 +32,7 @@ struct MagneticField {
  * @param[in] ell The ellipsoid
  * @return The magnetic field in ENU as described by the MagneticField struct
  */
-MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vector& lon_grid, const Time& time, const Vector& ell);
+MagneticField compute(const Tensor3& z_field, const Vector& lat_grid, const Vector& lon_grid, const Time& time, const Vector2 ell);
 } // namespace IGRF
 
 #endif  // igrf13_h

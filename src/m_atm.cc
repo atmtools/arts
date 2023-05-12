@@ -312,8 +312,8 @@ void atm_fieldIGRF(AtmField &atm_field, const Time &time, const Index &parsafe) 
   using namespace IGRF;
 
   //! We need explicit planet-size as IGRF requires the radius
-  //! This is the WGS84 version of that, with radius and flattening
-  static const Vector ell{6378137., 0.081819190842621};
+  //! This is the WGS84 version of that, with radius of equator and pole
+  static constexpr Vector2 ell{6378137., 6356752.314245};
 
   //! This struct deals with the computations, it's internally saving a mutable
   //! state

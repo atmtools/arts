@@ -4810,6 +4810,7 @@ computations.
          "cloudbox_limits",
          "propmat_clearsky_agenda",
          "atm_field",
+         "surface_field".
          "abs_species",
          "spt_calc_agenda",
          "za_grid",

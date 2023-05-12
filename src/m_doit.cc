@@ -40,6 +40,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "species_tags.h"
+#include "surf.h"
 #include "wsv_aux.h"
 #include "xml_io.h"
 
@@ -530,6 +531,7 @@ void cloudbox_fieldUpdate1D(
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
     const AtmField& atm_field,
+    const SurfaceField& surface_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
@@ -539,7 +541,6 @@ void cloudbox_fieldUpdate1D(
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
-    const Vector& refellipsoid,
     // Calculate thermal emission:
     const Vector& f_grid,
     const Index& f_index,
@@ -676,7 +677,7 @@ void cloudbox_fieldUpdate1D(
                                    ppath_lraytrace,
                                    p_field(joker, 0, 0),
                                    Tensor3View{z_grid},
-                                   refellipsoid,
+                                   surface_field.ellipsoid,
                                    t_field,
                                    f_grid,
                                    f_index,
@@ -700,6 +701,7 @@ void cloudbox_fieldUpdateSeq1D(
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
     const AtmField& atm_field,
+    const SurfaceField& surface_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
@@ -710,7 +712,6 @@ void cloudbox_fieldUpdateSeq1D(
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
-    const Vector& refellipsoid,
     // Calculate thermal emission:
     const Vector& f_grid,
     const Index& f_index,
@@ -810,8 +811,9 @@ void cloudbox_fieldUpdateSeq1D(
   // If theta is between 90° and the limiting value, the intersection point
   // is exactly at the same level as the starting point (cp. AUG)
   Numeric theta_lim =
-      180. - asin((refellipsoid[0] + z_grid[cloudbox_limits[0]]) /
-                  (refellipsoid[0] + z_grid[cloudbox_limits[1]])) *
+      180. - asin((
+    surface_field.ellipsoid[0] + z_grid[cloudbox_limits[0]]) /
+                  (surface_field.ellipsoid[0] + z_grid[cloudbox_limits[1]])) *
                  RAD2DEG;
 
   // Epsilon for additional limb iterations
@@ -884,7 +886,7 @@ void cloudbox_fieldUpdateSeq1D(
                              ppath_step_agenda,
                              ppath_lmax,
                              ppath_lraytrace,
-                             refellipsoid,
+                             surface_field.ellipsoid,
                              f_grid,
                              f_index,
                              ext_mat_field,
@@ -912,7 +914,7 @@ void cloudbox_fieldUpdateSeq1D(
                              ppath_step_agenda,
                              ppath_lmax,
                              ppath_lraytrace,
-                             refellipsoid,
+                             surface_field.ellipsoid,
                              f_grid,
                              f_index,
                              ext_mat_field,
@@ -956,7 +958,7 @@ void cloudbox_fieldUpdateSeq1D(
                                  ppath_step_agenda,
                                  ppath_lmax,
                                  ppath_lraytrace,
-                                 refellipsoid,
+                                 surface_field.ellipsoid,
                                  f_grid,
                                  f_index,
                                  ext_mat_field,
@@ -1001,6 +1003,7 @@ void cloudbox_fieldUpdateSeq3D(
     // Calculate scalar gas absorption:
     const Agenda& propmat_clearsky_agenda,
     const AtmField&atm_field,
+    const SurfaceField& surface_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
@@ -1011,7 +1014,6 @@ void cloudbox_fieldUpdateSeq3D(
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lmax,
     const Numeric& ppath_lraytrace,
-    const Vector& refellipsoid,
     // Calculate thermal emission:
     const Vector& f_grid,
     const Index& f_index,
@@ -1143,8 +1145,8 @@ void cloudbox_fieldUpdateSeq3D(
 
       Vector stokes_vec(stokes_dim, 0.);
 
-      Numeric theta_lim = 180. - asin((refellipsoid[0] + z_grid[p_low]) /
-                                      (refellipsoid[0] + z_grid[p_up])) *
+      Numeric theta_lim = 180. - asin((surface_field.ellipsoid[0] + z_grid[p_low]) /
+                                      (surface_field.ellipsoid[0] + z_grid[p_up])) *
                                      RAD2DEG;
 
       // Sequential update for uplooking angles
@@ -1174,7 +1176,7 @@ void cloudbox_fieldUpdateSeq3D(
                                    ppath_step_agenda,
                                    ppath_lmax,
                                    ppath_lraytrace,
-                                   refellipsoid,
+                                  surface_field.ellipsoid,
                                    f_grid,
                                    f_index,
                                    ext_mat_field,
@@ -1208,7 +1210,7 @@ void cloudbox_fieldUpdateSeq3D(
                                    ppath_step_agenda,
                                    ppath_lmax,
                                    ppath_lraytrace,
-                                   refellipsoid,
+                                   surface_field.ellipsoid,
                                    f_grid,
                                    f_index,
                                    ext_mat_field,
@@ -1253,7 +1255,7 @@ void cloudbox_fieldUpdateSeq3D(
                                      ppath_step_agenda,
                                      ppath_lmax,
                                      ppath_lraytrace,
-                                     refellipsoid,
+                                     surface_field.ellipsoid,
                                      f_grid,
                                      f_index,
                                      ext_mat_field,
