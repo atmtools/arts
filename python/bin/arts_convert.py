@@ -10,6 +10,8 @@ import pyarts
 from pyarts.parser import convert_to_python
 
 parser = argparse.ArgumentParser(description='Convert ARTS controlfile to Python.')
+parser.add_argument('--nofail', action='store_true',
+                    help='Ignore failed conversions.')
 parser.add_argument('files', metavar='files', type=str, nargs='+',
                    help='Single filename of base path for recursive conversion.')
 parser.add_argument('-o', type=str, default="",
@@ -62,5 +64,9 @@ for f in files:
     except Exception as e:
         print("Error converting {}:".format(filename), e.args[0].splitlines()[-1])
 
-print("arts_convert done. Converted {} out of {} files."
-      .format(converted, len(files)))
+if not args.nofail and converted < len(files):
+    print(f"arts_convert done. "
+          f"Failed to convert {len(files)-converted} out of {len(files)} files.")
+    sys.exit(1)
+else:
+    print(f"arts_convert done. Converted {converted} out of {len(files)} files.")
