@@ -235,9 +235,9 @@ jobs:
           cd cmake-build
           make check
 
-      - name: Check Python (Linux / macOS)
+      - name: Check Controlfile Conversion (Linux / macOS)
         if: matrix.check == 'yes'
         run: |
           cd cmake-build
-          make check-python
+          make check-conversion
 
