@@ -21,6 +21,7 @@
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpack_data.h"
+#include "surf.h"
 #include "variousZZZ.h"
 #include "ppath.h"
 
@@ -34,11 +35,11 @@ void IntersectionGeometricAltitude(Matrix& pos,
                                    Matrix& los,
                                    const Matrix& sensor_pos,
                                    const Matrix& sensor_los,
-                                   const Vector& refellipsoid,
+                                   const SurfaceField& surface_field,
                                    const Numeric& altitude)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
-  chk_refellipsoidZZZ(refellipsoid);
+  chk_refellipsoid(surface_field.ellipsoid);
 
   const Index n = sensor_pos.nrows();
   pos.resize(n, 3);
@@ -59,10 +60,10 @@ void IntersectionGeometricAltitude(Matrix& pos,
                           decef,
                           sensor_pos(i,joker),
                           sensor_los(i,joker), 
-                          refellipsoid);
+                          surface_field.ellipsoid);
         l = intersection_altitude(ecef,
                                   decef,
-                                  refellipsoid,
+                                  surface_field.ellipsoid,
                                   altitude);
       }
 
@@ -70,7 +71,7 @@ void IntersectionGeometricAltitude(Matrix& pos,
       pos(i,joker) = NAN;
       los(i,joker) = NAN;
     } else {
-      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, refellipsoid, l);
+      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, surface_field.ellipsoid, l);
       // Check that pos matches expected altitude
       ARTS_ASSERT(abs(pos(i,0)-altitude) < 0.1);
     }
@@ -83,11 +84,11 @@ void IntersectionGeometricLatitude(Matrix& pos,
                                    Matrix& los,
                                    const Matrix& sensor_pos,
                                    const Matrix& sensor_los,
-                                   const Vector& refellipsoid,
+                                   const SurfaceField& surface_field,
                                    const Numeric& latitude)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
-  chk_refellipsoidZZZ(refellipsoid);
+  chk_refellipsoid(surface_field.ellipsoid);
   chk_if_in_range("latitude", latitude, -90, 90);
 
   const Index n = sensor_pos.nrows();
@@ -102,18 +103,18 @@ void IntersectionGeometricLatitude(Matrix& pos,
                       decef,
                       sensor_pos(i,joker),
                       sensor_los(i,joker), 
-                      refellipsoid);
+                      surface_field.ellipsoid);
     l = intersection_latitude(ecef,
                               decef,
                               sensor_pos(i,joker),
                               sensor_los(i,joker), 
-                              refellipsoid,
+                              surface_field.ellipsoid,
                               latitude);
     if (l<0) {
       pos(i,joker) = NAN;
       los(i,joker) = NAN;
     } else {
-      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, refellipsoid, l);
+      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, surface_field.ellipsoid, l);
       // Check that pos matches expected longitude
       ARTS_ASSERT(abs(pos(i,1)-latitude) < 0.01);
     }
@@ -126,11 +127,11 @@ void IntersectionGeometricLongitude(Matrix& pos,
                                     Matrix& los,
                                     const Matrix& sensor_pos,
                                     const Matrix& sensor_los,
-                                    const Vector& refellipsoid,
+                                    const SurfaceField& surface_field,
                                     const Numeric& longitude)
 {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
-  chk_refellipsoidZZZ(refellipsoid);
+  chk_refellipsoid(surface_field.ellipsoid);
   chk_if_in_range("longitude", longitude, -180, 360);
 
   const Index n = sensor_pos.nrows();
@@ -145,7 +146,7 @@ void IntersectionGeometricLongitude(Matrix& pos,
                       decef,
                       sensor_pos(i,joker),
                       sensor_los(i,joker), 
-                      refellipsoid);
+                      surface_field.ellipsoid);
     l = intersection_longitude(ecef,
                                decef,
                                sensor_pos(i,joker),
@@ -156,7 +157,7 @@ void IntersectionGeometricLongitude(Matrix& pos,
       pos(i,joker) = NAN;
       los(i,joker) = NAN;
     } else {
-      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, refellipsoid, l);
+      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, surface_field.ellipsoid, l);
       // Check that pos matches expected longitude
       ARTS_ASSERT(abs(pos(i,2)-longitude) < 0.01);
     }
@@ -169,12 +170,11 @@ void IntersectionGeometricSurface(Matrix& pos,
                                   Matrix& los,
                                   const Matrix& sensor_pos,
                                   const Matrix& sensor_los,
-                                  const Vector& refellipsoid,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy,
                                   const Index& surface_search_safe) {
   chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
-  chk_refellipsoid(refellipsoid);
+  chk_refellipsoid(surface_field.ellipsoid);
   //chk_surface_elevation(surface_elevation);
   chk_if_positive("surface_search_accuracy", surface_search_accuracy);
   chk_if_bool("surface_search_safe", surface_search_safe);
@@ -189,12 +189,11 @@ void IntersectionGeometricSurface(Matrix& pos,
                       decef,
                       sensor_pos(i,joker),
                       sensor_los(i,joker), 
-                      refellipsoid);
+                      surface_field.ellipsoid);
     const Numeric l = find_crossing_with_surface_z(Vector{sensor_pos(i,joker)},
                                                    Vector{sensor_los(i,joker)},
                                                    ecef,
                                                    decef,
-                                                   refellipsoid,
                                                    surface_field,
                                                    surface_search_accuracy,
                                                    surface_search_safe);
@@ -202,7 +201,7 @@ void IntersectionGeometricSurface(Matrix& pos,
       pos(i,joker) = NAN;
       los(i,joker) = NAN;
     } else {
-      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, refellipsoid, l);
+      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, surface_field.ellipsoid, l);
     }
   }
 }
@@ -213,7 +212,7 @@ void TestBasicGeodeticAccuracy(Vector& rte_pos,
                                Numeric& max_dl,
                                Vector& max_dpos,
                                Vector& max_dlos,
-                               const Vector& refellipsoid,
+                               const SurfaceField& surface_field,
                                const Index& ntests,
                                const Numeric& max_allowed_dl) {
   // Seed random generator
@@ -240,9 +239,9 @@ void TestBasicGeodeticAccuracy(Vector& rte_pos,
 
     // Convert to ECEF and back, and then back to ECEF to calculate distance
     Vector ecef(3), decef(3), pos_new(3), los_new(2), ecef_new(3), decef_new(3);
-    geodetic_los2ecef(ecef, decef, pos, los, refellipsoid);
-    ecef2geodetic_los(pos_new, los_new,ecef, decef, refellipsoid);
-    geodetic_los2ecef(ecef_new, decef_new, pos_new, los_new, refellipsoid);
+    geodetic_los2ecef(ecef, decef, pos, los, surface_field.ellipsoid);
+    ecef2geodetic_los(pos_new, los_new,ecef, decef, surface_field.ellipsoid);
+    geodetic_los2ecef(ecef_new, decef_new, pos_new, los_new, surface_field.ellipsoid);
     const Numeric dl = ecef_distance(ecef, ecef_new);
 
     if (dl > max_allowed_dl) {

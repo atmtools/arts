@@ -34,6 +34,7 @@
 #include "geodetic.h"
 #include "lin_alg.h"
 #include "ppath.h"
+#include "surf.h"
 #include "variousZZZ.h"
 
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
@@ -206,7 +207,7 @@ void dlosUniform(Matrix& dlos,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losGeometricToPosition(Vector& rte_los,
-                                const Vector& refellipsoid,
+                                const SurfaceField& surface_field,
                                 const Vector& rte_pos,
                                 const Vector& target_pos)
 {
@@ -216,11 +217,11 @@ void rte_losGeometricToPosition(Vector& rte_los,
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
     rte_los.resize(2);
 
-    geodetic2ecef(ecef, rte_pos, refellipsoid);
-    geodetic2ecef(ecef_target, target_pos, refellipsoid);
+    geodetic2ecef(ecef, rte_pos, surface_field.ellipsoid);
+    geodetic2ecef(ecef_target, target_pos, surface_field.ellipsoid);
     ecef_vector_distance(decef, ecef, ecef_target);
     decef /= norm2(decef);
-    ecef2geodetic_los(dummy, rte_los, ecef, decef, refellipsoid);
+    ecef2geodetic_los(dummy, rte_los, ecef, decef, surface_field.ellipsoid);
 }
 
 
@@ -231,7 +232,6 @@ void rte_losRefractedToPosition(Workspace& ws,
                                 const Agenda& refr_index_air_ZZZ_agenda,
                                 const Numeric& ppath_lstep,
                                 const Numeric& ppath_lraytrace,
-                                const Vector& refellipsoid,
                                 const SurfaceField& surface_field,
                                 const Numeric& surface_search_accuracy,
                                 const Vector& rte_pos,
@@ -253,7 +253,6 @@ void rte_losRefractedToPosition(Workspace& ws,
                            refr_index_air_ZZZ_agenda,
                            ppath_lstep,
                            ppath_lraytrace,
-                           refellipsoid,
                            surface_field,
                            surface_search_accuracy,
                            z_toa,
@@ -309,7 +308,7 @@ void rte_posSet(Vector& rte_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losBackwardToAltitude(Vector& rte_pos,
                                    Vector& rte_los,
-                                   const Vector& refellipsoid,
+                                   const SurfaceField& surface_field,
                                    const Numeric& altitude,
                                    const Index &los_is_reversed)
 {
@@ -329,7 +328,7 @@ void rte_pos_losBackwardToAltitude(Vector& rte_pos,
                                 end_los,
                                 start_pos,
                                 start_los,
-                                refellipsoid,
+                                surface_field,
                                 altitude);
 
   // Extract final values
@@ -341,7 +340,7 @@ void rte_pos_losBackwardToAltitude(Vector& rte_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losForwardToAltitude(Vector& rte_pos,
                                    Vector& rte_los,
-                                   const Vector& refellipsoid,
+                                   const SurfaceField& surface_field,
                                    const Numeric &altitude)
 {
   // Move in altitude
@@ -352,7 +351,7 @@ void rte_pos_losForwardToAltitude(Vector& rte_pos,
                                 end_los,
                                 start_pos,
                                 start_los,
-                                refellipsoid,
+                                surface_field,
                                 altitude);
 
   // Extract final values
@@ -400,7 +399,7 @@ void sensor_losAddLosAndDlos(Matrix& sensor_los,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losGeometricToPosition(Matrix& sensor_los,
-                                   const Vector& refellipsoid,
+                                   const SurfaceField& surface_field,
                                    const Matrix& sensor_pos,
                                    const Vector& target_pos)
 {
@@ -411,20 +410,20 @@ void sensor_losGeometricToPosition(Matrix& sensor_los,
     sensor_los.resize(n, 2);
 
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
-    geodetic2ecef(ecef_target, target_pos, refellipsoid);
+    geodetic2ecef(ecef_target, target_pos, surface_field.ellipsoid);
 
     for (Index i=0; i<n; ++i) {
-      geodetic2ecef(ecef, sensor_pos(i, joker), refellipsoid);
+      geodetic2ecef(ecef, sensor_pos(i, joker), surface_field.ellipsoid);
       ecef_vector_distance(decef, ecef, ecef_target);
       decef /= norm2(decef);
-      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, refellipsoid);
+      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, surface_field.ellipsoid);
     }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losGeometricToPositions(Matrix& sensor_los,
-                                    const Vector& refellipsoid,
+                                    const SurfaceField& surface_field,
                                     const Matrix& sensor_pos,
                                     const Matrix& target_pos)
 {
@@ -439,11 +438,11 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
     Vector ecef(3), ecef_target(3), decef(3), dummy(3);
 
     for (Index i=0; i<n; ++i) {
-      geodetic2ecef(ecef, sensor_pos(i, joker), refellipsoid);
-      geodetic2ecef(ecef_target, target_pos(i, joker), refellipsoid);
+      geodetic2ecef(ecef, sensor_pos(i, joker), surface_field.ellipsoid);
+      geodetic2ecef(ecef_target, target_pos(i, joker), surface_field.ellipsoid);
       ecef_vector_distance(decef, ecef, ecef_target);
       decef /= norm2(decef);
-      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, refellipsoid);
+      ecef2geodetic_los(dummy, sensor_los(i, joker), ecef, decef, surface_field.ellipsoid);
     }
 }
 
@@ -454,7 +453,6 @@ void sensor_losRefractedToPosition(Workspace& ws,
                                    const Agenda& refr_index_air_ZZZ_agenda,
                                    const Numeric& ppath_lstep,
                                    const Numeric& ppath_lraytrace,
-                                   const Vector& refellipsoid,
                                    const SurfaceField& surface_field,
                                    const Numeric& surface_search_accuracy,
                                    const Matrix& sensor_pos,
@@ -481,7 +479,6 @@ void sensor_losRefractedToPosition(Workspace& ws,
                              refr_index_air_ZZZ_agenda,
                              ppath_lstep,
                              ppath_lraytrace,
-                             refellipsoid,
                              surface_field,
                              surface_search_accuracy,
                              z_toa,
@@ -507,7 +504,6 @@ void sensor_losRefractedToPositions(Workspace& ws,
                                     const Agenda& refr_index_air_ZZZ_agenda,
                                     const Numeric& ppath_lstep,
                                     const Numeric& ppath_lraytrace,
-                                    const Vector& refellipsoid,
                                     const SurfaceField& surface_field,
                                     const Numeric& surface_search_accuracy,
                                     const Matrix& sensor_pos,
@@ -536,7 +532,6 @@ void sensor_losRefractedToPositions(Workspace& ws,
                              refr_index_air_ZZZ_agenda,
                              ppath_lstep,
                              ppath_lraytrace,
-                             refellipsoid,
                              surface_field,
                              surface_search_accuracy,
                              z_toa,
@@ -568,7 +563,7 @@ void sensor_losReverse(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
                                       Matrix& sensor_los,
-                                      const Vector& refellipsoid,
+                                      const SurfaceField& surface_field,
                                       const Numeric& altitude,
                                       const Index &los_is_reversed)
 {
@@ -584,7 +579,7 @@ void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
                                 end_los,
                                 sensor_pos,
                                 los2use,
-                                refellipsoid,
+                                surface_field,
                                 altitude);
 
   // Extract final values
@@ -597,7 +592,7 @@ void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
                                      Matrix& sensor_los,
-                                     const Vector& refellipsoid,
+                                     const SurfaceField& surface_field,
                                      const Numeric &altitude)
 {
   // Move in altitude
@@ -606,7 +601,7 @@ void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
                                 end_los,
                                 sensor_pos,
                                 sensor_los,
-                                refellipsoid,
+                                surface_field,
                                 altitude);
 
   // Extract final values

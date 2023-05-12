@@ -8,6 +8,7 @@
 #include "auto_md.h"
 #include "geodetic.h"
 #include "sun.h"
+#include "surf.h"
 #include <iostream>
 
 
@@ -106,7 +107,7 @@ void sunsAddSingleFromGridAtLocation(
                          // Inputs:
                          const Vector &f_grid,
                          const Index &stokes_dim,
-                         const Vector &refellipsoid,
+                         const SurfaceField &surface_field,
                          const GriddedField2 &sun_spectrum_raw,
                          const Numeric &radius,
                          const Numeric &distance,

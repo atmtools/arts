@@ -17,6 +17,7 @@
 #include "lin_alg.h"
 #include "ppath.h"
 #include "ppath_struct.h"
+#include "surf.h"
 #include "variousZZZ.h"
 #include <limits>
 
@@ -111,7 +112,7 @@ void geo_posWhereAltitudeIsPassed(Vector& geo_pos,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathAddGridCrossings(Ppath& ppath,
                            const Numeric& ppath_lstep,
-                           const Vector& refellipsoid,
+                           const SurfaceField& surface_field,
                            const Vector& z_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid)
@@ -119,7 +120,7 @@ void ppathAddGridCrossings(Ppath& ppath,
   chk_if_positive("ppath_lstep", ppath_lstep);
 
   ppath_add_grid_crossings(ppath,
-                           refellipsoid,
+                           surface_field.ellipsoid,
                            z_grid,
                            lat_grid,
                            lon_grid,
@@ -232,7 +233,6 @@ void ppathGeometric(Ppath& ppath,
                     const Vector& rte_los,
                     const Numeric& ppath_lstep,
                     const Numeric& ppath_ltotal,
-                    const Vector& refellipsoid,
                     const SurfaceField& surface_field,
                     const Numeric& surface_search_accuracy,
                     const Index& surface_search_safe,
@@ -241,7 +241,7 @@ void ppathGeometric(Ppath& ppath,
 {
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
-  chk_refellipsoidZZZ(refellipsoid);
+  chk_refellipsoid(surface_field.ellipsoid);
   //chk_surface_elevation(surface_elevation);
 
   const Numeric z_toa = atm_field.top_of_atmosphere;
@@ -252,7 +252,7 @@ void ppathGeometric(Ppath& ppath,
 
   // Convert rte_pos/los to ECEF
   Vector ecef(3), decef(3);
-  geodetic_los2ecef(ecef, decef, rte_pos, rte_los, refellipsoid);
+  geodetic_los2ecef(ecef, decef, rte_pos, rte_los, surface_field.ellipsoid);
 
   // Relate rte_pos to TOA
   Numeric l_outside, l_inside = -1;
@@ -261,7 +261,7 @@ void ppathGeometric(Ppath& ppath,
                                                      rte_los,
                                                      ecef,
                                                      decef,
-                                                     refellipsoid,
+                                                     surface_field.ellipsoid,
                                                      z_toa);
 
   // Number of points in ppath and radiative background
@@ -282,7 +282,6 @@ void ppathGeometric(Ppath& ppath,
                                             rte_los,
                                             ecef,
                                             decef,
-                                            refellipsoid,
                                             surface_field,
                                             surface_search_accuracy,
                                             surface_search_safe);
@@ -300,10 +299,10 @@ void ppathGeometric(Ppath& ppath,
         ecef_at_distance(ecef_toa, ecef, decef, l_outside);
         // Ignore lengths < 1m to find exit point, and not the entrance point
         // from which we start
-        l_inside = intersection_altitude(ecef_toa, decef, refellipsoid, z_toa, 1.0);
+        l_inside = intersection_altitude(ecef_toa, decef, surface_field.ellipsoid, z_toa, 1.0);
       } else {
         // We have upward or limb, both from within the atmosphere
-        l_inside = intersection_altitude(ecef, decef, refellipsoid, z_toa);
+        l_inside = intersection_altitude(ecef, decef, surface_field.ellipsoid, z_toa);
       }
       background = PpathBackground::Space;
     }
@@ -343,7 +342,7 @@ void ppathGeometric(Ppath& ppath,
                          ppath.los(i, joker),
                          ecef,
                          decef,
-                         refellipsoid,
+                         surface_field.ellipsoid,
                          l[i]);
     }
     ppath.lstep.resize(np - 1);
@@ -363,7 +362,6 @@ void ppathGeometric(Ppath& ppath,
     Vector pos{ppath.pos(ppath.np-1, joker)};
     Vector los(2);
     specular_los_calc(los,
-                      refellipsoid,
                       surface_field,
                       pos[Range(1, 2)],
                       ppath.los(ppath.np-1, joker));
@@ -374,7 +372,6 @@ void ppathGeometric(Ppath& ppath,
                    los,
                    ppath_lstep,
                    ppath_ltotal - sum(ppath.lstep),
-                   refellipsoid,
                    surface_field,
                    surface_search_accuracy,
                    surface_search_safe,
@@ -399,7 +396,6 @@ void ppathRefracted(Workspace& ws,
                     const Numeric& ppath_lstep,
                     const Numeric& ppath_ltotal,
                     const Numeric& ppath_lraytrace,
-                    const Vector& refellipsoid,
                     const SurfaceField& surface_field,
                     const Numeric& surface_search_accuracy,
                     const Numeric& z_toa,
@@ -409,14 +405,14 @@ void ppathRefracted(Workspace& ws,
 {
   chk_rte_pos("rte_pos", rte_pos);
   chk_rte_los("rte_los", rte_los);
-  chk_refellipsoidZZZ(refellipsoid);
+  chk_refellipsoid(surface_field.ellipsoid);
   //chk_surface_elevation(surface_elevation);
   chk_if_positive("z_toa", z_toa);
   chk_if_positive("ppath_lstep", ppath_lstep);
 
   // Convert rte_pos/los to ECEF
   Vector ecef(3), decef(3);
-  geodetic_los2ecef(ecef, decef, rte_pos, rte_los, refellipsoid);
+  geodetic_los2ecef(ecef, decef, rte_pos, rte_los, surface_field.ellipsoid);
 
   // Relate rte_pos to TOA
   Numeric l_outside;
@@ -425,7 +421,7 @@ void ppathRefracted(Workspace& ws,
                                                      rte_los,
                                                      ecef,
                                                      decef,
-                                                     refellipsoid,
+                                                     surface_field.ellipsoid,
                                                      z_toa);
 
   // Number of points in ppath and radiative background
@@ -452,7 +448,7 @@ void ppathRefracted(Workspace& ws,
         // We need to calculate from where ppath enters the atmosphere
         ecef_at_distance(ecef0, ecef, decef, l_outside);
         decef0 = decef;
-        ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
+        ecef2geodetic_los(pos0, los0, ecef0, decef0, surface_field.ellipsoid);
     } else {
       pos0 = rte_pos;
       los0 = rte_los;
@@ -503,16 +499,16 @@ void ppathRefracted(Workspace& ws,
       // Move forward with l_rt
       ecef_at_distance(ecef_try, ecef0, decef0, l_rt);
       l2pos0 = l_rt;  // Can be changed below
-      ecef2geodetic_los(pos_try, los_try, ecef_try, decef0, refellipsoid);
+      ecef2geodetic_los(pos_try, los_try, ecef_try, decef0, surface_field.ellipsoid);
       
       // Check if we still are inside. If not, determine end point
       // Above TOA?
       if (pos_try[0] >= z_toa) {
         inside = false;
         background = PpathBackground::Space;
-        l2pos0 = intersection_altitude(ecef0, decef0, refellipsoid, z_toa);
+        l2pos0 = intersection_altitude(ecef0, decef0, surface_field.ellipsoid, z_toa);
         ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
-        ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
+        ecef2geodetic_los(pos0, los0, ecef0, decef0, surface_field.ellipsoid);
       }
 
       // Passed active ppath_ltotal?
@@ -522,7 +518,7 @@ void ppathRefracted(Workspace& ws,
         background = PpathBackground::StopDistance;
         l2pos0 = ppath_ltotal - l_from_start;
         ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
-        ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
+        ecef2geodetic_los(pos0, los0, ecef0, decef0, surface_field.ellipsoid);
 
         // Below surface?
       } else {
@@ -534,12 +530,11 @@ void ppathRefracted(Workspace& ws,
                                                 los0,
                                                 ecef0,
                                                 decef0,
-                                                refellipsoid,
                                                 surface_field,
                                                 surface_search_accuracy,
                                                 0);
           ecef_at_distance(ecef0, ecef0, decef0, l2pos0);
-          ecef2geodetic_los(pos0, los0, ecef0, decef0, refellipsoid);
+          ecef2geodetic_los(pos0, los0, ecef0, decef0, surface_field.ellipsoid);
         }
       }
 
@@ -604,7 +599,7 @@ void ppathRefracted(Workspace& ws,
           los0[0] -= (RAD2DEG * l_rt / n_real) * (sinza * dndz);
         }
         // Don't forget to update decef0! (efecf0 recalculated)
-        geodetic_los2ecef(ecef0, decef0, pos0, los0, refellipsoid);
+        geodetic_los2ecef(ecef0, decef0, pos0, los0, surface_field.ellipsoid);
         
       // If not inside, we just need to determine refractive index
       } else {
@@ -677,7 +672,6 @@ void ppathRefracted(Workspace& ws,
     Vector pos{ppath.pos(ppath.np-1, joker)};
     Vector los(2);
     specular_los_calc(los,
-                      refellipsoid,
                       surface_field,
                       pos[Range(1, 2)],
                       ppath.los(ppath.np-1, joker));
@@ -691,7 +685,6 @@ void ppathRefracted(Workspace& ws,
                    ppath_lstep,
                    ppath_ltotal - sum(ppath.lstep),
                    ppath_lraytrace,
-                   refellipsoid,
                    surface_field,
                    surface_search_accuracy,
                    z_toa,

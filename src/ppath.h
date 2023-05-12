@@ -12,6 +12,7 @@
 #include "agenda_class.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "surf.h"
 
 
 /*===========================================================================
@@ -44,7 +45,6 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
                                      const Vector rte_los,
                                      const Vector ecef,
                                      const Vector decef,
-                                     const Vector& refellipsoid,
                                      const SurfaceField& surface_field,
                                      const Numeric& surface_search_accuracy,
                                      const Index& surface_search_safe);
@@ -74,7 +74,7 @@ Numeric find_crossing_with_surface_z(const Vector rte_pos,
     @date   2022-09-29
 */
 void ppath_add_grid_crossings(Ppath& ppath,
-                              const Vector& refellipsoid,
+                              const Vector2 refellipsoid,
                               const Vector& z_grid,
                               const Vector& lat_grid,
                               const Vector& lon_grid,
@@ -121,7 +121,7 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
                             ConstVectorView rte_los,
                             ConstVectorView ecef,
                             ConstVectorView decef,
-                            const Vector& refellipsoid,
+                            const Vector2 refellipsoid,
                             const Numeric& z_toa);
 
 
@@ -136,7 +136,6 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
     @param[in]      refr_index_air_ZZZ_agenda  As the WSV with same name
     @param[in]      ppath_lstep                As the WSV with same name
     @param[in]      ppath_lraytrace            As the WSV with same name
-    @param[in]      refellipsoid               As the WSV with same name
     @param[in]      surface_elevation          As the WSV with same name
     @param[in]      surface_search_accuracy    As the WSV with same name
     @param[in]      z_toa                      As the GIN with same name
@@ -156,7 +155,6 @@ void refracted_link_basic(Workspace& ws,
                           const Agenda& refr_index_air_ZZZ_agenda,
                           const Numeric& ppath_lstep,
                           const Numeric& ppath_lraytrace,
-                          const Vector& refellipsoid,
                           const SurfaceField& surface_field,
                           const Numeric& surface_search_accuracy,
                           const Numeric& z_toa,
@@ -187,7 +185,6 @@ void refracted_link_basic(Workspace& ws,
     @date   2023-01-07
 */
 void specular_los_calc(VectorView los_new,
-                       const Vector& refellipsoid,
                        const SurfaceField& surface_field,
                        ConstVectorView pos2D,
                        ConstVectorView los,

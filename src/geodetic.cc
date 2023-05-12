@@ -87,7 +87,7 @@ void ecef2geocentric_los(VectorView pos,
 
 void ecef2geodetic(VectorView pos,
                    ConstVectorView ecef,
-                   ConstVectorView refellipsoid) {
+                   const Vector2 refellipsoid) {
   // Use geocentric function if geoid is spherical
   if (is_ellipsoid_spherical(refellipsoid)) {
       ecef2geocentric(pos, ecef);
@@ -124,7 +124,7 @@ void ecef2geodetic_los(VectorView pos,
                        VectorView los,
                        ConstVectorView ecef,
                        ConstVectorView decef,
-                       ConstVectorView refellipsoid) {
+                       const Vector2 refellipsoid) {
   ecef2geodetic(pos, ecef, refellipsoid);
   
   const Numeric latrad = DEG2RAD * pos[1];
@@ -254,7 +254,7 @@ void geocentric_los2ecef(VectorView ecef,
 void approx_geometrical_tangent_point(VectorView ecef_tan,
                                       ConstVectorView ecef,
                                       ConstVectorView decef,
-                                      ConstVectorView refellipsoid) {
+                                      const Vector2 refellipsoid) {
   // Spherical case (length simply obtained by dot product)
   if (is_ellipsoid_spherical(refellipsoid)) {
     ecef_at_distance(ecef_tan, ecef, decef, -(decef * ecef));
@@ -307,7 +307,7 @@ void approx_geometrical_tangent_point(VectorView ecef_tan,
 
 void geodetic2ecef(VectorView ecef,
                    ConstVectorView pos,
-                   ConstVectorView refellipsoid ) {
+                   const Vector2 refellipsoid ) {
   // Use geocentric function if geoid is spherical
   if (is_ellipsoid_spherical(refellipsoid))
     {
@@ -338,7 +338,7 @@ void geodetic_los2ecef(VectorView ecef,
                        VectorView decef,
                        ConstVectorView pos,
                        ConstVectorView los,
-                       ConstVectorView refellipsoid) {
+                       const Vector2 refellipsoid) {
   // lat = +-90
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
@@ -380,11 +380,11 @@ void geodetic_los2ecef(VectorView ecef,
 
 Numeric intersection_altitude(ConstVectorView ecef,
                               ConstVectorView decef,
-                              ConstVectorView refellipsoid,
+                              const Vector2 refellipsoid,
                               const Numeric& altitude,
                               const Numeric& l_min) {  
   Numeric l;
-  Vector ellipsoid{refellipsoid};
+  Vector2 ellipsoid{refellipsoid};
   ellipsoid += altitude;
 
   // Code taken from Atmlab's ellipsoid_intersection
@@ -441,7 +441,7 @@ Numeric intersection_latitude(ConstVectorView ecef,
                               ConstVectorView decef,
                               ConstVectorView pos,
                               ConstVectorView los,
-                              ConstVectorView refellipsoid,
+                              const Vector2 refellipsoid,
                               const Numeric& lat) {
   // If already at lat, l=0
   if (pos[1] == lat) {
@@ -569,7 +569,7 @@ Numeric intersection_longitude(ConstVectorView ecef,
 }
 
 
-bool is_ellipsoid_spherical(ConstVectorView ellipsoid) {
+bool is_ellipsoid_spherical(const Vector2 ellipsoid) {
   if (fabs(ellipsoid[0]-ellipsoid[1]) < ellipsoid_radii_threshold)
     return true;
   else
@@ -592,7 +592,7 @@ void poslos_at_distance(VectorView pos,
                         VectorView los,
                         ConstVectorView ecef,
                         ConstVectorView decef,
-                        ConstVectorView refellipsoid,
+                        const Vector2 refellipsoid,
                         const Numeric l) {
   Vector ecef_new(3);
   ecef_at_distance(ecef_new, ecef, decef, l);
@@ -603,7 +603,7 @@ void poslos_at_distance(VectorView pos,
 void pos_at_distance(VectorView pos,
                      ConstVectorView ecef,
                      ConstVectorView decef,
-                     ConstVectorView refellipsoid,
+                     const Vector2 refellipsoid,
                      const Numeric l) {
   Vector ecef_new(3);
   ecef_at_distance(ecef_new, ecef, decef, l);
@@ -611,7 +611,7 @@ void pos_at_distance(VectorView pos,
 }
 
 
-Numeric prime_vertical_radius(ConstVectorView refellipsoid,
+Numeric prime_vertical_radius(const Vector2 refellipsoid,
                               const Numeric& lat) {
   return refellipsoid[0] * (refellipsoid[0] /
     sqrt(pow2(refellipsoid[0] * cos(DEG2RAD * lat)) +

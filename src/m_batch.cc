@@ -211,7 +211,7 @@ void ybatchMetProfiles(Workspace& ws,
                        const Vector& f_grid,
                        const Matrix& met_amsu_data,
                        const Matrix& sensor_pos,
-                       const Vector& refellipsoid,
+                       const SurfaceField& surface_field,
                        const ArrayOfArrayOfSingleScatteringData& scat_data,
                        //Keyword
                        const Index& nelem_z_grid,
@@ -223,7 +223,6 @@ void ybatchMetProfiles(Workspace& ws,
   Matrix sensor_los;
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
-  SurfaceField surface_field;
   Vector y;
   Index no_profiles = met_amsu_data.nrows();
 
@@ -275,7 +274,7 @@ void ybatchMetProfiles(Workspace& ws,
     lon_os << setprecision((int)lon_prec) << lon[i];
 
     sensor_los(0, 0) =
-        180.0 - (asin(refellipsoid[0] * sin(sat_za_from_data[i] * DEG2RAD) /
+        180.0 - (asin(surface_field.ellipsoid[0] * sin(sat_za_from_data[i] * DEG2RAD) /
                       sensor_pos(0, 0))) *
                     RAD2DEG;
 
@@ -310,7 +309,8 @@ void ybatchMetProfiles(Workspace& ws,
     // xml_write_to_file("profile_number.xml", i);
 
     // Set z_surface from lowest level of z_field
-    surface_field[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];;
+    SurfaceField sf2=surface_field;
+    sf2[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];;
 
     /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
      array is for species.
@@ -408,7 +408,7 @@ void ybatchMetProfiles(Workspace& ws,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,
-                                   surface_field,
+                                   sf2,
                                    met_profile_calc_agenda);
 
     //putting in the spectra *y* for each profile, thus assigning y
@@ -428,7 +428,7 @@ void ybatchMetProfilesClear(Workspace& ws,
                             const Vector& f_grid,
                             const Matrix& met_amsu_data,
                             const Matrix& sensor_pos,
-                            const Vector& refellipsoid,
+                            const SurfaceField& surface_field,
                             //Keyword
                             const Index& nelem_p_grid,
                             const String& met_profile_path) {
@@ -438,7 +438,6 @@ void ybatchMetProfilesClear(Workspace& ws,
   Matrix sensor_los;
   Index cloudbox_on = 0;
   ArrayOfIndex cloudbox_limits;
-  SurfaceField surface_field;
   Vector y;
   Index no_profiles = met_amsu_data.nrows();
   //Index no_profiles = met_profile_basenames.nelem();
@@ -490,7 +489,7 @@ void ybatchMetProfilesClear(Workspace& ws,
 
     sensor_los(Range(joker), 0) =
         180.0 -
-        (asin(refellipsoid[0] * sin(sat_za * PI / 180.) / sensor_pos(0, 0))) *
+        (asin(surface_field.ellipsoid[0] * sin(sat_za * PI / 180.) / sensor_pos(0, 0))) *
             180. / PI;
     cout << "sensor_los" << sat_za_from_profile[i] << endl;
     cout << "sensor_los" << sat_za << endl;
@@ -533,8 +532,9 @@ void ybatchMetProfilesClear(Workspace& ws,
 
     // N_p is the number of elements in the pressure grid
     //z_surface(0,0) = oro_height[i]+ 0.01;
-    surface_field[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];
-    cout << "z_surface" << surface_field << endl;
+    SurfaceField sf2=surface_field;
+    sf2[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];
+    cout << "z_surface" << sf2 << endl;
     const Vector& tfr_z_grid =
         atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(GFIELD3_P_GRID);
     Index N_p = tfr_z_grid.nelem();
@@ -573,7 +573,7 @@ void ybatchMetProfilesClear(Workspace& ws,
                                    sensor_los,
                                    cloudbox_on,
                                    cloudbox_limits,
-                                   surface_field,
+                                   sf2,
                                    met_profile_calc_agenda);
 
     //putting in the spectra *y* for each profile

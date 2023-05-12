@@ -1,10 +1,6 @@
 #include "gridded_fields.h"
 #include "surf.h"
 
-void surface_fieldInit(SurfaceField &surface_field) {
-  surface_field = SurfaceField{};
-}
-
 void surface_fieldSet(SurfaceField &surface_field, const Numeric &value,
                       const String &key) {
   surface_field[Surf::toKeyOrThrow(key)] = value;
