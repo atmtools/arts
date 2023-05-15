@@ -9,7 +9,7 @@ add_library(predef STATIC
     standard.cc
 )
 
-if (ENABLE_ARTS_PURESCIENCE)
+if (NOT ENABLE_ARTS_LGPL)
   add_library(predef_aer STATIC
     MT_CKD100.cc
     MT_CKD252.cc

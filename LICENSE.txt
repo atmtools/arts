@@ -14,25 +14,7 @@ without any warranties.
 
 NOTES:
 
-1.a) If no flags are given to the cmake setup script, ARTS will be
-compiled in GPL mode using all available free software packages that
-we can.
-
-1.b) If the -DARTS_LGPL=1 flag is given to cmake, ARTS is compiled under
-LGPL, removing the stricter GPL code paths.  This is the option used when
-we distribute the ARTS python package.
-
-1.c) If -DENABLE_ARTS_PURESCIENCE=1 flag is given to cmake, ARTS is
-compiled under a strictly scientific license, which limits your right
-to distribute and use the software severely because of the strict L/GPL
-licenses used elsewhere.  This is strictly only allowed for research
-purposes, but we recommend you contact your legal department in case you
-have any other questions.
-
-2) Several third-party libraries used by the software depends on 
-licenses that modifies the attributions you must give to use the 
-software.  Please see the 3rdparty/ folder be clear about what 
-attributions are required.
+The -DENABLE_ARTS_LGPL=1 flag is necessary to activate LGPL code paths
 
 
 ############################################ GPL v3

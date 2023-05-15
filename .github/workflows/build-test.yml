@@ -201,7 +201,7 @@ jobs:
         run: |
           mkdir cmake-build
           cd cmake-build
-          cmake -DENABLE_ARTS_LGPL=0 and -DENABLE_ARTS_PURESCIENCE=1 -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_GUI=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN -DENABLE_NETCDF=1 ${{ matrix.cmakeflags }} ..
+          cmake -DENABLE_ARTS_LGPL=0 -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DENABLE_GUI=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN -DENABLE_NETCDF=1 ${{ matrix.cmakeflags }} ..
 
       - name: Build (Linux)
         if: runner.os == 'Linux' && matrix.arts == 'yes'

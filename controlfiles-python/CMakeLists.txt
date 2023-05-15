@@ -27,7 +27,7 @@ if (NOT ENABLE_ARTS_LGPL)
   arts_test_run_pyfile(fast artscomponents/gasscattering/TestClearsky_StarGasScatteringRayleigh.py)
 endif()
 
-if (ENABLE_ARTS_PURESCIENCE)
+if (NOT ENABLE_ARTS_LGPL)
   arts_test_run_pyfile(fast artscomponents/predefined/TestCKDMT350.py)
 endif()
 
