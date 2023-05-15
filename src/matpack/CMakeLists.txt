@@ -4,3 +4,7 @@ target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/Eigen")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")
+
+if (IPO_SUPPORTED)
+  set_property(TARGET matpack PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()

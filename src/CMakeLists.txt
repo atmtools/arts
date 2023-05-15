@@ -1,15 +1,18 @@
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}/matpack
-                      ${ZLIB_INCLUDE_DIR}
                       ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
                       ${ARTS_SOURCE_DIR}/3rdparty/cdisort
                       ${ARTS_SOURCE_DIR}/3rdparty/Eigen
-                      ${ARTS_SOURCE_DIR}/3rdparty/mdspan/include()
+                      ${ARTS_SOURCE_DIR}/3rdparty/mdspan/include
                     )
 include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
 
 add_subdirectory(matpack)
+add_subdirectory(gui)
+add_subdirectory(python_interface)
+add_subdirectory(predefined)
+add_subdirectory(partfun)
 
 if (NETCDF_FOUND)
   include_directories (${NETCDF_INCLUDE_DIR})
@@ -26,38 +29,8 @@ if (ENABLE_MPI)
   include_directories (${MPI_CXX_INCLUDE_PATH})
 endif (ENABLE_MPI)
 
-set (ALL_ARTS_LIBRARIES
-  artscore
-  methods
-  matpack
-  cdisort
-  species
-  )
-  
-if (ENABLE_GUI)
-  list(PREPEND ALL_ARTS_LIBRARIES artsgui)
-endif()
-
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
-
-if (OpenMP_CXX_FOUND)
-  list (APPEND ALL_ARTS_LIBRARIES OpenMP::OpenMP_CXX)
-endif ()
-
-if (ENABLE_RT4)
-  list (APPEND ALL_ARTS_LIBRARIES rt4)
-endif (ENABLE_RT4)
-
-if (ENABLE_FASTEM)
-  list (APPEND ALL_ARTS_LIBRARIES fastem)
-endif (ENABLE_FASTEM)
-
-if (ENABLE_TMATRIX)
-  list (APPEND ALL_ARTS_LIBRARIES tmatrix)
-endif (ENABLE_TMATRIX)
-
-list (APPEND ALL_ARTS_LIBRARIES Faddeeva)
 
 ########### target to extract version number from ChangeLog ###############
 
@@ -74,7 +47,7 @@ add_custom_command (
 add_executable (arts main.cc)
 add_dependencies(check-deps arts)
 
-target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
+target_link_libraries (arts PRIVATE artscore)
 
 install (TARGETS arts RUNTIME DESTINATION bin)
 
@@ -106,7 +79,7 @@ add_executable (make_auto_md_h
         parameters.cc
         )
 
-target_link_libraries (make_auto_md_h methods matpack)
+target_link_libraries (make_auto_md_h PRIVATE methods matpack)
 
 add_custom_command (
         OUTPUT auto_md.h
@@ -125,7 +98,7 @@ add_executable (make_auto_md_cc
         parameters.cc
         )
 
-target_link_libraries (make_auto_md_cc methods matpack)
+target_link_libraries (make_auto_md_cc PRIVATE methods matpack)
 
 add_custom_command (
         OUTPUT auto_md.cc
@@ -139,7 +112,7 @@ add_executable (make_default_gins
         make_default_gins.cc
         )
 
-target_link_libraries (make_default_gins methods)
+target_link_libraries (make_default_gins PRIVATE methods)
 
 add_custom_command (
         OUTPUT default_gins.cc default_gins.h
@@ -303,47 +276,46 @@ add_library (artscore STATIC
   zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
-add_dependencies (artscore auto_version_cc species)
-target_link_libraries(artscore auto_partfun)
 
+add_dependencies (artscore auto_version_cc)
 if (ENABLE_PCH)
-  target_precompile_headers(artscore PRIVATE pch_artscore.h)
+  target_precompile_headers(artscore PUBLIC pch_artscore.h)
 endif()
 
-if (ENABLE_GUI)
-  add_subdirectory(gui)
-  
-  target_include_directories(artscore PUBLIC ${ARTS_SOURCE_DIR}/src
-                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
-                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
-                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
-                                             ${ARTS_SOURCE_DIR}/3rdparty/)
-  
-  target_link_libraries (artscore artsgui)
+target_link_libraries(artscore PUBLIC auto_partfun methods matpack cdisort species predef xmliobase wigner Faddeeva)
 
+if (ENABLE_GUI)
+  target_link_libraries (artscore PUBLIC artsgui)
   target_compile_definitions(artscore PUBLIC ARTS_GUI_ENABLED)
 endif()
 
-
-add_subdirectory(predefined)
-target_link_libraries (artscore predef)
-
-target_link_libraries (artscore xmliobase wigner)
-
 if (NETCDF_FOUND)
-  target_link_libraries (artscore ${NETCDF_LIBRARIES})
+  target_link_libraries (artscore PUBLIC ${NETCDF_LIBRARIES})
 endif (NETCDF_FOUND)
 
 if (ENABLE_MPI)
-  target_link_libraries (artscore ${MPI_CXX_LIBRARIES})
+  target_link_libraries (artscore PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
 
 if (ENABLE_DOCSERVER)
-  target_link_libraries (artscore MHD::MHD ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries (artscore PUBLIC MHD::MHD ${CMAKE_THREAD_LIBS_INIT})
 endif (ENABLE_DOCSERVER)
 
-########### next target ###############
-        
+if (OpenMP_CXX_FOUND)
+  target_link_libraries (artscore PUBLIC OpenMP::OpenMP_CXX)
+endif ()
+
+if (ENABLE_RT4)
+  target_link_libraries (artscore PUBLIC rt4)
+endif (ENABLE_RT4)
+
+if (ENABLE_FASTEM)
+  target_link_libraries (artscore PUBLIC fastem)
+endif (ENABLE_FASTEM)
+
+if (ENABLE_TMATRIX)
+  target_link_libraries (artscore PUBLIC tmatrix)
+endif (ENABLE_TMATRIX)
 
 ########### next target ###############
 
@@ -353,7 +325,7 @@ add_library (xmliobase STATIC
         xml_io_general_types.cc
         )
 
-target_link_libraries (xmliobase binio matpack)
+target_link_libraries (xmliobase PUBLIC binio matpack)
 
 ########### next target ###############
 
@@ -366,7 +338,7 @@ add_library (binio STATIC
 
 set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
-target_link_libraries (binio ${ZLIB_LIBRARIES})
+target_link_libraries (binio PUBLIC ${ZLIB_LIBRARIES})
 
 ########### next target ###############
 
@@ -386,16 +358,13 @@ set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
 target_link_libraries(methods PUBLIC predef species)
 
 ########################################################################################
-add_subdirectory(partfun)
 
 add_library(species STATIC
             isotopologues.cc
             )
 target_link_libraries(species PUBLIC auto_partfun)
-########################################################################################
 
-########### python interface
-add_subdirectory(python_interface)
+########################################################################################
 
 ########### variant tokval
 add_executable (make_tokval make_tokval.cc groups.cc)
@@ -410,7 +379,6 @@ if (IPO_SUPPORTED)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET make_auto_md_cc PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET make_auto_md_h PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET matpack PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET methods PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
