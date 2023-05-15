@@ -336,7 +336,7 @@ if (ENABLE_MPI)
 endif (ENABLE_MPI)
 
 if (ENABLE_DOCSERVER)
-  target_link_libraries (artscore microhttpd ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries (artscore MHD::MHD ${CMAKE_THREAD_LIBS_INIT})
 endif (ENABLE_DOCSERVER)
 
 ########### next target ###############
@@ -551,10 +551,6 @@ endif ()
 add_executable (test_magfield test_magfield.cc)
 target_link_libraries (test_magfield ${ALL_ARTS_LIBRARIES})
 
-########### subdirs ###############
-
-add_subdirectory (libmicrohttpd)
-
 ########### tests ###############
 
 arts_test_cmdline("describe" -d Copy)
@@ -564,7 +560,9 @@ arts_test_cmdline("input" -i Index)
 arts_test_cmdline("methods" -m all)
 arts_test_cmdline("version" -v)
 arts_test_cmdline("workspacevariables" -w all)
-arts_test_cmdline("check-docs" -C)
+if (ENABLE_DOCSERVER)
+  arts_test_cmdline("check-docs" -C)
+endif ()
 
 # Build a test for the plotting tool
 if (ENABLE_GUI)

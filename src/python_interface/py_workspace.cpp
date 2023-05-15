@@ -338,7 +338,11 @@ void py_workspace(py::module_& m,
                              }, "The group of the variable")
       .def("delete_level", [](WorkspaceVariable& v) {
         if (v.stack_depth()) v.pop_workspace_level();
-      }, "Delete a level from the workspace variable stack");
+      }, "Delete a level from the workspace variable stack")
+      .def("readxml",[](const py::object& wsv, const char* const filename){
+        wsv.attr("initialize_if_not")();
+        wsv.attr("value").attr("readxml")(filename);
+      }, "Read the variable from an xml file");
 
   ws.def("number_of_initialized_variables", [](Workspace& w){
     Index count = 0;

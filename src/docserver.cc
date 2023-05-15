@@ -19,8 +19,7 @@
 
 #include "agenda_record.h"
 #include "global_data.h"
-#include "libmicrohttpd/microhttpd.h"
-#include "libmicrohttpd/platform.h"
+#include "microhttpd.h"
 #include "messages.h"
 #include "methods.h"
 #include "tokval_io.h"
@@ -32,7 +31,7 @@
 
 #define DS_ERROR_404 "Page not found"
 
-static int ahc_echo(void* cls,
+static MHD_Result ahc_echo(void* cls,
                     struct MHD_Connection* connection,
                     const char* url,
                     const char* method,
@@ -1918,15 +1917,15 @@ vector<string> Docserver::find_broken_description_links(const String& desc,
 int Docserver::launch(bool daemon) {
   struct MHD_Daemon* d;
 
-  d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION | MHD_USE_DEBUG,
+  d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION | MHD_USE_INTERNAL_POLLING_THREAD | MHD_USE_DEBUG,
                        (uint16_t)mport,
-                       NULL,
-                       NULL,
+                       nullptr,
+                       nullptr,
                        &ahc_echo,
                        (void*)this,
                        MHD_OPTION_END);
 
-  if (d == NULL) {
+  if (d == nullptr) {
     cerr << "Error: Cannot start server. Maybe port " << mport
          << " is already in use?\n";
     return 1;
@@ -1961,7 +1960,7 @@ int Docserver::launch(bool daemon) {
  
   \author Oliver Lemke
   */
-Docserver::Docserver(const Index port, const string& baseurl) : mos(NULL) {
+Docserver::Docserver(const Index port, const string& baseurl) : mos(nullptr) {
   mbaseurl = baseurl;
   if (port == -1)
     mport = 9000;
@@ -1987,18 +1986,18 @@ Docserver::Docserver(const Index port, const string& baseurl) : mos(NULL) {
 
   \author Oliver Lemke
   */
-static int ahc_echo(void* cls,
-                    struct MHD_Connection* connection,
-                    const char* url,
-                    const char* method,
-                    const char* version _U_,
-                    const char* upload_data _U_,
-                    size_t* upload_data_size _U_,
-                    void** ptr) {
+static MHD_Result ahc_echo(void* cls,
+                           struct MHD_Connection* connection,
+                           const char* url,
+                           const char* method,
+                           const char* version _U_,
+                           const char* upload_data _U_,
+                           size_t* upload_data_size _U_,
+                           void** ptr) {
   static int aptr;
   string surl(url);
   struct MHD_Response* response;
-  int ret;
+  MHD_Result ret;
 
   if (!cls) {
     cerr << "Docserver error: Docserver object reference is NULL.\n";
@@ -2017,7 +2016,7 @@ static int ahc_echo(void* cls,
     *ptr = &aptr;
     return MHD_YES;
   }
-  *ptr = NULL; /* reset when done */
+  *ptr = nullptr; /* reset when done */
   MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "q");
 
   string content_type;
@@ -2026,10 +2025,10 @@ static int ahc_echo(void* cls,
   content_type = docserver.new_page(surl);
   docserver.clear_ostream();
 
-  response = MHD_create_response_from_data(
-      hout.str().length(), (void*)hout.str().c_str(), MHD_NO, MHD_YES);
+  response = MHD_create_response_from_buffer(
+      hout.str().length(), (void*)hout.str().c_str(), MHD_RESPMEM_MUST_COPY);
 
-  if (response == NULL) {
+  if (response == nullptr) {
     cerr << "Docserver error: response = 0\n";
     return MHD_NO;
   }
@@ -2041,6 +2040,9 @@ static int ahc_echo(void* cls,
   return ret;
 }
 
+#endif /* ENABLE_DOCSERVER */
+
+#ifdef ENABLE_DOCSERVER
 void run_docserver(Index port, const String& baseurl, bool daemon) {
   if (daemon) {
     int pid = fork();
@@ -2056,5 +2058,10 @@ void run_docserver(Index port, const String& baseurl, bool daemon) {
     docserver.launch(daemon);
   }
 }
-
+#else /* ENABLE_DOCSERVER */
+void run_docserver(Index, const String &, bool) {
+  std::cerr << "This version of ARTS was compiled without documentation "
+          "server support.\n";
+}
 #endif /* ENABLE_DOCSERVER */
+

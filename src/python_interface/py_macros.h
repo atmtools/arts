@@ -58,6 +58,21 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                   "    file (str): A file that can be read\n"              \
                   "\n"                                                     \
                   "On Error:\n"                                            \
+                  "    Throws RuntimeError for any failure to read"))      \
+      .def_static(                                                         \
+          "fromxml",                                                       \
+          [](const char* const file) {                                     \
+            Type x;                                                        \
+            xml_read_from_file(file, x, Verbosity());                      \
+            return x;                                                      \
+          },                                                               \
+          py::arg("file").none(false),                                     \
+          py::doc("Create :class:`" #Type "` from file\n"                  \
+                  "\n"                                                     \
+                  "Parameters:\n"                                          \
+                  "    file (str): A file that can be read\n"              \
+                  "\n"                                                     \
+                  "On Error:\n"                                            \
                   "    Throws RuntimeError for any failure to read"))
 
 #define PythonInterfaceIndexItemAccess(Type)                                \

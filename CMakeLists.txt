@@ -299,8 +299,14 @@ endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Docserver support ##########
 
-if (NOT NO_DOCSERVER AND HAVE_UNISTD_H)
-  set (ENABLE_DOCSERVER true)
+if (NOT NO_DOCSERVER)
+  find_package (MHD)
+  if (MHD_FOUND)
+    set (ENABLE_DOCSERVER true)
+    message (STATUS "libmicrohttpd found. Enabling docserver.")
+  else ()
+    message (STATUS "No libmicrohttpd found. Disabling docserver.")
+  endif ()
 endif ()
 
 ########### Remove NDEBUG as set by cmake >2.8.10 ##########

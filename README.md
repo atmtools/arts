@@ -29,6 +29,7 @@ Build Prerequisites:
 - zlib
 - openblas
 - libc++ (only for clang)
+- libmicrohttpd (>=0.9, optional, for documentation server)
 - netcdf (optional)
 - Python3 (>=3.9)
   - required modules:

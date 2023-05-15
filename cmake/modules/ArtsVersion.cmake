@@ -17,7 +17,7 @@ set (GIT_DIR "${ARTS_SOURCE_DIR}/.git")
 
 if (IS_DIRECTORY "${GIT_DIR}")
   execute_process (COMMAND
-                   git describe --always --abbrev=8 --dirty
+                   git describe --always --abbrev=8 --first-parent --dirty
                    WORKING_DIRECTORY "${ARTS_SOURCE_DIR}"
                    OUTPUT_VARIABLE GIT_COMMIT_HASH
                    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
