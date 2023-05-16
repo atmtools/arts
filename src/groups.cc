@@ -85,12 +85,6 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfPpath", "A list of *Ppath*");
 
-  wsv_groups.emplace_back("ArrayOfArrayOfPropagationMatrix",
-                          "A list of *ArrayOfPropagationMatrix*");
-
-  wsv_groups.emplace_back("ArrayOfArrayOfRadiationVector",
-                          "A list of *ArrayOfRadiationVector*");
-
   wsv_groups.emplace_back("ArrayOfArrayOfScatteringMetaData",
                           "A list of *ArrayOfScatteringMetaData*");
 
@@ -99,9 +93,6 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfArrayOfSpeciesTag",
                           "A list of *ArrayOfSpeciesTag*");
-
-  wsv_groups.emplace_back("ArrayOfArrayOfStokesVector",
-                          "A list of *ArrayOfStokesVector*");
 
   wsv_groups.emplace_back("ArrayOfArrayOfString", "A list of *ArrayOfString*");
 
@@ -112,12 +103,6 @@ void define_wsv_groups() {
                           "A list of *ArrayOfTensor6*");
 
   wsv_groups.emplace_back("ArrayOfArrayOfTime", "A list of *ArrayOfTime*");
-
-  wsv_groups.emplace_back("ArrayOfArrayOfTransmissionMatrix",
-                          "A list of *ArrayOfTransmissionMatrix*");
-
-  wsv_groups.emplace_back("ArrayOfArrayOfArrayOfTransmissionMatrix",
-                          "A list of *ArrayOfArrayOfTransmissionMatrix*");
 
   wsv_groups.emplace_back("ArrayOfArrayOfVector", "A list of *ArrayOfVector*");
 
@@ -140,14 +125,8 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back("ArrayOfMatrix", "A list of *Matrix*");
 
-  wsv_groups.emplace_back("ArrayOfPropagationMatrix",
-                          "A list of *PropagationMatrix*");
-
   wsv_groups.emplace_back("ArrayOfQuantumIdentifier",
                           "A list of *QuantumIdentifier*");
-
-  wsv_groups.emplace_back("ArrayOfRadiationVector",
-                          "A list of *RadiationVector*");
 
   wsv_groups.emplace_back("ArrayOfRetrievalQuantity",
                           "A list of retrieval quantitities");
@@ -167,8 +146,6 @@ about the isotopologue, the absorption scheme, and the frequency limits)--");
 
   wsv_groups.emplace_back("ArrayOfSun", "A list of sun");
 
-  wsv_groups.emplace_back("ArrayOfStokesVector", "A list of *StokesVector*");
-
   wsv_groups.emplace_back("ArrayOfString", "A list of *String*");
 
   wsv_groups.emplace_back("ArrayOfTelsemAtlas", "A list of *TelsemAtlas*");
@@ -184,9 +161,6 @@ about the isotopologue, the absorption scheme, and the frequency limits)--");
   wsv_groups.emplace_back("ArrayOfTensor7", "A list of *Tensor7*");
 
   wsv_groups.emplace_back("ArrayOfTime", "A list of *Time*");
-
-  wsv_groups.emplace_back("ArrayOfTransmissionMatrix",
-                          "A list of *TransmissionMatrix*");
 
   wsv_groups.emplace_back("ArrayOfVector", "A list of *Vector*");
 
@@ -293,49 +267,6 @@ relaxation matrix are set)--");
   wsv_groups.emplace_back("PredefinedModelData",
                           R"--(Contains any data required for a predefined model)--");
 
-  wsv_groups.emplace_back("PropagationMatrix",
-                          R"--(The propagation matrix data is help by this type
-
-This type is related to *StokesVector*
-
-The data type is *Tensor4* in units of [1/m]
-
-The dimensionality is kept as:
-
-Number of frequencies as *Index* (usually from *f_grid*)
-Number of zenith angles as *Index* 
-Number of azimuth angles as *Index* 
-The Stokes dimension as *Index* (usually from *stokes_dim*)
-
-An individual propagation matrix (i.e., for a given frequency, zenith,
-and azimuth angle) follows certain symmetries depending on the Stokes
-dimension
-
-For Stokes dimension 4:
-
-K11  K12  K13  K14
-K12  K11  K23  K24
-K13 -K23  K11  K34
-K14 -K24 -K34  K11
-
-For Stokes dimension 3:
-
-K11  K12  K13
-K12  K11  K23
-K13 -K23  K11
-
-For Stokes dimension 2:
-
-K11  K12
-K12  K11
-
-For Stokes dimension 1:
-
-K11
-
-The propagation matrix make use of these symmetries to computate the matrix inverses and exponents
-required to turn the data into a *TransmissionMatrix* (with information about the distance))--");
-
   wsv_groups.emplace_back("QuantumIdentifier",
                           R"--(An ID for an absorption species state
 
@@ -347,22 +278,6 @@ and can thus be used to identify one of the following:
 4) an absorption line of an isotopologue
 5) the energy level of absorption band(s) of an isotopologue
 6) the energy level of absorption line(s) of an isotopologue)--");
-
-  wsv_groups.emplace_back(
-      "RadiationVector",
-      R"--(Contains the radiation vector as a function of frequency
-
-This type is related to *TransmissionMatrix*
-
-The stokes dimensionality translates directly to the size of the vector
-
-Internally, this holds an efficiently packed list of these vectors
-
-This is often used in combination with *TransmissionMatrix* to compute the radiative
-transfer through the atmosphere
-
-It holds information about the radiance, unlike its cousin *StokesVector*, which holds information
-about the vector absorption/emission)--");
 
   wsv_groups.emplace_back("Rational",
                           "Holds a rational number as two *Index* n / d");
@@ -378,21 +293,6 @@ about the vector absorption/emission)--");
   wsv_groups.emplace_back(
       "SpeciesIsotopologueRatios",
       "Contains a list of isotopologue ratios for all defined species");
-
-  wsv_groups.emplace_back("StokesVector", R"--(A stokes vector
-
-This type is related to *PropagationMatrix*
-
-The data type is *Tensor4* in units of [1/m]
-
-The dimensionality is kept as:
-
-Number of frequencies as *Index* (usually from *f_grid*)
-Number of zenith angles as *Index* 
-Number of azimuth angles as *Index* 
-The Stokes dimension as *Index* (usually from *stokes_dim*)
-
-This is often used to compute the source emission with the help of a *PropagationMatrix*)--");
 
   wsv_groups.emplace_back("String", "Basic string type");
 
@@ -438,28 +338,56 @@ represent the time stamp.
   wsv_groups.emplace_back(
       "TessemNN", "Data required by TESSEM to calculate surface emissivity");
 
-  wsv_groups.emplace_back(
-      "TransmissionMatrix",
-      R"--(Contains the transmission matrix as a function of frequency
-
-This type is related to *RadiationVector*
-
-The stokes dimensionality squared translates directly to the size of the matrix
-
-Internally, this holds an efficiently packed list of these matrices
-
-This is often used in combination with *RadiationVector* to compute the radiative
-transfer through the atmosphere
-
-The transmission matrix is often computed from the combination of two *PropagationMatrix*
-at different atmospheric path points (using the distance between these points)
-
-It holds information about the polarized transmission, unlike its cousin *PropagationMatrix*,
-which holds information about the polarized absorption)--");
-
   wsv_groups.emplace_back("Vector", "A 1 dimensional array of *Numeric*");
 
   wsv_groups.emplace_back("VibrationalEnergyLevels", "A map of vibrational energy levels for NLTE calculations");
+  
+
+  wsv_groups.emplace_back("Propmat", R"--(A single propagation matrix.
+
+Due to the properties of a propagation matrix, only 7 independents need be stored.
+The propagation matrix is thus represented as:
+  A  B  C  D
+  B  A  U  V
+  C -U  A  W
+  D -V -W  A
+
+This type is related to *Stokvec* in that its first 4 elements are the same as
+the first 4 elements of *Stokvec* for pure clearsky radiative transfers.
+
+This type is also related to *Muelmat* because it is computed often as the exponent
+of this term multiplied by a negative distance.
+)--");
+
+wsv_groups.emplace_back("Muelmat", "A single Mueller 4x4 matrix.");
+
+wsv_groups.emplace_back("Stokvec", "A single Stokes vector (of length 4).");
+
+wsv_groups.emplace_back("PropmatVector", "A vector of *Propmat*.");
+
+wsv_groups.emplace_back("MuelmatVector", "A vector of *Muelmat*.");
+
+wsv_groups.emplace_back("StokvecVector", "A vector of *Stokvec*.");
+
+wsv_groups.emplace_back("PropmatMatrix", "A matrix of *Propmat*.");
+
+wsv_groups.emplace_back("MuelmatMatrix", "A matrix of *Muelmat*.");
+
+wsv_groups.emplace_back("StokvecMatrix", "A matrix of *Stokvec*.");
+
+wsv_groups.emplace_back("ArrayOfPropmatVector", "A list of *PropmatVector*.");
+
+wsv_groups.emplace_back("ArrayOfMuelmatVector", "A list of *MuelmatVector*.");
+
+wsv_groups.emplace_back("ArrayOfStokvecVector", "A list of *StokvecVector*.");
+
+wsv_groups.emplace_back("ArrayOfPropmatMatrix", "A list of *PropmatMatrix*.");
+
+wsv_groups.emplace_back("ArrayOfMuelmatMatrix", "A list of *MuelmatMatrix*.");
+
+wsv_groups.emplace_back("ArrayOfStokvecMatrix", "A list of *StokvecMatrix*.");
+
+wsv_groups.emplace_back("ArrayOfArrayOfMuelmatMatrix", "A list of *ArrayOfMuelmatMatrix*.");
 
   std::sort(wsv_groups.begin(), wsv_groups.end(), [](auto& a, auto& b) {
     return a.name < b.name;

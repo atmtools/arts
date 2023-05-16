@@ -20,8 +20,11 @@
 #include "gridded_fields.h"
 #include "matpack_concepts.h"
 #include "surf.h"
-#include "transmissionmatrix.h"
+#include <matpack.h>
+#include <rtepack.h>
 #include "optproperties.h"
+#include "ppath_struct.h"
+#include "jacobian.h"
 
 
 class Agenda;
@@ -66,7 +69,7 @@ using ArrayOfSun = Array<Sun>;
 /** Calculates the radiance spectrum of sun which is scattered by the atmospheric gases.
  *
  * @param[in,out] ws ARTS workspace.
- * @param[out] scattered_sunlight RadiationVector scattered monochromatic radiance
+ * @param[out] scattered_sunlight StokvecVector scattered monochromatic radiance
  *             spectrum of sun.
  * @param[in] f_grid Vector frequency grid.
  * @param[in] p Numeric pressure at location of scattering.
@@ -83,7 +86,7 @@ using ArrayOfSun = Array<Sun>;
  *            cross sectionand matrix.
  */
 void get_scattered_sunsource(Workspace& ws,
-                              RadiationVector& scattered_sunlight,
+                              StokvecVector& scattered_sunlight,
                               const Vector& f_grid,
                               const AtmPoint& atm_point,
                               const Matrix& transmitted_sunlight,

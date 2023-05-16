@@ -15,7 +15,8 @@
 #include "arts_conversions.h"
 #include "file.h"
 #include "mystring.h"
-#include "propagationmatrix.h"
+#include <matpack.h>
+#include <rtepack.h>
 #include "quantum_numbers.h"
 
 #include <limits>
@@ -470,7 +471,7 @@ const PolarizationVector& SelectPolarization(
  * @param[in] abs The complex absorption vector
  * @param[in] polvec The polarization vector
  */
-void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const PolarizationVector& polvec, const bool do_phase=true) ARTS_NOEXCEPT;
+void sum(PropmatVector& pm, const ComplexVectorView& abs, const PolarizationVector& polvec, const bool do_phase=true) ARTS_NOEXCEPT;
 
 /** Sums the Zeeman components derivatives into a propagation matrix
  * 
@@ -484,7 +485,7 @@ void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const Polarization
  * @param[in] dtheta The derivative w.r.t. theta
  * @param[in] deta The derivative w.r.t. eta
  */
-void dsum(PropagationMatrix& dpm,
+void dsum(PropmatVectorView dpm,
           const ComplexVectorView& abs,
           const ComplexVectorView& dabs,
           const PolarizationVector& polvec,

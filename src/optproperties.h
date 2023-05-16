@@ -19,7 +19,8 @@
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "mystring.h"
-#include "propagationmatrix.h"
+#include <matpack.h>
+#include <rtepack.h>
 
 //! An attribute to classify the particle type (ptype) of a SingleScatteringData
 //structure (a scattering element).
@@ -205,7 +206,7 @@ void pha_mat_1ScatElem(  //Output
     const Index& t_interp_order = 1);
 
 void abs_vecTransform(  //Output and Input
-    StokesVector& abs_vec_lab,
+    StokvecVector& abs_vec_lab,
     //Input
     ConstTensor3View abs_vec_data,
     ConstVectorView za_datagrid,
@@ -215,7 +216,7 @@ void abs_vecTransform(  //Output and Input
     const Numeric& aa_sca);
 
 void ext_matTransform(  //Output and Input
-    PropagationMatrix& ext_mat_lab,
+    PropmatVector& ext_mat_lab,
     //Input
     ConstTensor3View ext_mat_data,
     ConstVectorView za_datagrid,
@@ -273,10 +274,10 @@ void pha_mat_labCalc(  //Output:
 // ========================================================
 
 void opt_prop_sum_propmat_clearsky(  //Output:
-    PropagationMatrix& ext_mat,
-    StokesVector& abs_vec,
+    PropmatVector& ext_mat,
+    StokvecVector& abs_vec,
     //Input:
-    const PropagationMatrix& propmat_clearsky);
+    const PropmatVector& propmat_clearsky);
 
 PType PTypeFromString(const String& ptype_string);
 PType PType2FromString(const String& ptype_string);
