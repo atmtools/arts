@@ -1,6 +1,7 @@
 #include <arts_conversions.h>
 #include <arts_constexpr_math.h>
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 #include <Faddeeva.hh>
 #include <valarray>
 
@@ -13,7 +14,7 @@
 
 namespace Absorption::PredefinedModel::PWR20xx{
 
-void compute_h2o(PropagationMatrix& propmat_clearsky,
+void compute_h2o(PropmatVector& propmat_clearsky,
                  const Vector& f_grid,
                  const Numeric& p_pa,
                  const Numeric& t,
@@ -148,11 +149,11 @@ void compute_h2o(PropagationMatrix& propmat_clearsky,
         }
         constexpr Numeric conv = 1e-13; // Conversion from Hz / GHz cm^2 / m^2 m^-1 to m^-1
         line_sum = conv * inv_pi * line_sum * p_pa * h2o_vmr / (boltzmann_constant * t);
-        propmat_clearsky.Kjj()[iv] += line_sum + cont;
+        propmat_clearsky[iv].A() += line_sum + cont;
   }
 }
 
-void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
+void compute_h2o_2021(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
                          const Numeric& p_pa,
                          const Numeric& t,
@@ -279,7 +280,7 @@ void compute_h2o_2021(PropagationMatrix& propmat_clearsky,
                 xc_s);
 }
 
-void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
+void compute_h2o_2022(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
                       const Numeric& p_pa,
                       const Numeric& t,
@@ -415,7 +416,7 @@ void compute_h2o_2022(PropagationMatrix& propmat_clearsky,
                 xc_s);
 }
 
-void compute_o2(PropagationMatrix& propmat_clearsky,
+void compute_o2(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric& p_pa,
                 const Numeric& t,
@@ -486,13 +487,13 @@ void compute_o2(PropagationMatrix& propmat_clearsky,
         // Factor of 1.004 comes from Koshelev 2017 paper according to o2abs_19.f code
         const Numeric absorption = 1.004 * conv * o2_vmr * inv_pi / (boltzmann_constant * t_ref) * sum * pdry_pa * pow3(theta);
         if (absorption > 0){
-            propmat_clearsky.Kjj()[iv] += absorption;
+            propmat_clearsky[iv].A() += absorption;
         }
     }
 
 }
 
-void compute_o2_2021(PropagationMatrix& propmat_clearsky,
+void compute_o2_2021(PropmatVector& propmat_clearsky,
                      const Vector& f_grid,
                      const Numeric& p_pa,
                      const Numeric& t,
@@ -630,7 +631,7 @@ void compute_o2_2021(PropagationMatrix& propmat_clearsky,
             );
 }
 
-void compute_o2_2022(PropagationMatrix& propmat_clearsky,
+void compute_o2_2022(PropmatVector& propmat_clearsky,
                      const Vector& f_grid,
                      const Numeric& p_pa,
                      const Numeric& t,
@@ -768,7 +769,7 @@ void compute_o2_2022(PropagationMatrix& propmat_clearsky,
             );
 }
 
-void compute_n2(PropagationMatrix& propmat_clearsky,
+void compute_n2(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric& p_pa,
                 const Numeric& t,
@@ -802,7 +803,7 @@ void compute_n2(PropagationMatrix& propmat_clearsky,
         const Numeric f_ghz = hz2ghz(f_grid[iv]);
         const Numeric frequency_dependence = 0.5 + 0.5/(1.0 + pow2(f_ghz / 450.0));
         const Numeric continuum = cont * frequency_dependence * pow2(f_ghz) / 1000.0;
-        propmat_clearsky.Kjj()[iv] += continuum;
+        propmat_clearsky[iv].A() += continuum;
     }
 }
 

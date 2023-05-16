@@ -3,6 +3,7 @@
 #include "matpack_view.h"
 
 #include "rtepack_multitype.h"
+#include "rtepack_propagation_matrix.h"
 #include "rtepack_source.h"
 
 #include <concepts>
@@ -10,13 +11,13 @@
 #include <vector>
 
 namespace rtepack {
-void two_level_exp(mueller &t,
-                   mueller_view &dt1,
-                   mueller_view &dt2,
+void two_level_exp(muelmat &t,
+                   muelmat_vector_view &dt1,
+                   muelmat_vector_view &dt2,
                    const propmat &k1,
                    const propmat &k2,
-                   const const_propmat_view &dk1,
-                   const const_propmat_view &dk2,
+                   const propmat_vector_const_view &dk1,
+                   const propmat_vector_const_view &dk2,
                    const Numeric r,
                    const ExhaustiveConstVectorView &dr1,
                    const ExhaustiveConstVectorView &dr2);

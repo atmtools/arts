@@ -7,9 +7,9 @@
 namespace rtepack {
 constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
-void two_level_exp(mueller &t, mueller_view &dt1, mueller_view &dt2,
+void two_level_exp(muelmat &t, muelmat_vector_view &dt1, muelmat_vector_view &dt2,
                    const propmat &k1, const propmat &k2,
-                   const const_propmat_view &dk1, const const_propmat_view &dk2,
+                   const propmat_vector_const_view &dk1, const propmat_vector_const_view &dk2,
                    const Numeric r, const ExhaustiveConstVectorView &dr1,
                    const ExhaustiveConstVectorView &dr2) {
   const Index N = dk1.size();
@@ -26,13 +26,13 @@ void two_level_exp(mueller &t, mueller_view &dt1, mueller_view &dt2,
   const Numeric exp_a = std::exp(a);
 
   if (b == 0. and c == 0. and d == 0. and u == 0. and v == 0. and w == 0.) {
-    t = mueller{exp_a};
+    t = muelmat{exp_a};
 
     for (Index j = 0; j < N; j++) {
       dt1[j] =
-          mueller{-0.5 * (r * dk1[j].A() + dr1[j] * (k1.A() + k2.A())) * exp_a};
+          muelmat{-0.5 * (r * dk1[j].A() + dr1[j] * (k1.A() + k2.A())) * exp_a};
       dt2[j] =
-          mueller{-0.5 * (r * dk2[j].A() + dr2[j] * (k1.A() + k2.A())) * exp_a};
+          muelmat{-0.5 * (r * dk2[j].A() + dr2[j] * (k1.A() + k2.A())) * exp_a};
     }
   } else {
     const Numeric b2 = b * b, c2 = c * c, d2 = d * d, u2 = u * u, v2 = v * v,
@@ -89,7 +89,7 @@ void two_level_exp(mueller &t, mueller_view &dt1, mueller_view &dt2,
     const Numeric &C1 = real_val(C1c);
     const Numeric &C2 = real_val(C2c);
     const Numeric &C3 = real_val(C3c);
-    t = mueller{exp_a * C0 + C2 * (b2 + c2 + d2),
+    t = muelmat{exp_a * C0 + C2 * (b2 + c2 + d2),
                 exp_a * C1 * b + C2 * (-c * u - d * v) +
                     C3 * (b * (b2 + c2 + d2) - u * (b * u - d * w) -
                           v * (b * v + c * w)),
@@ -200,7 +200,7 @@ void two_level_exp(mueller &t, mueller_view &dt1, mueller_view &dt2,
         const Numeric &dC1 = real_val(dC1c);
         const Numeric &dC2 = real_val(dC2c);
         const Numeric &dC3 = real_val(dC3c);
-        dt1[j] = mueller{
+        dt1[j] = muelmat{
             t(0, 0) * da + exp_a * dC0 + dC2 * (b2 + c2 + d2) +
                 C2 * (db2 + dc2 + dd2),
             t(0, 1) * da + exp_a * db * C1 + b * dC1 + dC2 * (-c * u - d * v) +
@@ -376,7 +376,7 @@ void two_level_exp(mueller &t, mueller_view &dt1, mueller_view &dt2,
         const Numeric &dC1 = real_val(dC1c);
         const Numeric &dC2 = real_val(dC2c);
         const Numeric &dC3 = real_val(dC3c);
-        dt2[j] = mueller{
+        dt2[j] = muelmat{
             t(0, 0) * da + exp_a * dC0 + dC2 * (b2 + c2 + d2) +
                 C2 * (db2 + dc2 + dd2),
             t(0, 1) * da + exp_a * db * C1 + b * dC1 + dC2 * (-c * u - d * v) +

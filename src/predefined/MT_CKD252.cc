@@ -1,7 +1,7 @@
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include "arts_constants.h"
-#include "transmissionmatrix.h"
 
 namespace Absorption::PredefinedModel::MT_CKD252 {
 Numeric XINT_FUN(const Numeric V1A,
@@ -161,7 +161,7 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
    \date     2014-26-06
  */
 //! New implementation
-void carbon_dioxide(PropagationMatrix& propmat_clearsky,
+void carbon_dioxide(PropmatVector& propmat_clearsky,
                     const Vector& f_grid,
                     const Numeric p_pa,
                     const Numeric t,
@@ -1171,7 +1171,7 @@ void carbon_dioxide(PropagationMatrix& propmat_clearsky,
     if ((V > 0.000e0) && (V < FCO2_ckd_mt_250_v2)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
@@ -1219,7 +1219,7 @@ void carbon_dioxide(PropagationMatrix& propmat_clearsky,
    \date 2014-27-06
  */
 //! New implementation
-void oxygen_vis(PropagationMatrix& propmat_clearsky,
+void oxygen_vis(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric p_pa,
                 const Numeric t,
@@ -1537,7 +1537,7 @@ void oxygen_vis(PropagationMatrix& propmat_clearsky,
     if ((V > V1S) && (V < V2S)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, NPTC + 1, V);
     }
   }
@@ -1586,7 +1586,7 @@ void oxygen_vis(PropagationMatrix& propmat_clearsky,
    \date 2002-28-08
  */
 //! New implementation
-void nitrogen_fun(PropagationMatrix& propmat_clearsky,
+void nitrogen_fun(PropmatVector& propmat_clearsky,
                   const Vector& f_grid,
                   const Numeric p_pa,
                   const Numeric t,
@@ -1760,7 +1760,7 @@ void nitrogen_fun(PropagationMatrix& propmat_clearsky,
     if ((V > N2N2_N2F_ckd_mt_250_v1) && (V < N2N2_N2F_ckd_mt_250_v2)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
@@ -1805,7 +1805,7 @@ void nitrogen_fun(PropagationMatrix& propmat_clearsky,
    \date 2002-28-08
  */
 //! New implementation
-void nitrogen_rot(PropagationMatrix& propmat_clearsky,
+void nitrogen_rot(PropmatVector& propmat_clearsky,
                   const Vector& f_grid,
                   const Numeric p_pa,
                   const Numeric t,
@@ -1889,32 +1889,32 @@ void nitrogen_rot(PropagationMatrix& propmat_clearsky,
   // ------------------- subroutine N2R296/N2R220 ----------------------------
 
   if (N2N2_CT296_ckd_mt_100_v1 != N2N2_CT220_ckd_mt_100_v1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "!!ERROR!!\n"
        << "CKD_MT 2.50 N2-N2 CIA rotational band:\n"
        << "parameter V1 not the same for different ref. temperatures.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (N2N2_CT296_ckd_mt_100_v2 != N2N2_CT220_ckd_mt_100_v2) {
-    ostringstream os;
+    std::ostringstream os;
     os << "!!ERROR!!\n"
        << "CKD_MT 2.50 N2-N2 CIA rotational band:\n"
        << "parameter V2 not the same for different ref. temperatures.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (N2N2_CT296_ckd_mt_100_dv != N2N2_CT220_ckd_mt_100_dv) {
-    ostringstream os;
+    std::ostringstream os;
     os << "!!ERROR!!\n"
        << "CKD_MT 2.50 N2-N2 CIA rotational band:\n"
        << "parameter DV not the same for different ref. temperatures.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (N2N2_CT296_ckd_mt_100_npt != N2N2_CT220_ckd_mt_100_npt) {
-    ostringstream os;
+    std::ostringstream os;
     os << "!!ERROR!!\n"
        << "CKD_MT 2.50 N2-N2 CIA rotational band:\n"
        << "parameter NPT not the same for different ref. temperatures.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // retrieve the appropriate array sequence of the self continuum
@@ -2000,7 +2000,7 @@ void nitrogen_rot(PropagationMatrix& propmat_clearsky,
     if ((V > 0.000e0) && (V < N2N2_CT220_ckd_mt_100_v2)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }

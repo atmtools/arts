@@ -1,4 +1,5 @@
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include "arts_constexpr_math.h"
 
@@ -41,7 +42,7 @@ namespace Absorption::PredefinedModel::Standard {
    \date 2001-11-05
  */
 //! New implementation
-void oxygen(PropagationMatrix& propmat_clearsky,
+void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
             const Numeric p_pa,
             const Numeric t,
@@ -74,7 +75,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
   for (Index s = 0; s < f_grid.nelem(); ++s) {
     // division by vmr of O2 is necessary because of the absorption calculation
     // abs = vmr * pxsec.
-    propmat_clearsky.Kjj()[s] +=
+    propmat_clearsky[s].A() +=
         o2 * C * p_pa * pow2(TH) *
         (gamma * pow2(f_grid[s]) / (pow2(f_grid[s]) + pow2(gamma)));
   }
@@ -112,7 +113,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
    \date 2001-11-05
  */
 //! New implementation
-void nitrogen(PropagationMatrix& propmat_clearsky,
+void nitrogen(PropmatVector& propmat_clearsky,
               const Vector& f_grid,
               const Numeric p_pa,
               const Numeric t,
@@ -132,7 +133,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
   for (Index s = 0; s < f_grid.nelem(); ++s) {
     // The second N2-VMR will be multiplied at the stage of absorption
     // calculation: abs = vmr * pxsec.
-    propmat_clearsky.Kjj()[s] +=
+    propmat_clearsky[s].A() +=
         n2 * C *               // strength [1/(m*Hz²Pa²)]
         pow(300.00 / t, xt) *  // T dependence        [1]
         pow(f_grid[s], xf) *   // f dependence    [Hz^xt]
@@ -169,7 +170,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
    \date 2001-08-03
  */
 //! New implementation
-void water_foreign(PropagationMatrix& propmat_clearsky,
+void water_foreign(PropmatVector& propmat_clearsky,
                    const Vector& f_grid,
                    const Numeric p_pa,
                    const Numeric t,
@@ -190,7 +191,7 @@ void water_foreign(PropagationMatrix& propmat_clearsky,
 
   // Loop frequency:
   for (Index s = 0; s < f_grid.nelem(); ++s) {
-    propmat_clearsky.Kjj()[s] += h2o * dummy * pow2(f_grid[s]);
+    propmat_clearsky[s].A() += h2o * dummy * pow2(f_grid[s]);
   }
 }
 
@@ -219,7 +220,7 @@ void water_foreign(PropagationMatrix& propmat_clearsky,
    \date 2001-11-05
  */
 //! New implementation
-void water_self(PropagationMatrix& propmat_clearsky,
+void water_self(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric p_pa,
                 const Numeric t,
@@ -237,7 +238,7 @@ void water_self(PropagationMatrix& propmat_clearsky,
 
   // Loop over frequency grid:
   for (Index s = 0; s < f_grid.nelem(); ++s) {
-    propmat_clearsky.Kjj()[s] += h2o * dummy * pow2(f_grid[s]);
+    propmat_clearsky[s].A() += h2o * dummy * pow2(f_grid[s]);
     //    cout << "pxsec(" << s << "," << i << "): " << pxsec(s,i) << "\n";
   }
 }

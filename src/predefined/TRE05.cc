@@ -1,4 +1,5 @@
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include <array>
 #include <cstddef>
@@ -108,7 +109,7 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
  *  \date 2013-09-20
  */
 
-void oxygen(PropagationMatrix& propmat_clearsky,
+void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
             const Numeric p_pa,
             const Numeric t,
@@ -285,7 +286,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
     // O2 line absorption [1/m]
     // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    propmat_clearsky.Kjj()[s] +=
+    propmat_clearsky[s].A() +=
         oxygen_vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + Nppc) / VMRISO;
   }
 }

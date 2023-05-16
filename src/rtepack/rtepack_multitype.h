@@ -1,19 +1,19 @@
 #pragma once
 
-#include "rtepack_mueller.h"
-#include "rtepack_propmat.h"
-#include "rtepack_stokes.h"
+#include "rtepack_mueller_matrix.h"
+#include "rtepack_propagation_matrix.h"
+#include "rtepack_stokes_vector.h"
 
 namespace rtepack {
-constexpr mueller to_mueller(const propmat &k) {
+constexpr muelmat to_muelmat(const propmat &k) {
   const auto [a, b, c, d, u, v, w] = k.data;
   return {a, b, c, d, b, a, u, v, c, -u, a, w, d, -v, -w, a};
 }
-constexpr stokes absvec(const propmat &k) {
+constexpr stokvec absvec(const propmat &k) {
   return {k.A(), k.B(), k.C(), k.D()};
 }
 
-constexpr mueller inv(const propmat &k) {
+constexpr muelmat inv(const propmat &k) {
   const auto [a, b, c, d, u, v, w] = k.data;
   const Numeric a2 = a * a, b2 = b * b, c2 = c * c, u2 = u * u, d2 = d * d,
                 v2 = v * v, w2 = w * w;
@@ -43,23 +43,23 @@ constexpr mueller inv(const propmat &k) {
       a * (a2 - b2 - c2 + u2) * div};
 }
 
-//! Mueller matrix multiplied by a lazy stokes vector
-constexpr auto operator*(const mueller &a, const lazy_stokes auto &b) {
+//! muelmat matrix multiplied by a lazy stokvec vector
+constexpr auto operator*(const muelmat &a, const lazy_stokvec auto &b) {
   return smvmul{constexpr_smat_data<Numeric, 4>(a), b};
 }
 
-//! Mueller matrix multiplied by a stokes vector
-constexpr auto operator*(const mueller &a, const stokes &b) {
+//! muelmat matrix multiplied by a stokvec vector
+constexpr auto operator*(const muelmat &a, const stokvec &b) {
   return smvmul{constexpr_smat_data{a}, constexpr_vec_data{b}};
 }
 
-//! Lazy mueller matrix multiplied by a stokes vector
-constexpr auto operator*(const lazy_mueller auto &a, const stokes &b) {
+//! Lazy muelmat matrix multiplied by a stokvec vector
+constexpr auto operator*(const lazy_muelmat auto &a, const stokvec &b) {
   return smvmul{a, constexpr_vec_data{b}};
 }
 
-//! Mutliply a propmat with a mueller matrix
-constexpr mueller operator*(const propmat &k, const mueller &m) {
+//! Mutliply a propmat with a muelmat matrix
+constexpr muelmat operator*(const propmat &k, const muelmat &m) {
   const auto [a, b, c, d, u, v, w] = k.data;
   const auto [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15,
               m16] = m.data;
@@ -75,8 +75,8 @@ constexpr mueller operator*(const propmat &k, const mueller &m) {
       a * m15 + d * m3 - m11 * w - m7 * v, a * m16 + d * m4 - m12 * w - m8 * v};
 }
 
-//! Mutliply a mueller matrix with a propmat
-constexpr mueller operator*(const mueller &m, const propmat &k) {
+//! Mutliply a muelmat matrix with a propmat
+constexpr muelmat operator*(const muelmat &m, const propmat &k) {
   const auto [a, b, c, d, u, v, w] = k.data;
   const auto [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15,
               m16] = m.data;
@@ -99,8 +99,8 @@ constexpr mueller operator*(const mueller &m, const propmat &k) {
           a * m16 + d * m13 + m14 * v + m15 * w};
 }
 
-//! Multiply a propagation matrix with a stokes vector
-constexpr stokes operator*(const propmat &k, const stokes s) {
+//! Multiply a propagation matrix with a stokvec vector
+constexpr stokvec operator*(const propmat &k, const stokvec s) {
   const auto [a, b, c, d, u, v, w] = k.data;
   const auto [s1, s2, s3, s4] = s.data;
 

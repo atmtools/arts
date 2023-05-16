@@ -1,5 +1,6 @@
 #include <arts_conversions.h>
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 /*
       --------------------------- CKD_MT_3.50 -------------------------
@@ -1022,7 +1023,7 @@ Numeric XINT_FUN(const Numeric V1A,
    \author   Stuart Fox
    \date     2021-09-15
 */
-void compute_self_h2o(PropagationMatrix& propmat_clearsky,
+void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
                       const Numeric& P,
                       const Numeric& T,
@@ -1103,7 +1104,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
       // interpolate the k vector on the f_grid grid
       // The factor 100 comes from the conversion from 1/cm to 1/m for
       // the absorption coefficient
-      propmat_clearsky.Kjj()[s] += 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
+      propmat_clearsky[s].A() += 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
 }
@@ -1138,7 +1139,7 @@ October 2020: The water vapor continuum in the microwave through far-infrared wa
    \author Stuart Fox
    \date 2021-09-16
 */
-void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
+void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
                          const Numeric& P,
                          const Numeric& T,
@@ -1254,7 +1255,7 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
       // interpolate the k vector on the f_grid grid
       // The factor 100 comes from the conversion from (1/cm) to (1/m)
       // of the abs. coeff.
-      propmat_clearsky.Kjj()[s] += 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
+      propmat_clearsky[s].A() += 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
 }
