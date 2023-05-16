@@ -3,6 +3,7 @@ add_subdirectory(gui)
 add_subdirectory(partfun)
 add_subdirectory(predefined)
 add_subdirectory(python_interface)
+add_subdirectory(rtepack)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES
@@ -313,6 +314,10 @@ endif (ENABLE_FASTEM)
 if (ENABLE_TMATRIX)
   target_link_libraries (artscore PUBLIC tmatrix)
 endif (ENABLE_TMATRIX)
+
+########### next target ###############
+
+target_link_libraries(artscore PUBLIC rtepack)
 
 ########### next target ###############
 
