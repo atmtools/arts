@@ -3119,7 +3119,7 @@ Can currently only contain data for new MT CKD models of water.
           "Dimensions: [naa, nza, nf, f(stokes_dim)]\n"
           "\n"
           "Unit: 1/m\n"),
-      GROUP("PropagationMatrix")));
+      GROUP("PropmatVector")));
 
   wsv_data.push_back(
       WsvRecord(NAME("propmat_clearsky_agenda_checked"),
@@ -3980,7 +3980,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("background_transmittance"),
       DESCRIPTION(
           "Transmittance from the background"),
-      GROUP("TransmissionMatrix")));
+      GROUP("MuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_rad"),
@@ -3992,19 +3992,19 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("ppvar_drad"),
       DESCRIPTION(
           "Radiation derivative along the propagation path"),
-      GROUP("ArrayOfArrayOfStokvecVector")));
+      GROUP("ArrayOfStokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_propmat"),
       DESCRIPTION(
           "Propagation matrices along the propagation path"),
-      GROUP("ArrayOfPropagationMatrix")));
+      GROUP("ArrayOfPropmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_dpropmat"),
       DESCRIPTION(
           "Propagation derivative matrices along the propagation path"),
-      GROUP("ArrayOfArrayOfPropagationMatrix")));
+      GROUP("ArrayOfPropmatMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_nlte"),
@@ -4016,7 +4016,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("ppvar_dnlte"),
       DESCRIPTION(
           "Additional NLTE derivative along the propagation path"),
-      GROUP("ArrayOfArrayOfStokvecVector")));
+      GROUP("ArrayOfStokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_src"),
@@ -4028,25 +4028,25 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("ppvar_dsrc"),
       DESCRIPTION(
           "Source derivative vectors along the propagation path"),
-      GROUP("ArrayOfArrayOfStokvecVector")));
+      GROUP("ArrayOfStokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_tramat"),
       DESCRIPTION(
           "Transmission matrices along the propagation path"),
-      GROUP("ArrayOfTransmissionMatrix")));
+      GROUP("ArrayOfMuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_cumtramat"),
       DESCRIPTION(
           "Cumulative transmission matrices along the propagation path"),
-      GROUP("ArrayOfTransmissionMatrix")));
+      GROUP("ArrayOfMuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_dtramat"),
       DESCRIPTION(
           "Transmission derivative matrices along the propagation path"),
-      GROUP("ArrayOfArrayOfArrayOfTransmissionMatrix")));
+      GROUP("ArrayOfArrayOfMuelmatMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_distance"),

@@ -5027,17 +5027,11 @@ computations.
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
-          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
-          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,"
-          "PropagationMatrix, StokesVector",
+          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6",
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
-          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
-          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,"
-          "PropagationMatrix, StokesVector",
+          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6",
           "Numeric",
           "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
