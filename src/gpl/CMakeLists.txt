@@ -5,3 +5,4 @@ else()
 endif()
 
 target_include_directories(artscore_gpl_selector PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(artscore_gpl_selector PUBLIC matpack)

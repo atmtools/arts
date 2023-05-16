@@ -382,6 +382,6 @@ if (IPO_SUPPORTED)
 endif()
 
 add_subdirectory(gpl)
-target_link_libraries(artscore artscore_gpl_selector)
+target_link_libraries(artscore PUBLIC artscore_gpl_selector)
 
 add_subdirectory(tests)
