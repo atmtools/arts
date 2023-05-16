@@ -279,7 +279,7 @@ add_library (artscore STATIC
 
 add_dependencies (artscore auto_version_cc)
 if (ENABLE_PCH)
-  target_precompile_headers(artscore PUBLIC pch_artscore.h)
+  target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
 target_link_libraries(artscore PUBLIC auto_partfun methods matpack cdisort species predef xmliobase wigner Faddeeva)
