@@ -1,21 +1,10 @@
-include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
-                      ${CMAKE_CURRENT_SOURCE_DIR}
-                      ${CMAKE_CURRENT_SOURCE_DIR}/matpack
-                      ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
-                      ${ARTS_SOURCE_DIR}/3rdparty/cdisort
-                      ${ARTS_SOURCE_DIR}/3rdparty/Eigen
-                      ${ARTS_SOURCE_DIR}/3rdparty/mdspan/include
-                    )
-include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
-
 add_subdirectory(matpack)
 add_subdirectory(gui)
-add_subdirectory(python_interface)
-add_subdirectory(predefined)
 add_subdirectory(partfun)
+add_subdirectory(predefined)
+add_subdirectory(python_interface)
 
 if (NETCDF_FOUND)
-  include_directories (${NETCDF_INCLUDE_DIR})
   set (NETCDF_CC_FILES
     nc_io.cc
     nc_io_array_types.cc
@@ -60,6 +49,7 @@ add_executable (make_workspace_memory_handler_cc
                 file.cc
                 parameters.cc
                 messages.cc)
+target_link_libraries(make_workspace_memory_handler_cc PRIVATE matpack)
 add_custom_command (
         OUTPUT workspace_memory_handler.cc
         COMMAND make_workspace_memory_handler_cc
@@ -277,6 +267,12 @@ add_library (artscore STATIC
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 
+target_include_directories (artscore PUBLIC 
+  ${ARTS_SOURCE_DIR}/3rdparty/cdisort
+  ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
+  ${NETCDF_INCLUDE_DIR}
+  )
+
 add_dependencies (artscore auto_version_cc)
 if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
@@ -338,7 +334,7 @@ add_library (binio STATIC
 
 set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
-target_link_libraries (binio PUBLIC ${ZLIB_LIBRARIES})
+target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
 
 ########### next target ###############
 
@@ -355,7 +351,7 @@ add_library (methods STATIC
         )
 
 set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-target_link_libraries(methods PUBLIC predef species)
+target_link_libraries(methods PUBLIC matpack predef species)
 
 ########################################################################################
 
@@ -368,6 +364,7 @@ target_link_libraries(species PUBLIC auto_partfun)
 
 ########### variant tokval
 add_executable (make_tokval make_tokval.cc groups.cc)
+target_link_libraries(make_tokval PRIVATE matpack)
 add_custom_command(OUTPUT tokval.h tokval.cc
                    COMMAND make_tokval
                    DEPENDS make_tokval)
