@@ -218,8 +218,7 @@ void TestBasicGeodeticAccuracy(Vector& rte_pos,
   // Seed random generator
   Index seed;
   MCSetSeedFromTime(seed);
-  Rng rng;
-  rng.seed(seed);
+  RandomNumberGenerator<> rng(seed);
 
   // Init GOUTs
   max_dl = 0;
@@ -231,11 +230,11 @@ void TestBasicGeodeticAccuracy(Vector& rte_pos,
   for (Index i=0; i<ntests; i++) {
     // Create a random pos and los
     Vector pos(3), los(2);
-    pos[0] = 100e3*rng.draw() - 100.0;
-    pos[1] = 180*rng.draw() - 90.0;
-    pos[2] = 360*rng.draw() - 180.0;
-    los[0] = 180*rng.draw();    
-    los[1] = 360*rng.draw() - 180.0;
+    pos[0] = rng.get(0.0, 100e3)() - 100.0;
+    pos[1] = rng.get(0.0, 180.)() - 90.0;
+    pos[2] = rng.get(0.0, 360.0)() - 180.0;
+    los[0] = rng.get(0.0, 180.0)();
+    los[1] = rng.get(0.0, 360.0)() - 180.0;
 
     // Convert to ECEF and back, and then back to ECEF to calculate distance
     Vector ecef(3), decef(3), pos_new(3), los_new(2), ecef_new(3), decef_new(3);
