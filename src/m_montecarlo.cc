@@ -1,20 +1,3 @@
-/* Copyright (C) 2003-2012 Cory Davis <cory@met.ed.ac.uk>
-                            
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 2, or (at your option) any
-   later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-   USA. */
-
 /**
  * @file   m_montecarlo.cc
  * @author Cory Davis <cory@met.ed.ac.uk>
@@ -202,7 +185,7 @@ void MCGeneral(Workspace& ws,
   }
 
   Ppath ppath_step;
-  Rng rng;  //Random Number generator
+  RandomNumberGenerator<> rng;  //Random Number generator
   time_t start_time = time(NULL);
   Index N_se = pnd_field.nbooks();  //Number of scattering elements
   Vector pnd_vec(
@@ -221,7 +204,8 @@ void MCGeneral(Workspace& ws,
     }
   }
 
-  rng.seed(mc_seed, verbosity);
+  rng.seed(mc_seed);
+
   Numeric g, temperature, albedo, g_los_csc_theta;
   Matrix A(stokes_dim, stokes_dim), Q(stokes_dim, stokes_dim);
   Matrix evol_op(stokes_dim, stokes_dim), ext_mat_mono(stokes_dim, stokes_dim);
@@ -397,7 +381,7 @@ void MCGeneral(Workspace& ws,
           } else
           //decide between reflection and emission
           {
-            const Numeric rnd = rng.draw();
+            const Numeric rnd = rng.get(0.0, 1.0)();
 
             Numeric R11 = 0;
             for (Index i = 0; i < local_surface_rmatrix.nbooks(); i++) {
@@ -435,7 +419,7 @@ void MCGeneral(Workspace& ws,
           albedo = 1 - abs_vec_mono[0] / ext_mat_mono(0, 0);
 
           //determine whether photon is emitted or scattered
-          if (rng.draw() > albedo) {
+          if (rng.get(0.0, 1.0)() > albedo) {
             //Calculate emission
             Numeric planck_value = planck(f_mono, temperature);
             Vector emission = abs_vec_mono;
@@ -674,13 +658,13 @@ void MCRadar(  // Workspace reference:
   }
 
   Ppath ppath_step;
-  Rng rng;                          //Random Number generator
+  RandomNumberGenerator<> rng(mc_seed);                          //Random Number generator
   Index N_se = pnd_field.nbooks();  //Number of scattering elements
   Vector pnd_vec(
       N_se);  //Vector of particle number densities used at each point
   bool anyptype_nonTotRan = is_anyptype_nonTotRan(scat_data);
   bool is_dist = max(range_bins) > 1;  // Is it round trip time or distance
-  rng.seed(mc_seed, verbosity);
+  
   Numeric ppath_lraytrace_var;
   //Numeric temperature, albedo;
   Numeric albedo;
@@ -851,7 +835,7 @@ void MCRadar(  // Workspace reference:
         albedo = Csca / Cext;
 
         // Terminate if absorption event, outside cloud, or surface
-        Numeric rn = rng.draw();
+        Numeric rn = rng.get(0.0, 1.0)();
         if (rn > albedo) {
           keepgoing = false;
           continue;

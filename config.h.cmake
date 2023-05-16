@@ -29,9 +29,6 @@
 /* Define to compile with FASTEM support */
 #cmakedefine ENABLE_FASTEM
 
-/* Define to compile with REFICE support */
-#cmakedefine ENABLE_REFICE
-
 /* Define to compile with relmat support */
 #cmakedefine ENABLE_RELMAT
 

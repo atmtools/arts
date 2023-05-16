@@ -1,20 +1,3 @@
-/* Copyright (C) 2003-2012 Cory Davis <cory@met.ed.ac.uk>
-  
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
-  
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-  
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-   USA. */
-
 #ifndef montecarlo_h
 #define montecarlo_h
 
@@ -285,7 +268,7 @@ void mcPathTraceGeneral(Workspace& ws,
                         Vector& abs_vec_mono,
                         Numeric& temperature,
                         MatrixView ext_mat_mono,
-                        Rng& rng,
+                        RandomNumberGenerator<>& rng,
                         Vector& rte_pos,
                         Vector& rte_los,
                         Vector& pnd_vec,
@@ -374,7 +357,7 @@ void mcPathTraceRadar(Workspace& ws,
                       Vector& abs_vec_mono,
                       Numeric& temperature,
                       MatrixView ext_mat_mono,
-                      Rng& rng,
+                      RandomNumberGenerator<>& rng,
                       Vector& rte_pos,
                       Vector& rte_los,
                       Vector& pnd_vec,
@@ -431,7 +414,7 @@ void mcPathTraceRadar(Workspace& ws,
 void Sample_los(VectorView new_rte_los,
                 Numeric& g_los_csc_theta,
                 MatrixView Z,
-                Rng& rng,
+                RandomNumberGenerator<>& rng,
                 ConstVectorView rte_los,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Index stokes_dim,
@@ -452,6 +435,6 @@ void Sample_los(VectorView new_rte_los,
  * @author     *** FIXMEDOC ***
  * @date       *** FIXMEDOC ***
  */
-void Sample_los_uniform(VectorView new_rte_los, Rng& rng);
+void Sample_los_uniform(VectorView new_rte_los, RandomNumberGenerator<>& rng);
 
 #endif  // montecarlo_h

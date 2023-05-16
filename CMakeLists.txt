@@ -50,6 +50,7 @@ endif()
 
 # User options (auto-complete and cmake gui works better like this)
 include(CMakeDependentOption)
+option (ENABLE_ARTS_LGPL "Make the code LGPL compatible" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_FORTRAN "Turn on Fortran code" OFF)
@@ -63,8 +64,6 @@ option (NO_ASSERT "Turn off all asserts" OFF)
 option (NO_DOCSERVER "Turn off the document server" OFF)
 cmake_dependent_option(
     NO_FASTEM "Turn off FASTEM even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
-cmake_dependent_option(
-    NO_REFICE "Turn off REFICE even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 cmake_dependent_option(
     NO_RT4 "Turn off RT4 even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 cmake_dependent_option(
@@ -85,6 +84,27 @@ if (IGNORE_CONDA_PATH)
               ${CONDA_PATH}/include)
     endif()
   endif()
+endif()
+
+########### License settings ##########
+if (ENABLE_ARTS_LGPL)
+  add_definitions(-DARTS_LGPL=1)
+else()
+  add_definitions(-DARTS_LGPL=0)
+endif()
+
+if (ENABLE_FORTRAN)
+ if (NOT NO_FASTEM AND ENABLE_ARTS_LGPL)
+  message(FATAL_ERROR "FASTEM is not available as LGPL.")
+ elseif(NOT NO_RT4 AND ENABLE_ARTS_LGPL)
+  message(FATAL_ERROR "RT4 is not available as LGPL.")
+ elseif(NOT NO_TMATRIX AND ENABLE_ARTS_LGPL)
+  message(FATAL_ERROR "TMATRIX is not available as LGPL.")
+ endif()
+endif()
+
+if(ENABLE_ARTS_LGPL)
+  message(STATUS "Compiling ARTS under LGPL")
 endif()
 
 ########### C++20/23 Support ##########
@@ -521,10 +541,6 @@ get_directory_property(ENABLE_RT4 DIRECTORY
 get_directory_property(ENABLE_FASTEM DIRECTORY
                        3rdparty/fastem
                        DEFINITION ENABLE_FASTEM)
-
-get_directory_property(ENABLE_REFICE DIRECTORY
-                       3rdparty/refice
-                       DEFINITION ENABLE_REFICE)
 
 get_directory_property(ENABLE_TMATRIX DIRECTORY
                        3rdparty/tmatrix

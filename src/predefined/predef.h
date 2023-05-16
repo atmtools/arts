@@ -164,13 +164,13 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const Vector& f_grid,
                       const Numeric& p,
                       const Numeric& Tave,
-                      const Numeric& vmrh2o) noexcept;
+                      const Numeric& vmrh2o);
 
 void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
                          const Vector& f_grid,
                          const Numeric& p,
                          const Numeric& Tave,
-                         const Numeric& vmrh2o) noexcept;
+                         const Numeric& vmrh2o);
 }  // namespace CKDMT350
 
 namespace MT_CKD400 {

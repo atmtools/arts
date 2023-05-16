@@ -1,20 +1,3 @@
-/* Copyright (C) 2005-2012 Cory Davis <cdavis@staffmail.ed.ac.uk>
-                            
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 2, or (at your option) any
-   later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-   USA. */
-
 /**
  * @file   mc_antenna.h
  * @author Cory Davis <cdavis@staffmail.ed.ac.uk>
@@ -143,31 +126,12 @@ struct MCAntenna {
    */
   void draw_los(VectorView sampled_rte_los,
                 MatrixView R_los,
-                Rng& rng,
+                RandomNumberGenerator<>& rng,
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
 
   friend ostream& operator<<(ostream& os, const MCAntenna& mca);
 };
-
-/** ran_gaussian.
- *
- * Returns the gaussian random deviate.
- * Draw a random normal (Gaussian) deviate.
- * Polar (Box-Mueller) method; See Knuth v2, 3rd ed, p122.
- *
- * @param[in]   rng    Rng random number generator instance.
- * @param[in]   sigma  Standard deviation parameter for gaussian distribution.
- *
- * @author      Cory Davis
- * @date        2003-12-01
- */
-Numeric ran_gaussian(Rng& rng, const Numeric sigma);
-
-/** ran_uniform.  *** FIXMEDOC ***
- *
- */
-Numeric ran_uniform(Rng& rng);
 
 /** rotmat_enu.
  *

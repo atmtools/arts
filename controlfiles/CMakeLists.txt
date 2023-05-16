@@ -111,8 +111,9 @@ arts_test_run_ctlfile(fast artscomponents/radar/TestOnionPeeling.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
-
+if (NOT ENABLE_ARTS_LGPL)
 arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)
+endif()
 
 arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
 
@@ -136,10 +137,6 @@ if (ENABLE_FASTEM)
   arts_test_run_ctlfile(fast artscomponents/surface/TestSurfaceSinglePol.arts)
   arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1to4.arts)
   arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4.arts)
-endif ()
-
-if (ENABLE_REFICE)
-  arts_test_run_ctlfile(fast artscomponents/refice/TestRefice.arts)
 endif ()
 
 if (ENABLE_NETCDF)

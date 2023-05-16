@@ -1,24 +1,3 @@
-/* Copyright (C) 2017
-
-   Jana Mendrok <jana.mendrok@gmail.com>
-   Patrick Eriksson <patrick.eriksson@chalmers.se>
-
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 2, or (at your option) any
-   later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-   USA.
-*/
-
 /**
   @file   microphysics.cc>
   @author Jana Mendrok, Patrick Eriksson
@@ -36,6 +15,7 @@
 #include <cmath>
 #include <ctime>
 #include <limits>
+#include <random>
 #include <stdexcept>
 
 #include "arts.h"
@@ -91,10 +71,7 @@ void psd_cloudice_MH97(Vector& psd,
   Numeric sig_absigma = 0., sig_bbsigma = 0.;
 
   if (noisy) {
-    Rng rng;  //Random Number generator
-    Index mc_seed;
-    mc_seed = (Index)time(NULL);
-    rng.seed(mc_seed, Verbosity());
+    RandomNumberGenerator<> rng;  //Random Number generator
 
     sig_a = 0.068, sig_b1 = 0.054;
     sig_b2 = 5.5e-3, sig_m = 0.0029;
@@ -103,18 +80,18 @@ void psd_cloudice_MH97(Vector& psd,
     sig_aasigma = 0.02, sig_basigma = 0.5e-3;
     sig_absigma = 0.023, sig_bbsigma = 4.7e-4;
 
-    sig_a = ran_gaussian(rng, sig_a);
-    sig_b1 = ran_gaussian(rng, sig_b1);
-    sig_b2 = ran_gaussian(rng, sig_b2);
-    sig_m = ran_gaussian(rng, sig_m);
-    sig_aamu = ran_gaussian(rng, sig_aamu);
-    sig_bamu = ran_gaussian(rng, sig_bamu);
-    sig_abmu = ran_gaussian(rng, sig_abmu);
-    sig_bbmu = ran_gaussian(rng, sig_bbmu);
-    sig_aasigma = ran_gaussian(rng, sig_aasigma);
-    sig_basigma = ran_gaussian(rng, sig_basigma);
-    sig_absigma = ran_gaussian(rng, sig_absigma);
-    sig_bbsigma = ran_gaussian(rng, sig_bbsigma);
+    sig_a = rng.get<std::normal_distribution>(0.0, sig_a)();
+    sig_b1 = rng.get<std::normal_distribution>(0.0, sig_b1)();
+    sig_b2 = rng.get<std::normal_distribution>(0.0, sig_b2)();
+    sig_m = rng.get<std::normal_distribution>(0.0, sig_m)();
+    sig_aamu = rng.get<std::normal_distribution>(0.0, sig_aamu)();
+    sig_bamu = rng.get<std::normal_distribution>(0.0, sig_bamu)();
+    sig_abmu = rng.get<std::normal_distribution>(0.0, sig_abmu)();
+    sig_bbmu = rng.get<std::normal_distribution>(0.0, sig_bbmu)();
+    sig_aasigma = rng.get<std::normal_distribution>(0.0, sig_aasigma)();
+    sig_basigma = rng.get<std::normal_distribution>(0.0, sig_basigma)();
+    sig_absigma = rng.get<std::normal_distribution>(0.0, sig_absigma)();
+    sig_bbsigma = rng.get<std::normal_distribution>(0.0, sig_bbsigma)();;
   }
 
   // Split IWC in small and large size modes
