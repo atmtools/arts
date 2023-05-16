@@ -2,5 +2,11 @@ add_library(matpack STATIC lin_alg.cc logic.cc propagationmatrix.cc matpack_math
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_include_directories(matpack PUBLIC "${ARTS_BINARY_DIR}/src")
+target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/Eigen")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")
+
+if (IPO_SUPPORTED)
+  set_property(TARGET matpack PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
