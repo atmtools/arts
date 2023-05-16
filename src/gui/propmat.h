@@ -1,20 +1,19 @@
 #include <mutex>
 
 #include <jacobian.h>
-#include <propagationmatrix.h>
+#include <rtepack.h>
 
 #include "atm.h"
 #include "enums.h"
 #include "gui.h"
-#include "transmissionmatrix.h"
 
 namespace ARTSGUI {
 namespace PropmatClearsky {
 struct ComputeValues {
-  PropagationMatrix pm;
-  ArrayOfPropagationMatrix aopm;
-  StokesVector sv;
-  ArrayOfStokesVector aosv;
+  PropmatVector pm;
+  PropmatMatrix aopm;
+  StokvecVector sv;
+  StokvecMatrix aosv;
 
   ArrayOfRetrievalQuantity jacobian_quantities;
   ArrayOfSpeciesTag select_abs_species;
@@ -23,8 +22,8 @@ struct ComputeValues {
   AtmPoint atm_point;
 
   Numeric transmission_distance;
-  TransmissionMatrix tm;
-  ArrayOfTransmissionMatrix aotm;
+  MuelmatVector tm;
+  MuelmatMatrix aotm;
 };
 
 struct Control {

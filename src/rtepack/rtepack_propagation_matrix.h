@@ -40,6 +40,8 @@ struct propmat final : vec7 {
   [[nodiscard]] constexpr Numeric &W() { return this->operator[](6); }
 
   [[nodiscard]] constexpr bool is_rotational() const { return A() == 0.0; }
+
+  constexpr auto operator<=>(const propmat &pm) const { return A() <=> pm.A(); }
 };
 
 //! Addition of two propmat matrixes
@@ -108,14 +110,6 @@ using propmat_matrix_const_view = matpack::matpack_view<propmat, 2, true, false>
 using propmat_tensor3 = matpack::matpack_data<propmat, 3>;
 using propmat_tensor3_view = matpack::matpack_view<propmat, 3, false, false>;
 using propmat_tensor3_const_view = matpack::matpack_view<propmat, 3, true, false>;
-
-constexpr auto max(const propmat_vector &pm) {
-  propmat max_pm = pm.front();
-  for (auto &p : pm) {
-    max_pm = p.A() > max_pm.A() ? p : max_pm;
-  }
-  return max_pm;
-}
 } // namespace rtepack
 
 

@@ -8,7 +8,7 @@ if (ENABLE_GUI)
               propmat.cc
               )
   add_dependencies(artsgui BuildAutoSources)
-  target_link_libraries(artsgui PUBLIC imgui implot matpack artscore species)
+  target_link_libraries(artsgui PUBLIC imgui implot matpack rtepack artscore species)
   target_include_directories(artsgui PUBLIC ${ARTS_SOURCE_DIR}/src
                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/

@@ -17,6 +17,7 @@
 #include <cfloat>
 #include <stdexcept>
 #include "nlte.h"
+#include "rtepack.h"
 #include "surf.h"
 #include "xml_io_general_types.h"
 #include "absorption.h"
@@ -39,13 +40,12 @@
 #include "optproperties.h"
 #include "template_partfun.h"
 #include "ppath_struct.h"
-#include "propagationmatrix.h"
 #include <predefined/predef_data.h>
+#include <rtepack.h>
 #include "sun.h"
 #include "surf.h"
 #include "telsem.h"
 #include "tessem.h"
-#include "transmissionmatrix.h"
 #include "xsec_fit.h"
 #include "absorptionlines.h"
 #include "linemixing.h"
@@ -138,19 +138,22 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTime)
-TMPL_XML_READ_WRITE_STREAM(PropagationMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropagationMatrix)
-TMPL_XML_READ_WRITE_STREAM(TransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfTransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(StokesVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfStokesVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokesVector)
-TMPL_XML_READ_WRITE_STREAM(RadiationVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfRadiationVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfRadiationVector)
+
+TMPL_XML_READ_WRITE_STREAM(PropmatVector)
+TMPL_XML_READ_WRITE_STREAM(PropmatMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropmatVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropmatMatrix)
+
+TMPL_XML_READ_WRITE_STREAM(StokvecVector)
+TMPL_XML_READ_WRITE_STREAM(StokvecMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecMatrix)
+
+TMPL_XML_READ_WRITE_STREAM(MuelmatVector)
+TMPL_XML_READ_WRITE_STREAM(MuelmatMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatMatrix)
+
 TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfIndex)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMatrix)
