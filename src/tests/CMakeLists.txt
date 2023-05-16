@@ -263,5 +263,5 @@ add_executable(test_interp_perf test_interp_perf.cc)
 target_link_libraries(test_interp_perf PUBLIC matpack artscore)
 
 #####
-add_executable(test_rng test_rng.cc artstime.cc)
+add_executable(test_rng test_rng.cc ../artstime.cc)
 target_link_libraries(test_rng PUBLIC matpack)
