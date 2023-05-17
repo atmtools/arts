@@ -7,13 +7,13 @@
 #include <algorithm>
 
 namespace rtepack::source {
-constexpr stokvec level_lte(Numeric B) { return B; }
+constexpr stokvec level_lte(Numeric B) { return stokvec{B}; }
 
 constexpr stokvec level_lte(stokvec_vector_view &dj, Numeric B,
                             const ExhaustiveConstVectorView &dB) {
   ARTS_ASSERT(dj.nelem() == dB.nelem())
   std::transform(dB.elem_begin(), dB.elem_end(), dj.elem_begin(),
-                 [](auto &db) -> stokvec { return db; });
+                 [](auto &db) { return stokvec{db}; });
   return level_lte(B);
 }
 
@@ -41,10 +41,10 @@ constexpr stokvec level_nlte(stokvec_vector_view &dj, Numeric B,
   return out;
 }
 
-constexpr stokvec unpolarized_basis_vector() { return 1; }
+constexpr stokvec unpolarized_basis_vector() { return stokvec{1}; }
 
 constexpr stokvec unpolarized_basis_vector(stokvec_vector_view &dj) {
-  std::fill(dj.elem_begin(), dj.elem_end(), stokvec{});
+  std::fill(dj.elem_begin(), dj.elem_end(), unpolarized_basis_vector());
   return unpolarized_basis_vector();
 }
 } // namespace rtepack::source

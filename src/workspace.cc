@@ -1233,7 +1233,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
           "\n"
           "Unit: 1/m/jacobian_quantity\n"),
-      GROUP("ArrayOfStokvecVector")));
+      GROUP("StokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("doit_conv_flag"),

@@ -19,7 +19,7 @@
 #include "agenda_class.h"
 #include "matpack_data.h"
 #include "ppath.h"
-#include "propagationmatrix.h"
+#include "rtepack.h"
 
 //! Solves monochromatic VRTE for an atmospheric slab with constant conditions.
 /*!
@@ -71,8 +71,8 @@ void rte_step_doit_replacement(
     VectorView stokes_vec,
     MatrixView trans_mat,
     //Input
-    const PropagationMatrix& ext_mat_av,
-    const StokesVector& abs_vec_av,
+    const PropmatVector& ext_mat_av,
+    const StokvecVector& abs_vec_av,
     ConstVectorView sca_vec_av,
     const Numeric& lstep,
     const Numeric& rtp_planck_value,

@@ -13,10 +13,10 @@
 #include "atm.h"
 #include "jacobian.h"
 #include "predefined/predef_data.h"
-#include "propagationmatrix.h"
 #include "species.h"
 #include <algorithm>
 #include <random>
+#include <rtepack.h>
 
 namespace Absorption::PredefinedModel {
 /** Contains known required VMR values
@@ -81,8 +81,8 @@ bool can_compute(const SpeciesIsotopeRecord& model);
  * @param[in] predefined_model_data As WSV
  */
 void compute(
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     const SpeciesIsotopeRecord& tag,
     const Vector& f_grid,
     const Numeric& rtp_pressure,

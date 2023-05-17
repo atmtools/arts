@@ -25,6 +25,7 @@
 #include "matpack_complex.h"
 #include "optproperties.h"
 #include "ppath.h"
+#include "rtepack.h"
 
 
 class Workspace;
@@ -55,8 +56,8 @@ class Workspace;
  * @date   2017-09-21
  */
 void adapt_stepwise_partial_derivatives(
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
+    PropmatMatrix& dK_dx,
+    StokvecMatrix& dS_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_f_grid,
     const ConstVectorView& ppath_line_of_sight,
@@ -444,10 +445,10 @@ void get_stepwise_blackbody_radiation(VectorView B,
  */
 void get_stepwise_clearsky_propmat(
   Workspace& ws,
-  PropagationMatrix& K,
-  StokesVector& S,
-  ArrayOfPropagationMatrix& dK_dx,
-  ArrayOfStokesVector& dS_dx,
+  PropmatVector& K,
+  StokvecVector& S,
+  PropmatMatrix& dK_dx,
+  StokvecMatrix& dS_dx,
   const Agenda& propmat_clearsky_agenda,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Vector& ppath_f_grid,
@@ -490,10 +491,10 @@ Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
  *  @date   2017-09-21
  */
 void get_stepwise_scattersky_propmat(
-    StokesVector& ap,
-    PropagationMatrix& Kp,
-    ArrayOfStokesVector& dap_dx,
-    ArrayOfPropagationMatrix& dKp_dx,
+    StokvecVector& ap,
+    PropmatVector& Kp,
+    StokvecMatrix& dap_dx,
+    PropmatMatrix& dKp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstMatrixView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
@@ -518,8 +519,8 @@ void get_stepwise_scattersky_propmat(
  *  @date   2018-03-29
  */
 void get_stepwise_scattersky_source(
-    StokesVector& Sp,
-    ArrayOfStokesVector& dSp_dx,
+    StokvecVector& Sp,
+    StokvecMatrix& dSp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_1p_pnd,
     const ArrayOfMatrix& ppath_dpnd_dx,
@@ -563,10 +564,10 @@ void get_stepwise_transmission_matrix(
     Tensor4View dT_dx_close,
     Tensor4View dT_dx_far,
     const ConstTensor3View& cumulative_transmission_close,
-    const PropagationMatrix& K_close,
-    const PropagationMatrix& K_far,
-    const ArrayOfPropagationMatrix& dK_close_dx,
-    const ArrayOfPropagationMatrix& dK_far_dx,
+    const PropmatVector& K_close,
+    const PropmatVector& K_far,
+    const PropmatMatrix& dK_close_dx,
+    const PropmatMatrix& dK_far_dx,
     const Numeric& ppath_distance,
     const bool& first_level,
     const Numeric& dr_dT_close = 0,

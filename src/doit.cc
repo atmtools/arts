@@ -33,8 +33,11 @@
 #include "matpack_data.h"
 #include "physics_funcs.h"
 #include "ppath.h"
-#include "propagationmatrix.h"
 #include "rte.h"
+#include "rtepack.h"
+#include "rtepack_multitype.h"
+#include "rtepack_rtestep.h"
+#include "rtepack_stokes_vector.h"
 #include "sorting.h"
 #include "special_interp.h"
 #include "species_tags.h"
@@ -46,104 +49,25 @@ inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 //FIXME function name of 'rte_step_doit_replacement' should be replaced by
 //proper name
 void rte_step_doit_replacement(  //Output and Input:
-    VectorView stokes_vec,
-    MatrixView trans_mat,
+    Stokvec& stokes_vec,
+    Muelmat& trans_mat,
     //Input
-    const PropagationMatrix& ext_mat_av,
-    const StokesVector& abs_vec_av,
-    ConstVectorView sca_vec_av,
+    const Propmat& ext_mat_av,
+    const Stokvec& abs_vec_av,
+    Stokvec sca_vec_av,
     const Numeric& lstep,
     const Numeric& rtp_planck_value,
     const bool& trans_is_precalc) {
-  //Stokes dimension:
-  Index stokes_dim = stokes_vec.nelem();
-
-  //Test sizes
-  ARTS_ASSERT(ext_mat_av.NumberOfFrequencies() == 1 and
-         abs_vec_av.NumberOfFrequencies() == 1);
-
-  //Check inputs:
-  ARTS_ASSERT(is_size(trans_mat, stokes_dim, stokes_dim));
-  ARTS_ASSERT(stokes_dim == ext_mat_av.StokesDimensions() and
-         stokes_dim == abs_vec_av.StokesDimensions());
-  ARTS_ASSERT(is_size(sca_vec_av, stokes_dim));
   ARTS_ASSERT(rtp_planck_value >= 0);
   ARTS_ASSERT(lstep >= 0);
-  //ARTS_ASSERT (not ext_mat_av.AnySingular());  This is ARTS_ASSERTed at a later time in this version...
 
-  // Check, if only the first component of abs_vec is non-zero:
-//   const bool unpol_abs_vec = abs_vec_av.IsUnpolarized(0);
-
-//   bool unpol_sca_vec = true;
-
-//   for (Index i = 1; i < stokes_dim; i++)
-//     if (sca_vec_av[i] != 0) unpol_sca_vec = false;
-
-  // Calculate transmission by general function, if not precalculated
-//   Index extmat_case = 0;
   if (!trans_is_precalc) {
-    compute_transmission_matrix_from_averaged_matrix_at_frequency(
-        trans_mat, lstep, ext_mat_av, 0);
+    trans_mat = rtepack::exp(ext_mat_av, lstep);
   }
 
-  //--- Scalar case: ---------------------------------------------------------
-  if (stokes_dim == 1) {
-    stokes_vec[0] = stokes_vec[0] * trans_mat(0, 0) +
-                    (abs_vec_av.Kjj()[0] * rtp_planck_value + sca_vec_av[0]) /
-                        ext_mat_av.Kjj()[0] * (1 - trans_mat(0, 0));
-  }
-
-  //--- Vector case: ---------------------------------------------------------
-
-  // We have here two cases, diagonal or non-diagonal ext_mat_gas
-  // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
-  // non-zero value in position 1.
-
-  //- Unpolarised
-//   else if (extmat_case == 1 && unpol_abs_vec && unpol_sca_vec) {
-//     const Numeric invK = 1.0 / ext_mat_av.Kjj()[0];
-//     // Stokes dim 1
-//     stokes_vec[0] = stokes_vec[0] * trans_mat(0, 0) +
-//                     (abs_vec_av.Kjj()[0] * rtp_planck_value + sca_vec_av[0]) *
-//                         invK * (1 - trans_mat(0, 0));
-// 
-//     // Stokes dims > 1
-//     for (Index i = 1; i < stokes_dim; i++) {
-//       stokes_vec[i] = stokes_vec[i] * trans_mat(i, i) +
-//                       sca_vec_av[i] * invK * (1 - trans_mat(i, i));
-//     }
-//   }
-
-  //- General case
-  else {
-    Matrix invK(stokes_dim, stokes_dim);
-    ext_mat_av.MatrixInverseAtPosition(invK);
-
-    Vector source{abs_vec_av.VectorAtPosition()};
-    source *= rtp_planck_value;
-
-    for (Index i = 0; i < stokes_dim; i++)
-      source[i] += sca_vec_av[i];  // b = abs_vec * B + sca_vec
-
-    // solve K^(-1)*b = x
-    Vector x(stokes_dim);
-    mult(x, invK, source);
-
-    Vector term1(stokes_dim);
-    Vector term2(stokes_dim);
-
-    Matrix ImT(stokes_dim, stokes_dim);
-    id_mat(ImT);
-    ImT -= trans_mat;
-    mult(term2, ImT, x);  // term2: second term of the solution of the RTE with
-                          //fixed scattered field
-
-    // term1: first term of solution of the RTE with fixed scattered field
-    mult(term1, trans_mat, stokes_vec);
-
-    for (Index i = 0; i < stokes_dim; i++)
-      stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
-  }
+  stokes_vec = rtepack::linear_step(
+      trans_mat, stokes_vec,
+      inv(ext_mat_av) * (abs_vec_av * rtp_planck_value + sca_vec_av));
 }
 
 void cloud_fieldsCalc(Workspace& ws,
@@ -182,19 +106,11 @@ void cloud_fieldsCalc(Workspace& ws,
   // Initialize ext_mat(_spt), abs_vec(_spt)
   // Resize and initialize variables for storing optical properties
   // of all scattering elements.
-  ArrayOfStokesVector abs_vec_spt_local(N_se);
-  for (auto& av : abs_vec_spt_local) {
-    av = StokesVector(1, stokes_dim);
-    av.SetZero();
-  }
-  ArrayOfPropagationMatrix ext_mat_spt_local(N_se);
-  for (auto& pm : ext_mat_spt_local) {
-    pm = PropagationMatrix(1, stokes_dim);
-    pm.SetZero();
-  }
+  ArrayOfStokvecVector abs_vec_spt_local(N_se, StokvecVector{1, Stokvec{0, 0, 0, 0}});
+  ArrayOfPropmatVector ext_mat_spt_local(N_se, PropmatVector{1, Propmat{0, 0, 0, 0, 0, 0, 0}});
 
-  StokesVector abs_vec_local;
-  PropagationMatrix ext_mat_local;
+  StokvecVector abs_vec_local;
+  PropmatVector ext_mat_local;
   Numeric rtp_temperature_local;
 
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
@@ -263,16 +179,15 @@ void cloud_fieldsCalc(Workspace& ws,
                           scat_lon_index_local);
 
         // Store coefficients in arrays for the whole cloudbox.
-        abs_vec_field(scat_p_index_local,
-                      scat_lat_index_local,
-                      scat_lon_index_local,
-                      joker) = abs_vec_local.VectorAtPosition();
-
-        ext_mat_local.MatrixAtPosition(ext_mat_field(scat_p_index_local,
-                                                     scat_lat_index_local,
-                                                     scat_lon_index_local,
-                                                     joker,
-                                                     joker));
+        auto mmat = rtepack::to_muelmat(ext_mat_local[0]);
+        for (Index i = 0; i < 4; i++) {
+          abs_vec_field(scat_p_index_local, scat_lat_index_local,
+                        scat_lon_index_local, i) = abs_vec_local[0].data[i];
+          for (Index j = 0; j < 4; j++) {
+            ext_mat_field(scat_p_index_local, scat_lat_index_local,
+                          scat_lon_index_local, i, j) = mmat(i, j);
+          }
+        }
       }
     }
   }
@@ -619,9 +534,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = cloudbox_field_mono.ncols();
   const Index atmosphere_dim = 1;
-  PropagationMatrix propmat_clearsky;
-  PropagationMatrix ext_mat;
-  StokesVector abs_vec;
+  PropmatVector propmat_clearsky;
+  PropmatVector ext_mat;
+  StokvecVector abs_vec;
   Matrix matrix_tmp(stokes_dim, stokes_dim);
   Vector vector_tmp(stokes_dim);
   Vector rtp_vmr(N_species, 0.);
@@ -678,9 +593,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
 
-      StokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      StokvecVector nlte_dummy;  //FIXME: do this right?
+      PropmatMatrix partial_dummy;  // This is right since there should be only clearsky partials
+      StokvecMatrix partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
@@ -710,15 +625,15 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       //
       // Add average particle absorption to abs_vec.
       //
-      abs_vec.AddAverageAtPosition(
-          abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker),
-          abs_vec_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker));
+      abs_vec[0] += rtepack::avg(
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker)},
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker)});
 
       //
       // Add average particle extinction to ext_mat.
-      ext_mat.AddAverageAtPosition(
-          ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker),
-          ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker));
+      ext_mat[0] += rtepack::avg(
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker)},
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker)});
 
       // Frequency
       Numeric f = f_grid[f_index];
@@ -778,9 +693,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
-      StokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      StokvecVector nlte_dummy;  //FIXME: do this right?
+      PropmatMatrix partial_dummy;  // This is right since there should be only clearsky partials
+      StokvecMatrix partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
@@ -815,15 +730,15 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       //
       // Add average particle absorption to abs_vec.
       //
-      abs_vec.AddAverageAtPosition(
+      abs_vec[0] += rtepack::avg(
           abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker),
           abs_vec_field(p_index - cloudbox_limits[0] - 1, 0, 0, joker));
 
       //
       // Add average particle extinction to ext_mat.
-      ext_mat.AddAverageAtPosition(
-          ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker),
-          ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker));
+      ext_mat[0] += rtepack::avg(
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker)},
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker)});
 
       // Frequency
       Numeric f = f_grid[f_index];
@@ -1335,11 +1250,11 @@ void cloud_RT_no_background(Workspace& ws,
   Vector rtp_vmr_local(N_species, 0.);
 
   // Two propmat_clearsky to average between
-  PropagationMatrix cur_propmat_clearsky;
-  PropagationMatrix prev_propmat_clearsky;
+  PropmatVector cur_propmat_clearsky;
+  PropmatVector prev_propmat_clearsky;
 
-  PropagationMatrix ext_mat_local;
-  StokesVector abs_vec_local;
+  PropmatVector ext_mat_local;
+  StokvecVector abs_vec_local;
   Matrix matrix_tmp(stokes_dim, stokes_dim);
   Vector vector_tmp(stokes_dim);
 
@@ -1357,9 +1272,9 @@ void cloud_RT_no_background(Workspace& ws,
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
 
-    StokesVector nlte_dummy;  //FIXME: do this right?
-    ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
-    ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
+    StokvecVector nlte_dummy;  //FIXME: do this right?
+    PropmatMatrix partial_dummy;  // This is right since there should be only clearsky partials
+    StokvecMatrix partial_nlte_dummy;  // This is right since there should be only clearsky partials
     propmat_clearsky_agendaExecute(ws,
                                    cur_propmat_clearsky,
                                    nlte_dummy,
@@ -1393,14 +1308,13 @@ void cloud_RT_no_background(Workspace& ws,
     //
     // Add average particle absorption to abs_vec.
     //
-    abs_vec_local.AddAverageAtPosition(abs_vec_int(joker, k),
-                                       abs_vec_int(joker, k + 1));
+    abs_vec_local[0] += rtepack::avg(abs_vec_int(joker, k), abs_vec_int(joker, k + 1));
 
     //
     // Add average particle extinction to ext_mat.
     //
-    ext_mat_local.AddAverageAtPosition(ext_mat_int(joker, joker, k),
-                                       ext_mat_int(joker, joker, k + 1));
+    ext_mat_local[0] += avg(Propmat{ext_mat_int(joker, joker, k)},
+                            Propmat{ext_mat_int(joker, joker, k + 1)});
 
     // Frequency
     Numeric f = f_grid[f_index];

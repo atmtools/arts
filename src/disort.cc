@@ -23,6 +23,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "arts_conversions.h"
+#include "rtepack.h"
 #include "species_tags.h"
 
 #if not ARTS_LGPL
@@ -344,11 +345,11 @@ void get_gasoptprop(Workspace& ws,
   // making gas property output containers and input dummies
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
-  StokesVector nlte_dummy;
-  ArrayOfStokesVector partial_nlte_dummy;
-  ArrayOfPropagationMatrix partial_dummy;
+  StokvecVector nlte_dummy;
+  StokvecMatrix partial_nlte_dummy;
+  PropmatMatrix partial_dummy;
 
-  PropagationMatrix propmat_clearsky_local;
+  PropmatVector propmat_clearsky_local;
   for (Index ip = 0; ip < Np; ip++) {
     propmat_clearsky_agendaExecute(ws,
                                    propmat_clearsky_local,
@@ -361,7 +362,11 @@ void get_gasoptprop(Workspace& ws,
                                    ppath_los_dummy,
                                    ppvar_atm[ip],
                                    propmat_clearsky_agenda);
-    ext_bulk_gas(joker, ip) += propmat_clearsky_local.Kjj();
+    //! Really ugly that cdisort owns the letter A... workaround follows
+    #undef A
+    for (Index iv = 0; iv < f_grid.nelem(); iv++)
+      ext_bulk_gas[iv][ip] += propmat_clearsky_local[iv].A();
+    #define A(i,j)           a[i-1+(j-1)*lda]
   }
 }
 
@@ -379,8 +384,8 @@ void get_gas_scattering_properties(Workspace& ws,
   const Index Nl = pfct_gas.ncols();  // Number of legendre polynomials
   const Index Nf = f_grid.nelem(); // Number of frequencies
 
-  PropagationMatrix K_sca_gas_temp;
-  TransmissionMatrix sca_mat_dummy;
+  PropmatVector K_sca_gas_temp;
+  MuelmatVector sca_mat_dummy;
   Vector dummy;
   Vector sca_fct_temp;
   Matrix pmom_gas_level( Np, Nl, 0.);
@@ -404,8 +409,11 @@ void get_gas_scattering_properties(Workspace& ws,
                                  1,
                                  gas_scattering_agenda);
 
-    // gas scattering extinction
-    sca_coeff_gas_level(joker, ip) = K_sca_gas_temp.Kjj(0, 0);
+    //! Really ugly that cdisort owns the letter A... workaround follows
+    #undef A
+    for (Index iv = 0; iv < Nf; iv++)
+      sca_coeff_gas_level(iv, ip) = K_sca_gas_temp[iv].A();
+    #define A(i,j)           a[i-1+(j-1)*lda]
 
     // gas scattering (phase) function
     N_polys = min(Nl, sca_fct_temp.nelem());

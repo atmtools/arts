@@ -8,7 +8,6 @@
 #include "arts_options.h"
 #include "debug.h"
 #include "enums.h"
-#include "transmissionmatrix.h"
 
 namespace AgendaManip {
 std::ostream& operator<<(std::ostream& os, const AgendaMethodVariable& x) {

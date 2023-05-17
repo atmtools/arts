@@ -1,7 +1,9 @@
 #pragma once
 
+#include "array.h"
 #include "matpack_view.h"
 
+#include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_source.h"
@@ -18,6 +20,17 @@ void two_level_exp(muelmat &t,
                    const propmat &k2,
                    const propmat_vector_const_view &dk1,
                    const propmat_vector_const_view &dk2,
+                   const Numeric r,
+                   const ExhaustiveConstVectorView &dr1,
+                   const ExhaustiveConstVectorView &dr2);
+
+void two_level_exp(muelmat_vector_view &t,
+                   muelmat_matrix_view &dt1,
+                   muelmat_matrix_view &dt2,
+                   const propmat_vector_const_view &k1,
+                   const propmat_vector_const_view &k2,
+                   const propmat_matrix_const_view &dk1,
+                   const propmat_matrix_const_view &dk2,
                    const Numeric r,
                    const ExhaustiveConstVectorView &dr1,
                    const ExhaustiveConstVectorView &dr2);

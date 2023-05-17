@@ -245,32 +245,36 @@ template <typename T, Index... alldim> struct matpack_constant_data {
     std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a + b;});
     return *this;
   }
-  matpack_constant_data& operator+=(T x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a + b;});
+  template<std::convertible_to<T> U>
+  matpack_constant_data& operator+=(U&& x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a + b;});
     return *this;
   }
   matpack_constant_data& operator-=(const matpack_constant_data& o) {
     std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a - b;});
     return *this;
   }
-  matpack_constant_data& operator-=(T x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a - b;});
+  template<std::convertible_to<T> U>
+  matpack_constant_data& operator-=(U&& x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a - b;});
     return *this;
   }
   matpack_constant_data& operator/=(const matpack_constant_data& o) {
     std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a / b;});
     return *this;
   }
-  matpack_constant_data& operator/=(T x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a / b;});
+  template<std::convertible_to<T> U>
+  matpack_constant_data& operator/=(U&& x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a / b;});
     return *this;
   }
   matpack_constant_data& operator*=(const matpack_constant_data& o) {
     std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a * b;});
     return *this;
   }
-  matpack_constant_data& operator*=(T x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=x](auto a){return a * b;});
+  template<std::convertible_to<T> U>
+  matpack_constant_data& operator*=(U&& x) {
+    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a * b;});
     return *this;
   }
 

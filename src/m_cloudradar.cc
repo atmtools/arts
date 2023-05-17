@@ -25,7 +25,7 @@
 #include "matpack_eigen.h"
 #include "matpack_view.h"
 #include "montecarlo.h"
-#include "propagationmatrix.h"
+#include <rtepack.h>
 #include "rte.h"
 #include "sensor.h"
 
@@ -46,7 +46,6 @@ void iyRadarSingleScat(Workspace& ws,
                        ArrayOfAtmPoint& ppvar_atm,
                        Matrix& ppvar_pnd,
                        ArrayOfVector& ppvar_f,
-                       const Index& stokes_dim,
                        const Vector& f_grid,
                        const ArrayOfArrayOfSpeciesTag& abs_species,
                        const AtmField& atm_field,
@@ -74,7 +73,6 @@ void iyRadarSingleScat(Workspace& ws,
   
   // Some basic sizes
   const Index nf = f_grid.nelem();
-  const Index ns = stokes_dim;
   const Index np = ppath.np;
   const Index ne = pnd_field.nbooks();
   const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
@@ -115,10 +113,10 @@ ARTS_USER_ERROR("ERROR")
   chk_if_in_range("pext_scaling", pext_scaling, 0, 2);
 
   //Check transmitter input
-  ARTS_USER_ERROR_IF (iy_transmitter.ncols() != ns || iy_transmitter.nrows() != nf,
+  ARTS_USER_ERROR_IF (iy_transmitter.ncols() != 4 || iy_transmitter.nrows() != nf,
     "The size of *iy* returned from *iy_transmitter_agenda* is\n"
     "not correct:\n"
-    "  expected size = [", nf, ",", stokes_dim, "]\n"
+    "  expected size = [", nf, ",", 4, "]\n"
     "  size of iy    = [", iy_transmitter.nrows(), ",", iy_transmitter.ncols(), "]\n")
   for (Index iv = 0; iv < nf; iv++)
     ARTS_USER_ERROR_IF (iy_transmitter(iv, 0) != 1,
@@ -127,7 +125,7 @@ ARTS_USER_ERROR("ERROR")
 
   // Set diy_dpath if we are doing are doing jacobian calculations
   ArrayOfTensor3 diy_dpath = j_analytical_do ?
-    get_standard_diy_dpath(jacobian_quantities, np, nf, ns, true) :
+    get_standard_diy_dpath(jacobian_quantities, np, nf, 4, true) :
     ArrayOfTensor3(0);
   
   // Set the species pointers if we are doing jacobian
@@ -138,7 +136,7 @@ ARTS_USER_ERROR("ERROR")
   // Start diy_dx out if we are doing the first run and are doing jacobian
   // calculations
   diy_dx = j_analytical_do ?
-    get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, true) :
+    get_standard_starting_diy_dx(jacobian_quantities, np, nf, 4, true) :
     ArrayOfTensor3(0);
   
   // Checks that the scattering species are treated correctly if their
@@ -155,7 +153,7 @@ ARTS_USER_ERROR("ERROR")
   Index auxPartAtte = -1;
   //
   for (Index i = 0; i < naux; i++) {
-    iy_aux[i].resize(nf * np, ns);
+    iy_aux[i].resize(nf * np, 4);
 
     if (iy_aux_vars[i] == "Radiative background") {
       iy_aux[i] = 0;
@@ -182,19 +180,16 @@ ARTS_USER_ERROR("ERROR")
 
   // Get atmospheric and radiative variables along the propagation path
   //
-  ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
-  ArrayOfArrayOfArrayOfRadiationVector dlvl_rad(np,
-      ArrayOfArrayOfRadiationVector(np,
-        ArrayOfRadiationVector(nq, RadiationVector(nf, ns))));
+  ArrayOfStokvecVector lvl_rad(np, StokvecVector(nf));
+  ArrayOfArrayOfStokvecMatrix dlvl_rad(
+      np, ArrayOfStokvecMatrix(np, StokvecMatrix(nq, nf)));
   //
-  ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
-  ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(np,
-      ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
-  ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(np,
-      ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  ArrayOfMuelmatVector lyr_tra(np, MuelmatVector(nf));
+  ArrayOfMuelmatMatrix dlyr_tra_above(np, MuelmatMatrix(nq, nf));
+  ArrayOfMuelmatMatrix dlyr_tra_below(dlyr_tra_above);
 
   // Consider to make Pe an ArrayOfArrayOfPropagationMatrix!
-  Tensor5 Pe(ne, np, nf, ns, ns, 0);
+  Tensor5 Pe(ne, np, nf, 4, 4, 0);
 
   // Various 
   ArrayOfMatrix ppvar_dpnd_dx(0);
@@ -202,7 +197,7 @@ ARTS_USER_ERROR("ERROR")
   //  Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
   const Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
   const Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
-  Tensor6 pha_mat_1se(nf_ssd, 1, 1, 1, ns, ns);
+  Tensor6 pha_mat_1se(nf_ssd, 1, 1, 1, 4, 4);
   Vector t_ok(1), t_array(1);
   Matrix mlos_sca(1, 2), mlos_inc(1, 2);
   Index ptype;
@@ -227,31 +222,20 @@ ARTS_USER_ERROR("ERROR")
     }
 
     // Size radiative variables always used
-    PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
-    StokesVector a(nf, ns), S(nf, ns);
+    PropmatVector K_this(nf), K_past(nf), Kp(nf);
+    StokvecVector a(nf), S(nf);
 
     // Init variables only used if transmission part of jacobian
-    Vector dB_dT(0);
-    ArrayOfPropagationMatrix dK_this_dx(0), dK_past_dx(0), dKp_dx(0);
-    ArrayOfStokesVector da_dx(0), dS_dx(0);
+    Vector dB_dT((trans_in_jacobian && j_analytical_do) * nf);
+    PropmatMatrix dK_this_dx((trans_in_jacobian && j_analytical_do) * nq, nf), dK_past_dx((trans_in_jacobian && j_analytical_do) * nq, nf), dKp_dx((trans_in_jacobian && j_analytical_do) * nq, nf);
+    StokvecMatrix da_dx((trans_in_jacobian && j_analytical_do) * nq, nf), dS_dx((trans_in_jacobian && j_analytical_do) * nq, nf);
 
     // HSE variables
     Index temperature_derivative_position = -1;
     bool do_hse = false;
 
     if (trans_in_jacobian && j_analytical_do) {
-      dK_this_dx.resize(nq);
-      dK_past_dx.resize(nq);
-      dKp_dx.resize(nq);
-      da_dx.resize(nq);
-      dS_dx.resize(nq);
-      dB_dT.resize(nf);
       FOR_ANALYTICAL_JACOBIANS_DO(
-          dK_this_dx[iq] = PropagationMatrix(nf, ns);
-          dK_past_dx[iq] = PropagationMatrix(nf, ns);
-          dKp_dx[iq] = PropagationMatrix(nf, ns);
-          da_dx[iq] = StokesVector(nf, ns);
-          dS_dx[iq] = StokesVector(nf, ns);
           if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
             temperature_derivative_position = iq;
             do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
@@ -297,12 +281,12 @@ ARTS_USER_ERROR("ERROR")
         // Some iy_aux quantities
         if (auxAbSpAtte >= 0) {
           for (Index iv = 0; iv < nf; iv++) {
-            iy_aux[auxAbSpAtte](iv*np+ip, joker) = K_this.Kjj()[iv];
+            iy_aux[auxAbSpAtte](iv*np+ip, joker) = K_this[iv].A();
           }
         }
         if (auxPartAtte >= 0) {
           for (Index iv = 0; iv < nf; iv++) {
-            iy_aux[auxPartAtte](iv*np+ip, joker) = Kp.Kjj()[iv];
+            iy_aux[auxPartAtte](iv*np+ip, joker) = Kp[iv].A();
           }
         }
         
@@ -378,17 +362,13 @@ ARTS_USER_ERROR("ERROR")
             do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
             do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
-        stepwise_transmission(lyr_tra[ip],
-                              dlyr_tra_above[ip],
-                              dlyr_tra_below[ip],
-                              K_past,
-                              K_this,
-                              dK_past_dx,
-                              dK_this_dx,
-                              ppath.lstep[ip - 1],
-                              dr_dT_past,
-                              dr_dT_this,
-                              temperature_derivative_position);
+        
+          Vector dr1(nq), dr2(nq);
+          dr1[temperature_derivative_position] = dr_dT_past;
+          dr2[temperature_derivative_position] = dr_dT_this;
+          rtepack::two_level_exp(lyr_tra[ip], dlyr_tra_above[ip],
+                                 dlyr_tra_below[ip], K_past, K_this, dK_past_dx,
+                                 dK_this_dx, ppath.lstep[ip - 1], dr1, dr2);
       }
 
       swap(K_past, K_this);
@@ -396,10 +376,8 @@ ARTS_USER_ERROR("ERROR")
     }
   }
 
-  const ArrayOfTransmissionMatrix tot_tra_forward =
-      cumulative_transmission(lyr_tra, CumulativeTransmission::Reverse);
-  const ArrayOfTransmissionMatrix tot_tra_reflect =
-      cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
+  const auto tot_tra_forward = reverse_cumulative_transmission(lyr_tra);
+  const auto tot_tra_reflect = forward_cumulative_transmission(lyr_tra);
   const ArrayOfTransmissionMatrix reflect_matrix =
       bulk_backscatter(Pe, ppvar_pnd);
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
@@ -422,16 +400,16 @@ ARTS_USER_ERROR("ERROR")
 
   // Fill iy and diy_dpath
   //
-  iy.resize(nf * np, ns);  // iv*np + ip is the desired output order...
+  iy.resize(nf * np, 4);  // iv*np + ip is the desired output order...
   //
   for (Index ip = 0; ip < np; ip++) {
     for (Index iv = 0; iv < nf; iv++) {
-      for (Index is = 0; is < stokes_dim; is++) {
-        iy(iv*np+ip, is) = lvl_rad[ip](iv, is);
+      for (Index is = 0; is < 4; is++) {
+        iy(iv*np+ip, is) = lvl_rad[ip][iv].data[is];
         if (j_analytical_do) {
           FOR_ANALYTICAL_JACOBIANS_DO(for (Index ip2 = 0; ip2 < np; ip2++)
                                           diy_dpath[iq](ip, iv*np+ip2, is) =
-                                              dlvl_rad[ip][ip2][iq](iv, is););
+                                              dlvl_rad[ip][ip2](iq, iv).data[is];);
         }
       }
     }
@@ -445,7 +423,7 @@ ARTS_USER_ERROR("ERROR")
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
-                                    ns,
+                                    4,
                                     nf,
                                     np,
                                     ppath,

@@ -24,6 +24,8 @@ using StokvecMatrixView = rtepack::stokvec_matrix_view;
 using StokvecConstMatrixView = rtepack::stokvec_matrix_const_view;
 using ArrayOfStokvecVector = Array<StokvecVector>;
 using ArrayOfStokvecMatrix = Array<StokvecMatrix>;
+using ArrayOfArrayOfStokvecVector = Array<ArrayOfStokvecVector>;
+using ArrayOfArrayOfStokvecMatrix = Array<ArrayOfStokvecMatrix>;
 
 using Muelmat = rtepack::muelmat;
 using MuelmatVector = rtepack::muelmat_vector;

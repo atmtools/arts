@@ -1,5 +1,7 @@
 #pragma once
 
+#include "debug.h"
+#include "matpack_concepts.h"
 #include "matpack_lazy.h"
 #include "rtepack_concepts.h"
 
@@ -12,14 +14,34 @@ template <typename T>
 concept lazy_stokvec =
     constexpr_vec_data_like<T> and std::remove_cvref_t<T>::size() == 4;
 
+template <typename T>
+concept stokvec_convertible = matpack::column_keeper<T> and matpack::rank<T>() == 1 and matpack::mdvalue_type_compatible<T, Numeric>;
+
 struct stokvec final : vec4 {
-  constexpr stokvec(Numeric a = 0.0, Numeric b = 0.0, Numeric c = 0.0,
-                    Numeric d = 0.0)
+  [[nodiscard]] constexpr stokvec(Numeric a = 0.0, Numeric b = 0.0,
+                                  Numeric c = 0.0, Numeric d = 0.0)
       : vec4{a, b, c, d} {}
 
-  constexpr stokvec(lazy_stokvec auto &&a)
+  template <stokvec_convertible T> [[nodiscard]] stokvec(const T &t) {
+    ARTS_USER_ERROR_IF(matpack::column_size(t) != 4,
+                       "The vector must have size 4.")
+    for (Index i = 0; i < 4; i++)
+      data[i] = matpack::mdvalue(t, {i});
+  }
+
+  [[nodiscard]] constexpr stokvec(lazy_stokvec auto &&a)
     requires(std::is_rvalue_reference_v<decltype(a)>)
       : vec4(std::move(a)) {}
+
+  [[nodiscard]] constexpr Numeric I() const { return data[0]; }
+  [[nodiscard]] constexpr Numeric Q() const { return data[1]; }
+  [[nodiscard]] constexpr Numeric U() const { return data[2]; }
+  [[nodiscard]] constexpr Numeric V() const { return data[3]; }
+
+  [[nodiscard]] constexpr Numeric &I() { return data[0]; }
+  [[nodiscard]] constexpr Numeric &Q() { return data[1]; }
+  [[nodiscard]] constexpr Numeric &U() { return data[2]; }
+  [[nodiscard]] constexpr Numeric &V() { return data[3]; }
 };
 
 //! Addition of two stokvec vectors
