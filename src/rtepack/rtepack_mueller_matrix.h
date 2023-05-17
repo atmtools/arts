@@ -1,8 +1,10 @@
 #pragma once
 
 #include "array.h"
-#include "matpack_lazy.h"
 #include "rtepack_concepts.h"
+
+#include <matpack_data.h>
+#include <matpack_lazy.h>
 
 #include <type_traits>
 
@@ -125,6 +127,36 @@ constexpr auto avg(const lazy_muelmat auto &a, const muelmat &b) {
 //! Get the identity matrix
 constexpr muelmat identity_muelmat() { return muelmat{1.0}; }
 
+constexpr muelmat inv(const muelmat &A) {
+  const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;
+
+  const Numeric div =
+      1.0 / (a * f * k * p - a * f * l * o - a * g * j * p + a * g * l * n +
+             a * h * j * o - a * h * k * n - b * e * k * p + b * e * l * o +
+             b * g * i * p - b * g * l * m - b * h * i * o + b * h * k * m +
+             c * e * j * p - c * e * l * n - c * f * i * p + c * f * l * m +
+             c * h * i * n - c * h * j * m - d * e * j * o + d * e * k * n +
+             d * f * i * o - d * f * k * m - d * g * i * n + d * g * j * m);
+
+  return div * muelmat{
+      (f * k * p - f * l * o - g * j * p + g * l * n + h * j * o - h * k * n),
+      (-b * k * p + b * l * o + c * j * p - c * l * n - d * j * o + d * k * n),
+      (b * g * p - b * h * o - c * f * p + c * h * n + d * f * o - d * g * n),
+      (-b * g * l + b * h * k + c * f * l - c * h * j - d * f * k + d * g * j),
+      (-e * k * p + e * l * o + g * i * p - g * l * m - h * i * o + h * k * m),
+      (a * k * p - a * l * o - c * i * p + c * l * m + d * i * o - d * k * m),
+      (-a * g * p + a * h * o + c * e * p - c * h * m - d * e * o + d * g * m),
+      (a * g * l - a * h * k - c * e * l + c * h * i + d * e * k - d * g * i),
+      (e * j * p - e * l * n - f * i * p + f * l * m + h * i * n - h * j * m),
+      (-a * j * p + a * l * n + b * i * p - b * l * m - d * i * n + d * j * m),
+      (a * f * p - a * h * n - b * e * p + b * h * m + d * e * n - d * f * m),
+      (-a * f * l + a * h * j + b * e * l - b * h * i - d * e * j + d * f * i),
+      (-e * j * o + e * k * n + f * i * o - f * k * m - g * i * n + g * j * m),
+      (a * j * o - a * k * n - b * i * o + b * k * m + c * i * n - c * j * m),
+      (-a * f * o + a * g * n + b * e * o - b * g * m - c * e * n + c * f * m),
+      (a * f * k - a * g * j - b * e * k + b * g * i + c * e * j - c * f * i)};
+}
+
 using muelmat_vector = matpack::matpack_data<muelmat, 1>;
 using muelmat_vector_view = matpack::matpack_view<muelmat, 1, false, false>;
 using muelmat_vector_const_view = matpack::matpack_view<muelmat, 1, true, false>;
@@ -137,7 +169,7 @@ using muelmat_tensor3 = matpack::matpack_data<muelmat, 3>;
 using muelmat_tensor3_view = matpack::matpack_view<muelmat, 3, false, false>;
 using muelmat_tensor3_const_view = matpack::matpack_view<muelmat, 3, true, false>;
 
-muelmat_matrix reverse_cumulative_transmission(const Array<muelmat_vector> &T);
+Array<muelmat_vector> reverse_cumulative_transmission(const Array<muelmat_vector> &T);
 
-muelmat_matrix forward_cumulative_transmission(const Array<muelmat_vector> &T);
+Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector> &T);
 } // namespace rtepack

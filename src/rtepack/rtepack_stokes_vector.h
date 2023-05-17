@@ -1,9 +1,10 @@
 #pragma once
 
 #include "debug.h"
-#include "matpack_concepts.h"
-#include "matpack_lazy.h"
 #include "rtepack_concepts.h"
+
+#include <matpack_concepts.h>
+#include <matpack_lazy.h>
 
 #include <type_traits>
 

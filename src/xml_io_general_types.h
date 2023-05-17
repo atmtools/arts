@@ -23,8 +23,8 @@
 #include "matpack_sparse.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
-  void xml_read_from_stream(std::istream &, what &, bifstream *);                   \
-  void xml_write_to_stream(std::ostream &, const what &, bofstream *,               \
+  void xml_read_from_stream(std::istream &, what &, bifstream *);              \
+  void xml_write_to_stream(std::ostream &, const what &, bofstream *,          \
                            const String &);
 
 ////////////////////////////////////////////////////////////////////////////

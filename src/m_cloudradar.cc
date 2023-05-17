@@ -378,25 +378,17 @@ ARTS_USER_ERROR("ERROR")
 
   const auto tot_tra_forward = reverse_cumulative_transmission(lyr_tra);
   const auto tot_tra_reflect = forward_cumulative_transmission(lyr_tra);
-  const ArrayOfTransmissionMatrix reflect_matrix =
-      bulk_backscatter(Pe, ppvar_pnd);
-  const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
-      bulk_backscatter_derivative(Pe, ppvar_dpnd_dx);
+  const auto reflect_matrix =
+      rtepack::bulk_backscatter(Pe, ppvar_pnd);
+  const auto dreflect_matrix =
+      rtepack::bulk_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
-  lvl_rad[0] = RadiationVector{iy_transmitter};
-  RadiationVector rad_inc{iy_transmitter};
-  set_backscatter_radiation_vector(lvl_rad,
-                                   dlvl_rad,
-                                   rad_inc,
-                                   lyr_tra,
-                                   tot_tra_forward,
-                                   tot_tra_reflect,
-                                   reflect_matrix,
-                                   dlyr_tra_above,
-                                   dlyr_tra_below,
-                                   dreflect_matrix,
-                                   BackscatterSolver::CommutativeTransmission);
+  background_radFromMatrix(lvl_rad[0], iy_transmitter);
 
+  StokvecVector rad_inc{lvl_rad[0]};
+  rtepack::bulk_backscatter_commutative_transmission_rte(
+      lvl_rad, dlvl_rad, rad_inc, lyr_tra, tot_tra_forward, tot_tra_reflect,
+      reflect_matrix, dlyr_tra_above, dlyr_tra_below, dreflect_matrix);
 
   // Fill iy and diy_dpath
   //
@@ -441,7 +433,7 @@ ARTS_USER_ERROR("ERROR")
     for (Index ip = 0; ip < np; ip++) {
       for (Index iv = 0; iv < nf; iv++) {
         VectorView stokesvec = VectorView(iy_aux[auxBackScat](iv*np+ip, joker));
-        matpack::eigen::row_vec(stokesvec).noalias() = reflect_matrix[ip].Mat(iv) * rad_inc.Vec(iv);
+        stokesvec = reflect_matrix[ip][iv] * rad_inc[iv];
       }
     }
   }
@@ -935,10 +927,10 @@ void particle_bulkpropRadarOnionPeeling(
                 if (do_atten_abs) {
                   // Calculate local attenuation
                   Numeric k_this;
-                  PropagationMatrix propmat;
-                  ArrayOfPropagationMatrix partial_dummy;
-                  StokesVector nlte_dummy;
-                  ArrayOfStokesVector partial_nlte_dummy;
+                  PropmatVector propmat;
+                  PropmatMatrix partial_dummy;
+                  StokvecVector nlte_dummy;
+                  StokvecMatrix partial_nlte_dummy;
                   propmat_clearsky_agendaExecute(
                       wss,
                       propmat,
@@ -951,7 +943,7 @@ void particle_bulkpropRadarOnionPeeling(
                       Vector(0),
                       atm_field.at({z_grid[ip]}, {lat_grid[ilat]}, {lon_grid[ilon]})[0],
                       propmat_clearsky_agenda);
-                  k_this = propmat.Kjj()[0];
+                  k_this = propmat[0].A();
                   // Optical thickness
                   Numeric tau =
                       0.5 * hfac * (k_abs_above + k_this) *

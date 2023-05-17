@@ -13,15 +13,15 @@
 #include "absorptionlines.h"
 #include "arts.h"
 #include "debug.h"
-#include "propagationmatrix.h"
 #include "species_tags.h"
 #include "tokval.h"
-#include "transmissionmatrix.h"
 #include "workspace_ng.h"
 #include "xml_io.h"
 #include "xml_io_arts_types.h"
 #include <stdexcept>
 #include <type_traits>
+
+#include <rtepack.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -496,23 +496,18 @@ void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfAbsorptionLines)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfTransmissionMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField2)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfIndex)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropagationMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfRadiationVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSpeciesTag)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokesVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTensor3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTime)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTransmissionMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAtmPoint)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfCIARecord)
@@ -524,13 +519,10 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfIndex)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfJacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfPpath)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfRadiationVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSparse)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfStokesVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor3)
@@ -539,5 +531,4 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor5)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTransmissionMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)

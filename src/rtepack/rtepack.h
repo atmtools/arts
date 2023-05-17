@@ -2,6 +2,7 @@
 
 #include "array.h"
 #include "rtepack_rtestep.h"
+#include "rtepack_scattering.h"
 #include "rtepack_source.h"
 #include "rtepack_transmission.h"
 

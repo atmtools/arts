@@ -190,154 +190,6 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== TransmissionMatrix ================================================================
-
-//! Reads TransmissionMatrix from XML input stream
-/*!
- *  \param is_xml  XML Input stream
- *  \param tm      TransmissionMatrix return value
- *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(istream& is_xml,
-                          TransmissionMatrix& tm,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-  Index stokes_dim, nf;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("TransmissionMatrix");
-
-  tag.get_attribute_value("Stokes", stokes_dim);
-  tag.get_attribute_value("Freqs", nf);
-  tm = TransmissionMatrix(nf, stokes_dim);
-  if (pbifs) {
-    *pbifs >> tm;
-    if (pbifs->fail()) {
-      ostringstream os;
-      os << "TransmissionMatrix has wrong dimensions";
-      xml_data_parse_error(tag, os.str());
-    }
-  } else {
-    is_xml >> tm;
-    if (is_xml.fail()) {
-      ostringstream os;
-      os << "TransmissionMatrix has wrong dimensions";
-      xml_data_parse_error(tag, os.str());
-    }
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/TransmissionMatrix");
-}
-
-//! Writes RadiationVector to XML output stream
-/*!
- *  \param os_xml  XML Output stream
- *  \param tm      TransmissionMatrix
- *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
- *  \param name    Optional name attribute
- */
-void xml_write_to_stream(ostream& os_xml,
-                         const TransmissionMatrix& tm,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("TransmissionMatrix");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("Stokes", tm.stokes_dim);
-  open_tag.add_attribute("Freqs", tm.Frequencies());
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_set_stream_precision(os_xml);
-  if (pbofs)
-    *pbofs << tm;
-  else
-    os_xml << tm;
-
-  close_tag.set_name("/TransmissionMatrix");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
-//=== RadiationVector ================================================================
-
-//! Reads RadiationVector from XML input stream
-/*!
- *  \param is_xml  XML Input stream
- *  \param rv      RadiationVector return value
- *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(istream& is_xml,
-                          RadiationVector& rv,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-  Index stokes_dim, nf;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("RadiationVector");
-
-  tag.get_attribute_value("Stokes", stokes_dim);
-  tag.get_attribute_value("Freqs", nf);
-  rv = RadiationVector(nf, stokes_dim);
-  if (pbifs) {
-    *pbifs >> rv;
-    if (pbifs->fail()) {
-      ostringstream os;
-      os << "RadiationVector has wrong dimensions";
-      xml_data_parse_error(tag, os.str());
-    }
-  } else {
-    is_xml >> rv;
-    if (is_xml.fail()) {
-      ostringstream os;
-      os << "RadiationVector has wrong dimensions";
-      xml_data_parse_error(tag, os.str());
-    }
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/RadiationVector");
-}
-
-//! Writes RadiationVector to XML output stream
-/*!
- *  \param os_xml  XML Output stream
- *  \param rv      RadiationVector
- *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
- *  \param name    Optional name attribute
- */
-void xml_write_to_stream(ostream& os_xml,
-                         const RadiationVector& rv,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("RadiationVector");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("Stokes", rv.stokes_dim);
-  open_tag.add_attribute("Freqs", rv.Frequencies());
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_set_stream_precision(os_xml);
-  if (pbofs)
-    *pbofs << rv;
-  else
-    os_xml << rv;
-
-  close_tag.set_name("/RadiationVector");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
 //=== Time ================================================================
 
 //! Reads Time from XML input stream
@@ -696,6 +548,185 @@ void xml_write_to_stream(ostream& os_xml,
   }
 
   close_tag.set_name("/VibrationalEnergyLevels");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== Propmat ================================================================
+
+//! Reads Propmat from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      Propmat return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          Propmat& pm,
+                          bifstream* pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Propmat");
+
+  if (pbifs)
+    pbifs->readDoubleArray(pm.data.data(), 7);
+  else
+    is_xml >> pm.A() >> pm.B() >> pm.C() >> pm.D() >> pm.U() >> pm.V() >> pm.W();
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Propmat");
+}
+
+//! Writes Propmat to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      Propmat
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const Propmat& pm,
+                         bofstream* pbofs [[maybe_unused]],
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Propmat");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  
+  if (pbofs)
+    *pbofs << pm.A() << pm.B() << pm.C() << pm.D() << pm.U() << pm.V() << pm.W();
+  else
+    os_xml << ' ' << pm.A() << ' ' << pm.B() << ' ' << pm.C() << ' ' << pm.D() << ' ' << pm.U() << ' ' << pm.V() << ' ' << pm.W() << ' ';
+
+  close_tag.set_name("/Propmat");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== Stokvec ================================================================
+
+//! Reads Stokvec from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      Stokvec return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          Stokvec& pm,
+                          bifstream* pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Stokvec");
+
+  if (pbifs)
+    pbifs->readDoubleArray(pm.data.data(), 4);
+  else
+    is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Stokvec");
+}
+
+//! Writes Stokvec to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      Stokvec
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const Stokvec& pm,
+                         bofstream* pbofs [[maybe_unused]],
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Stokvec");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  
+  if (pbofs)
+    *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
+  else
+    os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' ' << pm.V() << ' ';
+
+  close_tag.set_name("/Stokvec");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+
+//=== Muelmat ================================================================
+
+//! Reads Muelmat from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      Muelmat return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          Muelmat& pm,
+                          bifstream* pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Muelmat");
+
+  if (pbifs)
+    pbifs->readDoubleArray(pm.data.data(), 16);
+  else
+    is_xml >> pm.data[0] >> pm.data[1] >> pm.data[2] >> pm.data[3] >> 
+              pm.data[4] >> pm.data[5] >> pm.data[6] >> pm.data[7] >> 
+              pm.data[8] >> pm.data[9] >> pm.data[10] >> pm.data[11] >> 
+              pm.data[12] >> pm.data[13] >> pm.data[14] >> pm.data[15];
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Muelmat");
+}
+
+//! Writes Muelmat to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      Muelmat
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(ostream &os_xml, const Muelmat &pm,
+                         bofstream *pbofs [[maybe_unused]], const String &) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Muelmat");
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+
+  if (pbofs)
+    *pbofs << pm.data[0] << pm.data[1] << pm.data[2] << pm.data[3] << pm.data[4]
+           << pm.data[5] << pm.data[6] << pm.data[7] << pm.data[8] << pm.data[9]
+           << pm.data[10] << pm.data[11] << pm.data[12] << pm.data[13]
+           << pm.data[14] << pm.data[15];
+  else
+    os_xml << ' ' << pm.data[0] << ' ' << pm.data[1] << ' ' << pm.data[2] << ' '
+           << pm.data[3] << '\n'
+           << ' ' << pm.data[4] << ' ' << pm.data[5] << ' ' << pm.data[6] << ' '
+           << pm.data[7] << '\n'
+           << ' ' << pm.data[8] << ' ' << pm.data[9] << ' ' << pm.data[10]
+           << ' ' << pm.data[11] << '\n'
+           << ' ' << pm.data[12] << ' ' << pm.data[13] << ' ' << pm.data[14]
+           << ' ' << pm.data[15] << ' ';
+
+  close_tag.set_name("/Muelmat");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
 }
