@@ -21,6 +21,7 @@ void py_time(py::module_&);
 void py_tessem(py::module_&);
 void py_quantum(py::module_&);
 void py_rte(py::module_& m);
+void py_rtepack(py::module_ &m);
 void py_telsem(py::module_& m);
 void py_species(py::module_& m);
 void py_sparse(py::module_& m);
@@ -124,6 +125,7 @@ PYBIND11_MODULE(arts, m) {
   py_ppath(m);
   py_tessem(m);
   py_rte(m);
+  py_rtepack(m);
   py_telsem(m);
   py_sparse(m);
   py_mcantenna(m);
