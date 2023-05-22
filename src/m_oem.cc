@@ -442,8 +442,7 @@ void xaStandard(Workspace& ws,
 
     // Surface
     else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
-      surface_props_check(3,
-                          lat_grid,
+      surface_props_check(lat_grid,
                           lon_grid,
                           surface_field,
                           surface_props_names);
@@ -821,8 +820,7 @@ Tensor3 mag_u_field, mag_v_field, mag_w_field;
     // Surface
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
-      surface_props_check(3,
-                          lat_grid,
+      surface_props_check(lat_grid,
                           lon_grid,
                           surface_field,
                           surface_props_names);

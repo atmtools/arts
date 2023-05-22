@@ -163,7 +163,6 @@ void emission_from_propmat_field(
                        Vector{0},
                        atm_field,
                        0,
-                       1,
                        f_grid,
                        "1",
                        surface_field,

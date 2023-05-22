@@ -54,7 +54,6 @@ using GriddedFieldGrids::GFIELD4_LON_GRID;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyApplyUnit(Matrix& iy,
                  ArrayOfMatrix& iy_aux,
-                 const Index& stokes_dim,
                  const Vector& f_grid,
                  const ArrayOfString& iy_aux_vars,
                  const String& iy_unit) {
@@ -67,8 +66,8 @@ void iyApplyUnit(Matrix& iy,
       "1e-3 is found in *iy*.")
 
   // Polarisation index variable
-  ArrayOfIndex i_pol(stokes_dim);
-  for (Index is = 0; is < stokes_dim; is++) {
+  ArrayOfIndex i_pol(4);
+  for (Index is = 0; is < 4; is++) {
     i_pol[is] = is + 1;
   }
 
@@ -219,13 +218,13 @@ This feature will be added in a future version.
 
 
   // Set diy_dpath if we are doing are doing jacobian calculations
-  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, 4, false) : ArrayOfTensor3(0);
+  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, false) : ArrayOfTensor3(0);
 
   // Set the species pointers if we are doing jacobian
   const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
 
   // Start diy_dx out if we are doing the first run and are doing jacobian calculations
-  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, 4, false);
+  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, false);
 
   // Init iy_aux and fill where possible
   const Index naux = iy_aux_vars.nelem();
@@ -567,7 +566,6 @@ ARTS_USER_ERROR("ERROR")
                        rte_pos2,
                        atm_field,
                        cloudbox_on,
-                       4,
                        f_grid,
                        iy_unit,
                        surface_field,
@@ -655,7 +653,6 @@ ARTS_USER_ERROR("ERROR")
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
-                                    4,
                                     nf,
                                     np,
                                     ppath,
@@ -738,7 +735,6 @@ void iyEmissionHybrid(Workspace& ws,
                        ppvar_trans_cumulat,
                        ppvar_trans_partial,
                        iy_id,
-                       stokes_dim,
                        f_grid,
                        abs_species,
                        atm_field,
@@ -823,13 +819,13 @@ ARTS_USER_ERROR("ERROR")
         "*f_grid*.");
 
   // Set diy_dpath if we are doing are doing jacobian calculations
-  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, 4, false) : ArrayOfTensor3(0);
+  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, false) : ArrayOfTensor3(0);
 
   // Set the species pointers if we are doing jacobian
   const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
 
   // Start diy_dx out if we are doing the first run and are doing jacobian calculations
-  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, 4, false);
+  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, false);
 
   // Checks that the scattering species are treated correctly if their derivatives are needed (we can here discard the Array)
   if (j_analytical_do and iy_agenda_call1) get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on);
@@ -1036,7 +1032,6 @@ ARTS_USER_ERROR("ERROR")
                        rte_pos2,
                        atm_field,
                        cloudbox_on,
-                       4,
                        f_grid,
                        iy_unit,
                        surface_field,
@@ -1073,7 +1068,6 @@ ARTS_USER_ERROR("ERROR")
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
-                                    4,
                                     nf,
                                     np,
                                     ppath,
@@ -1546,7 +1540,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
 
   // Copy back to ARTS external style
   diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np,
-                                                       nf, 4, false)
+                                                       nf, false)
                               : ArrayOfTensor3(0);
   ppvar_trans_cumulat.resize(np, nf, 4, 4);
   ppvar_trans_partial.resize(np, nf, 4, 4);
@@ -1580,10 +1574,9 @@ void diy_dxTransform(Workspace &ws, ArrayOfTensor3 &diy_dx,
 
   if (const Index np = ppath.np; np not_eq 0 and j_analytical_do) {
     const Index nf = diy_dpath.front().nrows();
-    const Index ns = diy_dpath.front().ncols();
 
     rtmethods_jacobian_finalisation(
-        ws, diy_dx, diy_dpath, ns, nf, np, ppath, ppvar_atm, iy_agenda_call1,
+        ws, diy_dx, diy_dpath, nf, np, ppath, ppvar_atm, iy_agenda_call1,
         iy_transmittance, water_p_eq_agenda, jacobian_quantities, abs_species,
         jac_species_i);
   }
@@ -1609,18 +1602,17 @@ void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
 
   const Index nf = f_grid.nelem();
   const Index np = ppath.np;
-  const Index ns = iy_transmittance_background.ncols();
 
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
   if (j_analytical_do and iy_agenda_call1)
     diy_dx =
-        get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, false);
+        get_standard_starting_diy_dx(jacobian_quantities, np, nf, false);
 
   get_iy_of_background(
       ws, iy, diy_dx, iy_transmittance_background, iy_id, jacobian_do,
-      jacobian_quantities, ppath, rte_pos2, atm_field, cloudbox_on, ns, f_grid,
+      jacobian_quantities, ppath, rte_pos2, atm_field, cloudbox_on, f_grid,
       iy_unit, surface_field, iy_main_agenda, iy_space_agenda,
       iy_surface_agenda, iy_cloudbox_agenda, iy_agenda_call1);
 } ARTS_METHOD_ERROR_CATCH
@@ -2065,7 +2057,6 @@ void iyLoopFrequencies(Workspace& ws,
                        const Vector& rte_pos,
                        const Vector& rte_los,
                        const Vector& rte_pos2,
-                       const Index& stokes_dim,
                        const Vector& f_grid,
                        const Agenda& iy_loop_freqs_agenda) {
   // Throw error if unsupported features are requested
@@ -2099,16 +2090,16 @@ void iyLoopFrequencies(Workspace& ws,
 
     // After first frequency, give output its size
     if (i == 0) {
-      iy.resize(nf, stokes_dim);
+      iy.resize(nf, 4);
       //
       iy_aux.resize(iy_aux1.nelem());
       for (Index q = 0; q < iy_aux1.nelem(); q++) {
-        iy_aux[q].resize(nf, stokes_dim);
+        iy_aux[q].resize(nf, 4);
       }
       //
       diy_dx.resize(diy_dx1.nelem());
       for (Index q = 0; q < diy_dx1.nelem(); q++) {
-        diy_dx[q].resize(diy_dx1[q].npages(), nf, stokes_dim);
+        diy_dx[q].resize(diy_dx1[q].npages(), nf, 4);
       }
     }
 
@@ -2138,7 +2129,6 @@ void iyMC(Workspace& ws,
           const SurfaceField& surface_field,
           const Index& cloudbox_on,
           const ArrayOfIndex& cloudbox_limits,
-          const Index& stokes_dim,
           const Vector& f_grid,
           const ArrayOfArrayOfSingleScatteringData& scat_data,
           const Agenda& iy_space_agenda,
@@ -2169,7 +2159,7 @@ void iyMC(Workspace& ws,
   //
   const Index nf = f_grid.nelem();
   //
-  iy.resize(nf, stokes_dim);
+  iy.resize(nf, 4);
   diy_dx.resize(0);
   //
   //=== iy_aux part ===========================================================
@@ -2181,7 +2171,7 @@ void iyMC(Workspace& ws,
     for (Index i = 0; i < naux; i++) {
       if (iy_aux_vars[i] == "Error (uncorrelated)") {
         auxError = i;
-        iy_aux[i].resize(nf, stokes_dim);
+        iy_aux[i].resize(nf, 4);
       } else {
         ARTS_USER_ERROR (
           "In *iy_aux_vars* you have included: \"", iy_aux_vars[i],
@@ -2235,7 +2225,6 @@ void iyMC(Workspace& ws,
                   f_index,
                   pos,
                   los,
-                  stokes_dim,
                   ppath_step_agenda,
                   ppath_lmax,
                   ppath_lraytrace,
@@ -2262,7 +2251,7 @@ void iyMC(Workspace& ws,
                   1,
                   t_interp_order);
 
-        ARTS_ASSERT(y.nelem() == stokes_dim);
+        ARTS_ASSERT(y.nelem() == 4);
 
         iy(f_index, joker) = y;
 
@@ -2341,7 +2330,6 @@ void yCalc(Workspace& ws,
            const Index& cloudbox_checked,
            const Index& scat_data_checked,
            const Index& sensor_checked,
-           const Index& stokes_dim,
            const Vector& f_grid,
            const Matrix& sensor_pos,
            const Matrix& sensor_los,
@@ -2359,7 +2347,6 @@ void yCalc(Workspace& ws,
            const ArrayOfString& iy_aux_vars) {
   // Basics
   //
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   //
   ARTS_USER_ERROR_IF (f_grid.empty(),
                       "The frequency grid is empty.");
@@ -2389,7 +2376,7 @@ void yCalc(Workspace& ws,
   const Index nlos = mblock_dlos.nrows();
   const Index n1y = sensor_response.nrows();
   const Index nmblock = sensor_pos.nrows();
-  const Index niyb = nf * nlos * stokes_dim;
+  const Index niyb = nf * nlos * 4;
 
   //---------------------------------------------------------------------------
   // Allocations and resizing
@@ -2455,7 +2442,6 @@ void yCalc(Workspace& ws,
                              jacobian,
                              atm_field,
                              cloudbox_on,
-                             stokes_dim,
                              f_grid,
                              sensor_pos,
                              sensor_los,
@@ -2494,7 +2480,6 @@ void yCalc(Workspace& ws,
                              jacobian,
                              atm_field,
                              cloudbox_on,
-                             stokes_dim,
                              f_grid,
                              sensor_pos,
                              sensor_los,
@@ -2571,7 +2556,6 @@ void yCalcAppend(Workspace& ws,
                  const Index& cloudbox_checked,
                  const Index& scat_data_checked,
                  const Index& sensor_checked,
-                 const Index& stokes_dim,
                  const Vector& f_grid,
                  const Matrix& sensor_pos,
                  const Matrix& sensor_los,
@@ -2644,7 +2628,6 @@ void yCalcAppend(Workspace& ws,
         cloudbox_checked,
         scat_data_checked,
         sensor_checked,
-        stokes_dim,
         f_grid,
         sensor_pos,
         sensor_los,

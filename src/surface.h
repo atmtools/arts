@@ -62,7 +62,7 @@ Index index_of_zsurface(const Numeric& z_surface,
     @param[out]  iy                 Radiation matrix, amtching 
                                     the WSV with the same name.
     @param[in]   I                  Downwelling radiation, with dimensions
-                                    (surface_los, f_grid, stokes_dim)
+                                    (surface_los, f_grid, 4)
     @param[in]   surface_los        As the WSV with the same name.
     @param[in]   surface_rmatrix    As the WSV with the same name.
     @param[in]   surface_emission   As the WSV with the same name.
@@ -93,7 +93,6 @@ void surface_calc(Matrix& iy,
     @param[in]   Rh                Complex amplitude relection coefficient
                                    horisontal polarisation.
     @param[in]   f                 Frequency (a scalar).
-    @param[in]   stokes_dim        As the WSV with the same name.
     @param[in]   surface_skin_t    As the WSV with the same name.
 
     @author Patrick Eriksson 
@@ -104,7 +103,6 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
                               const Complex& Rv,
                               const Complex& Rh,
                               const Numeric& f,
-                              const Index& stokes_dim,
                               const Numeric& surface_skin_t);
 
 /**
@@ -121,8 +119,7 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
     @author Patrick Eriksson 
     @date   2018-09-01
  */
-void surface_props_check(const Index& atmosphere_dim,
-                         const Vector& lat_grid,
+void surface_props_check(const Vector& lat_grid,
                          const Vector& lon_grid,
                          const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names);
@@ -180,7 +177,6 @@ void dsurface_check(const ArrayOfString& surface_props_names,
  * @param[out] stars_visible Index Flag indicating if sun(s) are in line of sight
  * @param[in] rtp_pos As the WVS with the same name.
  * @param[in] rtp_los As the WVS with the same name.
- * @param[in] stokes_dim As the WVS with the same name.
  * @param[in] f_grid As the WVS with the same name.
  * @param[in] atmosphere_dim As the WVS with the same name.
  * @param[in] p_grid As the WVS with the same name.
@@ -225,7 +221,6 @@ void surface_get_incoming_direct(
     Vector& specular_los,
     const Vector& rtp_pos,
     const Vector& rtp_los,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,

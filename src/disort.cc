@@ -80,8 +80,6 @@ void check_disort_input(  // Input
     const Index& atmgeom_checked,
     const Index& cloudbox_checked,
     const Index& scat_data_checked,
-    const Index& atmosphere_dim,
-    const Index& stokes_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstVectorView za_grid,
@@ -109,17 +107,12 @@ void check_disort_input(  // Input
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  if (atmosphere_dim != 1)
+  if (3 != 1)
     throw runtime_error(
         "For running DISORT, atmospheric dimensionality "
         "must be 1.\n");
 
-  if (stokes_dim < 0 || stokes_dim > 1)
-    throw runtime_error(
-        "For running DISORT, the dimension of stokes vector "
-        "must be 1.\n");
-
-  if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
+  if (cloudbox_limits.nelem() != 2 * 3)
     throw runtime_error(
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
@@ -204,8 +197,6 @@ void check_disort_irradiance_input(  // Input
     const Index& atmfields_checked,
     const Index& atmgeom_checked,
     const Index& scat_data_checked,
-    const Index& atmosphere_dim,
-    const Index& stokes_dim,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& nstreams) {
   if (atmfields_checked != 1)
@@ -222,16 +213,6 @@ void check_disort_irradiance_input(  // Input
     throw runtime_error(
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
-
-  if (atmosphere_dim != 1)
-    throw runtime_error(
-        "For running DISORT, atmospheric dimensionality "
-        "must be 1.\n");
-
-  if (stokes_dim < 0 || stokes_dim > 1)
-    throw runtime_error(
-        "For running DISORT, the dimension of stokes vector "
-        "must be 1.\n");
 
   if (scat_data.empty())
     throw runtime_error(
@@ -273,14 +254,13 @@ void init_ifield(  // Output
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
     const Index& n_za,
-    const Index& n_aa,
-    const Index& stokes_dim) {
+    const Index& n_aa) {
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   //const Index Nza = za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  cloudbox_field.resize(Nf, Np_cloud, 1, 1, n_za, n_aa, stokes_dim);
+  cloudbox_field.resize(Nf, Np_cloud, 1, 1, n_za, n_aa, 4);
   cloudbox_field = NAN;
 }
 
@@ -484,7 +464,6 @@ void get_paroptprop(MatrixView ext_bulk_par,
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      1,
                       T_array,
                       dir_array,
                       -1);
@@ -624,7 +603,6 @@ void get_parZ(Tensor3& pha_bulk_par,
                      ptypes_Nse,
                      t_ok,
                      scat_data,
-                     1,
                      T_array,
                      pdir_array,
                      idir_array,

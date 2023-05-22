@@ -205,7 +205,6 @@ void jacobianCalcFreqShift(Matrix& jacobian,
                            const Index& mblock_index,
                            const Vector& iyb,
                            const Vector& yb,
-                           const Index& stokes_dim,
                            const Vector& f_grid,
                            const Matrix& mblock_dlos,
                            const Sparse& sensor_response,
@@ -249,7 +248,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   {
     const Index nf2 = f_grid.nelem();
     const Index nlos2 = mblock_dlos.nrows();
-    const Index niyb = nf2 * nlos2 * stokes_dim;
+    const Index niyb = nf2 * nlos2 * 4;
 
     // Interpolation weights
     //
@@ -263,10 +262,10 @@ void jacobianCalcFreqShift(Matrix& jacobian,
 
     // Do interpolation
     for (Index ilos = 0; ilos < nlos2; ilos++) {
-      const Index row0 = ilos * nf2 * stokes_dim;
+      const Index row0 = ilos * nf2 * 4;
 
-      for (Index is = 0; is < stokes_dim; is++) {
-        iyb2[Range(row0 + is, nf2, stokes_dim)] = reinterp(iyb[Range(row0 + is, nf2, stokes_dim)], itw, lag);
+      for (Index is = 0; is < 4; is++) {
+        iyb2[Range(row0 + is, nf2, 4)] = reinterp(iyb[Range(row0 + is, nf2, 4)], itw, lag);
       }
     }
 
@@ -345,7 +344,6 @@ void jacobianCalcFreqStretch(
     const Index& mblock_index,
     const Vector& iyb,
     const Vector& yb,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const Matrix& mblock_dlos,
     const Sparse& sensor_response,
@@ -395,7 +393,7 @@ void jacobianCalcFreqStretch(
   {
     const Index nf2 = f_grid.nelem();
     const Index nlos2 = mblock_dlos.nrows();
-    const Index niyb = nf2 * nlos2 * stokes_dim;
+    const Index niyb = nf2 * nlos2 * 4;
 
     // Interpolation weights
     //
@@ -410,10 +408,10 @@ void jacobianCalcFreqStretch(
 
     // Do interpolation
     for (Index ilos = 0; ilos < nlos2; ilos++) {
-      const Index row0 = ilos * nf2 * stokes_dim;
+      const Index row0 = ilos * nf2 * 4;
 
-      for (Index is = 0; is < stokes_dim; is++) {
-        iyb2[Range(row0 + is, nf2, stokes_dim)] = reinterp(iyb[Range(row0 + is, nf2, stokes_dim)], itw, lag);
+      for (Index is = 0; is < 4; is++) {
+        iyb2[Range(row0 + is, nf2, 4)] = reinterp(iyb[Range(row0 + is, nf2, 4)], itw, lag);
       }
     }
 
@@ -531,7 +529,6 @@ void jacobianCalcPointingZaInterp(
     const Index& mblock_index,
     const Vector& iyb,
     const Vector& yb _U_,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const Matrix& DEBUG_ONLY(sensor_los),
     const Matrix& mblock_dlos,
@@ -604,8 +601,8 @@ void jacobianCalcPointingZaInterp(
     //
     for (Index iza = 0; iza < nza; iza++) {
       for (Index iv = 0; iv < nf; iv++) {
-        for (Index is = 0; is < stokes_dim; is++) {
-          const Range r(iv * stokes_dim + is, nza, nf * stokes_dim);
+        for (Index is = 0; is < 4; is++) {
+          const Range r(iv * 4 + is, nza, nf * 4);
           interp(iyb1[r], itw1, iyb[r], gp1);
           interp(iyb2[r], itw2, iyb[r], gp2);
         }
@@ -662,7 +659,6 @@ void jacobianCalcPointingZaRecalc(
     const Vector& yb,
     const AtmField& atm_field,              
     const Index& cloudbox_on,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const Matrix& sensor_pos,
     const Matrix& sensor_los,
@@ -718,7 +714,6 @@ void jacobianCalcPointingZaRecalc(
              mblock_index,
              atm_field,
              cloudbox_on,
-             stokes_dim,
              f_grid,
              sensor_pos,
              los,

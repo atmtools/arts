@@ -161,7 +161,6 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
  * computational efficiency.
  *
  * @param[out]    R_pra   rotation matrix.
- * @param[in]     stokes_dim  number of stokes vector elements to consider.
  * @param[in]     f1_dir  propagation direction of polarization basis 1 (-1.0 or 1.0).
  * @param[in]     f2_dir  propgation direction of polarization basis 2 (-1.0 or 1.0).
  * @param[in]     R_f1    rotation matrix (into ENU) for basis f1.
@@ -171,7 +170,6 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
  * @date          2016-09-07
  */
 void rotmat_stokes(MatrixView R_pra,
-                   const Index& stokes_dim,
                    const Numeric& f1_dir,
                    const Numeric& f2_dir,
                    ConstMatrixView R_f1,

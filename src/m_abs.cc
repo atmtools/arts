@@ -261,7 +261,6 @@ void propmat_clearskyInit(  //WS Output
 void propmat_clearskyAddFaraday(
     PropmatVector& propmat_clearsky,
     PropmatMatrix& dpropmat_clearsky_dx,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -291,10 +290,6 @@ void propmat_clearskyAddFaraday(
 
   const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
   const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
-
-  ARTS_USER_ERROR_IF(
-      stokes_dim < 3,
-      "To include Faraday rotation, stokes_dim >= 3 is required.")
 
   const Numeric ne = atm_point[abs_species[ife]];
 
@@ -362,7 +357,6 @@ void propmat_clearskyAddParticles(
     PropmatVector& propmat_clearsky,
     PropmatMatrix& dpropmat_clearsky_dx,
     // WS Input:
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -465,13 +459,12 @@ void propmat_clearskyAddParticles(
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      stokes_dim,
                       T_array,
                       dir_array,
                       -1);
 
   const Index nf = abs_vec_Nse[0][0].nbooks();
-  Tensor3 tmp(nf, stokes_dim, stokes_dim);
+  Tensor3 tmp(nf, 4, 4);
 
   // Internal computations necessary since it relies on zero start
   PropmatVector internal_propmat(propmat_clearsky.nelem());

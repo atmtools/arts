@@ -524,16 +524,16 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
   return aoi;
 }
 
-ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active) {
+ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, bool active) {
   ArrayOfTensor3 diy_dpath(jacobian_quantities.nelem());
   
   const Index nn = active ? np * nf : nf;
-  FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq] = Tensor3(np, nn, ns, 0.0);)
+  FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq] = Tensor3(np, nn, 4, 0.0);)
   
   return diy_dpath;
 }
 
-ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active) {
+ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, bool active) {
   ArrayOfTensor3 diy_dx(jacobian_quantities.nelem());
   
   bool any_affine;
@@ -541,7 +541,7 @@ ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jaco
   jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities, true);
   
   const Index nn = active ? np * nf : nf;
-  FOR_ANALYTICAL_JACOBIANS_DO2(diy_dx[iq] = Tensor3(jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1, nn, ns, 0.0);)
+  FOR_ANALYTICAL_JACOBIANS_DO2(diy_dx[iq] = Tensor3(jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1, nn, 4, 0.0);)
   
   return diy_dx;
 }

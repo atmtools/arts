@@ -125,7 +125,7 @@ ARTS_USER_ERROR("ERROR")
 
   // Set diy_dpath if we are doing are doing jacobian calculations
   ArrayOfTensor3 diy_dpath = j_analytical_do ?
-    get_standard_diy_dpath(jacobian_quantities, np, nf, 4, true) :
+    get_standard_diy_dpath(jacobian_quantities, np, nf, true) :
     ArrayOfTensor3(0);
   
   // Set the species pointers if we are doing jacobian
@@ -136,7 +136,7 @@ ARTS_USER_ERROR("ERROR")
   // Start diy_dx out if we are doing the first run and are doing jacobian
   // calculations
   diy_dx = j_analytical_do ?
-    get_standard_starting_diy_dx(jacobian_quantities, np, nf, 4, true) :
+    get_standard_starting_diy_dx(jacobian_quantities, np, nf, true) :
     ArrayOfTensor3(0);
   
   // Checks that the scattering species are treated correctly if their
@@ -415,7 +415,6 @@ ARTS_USER_ERROR("ERROR")
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
-                                    4,
                                     nf,
                                     np,
                                     ppath,
@@ -455,7 +454,6 @@ void yRadar(Workspace& ws,
             const Index& atmfields_checked,
             const String& iy_unit_radar,
             const ArrayOfString& iy_aux_vars,
-            const Index& stokes_dim,
             const Vector& f_grid,
             const Index& cloudbox_on,
             const Index& cloudbox_checked,
@@ -482,13 +480,11 @@ void yRadar(Workspace& ws,
 
   // Basics
   //
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   //
   ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
   ARTS_USER_ERROR_IF (f_grid[0] <= 0, "All frequencies in *f_grid* must be > 0.");
   //
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
@@ -543,8 +539,8 @@ void yRadar(Workspace& ws,
     npolcum[i + 1] = npolcum[i] + ni;
     W[i].resize(ni);
     for (Index j = 0; j < ni; j++) {
-      W[i][j].resize(stokes_dim);
-      stokes2pol(W[i][j], stokes_dim, instrument_pol_array[i][j], 0.5);
+      W[i][j].resize(4);
+      stokes2pol(W[i][j], instrument_pol_array[i][j], 0.5);
     }
   }
 

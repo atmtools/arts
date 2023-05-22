@@ -717,13 +717,13 @@ This feature will be added in a future version.
   }
   
   // Set diy_dpath if we are doing are doing jacobian calculations
-  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, 4, false) : ArrayOfTensor3(0);
+  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, false) : ArrayOfTensor3(0);
   
   // Set the species pointers if we are doing jacobian
   const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
   
   // Start diy_dx out if we are doing the first run and are doing jacobian calculations
-  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, 4, false);
+  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, false);
   
   // Checks that the scattering species are treated correctly if their derivatives are needed (we can here discard the Array)
   if (j_analytical_do and iy_agenda_call1) get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on);
@@ -938,7 +938,6 @@ This feature will be added in a future version.
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
-                                    4,
                                     nf,
                                     np,
                                     ppath,
@@ -954,7 +953,6 @@ This feature will be added in a future version.
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmitterMultiplePol(Matrix& iy_transmitter,
-                               const Index& stokes_dim,
                                const Vector& f_grid,
                                const ArrayOfIndex& instrument_pol) {
   const Index nf = f_grid.nelem();
@@ -964,16 +962,15 @@ void iy_transmitterMultiplePol(Matrix& iy_transmitter,
         "The length of *f_grid* and the number of elements "
         "in *instrument_pol* must be equal.");
 
-  iy_transmitter.resize(nf, stokes_dim);
+  iy_transmitter.resize(nf, 4);
 
   for (Index i = 0; i < nf; i++) {
-    stokes2pol(iy_transmitter(i, joker), stokes_dim, instrument_pol[i], 1);
+    stokes2pol(iy_transmitter(i, joker), instrument_pol[i], 1);
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmitterSinglePol(Matrix& iy_transmitter,
-                             const Index& stokes_dim,
                              const Vector& f_grid,
                              const ArrayOfIndex& instrument_pol) {
   const Index nf = f_grid.nelem();
@@ -982,9 +979,9 @@ void iy_transmitterSinglePol(Matrix& iy_transmitter,
     throw runtime_error(
         "The number of elements in *instrument_pol* must be 1.");
 
-  iy_transmitter.resize(nf, stokes_dim);
+  iy_transmitter.resize(nf, 4);
 
-  stokes2pol(iy_transmitter(0, joker), stokes_dim, instrument_pol[0], 1);
+  stokes2pol(iy_transmitter(0, joker), instrument_pol[0], 1);
 
   for (Index i = 1; i < nf; i++) {
     iy_transmitter(i, joker) = iy_transmitter(0, joker);

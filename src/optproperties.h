@@ -132,7 +132,6 @@ void opt_prop_NScatElems(  //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
     const Vector& T_array,
     const Matrix& dir_array,
     const Index& f_index,
@@ -154,14 +153,12 @@ void ext_mat_SSD2Stokes(  //Output
     MatrixView ext_mat_stokes,
     //Input
     ConstVectorView ext_mat_ssd,
-    const Index& stokes_dim,
     const Index& ptype);
 
 void abs_vec_SSD2Stokes(  //Output
     VectorView abs_vec_stokes,
     //Input
     ConstVectorView abs_vec_ssd,
-    const Index& stokes_dim,
     const Index& ptype);
 
 void pha_mat_Bulk(  //Output
@@ -186,7 +183,6 @@ void pha_mat_NScatElems(  //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
     const Vector& T_array,
     const Matrix& pdir_array,
     const Matrix& idir_array,
@@ -242,8 +238,7 @@ void pha_matTransform(  //Output
 void ext_matFromabs_vec(  //Output
     MatrixView ext_mat,
     //Input
-    ConstVectorView abs_vec,
-    const Index& stokes_dim);
+    ConstVectorView abs_vec);
 
 // Functions for the case: Randomly oriented particles:
 // ========================================================

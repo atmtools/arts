@@ -414,8 +414,8 @@ const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
 }
 #pragma GCC diagnostic pop
 
-void sum(PropmatVectorView& pm,
-         const ComplexVectorView& abs,
+void sum(PropmatVectorView pm,
+         const ConstComplexVectorView& abs,
          const PolarizationVector& polvec) {
   const Index n = pm.nelem();
   ARTS_ASSERT(n == abs.nelem())
@@ -431,8 +431,8 @@ void sum(PropmatVectorView& pm,
   }
 }
 
-void sum(StokvecVectorView& sv,
-         const ComplexVectorView& abs,
+void sum(StokvecVectorView sv,
+         const ConstComplexVectorView& abs,
          const PolarizationVector& polvec) {
   const Index n = sv.nelem();
   ARTS_ASSERT(n == abs.nelem())
@@ -444,9 +444,9 @@ void sum(StokvecVectorView& sv,
   }
 }
 
-void dsum(PropmatVectorView& pm,
-          const ComplexVectorView& abs,
-          const ComplexVectorView& dabs,
+void dsum(PropmatVectorView pm,
+          const ConstComplexVectorView& abs,
+          const ConstComplexVectorView& dabs,
           const PolarizationVector& polvec,
           const PolarizationVector& dpolvec_dtheta,
           const PolarizationVector& dpolvec_deta,
@@ -472,9 +472,9 @@ void dsum(PropmatVectorView& pm,
   }
 }
 
-void dsum(StokvecVectorView& sv,
-          const ComplexVectorView& abs,
-          const ComplexVectorView& dabs,
+void dsum(StokvecVectorView sv,
+          const ConstComplexVectorView& abs,
+          const ConstComplexVectorView& dabs,
           const PolarizationVector& polvec,
           const PolarizationVector& dpolvec_dtheta,
           const PolarizationVector& dpolvec_deta,

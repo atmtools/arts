@@ -15,6 +15,8 @@ using PropmatMatrixView = rtepack::propmat_matrix_view;
 using PropmatConstMatrixView = rtepack::propmat_matrix_const_view;
 using ArrayOfPropmatVector = Array<PropmatVector>;
 using ArrayOfPropmatMatrix = Array<PropmatMatrix>;
+using ArrayOfArrayOfPropmatVector = Array<ArrayOfPropmatVector>;
+using ArrayOfArrayOfPropmatMatrix = Array<ArrayOfPropmatMatrix>;
 
 using Stokvec = rtepack::stokvec;
 using StokvecVector = rtepack::stokvec_vector;

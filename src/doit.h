@@ -64,19 +64,16 @@
     \author Richard Larsson,
     \date   2017-08-14
 */
-void rte_step_doit_replacement(
-    //FIXME function name of 'rte_step_doit_replacement' should be replaced by
-    // proper name
-    //Output and Input:
-    VectorView stokes_vec,
-    MatrixView trans_mat,
+void rte_step_doit_replacement(  //Output and Input:
+    Stokvec& stokes_vec,
+    Muelmat& trans_mat,
     //Input
-    const PropmatVector& ext_mat_av,
-    const StokvecVector& abs_vec_av,
-    ConstVectorView sca_vec_av,
+    const Propmat& ext_mat_av,
+    const Stokvec& abs_vec_av,
+    const Stokvec& sca_vec_av,
     const Numeric& lstep,
     const Numeric& rtp_planck_value,
-    const bool& trans_is_precalc = false);
+    const bool& trans_is_precalc=false);
 
 //! Calculate ext_mat, abs_vec for all points inside the cloudbox for one
 //  propagation direction.
@@ -449,7 +446,6 @@ void cloud_RT_no_background(Workspace& ws,
   \param[in]     f_grid Frequency grid
   \param[in]     f_index Frequency index of (monochromatic) scattering
                  calculation
-  \param[in]     stokes_dim Dimension of Stokes vector
   \param[in]     ppath_step Propagation path step
   \param[in]     cloudbox_limits Cloudbox limits
   \param[in]     za_grid Zenith angle grid
@@ -467,7 +463,6 @@ void cloud_RT_surface(Workspace& ws,
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
                       const Index& f_index,
-                      const Index& stokes_dim,
                       const Ppath& ppath_step,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstVectorView za_grid,

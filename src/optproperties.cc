@@ -149,7 +149,6 @@ void opt_prop_ScatSpecBulk(   //Output
   const Index nT = pnds.ncols();
   const Index nf = abs_vec_se[0][0].nbooks();
   const Index nDir = abs_vec_se[0][0].nrows();
-  const Index stokes_dim = abs_vec_se[0][0].ncols();
 
   const Index nss = ext_mat_se.nelem();
   ext_mat.resize(nss);
@@ -165,9 +164,9 @@ void opt_prop_ScatSpecBulk(   //Output
     ARTS_ASSERT(nT == ext_mat_se[i_ss][0].nbooks());
     ARTS_ASSERT(nT == abs_vec_se[i_ss][0].npages());
 
-    ext_mat[i_ss].resize(nf, nT, nDir, stokes_dim, stokes_dim);
+    ext_mat[i_ss].resize(nf, nT, nDir, 4, 4);
     ext_mat[i_ss] = 0.;
-    abs_vec[i_ss].resize(nf, nT, nDir, stokes_dim);
+    abs_vec[i_ss].resize(nf, nT, nDir, 4);
     abs_vec[i_ss] = 0.;
 
     for (Index i_se = 0; i_se < ext_mat_se[i_ss].nelem(); i_se++) {
@@ -218,7 +217,6 @@ void opt_prop_ScatSpecBulk(   //Output
   \param[out] ptypes     Scattering element types.
   \param[out] t_ok       Flag whether T-interpol valid (over scat elements, temp).
   \param[in]  scat_data  as the WSV.
-  \param[in]  stokes_dim as the WSV.
   \param[in]  T_array    Temperatures to extract ext/abs for.
   \param[in]  dir_array  Propagation directions to extract ext/abs for (as
                            pairs of zenith and azimuth angle per direction).
@@ -236,7 +234,6 @@ void opt_prop_NScatElems(            //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
     const Vector& T_array,
     const Matrix& dir_array,
     const Index& f_index,
@@ -274,8 +271,8 @@ void opt_prop_NScatElems(            //Output
     ptypes[i_ss].resize(nse);
 
     for (Index i_se = 0; i_se < nse; i_se++) {
-      ext_mat[i_ss][i_se].resize(nf, nT, nDir, stokes_dim, stokes_dim);
-      abs_vec[i_ss][i_se].resize(nf, nT, nDir, stokes_dim);
+      ext_mat[i_ss][i_se].resize(nf, nT, nDir, 4, 4);
+      abs_vec[i_ss][i_se].resize(nf, nT, nDir, 4);
 
       opt_prop_1ScatElem(ext_mat[i_ss][i_se],
                          abs_vec[i_ss][i_se],
@@ -448,9 +445,8 @@ void opt_prop_1ScatElem(  //Output
   ARTS_ASSERT(ext_mat.npages() == nDir);
   ARTS_ASSERT(abs_vec.nrows() == nDir);
 
-  const Index stokes_dim = abs_vec.ncols();
-  ARTS_ASSERT(ext_mat.nrows() == stokes_dim);
-  ARTS_ASSERT(ext_mat.ncols() == stokes_dim);
+  ARTS_ASSERT(ext_mat.nrows() == 4);
+  ARTS_ASSERT(ext_mat.ncols() == 4);
 
   ptype = ssd.ptype;
 
@@ -474,16 +470,14 @@ void opt_prop_1ScatElem(  //Output
                                   // for the fs, the Tin, and the dirin and sort
                                   // (copy) into the output fs, Ts, and dirs.
     {
-      Tensor3 ext_mat_tmp(nf, stokes_dim, stokes_dim);
-      Matrix abs_vec_tmp(nf, stokes_dim);
+      Tensor3 ext_mat_tmp(nf, 4, 4);
+      Matrix abs_vec_tmp(nf, 4);
       for (Index find = 0; find < nf; find++) {
         ext_mat_SSD2Stokes(ext_mat_tmp(find, joker, joker),
                            ssd.ext_mat_data(find + f_start, 0, 0, 0, joker),
-                           stokes_dim,
                            ptype);
         abs_vec_SSD2Stokes(abs_vec_tmp(find, joker),
                            ssd.abs_vec_data(find + f_start, 0, 0, 0, joker),
-                           stokes_dim,
                            ptype);
       }
       for (Index Tind = 0; Tind < nTout; Tind++)
@@ -494,8 +488,8 @@ void opt_prop_1ScatElem(  //Output
     } else  // T-interpolation required (but not dir). To be done on the compact
             // ssd format.
     {
-      Tensor4 ext_mat_tmp(nf, nTout, stokes_dim, stokes_dim);
-      Tensor3 abs_vec_tmp(nf, nTout, stokes_dim);
+      Tensor4 ext_mat_tmp(nf, nTout, 4, 4);
+      Tensor3 abs_vec_tmp(nf, nTout, 4);
       Matrix ext_mat_tmp_ssd(nTout, ssd.ext_mat_data.ncols());
       Matrix abs_vec_tmp_ssd(nTout, ssd.abs_vec_data.ncols());
       for (Index find = 0; find < nf; find++) {
@@ -508,7 +502,6 @@ void opt_prop_1ScatElem(  //Output
           if (t_ok[Tind] > 0.)
             ext_mat_SSD2Stokes(ext_mat_tmp(find, Tind, joker, joker),
                                ext_mat_tmp_ssd(Tind, joker),
-                               stokes_dim,
                                ptype);
           else
             ext_mat_tmp(find, Tind, joker, joker) = 0.;
@@ -523,7 +516,6 @@ void opt_prop_1ScatElem(  //Output
           if (t_ok[Tind] > 0.)
             abs_vec_SSD2Stokes(abs_vec_tmp(find, Tind, joker),
                                abs_vec_tmp_ssd(Tind, joker),
-                               stokes_dim,
                                ptype);
           else
             abs_vec_tmp(find, Tind, joker) = 0.;
@@ -557,8 +549,8 @@ void opt_prop_1ScatElem(  //Output
     {
       Matrix ext_mat_tmp_ssd(nDir, next);
       Matrix abs_vec_tmp_ssd(nDir, nabs);
-      Tensor4 ext_mat_tmp(nf, nDir, stokes_dim, stokes_dim);
-      Tensor3 abs_vec_tmp(nf, nDir, stokes_dim);
+      Tensor4 ext_mat_tmp(nf, nDir, 4, 4);
+      Tensor3 abs_vec_tmp(nf, nDir, 4);
       for (Index find = 0; find < nf; find++) {
         for (Index nst = 0; nst < next; nst++)
           interp(ext_mat_tmp_ssd(joker, nst),
@@ -568,7 +560,6 @@ void opt_prop_1ScatElem(  //Output
         for (Index Dind = 0; Dind < nDir; Dind++)
           ext_mat_SSD2Stokes(ext_mat_tmp(find, Dind, joker, joker),
                              ext_mat_tmp_ssd(Dind, joker),
-                             stokes_dim,
                              ptype);
 
         for (Index nst = 0; nst < nabs; nst++)
@@ -579,7 +570,6 @@ void opt_prop_1ScatElem(  //Output
         for (Index Dind = 0; Dind < nDir; Dind++)
           abs_vec_SSD2Stokes(abs_vec_tmp(find, Dind, joker),
                              abs_vec_tmp_ssd(Dind, joker),
-                             stokes_dim,
                              ptype);
       }
 
@@ -619,7 +609,6 @@ void opt_prop_1ScatElem(  //Output
           for (Index Tind = 0; Tind < nTout; Tind++)
             ext_mat_SSD2Stokes(ext_mat(find, Tind, Dind, joker, joker),
                                ext_mat_tmp(Tind, joker),
-                               stokes_dim,
                                ptype);
 
           for (Index nst = 0; nst < nabs; nst++) {
@@ -631,7 +620,6 @@ void opt_prop_1ScatElem(  //Output
           for (Index Tind = 0; Tind < nTout; Tind++)
             abs_vec_SSD2Stokes(abs_vec(find, Tind, Dind, joker),
                                abs_vec_tmp(Tind, joker),
-                               stokes_dim,
                                ptype);
         }
       }
@@ -644,10 +632,9 @@ void opt_prop_1ScatElem(  //Output
   Converts extinction matrix from scat_data ptype-dependent compact format to
   Stokes-notation matrix.
 
-  \param[out] ext_mat_stokes  extmat in stokes notation (stokes_dim,stokes_dim).
+  \param[out] ext_mat_stokes  extmat in stokes notation (4,4).
   \param[in]  ext_mat_ssd     extmat at 1f, 1T, 1dir in scat_data compact
                                 (vector) format.
-  \param[in]  stokes_dim      as the WSM.
   \param[in]  ptype           type of scattering element.
 
   \author Jana Mendrok
@@ -657,7 +644,6 @@ void ext_mat_SSD2Stokes(  //Output
     MatrixView ext_mat_stokes,
     //Input
     ConstVectorView ext_mat_ssd,
-    const Index& stokes_dim,
     const Index& ptype) {
   // for now, no handling of PTYPE_GENERAL. should be ensured somewhere in the
   // calling methods, though.
@@ -665,25 +651,15 @@ void ext_mat_SSD2Stokes(  //Output
 
   ext_mat_stokes = 0.;
 
-  for (Index ist = 0; ist < stokes_dim; ist++) {
+  for (Index ist = 0; ist < 4; ist++) {
     ext_mat_stokes(ist, ist) = ext_mat_ssd[0];
   }
 
   if (ptype > PTYPE_TOTAL_RND) {
-    switch (stokes_dim) {
-      case 4: {
         ext_mat_stokes(2, 3) = ext_mat_ssd[2];
         ext_mat_stokes(3, 2) = -ext_mat_ssd[2];
-      } /* FALLTHROUGH */
-      case 3: {
-        // nothing to be done here. but we need this for executing the below
-        // also in case of stokes_dim==3.
-      }
-      case 2: {
         ext_mat_stokes(0, 1) = ext_mat_ssd[1];
         ext_mat_stokes(1, 0) = ext_mat_ssd[1];
-      }
-    }
   }
 }
 
@@ -692,10 +668,9 @@ void ext_mat_SSD2Stokes(  //Output
   Converts absorption vector from scat_data ptype-dependent compact format to
   Stokes-notation matrix.
 
-  \param[out] abs_vec_stokes  absvec in stokes notation (stokes_dim).
+  \param[out] abs_vec_stokes  absvec in stokes notation (4).
   \param[in]  abs_vec_ssd     absvec at 1f, 1T, 1dir in scat_data compact
                                 (vector) format.
-  \param[in]  stokes_dim      as the WSM.
   \param[in]  ptype           Type of scattering element.
 
   \author Jana Mendrok
@@ -705,7 +680,6 @@ void abs_vec_SSD2Stokes(  //Output
     VectorView abs_vec_stokes,
     //Input
     ConstVectorView abs_vec_ssd,
-    const Index& stokes_dim,
     const Index& ptype) {
   // for now, no handling of PTYPE_GENERAL. should be ensured somewhere in the
   // calling methods, though.
@@ -715,7 +689,7 @@ void abs_vec_SSD2Stokes(  //Output
 
   abs_vec_stokes[0] = abs_vec_ssd[0];
 
-  if (ptype > PTYPE_TOTAL_RND and stokes_dim > 1) {
+  if (ptype > PTYPE_TOTAL_RND and 4 > 1) {
     abs_vec_stokes[1] = abs_vec_ssd[1];
   }
 }
@@ -793,7 +767,6 @@ void pha_mat_ScatSpecBulk(    //Output
   const Index nf = pha_mat_se[0][0].nvitrines();
   const Index npDir = pha_mat_se[0][0].nbooks();
   const Index niDir = pha_mat_se[0][0].npages();
-  const Index stokes_dim = pha_mat_se[0][0].ncols();
 
   const Index nss = pha_mat_se.nelem();
   pha_mat.resize(nss);
@@ -805,7 +778,7 @@ void pha_mat_ScatSpecBulk(    //Output
   for (Index i_ss = 0; i_ss < nss; i_ss++) {
     ARTS_ASSERT(nT == pha_mat_se[i_ss][0].nshelves());
 
-    pha_mat[i_ss].resize(nf, nT, npDir, niDir, stokes_dim, stokes_dim);
+    pha_mat[i_ss].resize(nf, nT, npDir, niDir, 4, 4);
     pha_mat[i_ss] = 0.;
 
     for (Index i_se = 0; i_se < pha_mat_se[i_ss].nelem(); i_se++) {
@@ -850,7 +823,6 @@ void pha_mat_ScatSpecBulk(    //Output
   \param[out] ptypes     Scattering element types.
   \param[out] t_ok       Flag whether T-interpol valid (over scat elements, temp).
   \param[in]  scat_data  as the WSV.
-  \param[in]  stokes_dim as the WSV.
   \param[in]  T_array    Temperatures to extract pha for.
   \param[in]  pdir_array Propagation directions to extract pha for (as pairs of
                            zenith and azimuth angle per direction).
@@ -869,7 +841,7 @@ void pha_mat_NScatElems(             //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
+    
     const Vector& T_array,
     const Matrix& pdir_array,
     const Matrix& idir_array,
@@ -907,7 +879,7 @@ void pha_mat_NScatElems(             //Output
     ptypes[i_ss].resize(nse);
 
     for (Index i_se = 0; i_se < nse; i_se++) {
-      pha_mat[i_ss][i_se].resize(nf, nT, npDir, niDir, stokes_dim, stokes_dim);
+      pha_mat[i_ss][i_se].resize(nf, nT, npDir, niDir, 4, 4);
 
       pha_mat_1ScatElem(pha_mat[i_ss][i_se],
                         ptypes[i_ss][i_se],
@@ -976,8 +948,7 @@ void pha_mat_1ScatElem(   //Output
   const Index niDir = idir_array.nrows();
   ARTS_ASSERT(pha_mat.npages() == niDir);
 
-  const Index stokes_dim = pha_mat.ncols();
-  ARTS_ASSERT(pha_mat.nrows() == stokes_dim);
+  ARTS_ASSERT(pha_mat.nrows() == 4);
 
   ptype = ssd.ptype;
 
@@ -999,13 +970,7 @@ void pha_mat_1ScatElem(   //Output
   if (ptype == PTYPE_TOTAL_RND) {
     // determine how many of the compact stokes elements we will need.
     // restrict interpolations to those.
-    Index npha;
-    if (stokes_dim == 1)
-      npha = 1;
-    else if (stokes_dim < 4)  // stokes_dim==2 || stokes_dim==3
-      npha = 4;
-    else
-      npha = 6;
+    Index npha = 6;
     if (this_T_interp_order < 0)  // just extract (and unpack) pha data for the
     // fs and Tin, and interpolate in sca-angs, and
     // sort (copy) into the output fs, Ts, and dirs.
@@ -1025,7 +990,7 @@ void pha_mat_1ScatElem(   //Output
           interpweights(dir_itw, dir_gp);
 
           Vector pha_mat_int(npha, 0.);
-          Matrix pha_mat_tmp(stokes_dim, stokes_dim);
+          Matrix pha_mat_tmp(4, 4);
           for (Index find = 0; find < nf; find++) {
             // perform the scat angle interpolation
             for (Index nst = 0; nst < npha; nst++)
@@ -1133,15 +1098,15 @@ void pha_mat_1ScatElem(   //Output
 
     if (this_T_interp_order < 0)  // T only needs to be extracted.
     {
-      Tensor3 pha_mat_int(nDir, stokes_dim, stokes_dim, 0.);
-      Tensor4 pha_mat_tmp(npDir, niDir, stokes_dim, stokes_dim);
+      Tensor3 pha_mat_int(nDir, 4, 4, 0.);
+      Tensor4 pha_mat_tmp(npDir, niDir, 4, 4);
 
       for (Index find = 0; find < nf; find++) {
         // perform the (tri-linear) angle interpolation. but only for the
         // pha_mat elements that we actually need.
 
-        for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
-          for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
+        for (Index ist1 = 0; ist1 < 4; ist1++)
+          for (Index ist2 = 0; ist2 < 4; ist2++)
             interp(
                 pha_mat_int(joker, ist1, ist2),
                 dir_itw,
@@ -1161,27 +1126,23 @@ void pha_mat_1ScatElem(   //Output
             i++;
           }
 
-        if (stokes_dim > 2) {
-          for (Index pdir = 0; pdir < npDir; pdir++)
-            for (Index idir = 0; idir < niDir; idir++)
-              if (delta_aa(pdir, idir) < 0.) {
-                pha_mat_tmp(pdir, idir, 0, 2) *= -1;
-                pha_mat_tmp(pdir, idir, 1, 2) *= -1;
-                pha_mat_tmp(pdir, idir, 2, 0) *= -1;
-                pha_mat_tmp(pdir, idir, 2, 1) *= -1;
-              }
-        }
+        for (Index pdir = 0; pdir < npDir; pdir++)
+          for (Index idir = 0; idir < niDir; idir++)
+            if (delta_aa(pdir, idir) < 0.) {
+              pha_mat_tmp(pdir, idir, 0, 2) *= -1;
+              pha_mat_tmp(pdir, idir, 1, 2) *= -1;
+              pha_mat_tmp(pdir, idir, 2, 0) *= -1;
+              pha_mat_tmp(pdir, idir, 2, 1) *= -1;
+            }
 
-        if (stokes_dim > 3) {
-          for (Index pdir = 0; pdir < npDir; pdir++)
-            for (Index idir = 0; idir < niDir; idir++)
-              if (delta_aa(pdir, idir) < 0.) {
-                pha_mat_tmp(pdir, idir, 0, 3) *= -1;
-                pha_mat_tmp(pdir, idir, 1, 3) *= -1;
-                pha_mat_tmp(pdir, idir, 3, 0) *= -1;
-                pha_mat_tmp(pdir, idir, 3, 1) *= -1;
-              }
-        }
+        for (Index pdir = 0; pdir < npDir; pdir++)
+          for (Index idir = 0; idir < niDir; idir++)
+            if (delta_aa(pdir, idir) < 0.) {
+              pha_mat_tmp(pdir, idir, 0, 3) *= -1;
+              pha_mat_tmp(pdir, idir, 1, 3) *= -1;
+              pha_mat_tmp(pdir, idir, 3, 0) *= -1;
+              pha_mat_tmp(pdir, idir, 3, 1) *= -1;
+            }
 
         for (Index Tind = 0; Tind < nTout; Tind++)
           pha_mat(find, Tind, joker, joker, joker, joker) = pha_mat_tmp;
@@ -1191,14 +1152,14 @@ void pha_mat_1ScatElem(   //Output
     else  // T- and dir-interpolation required. To be done on the compact ssd
           // format.
     {
-      Tensor4 pha_mat_int(nTin, nDir, stokes_dim, stokes_dim, 0.);
+      Tensor4 pha_mat_int(nTin, nDir, 4, 4, 0.);
 
       for (Index find = 0; find < nf; find++) {
         // perform the (tri-linear) angle interpolation. but only for the
         // pha_mat elements that we actually need.
         for (Index Tind = 0; Tind < nTin; Tind++) {
-          for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
-            for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
+          for (Index ist1 = 0; ist1 < 4; ist1++)
+            for (Index ist2 = 0; ist2 < 4; ist2++)
               interp(pha_mat_int(Tind, joker, ist1, ist2),
                      dir_itw,
                      ssd.pha_mat_data(find + f_start,
@@ -1219,8 +1180,8 @@ void pha_mat_1ScatElem(   //Output
         Index i = 0;
         for (Index pdir = 0; pdir < npDir; pdir++)
           for (Index idir = 0; idir < niDir; idir++) {
-            for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
-              for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
+            for (Index ist1 = 0; ist1 < 4; ist1++)
+              for (Index ist2 = 0; ist2 < 4; ist2++)
                 reinterp(pha_mat(find, joker, pdir, idir, ist1, ist2),
                          pha_mat_int(joker, i, ist1, ist2),
                          T_itw_lag,
@@ -1228,27 +1189,23 @@ void pha_mat_1ScatElem(   //Output
             i++;
           }
 
-        if (stokes_dim > 2) {
-          for (Index pdir = 0; pdir < npDir; pdir++)
-            for (Index idir = 0; idir < niDir; idir++)
-              if (delta_aa(pdir, idir) < 0.) {
-                pha_mat(find, joker, pdir, idir, 0, 2) *= -1;
-                pha_mat(find, joker, pdir, idir, 1, 2) *= -1;
-                pha_mat(find, joker, pdir, idir, 2, 0) *= -1;
-                pha_mat(find, joker, pdir, idir, 2, 1) *= -1;
-              }
-        }
+        for (Index pdir = 0; pdir < npDir; pdir++)
+          for (Index idir = 0; idir < niDir; idir++)
+            if (delta_aa(pdir, idir) < 0.) {
+              pha_mat(find, joker, pdir, idir, 0, 2) *= -1;
+              pha_mat(find, joker, pdir, idir, 1, 2) *= -1;
+              pha_mat(find, joker, pdir, idir, 2, 0) *= -1;
+              pha_mat(find, joker, pdir, idir, 2, 1) *= -1;
+            }
 
-        if (stokes_dim > 3) {
-          for (Index pdir = 0; pdir < npDir; pdir++)
-            for (Index idir = 0; idir < niDir; idir++)
-              if (delta_aa(pdir, idir) < 0.) {
-                pha_mat(find, joker, pdir, idir, 0, 3) *= -1;
-                pha_mat(find, joker, pdir, idir, 1, 3) *= -1;
-                pha_mat(find, joker, pdir, idir, 3, 0) *= -1;
-                pha_mat(find, joker, pdir, idir, 3, 1) *= -1;
-              }
-        }
+        for (Index pdir = 0; pdir < npDir; pdir++)
+          for (Index idir = 0; idir < niDir; idir++)
+            if (delta_aa(pdir, idir) < 0.) {
+              pha_mat(find, joker, pdir, idir, 0, 3) *= -1;
+              pha_mat(find, joker, pdir, idir, 1, 3) *= -1;
+              pha_mat(find, joker, pdir, idir, 3, 0) *= -1;
+              pha_mat(find, joker, pdir, idir, 3, 1) *= -1;
+            }
       }
     }
   }
@@ -1467,16 +1424,10 @@ void pha_matTransform(  //Output
     const Index& aa_inc_idx,
     ConstVectorView za_grid,
     ConstVectorView aa_grid) {
-  const Index stokes_dim = pha_mat_lab.ncols();
-
   Numeric za_sca = za_grid[za_sca_idx];
   Numeric aa_sca = aa_grid[aa_sca_idx];
   Numeric za_inc = za_grid[za_inc_idx];
   Numeric aa_inc = aa_grid[aa_inc_idx];
-
-  ARTS_USER_ERROR_IF (stokes_dim > 4 || stokes_dim < 1,
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1533,9 +1484,7 @@ void pha_matTransform(  //Output
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
-        if (stokes_dim == 1) {
-          break;
-        }
+        
         pha_mat_lab(0, 1) =
             interp(itw,
                    pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 1),
@@ -1554,9 +1503,7 @@ void pha_matTransform(  //Output
                    za_sca_gp,
                    delta_aa_gp,
                    za_inc_gp);
-        if (stokes_dim == 2) {
-          break;
-        }
+        
         if (delta_aa >= 0) {
           pha_mat_lab(0, 2) = interp(
               itw,
@@ -1614,9 +1561,7 @@ void pha_matTransform(  //Output
             za_sca_gp,
             delta_aa_gp,
             za_inc_gp);
-        if (stokes_dim == 3) {
-          break;
-        }
+        
         if (delta_aa >= 0) {
           pha_mat_lab(0, 3) = interp(
               itw,
@@ -1718,7 +1663,6 @@ void pha_matTransform(  //Output
   \param ext_mat     Extinction matrix.
   Input:
   \param abs_vec     Absorption vector.
-  \param stokes_dim  as the WSV.
 
   \author Jana Mendrok
   \date   2013-04-30
@@ -1726,19 +1670,17 @@ void pha_matTransform(  //Output
 void ext_matFromabs_vec(  //Output
     MatrixView ext_mat,
     //Input
-    ConstVectorView abs_vec,
-    const Index& stokes_dim) {
-  ARTS_ASSERT(stokes_dim >= 1 && stokes_dim <= 4);
-  ARTS_ASSERT(ext_mat.nrows() == stokes_dim);
-  ARTS_ASSERT(ext_mat.ncols() == stokes_dim);
-  ARTS_ASSERT(abs_vec.nelem() == stokes_dim);
+    ConstVectorView abs_vec) {
+  ARTS_ASSERT(ext_mat.nrows() == 4);
+  ARTS_ASSERT(ext_mat.ncols() == 4);
+  ARTS_ASSERT(abs_vec.nelem() == 4);
 
   // first: diagonal elements
-  for (Index is = 0; is < stokes_dim; is++) {
+  for (Index is = 0; is < 4; is++) {
     ext_mat(is, is) += abs_vec[0];
   }
   // second: off-diagonal elements, namely first row and column
-  for (Index is = 1; is < stokes_dim; is++) {
+  for (Index is = 1; is < 4; is++) {
     ext_mat(0, is) += abs_vec[is];
     ext_mat(is, 0) += abs_vec[is];
   }
@@ -1865,8 +1807,6 @@ void pha_mat_labCalc(  //Output:
     const Numeric& za_inc,
     const Numeric& aa_inc,
     const Numeric& theta_rad) {
-  const Index stokes_dim = pha_mat_lab.ncols();
-
   ARTS_USER_ERROR_IF (std::isnan(F11),
         "NaN value(s) detected in *pha_mat_labCalc* (0,0). Could the "
         "input data contain NaNs? Please check with *scat_dataCheck*. If "
@@ -1877,10 +1817,9 @@ void pha_mat_labCalc(  //Output:
         "when doing MC calculations, it should not be critical. This path "
         "sampling will be rejected and replaced with a new one.");
 
-  // For stokes_dim = 1, we only need Z11=F11:
   pha_mat_lab(0, 0) = F11;
 
-  if (stokes_dim > 1) {
+  {
     Numeric za_sca_rad = Conversion::deg2rad(za_sca);
     Numeric za_inc_rad = Conversion::deg2rad(za_inc);
     Numeric aa_sca_rad = Conversion::deg2rad(aa_sca);
@@ -1905,14 +1844,14 @@ void pha_mat_labCalc(  //Output:
       pha_mat_lab(1, 0) = F12;
       pha_mat_lab(1, 1) = F22;
 
-      if (stokes_dim > 2) {
+      {
         pha_mat_lab(0, 2) = 0;
         pha_mat_lab(1, 2) = 0;
         pha_mat_lab(2, 0) = 0;
         pha_mat_lab(2, 1) = 0;
         pha_mat_lab(2, 2) = F33;
 
-        if (stokes_dim > 3) {
+        {
           pha_mat_lab(0, 3) = 0;
           pha_mat_lab(1, 3) = 0;
           pha_mat_lab(2, 3) = F34;
@@ -1988,7 +1927,7 @@ void pha_mat_labCalc(  //Output:
             "when doing MC calculations, it should not be critical. This path "
             "sampling will be rejected and replaced with a new one.");
 
-      if (stokes_dim > 2) {
+      {
         /*CPD: For skokes_dim > 2 some of the transformation formula
             for each element have a different sign depending on whether or
             not 0<aa_scat-aa_inc<180.  For details see pages 94 and 95 of
@@ -2013,7 +1952,7 @@ void pha_mat_labCalc(  //Output:
         }
         pha_mat_lab(2, 2) = -S1 * S2 * F22 + C1 * C2 * F33;
 
-        if (stokes_dim > 3) {
+        {
           if (delta_aa >= 0) {
             pha_mat_lab(1, 3) = S2 * F34;
             pha_mat_lab(3, 1) = S1 * F34;

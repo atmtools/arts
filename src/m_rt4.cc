@@ -45,7 +45,7 @@ void RT4Calc(Workspace& ws,
              const ArrayOfArrayOfSingleScatteringData& scat_data,
              const ArrayOfArrayOfSpeciesTag& abs_species,
              const Vector& f_grid,
-             const Index& stokes_dim,
+             
              const SurfaceField& surface_field,
              const Index& nstreams,
              const String& pfct_method,
@@ -78,13 +78,12 @@ void RT4Calc(Workspace& ws,
                   scat_data_checked,
                   cloudbox_limits,
                   scat_data,
-                  stokes_dim,
                   nstreams,
                   quad_type,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, 1, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, 1);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -113,13 +112,13 @@ void RT4Calc(Workspace& ws,
   // dummy values for parameters not relevant for this ground_type
   Numeric surface_skin_t = 0.;
   Vector ground_albedo(nf, 0.);
-  Tensor3 ground_reflec(nf, stokes_dim, stokes_dim, 0.);
+  Tensor3 ground_reflec(nf, 4, 4, 0.);
   Complex gidef(1, 0.);
   ComplexVector ground_index(nf, gidef);
 
   // parameters that will be updated below
-  Tensor5 surf_refl_mat(nf, nummu, stokes_dim, nummu, stokes_dim, 0.);
-  Tensor3 surf_emis_vec(nf, nummu, stokes_dim, 0.);
+  Tensor5 surf_refl_mat(nf, nummu, 4, nummu, 4, 0.);
+  Tensor3 surf_emis_vec(nf, nummu, 4, 0.);
 
   surf_optpropCalc(ws,
                    surf_refl_mat,
@@ -129,7 +128,6 @@ void RT4Calc(Workspace& ws,
                    za_grid,
                    mu_values,
                    quad_weights,
-                   stokes_dim,
                    surf_alt);
 
   run_rt4(ws,
@@ -142,7 +140,6 @@ void RT4Calc(Workspace& ws,
           abs_species,
           propmat_clearsky_agenda,
           cloudbox_limits,
-          stokes_dim,
           nummu,
           nhza,
           "A",
@@ -188,7 +185,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                            const ArrayOfArrayOfSingleScatteringData& scat_data,
                            const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& f_grid,
-                           const Index& stokes_dim,
+                           
                            const SurfaceField& surface_field,
                            const Numeric& surface_skin_t,
                            const Vector& surface_scalar_reflectivity,
@@ -226,13 +223,12 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                   scat_data_checked,
                   cloudbox_limits,
                   scat_data,
-                  stokes_dim,
                   nstreams,
                   quad_type,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, 1, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, 1);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -260,12 +256,12 @@ void RT4CalcWithRT4Surface(Workspace& ws,
   const String ground_type = groundtype.toupper();
 
   // dummy values for parameters not relevant for this ground_type
-  Tensor5 surf_refl_mat(nf, nummu, stokes_dim, nummu, stokes_dim, 0.);
-  Tensor3 surf_emis_vec(nf, nummu, stokes_dim, 0.);
+  Tensor5 surf_refl_mat(nf, nummu, 4, nummu, 4, 0.);
+  Tensor3 surf_emis_vec(nf, nummu, 4, 0.);
 
   // parameters that will be updated below
   Vector ground_albedo(nf, 0.);
-  Tensor3 ground_reflec(nf, stokes_dim, stokes_dim, 0.);
+  Tensor3 ground_reflec(nf, 4, 4, 0.);
   Complex gidef(1, 0.);
   ComplexVector ground_index(nf, gidef);
 
@@ -277,8 +273,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                     surface_skin_t,
                     surface_scalar_reflectivity,
                     surface_reflectivity,
-                    surface_complex_refr_index,
-                    stokes_dim);
+                    surface_complex_refr_index);
 
   Agenda dummy_agenda{ws};
 
@@ -292,7 +287,6 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           abs_species,
           propmat_clearsky_agenda,
           cloudbox_limits,
-          stokes_dim,
           nummu,
           nhza,
           ground_type,
@@ -340,7 +334,7 @@ void RT4Calc(Workspace& ws,
              const ArrayOfArrayOfSingleScatteringData& scat_data,
              const ArrayOfArrayOfSpeciesTag& abs_species,
              const Vector& f_grid,
-             const Index& stokes_dim,
+             
              const SurfaceField& surface_field,
              const Index& nstreams,
              const String& pfct_method,
@@ -374,7 +368,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                            const ArrayOfArrayOfSingleScatteringData& scat_data,
                            const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& f_grid,
-                           const Index& stokes_dim,
+                           
                            const SurfaceField& surface_field,
                            const Numeric& surface_skin_t,
                            const Vector& surface_scalar_reflectivity,

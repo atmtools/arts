@@ -28,7 +28,6 @@
   \param[in]   cloudbox_limits Cloudbox limits
   \param[in]   scat_data Array of single scattering data
   \param[in]   atmosphere_dim Dimension of atmosphere
-  \param[in]   stokes_dim Dimension of Stokes vector
   \param[in]   nstreams Total number of quadrature angles (both hemispheres).
   \param[in]   quad_type Quadrature method.
   \param[in]   add_straight_angles Flag whether to include nadir and zenith as
@@ -50,7 +49,6 @@ void check_rt4_input(  // Output
     const Index& scat_data_checked,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
     const Index& nstreams,
     const String& quad_type,
     const Index& add_straight_angles,
@@ -101,7 +99,6 @@ void get_quad_angles(  // Output
                (used with ground_type=S).
   \param[in]   surface_complex_refr_index  Surface complex refractive index
                (used with ground_type=F).
-  \param[in]   stokes_dim Dimension of Stokes vector
 
   \author Jana Mendrok
   \date   2017-02-22
@@ -116,8 +113,7 @@ void get_rt4surf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity,
     ConstTensor3View surface_reflectivity,
-    const GriddedField3& surface_complex_refr_index,
-    const Index& stokes_dim);
+    const GriddedField3& surface_complex_refr_index);
 
 //! Runs RT4
 /*!
@@ -137,7 +133,6 @@ void get_rt4surf_props(  // Output
   \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
                  matrix
   \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     stokes_dim Dimension of Stokes vector
   \param[in]     nummu Total number of single hemisphere angles with RT output.
   \param[in]     nhza Number of single hemisphere additional angles with RT output.
   \param[in]     ground_type Surface reflection type flag.
@@ -183,7 +178,6 @@ void run_rt4(Workspace& ws,
              const ArrayOfArrayOfSpeciesTag& abs_species,
              const Agenda& propmat_clearsky_agenda,
              const ArrayOfIndex& cloudbox_limits,
-             const Index& stokes_dim,
              const Index& nummu,
              const Index& nhza,
              const String& ground_type,
@@ -267,7 +261,6 @@ void gas_optpropCalc(Workspace& ws,
   \param[in]  pnd_profiles PND profiles
   \param[in]  t_profile Temperature profile
   \param[in]  cloudbox_limits Cloudbox limits
-  \param[in]  stokes_dim Dimension of Stokes vector
 
   \author Jana Mendrok
   \date   2016-08-08
@@ -282,8 +275,7 @@ void par_optpropCalc(  //Output
     const Index& f_index,
     ConstMatrixView pnd_profiles,
     ConstVectorView t_profile,
-    const ArrayOfIndex& cloudbox_limits,
-    const Index& stokes_dim);
+    const ArrayOfIndex& cloudbox_limits);
 
 //! Calculates layer (and azimuthal) averaged phase matrix
 /*!
@@ -302,7 +294,6 @@ void par_optpropCalc(  //Output
   \param[in]  scat_data Array of single scattering data
               (new-type, f_grid prepared)
   \param[in]  pnd_profiles PND profiles
-  \param[in]  stokes_dim Dimension of Stokes vector
   \param[in]  za_grid Zenith angle grid
   \param[in]  quad_weights Quadrature weights associated with za_grid
   \param[in]  pfct_method Method for scattering matrix temperature dependance
@@ -325,7 +316,6 @@ void sca_optpropCalc(  //Output
     const Index& f_index,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstMatrixView pnd_profiles,
-    const Index& stokes_dim,
     const Vector& za_grid,
     ConstVectorView quad_weights,
     const String& pfct_method,
@@ -349,7 +339,6 @@ void sca_optpropCalc(  //Output
   \param[in]      za_grid Zenith angle grid
   \param[in]      mu_values Cosines of za_grid angles.
   \param[in]      quad_weights Quadrature weights associated with mu_values.
-  \param[in]      stokes_dim Dimension of Stokes vector
   \param[in]      surf_alt Surface altitude.
 
   \author Jana Mendrok
@@ -365,7 +354,6 @@ void surf_optpropCalc(Workspace& ws,
                       ConstVectorView za_grid,
                       ConstVectorView mu_values,
                       ConstVectorView quad_weights,
-                      const Index& stokes_dim,
                       const Numeric& surf_alt);
 
 //! Calculate radiation field using RT4

@@ -37,14 +37,13 @@ inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_te
 void MatrixCBR(  // WS Output:
     Matrix& m,
     // WS Input:
-    const Index& stokes_dim,
     // WS Generic Input:
     const Vector& f) {
   const Index n = f.nelem();
 
   if (n == 0) throw runtime_error("The given frequency vector is empty.");
 
-  m.resize(n, stokes_dim);
+  m.resize(n, 4);
   m = 0;
 
   planck(m(joker, 0), f, COSMIC_BG_TEMP);
@@ -54,7 +53,6 @@ void MatrixCBR(  // WS Output:
 void MatrixPlanck(  // WS Output:
     Matrix& m,
     // WS Input:
-    const Index& stokes_dim,
     // WS Generic Input:
     const Vector& f,
     const Numeric& t) {
@@ -62,7 +60,7 @@ void MatrixPlanck(  // WS Output:
 
   if (n == 0) throw runtime_error("The given frequency vector is empty.");
 
-  m.resize(n, stokes_dim);
+  m.resize(n, 4);
   m = 0;
 
   planck(m(joker, 0), f, t);
@@ -72,14 +70,13 @@ void MatrixPlanck(  // WS Output:
 void MatrixUnitIntensity(  // WS Output:
     Matrix& m,
     // WS Input:
-    const Index& stokes_dim,
     // WS Generic Input:
     const Vector& f) {
   const Index n = f.nelem();
 
   if (n == 0) throw runtime_error("The given frequency vector is empty.");
 
-  m.resize(n, stokes_dim);
+  m.resize(n, 4);
   m = 0;
 
   for (Index i = 0; i < n; i++) {

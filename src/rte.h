@@ -313,7 +313,6 @@ void get_iy(Workspace& ws,
     @param[in]   ppath                 As the WSV.
     @param[in]   atmosphere_dim        As the WSV.
     @param[in]   cloudbox_on           As the WSV.
-    @param[in]   stokes_dim            As the WSV.
     @param[in]   f_grid                As the WSV.
     @param[in]   iy_unit               As the WSV.    
     @param[in]   surface_props_data    As the WSV.    
@@ -336,7 +335,6 @@ void get_iy_of_background(Workspace& ws,
                           const Vector& rte_pos2,
                           const AtmField& atm_field,
                           const Index& cloudbox_on,
-                          const Index& stokes_dim,
                           const Vector& f_grid,
                           const String& iy_unit,
                           const SurfaceField& surface_field,
@@ -585,7 +583,6 @@ void iyb_calc(Workspace& ws,
               const Index& imblock,
               const AtmField& atm_field,
               const Index& cloudbox_on,
-              const Index& stokes_dim,
               const Vector& f_grid,
               const Matrix& sensor_pos,
               const Matrix& sensor_los,
@@ -679,19 +676,17 @@ void mirror_los(Vector& los_mirrored,
 
    The sparse matrix H is not sized by the function, in order to save time for
    repeated usage. Before first call of this function, size H as
-   H.resize( stokes_dim, stokes_dim );
+   H.resize( 4, 4 );
    The H returned of this function can be used as input for later calls. That
    is, no need to repeat the resize command above.
 
    \param   H           Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-2)
    \param   rotangle    Rotation angle.
 
    \author Patrick Eriksson
    \date   2014-09-23
 */
 void muellersparse_rotation(Sparse& H,
-                            const Index& stokes_dim,
                             const Numeric& rotangle);
 
 //! mueller_modif2stokes
@@ -702,13 +697,11 @@ void muellersparse_rotation(Sparse& H,
    See ARTS Theory document, section "Change of the Stokes basis" for details.
 
    \param   Cs          Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-4)
 
    \author Patrick Eriksson
    \date   2021-12-22
 */
-void mueller_modif2stokes(Matrix& Cs,
-                          const Index& stokes_dim);
+void mueller_modif2stokes(Matrix& Cs);
 
 //! mueller_rotation
 /*!
@@ -719,14 +712,12 @@ void mueller_modif2stokes(Matrix& Cs,
    Sparse) and the matrix is sized by the function.
 
    \param   L           Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-4)
    \param   rotangle    Rotation angle.
 
    \author Patrick Eriksson
    \date   2021-12-22
 */
 void mueller_rotation(Matrix& L,
-                      const Index& stokes_dim,
                       const Numeric& rotangle);
 
 //! mueller_stokes2modif
@@ -737,13 +728,11 @@ void mueller_rotation(Matrix& L,
    See ARTS Theory document, section "Change of the Stokes basis" for details.
 
    \param   Cm          Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-4)
 
    \author Patrick Eriksson
    \date   2021-12-22
 */
-void mueller_stokes2modif(Matrix& Cm,
-                          const Index& stokes_dim);
+void mueller_stokes2modif(Matrix& Cm);
 
 /** Determines the true alt and lon for an "ARTS position"
 
@@ -782,7 +771,6 @@ void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
-    const Index& ns,
     const Index& nf,
     const Index& np,
     const Ppath& ppath,
@@ -831,7 +819,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& jacobian,
                             const AtmField& atm_field,
                             const Index& cloudbox_on,
-                            const Index& stokes_dim,
                             const Vector& f_grid,
                             const Matrix& sensor_pos,
                             const Matrix& sensor_los,

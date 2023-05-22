@@ -342,7 +342,7 @@ represent the time stamp.
 
   wsv_groups.emplace_back("VibrationalEnergyLevels", "A map of vibrational energy levels for NLTE calculations");
   
-
+  // rtepack types
   wsv_groups.emplace_back("Propmat", R"--(A single propagation matrix.
 
 Due to the properties of a propagation matrix, only 7 independents need be stored.
@@ -387,7 +387,17 @@ wsv_groups.emplace_back("ArrayOfMuelmatMatrix", "A list of *MuelmatMatrix*.");
 
 wsv_groups.emplace_back("ArrayOfStokvecMatrix", "A list of *StokvecMatrix*.");
 
+wsv_groups.emplace_back("ArrayOfArrayOfPropmatVector", "A list of *ArrayOfPropmatVector*.");
+
+wsv_groups.emplace_back("ArrayOfArrayOfMuelmatVector", "A list of *ArrayOfMuelmatVector*.");
+
+wsv_groups.emplace_back("ArrayOfArrayOfStokvecVector", "A list of *ArrayOfStokvecVector*.");
+
+wsv_groups.emplace_back("ArrayOfArrayOfPropmatMatrix", "A list of *ArrayOfPropmatMatrix*.");
+
 wsv_groups.emplace_back("ArrayOfArrayOfMuelmatMatrix", "A list of *ArrayOfMuelmatMatrix*.");
+
+wsv_groups.emplace_back("ArrayOfArrayOfStokvecMatrix", "A list of *ArrayOfStokvecMatrix*.");
 
   std::sort(wsv_groups.begin(), wsv_groups.end(), [](auto& a, auto& b) {
     return a.name < b.name;

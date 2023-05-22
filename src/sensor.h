@@ -156,13 +156,11 @@ void mixer_matrix(Sparse& H,
  \param[out] H          Polarisation matrix
  \param[in]  mm_pol     Instrument channel polarisations
  \param[in]  dza        Zenith angle, from reference direction
- \param[in]  stokes_dim Workspace variable
  \param[in]  iy_unit    Workspace variable
  */
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& pol,
                                  const Numeric dza,
-                                 const Index stokes_dim,
                                  const String& iy_unit);
 
 
@@ -244,7 +242,6 @@ void spectrometer_matrix(Sparse& H,
    \date   2011-11-01 and 2018-03-16
 */
 void stokes2pol(VectorView w,
-                const Index& stokes_dim,
                 const Index& ipol_1based,
                 const Numeric nv = 1);
 

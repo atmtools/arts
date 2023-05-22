@@ -713,10 +713,7 @@ void mixer_matrix(Sparse& H,
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& mm_pol,
                                  const Numeric dza,
-                                 const Index stokes_dim,
                                  const String& iy_unit) {
-  ARTS_ASSERT(stokes_dim > 1);
-
   // Set "Stokes vector weights" according to iy_unit
   Numeric w = 0.5;
   if (iy_unit == "PlanckBT" || iy_unit == "RJBT") {
@@ -763,7 +760,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     */
 
   // Complete H, for all channels
-  H = Sparse(nch, nch * stokes_dim);
+  H = Sparse(nch, nch * 4);
 
   for (Index i = 0; i < nch; i++) {
     /*
@@ -810,58 +807,58 @@ void met_mm_polarisation_hmatrix(Sparse& H,
     // No rotation, just plane polarisation response
     if (rot[i] == "none") {
       // Here we just need to fill the row H
-      Vector hrow(nch * stokes_dim, 0.0);
+      Vector hrow(nch * 4, 0.0);
       /* Old code, matching older version of stokes2pol:
           hrow[Range(i*stokes_dim,pv[ipv].nelem())] = pv[ipv];
           */
-      stokes2pol(hrow[Range(i * stokes_dim, stokes_dim)], stokes_dim, ipol, w);
+      stokes2pol(hrow[Range(i * 4, 4)], ipol, w);
       H.insert_row(i, hrow);
     }
 
     // Rotation + pol-response
     else {
       // Rotation part
-      Sparse Hrot(stokes_dim, stokes_dim);
+      Sparse Hrot(4, 4);
       if (rot[i] == "AMSU") {
         // No idea about the sign. Not important if U=0,
         // but matter for U != 0.
-        muellersparse_rotation(Hrot, stokes_dim, abs(dza));
+        muellersparse_rotation(Hrot, abs(dza));
       } else if (rot[i] == "ISMAR") {
         // No rotation at -53 (= forward direction). But no idea about the
         // sign, as for AMSU above
-        muellersparse_rotation(Hrot, stokes_dim, dza + 50);
+        muellersparse_rotation(Hrot, dza + 50);
       } else if (rot[i] == "MARSS") {
         // MARSS special, as 48 deg between different polarisation (not 90,
         // as for ISMAR. This is best interpretation of information
         // from Stuart. Should be double-checked with him at some point.
         if (pol[i] == "H") {
-          muellersparse_rotation(Hrot, stokes_dim, dza + 42);
+          muellersparse_rotation(Hrot, dza + 42);
         } else {
-          muellersparse_rotation(Hrot, stokes_dim, dza);
+          muellersparse_rotation(Hrot, dza);
         }
       } else {
         ARTS_ASSERT(0);
       }
 
       // H-matrix matching polarization
-      Sparse Hpol(1, stokes_dim);
+      Sparse Hpol(1, 4);
       { /* Old code, matching older version of stokes2pol
             Vector hrow( stokes_dim, 0.0 );
             hrow[Range(0,pv[ipv].nelem())] = pv[ipv];
             */
-        Vector hrow(stokes_dim);
-        stokes2pol(hrow, stokes_dim, ipol, w);
+        Vector hrow(4);
+        stokes2pol(hrow, ipol, w);
         Hpol.insert_row(0, hrow);
       }
 
       // H for the individual channel
-      Sparse Hc(1, stokes_dim);
+      Sparse Hc(1, 4);
       mult(Hc, Hpol, Hrot);
 
       // Put Hc into H
-      Vector hrow(nch * stokes_dim, 0.0);
-      const Index i0 = i * stokes_dim;
-      for (Index s = 0; s < stokes_dim; s++) {
+      Vector hrow(nch * 4, 0.0);
+      const Index i0 = i * 4;
+      for (Index s = 0; s < 4; s++) {
         hrow[i0 + s] = Hc(0, s);
       }
       H.insert_row(i, hrow);
@@ -975,10 +972,9 @@ void spectrometer_matrix(Sparse& H,
 
 
 void stokes2pol(VectorView w,
-                const Index& stokes_dim,
                 const Index& ipol_1based,
                 const Numeric nv) {
-  ARTS_ASSERT(w.nelem() == stokes_dim);
+  ARTS_ASSERT(w.nelem() == 4);
 
   ARTS_USER_ERROR_IF (ipol_1based < 1 || ipol_1based > 10,
                       "Valid polarization indices are 1 to 10 (1-based).");
@@ -997,15 +993,15 @@ void stokes2pol(VectorView w,
   s2p[9] = {nv, 0, 0, -nv};  // Irhc
 
   const Index l = s2p[ipol_1based - 1].nelem();
-  ARTS_USER_ERROR_IF (l > stokes_dim,
+  ARTS_USER_ERROR_IF (l > 4,
     "You have selected polarization with 1-based index: ", ipol_1based,
     "\n",
     "but this polarization demands stokes_dim >= ", l, "\n",
-    "while the actual values of stokes_dim is ", stokes_dim)
+    "while the actual values of stokes_dim is ", 4)
 
   w[Range(0, l)] = s2p[ipol_1based - 1];
-  if (l < stokes_dim) {
-    w[Range(l, stokes_dim - l)] = 0;
+  if (l < 4) {
+    w[Range(l, 4 - l)] = 0;
   }
 }
 

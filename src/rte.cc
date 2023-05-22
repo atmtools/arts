@@ -733,7 +733,6 @@ void get_iy_of_background(Workspace& ws,
                           const Vector& rte_pos2,
                           const AtmField& atm_field,
                           const Index& cloudbox_on,
-                          const Index& stokes_dim,
                           const Vector& f_grid,
                           const String& iy_unit,
                           const SurfaceField& surface_field,
@@ -824,10 +823,10 @@ void get_iy_of_background(Workspace& ws,
       ARTS_ASSERT(false, "The background type is not recognised. It is: ", ppath.background);
   }
 
-  ARTS_USER_ERROR_IF (iy.ncols() != stokes_dim || iy.nrows() != nf,
+  ARTS_USER_ERROR_IF (iy.ncols() != 4 || iy.nrows() != nf,
       "The size of *iy* returned from *", agenda_name, "* is\n"
       "not correct:\n"
-      "  expected size = [", nf, ",", stokes_dim, "]\n"
+      "  expected size = [", nf, ",", 4, "]\n"
       "  size of iy    = [", iy.nrows(), ",", iy.ncols(), "]\n")
 }
 
@@ -1125,7 +1124,6 @@ void get_stepwise_scattersky_propmat(
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      4,
                       Vector{ppath_temperature},
                       dir_array,
                       -1);
@@ -1361,7 +1359,6 @@ void iyb_calc_body(bool& failed,
                    const Index& mblock_index,
                    const AtmField& atm_field,
                    const Index& cloudbox_on,
-                   const Index& stokes_dim,
                    const Matrix& sensor_pos,
                    const Matrix& sensor_los,
                    const Matrix& transmitter_pos,
@@ -1438,7 +1435,7 @@ constexpr Index atmosphere_dim = 3;
 
     // Start row in iyb etc. for present LOS
     //
-    const Index row0 = ilos * nf * stokes_dim;
+    const Index row0 = ilos * nf * 4;
 
     // Jacobian part
     //
@@ -1447,16 +1444,16 @@ constexpr Index atmosphere_dim = 3;
           for (Index ip = 0;
                ip < jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1;
                ip++) {
-            for (Index is = 0; is < stokes_dim; is++) {
-              diyb_dx[iq](Range(row0 + is, nf, stokes_dim), ip) =
+            for (Index is = 0; is < 4; is++) {
+              diyb_dx[iq](Range(row0 + is, nf, 4), ip) =
                   diy_dx[iq](ip, joker, is);
             }
           })
     }
 
     // iy : copy to iyb
-    for (Index is = 0; is < stokes_dim; is++) {
-      iyb[Range(row0 + is, nf, stokes_dim)] = iy(joker, is);
+    for (Index is = 0; is < 4; is++) {
+      iyb[Range(row0 + is, nf, 4)] = iy(joker, is);
     }
 
   }  // End try
@@ -1478,7 +1475,6 @@ void iyb_calc(Workspace& ws,
               const Index& mblock_index,
               const AtmField& atm_field,
               const Index& cloudbox_on,
-              const Index& stokes_dim,
               const Vector& f_grid,
               const Matrix& sensor_pos,
               const Matrix& sensor_los,
@@ -1493,7 +1489,7 @@ void iyb_calc(Workspace& ws,
   // Sizes
   const Index nf = f_grid.nelem();
   const Index nlos = mblock_dlos.nrows();
-  const Index niyb = nf * nlos * stokes_dim;
+  const Index niyb = nf * nlos * 4;
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
   iyb.resize(niyb);
@@ -1537,7 +1533,6 @@ void iyb_calc(Workspace& ws,
                     mblock_index,
                     atm_field,
                     cloudbox_on,
-                    stokes_dim,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
@@ -1575,7 +1570,6 @@ void iyb_calc(Workspace& ws,
                     mblock_index,
                     atm_field,
                     cloudbox_on,
-                    stokes_dim,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
@@ -1609,11 +1603,11 @@ void iyb_calc(Workspace& ws,
     iyb_aux[q].resize(niyb);
     //
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      const Index row0 = ilos * nf * stokes_dim;
+      const Index row0 = ilos * nf * 4;
       for (Index iv = 0; iv < nf; iv++) {
-        const Index row1 = row0 + iv * stokes_dim;
+        const Index row1 = row0 + iv * 4;
         const Index i1 = min(iv, iy_aux_array[ilos][q].nrows() - 1);
-        for (Index is = 0; is < stokes_dim; is++) {
+        for (Index is = 0; is < 4; is++) {
           Index i2 = min(is, iy_aux_array[ilos][q].ncols() - 1);
           iyb_aux[q][row1 + is] = iy_aux_array[ilos][q](i1, i2);
         }
@@ -1684,101 +1678,67 @@ void mirror_los(Vector& los_mirrored,
 }
 
 void muellersparse_rotation(Sparse& H,
-                            const Index& stokes_dim,
                             const Numeric& rotangle) {
-  ARTS_ASSERT(stokes_dim > 1);
-  ARTS_ASSERT(stokes_dim <= 4);
-  ARTS_ASSERT(H.nrows() == stokes_dim);
-  ARTS_ASSERT(H.ncols() == stokes_dim);
+  ARTS_ASSERT(H.nrows() == 4);
+  ARTS_ASSERT(H.ncols() == 4);
   ARTS_ASSERT(H(0, 1) == 0);
   ARTS_ASSERT(H(1, 0) == 0);
   //
   H.rw(0, 0) = 1;
   const Numeric a = Conversion::cosd(2 * rotangle);
   H.rw(1, 1) = a;
-  if (stokes_dim > 2) {
-    ARTS_ASSERT(H(2, 0) == 0);
-    ARTS_ASSERT(H(0, 2) == 0);
+  ARTS_ASSERT(H(2, 0) == 0);
+  ARTS_ASSERT(H(0, 2) == 0);
 
-    const Numeric b = Conversion::sind(2 * rotangle);
-    H.rw(1, 2) = b;
-    H.rw(2, 1) = -b;
-    H.rw(2, 2) = a;
-    if (stokes_dim > 3) {
-      // More values should be checked, but to save time we just ARTS_ASSERT one
-      ARTS_ASSERT(H(2, 3) == 0);
-      H.rw(3, 3) = 1;
-    }
-  }
+  const Numeric b = Conversion::sind(2 * rotangle);
+  H.rw(1, 2) = b;
+  H.rw(2, 1) = -b;
+  H.rw(2, 2) = a;
+  // More values should be checked, but to save time we just ARTS_ASSERT one
+  ARTS_ASSERT(H(2, 3) == 0);
+  H.rw(3, 3) = 1;
 }
 
-void mueller_modif2stokes(Matrix& Cs,
-                          const Index& stokes_dim) {
-  ARTS_ASSERT(stokes_dim >= 1);
-  ARTS_ASSERT(stokes_dim <= 4);
+void mueller_modif2stokes(Matrix &Cs) {
   //
-  Cs.resize(stokes_dim, stokes_dim);
-  Cs(0,0) = 1;
-  if (stokes_dim > 1 ) {
-    Cs(0,1) = Cs(1,0) = 1;
-    Cs(1,1) = -1;
-    if (stokes_dim > 2 ) {
-      Cs(0,2) = Cs(1,2) = Cs(2,0) = Cs(2,1) = 0;
-      Cs(2,2) = 1;
-      if (stokes_dim > 3 ) {
-        Cs(0,3) = Cs(1,3) = Cs(2,3) = Cs(3,0) = Cs(3,1) = Cs(3,2) = 0;
-        Cs(3,3) = 1;       
-      }
-    }
-  }
+  Cs.resize(4, 4);
+  Cs(0, 0) = 1;
+  Cs(0, 1) = Cs(1, 0) = 1;
+  Cs(1, 1) = -1;
+  Cs(0, 2) = Cs(1, 2) = Cs(2, 0) = Cs(2, 1) = 0;
+  Cs(2, 2) = 1;
+  Cs(0, 3) = Cs(1, 3) = Cs(2, 3) = Cs(3, 0) = Cs(3, 1) = Cs(3, 2) = 0;
+  Cs(3, 3) = 1;
 }
 
 void mueller_rotation(Matrix& L,
-                      const Index& stokes_dim,
                       const Numeric& rotangle) {
-  ARTS_ASSERT(stokes_dim >= 1);
-  ARTS_ASSERT(stokes_dim <= 4);
   //
-  L.resize(stokes_dim, stokes_dim);
+  L.resize(4, 4);
   L(0, 0) = 1;
-  if (stokes_dim > 1 ) {
     const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
     const Numeric c2 = cos(alpha);
     L(0,1) = L(1,0) = 0;
     L(1,1) = c2;
-    if (stokes_dim > 2 ) {
       const Numeric s2 = sin(alpha);
       L(0,2) = L(2,0) = 0;
       L(1,2) = s2;
       L(2,1) = -s2;      
       L(2,2) = c2;
-      if (stokes_dim > 3 ) {
         L(0,3) = L(1,3) = L(2,3) = L(3,0) = L(3,1) = L(3,2) = 0;
-        L(3,3) = 1;       
-      }
-    }
-  }
+        L(3,3) = 1;   
 }
 
-void mueller_stokes2modif(Matrix& Cm,
-                          const Index& stokes_dim) {
-  ARTS_ASSERT(stokes_dim >= 1);
-  ARTS_ASSERT(stokes_dim <= 4);
+void mueller_stokes2modif(Matrix& Cm) {
   //
-  Cm.resize(stokes_dim, stokes_dim);
+  Cm.resize(4, 4);
   Cm(0,0) = 0.5;
-  if (stokes_dim > 1 ) {
     Cm(0,1) = Cm(1,0) = 0.5;
     Cm(1,1) = -0.5;
-    if (stokes_dim > 2 ) {
       Cm(0,2) = Cm(1,2) = Cm(2,0) = Cm(2,1) = 0;
       Cm(2,2) = 1;
-      if (stokes_dim > 3 ) {
         Cm(0,3) = Cm(1,3) = Cm(2,3) = Cm(3,0) = Cm(3,1) = Cm(3,2) = 0;
-        Cm(3,3) = 1;       
-      }
-    }
-  }
+        Cm(3,3) = 1;   
 }
 
 void pos2true_latlon(Numeric& lat,
@@ -1819,7 +1779,6 @@ void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
-    const Index& ns,
     const Index& nf,
     const Index& np,
     const Ppath& ppath,
@@ -1835,7 +1794,7 @@ void rtmethods_jacobian_finalisation(
     Matrix X, Y;
     //
     FOR_ANALYTICAL_JACOBIANS_DO(
-        Y.resize(ns, diy_dpath[iq].npages());
+        Y.resize(4, diy_dpath[iq].npages());
         for (Index iv = 0; iv < nf; iv++) {
           X = transpose(diy_dpath[iq](joker, iv, joker));
           mult(Y, iy_transmittance(iv, joker, joker), X);
@@ -2014,7 +1973,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& jacobian,
                             const AtmField& atm_field,
                             const Index& cloudbox_on,
-                            const Index& stokes_dim,
                             const Vector& f_grid,
                             const Matrix& sensor_pos,
                             const Matrix& sensor_los,
@@ -2049,7 +2007,6 @@ void yCalc_mblock_loop_body(bool& failed,
              mblock_index,
              atm_field,
              cloudbox_on,
-             stokes_dim,
              f_grid,
              sensor_pos,
              sensor_los,
@@ -2111,7 +2068,7 @@ void yCalc_mblock_loop_body(bool& failed,
     if (!std::isnan(geo_pos_matrix(0, 0)))  // No data are flagged as NaN
     {
       // We set geo_pos based on the max value in sensor_response
-      const Index nfs = f_grid.nelem() * stokes_dim;
+      const Index nfs = f_grid.nelem() * 4;
       for (Index i = 0; i < n1y; i++) {
         Index jmax = -1;
         Numeric rmax = -99e99;

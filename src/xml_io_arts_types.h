@@ -138,26 +138,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTime)
-
-TMPL_XML_READ_WRITE_STREAM(Propmat)
-TMPL_XML_READ_WRITE_STREAM(PropmatVector)
-TMPL_XML_READ_WRITE_STREAM(PropmatMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPropmatVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPropmatMatrix)
-
-TMPL_XML_READ_WRITE_STREAM(Stokvec)
-TMPL_XML_READ_WRITE_STREAM(StokvecVector)
-TMPL_XML_READ_WRITE_STREAM(StokvecMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecMatrix)
-
-TMPL_XML_READ_WRITE_STREAM(Muelmat)
-TMPL_XML_READ_WRITE_STREAM(MuelmatVector)
-TMPL_XML_READ_WRITE_STREAM(MuelmatMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatMatrix)
-
 TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfIndex)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMatrix)
@@ -180,6 +160,32 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 //=== Not storable Types ===================================================
 
 TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
+
+//=== rtepack types ========================================================
+
+TMPL_XML_READ_WRITE_STREAM(Propmat)
+TMPL_XML_READ_WRITE_STREAM(PropmatVector)
+TMPL_XML_READ_WRITE_STREAM(PropmatMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropmatVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropmatMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropmatVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropmatMatrix)
+
+TMPL_XML_READ_WRITE_STREAM(Stokvec)
+TMPL_XML_READ_WRITE_STREAM(StokvecVector)
+TMPL_XML_READ_WRITE_STREAM(StokvecMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokvecVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokvecMatrix)
+
+TMPL_XML_READ_WRITE_STREAM(Muelmat)
+TMPL_XML_READ_WRITE_STREAM(MuelmatVector)
+TMPL_XML_READ_WRITE_STREAM(MuelmatMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatMatrix)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatMatrix)
 
 //==========================================================================
 

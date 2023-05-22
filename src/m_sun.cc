@@ -36,7 +36,6 @@ void sunsAddSingleBlackbody(ArrayOfSun &suns,
                          Index &suns_do,
                          // Inputs:
                          const Vector &f_grid,
-                         const Index &stokes_dim,
                          const Numeric &radius,
                          const Numeric &distance,
                          const Numeric &temperature,
@@ -51,7 +50,7 @@ void sunsAddSingleBlackbody(ArrayOfSun &suns,
   Sun& new_sun = suns.emplace_back();
 
   // spectrum
-  new_sun.spectrum=Matrix(f_grid.nelem(), stokes_dim,0. );
+  new_sun.spectrum=Matrix(f_grid.nelem(), 4,0. );
 
   planck(new_sun.spectrum(joker,0), f_grid, temperature);
   new_sun.spectrum *= pi ; // outgoing flux at the surface of the sun.

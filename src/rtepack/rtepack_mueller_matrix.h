@@ -42,6 +42,8 @@ struct muelmat final : mat44 {
                     Numeric k, Numeric l, Numeric m, Numeric n, Numeric o,
                     Numeric p) noexcept
       : mat44{a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p} {}
+
+  static constexpr muelmat id() { return muelmat{1.0}; }
 };
 
 //! Addition between muelmat matrices
@@ -123,9 +125,6 @@ constexpr auto avg(const muelmat &a, const lazy_muelmat auto &b) {
 constexpr auto avg(const lazy_muelmat auto &a, const muelmat &b) {
   return 0.5 * a + 0.5 * b;
 }
-
-//! Get the identity matrix
-constexpr muelmat identity_muelmat() { return muelmat{1.0}; }
 
 constexpr muelmat inv(const muelmat &A) {
   const auto [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] = A;

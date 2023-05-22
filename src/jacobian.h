@@ -744,7 +744,7 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
  *  @author Richard Larsson 
  *  @date   2020-11-12
  */
-ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active);
+ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, bool active);
 
 /** Help function for analytical jacobian calculations
  * 
@@ -761,7 +761,7 @@ ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_q
  *  @author Richard Larsson 
  *  @date   2020-11-12
  */
-ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, Index ns, bool active);
+ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, bool active);
  
 /** Help function for analytical jacobian calculations
 

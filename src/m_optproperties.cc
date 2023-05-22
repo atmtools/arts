@@ -69,12 +69,6 @@ void pha_mat_sptFromData(  // Output:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  const Index stokes_dim = pha_mat_spt.ncols();
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
 
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
@@ -107,7 +101,7 @@ void pha_mat_sptFromData(  // Output:
   const Index N_ss = scat_data.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor5 pha_mat_data_int;
 
   Index i_se_flat = 0;
@@ -331,9 +325,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
   const Index N_ss = scat_data_mono.nelem();
-  const Index stokes_dim = pha_mat_spt.ncols();
 
-  if (stokes_dim > 4 || stokes_dim < 1) {
+  if (4 > 4 || 4 < 1) {
     throw runtime_error(
         "The dimension of the stokes vector \n"
         "must be 1,2,3 or 4");
@@ -399,8 +392,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
                aa_inc_idx++) {
             if (ti < 0)  // Temperature interpolation
             {
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
+              for (Index i = 0; i < 4; i++) {
+                for (Index j = 0; j < 4; j++) {
                   pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j) =
                       interp(itw,
                              pha_mat_sptDOITOpt[i_se_flat](joker,
@@ -475,7 +468,7 @@ void opt_prop_sptFromData(  // Output and Input:
   }
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor3 ext_mat_data_int;
   Tensor3 abs_vec_data_int;
 
@@ -664,7 +657,7 @@ void opt_prop_sptFromScat_data(  // Output and Input:
   ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor3 ext_mat_data_int;
   Tensor3 abs_vec_data_int;
 
@@ -882,47 +875,6 @@ void abs_vecAddGas(StokvecVector& abs_vec,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void ext_matAddGasZeeman( Tensor3&      ext_mat,
-                          const Tensor3&  ext_mat_zee)
-{
-  // Number of Stokes parameters:
-  const Index stokes_dim = ext_mat.ncols();
-
-  // The second dimension of ext_mat must also match the number of
-  // Stokes parameters:
-  if ( stokes_dim != ext_mat.nrows() )
-    throw runtime_error("Row dimension of ext_mat inconsistent with "
-                        "column dimension."); 
-
-  for ( Index i=0; i<stokes_dim; ++i )
-    {
-      for ( Index j=0; j<stokes_dim; ++j )
-        {
-          // Add the zeeman extinction to extinction matrix.
-          ext_mat(joker,i,j) += ext_mat_zee(joker, i, j);
-        }
-      
-    }
-}
-*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void abs_vecAddGasZeeman( Matrix&      abs_vec,
-                          const Matrix& abs_vec_zee)
-{
-  // Number of Stokes parameters:
-  const Index stokes_dim = abs_vec_zee.ncols();
-  // that there is only one frequency.
-  for ( Index j=0; j<stokes_dim; ++j )
-    {
-      abs_vec(joker,j) += abs_vec_zee(joker,j);
-    }
-}
-*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void pha_matCalc(Tensor4& pha_mat,
                  const Tensor5& pha_mat_spt,
                  const Tensor4& pnd_field,
@@ -932,9 +884,8 @@ void pha_matCalc(Tensor4& pha_mat,
   Index N_se = pha_mat_spt.nshelves();
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
-  Index stokes_dim = pha_mat_spt.nrows();
 
-  pha_mat.resize(Nza, Naa, stokes_dim, stokes_dim);
+  pha_mat.resize(Nza, Naa, 4, 4);
 
   // Initialisation
   pha_mat = 0.0;
@@ -957,9 +908,9 @@ void pha_matCalc(Tensor4& pha_mat,
       for (Index za_index = 0; za_index < Nza; ++za_index)
         for (Index aa_index = 0; aa_index < Naa - 1; ++aa_index)
           // now the last two loops over the stokes dimension.
-          for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+          for (Index stokes_index_1 = 0; stokes_index_1 < 4;
                ++stokes_index_1)
-            for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+            for (Index stokes_index_2 = 0; stokes_index_2 < 4;
                  ++stokes_index_2)
               //summation of the product of pnd_field and
               //pha_mat_spt.
@@ -983,9 +934,9 @@ void pha_matCalc(Tensor4& pha_mat,
       for (Index za_index = 0; za_index < Nza; ++za_index)
         for (Index aa_index = 0; aa_index < Naa; ++aa_index)
           // now the last two loops over the stokes dimension.
-          for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+          for (Index stokes_index_1 = 0; stokes_index_1 < 4;
                ++stokes_index_1)
-            for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+            for (Index stokes_index_2 = 0; stokes_index_2 < 4;
                  ++stokes_index_2)
               //summation of the product of pnd_field and
               //pha_mat_spt.
@@ -1215,7 +1166,6 @@ void DoitScatteringDataPrepare(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& f_index,
-    const Index& stokes_dim,
     const AtmField& atm_field,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
@@ -1241,16 +1191,16 @@ void DoitScatteringDataPrepare(
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(),
                             doit_za_grid_size,
                             aa_grid.nelem(),
-                            stokes_dim,
-                            stokes_dim,
+                            4,
+                            4,
                             0.);
-  Tensor4 pha_mat_local(doit_za_grid_size, Naa, stokes_dim, stokes_dim, 0.);
+  Tensor4 pha_mat_local(doit_za_grid_size, Naa, 4, 4, 0.);
   Tensor6 pha_mat_local_out(cloudbox_limits[1] - cloudbox_limits[0] + 1,
                             doit_za_grid_size,
                             doit_za_grid_size,
                             Naa,
-                            stokes_dim,
-                            stokes_dim,
+                            4,
+                            4,
                             0.);
 
   // Interpolate all the data in frequency
@@ -1284,8 +1234,8 @@ void DoitScatteringDataPrepare(
                                            N_aa_sca,
                                            doit_za_grid_size,
                                            aa_grid.nelem(),
-                                           stokes_dim,
-                                           stokes_dim);
+                                           4,
+                                           4);
 
       //    Initialize:
       pha_mat_sptDOITOpt[i_se_flat] = 0.;
@@ -1336,8 +1286,8 @@ void DoitScatteringDataPrepare(
                       N_aa_sca,
                       doit_za_grid_size,
                       Naa,
-                      stokes_dim,
-                      stokes_dim);
+                      4,
+                      4);
   pha_mat_doit = 0;
 
   if (3 == 1) {
@@ -2295,13 +2245,6 @@ void pha_mat_sptFromMonoData(  // Output:
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
-  const Index stokes_dim = pha_mat_spt.ncols();
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
-
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having scat_data here if that originated from
@@ -2396,8 +2339,8 @@ void pha_mat_sptFromMonoData(  // Output:
                     aa_grid);
               }
 
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
+              for (Index i = 0; i < 4; i++) {
+                for (Index j = 0; j < 4; j++) {
                   pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j) =
                       interp(itw, pha_mat_spt_tmp(joker, i, j), Tred_gp);
                 }
@@ -2448,13 +2391,6 @@ void pha_mat_sptFromScat_data(  // Output:
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  const Index stokes_dim = pha_mat_spt.ncols();
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
-
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
   if (N_se_total != pnd_field.nbooks()) {
@@ -2471,7 +2407,7 @@ void pha_mat_sptFromScat_data(  // Output:
   const Index N_ss = scat_data.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor5 pha_mat_data_int;
 
   Index this_f_index;
