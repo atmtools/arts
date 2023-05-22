@@ -404,8 +404,8 @@ Model GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
  * class
  */
 struct PolarizationVector {
-  std::array<Numeric, 4> att{0, 0, 0, 0};  // attenuation vector
-  std::array<Numeric, 3> dis{0, 0, 0};     // dispersion vector
+  Vector4 att{0, 0, 0, 0};  // attenuation vector
+  Vector3 dis{0, 0, 0};     // dispersion vector
 
   /** Default init of class */
   PolarizationVector(Numeric a = 1,

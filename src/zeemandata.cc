@@ -421,7 +421,7 @@ void sum(PropmatVectorView pm,
   ARTS_ASSERT(n == abs.nelem())
 
   for (Index i=0; i<n; i++) {
-    for (Index j = 0; i < 4; j++) {
+    for (Index j = 0; j < 4; j++) {
       pm[i][j] += polvec.att[j] * abs[i].real();
     }
 
@@ -438,7 +438,7 @@ void sum(StokvecVectorView sv,
   ARTS_ASSERT(n == abs.nelem())
 
   for (Index i=0; i<n; i++) {
-    for (Index j = 0; i < 4; j++) {
+    for (Index j = 0; j < 4; j++) {
       sv[i][j] += polvec.att[j] * abs[i].real();
     }
   }
@@ -458,7 +458,7 @@ void dsum(PropmatVectorView pm,
   ARTS_ASSERT(n == dabs.nelem())
 
   for (Index i=0; i<n; i++) {
-    for (Index j = 0; i < 4; j++) {
+    for (Index j = 0; j < 4; j++) {
       pm[i][j] += dH * polvec.att[j] * dabs[i].real() +
                   dt * dpolvec_dtheta.att[j] * abs[i].real() +
                   de * dpolvec_deta.att[j] * abs[i].real();
@@ -486,7 +486,7 @@ void dsum(StokvecVectorView sv,
   ARTS_ASSERT(n == dabs.nelem())
 
   for (Index i=0; i<n; i++) {
-    for (Index j = 0; i < 4; j++) {
+    for (Index j = 0; j < 4; j++) {
       sv[i][j] += dH * polvec.att[j] * dabs[i].real() +
                   dt * dpolvec_dtheta.att[j] * abs[i].real() +
                   de * dpolvec_deta.att[j] * abs[i].real();
