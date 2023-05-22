@@ -471,7 +471,15 @@ const PolarizationVector& SelectPolarization(
  * @param[in] abs The complex absorption vector
  * @param[in] polvec The polarization vector
  */
-void sum(PropmatVector& pm, const ComplexVectorView& abs, const PolarizationVector& polvec, const bool do_phase=true) ARTS_NOEXCEPT;
+void sum(PropmatVectorView pm, const ComplexVectorView& abs, const PolarizationVector& polvec);
+
+/** Sums the Zeeman components into a source vector
+ * 
+ * @param[in,out] sv The source vector
+ * @param[in] abs The complex absorption vector
+ * @param[in] polvec The polarization vector
+ */
+void sum(StokvecVectorView sv, const ComplexVectorView& abs, const PolarizationVector& polvec);
 
 /** Sums the Zeeman components derivatives into a propagation matrix
  * 
@@ -493,7 +501,29 @@ void dsum(PropmatVectorView dpm,
           const PolarizationVector& dpolvec_deta,
           const Numeric dH,
           const Numeric dtheta,
-          const Numeric deta, const bool do_phase=true) ARTS_NOEXCEPT;
+          const Numeric deta);
+
+/** Sums the Zeeman components derivatives into a source vector
+ * 
+ * @param[in,out] dsv The source vector derivative
+ * @param[in] abs The complex absorption vector
+ * @param[in] dabs The complex absorption vector derivative w.r.t. H
+ * @param[in] polvec The polarization vector
+ * @param[in] dpolvec_dtheta The polarization vector derivative w.r.t. theta
+ * @param[in] dpolvec_deta The polarization vector derivative w.r.t. eta
+ * @param[in] dH The derivative w.r.t. H
+ * @param[in] dtheta The derivative w.r.t. theta
+ * @param[in] deta The derivative w.r.t. eta
+ */
+void dsum(StokvecVectorView dsv,
+          const ComplexVectorView& abs,
+          const ComplexVectorView& dabs,
+          const PolarizationVector& polvec,
+          const PolarizationVector& dpolvec_dtheta,
+          const PolarizationVector& dpolvec_deta,
+          const Numeric dH,
+          const Numeric dtheta,
+          const Numeric deta);
 
 /** Contains derived values useful for Zeeman calculations
  * 

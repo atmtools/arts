@@ -72,7 +72,6 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
                          Index &suns_do,
                          // Inputs:
                          const Vector &f_grid,
-                         const Index &stokes_dim,
                          const GriddedField2& sun_spectrum_raw,
                          const Numeric &radius,
                          const Numeric &distance,
@@ -88,7 +87,7 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
 
   // init sun
   Sun& new_sun = suns.emplace_back();
-  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature); // set spectrum
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature); // set spectrum
   new_sun.description = description;
   new_sun.radius = radius;
   new_sun.distance = distance;
@@ -106,7 +105,6 @@ void sunsAddSingleFromGridAtLocation(
                          Index &suns_do,
                          // Inputs:
                          const Vector &f_grid,
-                         const Index &stokes_dim,
                          const SurfaceField &surface_field,
                          const GriddedField2 &sun_spectrum_raw,
                          const Numeric &radius,
@@ -177,7 +175,7 @@ void sunsAddSingleFromGridAtLocation(
   // init sun
   Sun& new_sun = suns.emplace_back();
 
-  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, stokes_dim, temperature);
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);
   new_sun.spectrum *= scale_factor; // scale to sun surface
 
   new_sun.description = description;

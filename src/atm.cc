@@ -21,6 +21,7 @@
 #include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "matpack_iter.h"
+#include "matpack_view.h"
 
 namespace Atm {
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
@@ -374,12 +375,7 @@ void Field::at(std::vector<Point> &out, const Vector &alt, const Vector &lat,
   ARTS_ASSERT(n == alt.nelem() and n == lat.nelem() and n == lon.nelem())
 
   const auto compute = [&](const auto &key, const Data &data) {
-    const auto interpolate = [&](const Vector &alts, const Vector &lats,
-                                 const Vector &lons) -> Vector {
-      return detail::vec_interp(data, alts, lats, lons);
-    };
-
-    const Vector field_val = interpolate(alt, lat, lon);
+    const Vector field_val = data.at(alt, lat, lon);
     for (Index i = 0; i < n; i++)
       out[i][key] = field_val[i];
   };
@@ -530,6 +526,14 @@ void Data::rescale(Numeric x) {
         }
       },
       data);
+}
+
+Vector Data::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
+  return detail::vec_interp(*this, alt, lat, lon);
+}
+
+Numeric Data::at(const Numeric& alt, const Numeric& lat, const Numeric& lon) const {
+  return detail::vec_interp(*this, Vector{alt}, Vector{lat}, Vector{lon})[0];
 }
 
 void Point::setZero() {

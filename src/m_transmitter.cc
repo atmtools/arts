@@ -26,6 +26,8 @@
 #include "math_funcs.h"
 #include "matpack_complex.h"
 #include "rte.h"
+#include "rtepack.h"
+#include "rtepack_multitype.h"
 #include "sensor.h"
 #include <cmath>
 #include <stdexcept>
@@ -643,7 +645,6 @@ void iyTransmissionStandard(Workspace& ws,
                             Tensor3& ppvar_iy,
                             Tensor4& ppvar_trans_cumulat,
                             Tensor4& ppvar_trans_partial,
-                            const Index& stokes_dim,
                             const Vector& f_grid,
                             const ArrayOfArrayOfSpeciesTag& abs_species,
                             const AtmField& atm_field,
@@ -670,7 +671,6 @@ void iyTransmissionStandard(Workspace& ws,
     
   // Some basic sizes
   const Index nf = f_grid.nelem();
-  const Index ns = stokes_dim;
   const Index np = ppath.np;
   const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
 
@@ -707,23 +707,23 @@ This feature will be added in a future version.
 
   // Transmitted signal
 //  iy_transmitter=iy_transmitter;
-  if (iy_transmitter.ncols() != ns || iy_transmitter.nrows() != nf) {
+  if (iy_transmitter.ncols() != 4 || iy_transmitter.nrows() != nf) {
     ostringstream os;
     os << "The size of *iy_transmitter* returned from *iy_transmitter_agenda* is\n"
        << "not correct:\n"
-       << "  expected size = [" << nf << "," << stokes_dim << "]\n"
+       << "  expected size = [" << nf << "," << 4 << "]\n"
        << "  size of iy_transmitter    = [" << iy_transmitter.nrows() << "," << iy_transmitter.ncols() << "]\n";
     throw runtime_error(os.str());
   }
   
   // Set diy_dpath if we are doing are doing jacobian calculations
-  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, ns, false) : ArrayOfTensor3(0);
+  ArrayOfTensor3 diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np, nf, 4, false) : ArrayOfTensor3(0);
   
   // Set the species pointers if we are doing jacobian
   const ArrayOfIndex jac_species_i = j_analytical_do ? get_pointers_for_analytical_species(jacobian_quantities, abs_species) : ArrayOfIndex(0);
   
   // Start diy_dx out if we are doing the first run and are doing jacobian calculations
-  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, ns, false);
+  if (j_analytical_do and iy_agenda_call1) diy_dx = get_standard_starting_diy_dx(jacobian_quantities, np, nf, 4, false);
   
   // Checks that the scattering species are treated correctly if their derivatives are needed (we can here discard the Array)
   if (j_analytical_do and iy_agenda_call1) get_pointers_for_scat_species(jacobian_quantities, scat_species, cloudbox_on);
@@ -735,7 +735,7 @@ This feature will be added in a future version.
   Index auxOptDepth = -1;
   //
   for (Index i = 0; i < naux; i++) {
-    iy_aux[i].resize(nf, ns);
+    iy_aux[i].resize(nf, 4);
     iy_aux[i] = 0;
 
     if (iy_aux_vars[i] == "Radiative background")
@@ -754,18 +754,15 @@ This feature will be added in a future version.
 
   // Get atmospheric and radiative variables along the propagation path
   //
-  ppvar_trans_cumulat.resize(np, nf, ns, ns);
-  ppvar_trans_partial.resize(np, nf, ns, ns);
+  ppvar_trans_cumulat.resize(np, nf, 4, 4);
+  ppvar_trans_partial.resize(np, nf, 4, 4);
 
-  ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
-  ArrayOfArrayOfRadiationVector dlvl_rad(
-      np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
+  ArrayOfMuelmatVector lyr_tra(np, MuelmatVector(nf));
+  ArrayOfStokvecVector lvl_rad(np, StokvecVector(nf));
+  ArrayOfStokvecMatrix dlvl_rad(np, StokvecMatrix(nq, nf));
 
-  ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
-  ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(
-      np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
-  ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(
-      np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  ArrayOfMuelmatMatrix dlyr_tra_above(np, MuelmatMatrix(nq, nf));
+  ArrayOfMuelmatMatrix dlyr_tra_below(dlyr_tra_above);
 
   ArrayOfIndex clear2cloudy;
   //
@@ -776,7 +773,7 @@ This feature will be added in a future version.
     ppvar_trans_cumulat = 0;
     ppvar_trans_partial = 0;
     for (Index iv = 0; iv < nf; iv++) {
-      for (Index is = 0; is < ns; is++) {
+      for (Index is = 0; is < 4; is++) {
         ppvar_trans_cumulat(0,iv,is,is) = 1;
         ppvar_trans_partial(0,iv,is,is) = 1;        
       }
@@ -784,7 +781,7 @@ This feature will be added in a future version.
     
   } else {
     // ppvar_iy
-    ppvar_iy.resize(nf, ns, np);
+    ppvar_iy.resize(nf, 4, np);
     ppvar_iy(joker, joker, np - 1) = iy_transmitter;
 
     // pnd_field
@@ -808,36 +805,27 @@ This feature will be added in a future version.
 
 
     // Size radiative variables always used
-    PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
-    StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
+    PropmatVector K_this(nf), K_past(nf), Kp(nf);
+    StokvecVector a(nf), S(nf), Sp(nf);
 
     // size gas scattering variables
-    TransmissionMatrix gas_scattering_mat;
+    MuelmatVector gas_scattering_mat;
     Vector sca_fct_dummy;
-    PropagationMatrix K_sca;
-    if (gas_scattering_do) {
-      K_sca = PropagationMatrix(nf, ns);
-    }
+    PropmatVector K_sca(gas_scattering_do * nf);
 
     Vector gas_scattering_los_in, gas_scattering_los_out;
 
     // Init variables only used if analytical jacobians done
-    Vector dB_dT(0);
-    ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
-    ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
+    Vector dr1(nq, 0.0), dr2(nq, 0.0);
+    Matrix dB_dT(nq, nf);
+    PropmatMatrix dK_this_dx(nq, nf), dK_past_dx(nq, nf), dKp_dx(nq, nf);
+    StokvecMatrix da_dx(nq, nf), dS_dx(nq, nf), dSp_dx(nq, nf);
     //
     Index temperature_derivative_position = -1;
     bool do_hse = false;
 
     if (j_analytical_do) {
-      dB_dT.resize(nf);
-      FOR_ANALYTICAL_JACOBIANS_DO(dK_this_dx[iq] = PropagationMatrix(nf, ns);
-                                  dK_past_dx[iq] = PropagationMatrix(nf, ns);
-                                  dKp_dx[iq] = PropagationMatrix(nf, ns);
-                                  da_dx[iq] = StokesVector(nf, ns);
-                                  dS_dx[iq] = StokesVector(nf, ns);
-                                  dSp_dx[iq] = StokesVector(nf, ns);
-                                  if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
+      FOR_ANALYTICAL_JACOBIANS_DO(if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
                                     temperature_derivative_position = iq;
                                     do_hse = jacobian_quantities[iq].Subtag() ==
                                              "HSE on";
@@ -901,17 +889,11 @@ This feature will be added in a future version.
             do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature) : 0;
         const Numeric dr_dT_this =
             do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature) : 0;
-        stepwise_transmission(lyr_tra[ip],
-                              dlyr_tra_above[ip],
-                              dlyr_tra_below[ip],
-                              K_past,
-                              K_this,
-                              dK_past_dx,
-                              dK_this_dx,
-                              ppath.lstep[ip - 1],
-                              dr_dT_past,
-                              dr_dT_this,
-                              temperature_derivative_position);
+        dr1[temperature_derivative_position] = dr_dT_past;
+        dr2[temperature_derivative_position] = dr_dT_this;
+        two_level_exp(lyr_tra[ip], dlyr_tra_above[ip], dlyr_tra_below[ip],
+                      K_past, K_this, dK_past_dx, dK_this_dx,
+                      ppath.lstep[ip - 1], dr1, dr2);
       }
 
       swap(K_past, K_this);
@@ -919,54 +901,35 @@ This feature will be added in a future version.
     }
   }
 
-  const ArrayOfTransmissionMatrix tot_tra =
-      cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
+  const auto tot_tra = forward_cumulative_transmission(lyr_tra);
 
   // iy_aux: Optical depth
   if (auxOptDepth >= 0) {
     for (Index iv = 0; iv < nf; iv++)
-      iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1](iv, 0, 0));
+      iy_aux[auxOptDepth](iv, 0) = -std::log(tot_tra[np - 1][iv](0, 0));
   }
 
-  lvl_rad[np - 1] = RadiationVector{iy_transmitter};
+  lvl_rad[np - 1] = rtepack::to_stokvec_vector(iy_transmitter);
 
   // Radiative transfer calculations
   for (Index ip = np - 2; ip >= 0; ip--) {
     lvl_rad[ip] = lvl_rad[ip + 1];
-    update_radiation_vector(lvl_rad[ip],
-                            dlvl_rad[ip],
-                            dlvl_rad[ip + 1],
-                            RadiationVector(),
-                            RadiationVector(),
-                            ArrayOfRadiationVector(),
-                            ArrayOfRadiationVector(),
-                            lyr_tra[ip + 1],
-                            tot_tra[ip],
-                            dlyr_tra_above[ip + 1],
-                            dlyr_tra_below[ip + 1],
-                            PropagationMatrix(),
-                            PropagationMatrix(),
-                            ArrayOfPropagationMatrix(),
-                            ArrayOfPropagationMatrix(),
-                            Numeric(),
-                            Vector(),
-                            Vector(),
-                            0,
-                            0,
-                            RadiativeTransferSolver::Transmission);
+    two_level_linear_transmission_step(
+        lvl_rad[ip], dlvl_rad[ip], dlvl_rad[ip + 1], lyr_tra[ip + 1],
+        tot_tra[ip], dlyr_tra_above[ip + 1], dlyr_tra_below[ip + 1]);
   }
 
   // Copy back to ARTS external style
-  iy = lvl_rad[0];
+  iy = to_matrix(lvl_rad[0]);
   //
   if (np > 1) {
     for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
-      ppvar_trans_cumulat(ip, joker, joker, joker) = tot_tra[ip];
-      ppvar_trans_partial(ip, joker, joker, joker) = lyr_tra[ip];
-      ppvar_iy(joker, joker, ip) = lvl_rad[ip];
+      ppvar_trans_cumulat(ip, joker, joker, joker) = to_tensor3(tot_tra[ip]);
+      ppvar_trans_partial(ip, joker, joker, joker) = to_tensor3(lyr_tra[ip]);
+      ppvar_iy(joker, joker, ip) = to_matrix(lvl_rad[ip]);
       if (j_analytical_do)
         FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq](ip, joker, joker) =
-                                        dlvl_rad[ip][iq];);
+                                        to_matrix(dlvl_rad[ip][iq]););
     }
   }
 
@@ -975,7 +938,7 @@ This feature will be added in a future version.
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
-                                    ns,
+                                    4,
                                     nf,
                                     np,
                                     ppath,

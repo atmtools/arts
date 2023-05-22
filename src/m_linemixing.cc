@@ -15,8 +15,8 @@
 #include "hitran_species.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
+#include "matpack_concepts.h"
 #include "matpack_data.h"
-#include "propagationmatrix.h"
 
 void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
     HitranRelaxationMatrixData& abs_hitran_relmat_data,
@@ -88,7 +88,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
 }
 
 void propmat_clearskyAddHitranLineMixingLines(
-    PropagationMatrix& propmat_clearsky,
+    PropmatVector& propmat_clearsky,
     const HitranRelaxationMatrixData& abs_hitran_relmat_data,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -115,15 +115,14 @@ void propmat_clearskyAddHitranLineMixingLines(
         (abs_lines_per_species[i].front().population ==
              Absorption::PopulationType::ByHITRANFullRelmat or
          abs_lines_per_species[i].front().population ==
-             Absorption::PopulationType::ByHITRANRosenkranzRelmat))
-      propmat_clearsky.Kjj() +=
-          lm_hitran_2017::compute(abs_hitran_relmat_data,
-                                  abs_lines_per_species[i],
-                                  isotopologue_ratios,
-                                  atm_point.pressure,
-                                  atm_point.temperature,
-                                  vmrs,
-                                  f_grid);
+             Absorption::PopulationType::ByHITRANRosenkranzRelmat)) {
+      const auto compres = lm_hitran_2017::compute(
+          abs_hitran_relmat_data, abs_lines_per_species[i], isotopologue_ratios,
+          atm_point.pressure, atm_point.temperature, vmrs, f_grid);
+      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        propmat_clearsky[iv].A() += compres[iv];
+      }
+    }
   }
 }
 
@@ -146,8 +145,8 @@ void abs_lines_per_speciesAdaptHitranLineMixing(
 }
 
 void propmat_clearskyAddOnTheFlyLineMixing(
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const MapOfErrorCorrectedSuddenData& ecs_data,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -183,18 +182,25 @@ void propmat_clearskyAddOnTheFlyLineMixing(
             Zeeman::Polarization::None,
             band,
             jacobian_quantities);
-        propmat_clearsky.Kjj() += abs.real();
+        for (Index iv=0; iv<f_grid.nelem(); iv++) {
+          propmat_clearsky[iv].A() += abs[iv].real();
+        }
 
         // Sum up the resorted Jacobian
         for (Index j = 0; j < jacobian_quantities.nelem(); j++) {
-          const auto& deriv = jacobian_quantities[j];
+          const auto &deriv = jacobian_quantities[j];
 
-          if (not deriv.propmattype()) continue;
+          if (not deriv.propmattype())
+            continue;
 
           if (deriv == abs_species[i]) {
-            dpropmat_clearsky_dx[j].Kjj() += abs.real();
+            for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+              dpropmat_clearsky_dx[j][iv].A() += abs[iv].real();
+            }
           } else {
-            dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
+            for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+              dpropmat_clearsky_dx[j][iv].A() += dabs[j][iv].real();
+            }
           }
         }
       }
@@ -203,8 +209,8 @@ void propmat_clearskyAddOnTheFlyLineMixing(
 }
 
 void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const MapOfErrorCorrectedSuddenData& ecs_data,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -215,8 +221,6 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
     const AtmPoint& atm_point,
     const Vector& rtp_los,
     const Index& lbl_checked) {
-  ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
-                     "Only for stokes dim 4");
   ARTS_USER_ERROR_IF(abs_species.nelem() not_eq abs_lines_per_species.nelem(),
                      "Bad size of input species+lines");
   ARTS_USER_ERROR_IF(not lbl_checked,
@@ -318,7 +322,9 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                           Zeeman::SelectPolarization(polarization_scale_data,
                                                      polarization));
             } else {
-              dpropmat_clearsky_dx[j].Kjj() += dabs[j].real();
+              for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+                dpropmat_clearsky_dx[j][iv].A() += dabs[j][iv].real();
+              }
             }
           }
         }

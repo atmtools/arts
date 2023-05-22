@@ -15,15 +15,14 @@
 
 #include "atm.h"
 #include "field.h"
-#include "transmissionmatrix.h"
 #include "workspace_ng.h"
 
 class Agenda;
 class Workspace;
 
-using FieldOfTransmissionMatrix = Field3D<TransmissionMatrix>;
-using FieldOfPropagationMatrix = Field3D<PropagationMatrix>;
-using FieldOfStokesVector = Field3D<StokesVector>;
+using FieldOfMuelmatVector = Field3D<MuelmatVector>;
+using FieldOfPropmatVector = Field3D<PropmatVector>;
+using FieldOfStokvecVector = Field3D<StokvecVector>;
 
 /** Creates a field of propagation matrices, absorption vectors, and source vectors
  * 
@@ -42,10 +41,9 @@ using FieldOfStokesVector = Field3D<StokesVector>;
  * @param[in] propmat_clearsky_agenda As WSA
  */
 void field_of_propagation(Workspace& ws,
-                          FieldOfPropagationMatrix& propmat_field,
-                          FieldOfStokesVector& absorption_field,
-                          FieldOfStokesVector& additional_source_field,
-                          const Index& stokes_dim,
+                          FieldOfPropmatVector& propmat_field,
+                          FieldOfStokvecVector& absorption_field,
+                          FieldOfStokvecVector& additional_source_field,
                           const Vector& f_grid,
                           const AtmField& atm_field,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -55,14 +53,15 @@ void field_of_propagation(Workspace& ws,
  * 
  * @param[in] propmat_field A 3D field of propagation matrices
  * @param[in] r The distance
- * @return FieldOfTransmissionMatrix 
+ * @return FieldOfMuelmatVector 
  */
-FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
-    const FieldOfPropagationMatrix& propmat_field, const Numeric& r = 1.0);
+FieldOfMuelmatVector transmat_field_calc_from_propmat_field(
+    const FieldOfPropmatVector& propmat_field, const Numeric& r = 1.0);
 
 /** Computes the radiation and transmission from fields of atmospheric propagation
  * 
- * Only for 1D atmospheres for now.
+ * Only for 1D atmospheres for now.  Only works when the propagation matrix
+ * is not polarizing
  * 
  * Computes The forward simulations by interpolating the fields of
  * radiative properties to the selected propagation path.
@@ -89,13 +88,13 @@ FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
  */
 void emission_from_propmat_field(
     Workspace& ws,
-    ArrayOfRadiationVector& lvl_rad,
-    ArrayOfRadiationVector& src_rad,
-    ArrayOfTransmissionMatrix& lyr_tra,
-    ArrayOfTransmissionMatrix& tot_tra,
-    const FieldOfPropagationMatrix& propmat_field,
-    const FieldOfStokesVector& absorption_field,
-    const FieldOfStokesVector& additional_source_field,
+    ArrayOfStokvecVector& lvl_rad,
+    ArrayOfStokvecVector& src_rad,
+    ArrayOfMuelmatVector& lyr_tra,
+    ArrayOfMuelmatVector& tot_tra,
+    const FieldOfPropmatVector& propmat_field,
+    const FieldOfStokvecVector& absorption_field,
+    const FieldOfStokvecVector& additional_source_field,
     const Vector& f_grid,
     const AtmField& atm_field,
     const Ppath& ppath,

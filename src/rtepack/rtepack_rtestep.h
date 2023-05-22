@@ -1,5 +1,6 @@
 #pragma once
 
+#include "enums.h"
 #include "matpack_view.h"
 
 #include "rtepack_multitype.h"
@@ -46,4 +47,23 @@ two_level_linear_step(stokvec_vector_view &di1, stokvec_vector_view &di2, const 
 
   return linear_step(t, i, j);
 }
+
+ENUMCLASS(RadiativeTransferSolver, char, Emission, Transmission)
+
+void two_level_linear_emission_step(
+    stokvec_vector_view I, stokvec_matrix_view dI1, stokvec_matrix_view dI2,
+    const stokvec_vector_const_view &J1, const stokvec_vector_const_view &J2,
+    const stokvec_matrix_const_view &dJ1, const stokvec_matrix_const_view &dJ2,
+    const muelmat_vector_const_view &T, const muelmat_vector_const_view &PiT,
+    const muelmat_matrix_const_view &dT1, const muelmat_matrix_const_view &dT2);
+
+void two_level_linear_emission_step(stokvec_vector_view I,
+                                    const stokvec_vector_const_view &J1,
+                                    const stokvec_vector_const_view &J2,
+                                    const muelmat_vector_const_view &T);
+
+void two_level_linear_transmission_step(
+    stokvec_vector_view I, stokvec_matrix_view dI1, stokvec_matrix_view dI2,
+    const muelmat_vector_const_view &T, const muelmat_vector_const_view &PiT,
+    const muelmat_matrix_const_view &dT1, const muelmat_matrix_const_view &dT2);
 } // namespace rtepack

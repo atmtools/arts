@@ -27,7 +27,7 @@ struct muelmat final : mat44 {
       : mat44(static_cast<mat44>(std::move(a))) {}
 
   template <muelmat_convertible T>
-  muelmat(const T& t) {
+  explicit muelmat(const T& t) {
     ARTS_USER_ERROR_IF(matpack::column_size(t) != 4, "The matrix must have 4 columns.")
     ARTS_USER_ERROR_IF(matpack::row_size(t) != 4, "The matrix must have 4 rows.")
     for (Index i = 0; i < 4; i++) {

@@ -4,6 +4,7 @@
 #include "rtepack_concepts.h"
 
 #include <matpack_concepts.h>
+#include <matpack_data.h>
 #include <matpack_lazy.h>
 
 #include <type_traits>
@@ -23,7 +24,7 @@ struct stokvec final : vec4 {
                                   Numeric c = 0.0, Numeric d = 0.0)
       : vec4{a, b, c, d} {}
 
-  template <stokvec_convertible T> [[nodiscard]] stokvec(const T &t) {
+  template <stokvec_convertible T> [[nodiscard]] explicit stokvec(const T &t) {
     ARTS_USER_ERROR_IF(matpack::column_size(t) != 4,
                        "The vector must have size 4.")
     for (Index i = 0; i < 4; i++)
@@ -111,4 +112,6 @@ using stokvec_matrix_const_view = matpack::matpack_view<stokvec, 2, true, false>
 using stokvec_tensor3 = matpack::matpack_data<stokvec, 3>;
 using stokvec_tensor3_view = matpack::matpack_view<stokvec, 3, false, false>;
 using stokvec_tensor3_const_view = matpack::matpack_view<stokvec, 3, true, false>;
+
+stokvec_vector operator*(Numeric x, const stokvec_vector_const_view& y);
 } // namespace rtepack

@@ -10,15 +10,14 @@
  */
 
 #include "global_data.h"
-#include "propagationmatrix.h"
 #include "zeeman.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeeman(
-    PropagationMatrix& propmat_clearsky,
-    StokesVector& nlte_source,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_source_dx,
+    PropmatVector& propmat_clearsky,
+    StokvecVector& nlte_source,
+    PropmatMatrix& dpropmat_clearsky_dx,
+    StokvecMatrix& dnlte_source_dx,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,

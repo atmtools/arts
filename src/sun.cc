@@ -20,7 +20,6 @@
 #include "debug.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
-#include "propagationmatrix.h"
 #include "geodetic.h"
 #include "arts.h"
 #include "surf.h"
@@ -44,15 +43,15 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
 }
 
 void get_scattered_sunsource(Workspace& ws,
-                              RadiationVector& scattered_sunlight,
+                              StokvecVector& scattered_sunlight,
                               const Vector& f_grid,
                               const AtmPoint& atm_point,
                               const Matrix& transmitted_sunlight,
                               const Vector& gas_scattering_los_in,
                               const Vector& gas_scattering_los_out,
                               const Agenda& gas_scattering_agenda) {
-  PropagationMatrix K_sca;
-  TransmissionMatrix gas_scattering_mat;
+  PropmatVector K_sca;
+  MuelmatVector gas_scattering_mat;
   Vector sca_fct_dummy;
 
   // calculate gas scattering properties
@@ -72,19 +71,13 @@ void get_scattered_sunsource(Workspace& ws,
   Index nf = f_grid.nelem();
 
   //allocate and resize
-  RadiationVector scattered_sunlight_temp(1, ns);
+  StokvecVector scattered_sunlight_temp(1, ns);
 
   Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
-    mat_temp(0,joker) =  transmitted_sunlight(i_f, joker);
-    scattered_sunlight_temp = RadiationVector{mat_temp};//transmitted_sunlight(i_f, joker);
-    scattered_sunlight_temp.leftMul(gas_scattering_mat);
-
-    for (Index j = 0; j < ns; j++) {
-      scattered_sunlight(i_f, j) =
-          scattered_sunlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f] /(4*pi);
-    }
+    Stokvec scattered_sunlight_temp{transmitted_sunlight[i_f]};
+    scattered_sunlight[i_f] = K_sca[i_f].A() / (4*pi) * gas_scattering_mat[i_f] * scattered_sunlight_temp;
   }
 
   //TODO: Include jacobian mechanism

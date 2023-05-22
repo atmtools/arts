@@ -491,8 +491,8 @@ void two_level_exp(muelmat &t, muelmat_vector_view &dt1,
   }
 }
 
-void two_level_exp(muelmat_vector_view &tv, muelmat_matrix_view &dt1v,
-                   muelmat_matrix_view &dt2v,
+void two_level_exp(muelmat_vector_view tv, muelmat_matrix_view dt1v,
+                   muelmat_matrix_view dt2v,
                    const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v,
                    const propmat_matrix_const_view &dk1v,
@@ -1016,6 +1016,18 @@ void two_level_exp(muelmat_vector_view &tv, muelmat_matrix_view &dt1v,
         }
       }
     }
+  }
+}
+
+void two_level_exp(muelmat_vector_view tv, const propmat_vector_const_view &k1v,
+                   const propmat_vector_const_view &k2v, const Numeric rv) {
+  const Index nf = tv.nelem();
+
+  ARTS_ASSERT(nf == k1v.nelem());
+  ARTS_ASSERT(nf == k2v.nelem());
+
+  for (Index i = 0; i < nf; ++i) {
+    tv[i] = exp(-0.5 * rv * (k1v[i] + k2v[i]));
   }
 }
 } // namespace rtepack

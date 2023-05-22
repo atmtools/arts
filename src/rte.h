@@ -60,10 +60,7 @@ void adapt_stepwise_partial_derivatives(
     StokvecMatrix& dS_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_line_of_sight,
-    const Index& lte,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do);
+    const ConstVectorView& ppath_line_of_sight);
 
 /** Ensures that the zenith and azimuth angles of a line-of-sight vector are
     inside defined ranges.
@@ -875,5 +872,20 @@ void ze_cfac(Vector& fac,
              const Vector& f_grid,
              const Numeric& ze_tref,
              const Numeric& k2);
+
+/** Get the stepwise blackbody radiation object
+ * 
+ * @param B Plank function at propagation path point [size is (ppath_f_grid.nelem())]
+ * @param dB Derivative of Plank function at propagation path point [size is (jacobian_quantities.nelem() x ppath_f_grid.nelem())]
+ * @param ppath_f_grid Frequency grid at propagation path point
+ * @param ppath_temperature Temperature of atmosphere at propagation path point
+ * @param jacobian_quantities As WSV
+ * @param j_analytical_do Flag for analytical Jacobian
+ */
+void get_stepwise_blackbody_radiation(
+    Vector &B, Matrix &dB, const Vector &ppath_f_grid,
+    const Numeric &ppath_temperature,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+                            const bool j_analytical_do);
 
 #endif  // rte_h

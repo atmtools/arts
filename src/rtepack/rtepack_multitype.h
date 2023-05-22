@@ -1,8 +1,11 @@
 #pragma once
 
+#include "matpack_data.h"
+#include "matpack_view.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_stokes_vector.h"
+#include <algorithm>
 
 namespace rtepack {
 constexpr muelmat to_muelmat(const propmat &k) {
@@ -12,6 +15,13 @@ constexpr muelmat to_muelmat(const propmat &k) {
 
 constexpr stokvec absvec(const propmat &k) {
   return stokvec{k.A(), k.B(), k.C(), k.D()};
+}
+
+constexpr stokvec_vector absvec(const propmat_vector_const_view &k) {
+  stokvec_vector out(k.size());
+  std::transform(k.begin(), k.end(), out.begin(),
+                 [](const propmat &v) { return absvec(v); });
+  return out;
 }
 
 constexpr muelmat inv(const propmat &k) {
@@ -110,5 +120,15 @@ constexpr stokvec operator*(const propmat &k, const stokvec s) {
       a * s3 + c * s1 - s2 * u + s4 * w, a * s4 + d * s1 - s2 * v - s3 * w};
 }
 
-muelmat exp(const propmat &k, const Numeric r);
+muelmat exp(const propmat &k);
+
+stokvec_vector to_stokvec_vector(const ExhaustiveConstMatrixView &v);
+
+Tensor3 to_tensor3(const muelmat_vector_const_view &m);
+
+Matrix to_matrix(const stokvec_vector_const_view& v);
+
+Matrix to_matrix(const propmat& v);
+
+Vector to_vector(const stokvec& v);
 } // namespace rtepack

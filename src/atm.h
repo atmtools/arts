@@ -262,30 +262,13 @@ struct Data {
   Data &operator=(Data &&) = default;
 
   // Allow copy and move construction implicitly from all types
-  explicit Data(const GriddedField3 &x) : data(x) {}
-  explicit Data(const Numeric &x) : data(x) {}
-  explicit Data(const FunctionalData &x) : data(x) {}
-  explicit Data(GriddedField3 &&x) : data(std::move(x)) {}
-  explicit Data(FunctionalData &&x) : data(std::move(x)) {}
-
-  // Allow copy and move set implicitly from all types
-  Data &operator=(const GriddedField3 &x) {
+  explicit Data(const RawDataType auto &x) : data(x) {}
+  explicit Data(RawDataType auto &&x) : data(std::move(x)) {}
+  Data &operator=(const RawDataType auto &x) {
     data = x;
     return *this;
   }
-  Data &operator=(const Numeric &x) {
-    data = x;
-    return *this;
-  }
-  Data &operator=(const FunctionalData &x) {
-    data = x;
-    return *this;
-  }
-  Data &operator=(GriddedField3 &&x) {
-    data = std::move(x);
-    return *this;
-  }
-  Data &operator=(FunctionalData &&x) {
+  Data &operator=(RawDataType auto &&x) {
     data = std::move(x);
     return *this;
   }
@@ -305,6 +288,10 @@ struct Data {
   }
 
   void rescale(Numeric);
+
+  [[nodiscard]] Vector at(const Vector& alt, const Vector& lat, const Vector& lon) const;
+
+  [[nodiscard]] Numeric at(const Numeric& alt, const Numeric& lat, const Numeric& lon) const;
 };
 
 template <typename T>
@@ -334,6 +321,9 @@ struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag,
 
   //! Compute the values at a single point
   [[nodiscard]] std::vector<Point> at(const Vector &alt, const Vector &lat, const Vector &lon) const;
+
+  //! Compute the values at a single point
+  [[nodiscard]] Numeric get_at(const Vector &alt, const Vector &lat, const Vector &lon) const;
 
   [[nodiscard]] Index nspec() const;
   [[nodiscard]] Index npart() const;

@@ -265,13 +265,12 @@ void clear_rt_vars_at_gp(Workspace& ws,
   Matrix vmr_mat(ns, 1), itw_field;
 
   //local versions of workspace variables
-  StokesVector local_abs_vec;
-  StokesVector local_nlte_source_dummy;
-  PropagationMatrix local_ext_mat;
-  PropagationMatrix local_propmat_clearsky;
-  ArrayOfPropagationMatrix
-      local_partial_dummy;  // This is right since there should be only clearsky partials
-  ArrayOfStokesVector local_dnlte_source_dx_dummy;
+  StokvecVector local_abs_vec;
+  StokvecVector local_nlte_source_dummy;
+  PropmatVector local_ext_mat;
+  PropmatVector local_propmat_clearsky;
+  PropmatMatrix local_partial_dummy;
+  StokvecMatrix local_dnlte_source_dx_dummy;
   ao_gp_p[0] = gp_p;
   ao_gp_lat[0] = gp_lat;
   ao_gp_lon[0] = gp_lon;
@@ -318,8 +317,8 @@ void clear_rt_vars_at_gp(Workspace& ws,
   opt_prop_sum_propmat_clearsky(
       local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
-  local_ext_mat.MatrixAtPosition(ext_mat_mono);
-  abs_vec_mono = local_abs_vec.VectorAtPosition();
+  ext_mat_mono = to_matrix(local_ext_mat[0]);
+  abs_vec_mono = to_vector(local_abs_vec[0]);
 }
 
 void cloudy_rt_vars_at_gp(Workspace& ws,
@@ -353,13 +352,13 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   Matrix vmr_ppath(ns, 1), itw_field;
 
   //local versions of workspace variables
-  ArrayOfPropagationMatrix
+  PropmatMatrix
       local_partial_dummy;  // This is right since there should be only clearsky partials
-  ArrayOfStokesVector local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
-  PropagationMatrix local_propmat_clearsky;
-  StokesVector local_nlte_source_dummy;  //FIXME: Do this right?
-  StokesVector local_abs_vec;
-  PropagationMatrix local_ext_mat;
+  StokvecMatrix local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
+  PropmatVector local_propmat_clearsky;
+  StokvecVector local_nlte_source_dummy;  //FIXME: Do this right?
+  StokvecVector local_abs_vec;
+  PropmatVector local_ext_mat;
 
   ao_gp_p[0] = gp_p;
   ao_gp_lat[0] = gp_lat;
@@ -399,8 +398,8 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   opt_prop_sum_propmat_clearsky(
       local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
-  local_ext_mat.MatrixAtPosition(ext_mat_mono);
-  abs_vec_mono = local_abs_vec.VectorAtPosition();
+  ext_mat_mono = to_matrix(local_ext_mat[0]);
+  abs_vec_mono = to_vector(local_abs_vec[0]);
 
   ArrayOfArrayOfTensor5 ext_mat_Nse;
   ArrayOfArrayOfTensor4 abs_vec_Nse;

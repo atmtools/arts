@@ -308,7 +308,8 @@ void atm_fieldAddNumericData(AtmField &atm_field, const QuantumIdentifier &key,
   atm_field[key] = data;
 }
 
-void atm_fieldIGRF(AtmField &atm_field, const Time &time, const Index &parsafe) {
+void atm_fieldIGRF(AtmField &atm_field, const Time &time,
+                   const Index &parsafe) {
   using namespace IGRF;
 
   //! We need explicit planet-size as IGRF requires the radius
@@ -364,30 +365,30 @@ void atm_fieldIGRF(AtmField &atm_field, const Time &time, const Index &parsafe) 
    * reused by v and w (with no regards for order) */
   if (parsafe == 0) {
     const std::shared_ptr igrf_ptr = std::make_shared<res>(time);
-    atm_field[Atm::Key::mag_u] = [ptr = igrf_ptr](Numeric h, Numeric lat,
-                                                  Numeric lon) {
-      return ptr->get_u(h, lat, lon);
-    };
-    atm_field[Atm::Key::mag_v] = [ptr = igrf_ptr](Numeric h, Numeric lat,
-                                                  Numeric lon) {
-      return ptr->get_v(h, lat, lon);
-    };
-    atm_field[Atm::Key::mag_w] = [ptr = igrf_ptr](Numeric h, Numeric lat,
-                                                  Numeric lon) {
-      return ptr->get_w(h, lat, lon);
-    };
+    atm_field[Atm::Key::mag_u] = Atm::FunctionalData{
+        [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
+          return ptr->get_u(h, lat, lon);
+        }};
+    atm_field[Atm::Key::mag_v] = Atm::FunctionalData{
+        [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
+          return ptr->get_v(h, lat, lon);
+        }};
+    atm_field[Atm::Key::mag_w] = Atm::FunctionalData{
+        [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
+          return ptr->get_w(h, lat, lon);
+        }};
   } else {
-    atm_field[Atm::Key::mag_u] = [cpy = res(time)](Numeric h, Numeric lat,
-                                                   Numeric lon) {
-      return res{cpy}.get_u(h, lat, lon);
-    };
-    atm_field[Atm::Key::mag_v] = [cpy = res(time)](Numeric h, Numeric lat,
-                                                   Numeric lon) {
-      return res{cpy}.get_v(h, lat, lon);
-    };
-    atm_field[Atm::Key::mag_w] = [cpy = res(time)](Numeric h, Numeric lat,
-                                                   Numeric lon) {
-      return res{cpy}.get_w(h, lat, lon);
-    };
+    atm_field[Atm::Key::mag_u] = Atm::FunctionalData{
+        [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
+          return res{cpy}.get_u(h, lat, lon);
+        }};
+    atm_field[Atm::Key::mag_v] = Atm::FunctionalData{
+        [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
+          return res{cpy}.get_v(h, lat, lon);
+        }};
+    atm_field[Atm::Key::mag_w] = Atm::FunctionalData{
+        [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
+          return res{cpy}.get_w(h, lat, lon);
+        }};
   }
 }

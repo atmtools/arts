@@ -58,7 +58,7 @@ Numeric test_integrate_zenith(const Vector& cosza,
  * @param[in] f Frequency grid
  * @return Numeric Integrated absorption
  */
-Numeric integrate_convolved(const RadiationVector& I,
+Numeric integrate_convolved(const StokvecVector& I,
                             const Eigen::VectorXcd& F,
                             const Vector& f);
 
@@ -75,7 +75,7 @@ Numeric integrate_convolved(const RadiationVector& I,
  * @param[in] f Frequency grid
  * @return Numeric Integrated absorption
  */
-Numeric integrate_convolved(const TransmissionMatrix& T,
+Numeric integrate_convolved(const MuelmatVector& T,
                             const Eigen::VectorXcd& F,
                             const Vector& f);
 

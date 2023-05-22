@@ -304,7 +304,6 @@ Tensor3 p_field;
                       suns,
                       ppath,
                       f_grid,
-                      stokes_dim,
                       3,
                       surface_field.ellipsoid);
 

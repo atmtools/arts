@@ -519,7 +519,7 @@ void propmat_clearskyAddParticles(
         } else {
           for (Index iv = 0; iv < f_grid.nelem(); iv++) {
             internal_propmat[iv] =
-                ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker);
+                Propmat{ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker)};
           }
         }
         

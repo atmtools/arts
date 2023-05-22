@@ -817,7 +817,7 @@ void gas_optpropCalc(Workspace& ws,
   // Local variables to be used in agendas
   Numeric rtp_temperature_local;
   Numeric rtp_pressure_local;
-  PropagationMatrix propmat_clearsky_local;
+  PropmatVector propmat_clearsky_local;
   Vector rtp_vmr_local(vmr_profiles.nrows());
 
   // Calculate layer averaged gaseous extinction
@@ -833,10 +833,10 @@ void gas_optpropCalc(Workspace& ws,
     const Vector ppath_los_dummy;
 
     //FIXME: do this right?
-    StokesVector nlte_dummy;
+    StokvecVector nlte_dummy;
     // This is right since there should be only clearsky partials
-    ArrayOfPropagationMatrix partial_dummy;
-    ArrayOfStokesVector partial_nlte_dummy;
+    PropmatMatrix partial_dummy;
+    StokvecMatrix partial_nlte_dummy;
     propmat_clearsky_agendaExecute(ws,
                                    propmat_clearsky_local,
                                    nlte_dummy,
@@ -850,8 +850,8 @@ void gas_optpropCalc(Workspace& ws,
                                    propmat_clearsky_agenda);
 
     //Assuming non-polarized light and only one frequency
-    if (propmat_clearsky_local.NumberOfFrequencies()) {
-      gas_extinct[Np - 2 - i] += propmat_clearsky_local.Kjj()[0];
+    if (propmat_clearsky_local.nelem()) {
+      gas_extinct[Np - 2 - i] += propmat_clearsky_local[0].A();
     }
   }
 }

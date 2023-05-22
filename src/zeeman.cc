@@ -19,10 +19,10 @@
 #include "species_info.h"
 
 void zeeman_on_the_fly(
-    PropagationMatrix& propmat_clearsky,
-    StokesVector& nlte_source,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_source_dx,
+    PropmatVector& propmat_clearsky,
+    StokvecVector& nlte_source,
+    PropmatMatrix& dpropmat_clearsky_dx,
+    StokvecMatrix& dnlte_source_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -45,22 +45,14 @@ void zeeman_on_the_fly(
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
     "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(propmat_clearsky.StokesDimensions() not_eq 4,
-    "*propmat_clearsky* must have *stokes_dim* 4")
-  ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq nf,
+  ARTS_USER_ERROR_IF(nlte_source.nelem() not_eq nf,
     "*f_grid* must match *nlte_source*")
-  ARTS_USER_ERROR_IF(nlte_source.StokesDimensions() not_eq 4,
-    "*nlte_source* must have *stokes_dim* 4")
-  ARTS_USER_ERROR_IF(not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
-    "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(not nq and bad_propmat(dpropmat_clearsky_dx, f_grid, 4),
-    "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(nlte_do and (nq not_eq dnlte_source_dx.nelem()),
+  ARTS_USER_ERROR_IF(nq not_eq dpropmat_clearsky_dx.nrows() or nf not_eq dpropmat_clearsky_dx.ncols(),
+    "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities* times the lenght of *f_grid*")
+  ARTS_USER_ERROR_IF(nlte_do and (nq not_eq dnlte_source_dx.nrows() or nf not_eq dnlte_source_dx.ncols()),
     "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(nlte_do and bad_propmat(dnlte_source_dx, f_grid, 4),
-    "*dnlte_source_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid), "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
@@ -153,7 +145,7 @@ void zeeman_on_the_fly(
     
     if (nlte_do) {
       // Sum up the source vector
-      Zeeman::sum(nlte_source, com.N, pol, false);
+      Zeeman::sum(nlte_source, com.N, pol);
       
       // Sum up the Jacobian
       for (Index j=0; j<nq; j++) {
@@ -164,17 +156,17 @@ void zeeman_on_the_fly(
         if (deriv == Jacobian::Atm::MagneticU) {
           Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                         pol, dpol_dtheta, dpol_deta,
-                        X.dH_du, X.dtheta_du, X.deta_du, false);
+                        X.dH_du, X.dtheta_du, X.deta_du);
         } else if (deriv == Jacobian::Atm::MagneticV) {
           Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                         pol, dpol_dtheta, dpol_deta,
-                        X.dH_dv, X.dtheta_dv, X.deta_dv, false);
+                        X.dH_dv, X.dtheta_dv, X.deta_dv);
         } else if (deriv == Jacobian::Atm::MagneticW) {
           Zeeman::dsum(dnlte_source_dx[j], com.N, com.dN(joker, j),
                         pol, dpol_dtheta, dpol_deta,
-                        X.dH_dw, X.dtheta_dw, X.deta_dw, false);
+                        X.dH_dw, X.dtheta_dw, X.deta_dw);
         } else {
-          Zeeman::sum(dnlte_source_dx[j], com.dN(joker, j), pol, false);
+          Zeeman::sum(dnlte_source_dx[j], com.dN(joker, j), pol);
         }
       }
     }

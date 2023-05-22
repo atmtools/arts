@@ -1277,7 +1277,7 @@ void pha_mat_1ScatElem(   //Output
   \date   2003-05-24
 */
 void abs_vecTransform(  //Output and Input
-    StokesVector& abs_vec_lab,
+    StokvecVector& abs_vec_lab,
     //Input
     ConstTensor3View abs_vec_data,
     ConstVectorView za_datagrid,
@@ -1285,12 +1285,7 @@ void abs_vecTransform(  //Output and Input
     const PType& ptype,
     const Numeric& za_sca _U_,
     const Numeric& aa_sca _U_) {
-  const Index stokes_dim = abs_vec_lab.StokesDimensions();
-  ARTS_ASSERT(abs_vec_lab.NumberOfFrequencies() == 1);
-
-  ARTS_USER_ERROR_IF (stokes_dim > 4 || stokes_dim < 1,
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
+  ARTS_ASSERT(abs_vec_lab.nelem() == 1);
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1308,9 +1303,9 @@ void abs_vecTransform(  //Output and Input
       // The first element of the vector corresponds to the absorption
       // coefficient which is stored in the database, the others are 0.
 
-      abs_vec_lab.SetZero();
+      abs_vec_lab = 0.0;
 
-      abs_vec_lab.Kjj()[0] = abs_vec_data(0, 0, 0);
+      abs_vec_lab[0].I() = abs_vec_data(0, 0, 0);
       break;
     }
 
@@ -1329,14 +1324,10 @@ void abs_vecTransform(  //Output and Input
       gridpos(gp, za_datagrid, za_sca);
       interpweights(itw, gp);
 
-      abs_vec_lab.SetZero();
+      abs_vec_lab = 0.0;
 
-      abs_vec_lab.Kjj()[0] = interp(itw, abs_vec_data(Range(joker), 0, 0), gp);
-
-      if (stokes_dim == 1) {
-        break;
-      }
-      abs_vec_lab.K12()[0] = interp(itw, abs_vec_data(Range(joker), 0, 1), gp);
+      abs_vec_lab[0].I() = interp(itw, abs_vec_data(Range(joker), 0, 0), gp);
+      abs_vec_lab[0].Q() = interp(itw, abs_vec_data(Range(joker), 0, 1), gp);
       break;
     }
     default: {
@@ -1367,7 +1358,7 @@ void abs_vecTransform(  //Output and Input
   \date   2003-05-24
 */
 void ext_matTransform(  //Output and Input
-    PropagationMatrix& ext_mat_lab,
+    PropmatVector& ext_mat_lab,
     //Input
     ConstTensor3View ext_mat_data,
     ConstVectorView za_datagrid,
@@ -1375,12 +1366,7 @@ void ext_matTransform(  //Output and Input
     const PType& ptype,
     const Numeric& za_sca,
     const Numeric& aa_sca _U_) {
-  const Index stokes_dim = ext_mat_lab.StokesDimensions();
-  ARTS_ASSERT(ext_mat_lab.NumberOfFrequencies() == 1);
-
-  ARTS_USER_ERROR_IF (stokes_dim > 4 || stokes_dim < 1,
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
+  ARTS_ASSERT(ext_mat_lab.nelem() == 1);
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1401,9 +1387,9 @@ void ext_matTransform(  //Output and Input
       // diagonal. The value of each element of the diagonal is the
       // extinction cross section, which is stored in the database.
 
-      ext_mat_lab.SetZero();
+      ext_mat_lab = 0.0;
 
-      ext_mat_lab.Kjj() = ext_mat_data(0, 0, 0);
+      ext_mat_lab[0].A() = ext_mat_data(0, 0, 0);
       break;
     }
 
@@ -1425,24 +1411,14 @@ void ext_matTransform(  //Output and Input
       gridpos(gp, za_datagrid, za_sca);
       interpweights(itw, gp);
 
-      ext_mat_lab.SetZero();
+      ext_mat_lab = 0.0;
 
       Kjj = interp(itw, ext_mat_data(Range(joker), 0, 0), gp);
-      ext_mat_lab.Kjj() = Kjj;
-
-      if (stokes_dim < 2) {
-        break;
-      }
-
+      ext_mat_lab[0].A() = Kjj;
       K12 = interp(itw, ext_mat_data(Range(joker), 0, 1), gp);
-      ext_mat_lab.K12()[0] = K12;
-
-      if (stokes_dim < 4) {
-        break;
-      }
-
+      ext_mat_lab[0].B() = K12;
       K34 = interp(itw, ext_mat_data(Range(joker), 0, 2), gp);
-      ext_mat_lab.K34()[0] = K34;
+      ext_mat_lab[0].W() = K34;
       break;
     }
     default: {
@@ -2083,22 +2059,21 @@ ostream& operator<<(ostream& os, const ScatteringMetaData& /*ssd*/) {
   \date   2012-07-24
 */
 void opt_prop_sum_propmat_clearsky(  //Output:
-    PropagationMatrix& ext_mat,
-    StokesVector& abs_vec,
+    PropmatVector& ext_mat,
+    StokvecVector& abs_vec,
     //Input:
-    const PropagationMatrix& propmat_clearsky) {
-   const Index stokes_dim = propmat_clearsky.StokesDimensions();
-   const Index freq_dim = propmat_clearsky.NumberOfFrequencies();
+    const PropmatVector& propmat_clearsky) {
+   const Index freq_dim = propmat_clearsky.nelem();
 
   // old abs_vecInit
-  abs_vec = StokesVector(freq_dim, stokes_dim);
-  abs_vec.SetZero();
+  abs_vec.resize(freq_dim);
+  abs_vec = 0.0;
 
-  ext_mat = PropagationMatrix(freq_dim, stokes_dim);
-  ext_mat.SetZero();
+  ext_mat.resize(freq_dim);
+  ext_mat = 0.0;
 
   // old ext_matAddGas and abs_vecAddGas for 0 vector and matrix
-  abs_vec += propmat_clearsky;
+  abs_vec += absvec(propmat_clearsky);
   ext_mat += propmat_clearsky;
 }
 

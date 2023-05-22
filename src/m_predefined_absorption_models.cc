@@ -58,8 +58,8 @@ void predefined_model_dataAddWaterMTCKD400(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddPredefined(
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     const PredefinedModelData& predefined_model_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -67,20 +67,16 @@ void propmat_clearskyAddPredefined(
     const Vector& f_grid,
     const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(
-      propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
+      propmat_clearsky.nelem() not_eq f_grid.nelem(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  if (dpropmat_clearsky_dx.nelem()) {
+  if (dpropmat_clearsky_dx.nrows()) {
     ARTS_USER_ERROR_IF(
-        dpropmat_clearsky_dx.nelem() not_eq jacobian_quantities.nelem(),
+        dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.nelem(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
-        std::any_of(dpropmat_clearsky_dx.cbegin(),
-                    dpropmat_clearsky_dx.cend(),
-                    [&f_grid](auto& x) {
-                      return x.NumberOfFrequencies() not_eq f_grid.nelem();
-                    }),
+        dpropmat_clearsky_dx.ncols() not_eq f_grid.nelem(),
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 

@@ -54,7 +54,7 @@ void rte_step_doit_replacement(  //Output and Input:
     //Input
     const Propmat& ext_mat_av,
     const Stokvec& abs_vec_av,
-    Stokvec sca_vec_av,
+    const Stokvec& sca_vec_av,
     const Numeric& lstep,
     const Numeric& rtp_planck_value,
     const bool& trans_is_precalc) {
@@ -62,7 +62,7 @@ void rte_step_doit_replacement(  //Output and Input:
   ARTS_ASSERT(lstep >= 0);
 
   if (!trans_is_precalc) {
-    trans_mat = rtepack::exp(ext_mat_av, lstep);
+    trans_mat = rtepack::exp(-lstep * ext_mat_av);
   }
 
   stokes_vec = rtepack::linear_step(
@@ -731,8 +731,8 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       // Add average particle absorption to abs_vec.
       //
       abs_vec[0] += rtepack::avg(
-          abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker),
-          abs_vec_field(p_index - cloudbox_limits[0] - 1, 0, 0, joker));
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker)},
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0] - 1, 0, 0, joker)});
 
       //
       // Add average particle extinction to ext_mat.
@@ -1308,7 +1308,7 @@ void cloud_RT_no_background(Workspace& ws,
     //
     // Add average particle absorption to abs_vec.
     //
-    abs_vec_local[0] += rtepack::avg(abs_vec_int(joker, k), abs_vec_int(joker, k + 1));
+    abs_vec_local[0] += rtepack::avg(Stokvec{abs_vec_int(joker, k)}, Stokvec{abs_vec_int(joker, k + 1)});
 
     //
     // Add average particle extinction to ext_mat.

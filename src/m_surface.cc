@@ -1250,7 +1250,6 @@ Vector lon_grid;
     get_direct_radiation(ws,
                          transmitted_sunlight,
                          dtransmitted_sunlight,
-                         stokes_dim,
                          f_grid,
                          abs_species,
                          atm_field,

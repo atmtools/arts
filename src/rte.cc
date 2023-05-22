@@ -17,7 +17,9 @@
 #include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "geodetic.h"
+#include "jacobian.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -27,8 +29,10 @@
 #include "ppath.h"
 #include "ppath_struct.h"
 #include "refraction.h"
+#include "rtepack.h"
 #include "special_interp.h"
 #include "species_tags.h"
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -40,29 +44,33 @@ inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
   ===========================================================================*/
 
 void adapt_stepwise_partial_derivatives(
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_line_of_sight,
-    const Index& lte,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do) {
-  if (not jacobian_do) return;
+    PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+    const ConstVectorView &ppath_f_grid,
+    const ConstVectorView &ppath_line_of_sight) {
 
   // All relevant quantities are extracted first
   const Index nq = jacobian_quantities.nelem();
-
-  // Computational temporary vector
-  Vector a;
+  const Index nv = ppath_f_grid.nelem();
+  ARTS_ASSERT(nq == dK_dx.nrows())
+  ARTS_ASSERT(nq == dS_dx.nrows())
+  ARTS_ASSERT(nv == dK_dx.ncols())
+  ARTS_ASSERT(nv == dS_dx.ncols())
 
   for (Index i = 0; i < nq; i++) {
-    if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
+    if (jacobian_quantities[i] == Jacobian::Type::Sensor or
+        jacobian_quantities[i] == Jacobian::Special::SurfaceString)
+      continue;
 
     if (jacobian_quantities[i].is_wind()) {
-      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().atm, atmosphere_dim);
-      dK_dx[i] *= scale;
-      if (not lte) dS_dx[i] *= scale;
+      const auto scale = get_stepwise_f_partials(
+          ppath_line_of_sight, ppath_f_grid,
+          jacobian_quantities[i].Target().atm, 3);
+
+      for (Index iv = 0; iv < nv; ++iv) {
+        dK_dx(i, iv) *= scale[iv];
+        dS_dx(i, iv) *= scale[iv];
+      }
     }
   }
 }
@@ -990,9 +998,32 @@ void get_stepwise_blackbody_radiation(VectorView B, VectorView dB_dT,
         [T = ppath_temperature](auto &&f) { return dplanck_dt(f, T); });
 }
 
+void get_stepwise_blackbody_radiation(
+    Vector &B, Matrix &dB, const Vector &ppath_f_grid,
+    const Numeric &ppath_temperature,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+    const bool j_analytical_do) {
+  B.resize(ppath_f_grid.nelem());
+  std::transform(ppath_f_grid.begin(), ppath_f_grid.end(), B.begin(),
+                 [T = ppath_temperature](auto &&f) { return planck(f, T); });
+
+  if (j_analytical_do) {
+    dB.resize(jacobian_quantities.nelem(), ppath_f_grid.nelem());
+    for (Index i = 0; i < jacobian_quantities.nelem(); ++i) {
+      if (jacobian_quantities[i] == Jacobian::Atm::Temperature) {
+        std::transform(
+            ppath_f_grid.begin(), ppath_f_grid.end(), dB[i].begin(),
+            [T = ppath_temperature](auto &&f) { return dplanck_dt(f, T); });
+      } else {
+        dB[i] = 0.0;
+      }
+    }
+  }
+}
+
 void get_stepwise_clearsky_propmat(
-    Workspace &ws, PropagationMatrix &K, StokesVector &S,
-    ArrayOfPropagationMatrix &dK_dx, ArrayOfStokesVector &dS_dx,
+    Workspace &ws, PropmatVector &K, StokvecVector &S,
+    PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
     const Agenda &propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity &jacobian_quantities,
     const Vector &ppath_f_grid, const Vector &ppath_line_of_sight,
@@ -1007,9 +1038,9 @@ void get_stepwise_clearsky_propmat(
       select_abs_species, ppath_f_grid, ppath_line_of_sight, atm_point,
       propmat_clearsky_agenda);
 
-  adapt_stepwise_partial_derivatives(dK_dx, dS_dx, jacobian_quantities,
-                                     ppath_f_grid, ppath_line_of_sight,
-                                     S.allZeroes(), 3, jacobian_do);
+  if (jacobian_do)
+    adapt_stepwise_partial_derivatives(dK_dx, dS_dx, jacobian_quantities,
+                                       ppath_f_grid, ppath_line_of_sight);
 }
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
@@ -1047,10 +1078,10 @@ Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
 }
 
 void get_stepwise_scattersky_propmat(
-    StokesVector& ap,
-    PropagationMatrix& Kp,
-    ArrayOfStokesVector& dap_dx,
-    ArrayOfPropagationMatrix& dKp_dx,
+    StokvecVector& ap,
+    PropmatVector& Kp,
+    StokvecMatrix& dap_dx,
+    PropmatMatrix& dKp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstMatrixView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
@@ -1061,7 +1092,7 @@ void get_stepwise_scattersky_propmat(
     const ConstVectorView& ppath_temperature,
     const Index& atmosphere_dim,
     const bool& jacobian_do) {
-  const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
+  const Index nf = Kp.nelem();
 
   //StokesVector da_aux(nf, stokes_dim);
   //PropagationMatrix dK_aux(nf, stokes_dim);
@@ -1094,7 +1125,7 @@ void get_stepwise_scattersky_propmat(
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      stokes_dim,
+                      4,
                       Vector{ppath_temperature},
                       dir_array,
                       -1);
@@ -1119,20 +1150,15 @@ void get_stepwise_scattersky_propmat(
                                                // duplicate the ext/abs output.
 
   for (Index iv = 0; iv < nf; iv++) {
-    if (nf_ssd > 1) {
-      ap.SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
-      Kp.SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker), iv);
-    } else {
-      ap.SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
-      Kp.SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
-    }
+    ap[iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
+    Kp[iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
   }
 
   if (jacobian_do)
     FOR_ANALYTICAL_JACOBIANS_DO(
         if (ppath_dpnd_dx[iq].empty()) {
-          dap_dx[iq].SetZero();
-          dKp_dx[iq].SetZero();
+          dap_dx[iq] = 0.0;
+          dKp_dx[iq] = 0.0;
         } else {
           // check, whether we have any non-zero ppath_dpnd_dx in this
           // pnd-affecting x? might speed up things a little bit.
@@ -1151,21 +1177,15 @@ void get_stepwise_scattersky_propmat(
                         abs_vec_ssbulk,
                         ptype_ssbulk);
           for (Index iv = 0; iv < nf; iv++) {
-            if (nf_ssd > 1) {
-              dap_dx[iq].SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
-              dKp_dx[iq].SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker),
-                                       iv);
-            } else {
-              dap_dx[iq].SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
-              dKp_dx[iq].SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
-            }
+              dap_dx[iq][iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
+              dKp_dx[iq][iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
           }
         })
 }
 
 void get_stepwise_scattersky_source(
-    StokesVector& Sp,
-    ArrayOfStokesVector& dSp_dx,
+    StokvecVector& Sp,
+    StokvecMatrix& dSp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
@@ -1184,8 +1204,7 @@ void get_stepwise_scattersky_source(
   ARTS_USER_ERROR_IF (atmosphere_dim != 1,
                       "This function handles so far only 1D atmospheres.");
 
-  const Index nf = Sp.NumberOfFrequencies();
-  const Index stokes_dim = Sp.StokesDimensions();
+  const Index nf = Sp.nelem();
   const Index ne = ppath_1p_pnd.nelem();
   ARTS_ASSERT(TotalNumberOfElements(scat_data) == ne);
   const Index nza = za_grid.nelem();
@@ -1198,10 +1217,10 @@ void get_stepwise_scattersky_source(
   gridpos_copy(gp_p, ppath_pressure);
   Vector itw_p(2);
   interpweights(itw_p, gp_p);
-  Tensor3 inc_field(nf, nza, stokes_dim, 0.);
+  Tensor3 inc_field(nf, nza, 4, 0.);
   for (Index iv = 0; iv < nf; iv++) {
     for (Index iza = 0; iza < nza; iza++) {
-      for (Index i = 0; i < stokes_dim; i++) {
+      for (Index i = 0; i < 4; i++) {
         inc_field(iv, iza, i) =
             interp(itw_p, cloudbox_field(iv, joker, 0, 0, iza, 0, i), gp_p);
       }
@@ -1233,10 +1252,10 @@ void get_stepwise_scattersky_source(
   // some further variables needed for pha_mat extraction
   Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
   Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
-  Tensor6 pha_mat_1se(nf_ssd, 1, 1, nza * naa, stokes_dim, stokes_dim);
+  Tensor6 pha_mat_1se(nf_ssd, 1, 1, nza * naa, 4, 4);
   Vector t_ok(1);
   Index ptype;
-  Tensor3 scat_source_1se(ne, nf, stokes_dim, 0.);
+  Tensor3 scat_source_1se(ne, nf, 4, 0.);
 
   Index ise_flat = 0;
   for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
@@ -1276,13 +1295,13 @@ void get_stepwise_scattersky_source(
           if (!duplicate_freqs) {
             this_iv = iv;
           }
-          Tensor3 product_fields(nza, naa, stokes_dim, 0.);
+          Tensor3 product_fields(nza, naa, 4, 0.);
 
           ia = 0;
           for (Index iza = 0; iza < nza; iza++) {
             for (Index iaa = 0; iaa < naa; iaa++) {
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
+              for (Index i = 0; i < 4; i++) {
+                for (Index j = 0; j < 4; j++) {
                   product_fields(iza, iaa, i) +=
                       pha_mat_1se(this_iv, 0, 0, ia, i, j) *
                       inc_field(iv, iza, j);
@@ -1292,7 +1311,7 @@ void get_stepwise_scattersky_source(
             }
           }
 
-          for (Index i = 0; i < stokes_dim; i++) {
+          for (Index i = 0; i < 4; i++) {
             scat_source_1se(ise_flat, iv, i) = AngIntegrate_trapezoid(
                 product_fields(joker, joker, i), za_grid, aa_grid);
           }
@@ -1305,25 +1324,25 @@ void get_stepwise_scattersky_source(
   }    // for i_ss
 
   for (Index iv = 0; iv < nf; iv++) {
-    Vector scat_source(stokes_dim, 0.);
+    Vector scat_source(4, 0.);
     for (ise_flat = 0; ise_flat < ne; ise_flat++) {
-      for (Index i = 0; i < stokes_dim; i++) {
+      for (Index i = 0; i < 4; i++) {
         scat_source[i] +=
             scat_source_1se(ise_flat, iv, i) * ppath_1p_pnd[ise_flat];
       }
     }
 
-    Sp.SetAtPosition(scat_source, iv);
+    Sp[iv] = Stokvec{scat_source};
 
     if (jacobian_do) {
       FOR_ANALYTICAL_JACOBIANS_DO(
-          if (ppath_dpnd_dx[iq].empty()) { dSp_dx[iq].SetZero(); } else {
+          if (ppath_dpnd_dx[iq].empty()) { dSp_dx[iq] = 0.0; } else {
             scat_source = 0.;
             for (ise_flat = 0; ise_flat < ne; ise_flat++) {
-              for (Index i = 0; i < stokes_dim; i++) {
+              for (Index i = 0; i < 4; i++) {
                 scat_source[i] += scat_source_1se(ise_flat, iv, i) *
                                   ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
-                dSp_dx[iq].SetAtPosition(scat_source, iv);
+                dSp_dx[iq][iv] = Stokvec{scat_source};
               }
             }
           })

@@ -30,7 +30,7 @@ struct propmat final : vec7 {
     requires(std::is_rvalue_reference_v<decltype(a)>)
       : vec7(std::move(a)) {}
 
-  template <propmat_convertible T> propmat(const T &t) {
+  template <propmat_convertible T> explicit propmat(const T &t) {
     ARTS_USER_ERROR_IF(matpack::column_size(t) != 4,
                        "The matrix must have 4 columns.")
     ARTS_USER_ERROR_IF(matpack::row_size(t) != 4,
@@ -175,4 +175,6 @@ using propmat_tensor3 = matpack::matpack_data<propmat, 3>;
 using propmat_tensor3_view = matpack::matpack_view<propmat, 3, false, false>;
 using propmat_tensor3_const_view =
     matpack::matpack_view<propmat, 3, true, false>;
+
+propmat_vector operator*(Numeric x, const propmat_vector_const_view& y);
 } // namespace rtepack

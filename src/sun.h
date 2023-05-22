@@ -103,7 +103,6 @@ void get_scattered_sunsource(Workspace& ws,
  * @param[in] suns Array of sun (structures).
  * @param[in] ppath Propagation path as the WSV.
  * @param[in] f_grid Vector as the WSV.
- * @param[in] stokes_dim Index as the WSV.
  * @param[in] atmosphere_dim Index as the WSV.
  * @param[in] refellipsoid Reference ellipsoid
  */
@@ -112,7 +111,6 @@ void get_sun_background(Matrix& iy,
                          const ArrayOfSun& suns,
                          const Ppath& ppath,
                          const Vector& f_grid,
-                         const Index& stokes_dim,
                          const Index& atmosphere_dim,
                          const Vector2 refellipsoid);
 
@@ -139,7 +137,6 @@ void get_sun_radiation(Matrix& iy,
  *             spectrum of sun.
  * @param[out] ddirect_radiation_dx Array of Tensor3 Jacobian of transmitted
  *              monochromatic irradiance spectrum of sun.
- * @param[in] stokes_dim As the WSV.
  * @param[in] f_grid As the WSV.
  * @param[in] atmosphere_dim As the WSV.
  * @param[in] p_grid As the WSV.
@@ -179,7 +176,6 @@ void get_sun_radiation(Matrix& iy,
 void get_direct_radiation(Workspace& ws,
                      ArrayOfMatrix& direct_radiation,
                      ArrayOfArrayOfTensor3& ddirect_radiation_dx,
-                     const Index& stokes_dim,
                      const Vector& f_grid,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
                      const AtmField& atm_field,
@@ -247,7 +243,6 @@ void get_sun_ppaths(Workspace& ws,
  *
  * @param[in]  sun_spectrum_raw  gf2 of the given spectrum.
  * @param[in]  f_grid  f_grid for the calculation.
- * @param[in]  stokes_dim  stokes_dim for the calculation.
  * @param[in]  temperature  Temperature for the planck padding.
  *
  * @return     interpolated spectrum
@@ -257,7 +252,6 @@ void get_sun_ppaths(Workspace& ws,
  */
 Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
                           const Vector &f_grid,
-                          const Index &stokes_dim,
                           const Numeric &temperature);
 
 #endif /* star_h */

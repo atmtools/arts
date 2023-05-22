@@ -20,6 +20,7 @@
 #include "ppath.h"
 #include "propmat_field.h"
 #include "radiation_field.h"
+#include "rtepack.h"
 
 void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     Workspace& ws,
@@ -52,8 +53,8 @@ ARTS_USER_ERROR("ERROR")
 ARTS_USER_ERROR("ERROR")
   // Compute variables
   ArrayOfTensor3 diy_dx;
-  FieldOfPropagationMatrix propmat_field;
-  FieldOfStokesVector absorption_field, additional_source_field;
+  FieldOfPropmatVector propmat_field;
+  FieldOfStokvecVector absorption_field, additional_source_field;
   ArrayOfPpath ppath_field;
 
   // Check that the lines and nf is correct
@@ -108,7 +109,6 @@ ARTS_USER_ERROR("ERROR")
                        propmat_field,
                        absorption_field,
                        additional_source_field,
-                       1,
                        f_grid,
                        atm_field,
                        ArrayOfRetrievalQuantity(0),
@@ -166,10 +166,10 @@ ARTS_USER_ERROR("ERROR")
   for (Index i = 0; i < ppath_field.nelem(); i++) {
     const Ppath& path = ppath_field[i];
 
-    thread_local ArrayOfRadiationVector lvl_rad;
-    thread_local ArrayOfRadiationVector src_rad;
-    thread_local ArrayOfTransmissionMatrix lyr_tra;
-    thread_local ArrayOfTransmissionMatrix tot_tra;
+    ArrayOfStokvecVector lvl_rad;
+    ArrayOfStokvecVector src_rad;
+    ArrayOfMuelmatVector lyr_tra;
+    ArrayOfMuelmatVector tot_tra;
 
     emission_from_propmat_field(wss,
                                 lvl_rad,
@@ -206,7 +206,7 @@ ARTS_USER_ERROR("ERROR")
   }
 
   if (r > 0) {
-    const FieldOfTransmissionMatrix transmat_field =
+    const FieldOfMuelmatVector transmat_field =
         transmat_field_calc_from_propmat_field(propmat_field, r);
     for (Index ip = 0; ip < np; ip++)
       for (il = 0; il < nl; il++)
