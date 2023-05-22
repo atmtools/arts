@@ -32,10 +32,16 @@ struct matpack_constant_view {
     using type = matpack_constant_view<T, c, rest...>;
   };
 
-  [[nodiscard]] constexpr matpack_constant_view(std::array<T, sz> &x) : view(x.data()) {}
-  [[nodiscard]] constexpr matpack_constant_view(const std::array<T, sz> &x) requires(constant) : view(const_cast<T*>(x.data())) {}
+  [[nodiscard]] constexpr matpack_constant_view(std::array<T, sz> &x)
+      : view(x.data()) {}
+  [[nodiscard]] constexpr matpack_constant_view(const std::array<T, sz> &x)
+    requires(constant)
+      : view(const_cast<T *>(x.data())) {}
   [[nodiscard]] constexpr matpack_constant_view(const view_type &x) : view(x) {}
-  [[nodiscard]] constexpr matpack_constant_view(const mut_matpack_constant_view& x) requires(constant) : view(x.view) {}
+  [[nodiscard]] constexpr matpack_constant_view(
+      const mut_matpack_constant_view &x)
+    requires(constant)
+      : view(x.view) {}
 
   template <bool c> using inner_view = typename inner_type<c, alldim...>::type;
 
@@ -69,7 +75,8 @@ struct matpack_constant_view {
   }
 
   template <typename... Jokers>
-  [[nodiscard]] constexpr inner_view<true> operator()(Index i, Jokers... v) const
+  [[nodiscard]] constexpr inner_view<true> operator()(Index i,
+                                                      Jokers... v) const
     requires(sizeof...(Jokers) == N - 1 and N > 1 and
              (std::same_as<std::remove_cvref_t<Jokers>, Joker> and ...))
   {
@@ -105,18 +112,54 @@ struct matpack_constant_view {
   [[nodiscard]] static constexpr auto rank() { return N; }
   [[nodiscard]] static constexpr auto is_const() { return constant; }
 
-  using iterator = matpack_mditer<0, false, matpack_constant_view, inner_view<false>>;
-  using const_iterator = matpack_mditer<0, true, const matpack_constant_view, const inner_view<true>>;
+  using iterator =
+      matpack_mditer<0, false, matpack_constant_view, inner_view<false>>;
+  using const_iterator = matpack_mditer<0, true, const matpack_constant_view,
+                                        const inner_view<true>>;
 
-  [[nodiscard]] constexpr auto begin() requires(not constant) { if constexpr (N == 1) return view.data_handle(); else return iterator{*this}; }
-  [[nodiscard]] constexpr auto end() requires(not constant) { if constexpr (N == 1) return view.data_handle() + sz; else return iterator{*this} + extent(0); }
-  [[nodiscard]] constexpr auto begin() const { if constexpr (N == 1) return view.data_handle(); else return const_iterator{*this}; }
-  [[nodiscard]] constexpr auto end() const { if constexpr (N == 1) return view.data_handle() + sz; else return const_iterator{*this} + extent(0); }
+  [[nodiscard]] constexpr auto begin()
+    requires(not constant)
+  {
+    if constexpr (N == 1)
+      return view.data_handle();
+    else
+      return iterator{*this};
+  }
+  [[nodiscard]] constexpr auto end()
+    requires(not constant)
+  {
+    if constexpr (N == 1)
+      return view.data_handle() + sz;
+    else
+      return iterator{*this} + extent(0);
+  }
+  [[nodiscard]] constexpr auto begin() const {
+    if constexpr (N == 1)
+      return view.data_handle();
+    else
+      return const_iterator{*this};
+  }
+  [[nodiscard]] constexpr auto end() const {
+    if constexpr (N == 1)
+      return view.data_handle() + sz;
+    else
+      return const_iterator{*this} + extent(0);
+  }
 
-  [[nodiscard]] constexpr auto elem_begin() requires(not constant) { return view.data_handle(); }
-  [[nodiscard]] constexpr auto elem_end() requires(not constant) { return view.data_handle() + sz; }
+  [[nodiscard]] constexpr auto elem_begin()
+    requires(not constant)
+  {
+    return view.data_handle();
+  }
+  [[nodiscard]] constexpr auto elem_end()
+    requires(not constant)
+  {
+    return view.data_handle() + sz;
+  }
   [[nodiscard]] constexpr auto elem_begin() const { return view.data_handle(); }
-  [[nodiscard]] constexpr auto elem_end() const { return view.data_handle() + sz; }
+  [[nodiscard]] constexpr auto elem_end() const {
+    return view.data_handle() + sz;
+  }
 
   [[nodiscard]] constexpr bool operator==(const data_type &other) const {
     return view == other.view();
@@ -124,20 +167,25 @@ struct matpack_constant_view {
   [[nodiscard]] constexpr bool operator!=(const data_type &other) const {
     return view != other.view();
   }
-  [[nodiscard]] constexpr bool operator==(const mut_matpack_constant_view &other) const {
+  [[nodiscard]] constexpr bool
+  operator==(const mut_matpack_constant_view &other) const {
     return std::equal(elem_begin(), elem_end(), other.elem_begin());
   }
-  [[nodiscard]] constexpr bool operator!=(const mut_matpack_constant_view &other) const {
+  [[nodiscard]] constexpr bool
+  operator!=(const mut_matpack_constant_view &other) const {
     return not std::equal(elem_begin(), elem_end(), other.elem_begin());
   }
-  [[nodiscard]] constexpr bool operator==(const const_matpack_constant_view &other) const {
+  [[nodiscard]] constexpr bool
+  operator==(const const_matpack_constant_view &other) const {
     return std::equal(elem_begin(), elem_end(), other.elem_begin());
   }
-  [[nodiscard]] constexpr bool operator!=(const const_matpack_constant_view &other) const {
+  [[nodiscard]] constexpr bool
+  operator!=(const const_matpack_constant_view &other) const {
     return not std::equal(elem_begin(), elem_end(), other.elem_begin());
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const matpack_constant_view &mv) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const matpack_constant_view &mv) {
     constexpr char extra = N == 1 ? ' ' : '\n';
     bool first = true;
     for (auto &&v : mv) {
@@ -164,13 +212,16 @@ template <typename T, Index... alldim> struct matpack_constant_data {
 
   using mut_view_type = matpack_constant_view<T, false, alldim...>;
   using const_view_type = matpack_constant_view<T, true, alldim...>;
-  template <bool c> using inner_view = typename mut_view_type::template inner_view<c>;
+  template <bool c>
+  using inner_view = typename mut_view_type::template inner_view<c>;
 
   std::array<T, sz> data{};
 
   [[nodiscard]] explicit constexpr operator matpack_data<T, N>() const {
-    if constexpr (N == 1) return matpack_data<T, 1>{data};
-    else return matpack_data<T, 1>{data}.reshape(alldim...);
+    if constexpr (N == 1)
+      return matpack_data<T, 1>{data};
+    else
+      return matpack_data<T, 1>{data}.reshape(alldim...);
   }
 
   [[nodiscard]] constexpr auto view() { return mut_view_type{data}; }
@@ -219,72 +270,125 @@ template <typename T, Index... alldim> struct matpack_constant_data {
 
   using value_type = T;
   [[nodiscard]] static constexpr auto shape() { return std::array{alldim...}; }
-  [[nodiscard]] constexpr auto extent(Index i) const { return view().extent(i); }
-  [[nodiscard]] constexpr auto stride(Index i) const { return view().stride(i); }
+  [[nodiscard]] constexpr auto extent(Index i) const {
+    return view().extent(i);
+  }
+  [[nodiscard]] constexpr auto stride(Index i) const {
+    return view().stride(i);
+  }
   [[nodiscard]] static constexpr auto size() { return sz; }
   [[nodiscard]] static constexpr auto rank() { return N; }
 
-  [[nodiscard]] constexpr auto begin() { if constexpr (N == 1) return data.begin(); else return view().begin(); }
-  [[nodiscard]] constexpr auto end() { if constexpr (N == 1) return data.end(); else return view().end(); }
-  [[nodiscard]] constexpr auto begin() const { if constexpr (N == 1) return data.begin(); else return view().begin(); }
-  [[nodiscard]] constexpr auto end() const { if constexpr (N == 1) return data.end(); else return view().end(); }
+  [[nodiscard]] constexpr auto begin() {
+    if constexpr (N == 1)
+      return data.begin();
+    else
+      return view().begin();
+  }
+  [[nodiscard]] constexpr auto end() {
+    if constexpr (N == 1)
+      return data.end();
+    else
+      return view().end();
+  }
+  [[nodiscard]] constexpr auto begin() const {
+    if constexpr (N == 1)
+      return data.begin();
+    else
+      return view().begin();
+  }
+  [[nodiscard]] constexpr auto end() const {
+    if constexpr (N == 1)
+      return data.end();
+    else
+      return view().end();
+  }
 
   [[nodiscard]] constexpr auto elem_begin() { return data.begin(); }
   [[nodiscard]] constexpr auto elem_end() { return data.end(); }
   [[nodiscard]] constexpr auto elem_begin() const { return data.begin(); }
   [[nodiscard]] constexpr auto elem_end() const { return data.end(); }
 
-  [[nodiscard]] constexpr bool operator==(const matpack_constant_data &other) const { return data == other.data; }
-  [[nodiscard]] constexpr bool operator!=(const matpack_constant_data &other) const { return data != other.data; }
-  [[nodiscard]] constexpr bool operator==(const mut_view_type &other) const { return view() == other; }
-  [[nodiscard]] constexpr bool operator!=(const mut_view_type &other) const { return view() != other; }
-  [[nodiscard]] constexpr bool operator==(const const_view_type &other) const { return view() == other; }
-  [[nodiscard]] constexpr bool operator!=(const const_view_type &other) const { return view() != other; }
-
-  matpack_constant_data& operator+=(const matpack_constant_data& o) {
-    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a + b;});
-    return *this;
+  [[nodiscard]] constexpr bool
+  operator==(const matpack_constant_data &other) const {
+    return data == other.data;
   }
-  template<std::convertible_to<T> U>
-  matpack_constant_data& operator+=(U&& x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a + b;});
-    return *this;
+  [[nodiscard]] constexpr bool
+  operator!=(const matpack_constant_data &other) const {
+    return data != other.data;
   }
-  matpack_constant_data& operator-=(const matpack_constant_data& o) {
-    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a - b;});
-    return *this;
+  [[nodiscard]] constexpr bool operator==(const mut_view_type &other) const {
+    return view() == other;
   }
-  template<std::convertible_to<T> U>
-  matpack_constant_data& operator-=(U&& x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a - b;});
-    return *this;
+  [[nodiscard]] constexpr bool operator!=(const mut_view_type &other) const {
+    return view() != other;
   }
-  matpack_constant_data& operator/=(const matpack_constant_data& o) {
-    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a / b;});
-    return *this;
+  [[nodiscard]] constexpr bool operator==(const const_view_type &other) const {
+    return view() == other;
   }
-  template<std::convertible_to<T> U>
-  matpack_constant_data& operator/=(U&& x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a / b;});
-    return *this;
-  }
-  matpack_constant_data& operator*=(const matpack_constant_data& o) {
-    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(), [](auto a, auto b){return a * b;});
-    return *this;
-  }
-  template<std::convertible_to<T> U>
-  matpack_constant_data& operator*=(U&& x) {
-    std::transform(elem_begin(), elem_end(), elem_begin(), [b=static_cast<T>(std::forward<U>(x))](auto a){return a * b;});
-    return *this;
+  [[nodiscard]] constexpr bool operator!=(const const_view_type &other) const {
+    return view() != other;
   }
 
-  template <Index i> constexpr T& get() & {return std::get<i>(data);}
+  constexpr matpack_constant_data &operator+=(const matpack_constant_data &o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(),
+                   [](auto a, auto b) { return a + b; });
+    return *this;
+  }
+  template <std::convertible_to<T> U>
+  constexpr matpack_constant_data &operator+=(U &&x) {
+    std::transform(
+        elem_begin(), elem_end(), elem_begin(),
+        [b = static_cast<T>(std::forward<U>(x))](auto a) { return a + b; });
+    return *this;
+  }
+  constexpr matpack_constant_data &operator-=(const matpack_constant_data &o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(),
+                   [](auto a, auto b) { return a - b; });
+    return *this;
+  }
+  template <std::convertible_to<T> U>
+  constexpr matpack_constant_data &operator-=(U &&x) {
+    std::transform(
+        elem_begin(), elem_end(), elem_begin(),
+        [b = static_cast<T>(std::forward<U>(x))](auto a) { return a - b; });
+    return *this;
+  }
+  constexpr matpack_constant_data &operator/=(const matpack_constant_data &o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(),
+                   [](auto a, auto b) { return a / b; });
+    return *this;
+  }
+  template <std::convertible_to<T> U>
+  constexpr matpack_constant_data &operator/=(U &&x) {
+    std::transform(
+        elem_begin(), elem_end(), elem_begin(),
+        [b = static_cast<T>(std::forward<U>(x))](auto a) { return a / b; });
+    return *this;
+  }
+  constexpr matpack_constant_data &operator*=(const matpack_constant_data &o) {
+    std::transform(elem_begin(), elem_end(), o.elem_begin(), elem_begin(),
+                   [](auto a, auto b) { return a * b; });
+    return *this;
+  }
+  template <std::convertible_to<T> U>
+  constexpr matpack_constant_data &operator*=(U &&x) {
+    std::transform(
+        elem_begin(), elem_end(), elem_begin(),
+        [b = static_cast<T>(std::forward<U>(x))](auto a) { return a * b; });
+    return *this;
+  }
 
-  template <Index i> constexpr const T& get() const & {return std::get<i>(data);}
+  template <Index i> constexpr T &get() & { return std::get<i>(data); }
 
-  template <Index i> constexpr T&& get() && {return std::get<i>(data);}
+  template <Index i> constexpr const T &get() const & {
+    return std::get<i>(data);
+  }
 
-  friend std::ostream &operator<<(std::ostream &os, const matpack_constant_data &mv) {
+  template <Index i> constexpr T &&get() && { return std::get<i>(data); }
+
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const matpack_constant_data &mv) {
     return os << mv.view();
   }
 };
@@ -296,6 +400,10 @@ using Vector4 = matpack::matpack_constant_data<Numeric, 4>;
 
 //! Make the constant data structured, so "[a,b,c] = Vector3{1,2,3};" works
 namespace std {
-  template <matpack::any_matpack_constant_data T> struct tuple_size<T> : std::integral_constant<size_t, T::size()> { };
-  template <std::size_t I, matpack::any_matpack_constant_data T> struct tuple_element<I, T> { using type = typename T::value_type; };
-}  // namespace std
+template <matpack::any_matpack_constant_data T>
+struct tuple_size<T> : std::integral_constant<size_t, T::size()> {};
+template <std::size_t I, matpack::any_matpack_constant_data T>
+struct tuple_element<I, T> {
+  using type = typename T::value_type;
+};
+} // namespace std
