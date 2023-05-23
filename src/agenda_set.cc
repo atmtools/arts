@@ -287,7 +287,7 @@ Agenda get_iy_main_agenda(Workspace& ws, const String& option) try {
       break;
     case TransmissionUnitUnpolIntensity:
       agenda.add(
-          "MatrixUnitIntensity", "iy_transmitter", "stokes_dim", "f_grid");
+          "MatrixUnitIntensity", "iy_transmitter", "f_grid");
       agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
       agenda.add("iyTransmissionStandard");
       agenda.set("geo_pos", Vector{});
@@ -343,7 +343,7 @@ Agenda get_iy_space_agenda(Workspace& ws, const String& option) {
   using enum Options::iy_space_agendaDefaultOptions;
   switch (Options::toiy_space_agendaDefaultOptionsOrThrow(option)) {
     case CosmicBackground:
-      agenda.add("MatrixCBR", "iy", "stokes_dim", "f_grid");
+      agenda.add("MatrixCBR", "iy", "f_grid");
       break;
     case FINAL:
       break;

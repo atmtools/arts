@@ -1356,11 +1356,11 @@ void iySurfaceRtpropAgenda(Workspace& ws,
     if (surface_rmatrix.nrows() != 4 ||
         surface_rmatrix.ncols() != 4)
       throw runtime_error(
-          "Mismatch between size of *surface_rmatrix* and *stokes_dim*.");
+          "Wrong size *surface_rmatrix*.");
   }
   if (surface_emission.ncols() != 4)
     throw runtime_error(
-        "Mismatch between size of *surface_emission* and *stokes_dim*.");
+        "Wrong size *surface_emission*.");
   if (surface_emission.nrows() != nf)
     throw runtime_error("Mismatch in size of *surface_emission* and f_grid*.");
 
@@ -1487,11 +1487,11 @@ void iySurfaceRtpropCalc(Workspace& ws,
     if (surface_rmatrix.nrows() != 4 ||
         surface_rmatrix.ncols() != 4)
       throw runtime_error(
-          "Mismatch between size of *surface_rmatrix* and *stokes_dim*.");
+          "Wrong size *surface_rmatrix*.");
   }
   if (surface_emission.ncols() != 4)
     throw runtime_error(
-        "Mismatch between size of *surface_emission* and *stokes_dim*.");
+        "Wrong size *surface_emission*.");
   if (surface_emission.nrows() != nf)
     throw runtime_error("Mismatch in size of *surface_emission* and f_grid*.");
 
@@ -1752,9 +1752,7 @@ ARTS_USER_ERROR("ERROR")
 void surfaceMapToLinearPolarisation(Matrix& surface_emission,
                                     Tensor4& surface_rmatrix,
                                              const Numeric& pol_angle) {
-  ARTS_USER_ERROR_IF (4 != 1,
-        "You should only use this method where the main calculations are "
-        "done with *stokes_dim* set to 1.");
+  ARTS_USER_ERROR ("ERROR, this method is not implemented yet for the new fully polarized ARTS")
 
   const Index nf = surface_emission.nrows();
   const Index nlos = surface_rmatrix.nbooks();
@@ -2033,29 +2031,18 @@ void surfaceFlatReflectivity(Matrix& surface_los,
 
   const Index nf = f_grid.nelem();
 
-  if (surface_reflectivity.nrows() != 4 &&
-      surface_reflectivity.ncols() != 4) {
-    ostringstream os;
-    os << "The number of rows and columnss in *surface_reflectivity* must\n"
-       << "match *stokes_dim*."
-       << "\n stokes_dim : " << 4
-       << "\n number of rows in *surface_reflectivity* : "
-       << surface_reflectivity.nrows()
-       << "\n number of columns in *surface_reflectivity* : "
-       << surface_reflectivity.ncols() << "\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(
+      surface_reflectivity.nrows() != 4 && surface_reflectivity.ncols() != 4,
+      "The number of rows and columns in *surface_reflectivity* must\n"
+      "be 4.\nThe number of rows in *surface_reflectivity* : ",
+      surface_reflectivity.nrows(), "\n")
 
-  if (surface_reflectivity.npages() != nf &&
-      surface_reflectivity.npages() != 1) {
-    ostringstream os;
-    os << "The number of pages in *surface_reflectivity* should\n"
-       << "match length of *f_grid* or be 1."
-       << "\n length of *f_grid* : " << nf
-       << "\n dimension of *surface_reflectivity* : "
-       << surface_reflectivity.npages() << "\n";
-    throw runtime_error(os.str());
-  }
+  ARTS_USER_ERROR_IF(
+      surface_reflectivity.npages() != nf && surface_reflectivity.npages() != 1,
+      "The number of pages in *surface_reflectivity* should\n",
+      "match length of *f_grid* or be 1.", "\n length of *f_grid* : ", nf,
+      "\n dimension of *surface_reflectivity* : ",
+      surface_reflectivity.npages(), "\n")
 
   surface_los.resize(1, specular_los.nelem());
   surface_los(0, joker) = specular_los;
@@ -2449,12 +2436,6 @@ void surface_reflectivityFromGriddedField6(Tensor3& surface_reflectivity,
     ostringstream os;
     os << "The data in *r_field* must span a range of zenith angles. That\n"
        << "is the zenith angle grid must have a length >= 2.";
-    throw runtime_error(os.str());
-  }
-  if (ns1 < 4 || ns2 < 4 || ns1 > 4 || ns2 > 4) {
-    ostringstream os;
-    os << "The \"Stokes dimensions\" must have a size that is >= "
-       << "*stokes_dim* (but not exceeding 4).";
     throw runtime_error(os.str());
   }
 

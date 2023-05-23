@@ -793,24 +793,10 @@ void met_mm_polarisation_hmatrix(Sparse& H,
       ARTS_ASSERT(0);
     }
 
-    /*
-        // Maybe this error messages should be mofified
-        if( pv[ipv].nelem() > stokes_dim )
-        {
-            ostringstream os;
-            os << "You have selected a channel polarisation that is not "
-            << "covered by present value of *stokes_dim* (the later has to be "
-            << "increased).";
-            throw runtime_error(os.str());
-            }*/
-
     // No rotation, just plane polarisation response
     if (rot[i] == "none") {
       // Here we just need to fill the row H
       Vector hrow(nch * 4, 0.0);
-      /* Old code, matching older version of stokes2pol:
-          hrow[Range(i*stokes_dim,pv[ipv].nelem())] = pv[ipv];
-          */
       stokes2pol(hrow[Range(i * 4, 4)], ipol, w);
       H.insert_row(i, hrow);
     }
@@ -842,10 +828,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
 
       // H-matrix matching polarization
       Sparse Hpol(1, 4);
-      { /* Old code, matching older version of stokes2pol
-            Vector hrow( stokes_dim, 0.0 );
-            hrow[Range(0,pv[ipv].nelem())] = pv[ipv];
-            */
+      {
         Vector hrow(4);
         stokes2pol(hrow, ipol, w);
         Hpol.insert_row(0, hrow);
@@ -996,8 +979,7 @@ void stokes2pol(VectorView w,
   ARTS_USER_ERROR_IF (l > 4,
     "You have selected polarization with 1-based index: ", ipol_1based,
     "\n",
-    "but this polarization demands stokes_dim >= ", l, "\n",
-    "while the actual values of stokes_dim is ", 4)
+    "but this polarization demands 4 >= ", l, "\n")
 
   w[Range(0, l)] = s2p[ipol_1based - 1];
   if (l < 4) {

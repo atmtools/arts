@@ -1093,9 +1093,6 @@ void get_stepwise_scattersky_propmat(
     const bool& jacobian_do) {
   const Index nf = Kp.nelem();
 
-  //StokesVector da_aux(nf, stokes_dim);
-  //PropagationMatrix dK_aux(nf, stokes_dim);
-
   ArrayOfArrayOfSingleScatteringData scat_data_mono;
 
   // Direction of outgoing scattered radiation (which is reversed to

@@ -48,9 +48,8 @@
 
     The function performs the calculations differently depending on the
     conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption (stokes_dim = 1). <br>
-       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
-       3. The total general case.
+       1. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
+       2. The total general case.
 
     \param[in,out]  stokes_vec A Stokes vector.
     \param[out]     trans_mat Transmission matrix of slab.

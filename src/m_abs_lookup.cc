@@ -2042,12 +2042,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
               partial_abs[ispec] *= a_vmr_list[ispec];
             }
 
-            // Verify, that the number of elements in abs matrix is
-            // constistent with stokes_dim:
-            ARTS_USER_ERROR_IF (1 != 4,
-                "propmat_clearsky_fieldCalc requires stokes_dim = 1"
-                "but the stokes_dim returned by the agenda is ",
-                4, ".")
+            ARTS_USER_ERROR ("This method is not yet adapted for the new fully polarized ARTS")
 
             // Verify, that the number of species in abs is
             // constistent with vmr_field:

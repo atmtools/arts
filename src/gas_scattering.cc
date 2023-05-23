@@ -18,8 +18,7 @@
 #include "check_input.h"
 #include <cmath>
 
-Vector calc_rayleighPhaMat(const Numeric& theta_rad,
-                            const Index& stokes_dim) {
+Vector calc_rayleighPhaMat(const Numeric& theta_rad) {
 
   using Math::pow2;
   using Constant::pi;
@@ -28,22 +27,13 @@ Vector calc_rayleighPhaMat(const Numeric& theta_rad,
   
   Vector pha_mat_int(6, 0.0);
 
-  switch (stokes_dim) {
-    case 4:
-      pha_mat_int[4] = 0.0;                               //F34
-      pha_mat_int[5] = cos(theta_rad);                    //F44 
-      [[fallthrough]];
-    case 3:
-      pha_mat_int[3] = cos(theta_rad);                    //F33 
-      [[fallthrough]];
-    case 2:
-      pha_mat_int[1] = -0.5 * pow2(sin(theta_rad));       //F12 
-      pha_mat_int[2] = 0.5 * (1 + pow2(cos(theta_rad)));  //F22 
-      [[fallthrough]];
-    case 1:
-      pha_mat_int[0] = 0.5 * (1 + pow2(cos(theta_rad)));  //F11
-  }
-  
+  pha_mat_int[0] = 0.5 * (1 + pow2(cos(theta_rad))); // F11
+  pha_mat_int[1] = -0.5 * pow2(sin(theta_rad));      // F12
+  pha_mat_int[2] = 0.5 * (1 + pow2(cos(theta_rad))); // F22
+  pha_mat_int[3] = cos(theta_rad);                      // F33
+  pha_mat_int[4] = 0.0;                                 // F34
+  pha_mat_int[5] = cos(theta_rad);                      // F44
+
   pha_mat_int *= 1.5;
   return pha_mat_int;
 }

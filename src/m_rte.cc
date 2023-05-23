@@ -792,10 +792,9 @@ ARTS_USER_ERROR("ERROR")
         "calculated in this way:\n   ppathCalc( cloudbox_on = 0 ).");
   // iy_aux_vars checked below
   // Checks of i_field
-  if (cloudbox_field.ncols() != 4)
-    throw runtime_error(
-        "Obtained *cloudbox_field* number of Stokes elements inconsistent with "
-        "*stokes_dim*.");
+  ARTS_USER_ERROR_IF(
+      cloudbox_field.ncols() != 4,
+      "Obtained *cloudbox_field* number of Stokes elements that's not 4.")
   if (cloudbox_field.nrows() != 1)
     throw runtime_error(
         "Obtained *cloudbox_field* has wrong number of azimuth angles.");

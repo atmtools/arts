@@ -156,7 +156,7 @@ void gas_scattering_matRayleigh(MuelmatVector& gas_scattering_mat,
       Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
 
       // Rayleigh phase matrix in scattering system
-      Vector pha_mat_int = calc_rayleighPhaMat(theta_rad, 4);
+      Vector pha_mat_int = calc_rayleighPhaMat(theta_rad);
 
       // transform the phase matrix
       Matrix pha_mat(4, 4, 0.0);

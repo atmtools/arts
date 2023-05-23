@@ -267,7 +267,6 @@ void compute(PropmatVector& propmat_clearsky,
                   });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
-    //! Set simple propagation matrices (NOTE: stokes_dim == 1, if any model cahnges that, fix this!)
     PropmatVector pm(f_grid.nelem());
     PropmatVector dpm(f_grid.nelem());
     compute_selection<false>(pm,

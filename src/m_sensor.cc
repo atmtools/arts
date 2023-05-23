@@ -26,6 +26,7 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "gridded_fields.h"
 #include "interp.h"
 #include "m_select.h"
@@ -930,9 +931,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
       antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
   //
   if (lpolgrid != 1 && lpolgrid != npol) {
-    os << "The number of polarisation in *antenna_response* must be 1 or be\n"
-       << "equal to the number of polarisations used (determined by\n"
-       << "*stokes_dim* or *instrument_pol*).\n";
+    os << "The number of polarisation in *antenna_response* must be 1 or 4).\n";
     error_found = true;
   }
 
@@ -2337,7 +2336,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
     error_found = true;
   }
   if (npol != 4) {
-    os << "Number of input polarisation does not match *stokes_dim*.\n";
+    os << "Number of input polarisation is not 4.\n";
     error_found = true;
   }
   if (nnew == 0) {
@@ -2351,8 +2350,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
   // Check polarisation data more in detail
   for (Index i = 0; i < npol && !error_found; i++) {
     if (sensor_response_pol_grid[i] != i + 1) {
-      os << "The input polarisations must be I, Q, U and V (up to "
-         << "stokes_dim). It seems that input data are for other "
+      os << "The input polarisations must be I, Q, U and V. It seems that input data are for other "
          << "polarisation components.";
       error_found = true;
     }
@@ -2456,13 +2454,13 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
   }
   if (npol != 4) {
     os << "Inconsistency detected. The length of *sensor_response_pol_grid*\n"
-       << "must be equal to *stokes_dim*, and this is not the case.\n";
+       << "must be 4, and this is not the case.\n";
     error_found = true;
   }
   for (Index is = 0; is < npol; is++) {
     if (sensor_response_pol_grid[is] != is + 1) {
       os << "For this method, the values in *sensor_response_pol_grid* must\n"
-         << "be 1,2...stokes_dim. This is not the case, indicating that\n"
+         << "be 1,2,3,4. This is not the case, indicating that\n"
          << "some previous sensor part has that the data no longer are\n"
          << "Stokes vectors.\n";
       error_found = true;
@@ -3313,10 +3311,9 @@ void yApplySensorPol(Vector& y,
   if (sensor_pos.nrows() != nm)
     throw runtime_error(
         "Different number of rows in *sensor_pos* and *sensor_pol*.");
-  if (n2 * 4 != n1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF(n2 * 4 != n1,
         "Number of columns in *sensor_pol* not consistent with "
-        "length of *y* and value of *stokes_dim*.");
+        "length of 4 times *y*.");
 
   // Make copy of all y variables and jacobian
   const Vector y1 = y, y_f1 = y_f;

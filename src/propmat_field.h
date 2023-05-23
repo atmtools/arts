@@ -30,7 +30,6 @@ using FieldOfStokvecVector = Field3D<StokvecVector>;
  * @param[out] propmat_field A 3D field of propagation matrices
  * @param[out] absorption_field A 3D field of absorption vectors
  * @param[out] additional_source_field A 3D field of source vectors
- * @param[in] stokes_dim As WSV
  * @param[in] f_grid As WSV
  * @param[in] p_grid As WSV
  * @param[in] z_field As WSV
