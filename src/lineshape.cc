@@ -3660,7 +3660,7 @@ Vector linear_sparse_f_grid(const Vector &f_grid,
 
     return sparse_f_grid;
   }
-  return Vector(0);
+  return {};
 }
 
 bool good_linear_sparse_f_grid(const Vector &f_grid_dense,
@@ -3701,7 +3701,7 @@ Vector triple_sparse_f_grid(const Vector &f_grid,
 
     return sparse_f_grid;
   }
-  return Vector(0);
+  return {};
 }
 
 void ComputeData::interp_add_even(const ComputeData &sparse) ARTS_NOEXCEPT {
