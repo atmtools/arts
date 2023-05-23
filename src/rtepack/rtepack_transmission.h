@@ -1,16 +1,8 @@
 #pragma once
 
-#include "array.h"
-#include "matpack_view.h"
-
 #include "rtepack_mueller_matrix.h"
-#include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
-#include "rtepack_source.h"
 
-#include <concepts>
-#include <type_traits>
-#include <vector>
 
 namespace rtepack {
 void two_level_exp(muelmat &t,

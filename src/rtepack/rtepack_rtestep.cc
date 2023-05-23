@@ -1,6 +1,4 @@
 #include "rtepack_rtestep.h"
-#include "rtepack_mueller_matrix.h"
-#include "rtepack_stokes_vector.h"
 
 namespace rtepack {
 void two_level_linear_emission_step(

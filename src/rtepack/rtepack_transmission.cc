@@ -1,9 +1,7 @@
 #include "arts_constants.h"
 
-#include "debug.h"
-#include "matpack_complex.h"
-
 #include "rtepack_transmission.h"
+#include "rtepack_multitype.h"
 
 namespace rtepack {
 constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
@@ -1021,13 +1019,12 @@ void two_level_exp(muelmat_vector_view tv, muelmat_matrix_view dt1v,
 
 void two_level_exp(muelmat_vector_view tv, const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v, const Numeric rv) {
-  const Index nf = tv.nelem();
+  ARTS_ASSERT(k2v.nelem() == k1v.nelem());
+  ARTS_ASSERT(tv.nelem() == k1v.nelem());
 
-  ARTS_ASSERT(nf == k1v.nelem());
-  ARTS_ASSERT(nf == k2v.nelem());
-
-  for (Index i = 0; i < nf; ++i) {
-    tv[i] = exp(-0.5 * rv * (k1v[i] + k2v[i]));
-  }
+  std::transform(k1v.begin(), k1v.end(), k2v.begin(), tv.begin(),
+                 [rv](const propmat &a, const propmat &b) {
+                   return exp(-0.5 * rv * (a + b));
+                 });
 }
 } // namespace rtepack

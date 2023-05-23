@@ -1,24 +1,10 @@
 #pragma once
 
-#include "debug.h"
 #include "rtepack_concepts.h"
-
-#include <matpack_concepts.h>
-#include <matpack_data.h>
-#include <matpack_lazy.h>
 
 #include <type_traits>
 
 namespace rtepack {
-using namespace matpack::lazy;
-
-template <typename T>
-concept lazy_stokvec =
-    constexpr_vec_data_like<T> and std::remove_cvref_t<T>::size() == 4;
-
-template <typename T>
-concept stokvec_convertible = matpack::column_keeper<T> and matpack::rank<T>() == 1 and matpack::mdvalue_type_compatible<T, Numeric>;
-
 struct stokvec final : vec4 {
   [[nodiscard]] constexpr stokvec(Numeric a = 0.0, Numeric b = 0.0,
                                   Numeric c = 0.0, Numeric d = 0.0)
@@ -103,15 +89,18 @@ constexpr auto avg(const lazy_stokvec auto &a, const stokvec &b) {
 
 using stokvec_vector = matpack::matpack_data<stokvec, 1>;
 using stokvec_vector_view = matpack::matpack_view<stokvec, 1, false, false>;
-using stokvec_vector_const_view = matpack::matpack_view<stokvec, 1, true, false>;
+using stokvec_vector_const_view =
+    matpack::matpack_view<stokvec, 1, true, false>;
 
 using stokvec_matrix = matpack::matpack_data<stokvec, 2>;
 using stokvec_matrix_view = matpack::matpack_view<stokvec, 2, false, false>;
-using stokvec_matrix_const_view = matpack::matpack_view<stokvec, 2, true, false>;
+using stokvec_matrix_const_view =
+    matpack::matpack_view<stokvec, 2, true, false>;
 
 using stokvec_tensor3 = matpack::matpack_data<stokvec, 3>;
 using stokvec_tensor3_view = matpack::matpack_view<stokvec, 3, false, false>;
-using stokvec_tensor3_const_view = matpack::matpack_view<stokvec, 3, true, false>;
+using stokvec_tensor3_const_view =
+    matpack::matpack_view<stokvec, 3, true, false>;
 
-stokvec_vector operator*(Numeric x, const stokvec_vector_const_view& y);
+stokvec_vector operator*(Numeric x, const stokvec_vector_const_view &y);
 } // namespace rtepack

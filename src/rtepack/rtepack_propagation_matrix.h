@@ -1,25 +1,10 @@
 #pragma once
 
-#include "debug.h"
 #include "rtepack_concepts.h"
-
-#include <matpack_data.h>
-#include <matpack_lazy.h>
 
 #include <type_traits>
 
 namespace rtepack {
-using namespace matpack::lazy;
-
-template <typename T>
-concept lazy_propmat =
-    constexpr_vec_data_like<T> and std::remove_cvref_t<T>::size() == 7;
-
-template <typename T>
-concept propmat_convertible =
-    matpack::column_keeper<T> and matpack::row_keeper<T> and
-    matpack::rank<T>() == 2 and matpack::mdvalue_type_compatible<T, Numeric>;
-
 struct propmat final : vec7 {
   constexpr propmat(Numeric a = 0.0, Numeric b = 0.0, Numeric c = 0.0,
                     Numeric d = 0.0, Numeric u = 0.0, Numeric v = 0.0,

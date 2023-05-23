@@ -1,10 +1,10 @@
 #pragma once
 
-#include "matpack_data.h"
-#include "matpack_view.h"
+#include "rtepack_concepts.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_stokes_vector.h"
+
 #include <algorithm>
 
 namespace rtepack {
@@ -17,12 +17,7 @@ constexpr stokvec absvec(const propmat &k) {
   return stokvec{k.A(), k.B(), k.C(), k.D()};
 }
 
-constexpr stokvec_vector absvec(const propmat_vector_const_view &k) {
-  stokvec_vector out(k.size());
-  std::transform(k.begin(), k.end(), out.begin(),
-                 [](const propmat &v) { return absvec(v); });
-  return out;
-}
+stokvec_vector absvec(const propmat_vector_const_view &k);
 
 constexpr muelmat inv(const propmat &k) {
   const auto [a, b, c, d, u, v, w] = k.data;

@@ -113,6 +113,13 @@ muelmat exp(const propmat &k) {
       exp_a * C0 + C2 * (d2 - v2 - w2)};
 }
 
+stokvec_vector absvec(const propmat_vector_const_view &k) {
+  stokvec_vector out(k.size());
+  std::transform(k.begin(), k.end(), out.begin(),
+                 [](const propmat &v) { return absvec(v); });
+  return out;
+}
+
 Tensor3 to_tensor3(const muelmat_vector_const_view &m) {
   Tensor3 out(m.size(), 4, 4);
 

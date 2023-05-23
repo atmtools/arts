@@ -1,7 +1,5 @@
 #include "rtepack_mueller_matrix.h"
 
-#include "array.h"
-#include "lapack.h"
 namespace rtepack {
 Array<muelmat_vector> reverse_cumulative_transmission(const Array<muelmat_vector> &T) {
   const Index n = T.nelem();

@@ -1,9 +1,7 @@
 #pragma once
 
-#include "debug.h"
-#include "matpack_view.h"
-
 #include "rtepack_multitype.h"
+
 #include <algorithm>
 
 namespace rtepack::source {

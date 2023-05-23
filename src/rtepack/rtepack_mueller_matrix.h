@@ -1,23 +1,10 @@
 #pragma once
 
-#include "array.h"
 #include "rtepack_concepts.h"
-
-#include <matpack_data.h>
-#include <matpack_lazy.h>
 
 #include <type_traits>
 
 namespace rtepack {
-using namespace matpack::lazy;
-
-template <typename T>
-concept lazy_muelmat =
-    constexpr_smat_data_like<T> and std::remove_cvref_t<T>::size() == 4;
-
-template <typename T>
-concept muelmat_convertible = matpack::column_keeper<T> and matpack::row_keeper<T> and matpack::rank<T>() == 2 and matpack::mdvalue_type_compatible<T, Numeric>;
-
 struct muelmat final : mat44 {
   constexpr muelmat(Numeric tau = 1.0) noexcept
       : mat44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
@@ -27,7 +14,7 @@ struct muelmat final : mat44 {
       : mat44(static_cast<mat44>(std::move(a))) {}
 
   template <muelmat_convertible T>
-  explicit muelmat(const T& t) {
+  explicit constexpr muelmat(const T& t) {
     ARTS_USER_ERROR_IF(matpack::column_size(t) != 4, "The matrix must have 4 columns.")
     ARTS_USER_ERROR_IF(matpack::row_size(t) != 4, "The matrix must have 4 rows.")
     for (Index i = 0; i < 4; i++) {
