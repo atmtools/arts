@@ -414,50 +414,45 @@ const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
 }
 #pragma GCC diagnostic pop
 
-void sum(PropmatVectorView pm,
-         const ConstComplexVectorView& abs,
-         const PolarizationVector& polvec) {
+void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
+                 const PolarizationVector &polvec) {
   const Index n = pm.nelem();
   ARTS_ASSERT(n == abs.nelem())
 
-  for (Index i=0; i<n; i++) {
-    for (Index j = 0; j < 4; j++) {
+  for (Index i = 0; i < n; i++) {
+      for (Index j = 0; j < 4; j++) {
       pm[i][j] += polvec.att[j] * abs[i].real();
-    }
+      }
 
-    for (Index j = 0; j < 3; j++) {
+      for (Index j = 0; j < 3; j++) {
       pm[i][j + 4] += polvec.dis[j] * abs[i].imag();
-    }
+      }
   }
 }
 
-void sum(StokvecVectorView sv,
-         const ConstComplexVectorView& abs,
-         const PolarizationVector& polvec) {
+void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
+                 const PolarizationVector &polvec) {
   const Index n = sv.nelem();
   ARTS_ASSERT(n == abs.nelem())
 
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     for (Index j = 0; j < 4; j++) {
       sv[i][j] += polvec.att[j] * abs[i].real();
     }
   }
 }
 
-void dsum(PropmatVectorView pm,
-          const ConstComplexVectorView& abs,
-          const ConstComplexVectorView& dabs,
-          const PolarizationVector& polvec,
-          const PolarizationVector& dpolvec_dtheta,
-          const PolarizationVector& dpolvec_deta,
-          const Numeric dH,
-          const Numeric dt,
-          const Numeric de) {
+void dsum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
+                  const ConstComplexVectorView &dabs,
+                  const PolarizationVector &polvec,
+                  const PolarizationVector &dpolvec_dtheta,
+                  const PolarizationVector &dpolvec_deta, const Numeric dH,
+                  const Numeric dt, const Numeric de) {
   const Index n = pm.nelem();
   ARTS_ASSERT(n == abs.nelem())
   ARTS_ASSERT(n == dabs.nelem())
 
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     for (Index j = 0; j < 4; j++) {
       pm[i][j] += dH * polvec.att[j] * dabs[i].real() +
                   dt * dpolvec_dtheta.att[j] * abs[i].real() +
@@ -472,20 +467,17 @@ void dsum(PropmatVectorView pm,
   }
 }
 
-void dsum(StokvecVectorView sv,
-          const ConstComplexVectorView& abs,
-          const ConstComplexVectorView& dabs,
-          const PolarizationVector& polvec,
-          const PolarizationVector& dpolvec_dtheta,
-          const PolarizationVector& dpolvec_deta,
-          const Numeric dH,
-          const Numeric dt,
-          const Numeric de) {
+void dsum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
+                  const ConstComplexVectorView &dabs,
+                  const PolarizationVector &polvec,
+                  const PolarizationVector &dpolvec_dtheta,
+                  const PolarizationVector &dpolvec_deta, const Numeric dH,
+                  const Numeric dt, const Numeric de) {
   const Index n = sv.nelem();
   ARTS_ASSERT(n == abs.nelem())
   ARTS_ASSERT(n == dabs.nelem())
 
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     for (Index j = 0; j < 4; j++) {
       sv[i][j] += dH * polvec.att[j] * dabs[i].real() +
                   dt * dpolvec_dtheta.att[j] * abs[i].real() +

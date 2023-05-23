@@ -266,7 +266,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                   jacobian_quantities);
 
           // Sum up the propagation matrix
-          Zeeman::sum(propmat_clearsky,
+          Zeeman::sum_propmat(propmat_clearsky,
                       abs,
                       Zeeman::SelectPolarization(polarization_scale_data,
                                                  polarization));
@@ -278,7 +278,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
             if (not deriv.propmattype()) continue;
 
             if (deriv == Jacobian::Atm::MagneticU) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j],
+              Zeeman::dsum_propmat(dpropmat_clearsky_dx[j],
                            abs,
                            dabs[j],
                            Zeeman::SelectPolarization(polarization_scale_data,
@@ -291,7 +291,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                            Z.dtheta_du,
                            Z.deta_du);
             } else if (deriv == Jacobian::Atm::MagneticV) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j],
+              Zeeman::dsum_propmat(dpropmat_clearsky_dx[j],
                            abs,
                            dabs[j],
                            Zeeman::SelectPolarization(polarization_scale_data,
@@ -304,7 +304,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                            Z.dtheta_dv,
                            Z.deta_dv);
             } else if (deriv == Jacobian::Atm::MagneticW) {
-              Zeeman::dsum(dpropmat_clearsky_dx[j],
+              Zeeman::dsum_propmat(dpropmat_clearsky_dx[j],
                            abs,
                            dabs[j],
                            Zeeman::SelectPolarization(polarization_scale_data,
@@ -317,7 +317,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                            Z.dtheta_dw,
                            Z.deta_dw);
             } else if (deriv == abs_species[i]) {
-              Zeeman::sum(dpropmat_clearsky_dx[j],
+              Zeeman::sum_propmat(dpropmat_clearsky_dx[j],
                           abs,
                           Zeeman::SelectPolarization(polarization_scale_data,
                                                      polarization));
