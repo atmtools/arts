@@ -298,7 +298,7 @@ void propmat_clearskyAddFaraday(
     const Numeric c1 =
         2 * FRconst *
         dotprod_with_los(
-            rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2], 3);
+            rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2]);
 
     Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
     if (do_magn_jac) {
@@ -306,23 +306,21 @@ void propmat_clearskyAddFaraday(
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0] + dmag,
                                     atm_point.mag[1],
-                                    atm_point.mag[2], 3) -
+                                    atm_point.mag[2]) -
                c1) /
               dmag;
       dc1_v = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0],
                                     atm_point.mag[1] + dmag,
-                                    atm_point.mag[2],
-                                    3) -
+                                    atm_point.mag[2]) -
                c1) /
               dmag;
       dc1_w = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0],
                                     atm_point.mag[1],
-                                    atm_point.mag[2] + dmag,
-                                    3) -
+                                    atm_point.mag[2] + dmag) -
                c1) /
               dmag;
     }
@@ -425,7 +423,7 @@ void propmat_clearskyAddParticles(
 
   const Index na = abs_species.nelem();
   Vector rtp_los_back;
-  mirror_los(rtp_los_back, rtp_los, 3);
+  mirror_los(rtp_los_back, rtp_los);
 
   // 170918 JM: along with transition to use of new-type (aka
   // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical

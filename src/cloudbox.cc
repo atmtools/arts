@@ -41,14 +41,12 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 
   \param pnd_field_raw   pnd field data
   \param pnd_field_file  pnd field filename
-  \param atmosphere_dim  Atmospheric dimension
 
   \author Claudia Emde
   \date   2005-04-05
 */
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
-                  const String& pnd_field_file,
-                  const Index& atmosphere_dim) {
+                  const String& pnd_field_file) {
   const Vector& pfr_lat_grid =
       pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const Vector& pfr_lon_grid =
@@ -58,18 +56,10 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
   // Here we have to check whether the atmospheric dimension is correct and whether
   // the particle number density is 0 on the cloudbox boundary and outside the cloudbox.
 
-  ARTS_USER_ERROR_IF (atmosphere_dim == 1 &&
-      (pfr_lat_grid.nelem() != 1 || pfr_lon_grid.nelem() != 1),
-      "The atmospheric dimension is 1D but the particle "
-      "number density file * ", pnd_field_file,
-      " is for a 3D atmosphere. \n")
-
-  if (atmosphere_dim == 3) {
     ARTS_USER_ERROR_IF (pfr_lat_grid.nelem() == 1 || pfr_lon_grid.nelem() == 1,
          "The atmospheric dimension is 3D but the particle "
          "number density file * ", pnd_field_file,
          " is for a 1D or a 2D atmosphere. \n")
-  }
 }
 
 //! Check particle number density files (pnd_field_raw)
@@ -77,16 +67,14 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
   
   \param pnd_field_raw   pnd field raw data (array for all scattering elements)
   \param pnd_field_file  pnd field filename
-  \param atmosphere_dim  Atmospheric dimension
  
   \author Claudia Emde
   \date   2005-04-05
 */
 void chk_pnd_raw_data(const ArrayOfGriddedField3& pnd_field_raw,
-                      const String& pnd_field_file,
-                      const Index& atmosphere_dim) {
+                      const String& pnd_field_file) {
   for (Index i = 0; i < pnd_field_raw.nelem(); i++) {
-    chk_pnd_data(pnd_field_raw[i], pnd_field_file, atmosphere_dim);
+    chk_pnd_data(pnd_field_raw[i], pnd_field_file);
   }
 }
 
@@ -416,8 +404,7 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
                            const GridPos& gp_lat,
                            const GridPos& gp_lon,
                            const ArrayOfIndex& cloudbox_limits,
-                           const bool& include_boundaries,
-                           const Index& atmosphere_dim)
+                           const bool& include_boundaries)
 
 {
   if (include_boundaries) {
@@ -428,7 +415,6 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
       return false;
     }
 
-    else if (atmosphere_dim >= 2) {
       // Latitude dimension
       ipos = fractional_gp(gp_lat);
       if (ipos < double(cloudbox_limits[2]) ||
@@ -436,15 +422,13 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
         return false;
       }
 
-      else if (atmosphere_dim == 3) {
         // Longitude dimension
         ipos = fractional_gp(gp_lon);
         if (ipos < double(cloudbox_limits[4]) ||
             ipos > double(cloudbox_limits[5])) {
           return false;
         }
-      }
-    }
+
     return true;
   } else {
     // Pressure dimension
@@ -454,7 +438,6 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
       return false;
     }
 
-    else if (atmosphere_dim >= 2) {
       // Latitude dimension
       ipos = fractional_gp(gp_lat);
       if (ipos <= double(cloudbox_limits[2]) ||
@@ -462,15 +445,12 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
         return false;
       }
 
-      else if (atmosphere_dim == 3) {
         // Longitude dimension
         ipos = fractional_gp(gp_lon);
         if (ipos <= double(cloudbox_limits[4]) ||
             ipos >= double(cloudbox_limits[5])) {
           return false;
         }
-      }
-    }
     return true;
   }
 }
@@ -611,7 +591,6 @@ void chk_scat_species_field(bool& empty_flag,
   \param[in,out] upper              uppermost level containing scattering particles
   \param[in]     scat_species_field scattering species field (e.g. mass density, mass
                                     flux, total number density)
-  \param[in]     atmosphere_dim     the atmosphere dimension
   \param[in]     cloudbox_margin    flag whether to determine lowermost level or set to
                                     surface
 
@@ -621,123 +600,8 @@ void chk_scat_species_field(bool& empty_flag,
 void find_cloudlimits(Index& lower,
                       Index& upper,
                       const Tensor3& scat_species_field,
-                      const Index& atmosphere_dim,
                       const Numeric& cloudbox_margin) {
-  if (atmosphere_dim == 1) {
-    // scattering species profiles
-    ConstVectorView ss_prof = scat_species_field(joker, 0, 0);
-
-    Index i = 0;
-
-    // find lower cloudbox_limit to surface if margin != -1 (cloudbox not
-    // forced to reach down to surface)
-    if (cloudbox_margin != -1) {
-      // find index of first pressure level where hydromet_field is
-      // unequal 0, starting from the surface
-      for (i = 0; i < lower; i++) {
-        //cout << "for lower limit checking level #" << i << "\n";
-
-        // if any of the scat species fields contains a non-zero, non-NaN
-        // value at this atm level we found a potential lower limit value
-        if (ss_prof[i] != 0.0 && !std::isnan(ss_prof[i])) {
-          //cout << "found particles\n";
-
-          // check if lower is the lowest index in all selected
-          // scattering species fields
-          if (lower > i) {
-            lower = i;
-            //cout << "new lower limit at level #" << lower << "\n";
-          }
-          break;
-        }
-      }
-    }
-
-    // find index of highest pressure level, where scat_species_mass_density_field is
-    // unequal 0, starting from top of the atmosphere
-    for (Index j = scat_species_field.npages() - 1; j >= max(i, upper); j--) {
-      //cout << "for upper limit checking level #" << j << "\n";
-
-      // if any of the scat species fields contains a non-zero, non-NaN
-      // value at this atm level we found a potential lower limit value
-      if (ss_prof[j] != 0.0 && !std::isnan(ss_prof[j])) {
-        //cout << "found particles\n";
-
-        // check if upper is the highest index in all selected
-        // scattering species fields
-        if (upper < j) {
-          upper = j;
-          //cout << "new upper limit at level #" << upper << "\n";
-        }
-        break;
-      }
-    }
-  }
-
-  else {
     ARTS_USER_ERROR ("Not yet available for 2D and 3D cases.")
-  }
-
-  /*  //NOT WORKING YET
-      // Latitude limits
-      else if ( atmosphere_dim == 2 )
-      {
-        MatrixView hydro_lat = hydromet_field ( nhyd, joker, joker, 0 );
-
-        for ( i=0; i<hydro_lat.nrows(); i++ )
-        {
-          for ( j=0; j<hydro_lat.ncols(); j++ )
-          {
-            if ( hydro_lat[i,j] != 0.0 )
-            {
-
-              if ( lat1 <= j ) lat1 =j;
-              //cloudbox_limits[2] = lat1;
-              //break;
-            }
-
-          }
-          if ( lower <= i )    lower = i;
-        }
-
-        for ( k=hydro_lat.nelem()-1; k>=i; k-- )
-        {
-          if ( hydro_lat[k] != 0.0 )
-          {
-            lat2 = k;
-            cloudbox_limits[3] = lat2;
-            break;
-
-          }
-
-        }
-      }
-
-      // Longitude limits
-      if ( atmosphere_dim == 3 )
-      {
-        Tensor3View hydro_lon = hydromet_field ( nhyd, joker, joker, joker );
-
-        for ( i=0; i<hydro_lon.nelem(); i++ )
-        {
-          if ( hydro_lon[i] != 0.0 )
-          {
-            lon1 = i;
-            cloudbox_limits[4] = lon1;
-            break;
-          }
-
-        }
-        for ( j=hydro_lon.nelem()-1; j>=i; j-- )
-        {
-          if ( hydro_lon[j] != 0.0 )
-          {
-            lon2 = j;
-            cloudbox_limits[5] = lon2;
-            break;
-
-          }
-}*/
 }
 
 /*! Parse atm_field_compact fieldname for species type

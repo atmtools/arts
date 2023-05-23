@@ -55,71 +55,40 @@
   ===========================================================================*/
 
 void interp_atmfield_gp2itw(Matrix& itw,
-                            const Index& atmosphere_dim,
                             const ArrayOfGridPos& gp_p,
                             const ArrayOfGridPos& gp_lat,
                             const ArrayOfGridPos& gp_lon) {
   const Index n = gp_p.nelem();
-
-  if (atmosphere_dim == 1) {
-    itw.resize(n, 2);
-    interpweights(itw, gp_p);
-  }
-
-  else if (atmosphere_dim == 2) {
-    ARTS_ASSERT(gp_lat.nelem() == n);
-    itw.resize(n, 4);
-    interpweights(itw, gp_p, gp_lat);
-  }
-
-  else if (atmosphere_dim == 3) {
-    ARTS_ASSERT(gp_lat.nelem() == n);
-    ARTS_ASSERT(gp_lon.nelem() == n);
-    itw.resize(n, 8);
-    interpweights(itw, gp_p, gp_lat, gp_lon);
-  }
+  ARTS_ASSERT(gp_lat.nelem() == n);
+  ARTS_ASSERT(gp_lon.nelem() == n);
+  itw.resize(n, 8);
+  interpweights(itw, gp_p, gp_lat, gp_lon);
 }
 
 void interp_atmfield_by_itw(VectorView x,
-                            const Index& atmosphere_dim,
                             ConstTensor3View x_field,
                             const ArrayOfGridPos& gp_p,
                             const ArrayOfGridPos& gp_lat,
                             const ArrayOfGridPos& gp_lon,
                             ConstMatrixView itw) {
   ARTS_ASSERT(x.nelem() == gp_p.nelem());
-
-  if (atmosphere_dim == 1) {
-    ARTS_ASSERT(itw.ncols() == 2);
-    interp(x, itw, x_field(Range(joker), 0, 0), gp_p);
-  }
-
-  else if (atmosphere_dim == 2) {
-    ARTS_ASSERT(itw.ncols() == 4);
-    interp(x, itw, x_field(Range(joker), Range(joker), 0), gp_p, gp_lat);
-  }
-
-  else if (atmosphere_dim == 3) {
-    ARTS_ASSERT(itw.ncols() == 8);
-    interp(x, itw, x_field, gp_p, gp_lat, gp_lon);
-  }
+  ARTS_ASSERT(itw.ncols() == 8);
+  interp(x, itw, x_field, gp_p, gp_lat, gp_lon);
 }
 
 void interp_atmfield_by_gp(VectorView x,
-                           const Index& atmosphere_dim,
                            ConstTensor3View x_field,
                            const ArrayOfGridPos& gp_p,
                            const ArrayOfGridPos& gp_lat,
                            const ArrayOfGridPos& gp_lon) {
   Matrix itw;
 
-  interp_atmfield_gp2itw(itw, atmosphere_dim, gp_p, gp_lat, gp_lon);
+  interp_atmfield_gp2itw(itw, gp_p, gp_lat, gp_lon);
 
-  interp_atmfield_by_itw(x, atmosphere_dim, x_field, gp_p, gp_lat, gp_lon, itw);
+  interp_atmfield_by_itw(x, x_field, gp_p, gp_lat, gp_lon, itw);
 }
 
-Numeric interp_atmfield_by_gp(const Index& atmosphere_dim,
-                              ConstTensor3View x_field,
+Numeric interp_atmfield_by_gp(ConstTensor3View x_field,
                               const GridPos& gp_p,
                               const GridPos& gp_lat,
                               const GridPos& gp_lon) {
@@ -127,19 +96,17 @@ Numeric interp_atmfield_by_gp(const Index& atmosphere_dim,
 
   gridpos_copy(agp_p[0], gp_p);
 
-  if (atmosphere_dim > 1) {
     agp_lat.resize(1);
     gridpos_copy(agp_lat[0], gp_lat);
-  }
+  
 
-  if (atmosphere_dim > 2) {
     agp_lon.resize(1);
     gridpos_copy(agp_lon[0], gp_lon);
-  }
+  
 
   Vector x(1);
 
-  interp_atmfield_by_gp(x, atmosphere_dim, x_field, agp_p, agp_lat, agp_lon);
+  interp_atmfield_by_gp(x, x_field, agp_p, agp_lat, agp_lon);
 
   return x[0];
 }
@@ -151,25 +118,8 @@ void interp_cloudfield_gp2itw(VectorView itw,
                               const GridPos& gp_p_in,
                               const GridPos& gp_lat_in,
                               const GridPos& gp_lon_in,
-                              const Index& atmosphere_dim,
                               const ArrayOfIndex& cloudbox_limits) {
   // Shift grid positions to cloud box grids
-  if (atmosphere_dim == 1) {
-    gridpos_copy(gp_p_out, gp_p_in);
-    gp_p_out.idx -= cloudbox_limits[0];
-    gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
-    ARTS_ASSERT(itw.nelem() == 2);
-    interpweights(itw, gp_p_out);
-  } else if (atmosphere_dim == 2) {
-    gridpos_copy(gp_p_out, gp_p_in);
-    gridpos_copy(gp_lat_out, gp_lat_in);
-    gp_p_out.idx -= cloudbox_limits[0];
-    gp_lat_out.idx -= cloudbox_limits[2];
-    gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
-    gridpos_upperend_check(gp_lat_out, cloudbox_limits[3] - cloudbox_limits[2]);
-    ARTS_ASSERT(itw.nelem() == 4);
-    interpweights(itw, gp_p_out, gp_lat_out);
-  } else {
     gridpos_copy(gp_p_out, gp_p_in);
     gridpos_copy(gp_lat_out, gp_lat_in);
     gridpos_copy(gp_lon_out, gp_lon_in);
@@ -181,7 +131,6 @@ void interp_cloudfield_gp2itw(VectorView itw,
     gridpos_upperend_check(gp_lon_out, cloudbox_limits[5] - cloudbox_limits[4]);
     ARTS_ASSERT(itw.nelem() == 8);
     interpweights(itw, gp_p_out, gp_lat_out, gp_lon_out);
-  }
 }
 
 /** Converts atmospheric grid positions to weights for interpolation of a
@@ -196,7 +145,6 @@ void interp_cloudfield_gp2itw(VectorView itw,
     The input atmospheric grids are checked to be consistent.
 
     \param[out]  itw                Interpolation weights.
-    \param[in]   atmosphere_dim     As the WSV with the same name.
     \param[in]   gp_lat             Latitude grid positions.
     \param[in]   gp_lon             Longitude grid positions.
 
@@ -204,83 +152,49 @@ void interp_cloudfield_gp2itw(VectorView itw,
     @date   2002-11-13
  */
 void interp_atmsurface_gp2itw(Matrix& itw,
-                              const Index& atmosphere_dim,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon) {
-  if (atmosphere_dim == 1) {
-    itw.resize(1, 1);
-    itw = 1;
-  }
-
-  else if (atmosphere_dim == 2) {
-    const Index n = gp_lat.nelem();
-    itw.resize(n, 2);
-    interpweights(itw, gp_lat);
-  }
-
-  else if (atmosphere_dim == 3) {
     const Index n = gp_lat.nelem();
     ARTS_ASSERT(n == gp_lon.nelem());
     itw.resize(n, 4);
     interpweights(itw, gp_lat, gp_lon);
-  }
 }
 
 void interp_atmsurface_by_itw(VectorView x,
-                              const Index& atmosphere_dim,
                               ConstMatrixView x_surface,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon,
                               ConstMatrixView itw) {
-  if (atmosphere_dim == 1) {
-    ARTS_ASSERT(itw.ncols() == 1);
-    x = x_surface(0, 0);
-  }
-
-  else if (atmosphere_dim == 2) {
-    ARTS_ASSERT(x.nelem() == gp_lat.nelem());
-    ARTS_ASSERT(itw.ncols() == 2);
-    interp(x, itw, x_surface(Range(joker), 0), gp_lat);
-  }
-
-  else if (atmosphere_dim == 3) {
     ARTS_ASSERT(x.nelem() == gp_lat.nelem());
     ARTS_ASSERT(itw.ncols() == 4);
     interp(x, itw, x_surface, gp_lat, gp_lon);
-  }
 }
 
 void interp_atmsurface_by_gp(VectorView x,
-                             const Index& atmosphere_dim,
                              ConstMatrixView x_surface,
                              const ArrayOfGridPos& gp_lat,
                              const ArrayOfGridPos& gp_lon) {
   Matrix itw;
 
-  interp_atmsurface_gp2itw(itw, atmosphere_dim, gp_lat, gp_lon);
+  interp_atmsurface_gp2itw(itw, gp_lat, gp_lon);
 
-  interp_atmsurface_by_itw(x, atmosphere_dim, x_surface, gp_lat, gp_lon, itw);
+  interp_atmsurface_by_itw(x, x_surface, gp_lat, gp_lon, itw);
 }
 
-Numeric interp_atmsurface_by_gp(const Index& atmosphere_dim,
-                                ConstMatrixView x_surface,
+Numeric interp_atmsurface_by_gp(ConstMatrixView x_surface,
                                 const GridPos& gp_lat,
                                 const GridPos& gp_lon) {
   ArrayOfGridPos agp_lat(0), agp_lon(0);
 
-  if (atmosphere_dim > 1) {
     agp_lat.resize(1);
     gridpos_copy(agp_lat[0], gp_lat);
-  }
 
-  if (atmosphere_dim > 2) {
     agp_lon.resize(1);
     gridpos_copy(agp_lon[0], gp_lon);
-  }
 
   Vector x(1);
 
-  interp_atmsurface_by_gp(x, atmosphere_dim, x_surface, agp_lat, agp_lon);
+  interp_atmsurface_by_gp(x, x_surface, agp_lat, agp_lon);
 
   return x[0];
 }
@@ -290,106 +204,59 @@ Numeric interp_atmsurface_by_gp(const Index& atmosphere_dim,
   ===========================================================================*/
 
 void regrid_atmfield_by_gp(Tensor3& field_new,
-                           const Index& atmosphere_dim,
                            ConstTensor3View field_old,
                            const ArrayOfGridPos& gp_p,
                            const ArrayOfGridPos& gp_lat,
                            const ArrayOfGridPos& gp_lon) {
   const Index n1 = gp_p.nelem();
 
-  if (atmosphere_dim == 1) {
-    field_new.resize(n1, 1, 1);
-    Matrix itw(n1, 2);
-    interpweights(itw, gp_p);
-    interp(field_new(joker, 0, 0), itw, field_old(joker, 0, 0), gp_p);
-  } else if (atmosphere_dim == 2) {
-    const Index n2 = gp_lat.nelem();
-    field_new.resize(n1, n2, 1);
-    Tensor3 itw(n1, n2, 4);
-    interpweights(itw, gp_p, gp_lat);
-    interp(field_new(joker, joker, 0),
-           itw,
-           field_old(joker, joker, 0),
-           gp_p,
-           gp_lat);
-  } else if (atmosphere_dim == 3) {
     const Index n2 = gp_lat.nelem();
     const Index n3 = gp_lon.nelem();
     field_new.resize(n1, n2, n3);
     Tensor4 itw(n1, n2, n3, 8);
     interpweights(itw, gp_p, gp_lat, gp_lon);
     interp(field_new, itw, field_old, gp_p, gp_lat, gp_lon);
-  }
 }
 
 void regrid_atmsurf_by_gp(Matrix& field_new,
-                          const Index& atmosphere_dim,
                           ConstMatrixView field_old,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon) {
-  if (atmosphere_dim == 1) {
-    field_new = field_old;
-  } else if (atmosphere_dim == 2) {
-    const Index n1 = gp_lat.nelem();
-    field_new.resize(n1, 1);
-    Matrix itw(n1, 2);
-    interpweights(itw, gp_lat);
-    interp(field_new(joker, 0), itw, field_old(joker, 0), gp_lat);
-  } else if (atmosphere_dim == 3) {
     const Index n1 = gp_lat.nelem();
     const Index n2 = gp_lon.nelem();
     field_new.resize(n1, n2);
     Tensor3 itw(n1, n2, 4);
     interpweights(itw, gp_lat, gp_lon);
     interp(field_new, itw, field_old, gp_lat, gp_lon);
-  }
 }
 
 void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
                            ArrayOfGridPos& gp_lat,
                            ArrayOfGridPos& gp_lon,
                            const RetrievalQuantity& rq,
-                           const Index& atmosphere_dim,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid) {
   gp_p.resize(rq.Grids()[0].nelem());
   p2gridpos(gp_p, p_grid, rq.Grids()[0], 0);
   //
-  if (atmosphere_dim >= 2) {
     gp_lat.resize(rq.Grids()[1].nelem());
     gridpos(gp_lat, lat_grid, rq.Grids()[1], 0);
-  } else {
-    gp_lat.resize(0);
-  }
   //
-  if (atmosphere_dim >= 3) {
     gp_lon.resize(rq.Grids()[2].nelem());
     gridpos(gp_lon, lon_grid, rq.Grids()[2], 0);
-  } else {
-    gp_lon.resize(0);
-  }
 }
 
 void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
                           ArrayOfGridPos& gp_lon,
                           const RetrievalQuantity& rq,
-                          const Index& atmosphere_dim,
                           const Vector& lat_grid,
                           const Vector& lon_grid) {
-  if (atmosphere_dim >= 2) {
     gp_lat.resize(rq.Grids()[0].nelem());
     gridpos(gp_lat, lat_grid, rq.Grids()[0], 0);
-  } else {
-    gp_lat.resize(0);
-  }
   //
-  if (atmosphere_dim >= 3) {
     gp_lon.resize(rq.Grids()[1].nelem());
     gridpos(gp_lon, lon_grid, rq.Grids()[1], 0);
-  } else {
-    gp_lon.resize(0);
-  }
 }
 
 void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
@@ -399,7 +266,6 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
                            Index& n_lat,
                            Index& n_lon,
                            const ArrayOfVector& ret_grids,
-                           const Index& atmosphere_dim,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid) {
@@ -416,7 +282,6 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
     gp4length1grid(gp_p);
   }
 
-  if (atmosphere_dim >= 2) {
     gp_lat.resize(lat_grid.nelem());
     n_lat = ret_grids[1].nelem();
     if (n_lat > 1) {
@@ -425,12 +290,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
     } else {
       gp4length1grid(gp_lat);
     }
-  } else {
-    gp_lat.resize(0);
-    n_lat = 1;
-  }
   //
-  if (atmosphere_dim >= 3) {
     gp_lon.resize(lon_grid.nelem());
     n_lon = ret_grids[2].nelem();
     if (n_lon > 1) {
@@ -439,10 +299,6 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
     } else {
       gp4length1grid(gp_lon);
     }
-  } else {
-    gp_lon.resize(0);
-    n_lon = 1;
-  }
 }
 
 void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
@@ -450,14 +306,12 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
                            Index& n_lat,
                            Index& n_lon,
                            const ArrayOfVector& ret_grids,
-                           const Index& atmosphere_dim,
                            const Vector& lat_grid,
                            const Vector& lon_grid) {
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
   const Numeric inf_proxy = 1.0e99;
 
-  if (atmosphere_dim >= 2) {
     gp_lat.resize(lat_grid.nelem());
     n_lat = ret_grids[0].nelem();
     if (n_lat > 1) {
@@ -466,12 +320,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
     } else {
       gp4length1grid(gp_lat);
     }
-  } else {
-    gp_lat.resize(0);
-    n_lat = 1;
-  }
   //
-  if (atmosphere_dim >= 3) {
     gp_lon.resize(lon_grid.nelem());
     n_lon = ret_grids[1].nelem();
     if (n_lon > 1) {
@@ -480,14 +329,9 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
     } else {
       gp4length1grid(gp_lon);
     }
-  } else {
-    gp_lon.resize(0);
-    n_lon = 1;
-  }
 }
 
 void regrid_atmfield_by_gp_oem(Tensor3& field_new,
-                               const Index& atmosphere_dim,
                                ConstTensor3View field_old,
                                const ArrayOfGridPos& gp_p,
                                const ArrayOfGridPos& gp_lat,
@@ -496,55 +340,15 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
 
   const bool np_is1 = field_old.npages() == 1 ? true : false;
   const bool nlat_is1 =
-      atmosphere_dim > 1 && field_old.nrows() == 1 ? true : false;
+      field_old.nrows() == 1 ? true : false;
   const bool nlon_is1 =
-      atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false;
+      field_old.ncols() == 1 ? true : false;
 
   // If no length 1, we can use standard function
   if (!np_is1 && !nlat_is1 && !nlon_is1) {
     regrid_atmfield_by_gp(
-        field_new, atmosphere_dim, field_old, gp_p, gp_lat, gp_lon);
+        field_new, field_old, gp_p, gp_lat, gp_lon);
   } else {
-    //--- 1D (1 possibilities left) -------------------------------------------
-    if (atmosphere_dim == 1) {  // 1: No interpolation at all
-      field_new.resize(n1, 1, 1);
-      field_new(joker, 0, 0) = field_old(0, 0, 0);
-    }
-
-    //--- 2D (3 possibilities left) -------------------------------------------
-    else if (atmosphere_dim == 2) {
-      const Index n2 = gp_lat.nelem();
-      field_new.resize(n1, n2, 1);
-      //
-      if (np_is1 && nlat_is1)  // 1: No interpolation at all
-      {
-        // Here we need no interpolation at all
-        field_new(joker, joker, 0) = field_old(0, 0, 0);
-      } else if (np_is1)  // 2: Latitude interpolation
-      {
-        Matrix itw(n2, 2);
-        interpweights(itw, gp_lat);
-        Vector tmp(n2);
-        interp(tmp, itw, field_old(0, joker, 0), gp_lat);
-        for (Index p = 0; p < n1; p++) {
-          ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-          field_new(p, joker, 0) = tmp;
-        }
-      } else  // 3: Pressure interpolation
-      {
-        Matrix itw(n1, 2);
-        interpweights(itw, gp_p);
-        Vector tmp(n1);
-        interp(tmp, itw, field_old(joker, 0, 0), gp_p);
-        for (Index lat = 0; lat < n2; lat++) {
-          ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-          field_new(joker, lat, 0) = tmp;
-        }
-      }
-    }
-
-    //--- 3D (7 possibilities left) -------------------------------------------
-    else if (atmosphere_dim == 3) {
       const Index n2 = gp_lat.nelem();
       const Index n3 = gp_lon.nelem();
       field_new.resize(n1, n2, n3);
@@ -631,35 +435,25 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
             field_new(joker, joker, lon) = tmp;
           }
         }
-      }
     }
   }
 }
 
 /* So far just a temporary test */
 void regrid_atmsurf_by_gp_oem(Matrix& field_new,
-                              const Index& atmosphere_dim,
                               ConstMatrixView field_old,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon) {
   // As 1D is so simple, let's do it here and not go to standard function
-  if (atmosphere_dim == 1) {
-    field_new = field_old;
-  } else {
     const bool nlat_is1 = field_old.nrows() == 1 ? true : false;
     const bool nlon_is1 =
-        atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false;
+       field_old.ncols() == 1 ? true : false;
 
     // If no length 1, we can use standard function
     if (!nlat_is1 && !nlon_is1) {
       regrid_atmsurf_by_gp(
-          field_new, atmosphere_dim, field_old, gp_lat, gp_lon);
+          field_new, field_old, gp_lat, gp_lon);
     } else {
-      if (atmosphere_dim == 2) {  // 1: No interpolation at all
-        const Index n1 = gp_lat.nelem();
-        field_new.resize(n1, 1);
-        field_new(joker, 0) = field_old(0, 0);
-      } else {
         const Index n1 = gp_lat.nelem();
         const Index n2 = gp_lon.nelem();
         field_new.resize(n1, n2);
@@ -690,8 +484,6 @@ void regrid_atmsurf_by_gp_oem(Matrix& field_new,
         }
       }
     }
-  }
-}
 
 /*===========================================================================
   === Conversion altitudes / pressure
@@ -755,19 +547,13 @@ void p2gridpos(ArrayOfGridPos& gp,
 void rte_pos2gridpos(GridPos& gp_p,
                      GridPos& gp_lat,
                      GridPos& gp_lon,
-                     const Index& atmosphere_dim,
                      ConstVectorView p_grid,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid,
                      ConstTensor3View z_field,
                      ConstVectorView rte_pos) {
-  chk_rte_pos(atmosphere_dim, rte_pos);
+  chk_rte_pos(rte_pos);
 
-  if (atmosphere_dim == 1) {
-    chk_interpolation_grids(
-        "Altitude interpolation", z_field(joker, 0, 0), rte_pos[0]);
-    gridpos(gp_p, z_field(joker, 0, 0), rte_pos[0]);
-  } else {
     // Determine z at lat/lon (z_grid) by blue interpolation
     const Index np = p_grid.nelem();
     Vector z_grid(np);
@@ -778,14 +564,6 @@ void rte_pos2gridpos(GridPos& gp_p,
     chk_interpolation_grids("Latitude interpolation", lat_grid, rte_pos[1]);
     gridpos(gp_lat, lat_grid, rte_pos[1]);
 
-    if (atmosphere_dim == 2) {
-      for (Index i = 0; i < np; i++) {
-        agp_lat[i] = gp_lat;
-      }
-      Matrix itw(np, 4);
-      interpweights(itw, agp_z, agp_lat);
-      interp(z_grid, itw, z_field(joker, joker, 0), agp_z, agp_lat);
-    } else {
       chk_interpolation_grids("Longitude interpolation", lon_grid, rte_pos[2]);
       gridpos(gp_lon, lon_grid, rte_pos[2]);
       ArrayOfGridPos agp_lon(np);
@@ -796,32 +574,24 @@ void rte_pos2gridpos(GridPos& gp_p,
       Matrix itw(np, 8);
       interpweights(itw, agp_z, agp_lat, agp_lon);
       interp(z_grid, itw, z_field, agp_z, agp_lat, agp_lon);
-    }
 
     // And use z_grid to get gp_p (gp_al and gp_lon determined above)
     chk_interpolation_grids("Altitude interpolation", z_grid, rte_pos[0]);
     gridpos(gp_p, z_grid, rte_pos[0]);
-  }
 }
 
 void rte_pos2gridpos(GridPos& gp_lat,
                      GridPos& gp_lon,
-                     const Index& atmosphere_dim,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid,
                      ConstVectorView rte_pos) {
-  chk_rte_pos(atmosphere_dim, rte_pos);
+  chk_rte_pos(rte_pos);
 
-  if (atmosphere_dim == 1) {
-  } else {
     chk_interpolation_grids("Latitude interpolation", lat_grid, rte_pos[1]);
     gridpos(gp_lat, lat_grid, rte_pos[1]);
 
-    if (atmosphere_dim == 3) {
       chk_interpolation_grids("Longitude interpolation", lon_grid, rte_pos[2]);
       gridpos(gp_lon, lon_grid, rte_pos[2]);
-    }
-  }
 }
 
 void z_at_lat_2d(VectorView z,

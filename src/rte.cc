@@ -65,7 +65,7 @@ void adapt_stepwise_partial_derivatives(
     if (jacobian_quantities[i].is_wind()) {
       const auto scale = get_stepwise_f_partials(
           ppath_line_of_sight, ppath_f_grid,
-          jacobian_quantities[i].Target().atm, 3);
+          jacobian_quantities[i].Target().atm);
 
       for (Index iv = 0; iv < nv; ++iv) {
         dK_dx(i, iv) *= scale[iv];
@@ -75,27 +75,13 @@ void adapt_stepwise_partial_derivatives(
   }
 }
 
-void adjust_los(VectorView los, const Index& atmosphere_dim) {
-  if (atmosphere_dim == 1) {
-    if (los[0] < 0) {
-      los[0] = -los[0];
-    } else if (los[0] > 180) {
-      los[0] = 360 - los[0];
-    }
-  } else if (atmosphere_dim == 2) {
-    if (los[0] < -180) {
-      los[0] = los[0] + 360;
-    } else if (los[0] > 180) {
-      los[0] = los[0] - 360;
-    }
-  } else {
+void adjust_los(VectorView los) {
     // If any of the angles out-of-bounds, use cart2zaaa to resolve
     if (abs(los[0] - 90) > 90 || abs(los[1]) > 180) {
       Numeric dx, dy, dz;
 //      zaaa2cart(dx, dy, dz, los[0], los[1]);
   //    cart2zaaa(los[0], los[1], dx, dy, dz);
     ARTS_USER_ERROR("ERROR")}
-  }
 }
 
 void apply_iy_unit(MatrixView iy,
@@ -291,7 +277,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
     @param[in]    lo0                 Optical path length between transmitter 
                                       and receiver.
     @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    atmosphere_dim      As the WSV with the same name.
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
@@ -312,7 +297,6 @@ void defocusing_general_sub(Workspace& ws,
                             const Agenda& ppath_step_agenda,
                             const Numeric& ppath_lmax,
                             const Numeric& ppath_lraytrace,
-                            const Index& atmosphere_dim,
                             const Vector& p_grid,
                             const Vector& lat_grid,
                             const Vector& lon_grid,
@@ -323,12 +307,9 @@ void defocusing_general_sub(Workspace& ws,
   // Special treatment of 1D around zenith/nadir
   // (zenith angles outside [0,180] are changed by *adjust_los*)
   bool invert_lat = false;
-  if (atmosphere_dim == 1 && (rte_los[0] < 0 || rte_los[0] > 180)) {
-    invert_lat = true;
-  }
 
   // Handle cases where angles have moved out-of-bounds due to disturbance
-  adjust_los(rte_los, atmosphere_dim);
+  adjust_los(rte_los);
 
   // Calculate the ppath for disturbed rte_los
   Ppath ppx;
@@ -336,7 +317,6 @@ void defocusing_general_sub(Workspace& ws,
   // ppath_calc(ws,
   //            ppx,
   //            ppath_step_agenda,
-  //            atmosphere_dim,
   //            p_grid,
   //            lat_grid,
   //            lon_grid,
@@ -364,23 +344,11 @@ void defocusing_general_sub(Workspace& ws,
         lox[i - 1] + ppx.lstep[i - 1] * (ppx.nreal[i - 1] + ppx.nreal[i]) / 2.0;
   }
 
-  pos.resize(max(Index(2), atmosphere_dim));
+  pos.resize(3);
 
   // Reciever at a longer distance (most likely out in space):
   if (lox[ilast] < lo0) {
     const Numeric dl = lo0 - lox[ilast];
-    if (atmosphere_dim < 3) {
-      // Numeric x, z, dx, dz;
-      // poslos2cart(
-      //     x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast, 1), ppx.los(ilast, 0));
-      // cart2pol(pos[0],
-      //          pos[1],
-      //          x + dl * dx,
-      //          z + dl * dz,
-      //          ppx.pos(ilast, 1),
-      //          ppx.los(ilast, 0));
-      ARTS_USER_ERROR("ERROR")
-    } else {
       // Numeric x, y, z, dx, dy, dz;
       // poslos2cart(x,
       //             y,
@@ -404,7 +372,6 @@ void defocusing_general_sub(Workspace& ws,
       //          ppx.los(ilast, 0),
       //          ppx.los(ilast, 1));
       ARTS_USER_ERROR("ERROR")
-    }
   }
 
   // Interpolate to lo0
@@ -416,9 +383,7 @@ void defocusing_general_sub(Workspace& ws,
     //
     pos[0] = interp(itw, ppx.r, gp);
     pos[1] = interp(itw, ppx.pos(joker, 1), gp);
-    if (atmosphere_dim == 3) {
-      pos[2] = interp(itw, ppx.pos(joker, 2), gp);
-    }
+    pos[2] = interp(itw, ppx.pos(joker, 2), gp);
   }
 
   if (invert_lat) {
@@ -429,7 +394,6 @@ void defocusing_general_sub(Workspace& ws,
 void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -449,11 +413,11 @@ void defocusing_general(Workspace& ws,
     lo += ppath.lstep[i] * (ppath.nreal[i] + ppath.nreal[i + 1]) / 2.0;
   }
   // Extract rte_pos and rte_los
-  const Vector rte_pos{ppath.start_pos[Range(0, atmosphere_dim)]};
+  const Vector rte_pos{ppath.start_pos[Range(0, 3)]};
   //
-  Vector rte_los0(max(Index(1), atmosphere_dim - 1)), rte_los;
-  mirror_los(rte_los, ppath.start_los, atmosphere_dim);
-  rte_los0 = rte_los[Range(0, max(Index(1), atmosphere_dim - 1))];
+  Vector rte_los0(2), rte_los;
+  mirror_los(rte_los, ppath.start_los);
+  rte_los0 = rte_los[Range(0, 2)];
 
   // A new ppath with positive zenith angle off-set
   //
@@ -472,7 +436,6 @@ void defocusing_general(Workspace& ws,
                          ppath_step_agenda,
                          ppath_lmax,
                          ppath_lraytrace,
-                         atmosphere_dim,
                          p_grid,
                          lat_grid,
                          lon_grid,
@@ -497,7 +460,6 @@ void defocusing_general(Workspace& ws,
                          ppath_step_agenda,
                          ppath_lmax,
                          ppath_lraytrace,
-                         atmosphere_dim,
                          p_grid,
                          lat_grid,
                          lon_grid,
@@ -510,24 +472,14 @@ void defocusing_general(Workspace& ws,
   // All appears OK:
   if (backg1 == backg2) {
     Numeric l12;
-    if (atmosphere_dim < 3) {
-     // distance2D(l12, pos1[0], pos1[1], pos2[0], pos2[1]);
-    } else {
   //    distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
-    }ARTS_USER_ERROR("ERROR")
+    ARTS_USER_ERROR("ERROR")
     //
     dlf = lp * 2 * Conversion::deg2rad(1) * dza / l12;
   }
   // If different backgrounds, then only use the second calculation
   else {
     Numeric l12;
-    if (atmosphere_dim == 1) {
-      const Numeric r = refellipsoid[0];
-  //    distance2D(l12, r + ppath.end_pos[0], 0, pos2[0], pos2[1]);
-    } else if (atmosphere_dim == 2) {
-      const Numeric r =0;// refell2r(refellipsoid, ppath.end_pos[1]);
-    //  distance2D(l12, r + ppath.end_pos[0], ppath.end_pos[1], pos2[0], pos2[1]);
-    } else {
       // const Numeric r = refell2r(refellipsoid, ppath.end_pos[1]);
       // distance3D(l12,
       //            r + ppath.end_pos[0],
@@ -536,7 +488,6 @@ void defocusing_general(Workspace& ws,
       //            pos2[0],
       //            pos2[1],
       //            pos2[2]);
-    }
     ARTS_USER_ERROR("ERROR")
     //
     dlf = lp * Conversion::deg2rad(1) * dza / l12;
@@ -546,7 +497,6 @@ void defocusing_general(Workspace& ws,
 void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -590,16 +540,15 @@ void defocusing_sat2sat(Workspace& ws,
   // Calculate two new ppaths to get dalpha/da
   Numeric alpha1, a1, alpha2, a2, dada;
   Ppath ppt;
-  Vector rte_pos{ppath.end_pos[Range(0, atmosphere_dim)]};
+  Vector rte_pos{ppath.end_pos[Range(0, 3)]};
   Vector rte_los{ppath.end_los};
   //
   rte_los[0] -= dza;
-  adjust_los(rte_los, atmosphere_dim);
+  adjust_los(rte_los);
 ARTS_USER_ERROR("ERROR")
   // ppath_calc(ws,
   //            ppt,
   //            ppath_step_agenda,
-  //            atmosphere_dim,
   //            p_grid,
   //            lat_grid,
   //            lon_grid,
@@ -619,11 +568,10 @@ ARTS_USER_ERROR("ERROR")
   a2 = ppt.constant;
   //
   rte_los[0] += 2 * dza;
-  adjust_los(rte_los, atmosphere_dim);
+  adjust_los(rte_los);
   // ppath_calc(ws,
   //            ppt,
   //            ppath_step_agenda,
-  //            atmosphere_dim,
   //            p_grid,
   //            lat_grid,
   //            lon_grid,
@@ -663,8 +611,7 @@ ARTS_USER_ERROR("ERROR")
 Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
-                         const Numeric& w,
-                         const Index& atmosphere_dim) {
+                         const Numeric& w) {
   // Strength of field
   const Numeric f = sqrt(u * u + v * v + w * w);
 
@@ -674,7 +621,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
 
   // Zenith and azimuth angle for photon direction (in radians)
   Vector los_p;
-  mirror_los(los_p, los, atmosphere_dim);
+  mirror_los(los_p, los);
   const Numeric za_p = Conversion::deg2rad(1) * los_p[0];
   const Numeric aa_p = Conversion::deg2rad(1) * los_p[1];
 
@@ -746,10 +693,6 @@ void get_iy_of_background(Workspace& ws,
   const Index np = ppath.np;
 
   // Set rtp_pos and rtp_los to match the last point in ppath.
-  //
-  // Note that the Ppath positions (ppath.pos) for 1D have one column more
-  // than expected by most functions. Only the first atmosphere_dim values
-  // shall be copied.
   //
   Vector rtp_pos, rtp_los;
   rtp_pos.resize(3);
@@ -834,7 +777,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          Matrix& ppath_pnd,
                          ArrayOfMatrix& ppath_dpnd_dx,
                          const Ppath& ppath,
-                         const Index& atmosphere_dim,
                          const ArrayOfIndex& cloudbox_limits,
                          const Tensor4& pnd_field,
                          const ArrayOfTensor4& dpnd_field_dx) {
@@ -863,23 +805,18 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
   Index nin = 0;
   for (Index ip = 0; ip < np; ip++)  // PPath point
   {
-    Matrix itw(1, Index(pow(2.0, Numeric(atmosphere_dim))));
+    Matrix itw(1, 8);
 
     ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
     GridPos gp_lat, gp_lon;
-    if (atmosphere_dim >= 2) {
       gridpos_copy(gp_lat, ppath.gp_lat[ip]);
-    }
-    if (atmosphere_dim == 3) {
       gridpos_copy(gp_lon, ppath.gp_lon[ip]);
-    }
 
     if (is_gp_inside_cloudbox(ppath.gp_p[ip],
                               gp_lat,
                               gp_lon,
                               cloudbox_limits,
-                              true,
-                              atmosphere_dim)) {
+                              true)) {
       interp_cloudfield_gp2itw(itw(0, joker),
                                gpc_p[0],
                                gpc_lat[0],
@@ -887,11 +824,9 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                                ppath.gp_p[ip],
                                gp_lat,
                                gp_lon,
-                               atmosphere_dim,
                                cloudbox_limits);
       for (Index i = 0; i < pnd_field.nbooks(); i++) {
         interp_atmfield_by_itw(ExhaustiveVectorView{ppath_pnd(i, ip)},
-                               atmosphere_dim,
                                pnd_field(i, joker, joker, joker),
                                gpc_p,
                                gpc_lat,
@@ -908,7 +843,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                  i++)  // Scattering element
             {
               interp_atmfield_by_itw(ExhaustiveVectorView{ppath_dpnd_dx[iq](i, ip)},
-                                     atmosphere_dim,
                                      dpnd_field_dx[iq](i, joker, joker, joker),
                                      gpc_p,
                                      gpc_lat,
@@ -937,7 +871,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
                  const ConstVectorView& f_grid,
-                 const Index& atmosphere_dim,
                  const Numeric& rte_alonglos_v,
                  const ConstMatrixView& ppath_wind) {
   // Sizes
@@ -960,8 +893,7 @@ void get_ppath_f(Matrix& ppath_f,
       v_doppler += dotprod_with_los(ppath.los(ip, joker),
                                     ppath_wind(0, ip),
                                     ppath_wind(1, ip),
-                                    ppath_wind(2, ip),
-                                    atmosphere_dim);
+                                    ppath_wind(2, ip));
     }
 
     // Determine frequency grid
@@ -1044,8 +976,7 @@ void get_stepwise_clearsky_propmat(
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Jacobian::Atm wind_type,
-                               const Index& atmosphere_dim) {
+                               const Jacobian::Atm wind_type) {
   // Doppler relevant velocity
   Numeric dv_doppler_dx = 0.0;
   
@@ -1057,15 +988,15 @@ Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
       break;
     case Jacobian::Atm::WindU:
       dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 1, 0, 0, atmosphere_dim));
+          (dotprod_with_los(line_of_sight, 1, 0, 0));
       break;
     case Jacobian::Atm::WindV:
       dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 1, 0, atmosphere_dim));
+          (dotprod_with_los(line_of_sight, 0, 1, 0));
       break;
     case Jacobian::Atm::WindW:
       dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
+          (dotprod_with_los(line_of_sight, 0, 0, 1));
       break;
     default:
       ARTS_ASSERT(false, "Not allowed to call this function without a wind parameter as wind_type");
@@ -1089,7 +1020,6 @@ void get_stepwise_scattersky_propmat(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const ConstVectorView& ppath_line_of_sight,
     const ConstVectorView& ppath_temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do) {
   const Index nf = Kp.nelem();
 
@@ -1098,7 +1028,7 @@ void get_stepwise_scattersky_propmat(
   // Direction of outgoing scattered radiation (which is reversed to
   // LOS). Only used for extracting scattering properties.
   Vector dir;
-  mirror_los(dir, ppath_line_of_sight, atmosphere_dim);
+  mirror_los(dir, ppath_line_of_sight);
   Matrix dir_array(1, 2, 0.);
   dir_array(0, joker) = dir;
 
@@ -1193,11 +1123,9 @@ void get_stepwise_scattersky_source(
     const ConstMatrixView& ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do,
     const Index& t_interp_order) {
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
-                      "This function handles so far only 1D atmospheres.");
+  ARTS_USER_ERROR ("This function handles so far only 1D atmospheres.");
 
   const Index nf = Sp.nelem();
   const Index ne = ppath_1p_pnd.nelem();
@@ -1369,8 +1297,6 @@ void iyb_calc_body(bool& failed,
                    const ArrayOfString& iy_aux_vars,
                    const Index& ilos,
                    const Index& nf) {
-constexpr Index atmosphere_dim = 3;
-
   // The try block here is necessary to correctly handle
   // exceptions inside the parallel region.
   try {
@@ -1381,7 +1307,7 @@ constexpr Index atmosphere_dim = 3;
     los = sensor_los(mblock_index, joker);
     if (mblock_dlos.ncols() == 1) {
       los[0] += mblock_dlos(ilos, 0);
-      adjust_los(los, atmosphere_dim);
+      adjust_los(los);
     } else {
       // add_za_aa(los[0],
       //           los[1],
@@ -1651,26 +1577,13 @@ void iy_transmittance_mult(Matrix& iy_new,
 }
 
 void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los,
-                const Index& atmosphere_dim) {
+                const ConstVectorView& los) {
   los_mirrored.resize(2);
   //
-  if (atmosphere_dim == 1) {
-    los_mirrored[0] = 180 - los[0];
-    los_mirrored[1] = 180;
-  } else if (atmosphere_dim == 2) {
-    los_mirrored[0] = 180 - fabs(los[0]);
-    if (los[0] >= 0) {
-      los_mirrored[1] = 180;
-    } else {
-      los_mirrored[1] = 0;
-    }
-  } else if (atmosphere_dim == 3) {
-    los_mirrored[0] = 180 - los[0];
-    los_mirrored[1] = los[1] + 180;
-    if (los_mirrored[1] > 180) {
-      los_mirrored[1] -= 360;
-    }
+  los_mirrored[0] = 180 - los[0];
+  los_mirrored[1] = los[1] + 180;
+  if (los_mirrored[1] > 180) {
+    los_mirrored[1] -= 360;
   }
 }
 
@@ -1740,36 +1653,13 @@ void mueller_stokes2modif(Matrix& Cm) {
 
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
-                     const Index& atmosphere_dim,
                      const ConstVectorView& lat_grid,
                      const ConstVectorView& lat_true,
                      const ConstVectorView& lon_true,
                      const ConstVectorView& pos) {
-  ARTS_ASSERT(pos.nelem() == atmosphere_dim);
-
-  if (atmosphere_dim == 1) {
-    ARTS_ASSERT(lat_true.nelem() == 1);
-    ARTS_ASSERT(lon_true.nelem() == 1);
-    //
-    lat = lat_true[0];
-    lon = lon_true[0];
-  }
-
-  else if (atmosphere_dim == 2) {
-    ARTS_ASSERT(lat_true.nelem() == lat_grid.nelem());
-    ARTS_ASSERT(lon_true.nelem() == lat_grid.nelem());
-    GridPos gp;
-    Vector itw(2);
-    gridpos(gp, lat_grid, pos[1]);
-    interpweights(itw, gp);
-    lat = interp(itw, lat_true, gp);
-    lon = interp(itw, lon_true, gp);
-  }
-
-  else {
-    lat = pos[1];
-    lon = pos[2];
-  }
+  ARTS_ASSERT(pos.nelem() == 3);
+  lat = pos[1];
+  lon = pos[2];
 }
 
 void rtmethods_jacobian_finalisation(

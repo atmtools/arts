@@ -110,7 +110,6 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
 
     No calculaions, just checks
 
-    @param[in] atmosphere_dim       As the WVS with the same name.
     @param[in] lat_grid             As the WVS with the same name.
     @param[in] lon_grid             As the WVS with the same name.
     @param[in] surface_props_data   As the WVS with the same name.
@@ -132,7 +131,6 @@ void surface_props_check(const Vector& lat_grid,
 
     @param[in] v                    Interpolated value
     @param[in] vname                Name of surface variable to interpolate       
-    @param[in] atmosphere_dim       As the WVS with the same name.
     @param[in] gp_lat               Pre-calculatd latitude grid positions
     @param[in] gp_lon               Pre-calculatd longitude grid positions
     @param[in] itw                  Pre-calculatd interpolation weight
@@ -144,7 +142,6 @@ void surface_props_check(const Vector& lat_grid,
  */
 void surface_props_interp(Vector& v,
                           const String& vname,
-                          const Index& atmosphere_dim,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon,
                           const Matrix& itw,
@@ -178,7 +175,6 @@ void dsurface_check(const ArrayOfString& surface_props_names,
  * @param[in] rtp_pos As the WVS with the same name.
  * @param[in] rtp_los As the WVS with the same name.
  * @param[in] f_grid As the WVS with the same name.
- * @param[in] atmosphere_dim As the WVS with the same name.
  * @param[in] p_grid As the WVS with the same name.
  * @param[in] lat_grid As the WVS with the same name.
  * @param[in] lon_grid As the WVS with the same name.

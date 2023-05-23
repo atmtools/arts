@@ -212,7 +212,7 @@ ARTS_USER_ERROR("ERROR")
                           ppvar_pnd,
                           ppvar_dpnd_dx,
                           ppath,
-                          3,                          cloudbox_limits,
+                          cloudbox_limits,
                           pnd_field,
                           dpnd_field_dx);
     else {
@@ -268,7 +268,6 @@ ARTS_USER_ERROR("ERROR")
                                         scat_data,
                                         ppath.los(ip, joker),
                                         ExhaustiveVectorView{ppvar_atm[ip].temperature},
-                                        3,
                                         trans_in_jacobian && jacobian_do);
 
         if (abs(pext_scaling - 1) > 1e-6) {
@@ -299,7 +298,7 @@ ARTS_USER_ERROR("ERROR")
         {
           // Direction of outgoing scattered radiation (which is reverse to LOS).
           Vector los_sca;
-          mirror_los(los_sca, ppath.los(ip, joker), 3);
+          mirror_los(los_sca, ppath.los(ip, joker));
           mlos_sca(0, joker) = los_sca;
 
           // Obtain a length-2 vector for incoming direction
@@ -307,7 +306,7 @@ ARTS_USER_ERROR("ERROR")
           if (3 == 3) {
             los_inc = ppath.los(ip, joker);
           } else { // Mirror back to get a correct 3D LOS
-            mirror_los(los_inc, los_sca, 3);
+            mirror_los(los_inc, los_sca);
           }
           mlos_inc(0, joker) = los_inc;
 

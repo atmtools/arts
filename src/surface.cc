@@ -155,7 +155,6 @@ void surface_props_check(const Vector& lat_grid,
 
 void surface_props_interp(Vector& v,
                           const String& vname,
-                          const Index& atmosphere_dim,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon,
                           const Matrix& itw,
@@ -294,7 +293,6 @@ Tensor3 p_field;
                       suns,
                       ppath,
                       f_grid,
-                      3,
                       surface_field.ellipsoid);
 
   if (stars_visible){

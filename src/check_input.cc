@@ -1485,37 +1485,6 @@ void chk_atm_vecfield_lat90(const String& x1_name,
   }
 }
 
-//! chk_latlon_true
-/*! 
-    Checks that *lat_true* and *lon_true* have the correct size for 1D and 2D
-    cases (they are not used for 3D). 
-
-    \param   atmosphere_dim   As the WSV with the same name
-    \param   lat_grid         As the WSV with the same name
-    \param   lat_true         As the WSV with the same name
-    \param   lon_true         As the WSV with the same name
-
-    \author Patrick Eriksson 
-    \date   2012-03-19
-*/
-void chk_latlon_true(const Index& atmosphere_dim,
-                     ConstVectorView lat_grid,
-                     ConstVectorView lat_true,
-                     ConstVectorView lon_true) {
-  if (atmosphere_dim == 1) {
-    ARTS_USER_ERROR_IF (lat_true.nelem() != 1 || lon_true.nelem() != 1,
-          "For 1D, the method requires that *lat_true* "
-          "and *lon_true* have length 1.");
-  }
-  //
-  if (atmosphere_dim == 2) {
-    ARTS_USER_ERROR_IF (lat_true.nelem() != lat_grid.nelem() ||
-                        lon_true.nelem() != lat_grid.nelem(),
-          "For 2D, the method requires that *lat_true* "
-          "and *lon_true* have the same length as *lat_grid*.");
-  }
-}
-
 //! chk_atm_surface
 /*! 
     Checks if a surface-type variable matches the dimensionality and the grids.
@@ -1712,45 +1681,26 @@ void chk_surface_elevation(const GriddedField2& surface_elevation)
 
     The function gives an error message if this is not the case.
 
-    \param    atmosphere_dim   As the WSV with the same name.
     \param    rte_pos          As WSV rte_pos or rte_pos2.
     \param    is_rte_pos2      True if rte_pos actually is rte_pos2.
 
     \author Patrick Eriksson 
     \date   2012-03-26
 */
-void chk_rte_pos(const Index& atmosphere_dim,
-                 ConstVectorView rte_pos,
+void chk_rte_pos(ConstVectorView rte_pos,
                  const bool& is_rte_pos2) {
   String vname = "*rte_pos*";
   if (is_rte_pos2) {
     vname = "*rte_pos2*";
   }
-
-  if (atmosphere_dim == 1) {
-    if (!is_rte_pos2) {
-      ARTS_USER_ERROR_IF (rte_pos.nelem() != 1,
-        "For 1D, ", vname, " must have length 1.")
-    } else {
-      ARTS_USER_ERROR_IF (rte_pos.nelem() != 2,
-        "For 1D, ", vname, " must have length 2.")
-      ARTS_USER_ERROR_IF (rte_pos[1] < -180 || rte_pos[1] > 180,
-        "For 1D, the latitude in ", vname, " must be in the "
-          , "range [-180,180].")
-    }
-  } else if (atmosphere_dim == 2) {
-    ARTS_USER_ERROR_IF (rte_pos.nelem() != 2,
-      "For 2D, ", vname, " must have length 2.")
-  } else {
-    ARTS_USER_ERROR_IF (rte_pos.nelem() != 3,
-      "For 3D, ", vname, " must have length 3.")
-    ARTS_USER_ERROR_IF (rte_pos[1] < -90 || rte_pos[1] > 90,
-      "The (3D) latitude in ", vname, " must be in the "
-        , "range [-90,90].")
-    ARTS_USER_ERROR_IF (rte_pos[2] < -360 || rte_pos[2] > 360,
-      "The longitude in ", vname, " must be in the "
-        , "range [-360,360].")
-  }
+  ARTS_USER_ERROR_IF (rte_pos.nelem() != 3,
+    "For 3D, ", vname, " must have length 3.")
+  ARTS_USER_ERROR_IF (rte_pos[1] < -90 || rte_pos[1] > 90,
+    "The (3D) latitude in ", vname, " must be in the "
+      , "range [-90,90].")
+  ARTS_USER_ERROR_IF (rte_pos[2] < -360 || rte_pos[2] > 360,
+    "The longitude in ", vname, " must be in the "
+      , "range [-360,360].")
 }
 
 //! chk_rte_los
@@ -1759,35 +1709,20 @@ void chk_rte_pos(const Index& atmosphere_dim,
 
     The function gives an error message if this is not the case.
 
-    \param    atmosphere_dim   As the WSV with the same name.
     \param    rte_los          As the WSV with the same name.
 
     \author Patrick Eriksson 
     \date   2012-03-26
 */
-void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los) {
-  if (atmosphere_dim == 1) {
-    ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
-                        "For 1D, los-vectors must have length 1.");
-    ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
-          "For 1D, the zenith angle of a los-vector must "
-          "be in the range [0,180].");
-  } else if (atmosphere_dim == 2) {
-    ARTS_USER_ERROR_IF (rte_los.nelem() != 1,
-          "For 2D, los-vectors must have length 1.");
-    ARTS_USER_ERROR_IF (rte_los[0] < -180 || rte_los[0] > 180,
-          "For 2D, the zenith angle of a los-vector must "
-          "be in the range [-180,180].");
-  } else {
-    ARTS_USER_ERROR_IF (rte_los.nelem() != 2,
-          "For 3D, los-vectors must have length 2.");
-    ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
-          "For 3D, the zenith angle of a los-vector must "
-          "be in the range [0,180].");
-    ARTS_USER_ERROR_IF (rte_los[1] < -180 || rte_los[1] > 180,
-          "For 3D, the azimuth angle of a los-vector must "
-          "be in the range [-180,180].");
-  }
+void chk_rte_los(ConstVectorView rte_los) {
+  ARTS_USER_ERROR_IF (rte_los.nelem() != 2,
+        "For 3D, los-vectors must have length 2.");
+  ARTS_USER_ERROR_IF (rte_los[0] < 0 || rte_los[0] > 180,
+        "For 3D, the zenith angle of a los-vector must "
+        "be in the range [0,180].");
+  ARTS_USER_ERROR_IF (rte_los[1] < -180 || rte_los[1] > 180,
+        "For 3D, the azimuth angle of a los-vector must "
+        "be in the range [-180,180].");
 }
 
 

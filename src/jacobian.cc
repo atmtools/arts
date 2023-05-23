@@ -405,21 +405,13 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
 void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             const RetrievalQuantity& jacobian_quantity,
                             ConstMatrixView diy_dpos,
-                            const Index& atmosphere_dim,
                             ConstVectorView rtp_pos) {
-  ARTS_ASSERT(jacobian_quantity.Grids().nelem() ==
-         max(atmosphere_dim - 1, Index(1)));
-  ARTS_ASSERT(rtp_pos.nelem() == atmosphere_dim);
+  ARTS_ASSERT(jacobian_quantity.Grids().nelem() == 2);
+  ARTS_ASSERT(rtp_pos.nelem() == 3);
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
   const Numeric extpolfac = 1.0e99;
-
-  // Handle 1D separately
-  if (atmosphere_dim == 1) {
-    diy_dx(0, joker, joker) = diy_dpos;
-    return;
-  }
 
   // Latitude
   Index nr1 = 1;
@@ -440,7 +432,6 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
 
   // Longitude
   ArrayOfGridPos gp_lon;
-  if (atmosphere_dim > 2) {
     gp_lon.resize(1);
     if (jacobian_quantity.Grids()[1].nelem() > 1) {
       gridpos(gp_lon,
@@ -451,23 +442,6 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
     } else {
       gp4length1grid(gp_lon);
     }
-  }
-
-  //- 2D
-  if (atmosphere_dim == 2) {
-    if (gp_lat[0].fd[1] > 0) {
-      from_dpath_to_dx(diy_dx(gp_lat[0].idx, joker, joker),
-                       diy_dpos(joker, joker),
-                       gp_lat[0].fd[1]);
-    }
-    if (gp_lat[0].fd[0] > 0) {
-      from_dpath_to_dx(diy_dx(gp_lat[0].idx + 1, joker, joker),
-                       diy_dpos(joker, joker),
-                       gp_lat[0].fd[0]);
-    }
-  }
-  //- 3D
-  else {
     Index ix = nr1 * gp_lon[0].idx + gp_lat[0].idx;
     // Low lon, low lat
     if (gp_lon[0].fd[1] > 0 && gp_lat[0].fd[1] > 0)
@@ -489,7 +463,6 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
       from_dpath_to_dx(diy_dx(ix + nr1 + 1, joker, joker),
                        diy_dpos(joker, joker),
                        gp_lon[0].fd[0] * gp_lat[0].fd[0]);
-  }
 }
 
 ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity& jacobian_quantities,

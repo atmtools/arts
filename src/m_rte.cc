@@ -591,7 +591,6 @@ ARTS_USER_ERROR("ERROR")
                         suns,
                         ppath,
                         f_grid,
-                        3,
                         surface_field.ellipsoid);
 
     if (stars_visible) {
@@ -885,7 +884,6 @@ ARTS_USER_ERROR("ERROR")
                         ppvar_pnd,
                         ppvar_dpnd_dx,
                         ppath,
-                        1,
                         cloudbox_limits,
                         pnd_field,
                         dpnd_field_dx);
@@ -944,7 +942,6 @@ ARTS_USER_ERROR("ERROR")
                                         scat_data,
                                         ppath.los(ip, joker),
                                         ExhaustiveVectorView{ppvar_atm[ip].temperature},
-                                        1,
                                         jacobian_do);
         a += absvec(K_this);
         K_this += Kp;
@@ -969,7 +966,6 @@ ARTS_USER_ERROR("ERROR")
                                        ppath.los(Range(ip, 1), joker),
                                        ppath.gp_p[ip],
                                        Vector{ppvar_atm[ip].temperature},
-                                       1,
                                        jacobian_do,
                                        t_interp_order);
         S += Sp;
@@ -1807,7 +1803,7 @@ ARTS_USER_ERROR("ERROR")
   Matrix itw;
   Vector p1(np);
   ArrayOfGridPos gp0(0), gp1(1);
-  interp_atmfield_gp2itw(itw, 1, gp_p, gp0, gp0);
+  interp_atmfield_gp2itw(itw, gp_p, gp0, gp0);
   //itw2p(p1, p_grid, gp_p, itw);  FIXME: MUST INTERPOLATE SOMETHING?
 
   // 1D version of lat and lon variables
@@ -1815,30 +1811,29 @@ ARTS_USER_ERROR("ERROR")
   Vector lat_true1(1), lon_true1(1);
 
   gp1[0] = gp_lat[0];
-  interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
+  interp_atmfield_gp2itw(itw, gp1, gp0, gp0);
   // interp(lat_true1, itw, lat_grid, gp1);  FIXME: MUST INTERPOLATE SOMETHING?
   gp1[0] = gp_lon[0];
-  interp_atmfield_gp2itw(itw, 1, gp1, gp0, gp0);
+  interp_atmfield_gp2itw(itw, gp1, gp0, gp0);
   // interp(lon_true1, itw, lon_grid, gp1);  FIXME: MUST INTERPOLATE SOMETHING?
 
   // 2D/3D interpolation weights
-  // interp_atmfield_gp2itw(itw, atmosphere_dim, gp_p, gp_lat, gp_lon);  FIXME: MUST INTERPOLATE SOMETHING?
+  // interp_atmfield_gp2itw(itw, gp_p, gp_lat, gp_lon);  FIXME: MUST INTERPOLATE SOMETHING?
 
   // 1D temperature field
   Tensor3 t1(np, 1, 1);
   //interp_atmfield_by_itw(  FIXME: MUST INTERPOLATE SOMETHING?
-  //    t1(joker, 0, 0), atmosphere_dim, t_field, gp_p, gp_lat, gp_lon, itw);
+  //    t1(joker, 0, 0), t_field, gp_p, gp_lat, gp_lon, itw);
 
   // 1D altitude field
   Tensor3 z1(np, 1, 1);
   // interp_atmfield_by_itw(  FIXME: MUST INTERPOLATE SOMETHING?
-  //    z1(joker, 0, 0), atmosphere_dim, z_field, gp_p, gp_lat, gp_lon, itw);
+  //    z1(joker, 0, 0), z_field, gp_p, gp_lat, gp_lon, itw);
 
   // 1D VMR field
   Tensor4 vmr1;/*(vmr_field.nbooks(), np, 1, 1);
   for (Index is = 0; is < vmr_field.nbooks(); is++) {
     interp_atmfield_by_itw(vmr1(is, joker, 0, 0),
-                           atmosphere_dim,
                            vmr_field(is, joker, joker, joker),
                            gp_p,
                            gp_lat,
@@ -1875,8 +1870,7 @@ ARTS_USER_ERROR("ERROR")
                                 gp_lat[i],
                                 gp_lon[i],
                                 cloudbox_limits,
-                                true,
-                                3)) {
+                                true)) {
         if (i < ifirst) {
           ifirst = i;
         }
@@ -1918,11 +1912,9 @@ ARTS_USER_ERROR("ERROR")
                                  gp_p[i0],
                                  gp_lat[i0],
                                  gp_lon[i0],
-                                 3,
                                  cloudbox_limits);
         for (Index p = 0; p < pnd_field.nbooks(); p++) {
           interp_atmfield_by_itw(ExhaustiveVectorView{pnd1(p, i, 0, 0)},
-                                 3,
                                  pnd_field(p, joker, joker, joker),
                                  gpc_p,
                                  gpc_lat,

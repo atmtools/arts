@@ -84,10 +84,8 @@ void cloud_fieldsCalc(Workspace& ws,
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
 
-  const Index atmosphere_dim = cloudbox_limits.nelem() / 2;
   const Index N_se = pnd_field.nbooks();
 
-  ARTS_ASSERT(atmosphere_dim == 1 || atmosphere_dim == 3);
   ARTS_ASSERT(ext_mat_field.ncols() == ext_mat_field.nrows() &&
          ext_mat_field.ncols() == abs_vec_field.ncols());
 
@@ -97,10 +95,8 @@ void cloud_fieldsCalc(Workspace& ws,
   Index Nlat_cloud = 1;
   Index Nlon_cloud = 1;
 
-  if (atmosphere_dim == 3) {
-    Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-    Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-  }
+  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
   // Initialize ext_mat(_spt), abs_vec(_spt)
   // Resize and initialize variables for storing optical properties
@@ -129,14 +125,10 @@ void cloud_fieldsCalc(Workspace& ws,
          scat_lat_index_local++) {
       for (Index scat_lon_index_local = 0; scat_lon_index_local < Nlon_cloud;
            scat_lon_index_local++) {
-        if (atmosphere_dim == 1)
-          rtp_temperature_local =
-              t_field(scat_p_index_local + cloudbox_limits[0], 0, 0);
-        else
-          rtp_temperature_local =
-              t_field(scat_p_index_local + cloudbox_limits[0],
-                      scat_lat_index_local + cloudbox_limits[2],
-                      scat_lon_index_local + cloudbox_limits[4]);
+        rtp_temperature_local =
+            t_field(scat_p_index_local + cloudbox_limits[0],
+                    scat_lat_index_local + cloudbox_limits[2],
+                    scat_lon_index_local + cloudbox_limits[4]);
 
         //Calculate optical properties for individual scattering elements:
         //( Execute agendas silently. )
@@ -527,7 +519,6 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         ConstTensor5View ext_mat_field,
                                         ConstTensor4View abs_vec_field) {
   const Index N_species = vmr_field.nbooks();
-  const Index atmosphere_dim = 1;
   PropmatVector propmat_clearsky;
   PropmatVector ext_mat;
   StokvecVector abs_vec;
@@ -769,9 +760,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     //Set rte_pos, rte_gp_p and rte_los to match the last point
     //in ppath.
     //pos
-    Vector rte_pos(atmosphere_dim);
+    Vector rte_pos(3);
     Numeric z_field_0 = z_grid[0];
-    rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,atmosphere_dim));
+    rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,3));
     //los
     Vector rte_los(1);
     rte_los = za_grid[za_index];  //ppath_step.los(np-1,joker);
@@ -1240,7 +1231,6 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& za_index,
                             const Index& aa_index) {
   const Index N_species = vmr_list_int.nrows();
-  const Index atmosphere_dim = cloudbox_limits.nelem() / 2;
 
   Vector sca_vec_av(4, 0);
   Vector stokes_vec(4, 0.);
@@ -1337,17 +1327,12 @@ void cloud_RT_no_background(Workspace& ws,
 
   }  // End of loop over ppath_step.
   // Assign calculated Stokes Vector to cloudbox_field_mono.
-  if (atmosphere_dim == 1)
-    cloudbox_field_mono(
-        p_index - cloudbox_limits[0], 0, 0, za_index, 0, joker) =
-        stokes_vec;
-  else if (atmosphere_dim == 3)
-    cloudbox_field_mono(p_index - cloudbox_limits[0],
-                      lat_index - cloudbox_limits[2],
-                      lon_index - cloudbox_limits[4],
-                      za_index,
-                      aa_index,
-                      joker) = stokes_vec;
+  cloudbox_field_mono(p_index - cloudbox_limits[0],
+                    lat_index - cloudbox_limits[2],
+                    lon_index - cloudbox_limits[4],
+                    za_index,
+                    aa_index,
+                    joker) = stokes_vec;
 }
 
 void cloud_RT_surface(Workspace& ws,
@@ -1753,15 +1738,13 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Tensor6& cloudbox_field_mono,
                               const ArrayOfIndex& cloudbox_limits,
                               const Agenda& spt_calc_agenda,
-                              const Index& atmosphere_dim,
                               const Vector& za_grid,
                               const Vector& aa_grid,
                               const Tensor4& pnd_field,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
                               const Index& norm_debug) {
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
-                      "Only 1D is supported here for now");
+  ARTS_USER_ERROR ("Only 1D is supported here for now");
 
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();

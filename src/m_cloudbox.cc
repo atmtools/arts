@@ -159,7 +159,6 @@ void cloudboxSetAutomatically(  // WS Output:
         find_cloudlimits(p1,
                          p2,
                          Tensor3{particle_field(l, joker, joker, joker)},
-                         3,
                          cloudbox_margin);
       }
     }
@@ -578,7 +577,6 @@ void iyInterpCloudboxField(Matrix& iy,
   rte_pos2gridpos(gp_p,
                   gp_lat,
                   gp_lon,
-                  3,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -1104,8 +1102,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
                          pnd_field_raw[pnd_field_raw.nelem() - 1]);
 
       chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem() - 1],
-                   pnd_field_files[i],
-                   3);
+                   pnd_field_files[i]);
     }
   }
 }
@@ -1141,7 +1138,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   ArrayOfGriddedField3 pnd_tmp;
   xml_read_from_file(pnd_fieldarray_file, pnd_tmp);
 
-  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file, 3);
+  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file);
 
   // append to pnd_field_raw
   for (Index i = 0; i < pnd_tmp.nelem(); ++i)
@@ -1229,8 +1226,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
       }
 
       chk_pnd_data(atm_field[abs_species.back()].get<const GriddedField3&>(),
-                   pnd_field_files[i],
-                   3);
+                   pnd_field_files[i]);
     }
   }
   scat_dataCheck(scat_data_raw, "sane", 1e-2);

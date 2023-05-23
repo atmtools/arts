@@ -103,7 +103,6 @@ void get_scattered_sunsource(Workspace& ws,
  * @param[in] suns Array of sun (structures).
  * @param[in] ppath Propagation path as the WSV.
  * @param[in] f_grid Vector as the WSV.
- * @param[in] atmosphere_dim Index as the WSV.
  * @param[in] refellipsoid Reference ellipsoid
  */
 void get_sun_background(Matrix& iy,
@@ -111,7 +110,6 @@ void get_sun_background(Matrix& iy,
                          const ArrayOfSun& suns,
                          const Ppath& ppath,
                          const Vector& f_grid,
-                         const Index& atmosphere_dim,
                          const Vector2 refellipsoid);
 
 /** Checks and adds sun radiance if sun is in line of sight.
@@ -138,7 +136,6 @@ void get_sun_radiation(Matrix& iy,
  * @param[out] ddirect_radiation_dx Array of Tensor3 Jacobian of transmitted
  *              monochromatic irradiance spectrum of sun.
  * @param[in] f_grid As the WSV.
- * @param[in] atmosphere_dim As the WSV.
  * @param[in] p_grid As the WSV.
  * @param[in] lat_grid As the WSV.
  * @param[in] lon_grid As the WSV.
@@ -209,7 +206,6 @@ void get_direct_radiation(Workspace& ws,
  * @param[in] rte_pos As the WSV.
  * @param[in] suns As the WSV.
  * @param[in] f_grid As the WSV.
- * @param[in] atmosphere_dim As the WSV.
  * @param[in] p_grid As the WSV.
  * @param[in] lat_grid As the WSV.
  * @param[in] lon_grid As the WSV.

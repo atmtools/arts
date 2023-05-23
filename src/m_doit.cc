@@ -826,7 +826,6 @@ void cloudbox_fieldUpdateSeq1D(
                              cloudbox_field_mono,
                              cloudbox_limits,
                              spt_calc_agenda,
-                             1,
                              za_grid,
                              aa_grid,
                              pnd_field,

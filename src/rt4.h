@@ -27,7 +27,6 @@
   \param[in]   scat_data_checked OK-flag for scat_data
   \param[in]   cloudbox_limits Cloudbox limits
   \param[in]   scat_data Array of single scattering data
-  \param[in]   atmosphere_dim Dimension of atmosphere
   \param[in]   nstreams Total number of quadrature angles (both hemispheres).
   \param[in]   quad_type Quadrature method.
   \param[in]   add_straight_angles Flag whether to include nadir and zenith as

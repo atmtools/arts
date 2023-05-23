@@ -26,12 +26,10 @@ namespace Cloudbox {
 }  // namespace Cloudbox
 
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
-                  const String& pnd_field_file,
-                  const Index& atmosphere_dim);
+                  const String& pnd_field_file);
 
 void chk_pnd_raw_data(const ArrayOfGriddedField3& pnd_field_raw,
-                      const String& pnd_field_file,
-                      const Index& atmosphere_dim);
+                      const String& pnd_field_file);
 
 void chk_pnd_field_raw_only_in_cloudbox(
     const Index& dim,
@@ -55,8 +53,7 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
                            const GridPos& gp_lat,
                            const GridPos& gp_lon,
                            const ArrayOfIndex& cloudbox_limits,
-                           const bool& include_boundaries,
-                           const Index& atmosphere_dim = 3);
+                           const bool& include_boundaries);
 
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits,
@@ -75,7 +72,6 @@ void chk_scat_species_field(bool& empty_flag,
 void find_cloudlimits(Index& lower,
                       Index& upper,
                       const Tensor3& scat_species_field,
-                      const Index& atmosphere_dim,
                       const Numeric& cloudbox_margin);
 
 void parse_atmcompact_speciestype(String& species_type,

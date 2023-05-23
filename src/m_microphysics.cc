@@ -602,8 +602,7 @@ void pnd_fieldCalcFromParticleBulkProps(
         " in *particle_bulkprop_field*.");
 
   ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
-        "Length of *cloudbox_limits* incorrect with respect "
-        "to *atmosphere_dim*.");
+        "Length of *cloudbox_limits* incorrect.");
   ARTS_USER_ERROR_IF (cloudbox_limits[1] <= cloudbox_limits[0] || cloudbox_limits[0] < 0 ||
       cloudbox_limits[1] >= z_grid.nelem(),
                       "Invalid data in pressure part of *cloudbox_limits*.");

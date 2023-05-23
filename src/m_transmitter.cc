@@ -195,7 +195,6 @@ This feature will be added in a future version.
                           ppvar_pnd,
                           ppvar_dpnd_dx,
                           ppath,
-                          3,
                           cloudbox_limits,
                           pnd_field,
                           dpnd_field_dx);
@@ -277,7 +276,6 @@ This feature will be added in a future version.
                                         scat_data,
                                         ppath.los(ip, joker),
                                         ExhaustiveVectorView{ppvar_atm[ip].temperature},
-                                        3,
                                         jacobian_do);
         K_this += Kp;
 

@@ -88,7 +88,6 @@ void get_sun_background(Matrix& iy,
                          const ArrayOfSun& suns,
                          const Ppath& ppath,
                          const Vector& f_grid,
-                         const Index& atmosphere_dim,
                          const Vector2 refellipsoid) {
   const Index np = ppath.np;
 
@@ -100,8 +99,8 @@ void get_sun_background(Matrix& iy,
   iy=0.;
 
   Vector rtp_pos, rtp_los;
-  rtp_pos.resize(atmosphere_dim);
-  rtp_pos = ppath.pos(np - 1, Range(0, atmosphere_dim));
+  rtp_pos.resize(3);
+  rtp_pos = ppath.pos(np - 1, Range(0, 3));
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 

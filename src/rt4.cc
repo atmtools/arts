@@ -84,11 +84,11 @@ void check_rt4_input(  // Output
     "at 0th atmospheric level"
     " (assumes surface there, ignoring z_surface).\n")
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
         "*cloudbox_limits* is a vector which contains the"
         " upper and lower limit of the cloud for all"
         " atmospheric dimensions. So its dimension must"
-        " be 2 x *atmosphere_dim*");
+        " be 6");
 
   ARTS_USER_ERROR_IF (scat_data.empty(),
         "No single scattering data present.\n"
@@ -1335,7 +1335,7 @@ void surf_optpropCalc(Workspace& ws,
   const String B_unit = "R";
 
   // Local input of surface_rtprop_agenda.
-  Vector rtp_pos(1, surf_alt);  //atmosphere_dim is 1
+  Vector rtp_pos{surf_alt, 0, 0};
 
   for (Index rmu = 0; rmu < nummu; rmu++) {
     // Local output of surface_rtprop_agenda.

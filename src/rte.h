@@ -49,7 +49,6 @@ class Workspace;
  * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
- * @param[in] atmosphere_dim As WSV
  * @param[in] jacobian_do As WSV
  * 
  * @author Richard Larsson 
@@ -73,12 +72,11 @@ void adapt_stepwise_partial_derivatives(
     range. 
 
     @param[in,out]   los              LOS vector, defined as e.g. rte_los.
-    @param[in]       atmosphere_dim   As the WSV.
 
     @author Patrick Eriksson 
     @date   2012-04-11
  */
-void adjust_los(VectorView los, const Index& atmosphere_dim);
+void adjust_los(VectorView los);
 
 /** Performs conversion from radiance to other units, as well as applies
     refractive index to fulfill the n2-law of radiance.
@@ -162,7 +160,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
     @param[in,out]  ws                The workspace.
     @param[out]   dlf                 Defocusing loss factor (1 for no loss)
     @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    atmosphere_dim      As the WSV with the same name.
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
@@ -181,7 +178,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
 void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -207,7 +203,6 @@ void defocusing_general(Workspace& ws,
     @param[in,out]  ws                The workspace.
     @param[out]   dlf                 Defocusing loss factor (1 for no loss)
     @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    atmosphere_dim      As the WSV with the same name.
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
@@ -226,7 +221,6 @@ void defocusing_general(Workspace& ws,
 void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -252,7 +246,6 @@ void defocusing_sat2sat(Workspace& ws,
     @param[in]   u                 U-component of field.
     @param[in]   v                 V-component of field.
     @param[in]   w                 W-component of field.
-    @param[in]   atmosphere_dim    As the WSV.
 
     @return   The result of the dot product
 
@@ -262,8 +255,7 @@ void defocusing_sat2sat(Workspace& ws,
 Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
-                         const Numeric& w,
-                         const Index& atmosphere_dim);
+                         const Numeric& w);
 
 /** Basic call of *iy_main_agenda*.
 
@@ -311,7 +303,6 @@ void get_iy(Workspace& ws,
     @param[in]   iy_transmittance       As the WSV.
     @param[in]   jacobian_do           As the WSV.
     @param[in]   ppath                 As the WSV.
-    @param[in]   atmosphere_dim        As the WSV.
     @param[in]   cloudbox_on           As the WSV.
     @param[in]   f_grid                As the WSV.
     @param[in]   iy_unit               As the WSV.    
@@ -363,7 +354,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          Matrix& ppath_pnd,
                          ArrayOfMatrix& ppath_dpnd_dx,
                          const Ppath& ppath,
-                         const Index& atmosphere_dim,
                          const ArrayOfIndex& cloudbox_limits,
                          const Tensor4& pnd_field,
                          const ArrayOfTensor4& dpnd_field_dx);
@@ -375,7 +365,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
     @param[out]  ppath_f          Doppler shifted f_grid
     @param[in]   ppath            Propagation path.
     @param[in]   f_grid           Original f_grid.
-    @param[in]   atmosphere_dim   As the WSV.
     @param[in]   rte_alonglos_v   As the WSV.
     @param[in]   ppath_wind       See get_ppath_atmvars.
 
@@ -385,7 +374,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
                  const ConstVectorView& f_grid,
-                 const Index& atmosphere_dim,
                  const Numeric& rte_alonglos_v,
                  const ConstMatrixView& ppath_wind);
 
@@ -458,15 +446,13 @@ void get_stepwise_clearsky_propmat(
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] f_grid As WSV
  * @param[in] wind_type The wind component
- * @param[in] atmosphere_dim As WSV
  * 
  * @author Richard Larsson 
  * @date   2017-09-21
  */
 Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Jacobian::Atm wind_type,
-                               const Index& atmosphere_dim);
+                               const Jacobian::Atm wind_type);
 
 /** Computes the contribution by scattering at propagation path point
  * 
@@ -479,7 +465,6 @@ Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
  * @param[in] scat_data As WSV
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] ppath_temperature Temperature at propagation path point
- * @param[in] atmosphere_dim As WSV
  * @param[in] jacobian_do As WSV
  * 
  *  @author Jana Mendrok, Richard Larsson 
@@ -498,7 +483,6 @@ void get_stepwise_scattersky_propmat(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const ConstVectorView& ppath_line_of_sight,
     const ConstVectorView& ppath_temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do);
 
 /**
@@ -527,7 +511,6 @@ void get_stepwise_scattersky_source(
     const ConstMatrixView& ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do,
     const Index& t_interp_order = 1);
 
@@ -656,14 +639,12 @@ void iy_transmittance_mult(Matrix& iy_new,
 
     @param[out]  los_mirrored      The line-of-sight for reversed direction.
     @param[in]   los               A line-of-sight
-    @param[in]   atmosphere_dim    As the WSV.
 
     @author Patrick Eriksson 
     @date   2011-07-15
 */
 void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los,
-                const Index& atmosphere_dim);
+                const ConstVectorView& los);
 
 //! muellersparse_rotation
 /*!
@@ -741,7 +722,6 @@ void mueller_stokes2modif(Matrix& Cm);
 
     @param[out]   lat             True latitude.
     @param[out]   lon             True longitude.
-    @param[in]   atmosphere_dim   As the WSV.
     @param[in]   lat_grid         As the WSV.
     @param[in]   lat_true         As the WSV.
     @param[in]   lon_true         As the WSV.
@@ -752,7 +732,6 @@ void mueller_stokes2modif(Matrix& Cm);
 */
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
-                     const Index& atmosphere_dim,
                      const ConstVectorView& lat_grid,
                      const ConstVectorView& lat_true,
                      const ConstVectorView& lon_true,

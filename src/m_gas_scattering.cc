@@ -127,20 +127,14 @@ void gas_scattering_matRayleigh(MuelmatVector& gas_scattering_mat,
 
     //if gas_scattering_los_in or gas_scattering_los_out is empty then gas_scattering_mat is empty.
     if (gas_scattering_los_in.nelem()>0 && gas_scattering_los_out.nelem()>0){
-
-      Index atmosphere_dim = 1;
-      if (gas_scattering_los_in.nelem()==2){
-        atmosphere_dim=3;
-      }
-
       //For the scattering calculation we need the propagation direction of incoming
       //and outgoing radiation. Therefore we have to convert the line of sights to
       //propagation directions.
       Vector in_prop;
       Vector out_prop;
 
-      mirror_los(in_prop, gas_scattering_los_in,atmosphere_dim);
-      mirror_los(out_prop, gas_scattering_los_out,atmosphere_dim);
+      mirror_los(in_prop, gas_scattering_los_in);
+      mirror_los(out_prop, gas_scattering_los_out);
 
       // calc_scatteringAngle() between gas_scattering_los_in and gas_scattering_los_out
       Numeric za_inc = in_prop[0];
@@ -148,10 +142,8 @@ void gas_scattering_matRayleigh(MuelmatVector& gas_scattering_mat,
 
       Numeric aa_inc = 0;
       Numeric aa_sca = 0;
-      if (atmosphere_dim==3){
-        aa_inc = in_prop[1];
-        aa_sca = out_prop[1];
-      }
+      aa_inc = in_prop[1];
+      aa_sca = out_prop[1];
 
       Numeric theta_rad = scat_angle(za_sca, aa_sca, za_inc, aa_inc);
 

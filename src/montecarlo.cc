@@ -281,14 +281,13 @@ void clear_rt_vars_at_gp(Workspace& ws,
 
   // Determine the atmospheric temperature and species VMR
   //
-  interp_atmfield_gp2itw(itw_field, 3, ao_gp_p, ao_gp_lat, ao_gp_lon);
+  interp_atmfield_gp2itw(itw_field, ao_gp_p, ao_gp_lat, ao_gp_lon);
   //
   interp_atmfield_by_itw(
-      t_vec, 3, t_field, ao_gp_p, ao_gp_lat, ao_gp_lon, itw_field);
+      t_vec, t_field, ao_gp_p, ao_gp_lat, ao_gp_lon, itw_field);
   //
   for (Index is = 0; is < ns; is++) {
     interp_atmfield_by_itw(vmr_mat(is, joker),
-                           3,
                            vmr_field(is, joker, joker, joker),
                            ao_gp_p,
                            ao_gp_lat,
@@ -412,7 +411,7 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   Index ptype_bulk;
 
   Vector sca_dir;
-  mirror_los(sca_dir, rte_los, 3);
+  mirror_los(sca_dir, rte_los);
   Matrix dir_array(1, 2, 0.);
   dir_array(0, joker) = sca_dir;
   //
@@ -463,7 +462,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   ArrayOfGridPos gp_p_cloud = gp_p;
   ArrayOfGridPos gp_lat_cloud = gp_lat;
   ArrayOfGridPos gp_lon_cloud = gp_lon;
-  Index atmosphere_dim = 3;
 
   for (Index i = 0; i < np; i++) {
     // Calculate grid positions inside the cloud.
@@ -494,10 +492,9 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   Matrix itw_field;
   //
   interp_atmfield_gp2itw(
-      itw_field, atmosphere_dim, gp_p_cloud, gp_lat_cloud, gp_lon_cloud);
+      itw_field, gp_p_cloud, gp_lat_cloud, gp_lon_cloud);
   //
   interp_atmfield_by_itw(temperature,
-                         atmosphere_dim,
                          t_field_cloud,
                          gp_p_cloud,
                          gp_lat_cloud,
@@ -506,7 +503,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   //
   for (Index is = 0; is < ns; is++) {
     interp_atmfield_by_itw(vmr(is, joker),
-                           atmosphere_dim,
                            vmr_field_cloud(is, joker, joker, joker),
                            gp_p_cloud,
                            gp_lat_cloud,
@@ -520,7 +516,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
     // if grid positions still outside the range the propagation path step
     // must be outside the cloudbox and pnd is set to zero
     interp_atmfield_by_itw(pnd(i_se, joker),
-                           atmosphere_dim,
                            pnd_field(i_se, joker, joker, joker),
                            gp_p_cloud,
                            gp_lat_cloud,
@@ -672,8 +667,7 @@ void get_ppath_transmat(Workspace& ws,
                                          ppath.gp_lat[np - 1],
                                          ppath.gp_lon[np - 1],
                                          cloudbox_limits,
-                                         0,
-                                         3);
+                                         0);
     if (inside_cloud) {
       /*  FIXME: CLOUD STUFF
       cloudy_rt_vars_at_gp(ws,
@@ -727,8 +721,7 @@ void get_ppath_transmat(Workspace& ws,
                                            ppath.gp_lat[ip],
                                            ppath.gp_lon[ip],
                                            cloudbox_limits,
-                                           0,
-                                           3);
+                                           0);
       if (inside_cloud) {
       /*  FIXME: CLOUD STUFF
         cloudy_rt_vars_at_gp(ws,
@@ -886,8 +879,7 @@ void mcPathTraceGeneral(Workspace& ws,
                                        ppath_step.gp_lat[ip],
                                        ppath_step.gp_lon[ip],
                                        cloudbox_limits,
-                                       0,
-                                       3);
+                                       0);
 
   // Determine radiative properties at point
   if (inside_cloud) {
@@ -995,8 +987,7 @@ void mcPathTraceGeneral(Workspace& ws,
                                              ppath_step.gp_lat[ip],
                                              ppath_step.gp_lon[ip],
                                              cloudbox_limits,
-                                             0,
-                                             3);
+                                             0);
       } else {
         ip++;
       }
@@ -1238,8 +1229,7 @@ void mcPathTraceRadar(Workspace& ws,
                                        ppath_step.gp_lat[ip],
                                        ppath_step.gp_lon[ip],
                                        cloudbox_limits,
-                                       0,
-                                       3);
+                                       0);
 
   // Determine radiative properties at point
   if (inside_cloud) {
@@ -1329,8 +1319,7 @@ void mcPathTraceRadar(Workspace& ws,
                                            ppath_step.gp_lat[ip],
                                            ppath_step.gp_lon[ip],
                                            cloudbox_limits,
-                                           0,
-                                           3);
+                                           0);
     } else {
       ip++;
     }
@@ -1500,7 +1489,7 @@ void Sample_los(VectorView new_rte_los,
   bool tryagain = true;
 
   Vector sca_dir;
-  mirror_los(sca_dir, rte_los, 3);
+  mirror_los(sca_dir, rte_los);
 
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
   Index np = pnd_vec.nelem();
@@ -1532,7 +1521,7 @@ void Sample_los(VectorView new_rte_los,
 
     //Calculate Phase matrix////////////////////////////////
     Vector inc_dir;
-    mirror_los(inc_dir, new_rte_los, 3);
+    mirror_los(inc_dir, new_rte_los);
 
     //pha_mat_singleCalc( Z, sca_dir[0], sca_dir[1], inc_dir[0], inc_dir[1],
     //                    scat_data_mono, pnd_vec, rtp_temperature,

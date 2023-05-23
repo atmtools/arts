@@ -67,7 +67,7 @@ void internalCKDMT400(
             x,
             data.get<Absorption::PredefinedModel::MT_CKD400::WaterData>());
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -106,7 +106,7 @@ Parameters:
             x,
             data.get<Absorption::PredefinedModel::MT_CKD400::WaterData>());
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -137,7 +137,7 @@ void internalMPM89(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MPM89::water(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -164,7 +164,7 @@ Parameters:
         Absorption::PredefinedModel::MPM89::oxygen(
             pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -195,7 +195,7 @@ void internalELL07(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::ELL07::compute(pm, f, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -220,7 +220,7 @@ void internalPWR98(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::PWR98::water(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -247,7 +247,7 @@ Parameters:
         Absorption::PredefinedModel::PWR98::oxygen(
             pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -278,7 +278,7 @@ void internalPWR20xx(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::PWR20xx::compute_h2o_2021(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -305,7 +305,7 @@ Parameters:
         Absorption::PredefinedModel::PWR20xx::compute_o2_2021(
             pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -334,7 +334,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::PWR20xx::compute_h2o_2022(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -361,7 +361,7 @@ Parameters:
         Absorption::PredefinedModel::PWR20xx::compute_o2_2022(
             pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -390,7 +390,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::PWR20xx::compute_n2(pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -423,7 +423,7 @@ void internalTRE05(py::module_& m) {
         Absorption::PredefinedModel::TRE05::oxygen(
             pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -454,7 +454,7 @@ void internalCKDMT100(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD100::oxygen_cia(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -480,7 +480,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD100::oxygen_v0v0(pm, f, p, t, x, n2);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -509,7 +509,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD100::oxygen_v0v1(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -537,7 +537,7 @@ void internalCKDMT252(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD252::carbon_dioxide(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -563,7 +563,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD252::oxygen_vis(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -589,7 +589,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_fun(pm, f, p, t, x, h2o, o2);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -621,7 +621,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::MT_CKD252::nitrogen_rot(pm, f, p, t, x, h2o, o2);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -655,7 +655,7 @@ void internalSTANDARD(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::Standard::water_self(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -681,7 +681,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::Standard::water_foreign(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -707,7 +707,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::Standard::nitrogen(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -733,7 +733,7 @@ Parameters:
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::Standard::oxygen(pm, f, p, t, x, h2o);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -764,7 +764,7 @@ void internalCKDMT350(py::module_& m) {
         PropmatVector pm(f.nelem());
         Absorption::PredefinedModel::CKDMT350::compute_self_h2o(pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),
@@ -791,7 +791,7 @@ Parameters:
         Absorption::PredefinedModel::CKDMT350::compute_foreign_h2o(
             pm, f, p, t, x);
         Vector out(pm.nelem());
-        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& p){return p.A();});
+        std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop){return prop.A();});
         return out;
       },
       py::arg("f_grid"),

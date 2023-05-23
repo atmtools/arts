@@ -800,7 +800,7 @@ void MCRadar(  // Workspace reference:
           // Use this to ensure that the difference in azimuth angle
           // between incident and scattered lines-of-sight is 180
           // degrees
-          mirror_los(rte_los_geom, local_rte_los, 3);
+          mirror_los(rte_los_geom, local_rte_los);
           firstpass = false;
         } else {
           // Replace with ppath_agendaExecute??

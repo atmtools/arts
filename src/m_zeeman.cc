@@ -43,7 +43,7 @@ void propmat_clearskyAddZeeman(
 
   // Change to LOS by radiation
   Vector rtp_los;
-  if (not manual_zeeman_tag) mirror_los(rtp_los, ppath_los, 3);
+  if (not manual_zeeman_tag) mirror_los(rtp_los, ppath_los);
 
   // Main computations
   zeeman_on_the_fly(propmat_clearsky,

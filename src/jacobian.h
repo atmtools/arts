@@ -697,7 +697,6 @@ bool check_retrieval_grids(ArrayOfVector& grids,
     @param[out]  diy_dx              One element of the WSV *diy_dx*.
     @param[in]   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
     @param[in]   diy_dpath           Jacobians along the propagation path.
-    @param[in]   atmosphere_dim      As the WSV.
     @param[in]   ppath               As the WSV.
     @param[in]   ppath_p             The pressure at each ppath point.
 
@@ -716,7 +715,6 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
     @param[out]   diy_dx             One element of the WSV *diy_dx*.
     @param[in]   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
     @param[in]   diy_dpos            Jacobian for the position itself.
-    @param[in]   atmosphere_dim      As the WSV.
     @param[in]   rtp_pos             As the WSV.
 
     @author Patrick Eriksson 
@@ -725,7 +723,6 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
 void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             const RetrievalQuantity& jacobian_quantity,
                             ConstMatrixView diy_dpos,
-                            const Index& atmosphere_dim,
                             ConstVectorView rtp_pos);
 
 /** Help function for analytical jacobian calculations

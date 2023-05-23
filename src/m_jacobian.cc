@@ -1710,7 +1710,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
   // Map x to a perturbation defined at atmospheric grids
   Tensor3 x3d(n_p, n_lat, n_lon), pert(n_p, n_lat, n_lon);
   reshape(x3d, x);
-  regrid_atmfield_by_gp_oem(pert, 3, x3d, gp_p, gp_lat, gp_lon);
+  regrid_atmfield_by_gp_oem(pert, x3d, gp_p, gp_lat, gp_lon);
   
   // Init perturbed_field, if not equal to original_field
   if (&perturbed_field != &original_field) {

@@ -117,7 +117,7 @@ void check_disort_input(  // Input
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
-        "be 2 x *atmosphere_dim*");
+        "be 6");
 
   if (cloudbox_limits[0] != 0) {
     ostringstream os;
@@ -1739,7 +1739,7 @@ void surf_albedoCalc(Workspace& ws,
   Matrix dir_refl_coeff(nrza, nf, 0.);
 
   // Local input of surface_rtprop_agenda.
-  Vector rtp_pos(1, surf_alt);  //atmosphere_dim is 1
+  Vector rtp_pos{surf_alt, 0, 0};
 
   // first derive the (reflected-)direction dependent power reflection
   // coefficient

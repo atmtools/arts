@@ -112,7 +112,7 @@ void emission_from_propmat_field(
   const Index np = ppath.np;
 
   // Current limitations
-  ARTS_USER_ERROR_IF (ppath.dim not_eq 1, "Only for atmosphere_dim 1");
+  ARTS_USER_ERROR ("Only for 1D atmospheres at this time");
 
   // Size of compute variables
   lvl_rad.resize(np, nf);

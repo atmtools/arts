@@ -712,7 +712,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Vector& za_grid,
     const Index& use_parallel_za  [[maybe_unused]]) {
   // Check input
-  ARTS_USER_ERROR_IF(false, "This method only works for atmosphere_dim = 1.");
+  ARTS_USER_ERROR("This method only works for 1D at this time.");
   if (!cloudbox_on)
     throw runtime_error("No ned to use this method with cloudbox=0.");
   if (cloudbox_limits[0])
