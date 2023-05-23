@@ -228,7 +228,7 @@ jobs:
           cd cmake-build
           make -j3 pyarts
 
-      - name: Check ARTS (Linux / macOS)
+      - name: Check (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
         run: |
           cd cmake-build
