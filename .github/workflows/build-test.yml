@@ -12,20 +12,20 @@ jobs:
       matrix:
         name: [
           ubuntu-doc,
-          ubuntu-clang-13-debug,
+          ubuntu-clang-15-debug,
           ubuntu-gcc-11,
           ubuntu-gcc-12-debug,
-          ubuntu-clang-13-nofortran,
-          ubuntu-clang-14-nofortran,
+          ubuntu-clang-15-nofortran,
+          ubuntu-clang-16-nofortran,
           macos-gcc-12,
-          macos-clang-14,
+          macos-clang-16,
         ]
 
         include:
           - name: ubuntu-doc
             os: ubuntu-22.04
             compiler: clang
-            version: "13"
+            version: "15"
             doc: "yes"
             arts: "no"
             fortran: "no"
@@ -33,10 +33,10 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: ubuntu-clang-13-debug
+          - name: ubuntu-clang-15-debug
             os: ubuntu-22.04
             compiler: clang
-            version: "13"
+            version: "15"
             doc: "no"
             arts: "yes"
             fortran: "yes"
@@ -69,10 +69,10 @@ jobs:
             libcxx: "no"
             buildtype: "RelWithDebInfo"
 
-          - name: ubuntu-clang-13-nofortran
+          - name: ubuntu-clang-15-nofortran
             os: ubuntu-22.04
             compiler: clang
-            version: "13"
+            version: "15"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -80,10 +80,10 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: ubuntu-clang-14-nofortran
+          - name: ubuntu-clang-16-nofortran
             os: ubuntu-22.04
             compiler: clang
-            version: "14"
+            version: "16"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -103,10 +103,10 @@ jobs:
             libcxx: "no"
             buildtype: "Release"
 
-          - name: macos-clang-14
+          - name: macos-clang-16
             os: macos-11
             compiler: clang
-            version: "14"
+            version: "16"
             doc: "no"
             arts: "yes"
             fortran: "no"
