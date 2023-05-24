@@ -216,12 +216,6 @@ jobs:
           cd cmake-build
           make -j3 arts
 
-      - name: Check ARTS (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
-        run: |
-          cd cmake-build
-          make -j2 check
-
       - name: Build PYARTS (Linux)
         if: runner.os == 'Linux' && matrix.arts == 'yes'
         run: |
@@ -234,11 +228,11 @@ jobs:
           cd cmake-build
           make -j3 pyarts
 
-      - name: Check PYARTS (Linux / macOS)
+      - name: Check (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
         run: |
           cd cmake-build
-          make check-python
+          make -j2 check
 
       - name: Docs (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
@@ -246,12 +240,6 @@ jobs:
           cd cmake-build
           make -j2 -C doc
           make -j2 pyarts_docs
-
-      - name: Check (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
-        run: |
-          cd cmake-build
-          make check
 
       - name: Check Controlfile Conversion (Linux / macOS)
         if: matrix.check == 'yes'
