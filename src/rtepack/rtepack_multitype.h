@@ -51,7 +51,7 @@ constexpr muelmat inv(const propmat &k) {
 
 //! muelmat matrix multiplied by a lazy stokvec vector
 constexpr auto operator*(const muelmat &a, const lazy_stokvec auto &b) {
-  return smvmul{constexpr_smat_data<Numeric, 4>(a), b};
+  return smvmul{constexpr_smat_data{a}, b};
 }
 
 //! muelmat matrix multiplied by a stokvec vector
