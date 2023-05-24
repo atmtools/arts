@@ -265,13 +265,12 @@ void clear_rt_vars_at_gp(Workspace& ws,
   Matrix vmr_mat(ns, 1), itw_field;
 
   //local versions of workspace variables
-  StokesVector local_abs_vec;
-  StokesVector local_nlte_source_dummy;
-  PropagationMatrix local_ext_mat;
-  PropagationMatrix local_propmat_clearsky;
-  ArrayOfPropagationMatrix
-      local_partial_dummy;  // This is right since there should be only clearsky partials
-  ArrayOfStokesVector local_dnlte_source_dx_dummy;
+  StokvecVector local_abs_vec;
+  StokvecVector local_nlte_source_dummy;
+  PropmatVector local_ext_mat;
+  PropmatVector local_propmat_clearsky;
+  PropmatMatrix local_partial_dummy;
+  StokvecMatrix local_dnlte_source_dx_dummy;
   ao_gp_p[0] = gp_p;
   ao_gp_lat[0] = gp_lat;
   ao_gp_lon[0] = gp_lon;
@@ -282,14 +281,13 @@ void clear_rt_vars_at_gp(Workspace& ws,
 
   // Determine the atmospheric temperature and species VMR
   //
-  interp_atmfield_gp2itw(itw_field, 3, ao_gp_p, ao_gp_lat, ao_gp_lon);
+  interp_atmfield_gp2itw(itw_field, ao_gp_p, ao_gp_lat, ao_gp_lon);
   //
   interp_atmfield_by_itw(
-      t_vec, 3, t_field, ao_gp_p, ao_gp_lat, ao_gp_lon, itw_field);
+      t_vec, t_field, ao_gp_p, ao_gp_lat, ao_gp_lon, itw_field);
   //
   for (Index is = 0; is < ns; is++) {
     interp_atmfield_by_itw(vmr_mat(is, joker),
-                           3,
                            vmr_field(is, joker, joker, joker),
                            ao_gp_p,
                            ao_gp_lat,
@@ -318,8 +316,8 @@ void clear_rt_vars_at_gp(Workspace& ws,
   opt_prop_sum_propmat_clearsky(
       local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
-  local_ext_mat.MatrixAtPosition(ext_mat_mono);
-  abs_vec_mono = local_abs_vec.VectorAtPosition();
+  ext_mat_mono = to_matrix(local_ext_mat[0]);
+  abs_vec_mono = to_vector(local_abs_vec[0]);
 }
 
 void cloudy_rt_vars_at_gp(Workspace& ws,
@@ -328,7 +326,6 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
                           VectorView pnd_vec,
                           Numeric& temperature,
                           const Agenda& propmat_clearsky_agenda,
-                          const Index stokes_dim,
                           const Index f_index,
                           const Vector& f_grid,
                           const GridPos& gp_p,
@@ -353,13 +350,13 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   Matrix vmr_ppath(ns, 1), itw_field;
 
   //local versions of workspace variables
-  ArrayOfPropagationMatrix
+  PropmatMatrix
       local_partial_dummy;  // This is right since there should be only clearsky partials
-  ArrayOfStokesVector local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
-  PropagationMatrix local_propmat_clearsky;
-  StokesVector local_nlte_source_dummy;  //FIXME: Do this right?
-  StokesVector local_abs_vec;
-  PropagationMatrix local_ext_mat;
+  StokvecMatrix local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
+  PropmatVector local_propmat_clearsky;
+  StokvecVector local_nlte_source_dummy;  //FIXME: Do this right?
+  StokvecVector local_abs_vec;
+  PropmatVector local_ext_mat;
 
   ao_gp_p[0] = gp_p;
   ao_gp_lat[0] = gp_lat;
@@ -399,8 +396,8 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   opt_prop_sum_propmat_clearsky(
       local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
-  local_ext_mat.MatrixAtPosition(ext_mat_mono);
-  abs_vec_mono = local_abs_vec.VectorAtPosition();
+  ext_mat_mono = to_matrix(local_ext_mat[0]);
+  abs_vec_mono = to_vector(local_abs_vec[0]);
 
   ArrayOfArrayOfTensor5 ext_mat_Nse;
   ArrayOfArrayOfTensor4 abs_vec_Nse;
@@ -414,7 +411,7 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   Index ptype_bulk;
 
   Vector sca_dir;
-  mirror_los(sca_dir, rte_los, 3);
+  mirror_los(sca_dir, rte_los);
   Matrix dir_array(1, 2, 0.);
   dir_array(0, joker) = sca_dir;
   //
@@ -423,7 +420,6 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      stokes_dim,
                       t_ppath,
                       dir_array,
                       f_index);
@@ -466,7 +462,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   ArrayOfGridPos gp_p_cloud = gp_p;
   ArrayOfGridPos gp_lat_cloud = gp_lat;
   ArrayOfGridPos gp_lon_cloud = gp_lon;
-  Index atmosphere_dim = 3;
 
   for (Index i = 0; i < np; i++) {
     // Calculate grid positions inside the cloud.
@@ -497,10 +492,9 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   Matrix itw_field;
   //
   interp_atmfield_gp2itw(
-      itw_field, atmosphere_dim, gp_p_cloud, gp_lat_cloud, gp_lon_cloud);
+      itw_field, gp_p_cloud, gp_lat_cloud, gp_lon_cloud);
   //
   interp_atmfield_by_itw(temperature,
-                         atmosphere_dim,
                          t_field_cloud,
                          gp_p_cloud,
                          gp_lat_cloud,
@@ -509,7 +503,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   //
   for (Index is = 0; is < ns; is++) {
     interp_atmfield_by_itw(vmr(is, joker),
-                           atmosphere_dim,
                            vmr_field_cloud(is, joker, joker, joker),
                            gp_p_cloud,
                            gp_lat_cloud,
@@ -523,7 +516,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
     // if grid positions still outside the range the propagation path step
     // must be outside the cloudbox and pnd is set to zero
     interp_atmfield_by_itw(pnd(i_se, joker),
-                           atmosphere_dim,
                            pnd_field(i_se, joker, joker, joker),
                            gp_p_cloud,
                            gp_lat_cloud,
@@ -533,17 +525,11 @@ void cloud_atm_vars_by_gp(VectorView pressure,
 }
 
 void ext_mat_case(Index& icase,
-                  ConstMatrixView ext_mat,
-                  const Index stokes_dim) {
+                  ConstMatrixView ext_mat) {
   if (icase == 0) {
     icase = 1;  // Start guess is diagonal
 
-    //--- Scalar case ----------------------------------------------------------
-    if (stokes_dim == 1) {
-    }
-
-    //--- Vector RT ------------------------------------------------------------
-    else {
+    {
       // Check symmetries and analyse structure of exp_mat:
       ARTS_ASSERT(ext_mat(1, 1) == ext_mat(0, 0));
       ARTS_ASSERT(ext_mat(1, 0) == ext_mat(0, 1));
@@ -552,7 +538,7 @@ void ext_mat_case(Index& icase,
         icase = 2;
       }
 
-      if (stokes_dim >= 3) {
+      {
         ARTS_ASSERT(ext_mat(2, 2) == ext_mat(0, 0));
         ARTS_ASSERT(ext_mat(2, 1) == -ext_mat(1, 2));
         ARTS_ASSERT(ext_mat(2, 0) == ext_mat(0, 2));
@@ -561,7 +547,7 @@ void ext_mat_case(Index& icase,
           icase = 3;
         }
 
-        if (stokes_dim > 3) {
+        {
           ARTS_ASSERT(ext_mat(3, 3) == ext_mat(0, 0));
           ARTS_ASSERT(ext_mat(3, 2) == -ext_mat(2, 3));
           ARTS_ASSERT(ext_mat(3, 1) == -ext_mat(1, 3));
@@ -610,10 +596,8 @@ void ext2trans(MatrixView trans_mat,
                Index& icase,
                ConstMatrixView ext_mat,
                const Numeric& lstep) {
-  const Index stokes_dim = ext_mat.ncols();
-
-  ARTS_ASSERT(ext_mat.nrows() == stokes_dim);
-  ARTS_ASSERT(trans_mat.nrows() == stokes_dim && trans_mat.ncols() == stokes_dim);
+  ARTS_ASSERT(ext_mat.nrows() == 4);
+  ARTS_ASSERT(trans_mat.nrows() == 4 && trans_mat.ncols() == 4);
 
   // Theoretically ext_mat(0,0) >= 0, but to demand this can cause problems for
   // iterative retrievals, and the assert is skipped. Negative should be a
@@ -625,48 +609,18 @@ void ext2trans(MatrixView trans_mat,
   ARTS_ASSERT(lstep >= 0);
 
   // Analyse ext_mat?
-  ext_mat_case(icase, ext_mat, stokes_dim);
+  ext_mat_case(icase, ext_mat);
 
   // Calculation options:
   if (icase == 1) {
     trans_mat = 0;
     trans_mat(0, 0) = exp(-ext_mat(0, 0) * lstep);
-    for (Index i = 1; i < stokes_dim; i++) {
+    for (Index i = 1; i < 4; i++) {
       trans_mat(i, i) = trans_mat(0, 0);
     }
   }
-
-  else if (icase == 2 && stokes_dim < 3) {
-    // Expressions below are found in "Polarization in Spectral Lines" by
-    // Landi Degl'Innocenti and Landolfi (2004).
-    const Numeric tI = exp(-ext_mat(0, 0) * lstep);
-    const Numeric HQ = ext_mat(0, 1) * lstep;
-    trans_mat(0, 0) = tI * cosh(HQ);
-    trans_mat(1, 1) = trans_mat(0, 0);
-    trans_mat(1, 0) = -tI * sinh(HQ);
-    trans_mat(0, 1) = trans_mat(1, 0);
-    /* Does not work for stokes_dim==3, and commnted out 180502 by PE: 
-      if( stokes_dim >= 3 )
-        {
-          trans_mat(2,0) = 0;
-          trans_mat(2,1) = 0;
-          trans_mat(0,2) = 0;
-          trans_mat(1,2) = 0;
-          const Numeric RQ = ext_mat(2,3) * lstep;
-          trans_mat(2,2) = tI * cos( RQ );
-          if( stokes_dim > 3 )
-            {
-              trans_mat(3,0) = 0;
-              trans_mat(3,1) = 0;
-              trans_mat(0,3) = 0;
-              trans_mat(1,3) = 0;
-              trans_mat(3,3) = trans_mat(2,2);
-              trans_mat(3,2) = tI * sin( RQ );
-              trans_mat(2,3) = -trans_mat(3,2); 
-            }
-        }
-      */
-  } else {
+  
+  else {
     Matrix ext_mat_ds{ext_mat};
     ext_mat_ds *= -lstep;
     //
@@ -679,7 +633,6 @@ void get_ppath_transmat(Workspace& ws,
                         MatrixView trans_mat,
                         const Ppath& ppath,
                         const Agenda& propmat_clearsky_agenda,
-                        const Index stokes_dim,
                         const Index f_index,
                         const Vector& f_grid,
                         const AtmField& atm_field,
@@ -692,10 +645,10 @@ void get_ppath_transmat(Workspace& ws,
   ArrayOfMatrix trans_matArray(2);
   Index N_se = pnd_field.nbooks();  //Number of scattering elements
   Vector pnd_vec(N_se);
-  Vector abs_vec_mono(stokes_dim);
-  Matrix ext_mat(stokes_dim, stokes_dim);
-  Matrix ext_mat_mono(stokes_dim, stokes_dim);
-  Matrix incT(stokes_dim, stokes_dim, 0.0);
+  Vector abs_vec_mono(4);
+  Matrix ext_mat(4, 4);
+  Matrix ext_mat_mono(4, 4);
+  Matrix incT(4, 4, 0.0);
   Numeric temperature;
   Numeric dl = -999;
 
@@ -714,8 +667,7 @@ void get_ppath_transmat(Workspace& ws,
                                          ppath.gp_lat[np - 1],
                                          ppath.gp_lon[np - 1],
                                          cloudbox_limits,
-                                         0,
-                                         3);
+                                         0);
     if (inside_cloud) {
       /*  FIXME: CLOUD STUFF
       cloudy_rt_vars_at_gp(ws,
@@ -724,7 +676,6 @@ void get_ppath_transmat(Workspace& ws,
                            pnd_vec,
                            temperature,
                            propmat_clearsky_agenda,
-                           stokes_dim,
                            f_index,
                            f_grid,
                            ppath.gp_p[np - 1],
@@ -770,8 +721,7 @@ void get_ppath_transmat(Workspace& ws,
                                            ppath.gp_lat[ip],
                                            ppath.gp_lon[ip],
                                            cloudbox_limits,
-                                           0,
-                                           3);
+                                           0);
       if (inside_cloud) {
       /*  FIXME: CLOUD STUFF
         cloudy_rt_vars_at_gp(ws,
@@ -780,7 +730,6 @@ void get_ppath_transmat(Workspace& ws,
                              pnd_vec,
                              temperature,
                              propmat_clearsky_agenda,
-                             stokes_dim,
                              f_index,
                              f_grid,
                              ppath.gp_p[ip],
@@ -863,7 +812,6 @@ void mcPathTraceGeneral(Workspace& ws,
                         const Numeric& ppath_lraytrace,
                         const Numeric& taustep_limit,
                         const Agenda& propmat_clearsky_agenda,
-                        const Index stokes_dim,
                         const Index f_index,
                         const Vector& f_grid,
                         const SurfaceField& surface_field,
@@ -875,14 +823,14 @@ void mcPathTraceGeneral(Workspace& ws,
   ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
   ArrayOfVector pnd_vecArray(2);
-  Matrix ext_mat(stokes_dim, stokes_dim);
-  Matrix incT(stokes_dim, stokes_dim, 0.0);
+  Matrix ext_mat(4, 4);
+  Matrix incT(4, 4, 0.0);
   Vector tArray(2);
-  Matrix T(stokes_dim, stokes_dim);
+  Matrix T(4, 4);
   Numeric k;
   Numeric ds, dl = -999;
   Index istep = 0;  // Counter for number of steps
-  Matrix old_evol_op(stokes_dim, stokes_dim);
+  Matrix old_evol_op(4, 4);
 
   //at the start of the path the evolution operator is the identity matrix
   id_mat(evol_op);
@@ -931,8 +879,7 @@ void mcPathTraceGeneral(Workspace& ws,
                                        ppath_step.gp_lat[ip],
                                        ppath_step.gp_lon[ip],
                                        cloudbox_limits,
-                                       0,
-                                       3);
+                                       0);
 
   // Determine radiative properties at point
   if (inside_cloud) {
@@ -944,7 +891,6 @@ void mcPathTraceGeneral(Workspace& ws,
                          pnd_vec,
                          temperature,
                          propmat_clearsky_agenda,
-                         stokes_dim,
                          f_index,
                          f_grid,
                          ppath_step.gp_p[0],
@@ -1041,8 +987,7 @@ void mcPathTraceGeneral(Workspace& ws,
                                              ppath_step.gp_lat[ip],
                                              ppath_step.gp_lon[ip],
                                              cloudbox_limits,
-                                             0,
-                                             3);
+                                             0);
       } else {
         ip++;
       }
@@ -1056,7 +1001,6 @@ void mcPathTraceGeneral(Workspace& ws,
                              pnd_vec,
                              temperature,
                              propmat_clearsky_agenda,
-                             stokes_dim,
                              f_index,
                              f_grid,
                              ppath_step.gp_p[ip],
@@ -1216,7 +1160,6 @@ void mcPathTraceRadar(Workspace& ws,
                       const Numeric& ppath_lraytrace,
                       const Agenda& propmat_clearsky_agenda,
                       const bool& anyptype_nonTotRan,
-                      const Index stokes_dim,
                       const Index f_index,
                       const Vector& f_grid,
                       const Vector& Iprop,
@@ -1229,14 +1172,14 @@ void mcPathTraceRadar(Workspace& ws,
   ArrayOfMatrix ext_matArray(2);
   ArrayOfVector abs_vecArray(2);
   ArrayOfVector pnd_vecArray(2);
-  Matrix ext_mat(stokes_dim, stokes_dim);
-  Matrix incT(stokes_dim, stokes_dim, 0.0);
+  Matrix ext_mat(4, 4);
+  Matrix incT(4, 4, 0.0);
   Vector tArray(2);
-  Matrix T(stokes_dim, stokes_dim);
+  Matrix T(4, 4);
   Numeric kI, kQ;
   Numeric ds, dt = -999, dl = -999;
   Index istep = 0;  // Counter for number of steps
-  Matrix old_evol_op(stokes_dim, stokes_dim);
+  Matrix old_evol_op(4, 4);
   Vector local_rte_los(2);
 
   // Total path length starts at zero
@@ -1286,8 +1229,7 @@ void mcPathTraceRadar(Workspace& ws,
                                        ppath_step.gp_lat[ip],
                                        ppath_step.gp_lon[ip],
                                        cloudbox_limits,
-                                       0,
-                                       3);
+                                       0);
 
   // Determine radiative properties at point
   if (inside_cloud) {
@@ -1300,7 +1242,6 @@ void mcPathTraceRadar(Workspace& ws,
                          pnd_vec,
                          temperature,
                          propmat_clearsky_agenda,
-                         stokes_dim,
                          f_index,
                          f_grid,
                          ppath_step.gp_p[0],
@@ -1378,8 +1319,7 @@ void mcPathTraceRadar(Workspace& ws,
                                            ppath_step.gp_lat[ip],
                                            ppath_step.gp_lon[ip],
                                            cloudbox_limits,
-                                           0,
-                                           3);
+                                           0);
     } else {
       ip++;
     }
@@ -1399,7 +1339,6 @@ void mcPathTraceRadar(Workspace& ws,
                            pnd_vec,
                            temperature,
                            propmat_clearsky_agenda,
-                           stokes_dim,
                            f_index,
                            f_grid,
                            ppath_step.gp_p[ip],
@@ -1449,7 +1388,7 @@ void mcPathTraceRadar(Workspace& ws,
     evop0 = evol_op(0, 0);
 
     // Handle cross-talk for ptype==30
-    if (stokes_dim > 1 && anyptype_nonTotRan) {
+    if (anyptype_nonTotRan) {
       const Numeric Q1 = evol_op(0, 1) * Iprop[1] / Iprop[0];
       evop0 += Q1;
     }
@@ -1541,7 +1480,6 @@ void Sample_los(VectorView new_rte_los,
                 ConstVectorView rte_los,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Index f_index,
-                const Index stokes_dim,
                 ConstVectorView pnd_vec,
                 ConstVectorView Z11maxvector,
                 const Numeric Csca,
@@ -1551,7 +1489,7 @@ void Sample_los(VectorView new_rte_los,
   bool tryagain = true;
 
   Vector sca_dir;
-  mirror_los(sca_dir, rte_los, 3);
+  mirror_los(sca_dir, rte_los);
 
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
   Index np = pnd_vec.nelem();
@@ -1583,10 +1521,10 @@ void Sample_los(VectorView new_rte_los,
 
     //Calculate Phase matrix////////////////////////////////
     Vector inc_dir;
-    mirror_los(inc_dir, new_rte_los, 3);
+    mirror_los(inc_dir, new_rte_los);
 
     //pha_mat_singleCalc( Z, sca_dir[0], sca_dir[1], inc_dir[0], inc_dir[1],
-    //                    scat_data_mono, stokes_dim, pnd_vec, rtp_temperature,
+    //                    scat_data_mono, pnd_vec, rtp_temperature,
     //                     );
 
     pdir(0, joker) = sca_dir;
@@ -1595,7 +1533,6 @@ void Sample_los(VectorView new_rte_los,
                        ptypes_Nse,
                        t_ok,
                        scat_data,
-                       stokes_dim,
                        t,
                        pdir,
                        idir,

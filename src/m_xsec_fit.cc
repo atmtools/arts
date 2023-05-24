@@ -53,8 +53,8 @@ void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddXsecFit(  // WS Output:
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -66,22 +66,15 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     const Numeric& force_t) {
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(
-      propmat_clearsky.NumberOfFrequencies() not_eq f_grid.nelem(),
+      propmat_clearsky.nelem() not_eq f_grid.nelem(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  if (dpropmat_clearsky_dx.nelem()) {
-    ARTS_USER_ERROR_IF(
-        dpropmat_clearsky_dx.nelem() not_eq jacobian_quantities.nelem(),
-        "Mismatch dimensions on xsec derivatives and Jacobian grids");
-    ARTS_USER_ERROR_IF(
-        std::any_of(dpropmat_clearsky_dx.cbegin(),
-                    dpropmat_clearsky_dx.cend(),
-                    [&f_grid](auto& x) {
-                      return x.NumberOfFrequencies() not_eq f_grid.nelem();
-                    }),
-        "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
-  }
+  ARTS_USER_ERROR_IF(
+    dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.nelem()
+    or
+    dpropmat_clearsky_dx.ncols() not_eq f_grid.nelem(),
+      "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
   /* NOTE:  The calculations below are inefficient and could
@@ -162,27 +155,27 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
     if (!do_jac) {
       xsec_temp *= nd * vmr;
-      propmat_clearsky.Kjj() += xsec_temp;
+      for (Index iv=0; iv<f_grid.nelem(); iv++) propmat_clearsky[iv].A() += xsec_temp[iv];
     } else {
       Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
       for (Index f = 0; f < f_grid.nelem(); f++) {
-        propmat_clearsky.Kjj()[f] += xsec_temp[f] * nd * vmr;
+        propmat_clearsky[f].A() += xsec_temp[f] * nd * vmr;
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
 
           if (!deriv.propmattype()) continue;
 
           if (is_frequency_parameter(deriv)) {
-            dpropmat_clearsky_dx[iq].Kjj()[f] +=
+            dpropmat_clearsky_dx(iq, f).A() +=
                 (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
           } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR ||
                      deriv == Jacobian::Line::VMR) {
             if (species_match(deriv, abs_species[i])) {
-              dpropmat_clearsky_dx[iq].Kjj()[f] +=
+              dpropmat_clearsky_dx(iq, f).A() +=
                   xsec_temp[f] * nd * vmr;
             }
           } else if (deriv == Jacobian::Atm::Temperature) {
-            dpropmat_clearsky_dx[iq].Kjj()[f] +=
+            dpropmat_clearsky_dx(iq, f).A() +=
                 ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
                  xsec_temp[f] * dnd_dt) *
                 vmr;

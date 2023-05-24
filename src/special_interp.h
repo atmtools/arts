@@ -29,7 +29,6 @@
     The input atmospheric grids are checked to be consistent.
 
     @param[out]  itw                Interpolation weights.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   gp_p               Pressure grid positions.
     @param[in]   gp_lat             Latitude grid positions.
     @param[in]   gp_lon             Longitude grid positions.
@@ -38,7 +37,6 @@
     @date   2002-11-13
  */
 void interp_atmfield_gp2itw(Matrix& itw,
-                            const Index& atmosphere_dim,
                             const ArrayOfGridPos& gp_p,
                             const ArrayOfGridPos& gp_lat,
                             const ArrayOfGridPos& gp_lon);
@@ -52,12 +50,11 @@ void interp_atmfield_gp2itw(Matrix& itw,
     function. 
 
     The input atmospheric field is checked to be consistent with the 
-    *atmosphere_dim*, *p_grid*, *lat_grid* and *lon_grid*. The length of
+    *p_grid*, *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
 
     @param[out]  x                  Values obtained by the interpolation.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   x_field            The atmospheric field to be interpolated.
     @param[in]   gp_p               Pressure grid positions.
     @param[in]   gp_lat             Latitude grid positions.
@@ -69,7 +66,6 @@ void interp_atmfield_gp2itw(Matrix& itw,
     @date   2002-11-13
  */
 void interp_atmfield_by_itw(VectorView x,
-                            const Index& atmosphere_dim,
                             ConstTensor3View x_field,
                             const ArrayOfGridPos& gp_p,
                             const ArrayOfGridPos& gp_lat,
@@ -84,14 +80,13 @@ void interp_atmfield_by_itw(VectorView x,
     function. 
 
     The input atmospheric field is checked to be consistent with the 
-    *atmosphere_dim*, *p_grid*, *lat_grid* and *lon_grid*. The length of
+    *p_grid*, *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
 
     There is also a return version of this function.
 
     @param[out]  x                  Values obtained by the interpolation.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   x_field            The atmospheric field to be interpolated.
     @param[in]   gp_p               Pressure grid positions.
     @param[in]   gp_lat             Latitude grid positions.
@@ -101,7 +96,6 @@ void interp_atmfield_by_itw(VectorView x,
     @date   2002-11-13
  */
 void interp_atmfield_by_gp(VectorView x,
-                           const Index& atmosphere_dim,
                            ConstTensor3View x_field,
                            const ArrayOfGridPos& gp_p,
                            const ArrayOfGridPos& gp_lat,
@@ -115,13 +109,12 @@ void interp_atmfield_by_gp(VectorView x,
     function. 
 
     The input atmospheric field is checked to be consistent with the 
-    *atmosphere_dim*, *p_grid*, *lat_grid* and *lon_grid*. The length of
+    *p_grid*, *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
 
     There is also a vector version of this function.
 
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   x_field            The atmospheric field to be interpolated.
     @param[in]   gp_p               Pressure grid positions.
     @param[in]   gp_lat             Latitude grid positions.
@@ -132,8 +125,7 @@ void interp_atmfield_by_gp(VectorView x,
     @author Patrick Eriksson 
     @date   2002-11-13
  */
-Numeric interp_atmfield_by_gp(const Index& atmosphere_dim,
-                              ConstTensor3View x_field,
+Numeric interp_atmfield_by_gp(ConstTensor3View x_field,
                               const GridPos& gp_p = {0, {0, 1}},
                               const GridPos& gp_lat = {0, {0, 1}},
                               const GridPos& gp_lon = {0, {0, 1}});
@@ -159,7 +151,6 @@ Numeric interp_atmfield_by_gp(const Index& atmosphere_dim,
     @param[in]   gp_p_in            Pressure grid position.
     @param[in]   gp_lat_in          Latitude grid position.
     @param[in]   gp_lon_in          Longitude grid position.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   cloudbox_limits    As the WSV with the same name.
 
     @author Patrick Eriksson 
@@ -172,7 +163,6 @@ void interp_cloudfield_gp2itw(VectorView itw,
                               const GridPos& gp_p_in,
                               const GridPos& gp_lat_in,
                               const GridPos& gp_lon_in,
-                              const Index& atmosphere_dim,
                               const ArrayOfIndex& cloudbox_limits);
 
 /** Converts atmospheric grid positions to weights for interpolation of a
@@ -187,7 +177,6 @@ void interp_cloudfield_gp2itw(VectorView itw,
     The input atmospheric grids are checked to be consistent.
 
     @param[out]  itw                Interpolation weights.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   gp_lat             Latitude grid positions.
     @param[in]   gp_lon             Longitude grid positions.
 
@@ -195,7 +184,6 @@ void interp_cloudfield_gp2itw(VectorView itw,
     @date   2002-11-13
  */
 void interp_atmsurface_gp2itw(Matrix& itw,
-                              const Index& atmosphere_dim,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon);
 
@@ -208,12 +196,11 @@ void interp_atmsurface_gp2itw(Matrix& itw,
     function. 
 
     The input surface-type variable is checked to be consistent with the 
-    *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
+    *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
 
     @param[out]  x                  Values obtained by the interpolation.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   x_surface          The atmospheric field to be interpolated.
     @param[in]   gp_lat             Latitude grid positions.
     @param[in]   gp_lon             Longitude grid positions.
@@ -224,7 +211,6 @@ void interp_atmsurface_gp2itw(Matrix& itw,
     @date   2002-11-13
  */
 void interp_atmsurface_by_itw(VectorView x,
-                              const Index& atmosphere_dim,
                               ConstMatrixView x_surface,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon,
@@ -238,14 +224,13 @@ void interp_atmsurface_by_itw(VectorView x,
     function. 
 
     The input surface-type variable is checked to be consistent with the 
-    *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
+    *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
 
     There is also a return version of this function.
 
     @param[out]  x                  Values obtained by the interpolation.
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   x_surface          The atmospheric field to be interpolated.
     @param[in]   gp_lat             Latitude grid positions.
     @param[in]   gp_lon             Longitude grid positions.
@@ -254,7 +239,6 @@ void interp_atmsurface_by_itw(VectorView x,
     @date   2002-11-13
  */
 void interp_atmsurface_by_gp(VectorView x,
-                             const Index& atmosphere_dim,
                              ConstMatrixView x_field,
                              const ArrayOfGridPos& gp_lat,
                              const ArrayOfGridPos& gp_lon);
@@ -267,13 +251,12 @@ void interp_atmsurface_by_gp(VectorView x,
     function. 
 
     The input surface-type variable is checked to be consistent with the 
-    *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
+    *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
 
     There is also a vecor version of this function.
 
-    @param[in]   atmosphere_dim     As the WSV with the same name.
     @param[in]   x_surface          The atmospheric field to be interpolated.
     @param[in]   gp_lat             Latitude grid positions.
     @param[in]   gp_lon             Longitude grid positions.
@@ -283,18 +266,13 @@ void interp_atmsurface_by_gp(VectorView x,
     @author Patrick Eriksson 
     @date   2002-11-13
  */
-Numeric interp_atmsurface_by_gp(const Index& atmosphere_dim,
-                                ConstMatrixView x_field,
+Numeric interp_atmsurface_by_gp(ConstMatrixView x_field,
                                 const GridPos& gp_lat,
                                 const GridPos& gp_lon);
 
 /** Regrids an atmospheric field, for precalculated grid positions
 
-  The function adopts automatically to *atmosphere_dim*. Grid positions not
-  used are ignored, i.e. gp_lat is ignored for atmosphere_dim=1 etc.
-
   @param[out]     field_new        Field after interpolation.
-  @param[in][in]  atmosphere_dim   As the WSV with same name.
   @param[in][in]  field_old        Field to be interpolated.
   @param[in][in]  gp_p             Pressure grid positions.
   @param[in][in]  gp_lat           Latitude grid positions.
@@ -304,7 +282,6 @@ Numeric interp_atmsurface_by_gp(const Index& atmosphere_dim,
   @date   2015-09-09
  */
 void regrid_atmfield_by_gp(Tensor3& field_new,
-                           const Index& atmosphere_dim,
                            ConstTensor3View field_old,
                            const ArrayOfGridPos& gp_p,
                            const ArrayOfGridPos& gp_lat,
@@ -312,11 +289,7 @@ void regrid_atmfield_by_gp(Tensor3& field_new,
 
 /** Regrids an atmospheric surface, for precalculated grid positions
 
-  The function adopts automatically to *atmosphere_dim*. Grid positions not
-  used are ignored, i.e. gp_lat is ignored for atmosphere_dim=1 etc.
-
   @param[out]     field_new        Field after interpolation.
-  @param[in][in]  atmosphere_dim   As the WSV with same name.
   @param[in][in]  field_old        Field to be interpolated.
   @param[in][in]  gp_lat           Latitude grid positions.
   @param[in][in]  gp_lon           Longitude grid positions.
@@ -325,7 +298,6 @@ void regrid_atmfield_by_gp(Tensor3& field_new,
   @date   2018-04-12
  */
 void regrid_atmsurf_by_gp(Matrix& field_new,
-                          const Index& atmosphere_dim,
                           ConstMatrixView field_old,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon);
@@ -333,16 +305,12 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
 /** Determines grid positions for regridding of atmospheric fields to retrieval
  *  grids
  *
- * The grid positions arrays are sized inside the function. gp_lat is given
- * length 0 for atmosphere_dim=1 etc.
- *
  * This regridding uses extpolfac=0.
  *
  * @param[out] gp_p                 Pressure grid positions.
  * @param[out] gp_lat               Latitude grid positions.
  * @param[out] gp_lon               Longitude grid positions.
  * @param[in]  rq                   Retrieval quantity structure.
- * @param[in]  atmosphere_dim       As the WSV with same name.
  * @param[in]  p_grid               As the WSV with same name.
  * @param[in]  lat_grid             As the WSV with same name.
  * @param[in]  lon_grid             As the WSV with same name.
@@ -354,23 +322,18 @@ void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
                            ArrayOfGridPos& gp_lat,
                            ArrayOfGridPos& gp_lon,
                            const RetrievalQuantity& rq,
-                           const Index& atmosphere_dim,
-                           const Vector& p_grid,
+                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid);
 
 /** Determines grid positions for regridding of atmospheric surfaces to retrieval
  *  grids
  *
- * The grid positions arrays are sized inside the function. gp_lat is given
- * length 0 for atmosphere_dim=1 etc.
- *
  * This regridding uses extpolfac=0.
  *
  * @param[out] gp_lat               Latitude grid positions.
  * @param[out] gp_lon               Longitude grid positions.
  * @param[in]  rq                   Retrieval quantity structure.
- * @param[in]  atmosphere_dim       As the WSV with same name.
  * @param[in]  lat_grid             As the WSV with same name.
  * @param[in]  lon_grid             As the WSV with same name.
  *
@@ -380,7 +343,6 @@ void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
 void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
                           ArrayOfGridPos& gp_lon,
                           const RetrievalQuantity& rq,
-                          const Index& atmosphere_dim,
                           const Vector& lat_grid,
                           const Vector& lon_grid);
 
@@ -388,14 +350,10 @@ void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
 /** Determines grid positions for regridding of atmospheric fields to retrieval
  *  grids
  *
- * The grid positions arrays are sized inside the function. gp_lat is given
- * length 0 for atmosphere_dim=1 etc.
- *
  * This regridding uses extpolfac=Inf (where Inf is a very large value).
  *
  * Note that the length output arguments (n_p etc.) are for the retrieval grids
- * (not the length of grid positions arrays). n-Lat is set to 1 for
- * atmosphere_dim=1 etc.
+ * (not the length of grid positions arrays).
  *
  * @param[out] gp_p                 Pressure grid positions.
  * @param[out] gp_lat               Latitude grid positions.
@@ -404,7 +362,6 @@ void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
  * @param[out] n_lat                Length of retrieval lataitude grid.
  * @param[out] n_lon                Length of retrieval longitude grid.
  * @param[in]  rq                   Retrieval quantity structure.
- * @param[in]  atmosphere_dim       As the WSV with same name.
  * @param[in]  p_grid               As the WSV with same name.
  * @param[in]  lat_grid             As the WSV with same name.
  * @param[in]  lon_grid             As the WSV with same name.
@@ -419,29 +376,23 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
                            Index& n_lat,
                            Index& n_lon,
                            const ArrayOfVector& ret_grids,
-                           const Index& atmosphere_dim,
-                           const Vector& p_grid,
+                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid);
 
 /** Determines grid positions for regridding of atmospheric surfaces to retrieval
  *  grids
  *
- * The grid positions arrays are sized inside the function. gp_lat is given
- * length 0 for atmosphere_dim=1 etc.
- *
  * This regridding uses extpolfac=Inf (where Inf is a very large value).
  *
  * Note that the length output arguments (n_p etc.) are for the retrieval grids
- * (not the length of grid positions arrays). n-Lat is set to 1 for
- * atmosphere_dim=1 etc.
+ * (not the length of grid positions arrays).
  *
  * @param[out] gp_lat               Latitude grid positions.
  * @param[out] gp_lon               Longitude grid positions.
  * @param[out] n_lat                Length of retrieval lataitude grid.
  * @param[out] n_lon                Length of retrieval longitude grid.
  * @param[in]  rq                   Retrieval quantity structure.
- * @param[in]  atmosphere_dim       As the WSV with same name.
  * @param[in]  lat_grid             As the WSV with same name.
  * @param[in]  lon_grid             As the WSV with same name.
  *
@@ -453,8 +404,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
                            Index& n_lat,
                            Index& n_lon,
                            const ArrayOfVector& ret_grids,
-                           const Index& atmosphere_dim,
-                           const Vector& lat_grid,
+                            const Vector& lat_grid,
                            const Vector& lon_grid);
 
 
@@ -464,7 +414,6 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
  * including the case of that the grid length in original field can be 1.
  *
  * @param[out] field_new        New field.
- * @param[in]  atmosphere_dim   Atmospheric dimensionality.
  * @param[in]  field_old        Original field.
  * @param[in]  gp_p             Pressure grid positions.
  * @param[in]  gp_lat           Latitude grid positions.
@@ -474,8 +423,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
  * @date   2018-04-12
  */
 void regrid_atmfield_by_gp_oem(Tensor3& field_new,
-                               const Index& atmosphere_dim,
-                               ConstTensor3View field_old,
+                                    ConstTensor3View field_old,
                                const ArrayOfGridPos& gp_p,
                                const ArrayOfGridPos& gp_lat,
                                const ArrayOfGridPos& gp_lon);
@@ -486,7 +434,6 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
  * including the case of that the grid length in original field can be 1.
  *
  * @param[out] field_new        New field.
- * @param[in]  atmosphere_dim   Atmospheric dimensionality.
  * @param[in]  field_old        Original field.
  * @param[in]  gp_lat           Latitude grid positions.
  * @param[in]  gp_lon           Longitude grid positions.
@@ -495,7 +442,6 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
  * @date   2018-04-12
  */
 void regrid_atmsurf_by_gp_oem(Matrix& field_new,
-                              const Index& atmosphere_dim,
                               ConstMatrixView field_old,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon);
@@ -569,7 +515,6 @@ void p2gridpos(ArrayOfGridPos& gp,
    @param[out]  gp_p        Pressure grid position.
    @param[out]  gp_lat      Latitude grid position.
    @param[out]  gp_lon      Longitude grid position.
-   @param[in]   atmosphere_dim  As the WSV with the same name.
    @param[in]   p_grid      As the WSV with the same name.
    @param[in]   lat_grid    As the WSV with the same name.
    @param[in]   lon_grid    As the WSV with the same name.
@@ -582,7 +527,6 @@ void p2gridpos(ArrayOfGridPos& gp,
 void rte_pos2gridpos(GridPos& gp_p,
                      GridPos& gp_lat,
                      GridPos& gp_lon,
-                     const Index& atmosphere_dim,
                      ConstVectorView p_grid,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid,
@@ -599,7 +543,6 @@ void rte_pos2gridpos(GridPos& gp_p,
 
    @param[in]   gp_lat      Output: Latitude grid position.
    @param[in]   gp_lon      Output: Longitude grid position.
-   @param[in]   atmosphere_dim  As the WSV with the same name.
    @param[in]   lat_grid    As the WSV with the same name.
    @param[in]   lon_grid    As the WSV with the same name.
    @param[in]   rte_pos     As the WSV with the same name.
@@ -609,7 +552,6 @@ void rte_pos2gridpos(GridPos& gp_p,
  */
 void rte_pos2gridpos(GridPos& gp_lat,
                      GridPos& gp_lon,
-                     const Index& atmosphere_dim,
                      ConstVectorView lat_grid,
                      ConstVectorView lon_grid,
                      ConstVectorView rte_pos);

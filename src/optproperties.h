@@ -19,7 +19,8 @@
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "mystring.h"
-#include "propagationmatrix.h"
+#include <matpack.h>
+#include <rtepack.h>
 
 //! An attribute to classify the particle type (ptype) of a SingleScatteringData
 //structure (a scattering element).
@@ -131,7 +132,6 @@ void opt_prop_NScatElems(  //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
     const Vector& T_array,
     const Matrix& dir_array,
     const Index& f_index,
@@ -153,14 +153,12 @@ void ext_mat_SSD2Stokes(  //Output
     MatrixView ext_mat_stokes,
     //Input
     ConstVectorView ext_mat_ssd,
-    const Index& stokes_dim,
     const Index& ptype);
 
 void abs_vec_SSD2Stokes(  //Output
     VectorView abs_vec_stokes,
     //Input
     ConstVectorView abs_vec_ssd,
-    const Index& stokes_dim,
     const Index& ptype);
 
 void pha_mat_Bulk(  //Output
@@ -185,7 +183,6 @@ void pha_mat_NScatElems(  //Output
     Matrix& t_ok,
     //Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
     const Vector& T_array,
     const Matrix& pdir_array,
     const Matrix& idir_array,
@@ -205,7 +202,7 @@ void pha_mat_1ScatElem(  //Output
     const Index& t_interp_order = 1);
 
 void abs_vecTransform(  //Output and Input
-    StokesVector& abs_vec_lab,
+    StokvecVector& abs_vec_lab,
     //Input
     ConstTensor3View abs_vec_data,
     ConstVectorView za_datagrid,
@@ -215,7 +212,7 @@ void abs_vecTransform(  //Output and Input
     const Numeric& aa_sca);
 
 void ext_matTransform(  //Output and Input
-    PropagationMatrix& ext_mat_lab,
+    PropmatVector& ext_mat_lab,
     //Input
     ConstTensor3View ext_mat_data,
     ConstVectorView za_datagrid,
@@ -241,8 +238,7 @@ void pha_matTransform(  //Output
 void ext_matFromabs_vec(  //Output
     MatrixView ext_mat,
     //Input
-    ConstVectorView abs_vec,
-    const Index& stokes_dim);
+    ConstVectorView abs_vec);
 
 // Functions for the case: Randomly oriented particles:
 // ========================================================
@@ -273,10 +269,10 @@ void pha_mat_labCalc(  //Output:
 // ========================================================
 
 void opt_prop_sum_propmat_clearsky(  //Output:
-    PropagationMatrix& ext_mat,
-    StokesVector& abs_vec,
+    PropmatVector& ext_mat,
+    StokvecVector& abs_vec,
     //Input:
-    const PropagationMatrix& propmat_clearsky);
+    const PropmatVector& propmat_clearsky);
 
 PType PTypeFromString(const String& ptype_string);
 PType PType2FromString(const String& ptype_string);

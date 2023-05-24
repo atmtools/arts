@@ -38,7 +38,7 @@ Numeric test_integrate_zenith(const Vector& cosza,
   return val;  // Should return 1.0 for normalized cosza
 }
 
-Numeric integrate_convolved(const RadiationVector& I,
+Numeric integrate_convolved(const StokvecVector& I,
                             const Eigen::VectorXcd& F,
                             const Vector& f) {
   Numeric val = 0.0;
@@ -46,12 +46,12 @@ Numeric integrate_convolved(const RadiationVector& I,
   const Index n = f.nelem();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (f[i + 1] - f[i]) *
-           (I(i, 0) * F[i].real() + I(i + 1, 0) * F[i + 1].real());
+           (I[i].I() * F[i].real() + I[i + 1].I() * F[i + 1].real());
 
   return val;
 }
 
-Numeric integrate_convolved(const TransmissionMatrix& T,
+Numeric integrate_convolved(const MuelmatVector& T,
                             const Eigen::VectorXcd& F,
                             const Vector& f) {
   Numeric val = 0.0;
@@ -59,7 +59,7 @@ Numeric integrate_convolved(const TransmissionMatrix& T,
   const Index n = f.nelem();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (f[i + 1] - f[i]) *
-           (T(i, 0, 0) * F[i].real() + T(i + 1, 0, 0) * F[i + 1].real());
+           (T[i](0, 0) * F[i].real() + T[i + 1](0, 0) * F[i + 1].real());
 
   return 1.0 - val;
 }

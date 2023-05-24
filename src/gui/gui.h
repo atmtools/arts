@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "gui_macros.h"
-#include "propagationmatrix.h"
+#include <rtepack.h>
 
 #include <matpack_arrays.h>
 #include <matpack_data.h>
@@ -117,8 +117,8 @@ namespace Files {
   ImGui::FileBrowser xmlfile_chooser();
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const Vector& data);
   void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfVector& data);
-  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropagationMatrix& data);
-  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfPropagationMatrix& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropmatVector& data);
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropmatMatrix& data);
 }  // namespace Files
 }  // namespace GUI
 

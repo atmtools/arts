@@ -20,7 +20,6 @@
 #include "debug.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
-#include "propagationmatrix.h"
 #include "geodetic.h"
 #include "arts.h"
 #include "surf.h"
@@ -44,15 +43,15 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
 }
 
 void get_scattered_sunsource(Workspace& ws,
-                              RadiationVector& scattered_sunlight,
+                              StokvecVector& scattered_sunlight,
                               const Vector& f_grid,
                               const AtmPoint& atm_point,
                               const Matrix& transmitted_sunlight,
                               const Vector& gas_scattering_los_in,
                               const Vector& gas_scattering_los_out,
                               const Agenda& gas_scattering_agenda) {
-  PropagationMatrix K_sca;
-  TransmissionMatrix gas_scattering_mat;
+  PropmatVector K_sca;
+  MuelmatVector gas_scattering_mat;
   Vector sca_fct_dummy;
 
   // calculate gas scattering properties
@@ -72,19 +71,13 @@ void get_scattered_sunsource(Workspace& ws,
   Index nf = f_grid.nelem();
 
   //allocate and resize
-  RadiationVector scattered_sunlight_temp(1, ns);
+  StokvecVector scattered_sunlight_temp(1, ns);
 
   Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
-    mat_temp(0,joker) =  transmitted_sunlight(i_f, joker);
-    scattered_sunlight_temp = RadiationVector{mat_temp};//transmitted_sunlight(i_f, joker);
-    scattered_sunlight_temp.leftMul(gas_scattering_mat);
-
-    for (Index j = 0; j < ns; j++) {
-      scattered_sunlight(i_f, j) =
-          scattered_sunlight_temp(0, j) * K_sca.Kjj(0, 0)[i_f] /(4*pi);
-    }
+    Stokvec scattered_sunlight_temp{transmitted_sunlight[i_f]};
+    scattered_sunlight[i_f] = K_sca[i_f].A() / (4*pi) * gas_scattering_mat[i_f] * scattered_sunlight_temp;
   }
 
   //TODO: Include jacobian mechanism
@@ -95,8 +88,6 @@ void get_sun_background(Matrix& iy,
                          const ArrayOfSun& suns,
                          const Ppath& ppath,
                          const Vector& f_grid,
-                         const Index& stokes_dim,
-                         const Index& atmosphere_dim,
                          const Vector2 refellipsoid) {
   const Index np = ppath.np;
 
@@ -104,12 +95,12 @@ void get_sun_background(Matrix& iy,
   suns_visible = 0;
 
   //allocate iy and set it to zero
-  iy.resize(f_grid.nelem(), stokes_dim);
+  iy.resize(f_grid.nelem(), 4);
   iy=0.;
 
   Vector rtp_pos, rtp_los;
-  rtp_pos.resize(atmosphere_dim);
-  rtp_pos = ppath.pos(np - 1, Range(0, atmosphere_dim));
+  rtp_pos.resize(3);
+  rtp_pos = ppath.pos(np - 1, Range(0, 3));
   rtp_los.resize(ppath.los.ncols());
   rtp_los = ppath.los(np - 1, joker);
 
@@ -194,7 +185,6 @@ ARTS_USER_ERROR("ERROR")
 void get_direct_radiation(Workspace& ws,
                           ArrayOfMatrix& direct_radiation,
                           ArrayOfArrayOfTensor3& ddirect_radiation_dx,
-                          const Index& stokes_dim,
                           const Vector& f_grid,
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const AtmField& atm_field,
@@ -229,7 +219,7 @@ void get_direct_radiation(Workspace& ws,
   Tensor4 ppvar_trans_cumulat_dummy;
   Tensor4 ppvar_trans_partial_dummy;
 
-  direct_radiation.resize(suns.nelem(),Matrix(f_grid.nelem(), stokes_dim, 0.));
+  direct_radiation.resize(suns.nelem(),Matrix(f_grid.nelem(), 4, 0.));
 
   Matrix radiation_toa;
   Matrix radiation_trans;
@@ -290,7 +280,7 @@ ARTS_USER_ERROR("ERROR")
         rtp_los.resize(sun_ppaths[i_sun].los.ncols());
         rtp_los = sun_ppaths[i_sun].los(np - 1, joker);
 
-        radiation_toa.resize(f_grid.nelem(), stokes_dim);
+        radiation_toa.resize(f_grid.nelem(), 4);
         radiation_toa = 0;
 
         Index visible;
@@ -308,7 +298,6 @@ ARTS_USER_ERROR("ERROR")
                              ppvar_iy_dummy,
                              ppvar_trans_cumulat_dummy,
                              ppvar_trans_partial_dummy,
-                             stokes_dim,
                              f_grid,
                              abs_species,
                              atm_field,
@@ -416,7 +405,6 @@ ARTS_USER_ERROR("ERROR")
 
 Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
                           const Vector &f_grid,
-                          const Index &stokes_dim,
                           const Numeric &temperature){
   const Index nf = f_grid.nelem();
   const Vector data_f_grid = sun_spectrum_raw.get_numeric_grid(0);
@@ -424,7 +412,7 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
   const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
 
     // Result array
-  Matrix int_data(f_grid.nelem(), stokes_dim, 0.);
+  Matrix int_data(f_grid.nelem(), 4, 0.);
 
   const Numeric* f_grid_begin = f_grid.unsafe_data_handle();
   const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
@@ -489,7 +477,7 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
     Matrix itw(f_gp.nelem(), 2);
     interpweights(itw, f_gp);
 
-    for(int i=0; i < stokes_dim; i++){
+    for(int i=0; i < 4; i++){
       interp(int_data(Range(i_fstart, f_extent),i), itw, 
         sun_spectrum_raw.data(active_range, i), f_gp);
     }

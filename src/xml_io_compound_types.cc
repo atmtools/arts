@@ -1034,71 +1034,6 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== PropagationMatrix ======================================================
-
-//! Reads PropagationMatrix from XML input stream
-/*!
- * \param is_xml     XML Input stream
- * \param pm         PropagationMatrix return value
- * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(istream& is_xml,
-                          PropagationMatrix& pm,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("PropagationMatrix");
-
-  try {
-    Tensor4 d;
-    xml_read_from_stream(is_xml, d, pbifs);
-    Index naa = d.nbooks();
-    Index nza = d.npages();
-    Index nf = d.nrows();
-    Index nstokes_needed = d.ncols();
-    pm = PropagationMatrix(nf, need2stokes<true>(nstokes_needed), nza, naa);
-    pm.Data() = std::move(d); // destructive takeover
-  } catch (const std::runtime_error& e) {
-    ostringstream os;
-    os << "Error reading PropagationMatrix: "
-       << "\n"
-       << e.what();
-    throw runtime_error(os.str());
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/PropagationMatrix");
-}
-
-//! Writes PropagationMatrix to XML output stream
-/*!
- * \param os_xml     XML Output stream
- * \param pm         PropagationMatrix
- * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
- * \param name       Optional name attribute
- */
-void xml_write_to_stream(ostream& os_xml,
-                         const PropagationMatrix& pm,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("PropagationMatrix");
-  if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, pm.Data(), pbofs, "");
-
-  close_tag.set_name("/PropagationMatrix");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
 //=== QuantumIdentifier =========================================
 
 //! Reads QuantumIdentifier from XML input stream
@@ -1680,71 +1615,6 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== StokesVector ======================================================
-
-//! Reads StokesVector from XML input stream
-/*!
- * \param is_xml     XML Input stream
- * \param sv         StokesVector return value
- * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(istream& is_xml,
-                          StokesVector& sv,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("StokesVector");
-
-  try {
-    Tensor4 d;
-    xml_read_from_stream(is_xml, d, pbifs);
-    Index naa = d.nbooks();
-    Index nza = d.npages();
-    Index nf = d.nrows();
-    Index nstokes_needed = d.ncols();
-    sv = StokesVector(nf, need2stokes<false>(nstokes_needed), nza, naa);
-    sv.Data() = std::move(d); // destructive takeover
-  } catch (const std::runtime_error& e) {
-    ostringstream os;
-    os << "Error reading StokesVector: "
-       << "\n"
-       << e.what();
-    throw runtime_error(os.str());
-  }
-  
-  tag.read_from_stream(is_xml);
-  tag.check_name("/StokesVector");
-}
-
-//! Writes StokesVector to XML output stream
-/*!
- * \param os_xml     XML Output stream
- * \param sv         StokesVector
- * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
- * \param name       Optional name attribute
- */
-void xml_write_to_stream(ostream& os_xml,
-                         const StokesVector& sv,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("StokesVector");
-  if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, sv.Data(), pbofs, "");
-
-  close_tag.set_name("/StokesVector");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
 //=== TelsemAtlas ======================================================
 
 //! Reads TelsemAtlas from XML input stream
@@ -2256,9 +2126,9 @@ void xml_write_to_stream_helper(ostream &os_xml, const Atm::KeyVal &key,
                                     Atm::FunctionalData>)
             xml_write_to_stream(
                 os_xml,
-                var_string(
+                String{var_string(
                     "Data for ", key_val,
-                    " read from file as functional must be set explicitly"),
+                    " read from file as functional must be set explicitly")},
                 pbofs, "Functional Data Error");
           else
             xml_write_to_stream(os_xml, data_type, pbofs, "Data");
@@ -2387,7 +2257,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   for (auto& key: keys) {
     std::visit([&](auto&& key_val) {
-      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "Data Key");
+      xml_write_to_stream(os_xml, String{var_string(key_val)}, pbofs, "Data Key");
       xml_write_to_stream(os_xml, atm[key_val], pbofs, "Data");
     }, key);
   }
@@ -2513,9 +2383,9 @@ void xml_write_to_stream_helper(ostream &os_xml, const Surf::KeyVal &key,
                                     Surf::FunctionalData>)
             xml_write_to_stream(
                 os_xml,
-                var_string(
+                String{var_string(
                     "Data for ", key_val,
-                    " read from file as functional must be set explicitly"),
+                    " read from file as functional must be set explicitly")},
                 pbofs, "Functional Data Error");
           else
             xml_write_to_stream(os_xml, data_type, pbofs, "Data");
@@ -2642,7 +2512,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   for (auto& key: keys) {
     std::visit([&](auto&& key_val) {
-      xml_write_to_stream(os_xml, var_string(key_val), pbofs, "Data Key");
+      xml_write_to_stream(os_xml, String{var_string(key_val)}, pbofs, "Data Key");
       xml_write_to_stream(os_xml, surf[key_val], pbofs, "Data");
     }, key);
   }

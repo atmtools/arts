@@ -17,7 +17,6 @@
 #ifndef gas_scattering_h
 #define gas_scattering_h
 
-Vector calc_rayleighPhaMat(const Numeric& theta_rad,
-                           const Index& stokes_dim);
+Vector calc_rayleighPhaMat(const Numeric& theta_rad);
 
 #endif /* gas_scattering_h */

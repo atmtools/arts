@@ -6,9 +6,7 @@
 #include "gridded_fields.h"
 #include "matpack_concepts.h"
 #include "matpack_view.h"
-#include "propagationmatrix.h"
 #include "species_tags.h"
-#include "transmissionmatrix.h"
 
 #include <algorithm>
 #include <array>

@@ -24,9 +24,8 @@
 #include "matpack_math.h"
 #include "menu.h"
 #include "physics_funcs.h"
-#include "propagationmatrix.h"
+#include <rtepack.h>
 #include "species_tags.h"
-#include "transmissionmatrix.h"
 
 namespace ARTSGUI {
 Numeric no_inf(Numeric x) noexcept {
@@ -133,14 +132,14 @@ xscale_option() {
 Numeric yscale(PropmatScaling scale,
                Numeric T,
                Numeric P,
-               const PropagationMatrix& pm) {
+               const PropmatConstVectorView& pm) {
   switch (scale) {
     case PropmatScaling::None:
       return 1.0;
     case PropmatScaling::CrossSection:
       return number_density(P, T);
     case PropmatScaling::Normalize:
-      return max(pm.Data());
+      return max(pm).A();
     case PropmatScaling::FINAL: { /* leave last */
     }
   }
@@ -202,24 +201,26 @@ constexpr Numeric avg(Numeric a, Numeric b) noexcept {
   return a + 0.5 * (b - a);
 }
 
-Numeric range_mean(const ConstVectorView& vec, Index start, Index last) {
+template <size_t pos>
+Numeric range_mean(const PropmatConstVectorView& vec, Index start, Index last) {
+  static_assert(pos < 7 and pos >= 0);
   const Numeric scale = 1.0 / static_cast<Numeric>(last - start + 1);
   Numeric out = 0;
-  for (Index i = start; i <= last; i++) out += scale * vec[i];
+  for (Index i = start; i <= last; i++) out += scale * vec[i][pos];
   return out;
 }
 
 template <size_t stokes, size_t r, size_t c>
-auto range_mean(const TransmissionMatrix& t, Index start, Index last) {
+auto range_mean(const MuelmatConstVectorView& t, Index start, Index last) {
   const Numeric scale = 1.0 / static_cast<Numeric>(last - start + 1);
   Numeric out = 0;
   for (Index i = start; i <= last; i++)
-    out += scale * t.TraMat<stokes>(i)(r, c);
+    out += scale * t[i](r, c);
   return out;
 }
 
 struct TraMatDataHolder {
-  const TransmissionMatrix& tm;
+  const MuelmatConstVectorView& tm;
   const Vector& f_grid;
   XScaling xscale_fun;
   TramatScaling yscale_fun;
@@ -256,7 +257,7 @@ struct TraMatDataHolder {
 };
 
 struct PropMatDataHolder {
-  const PropagationMatrix& pm;
+  const PropmatConstVectorView& pm;
   const Vector& f_grid;
   XScaling xscale_fun;
   Numeric yscale_const;
@@ -275,80 +276,80 @@ struct PropMatDataHolder {
     return {start, last};
   }
 
-  static ImPlotPoint Kjj(void* self, int i) {
+  static ImPlotPoint A(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.Kjj(), start, last));
+                             range_mean<0>(data_ptr->pm, start, last));
     return {x, y};
   }
 
-  static ImPlotPoint K12(void* self, int i) {
+  static ImPlotPoint B(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.K12(), start, last));
+                             range_mean<1>(data_ptr->pm, start, last));
     return {x, y};
   }
 
-  static ImPlotPoint K13(void* self, int i) {
+  static ImPlotPoint C(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.K13(), start, last));
+                             range_mean<2>(data_ptr->pm, start, last));
     return {x, y};
   }
 
-  static ImPlotPoint K14(void* self, int i) {
+  static ImPlotPoint D(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.K14(), start, last));
+                             range_mean<3>(data_ptr->pm, start, last));
     return {x, y};
   }
 
-  static ImPlotPoint K23(void* self, int i) {
+  static ImPlotPoint U(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.K23(), start, last));
+                             range_mean<4>(data_ptr->pm, start, last));
     return {x, y};
   }
 
-  static ImPlotPoint K24(void* self, int i) {
+  static ImPlotPoint V(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.K24(), start, last));
+                             range_mean<5>(data_ptr->pm, start, last));
     return {x, y};
   }
 
-  static ImPlotPoint K34(void* self, int i) {
+  static ImPlotPoint W(void* self, int i) {
     auto* data_ptr = static_cast<PropMatDataHolder*>(self);
 
     const auto [start, last] = data_ptr->range(i);
     const Numeric x = avg(xscale(data_ptr->f_grid[start], data_ptr->xscale_fun),
                           xscale(data_ptr->f_grid[last], data_ptr->xscale_fun));
     const Numeric y = no_inf(data_ptr->yscale_const *
-                             range_mean(data_ptr->pm.K34(), start, last));
+                             range_mean<6>(data_ptr->pm, start, last));
     return {x, y};
   }
 };
@@ -359,7 +360,7 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
   const bool select_jac = opts.jacobian_target >= 0 and
                           opts.jacobian_target < v.jacobian_quantities.nelem();
 
-  const PropagationMatrix& pm =
+  const PropmatConstVectorView pm =
       select_jac ? v.aopm[opts.jacobian_target] : v.pm;
 
   PropMatDataHolder main_data{
@@ -390,29 +391,20 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
 
   if (ImPlot::BeginPlot(
           title.data(), xunit(opts.xscale).data(), y_axis.c_str(), {-1, -1})) {
-    if (v.pm.StokesDimensions() > 0) {
-      ImPlot::PlotLineG(
-          "Kjj", PropMatDataHolder::Kjj, &main_data, main_data.size());
-    }
-
-    if (v.pm.StokesDimensions() > 1) {
-      ImPlot::PlotLineG(
-          "K12", PropMatDataHolder::K12, &main_data, int(v.f_grid.nelem()));
-    }
-
-    if (v.pm.StokesDimensions() > 2) {
-      ImPlot::PlotLineG(
-          "K13", PropMatDataHolder::K13, &main_data, int(v.f_grid.nelem()));
-      ImPlot::PlotLineG(
-          "K23", PropMatDataHolder::K23, &main_data, int(v.f_grid.nelem()));
-    }
-
-    if (v.pm.StokesDimensions() > 3) {
-      ImPlot::PlotLineG(
-          "K24", PropMatDataHolder::K24, &main_data, int(v.f_grid.nelem()));
-      ImPlot::PlotLineG(
-          "K34", PropMatDataHolder::K34, &main_data, int(v.f_grid.nelem()));
-    }
+    ImPlot::PlotLineG(
+        "A", PropMatDataHolder::A, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "B", PropMatDataHolder::B, &main_data, int(v.f_grid.nelem()));
+    ImPlot::PlotLineG(
+        "C", PropMatDataHolder::C, &main_data, int(v.f_grid.nelem()));
+    ImPlot::PlotLineG(
+        "D", PropMatDataHolder::D, &main_data, int(v.f_grid.nelem()));
+    ImPlot::PlotLineG(
+        "U", PropMatDataHolder::U, &main_data, int(v.f_grid.nelem()));
+    ImPlot::PlotLineG(
+        "V", PropMatDataHolder::V, &main_data, int(v.f_grid.nelem()));
+    ImPlot::PlotLineG(
+        "W", PropMatDataHolder::W, &main_data, int(v.f_grid.nelem()));
 
     out = ImPlot::GetPlotLimits();
     ImPlot::EndPlot();
@@ -427,7 +419,7 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
   const bool select_jac = opts.jacobian_target >= 0 and
                           opts.jacobian_target < v.jacobian_quantities.nelem();
 
-  const TransmissionMatrix& tm =
+  const MuelmatConstVectorView tm =
       select_jac ? v.aotm[opts.jacobian_target] : v.tm;
 
   TraMatDataHolder main_data{tm,
@@ -446,82 +438,41 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
           xunit(opts.xscale).data(),
           yscale_str(main_data.yscale_fun, main_data.inverse_y).data(),
           {-1, -1})) {
-    switch (tm.stokes_dim) {
-      case 1:
-        ImPlot::PlotLineG(
-            "T11", TraMatDataHolder::T<1, 0, 0>, &main_data, main_data.size());
-        break;
-      case 2:
-        ImPlot::PlotLineG(
-            "T11", TraMatDataHolder::T<2, 0, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T12", TraMatDataHolder::T<2, 0, 1>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T11", TraMatDataHolder::T<4, 0, 0>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T12", TraMatDataHolder::T<4, 0, 1>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T13", TraMatDataHolder::T<4, 0, 2>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T14", TraMatDataHolder::T<4, 0, 3>, &main_data, main_data.size());
 
-        ImPlot::PlotLineG(
-            "T21", TraMatDataHolder::T<2, 1, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T22", TraMatDataHolder::T<2, 1, 1>, &main_data, main_data.size());
-        break;
-      case 3:
-        ImPlot::PlotLineG(
-            "T11", TraMatDataHolder::T<3, 0, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T12", TraMatDataHolder::T<3, 0, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T13", TraMatDataHolder::T<3, 0, 2>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T21", TraMatDataHolder::T<4, 1, 0>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T22", TraMatDataHolder::T<4, 1, 1>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T23", TraMatDataHolder::T<4, 1, 2>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T24", TraMatDataHolder::T<4, 1, 3>, &main_data, main_data.size());
 
-        ImPlot::PlotLineG(
-            "T21", TraMatDataHolder::T<3, 1, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T22", TraMatDataHolder::T<3, 1, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T23", TraMatDataHolder::T<3, 1, 2>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T31", TraMatDataHolder::T<4, 2, 0>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T32", TraMatDataHolder::T<4, 2, 1>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T33", TraMatDataHolder::T<4, 2, 2>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T34", TraMatDataHolder::T<4, 2, 3>, &main_data, main_data.size());
 
-        ImPlot::PlotLineG(
-            "T31", TraMatDataHolder::T<3, 2, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T32", TraMatDataHolder::T<3, 2, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T33", TraMatDataHolder::T<3, 2, 2>, &main_data, main_data.size());
-        break;
-      case 4:
-        ImPlot::PlotLineG(
-            "T11", TraMatDataHolder::T<4, 0, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T12", TraMatDataHolder::T<4, 0, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T13", TraMatDataHolder::T<4, 0, 2>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T14", TraMatDataHolder::T<4, 0, 3>, &main_data, main_data.size());
-
-        ImPlot::PlotLineG(
-            "T21", TraMatDataHolder::T<4, 1, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T22", TraMatDataHolder::T<4, 1, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T23", TraMatDataHolder::T<4, 1, 2>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T24", TraMatDataHolder::T<4, 1, 3>, &main_data, main_data.size());
-
-        ImPlot::PlotLineG(
-            "T31", TraMatDataHolder::T<4, 2, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T32", TraMatDataHolder::T<4, 2, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T33", TraMatDataHolder::T<4, 2, 2>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T34", TraMatDataHolder::T<4, 2, 3>, &main_data, main_data.size());
-
-        ImPlot::PlotLineG(
-            "T41", TraMatDataHolder::T<4, 3, 0>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T42", TraMatDataHolder::T<4, 3, 1>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T43", TraMatDataHolder::T<4, 3, 2>, &main_data, main_data.size());
-        ImPlot::PlotLineG(
-            "T44", TraMatDataHolder::T<4, 3, 3>, &main_data, main_data.size());
-        break;
-    }
+    ImPlot::PlotLineG(
+        "T41", TraMatDataHolder::T<4, 3, 0>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T42", TraMatDataHolder::T<4, 3, 1>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T43", TraMatDataHolder::T<4, 3, 2>, &main_data, main_data.size());
+    ImPlot::PlotLineG(
+        "T44", TraMatDataHolder::T<4, 3, 3>, &main_data, main_data.size());
 
     out = ImPlot::GetPlotLimits();
     ImPlot::EndPlot();

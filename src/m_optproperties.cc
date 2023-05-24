@@ -32,6 +32,7 @@
 #include "matpack_data.h"
 #include "montecarlo.h"
 #include "optproperties.h"
+#include "rtepack.h"
 #include "sorting.h"
 #include "xml_io.h"
 
@@ -68,12 +69,6 @@ void pha_mat_sptFromData(  // Output:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  const Index stokes_dim = pha_mat_spt.ncols();
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
 
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
@@ -106,7 +101,7 @@ void pha_mat_sptFromData(  // Output:
   const Index N_ss = scat_data.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor5 pha_mat_data_int;
 
   Index i_se_flat = 0;
@@ -330,9 +325,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
   const Index N_ss = scat_data_mono.nelem();
-  const Index stokes_dim = pha_mat_spt.ncols();
 
-  if (stokes_dim > 4 || stokes_dim < 1) {
+  if (4 > 4 || 4 < 1) {
     throw runtime_error(
         "The dimension of the stokes vector \n"
         "must be 1,2,3 or 4");
@@ -398,8 +392,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
                aa_inc_idx++) {
             if (ti < 0)  // Temperature interpolation
             {
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
+              for (Index i = 0; i < 4; i++) {
+                for (Index j = 0; j < 4; j++) {
                   pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j) =
                       interp(itw,
                              pha_mat_sptDOITOpt[i_se_flat](joker,
@@ -433,8 +427,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromData(  // Output and Input:
-    ArrayOfPropagationMatrix& ext_mat_spt,
-    ArrayOfStokesVector& abs_vec_spt,
+    ArrayOfPropmatVector& ext_mat_spt,
+    ArrayOfStokvecVector& abs_vec_spt,
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Vector& za_grid,
@@ -454,8 +448,8 @@ void opt_prop_sptFromData(  // Output and Input:
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
              if (N_ss) {
-               ARTS_ASSERT(ext_mat_spt[0].NumberOfFrequencies() == N_se_total);
-               ARTS_ASSERT(abs_vec_spt[0].NumberOfFrequencies() == N_se_total);
+               ARTS_ASSERT(ext_mat_spt[0].nelem() == N_se_total);
+               ARTS_ASSERT(abs_vec_spt[0].nelem() == N_se_total);
              });
 
   // Check that we don't have scat_data_mono here. Only checking the first
@@ -474,13 +468,13 @@ void opt_prop_sptFromData(  // Output and Input:
   }
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor3 ext_mat_data_int;
   Tensor3 abs_vec_data_int;
 
   // Initialisation
-  ext_mat_spt = 0.;
-  abs_vec_spt = 0.;
+  for (auto& pm: ext_mat_spt) pm = 0.;
+  for (auto& sv: abs_vec_spt) sv = 0.;
 
   Index i_se_flat = 0;
   // Loop over the included scattering species
@@ -634,8 +628,8 @@ void opt_prop_sptFromData(  // Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromScat_data(  // Output and Input:
-    ArrayOfPropagationMatrix& ext_mat_spt,
-    ArrayOfStokesVector& abs_vec_spt,
+    ArrayOfPropmatVector& ext_mat_spt,
+    ArrayOfStokvecVector& abs_vec_spt,
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
@@ -655,28 +649,21 @@ void opt_prop_sptFromScat_data(  // Output and Input:
         "passed a consistency check (scat_data_checked=1).");
 
   const Index N_ss = scat_data.nelem();
-  const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
-
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
   ARTS_ASSERT(ext_mat_spt.nelem() == N_se_total);
   ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor3 ext_mat_data_int;
   Tensor3 abs_vec_data_int;
 
   // Initialisation
-  for (auto& pm : ext_mat_spt) pm.SetZero();
-  for (auto& sv : abs_vec_spt) sv.SetZero();
+  for (auto& pm : ext_mat_spt) pm = 0.;
+  for (auto& sv : abs_vec_spt) sv = 0.;
 
   Index this_f_index;
 
@@ -827,17 +814,17 @@ void opt_prop_sptFromScat_data(  // Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_bulkCalc(  // Output and Input:
-    PropagationMatrix& ext_mat,
-    StokesVector& abs_vec,
+    PropmatVector& ext_mat,
+    StokvecVector& abs_vec,
     // Input:
-    const ArrayOfPropagationMatrix& ext_mat_spt,
-    const ArrayOfStokesVector& abs_vec_spt,
+    const ArrayOfPropmatVector& ext_mat_spt,
+    const ArrayOfStokvecVector& abs_vec_spt,
     const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
   Index N_se = abs_vec_spt.nelem();
-  //ARTS_ASSERT( ext_mat_spt.npages()==N_se )
+
   if (ext_mat_spt.nelem() not_eq N_se) {
     ostringstream os;
     os << "Number of scattering elements in *abs_vec_spt* and *ext_mat_spt*\n"
@@ -845,63 +832,28 @@ void opt_prop_bulkCalc(  // Output and Input:
     throw runtime_error(os.str());
   }
 
-  Index stokes_dim = abs_vec_spt[0].StokesDimensions();
-  //ARTS_ASSERT( ext_mat_spt.ncols()==stokes_dim && ext_mat_spt.nrows()==stokes_dim )
-  if (ext_mat_spt[0].StokesDimensions() not_eq stokes_dim) {
-    ostringstream os;
-    os << "*stokes_dim* of *abs_vec_spt* and *ext_mat_spt* does not agree.";
-    throw runtime_error(os.str());
-  }
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    ostringstream os;
-    os << "The dimension of stokes vector can only be 1, 2, 3, or 4.";
-    throw runtime_error(os.str());
-  }
+  ext_mat = PropmatVector(1, Propmat{0, 0, 0, 0, 0, 0, 0});
+  abs_vec = StokvecVector(1, Stokvec{0, 0, 0, 0});
 
-  ext_mat = PropagationMatrix(1, stokes_dim);
-  ext_mat.SetZero();  // Initialize to zero!
-  abs_vec = StokesVector(1, stokes_dim);
-  abs_vec.SetZero();  // Initialize to zero!
-
-  PropagationMatrix ext_mat_part(1, stokes_dim);
-  ext_mat_part.SetZero();
-  StokesVector abs_vec_part(1, stokes_dim);
-  abs_vec_part.SetZero();
+  PropmatVector ext_mat_part(1, Propmat{0, 0, 0, 0, 0, 0, 0});
+  StokvecVector abs_vec_part(1, Stokvec{0, 0, 0, 0});
 
   // this is the loop over the different scattering elements
   for (Index l = 0; l < N_se; l++) {
-    abs_vec_part.MultiplyAndAdd(
-        pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index),
-        abs_vec_spt[l]);
-    ext_mat_part.MultiplyAndAdd(
-        pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index),
-        ext_mat_spt[l]);
+    abs_vec_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * abs_vec_spt[l][0];
+    ext_mat_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * ext_mat_spt[l][0];
   }
 
-  //Add absorption due single scattering element.
   abs_vec += abs_vec_part;
-  //Add extinction matrix due single scattering element to *ext_mat*.
   ext_mat += ext_mat_part;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ext_matAddGas(PropagationMatrix& ext_mat,
-                   const PropagationMatrix& propmat_clearsky) {
-  // Number of Stokes parameters:
-  const Index stokes_dim = ext_mat.StokesDimensions();
+void ext_matAddGas(PropmatVector& ext_mat,
+                   const PropmatVector& propmat_clearsky) {
+  const Index f_dim = ext_mat.nelem();
 
-  // The second dimension of ext_mat must also match the number of
-  // Stokes parameters:
-  ARTS_USER_ERROR_IF (stokes_dim != propmat_clearsky.StokesDimensions(),
-        "Col dimension of propmat_clearsky "
-        "inconsistent with col dimension in ext_mat.");
-
-  // Number of frequencies:
-  const Index f_dim = ext_mat.NumberOfFrequencies();
-
-  // This must be consistent with the second dimension of
-  // propmat_clearsky. Check this:
-  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.NumberOfFrequencies(),
+  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.nelem(),
         "Frequency dimension of ext_mat and propmat_clearsky\n"
         "are inconsistent in ext_matAddGas.");
 
@@ -909,69 +861,18 @@ void ext_matAddGas(PropagationMatrix& ext_mat,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_vecAddGas(StokesVector& abs_vec,
-                   const PropagationMatrix& propmat_clearsky) {
-  // Number of frequencies:
-  const Index f_dim = abs_vec.NumberOfFrequencies();
-  const Index stokes_dim = abs_vec.StokesDimensions();
+void abs_vecAddGas(StokvecVector& abs_vec,
+                   const PropmatVector& propmat_clearsky) {
+  const Index f_dim = abs_vec.nelem();
 
-  // This must be consistent with the second dimension of
-  // propmat_clearsky. Check this:
-  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.NumberOfFrequencies(),
+  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.nelem(),
         "Frequency dimension of abs_vec and propmat_clearsky\n"
         "are inconsistent in abs_vecAddGas.");
-  ARTS_USER_ERROR_IF (stokes_dim != propmat_clearsky.StokesDimensions(),
-        "Stokes dimension of abs_vec and propmat_clearsky\n"
-        "are inconsistent in abs_vecAddGas.");
 
-  // Loop all frequencies. Of course this includes the special case
-  // that there is only one frequency.
-  abs_vec += propmat_clearsky;  // Defined to only add to the
-
-  // We don't have to do anything about higher elements of abs_vec,
-  // since scalar gas absorption only influences the first element.
+  for (Index iv=0; iv<f_dim; iv++) {
+    abs_vec[iv] += absvec(propmat_clearsky[iv]);
+  }
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void ext_matAddGasZeeman( Tensor3&      ext_mat,
-                          const Tensor3&  ext_mat_zee)
-{
-  // Number of Stokes parameters:
-  const Index stokes_dim = ext_mat.ncols();
-
-  // The second dimension of ext_mat must also match the number of
-  // Stokes parameters:
-  if ( stokes_dim != ext_mat.nrows() )
-    throw runtime_error("Row dimension of ext_mat inconsistent with "
-                        "column dimension."); 
-
-  for ( Index i=0; i<stokes_dim; ++i )
-    {
-      for ( Index j=0; j<stokes_dim; ++j )
-        {
-          // Add the zeeman extinction to extinction matrix.
-          ext_mat(joker,i,j) += ext_mat_zee(joker, i, j);
-        }
-      
-    }
-}
-*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void abs_vecAddGasZeeman( Matrix&      abs_vec,
-                          const Matrix& abs_vec_zee)
-{
-  // Number of Stokes parameters:
-  const Index stokes_dim = abs_vec_zee.ncols();
-  // that there is only one frequency.
-  for ( Index j=0; j<stokes_dim; ++j )
-    {
-      abs_vec(joker,j) += abs_vec_zee(joker,j);
-    }
-}
-*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pha_matCalc(Tensor4& pha_mat,
@@ -983,9 +884,8 @@ void pha_matCalc(Tensor4& pha_mat,
   Index N_se = pha_mat_spt.nshelves();
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
-  Index stokes_dim = pha_mat_spt.nrows();
 
-  pha_mat.resize(Nza, Naa, stokes_dim, stokes_dim);
+  pha_mat.resize(Nza, Naa, 4, 4);
 
   // Initialisation
   pha_mat = 0.0;
@@ -1008,9 +908,9 @@ void pha_matCalc(Tensor4& pha_mat,
       for (Index za_index = 0; za_index < Nza; ++za_index)
         for (Index aa_index = 0; aa_index < Naa - 1; ++aa_index)
           // now the last two loops over the stokes dimension.
-          for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+          for (Index stokes_index_1 = 0; stokes_index_1 < 4;
                ++stokes_index_1)
-            for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+            for (Index stokes_index_2 = 0; stokes_index_2 < 4;
                  ++stokes_index_2)
               //summation of the product of pnd_field and
               //pha_mat_spt.
@@ -1034,9 +934,9 @@ void pha_matCalc(Tensor4& pha_mat,
       for (Index za_index = 0; za_index < Nza; ++za_index)
         for (Index aa_index = 0; aa_index < Naa; ++aa_index)
           // now the last two loops over the stokes dimension.
-          for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+          for (Index stokes_index_1 = 0; stokes_index_1 < 4;
                ++stokes_index_1)
-            for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+            for (Index stokes_index_2 = 0; stokes_index_2 < 4;
                  ++stokes_index_2)
               //summation of the product of pnd_field and
               //pha_mat_spt.
@@ -1266,7 +1166,6 @@ void DoitScatteringDataPrepare(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& f_index,
-    const Index& stokes_dim,
     const AtmField& atm_field,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor4& pnd_field,
@@ -1292,16 +1191,16 @@ void DoitScatteringDataPrepare(
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(),
                             doit_za_grid_size,
                             aa_grid.nelem(),
-                            stokes_dim,
-                            stokes_dim,
+                            4,
+                            4,
                             0.);
-  Tensor4 pha_mat_local(doit_za_grid_size, Naa, stokes_dim, stokes_dim, 0.);
+  Tensor4 pha_mat_local(doit_za_grid_size, Naa, 4, 4, 0.);
   Tensor6 pha_mat_local_out(cloudbox_limits[1] - cloudbox_limits[0] + 1,
                             doit_za_grid_size,
                             doit_za_grid_size,
                             Naa,
-                            stokes_dim,
-                            stokes_dim,
+                            4,
+                            4,
                             0.);
 
   // Interpolate all the data in frequency
@@ -1335,8 +1234,8 @@ void DoitScatteringDataPrepare(
                                            N_aa_sca,
                                            doit_za_grid_size,
                                            aa_grid.nelem(),
-                                           stokes_dim,
-                                           stokes_dim);
+                                           4,
+                                           4);
 
       //    Initialize:
       pha_mat_sptDOITOpt[i_se_flat] = 0.;
@@ -1387,8 +1286,8 @@ void DoitScatteringDataPrepare(
                       N_aa_sca,
                       doit_za_grid_size,
                       Naa,
-                      stokes_dim,
-                      stokes_dim);
+                      4,
+                      4);
   pha_mat_doit = 0;
 
   if (3 == 1) {
@@ -2161,8 +2060,8 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromMonoData(  // Output and Input:
-    ArrayOfPropagationMatrix& ext_mat_spt,
-    ArrayOfStokesVector& abs_vec_spt,
+    ArrayOfPropmatVector& ext_mat_spt,
+    ArrayOfStokvecVector& abs_vec_spt,
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
     const Vector& za_grid,
@@ -2175,15 +2074,8 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
-  const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
-
-  if (stokes_dim > 4 or stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
 
   ARTS_ASSERT(ext_mat_spt.nelem() == N_se_total);
   ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
@@ -2205,8 +2097,8 @@ void opt_prop_sptFromMonoData(  // Output and Input:
   }
 
   // Initialisation
-  for (auto& pm : ext_mat_spt) pm.SetZero();
-  for (auto& av : abs_vec_spt) av.SetZero();
+  for (auto& pm : ext_mat_spt) pm = 0.;
+  for (auto& av : abs_vec_spt) av = 0.;
 
   GridPos t_gp;
 
@@ -2353,13 +2245,6 @@ void pha_mat_sptFromMonoData(  // Output:
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
-  const Index stokes_dim = pha_mat_spt.ncols();
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
-
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
   // manner. That's save against having scat_data here if that originated from
@@ -2454,8 +2339,8 @@ void pha_mat_sptFromMonoData(  // Output:
                     aa_grid);
               }
 
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
+              for (Index i = 0; i < 4; i++) {
+                for (Index j = 0; j < 4; j++) {
                   pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j) =
                       interp(itw, pha_mat_spt_tmp(joker, i, j), Tred_gp);
                 }
@@ -2506,13 +2391,6 @@ void pha_mat_sptFromScat_data(  // Output:
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  const Index stokes_dim = pha_mat_spt.ncols();
-  if (stokes_dim > 4 || stokes_dim < 1) {
-    throw runtime_error(
-        "The dimension of the stokes vector \n"
-        "must be 1,2,3 or 4");
-  }
-
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
   if (N_se_total != pnd_field.nbooks()) {
@@ -2529,7 +2407,7 @@ void pha_mat_sptFromScat_data(  // Output:
   const Index N_ss = scat_data.nelem();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
-  // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
+  // [frequency, za_inc, aa_inc, 4, 4]
   Tensor5 pha_mat_data_int;
 
   Index this_f_index;

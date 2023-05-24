@@ -1,5 +1,6 @@
 #include <arts_conversions.h>
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 /**
  * @brief Contains the MPM2020 model as presented by Makarov et al. (2020)
@@ -29,7 +30,7 @@ constexpr Numeric sum_lines(const Numeric f,
   return a;
 }
 
-void compute(PropagationMatrix& propmat_clearsky,
+void compute(PropmatVector& propmat_clearsky,
              const Vector& f_grid,
              const Numeric& p_pa,
              const Numeric& t,
@@ -136,7 +137,7 @@ void compute(PropagationMatrix& propmat_clearsky,
   for (Index iv = 0; iv < nf; iv++) {
     const Numeric f = hz2ghz(f_grid[iv]);
     if (const Numeric a = sum_lines(f, c, ga, g0, y0, dv0, f0); a > 0)
-      propmat_clearsky.Kjj()[iv] += conv * oxygen_vmr * pow2(f) * a;
+      propmat_clearsky[iv].A() += conv * oxygen_vmr * pow2(f) * a;
   }
 }
 } // namespace Absorption::PredefinedModel::MPM2020

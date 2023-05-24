@@ -1,6 +1,7 @@
 #include "gui.h"
+
+#include <rtepack.h>
 #include <xml_io.h>
-#include "propagationmatrix.h"
 
 namespace ARTSGUI {
   void LayoutAndStyleSettings() {
@@ -198,11 +199,11 @@ namespace Files {
     save_data_impl(config, fileBrowser, data);
   }
   
-  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropagationMatrix& data) {
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropmatVector& data) {
     save_data_impl(config, fileBrowser, data);
   }
   
-  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const ArrayOfPropagationMatrix& data) {
+  void save_data(Config& config, ImGui::FileBrowser& fileBrowser, const PropmatMatrix& data) {
     save_data_impl(config, fileBrowser, data);
   }
 }  // Files

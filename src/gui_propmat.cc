@@ -14,10 +14,10 @@
 #include "auto_md.h"
 #include "debug.h"
 #include "jacobian.h"
+#include "matpack_data.h"
 #include "matpack_math.h"
-#include "propagationmatrix.h"
+#include "rtepack.h"
 #include "species_tags.h"
-#include "transmissionmatrix.h"
 #include "workspace_ng.h"
 
 #ifdef ARTS_GUI_ENABLED
@@ -76,20 +76,21 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 
       compute(ws, v, propmat_clearsky_agenda);
 
-      v.tm = TransmissionMatrix(v.pm.NumberOfFrequencies(), v.pm.StokesDimensions());
-      v.aotm = ArrayOfTransmissionMatrix(v.jacobian_quantities.nelem(), v.tm);
+      v.tm = MuelmatVector(v.pm.nelem());
+      v.aotm = MuelmatMatrix(v.jacobian_quantities.nelem(), v.pm.nelem());
       auto local_aotm = v.aotm;
-      stepwise_transmission(v.tm,
-                            v.aotm,
-                            local_aotm,
-                            v.pm,
-                            v.pm,
-                            v.aopm,
-                            v.aopm,
-                            v.transmission_distance,
-                            0,
-                            0,
-                            -1);
+      Vector dr(jacobian_quantities.nelem(), 0);
+      for (Index i=0 ; i<v.tm.nelem(); i++) {
+        auto& t = v.tm[i];
+        auto&& dt1 = v.aotm[i];
+        auto&& dt2 = local_aotm[i];
+        auto& k1 = v.pm[i];
+        auto& k2 = v.pm[i];
+        auto&& dk1 = v.aopm[i];
+        auto&& dk2 = v.aopm[i];
+        auto& r = v.transmission_distance;
+        rtepack::two_level_exp(t, dt1, dt2, k1, k2, dk1, dk2, r, dr, dr);
+      }
 
       // Lock after the compute to copy values
       std::lock_guard allow_copy{ctrl.copy};

@@ -19,7 +19,7 @@
 #include "agenda_class.h"
 #include "matpack_data.h"
 #include "ppath.h"
-#include "propagationmatrix.h"
+#include "rtepack.h"
 
 //! Solves monochromatic VRTE for an atmospheric slab with constant conditions.
 /*!
@@ -48,9 +48,8 @@
 
     The function performs the calculations differently depending on the
     conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption (stokes_dim = 1). <br>
-       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
-       3. The total general case.
+       1. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
+       2. The total general case.
 
     \param[in,out]  stokes_vec A Stokes vector.
     \param[out]     trans_mat Transmission matrix of slab.
@@ -64,19 +63,16 @@
     \author Richard Larsson,
     \date   2017-08-14
 */
-void rte_step_doit_replacement(
-    //FIXME function name of 'rte_step_doit_replacement' should be replaced by
-    // proper name
-    //Output and Input:
-    VectorView stokes_vec,
-    MatrixView trans_mat,
+void rte_step_doit_replacement(  //Output and Input:
+    Stokvec& stokes_vec,
+    Muelmat& trans_mat,
     //Input
-    const PropagationMatrix& ext_mat_av,
-    const StokesVector& abs_vec_av,
-    ConstVectorView sca_vec_av,
+    const Propmat& ext_mat_av,
+    const Stokvec& abs_vec_av,
+    const Stokvec& sca_vec_av,
     const Numeric& lstep,
     const Numeric& rtp_planck_value,
-    const bool& trans_is_precalc = false);
+    const bool& trans_is_precalc=false);
 
 //! Calculate ext_mat, abs_vec for all points inside the cloudbox for one
 //  propagation direction.
@@ -449,7 +445,6 @@ void cloud_RT_no_background(Workspace& ws,
   \param[in]     f_grid Frequency grid
   \param[in]     f_index Frequency index of (monochromatic) scattering
                  calculation
-  \param[in]     stokes_dim Dimension of Stokes vector
   \param[in]     ppath_step Propagation path step
   \param[in]     cloudbox_limits Cloudbox limits
   \param[in]     za_grid Zenith angle grid
@@ -467,7 +462,6 @@ void cloud_RT_surface(Workspace& ws,
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
                       const Index& f_index,
-                      const Index& stokes_dim,
                       const Ppath& ppath_step,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstVectorView za_grid,
@@ -603,7 +597,6 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Tensor6& cloudbox_field_mono,
                               const ArrayOfIndex& cloudbox_limits,
                               const Agenda& spt_calc_agenda,
-                              const Index& atmosphere_dim,
                               const Vector& za_grid,
                               const Vector& aa_grid,
                               const Tensor4& pnd_field,

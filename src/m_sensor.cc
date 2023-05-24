@@ -26,6 +26,7 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "gridded_fields.h"
 #include "interp.h"
 #include "m_select.h"
@@ -930,9 +931,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
       antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
   //
   if (lpolgrid != 1 && lpolgrid != npol) {
-    os << "The number of polarisation in *antenna_response* must be 1 or be\n"
-       << "equal to the number of polarisations used (determined by\n"
-       << "*stokes_dim* or *instrument_pol*).\n";
+    os << "The number of polarisation in *antenna_response* must be 1 or 4).\n";
     error_found = true;
   }
 
@@ -1606,12 +1605,10 @@ void sensor_responseInit(Sparse& sensor_response,
                          const Vector& f_grid,
                          const Matrix& mblock_dlos,
                          const Index& antenna_dim,
-                         const Index& stokes_dim,
                          const Index& sensor_norm) {
   // Check input
 
   // Basic variables
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_if_in_range("antenna_dim", antenna_dim, 1, 2);
   chk_if_bool("sensor_norm", sensor_norm);
 
@@ -1635,9 +1632,9 @@ void sensor_responseInit(Sparse& sensor_response,
   sensor_response_f_grid = f_grid;
   sensor_response_dlos_grid = mblock_dlos;
   //
-  sensor_response_pol_grid.resize(stokes_dim);
+  sensor_response_pol_grid.resize(4);
   //
-  for (Index is = 0; is < stokes_dim; is++) {
+  for (Index is = 0; is < 4; is++) {
     sensor_response_pol_grid[is] = is + 1;
   }
 
@@ -1669,7 +1666,6 @@ void sensorOff(Sparse& sensor_response,
                ArrayOfIndex& sensor_response_pol_grid,
                Matrix& sensor_response_dlos_grid,
                Matrix& mblock_dlos,
-               const Index& stokes_dim,
                const Vector& f_grid) {
   // Checks are done in sensor_responseInit.
   Index antenna_dim;
@@ -1690,7 +1686,6 @@ void sensorOff(Sparse& sensor_response,
                       f_grid,
                       mblock_dlos,
                       antenna_dim,
-                      stokes_dim,
                       sensor_norm);
 }
 
@@ -1840,7 +1835,6 @@ void sensor_responseMetMM(
     Matrix& sensor_response_dlos_grid,
     Index& sensor_norm,
     // WS Input:
-    const Index& stokes_dim,
     const Vector& f_grid,
     const Vector& f_backend,
     const ArrayOfArrayOfIndex& channel2fgrid_indexes,
@@ -1924,7 +1918,6 @@ void sensor_responseMetMM(
                       f_grid,
                       mblock_dlos_dummy,
                       antenna_dim,
-                      stokes_dim,
                       sensor_norm);
   sensor_responseMixerBackendPrecalcWeights(sensor_response_single,
                                             sensor_response_f,
@@ -1941,12 +1934,11 @@ void sensor_responseMetMM(
   const Index num_f = f_grid.nelem();
   const Index nchannels = f_backend.nelem();
   sensor_response = Sparse(nchannels * antenna_dlos_local.nrows(),
-                           num_f * stokes_dim * antenna_dlos_local.nrows());
+                           num_f * 4 * antenna_dlos_local.nrows());
 
   sensor_response_pol_grid.resize(1);
   sensor_response_pol_grid[0] = 1;
 
-  if (stokes_dim > 1) {
     // With polarisation
     if (mm_pol.nelem() != nchannels) {
       ostringstream os;
@@ -1962,7 +1954,7 @@ void sensor_responseMetMM(
     for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++) {
       sensor_response_tmp = Sparse(nchannels, sensor_response_single.ncols());
       met_mm_polarisation_hmatrix(
-          H_pol, mm_pol, antenna_dlos_local(iza, 0), stokes_dim, iy_unit);
+          H_pol, mm_pol, antenna_dlos_local(iza, 0), iy_unit);
       mult(sensor_response_tmp, H_pol, sensor_response_single);
       for (Index r = 0; r < sensor_response_tmp.nrows(); r++)
         for (Index c = 0; c < sensor_response_tmp.ncols(); c++) {
@@ -1970,22 +1962,9 @@ void sensor_responseMetMM(
 
           if (v != 0.)
             sensor_response.rw(iza * nchannels + r,
-                               iza * num_f * stokes_dim + c) = v;
+                               iza * num_f * 4 + c) = v;
         }
     }
-  } else {
-    // No polarisation
-    for (Index iza = 0; iza < antenna_dlos_local.nrows(); iza++) {
-      for (Index r = 0; r < sensor_response_single.nrows(); r++)
-        for (Index c = 0; c < sensor_response_single.ncols(); c++) {
-          const Numeric v = sensor_response_single(r, c);
-
-          if (v != 0.)
-            sensor_response.rw(iza * nchannels + r,
-                               iza * num_f * stokes_dim + c) = v;
-        }
-    }
-  }
 
   antenna_dim = 1;
   // Setup antenna
@@ -2328,7 +2307,6 @@ void sensor_responsePolarisation(Sparse& sensor_response,
                                  ArrayOfIndex& sensor_response_pol_grid,
                                  const Vector& sensor_response_f_grid,
                                  const Matrix& sensor_response_dlos_grid,
-                                 const Index& stokes_dim,
                                  const String& iy_unit,
                                  const ArrayOfIndex& instrument_pol) {
   // Some sizes
@@ -2357,8 +2335,8 @@ void sensor_responsePolarisation(Sparse& sensor_response,
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
   }
-  if (npol != stokes_dim) {
-    os << "Number of input polarisation does not match *stokes_dim*.\n";
+  if (npol != 4) {
+    os << "Number of input polarisation is not 4.\n";
     error_found = true;
   }
   if (nnew == 0) {
@@ -2372,8 +2350,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
   // Check polarisation data more in detail
   for (Index i = 0; i < npol && !error_found; i++) {
     if (sensor_response_pol_grid[i] != i + 1) {
-      os << "The input polarisations must be I, Q, U and V (up to "
-         << "stokes_dim). It seems that input data are for other "
+      os << "The input polarisations must be I, Q, U and V. It seems that input data are for other "
          << "polarisation components.";
       error_found = true;
     }
@@ -2414,7 +2391,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
             { hrow[col+iv] = pv[p][iv]; }
           */
       stokes2pol(
-          hrow[Range(col, stokes_dim)], stokes_dim, instrument_pol[in], w);
+          hrow[Range(col, 4)], instrument_pol[in], w);
       //
       Hpol.insert_row(row, hrow);
       //
@@ -2449,11 +2426,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
                                    const Vector& sensor_response_f_grid,
                                    const ArrayOfIndex& sensor_response_pol_grid,
                                    const Matrix& sensor_response_dlos_grid,
-                                   const Index& stokes_dim,
                                    const Vector& stokes_rotation) {
-  // Basic checks
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-
   // Some sizes
   const Index nf = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
@@ -2474,25 +2447,20 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
   }
 
   // Check special stuff for this method
-  if (stokes_dim < 3) {
-    os << "To perform a rotation of the Stokes coordinate system,\n"
-       << "*stokes_dim* must be >= 3.\n";
-    error_found = true;
-  }
   if (stokes_rotation.nelem() != nlos) {
     os << "Incorrect number of angles in *stokes_rotation*. The length\n"
        << "of this matrix must match *sensor_response_dlos_grid*.\n";
     error_found = true;
   }
-  if (npol != stokes_dim) {
+  if (npol != 4) {
     os << "Inconsistency detected. The length of *sensor_response_pol_grid*\n"
-       << "must be equal to *stokes_dim*, and this is not the case.\n";
+       << "must be 4, and this is not the case.\n";
     error_found = true;
   }
   for (Index is = 0; is < npol; is++) {
     if (sensor_response_pol_grid[is] != is + 1) {
       os << "For this method, the values in *sensor_response_pol_grid* must\n"
-         << "be 1,2...stokes_dim. This is not the case, indicating that\n"
+         << "be 1,2,3,4. This is not the case, indicating that\n"
          << "some previous sensor part has that the data no longer are\n"
          << "Stokes vectors.\n";
       error_found = true;
@@ -2509,13 +2477,13 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
   //
   Sparse H(sensor_response.nrows(), sensor_response.ncols());
   {
-    Sparse Hrot(npol, npol);  // Mueller matrix for 1 Stokes vec
+    Sparse Hrot(4, 4);  // Mueller matrix for 1 Stokes vec
     Vector row(H.ncols(), 0);
     Index irow = 0;
     //
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Rotation matrix for direction of concern
-      muellersparse_rotation(Hrot, npol, stokes_rotation[ilos]);
+      muellersparse_rotation(Hrot, stokes_rotation[ilos]);
 
       for (Index ifr = 0; ifr < nf; ifr++) {
         for (Index ip = 0; ip < npol; ip++) {
@@ -2560,7 +2528,6 @@ void sensor_responseGenericAMSU(  // WS Output:
     Matrix& sensor_response_dlos_grid,
     Index& sensor_norm,
     // WS Input:
-    const Index& stokes_dim,
     const Matrix& sensor_description_amsu,
     // WS Generic Input:
     const Numeric& spacing) {
@@ -2812,7 +2779,6 @@ void sensor_responseGenericAMSU(  // WS Output:
       f_grid,
       mblock_dlos,
       antenna_dim,
-      stokes_dim,
       sensor_norm);
 
   Index numLO = lo_multi.nelem();
@@ -2913,7 +2879,6 @@ void sensor_responseSimpleAMSU(  // WS Output:
     Matrix& sensor_response_dlos_grid,
     Index& sensor_norm,
     // WS Input:
-    const Index& stokes_dim,
     const Matrix& sensor_description_amsu,
     // WS Generic Input:
     const Numeric& spacing) {
@@ -3009,7 +2974,6 @@ void sensor_responseSimpleAMSU(  // WS Output:
                       f_grid,
                       mblock_dlos,
                       antenna_dim,
-                      stokes_dim,
                       sensor_norm);
 
   sensor_responseMultiMixerBackend(sensor_response,
@@ -3230,7 +3194,6 @@ void sensor_responseWMRF(  // WS Output:
 void ySimpleSpectrometer(Vector& y,
                          Vector& y_f,
                          const Matrix& iy,
-                         const Index& stokes_dim,
                          const Vector& f_grid,
                          const Numeric& df) {
   // Some dummy values
@@ -3256,7 +3219,6 @@ void ySimpleSpectrometer(Vector& y,
                       f_grid,
                       mblock_dlos,
                       antenna_dim,
-                      stokes_dim,
                       sensor_norm);
 
   // Center position of "channels"
@@ -3285,10 +3247,10 @@ void ySimpleSpectrometer(Vector& y,
 
   // Convert iy to a vector
   //
-  Vector iyb(nf * stokes_dim);
+  Vector iyb(nf * 4);
   //
-  for (Index is = 0; is < stokes_dim; is++) {
-    iyb[Range(is, nf, stokes_dim)] = iy(joker, is);
+  for (Index is = 0; is < 4; is++) {
+    iyb[Range(is, nf, 4)] = iy(joker, is);
   }
 
   // y and y_f
@@ -3309,7 +3271,6 @@ void yApplySensorPol(Vector& y,
                      ArrayOfVector& y_aux,
                      Matrix& y_geo,
                      Matrix& jacobian,
-                     const Index& stokes_dim,
                      const Index& jacobian_do,
                      const Matrix& sensor_pos,
                      const Matrix& sensor_pol) {
@@ -3337,13 +3298,9 @@ void yApplySensorPol(Vector& y,
   }
 
   // Checks associated with the Stokes vector
-  if (stokes_dim < 3)
-    throw runtime_error(
-        "*stokes_dim* must be >= 3 to correctly apply a "
-        "polarisation rotation.");
-  if (n1 < stokes_dim)
-    throw runtime_error("Length of input *y* smaller than *stokes_dim*.");
-  for (Index i = 0; i < stokes_dim; i++) {
+  if (n1 < 4)
+    throw runtime_error("Length of input *y* smaller than *4*.");
+  for (Index i = 0; i < 4; i++) {
     if (y_pol[i] != i + 1)
       throw runtime_error(
           "*y* must hold Stokes element values. Data in "
@@ -3354,10 +3311,9 @@ void yApplySensorPol(Vector& y,
   if (sensor_pos.nrows() != nm)
     throw runtime_error(
         "Different number of rows in *sensor_pos* and *sensor_pol*.");
-  if (n2 * stokes_dim != n1)
-    throw runtime_error(
+  ARTS_USER_ERROR_IF(n2 * 4 != n1,
         "Number of columns in *sensor_pol* not consistent with "
-        "length of *y* and value of *stokes_dim*.");
+        "length of 4 times *y*.");
 
   // Make copy of all y variables and jacobian
   const Vector y1 = y, y_f1 = y_f;
@@ -3384,7 +3340,7 @@ void yApplySensorPol(Vector& y,
   for (Index r = 0; r < nm; r++) {
     for (Index c = 0; c < nc; c++) {
       const Index iout = r * nc + c;
-      const Index iin = iout * stokes_dim;
+      const Index iin = iout * 4;
 
       const Numeric wq = cos(2 * DEG2RAD * sensor_pol(r, c));
       const Numeric wu = sin(2 * DEG2RAD * sensor_pol(r, c));

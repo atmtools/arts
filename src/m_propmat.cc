@@ -4,14 +4,13 @@
 #include "auto_md.h"
 #include "debug.h"
 #include "jacobian.h"
-#include "propagationmatrix.h"
 #include "species_tags.h"
 
 void propmat_clearskyAddScaledSpecies(  // Workspace reference:
     Workspace& ws,
     // WS Output:
-    PropagationMatrix& propmat_clearsky,
-    StokesVector& nlte_source,
+    PropmatVector& propmat_clearsky,
+    StokvecVector& nlte_source,
     // WS Input:
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -29,10 +28,10 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
         select_abs_species.nelem(),
         "Non-empty select_abs_species (lookup table calculations set select_abs_species)")
 
-    PropagationMatrix pm;
-    StokesVector sv;
-    ArrayOfPropagationMatrix dpropmat_clearsky_dx;
-    ArrayOfStokesVector dnlte_source_dx;
+    PropmatVector pm;
+    StokvecVector sv;
+    PropmatMatrix dpropmat_clearsky_dx;
+    StokvecMatrix dnlte_source_dx;
 
     propmat_clearsky_agendaExecute(ws,
                                    pm,
@@ -46,10 +45,19 @@ void propmat_clearskyAddScaledSpecies(  // Workspace reference:
                                    atm_point,
                                    propmat_clearsky_agenda);
 
-    ARTS_USER_ERROR_IF(propmat_clearsky.Data().shape() not_eq pm.Data().shape(), "Mismatching sizes")
-    ARTS_USER_ERROR_IF(nlte_source.Data().shape() not_eq sv.Data().shape(), "Mismatching sizes")
+    ARTS_USER_ERROR_IF(propmat_clearsky.shape() not_eq pm.shape(), "Mismatching sizes")
+    ARTS_USER_ERROR_IF(nlte_source.shape() not_eq sv.shape(), "Mismatching sizes")
     
-    propmat_clearsky += scale * pm;
-    nlte_source += scale * sv;
+    std::transform(propmat_clearsky.begin(),
+                   propmat_clearsky.end(),
+                   pm.begin(),
+                   propmat_clearsky.begin(),
+                   [scale](auto& a, auto& b) { return a + scale * b; });
+    
+    std::transform(nlte_source.begin(),
+                   nlte_source.end(),
+                   sv.begin(),
+                   nlte_source.begin(),
+                   [scale](auto& a, auto& b) { return a + scale * b; });
   }
 }

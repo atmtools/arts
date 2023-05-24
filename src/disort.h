@@ -56,8 +56,6 @@ void check_disort_input(  // Input
     const Index& atmgeom_checked,
     const Index& cloudbox_checked,
     const Index& scat_data_checked,
-    const Index& atmosphere_dim,
-    const Index& stokes_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstVectorView za_grid,
@@ -81,8 +79,6 @@ void check_disort_irradiance_input(  // Input
     const Index& atmfields_checked,
     const Index& atmgeom_checked,
     const Index& scat_data_checked,
-    const Index& atmosphere_dim,
-    const Index& stokes_dim,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& nstreams);
 
@@ -95,7 +91,6 @@ void check_disort_irradiance_input(  // Input
  * @param[in]  cloudbox_limits    As the WSV.
  * @param[in]  n_za               Number of zenith angles with RT output.
  * @param[in]  n_aa               Number of azimuth angles with RT output.
- * @param[in]  stokes_dim         As the WSV.
  *
  * @author     Jana Mendrok
  * @date       2017-03-06
@@ -106,8 +101,7 @@ void init_ifield(  // Output
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
     const Index& n_za,
-    const Index& n_aa,
-    const Index& stokes_dim);
+    const Index& n_aa);
 
 /** get_disortsurf_props. *** FIXMEDOC *** input/output
  *
@@ -124,7 +118,6 @@ void init_ifield(  // Output
  * @param[in]  surface_scalar_reflectivity As the WSV (used with ground_type=L).
  * @param[in]  surface_reflectivity        As the WSV (used with ground_type=S).
  * @param[in]  surface_complex_refr_index  As the WSV (used with ground_type=F).
- * @param[in]  stokes_dim                  As the WSV.
  *
  * @author Jana Mendrok
  * @date   2017-02-23

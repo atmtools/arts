@@ -51,7 +51,7 @@ void check_rt4_input(  // Output
     const Index& scat_data_checked,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& stokes_dim,
+    
     const Index& nstreams,
     const String& quad_type,
     const Index& add_straight_angles,
@@ -74,7 +74,7 @@ void check_rt4_input(  // Output
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  ARTS_USER_ERROR_IF (stokes_dim < 0 || stokes_dim > 2,
+  ARTS_USER_ERROR_IF (4 < 0 || 4 > 2,
         "For running RT4, the dimension of stokes vector"
         " must be 1 or 2.\n");
 
@@ -84,11 +84,11 @@ void check_rt4_input(  // Output
     "at 0th atmospheric level"
     " (assumes surface there, ignoring z_surface).\n")
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2,
+  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
         "*cloudbox_limits* is a vector which contains the"
         " upper and lower limit of the cloud for all"
         " atmospheric dimensions. So its dimension must"
-        " be 2 x *atmosphere_dim*");
+        " be 6");
 
   ARTS_USER_ERROR_IF (scat_data.empty(),
         "No single scattering data present.\n"
@@ -197,8 +197,7 @@ void get_rt4surf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity,
     ConstTensor3View surface_reflectivity,
-    const GriddedField3& surface_complex_refr_index,
-    const Index& stokes_dim) {
+    const GriddedField3& surface_complex_refr_index) {
   ARTS_USER_ERROR_IF (surface_skin_t < 0. || surface_skin_t > 1000.,
     "Surface temperature is set to ", surface_skin_t, " K,\n"
     "which is not considered a meaningful value.\n")
@@ -230,7 +229,7 @@ void get_rt4surf_props(  // Output
   {
     const Index ref_sto = surface_reflectivity.nrows();
 
-    chk_if_in_range("surface_reflectivity's stokes_dim", ref_sto, 1, 4);
+    chk_if_in_range("surface_reflectivity's 4", ref_sto, 1, 4);
     ARTS_USER_ERROR_IF (ref_sto != surface_reflectivity.ncols(),
       "The number of rows and columnss in *surface_reflectivity*\n"
       "must match each other.")
@@ -241,21 +240,21 @@ void get_rt4surf_props(  // Output
 
     // surface reflectivity
     if (surface_reflectivity.npages() == f_grid.nelem())
-      if (ref_sto < stokes_dim)
+      if (ref_sto < 4)
         ground_reflec(joker, Range(0, ref_sto), Range(0, ref_sto)) =
             surface_reflectivity;
       else
         ground_reflec = surface_reflectivity(
-            joker, Range(0, stokes_dim), Range(0, stokes_dim));
+            joker, Range(0, 4), Range(0, 4));
     else if (surface_reflectivity.npages() == 1)
-      if (ref_sto < stokes_dim)
+      if (ref_sto < 4)
         for (Index f_index = 0; f_index < nf; f_index++)
           ground_reflec(f_index, Range(0, ref_sto), Range(0, ref_sto)) +=
               surface_reflectivity(0, joker, joker);
       else
         for (Index f_index = 0; f_index < nf; f_index++)
           ground_reflec(f_index, joker, joker) += surface_reflectivity(
-              0, Range(0, stokes_dim), Range(0, stokes_dim));
+              0, Range(0, 4), Range(0, 4));
     else {
       ARTS_USER_ERROR (
         "For specular surface reflection, the number of elements in\n"
@@ -297,7 +296,7 @@ void run_rt4(Workspace& ws,
              const ArrayOfArrayOfSpeciesTag& abs_species,
              const Agenda& propmat_clearsky_agenda,
              const ArrayOfIndex& cloudbox_limits,
-             const Index& stokes_dim,
+             
              const Index& nummu,
              const Index& nhza,
              const String& ground_type,
@@ -358,7 +357,7 @@ Matrix vmr_profiles;
   //  FIXME: so far hard-coded to cosmic background. However, change that to set
   //  according to/from space_agenda.
   // to do so, we need to hand over sky_radiance instead of sky_temp as
-  // Tensor3(2,stokes_dim,nummu) per frequency. That is, for properly using
+  // Tensor3(2,4,nummu) per frequency. That is, for properly using
   // iy_space_agenda, we need to recall the agenda over the stream angles (not
   // sure what to do with the upwelling ones. according to the RT4-internal
   // sizing, sky_radiance contains even those. but they might not be used
@@ -383,10 +382,10 @@ Matrix vmr_profiles;
   Vector scatlayers(num_layers, 0.);
   Vector gas_extinct(num_layers, 0.);
   Tensor6 scatter_matrix(
-      num_scatlayers, 4, nummu, stokes_dim, nummu, stokes_dim, 0.);
+      num_scatlayers, 4, nummu, 4, nummu, 4, 0.);
   Tensor6 extinct_matrix(
-      1, num_scatlayers, 2, nummu, stokes_dim, stokes_dim, 0.);
-  Tensor5 emis_vector(1, num_scatlayers, 2, nummu, stokes_dim, 0.);
+      1, num_scatlayers, 2, nummu, 4, 4, 0.);
+  Tensor5 emis_vector(1, num_scatlayers, 2, nummu, 4, 0.);
 
   // if there is no scatt particle at all, we don't need to calculate the
   // scat properties (FIXME: that should rather be done by a proper setting
@@ -401,16 +400,16 @@ Matrix vmr_profiles;
   }
 
   // Output variables
-  Tensor3 up_rad(num_layers + 1, nummu, stokes_dim, 0.);
-  Tensor3 down_rad(num_layers + 1, nummu, stokes_dim, 0.);
+  Tensor3 up_rad(num_layers + 1, nummu, 4, 0.);
+  Tensor3 down_rad(num_layers + 1, nummu, 4, 0.);
 
   Tensor6 extinct_matrix_allf;
   Tensor5 emis_vector_allf;
   if (!auto_inc_nstreams) {
     extinct_matrix_allf.resize(
-        f_grid.nelem(), num_scatlayers, 2, nummu, stokes_dim, stokes_dim);
+        f_grid.nelem(), num_scatlayers, 2, nummu, 4, 4);
     emis_vector_allf.resize(
-        f_grid.nelem(), num_scatlayers, 2, nummu, stokes_dim);
+        f_grid.nelem(), num_scatlayers, 2, nummu, 4);
     par_optpropCalc(emis_vector_allf,
                     extinct_matrix_allf,
                     //scatlayers,
@@ -419,8 +418,7 @@ Matrix vmr_profiles;
                     -1,
                     pnd,
                     t,
-                    cboxlims,
-                    stokes_dim);
+                    cboxlims);
     if (emis_vector_allf.nshelves() == 1)  // scat_data had just a single freq
                                            // point. copy into emis/ext here and
                                            // don't touch anymore later on.
@@ -490,8 +488,7 @@ Matrix vmr_profiles;
                           f_index,
                           pnd,
                           t[Range(0, num_layers + 1)],
-                          cboxlims,
-                          stokes_dim);
+                          cboxlims);
         }
         sca_optpropCalc(scatter_matrix,
                         pfct_failed,
@@ -500,7 +497,6 @@ Matrix vmr_profiles;
                         f_index,
                         scat_data,
                         pnd,
-                        stokes_dim,
                         za_grid,
                         quad_weights,
                         pfct_method,
@@ -516,7 +512,7 @@ Matrix vmr_profiles;
 #pragma omp critical(fortran_rt4)
       {
         // Call RT4
-        radtrano_(stokes_dim,
+        radtrano_(4,
                   nummu,
                   nhza,
                   max_delta_tau,
@@ -577,9 +573,9 @@ Matrix vmr_profiles;
 
         //   - resize & recalculate emis_vector, extinct_matrix (as input to scatter_matrix calc)
         extinct_matrix_new.resize(
-            1, num_scatlayers, 2, nummu_new, stokes_dim, stokes_dim);
+            1, num_scatlayers, 2, nummu_new, 4, 4);
         extinct_matrix_new = 0.;
-        emis_vector_new.resize(1, num_scatlayers, 2, nummu_new, stokes_dim);
+        emis_vector_new.resize(1, num_scatlayers, 2, nummu_new, 4);
         emis_vector_new = 0.;
         // FIXME: So far, outside-of-freq-loop calculated optprops will fall
         // back to in-loop-calculated ones in case of auto-increasing stream
@@ -597,12 +593,11 @@ Matrix vmr_profiles;
                         f_index,
                         pnd,
                         t[Range(0, num_layers + 1)],
-                        cboxlims,
-                        stokes_dim);
+                        cboxlims);
 
         //   - resize & recalc scatter_matrix
         scatter_matrix_new.resize(
-            num_scatlayers, 4, nummu_new, stokes_dim, nummu_new, stokes_dim);
+            num_scatlayers, 4, nummu_new, 4, nummu_new, 4);
         scatter_matrix_new = 0.;
         pfct_failed = 0;
         sca_optpropCalc(
@@ -613,7 +608,6 @@ Matrix vmr_profiles;
             f_index,
             scat_data,
             pnd,
-            stokes_dim,
             za_grid,
             quad_weights_new,
             pfct_method,
@@ -649,7 +643,6 @@ Matrix vmr_profiles;
             f_index,
             scat_data,
             pnd,
-            stokes_dim,
             za_grid,
             quad_weights_new,
             pfct_method,
@@ -662,8 +655,8 @@ Matrix vmr_profiles;
       //   - in case of surface_rtprop_agenda driven surface: surfreflmat, surfemisvec
       if (ground_type == "A")  // surface_rtprop_agenda driven surface
       {
-        Tensor5 srm_new(1, nummu_new, stokes_dim, nummu_new, stokes_dim, 0.);
-        Tensor3 sev_new(1, nummu_new, stokes_dim, 0.);
+        Tensor5 srm_new(1, nummu_new, 4, nummu_new, 4, 0.);
+        Tensor3 sev_new(1, nummu_new, 4, 0.);
         surf_optpropCalc(ws,
                          srm_new,
                          sev_new,
@@ -672,20 +665,19 @@ Matrix vmr_profiles;
                          za_grid,
                          mu_values_new,
                          quad_weights_new,
-                         stokes_dim,
                          surf_altitude);
         surfreflmat_new = srm_new(0, joker, joker, joker, joker);
         surfemisvec_new = sev_new(0, joker, joker);
       }
       //   - up/down_rad (resize only)
-      Tensor3 up_rad_new(num_layers + 1, nummu_new, stokes_dim, 0.);
-      Tensor3 down_rad_new(num_layers + 1, nummu_new, stokes_dim, 0.);
+      Tensor3 up_rad_new(num_layers + 1, nummu_new, 4, 0.);
+      Tensor3 down_rad_new(num_layers + 1, nummu_new, 4, 0.);
       //
       // run radtrano_
 #pragma omp critical(fortran_rt4)
       {
         // Call RT4
-        radtrano_(stokes_dim,
+        radtrano_(4,
                   nummu_new,
                   nhza,
                   max_delta_tau,
@@ -724,7 +716,7 @@ Matrix vmr_profiles;
       //   - loop over nummu:
       //     - determine weights per ummu ang (should be valid for both up and
       //       down)
-      //     - loop over num_layers and stokes_dim:
+      //     - loop over num_layers and 4:
       //       - apply weights
       for (Index j = 0; j < nummu; j++) {
         const LagrangeInterpolation lag_za(0,
@@ -734,7 +726,7 @@ Matrix vmr_profiles;
         const auto itw = interpweights(lag_za);
 
         for (Index k = 0; k < num_layers + 1; k++)
-          for (Index ist = 0; ist < stokes_dim; ist++) {
+          for (Index ist = 0; ist < 4; ist++) {
             up_rad(k, j, ist) = interp(up_rad_new(k, joker, ist), itw, lag_za);
             down_rad(k, j, ist) = interp(down_rad_new(k, joker, ist), itw, lag_za);
           }
@@ -765,7 +757,7 @@ Matrix vmr_profiles;
     // We need to resort them properly into cloudbox_field, such that order is
     // from 0 to 180deg.
     for (Index j = 0; j < nummu; j++) {
-      for (Index ist = 0; ist < stokes_dim; ist++) {
+      for (Index ist = 0; ist < 4; ist++) {
         for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
           cloudbox_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
               up_rad(num_layers - k, j, ist) * rad_l2f;
@@ -817,7 +809,7 @@ void gas_optpropCalc(Workspace& ws,
   // Local variables to be used in agendas
   Numeric rtp_temperature_local;
   Numeric rtp_pressure_local;
-  PropagationMatrix propmat_clearsky_local;
+  PropmatVector propmat_clearsky_local;
   Vector rtp_vmr_local(vmr_profiles.nrows());
 
   // Calculate layer averaged gaseous extinction
@@ -833,10 +825,10 @@ void gas_optpropCalc(Workspace& ws,
     const Vector ppath_los_dummy;
 
     //FIXME: do this right?
-    StokesVector nlte_dummy;
+    StokvecVector nlte_dummy;
     // This is right since there should be only clearsky partials
-    ArrayOfPropagationMatrix partial_dummy;
-    ArrayOfStokesVector partial_nlte_dummy;
+    PropmatMatrix partial_dummy;
+    StokvecMatrix partial_nlte_dummy;
     propmat_clearsky_agendaExecute(ws,
                                    propmat_clearsky_local,
                                    nlte_dummy,
@@ -850,8 +842,8 @@ void gas_optpropCalc(Workspace& ws,
                                    propmat_clearsky_agenda);
 
     //Assuming non-polarized light and only one frequency
-    if (propmat_clearsky_local.NumberOfFrequencies()) {
-      gas_extinct[Np - 2 - i] += propmat_clearsky_local.Kjj()[0];
+    if (propmat_clearsky_local.nelem()) {
+      gas_extinct[Np - 2 - i] += propmat_clearsky_local[0].A();
     }
   }
 }
@@ -864,8 +856,7 @@ void par_optpropCalc(Tensor5View emis_vector,
                      const Index& f_index,
                      ConstMatrixView pnd_profiles,
                      ConstVectorView t_profile,
-                     const ArrayOfIndex& cloudbox_limits,
-                     const Index& stokes_dim) {
+                     const ArrayOfIndex& cloudbox_limits) {
   // Initialization
   extinct_matrix = 0.;
   emis_vector = 0.;
@@ -898,7 +889,6 @@ void par_optpropCalc(Tensor5View emis_vector,
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      stokes_dim,
                       T_array,
                       dir_array,
                       f_index);
@@ -922,8 +912,8 @@ void par_optpropCalc(Tensor5View emis_vector,
   for (Index ipc = 0; ipc < Np_cloud - 1; ipc++) {
     for (Index fi = 0; fi < abs_vec_bulk.nbooks(); fi++) {
       for (Index imu = 0; imu < nummu; imu++) {
-        for (Index ist1 = 0; ist1 < stokes_dim; ist1++) {
-          for (Index ist2 = 0; ist2 < stokes_dim; ist2++) {
+        for (Index ist1 = 0; ist1 < 4; ist1++) {
+          for (Index ist2 = 0; ist2 < 4; ist2++) {
             extinct_matrix(fi, ipc, 0, imu, ist2, ist1) =
                 .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
                       ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
@@ -952,7 +942,7 @@ void sca_optpropCalc(  //Output
     const Index& f_index,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstMatrixView pnd_profiles,
-    const Index& stokes_dim,
+    
     const Vector& za_grid,
     ConstVectorView quad_weights,
     const String& pfct_method,
@@ -997,7 +987,7 @@ void sca_optpropCalc(  //Output
   nlinspace(aa_grid, 0, 180, pfct_aa_grid_size);
 
   Index i_se_flat = 0;
-  Tensor5 sca_mat(N_se, nza_rt, nza_rt, stokes_dim, stokes_dim, 0.);
+  Tensor5 sca_mat(N_se, nza_rt, nza_rt, 4, 4, 0.);
   Matrix ext_fixT_spt(N_se, nza_rt, 0.), abs_fixT_spt(N_se, nza_rt, 0.);
 
   // Precalculate azimuth integration weights for totally randomly oriented
@@ -1028,10 +1018,10 @@ void sca_optpropCalc(  //Output
       }
 
       if (ssd.ptype == PTYPE_TOTAL_RND) {
-        Matrix pha_mat(stokes_dim, stokes_dim, 0.);
+        Matrix pha_mat(4, 4, 0.);
         for (Index iza = 0; iza < nza_rt; iza++) {
           for (Index sza = 0; sza < nza_rt; sza++) {
-            Matrix pha_mat_int(stokes_dim, stokes_dim, 0.);
+            Matrix pha_mat_int(4, 4, 0.);
             for (Index saa = 0; saa < pfct_aa_grid_size; saa++) {
               pha_matTransform(
                   pha_mat(joker, joker),
@@ -1063,7 +1053,7 @@ void sca_optpropCalc(  //Output
       } else if (ssd.ptype == PTYPE_AZIMUTH_RND) {
         Index nza_se = ssd.za_grid.nelem();
         Index naa_se = ssd.aa_grid.nelem();
-        Tensor4 pha_mat_int(nza_se, nza_se, stokes_dim, stokes_dim, 0.);
+        Tensor4 pha_mat_int(nza_se, nza_se, 4, 4, 0.);
         ConstVectorView za_datagrid = ssd.za_grid;
         ConstVectorView aa_datagrid = ssd.aa_grid;
         ARTS_ASSERT(aa_datagrid[0] == 0.);
@@ -1088,8 +1078,8 @@ void sca_optpropCalc(  //Output
         for (Index iza = 0; iza < nza_se; iza++)
           for (Index sza = 0; sza < nza_se; sza++) {
             for (Index saa = 0; saa < naa_se; saa++) {
-              for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
-                for (Index ist2 = 0; ist2 < stokes_dim; ist2++)
+              for (Index ist1 = 0; ist1 < 4; ist1++)
+                for (Index ist2 = 0; ist2 < 4; ist2++)
                   pha_mat_int(sza, iza, ist1, ist2) +=
                       daa[saa] * ssd.pha_mat_data(this_f_index,
                                                   i_pfct,
@@ -1108,7 +1098,7 @@ void sca_optpropCalc(  //Output
             GridPos za_sca_gp;
             GridPos za_inc_gp;
             Vector itw(4);
-            Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
+            Matrix pha_mat_lab(4, 4, 0.);
             Numeric za_sca = za_grid[sza];
             Numeric za_inc = za_grid[iza];
 
@@ -1116,8 +1106,8 @@ void sca_optpropCalc(  //Output
             gridpos(za_sca_gp, za_datagrid, za_sca);
             interpweights(itw, za_sca_gp, za_inc_gp);
 
-            for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
-              for (Index ist2 = 0; ist2 < stokes_dim; ist2++) {
+            for (Index ist1 = 0; ist1 < 4; ist1++)
+              for (Index ist2 = 0; ist2 < 4; ist2++) {
                 pha_mat_lab(ist1, ist2) =
                     interp(itw,
                            pha_mat_int(Range(joker), Range(joker), ist1, ist2),
@@ -1165,9 +1155,9 @@ void sca_optpropCalc(  //Output
           //if ( (extinct_matrix(scat_p_index_local,0,iza,0,0)+
           //      extinct_matrix(scat_p_index_local,1,iza,0,0)) > 0. )
           for (Index sza = 0; sza < nummu; sza++) {
-            for (Index ist1 = 0; ist1 < stokes_dim; ist1++)
-              for (Index ist2 = 0; ist2 < stokes_dim; ist2++) {
-                // we can't use stokes_dim jokers here since '*' doesn't
+            for (Index ist1 = 0; ist1 < 4; ist1++)
+              for (Index ist2 = 0; ist2 < 4; ist2++) {
+                // we can't use 4 jokers here since '*' doesn't
                 // exist for Num*MatView. Also, order of stokes matrix
                 // dimensions is inverted here (aka scat matrix is
                 // transposed).
@@ -1301,7 +1291,7 @@ void surf_optpropCalc(Workspace& ws,
                       ConstVectorView za_grid,
                       ConstVectorView mu_values,
                       ConstVectorView quad_weights,
-                      const Index& stokes_dim,
+                      
                       const Numeric& surf_alt) {
   // While proprietary RT4 - from the input/user control side - handles only
   // Lambertian and Fresnel, the Doubling&Adding solver core applies a surface
@@ -1345,7 +1335,7 @@ void surf_optpropCalc(Workspace& ws,
   const String B_unit = "R";
 
   // Local input of surface_rtprop_agenda.
-  Vector rtp_pos(1, surf_alt);  //atmosphere_dim is 1
+  Vector rtp_pos{surf_alt, 0, 0};
 
   for (Index rmu = 0; rmu < nummu; rmu++) {
     // Local output of surface_rtprop_agenda.
@@ -1453,8 +1443,8 @@ void surf_optpropCalc(Workspace& ws,
           // python, we can't do the whole tensor at once, but need to
           // loop over the dimensions.
           for (Index f_index = 0; f_index < nf; f_index++)
-            for (Index sto1 = 0; sto1 < stokes_dim; sto1++)
-              for (Index sto2 = 0; sto2 < stokes_dim; sto2++)
+            for (Index sto1 = 0; sto1 < 4; sto1++)
+              for (Index sto2 = 0; sto2 < 4; sto2++)
                 surf_refl_mat(f_index, imu, sto2, rmu, sto1) = interp(
                     itw, surface_rmatrix(joker, f_index, sto1, sto2), gp_za);
           // Apply new angle range weights - as this is for RT4, we apply
@@ -1479,8 +1469,8 @@ void surf_optpropCalc(Workspace& ws,
       // check that, and if so, sort values into refmat(rmu,rmu).
       ARTS_ASSERT(is_same_within_epsilon(surface_los(0, 0), za_grid[rmu], 1e-12));
       for (Index f_index = 0; f_index < nf; f_index++)
-        for (Index sto1 = 0; sto1 < stokes_dim; sto1++)
-          for (Index sto2 = 0; sto2 < stokes_dim; sto2++)
+        for (Index sto1 = 0; sto1 < 4; sto1++)
+          for (Index sto2 = 0; sto2 < 4; sto2++)
             surf_refl_mat(f_index, rmu, sto2, rmu, sto1) =
                 surface_rmatrix(0, f_index, sto1, sto2);
     }

@@ -13,15 +13,16 @@
 #include "absorptionlines.h"
 #include "arts.h"
 #include "debug.h"
-#include "propagationmatrix.h"
 #include "species_tags.h"
 #include "tokval.h"
-#include "transmissionmatrix.h"
 #include "workspace_ng.h"
 #include "xml_io.h"
+#include "xml_io_array_macro.h"
 #include "xml_io_arts_types.h"
 #include <stdexcept>
 #include <type_traits>
+
+#include <rtepack.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -408,136 +409,42 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//! Both T and T{}[0] are ARTS groups exposed to the user if this is true
-template <typename T>
-concept array_of_group = ArtsType<T> and ArtsType<decltype(T{}[0])>;
-
-template <array_of_group T>
-void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
-  const static String subtype =
-      WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
-
-  ArtsXMLTag tag;
-  Index nelem;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("Array");
-  tag.check_attribute("type", subtype);
-
-  tag.get_attribute_value("nelem", nelem);
-  at.resize(nelem);
-
-  Index n;
-  try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, at[n], pbifs);
-  } catch (const std::runtime_error &e) {
-    ostringstream os;
-    os << "Error reading "
-       << WorkspaceGroupNameValue<std::remove_cvref_t<T>> << ": "
-       << "\n Element: " << n << "\n"
-       << e.what();
-    throw runtime_error(os.str());
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/Array");
-} catch (std::runtime_error &e) {
-  throw std::runtime_error(
-      var_string("Failed reading routine for ",
-                 WorkspaceGroupNameValue<std::remove_cvref_t<T>>,
-                 "\nError reads:\n", e.what()));
-}
-
-template <array_of_group T>
-void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
-               const String &name) try {
-  const static String subtype =
-      WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
-
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("Array");
-  if (name.length())
-    open_tag.add_attribute("name", name);
-
-  open_tag.add_attribute("type", subtype);
-  open_tag.add_attribute("nelem", at.nelem());
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  for (Index n = 0; n < at.nelem(); n++)
-    xml_write_to_stream(os_xml, at[n], pbofs, "");
-
-  close_tag.set_name("/Array");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-} catch (std::runtime_error &e) {
-  throw std::runtime_error(
-      var_string("Failed saving routine for ",
-                 WorkspaceGroupNameValue<std::remove_cvref_t<T>>,
-                 "\nError reads:\n", e.what()));
-}
-
-//! Helper macro for when both Array<T> and T are ARTS groups
-#define TMPL_XML_READ_WRITE_STREAM(T)                                          \
-  void xml_read_from_stream(istream &is_xml, T &at, bifstream *pbifs) {        \
-    xml_read(is_xml, at, pbifs);                                               \
-  }                                                                            \
-                                                                               \
-  void xml_write_to_stream(ostream &os_xml, const T &at, bofstream *pbofs,     \
-                           const String &name) {                               \
-    xml_write(os_xml, at, pbofs, name);                                        \
-  }
-
-TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionLines)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfAbsorptionLines)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfTransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField1)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField2)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField3)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfIndex)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropagationMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfRadiationVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfScatteringMetaData)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSingleScatteringData)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSpeciesTag)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokesVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfString)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTensor3)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTensor6)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTime)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfTransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfAtmPoint)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfCIARecord)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField1)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField2)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField3)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField4)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfIndex)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfJacobianTarget)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPpath)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfRadiationVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfSparse)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfStokesVector)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor3)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor4)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor5)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfTransmissionMatrix)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAbsorptionLines)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAgenda)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfAbsorptionLines)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField1)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField2)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfGriddedField3)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfIndex)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfMatrix)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfScatteringMetaData)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfSingleScatteringData)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfSpeciesTag)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfString)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfTensor3)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfTensor6)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfTime)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfArrayOfVector)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAtmPoint)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfCIARecord)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField1)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField2)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField3)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField4)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfIndex)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfJacobianTarget)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfMatrix)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPpath)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfQuantumIdentifier)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfScatteringMetaData)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSingleScatteringData)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSparse)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfString)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTelsemAtlas)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor3)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor4)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor5)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor6)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor7)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTime)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector)

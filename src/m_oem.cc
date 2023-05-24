@@ -212,12 +212,11 @@ void xaStandard(Workspace& ws,
                             gp_lat,
                             gp_lon,
                             jacobian_quantities[q],
-                            3,
                             z_grid,
                             lat_grid,
                             lon_grid);
       Tensor3 t_x;
-      regrid_atmfield_by_gp(t_x, 3, t_field, gp_p, gp_lat, gp_lon);
+      regrid_atmfield_by_gp(t_x, t_field, gp_p, gp_lat, gp_lon);
       flat(xa[ind], t_x);
     }
 
@@ -237,13 +236,11 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              3,
                               z_grid,
                               lat_grid,
                               lon_grid);
         Tensor3 vmr_x;
         regrid_atmfield_by_gp(vmr_x,
-                              3,
                               vmr_field(isp, joker, joker, joker),
                               gp_p,
                               gp_lat,
@@ -255,7 +252,7 @@ void xaStandard(Workspace& ws,
           // Here we need to also interpolate *t_field*
           Tensor3 t_x;
           regrid_atmfield_by_gp(
-              t_x, 3, t_field, gp_p, gp_lat, gp_lon);
+              t_x, t_field, gp_p, gp_lat, gp_lon);
           // Calculate number density for species (vmr*nd_tot)
           Index i = 0;
           for (Index i3 = 0; i3 < vmr_x.ncols(); i3++) {
@@ -273,7 +270,7 @@ void xaStandard(Workspace& ws,
           // Here we need to also interpolate *t_field*
           Tensor3 t_x;
           regrid_atmfield_by_gp(
-              t_x, 3, t_field, gp_p, gp_lat, gp_lon);
+              t_x, t_field, gp_p, gp_lat, gp_lon);
           Tensor3 water_p_eq;
           water_p_eq_agendaExecute(ws, water_p_eq, atm_field, water_p_eq_agenda);
           // Calculate relative humidity (vmr*p/p_sat)
@@ -336,14 +333,12 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              3,
                               z_grid,
                               lat_grid,
                               lon_grid);
         Tensor3 pbp_x;   // FIXME: REQUIRES REGULAR GRIDS
   ARTS_USER_ERROR("ERROR")
      /*   regrid_atmfield_by_gp(pbp_x,
-                              3,
                               atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<const Tensor3&>(),
                               gp_p,
                               gp_lat,
@@ -371,14 +366,13 @@ void xaStandard(Workspace& ws,
                             gp_lat,
                             gp_lon,
                             jacobian_quantities[q],
-                            3,
                             z_grid,
                             lat_grid,
                             lon_grid);
 
       Tensor3 wind_x;
       regrid_atmfield_by_gp(
-          wind_x, 3, source_field, gp_p, gp_lat, gp_lon);
+          wind_x, source_field, gp_p, gp_lat, gp_lon);
       flat(xa[ind], wind_x);
     }
 
@@ -392,7 +386,6 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              3,
                               z_grid,
                               lat_grid,
                               lon_grid);
@@ -428,22 +421,20 @@ void xaStandard(Workspace& ws,
                               gp_lat,
                               gp_lon,
                               jacobian_quantities[q],
-                              3,
                               z_grid,
                               lat_grid,
                               lon_grid);
 
         Tensor3 mag_x;
         regrid_atmfield_by_gp(
-            mag_x, 3, source_field, gp_p, gp_lat, gp_lon);
+            mag_x, source_field, gp_p, gp_lat, gp_lon);
         flat(xa[ind], mag_x);
       }
     }
 
     // Surface
     else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
-      surface_props_check(3,
-                          lat_grid,
+      surface_props_check(lat_grid,
                           lon_grid,
                           surface_field,
                           surface_props_names);
@@ -463,14 +454,12 @@ void xaStandard(Workspace& ws,
       get_gp_atmsurf_to_rq(gp_lat,
                            gp_lon,
                            jacobian_quantities[q],
-                           3,
                            lat_grid,
                            lon_grid);
       Matrix surf_x;
       ARTS_ASSERT(false)
       /* FIXME: HOW TO RETURN DATA TO THE SURFACE FIELD?
       regrid_atmsurf_by_gp_oem(surf_x,
-                               3,
                                surface_props_data(isu, joker, joker),
                                gp_lat,
                                gp_lon);
@@ -576,7 +565,6 @@ void x2artsAtmAndSurf(Workspace& ws,
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            3,
                             z_grid,
                             lat_grid,
                             lon_grid);
@@ -585,7 +573,7 @@ void x2artsAtmAndSurf(Workspace& ws,
       Tensor3 t_x(n_p, n_lat, n_lon);
       reshape(t_x, x_t[ind]);
       regrid_atmfield_by_gp_oem(
-          t_field, 3, t_x, gp_p, gp_lat, gp_lon);
+          t_field, t_x, gp_p, gp_lat, gp_lon);
     }
 
     // Abs species
@@ -607,7 +595,6 @@ void x2artsAtmAndSurf(Workspace& ws,
                               n_lat,
                               n_lon,
                               jacobian_quantities[q].Grids(),
-                              3,
                               z_grid,
                               lat_grid,
                               lon_grid);
@@ -615,7 +602,7 @@ void x2artsAtmAndSurf(Workspace& ws,
         Tensor3 t3_x(n_p, n_lat, n_lon);
         reshape(t3_x, x_t[ind]);
         regrid_atmfield_by_gp_oem(
-            x_field, 3, t3_x, gp_p, gp_lat, gp_lon);
+            x_field, t3_x, gp_p, gp_lat, gp_lon);
       }
       //  // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
@@ -703,7 +690,6 @@ void x2artsAtmAndSurf(Workspace& ws,
                               n_lat,
                               n_lon,
                               jacobian_quantities[q].Grids(),
-                              3,
                               z_grid,
                               lat_grid,
                               lon_grid);
@@ -712,7 +698,7 @@ void x2artsAtmAndSurf(Workspace& ws,
         reshape(pbfield_x, x_t[ind]);
         Tensor3 pbfield;
         regrid_atmfield_by_gp_oem(
-            pbfield, 3, pbfield_x, gp_p, gp_lat, gp_lon);
+            pbfield, pbfield_x, gp_p, gp_lat, gp_lon);
             ARTS_USER_ERROR("ERROR")
        // atm_field[ParticulatePropertyTag{particle_bulkprop_names[isp]}].get<Tensor3&>() = pbfield;
       }
@@ -732,7 +718,6 @@ void x2artsAtmAndSurf(Workspace& ws,
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            3,
                             z_grid,
                             lat_grid,
                             lon_grid);
@@ -751,7 +736,7 @@ Tensor3 wind_u_field, wind_v_field, wind_w_field;
       Tensor3 wind_field(
           target_field.npages(), target_field.nrows(), target_field.ncols());
       regrid_atmfield_by_gp_oem(
-          wind_field, 3, wind_x, gp_p, gp_lat, gp_lon);
+          wind_field, wind_x, gp_p, gp_lat, gp_lon);
 
       if (jacobian_quantities[q] == Jacobian::Atm::WindU) {
         wind_u_field = wind_field;
@@ -776,7 +761,6 @@ Tensor3 wind_u_field, wind_v_field, wind_w_field;
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            3,
                             z_grid,
                             lat_grid,
                             lon_grid);
@@ -794,7 +778,7 @@ Tensor3 mag_u_field, mag_v_field, mag_w_field;
       Tensor3 mag_field(
           target_field.npages(), target_field.nrows(), target_field.ncols());
       regrid_atmfield_by_gp_oem(
-          mag_field, 3, mag_x, gp_p, gp_lat, gp_lon);
+          mag_field, mag_x, gp_p, gp_lat, gp_lon);
       if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
         mag_u_field = mag_field;
       } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
@@ -821,8 +805,7 @@ Tensor3 mag_u_field, mag_v_field, mag_w_field;
     // Surface
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
-      surface_props_check(3,
-                          lat_grid,
+      surface_props_check(lat_grid,
                           lon_grid,
                           surface_field,
                           surface_props_names);
@@ -847,14 +830,13 @@ Tensor3 mag_u_field, mag_v_field, mag_w_field;
                             n_lat,
                             n_lon,
                             jacobian_quantities[q].Grids(),
-                            3,
                             lat_grid,
                             lon_grid);
       // Map values in x back to surface_props_data
       Matrix surf_x(n_lat, n_lon);
       reshape(surf_x, x_t[ind]);
       Matrix surf;
-      regrid_atmsurf_by_gp_oem(surf, 3, surf_x, gp_lat, gp_lon);
+      regrid_atmsurf_by_gp_oem(surf, surf_x, gp_lat, gp_lon);
       //FIXME: HOW TO RETURN DATA TO SURFACE PROPERTIES?
       ARTS_ASSERT(false)
       //surface_props_data(isu, joker, joker) = surf;

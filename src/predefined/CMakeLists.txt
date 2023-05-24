@@ -15,7 +15,7 @@ if (NOT ENABLE_ARTS_LGPL)
     MT_CKD252.cc
     CKDMT350.cc
     MT_CKD400.cc)
-  target_link_libraries(predef_aer PUBLIC matpack)
+  target_link_libraries(predef_aer PUBLIC matpack rtepack)
   target_include_directories(predef_aer PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)
   target_include_directories(predef_aer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 else()
@@ -23,7 +23,7 @@ else()
   target_link_libraries(predef_aer PUBLIC matpack)
 endif()
 
-target_link_libraries(predef PUBLIC matpack Faddeeva predef_aer)
+target_link_libraries(predef PUBLIC matpack rtepack Faddeeva predef_aer)
 target_include_directories(predef PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)
 target_include_directories(predef PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

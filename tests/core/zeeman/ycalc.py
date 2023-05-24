@@ -63,7 +63,7 @@ def surface_rtprop_agenda(arts):
 def iy_space_agenda_cosmic_background(arts):
     arts.Ignore(arts.rtp_pos)
     arts.Ignore(arts.rtp_los)
-    arts.MatrixCBR(arts.iy, arts.stokes_dim, arts.f_grid)
+    arts.MatrixCBR(arts.iy, arts.f_grid)
 arts.Copy(arts.iy_space_agenda, iy_space_agenda_cosmic_background)
 
 @pyarts.workspace.arts_agenda(ws=arts)
@@ -110,7 +110,6 @@ arts.atm_fieldIGRF()
 
 # %% Sensor
 
-arts.stokes_dim = 4
 arts.f_grid = np.linspace(-SPECTROMETER_HW, SPECTROMETER_HW, NF) + CENTRAL_LINE_FREQ
 arts.sensor_pos = np.zeros((NR, 3))
 arts.sensor_pos.value.value[:, 0] = 300e3

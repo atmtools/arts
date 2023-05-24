@@ -616,7 +616,7 @@ void show_plot_controls() {
                        Alt modifier:   Selects the full x-axis
         Double right-click:            Open a menu that allows modifying the plot layout
         Spin mouse scroll-wheel:       Zoom in and out
-        Press the color of the legend: Turn on-and-off the plot line (useful mostly when stokes_dim>1)    
+        Press the color of the legend: Turn on-and-off the plot line
 
     On the x-axis and on the y-axis:
         Same as above but for just the axis, bar the right-click, hold, and drag features

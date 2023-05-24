@@ -17,7 +17,9 @@
 #include "atm.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "debug.h"
 #include "geodetic.h"
+#include "jacobian.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -27,8 +29,10 @@
 #include "ppath.h"
 #include "ppath_struct.h"
 #include "refraction.h"
+#include "rtepack.h"
 #include "special_interp.h"
 #include "species_tags.h"
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -40,54 +44,44 @@ inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
   ===========================================================================*/
 
 void adapt_stepwise_partial_derivatives(
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_line_of_sight,
-    const Index& lte,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do) {
-  if (not jacobian_do) return;
+    PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+    const ConstVectorView &ppath_f_grid,
+    const ConstVectorView &ppath_line_of_sight) {
 
   // All relevant quantities are extracted first
   const Index nq = jacobian_quantities.nelem();
-
-  // Computational temporary vector
-  Vector a;
+  const Index nv = ppath_f_grid.nelem();
+  ARTS_ASSERT(nq == dK_dx.nrows())
+  ARTS_ASSERT(nq == dS_dx.nrows())
+  ARTS_ASSERT(nv == dK_dx.ncols())
+  ARTS_ASSERT(nv == dS_dx.ncols())
 
   for (Index i = 0; i < nq; i++) {
-    if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
+    if (jacobian_quantities[i] == Jacobian::Type::Sensor or
+        jacobian_quantities[i] == Jacobian::Special::SurfaceString)
+      continue;
 
     if (jacobian_quantities[i].is_wind()) {
-      const auto scale = get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, jacobian_quantities[i].Target().atm, atmosphere_dim);
-      dK_dx[i] *= scale;
-      if (not lte) dS_dx[i] *= scale;
+      const auto scale = get_stepwise_f_partials(
+          ppath_line_of_sight, ppath_f_grid,
+          jacobian_quantities[i].Target().atm);
+
+      for (Index iv = 0; iv < nv; ++iv) {
+        dK_dx(i, iv) *= scale[iv];
+        dS_dx(i, iv) *= scale[iv];
+      }
     }
   }
 }
 
-void adjust_los(VectorView los, const Index& atmosphere_dim) {
-  if (atmosphere_dim == 1) {
-    if (los[0] < 0) {
-      los[0] = -los[0];
-    } else if (los[0] > 180) {
-      los[0] = 360 - los[0];
-    }
-  } else if (atmosphere_dim == 2) {
-    if (los[0] < -180) {
-      los[0] = los[0] + 360;
-    } else if (los[0] > 180) {
-      los[0] = los[0] - 360;
-    }
-  } else {
+void adjust_los(VectorView los) {
     // If any of the angles out-of-bounds, use cart2zaaa to resolve
     if (abs(los[0] - 90) > 90 || abs(los[1]) > 180) {
       Numeric dx, dy, dz;
 //      zaaa2cart(dx, dy, dz, los[0], los[1]);
   //    cart2zaaa(los[0], los[1], dx, dy, dz);
     ARTS_USER_ERROR("ERROR")}
-  }
 }
 
 void apply_iy_unit(MatrixView iy,
@@ -283,7 +277,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
     @param[in]    lo0                 Optical path length between transmitter 
                                       and receiver.
     @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    atmosphere_dim      As the WSV with the same name.
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
@@ -304,7 +297,6 @@ void defocusing_general_sub(Workspace& ws,
                             const Agenda& ppath_step_agenda,
                             const Numeric& ppath_lmax,
                             const Numeric& ppath_lraytrace,
-                            const Index& atmosphere_dim,
                             const Vector& p_grid,
                             const Vector& lat_grid,
                             const Vector& lon_grid,
@@ -315,12 +307,9 @@ void defocusing_general_sub(Workspace& ws,
   // Special treatment of 1D around zenith/nadir
   // (zenith angles outside [0,180] are changed by *adjust_los*)
   bool invert_lat = false;
-  if (atmosphere_dim == 1 && (rte_los[0] < 0 || rte_los[0] > 180)) {
-    invert_lat = true;
-  }
 
   // Handle cases where angles have moved out-of-bounds due to disturbance
-  adjust_los(rte_los, atmosphere_dim);
+  adjust_los(rte_los);
 
   // Calculate the ppath for disturbed rte_los
   Ppath ppx;
@@ -328,7 +317,6 @@ void defocusing_general_sub(Workspace& ws,
   // ppath_calc(ws,
   //            ppx,
   //            ppath_step_agenda,
-  //            atmosphere_dim,
   //            p_grid,
   //            lat_grid,
   //            lon_grid,
@@ -356,23 +344,11 @@ void defocusing_general_sub(Workspace& ws,
         lox[i - 1] + ppx.lstep[i - 1] * (ppx.nreal[i - 1] + ppx.nreal[i]) / 2.0;
   }
 
-  pos.resize(max(Index(2), atmosphere_dim));
+  pos.resize(3);
 
   // Reciever at a longer distance (most likely out in space):
   if (lox[ilast] < lo0) {
     const Numeric dl = lo0 - lox[ilast];
-    if (atmosphere_dim < 3) {
-      // Numeric x, z, dx, dz;
-      // poslos2cart(
-      //     x, z, dx, dz, ppx.r[ilast], ppx.pos(ilast, 1), ppx.los(ilast, 0));
-      // cart2pol(pos[0],
-      //          pos[1],
-      //          x + dl * dx,
-      //          z + dl * dz,
-      //          ppx.pos(ilast, 1),
-      //          ppx.los(ilast, 0));
-      ARTS_USER_ERROR("ERROR")
-    } else {
       // Numeric x, y, z, dx, dy, dz;
       // poslos2cart(x,
       //             y,
@@ -396,7 +372,6 @@ void defocusing_general_sub(Workspace& ws,
       //          ppx.los(ilast, 0),
       //          ppx.los(ilast, 1));
       ARTS_USER_ERROR("ERROR")
-    }
   }
 
   // Interpolate to lo0
@@ -408,9 +383,7 @@ void defocusing_general_sub(Workspace& ws,
     //
     pos[0] = interp(itw, ppx.r, gp);
     pos[1] = interp(itw, ppx.pos(joker, 1), gp);
-    if (atmosphere_dim == 3) {
-      pos[2] = interp(itw, ppx.pos(joker, 2), gp);
-    }
+    pos[2] = interp(itw, ppx.pos(joker, 2), gp);
   }
 
   if (invert_lat) {
@@ -421,7 +394,6 @@ void defocusing_general_sub(Workspace& ws,
 void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -441,11 +413,11 @@ void defocusing_general(Workspace& ws,
     lo += ppath.lstep[i] * (ppath.nreal[i] + ppath.nreal[i + 1]) / 2.0;
   }
   // Extract rte_pos and rte_los
-  const Vector rte_pos{ppath.start_pos[Range(0, atmosphere_dim)]};
+  const Vector rte_pos{ppath.start_pos[Range(0, 3)]};
   //
-  Vector rte_los0(max(Index(1), atmosphere_dim - 1)), rte_los;
-  mirror_los(rte_los, ppath.start_los, atmosphere_dim);
-  rte_los0 = rte_los[Range(0, max(Index(1), atmosphere_dim - 1))];
+  Vector rte_los0(2), rte_los;
+  mirror_los(rte_los, ppath.start_los);
+  rte_los0 = rte_los[Range(0, 2)];
 
   // A new ppath with positive zenith angle off-set
   //
@@ -464,7 +436,6 @@ void defocusing_general(Workspace& ws,
                          ppath_step_agenda,
                          ppath_lmax,
                          ppath_lraytrace,
-                         atmosphere_dim,
                          p_grid,
                          lat_grid,
                          lon_grid,
@@ -489,7 +460,6 @@ void defocusing_general(Workspace& ws,
                          ppath_step_agenda,
                          ppath_lmax,
                          ppath_lraytrace,
-                         atmosphere_dim,
                          p_grid,
                          lat_grid,
                          lon_grid,
@@ -502,24 +472,14 @@ void defocusing_general(Workspace& ws,
   // All appears OK:
   if (backg1 == backg2) {
     Numeric l12;
-    if (atmosphere_dim < 3) {
-     // distance2D(l12, pos1[0], pos1[1], pos2[0], pos2[1]);
-    } else {
   //    distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
-    }ARTS_USER_ERROR("ERROR")
+    ARTS_USER_ERROR("ERROR")
     //
     dlf = lp * 2 * Conversion::deg2rad(1) * dza / l12;
   }
   // If different backgrounds, then only use the second calculation
   else {
     Numeric l12;
-    if (atmosphere_dim == 1) {
-      const Numeric r = refellipsoid[0];
-  //    distance2D(l12, r + ppath.end_pos[0], 0, pos2[0], pos2[1]);
-    } else if (atmosphere_dim == 2) {
-      const Numeric r =0;// refell2r(refellipsoid, ppath.end_pos[1]);
-    //  distance2D(l12, r + ppath.end_pos[0], ppath.end_pos[1], pos2[0], pos2[1]);
-    } else {
       // const Numeric r = refell2r(refellipsoid, ppath.end_pos[1]);
       // distance3D(l12,
       //            r + ppath.end_pos[0],
@@ -528,7 +488,6 @@ void defocusing_general(Workspace& ws,
       //            pos2[0],
       //            pos2[1],
       //            pos2[2]);
-    }
     ARTS_USER_ERROR("ERROR")
     //
     dlf = lp * Conversion::deg2rad(1) * dza / l12;
@@ -538,7 +497,6 @@ void defocusing_general(Workspace& ws,
 void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -582,16 +540,15 @@ void defocusing_sat2sat(Workspace& ws,
   // Calculate two new ppaths to get dalpha/da
   Numeric alpha1, a1, alpha2, a2, dada;
   Ppath ppt;
-  Vector rte_pos{ppath.end_pos[Range(0, atmosphere_dim)]};
+  Vector rte_pos{ppath.end_pos[Range(0, 3)]};
   Vector rte_los{ppath.end_los};
   //
   rte_los[0] -= dza;
-  adjust_los(rte_los, atmosphere_dim);
+  adjust_los(rte_los);
 ARTS_USER_ERROR("ERROR")
   // ppath_calc(ws,
   //            ppt,
   //            ppath_step_agenda,
-  //            atmosphere_dim,
   //            p_grid,
   //            lat_grid,
   //            lon_grid,
@@ -611,11 +568,10 @@ ARTS_USER_ERROR("ERROR")
   a2 = ppt.constant;
   //
   rte_los[0] += 2 * dza;
-  adjust_los(rte_los, atmosphere_dim);
+  adjust_los(rte_los);
   // ppath_calc(ws,
   //            ppt,
   //            ppath_step_agenda,
-  //            atmosphere_dim,
   //            p_grid,
   //            lat_grid,
   //            lon_grid,
@@ -655,8 +611,7 @@ ARTS_USER_ERROR("ERROR")
 Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
-                         const Numeric& w,
-                         const Index& atmosphere_dim) {
+                         const Numeric& w) {
   // Strength of field
   const Numeric f = sqrt(u * u + v * v + w * w);
 
@@ -666,7 +621,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
 
   // Zenith and azimuth angle for photon direction (in radians)
   Vector los_p;
-  mirror_los(los_p, los, atmosphere_dim);
+  mirror_los(los_p, los);
   const Numeric za_p = Conversion::deg2rad(1) * los_p[0];
   const Numeric aa_p = Conversion::deg2rad(1) * los_p[1];
 
@@ -725,7 +680,6 @@ void get_iy_of_background(Workspace& ws,
                           const Vector& rte_pos2,
                           const AtmField& atm_field,
                           const Index& cloudbox_on,
-                          const Index& stokes_dim,
                           const Vector& f_grid,
                           const String& iy_unit,
                           const SurfaceField& surface_field,
@@ -739,10 +693,6 @@ void get_iy_of_background(Workspace& ws,
   const Index np = ppath.np;
 
   // Set rtp_pos and rtp_los to match the last point in ppath.
-  //
-  // Note that the Ppath positions (ppath.pos) for 1D have one column more
-  // than expected by most functions. Only the first atmosphere_dim values
-  // shall be copied.
   //
   Vector rtp_pos, rtp_los;
   rtp_pos.resize(3);
@@ -816,10 +766,10 @@ void get_iy_of_background(Workspace& ws,
       ARTS_ASSERT(false, "The background type is not recognised. It is: ", ppath.background);
   }
 
-  ARTS_USER_ERROR_IF (iy.ncols() != stokes_dim || iy.nrows() != nf,
+  ARTS_USER_ERROR_IF (iy.ncols() != 4 || iy.nrows() != nf,
       "The size of *iy* returned from *", agenda_name, "* is\n"
       "not correct:\n"
-      "  expected size = [", nf, ",", stokes_dim, "]\n"
+      "  expected size = [", nf, ",", 4, "]\n"
       "  size of iy    = [", iy.nrows(), ",", iy.ncols(), "]\n")
 }
 
@@ -827,7 +777,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          Matrix& ppath_pnd,
                          ArrayOfMatrix& ppath_dpnd_dx,
                          const Ppath& ppath,
-                         const Index& atmosphere_dim,
                          const ArrayOfIndex& cloudbox_limits,
                          const Tensor4& pnd_field,
                          const ArrayOfTensor4& dpnd_field_dx) {
@@ -856,23 +805,18 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
   Index nin = 0;
   for (Index ip = 0; ip < np; ip++)  // PPath point
   {
-    Matrix itw(1, Index(pow(2.0, Numeric(atmosphere_dim))));
+    Matrix itw(1, 8);
 
     ArrayOfGridPos gpc_p(1), gpc_lat(1), gpc_lon(1);
     GridPos gp_lat, gp_lon;
-    if (atmosphere_dim >= 2) {
       gridpos_copy(gp_lat, ppath.gp_lat[ip]);
-    }
-    if (atmosphere_dim == 3) {
       gridpos_copy(gp_lon, ppath.gp_lon[ip]);
-    }
 
     if (is_gp_inside_cloudbox(ppath.gp_p[ip],
                               gp_lat,
                               gp_lon,
                               cloudbox_limits,
-                              true,
-                              atmosphere_dim)) {
+                              true)) {
       interp_cloudfield_gp2itw(itw(0, joker),
                                gpc_p[0],
                                gpc_lat[0],
@@ -880,11 +824,9 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                                ppath.gp_p[ip],
                                gp_lat,
                                gp_lon,
-                               atmosphere_dim,
                                cloudbox_limits);
       for (Index i = 0; i < pnd_field.nbooks(); i++) {
         interp_atmfield_by_itw(ExhaustiveVectorView{ppath_pnd(i, ip)},
-                               atmosphere_dim,
                                pnd_field(i, joker, joker, joker),
                                gpc_p,
                                gpc_lat,
@@ -901,7 +843,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                  i++)  // Scattering element
             {
               interp_atmfield_by_itw(ExhaustiveVectorView{ppath_dpnd_dx[iq](i, ip)},
-                                     atmosphere_dim,
                                      dpnd_field_dx[iq](i, joker, joker, joker),
                                      gpc_p,
                                      gpc_lat,
@@ -930,7 +871,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
                  const ConstVectorView& f_grid,
-                 const Index& atmosphere_dim,
                  const Numeric& rte_alonglos_v,
                  const ConstMatrixView& ppath_wind) {
   // Sizes
@@ -953,8 +893,7 @@ void get_ppath_f(Matrix& ppath_f,
       v_doppler += dotprod_with_los(ppath.los(ip, joker),
                                     ppath_wind(0, ip),
                                     ppath_wind(1, ip),
-                                    ppath_wind(2, ip),
-                                    atmosphere_dim);
+                                    ppath_wind(2, ip));
     }
 
     // Determine frequency grid
@@ -990,9 +929,32 @@ void get_stepwise_blackbody_radiation(VectorView B, VectorView dB_dT,
         [T = ppath_temperature](auto &&f) { return dplanck_dt(f, T); });
 }
 
+void get_stepwise_blackbody_radiation(
+    Vector &B, Matrix &dB, const Vector &ppath_f_grid,
+    const Numeric &ppath_temperature,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+    const bool j_analytical_do) {
+  B.resize(ppath_f_grid.nelem());
+  std::transform(ppath_f_grid.begin(), ppath_f_grid.end(), B.begin(),
+                 [T = ppath_temperature](auto &&f) { return planck(f, T); });
+
+  if (j_analytical_do) {
+    dB.resize(jacobian_quantities.nelem(), ppath_f_grid.nelem());
+    for (Index i = 0; i < jacobian_quantities.nelem(); ++i) {
+      if (jacobian_quantities[i] == Jacobian::Atm::Temperature) {
+        std::transform(
+            ppath_f_grid.begin(), ppath_f_grid.end(), dB[i].begin(),
+            [T = ppath_temperature](auto &&f) { return dplanck_dt(f, T); });
+      } else {
+        dB[i] = 0.0;
+      }
+    }
+  }
+}
+
 void get_stepwise_clearsky_propmat(
-    Workspace &ws, PropagationMatrix &K, StokesVector &S,
-    ArrayOfPropagationMatrix &dK_dx, ArrayOfStokesVector &dS_dx,
+    Workspace &ws, PropmatVector &K, StokvecVector &S,
+    PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
     const Agenda &propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity &jacobian_quantities,
     const Vector &ppath_f_grid, const Vector &ppath_line_of_sight,
@@ -1007,15 +969,14 @@ void get_stepwise_clearsky_propmat(
       select_abs_species, ppath_f_grid, ppath_line_of_sight, atm_point,
       propmat_clearsky_agenda);
 
-  adapt_stepwise_partial_derivatives(dK_dx, dS_dx, jacobian_quantities,
-                                     ppath_f_grid, ppath_line_of_sight,
-                                     S.allZeroes(), 3, jacobian_do);
+  if (jacobian_do)
+    adapt_stepwise_partial_derivatives(dK_dx, dS_dx, jacobian_quantities,
+                                       ppath_f_grid, ppath_line_of_sight);
 }
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Jacobian::Atm wind_type,
-                               const Index& atmosphere_dim) {
+                               const Jacobian::Atm wind_type) {
   // Doppler relevant velocity
   Numeric dv_doppler_dx = 0.0;
   
@@ -1027,15 +988,15 @@ Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
       break;
     case Jacobian::Atm::WindU:
       dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 1, 0, 0, atmosphere_dim));
+          (dotprod_with_los(line_of_sight, 1, 0, 0));
       break;
     case Jacobian::Atm::WindV:
       dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 1, 0, atmosphere_dim));
+          (dotprod_with_los(line_of_sight, 0, 1, 0));
       break;
     case Jacobian::Atm::WindW:
       dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
+          (dotprod_with_los(line_of_sight, 0, 0, 1));
       break;
     default:
       ARTS_ASSERT(false, "Not allowed to call this function without a wind parameter as wind_type");
@@ -1047,10 +1008,10 @@ Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
 }
 
 void get_stepwise_scattersky_propmat(
-    StokesVector& ap,
-    PropagationMatrix& Kp,
-    ArrayOfStokesVector& dap_dx,
-    ArrayOfPropagationMatrix& dKp_dx,
+    StokvecVector& ap,
+    PropmatVector& Kp,
+    StokvecMatrix& dap_dx,
+    PropmatMatrix& dKp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstMatrixView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
@@ -1059,19 +1020,15 @@ void get_stepwise_scattersky_propmat(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const ConstVectorView& ppath_line_of_sight,
     const ConstVectorView& ppath_temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do) {
-  const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
-
-  //StokesVector da_aux(nf, stokes_dim);
-  //PropagationMatrix dK_aux(nf, stokes_dim);
+  const Index nf = Kp.nelem();
 
   ArrayOfArrayOfSingleScatteringData scat_data_mono;
 
   // Direction of outgoing scattered radiation (which is reversed to
   // LOS). Only used for extracting scattering properties.
   Vector dir;
-  mirror_los(dir, ppath_line_of_sight, atmosphere_dim);
+  mirror_los(dir, ppath_line_of_sight);
   Matrix dir_array(1, 2, 0.);
   dir_array(0, joker) = dir;
 
@@ -1094,7 +1051,6 @@ void get_stepwise_scattersky_propmat(
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      stokes_dim,
                       Vector{ppath_temperature},
                       dir_array,
                       -1);
@@ -1119,20 +1075,15 @@ void get_stepwise_scattersky_propmat(
                                                // duplicate the ext/abs output.
 
   for (Index iv = 0; iv < nf; iv++) {
-    if (nf_ssd > 1) {
-      ap.SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
-      Kp.SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker), iv);
-    } else {
-      ap.SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
-      Kp.SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
-    }
+    ap[iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
+    Kp[iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
   }
 
   if (jacobian_do)
     FOR_ANALYTICAL_JACOBIANS_DO(
         if (ppath_dpnd_dx[iq].empty()) {
-          dap_dx[iq].SetZero();
-          dKp_dx[iq].SetZero();
+          dap_dx[iq] = 0.0;
+          dKp_dx[iq] = 0.0;
         } else {
           // check, whether we have any non-zero ppath_dpnd_dx in this
           // pnd-affecting x? might speed up things a little bit.
@@ -1151,21 +1102,15 @@ void get_stepwise_scattersky_propmat(
                         abs_vec_ssbulk,
                         ptype_ssbulk);
           for (Index iv = 0; iv < nf; iv++) {
-            if (nf_ssd > 1) {
-              dap_dx[iq].SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
-              dKp_dx[iq].SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker),
-                                       iv);
-            } else {
-              dap_dx[iq].SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
-              dKp_dx[iq].SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
-            }
+              dap_dx[iq][iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
+              dKp_dx[iq][iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
           }
         })
 }
 
 void get_stepwise_scattersky_source(
-    StokesVector& Sp,
-    ArrayOfStokesVector& dSp_dx,
+    StokvecVector& Sp,
+    StokvecMatrix& dSp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
@@ -1178,14 +1123,11 @@ void get_stepwise_scattersky_source(
     const ConstMatrixView& ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do,
     const Index& t_interp_order) {
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
-                      "This function handles so far only 1D atmospheres.");
+  ARTS_USER_ERROR ("This function handles so far only 1D atmospheres.");
 
-  const Index nf = Sp.NumberOfFrequencies();
-  const Index stokes_dim = Sp.StokesDimensions();
+  const Index nf = Sp.nelem();
   const Index ne = ppath_1p_pnd.nelem();
   ARTS_ASSERT(TotalNumberOfElements(scat_data) == ne);
   const Index nza = za_grid.nelem();
@@ -1198,10 +1140,10 @@ void get_stepwise_scattersky_source(
   gridpos_copy(gp_p, ppath_pressure);
   Vector itw_p(2);
   interpweights(itw_p, gp_p);
-  Tensor3 inc_field(nf, nza, stokes_dim, 0.);
+  Tensor3 inc_field(nf, nza, 4, 0.);
   for (Index iv = 0; iv < nf; iv++) {
     for (Index iza = 0; iza < nza; iza++) {
-      for (Index i = 0; i < stokes_dim; i++) {
+      for (Index i = 0; i < 4; i++) {
         inc_field(iv, iza, i) =
             interp(itw_p, cloudbox_field(iv, joker, 0, 0, iza, 0, i), gp_p);
       }
@@ -1233,10 +1175,10 @@ void get_stepwise_scattersky_source(
   // some further variables needed for pha_mat extraction
   Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
   Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
-  Tensor6 pha_mat_1se(nf_ssd, 1, 1, nza * naa, stokes_dim, stokes_dim);
+  Tensor6 pha_mat_1se(nf_ssd, 1, 1, nza * naa, 4, 4);
   Vector t_ok(1);
   Index ptype;
-  Tensor3 scat_source_1se(ne, nf, stokes_dim, 0.);
+  Tensor3 scat_source_1se(ne, nf, 4, 0.);
 
   Index ise_flat = 0;
   for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
@@ -1276,13 +1218,13 @@ void get_stepwise_scattersky_source(
           if (!duplicate_freqs) {
             this_iv = iv;
           }
-          Tensor3 product_fields(nza, naa, stokes_dim, 0.);
+          Tensor3 product_fields(nza, naa, 4, 0.);
 
           ia = 0;
           for (Index iza = 0; iza < nza; iza++) {
             for (Index iaa = 0; iaa < naa; iaa++) {
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
+              for (Index i = 0; i < 4; i++) {
+                for (Index j = 0; j < 4; j++) {
                   product_fields(iza, iaa, i) +=
                       pha_mat_1se(this_iv, 0, 0, ia, i, j) *
                       inc_field(iv, iza, j);
@@ -1292,7 +1234,7 @@ void get_stepwise_scattersky_source(
             }
           }
 
-          for (Index i = 0; i < stokes_dim; i++) {
+          for (Index i = 0; i < 4; i++) {
             scat_source_1se(ise_flat, iv, i) = AngIntegrate_trapezoid(
                 product_fields(joker, joker, i), za_grid, aa_grid);
           }
@@ -1305,25 +1247,25 @@ void get_stepwise_scattersky_source(
   }    // for i_ss
 
   for (Index iv = 0; iv < nf; iv++) {
-    Vector scat_source(stokes_dim, 0.);
+    Vector scat_source(4, 0.);
     for (ise_flat = 0; ise_flat < ne; ise_flat++) {
-      for (Index i = 0; i < stokes_dim; i++) {
+      for (Index i = 0; i < 4; i++) {
         scat_source[i] +=
             scat_source_1se(ise_flat, iv, i) * ppath_1p_pnd[ise_flat];
       }
     }
 
-    Sp.SetAtPosition(scat_source, iv);
+    Sp[iv] = Stokvec{scat_source};
 
     if (jacobian_do) {
       FOR_ANALYTICAL_JACOBIANS_DO(
-          if (ppath_dpnd_dx[iq].empty()) { dSp_dx[iq].SetZero(); } else {
+          if (ppath_dpnd_dx[iq].empty()) { dSp_dx[iq] = 0.0; } else {
             scat_source = 0.;
             for (ise_flat = 0; ise_flat < ne; ise_flat++) {
-              for (Index i = 0; i < stokes_dim; i++) {
+              for (Index i = 0; i < 4; i++) {
                 scat_source[i] += scat_source_1se(ise_flat, iv, i) *
                                   ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
-                dSp_dx[iq].SetAtPosition(scat_source, iv);
+                dSp_dx[iq][iv] = Stokvec{scat_source};
               }
             }
           })
@@ -1342,7 +1284,6 @@ void iyb_calc_body(bool& failed,
                    const Index& mblock_index,
                    const AtmField& atm_field,
                    const Index& cloudbox_on,
-                   const Index& stokes_dim,
                    const Matrix& sensor_pos,
                    const Matrix& sensor_los,
                    const Matrix& transmitter_pos,
@@ -1356,8 +1297,6 @@ void iyb_calc_body(bool& failed,
                    const ArrayOfString& iy_aux_vars,
                    const Index& ilos,
                    const Index& nf) {
-constexpr Index atmosphere_dim = 3;
-
   // The try block here is necessary to correctly handle
   // exceptions inside the parallel region.
   try {
@@ -1368,7 +1307,7 @@ constexpr Index atmosphere_dim = 3;
     los = sensor_los(mblock_index, joker);
     if (mblock_dlos.ncols() == 1) {
       los[0] += mblock_dlos(ilos, 0);
-      adjust_los(los, atmosphere_dim);
+      adjust_los(los);
     } else {
       // add_za_aa(los[0],
       //           los[1],
@@ -1419,7 +1358,7 @@ constexpr Index atmosphere_dim = 3;
 
     // Start row in iyb etc. for present LOS
     //
-    const Index row0 = ilos * nf * stokes_dim;
+    const Index row0 = ilos * nf * 4;
 
     // Jacobian part
     //
@@ -1428,16 +1367,16 @@ constexpr Index atmosphere_dim = 3;
           for (Index ip = 0;
                ip < jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1;
                ip++) {
-            for (Index is = 0; is < stokes_dim; is++) {
-              diyb_dx[iq](Range(row0 + is, nf, stokes_dim), ip) =
+            for (Index is = 0; is < 4; is++) {
+              diyb_dx[iq](Range(row0 + is, nf, 4), ip) =
                   diy_dx[iq](ip, joker, is);
             }
           })
     }
 
     // iy : copy to iyb
-    for (Index is = 0; is < stokes_dim; is++) {
-      iyb[Range(row0 + is, nf, stokes_dim)] = iy(joker, is);
+    for (Index is = 0; is < 4; is++) {
+      iyb[Range(row0 + is, nf, 4)] = iy(joker, is);
     }
 
   }  // End try
@@ -1459,7 +1398,6 @@ void iyb_calc(Workspace& ws,
               const Index& mblock_index,
               const AtmField& atm_field,
               const Index& cloudbox_on,
-              const Index& stokes_dim,
               const Vector& f_grid,
               const Matrix& sensor_pos,
               const Matrix& sensor_los,
@@ -1474,7 +1412,7 @@ void iyb_calc(Workspace& ws,
   // Sizes
   const Index nf = f_grid.nelem();
   const Index nlos = mblock_dlos.nrows();
-  const Index niyb = nf * nlos * stokes_dim;
+  const Index niyb = nf * nlos * 4;
   // Set up size of containers for data of 1 measurement block.
   // (can not be made below due to parallalisation)
   iyb.resize(niyb);
@@ -1518,7 +1456,6 @@ void iyb_calc(Workspace& ws,
                     mblock_index,
                     atm_field,
                     cloudbox_on,
-                    stokes_dim,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
@@ -1556,7 +1493,6 @@ void iyb_calc(Workspace& ws,
                     mblock_index,
                     atm_field,
                     cloudbox_on,
-                    stokes_dim,
                     sensor_pos,
                     sensor_los,
                     transmitter_pos,
@@ -1590,11 +1526,11 @@ void iyb_calc(Workspace& ws,
     iyb_aux[q].resize(niyb);
     //
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      const Index row0 = ilos * nf * stokes_dim;
+      const Index row0 = ilos * nf * 4;
       for (Index iv = 0; iv < nf; iv++) {
-        const Index row1 = row0 + iv * stokes_dim;
+        const Index row1 = row0 + iv * 4;
         const Index i1 = min(iv, iy_aux_array[ilos][q].nrows() - 1);
-        for (Index is = 0; is < stokes_dim; is++) {
+        for (Index is = 0; is < 4; is++) {
           Index i2 = min(is, iy_aux_array[ilos][q].ncols() - 1);
           iyb_aux[q][row1 + is] = iy_aux_array[ilos][q](i1, i2);
         }
@@ -1641,166 +1577,95 @@ void iy_transmittance_mult(Matrix& iy_new,
 }
 
 void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los,
-                const Index& atmosphere_dim) {
+                const ConstVectorView& los) {
   los_mirrored.resize(2);
   //
-  if (atmosphere_dim == 1) {
-    los_mirrored[0] = 180 - los[0];
-    los_mirrored[1] = 180;
-  } else if (atmosphere_dim == 2) {
-    los_mirrored[0] = 180 - fabs(los[0]);
-    if (los[0] >= 0) {
-      los_mirrored[1] = 180;
-    } else {
-      los_mirrored[1] = 0;
-    }
-  } else if (atmosphere_dim == 3) {
-    los_mirrored[0] = 180 - los[0];
-    los_mirrored[1] = los[1] + 180;
-    if (los_mirrored[1] > 180) {
-      los_mirrored[1] -= 360;
-    }
+  los_mirrored[0] = 180 - los[0];
+  los_mirrored[1] = los[1] + 180;
+  if (los_mirrored[1] > 180) {
+    los_mirrored[1] -= 360;
   }
 }
 
 void muellersparse_rotation(Sparse& H,
-                            const Index& stokes_dim,
                             const Numeric& rotangle) {
-  ARTS_ASSERT(stokes_dim > 1);
-  ARTS_ASSERT(stokes_dim <= 4);
-  ARTS_ASSERT(H.nrows() == stokes_dim);
-  ARTS_ASSERT(H.ncols() == stokes_dim);
+  ARTS_ASSERT(H.nrows() == 4);
+  ARTS_ASSERT(H.ncols() == 4);
   ARTS_ASSERT(H(0, 1) == 0);
   ARTS_ASSERT(H(1, 0) == 0);
   //
   H.rw(0, 0) = 1;
   const Numeric a = Conversion::cosd(2 * rotangle);
   H.rw(1, 1) = a;
-  if (stokes_dim > 2) {
-    ARTS_ASSERT(H(2, 0) == 0);
-    ARTS_ASSERT(H(0, 2) == 0);
+  ARTS_ASSERT(H(2, 0) == 0);
+  ARTS_ASSERT(H(0, 2) == 0);
 
-    const Numeric b = Conversion::sind(2 * rotangle);
-    H.rw(1, 2) = b;
-    H.rw(2, 1) = -b;
-    H.rw(2, 2) = a;
-    if (stokes_dim > 3) {
-      // More values should be checked, but to save time we just ARTS_ASSERT one
-      ARTS_ASSERT(H(2, 3) == 0);
-      H.rw(3, 3) = 1;
-    }
-  }
+  const Numeric b = Conversion::sind(2 * rotangle);
+  H.rw(1, 2) = b;
+  H.rw(2, 1) = -b;
+  H.rw(2, 2) = a;
+  // More values should be checked, but to save time we just ARTS_ASSERT one
+  ARTS_ASSERT(H(2, 3) == 0);
+  H.rw(3, 3) = 1;
 }
 
-void mueller_modif2stokes(Matrix& Cs,
-                          const Index& stokes_dim) {
-  ARTS_ASSERT(stokes_dim >= 1);
-  ARTS_ASSERT(stokes_dim <= 4);
+void mueller_modif2stokes(Matrix &Cs) {
   //
-  Cs.resize(stokes_dim, stokes_dim);
-  Cs(0,0) = 1;
-  if (stokes_dim > 1 ) {
-    Cs(0,1) = Cs(1,0) = 1;
-    Cs(1,1) = -1;
-    if (stokes_dim > 2 ) {
-      Cs(0,2) = Cs(1,2) = Cs(2,0) = Cs(2,1) = 0;
-      Cs(2,2) = 1;
-      if (stokes_dim > 3 ) {
-        Cs(0,3) = Cs(1,3) = Cs(2,3) = Cs(3,0) = Cs(3,1) = Cs(3,2) = 0;
-        Cs(3,3) = 1;       
-      }
-    }
-  }
+  Cs.resize(4, 4);
+  Cs(0, 0) = 1;
+  Cs(0, 1) = Cs(1, 0) = 1;
+  Cs(1, 1) = -1;
+  Cs(0, 2) = Cs(1, 2) = Cs(2, 0) = Cs(2, 1) = 0;
+  Cs(2, 2) = 1;
+  Cs(0, 3) = Cs(1, 3) = Cs(2, 3) = Cs(3, 0) = Cs(3, 1) = Cs(3, 2) = 0;
+  Cs(3, 3) = 1;
 }
 
 void mueller_rotation(Matrix& L,
-                      const Index& stokes_dim,
                       const Numeric& rotangle) {
-  ARTS_ASSERT(stokes_dim >= 1);
-  ARTS_ASSERT(stokes_dim <= 4);
   //
-  L.resize(stokes_dim, stokes_dim);
+  L.resize(4, 4);
   L(0, 0) = 1;
-  if (stokes_dim > 1 ) {
     const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
     const Numeric c2 = cos(alpha);
     L(0,1) = L(1,0) = 0;
     L(1,1) = c2;
-    if (stokes_dim > 2 ) {
       const Numeric s2 = sin(alpha);
       L(0,2) = L(2,0) = 0;
       L(1,2) = s2;
       L(2,1) = -s2;      
       L(2,2) = c2;
-      if (stokes_dim > 3 ) {
         L(0,3) = L(1,3) = L(2,3) = L(3,0) = L(3,1) = L(3,2) = 0;
-        L(3,3) = 1;       
-      }
-    }
-  }
+        L(3,3) = 1;   
 }
 
-void mueller_stokes2modif(Matrix& Cm,
-                          const Index& stokes_dim) {
-  ARTS_ASSERT(stokes_dim >= 1);
-  ARTS_ASSERT(stokes_dim <= 4);
+void mueller_stokes2modif(Matrix& Cm) {
   //
-  Cm.resize(stokes_dim, stokes_dim);
+  Cm.resize(4, 4);
   Cm(0,0) = 0.5;
-  if (stokes_dim > 1 ) {
     Cm(0,1) = Cm(1,0) = 0.5;
     Cm(1,1) = -0.5;
-    if (stokes_dim > 2 ) {
       Cm(0,2) = Cm(1,2) = Cm(2,0) = Cm(2,1) = 0;
       Cm(2,2) = 1;
-      if (stokes_dim > 3 ) {
         Cm(0,3) = Cm(1,3) = Cm(2,3) = Cm(3,0) = Cm(3,1) = Cm(3,2) = 0;
-        Cm(3,3) = 1;       
-      }
-    }
-  }
+        Cm(3,3) = 1;   
 }
 
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
-                     const Index& atmosphere_dim,
                      const ConstVectorView& lat_grid,
                      const ConstVectorView& lat_true,
                      const ConstVectorView& lon_true,
                      const ConstVectorView& pos) {
-  ARTS_ASSERT(pos.nelem() == atmosphere_dim);
-
-  if (atmosphere_dim == 1) {
-    ARTS_ASSERT(lat_true.nelem() == 1);
-    ARTS_ASSERT(lon_true.nelem() == 1);
-    //
-    lat = lat_true[0];
-    lon = lon_true[0];
-  }
-
-  else if (atmosphere_dim == 2) {
-    ARTS_ASSERT(lat_true.nelem() == lat_grid.nelem());
-    ARTS_ASSERT(lon_true.nelem() == lat_grid.nelem());
-    GridPos gp;
-    Vector itw(2);
-    gridpos(gp, lat_grid, pos[1]);
-    interpweights(itw, gp);
-    lat = interp(itw, lat_true, gp);
-    lon = interp(itw, lon_true, gp);
-  }
-
-  else {
-    lat = pos[1];
-    lon = pos[2];
-  }
+  ARTS_ASSERT(pos.nelem() == 3);
+  lat = pos[1];
+  lon = pos[2];
 }
 
 void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
-    const Index& ns,
     const Index& nf,
     const Index& np,
     const Ppath& ppath,
@@ -1816,7 +1681,7 @@ void rtmethods_jacobian_finalisation(
     Matrix X, Y;
     //
     FOR_ANALYTICAL_JACOBIANS_DO(
-        Y.resize(ns, diy_dpath[iq].npages());
+        Y.resize(4, diy_dpath[iq].npages());
         for (Index iv = 0; iv < nf; iv++) {
           X = transpose(diy_dpath[iq](joker, iv, joker));
           mult(Y, iy_transmittance(iv, joker, joker), X);
@@ -1995,7 +1860,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& jacobian,
                             const AtmField& atm_field,
                             const Index& cloudbox_on,
-                            const Index& stokes_dim,
                             const Vector& f_grid,
                             const Matrix& sensor_pos,
                             const Matrix& sensor_los,
@@ -2030,7 +1894,6 @@ void yCalc_mblock_loop_body(bool& failed,
              mblock_index,
              atm_field,
              cloudbox_on,
-             stokes_dim,
              f_grid,
              sensor_pos,
              sensor_los,
@@ -2092,7 +1955,7 @@ void yCalc_mblock_loop_body(bool& failed,
     if (!std::isnan(geo_pos_matrix(0, 0)))  // No data are flagged as NaN
     {
       // We set geo_pos based on the max value in sensor_response
-      const Index nfs = f_grid.nelem() * stokes_dim;
+      const Index nfs = f_grid.nelem() * 4;
       for (Index i = 0; i < n1y; i++) {
         Index jmax = -1;
         Numeric rmax = -99e99;

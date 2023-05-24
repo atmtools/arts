@@ -25,6 +25,7 @@
 #include "matpack_complex.h"
 #include "optproperties.h"
 #include "ppath.h"
+#include "rtepack.h"
 
 
 class Workspace;
@@ -48,21 +49,17 @@ class Workspace;
  * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
- * @param[in] atmosphere_dim As WSV
  * @param[in] jacobian_do As WSV
  * 
  * @author Richard Larsson 
  * @date   2017-09-21
  */
 void adapt_stepwise_partial_derivatives(
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
+    PropmatMatrix& dK_dx,
+    StokvecMatrix& dS_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_line_of_sight,
-    const Index& lte,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do);
+    const ConstVectorView& ppath_line_of_sight);
 
 /** Ensures that the zenith and azimuth angles of a line-of-sight vector are
     inside defined ranges.
@@ -75,12 +72,11 @@ void adapt_stepwise_partial_derivatives(
     range. 
 
     @param[in,out]   los              LOS vector, defined as e.g. rte_los.
-    @param[in]       atmosphere_dim   As the WSV.
 
     @author Patrick Eriksson 
     @date   2012-04-11
  */
-void adjust_los(VectorView los, const Index& atmosphere_dim);
+void adjust_los(VectorView los);
 
 /** Performs conversion from radiance to other units, as well as applies
     refractive index to fulfill the n2-law of radiance.
@@ -164,7 +160,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
     @param[in,out]  ws                The workspace.
     @param[out]   dlf                 Defocusing loss factor (1 for no loss)
     @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    atmosphere_dim      As the WSV with the same name.
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
@@ -183,7 +178,6 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
 void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -209,7 +203,6 @@ void defocusing_general(Workspace& ws,
     @param[in,out]  ws                The workspace.
     @param[out]   dlf                 Defocusing loss factor (1 for no loss)
     @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    atmosphere_dim      As the WSV with the same name.
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
@@ -228,7 +221,6 @@ void defocusing_general(Workspace& ws,
 void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
-                        const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -254,7 +246,6 @@ void defocusing_sat2sat(Workspace& ws,
     @param[in]   u                 U-component of field.
     @param[in]   v                 V-component of field.
     @param[in]   w                 W-component of field.
-    @param[in]   atmosphere_dim    As the WSV.
 
     @return   The result of the dot product
 
@@ -264,8 +255,7 @@ void defocusing_sat2sat(Workspace& ws,
 Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
-                         const Numeric& w,
-                         const Index& atmosphere_dim);
+                         const Numeric& w);
 
 /** Basic call of *iy_main_agenda*.
 
@@ -313,9 +303,7 @@ void get_iy(Workspace& ws,
     @param[in]   iy_transmittance       As the WSV.
     @param[in]   jacobian_do           As the WSV.
     @param[in]   ppath                 As the WSV.
-    @param[in]   atmosphere_dim        As the WSV.
     @param[in]   cloudbox_on           As the WSV.
-    @param[in]   stokes_dim            As the WSV.
     @param[in]   f_grid                As the WSV.
     @param[in]   iy_unit               As the WSV.    
     @param[in]   surface_props_data    As the WSV.    
@@ -338,7 +326,6 @@ void get_iy_of_background(Workspace& ws,
                           const Vector& rte_pos2,
                           const AtmField& atm_field,
                           const Index& cloudbox_on,
-                          const Index& stokes_dim,
                           const Vector& f_grid,
                           const String& iy_unit,
                           const SurfaceField& surface_field,
@@ -367,7 +354,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          Matrix& ppath_pnd,
                          ArrayOfMatrix& ppath_dpnd_dx,
                          const Ppath& ppath,
-                         const Index& atmosphere_dim,
                          const ArrayOfIndex& cloudbox_limits,
                          const Tensor4& pnd_field,
                          const ArrayOfTensor4& dpnd_field_dx);
@@ -379,7 +365,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
     @param[out]  ppath_f          Doppler shifted f_grid
     @param[in]   ppath            Propagation path.
     @param[in]   f_grid           Original f_grid.
-    @param[in]   atmosphere_dim   As the WSV.
     @param[in]   rte_alonglos_v   As the WSV.
     @param[in]   ppath_wind       See get_ppath_atmvars.
 
@@ -389,7 +374,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
                  const ConstVectorView& f_grid,
-                 const Index& atmosphere_dim,
                  const Numeric& rte_alonglos_v,
                  const ConstMatrixView& ppath_wind);
 
@@ -444,10 +428,10 @@ void get_stepwise_blackbody_radiation(VectorView B,
  */
 void get_stepwise_clearsky_propmat(
   Workspace& ws,
-  PropagationMatrix& K,
-  StokesVector& S,
-  ArrayOfPropagationMatrix& dK_dx,
-  ArrayOfStokesVector& dS_dx,
+  PropmatVector& K,
+  StokvecVector& S,
+  PropmatMatrix& dK_dx,
+  StokvecMatrix& dS_dx,
   const Agenda& propmat_clearsky_agenda,
   const ArrayOfRetrievalQuantity& jacobian_quantities,
   const Vector& ppath_f_grid,
@@ -462,15 +446,13 @@ void get_stepwise_clearsky_propmat(
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] f_grid As WSV
  * @param[in] wind_type The wind component
- * @param[in] atmosphere_dim As WSV
  * 
  * @author Richard Larsson 
  * @date   2017-09-21
  */
 Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Jacobian::Atm wind_type,
-                               const Index& atmosphere_dim);
+                               const Jacobian::Atm wind_type);
 
 /** Computes the contribution by scattering at propagation path point
  * 
@@ -483,17 +465,16 @@ Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
  * @param[in] scat_data As WSV
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] ppath_temperature Temperature at propagation path point
- * @param[in] atmosphere_dim As WSV
  * @param[in] jacobian_do As WSV
  * 
  *  @author Jana Mendrok, Richard Larsson 
  *  @date   2017-09-21
  */
 void get_stepwise_scattersky_propmat(
-    StokesVector& ap,
-    PropagationMatrix& Kp,
-    ArrayOfStokesVector& dap_dx,
-    ArrayOfPropagationMatrix& dKp_dx,
+    StokvecVector& ap,
+    PropmatVector& Kp,
+    StokvecMatrix& dap_dx,
+    PropmatMatrix& dKp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstMatrixView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
     const ArrayOfMatrix&
@@ -502,7 +483,6 @@ void get_stepwise_scattersky_propmat(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const ConstVectorView& ppath_line_of_sight,
     const ConstVectorView& ppath_temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do);
 
 /**
@@ -518,8 +498,8 @@ void get_stepwise_scattersky_propmat(
  *  @date   2018-03-29
  */
 void get_stepwise_scattersky_source(
-    StokesVector& Sp,
-    ArrayOfStokesVector& dSp_dx,
+    StokvecVector& Sp,
+    StokvecMatrix& dSp_dx,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ConstVectorView& ppath_1p_pnd,
     const ArrayOfMatrix& ppath_dpnd_dx,
@@ -531,7 +511,6 @@ void get_stepwise_scattersky_source(
     const ConstMatrixView& ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
-    const Index& atmosphere_dim,
     const bool& jacobian_do,
     const Index& t_interp_order = 1);
 
@@ -563,10 +542,10 @@ void get_stepwise_transmission_matrix(
     Tensor4View dT_dx_close,
     Tensor4View dT_dx_far,
     const ConstTensor3View& cumulative_transmission_close,
-    const PropagationMatrix& K_close,
-    const PropagationMatrix& K_far,
-    const ArrayOfPropagationMatrix& dK_close_dx,
-    const ArrayOfPropagationMatrix& dK_far_dx,
+    const PropmatVector& K_close,
+    const PropmatVector& K_far,
+    const PropmatMatrix& dK_close_dx,
+    const PropmatMatrix& dK_far_dx,
     const Numeric& ppath_distance,
     const bool& first_level,
     const Numeric& dr_dT_close = 0,
@@ -587,7 +566,6 @@ void iyb_calc(Workspace& ws,
               const Index& imblock,
               const AtmField& atm_field,
               const Index& cloudbox_on,
-              const Index& stokes_dim,
               const Vector& f_grid,
               const Matrix& sensor_pos,
               const Matrix& sensor_los,
@@ -661,14 +639,12 @@ void iy_transmittance_mult(Matrix& iy_new,
 
     @param[out]  los_mirrored      The line-of-sight for reversed direction.
     @param[in]   los               A line-of-sight
-    @param[in]   atmosphere_dim    As the WSV.
 
     @author Patrick Eriksson 
     @date   2011-07-15
 */
 void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los,
-                const Index& atmosphere_dim);
+                const ConstVectorView& los);
 
 //! muellersparse_rotation
 /*!
@@ -681,19 +657,17 @@ void mirror_los(Vector& los_mirrored,
 
    The sparse matrix H is not sized by the function, in order to save time for
    repeated usage. Before first call of this function, size H as
-   H.resize( stokes_dim, stokes_dim );
+   H.resize( 4, 4 );
    The H returned of this function can be used as input for later calls. That
    is, no need to repeat the resize command above.
 
    \param   H           Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-2)
    \param   rotangle    Rotation angle.
 
    \author Patrick Eriksson
    \date   2014-09-23
 */
 void muellersparse_rotation(Sparse& H,
-                            const Index& stokes_dim,
                             const Numeric& rotangle);
 
 //! mueller_modif2stokes
@@ -704,13 +678,11 @@ void muellersparse_rotation(Sparse& H,
    See ARTS Theory document, section "Change of the Stokes basis" for details.
 
    \param   Cs          Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-4)
 
    \author Patrick Eriksson
    \date   2021-12-22
 */
-void mueller_modif2stokes(Matrix& Cs,
-                          const Index& stokes_dim);
+void mueller_modif2stokes(Matrix& Cs);
 
 //! mueller_rotation
 /*!
@@ -721,14 +693,12 @@ void mueller_modif2stokes(Matrix& Cs,
    Sparse) and the matrix is sized by the function.
 
    \param   L           Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-4)
    \param   rotangle    Rotation angle.
 
    \author Patrick Eriksson
    \date   2021-12-22
 */
 void mueller_rotation(Matrix& L,
-                      const Index& stokes_dim,
                       const Numeric& rotangle);
 
 //! mueller_stokes2modif
@@ -739,13 +709,11 @@ void mueller_rotation(Matrix& L,
    See ARTS Theory document, section "Change of the Stokes basis" for details.
 
    \param   Cm          Mueller matrix
-   \param   stokes_dim  Stokes dimensionality (1-4)
 
    \author Patrick Eriksson
    \date   2021-12-22
 */
-void mueller_stokes2modif(Matrix& Cm,
-                          const Index& stokes_dim);
+void mueller_stokes2modif(Matrix& Cm);
 
 /** Determines the true alt and lon for an "ARTS position"
 
@@ -754,7 +722,6 @@ void mueller_stokes2modif(Matrix& Cm,
 
     @param[out]   lat             True latitude.
     @param[out]   lon             True longitude.
-    @param[in]   atmosphere_dim   As the WSV.
     @param[in]   lat_grid         As the WSV.
     @param[in]   lat_true         As the WSV.
     @param[in]   lon_true         As the WSV.
@@ -765,7 +732,6 @@ void mueller_stokes2modif(Matrix& Cm,
 */
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
-                     const Index& atmosphere_dim,
                      const ConstVectorView& lat_grid,
                      const ConstVectorView& lat_true,
                      const ConstVectorView& lon_true,
@@ -784,7 +750,6 @@ void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
-    const Index& ns,
     const Index& nf,
     const Index& np,
     const Ppath& ppath,
@@ -833,7 +798,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& jacobian,
                             const AtmField& atm_field,
                             const Index& cloudbox_on,
-                            const Index& stokes_dim,
                             const Vector& f_grid,
                             const Matrix& sensor_pos,
                             const Matrix& sensor_los,
@@ -874,5 +838,20 @@ void ze_cfac(Vector& fac,
              const Vector& f_grid,
              const Numeric& ze_tref,
              const Numeric& k2);
+
+/** Get the stepwise blackbody radiation object
+ * 
+ * @param B Plank function at propagation path point [size is (ppath_f_grid.nelem())]
+ * @param dB Derivative of Plank function at propagation path point [size is (jacobian_quantities.nelem() x ppath_f_grid.nelem())]
+ * @param ppath_f_grid Frequency grid at propagation path point
+ * @param ppath_temperature Temperature of atmosphere at propagation path point
+ * @param jacobian_quantities As WSV
+ * @param j_analytical_do Flag for analytical Jacobian
+ */
+void get_stepwise_blackbody_radiation(
+    Vector &B, Matrix &dB, const Vector &ppath_f_grid,
+    const Numeric &ppath_temperature,
+    const ArrayOfRetrievalQuantity &jacobian_quantities,
+                            const bool j_analytical_do);
 
 #endif  // rte_h

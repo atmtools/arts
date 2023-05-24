@@ -1,0 +1,90 @@
+#pragma once
+
+#include "tokval.h"
+#include "xml_io.h"
+
+//! Both T and T{}[0] are ARTS groups exposed to the user if this is true
+template <typename T>
+concept array_of_group = ArtsType<T> and ArtsType<decltype(T{}[0])>;
+
+template <array_of_group T>
+void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
+  const static String subtype =
+      WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
+
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", subtype);
+
+  tag.get_attribute_value("nelem", nelem);
+  at.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, at[n], pbifs);
+  } catch (const std::runtime_error &e) {
+    ostringstream os;
+    os << "Error reading "
+       << WorkspaceGroupNameValue<std::remove_cvref_t<T>> << ": "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+} catch (std::runtime_error &e) {
+  throw std::runtime_error(
+      var_string("Failed reading routine for ",
+                 WorkspaceGroupNameValue<std::remove_cvref_t<T>>,
+                 "\nError reads:\n", e.what()));
+}
+
+template <array_of_group T>
+void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
+               const String &name) try {
+  const static String subtype =
+      WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
+
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Array");
+  if (name.length())
+    open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", subtype);
+  open_tag.add_attribute("nelem", at.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < at.nelem(); n++)
+    xml_write_to_stream(os_xml, at[n], pbofs, "");
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+} catch (std::runtime_error &e) {
+  throw std::runtime_error(
+      var_string("Failed saving routine for ",
+                 WorkspaceGroupNameValue<std::remove_cvref_t<T>>,
+                 "\nError reads:\n", e.what()));
+}
+
+//! Helper macro for when both Array<T> and T are ARTS groups
+#define TMPL_XML_READ_WRITE_STREAM_ARRAY(T)                                    \
+  void xml_read_from_stream(istream &is_xml, T &at, bifstream *pbifs) {        \
+    xml_read(is_xml, at, pbifs);                                               \
+  }                                                                            \
+                                                                               \
+  void xml_write_to_stream(ostream &os_xml, const T &at, bofstream *pbofs,     \
+                           const String &name) {                               \
+    xml_write(os_xml, at, pbofs, name);                                        \
+  }
+  

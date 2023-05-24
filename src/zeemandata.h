@@ -15,7 +15,8 @@
 #include "arts_conversions.h"
 #include "file.h"
 #include "mystring.h"
-#include "propagationmatrix.h"
+#include <matpack.h>
+#include <rtepack.h>
 #include "quantum_numbers.h"
 
 #include <limits>
@@ -403,8 +404,8 @@ Model GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT;
  * class
  */
 struct PolarizationVector {
-  std::array<Numeric, 4> att{0, 0, 0, 0};  // attenuation vector
-  std::array<Numeric, 3> dis{0, 0, 0};     // dispersion vector
+  Vector4 att{0, 0, 0, 0};  // attenuation vector
+  Vector3 dis{0, 0, 0};     // dispersion vector
 
   /** Default init of class */
   PolarizationVector(Numeric a = 1,
@@ -465,15 +466,25 @@ const PolarizationVector& SelectPolarization(
     const AllPolarizationVectors& data, Polarization type) noexcept;
 
 /** Sums the Zeeman components into a propagation matrix
- * 
+ *
  * @param[in,out] pm The propagation matrix
  * @param[in] abs The complex absorption vector
  * @param[in] polvec The polarization vector
  */
-void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const PolarizationVector& polvec, const bool do_phase=true) ARTS_NOEXCEPT;
+void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
+                 const PolarizationVector &polvec);
+
+/** Sums the Zeeman components into a source vector
+ *
+ * @param[in,out] sv The source vector
+ * @param[in] abs The complex absorption vector
+ * @param[in] polvec The polarization vector
+ */
+void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
+                 const PolarizationVector &polvec);
 
 /** Sums the Zeeman components derivatives into a propagation matrix
- * 
+ *
  * @param[in,out] pm The propagation matrix derivative
  * @param[in] abs The complex absorption vector
  * @param[in] dabs The complex absorption vector derivative w.r.t. H
@@ -484,15 +495,31 @@ void sum(PropagationMatrix& pm, const ComplexVectorView& abs, const Polarization
  * @param[in] dtheta The derivative w.r.t. theta
  * @param[in] deta The derivative w.r.t. eta
  */
-void dsum(PropagationMatrix& dpm,
-          const ComplexVectorView& abs,
-          const ComplexVectorView& dabs,
-          const PolarizationVector& polvec,
-          const PolarizationVector& dpolvec_dtheta,
-          const PolarizationVector& dpolvec_deta,
-          const Numeric dH,
-          const Numeric dtheta,
-          const Numeric deta, const bool do_phase=true) ARTS_NOEXCEPT;
+void dsum_propmat(PropmatVectorView dpm, const ConstComplexVectorView &abs,
+                  const ConstComplexVectorView &dabs,
+                  const PolarizationVector &polvec,
+                  const PolarizationVector &dpolvec_dtheta,
+                  const PolarizationVector &dpolvec_deta, const Numeric dH,
+                  const Numeric dtheta, const Numeric deta);
+
+/** Sums the Zeeman components derivatives into a source vector
+ *
+ * @param[in,out] dsv The source vector derivative
+ * @param[in] abs The complex absorption vector
+ * @param[in] dabs The complex absorption vector derivative w.r.t. H
+ * @param[in] polvec The polarization vector
+ * @param[in] dpolvec_dtheta The polarization vector derivative w.r.t. theta
+ * @param[in] dpolvec_deta The polarization vector derivative w.r.t. eta
+ * @param[in] dH The derivative w.r.t. H
+ * @param[in] dtheta The derivative w.r.t. theta
+ * @param[in] deta The derivative w.r.t. eta
+ */
+void dsum_stokvec(StokvecVectorView dsv, const ConstComplexVectorView &abs,
+                  const ConstComplexVectorView &dabs,
+                  const PolarizationVector &polvec,
+                  const PolarizationVector &dpolvec_dtheta,
+                  const PolarizationVector &dpolvec_deta, const Numeric dH,
+                  const Numeric dtheta, const Numeric deta);
 
 /** Contains derived values useful for Zeeman calculations
  * 

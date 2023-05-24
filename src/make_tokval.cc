@@ -36,10 +36,10 @@ int main() {
 #include "telsem.h"
 #include "tessem.h"
 #include "timer_struct.h"
-#include "transmissionmatrix.h"
 #include "xsec_fit.h"
 
 #include <predefined/predef_data.h>
+#include <rtepack.h>
 
 template <class base> class Array;
 class Agenda;

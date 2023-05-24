@@ -1,4 +1,5 @@
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include <algorithm>
 
@@ -33,7 +34,7 @@ namespace Absorption::PredefinedModel::ELL07 {
    \date 2015-06-03
  */
 //! New implementation
-void compute(PropagationMatrix& propmat_clearsky,
+void compute(PropmatVector& propmat_clearsky,
              const Vector& f_grid,
              const Numeric t,
              const Numeric lwc) {
@@ -179,7 +180,7 @@ void compute(PropagationMatrix& propmat_clearsky,
     // The vmr of H2O will be multiplied at the stage of absorption
     // calculation: abs = vmr * pxsec.
     // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-    propmat_clearsky.Kjj()[s] +=
+    propmat_clearsky[s].A() +=
         lwc * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s] * 1e-9) * ImNw;
   }
 }

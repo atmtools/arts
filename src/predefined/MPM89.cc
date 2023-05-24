@@ -1,5 +1,6 @@
 #include <arts_constexpr_math.h>
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include <array>
 #include <numeric>
@@ -86,7 +87,7 @@ constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
    \date 2001-11-05
  */
 //! New implementation
-void water(PropagationMatrix& propmat_clearsky,
+void water(PropmatVector& propmat_clearsky,
            const Vector& f_grid,
            const Numeric p_pa,
            const Numeric t,
@@ -166,7 +167,7 @@ void water(PropagationMatrix& propmat_clearsky,
 
     //
     // H2O line absorption [1/m]
-    propmat_clearsky.Kjj()[s] +=
+    propmat_clearsky[s].A() +=
         vmr * dB_km_to_1_m * 0.1820 * ff * (Nppl + (Nppc * ff));
   }
 }
@@ -257,7 +258,7 @@ constexpr Numeric MPMLineShapeO2Function(const Numeric gamma,
    \date 2002-04-05
  */
 //! New implementation
-void oxygen(PropagationMatrix& propmat_clearsky,
+void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
             const Numeric p_pa,
             const Numeric t,
@@ -393,7 +394,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
 
     //
     // O2 line absorption [1/m]
-    propmat_clearsky.Kjj()[s] += vmr * dB_km_to_1_m * 0.1820 * ff *
+    propmat_clearsky[s].A() += vmr * dB_km_to_1_m * 0.1820 * ff *
                                  (((Nppl < 0.000) ? 0.0 : Nppl) + Nppc) /
                                  VMRISO;
   }

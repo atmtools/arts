@@ -79,7 +79,6 @@ void clear_rt_vars_at_gp(Workspace& ws,
  * @param[out]    pnd_vec                 Vector of particle number densities (one element per scattering element).
  * @param[out]    temperature             A vector of temperatures
  * @param[in]     propmat_clearsky_agenda Agenda calculating the absorption coefficient matrices.
- * @param[in]     stokes_dim              The dimensionality of the Stokes vector (1-4).
  * @param[in]     f_index                 Index of frequency grid point handeled.
  * @param[in]     f_grid                  Frequency grid for monochromatic pencil beam calculations.
  * @param[in]     gp_p                    An array of pressure gridpoints.
@@ -102,7 +101,6 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
                           VectorView pnd_vec,
                           Numeric& temperature,
                           const Agenda& propmat_clearsky_agenda,
-                          const Index stokes_dim,
                           const Index f_index,
                           const Vector& f_grid,
                           const GridPos& gp_p,
@@ -164,7 +162,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
  *                                        direction multiplied by sin(za)
  * @param[in]     ppath                   Propagation path over which transmission matrix is desired
  * @param[in]     propmat_clearsky_agenda Agenda calculating the absorption coefficient matrices.
- * @param[in]     stokes_dim              The dimensionality of the Stokes vector (1-4).
  * @param[in]     f_index                 Index of frequency grid point handeled.
  * @param[in]     f_grid                  Frequency grid for monochromatic pencil beam calculations.
  * @param[in]     p_grid                  The pressure grid.
@@ -183,7 +180,6 @@ void get_ppath_transmat(
     MatrixView trans_mat,
     const Ppath& ppath,
     const Agenda& propmat_clearsky_agenda,
-    const Index stokes_dim,
     const Index f_index,
     const Vector& f_grid,
     const AtmField& atm_field,
@@ -237,7 +233,6 @@ bool is_anyptype_nonTotRan(
  * @param[in]     taustep_limit           Defines an upper step length in terms of optical thickness
  *                                        for Monte Carlo calculations.
  * @param[in]     propmat_clearsky_agenda Agenda calculating the absorption coefficient matrices.
- * @param[in]     stokes_dim              The dimensionality of the Stokes vector (1-4).
  * @param[in]     f_index                 Index of frequency grid point handeled.
  * @param[in]     f_grid                  Frequency grid for monochromatic pencil beam calculations.
  * @param[in]     p_grid                  Pressure grid.
@@ -273,7 +268,6 @@ void mcPathTraceGeneral(Workspace& ws,
                         const Numeric& ppath_lraytrace,
                         const Numeric& taustep_limit,
                         const Agenda& propmat_clearsky_agenda,
-                        const Index stokes_dim,
                         const Index f_index,
                         const Vector& f_grid,
                         const SurfaceField& surface_field,
@@ -316,7 +310,6 @@ void mcPathTraceGeneral(Workspace& ws,
  *                                        for Monte Carlo calculations.
  * @param[in]     propmat_clearsky_agenda Agenda calculating the absorption coefficient matrices.
  * @param[in]     anyptype_nonTotRan      Flag definining any particle type, but for totally random oriented.
- * @param[in]     stokes_dim              The dimensionality of the Stokes vector (1-4).
  * @param[in]     f_index                 Index of frequency grid point handeled.
  * @param[in]     f_grid                  Frequency grid for monochromatic pencil beam calculations.
  * @param[in]     Iprop                   Incident I component of the Stokes vector *** FIXMEDOC ***
@@ -353,7 +346,6 @@ void mcPathTraceRadar(Workspace& ws,
                       const Numeric& ppath_lraytrace,
                       const Agenda& propmat_clearsky_agenda,
                       const bool& anyptype_nonTotRan,
-                      const Index stokes_dim,
                       const Index f_index,
                       const Vector& f_grid,
                       const Vector& Iprop,
@@ -377,7 +369,6 @@ void mcPathTraceRadar(Workspace& ws,
  * @param[in]     rte_los          Incident line of sight for subsequent
  *                                 ray-tracing.
  * @param[in]     scat_data        As the WSV.
- * @param[in]     stokes_dim       As the WSV.
  * @param[out]    pnd_vec          Vector of particle number densities (one element per scattering element).
  * @param[in]     Z11maxvector     Vector holding the maximum phase function for each scattering element.
  * @param[in]     Csca             Scattering cross section
@@ -392,7 +383,6 @@ void Sample_los(VectorView new_rte_los,
                 RandomNumberGenerator<>& rng,
                 ConstVectorView rte_los,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const Index stokes_dim,
                 const Index f_index,
                 ConstVectorView pnd_vec,
                 ConstVectorView Z11maxvector,

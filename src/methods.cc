@@ -4671,7 +4671,7 @@ computations.
       IN("cloudbox_field",
          "za_grid",
          "f_grid",
-         "stokes_dim",
+         
          "cloudbox_limits",
          "doit_is_initialized"),
       GIN("cloudbox_field_precalc"),
@@ -5027,17 +5027,11 @@ computations.
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
-          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
-          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,"
-          "PropagationMatrix, StokesVector",
+          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6",
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
-          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
-          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,"
-          "PropagationMatrix, StokesVector",
+          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6",
           "Numeric",
           "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
@@ -5809,7 +5803,6 @@ computations.
          "f_grid",
          "za_grid",
          "aa_grid",
-         "stokes_dim",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
@@ -5881,7 +5874,7 @@ computations.
          "f_grid",
          "za_grid",
          "aa_grid",
-         "stokes_dim",
+         
          "gas_scattering_do",
          "suns_do",
          "disort_aux_vars"),
@@ -5945,7 +5938,7 @@ computations.
          "f_grid",
          "za_grid",
          "aa_grid",
-         "stokes_dim",
+         
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
@@ -6016,7 +6009,7 @@ computations.
          "scat_data",
          "suns",
          "f_grid",
-         "stokes_dim",
+         
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "gas_scattering_do",
@@ -6190,7 +6183,7 @@ computations.
          "cloudbox_on",
          "cloudbox_limits",
          "f_grid",
-         "stokes_dim",
+         
          "za_grid",
          "aa_grid"),
       GIN("rigorous", "maxratio"),
@@ -6226,7 +6219,7 @@ computations.
          "cloudbox_on",
          "cloudbox_limits",
          "f_grid",
-         "stokes_dim",
+         
          "za_grid",
          "aa_grid"),
       GIN(),
@@ -6248,7 +6241,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim",
+      IN(
          "f_grid",
          "za_grid",
          "aa_grid",
@@ -6281,7 +6274,7 @@ computations.
          "scat_data",
          "scat_data_checked",
          "f_index",
-         "stokes_dim",
+         
          "atm_field",
          "cloudbox_limits",
          "pnd_field",
@@ -7334,8 +7327,7 @@ computations.
       GOUT_DESC(),
       IN("f_grid",
          "rtp_pressure",
-         "rtp_temperature",
-         "stokes_dim"),
+         "rtp_temperature"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -7360,8 +7352,7 @@ computations.
       GOUT_DESC(),
       IN("f_grid",
          "rtp_pressure",
-         "rtp_temperature",
-         "stokes_dim"),
+         "rtp_temperature"),
       GIN("ConstXsec"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0."),
@@ -7381,7 +7372,7 @@ computations.
       GOUT_DESC(),
       IN("gas_scattering_los_in",
          "gas_scattering_los_out",
-         "stokes_dim",
+         
          "gas_scattering_output_type"),
       GIN(),
       GIN_TYPE(),
@@ -7401,7 +7392,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("gas_scattering_los_in", "gas_scattering_los_out", "stokes_dim", "gas_scattering_output_type"),
+      IN("gas_scattering_los_in", "gas_scattering_los_out",  "gas_scattering_output_type"),
       GIN("depolarization_factor"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0.03"),
@@ -8204,7 +8195,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("iy", "iy_aux", "stokes_dim", "f_grid", "iy_aux_vars", "iy_unit"),
+      IN("iy", "iy_aux",  "f_grid", "iy_aux_vars", "iy_unit"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -8349,7 +8340,7 @@ computations.
       GOUT_DESC(),
       IN("diy_dx",
          "iy_id",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -8422,7 +8413,7 @@ computations.
       GOUT_DESC(),
       IN("diy_dx",
          "iy_id",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -8459,79 +8450,6 @@ computations.
                "Interpolation order of temperature for scattering data (so"
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("iyEmissionStandard"),
-      DESCRIPTION(
-          "Standard method for radiative transfer calculations with emission.\n"
-          "\n"
-          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-          "outside the cloudbox (no scattering). For details se the user guide.\n"
-          "\n"
-          "The possible choices for *iy_unit* are\n"
-          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
-          "                     frequency unit).\n"
-          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
-          "                     temperature.\n"
-          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
-          " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
-          "                     wavelength unit).\n"
-          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
-          "                     wavenumber unit).\n"
-          "Expressions applied and considerations for the unit conversion of\n"
-          "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
-          "\n"
-          "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
-          "no unit ocnversion is applied for internal iterative calls.\n"
-          "\n"
-          "Recognised choices for *rt_integration_option* are:\n"
-          "   \"first order\": A first order integration is applied.\n"
-          "   \"second order\": A second order integration is applied.\n"
-          "   \"default\": Another way to select the first order option.\n"
-          "\n"
-          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
-          "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox.\n"
-          " \"Optical depth\": Scalar optical depth between the observation point\n"
-          "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
-          "    i.e. only fully valid for scalar RT.\n"
-          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
-          "i.e. the column matching Stokes element I, while remaing columns are\n"
-          "are filled with zeros.\n"),
-      AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke"),
-      OUT("iy",
-          "iy_aux",
-          "diy_dx",
-          "ppvar_iy",
-          "ppvar_trans_cumulat",
-          "ppvar_trans_partial"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "f_grid",
-         "abs_species",
-         "atm_field",
-         "iy_unit",
-         "iy_aux_vars",
-         "jacobian_do",
-         "jacobian_quantities",
-         "ppath",
-         "ppvar_rtprop_agenda",
-         "water_p_eq_agenda",
-         "rt_integration_option",
-         "rte_background_agenda",
-         "iy_agenda_call1",
-         "iy_transmittance",
-         "rte_alonglos_v"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
@@ -8636,7 +8554,7 @@ computations.
          "cloudbox_limits",
          "atm_field",
          "surface_field",
-         "stokes_dim",
+         
          "za_grid",
          "aa_grid",
          "f_grid"),
@@ -8679,7 +8597,7 @@ computations.
          "rte_pos",
          "rte_los",
          "rte_pos2",
-         "stokes_dim",
+         
          "f_grid",
          "iy_loop_freqs_agenda"),
       GIN(),
@@ -8738,7 +8656,7 @@ computations.
          "surface_field",
          "cloudbox_on",
          "cloudbox_limits",
-         "stokes_dim",
+         
          "f_grid",
          "scat_data",
          "iy_space_agenda",
@@ -8832,7 +8750,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim",
+      IN(
          "f_grid",
          "abs_species",
          "atm_field",
@@ -8920,7 +8838,7 @@ computations.
          "jacobian_do",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "rtp_pos",
          "rtp_los",
@@ -8968,7 +8886,7 @@ computations.
          "suns_do",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "lat_grid",
          "lon_grid",
@@ -9009,7 +8927,7 @@ computations.
       IN("iy",
          "rtp_pos",
          "rtp_los",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -9071,7 +8989,7 @@ computations.
          "suns_do",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "surface_field",
          "rtp_pos",
@@ -9108,7 +9026,7 @@ computations.
       IN("iy",
          "rtp_pos",
          "rtp_los",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -9152,8 +9070,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("f_grid",
-         "stokes_dim"),
+      IN("f_grid"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -9196,7 +9113,7 @@ computations.
          "suns_do",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "surface_field",
          "rtp_pos",
@@ -9232,7 +9149,7 @@ computations.
       GOUT_DESC(),
       IN("iy",
          "rtp_pos",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -9290,7 +9207,7 @@ computations.
          "suns_do",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "rtp_pos",
          "rtp_los",
@@ -9335,7 +9252,7 @@ computations.
          "jacobian_quantities",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "rtp_pos",
          "rtp_los",
@@ -9399,7 +9316,7 @@ computations.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -9443,7 +9360,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim", "f_grid", "instrument_pol"),
+      IN( "f_grid", "instrument_pol"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -9467,7 +9384,7 @@ computations.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim", "f_grid", "instrument_pol"),
+      IN( "f_grid", "instrument_pol"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -10228,7 +10145,7 @@ computations.
          "mblock_index",
          "iyb",
          "yb",
-         "stokes_dim",
+         
          "f_grid",
          "mblock_dlos",
          "sensor_response",
@@ -10255,7 +10172,7 @@ computations.
          "mblock_index",
          "iyb",
          "yb",
-         "stokes_dim",
+         
          "f_grid",
          "mblock_dlos",
          "sensor_response",
@@ -10285,7 +10202,7 @@ computations.
          "mblock_index",
          "iyb",
          "yb",
-         "stokes_dim",
+         
          "f_grid",
          "sensor_los",
          "mblock_dlos",
@@ -10316,7 +10233,7 @@ computations.
          "yb",
          "atm_field",
          "cloudbox_on",
-         "stokes_dim",
+         
          "f_grid",
          "sensor_pos",
          "sensor_los",
@@ -10729,7 +10646,7 @@ computations.
       GOUT("out"),
       GOUT_TYPE("Matrix"),
       GOUT_DESC("Variable to initialize."),
-      IN("stokes_dim"),
+      IN(),
       GIN("f"),
       GIN_TYPE("Vector"),
       GIN_DEFAULT(NODEF),
@@ -10888,7 +10805,7 @@ computations.
       GOUT("out"),
       GOUT_TYPE("Matrix"),
       GOUT_DESC("Variable to initialize."),
-      IN("stokes_dim"),
+      IN(),
       GIN("f", "t"),
       GIN_TYPE("Vector", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
@@ -10976,7 +10893,7 @@ computations.
       GOUT("out"),
       GOUT_TYPE("Matrix"),
       GOUT_DESC("Variable to initialize."),
-      IN("stokes_dim"),
+      IN(),
       GIN("f"),
       GIN_TYPE("Vector"),
       GIN_DEFAULT(NODEF),
@@ -11209,7 +11126,7 @@ computations.
          "f_index",
          "sensor_pos",
          "sensor_los",
-         "stokes_dim",
+         
          "ppath_step_agenda",
          "ppath_lmax",
          "ppath_lraytrace",
@@ -11283,7 +11200,7 @@ computations.
          "f_index",
          "sensor_pos",
          "sensor_los",
-         "stokes_dim",
+         
          "ppath_lmax",
          "ppath_step_agenda",
          "ppath_lraytrace",
@@ -13508,7 +13425,7 @@ of the derivatives out of this function is 2.
       GOUT_DESC(),
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "select_abs_species",
@@ -13850,7 +13767,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       GOUT_DESC(),
       IN("propmat_clearsky",
          "dpropmat_clearsky_dx",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "select_abs_species",
@@ -13925,7 +13842,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       GOUT_DESC(),
       IN("jacobian_quantities",
          "f_grid",
-         "stokes_dim",
+         
          "propmat_clearsky_agenda_checked"),
       GIN(),
       GIN_TYPE(),
@@ -13947,7 +13864,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("f_grid", "stokes_dim"),
+      IN("f_grid"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -16465,7 +16382,7 @@ where N>=0 and the species name is something line "H2O".
          "scat_data",
          "abs_species",
          "f_grid",
-         "stokes_dim",
+         
          "surface_field"),
       GIN("nstreams",
           "pfct_method",
@@ -16551,7 +16468,7 @@ where N>=0 and the species name is something line "H2O".
          "scat_data",
          "abs_species",
          "f_grid",
-         "stokes_dim",
+         
          "surface_field",
          "surface_skin_t",
          "surface_scalar_reflectivity",
@@ -17547,7 +17464,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "stokes_dim",
+         
          "f_grid",
          "sensor_pos",
          "sensor_los",
@@ -17582,7 +17499,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim", "f_grid"),
+      IN( "f_grid"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -18150,7 +18067,7 @@ where N>=0 and the species name is something line "H2O".
       IN("f_grid",
          "mblock_dlos",
          "antenna_dim",
-         "stokes_dim",
+         
          "sensor_norm"),
       GIN(),
       GIN_TYPE(),
@@ -18209,7 +18126,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "stokes_dim",
+         
          "f_grid",
          "f_backend",
          "channel2fgrid_indexes",
@@ -18385,7 +18302,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_response_f_grid",
          "sensor_response_pol_grid",
          "sensor_response_dlos_grid",
-         "stokes_dim",
+         
          "iy_unit",
          "instrument_pol"),
       GIN(),
@@ -18415,7 +18332,7 @@ where N>=0 and the species name is something line "H2O".
          "sensor_response_f_grid",
          "sensor_response_pol_grid",
          "sensor_response_dlos_grid",
-         "stokes_dim",
+         
          "stokes_rotation"),
       GIN(),
       GIN_TYPE(),
@@ -18453,7 +18370,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "stokes_dim", "sensor_description_amsu"),
+      IN(  "sensor_description_amsu"),
       GIN("spacing"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(".1e9"),
@@ -18495,7 +18412,7 @@ where N>=0 and the species name is something line "H2O".
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN( "stokes_dim", "sensor_description_amsu"),
+      IN(  "sensor_description_amsu"),
       GIN("spacing"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(".1e9"),
@@ -18706,7 +18623,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "iy_space_agenda",
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -18773,7 +18690,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "iy_space_agenda",
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
-         "stokes_dim",
+         
          "f_grid",
          "abs_species",
          "atm_field",
@@ -18850,8 +18767,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("suns",
-         "f_grid",
-         "stokes_dim"),
+         "f_grid"),
       GIN("radius",
           "distance",
           "temperature",
@@ -18904,8 +18820,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("suns",
-         "f_grid",
-         "stokes_dim"),
+         "f_grid"),
       GIN("sun_spectrum_raw",
           "radius",
           "distance",
@@ -18970,7 +18885,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("suns",
           "f_grid",
-          "stokes_dim",
+          
           "surface_field"),
       GIN("sun_spectrum_raw",
           "radius",
@@ -19198,7 +19113,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN(
          "f_grid",
-         "stokes_dim",
+         
          "rtp_pos",
          "rtp_los",
          "surface_point"),
@@ -19233,7 +19148,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "stokes_dim",
+         
          "f_grid",
          "rtp_pos",
          "rtp_los",
@@ -19272,7 +19187,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "stokes_dim",
+         
          "rtp_pos",
          "rtp_los",
          "specular_los",
@@ -19300,7 +19215,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "stokes_dim",
+         
          "rtp_pos",
          "rtp_los",
          "specular_los",
@@ -19331,7 +19246,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "stokes_dim",
+         
          "rtp_pos",
          "rtp_los",
          "specular_los",
@@ -19360,7 +19275,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "stokes_dim",
+         
          "rtp_pos",
          "rtp_los",
          "specular_los",
@@ -19410,7 +19325,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "stokes_dim",
+         
          "rtp_pos",
          "rtp_los",
          "surface_normal",
@@ -19456,7 +19371,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("surface_emission", "surface_rmatrix", "stokes_dim"),
+      IN("surface_emission", "surface_rmatrix"),
       GIN("pol_angle"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -19502,7 +19417,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "stokes_dim",
+         
          "f_grid",
          "lat_grid",
          "lat_true",
@@ -19544,7 +19459,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(
-         "stokes_dim",
+         
          "f_grid",
          "rtp_pos",
          "rtp_los",
@@ -19634,7 +19549,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim",
+      IN(
          "f_grid",
          "lat_grid",
          "lat_true",
@@ -19674,7 +19589,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("f_grid",
-         "stokes_dim",
+         
          "lat_grid",
          "lat_true",
          "lon_true",
@@ -19805,7 +19720,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("stokes_dim",
+      IN(
          "f_grid",
          "lat_grid",
          "lat_true",
@@ -19861,7 +19776,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "stokes_dim",
+         
          "lat_grid",
          "lon_grid",
          "f_grid",
@@ -19941,7 +19856,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "stokes_dim",
+         
          "lat_grid",
          "lon_grid",
          "f_grid",
@@ -19999,7 +19914,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "stokes_dim",
+         
          "lat_grid",
          "lon_grid",
          "f_grid",
@@ -20040,7 +19955,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT_DESC(),
       IN("dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "stokes_dim",
+         
          "lat_grid",
          "lon_grid",
          "f_grid",
@@ -21688,7 +21603,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "y_aux",
          "y_geo",
          "jacobian",
-         "stokes_dim",
+         
          "jacobian_do",
          "sensor_pos",
          "sensor_pol"),
@@ -22037,7 +21952,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "cloudbox_checked",
          "scat_data_checked",
          "sensor_checked",
-         "stokes_dim",
+         
          "f_grid",
          "sensor_pos",
          "sensor_los",
@@ -22128,7 +22043,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "cloudbox_checked",
          "scat_data_checked",
          "sensor_checked",
-         "stokes_dim",
+         
          "f_grid",
          "sensor_pos",
          "sensor_los",
@@ -22209,7 +22124,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
          "atmfields_checked",
          "iy_unit_radar",
          "iy_aux_vars",
-         "stokes_dim",
+         
          "f_grid",
          "cloudbox_on",
          "cloudbox_checked",
@@ -22247,7 +22162,7 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("iy", "stokes_dim", "f_grid"),
+      IN("iy",  "f_grid"),
       GIN("df"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),

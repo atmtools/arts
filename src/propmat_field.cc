@@ -12,15 +12,14 @@
 
 #include "propmat_field.h"
 #include "matpack_data.h"
+#include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "transmissionmatrix.h"
 
 void field_of_propagation(Workspace& ws,
-                          FieldOfPropagationMatrix& propmat_field,
-                          FieldOfStokesVector& absorption_field,
-                          FieldOfStokesVector& additional_source_field,
-                          const Index& stokes_dim,
+                          FieldOfPropmatVector& propmat_field,
+                          FieldOfStokvecVector& absorption_field,
+                          FieldOfStokvecVector& additional_source_field,
                           const Vector& f_grid,
                           const AtmField& atm_field,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -36,22 +35,20 @@ Index nalt, nlat, nlon;
 
   ARTS_USER_ERROR_IF (nq,
         "Does not support Jacobian calculations at this time");
-  ARTS_USER_ERROR_IF (stokes_dim not_eq 1,
-        "Only for stokes_dim 1 at this time.");
 
   // Compute variables
   const Vector mag_field = Vector(3, 0);
   const Vector los = Vector(2, 0);
   const Vector tmp(0);
-  ArrayOfStokesVector dS_dx(nq);
-  ArrayOfPropagationMatrix dK_dx(nq);
+  StokvecMatrix dS_dx(nq, nf);
+  PropmatMatrix dK_dx(nq, nf);
 
-  propmat_field = FieldOfPropagationMatrix(
-      nalt, nlat, nlon, PropagationMatrix(nf, stokes_dim));
+  propmat_field = FieldOfPropmatVector(
+      nalt, nlat, nlon, PropmatVector(nf));
   absorption_field =
-      FieldOfStokesVector(nalt, nlat, nlon, StokesVector(nf, stokes_dim));
+      FieldOfStokvecVector(nalt, nlat, nlon, StokvecVector(nf));
   additional_source_field =
-      FieldOfStokesVector(nalt, nlat, nlon, StokesVector(nf, stokes_dim));
+      FieldOfStokvecVector(nalt, nlat, nlon, StokvecVector(nf));
 
   WorkspaceOmpParallelCopyGuard wss{ws};
 
@@ -73,34 +70,34 @@ Index nalt, nlat, nlon;
             los,
        AtmPoint{},  //   atm_field.at({atm_field.grid[0][i]}, {atm_field.grid[1][j]}, {atm_field.grid[2][k]})[0],
             false);
-        absorption_field(i, j, k) = propmat_field(i, j, k);
+        absorption_field(i, j, k) = absvec(propmat_field(i, j, k));
       }
     }
   }
 }
 
-FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
-    const FieldOfPropagationMatrix& propmat_field, const Numeric& r)
+FieldOfMuelmatVector transmat_field_calc_from_propmat_field(
+    const FieldOfPropmatVector& propmat_field, const Numeric& r)
 {
-  FieldOfTransmissionMatrix transmat_field(
+  FieldOfMuelmatVector transmat_field(
       propmat_field.npages(), propmat_field.nrows(), propmat_field.ncols());
   for (size_t ip = 0; ip < propmat_field.npages(); ip++)
     for (size_t ir = 0; ir < propmat_field.nrows(); ir++)
       for (size_t ic = 0; ic < propmat_field.ncols(); ic++)
-        transmat_field(ip, ir, ic) =
-            TransmissionMatrix(propmat_field(ip, ir, ic), r);
+        for (Index iv = 0; iv < propmat_field(0, 0, 0).nelem(); iv++)
+          transmat_field(ip, ir, ic)[iv] = rtepack::exp(-r * propmat_field(ip, ir, ic)[iv]);
   return transmat_field;
 }
 
 void emission_from_propmat_field(
     Workspace& ws,
-    ArrayOfRadiationVector& lvl_rad,
-    ArrayOfRadiationVector& src_rad,
-    ArrayOfTransmissionMatrix& lyr_tra,
-    ArrayOfTransmissionMatrix& tot_tra,
-    const FieldOfPropagationMatrix& propmat_field,
-    const FieldOfStokesVector& absorption_field,
-    const FieldOfStokesVector& additional_source_field,
+    ArrayOfStokvecVector& lvl_rad,
+    ArrayOfStokvecVector& src_rad,
+    ArrayOfMuelmatVector& lyr_tra,
+    ArrayOfMuelmatVector& tot_tra,
+    const FieldOfPropmatVector& propmat_field,
+    const FieldOfStokvecVector& absorption_field,
+    const FieldOfStokvecVector& additional_source_field,
     const Vector& f_grid,
     const AtmField& atm_field,
     const Ppath& ppath,
@@ -112,74 +109,46 @@ void emission_from_propmat_field(
 {
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index ns = propmat_field(0, 0, 0).StokesDimensions();
   const Index np = ppath.np;
 
   // Current limitations
-  ARTS_USER_ERROR_IF (ns not_eq 1, "Only for stokes_dim 1");
-  ARTS_USER_ERROR_IF (ppath.dim not_eq 1, "Only for atmosphere_dim 1");
+  ARTS_USER_ERROR ("Only for 1D atmospheres at this time");
 
   // Size of compute variables
-  lvl_rad = ArrayOfRadiationVector(np, RadiationVector(nf, ns));
-  src_rad = ArrayOfRadiationVector(np, RadiationVector(nf, ns));
-  lyr_tra = ArrayOfTransmissionMatrix(np, TransmissionMatrix(nf, ns));
-
-  RadiationVector J_add_dummy;
-  ArrayOfRadiationVector dJ_add_dummy;
+  lvl_rad.resize(np, nf);
+  src_rad.resize(np, nf);
+  lyr_tra.resize(np, nf);
 
   // Size radiative variables always used
   Vector B(nf);
-  PropagationMatrix K_this(nf, ns), K_past(nf, ns);
+  PropmatVector K_this(nf), K_past(nf);
 
   // Temporary empty variables to fit available function handles
   Vector vtmp(0);
   ArrayOfTensor3 t3tmp;
-  ArrayOfTransmissionMatrix tmtmp(0);
-  ArrayOfRadiationVector rvtmp(0);
-  ArrayOfPropagationMatrix pmtmp(0);
-  ArrayOfStokesVector svtmp(0);
-  ArrayOfRetrievalQuantity rqtmp(0);
+  const ArrayOfRetrievalQuantity rqtmp(0);
 
   // Loop ppath points and determine radiative properties
   for (Index ip = 0; ip < np; ip++) {
-    // FIXME: GET SOURCE
+    std::transform(f_grid.elem_begin(), f_grid.elem_end(), B.elem_begin(),
+                   [T = atm_field[Atm::Key::t].at(
+                        ppath.pos[ip][0], ppath.pos[ip][1], ppath.pos[ip][2])](
+                       const Numeric f) { return planck(f, T); });
+
     K_this = propmat_field(ppath.gp_p[ip]);
-    const StokesVector S(additional_source_field(ppath.gp_p[ip]));
-    const StokesVector a(absorption_field(ppath.gp_p[ip]));
+    const StokvecVector S(additional_source_field(ppath.gp_p[ip]));
+    const StokvecVector a(absorption_field(ppath.gp_p[ip]));
 
     if (ip)
-      stepwise_transmission(lyr_tra[ip],
-                            tmtmp,
-                            tmtmp,
-                            K_past,
-                            K_this,
-                            pmtmp,
-                            pmtmp,
-                            ppath.lstep[ip - 1],
-                            0,
-                            0,
-                            -1);
-
-    stepwise_source(src_rad[ip],
-                    rvtmp,
-                    J_add_dummy,
-                    K_this,
-                    a,
-                    S,
-                    pmtmp,
-                    svtmp,
-                    svtmp,
-                    B,
-                    vtmp,
-                    rqtmp,
-                    false);
+      two_level_exp(lyr_tra[ip], K_past, K_this, ppath.lstep[ip - 1]);
+    rtepack::source::level_nlte_and_scattering(src_rad[ip], K_this, a, S, B);
 
     swap(K_past, K_this);
   }
 
   // In case of backwards RT necessary
-  tot_tra = cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
-  const Tensor3 iy_trans_new = tot_tra[np - 1];
+  tot_tra = forward_cumulative_transmission(lyr_tra);
+  const Tensor3 iy_trans_new = to_tensor3(tot_tra[np - 1]);
 
   // Radiative background
   Matrix iy;
@@ -194,7 +163,6 @@ void emission_from_propmat_field(
                        Vector{0},
                        atm_field,
                        0,
-                       1,
                        f_grid,
                        "1",
                        surface_field,
@@ -203,29 +171,11 @@ void emission_from_propmat_field(
                        iy_surface_agenda,
                        iy_cloudbox_agenda,
                        1);
-  lvl_rad[np - 1] = RadiationVector{iy};
+  lvl_rad[np - 1] = rtepack::to_stokvec_vector(iy);
 
   // Radiative transfer calculations
   for (Index ip = np - 2; ip >= 0; ip--)
-    update_radiation_vector(lvl_rad[ip] = lvl_rad[ip + 1],
-                            rvtmp,
-                            rvtmp,
+  two_level_linear_emission_step(lvl_rad[ip] = lvl_rad[ip + 1],
                             src_rad[ip],
-                            src_rad[ip + 1],
-                            rvtmp,
-                            rvtmp,
-                            lyr_tra[ip + 1],
-                            tot_tra[ip],
-                            tmtmp,
-                            tmtmp,
-                            PropagationMatrix(),
-                            PropagationMatrix(),
-                            ArrayOfPropagationMatrix(),
-                            ArrayOfPropagationMatrix(),
-                            Numeric(),
-                            Vector(),
-                            Vector(),
-                            0,
-                            0,
-                            RadiativeTransferSolver::Emission);
+                            src_rad[ip + 1], lyr_tra[ip + 1]);
 }

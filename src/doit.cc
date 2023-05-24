@@ -33,8 +33,11 @@
 #include "matpack_data.h"
 #include "physics_funcs.h"
 #include "ppath.h"
-#include "propagationmatrix.h"
 #include "rte.h"
+#include "rtepack.h"
+#include "rtepack_multitype.h"
+#include "rtepack_rtestep.h"
+#include "rtepack_stokes_vector.h"
 #include "sorting.h"
 #include "special_interp.h"
 #include "species_tags.h"
@@ -46,104 +49,25 @@ inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 //FIXME function name of 'rte_step_doit_replacement' should be replaced by
 //proper name
 void rte_step_doit_replacement(  //Output and Input:
-    VectorView stokes_vec,
-    MatrixView trans_mat,
+    Stokvec& stokes_vec,
+    Muelmat& trans_mat,
     //Input
-    const PropagationMatrix& ext_mat_av,
-    const StokesVector& abs_vec_av,
-    ConstVectorView sca_vec_av,
+    const Propmat& ext_mat_av,
+    const Stokvec& abs_vec_av,
+    const Stokvec& sca_vec_av,
     const Numeric& lstep,
     const Numeric& rtp_planck_value,
     const bool& trans_is_precalc) {
-  //Stokes dimension:
-  Index stokes_dim = stokes_vec.nelem();
-
-  //Test sizes
-  ARTS_ASSERT(ext_mat_av.NumberOfFrequencies() == 1 and
-         abs_vec_av.NumberOfFrequencies() == 1);
-
-  //Check inputs:
-  ARTS_ASSERT(is_size(trans_mat, stokes_dim, stokes_dim));
-  ARTS_ASSERT(stokes_dim == ext_mat_av.StokesDimensions() and
-         stokes_dim == abs_vec_av.StokesDimensions());
-  ARTS_ASSERT(is_size(sca_vec_av, stokes_dim));
   ARTS_ASSERT(rtp_planck_value >= 0);
   ARTS_ASSERT(lstep >= 0);
-  //ARTS_ASSERT (not ext_mat_av.AnySingular());  This is ARTS_ASSERTed at a later time in this version...
 
-  // Check, if only the first component of abs_vec is non-zero:
-//   const bool unpol_abs_vec = abs_vec_av.IsUnpolarized(0);
-
-//   bool unpol_sca_vec = true;
-
-//   for (Index i = 1; i < stokes_dim; i++)
-//     if (sca_vec_av[i] != 0) unpol_sca_vec = false;
-
-  // Calculate transmission by general function, if not precalculated
-//   Index extmat_case = 0;
   if (!trans_is_precalc) {
-    compute_transmission_matrix_from_averaged_matrix_at_frequency(
-        trans_mat, lstep, ext_mat_av, 0);
+    trans_mat = rtepack::exp(-lstep * ext_mat_av);
   }
 
-  //--- Scalar case: ---------------------------------------------------------
-  if (stokes_dim == 1) {
-    stokes_vec[0] = stokes_vec[0] * trans_mat(0, 0) +
-                    (abs_vec_av.Kjj()[0] * rtp_planck_value + sca_vec_av[0]) /
-                        ext_mat_av.Kjj()[0] * (1 - trans_mat(0, 0));
-  }
-
-  //--- Vector case: ---------------------------------------------------------
-
-  // We have here two cases, diagonal or non-diagonal ext_mat_gas
-  // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
-  // non-zero value in position 1.
-
-  //- Unpolarised
-//   else if (extmat_case == 1 && unpol_abs_vec && unpol_sca_vec) {
-//     const Numeric invK = 1.0 / ext_mat_av.Kjj()[0];
-//     // Stokes dim 1
-//     stokes_vec[0] = stokes_vec[0] * trans_mat(0, 0) +
-//                     (abs_vec_av.Kjj()[0] * rtp_planck_value + sca_vec_av[0]) *
-//                         invK * (1 - trans_mat(0, 0));
-// 
-//     // Stokes dims > 1
-//     for (Index i = 1; i < stokes_dim; i++) {
-//       stokes_vec[i] = stokes_vec[i] * trans_mat(i, i) +
-//                       sca_vec_av[i] * invK * (1 - trans_mat(i, i));
-//     }
-//   }
-
-  //- General case
-  else {
-    Matrix invK(stokes_dim, stokes_dim);
-    ext_mat_av.MatrixInverseAtPosition(invK);
-
-    Vector source{abs_vec_av.VectorAtPosition()};
-    source *= rtp_planck_value;
-
-    for (Index i = 0; i < stokes_dim; i++)
-      source[i] += sca_vec_av[i];  // b = abs_vec * B + sca_vec
-
-    // solve K^(-1)*b = x
-    Vector x(stokes_dim);
-    mult(x, invK, source);
-
-    Vector term1(stokes_dim);
-    Vector term2(stokes_dim);
-
-    Matrix ImT(stokes_dim, stokes_dim);
-    id_mat(ImT);
-    ImT -= trans_mat;
-    mult(term2, ImT, x);  // term2: second term of the solution of the RTE with
-                          //fixed scattered field
-
-    // term1: first term of solution of the RTE with fixed scattered field
-    mult(term1, trans_mat, stokes_vec);
-
-    for (Index i = 0; i < stokes_dim; i++)
-      stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
-  }
+  stokes_vec = rtepack::linear_step(
+      trans_mat, stokes_vec,
+      inv(ext_mat_av) * (abs_vec_av * rtp_planck_value + sca_vec_av));
 }
 
 void cloud_fieldsCalc(Workspace& ws,
@@ -160,11 +84,8 @@ void cloud_fieldsCalc(Workspace& ws,
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
 
-  const Index atmosphere_dim = cloudbox_limits.nelem() / 2;
   const Index N_se = pnd_field.nbooks();
-  const Index stokes_dim = ext_mat_field.ncols();
 
-  ARTS_ASSERT(atmosphere_dim == 1 || atmosphere_dim == 3);
   ARTS_ASSERT(ext_mat_field.ncols() == ext_mat_field.nrows() &&
          ext_mat_field.ncols() == abs_vec_field.ncols());
 
@@ -174,27 +95,17 @@ void cloud_fieldsCalc(Workspace& ws,
   Index Nlat_cloud = 1;
   Index Nlon_cloud = 1;
 
-  if (atmosphere_dim == 3) {
-    Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-    Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-  }
+  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
   // Initialize ext_mat(_spt), abs_vec(_spt)
   // Resize and initialize variables for storing optical properties
   // of all scattering elements.
-  ArrayOfStokesVector abs_vec_spt_local(N_se);
-  for (auto& av : abs_vec_spt_local) {
-    av = StokesVector(1, stokes_dim);
-    av.SetZero();
-  }
-  ArrayOfPropagationMatrix ext_mat_spt_local(N_se);
-  for (auto& pm : ext_mat_spt_local) {
-    pm = PropagationMatrix(1, stokes_dim);
-    pm.SetZero();
-  }
+  ArrayOfStokvecVector abs_vec_spt_local(N_se, StokvecVector{1, Stokvec{0, 0, 0, 0}});
+  ArrayOfPropmatVector ext_mat_spt_local(N_se, PropmatVector{1, Propmat{0, 0, 0, 0, 0, 0, 0}});
 
-  StokesVector abs_vec_local;
-  PropagationMatrix ext_mat_local;
+  StokvecVector abs_vec_local;
+  PropmatVector ext_mat_local;
   Numeric rtp_temperature_local;
 
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
@@ -214,14 +125,10 @@ void cloud_fieldsCalc(Workspace& ws,
          scat_lat_index_local++) {
       for (Index scat_lon_index_local = 0; scat_lon_index_local < Nlon_cloud;
            scat_lon_index_local++) {
-        if (atmosphere_dim == 1)
-          rtp_temperature_local =
-              t_field(scat_p_index_local + cloudbox_limits[0], 0, 0);
-        else
-          rtp_temperature_local =
-              t_field(scat_p_index_local + cloudbox_limits[0],
-                      scat_lat_index_local + cloudbox_limits[2],
-                      scat_lon_index_local + cloudbox_limits[4]);
+        rtp_temperature_local =
+            t_field(scat_p_index_local + cloudbox_limits[0],
+                    scat_lat_index_local + cloudbox_limits[2],
+                    scat_lon_index_local + cloudbox_limits[4]);
 
         //Calculate optical properties for individual scattering elements:
         //( Execute agendas silently. )
@@ -263,16 +170,15 @@ void cloud_fieldsCalc(Workspace& ws,
                           scat_lon_index_local);
 
         // Store coefficients in arrays for the whole cloudbox.
-        abs_vec_field(scat_p_index_local,
-                      scat_lat_index_local,
-                      scat_lon_index_local,
-                      joker) = abs_vec_local.VectorAtPosition();
-
-        ext_mat_local.MatrixAtPosition(ext_mat_field(scat_p_index_local,
-                                                     scat_lat_index_local,
-                                                     scat_lon_index_local,
-                                                     joker,
-                                                     joker));
+        auto mmat = rtepack::to_muelmat(ext_mat_local[0]);
+        for (Index i = 0; i < 4; i++) {
+          abs_vec_field(scat_p_index_local, scat_lat_index_local,
+                        scat_lon_index_local, i) = abs_vec_local[0].data[i];
+          for (Index j = 0; j < 4; j++) {
+            ext_mat_field(scat_p_index_local, scat_lat_index_local,
+                          scat_lon_index_local, i, j) = mmat(i, j);
+          }
+        }
       }
     }
   }
@@ -354,7 +260,6 @@ void cloud_ppath_update1D(Workspace& ws,
       (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
        abs(ppath_step.gp_p[1].fd[0]) < 1e-6)) {
     // Stokes dimension
-    const Index stokes_dim = cloudbox_field_mono.ncols();
     // Number of species
     const Index N_species = abs_species.nelem();
 
@@ -365,10 +270,10 @@ void cloud_ppath_update1D(Workspace& ws,
     // points in the ppath_step.
 
     // Initialize variables for interpolated values
-    Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np, 0.);
-    Matrix abs_vec_int(stokes_dim, ppath_step.np, 0.);
-    Matrix sca_vec_int(stokes_dim, ppath_step.np, 0.);
-    Matrix cloudbox_field_mono_int(stokes_dim, ppath_step.np, 0.);
+    Tensor3 ext_mat_int(4, 4, ppath_step.np, 0.);
+    Matrix abs_vec_int(4, ppath_step.np, 0.);
+    Matrix sca_vec_int(4, ppath_step.np, 0.);
+    Matrix cloudbox_field_mono_int(4, ppath_step.np, 0.);
     Vector t_int(ppath_step.np, 0.);
     Matrix vmr_list_int(N_species, ppath_step.np, 0.);
     Vector p_int(ppath_step.np, 0.);
@@ -429,7 +334,6 @@ void cloud_ppath_update1D(Workspace& ws,
                        surface_rtprop_agenda,
                        f_grid,
                        f_index,
-                       stokes_dim,
                        ppath_step,
                        cloudbox_limits,
                        za_grid,
@@ -509,7 +413,6 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
       (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
        abs(ppath_step.gp_p[1].fd[0]) < 1e-6)) {
     // Stokes dimension
-    const Index stokes_dim = cloudbox_field_mono.ncols();
     // Number of species
     const Index N_species = vmr_field.nbooks();
 
@@ -520,10 +423,10 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
     // points in the ppath_step.
 
     // Initialize variables for interpolated values
-    Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np, 0.);
-    Matrix abs_vec_int(stokes_dim, ppath_step.np, 0.);
-    Matrix sca_vec_int(stokes_dim, ppath_step.np, 0.);
-    Matrix cloudbox_field_mono_int(stokes_dim, ppath_step.np, 0.);
+    Tensor3 ext_mat_int(4, 4, ppath_step.np, 0.);
+    Matrix abs_vec_int(4, ppath_step.np, 0.);
+    Matrix sca_vec_int(4, ppath_step.np, 0.);
+    Matrix cloudbox_field_mono_int(4, ppath_step.np, 0.);
     Vector t_int(ppath_step.np, 0.);
     Matrix vmr_list_int(N_species, ppath_step.np, 0.);
     Vector p_int(ppath_step.np, 0.);
@@ -587,7 +490,6 @@ ARTS_USER_ERROR("ERROR")
                        surface_rtprop_agenda,
                        f_grid,
                        f_index,
-                       stokes_dim,
                        ppath_step,
                        cloudbox_limits,
                        za_grid,
@@ -617,20 +519,18 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         ConstTensor5View ext_mat_field,
                                         ConstTensor4View abs_vec_field) {
   const Index N_species = vmr_field.nbooks();
-  const Index stokes_dim = cloudbox_field_mono.ncols();
-  const Index atmosphere_dim = 1;
-  PropagationMatrix propmat_clearsky;
-  PropagationMatrix ext_mat;
-  StokesVector abs_vec;
-  Matrix matrix_tmp(stokes_dim, stokes_dim);
-  Vector vector_tmp(stokes_dim);
+  PropmatVector propmat_clearsky;
+  PropmatVector ext_mat;
+  StokvecVector abs_vec;
+  Matrix matrix_tmp(4, 4);
+  Vector vector_tmp(4);
   Vector rtp_vmr(N_species, 0.);
-  Vector sca_vec_av(stokes_dim, 0);
+  Vector sca_vec_av(4, 0);
 
   // Radiative transfer from one layer to the next, starting
   // at the intersection with the next layer and propagating
   // to the considered point.
-  Vector stokes_vec(stokes_dim);
+  Vector stokes_vec(4);
   Index bkgr;
   if ((p_index == 0) && (za_grid[za_index] > 90)) {
     bkgr = 2;
@@ -678,9 +578,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
 
-      StokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      StokvecVector nlte_dummy;  //FIXME: do this right?
+      PropmatMatrix partial_dummy;  // This is right since there should be only clearsky partials
+      StokvecMatrix partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
@@ -695,7 +595,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       opt_prop_sum_propmat_clearsky(ext_mat, abs_vec, propmat_clearsky);
 
-      for (Index k = 0; k < stokes_dim; k++) {
+      for (Index k = 0; k < 4; k++) {
         //
         // Averaging of sca_vec:
         //
@@ -710,15 +610,15 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       //
       // Add average particle absorption to abs_vec.
       //
-      abs_vec.AddAverageAtPosition(
-          abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker),
-          abs_vec_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker));
+      abs_vec[0] += rtepack::avg(
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker)},
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker)});
 
       //
       // Add average particle extinction to ext_mat.
-      ext_mat.AddAverageAtPosition(
-          ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker),
-          ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker));
+      ext_mat[0] += rtepack::avg(
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker)},
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker)});
 
       // Frequency
       Numeric f = f_grid[f_index];
@@ -729,13 +629,16 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // Radiative transfer step calculation. The Stokes vector
       // is updated until the considered point is reached.
-      rte_step_doit_replacement(stokes_vec,
-                                Matrix(stokes_dim, stokes_dim),
-                                ext_mat,
-                                abs_vec,
-                                sca_vec_av,
+      Stokvec v(stokes_vec);
+      Muelmat m(0.0);
+      rte_step_doit_replacement(v,
+                                m,
+                                ext_mat[0],
+                                abs_vec[0],
+                                Stokvec{sca_vec_av},
                                 lstep,
                                 rte_planck_value);
+      stokes_vec = to_vector(v);
 
       // Assign calculated Stokes Vector to cloudbox_field_mono.
       cloudbox_field_mono(
@@ -778,9 +681,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       const Vector rtp_mag_dummy(3, 0);
       const Vector ppath_los_dummy;
-      StokesVector nlte_dummy;  //FIXME: do this right?
-      ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
-      ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
+      StokvecVector nlte_dummy;  //FIXME: do this right?
+      PropmatMatrix partial_dummy;  // This is right since there should be only clearsky partials
+      StokvecMatrix partial_nlte_dummy;  // This is right since there should be only clearsky partials
       propmat_clearsky_agendaExecute(ws,
                                      propmat_clearsky,
                                      nlte_dummy,
@@ -801,7 +704,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // cout<<"cloudbox_limits[1]"<<cloudbox_limits[1]<<endl;
       //               cout<<"p_index - cloudbox_limits[0]"<<p_index - cloudbox_limits[0]<<endl;
-      for (Index k = 0; k < stokes_dim; k++) {
+      for (Index k = 0; k < 4; k++) {
         //
         // Averaging of sca_vec:
         //
@@ -815,15 +718,15 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
       //
       // Add average particle absorption to abs_vec.
       //
-      abs_vec.AddAverageAtPosition(
-          abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker),
-          abs_vec_field(p_index - cloudbox_limits[0] - 1, 0, 0, joker));
+      abs_vec[0] += rtepack::avg(
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0], 0, 0, joker)},
+          Stokvec{abs_vec_field(p_index - cloudbox_limits[0] - 1, 0, 0, joker)});
 
       //
       // Add average particle extinction to ext_mat.
-      ext_mat.AddAverageAtPosition(
-          ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker),
-          ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker));
+      ext_mat[0] += rtepack::avg(
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0], 0, 0, joker, joker)},
+          Propmat{ext_mat_field(p_index - cloudbox_limits[0] + 1, 0, 0, joker, joker)});
 
       // Frequency
       Numeric f = f_grid[f_index];
@@ -834,13 +737,15 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // Radiative transfer step calculation. The Stokes vector
       // is updated until the considered point is reached.
-      rte_step_doit_replacement(stokes_vec,
-                                Matrix(stokes_dim, stokes_dim),
-                                ext_mat,
-                                abs_vec,
-                                sca_vec_av,
+      Stokvec v(stokes_vec);
+      Muelmat m(0.0);
+      rte_step_doit_replacement(v, m,
+                                ext_mat[0],
+                                abs_vec[0],
+                                Stokvec{sca_vec_av},
                                 lstep,
                                 rte_planck_value);
+      stokes_vec = to_vector(v);
 
       // Assign calculated Stokes Vector to cloudbox_field_mono.
       cloudbox_field_mono(
@@ -855,9 +760,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     //Set rte_pos, rte_gp_p and rte_los to match the last point
     //in ppath.
     //pos
-    Vector rte_pos(atmosphere_dim);
+    Vector rte_pos(3);
     Numeric z_field_0 = z_grid[0];
-    rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,atmosphere_dim));
+    rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,3));
     //los
     Vector rte_los(1);
     rte_los = za_grid[za_index];  //ppath_step.los(np-1,joker);
@@ -877,7 +782,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
         See comment in function above
           // Check returned variables
           if( surface_emission.nrows() != f_grid.nelem()  ||
-              surface_emission.ncols() != stokes_dim )
+              surface_emission.ncols() != 4 )
             throw runtime_error(
                   "The size of the created *surface_emission* is not correct.");
 
@@ -886,11 +791,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           // Define a local vector cloudbox_field_mono_sum which adds the
           // products of groudnd_refl_coeffs with the downwelling
           // radiation for each elements of surface_los
-          Vector cloudbox_field_mono_sum(stokes_dim,0);
+          Vector cloudbox_field_mono_sum(4,0);
           // Loop over the surface_los elements
           for( Index ilos=0; ilos < nlos; ilos++ )
             {
-              if( stokes_dim == 1 )
+              if( 4 == 1 )
                 {
                   cloudbox_field_mono_sum[0] += surface_refl_coeffs(ilos,f_index,0,0) *
                     cloudbox_field_mono(cloudbox_limits[0],
@@ -900,14 +805,14 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                 }
               else
                 {
-                  Vector stokes_vec2(stokes_dim);
+                  Vector stokes_vec2(4);
                   mult( stokes_vec2,
                         surface_refl_coeffs(ilos,0,joker,joker),
                         cloudbox_field_mono(cloudbox_limits[0],
                                 0, 0,
                                 (za_grid.nelem() -1 - za_index), 0,
                                 joker));
-                  for( Index is=0; is < stokes_dim; is++ )
+                  for( Index is=0; is < 4; is++ )
                     {
                       cloudbox_field_mono_sum[is] += stokes_vec2[is];
                     }
@@ -915,7 +820,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                 }
             }
           // Copy from *cloudbox_field_mono_sum* to *cloudbox_field_mono*, and add the surface emission
-          for( Index is=0; is < stokes_dim; is++ )
+          for( Index is=0; is < 4; is++ )
             {
               cloudbox_field_mono (cloudbox_limits[0],
                        0, 0,
@@ -982,9 +887,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           // Add average particle extinction to ext_mat.
           //
           //cout<<"Reached Here ????????????????????????????????????????????????";
-          for (Index k = 0; k < stokes_dim; k++)
+          for (Index k = 0; k < 4; k++)
             {
-              for (Index j = 0; j < stokes_dim; j++)
+              for (Index j = 0; j < 4; j++)
                 {
                   ext_mat(0,k,j) += 0.5 *
                     (ext_mat_field(p_index - cloudbox_limits[0],0,0,k,j) +
@@ -1072,9 +977,8 @@ void cloud_ppath_update3D(Workspace& ws,
  // const Tensor4 vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   Ppath ppath_step;
-  const Index stokes_dim = cloudbox_field_mono.ncols();
 
-  Vector sca_vec_av(stokes_dim, 0);
+  Vector sca_vec_av(4, 0);
   Vector aa_g(aa_grid.nelem());
 
   for (Index i = 0; i < aa_grid.nelem(); i++)
@@ -1185,25 +1089,25 @@ ARTS_USER_ERROR("ERROR")
     // lstep is given. We have to interpolate on all the
     // points in the ppath_step.
 
-    Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np);
-    Matrix abs_vec_int(stokes_dim, ppath_step.np);
-    Matrix sca_vec_int(stokes_dim, ppath_step.np, 0.);
-    Matrix cloudbox_field_mono_int(stokes_dim, ppath_step.np, 0.);
+    Tensor3 ext_mat_int(4, 4, ppath_step.np);
+    Matrix abs_vec_int(4, ppath_step.np);
+    Matrix sca_vec_int(4, ppath_step.np, 0.);
+    Matrix cloudbox_field_mono_int(4, ppath_step.np, 0.);
     Vector t_int(ppath_step.np);
     Vector vmr_int(ppath_step.np);
     Vector p_int(ppath_step.np);
-    Vector stokes_vec(stokes_dim);
-    //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
-    //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
+    Vector stokes_vec(4);
+    //Tensor3 ext_mat_gas(4, 4, ppath_step.np);
+    //Matrix abs_vec_gas(4, ppath_step.np);
 
     // Calculate the average of the coefficients for the layers
     // to be considered in the
     // radiative transfer calculation.
 
-    for (Index i = 0; i < stokes_dim; i++) {
+    for (Index i = 0; i < 4; i++) {
       // Extinction matrix requires a second loop
-      // over stokes_dim
-      for (Index j = 0; j < stokes_dim; j++) {
+      // over 4
+      for (Index j = 0; j < 4; j++) {
         //
         // Interpolation of ext_mat
         //
@@ -1327,21 +1231,19 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& za_index,
                             const Index& aa_index) {
   const Index N_species = vmr_list_int.nrows();
-  const Index stokes_dim = cloudbox_field_mono.ncols();
-  const Index atmosphere_dim = cloudbox_limits.nelem() / 2;
 
-  Vector sca_vec_av(stokes_dim, 0);
-  Vector stokes_vec(stokes_dim, 0.);
+  Vector sca_vec_av(4, 0);
+  Vector stokes_vec(4, 0.);
   Vector rtp_vmr_local(N_species, 0.);
 
   // Two propmat_clearsky to average between
-  PropagationMatrix cur_propmat_clearsky;
-  PropagationMatrix prev_propmat_clearsky;
+  PropmatVector cur_propmat_clearsky;
+  PropmatVector prev_propmat_clearsky;
 
-  PropagationMatrix ext_mat_local;
-  StokesVector abs_vec_local;
-  Matrix matrix_tmp(stokes_dim, stokes_dim);
-  Vector vector_tmp(stokes_dim);
+  PropmatVector ext_mat_local;
+  StokvecVector abs_vec_local;
+  Matrix matrix_tmp(4, 4);
+  Vector vector_tmp(4);
 
   // Incoming stokes vector
   stokes_vec = cloudbox_field_mono_int(joker, ppath_step.np - 1);
@@ -1357,9 +1259,9 @@ void cloud_RT_no_background(Workspace& ws,
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
 
-    StokesVector nlte_dummy;  //FIXME: do this right?
-    ArrayOfPropagationMatrix partial_dummy;  // This is right since there should be only clearsky partials
-    ArrayOfStokesVector partial_nlte_dummy;  // This is right since there should be only clearsky partials
+    StokvecVector nlte_dummy;  //FIXME: do this right?
+    PropmatMatrix partial_dummy;  // This is right since there should be only clearsky partials
+    StokvecMatrix partial_nlte_dummy;  // This is right since there should be only clearsky partials
     propmat_clearsky_agendaExecute(ws,
                                    cur_propmat_clearsky,
                                    nlte_dummy,
@@ -1383,7 +1285,7 @@ void cloud_RT_no_background(Workspace& ws,
     opt_prop_sum_propmat_clearsky(
         ext_mat_local, abs_vec_local, prev_propmat_clearsky);
 
-    for (Index i = 0; i < stokes_dim; i++) {
+    for (Index i = 0; i < 4; i++) {
       //
       // Averaging of sca_vec:
       //
@@ -1393,14 +1295,13 @@ void cloud_RT_no_background(Workspace& ws,
     //
     // Add average particle absorption to abs_vec.
     //
-    abs_vec_local.AddAverageAtPosition(abs_vec_int(joker, k),
-                                       abs_vec_int(joker, k + 1));
+    abs_vec_local[0] += rtepack::avg(Stokvec{abs_vec_int(joker, k)}, Stokvec{abs_vec_int(joker, k + 1)});
 
     //
     // Add average particle extinction to ext_mat.
     //
-    ext_mat_local.AddAverageAtPosition(ext_mat_int(joker, joker, k),
-                                       ext_mat_int(joker, joker, k + 1));
+    ext_mat_local[0] += avg(Propmat{ext_mat_int(joker, joker, k)},
+                            Propmat{ext_mat_int(joker, joker, k + 1)});
 
     // Frequency
     Numeric f = f_grid[f_index];
@@ -1414,27 +1315,24 @@ void cloud_RT_no_background(Workspace& ws,
 
     // Radiative transfer step calculation. The Stokes vector
     // is updated until the considered point is reached.
-    rte_step_doit_replacement(stokes_vec,
-                              Matrix(stokes_dim, stokes_dim),
-                              ext_mat_local,
-                              abs_vec_local,
-                              sca_vec_av,
+    Stokvec v{stokes_vec};
+    Muelmat m(0.0);
+    rte_step_doit_replacement(v, m,
+                              ext_mat_local[0],
+                              abs_vec_local[0],
+                              Stokvec{sca_vec_av},
                               lstep,
                               rte_planck_value);
+    stokes_vec = to_vector(v);
 
   }  // End of loop over ppath_step.
   // Assign calculated Stokes Vector to cloudbox_field_mono.
-  if (atmosphere_dim == 1)
-    cloudbox_field_mono(
-        p_index - cloudbox_limits[0], 0, 0, za_index, 0, joker) =
-        stokes_vec;
-  else if (atmosphere_dim == 3)
-    cloudbox_field_mono(p_index - cloudbox_limits[0],
-                      lat_index - cloudbox_limits[2],
-                      lon_index - cloudbox_limits[4],
-                      za_index,
-                      aa_index,
-                      joker) = stokes_vec;
+  cloudbox_field_mono(p_index - cloudbox_limits[0],
+                    lat_index - cloudbox_limits[2],
+                    lon_index - cloudbox_limits[4],
+                    za_index,
+                    aa_index,
+                    joker) = stokes_vec;
 }
 
 void cloud_RT_surface(Workspace& ws,
@@ -1444,7 +1342,6 @@ void cloud_RT_surface(Workspace& ws,
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
                       const Index& f_index,
-                      const Index& stokes_dim,
                       const Ppath& ppath_step,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstVectorView za_grid,
@@ -1488,7 +1385,7 @@ void cloud_RT_surface(Workspace& ws,
   Index nlos = surface_los.nrows();
 
   if (nlos > 0) {
-    Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
+    Vector rtmp(4);  // Reflected Stokes vector for 1 frequency
 
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Several things needs to be fixed here. As far as I understand it,
@@ -1604,9 +1501,6 @@ void interp_cloud_coeff1D(  //Output
     const ArrayOfIndex& cloudbox_limits,
     ConstVectorView za_grid,
     const Index& scat_za_interp) {
-  // Stokes dimension
-  const Index stokes_dim = cloudbox_field_mono.ncols();
-
   // Gridpositions inside the cloudbox.
   // The optical properties are stored only inside the
   // cloudbox. For interpolation we use grids
@@ -1639,10 +1533,10 @@ void interp_cloud_coeff1D(  //Output
   // to be considered in the
   // radiative transfer calculation.
 
-  for (Index i = 0; i < stokes_dim; i++) {
+  for (Index i = 0; i < 4; i++) {
     // Extinction matrix requires a second loop
-    // over stokes_dim
-    for (Index j = 0; j < stokes_dim; j++) {
+    // over 4
+    for (Index j = 0; j < 4; j++) {
       //
       // Interpolation of ext_mat
       //
@@ -1680,9 +1574,9 @@ void interp_cloud_coeff1D(  //Output
       // interpolation is not implemented as multidimensional
       // interpolation.
       Tensor3 sca_vec_int_za(
-          stokes_dim, ppath_step.np, za_grid.nelem(), 0.);
+          4, ppath_step.np, za_grid.nelem(), 0.);
       Tensor3 cloudbox_field_mono_int_za(
-          stokes_dim, ppath_step.np, za_grid.nelem(), 0.);
+          4, ppath_step.np, za_grid.nelem(), 0.);
       for (Index za = 0; za < za_grid.nelem(); za++) {
         interp(sca_vec_int_za(i, joker, za),
                itw,
@@ -1844,15 +1738,13 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Tensor6& cloudbox_field_mono,
                               const ArrayOfIndex& cloudbox_limits,
                               const Agenda& spt_calc_agenda,
-                              const Index& atmosphere_dim,
                               const Vector& za_grid,
                               const Vector& aa_grid,
                               const Tensor4& pnd_field,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
                               const Index& norm_debug) {
-  ARTS_USER_ERROR_IF (atmosphere_dim != 1,
-                      "Only 1D is supported here for now");
+  ARTS_USER_ERROR ("Only 1D is supported here for now");
 
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();
@@ -1866,20 +1758,16 @@ void doit_scat_fieldNormalize(Workspace& ws,
   ARTS_USER_ERROR_IF (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.),
                       "The range of *aa_grid* must [0 360].");
 
-  // Get stokes dimension from *doit_scat_field*:
-  const Index stokes_dim = doit_scat_field.ncols();
-  ARTS_ASSERT(stokes_dim > 0 || stokes_dim < 5);
-
   // To use special interpolation functions for atmospheric fields we
   // use ext_mat_field and abs_vec_field:
   Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1,
                         1,
                         1,
-                        stokes_dim,
-                        stokes_dim,
+                        4,
+                        4,
                         0.);
   Tensor4 abs_vec_field(
-      cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1, stokes_dim, 0.);
+      cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1, 4, 0.);
 
   const Index Np = doit_scat_field.nvitrines();
 
@@ -1915,7 +1803,7 @@ void doit_scat_fieldNormalize(Workspace& ws,
       // I_ext = (ext_mat_field - abs_vec_field) * cloudbox_field_mono
       // equivalent to:
       // I_ext = I * (K11-a1) + Q * (K12 - a2) + U * (K13 - a3) + V * (K14 - a4)
-      for (Index i = 0; i < stokes_dim; i++) {
+      for (Index i = 0; i < 4; i++) {
         doit_scat_ext_field(p_index, 0, 0, za_index_local, 0) +=
             cloudbox_field_mono(p_index, 0, 0, za_index_local, 0, i) *
             (ext_mat_field(p_index, 0, 0, 0, i) -

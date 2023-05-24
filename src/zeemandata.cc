@@ -414,59 +414,75 @@ const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
 }
 #pragma GCC diagnostic pop
 
-void sum(PropagationMatrix& pm,
-         const ComplexVectorView& abs,
-         const PolarizationVector& polvec,
-         const bool do_phase) ARTS_NOEXCEPT {
-  ARTS_ASSERT(pm.NumberOfZenithAngles() == 1)
-  ARTS_ASSERT(pm.NumberOfAzimuthAngles() == 1)
-  ARTS_ASSERT(pm.NumberOfFrequencies() == abs.nelem())
-  ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
-                       : pm.NumberOfNeededVectors() == 4)
+void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
+                 const PolarizationVector &polvec) {
+  const Index n = pm.nelem();
+  ARTS_ASSERT(n == abs.nelem())
 
-  const ExhaustiveConstVectorView pol_real(polvec.att);
-  const ExhaustiveConstVectorView pol_imag(polvec.dis);
+  for (Index i = 0; i < n; i++) {
+      for (Index j = 0; j < 4; j++) {
+      pm[i][j] += polvec.att[j] * abs[i].real();
+      }
 
-  MatrixView out = pm.Data()(0, 0, joker, joker);
-  matpack::eigen::mat(out).leftCols<4>().noalias() += matpack::eigen::row_vec(abs.real()) * matpack::eigen::col_vec(pol_real);
-  if (do_phase)
-    matpack::eigen::mat(out).rightCols<3>().noalias() +=
-        matpack::eigen::row_vec(abs.imag()) * matpack::eigen::col_vec(pol_imag);
+      for (Index j = 0; j < 3; j++) {
+      pm[i][j + 4] += polvec.dis[j] * abs[i].imag();
+      }
+  }
 }
 
-void dsum(PropagationMatrix& pm,
-          const ComplexVectorView& abs,
-          const ComplexVectorView& dabs,
-          const PolarizationVector& polvec,
-          const PolarizationVector& dpolvec_dtheta,
-          const PolarizationVector& dpolvec_deta,
-          const Numeric dH,
-          const Numeric dt,
-          const Numeric de,
-          const bool do_phase) ARTS_NOEXCEPT {
-  ARTS_ASSERT(pm.NumberOfZenithAngles() == 1)
-  ARTS_ASSERT(pm.NumberOfAzimuthAngles() == 1)
-  ARTS_ASSERT(pm.NumberOfFrequencies() == abs.nelem())
-  ARTS_ASSERT(do_phase ? pm.NumberOfNeededVectors() == 7
-                       : pm.NumberOfNeededVectors() == 4)
+void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
+                 const PolarizationVector &polvec) {
+  const Index n = sv.nelem();
+  ARTS_ASSERT(n == abs.nelem())
 
-  const ExhaustiveConstVectorView pol_real(polvec.att);
-  const ExhaustiveConstVectorView pol_imag(polvec.dis);
-  const ExhaustiveConstVectorView dpolvec_dtheta_real(dpolvec_dtheta.att);
-  const ExhaustiveConstVectorView dpolvec_dtheta_imag(dpolvec_dtheta.dis);
-  const ExhaustiveConstVectorView dpolvec_deta_real(dpolvec_deta.att);
-  const ExhaustiveConstVectorView dpolvec_deta_imag(dpolvec_deta.dis);
+  for (Index i = 0; i < n; i++) {
+    for (Index j = 0; j < 4; j++) {
+      sv[i][j] += polvec.att[j] * abs[i].real();
+    }
+  }
+}
 
-  auto da_r =
-      (dt * matpack::eigen::col_vec(dpolvec_dtheta_real) + de * matpack::eigen::col_vec(dpolvec_deta_real));
-  auto da_i =
-      (dt * matpack::eigen::col_vec(dpolvec_dtheta_imag) + de * matpack::eigen::col_vec(dpolvec_deta_imag));
+void dsum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
+                  const ConstComplexVectorView &dabs,
+                  const PolarizationVector &polvec,
+                  const PolarizationVector &dpolvec_dtheta,
+                  const PolarizationVector &dpolvec_deta, const Numeric dH,
+                  const Numeric dt, const Numeric de) {
+  const Index n = pm.nelem();
+  ARTS_ASSERT(n == abs.nelem())
+  ARTS_ASSERT(n == dabs.nelem())
 
-  MatrixView out = pm.Data()(0, 0, joker, joker);
-  matpack::eigen::mat(out).leftCols<4>().noalias() +=
-      dH * matpack::eigen::row_vec(dabs.real()) * matpack::eigen::col_vec(pol_real) + matpack::eigen::row_vec(abs.real()) * da_r;
-  if (do_phase)
-    matpack::eigen::mat(out).rightCols<3>().noalias() +=
-        dH * matpack::eigen::row_vec(dabs.imag()) * matpack::eigen::col_vec(pol_imag) + matpack::eigen::row_vec(abs.imag()) * da_i;
+  for (Index i = 0; i < n; i++) {
+    for (Index j = 0; j < 4; j++) {
+      pm[i][j] += dH * polvec.att[j] * dabs[i].real() +
+                  dt * dpolvec_dtheta.att[j] * abs[i].real() +
+                  de * dpolvec_deta.att[j] * abs[i].real();
+    }
+
+    for (Index j = 0; j < 3; j++) {
+      pm[i][j + 4] += dH * dabs[i].imag() * polvec.dis[j] +
+                      dt * abs[i].imag() * dpolvec_dtheta.dis[j] +
+                      de * abs[i].imag() * dpolvec_deta.dis[j];
+    }
+  }
+}
+
+void dsum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
+                  const ConstComplexVectorView &dabs,
+                  const PolarizationVector &polvec,
+                  const PolarizationVector &dpolvec_dtheta,
+                  const PolarizationVector &dpolvec_deta, const Numeric dH,
+                  const Numeric dt, const Numeric de) {
+  const Index n = sv.nelem();
+  ARTS_ASSERT(n == abs.nelem())
+  ARTS_ASSERT(n == dabs.nelem())
+
+  for (Index i = 0; i < n; i++) {
+    for (Index j = 0; j < 4; j++) {
+      sv[i][j] += dH * polvec.att[j] * dabs[i].real() +
+                  dt * dpolvec_dtheta.att[j] * abs[i].real() +
+                  de * dpolvec_deta.att[j] * abs[i].real();
+    }
+  }
 }
 }  // namespace Zeeman

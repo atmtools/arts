@@ -223,8 +223,8 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddCIA(  // WS Output:
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -242,13 +242,11 @@ void propmat_clearskyAddCIA(  // WS Output:
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(
-      not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
+  ARTS_USER_ERROR_IF(nq not_eq dpropmat_clearsky_dx.nrows(),
       "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(
-      not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
+  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.nrows() not_eq nf,
       "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
@@ -377,7 +375,8 @@ void propmat_clearskyAddCIA(  // WS Output:
       if (!do_jac) {
         xsec_temp *= nd_sec * number_density(atm_point.pressure, atm_point.temperature) *
                      atm_point[this_cia.Species(0)];
-        propmat_clearsky.Kjj() += xsec_temp;
+        for (Index iv = 0; iv < f_grid.nelem(); iv++)
+          propmat_clearsky[iv].A() += xsec_temp[iv];
       } else {  // The Jacobian block
         const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
         const Numeric dnd_dt =
@@ -385,7 +384,7 @@ void propmat_clearskyAddCIA(  // WS Output:
         const Numeric dnd_dt_sec =
             dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          propmat_clearsky.Kjj()[iv] +=
+          propmat_clearsky[iv].A() +=
               nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
           for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
             const auto& deriv = jacobian_quantities[iq];
@@ -393,26 +392,26 @@ void propmat_clearskyAddCIA(  // WS Output:
             if (not deriv.propmattype()) continue;
 
             if (is_wind_parameter(deriv)) {
-              dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+              dpropmat_clearsky_dx(iq, iv).A() +=
                   nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
                   atm_point[this_cia.Species(1)];
             } else if (deriv == Jacobian::Atm::Temperature) {
-              dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+              dpropmat_clearsky_dx(iq, iv).A() +=
                   ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                     xsec_temp[iv] * dnd_dt_sec) *
                        nd +
                    xsec_temp[iv] * nd_sec * dnd_dt) *
                   atm_point[this_cia.Species(0)];
             } else if (deriv == abs_species[ispecies]) {
-              dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+              dpropmat_clearsky_dx(iq, iv).A() +=
                   nd_sec * xsec_temp[iv] * nd;
             } else if (species_match(deriv, this_species.Spec())) {
-              dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+              dpropmat_clearsky_dx(iq, iv).A() +=
                   nd * nd_sec * xsec_temp[iv] *
                   (this_species.cia_2nd_species == this_species.Spec() ? 2.0
                                                                        : 1.0);
             } else if (species_match(deriv, this_species.cia_2nd_species)) {
-              dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+              dpropmat_clearsky_dx(iq, iv).A() +=
                   nd * nd * xsec_temp[iv] * atm_point[this_cia.Species(0)] *
                   (this_species.cia_2nd_species == this_species.Spec() ? 2.0
                                                                        : 1.0);

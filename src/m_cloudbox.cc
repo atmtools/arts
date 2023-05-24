@@ -159,7 +159,6 @@ void cloudboxSetAutomatically(  // WS Output:
         find_cloudlimits(p1,
                          p2,
                          Tensor3{particle_field(l, joker, joker, joker)},
-                         3,
                          cloudbox_margin);
       }
     }
@@ -523,7 +522,6 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Vector& lon_grid,
                            const Tensor3& z_field,
                            const Matrix& z_surface,
-                           const Index& stokes_dim,
                            const Vector& za_grid,
                            const Vector& aa_grid,
                            const Vector& f_grid,
@@ -579,7 +577,6 @@ void iyInterpCloudboxField(Matrix& iy,
   rte_pos2gridpos(gp_p,
                   gp_lat,
                   gp_lon,
-                  3,
                   p_grid,
                   lat_grid,
                   lon_grid,
@@ -657,10 +654,10 @@ void iyInterpCloudboxField(Matrix& iy,
   const Index naa = cloudbox_field.nrows();
 
   //- Resize *iy*
-  iy.resize(nf, stokes_dim);
+  iy.resize(nf, 4);
   //- Make space for spatially interpolated field (we perfrom angle
   //interpolation separately on this then)
-  Tensor4 i_field_local(nf, nza, naa, stokes_dim);
+  Tensor4 i_field_local(nf, nza, naa, 4);
 
   // Index of the p/lat/lon slice (first or last element slice in this
   // dimension), where rte_pos is located. if located on a border.
@@ -679,7 +676,7 @@ void iyInterpCloudboxField(Matrix& iy,
           "is not yet implemented for 3D cases.\n");
     ARTS_ASSERT(3 == 1);
 
-    ARTS_ASSERT(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
+    ARTS_ASSERT(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, 4));
 
     // Grid position in *p_grid*
     gp_p.idx = gp_p.idx - cloudbox_limits[0];
@@ -687,7 +684,7 @@ void iyInterpCloudboxField(Matrix& iy,
     Vector itw_p(2);
     interpweights(itw_p, gp_p);
 
-    for (Index is = 0; is < stokes_dim; is++)
+    for (Index is = 0; is < 4; is++)
       for (Index iv = 0; iv < nf; iv++)
         for (Index i_za = 0; i_za < nza; i_za++)
           i_field_local(iv, i_za, 0, is) = interp(
@@ -711,7 +708,7 @@ void iyInterpCloudboxField(Matrix& iy,
                    cloudbox_field.nbooks(),
                    za_grid.nelem(),
                    aa_grid.nelem(),
-                   stokes_dim));
+                   4));
 
     // Interpolation weights (for 2D "red" interpolation)
     Vector itw(4);
@@ -732,7 +729,7 @@ void iyInterpCloudboxField(Matrix& iy,
 
       interpweights(itw, cb_gp_lat, cb_gp_lon);
 
-      for (Index is = 0; is < stokes_dim; is++)
+      for (Index is = 0; is < 4; is++)
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
@@ -759,7 +756,7 @@ void iyInterpCloudboxField(Matrix& iy,
 
       interpweights(itw, cb_gp_p, cb_gp_lon);
 
-      for (Index is = 0; is < stokes_dim; is++)
+      for (Index is = 0; is < 4; is++)
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
@@ -786,7 +783,7 @@ void iyInterpCloudboxField(Matrix& iy,
 
       interpweights(itw, cb_gp_p, cb_gp_lat);
 
-      for (Index is = 0; is < stokes_dim; is++)
+      for (Index is = 0; is < 4; is++)
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
@@ -863,7 +860,7 @@ void iyInterpCloudboxField(Matrix& iy,
     // Corresponding interpolation weights
     const auto itw_angs=interpweights(lag_za, lag_aa);
 
-    for (Index is = 0; is < stokes_dim; is++) {
+    for (Index is = 0; is < 4; is++) {
       for (Index iv = 0; iv < nf; iv++) {
         iy(iv, is) =
             interp(i_field_local(iv, range, joker, is),
@@ -878,7 +875,7 @@ void iyInterpCloudboxField(Matrix& iy,
     // Corresponding interpolation weights
     const auto itw_angs=interpweights(lag_za, lag_aa);
 
-    for (Index is = 0; is < stokes_dim; is++) {
+    for (Index is = 0; is < 4; is++) {
       for (Index iv = 0; iv < nf; iv++) {
         iy(iv, is) =
             interp(i_field_local(iv, range, joker, is),
@@ -1105,8 +1102,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
                          pnd_field_raw[pnd_field_raw.nelem() - 1]);
 
       chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem() - 1],
-                   pnd_field_files[i],
-                   3);
+                   pnd_field_files[i]);
     }
   }
 }
@@ -1142,7 +1138,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   ArrayOfGriddedField3 pnd_tmp;
   xml_read_from_file(pnd_fieldarray_file, pnd_tmp);
 
-  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file, 3);
+  chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file);
 
   // append to pnd_field_raw
   for (Index i = 0; i < pnd_tmp.nelem(); ++i)
@@ -1230,8 +1226,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
       }
 
       chk_pnd_data(atm_field[abs_species.back()].get<const GriddedField3&>(),
-                   pnd_field_files[i],
-                   3);
+                   pnd_field_files[i]);
     }
   }
   scat_dataCheck(scat_data_raw, "sane", 1e-2);

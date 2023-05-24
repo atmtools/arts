@@ -323,11 +323,6 @@ void chk_atm_vecfield_lat90(const String& x1_name,
                             const Numeric& threshold = 1e-3);
 //        const Numeric&    threshold = 2*DBL_EPSILON );
 
-void chk_latlon_true(const Index& atmosphere_dim,
-                     ConstVectorView lat_grid,
-                     ConstVectorView lat_true,
-                     ConstVectorView lon_true);
-
 void chk_atm_surface(const String& x_name,
                      const Matrix& x,
                      const Index& dim,
@@ -427,11 +422,10 @@ void chk_surface_elevation(const GriddedField2& surface_elevation);
 
 
 
-void chk_rte_pos(const Index& atmosphere_dim,
-                 ConstVectorView rte_pos,
+void chk_rte_pos(ConstVectorView rte_pos,
                  const bool& is_rte_pos2 = false);
 
-void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los);
+void chk_rte_los(ConstVectorView rte_los);
                            
 void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,

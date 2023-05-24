@@ -1,5 +1,6 @@
 #include <arts_constexpr_math.h>
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include <array>
 #include <numeric>
@@ -35,7 +36,7 @@ namespace Absorption::PredefinedModel::PWR98 {
    \date 2001-11-05
  */
 //! New implementation
-void water(PropagationMatrix& propmat_clearsky,
+void water(PropmatVector& propmat_clearsky,
            const Vector& f_grid,
            const Numeric p_pa,
            const Numeric t,
@@ -233,7 +234,7 @@ void water(PropagationMatrix& propmat_clearsky,
     const Numeric absl = 0.3183e-4 * den_dummy * sum;
     // pxsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
     // 4.1907e-5 = 0.230259 * 0.1820 * 1.0e-3    (1/(10*log(e)) = 0.230259)
-    propmat_clearsky.Kjj()[s] += vmr * 1.000e-3 * (absl + (con * ff * ff));
+    propmat_clearsky[s].A() += vmr * 1.000e-3 * (absl + (con * ff * ff));
   }
 }
 
@@ -290,7 +291,7 @@ void water(PropagationMatrix& propmat_clearsky,
    \date 2001-11-05
  */
 //! New implementation
-void oxygen(PropagationMatrix& propmat_clearsky,
+void oxygen(PropmatVector& propmat_clearsky,
             const Vector& f_grid,
             const Numeric p_pa,
             const Numeric t,
@@ -422,7 +423,7 @@ void oxygen(PropagationMatrix& propmat_clearsky,
     // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3
     // therefore 2.414322e10 --> 2.414322e7
     // pxsec [1/m]
-    propmat_clearsky.Kjj()[s] +=
+    propmat_clearsky[s].A() +=
         vmr * (CONT + (2.414322e7 * SUM * p_pa * pow3(TH) / Constant::pi));
   }
 }

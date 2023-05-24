@@ -365,7 +365,7 @@ void define_wsv_data() {
           "Unit:       m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
           "Dimensions: [f_grid, stokes_dim]\n"),
-      GROUP("StokesVector")));
+      GROUP("StokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_vec_spt"),
@@ -383,7 +383,7 @@ void define_wsv_data() {
           "Unit:        m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
           "Dimensions: [number of scattering elements, stokes_dim]\n"),
-      GROUP("ArrayOfStokesVector")));
+      GROUP("ArrayOfStokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_vmrs"),
@@ -1212,7 +1212,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "partial derivation\n"
           "\n"
           "Unit: 1/m/jacobian_quantity\n"),
-      GROUP("ArrayOfPropagationMatrix")));
+      GROUP("PropmatMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("dpsd_data_dx"),
@@ -1233,7 +1233,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
           "\n"
           "Unit: 1/m/jacobian_quantity\n"),
-      GROUP("ArrayOfStokesVector")));
+      GROUP("StokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("doit_conv_flag"),
@@ -1409,7 +1409,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "Unit:       m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
           "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"),
-      GROUP("PropagationMatrix")));
+      GROUP("PropmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ext_mat_spt"),
@@ -1425,7 +1425,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "Unit:       m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
           "Dimensions: [number of scattering elements, stokes_dim, stokes_dim]\n"),
-      GROUP("ArrayOfPropagationMatrix")));
+      GROUP("ArrayOfPropmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("file_index"),
@@ -1586,7 +1586,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "Units: [ m^-1. ]\n"
           "\n"
           "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
-      GROUP("PropagationMatrix")));
+      GROUP("PropmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("gas_scattering_mat"),
@@ -1601,7 +1601,7 @@ See *atm_field* for the data that may be available in the atmospheric point.
           "Units: [ 1 ]\n"
           "\n"
           "Size:  [fgrid, stokes_dim, stokes_dim]\n"),
-      GROUP("TransmissionMatrix")));
+      GROUP("MuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("gas_scattering_fct_legendre"),
@@ -2551,7 +2551,7 @@ population distribution that depends on vibrational temperatures
           "Variable to contain the additional source function due to NLTE effects.\n"
           "\n"
           "Dimensions: [nza, naa, nf, stokes_dim]\n"),
-      GROUP("StokesVector")));
+      GROUP("StokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("oem_diagnostics"),
@@ -3119,7 +3119,7 @@ Can currently only contain data for new MT CKD models of water.
           "Dimensions: [naa, nza, nf, f(stokes_dim)]\n"
           "\n"
           "Unit: 1/m\n"),
-      GROUP("PropagationMatrix")));
+      GROUP("PropmatVector")));
 
   wsv_data.push_back(
       WsvRecord(NAME("propmat_clearsky_agenda_checked"),
@@ -3974,79 +3974,79 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       NAME("background_rad"),
       DESCRIPTION(
           "Radiation from the background"),
-      GROUP("RadiationVector")));
+      GROUP("StokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("background_transmittance"),
       DESCRIPTION(
           "Transmittance from the background"),
-      GROUP("TransmissionMatrix")));
+      GROUP("MuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_rad"),
       DESCRIPTION(
           "Radiation along the propagation path"),
-      GROUP("ArrayOfRadiationVector")));
+      GROUP("ArrayOfStokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_drad"),
       DESCRIPTION(
           "Radiation derivative along the propagation path"),
-      GROUP("ArrayOfArrayOfRadiationVector")));
+      GROUP("ArrayOfStokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_propmat"),
       DESCRIPTION(
           "Propagation matrices along the propagation path"),
-      GROUP("ArrayOfPropagationMatrix")));
+      GROUP("ArrayOfPropmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_dpropmat"),
       DESCRIPTION(
           "Propagation derivative matrices along the propagation path"),
-      GROUP("ArrayOfArrayOfPropagationMatrix")));
+      GROUP("ArrayOfPropmatMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_nlte"),
       DESCRIPTION(
           "Additional NLTE along the propagation path"),
-      GROUP("ArrayOfStokesVector")));
+      GROUP("ArrayOfStokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_dnlte"),
       DESCRIPTION(
           "Additional NLTE derivative along the propagation path"),
-      GROUP("ArrayOfArrayOfStokesVector")));
+      GROUP("ArrayOfStokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_src"),
       DESCRIPTION(
           "Source vectors along the propagation path"),
-      GROUP("ArrayOfRadiationVector")));
+      GROUP("ArrayOfStokvecVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_dsrc"),
       DESCRIPTION(
           "Source derivative vectors along the propagation path"),
-      GROUP("ArrayOfArrayOfRadiationVector")));
+      GROUP("ArrayOfStokvecMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_tramat"),
       DESCRIPTION(
           "Transmission matrices along the propagation path"),
-      GROUP("ArrayOfTransmissionMatrix")));
+      GROUP("ArrayOfMuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_cumtramat"),
       DESCRIPTION(
           "Cumulative transmission matrices along the propagation path"),
-      GROUP("ArrayOfTransmissionMatrix")));
+      GROUP("ArrayOfMuelmatVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_dtramat"),
       DESCRIPTION(
           "Transmission derivative matrices along the propagation path"),
-      GROUP("ArrayOfArrayOfArrayOfTransmissionMatrix")));
+      GROUP("ArrayOfArrayOfMuelmatMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_distance"),
@@ -4320,13 +4320,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       DESCRIPTION(
           "Agenda calculating single scattering properties from the amplitude matrix.\n"),
       GROUP("Agenda")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("stokes_dim"),
-                DESCRIPTION("The dimensionality of the Stokes vector (1-4).\n"
-                            "\n"
-                            "Usage:      Set by the user.\n"),
-                GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
       NAME("suns_do"),

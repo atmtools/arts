@@ -35,6 +35,7 @@
 #include "lineshape.h"
 #include "m_xml.h"
 #include "math_funcs.h"
+#include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "methods.h"
 #include "montecarlo.h"
@@ -210,14 +211,13 @@ void AbsInputFromAtmFields(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyInit(  //WS Output
-    PropagationMatrix& propmat_clearsky,
-    StokesVector& nlte_source,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_source_dx,
+    PropmatVector& propmat_clearsky,
+    StokvecVector& nlte_source,
+    PropmatMatrix& dpropmat_clearsky_dx,
+    StokvecMatrix& dnlte_source_dx,
     //WS Input
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Vector& f_grid,
-    const Index& stokes_dim,
     const Index& propmat_clearsky_agenda_checked) {
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_quantities.nelem();
@@ -228,60 +228,39 @@ void propmat_clearskyInit(  //WS Output
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
-  ARTS_USER_ERROR_IF(stokes_dim < 1 or stokes_dim > 4,
-                     "stokes_dim not in [1, 2, 3, 4]");
-
   // Set size of propmat_clearsky or reset it's values
-  if (propmat_clearsky.StokesDimensions() == stokes_dim and
-      propmat_clearsky.NumberOfFrequencies() == nf) {
-    propmat_clearsky.SetZero();
+  if (propmat_clearsky.nelem() == nf) {
+    propmat_clearsky = 0.0;
   } else {
-    propmat_clearsky = PropagationMatrix(nf, stokes_dim);
+    propmat_clearsky = PropmatVector(nf);
   }
 
   // Set size of dpropmat_clearsky_dx or reset it's values
-  if (dpropmat_clearsky_dx.nelem() not_eq nq) {
-    dpropmat_clearsky_dx =
-        ArrayOfPropagationMatrix(nq, PropagationMatrix(nf, stokes_dim));
+  if (dpropmat_clearsky_dx.shape() not_eq std::array{nq, nf}) {
+    dpropmat_clearsky_dx = PropmatMatrix(nq, nf);
   } else {
-    for (auto& pm : dpropmat_clearsky_dx) {
-      if (pm.StokesDimensions() == stokes_dim and
-          pm.NumberOfFrequencies() == nf) {
-        pm.SetZero();
-      } else {
-        pm = PropagationMatrix(nf, stokes_dim);
-      }
-    }
+    dpropmat_clearsky_dx = 0.0;
   }
 
   // Set size of nlte_source or reset it's values
-  if (nlte_source.StokesDimensions() == stokes_dim and
-      nlte_source.NumberOfFrequencies() == nf) {
-    nlte_source.SetZero();
+  if (nlte_source.nelem() == nf) {
+    nlte_source = 0.0;
   } else {
-    nlte_source = StokesVector(nf, stokes_dim);
+    nlte_source = StokvecVector(nf);
   }
 
   // Set size of dnlte_source_dx or reset it's values
-  if (dnlte_source_dx.nelem() not_eq nq) {
-    dnlte_source_dx = ArrayOfStokesVector(nq, StokesVector(nf, stokes_dim));
+  if (dnlte_source_dx.shape() not_eq std::array{nq, nf}) {
+    dnlte_source_dx = StokvecMatrix(nq, nf);
   } else {
-    for (auto& pm : dnlte_source_dx) {
-      if (pm.StokesDimensions() == stokes_dim and
-          pm.NumberOfFrequencies() == nf) {
-        pm.SetZero();
-      } else {
-        pm = StokesVector(nf, stokes_dim);
-      }
-    }
+    dnlte_source_dx = 0.0;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFaraday(
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    const Index& stokes_dim,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -312,10 +291,6 @@ void propmat_clearskyAddFaraday(
   const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
   const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
 
-  ARTS_USER_ERROR_IF(
-      stokes_dim < 3,
-      "To include Faraday rotation, stokes_dim >= 3 is required.")
-
   const Numeric ne = atm_point[abs_species[ife]];
 
   if (ne != 0 && not atm_point.zero_mag()) {
@@ -323,7 +298,7 @@ void propmat_clearskyAddFaraday(
     const Numeric c1 =
         2 * FRconst *
         dotprod_with_los(
-            rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2], 3);
+            rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2]);
 
     Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
     if (do_magn_jac) {
@@ -331,23 +306,21 @@ void propmat_clearskyAddFaraday(
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0] + dmag,
                                     atm_point.mag[1],
-                                    atm_point.mag[2], 3) -
+                                    atm_point.mag[2]) -
                c1) /
               dmag;
       dc1_v = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0],
                                     atm_point.mag[1] + dmag,
-                                    atm_point.mag[2],
-                                    3) -
+                                    atm_point.mag[2]) -
                c1) /
               dmag;
       dc1_w = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0],
                                     atm_point.mag[1],
-                                    atm_point.mag[2] + dmag,
-                                    3) -
+                                    atm_point.mag[2] + dmag) -
                c1) /
               dmag;
     }
@@ -355,22 +328,22 @@ void propmat_clearskyAddFaraday(
     for (Index iv = 0; iv < f_grid.nelem(); iv++) {
       const Numeric f2 = f_grid[iv] * f_grid[iv];
       const Numeric r = ne * c1 / f2;
-      propmat_clearsky.AddFaraday(r, iv);
+      propmat_clearsky[iv].U() += r;
 
       // The Jacobian loop
       for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
         if (is_frequency_parameter(jacobian_quantities[iq]))
-          dpropmat_clearsky_dx[iq].AddFaraday(-2.0 * ne * r / f_grid[iv], iv);
+          dpropmat_clearsky_dx(iq, iv) += -2.0 * ne * r / f_grid[iv];
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
-          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_u / f2, iv);
+          dpropmat_clearsky_dx(iq, iv) += ne * dc1_u / f2;
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticV)
-          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_v / f2, iv);
+          dpropmat_clearsky_dx(iq, iv) += ne * dc1_v / f2;
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticW)
-          dpropmat_clearsky_dx[iq].AddFaraday(ne * dc1_w / f2, iv);
+          dpropmat_clearsky_dx(iq, iv) += ne * dc1_w / f2;
         else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons)
-          dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
+          dpropmat_clearsky_dx(iq, iv) += r;
         else if (jacobian_quantities[iq] == abs_species[ife])
-          dpropmat_clearsky_dx[iq].AddFaraday(r, iv);
+          dpropmat_clearsky_dx(iq, iv) += r;
       }
     }
   }
@@ -379,10 +352,9 @@ void propmat_clearskyAddFaraday(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddParticles(
     // WS Output:
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     // WS Input:
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -451,7 +423,7 @@ void propmat_clearskyAddParticles(
 
   const Index na = abs_species.nelem();
   Vector rtp_los_back;
-  mirror_los(rtp_los_back, rtp_los, 3);
+  mirror_los(rtp_los_back, rtp_los);
 
   // 170918 JM: along with transition to use of new-type (aka
   // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical
@@ -485,17 +457,15 @@ void propmat_clearskyAddParticles(
                       ptypes_Nse,
                       t_ok,
                       scat_data,
-                      stokes_dim,
                       T_array,
                       dir_array,
                       -1);
 
   const Index nf = abs_vec_Nse[0][0].nbooks();
-  Tensor3 tmp(nf, stokes_dim, stokes_dim);
+  Tensor3 tmp(nf, 4, 4);
 
   // Internal computations necessary since it relies on zero start
-  PropagationMatrix internal_propmat(propmat_clearsky.NumberOfFrequencies(),
-                                     propmat_clearsky.StokesDimensions());
+  PropmatVector internal_propmat(propmat_clearsky.nelem());
 
   // loop over the scat_data and link them with correct vmr_field entry according
   // to the position of the particle type entries in abs_species.
@@ -505,7 +475,7 @@ void propmat_clearskyAddParticles(
     for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
       // forward to next particle entry in abs_species
       while (sp < na && not abs_species[sp].Particles()) sp++;
-      internal_propmat.SetZero();
+      internal_propmat = 0.0;
 
       // running beyond number of abs_species entries when looking for next
       // particle entry. shouldn't happen, though.
@@ -531,25 +501,23 @@ void propmat_clearskyAddParticles(
                            i_se,
                            "\n")
         if (use_abs_as_ext) {
-          if (nf > 1)
-            for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              internal_propmat.AddAbsorptionVectorAtPosition(
-                  abs_vec_Nse[i_ss][i_se](iv, 0, 0, joker), iv);
-          else
-            for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              internal_propmat.AddAbsorptionVectorAtPosition(
-                  abs_vec_Nse[i_ss][i_se](0, 0, 0, joker), iv);
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 0);
+            internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 1);
+            internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 2);
+            internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 3);
+          }
         } else {
-          if (nf > 1)
-            for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              internal_propmat.SetAtPosition(
-                  ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker), iv);
-          else
-            for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              internal_propmat.SetAtPosition(
-                  ext_mat_Nse[i_ss][i_se](0, 0, 0, joker, joker), iv);
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            internal_propmat[iv] =
+                Propmat{ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker)};
+          }
         }
-        propmat_clearsky += atm_point[abs_species[sp]] * internal_propmat;
+        
+        const Numeric vmr = atm_point[abs_species[sp]];
+        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+          propmat_clearsky[iv] += vmr * internal_propmat[iv];
+        }
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
@@ -584,27 +552,21 @@ void propmat_clearskyAddParticles(
           tmp *= atm_point[abs_species[sp]];
           tmp /= dT;
 
-          if (nf > 1)
-            for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              if (use_abs_as_ext)
-                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
-                    tmp(iv, joker, 0), iv);
-              else
-                dpropmat_clearsky_dx[iq].AddAtPosition(tmp(iv, joker, joker),
-                                                       iv);
-          else
-            for (Index iv = 0; iv < f_grid.nelem(); iv++)
-              if (use_abs_as_ext)
-                dpropmat_clearsky_dx[iq].AddAbsorptionVectorAtPosition(
-                    tmp(0, joker, 0), iv);
-              else
-                dpropmat_clearsky_dx[iq].AddAtPosition(tmp(0, joker, joker),
-                                                       iv);
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            if (use_abs_as_ext) {
+              dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
+              dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
+              dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
+              dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
+            } else {
+              dpropmat_clearsky_dx(iq, iv) += Propmat{tmp(iv, joker, joker)};
+            }
+          }
         }
 
         else if (deriv == Jacobian::Atm::Particulates) {
           for (Index iv = 0; iv < f_grid.nelem(); iv++)
-            dpropmat_clearsky_dx[iq].AddAtPosition(internal_propmat, iv);
+            dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
         }
 
         else if (deriv == abs_species[sp]) {
@@ -675,10 +637,10 @@ Vector create_sparse_f_grid_internal(const Vector& f_grid,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddLines(  // Workspace reference:
     // WS Output:
-    PropagationMatrix& propmat_clearsky,
-    StokesVector& nlte_source,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_source_dx,
+    PropmatVector& propmat_clearsky,
+    StokvecVector& nlte_source,
+    PropmatMatrix& dpropmat_clearsky_dx,
+    StokvecMatrix& dnlte_source_dx,
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -703,21 +665,17 @@ void propmat_clearskyAddLines(  // Workspace reference:
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(not lbl_checked, "Must check LBL calculations")
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.NumberOfFrequencies() not_eq nf,
+  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(nlte_source.NumberOfFrequencies() not_eq nf,
+  ARTS_USER_ERROR_IF(nlte_source.nelem() not_eq nf,
                      "*f_grid* must match *nlte_source*")
-  ARTS_USER_ERROR_IF(
-      not nq and (nq not_eq dpropmat_clearsky_dx.nelem()),
+  ARTS_USER_ERROR_IF(nq not_eq dpropmat_clearsky_dx.nrows(),
       "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(
-      not nq and bad_propmat(dpropmat_clearsky_dx, f_grid),
+  ARTS_USER_ERROR_IF(nf not_eq dpropmat_clearsky_dx.ncols(),
       "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(
-      nlte_do and (nq not_eq dnlte_source_dx.nelem()),
+  ARTS_USER_ERROR_IF(nlte_do and nq not_eq dnlte_source_dx.nrows(),
       "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(
-      nlte_do and bad_propmat(dnlte_source_dx, f_grid),
+  ARTS_USER_ERROR_IF(nlte_do and nf not_eq dnlte_source_dx.ncols(),
       "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
@@ -849,37 +807,46 @@ void propmat_clearskyAddLines(  // Workspace reference:
   }
 
   // Sum up the propagation matrix
-  propmat_clearsky.Kjj() += com.F.real();
+  for (Index iv = 0; iv < nf; iv++) {
+    propmat_clearsky[iv].A() += com.F[iv].real();
+  }
 
   // Sum up the Jacobian
   for (Index j = 0; j < nq; j++) {
     if (not jacobian_quantities[j].propmattype()) continue;
-    dpropmat_clearsky_dx[j].Kjj() += com.dF.real()(joker, j);
+
+    for (Index iv = 0; iv < nf; iv++) {
+      dpropmat_clearsky_dx(j, iv).A() += com.dF(iv, j).real();
+    }
   }
 
   if (nlte_do) {
     // Sum up the source vector
-    nlte_source.Kjj() += com.N.real();
+    for (Index iv = 0; iv < nf; iv++) {
+      nlte_source[iv].I() += com.N[iv].real();
+    }
 
     // Sum up the Jacobian
     for (Index j = 0; j < nq; j++) {
       if (not jacobian_quantities[j].propmattype()) continue;
-      dnlte_source_dx[j].Kjj() += com.dN.real()(joker, j);
+
+      for (Index iv = 0; iv < nf; iv++) {
+        dnlte_source_dx(j, iv).I() += com.dN(iv, j).real();
+      }
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyZero(PropagationMatrix& propmat_clearsky,
-                          const Vector& f_grid,
-                          const Index& stokes_dim) {
-  propmat_clearsky = PropagationMatrix(f_grid.nelem(), stokes_dim);
+void propmat_clearskyZero(PropmatVector& propmat_clearsky,
+                          const Vector& f_grid) {
+  propmat_clearsky = PropmatVector(f_grid.nelem());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyForceNegativeToZero(PropagationMatrix& propmat_clearsky) {
-  for (Index i = 0; i < propmat_clearsky.NumberOfFrequencies(); i++)
-    if (propmat_clearsky.Kjj()[i] < 0.0) propmat_clearsky.SetAtPosition(0.0, i);
+void propmat_clearskyForceNegativeToZero(PropmatVector& propmat_clearsky) {
+  for (Index i = 0; i < propmat_clearsky.nelem(); i++)
+    if (propmat_clearsky[i].A() < 0.0) propmat_clearsky[i] = 0.0;;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

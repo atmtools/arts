@@ -20,8 +20,11 @@
 #include "gridded_fields.h"
 #include "matpack_concepts.h"
 #include "surf.h"
-#include "transmissionmatrix.h"
+#include <matpack.h>
+#include <rtepack.h>
 #include "optproperties.h"
+#include "ppath_struct.h"
+#include "jacobian.h"
 
 
 class Agenda;
@@ -66,7 +69,7 @@ using ArrayOfSun = Array<Sun>;
 /** Calculates the radiance spectrum of sun which is scattered by the atmospheric gases.
  *
  * @param[in,out] ws ARTS workspace.
- * @param[out] scattered_sunlight RadiationVector scattered monochromatic radiance
+ * @param[out] scattered_sunlight StokvecVector scattered monochromatic radiance
  *             spectrum of sun.
  * @param[in] f_grid Vector frequency grid.
  * @param[in] p Numeric pressure at location of scattering.
@@ -83,7 +86,7 @@ using ArrayOfSun = Array<Sun>;
  *            cross sectionand matrix.
  */
 void get_scattered_sunsource(Workspace& ws,
-                              RadiationVector& scattered_sunlight,
+                              StokvecVector& scattered_sunlight,
                               const Vector& f_grid,
                               const AtmPoint& atm_point,
                               const Matrix& transmitted_sunlight,
@@ -100,8 +103,6 @@ void get_scattered_sunsource(Workspace& ws,
  * @param[in] suns Array of sun (structures).
  * @param[in] ppath Propagation path as the WSV.
  * @param[in] f_grid Vector as the WSV.
- * @param[in] stokes_dim Index as the WSV.
- * @param[in] atmosphere_dim Index as the WSV.
  * @param[in] refellipsoid Reference ellipsoid
  */
 void get_sun_background(Matrix& iy,
@@ -109,8 +110,6 @@ void get_sun_background(Matrix& iy,
                          const ArrayOfSun& suns,
                          const Ppath& ppath,
                          const Vector& f_grid,
-                         const Index& stokes_dim,
-                         const Index& atmosphere_dim,
                          const Vector2 refellipsoid);
 
 /** Checks and adds sun radiance if sun is in line of sight.
@@ -136,9 +135,7 @@ void get_sun_radiation(Matrix& iy,
  *             spectrum of sun.
  * @param[out] ddirect_radiation_dx Array of Tensor3 Jacobian of transmitted
  *              monochromatic irradiance spectrum of sun.
- * @param[in] stokes_dim As the WSV.
  * @param[in] f_grid As the WSV.
- * @param[in] atmosphere_dim As the WSV.
  * @param[in] p_grid As the WSV.
  * @param[in] lat_grid As the WSV.
  * @param[in] lon_grid As the WSV.
@@ -176,7 +173,6 @@ void get_sun_radiation(Matrix& iy,
 void get_direct_radiation(Workspace& ws,
                      ArrayOfMatrix& direct_radiation,
                      ArrayOfArrayOfTensor3& ddirect_radiation_dx,
-                     const Index& stokes_dim,
                      const Vector& f_grid,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
                      const AtmField& atm_field,
@@ -210,7 +206,6 @@ void get_direct_radiation(Workspace& ws,
  * @param[in] rte_pos As the WSV.
  * @param[in] suns As the WSV.
  * @param[in] f_grid As the WSV.
- * @param[in] atmosphere_dim As the WSV.
  * @param[in] p_grid As the WSV.
  * @param[in] lat_grid As the WSV.
  * @param[in] lon_grid As the WSV.
@@ -244,7 +239,6 @@ void get_sun_ppaths(Workspace& ws,
  *
  * @param[in]  sun_spectrum_raw  gf2 of the given spectrum.
  * @param[in]  f_grid  f_grid for the calculation.
- * @param[in]  stokes_dim  stokes_dim for the calculation.
  * @param[in]  temperature  Temperature for the planck padding.
  *
  * @return     interpolated spectrum
@@ -254,7 +248,6 @@ void get_sun_ppaths(Workspace& ws,
  */
 Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
                           const Vector &f_grid,
-                          const Index &stokes_dim,
                           const Numeric &temperature);
 
 #endif /* star_h */

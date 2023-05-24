@@ -64,12 +64,9 @@ void telsemSurfaceTypeLandSea(Index &surface_type,
                               const Vector &lon_true,
                               const Vector &rtp_pos,
                               const TelsemAtlas &atlas) {
-  // Checks
-  chk_latlon_true(3, lat_grid, lat_true, lon_true);
-
   Numeric lat, lon;
   pos2true_latlon(
-      lat, lon, 3, lat_grid, lat_true, lon_true, rtp_pos);
+      lat, lon, lat_grid, lat_true, lon_true, rtp_pos);
   chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
   chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
 

@@ -481,7 +481,6 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
@@ -507,7 +506,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   const Index nza = za_grid.nelem();
 
   // Init spectral_radiance_field and trans_field
-  spectral_radiance_field.resize(nf, nl, 1, 1, nza, 1, stokes_dim);
+  spectral_radiance_field.resize(nf, nl, 1, 1, nza, 1, 4);
   trans_field.resize(nf, nl, nza);
 
   // De-activate cloudbox
@@ -587,7 +586,7 @@ ARTS_ASSERT(false)
                            ppvar_trans_cumulat,
                            ppvar_trans_partial,
                            iy_id,
-                           stokes_dim,
+                           4,
                            f_grid,
                            abs_species,
                            atm_field,
@@ -611,7 +610,7 @@ ARTS_ASSERT(false)
                            surface_props_data,
                            );
 */
-        ARTS_ASSERT(iy.ncols() == stokes_dim);
+        ARTS_ASSERT(iy.ncols() == 4);
 
         // First and last points are most easily handled separately
         if (za_grid[i] < 90) {
@@ -700,7 +699,6 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
@@ -714,7 +712,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Vector& za_grid,
     const Index& use_parallel_za  [[maybe_unused]]) {
   // Check input
-  ARTS_USER_ERROR_IF(false, "This method only works for atmosphere_dim = 1.");
+  ARTS_USER_ERROR("This method only works for 1D at this time.");
   if (!cloudbox_on)
     throw runtime_error("No ned to use this method with cloudbox=0.");
   if (cloudbox_limits[0])
@@ -734,7 +732,7 @@ void spectral_radiance_fieldExpandCloudboxField(
   const Index nza = za_grid.nelem();
 
   // Init spectral_radiance_field
-  spectral_radiance_field.resize(nf, nl, 1, 1, nza, 1, stokes_dim);
+  spectral_radiance_field.resize(nf, nl, 1, 1, nza, 1, 4);
 
   // and copy the part taken from cloudbox_field
   spectral_radiance_field(joker,
@@ -818,7 +816,6 @@ ARTS_ASSERT(false)
                            ppvar_trans_cumulat,
                            ppvar_trans_partial,
                            iy_id,
-                           stokes_dim,
                            f_grid,
                            abs_species,
                            atm_field,
@@ -842,7 +839,7 @@ ARTS_ASSERT(false)
                            surface_props_data,
                            );
 */
-        ARTS_ASSERT(iy.ncols() == stokes_dim);
+        ARTS_ASSERT(iy.ncols() == 4);
 
         // First and last points are most easily handled separately
         // But field at top cloudbox already known from copying above

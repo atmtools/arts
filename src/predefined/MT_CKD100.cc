@@ -1,4 +1,5 @@
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include <vector>
 
@@ -177,7 +178,7 @@ Numeric RADFN_FUN(const Numeric VI, const Numeric XKT) {
    \date 2002-28-08
  */
 //! New implementation
-void oxygen_cia(PropagationMatrix& propmat_clearsky,
+void oxygen_cia(PropmatVector& propmat_clearsky,
                 const Vector& f_grid,
                 const Numeric p_pa,
                 const Numeric t,
@@ -310,7 +311,7 @@ void oxygen_cia(PropagationMatrix& propmat_clearsky,
     if ((V > O2O2_O2F_ckd_mt_100_v1) && (V < O2O2_O2F_ckd_mt_100_v2)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, V);
     }
   }
@@ -372,7 +373,7 @@ void oxygen_cia(PropagationMatrix& propmat_clearsky,
    \date     2002-28-08
  */
 //! New implementation
-void oxygen_v0v0(PropagationMatrix& propmat_clearsky,
+void oxygen_v0v0(PropmatVector& propmat_clearsky,
                  const Vector& f_grid,
                  const Numeric p_pa,
                  const Numeric t,
@@ -547,7 +548,7 @@ void oxygen_v0v0(PropagationMatrix& propmat_clearsky,
     if ((V > O2_00_ckd_mt_100_v1) && (V < O2_00_ckd_mt_100_v2)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, NPTC + 1, V);
     }
   }
@@ -598,7 +599,7 @@ void oxygen_v0v0(PropagationMatrix& propmat_clearsky,
    \date 2002-28-08
  */
 //! New implementation
-void oxygen_v0v1(PropagationMatrix& propmat_clearsky,
+void oxygen_v0v1(PropmatVector& propmat_clearsky,
                  const Vector& f_grid,
                  const Numeric p_pa,
                  const Numeric t,
@@ -718,7 +719,7 @@ void oxygen_v0v1(PropagationMatrix& propmat_clearsky,
     if ((V > V1S) && (V < V2S)) {
       // arts cross section [1/m]
       // interpolate the k vector on the f_grid grid
-      propmat_clearsky.Kjj()[s] +=
+      propmat_clearsky[s].A() +=
           vmr * 1.000e2 * XINT_FUN(V1C, V2C, DVC, k, NPTC + 1, V);
     }
   }

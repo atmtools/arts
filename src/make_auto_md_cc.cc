@@ -72,8 +72,7 @@ int main() {
         << "#include \"m_select.h\"\n"
         << "#include \"m_xml.h\"\n"
         << "#include \"m_basic_types.h\"\n"
-        << "#include \"propagationmatrix.h\"\n"
-        << "#include \"transmissionmatrix.h\"\n"
+        << "#include <rtepack.h>\n"
         << "#include \"agenda_record.h\"\n"
         << "#include \"workspace_ng.h\"\n"
         << "#include \"global_data.h\"\n"
@@ -119,10 +118,10 @@ int main() {
         // Use parameter name only if it is used inside the function
         // to avoid warnings
         ws = " ws";
-        //              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
-        //              {
-        //                ws = "";
-        //              }
+        if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem() &&
+            !vi.nelem() && !vgo.nelem() && !vgi.nelem()) {
+          ws = "";
+        }
 
         // Find out if the WSM gets an agenda as input. If so, pass
         // the current workspace to this method

@@ -61,7 +61,6 @@ void surface_calc(Matrix& iy,
                   ConstMatrixView surface_emission) {
   // Some sizes
   const Index nf = I.nrows();
-  const Index stokes_dim = I.ncols();
   const Index nlos = surface_los.nrows();
 
   iy = surface_emission;
@@ -69,7 +68,7 @@ void surface_calc(Matrix& iy,
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if (nlos > 0) {
     for (Index ilos = 0; ilos < nlos; ilos++) {
-      Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
+      Vector rtmp(4);  // Reflected Stokes vector for 1 frequency
 
       for (Index iv = 0; iv < nf; iv++) {
         mult(rtmp, surface_rmatrix(ilos, iv, joker, joker), I(ilos, iv, joker));
@@ -84,11 +83,10 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
                               const Complex& Rv,
                               const Complex& Rh,
                               const Numeric& f,
-                              const Index& stokes_dim,
                               const Numeric& surface_skin_t) {
-  ARTS_ASSERT(surface_rmatrix.nrows() == stokes_dim);
-  ARTS_ASSERT(surface_rmatrix.ncols() == stokes_dim);
-  ARTS_ASSERT(surface_emission.nelem() == stokes_dim);
+  ARTS_ASSERT(surface_rmatrix.nrows() == 4);
+  ARTS_ASSERT(surface_rmatrix.ncols() == 4);
+  ARTS_ASSERT(surface_emission.nelem() == 4);
 
   // Expressions are derived in the surface chapter in the user guide
 
@@ -104,7 +102,6 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
   surface_rmatrix(0, 0) = rmean;
   surface_emission[0] = B * (1 - rmean);
 
-  if (stokes_dim > 1) {
     const Numeric rdiff = (rv - rh) / 2;
 
     surface_rmatrix(1, 0) = rdiff;
@@ -112,26 +109,20 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
     surface_rmatrix(1, 1) = rmean;
     surface_emission[1] = -B * rdiff;
 
-    if (stokes_dim > 2) {
       const Complex a = Rh * conj(Rv);
       const Complex b = Rv * conj(Rh);
       const Numeric c = real(a + b) / 2.0;
 
       surface_rmatrix(2, 2) = c;
 
-      if (stokes_dim > 3) {
         const Numeric d = imag(a - b) / 2.0;
 
         surface_rmatrix(2, 3) = d;
         surface_rmatrix(3, 2) = -d;
         surface_rmatrix(3, 3) = c;
-      }
-    }
-  }
 }
 
-void surface_props_check(const Index& atmosphere_dim,
-                         const Vector& lat_grid,
+void surface_props_check(const Vector& lat_grid,
                          const Vector& lon_grid,
                          const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names) {
@@ -164,7 +155,6 @@ void surface_props_check(const Index& atmosphere_dim,
 
 void surface_props_interp(Vector& v,
                           const String& vname,
-                          const Index& atmosphere_dim,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon,
                           const Matrix& itw,
@@ -221,7 +211,6 @@ void surface_get_incoming_direct(
     Vector& specular_los,
     const Vector& rtp_pos,
     const Vector& rtp_los,
-    const Index& stokes_dim,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const AtmField& atm_field,
@@ -304,8 +293,6 @@ Tensor3 p_field;
                       suns,
                       ppath,
                       f_grid,
-                      stokes_dim,
-                      3,
                       surface_field.ellipsoid);
 
   if (stars_visible){
@@ -332,7 +319,6 @@ Tensor3 p_field;
                            ppvar_iy_dummy,
                            ppvar_trans_cumulat_dummy,
                            ppvar_trans_partial_dummy,
-                           stokes_dim,
                            f_grid,
                            abs_species,
                            atm_field,
@@ -356,7 +342,7 @@ Tensor3 p_field;
                            rte_alonglos_v);
 
   } else {
-    iy_incoming.resize(f_grid.nelem(),stokes_dim);
+    iy_incoming.resize(f_grid.nelem(),4);
     iy_incoming=0;
   }
 }

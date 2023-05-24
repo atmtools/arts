@@ -80,7 +80,6 @@ void MCGeneral(Workspace& ws,
                const Index& f_index,
                const Matrix& sensor_pos,
                const Matrix& sensor_los,
-               const Index& stokes_dim,
                const Agenda& ppath_step_agenda,
                const Numeric& ppath_lmax,
                const Numeric& ppath_lraytrace,
@@ -108,7 +107,6 @@ void MCGeneral(Workspace& ws,
                const Index& t_interp_order) {
   // Checks of input
   //
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   if (atmfields_checked != 1)
     throw runtime_error(
         "The atmospheric fields must be flagged to have "
@@ -194,26 +192,26 @@ void MCGeneral(Workspace& ws,
 
   rng.seed(mc_seed);
   Numeric g, temperature, albedo, g_los_csc_theta;
-  Matrix A(stokes_dim, stokes_dim), Q(stokes_dim, stokes_dim);
-  Matrix evol_op(stokes_dim, stokes_dim), ext_mat_mono(stokes_dim, stokes_dim);
-  Matrix q(stokes_dim, stokes_dim), newQ(stokes_dim, stokes_dim);
-  Matrix Z(stokes_dim, stokes_dim);
+  Matrix A(4, 4), Q(4, 4);
+  Matrix evol_op(4, 4), ext_mat_mono(4, 4);
+  Matrix q(4, 4), newQ(4, 4);
+  Matrix Z(4, 4);
   Matrix R_ant2enu(3, 3),
-      R_stokes(stokes_dim, stokes_dim);  // Needed for antenna rotations
+      R_stokes(4, 4);  // Needed for antenna rotations
   q = 0.0;
   newQ = 0.0;
-  Vector vector1(stokes_dim), abs_vec_mono(stokes_dim), I_i(stokes_dim);
-  Vector Isum(stokes_dim), Isquaredsum(stokes_dim);
+  Vector vector1(4), abs_vec_mono(4), I_i(4);
+  Vector Isum(4), Isquaredsum(4);
   Index termination_flag = 0;
   const Numeric f_mono = f_grid[f_index];
   const Numeric prop_dir =
       -1.0;  // propagation direction opposite of los angles
 
-  y.resize(stokes_dim);
+  y.resize(4);
   y = 0;
 
   mc_iteration_count = 0;
-  mc_error.resize(stokes_dim);
+  mc_error.resize(4);
      // FIXME: REQUIRES REGULAR GRIDS
   Vector z_grid, lat_grid, lon_grid;
   Tensor3 t_field, p_field, wind_u_field;
@@ -228,7 +226,7 @@ void MCGeneral(Workspace& ws,
 
   //local versions of workspace
   SurfacePoint local_surface_point;
-  Matrix local_iy(1, stokes_dim), local_surface_emission(1, stokes_dim);
+  Matrix local_iy(1, 4), local_surface_emission(1, 4);
   Matrix local_surface_los;
   Tensor4 local_surface_rmatrix;
   Vector local_rte_pos(3);  // Fixed this (changed from 2 to 3)
@@ -279,7 +277,7 @@ void MCGeneral(Workspace& ws,
 
       // Get stokes rotation matrix for rotating polarization
       rotmat_stokes(
-          R_stokes, stokes_dim, prop_dir, prop_dir, R_prop, R_ant2enu);
+          R_stokes, prop_dir, prop_dir, R_prop, R_ant2enu);
       id_mat(Q);
       local_rte_pos = sensor_pos(0, joker);
       I_i = 0.0;
@@ -303,7 +301,6 @@ void MCGeneral(Workspace& ws,
                            ppath_lraytrace,
                            taustep_limit,
                            propmat_clearsky_agenda,
-                           stokes_dim,
                            f_index,
                            f_grid,
                            surface_field,
@@ -405,7 +402,7 @@ void MCGeneral(Workspace& ws,
             Numeric planck_value = planck(f_mono, temperature);
             Vector emission = abs_vec_mono;
             emission *= planck_value;
-            Vector emissioncontri(stokes_dim);
+            Vector emissioncontri(4);
             mult(emissioncontri, evol_op, emission);
             emissioncontri /= (g * (1 - albedo));  //yuck!
             mult(I_i, Q, emissioncontri);
@@ -420,7 +417,6 @@ void MCGeneral(Workspace& ws,
                        local_rte_los,
                        scat_data,
                        f_index,
-                       stokes_dim,
                        pnd_vec,
                        Z11maxvector,
                        ext_mat_mono(0, 0) - abs_vec_mono[0],
@@ -441,7 +437,7 @@ void MCGeneral(Workspace& ws,
           Numeric planck_value = planck(f_mono, temperature);
           Vector emission = abs_vec_mono;
           emission *= planck_value;
-          Vector emissioncontri(stokes_dim);
+          Vector emissioncontri(4);
           mult(emissioncontri, evol_op, emission);
           emissioncontri /= g;
           mult(I_i, Q, emissioncontri);
@@ -461,17 +457,17 @@ void MCGeneral(Workspace& ws,
         }
 
         // Rotate into antenna polarization frame
-        Vector I_hold(stokes_dim);
+        Vector I_hold(4);
         mult(I_hold, R_stokes, I_i);
         Isum += I_i;
 
-        for (Index j = 0; j < stokes_dim; j++) {
+        for (Index j = 0; j < 4; j++) {
           ARTS_ASSERT(!std::isnan(I_i[j]));
           Isquaredsum[j] += I_i[j] * I_i[j];
         }
         y = Isum;
         y /= (Numeric)mc_iteration_count;
-        for (Index j = 0; j < stokes_dim; j++) {
+        for (Index j = 0; j < 4; j++) {
           mc_error[j] = sqrt(
               (Isquaredsum[j] / (Numeric)mc_iteration_count - y[j] * y[j]) /
               (Numeric)mc_iteration_count);
@@ -503,7 +499,7 @@ void MCGeneral(Workspace& ws,
   }  // while
 
   if (convert_to_rjbt) {
-    for (Index j = 0; j < stokes_dim; j++) {
+    for (Index j = 0; j < 4; j++) {
       y[j] = invrayjean(y[j], f_mono);
       mc_error[j] = invrayjean(mc_error[j], f_mono);
     }
@@ -524,7 +520,6 @@ void MCRadar(  // Workspace reference:
     const Index& f_index,
     const Matrix& sensor_pos,
     const Matrix& sensor_los,
-    const Index& stokes_dim,
     const Numeric& ppath_lmax,
     const Agenda& ppath_step_agenda,
     const Numeric& ppath_lraytrace,
@@ -555,9 +550,6 @@ void MCRadar(  // Workspace reference:
 
   // Basics
   //
-  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
-  if (stokes_dim < 2)
-    throw runtime_error("This method requires that stokes_dim >= 2");
   if (atmfields_checked != 1)
     throw runtime_error(
         "The atmospheric fields must be flagged to have "
@@ -585,8 +577,8 @@ void MCRadar(  // Workspace reference:
   if (f_index >= f_grid.nelem())
     throw runtime_error("*f_index* is outside the range of *f_grid*.");
 
-  if (stokes_dim != mc_y_tx.nelem())
-    throw runtime_error("*mc_y_tx* must have size of *stokes_dim*.");
+  if (4 != mc_y_tx.nelem())
+    throw runtime_error("*mc_y_tx* must have size of *4*.");
 
   if (sensor_pos.ncols() != 3) {
     ostringstream os;
@@ -635,12 +627,12 @@ void MCRadar(  // Workspace reference:
   Numeric albedo;
   Numeric Csca, Cext;
   Numeric antenna_wgt;
-  Matrix evol_op(stokes_dim, stokes_dim), ext_mat_mono(stokes_dim, stokes_dim);
-  Matrix trans_mat(stokes_dim, stokes_dim);
-  Matrix Z(stokes_dim, stokes_dim);
-  Matrix R_ant2enu(3, 3), R_enu2ant(3, 3), R_stokes(stokes_dim, stokes_dim);
-  Vector abs_vec_mono(stokes_dim), I_i(stokes_dim), I_i_rot(stokes_dim);
-  Vector Isum(nbins * stokes_dim), Isquaredsum(nbins * stokes_dim);
+  Matrix evol_op(4, 4), ext_mat_mono(4, 4);
+  Matrix trans_mat(4, 4);
+  Matrix Z(4, 4);
+  Matrix R_ant2enu(3, 3), R_enu2ant(3, 3), R_stokes(4, 4);
+  Vector abs_vec_mono(4), I_i(4), I_i_rot(4);
+  Vector Isum(nbins * 4), Isquaredsum(nbins * 4);
   Index termination_flag = 0;
   Vector bin_height(nbins);
   Vector range_bin_count(nbins);
@@ -677,23 +669,23 @@ void MCRadar(  // Workspace reference:
     bin_height *= 0.5 * SPEED_OF_LIGHT;
   }
 
-  y.resize(nbins * stokes_dim);
+  y.resize(nbins * 4);
   y = 0;
 
   range_bin_count = 0;
 
   mc_iter = 0;
   // this will need to be reshaped differently for range gates
-  mc_error.resize(stokes_dim * nbins);
+  mc_error.resize(4 * nbins);
 
   //local versions of workspace
-  Matrix local_iy(1, stokes_dim), local_surface_emission(1, stokes_dim);
+  Matrix local_iy(1, 4), local_surface_emission(1, 4);
   Matrix local_surface_los;
   Tensor4 local_surface_rmatrix;
   Vector local_rte_pos(3);
   Vector local_rte_los(2);
   Vector new_rte_los(2);
-  Vector Ipath(stokes_dim), Ihold(stokes_dim), Ipath_norm(stokes_dim);
+  Vector Ipath(4), Ihold(4), Ipath_norm(4);
   Isum = 0.0;
   Isquaredsum = 0.0;
   Numeric s_tot, s_return;  // photon distance traveled
@@ -736,7 +728,7 @@ void MCRadar(  // Workspace reference:
     Matrix R_tx(3, 3);
     mc_antenna.draw_los(
         local_rte_los, R_tx, rng, R_ant2enu, sensor_los(0, joker));
-    rotmat_stokes(R_stokes, stokes_dim, tx_dir, tx_dir, R_ant2enu, R_tx);
+    rotmat_stokes(R_stokes, tx_dir, tx_dir, R_ant2enu, R_tx);
     mult(Ihold, R_stokes, mc_y_tx);
 
     // Initialize other variables
@@ -766,7 +758,6 @@ void MCRadar(  // Workspace reference:
                        ppath_lraytrace,
                        propmat_clearsky_agenda,
                        anyptype_nonTotRan,
-                       stokes_dim,
                        f_index,
                        f_grid,
                        Ihold,
@@ -809,7 +800,7 @@ void MCRadar(  // Workspace reference:
           // Use this to ensure that the difference in azimuth angle
           // between incident and scattered lines-of-sight is 180
           // degrees
-          mirror_los(rte_los_geom, local_rte_los, 3);
+          mirror_los(rte_los_geom, local_rte_los);
           firstpass = false;
         } else {
           // Replace with ppath_agendaExecute??
@@ -892,7 +883,6 @@ void MCRadar(  // Workspace reference:
                              trans_mat,
                              ppath,
                              propmat_clearsky_agenda,
-                             stokes_dim,
                              f_index,
                              f_grid,
                              atm_field,
@@ -901,7 +891,7 @@ void MCRadar(  // Workspace reference:
                              scat_data);
 
           // Obtain scattering matrix given incident and scattered angles
-          Matrix P(stokes_dim, stokes_dim);
+          Matrix P(4, 4);
 
           pdir_array(0, joker) = rte_los_geom;
           idir_array(0, joker) = local_rte_los;
@@ -909,7 +899,6 @@ void MCRadar(  // Workspace reference:
                              ptypes_Nse,
                              t_ok,
                              scat_data,
-                             stokes_dim,
                              t_array,
                              pdir_array,
                              idir_array,
@@ -936,8 +925,8 @@ void MCRadar(  // Workspace reference:
           Ihold = Ipath;
           if (Ihold[0] < 1e-40 || std::isnan(Ihold[0]) ||
               std::isnan(Ihold[1]) ||
-              (stokes_dim > 2 && std::isnan(Ihold[2])) ||
-              (stokes_dim > 3 && std::isnan(Ihold[3]))) {
+              (4 > 2 && std::isnan(Ihold[2])) ||
+              (4 > 3 && std::isnan(Ihold[3]))) {
             integrity = false;
           }
 
@@ -956,11 +945,11 @@ void MCRadar(  // Workspace reference:
             rotmat_enu(R_rx, rte_los_antenna);
             mc_antenna.return_los(antenna_wgt, R_rx, R_enu2ant);
             rotmat_stokes(
-                R_stokes, stokes_dim, rx_dir, tx_dir, R_rx, R_ant2enu);
+                R_stokes, rx_dir, tx_dir, R_rx, R_ant2enu);
             mult(I_i_rot, R_stokes, I_i);
 
-            for (Index istokes = 0; istokes < stokes_dim; istokes++) {
-              Index ibiny = ibin * stokes_dim + istokes;
+            for (Index istokes = 0; istokes < 4; istokes++) {
+              Index ibiny = ibin * 4 + istokes;
               ARTS_ASSERT(!std::isnan(I_i_rot[istokes]));
               Isum[ibiny] += antenna_wgt * I_i_rot[istokes];
               Isquaredsum[ibiny] += antenna_wgt * antenna_wgt *
@@ -979,7 +968,6 @@ void MCRadar(  // Workspace reference:
                              ptypes_Nse,
                              t_ok,
                              scat_data,
-                             stokes_dim,
                              t_array,
                              pdir_array,
                              idir_array,
@@ -1019,8 +1007,8 @@ void MCRadar(  // Workspace reference:
 
   // Normalize range bins and apply sensor response (polarization)
   for (Index ibin = 0; ibin < nbins; ibin++) {
-    for (Index istokes = 0; istokes < stokes_dim; istokes++) {
-      Index ibiny = ibin * stokes_dim + istokes;
+    for (Index istokes = 0; istokes < 4; istokes++) {
+      Index ibiny = ibin * 4 + istokes;
       if (range_bin_count[ibin] > 0) {
         y[ibiny] = Isum[ibiny] / ((Numeric)mc_iter) / bin_height[ibin];
         mc_error[ibiny] = sqrt((Isquaredsum[ibiny] / (Numeric)mc_iter /

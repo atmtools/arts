@@ -47,7 +47,6 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los)
 }
 
 void rotmat_stokes(MatrixView R_pra,
-                   const Index& stokes_dim,
                    const Numeric& f1_dir,
                    const Numeric& f2_dir,
                    ConstMatrixView R_f1,
@@ -64,17 +63,11 @@ void rotmat_stokes(MatrixView R_pra,
 
   R_pra = 0.0;
   R_pra(0, 0) = 1.0;
-  if (stokes_dim > 1) {
-    R_pra(1, 1) = 2 * cos_pra1 * cos_pra1 - 1.0;
-    if (stokes_dim > 2) {
-      R_pra(1, 2) = flip * 2 * cos_pra1 * sin_pra1;
-      R_pra(2, 1) = 2 * cos_pra2 * sin_pra2;
-      R_pra(2, 2) = flip * (2 * cos_pra2 * cos_pra2 - 1.0);
-      if (stokes_dim > 3) {
-        R_pra(3, 3) = flip * 1.0;
-      }
-    }
-  }
+  R_pra(1, 1) = 2 * cos_pra1 * cos_pra1 - 1.0;
+  R_pra(1, 2) = flip * 2 * cos_pra1 * sin_pra1;
+  R_pra(2, 1) = 2 * cos_pra2 * sin_pra2;
+  R_pra(2, 2) = flip * (2 * cos_pra2 * cos_pra2 - 1.0);
+  R_pra(3, 3) = flip * 1.0;
 }
 
 void MCAntenna::set_pencil_beam() { atype = ANTENNA_TYPE_PENCIL_BEAM; }

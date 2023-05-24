@@ -5,7 +5,8 @@
 
 #include <arts_conversions.h>
 #include <debug.h>
-#include <propagationmatrix.h>
+#include <matpack.h>
+#include <rtepack.h>
 
 #include "predef_data.h"
 
@@ -95,7 +96,7 @@ void check(const WaterData& data) {
   ARTS_USER_ERROR_IF(c, "No data")
 }
 
-void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
+void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Vector& f_grid,
                          const Numeric& P,
                          const Numeric& T,
@@ -166,11 +167,11 @@ void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
     }
 
     auto out = 1e2 * num_den_cm2 * XINT_FUN(recdvc * (x - *v), k);
-    propmat_clearsky.Kjj()[s] += out >= 0 ? out : 0;
+    propmat_clearsky[s].A() += out >= 0 ? out : 0;
   }
 }
 
-void compute_self_h2o(PropagationMatrix& propmat_clearsky,
+void compute_self_h2o(PropmatVector& propmat_clearsky,
                       const Vector& f_grid,
                       const Numeric& P,
                       const Numeric& T,
@@ -243,7 +244,7 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
     }
 
     auto out = 1e2 * num_den_cm2 * XINT_FUN(recdvc * (x - *v), k);
-    propmat_clearsky.Kjj()[s] += out >= 0 ? out : 0;
+    propmat_clearsky[s].A() += out >= 0 ? out : 0;
   }
 }
 }  // namespace Absorption::PredefinedModel::MT_CKD400

@@ -77,6 +77,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_time.cpp
     py_tessem.cpp
     py_rte.cpp
+    py_rtepack.cpp
     py_telsem.cpp
     py_species.cpp
     py_sparse.cpp

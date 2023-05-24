@@ -29,8 +29,8 @@
 #include "matpack_math.h"
 #include "matpack_view.h"
 #include "physics_funcs.h"
-#include "propagationmatrix.h"
 #include "rng.h"
+#include <rtepack.h>
 #include "species_tags.h"
 
 using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
@@ -337,10 +337,10 @@ Your current lowest_vmr value is: )--", lowest_vmr)
           // Store in the right place:
           // Loop through all altitudes
           for (Index p = 0; p < n_p_grid; ++p) {
-            PropagationMatrix K;
-            StokesVector S;
-            ArrayOfPropagationMatrix dK;
-            ArrayOfStokesVector dS;
+            PropmatVector K;
+            StokvecVector S;
+            PropmatMatrix dK;
+            StokvecMatrix dS;
             Vector rtp_vmr{these_all_vmrs(joker, p)};
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
@@ -356,8 +356,9 @@ Your current lowest_vmr value is: )--", lowest_vmr)
                                            {},
                                            AtmPoint{},  // FIXME: DUMMY VALUE
                                            propmat_clearsky_agenda);
-            K.Kjj() /= rtp_vmr[i] * number_density(abs_p[p], this_t[p]);
-            abs_lookup.xsec(j, spec, Range(joker), p) = K.Kjj();
+            for (Index k = 0; k < n_f_grid; ++k) {
+              abs_lookup.xsec(j, spec, Range(joker), p) = K[k].A() / (rtp_vmr[i] * number_density(abs_p[p], this_t[p]));
+            }
 
             // There used to be a division by the number density
             // n here. This is no longer necessary, since
@@ -1783,8 +1784,8 @@ void abs_lookupAdapt(GasAbsLookup& abs_lookup,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddFromLookup(
-    PropagationMatrix& propmat_clearsky,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
     const GasAbsLookup& abs_lookup,
     const Index& abs_lookup_is_adapted,
     const Index& abs_p_interp_order,
@@ -1887,28 +1888,27 @@ void propmat_clearskyAddFromLookup(
 
   if (not do_jac) {
     for (Index ii = 0; ii < abs_scalar_gas.nrows(); ii++) {
-      propmat_clearsky.Kjj() += abs_scalar_gas(ii, joker);
+      for (Index iv = 0; iv < abs_scalar_gas.ncols(); iv++)
+        propmat_clearsky[iv].A() += abs_scalar_gas(ii, iv);
     }
   } else {
     for (Index isp = 0; isp < abs_scalar_gas.nrows(); isp++) {
-      propmat_clearsky.Kjj() += abs_scalar_gas(isp, joker);
-
-      for (Index iv = 0; iv < propmat_clearsky.NumberOfFrequencies();
-           iv++) {
+      for (Index iv = 0; iv < abs_scalar_gas.ncols(); iv++) {
+        propmat_clearsky[iv].A() += abs_scalar_gas(isp, iv);
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
           
           if (not deriv.propmattype()) continue;
           
           if (deriv == Jacobian::Atm::Temperature) {
-            dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+            dpropmat_clearsky_dx(iq, iv).A() +=
                 (dabs_scalar_gas_dt(isp, iv) - abs_scalar_gas(isp, iv)) / dt;
           } else if (is_frequency_parameter(deriv)) {
-            dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+            dpropmat_clearsky_dx(iq, iv).A() +=
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
           } else if (deriv == abs_species[isp]) {
             // WARNING:  If CIA in list, this scales wrong by factor 2
-              dpropmat_clearsky_dx[iq].Kjj()[iv] += (std::isnormal(a_vmr_list[isp])) ? abs_scalar_gas(isp, iv) / a_vmr_list[isp] : 0;
+              dpropmat_clearsky_dx(iq, iv).A() += (std::isnormal(a_vmr_list[isp])) ? abs_scalar_gas(isp, iv) / a_vmr_list[isp] : 0;
           }
         }
       }
@@ -1934,10 +1934,10 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
 
-  ArrayOfPropagationMatrix partial_abs;
-  ArrayOfStokesVector partial_nlte;  // FIXME: This is not stored!
-  PropagationMatrix abs;
-  StokesVector nlte;
+  PropmatMatrix partial_abs;
+  StokvecMatrix partial_nlte;  // FIXME: This is not stored!
+  PropmatVector abs;
+  StokvecVector nlte;
   Vector a_vmr_list;
 
   // Get the number of species from the leading dimension of vmr_field:
@@ -2017,11 +2017,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
           this_f_grid += doppler[ial];
         }
 
-        {
-          ostringstream os;
-          os << "  z_grid[" << ial << "] = " << a_altitude << "\n";
-        }
-
         for (Index ila = 0; ila < n_latitudes; ++ila)     // Latitude:  ila
           for (Index ilo = 0; ilo < n_longitudes; ++ilo)  // Longitude: ilo
           {
@@ -2039,45 +2034,42 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                            {},
                                            this_f_grid,
                                            los,
-                                           atm_point,  // FIXME: DUMMY VALUE
+                                           atm_point,
                                            abs_agenda);
             
             // Convert from derivative to absorption
-            for (Index ispec=0; ispec<partial_abs.nelem(); ispec++) {
+            for (Index ispec=0; ispec<partial_abs.nrows(); ispec++) {
               partial_abs[ispec] *= a_vmr_list[ispec];
             }
 
-            // Verify, that the number of elements in abs matrix is
-            // constistent with stokes_dim:
-            ARTS_USER_ERROR_IF (1 != abs.StokesDimensions(),
-                "propmat_clearsky_fieldCalc requires stokes_dim = 1"
-                "but the stokes_dim returned by the agenda is ",
-                abs.StokesDimensions(), ".")
+            ARTS_USER_ERROR ("This method is not yet adapted for the new fully polarized ARTS")
 
             // Verify, that the number of species in abs is
             // constistent with vmr_field:
-            ARTS_USER_ERROR_IF (n_species != partial_abs.nelem(),
+            ARTS_USER_ERROR_IF (n_species != partial_abs.nrows(),
                 "The number of gas species in vmr_field is ", n_species,
                 ",\n"
                 "but the number of species returned by the agenda is ",
-                partial_abs.nelem(), ".")
+                partial_abs.nrows(), ".")
 
             // Verify, that the number of frequencies in abs is
             // constistent with f_extent:
-            ARTS_USER_ERROR_IF (n_frequencies != abs.NumberOfFrequencies(),
+            ARTS_USER_ERROR_IF (n_frequencies != abs.nelem(),
                 "The number of frequencies desired is ", n_frequencies,
                 ",\n"
                 "but the number of frequencies returned by the agenda is ",
-                abs.NumberOfFrequencies(), ".")
+                abs.nelem(), ".")
 
             // Store the result in output field.
             // We have to transpose abs, because the dimensions of the
             // two variables are:
             // abs_field: [abs_species, f_grid, stokes, stokes, p_grid, lat_grid, lon_grid]
             // abs:       [abs_species][f_grid, stokes, stokes]
-            for (Index i = 0; i < partial_abs.nelem(); i++) {
-              partial_abs[i].GetTensor3(propmat_clearsky_field(
-                  i, joker, joker, joker, ial, ila, ilo));
+            for (Index i = 0; i < partial_abs.nrows(); i++) {
+              for (Index j = 0; j < partial_abs.ncols(); j++) {
+                propmat_clearsky_field(i, j, 0, 0, ial, ila, ilo) =
+                    partial_abs(i, j).A();
+              }
             }
           }
       } catch (const std::runtime_error& e) {
