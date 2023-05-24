@@ -118,10 +118,10 @@ int main() {
         // Use parameter name only if it is used inside the function
         // to avoid warnings
         ws = " ws";
-        //              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
-        //              {
-        //                ws = "";
-        //              }
+        if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem() &&
+            !vi.nelem() && !vgo.nelem() && !vgi.nelem()) {
+          ws = "";
+        }
 
         // Find out if the WSM gets an agenda as input. If so, pass
         // the current workspace to this method
