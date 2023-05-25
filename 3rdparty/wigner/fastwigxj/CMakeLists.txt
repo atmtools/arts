@@ -8,7 +8,7 @@ check_c_source_compiles("
       return 0;
     }
     "
-    HAS_THREAD_MUTEX
+    FASTWIGXJ_HAVE_THREAD_MUTEX
 )
 
 check_c_source_compiles("
@@ -23,7 +23,7 @@ check_c_source_compiles("
         return 0;
     }
     "
-    HAS_AVX2
+    FASTWIGXJ_HAVE_AVX2
 )
 
 check_c_source_compiles([[
@@ -32,7 +32,7 @@ check_c_source_compiles([[
         asm __volatile__ ("    sfence  \\n\\t" : : : "memory");
     }
     ]]
-    HAS_LSFENCE
+    FASTWIGXJ_HAVE_LSFENCE
 )
 
 check_c_source_compiles("
@@ -46,7 +46,7 @@ check_c_source_compiles("
         #endif
     }
     "
-    HAS_SSE4_1
+    FASTWIGXJ_HAVE_SSE4_1
 )
 
 check_c_source_compiles("
@@ -60,59 +60,11 @@ check_c_source_compiles("
         #endif
     }
     "
-    HAS_SSE4_2
+    FASTWIGXJ_HAVE_SSE4_2
 )
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated definitions file\n\n")
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_LONG_DOUBLE rule:\n")
-if (HAS_LONG_DOUBLE)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_USE_LONG_DOUBLE 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_FLOAT128 rule:\n")
-if (HAS_FLOAT128)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_USE_FLOAT128 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_THREAD rule:\n")
-if (HAS_THREAD)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_HAVE_THREAD 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_THREAD_MUTEX rule:\n")
-if (HAS_THREAD_MUTEX)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_HAVE_THREAD_MUTEX 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_LSFENCE rule:\n")
-if (HAS_LSFENCE)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_HAVE_LSFENCE 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_SSE4_1 rule:\n")
-if (HAS_SSE4_1)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_HAVE_SSE4_1 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_SSE4_2 rule:\n")
-if (HAS_SSE4_2)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_HAVE_SSE4_2 1\n")
-endif()
-
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h "// auto-generated HAS_AVX2 rule:\n")
-if (HAS_AVX2)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h
-        "#define FASTWIGXJ_HAVE_AVX2 1\n")
-endif()
-
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/fastwigxj_auto_config.h.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/fastwigxj_auto_config.h)
 
 add_library(fastwigxj STATIC
     src/fastwigxj.c
