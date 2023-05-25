@@ -482,7 +482,7 @@ void print_method_desc(std::ofstream& os,
   for (const auto& i : method.out.varname) {
     os << i << " : "
        << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
-    os << "    See :attr:`~pyarts.workspace.Workspace." << i << "` (";
+    os << "    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
                      [out = i](const auto& in) { return in == out; })) {
@@ -501,7 +501,7 @@ void print_method_desc(std::ofstream& os,
                      [in = i](const auto& out) { return in == out; })) {
       os << i << " : "
          << "pyarts.arts." << groups.at(i).varname_group
-         << ", optional\n    See :attr:`~pyarts.workspace.Workspace." << i << "` (IN)\n";
+         << ", optional\n    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (IN)\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
