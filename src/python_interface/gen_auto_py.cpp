@@ -107,9 +107,9 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::string> desc;
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
-    val = var_string("Group: pyarts.arts.",
+    val = var_string(":class:`pyarts.arts.WorkspaceVariable` - holds a :class:`pyarts.arts.",
                      global_data::wsv_groups[x.Group()].name,
-                     "\n\n",
+                     "`: ",
                      x.Description());
     if (x.has_defaults())
       val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().",
@@ -482,7 +482,7 @@ void print_method_desc(std::ofstream& os,
   for (const auto& i : method.out.varname) {
     os << i << " : "
        << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
-    os << "    As WSV (";
+    os << "    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
                      [out = i](const auto& in) { return in == out; })) {
@@ -501,7 +501,7 @@ void print_method_desc(std::ofstream& os,
                      [in = i](const auto& out) { return in == out; })) {
       os << i << " : "
          << "pyarts.arts." << groups.at(i).varname_group
-         << ", optional\n    As WSV (IN)\n";
+         << ", optional\n    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (IN)\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
@@ -518,7 +518,7 @@ void print_method_desc(std::ofstream& os,
   }
 
   if (pass_verbosity)
-    os << "verbosity : pyarts.arts.Verbosity, optional\n    As WSV (IN)\n";
+    os << "verbosity : pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` (IN)\n";
 
   os << "\n)-METHODS_DESC-\")";
 }
