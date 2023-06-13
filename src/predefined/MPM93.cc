@@ -1,7 +1,6 @@
 #include <propagationmatrix.h>
 
 #include "arts_constants.h"
-#include "arts_constexpr_math.h"
 
 namespace Absorption::PredefinedModel::MPM93 {
 //! Ported from legacy continua.  Original documentation//!
