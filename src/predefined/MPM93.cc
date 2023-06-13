@@ -59,7 +59,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
   constexpr Numeric gxf =
       9.000 * xf;  // needed for the unit conversion of G
   constexpr Numeric S = 2.296e-31;  // line strength  [1/Pa² * 1/Hz]
-  constexpr Numeric G =
+  const Numeric G =
       1.930e-5 *
       pow(10.000, -gxf);  // frequency factor [1/Hz^xf]
   // ---------------------------------------------------------------------------------------
