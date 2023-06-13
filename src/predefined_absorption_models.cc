@@ -88,6 +88,9 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
     case find_species_index(Species::Species::Water, "MPM89"):
       if constexpr (not check_exist) MPM89::water(pm, f, p, t, vmr.H2O);
       return true;
+    case find_species_index(Species::Species::Nitrogen, "MPM93"):
+      if constexpr (not check_exist) MPM93::nitrogen(pm, f, p, t, vmr.N2, vmr.H2O);
+      return true;
     case find_species_index(Species::Species::Water, "ForeignContCKDMT350"):
       if constexpr (not check_exist) CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
