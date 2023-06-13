@@ -192,7 +192,7 @@ void internalMPM93(py::module_& m) {
       py::arg("rtp_pressure"),
       py::arg("rtp_temperature"),
       py::arg("x_n2"),
-      py::arg("x_h2o")
+      py::arg("x_h2o"),
       py::doc(R"--(Computes nitrogen absorption using MPM93
 
 Parameters:
@@ -865,6 +865,7 @@ void py_predefined(py::module_& m) {
   internalCKDMT100(predef);
   internalCKDMT400(predef, mtckd400_water_data);
   internalMPM89(predef);
+  internalMPM93(predef);
   internalPWR98(predef);
   internalPWR20xx(predef);
   internalTRE05(predef);

@@ -1,5 +1,6 @@
 #include <propagationmatrix.h>
 
+#include "arts_constants.h"
 #include "arts_constexpr_math.h"
 
 namespace Absorption::PredefinedModel::MPM93 {
@@ -47,6 +48,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
               const Numeric n2,
               const Numeric h2o) {
   using std::pow;
+  using Constant::pi, Constant::speed_of_light;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM93 H2O continuum model
@@ -62,7 +64,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
       pow(10.000, -gxf);  // frequency factor [1/Hz^xf]
   // ---------------------------------------------------------------------------------------
 
-  constexpr Numeric fac = 4.0 * Constant::pi / Constant::speed_of_light;  //  = 4 * pi / c
+  constexpr Numeric fac = 4.0 * pi / speed_of_light;  //  = 4 * pi / c
 
   const Numeric th = 300.0 / t;
   const Numeric strength =
@@ -75,7 +77,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
       // the vmr of N2 will be multiplied at the stage of absorption calculation:
       // abs / vmr * pxsec.
       propmat_clearsky.Kjj()[s] += n2 * 
-        `            fac * 
+                     fac * 
                      strength *               // strength
                      pow(f_grid[s], 2.0) /  (1.000 + G * pow(f_grid[s], xf)) * // frequency dependence
                      n2;  // N2 vmr
