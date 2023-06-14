@@ -192,7 +192,7 @@ void internalMPM93(py::module_& m) {
       py::arg("rtp_pressure"),
       py::arg("rtp_temperature"),
       py::arg("x_n2"),
-      py::arg("x_h2o"),
+      py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes nitrogen absorption using MPM93
 
 Parameters:
@@ -207,8 +207,6 @@ Parameters:
     x_h2o : Numeric
         Ratio of water in the atmosphere in the range [0, 1]
 )--"));
-
-  
 }
 
 void internalELL07(py::module_& m) {
