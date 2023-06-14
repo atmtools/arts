@@ -235,6 +235,12 @@ jobs:
           cd cmake-build
           make check
 
+      - name: Python Wheel (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          make pyarts-package
+
       - name: Check Controlfile Conversion (Linux / macOS)
         if: matrix.check == 'yes'
         run: |
