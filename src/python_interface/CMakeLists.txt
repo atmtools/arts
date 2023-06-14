@@ -118,4 +118,7 @@ target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_definitions(pyarts_cpp PUBLIC PYBIND11_DETAILED_ERROR_MESSAGES)
+set_target_properties(
+  pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+                        "${ARTS_BINARY_DIR}/python/pyarts/")
 ########################################################################################
