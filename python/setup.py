@@ -30,21 +30,6 @@ STABLE = int(VERSION_TUPLE[1]) % 2 == 0
 
 here = abspath(dirname(__file__))
 
-try:
-    builtin_path = join("@ARTS_BINARY_DIR@", "src", "python_interface")
-    files = listdir(builtin_path)
-    found = False
-    for file in files:
-        if splitext(file)[-1] in [".so"]:
-            builtin_lib_path = join(builtin_path, file)
-            if isfile(join("pyarts", file)):
-                remove(join("pyarts", file))
-            shutil.copy(builtin_lib_path, "pyarts")
-            found = True
-    if not found: raise
-except:
-    raise Exception("Cannot find builtin library")
-
 class BinaryDistribution(Distribution):
     """Distribution which always forces a binary package with platform name"""
     def has_ext_modules(foo):

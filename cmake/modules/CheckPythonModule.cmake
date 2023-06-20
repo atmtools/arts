@@ -4,6 +4,7 @@
 
 macro (CHECK_PYTHON_MODULES)
   set(REQUIRED_MODULES
+    build
     docutils
     lark.parse_tree_builder
     matplotlib
@@ -15,6 +16,7 @@ macro (CHECK_PYTHON_MODULES)
     xarray)
 
   set(PYPI_NAMES
+    build
     docutils
     lark-parser
     matplotlib
