@@ -107,14 +107,58 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::string> desc;
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
-    val = var_string(":class:`pyarts.arts.WorkspaceVariable` - holds a :class:`pyarts.arts.",
+    val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds a :class:`~pyarts.arts.",
                      global_data::wsv_groups[x.Group()].name,
                      "`: ",
                      x.Description());
+    
+    //! FIXME: Better default, why can't it print???
     if (x.has_defaults())
       val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().",
                         x.Name(),
                         ".value to see default");
+
+    std::pair<std::vector<std::string>, std::vector<std::string>> usedocs;
+    for (auto& method : global_data::md_data_raw) {
+      if (std::any_of(method.Out().cbegin(),
+                      method.Out().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.first.push_back(method.Name());
+
+      if (std::any_of(method.In().cbegin(),
+                      method.In().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.second.push_back(method.Name());
+    }
+
+    if (usedocs.first.size()) {
+      val += var_string("\nSpecific methods that can generate ",
+                        x.Name(),
+                        "\n", String(35 + x.Name().size(), '-'), "\n\n");
+      for (auto& m : usedocs.first)
+        val +=
+            var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
+    }
+    if (usedocs.second.size()) {
+      val += var_string("\nSpecific methods that require ",
+                        x.Name(),
+                        "\n", String(30 + x.Name().size(), '-'), "\n\n");
+      for (auto& m : usedocs.second)
+        val +=
+            var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
+    }
+    val += var_string(
+        "\nGeneric methods that can generate or use ",
+        x.Name(),
+        "\n", String(41 + x.Name().size(), '-'), "\n\n    See :class:`~pyarts.arts.",
+        global_data::wsv_groups[x.Group()].name,
+        "`");
+    if (global_data::wsv_groups[x.Group()].name not_eq "Any")
+      val += var_string(" and :class:`~pyarts.arts.Any`");
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
@@ -481,7 +525,7 @@ void print_method_desc(std::ofstream& os,
 
   for (const auto& i : method.out.varname) {
     os << i << " : "
-       << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
+       << "~pyarts.arts." << groups.at(i).varname_group << ", optional\n";
     os << "    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
@@ -492,7 +536,7 @@ void print_method_desc(std::ofstream& os,
   }
   for (size_t i = 0; i < method.gout.name.size(); i++) {
     os << method.gout.name[i] << " : "
-       << "pyarts.arts." << method.gout.group[i] << "\n    "
+       << "~pyarts.arts." << method.gout.group[i] << "\n    "
        << method.gout.desc[i] << " (OUT)\n";
   }
   for (const auto& i : method.in.varname) {
@@ -500,13 +544,13 @@ void print_method_desc(std::ofstream& os,
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
       os << i << " : "
-         << "pyarts.arts." << groups.at(i).varname_group
+         << "~pyarts.arts." << groups.at(i).varname_group
          << ", optional\n    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (IN)\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
     os << method.gin.name[i] << " : "
-       << "pyarts.arts." << method.gin.group[i];
+       << "~pyarts.arts." << method.gin.group[i];
     if (method.gin.hasdefs[i]) {
       os << ", optional";
     }
@@ -518,7 +562,7 @@ void print_method_desc(std::ofstream& os,
   }
 
   if (pass_verbosity)
-    os << "verbosity : pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` (IN)\n";
+    os << "verbosity : ~pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` (IN)\n";
 
   os << "\n)-METHODS_DESC-\")";
 }

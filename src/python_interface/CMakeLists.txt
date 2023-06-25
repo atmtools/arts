@@ -100,6 +100,8 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_options.cpp
     py_hitran.cpp
 
+    pydocs.cpp
+
     py_auto_interface.h
     py_auto_interface.cc
     py_auto_workspace.cc

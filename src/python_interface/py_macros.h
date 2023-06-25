@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "python_interface_value_type.h"
+#include "pydocs.h"
 
 namespace Python {
 namespace py = pybind11;
@@ -270,16 +271,25 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
            py::doc("Automatic conversion from a workspace variable"))
 
 //! Place at the end!
-#define PythonInterfaceWorkspaceDocumentation(Type)                      \
-  doc() = global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)) \
-              .desc.c_str()
+#define PythonInterfaceWorkspaceDocumentation(Type)                            \
+  doc() =                                                                      \
+      var_string(                                                              \
+          global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)).desc, \
+          '\n',                                                                \
+          group_generics_inout(#Type),                                         \
+          group_workspace_types(#Type))                                        \
+          .c_str()
 
 //! Place at the end!  Add a few line-breaks to fit in extra documentation!
 #define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)              \
-  doc() =                                                                    \
-      (global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)).desc + \
-       extra)                                                                \
-          .c_str()
+  doc() = var_string(                                                        \
+              global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)) \
+                      .desc +                                                \
+                  extra,                                                     \
+              '\n',                                                          \
+              group_generics_inout(#Type),                                   \
+              group_workspace_types(#Type))                                  \
+              .c_str()
 
 /*! The workspace array interface
 
