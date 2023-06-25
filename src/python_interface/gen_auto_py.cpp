@@ -136,7 +136,7 @@ std::map<std::string, Group> groups() {
     }
 
     if (usedocs.first.size()) {
-      val += var_string("\nSpecific methods that can generate ",
+      val += var_string("\n\nSpecific methods that can generate ",
                         x.Name(),
                         "\n", String(35 + x.Name().size(), '-'), "\n\n");
       for (auto& m : usedocs.first)
@@ -144,7 +144,7 @@ std::map<std::string, Group> groups() {
             var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
     }
     if (usedocs.second.size()) {
-      val += var_string("\nSpecific methods that require ",
+      val += var_string("\n\nSpecific methods that require ",
                         x.Name(),
                         "\n", String(30 + x.Name().size(), '-'), "\n\n");
       for (auto& m : usedocs.second)
@@ -152,7 +152,7 @@ std::map<std::string, Group> groups() {
             var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
     }
     val += var_string(
-        "\nGeneric methods that can generate or use ",
+        "\n\nGeneric methods that can generate or use ",
         x.Name(),
         "\n", String(41 + x.Name().size(), '-'), "\n\n    See :class:`~pyarts.arts.",
         global_data::wsv_groups[x.Group()].name,

@@ -15,11 +15,11 @@ std::string group_generics_inout(const std::string& group) {
   for (auto& method : global_data::md_data_raw) {
     if (std::any_of(method.GOutType().cbegin(),
                     method.GOutType().cend(),
-                    Compare::eq(gr)))
+                    Cmp::eq(gr)))
       outdocs.first.push_back(method.Name());
     if (std::any_of(method.GInType().cbegin(),
                     method.GInType().cend(),
-                    Compare::eq(gr)))
+                    Cmp::eq(gr)))
       outdocs.second.push_back(method.Name());
   }
 

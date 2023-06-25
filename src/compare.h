@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Compare {
+namespace Cmp {
 //! Returns a 'less than' lambda expression for use in, e.g., std::any_of 
 auto lt(auto v) {
   return [v](const auto& x) { return x < v; };
