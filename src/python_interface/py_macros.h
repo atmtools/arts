@@ -159,26 +159,29 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
       .PythonInterfaceArrayEquality(Array<BaseType>)                           \
       .PythonInterfaceCopyValue(Array<BaseType>)                               \
-      .def(py::init([]() { return std::make_unique<Array<BaseType>>(); }))     \
-      .def(py::init([](Index n, const BaseType &v) {                           \
+      .def(py::init([]() { return std::make_unique<Array<BaseType>>(); }),     \
+           py::doc("Empty array"))                                             \
+      .def(py::init([](Index n, const BaseType& v) {                           \
              return std::make_unique<Array<BaseType>>(n, v);                   \
            }),                                                                 \
-           py::arg("size"), py::arg("cval"))                                   \
-      .def(py::init([](const std::vector<BaseType> &v) {                       \
+           py::arg("size"),                                                    \
+           py::arg("cval"),                                                    \
+           py::doc("Sized same-value array"))                                  \
+      .def(py::init([](const std::vector<BaseType>& v) {                       \
              return std::make_unique<Array<BaseType>>(v);                      \
            }),                                                                 \
-           py::arg("arr"))                                                     \
+           py::arg("arr"),                                                     \
+           py::doc("Array from :class:`list`"))                                \
       .def(                                                                    \
           "append",                                                            \
-          [](Array<BaseType> &x, BaseType y) {                                 \
+          [](Array<BaseType>& x, BaseType y) {                                 \
             x.emplace_back(std::move(y));                                      \
           },                                                                   \
-          py::doc("Appends a :class:`" #BaseType "` at the end of the Array")) \
+          py::doc("Appends a :class:`" #BaseType "` at the end of the array")) \
       .def(                                                                    \
           "pop",                                                               \
-          [](Array<BaseType> &x, Index i) -> BaseType {                        \
-            if (x.size() < 1)                                                  \
-              throw std::out_of_range("pop from empty list");                  \
+          [](Array<BaseType>& x, Index i) -> BaseType {                        \
+            if (x.size() < 1) throw std::out_of_range("pop from empty list");  \
             i = negative_clamp(i, x.nelem());                                  \
             if (x.nelem() <= i or i < 0)                                       \
               throw std::out_of_range(var_string("pop index out of range"));   \
@@ -187,30 +190,51 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             x.pop_back();                                                      \
             return copy;                                                       \
           },                                                                   \
-          py::doc("Pops a :class:`" #BaseType "` from the Array"),             \
+          py::doc("Pops a :class:`" #BaseType "` from the array"),             \
           py::arg("i") = -1)                                                   \
-      .def("reverse",                                                          \
-           [](Array<BaseType> &x) { std::reverse(x.begin(), x.end()); })       \
-      .def("clear", [](Array<BaseType> &x) { x.clear(); })                     \
-      .def("copy", [](Array<BaseType> &x) { return x; })                       \
-      .def("extend",                                                           \
-           [](Array<BaseType> &x, const Array<BaseType> &y) {                  \
-             for (auto &z : y)                                                 \
-               x.push_back(z);                                                 \
-           })                                                                  \
-      .def("insert",                                                           \
-           [](Array<BaseType> &x, Index i, BaseType y) {                       \
-             auto pos = (i < x.nelem() and i >= 0) ? x.begin() + i : x.end();  \
-             x.insert(pos, std::move(y));                                      \
-           })                                                                  \
+      .def(                                                                    \
+          "index",                                                             \
+          [](Array<BaseType>& a, BaseType& b) {                                \
+            auto ptr = std::find_if(                                           \
+                a.begin(), a.end(), [rhs = py::cast(b)](auto& lhs) {           \
+                  return rhs.equal(py::cast(lhs));                             \
+                });                                                            \
+            if (ptr == a.end())                                                \
+              throw std::invalid_argument(var_string(b, " not in list"));      \
+            return std::distance(a.begin(), ptr);                              \
+          },                                                                   \
+          py::doc("Returns the first index of a value"))                       \
+      .def(                                                                    \
+          "reverse",                                                           \
+          [](Array<BaseType>& x) { std::reverse(x.begin(), x.end()); },        \
+          "Reverse order of array")                                            \
+      .def(                                                                    \
+          "clear",                                                             \
+          [](Array<BaseType>& x) { x.clear(); },                               \
+          "Empty the array of all values")                                     \
+      .def(                                                                    \
+          "copy", [](Array<BaseType>& x) { return x; }, "Copy the array")      \
+      .def(                                                                    \
+          "extend",                                                            \
+          [](Array<BaseType>& x, const Array<BaseType>& y) {                   \
+            for (auto& z : y) x.push_back(z);                                  \
+          },                                                                   \
+          "Extend the array by another array")                                 \
+      .def(                                                                    \
+          "insert",                                                            \
+          [](Array<BaseType>& x, Index i, BaseType y) {                        \
+            auto pos = (i < x.nelem() and i >= 0) ? x.begin() + i : x.end();   \
+            x.insert(pos, std::move(y));                                       \
+          },                                                                   \
+          "Insert a value into the array")                                     \
       .def(py::pickle(                                                         \
-          [](const Array<BaseType> &v) {                                       \
+          [](const Array<BaseType>& v) {                                       \
             auto n = v.size();                                                 \
             std::vector<BaseType> out(n);                                      \
             std::copy(v.begin(), v.end(), out.begin());                        \
             return py::make_tuple(std::move(out));                             \
           },                                                                   \
-          [](const py::tuple &t) {                                             \
+          [](const py::tuple& t) {                                             \
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")                \
             return std::make_unique<Array<BaseType>>(                          \
                 t[0].cast<std::vector<BaseType>>());                           \
@@ -262,7 +286,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
 
 #define PythonInterfaceWorkspaceVariableConversion(Type)                       \
   def(py::init([](const Type &x) { return std::make_unique<Type>(x); }),       \
-      py::arg("val"))                                                          \
+      py::arg("val"), py::doc("Copy instance"))                                \
       .def(py::init([](const WorkspaceVariable *w) {                           \
              Type &v = *w;                                                     \
              return std::make_unique<Type>(v);                                 \
@@ -330,41 +354,44 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 
 #define PythonInterfaceGriddedField(Type)                                       \
   def_readwrite("data", &Type::data)                                            \
-      .def(py::pickle(                                                          \
-          [](const Type& self) {                                                \
-            Index n = self.get_dim();                                           \
-            std::vector<std::variant<Vector, ArrayOfString>> outgrid;           \
-            ArrayOfString outname;                                              \
+      .def(                                                                     \
+          py::pickle(                                                           \
+              [](const Type& self) {                                            \
+                Index n = self.get_dim();                                       \
+                std::vector<std::variant<Vector, ArrayOfString>> outgrid;       \
+                ArrayOfString outname;                                          \
                                                                                 \
-            for (Index i = 0; i < n; i++) {                                     \
-              outname.emplace_back(self.get_grid_name(i));                      \
-              if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)                   \
-                outgrid.emplace_back(self.get_numeric_grid(i));                 \
-              else                                                              \
-                outgrid.emplace_back(self.get_string_grid(i));                  \
-            }                                                                   \
+                for (Index i = 0; i < n; i++) {                                 \
+                  outname.emplace_back(self.get_grid_name(i));                  \
+                  if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)               \
+                    outgrid.emplace_back(self.get_numeric_grid(i));             \
+                  else                                                          \
+                    outgrid.emplace_back(self.get_string_grid(i));              \
+                }                                                               \
                                                                                 \
-            return py::make_tuple(                                              \
-                self.get_name(), self.data, outname, outgrid);                  \
-          },                                                                    \
-          [](const py::tuple& t) {                                              \
-            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")                 \
+                return py::make_tuple(                                          \
+                    self.get_name(), self.data, outname, outgrid);              \
+              },                                                                \
+              [](const py::tuple& t) {                                          \
+                ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")             \
                                                                                 \
-            auto name = t[0].cast<String>();                                    \
-            auto data = t[1].cast<decltype(Type::data)>();                      \
-            auto grid_names = t[2].cast<ArrayOfString>();                       \
-            auto grids =                                                        \
-                t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>();  \
+                auto name = t[0].cast<String>();                                \
+                auto data = t[1].cast<decltype(Type::data)>();                  \
+                auto grid_names = t[2].cast<ArrayOfString>();                   \
+                auto grids = t[3].cast<                                         \
+                    std::vector<std::variant<Vector, ArrayOfString>>>();        \
                                                                                 \
-            auto out = std::make_unique<Type>(name);                            \
-            out->data = data;                                                   \
-            for (Index i = 0; i < out->get_dim(); i++) {                        \
-              out->set_grid_name(i, grid_names[i]);                             \
-              std::visit([&](auto&& v) { out->set_grid(i, v); }, grids[i]);     \
-            }                                                                   \
+                auto out = std::make_unique<Type>(name);                        \
+                out->data = data;                                               \
+                for (Index i = 0; i < out->get_dim(); i++) {                    \
+                  out->set_grid_name(i, grid_names[i]);                         \
+                  std::visit([&](auto&& v) { out->set_grid(i, v); },            \
+                             grids[i]);                                         \
+                }                                                               \
                                                                                 \
-            return out;                                                         \
-          }))                                                                   \
+                return out;                                                     \
+              }),                                                               \
+          py::doc("Data of the gridded field (tensor of gridded field size)"))  \
       .def(                                                                     \
           "__eq__",                                                             \
           [](Type& g1, Type& g2) {                                              \
@@ -416,7 +443,8 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           "shape",                                                              \
           [](py::object& g) {                                                   \
             return g.attr("data").attr("value").attr("shape");                  \
-          })                                                                    \
+          },                                                                    \
+          "Shape of the gridded field")                                         \
       .def(                                                                     \
           "__getitem__",                                                        \
           [](py::object& g, py::object& i) {                                    \
@@ -451,7 +479,8 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           },                                                                    \
           py::arg("key"),                                                       \
           py::arg("default") = py::none(),                                      \
-          py::arg("keep_dims") = true)                                          \
+          py::arg("keep_dims") = true,                                          \
+          py::doc("Get a grid"))                                                \
       .def(                                                                     \
           "set",                                                                \
           [](Type& g, const String& key, const py::object& data) {              \
@@ -467,14 +496,16 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
                 std::array<Index, 1>{std::distance(grid.begin(), ptr)}, data);  \
           },                                                                    \
           py::arg("key"),                                                       \
-          py::arg("data"))                                                      \
+          py::arg("data"),                                                      \
+          py::doc("Set a grid"))                                                \
       .def(                                                                     \
           "scale",                                                              \
           [](py::object& g, const String& key, const py::object& fac) {         \
             g.attr("set")(key, (g.attr("get")(key)).attr("__mul__")(fac));      \
           },                                                                    \
           py::arg("key"),                                                       \
-          py::arg("factor"))                                                    \
+          py::arg("factor"),                                                    \
+          py::doc("Scale the data"))                                            \
       .def_static(                                                              \
           "from_xarray",                                                        \
           [](py::object& v) {                                                   \
@@ -515,13 +546,13 @@ Returns:\
 
 #define PythonInterfaceSelfAttribute(ATTR) \
   def_property_readonly(                   \
-      #ATTR, [](py::object& x) { return x.attr("value").attr(#ATTR); })
+      #ATTR, [](py::object& x) { return x.attr("value").attr(#ATTR); }, "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceSelfOperator(ATTR)                          \
   def(                                                             \
       #ATTR,                                                       \
       [](py::object& x) { return x.attr("value").attr(#ATTR)(); }, \
-      py::is_operator())
+      py::is_operator(), "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceValueOperator(ATTR)     \
   def(                                         \
@@ -529,7 +560,7 @@ Returns:\
       [](py::object& x, py::object& y) {       \
         return x.attr("value").attr(#ATTR)(y); \
       },                                       \
-      py::is_operator())
+      py::is_operator(), "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceTwoValueOperator(ATTR)           \
   def(                                                  \
@@ -537,7 +568,7 @@ Returns:\
       [](py::object& x, py::object& y, py::object& z) { \
         return x.attr("value").attr(#ATTR)(y, z);       \
       },                                                \
-      py::is_operator())
+      py::is_operator(), "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceInternalValueOperator(ATTR) \
   def(                                             \
@@ -546,7 +577,7 @@ Returns:\
         x.attr("value").attr(#ATTR)(y);            \
         return x;                                  \
       },                                           \
-      py::is_operator())
+      py::is_operator(), "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceInternalTwoValueOperator(ATTR)   \
   def(                                                  \
@@ -555,7 +586,7 @@ Returns:\
         x.attr("value").attr(#ATTR)(y, z);              \
         return x;                                       \
       },                                                \
-      py::is_operator())
+      py::is_operator(), "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceNumpyValueProperties \
   PythonInterfaceSelfAttribute(ndim)        \

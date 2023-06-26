@@ -17,7 +17,8 @@
           [](const opt_namespace::opt_localname& x) { return toString(x); }, \
           [](opt_namespace::opt_localname& x, const std::string& s) {        \
             x = opt_namespace::to##opt_localname##OrThrow(s);                \
-          })                                                                 \
+          },                                                                 \
+          py::doc("Value held by instance"))                                 \
       .PythonInterfaceCopyValue(opt_namespace::opt_localname)                \
       .PythonInterfaceBasicRepresentation(opt_namespace::opt_localname)      \
       .def(py::self == py::self)                                             \
@@ -33,10 +34,13 @@
           }))                                                                \
       .def_static(                                                           \
           "get_options",                                                     \
-          []() { return opt_namespace::enumtyps::opt_localname##Types; })    \
+          []() { return opt_namespace::enumtyps::opt_localname##Types; },    \
+          py::doc(":class:`list` of full set of options available"))         \
       .def_static(                                                           \
           "get_options_as_strings",                                          \
-          []() { return opt_namespace::enumstrs::opt_localname##Names; })    \
+          []() { return opt_namespace::enumstrs::opt_localname##Names; },    \
+          py::doc(                                                           \
+              ":class:`list` of full set of options available as strings"))  \
       .doc() = "Options for " #opt_rename;                                   \
   py::implicitly_convertible<std::string, opt_namespace::opt_localname>();
 
