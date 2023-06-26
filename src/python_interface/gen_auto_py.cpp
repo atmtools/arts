@@ -114,9 +114,10 @@ std::map<std::string, Group> groups() {
     
     //! FIXME: Better default, why can't it print???
     if (x.has_defaults())
-      val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().",
-                        x.Name(),
-                        ".value to see default");
+      val += var_string("\nDefault value\n"
+                        "-------------\n\n",
+                        TokValPrinter(x.default_value()),
+                        "\n\n");
 
     std::pair<std::vector<std::string>, std::vector<std::string>> usedocs;
     for (auto& method : global_data::md_data_raw) {
