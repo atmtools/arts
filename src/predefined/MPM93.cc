@@ -3,32 +3,20 @@
 #include "arts_constants.h"
 
 namespace Absorption::PredefinedModel::MPM93 {
-//! Ported from legacy continua.  Original documentation//!
+//! Ported from legacy continua. 
 /*!
   see publication side of National Telecommunications and Information Administration
   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
   and ftp side for downloading the MPM93 original source code:
   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 
-   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
-                            N2-continuum according to MPM93 [1/m]
-   \param    Cin            continuum strength [ppm/GHz]
-   \param    Gin            width parameter [Hz/Pa]
-   \param    xTin           continuum strength temperature exponent [1]
-   \param    xfin           continuum frequency exponent [1]
-   \param    model          allows user defined input parameter set
-                            (Cin, Gin, xTin, and xfin)<br> or choice of
-                            pre-defined parameters of specific models (see note below).
-   \param    f_grid         predefined frequency grid            [Hz]
-   \param    abs_p          predefined pressure grid             [Pa]
-   \param    abs_t          predefined temperature grid          [K]
-   \param    abs_h2o        H2O volume mixing ratio profile      [1]
-   \param    vmr            N2 volume mixing ratio profile       [1]
-
-   \note     Except for  model 'user' the input parameters Cin, Gin, xTin, and xfin
-             are neglected (model dominates over parameters).<br>
-             Allowed models: 'MPM93' and 'user'.
-             See the user guide for detailed explanations.
+   \param[out] propmat_clearksy absorption coefficient of
+                                N2-continuum according to MPM93 [1/m]
+   \param    f_grid             predefined frequency grid            [Hz]
+   \param    p_pa               pressure                             [Pa]
+   \param    t                  temperature                          [K]
+   \param    n2                 N2 volume mixing ratio               [1]
+   \param    h2o                H2O volume mixing ratio profile      [1]
 
    \remark   Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
              <i>Propagation modeling of moist air and suspended water/ice
@@ -36,7 +24,7 @@ namespace Absorption::PredefinedModel::MPM93 {
              AGARD 52nd Specialists Meeting of the Electromagnetic Wave
              Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
 
-   \author Thomas Kuhn
+   \author Original author Thomas Kuhn, new implementation by Stuart Fox
    \date 2001-11-05
  */
 //! New implementation
@@ -50,7 +38,7 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
   using Constant::pi, Constant::speed_of_light;
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
-  // standard values for the MPM93 H2O continuum model
+  // standard values for the MPM93 N2 continuum model
   // (AGARD 52nd Specialists Meeting of the Electromagnetic Wave
   // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21):
   constexpr Numeric xT = 3.500;  // temperature exponent [1]
@@ -72,9 +60,6 @@ void nitrogen(PropagationMatrix& propmat_clearsky,
 
     // Loop frequency:
     for (Index s = 0; s < f_grid.nelem(); ++s) {
-      // FIXME Numeric f = f_grid[s] * Hz_to_GHz; // frequency in GHz
-      // the vmr of N2 will be multiplied at the stage of absorption calculation:
-      // abs / vmr * pxsec.
       propmat_clearsky.Kjj()[s] += n2 * 
                      fac * 
                      strength *               // strength
