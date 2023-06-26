@@ -180,6 +180,35 @@ Parameters:
 )--"));
 }
 
+void internalMPM93(py::module_& m) {
+  m.def(
+      "get_n2_mpm93",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x, Numeric h2o) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::MPM93::nitrogen(pm, f, p, t, x, h2o);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_n2"),
+      py::arg("x_h2o")=0.0,
+      py::doc(R"--(Computes nitrogen absorption using MPM93
+
+Parameters:
+    f_grid : :class:`Vector`
+        Frequency grid [Hz]
+    rtp_pressure : Numeric
+        Pressure value [Pa]
+    rtp_temperature : Numeric
+        Temperature value [K]
+    x_n2 : Numeric
+        Ratio of nitrogen in the atmosphere in the range [0, 1]
+    x_h2o : Numeric
+        Ratio of water in the atmosphere in the range [0, 1]
+)--"));
+}
+
 void internalELL07(py::module_& m) {
   m.def(
       "get_water_droplet_ell07",
@@ -834,6 +863,7 @@ void py_predefined(py::module_& m) {
   internalCKDMT100(predef);
   internalCKDMT400(predef, mtckd400_water_data);
   internalMPM89(predef);
+  internalMPM93(predef);
   internalPWR98(predef);
   internalPWR20xx(predef);
   internalTRE05(predef);

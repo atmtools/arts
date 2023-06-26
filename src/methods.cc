@@ -3002,6 +3002,15 @@ Available models:
         <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
         John Wiley & Sons, Inc., 1993.
 
+    N2-SelfContMPM93:
+        Microwave nitrogen absorption continua from MPM93 model
+
+        Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+        <i>Propagation modeling of moist air and suspended water/ice
+        particles at frequencies below 1000 GHz</i>,<br>
+        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+
     N2-SelfContPWR2021:
         Microwave nitrogen absorption continua developed by P.W. Rosenkranz.
 

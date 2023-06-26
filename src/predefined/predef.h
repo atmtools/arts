@@ -26,6 +26,15 @@ void oxygen(PropagationMatrix& propmat_clearsky,
             const Numeric h2o);
 }  // namespace MPM89
 
+namespace MPM93 {
+    void nitrogen(PropagationMatrix &propmat_clearsky,
+                  const Vector &f_grid,
+                  const Numeric p_pa,
+                  const Numeric t,
+                  const Numeric n2,
+                  const Numeric h2o);
+}   // namespace MPM93
+
 namespace MPM2020 {
 void compute(PropagationMatrix& propmat_clearsky,
              const Vector& f_grid,

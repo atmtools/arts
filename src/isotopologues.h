@@ -261,6 +261,7 @@ inline constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("N2"), "45", 29.003182, 6),
   IsotopeRecord(fromShortName("N2"), "CIAfunCKDMT252"),
   IsotopeRecord(fromShortName("N2"), "CIArotCKDMT252"),
+  IsotopeRecord(fromShortName("N2"), "SelfContMPM93"),
   IsotopeRecord(fromShortName("N2"), "SelfContPWR2021"),
   IsotopeRecord(fromShortName("N2"), "SelfContStandardType"),
   /** N2 species **/
