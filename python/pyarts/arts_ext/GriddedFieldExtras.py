@@ -6,12 +6,12 @@ import numpy as np
 from scipy import interpolate
 
 def extract_slice(g, s=slice(None), axis=0):
-    """Return a new GriddedField containing a slice of the current one.
+    """Return a new gridded field containing a slice of the current one.
     Parameters:
         s (slice): Slice.
         axis (int): Axis to slice along.
     Returns:
-        GriddedField containing sliced grids and data.
+        gridded field containing sliced grids and data.
     """
     g.checksize_strict()
     
@@ -37,9 +37,9 @@ def refine_grid(gin, new_grid, axis=0, type="linear", hidden_kwargs={}):
     Parameters:
         new_grid (ndarray): The coordinates of the interpolated values.
         axis (int): Specifies the axis of data along which to interpolate.
-            Interpolation defaults to the first axis of the GriddedField.
+            Interpolation defaults to the first axis of the gridded field.
         type (str or function): Rescaling type for function if str or rescaling function
-    Returns: GriddedField
+    Returns: gridded field
     """
     if type == "linear":
         fun = np.array
@@ -94,7 +94,7 @@ def from_xarray(cls, da):
     Parameters:
         da (:class:`xarray.DataArray`): :class:`xarray.DataArray` containing the dimensions and data.
     Returns:
-        GriddedField object.
+        Gridded field object.
     """
     obj = cls()
     for i in range(obj.dim):

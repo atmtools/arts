@@ -533,14 +533,14 @@ void print_method_desc(std::ofstream& os,
 
   for (const auto& i : method.out.varname) {
     os << i << " : "
-       << "~pyarts.arts." << groups.at(i).varname_group << ", optional\n";
-    os << "    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (";
+       << ":class:`~pyarts.arts." << groups.at(i).varname_group << "`, optional\n";
+    os << "    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
                      [out = i](const auto& in) { return in == out; })) {
       os << "IN";
     }
-    os << "OUT)\n";
+    os << "OUT), defaults to ``self." << i << "``\n";
   }
   for (size_t i = 0; i < method.gout.name.size(); i++) {
     os << method.gout.name[i] << " : "
@@ -552,25 +552,24 @@ void print_method_desc(std::ofstream& os,
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
       os << i << " : "
-         << "~pyarts.arts." << groups.at(i).varname_group
-         << ", optional\n    Defaults to :attr:`~pyarts.workspace.Workspace." << i << "` (IN)\n";
+         << ":class:`~pyarts.arts." << groups.at(i).varname_group
+         << "`, optional\n    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (IN), defaults to ``self." << i << "``\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
     os << method.gin.name[i] << " : "
-       << "~pyarts.arts." << method.gin.group[i];
+       << ":class:`~pyarts.arts." << method.gin.group[i];
     if (method.gin.hasdefs[i]) {
-      os << ", optional";
-    }
-    os << "\n    " << unwrap_stars(method.gin.desc[i]) << " (IN";
+      os << "`, optional";
+    } else os << '`';
+    os << "\n    " << unwrap_stars(method.gin.desc[i]) << " (IN)";
     if (method.gin.hasdefs[i]) {
-      os << "; default: " << method.gin.defs[i];
-    }
-    os << ')' << '\n';
+      os << ", defaults to ``" << method.gin.defs[i] << "``\n";
+    } else os << '\n';
   }
 
   if (pass_verbosity)
-    os << "verbosity : ~pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` (IN)\n";
+    os << "verbosity : ~pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` for more details (IN), defaults to ``self.verbosity``\n";
 
   os << "\n)-METHODS_DESC-\")";
 } catch (std::invalid_argument& e) {
@@ -584,7 +583,7 @@ void print_method_args(std::ofstream& os,
                        bool pass_verbosity) {
   for (const auto& i : method.out.varname) {
     os << ',' << '\n'
-       << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i
+       << "py::arg_v(\"" << i << "\", std::nullopt, \"self." << i
        << "\").noconvert()";
   }
   for (const auto& i : method.gout.name) {
@@ -595,7 +594,7 @@ void print_method_args(std::ofstream& os,
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
       os << ',' << '\n'
-         << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i << "\")";
+         << "py::arg_v(\"" << i << "\", std::nullopt, \"self." << i << "\")";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
@@ -615,7 +614,7 @@ void print_method_args(std::ofstream& os,
   }
   if (pass_verbosity)
     os << ',' << '\n'
-       << R"--(py::arg_v("verbosity", std::nullopt, "ws.verbosity"))--";
+       << R"--(py::arg_v("verbosity", std::nullopt, "self.verbosity"))--";
 }
 
 void workspace_method_create(size_t n, const NameMaps& arts) {
