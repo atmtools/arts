@@ -235,7 +235,7 @@ class TestAgendas:
     
     def test_agenda_set(self):
         def get_agendas():
-            wsvdata = pyarts.arts.get_wsv_data()
+            wsvdata = pyarts.arts.globals.get_wsv_data()
             out = []
             for wsv in wsvdata:
                 if wsv.groupname == "Agenda":

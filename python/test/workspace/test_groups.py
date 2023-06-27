@@ -56,7 +56,7 @@ class test:
         return True
 
 
-list_of_groups = [x.name for x in cxx.get_wsv_groups()]
+list_of_groups = [x.name for x in cxx.globals.get_wsv_groups()]
 special_groups = ["CallbackFunction", "Any"]
 
 
@@ -997,7 +997,7 @@ class TestGroups:
 
     def test_pickle(self):
         ws = Workspace()
-        x = list(cxx.get_WsvGroupMap().keys())
+        x = list(cxx.globals.get_WsvGroupMap().keys())
 
         for i in range(len(x)):
             if x[i] == "CallbackFunction":

@@ -14,7 +14,7 @@ from pyarts.workspace.utility import unindent as unindent
 try:
     filename = sys.modules["__main__"].__file__
     basename, _ = os.path.splitext(os.path.basename(filename))
-    cxx.parameters.out_basename = basename
+    cxx.globals.parameters.out_basename = basename
 except:
     pass
 
@@ -240,7 +240,7 @@ every WSV you modify. That includes output variables from WSMs
 you might call. Everything else is undefined behaviour. ;-)
 """)
 
-    workspace_methods = [str(x.name) for x in cxx.get_md_data()]
+    workspace_methods = [str(x.name) for x in cxx.globals.get_md_data()]
     agenda = Agenda(arts)
     
     for e in func_ast.body:
@@ -338,7 +338,7 @@ you might call. Everything else is undefined behaviour. ;-)
     return agenda
 
 
-_group_types = [eval(f"cxx.{x.name}") for x in list(cxx.get_wsv_groups())]
+_group_types = [eval(f"cxx.{x.name}") for x in list(cxx.globals.get_wsv_groups())]
 
 
 class Workspace(InternalWorkspace):
