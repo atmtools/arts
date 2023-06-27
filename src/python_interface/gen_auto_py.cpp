@@ -532,9 +532,8 @@ void print_method_desc(std::ofstream& os,
   os << '\n' << '\n' << "Parameters\n----------\n";
 
   for (const auto& i : method.out.varname) {
-    os << i << " : "
-       << ":class:`~pyarts.arts." << groups.at(i).varname_group << "`, optional\n";
-    os << "    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (";
+    os << i << " : ~pyarts.arts." << groups.at(i).varname_group << ", optional\n";
+    os << "    See :attr:~pyarts.workspace.Workspace." << i << "` for more details (";
     if (std::none_of(method.in.varname.cbegin(),
                      method.in.varname.cend(),
                      [out = i](const auto& in) { return in == out; })) {
@@ -551,17 +550,16 @@ void print_method_desc(std::ofstream& os,
     if (std::none_of(method.out.varname.cbegin(),
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
-      os << i << " : "
-         << ":class:`~pyarts.arts." << groups.at(i).varname_group
-         << "`, optional\n    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (IN), defaults to ``self." << i << "``\n";
+      os << i << " : ~pyarts.arts." << groups.at(i).varname_group
+         << ", optional\n    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (IN), defaults to ``self." << i << "``\n";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
     os << method.gin.name[i] << " : "
-       << ":class:`~pyarts.arts." << method.gin.group[i];
+       << "~pyarts.arts." << method.gin.group[i];
     if (method.gin.hasdefs[i]) {
-      os << "`, optional";
-    } else os << '`';
+      os << ", optional";
+    }
     os << "\n    " << unwrap_stars(method.gin.desc[i]) << " (IN)";
     if (method.gin.hasdefs[i]) {
       os << ", defaults to ``" << method.gin.defs[i] << "``\n";
