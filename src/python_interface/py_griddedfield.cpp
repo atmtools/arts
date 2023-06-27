@@ -49,10 +49,15 @@ void py_griddedfield(py::module_& m) {
       .def_readwrite_static("to_dict", &details::GriddedField::to_dict)
       .def_readwrite_static("from_xarray", &details::GriddedField::from_xarray);
 
-  py::class_<GriddedField>(m, "GriddedField")
-      .def_property_readonly("dim",
-                             [](GriddedField& gf) { return gf.get_dim(); })
-      .def_property("name", &GriddedField::get_name, &GriddedField::set_name)
+  py::class_<GriddedField>(m, "_GriddedField")
+      .def_property_readonly(
+          "dim",
+          [](GriddedField& gf) { return gf.get_dim(); },
+          ":class:`~pyarts.arts.Index` Dimensionality of field")
+      .def_property("name",
+                    &GriddedField::get_name,
+                    &GriddedField::set_name,
+                    ":class:`~pyarts.arts.String` Name of field")
       .def("get_grid",
            [](GriddedField& g, Index i) -> VectorOrArrayOfString {
              if (i < 0 or i > g.get_dim()) throw std::out_of_range("Bad axis");
@@ -187,7 +192,8 @@ Parameters:
         Keyword arguments passed to :func:`scipy.interpolate.interp1d`.
 
 Returns: GriddedField
-)--"));
+)--"))
+      .doc() = "Base class for gridding fields of data";
 
   py::class_<GriddedField1, GriddedField>(m, "GriddedField1")
       .def(py::init([]() { return std::make_unique<GriddedField1>(); }))
