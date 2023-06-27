@@ -29,10 +29,10 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
       .PythonInterfaceWorkspaceVariableConversion(EnergyLevelMap)
       .PythonInterfaceBasicRepresentation(EnergyLevelMap)
       .PythonInterfaceFileIO(EnergyLevelMap)
-      .PythonInterfaceReadWriteData(EnergyLevelMap, type)
-      .PythonInterfaceReadWriteData(EnergyLevelMap, levels)
-      .PythonInterfaceReadWriteData(EnergyLevelMap, vib_energy)
-      .PythonInterfaceReadWriteData(EnergyLevelMap, value)
+      .PythonInterfaceReadWriteData(EnergyLevelMap, type, ":class:`~pyarts.arts.EnergyLevelMapType` Type")
+      .PythonInterfaceReadWriteData(EnergyLevelMap, levels, ":class:`~pyarts.arts.ArrayOfQuantumIdentifier` List of levels")
+      .PythonInterfaceReadWriteData(EnergyLevelMap, vib_energy, ":class:`~pyarts.arts.Vector` Vibrational energies")
+      .PythonInterfaceReadWriteData(EnergyLevelMap, value, ":class:`~pyarts.arts.Tensor4` Data")
       .def(py::pickle(
           [](const EnergyLevelMap& t) {
             return py::make_tuple(t.type, t.levels, t.vib_energy, t.value);

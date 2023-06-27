@@ -95,5 +95,12 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(AbsorptionNormalizationType, Absorption, NormalizationType)
   DeclareOptionRenamed(LineShapeType, LineShape, Type)
   DeclareOptionRenamed(LineShapeVariable, LineShape, Variable)
+
+  // Jacobian enums
+  DeclareOptionRenamed(JacobianType, Jacobian, Type)
+  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm)
+  DeclareOptionRenamed(JacobianLine, Jacobian, Line)
+  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor)
+  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special)
 }
 }  // namespace Python

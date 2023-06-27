@@ -524,8 +524,11 @@ Returns:\
     gridded field object.\
 )--"))
 
-#define PythonInterfaceReadWriteData(Type, data) \
-  def_readwrite(#data, &Type::data, py::return_value_policy::reference_internal)
+#define PythonInterfaceReadWriteData(Type, data, docstr)     \
+  def_readwrite(#data,                                       \
+                &Type::data,                                 \
+                py::return_value_policy::reference_internal, \
+                py::doc(docstr))
 
 #define PythonInterfaceBasicReferenceProperty(                               \
     Type, PropertyName, ReadFunction, WriteFunction)                         \
