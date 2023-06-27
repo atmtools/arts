@@ -50,7 +50,7 @@ endwhile()
 
 ########################################################################################
 # Build the generator
-add_executable(gen_auto_py gen_auto_py.cpp)
+add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
 target_link_libraries(gen_auto_py PUBLIC methods artscore)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 

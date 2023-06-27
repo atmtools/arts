@@ -240,7 +240,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("AbsInputFromAtmFields"),
       DESCRIPTION("Initialises the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
-                  "*p_grid, *t_field* and *vmr_field*.\n"
+                  "*p_grid*, *t_field* and *vmr_field*.\n"
                   "\n"
                   "This only works for a 1D atmosphere!\n"),
       AUTHORS("Stefan Buehler"),
@@ -435,7 +435,7 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBand"),
-      DESCRIPTION("Keep only *qid*-match band lines in *abs_lines*\n"
+      DESCRIPTION("Keep only ``qid``-match band lines in *abs_lines*\n"
       "\n"
       "Note that other bands are technically kept but have zero lines\n"),
       AUTHORS("Richard Larsson"),
@@ -451,7 +451,7 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveBand"),
-      DESCRIPTION("Removes *qid* band from *abs_lines*\n"),
+      DESCRIPTION("Removes ``qid`` band from *abs_lines*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -477,7 +477,7 @@ void define_md_data_raw() {
         "\n"
         "The frequency filtering can be reversed, from keeping upper_frequency to\n"
         "lower_frequency, to instead remove lines inside the range by setting\n"
-        "*flip_flims* to 1.\n"
+        "``flip_flims`` to 1.\n"
         "\n"
         "The method *abs_linesRemoveEmptyBands* is internally applied after the\n"
         "filtering.\n"
@@ -662,9 +662,9 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReplaceBands"),
       DESCRIPTION(
-          "Replace all bands in *abs_lines* that match with bands in *replacing_bands*.\n"
+          "Replace all bands in *abs_lines* that match with bands in ``replacing_bands``.\n"
           "\n"
-          "Each *replacing_bands* must match excatly a single band in *abs_lines*.\n"
+          "Each ``replacing_bands`` must match excatly a single band in *abs_lines*.\n"
           "\n"
           "The matching requires identical quantum number signatures to work.\n"),
       AUTHORS("Richard Larsson"),
@@ -2344,7 +2344,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "\n"
           "The method checks each given field using *atmfields_checkedCalc*.\n"
           "If a field does not pass the check, a run-time error is thrown.\n"
-          "To prevent this, the parameter *robust* can be set to one: Invalid \n"
+          "To prevent this, the parameter ``robust`` can be set to one: Invalid \n"
           "atmospheres are skipped, but the run continues. This matches the \n"
           "robust behaviour of *ybatchCalc*.\n"
           "\n"
@@ -3285,8 +3285,8 @@ Available models:
           "is specified at a set of frequencies. These frequencies will also be\n"
           "the frequency grid of *antenna_response*.\n"
           "\n"
-          "If *grid_width* is set to <=0, the grid width will be twice the max\n"
-          "value in *fwhm*.\n"),
+          "If ``grid_width`` is set to <=0, the grid width will be twice the max\n"
+          "value in ``fwhm``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
@@ -3312,17 +3312,17 @@ Available models:
           "as Gaussian. The width of the Gaussian is specified by its\n"
           "full width at half maximum (FWHM).\n"
           "\n"
-          "The grid generated has *grid_npoints* equidistant values, with\n"
+          "The grid generated has ``grid_npoints`` equidistant values, with\n"
           "the first one at -grid_width/2 and the last one at grid_width/2.\n"
           "\n"
-          "If *grid_width* is set to <= 0, a default of twice the FWMH is\n"
+          "If ``grid_width`` is set to <= 0, a default of twice the FWMH is\n"
           "applied. This gives a coverage of about 98\% of the response.\n"
           "\n"
-          "The default for *grid_npoints* is 21. When the grid width is 2*FWHM,\n"
+          "The default for ``grid_npoints`` is 21. When the grid width is 2*FWHM,\n"
           "that default value gives an error < 0.001 of the integrated response\n"
-          "using trapezoidal integration. *grid_npoints* must be > 1.\n"
+          "using trapezoidal integration. ``grid_npoints`` must be > 1.\n"
           "\n"
-          "If the 2D option is selected (*do_2d*), a circular antenna is\n"
+          "If the 2D option is selected (``do_2d``), a circular antenna is\n"
           "assumed. The same grid and FWHM is applied in both dimensions.\n"
           "\n"
           "If the grid has a sufficiently high width the integral of the\n"
@@ -3354,17 +3354,17 @@ Available models:
           "\n"
           "The full width at half maximum (FWHM in radians) is calculated as:\n"
           "    fwhm = lambda / leff\n"
-          "where lambda is the wavelength and *leff* is the effective size of\n"
-          "the antenna. Normally, *leff* is smaller than the physical antenna\n"
+          "where lambda is the wavelength and ``leff`` is the effective size of\n"
+          "the antenna. Normally, ``leff`` is smaller than the physical antenna\n"
           "size.\n"
           "\n"
-          "Antenna responses are created for *nf* frequencies spanning the\n"
-          "range [*fstart*,*fstop*], with a logarithmic spacing. That is, the\n"
+          "Antenna responses are created for ``nf`` frequencies spanning the\n"
+          "range [``fstart``,``fstop``], with a logarithmic spacing. That is, the\n"
           "frequency grid of the responses is taken from *VectorNLogSpace*.\n"
           "\n"
           "The responses have a common angular grid. The parameters to define\n"
           "the grid are the same as for *antenna_responseGaussianConstant*. If\n" 
-          "*grid_width* is <= 0, it is set to twice the FWHM at the lowest\n"
+          "``grid_width`` is <= 0, it is set to twice the FWHM at the lowest\n"
           "frequency.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
@@ -3403,7 +3403,7 @@ Available models:
           "\n"
           "Both another matrix or a vector can be appended to a matrix. In\n"
           "addition, for matrices, the 'append dimension' can be selected.\n"
-          "The third argument, *dimension*, indicates how to append, where\n"
+          "The third argument, ``dimension``, indicates how to append, where\n"
           "\"leading\" means to append row-wise, and \"trailing\" means\n"
           "column-wise.\n"
           "\n"
@@ -3469,7 +3469,7 @@ Available models:
           "\n"
           "The first element equals always the start value, and the spacing\n"
           "equals always the step value, but the last value can deviate from\n"
-          "the stop value. *step* can be both positive and negative.\n"
+          "the stop value. ``step`` can be both positive and negative.\n"
           "\n"
           "The created array is [start, start+step, start+2*step, ...]\n "),
       AUTHORS("Oliver Lemke"),
@@ -3631,12 +3631,12 @@ Available models:
           "The method effectively performs this\n"
           "  perturbed_field = original_field\n"
           "  perturbed_field(p_index,lat_index,lon_index) += pert_size\n"
-          "if not *pert_mode* is set to "
+          "if not ``pert_mode`` is set to "
           "relative"
           " when this is done\n"
           "  perturbed_field = original_field\n"
           "  perturbed_field(p_index,lat_index,lon_index) *= 1*pert_size\n"
-          "where p_index etc. are derived from *pert_index*.\n"),
+          "where p_index etc. are derived from ``pert_index``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("perturbed_field"),
@@ -3659,7 +3659,7 @@ Available models:
       NAME("AtmFieldPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the pressure dimension from\n"
-          "*p_grid_old* to to *p_grid_new*.\n"
+          "``p_grid_old`` to to ``p_grid_new``.\n"
           "\n"
           "Extrapolation is allowed within the common 0.5grid-step margin.\n"
           "in and out fields can be the same variable.\n"),
@@ -3696,14 +3696,14 @@ Available models:
           "\n"
           "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
           "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
+          "is allowed and applied. However, if ``vmr_zeropadding=1`` then VMRs at\n"
           "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
-          "(applying the *vmr_zeropadding* option of *GriddedFieldPRegrid*).\n"
+          "(applying the ``vmr_zeropadding`` option of *GriddedFieldPRegrid*).\n"
           "\n"
           "Default is to just accept obtained VMRs. If you want to enforce\n"
-          "that all VMR created are >= 0, set *vmr_nonegative* to 1. Negative\n"
+          "that all VMR created are >= 0, set ``vmr_nonegative`` to 1. Negative\n"
           "values are then set 0. Beside being present in input data, negative\n"
-          "VMR can be generated from the interpolation if *interp_order* is\n"
+          "VMR can be generated from the interpolation if ``interp_order`` is\n"
           "above 1.\n"),
       AUTHORS("Claudia Emde", "Stefan Buehler"),
       OUT("t_field", "z_field", "vmr_field", "nlte_field"),
@@ -3907,7 +3907,7 @@ Available models:
           "\n"
           "Compact states are characterized by having all atmospheric fields\n"
           "already given on identical grids. That is, no interpolation needs\n"
-          "to be and is performed. Keyword *p_min* allows to remove atmospheric\n"
+          "to be and is performed. Keyword ``p_min`` allows to remove atmospheric\n"
           "levels with pressures lower than the given value (default: no\n"
           "removal). This reduces computational burden and is useful when\n"
           "upper atmospheric contributions are negligible.\n"
@@ -3960,7 +3960,7 @@ Available models:
           "\n"
           "Default is that values in *vmr_field* are demanded to be >= 0\n"
           "(ie. zero allowed, in contrast to *t_field*), but this\n"
-          "requirement can be removed by the *negative_vmr_ok* argument.\n"
+          "requirement can be removed by the ``negative_vmr_ok`` argument.\n"
           "\n"
           "If any test fails, there is an error. Otherwise,\n"
           "*atmfields_checked* is set to 1.\n"
@@ -4010,7 +4010,7 @@ Available models:
           " 3. There is no gap between *z_surface* and *z_field*.\n"
           " 4. A rough search of maximum gradient of the altitude of the pressure\n"
           "    level closest to 500 hPa is made. If this value exceeds the GIN\n"
-          "    *max500hpa_gradient* an error is issued. Please note that the unit\n"
+          "    ``max500hpa_gradient`` an error is issued. Please note that the unit\n"
           "    of this GIN is m per 100km. For normal conditions on Earth, large\n"
           "    scale gradients of the 500 hPa level is in the order of 20m/100km.\n"
           "\n"
@@ -4191,7 +4191,7 @@ Available models:
           "longitude) are filled up, so this works for 1D, 2D, or 3D\n"
           "atmospheres.\n"
           "\n"
-          "The passed *name* of the field has to be in accordance with the\n"
+          "The passed ``name`` of the field has to be in accordance with the\n"
           "tagging structure described for *atm_fields_compact*.\n"
           "\n"
           "A list of condensibles can be optionally specified if the VMR of\n"
@@ -4231,7 +4231,7 @@ Available models:
           "the *GriddedField3* to be added, for interpolation to succeed. If\n"
           "this is not the case, a RuntimeError is thrown.\n"
           "\n"
-          "The passed *name* of the field has to be in accordance with the\n"
+          "The passed ``name`` of the field has to be in accordance with the\n"
           "tagging structure described for *atm_fields_compact*.\n"),
       AUTHORS("Gerrit Holl"),
       OUT("atm_fields_compact"),
@@ -4253,7 +4253,7 @@ Available models:
           "*atm_fields_compact* (or other GriddedField4 data)\n"
           "\n"
           "This WSM checks if the data in *atm_fields_compact* contains\n"
-          "values smaller than the given *threshold*. In this case, these\n"
+          "values smaller than the given ``threshold``. In this case, these\n"
           "values will be set to zero.\n"
           "\n"
           "The method should be applied if *atm_fields_compact* contains\n"
@@ -4311,9 +4311,9 @@ Available models:
           "not need to be transfered into the *atm_fields_compact* variable.\n"
           "\n"
           "Selection of fields into *atm_fields_compact* works by providing a\n"
-          "field name tag in *field_names* for the selected fields, while\n"
+          "field name tag in ``field_names`` for the selected fields, while\n"
           "unselected fields are tagged by 'ignore'. Order of tags in\n"
-          "*field_names* is strictly taken as corresponding to column order in\n"
+          "``field_names`` is strictly taken as corresponding to column order in\n"
           "the matrix.\n"
           "The pressure fields are by convention the first column of the\n"
           "matrix, hence must not be tagged. That is, there must be given one\n"
@@ -4321,7 +4321,7 @@ Available models:
           "\n"
           "For detailed tagging conventions see *atm_fields_compact*.\n"
           "\n"
-          "Works only for *atmosphere_dim==1.*\n"),
+          "Works only for *atmosphere_dim*==1.\n"),
       AUTHORS("Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -4365,8 +4365,8 @@ Available models:
           "but handles the case where the response of each channel must be\n"
           "described. Here the FWHM is specified for each *f_backend*.\n" 
           "\n"
-          "The GINs *fwhm* and *grid_npoints* work in the same way as for\n"
-          "*antenna_responseGaussianConstant*. A negative *grid_width*\n"
+          "The GINs ``fwhm`` and ``grid_npoints`` work in the same way as for\n"
+          "*antenna_responseGaussianConstant*. A negative ``grid_width``\n"
           "gives a grid that is twice the FWHM of each channel.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
@@ -4388,8 +4388,8 @@ Available models:
           "\n"
           "The method assumes that all channels have the same response.\n"
           "\n"
-          "The GINs *fwhm* and *grid_npoints* work in the same way as for\n"
-          "*antenna_responseGaussianConstant*. A negative *grid_width*\n"
+          "The GINs ``fwhm`` and ``grid_npoints`` work in the same way as for\n"
+          "*antenna_responseGaussianConstant*. A negative ``grid_width``\n"
           "gives a grid that is twice the FWHM.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
@@ -4453,7 +4453,7 @@ Available models:
           "of *batch_atm_fields_compact* (or other AerrayOfGriddedField4 data)\n"
           "\n"
           "This WSM checks if the data in *batch_atm_fields_compact* contains\n"
-          "values smaller than the given *threshold*. In this case, these\n"
+          "values smaller than the given ``threshold``. In this case, these\n"
           "values will be set to zero.\n"
           "\n"
           "The method should be applied if *batch_atm_fields_compact* contains\n"
@@ -4483,7 +4483,7 @@ Available models:
           "*ArrayOfGriddedField4* and use *ReadXML* to load them directly into\n"
           "*batch_atm_fields_compact*).\n"
           "\n"
-          "Works only for *atmosphere_dim==1.*\n"
+          "Works only for *atmosphere_dim*==1.\n"
           "\n"
           "See *atm_fields_compactFromMatrix* for basic documentation.\n"
           "\n"
@@ -4575,33 +4575,33 @@ Available models:
       NAME("cloudboxSetAutomatically"),
       DESCRIPTION(
           "Sets the cloud box to encompass the cloud given by the entries\n"
-          "in *particle_field*.\n"
+          "in ``particle_field``.\n"
           "\n"
-          "This WSM handles one *Tensor4* type *particle_field* at a time. It can\n"
+          "This WSM handles one *Tensor4* type ``particle_field`` at a time. It can\n"
           "be used to determine the cloudbox from *particle_bulkprop_field*\n"
           "\n"
           "The function must be called before executing any WSM that applies\n"
           "*cloudbox_limits*.\n"
           "\n"
-          "The function iterates over all 3D fields in *particle_field* (which\n"
+          "The function iterates over all 3D fields in ``particle_field`` (which\n"
           "might correspond to different particle bulk properties as in\n"
           "*particle_bulkprop_field*). Each field is searched for the first\n"
           "and last pressure index, where the value is unequal to zero. This\n"
           "index is then copied to *cloudbox_limits*.\n"
-          "If *particle_field* is empty, the cloudbox is switched off\n"
+          "If ``particle_field`` is empty, the cloudbox is switched off\n"
           "(*cloudbox_on*=0).\n"
           "\n"
-          "Additionaly the lower cloudbox_limit is altered by *cloudbox_margin*.\n"
+          "Additionaly the lower cloudbox_limit is altered by ``cloudbox_margin``.\n"
           "The margin is given as a height difference in meters and transformed\n"
           "into a pressure (via isothermal barometric height formula). This\n"
           "alteration is to ensure covering photons that leave the cloud, but\n"
           "reenter through a limb path.\n"
-          "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend\n"
+          "If ``cloudbox_margin`` is set to -1 (default), the cloudbox will extend\n"
           "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
           "of first pressure level).\n"
-          "*cloudbox_margin* will be applied on each call of the WSM.\n"
+          "``cloudbox_margin`` will be applied on each call of the WSM.\n"
           "\n"
-          "Works only for *atmosphere_dim==1.*\n"),
+          "Works only for *atmosphere_dim*==1.\n"),
       AUTHORS("Jana Mendrok, Daniel Kreyling"),
       OUT("cloudbox_on", "cloudbox_limits"),
       GOUT(),
@@ -4614,7 +4614,7 @@ Available models:
       GIN_DESC("A collection of particle property fields (e.g."
                " *particle_bulkprop_field*).",
                "Minimum distance [m] between lowest 'cloudy' level and"
-               " cloudbox lower limit. If set to *-1* (default), the"
+               " cloudbox lower limit. If set to ``-1`` (default), the"
                " cloudbox lower limit is fixed to 0, i.e., corresponds to"
                " the lowest atmospheric level (or the surface).")));
 
@@ -4805,7 +4805,7 @@ Available models:
           "Extracts a part of an existing *cloudbox_field*.\n"
           "\n"
           "The cropping is defined by defining new cloudbox limits. Note that\n"
-          "*new_limit0* is an index with respect to *p_grid*, etc.\n"
+          "``new_limit0`` is an index with respect to *p_grid*, etc.\n"
           "\n"
           "The following must be valid:\n"
           "  new_limit0 >= cloudbox_limits[0]\n"
@@ -4872,9 +4872,9 @@ Available models:
           "precalculated field.\n"
           "\n"
           "This method sets the (monochromatic) first guess radiation field\n"
-          "inside the cloudbox from a precalculated *cloudbox_field_precalc*,\n"
+          "inside the cloudbox from a precalculated ``cloudbox_field_precalc``,\n"
           "e.g., from the solution of a similar atmospheric scenario. The\n"
-          "dimensions of *cloudbox_field_precalc* have to be consistent with\n"
+          "dimensions of ``cloudbox_field_precalc`` have to be consistent with\n"
           "the DOIT setup in terms of frequencies, pressure levels inside the\n"
           "cloudbox, polar angles used as well as the stokes dimension.\n"
           "Incoming field on the cloudbox boundaries is adapted to the actual\n"
@@ -4906,7 +4906,7 @@ Available models:
           "clear sky field on the cloudbox boundary. This radiation field\n"
           "is taken as the first guess radiation field in the DOIT module.\n"
           "\n"
-          "Set the *all_frequencies* to 1 if the clearsky field shall be used\n"
+          "Set the ``all_frequencies`` to 1 if the clearsky field shall be used\n"
           "as initial field for all frequencies. Set it to 0 if the clear sky\n"
           "field shall be used only for the first frequency in *f_grid*. For\n"
           "later frequencies, *cloudbox_field* of the previous frequency is then\n"
@@ -4937,7 +4937,7 @@ Available models:
           "calculations (number of elements in f_grid=1).\n"
           "\n"
           "The user can specify a value for each Stokes dimension in the\n"
-          "control file by *value*.\n"),
+          "control file by ``value``.\n"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field_mono"),
       GOUT(),
@@ -4963,7 +4963,7 @@ Available models:
           "constant value.\n"
           "\n"
           "The user has to specify a value for each Stokes dimension in the\n"
-          "control file by *value*.\n"),
+          "control file by ``value``.\n"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -4989,7 +4989,7 @@ Available models:
           "constant value per frequency slice.\n"
           "\n"
           "The user has specify a value for each frequency and Stokes\n"
-          "dimension in the control file by *value*.\n"),
+          "dimension in the control file by ``value``.\n"),
       AUTHORS("Jana Mendrok"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -5194,7 +5194,7 @@ Available models:
           "Checks the consistency between two variables.\n"
           "\n"
           "The two variables are checked to not deviate outside the specified\n"
-          "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
+          "value (``maxabsdiff``). An error is issued if this is not fulfilled.\n"
           "\n"
           "The main application of this method is to be part of the test\n"
           "control files, and then used to check that a calculated value\n"
@@ -5234,7 +5234,7 @@ Available models:
           "Checks the consistency between two variables by their relative values.\n"
           "\n"
           "The two variables are checked to not deviate outside the specified\n"
-          "relative value (*maxabsreldiff*). An error is issued if this is not\n"
+          "relative value (``maxabsreldiff``). An error is issued if this is not\n"
           "fulfilled.\n"
           "\n"
           "The main application of this method is to be part of the test\n"
@@ -5245,9 +5245,9 @@ Available models:
           "for easier use.  This really means infinite differences, though\n"
           "allowing zero-crossings is useful for plenty of tests. So Be Aware!\n"
           "\n"
-          "If both *var1* and *var2* are non-zero, the difference is evaluated\n"
+          "If both ``var1`` and ``var2`` are non-zero, the difference is evaluated\n"
           "as: abs(var1/var2-1)\n"
-          "That is, *var2* is taken as the reference value.\n"),
+          "That is, ``var2`` is taken as the reference value.\n"),
       AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT(),
       GOUT(),
@@ -5548,7 +5548,7 @@ Available models:
       NAME("covmatDiagonal"),
       DESCRIPTION(
           "Sets the matrix in covmat_block to a diagonal matrix with the variances\n"
-          "provided in *vars* as diagonal elements."
+          "provided in ``vars`` as diagonal elements."
           "\n"
           "Also sets covmat_block_inv to the inverse of the block so that the\n"
           "computation of the inverse is avoided.\n"),
@@ -5575,10 +5575,10 @@ Available models:
           "\n"
           "This functions adds a given dense or sparse matrix as block to the covariance\n"
           "matrix *covmat_sx*. The position of the block can be given by the generic\n"
-          "arguments *i* and *j*. Note that diagonal blocks must be added in order starting from\n"
+          "arguments ``i`` and ``j``. Note that diagonal blocks must be added in order starting from\n"
           " in  the top left corner. If an off-diagonal block is added it must have corresponding\n"
           " existing blocks on the diagonal and these must be consistent with the dimensions\n"
-          " of the block.  If *i* and *j*  are not provided, the blok will be added\n"
+          " of the block.  If ``i`` and ``j``  are not provided, the blok will be added\n"
           "at the first free spot on the diagonal.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se"),
@@ -5590,8 +5590,8 @@ Available models:
       GIN_TYPE("Matrix, Sparse", "Index", "Index"),
       GIN_DEFAULT(NODEF, "-1", "-1"),
       GIN_DESC("The block to add to the covariance matrix",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.",
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``."),
       PASSWORKSPACE(false),
       SETMETHOD(false),
       USES_TEMPLATES(true)));
@@ -5628,8 +5628,8 @@ Available models:
       GIN_TYPE("Matrix, Sparse", "Index", "Index"),
       GIN_DEFAULT(NODEF, "-1", "-1"),
       GIN_DESC("The inverse block to add to the covariance matrix",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.",
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``."),
       PASSWORKSPACE(false),
       SETMETHOD(false),
       USES_TEMPLATES(true)));
@@ -5640,7 +5640,7 @@ Available models:
           "Set covmat_se to a given matrix.\n"
           "\n"
           "This sets the measurement covariance matrix *covmat_se* to\n"
-          "the matrix given by the generic input *covmat*. The covariance\n"
+          "the matrix given by the generic input ``covmat``. The covariance\n"
           "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se"),
@@ -5662,7 +5662,7 @@ Available models:
           "Set covmat_sx to a given matrix.\n"
           "\n"
           "This sets the measurement covariance matrix *covmat_sx* to\n"
-          "the matrix given by the generic input *covmat*. The covariance\n"
+          "the matrix given by the generic input ``covmat``. The covariance\n"
           "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx"),
@@ -5685,14 +5685,14 @@ Available models:
           "\n"
           "This functions adds a given matrix as a block in the covariance\n"
           "matrix *covmat_sx*. The position of the block can be given by the generic\n"
-          "arguments *i* and *j*, which should give the index of the retrieval quantity in\n"
+          "arguments ``i`` and ``j``, which should give the index of the retrieval quantity in\n"
           "*jacobian_quantities*, which is given just by the order the quantities have been\n"
           "added to the retrieval.\n"
           "\n"
-          "If arguments *i* and *j* are omitted, the block will be added as diagonal block\n"
+          "If arguments ``i`` and ``j`` are omitted, the block will be added as diagonal block\n"
           "for the last added retrieval quantity.\n"
           "\n"
-          "If provided, the index *i* must be less than or equal to *j*. Also the provided\n"
+          "If provided, the index ``i`` must be less than or equal to ``j``. Also the provided\n"
           "block must be consistent with the corresponding retrieval quantities.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx"),
@@ -5704,8 +5704,8 @@ Available models:
       GIN_TYPE("Matrix, Sparse", "Index", "Index"),
       GIN_DEFAULT(NODEF, "-1", "-1"),
       GIN_DESC("The block to add to the covariance matrix",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.",
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``."),
       PASSWORKSPACE(false),
       SETMETHOD(false),
       USES_TEMPLATES(true)));
@@ -5741,8 +5741,8 @@ Available models:
       GIN_TYPE("Matrix, Sparse", "Index", "Index"),
       GIN_DEFAULT(NODEF, "-1", "-1"),
       GIN_DESC("The inverse block to add to the covariance matrix",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*.",
-               "Index of a retrieval quantity. Must satisfy *i* <= *j*."),
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.",
+               "Index of a retrieval quantity. Must satisfy ``i`` <= ``j``."),
       PASSWORKSPACE(false),
       SETMETHOD(false),
       USES_TEMPLATES(true)));
@@ -5754,7 +5754,7 @@ Available models:
           "\n"
           "This function extracts the diagonal of the state space covariance matrix\n"
           "*covmat_sx* and computes its square root. The resulting vector can then\n"
-          "be used as *x_norm* argument for the OEM method to avoid scaling problems.\n"),
+          "be used as ``x_norm`` argument for the OEM method to avoid scaling problems.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("x_norm"),
@@ -5875,8 +5875,8 @@ Available models:
       DESCRIPTION(
           "Derives the difference betwenn zenith and azimuth angles.\n"
           "\n"
-          "Determines the difference between a set of angles (*other_los*)\n"
-          "and a reference direction (*ref_los*). This method reverses the\n"
+          "Determines the difference between a set of angles (``other_los``)\n"
+          "and a reference direction (``ref_los``). This method reverses the\n"
           "addition made by *losAddLosAndDlos*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -5907,12 +5907,12 @@ Available models:
           "no theoretical basis for this step in angle, just found to result in a\n"
           "relatively uniform distribution over the circle.\n"
           "\n"
-          "The method should mainly be used for *npoints* above 10-20. For lower\n"
-          "*npoints*, a rectangular pattern should give a more robust sampling\n"
+          "The method should mainly be used for ``npoints`` above 10-20. For lower\n"
+          "``npoints``, a rectangular pattern should give a more robust sampling\n"
           "spatially.\n"
           "\n"
           "Default is to let *dlos_weight_vector* represent the solid angle of\n"
-          "each dlos direction. With *include_response_in_weight* set to 1, all\n"
+          "each dlos direction. With ``include_response_in_weight`` set to 1, all\n"
           "elements of *dlos_weight_vector* are equal and their sum is 1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("dlos", "dlos_weight_vector"),
@@ -5944,10 +5944,10 @@ Available models:
           "For default settings, the resulting number of dlos-directions\n"
           "is npoints * npoints.\n"
           "\n"
-          "If GIN *crop_circular* is true, dlos-es at a radius outside of\n"
+          "If GIN ``crop_circular`` is true, dlos-es at a radius outside of\n"
           "width/2 are removed. The resulting number of directions then\n"
-          "approaches pi*npoints*npoints/4, for high values of *npoints*.\n"
-          "There is no effect of *crop_circular* for npoints=2, while for\n"
+          "approaches pi``npoints``npoints/4, for high values of ``npoints``.\n"
+          "There is no effect of ``crop_circular`` for npoints=2, while for\n"
           "npoints=3 the corner points are removed (despite being inside\n"
           "the radius limit) and the number of directions becomes five.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -5979,13 +5979,13 @@ Available models:
           "Refraction is not taken into account. Only Lambertian surface\n"
           "reflection is handled.\n"
           "\n"
-          "*nstreams* is the number of polar angles taken into account\n"
+          "``nstreams`` is the number of polar angles taken into account\n"
           "internally in the scattering solution, *za_grid* is the\n"
           "polar angle grid on which *cloudbox_field* is provided.\n"
-          "*nstreams* determines the angular resolution, hence the accuracy,\n"
+          "``nstreams`` determines the angular resolution, hence the accuracy,\n"
           "of the scattering solution. The more anisotropic the bulk scattering\n"
           "matrix, the more streams are required. The computational burden\n"
-          "increases approximately linearly with *nstreams*. The default value\n"
+          "increases approximately linearly with ``nstreams``. The default value\n"
           "(8) is sufficient for most microwave scattering calculations. It is\n"
           "likely insufficient for IR calculations involving ice clouds,\n"
           "though.\n"
@@ -6219,12 +6219,12 @@ Available models:
           "Refraction is not taken into account. Only Lambertian surface\n"
           "reflection is handled.\n"
           "\n"
-          "*nstreams* is the number of polar angles taken into account\n"
+          "``nstreams`` is the number of polar angles taken into account\n"
           "internally in the scattering solution and for the angular integration.\n"
-          "*nstreams* determines the angular resolution, hence the accuracy,\n"
+          "``nstreams`` determines the angular resolution, hence the accuracy,\n"
           "of the scattering solution. The more anisotropic the bulk scattering\n"
           "matrix, the more streams are required. The computational burden\n"
-          "increases approximately linearly with *nstreams*. The default value\n"
+          "increases approximately linearly with ``nstreams``. The default value\n"
           "(6) is sufficient for most flux calculations.\n"
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
@@ -6345,15 +6345,15 @@ Available models:
           "\n"
           "This method sets the angular grids for the Discrete Ordinate type\n"
           "scattering calculations (DOIT, DISORT). For down- und up-looking\n"
-          "geometries it suffices to define *N_za_grid* (both solvers) and\n"
-          "*N_aa_grid* (DOIT). From these numbers equally spaced grids are\n"
+          "geometries it suffices to define ``N_za_grid`` (both solvers) and\n"
+          "``N_aa_grid`` (DOIT). From these numbers equally spaced grids are\n"
           "created and stored in the WSVs *za_grid* and *aa_grid*.\n"
           "\n"
           "For limb simulations it is important to use an optimized zenith\n"
           "angle grid with a very fine resolution around the horizon\n"
           "(za=90 degrees). Such a grid can be generated using\n"
           "*doit_za_grid_optCalc*. To be applied, the name of the file holding\n"
-          "the optimized angle grid has to be given (*za_grid_opt_file*).\n"
+          "the optimized angle grid has to be given (``za_grid_opt_file``).\n"
           "\n"
           "When an optimized grid is present, the equidistant grid is used for\n"
           "the calculation of the scattering integrals, while the optimized\n"
@@ -6411,7 +6411,7 @@ Available models:
           "\n"
           "The method performs monochromatic pencil beam calculations for\n"
           "all grid positions on the cloudbox boundary, and all directions\n"
-          "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
+          "given by scattering angle grids (*aa_grid*). Found radiances\n"
           "are stored in *cloudbox_field* which can be used as boundary\n"
           "conditions when scattering inside the cloud box is solved by the\n"
           "*DoitCalc* method.\n"
@@ -6555,14 +6555,14 @@ Available models:
           "This method writes intermediate iteration fields to xml-files. The\n"
           "method can be used as a part of *doit_conv_test_agenda*.\n"
           "\n"
-          "The iterations to be stored are specified by *iterations*, e.g.:\n"
+          "The iterations to be stored are specified by ``iterations``, e.g.:\n"
           "    iterations = [3, 6, 9]\n"
           "In this case the 3rd, 6th and 9th iterations are stored.\n"
           "If a number is larger than the total number of iterations, this\n"
           "number is ignored. If all iterations should be stored set\n"
           "   iterations = [-1]\n"
           "\n"
-          "The frequencies to be stored are specified by *frequencies* in the\n"
+          "The frequencies to be stored are specified by ``frequencies`` in the\n"
           "same way as the iterations. The frequency index corresponds to the\n"
           "order of frequencies in *f_grid*.\n"
           "\n"
@@ -6811,7 +6811,7 @@ Available models:
           "difference between the radiation field represented on the very\n"
           "fine zenith angle grid and the radiation field represented on the\n"
           "optimized grid (*doit_za_grid_opt*) is less than the accuracy\n"
-          "(*acc*). Between the grid points the radiation field is interpolated\n"
+          "(``acc``). Between the grid points the radiation field is interpolated\n"
           "linearly or polynomially depending on *doit_za_interp*.\n"
           "\n"
           "Note: The method works only for a 1D atmosphere and for one\n"
@@ -6852,7 +6852,7 @@ Available models:
       OUT(),
       GOUT("duration"),
       GOUT_TYPE("Numeric"),
-      GOUT_DESC("Time in seconds between *start* and *end*"),
+      GOUT_DESC("Time in seconds between ``start`` and ``end``"),
       IN(),
       GIN("start", "end"),
       GIN_TYPE("Time", "Time"),
@@ -7302,7 +7302,7 @@ Available models:
       DESCRIPTION("Sets *f_grid* to a grid relative to *abs_lines_per_species*\n"
                   "\n"
                   "Each line will have *abs_lines_per_species* will have a grid\n"
-                  "of *num_freqs* grid points in [f0+*delta_f_low*, f0+*delta_f_upp*],\n"
+                  "of ``num_freqs`` grid points in [f0+``delta_f_low``, f0+``delta_f_upp``],\n"
                   "where f0 is the line center.\n"
                   "\n"
                   "Before leaving the function, *f_grid* is sorted.\n"
@@ -7355,7 +7355,7 @@ Available models:
           "frequencies *f_backend_multi*, and the backend channel\n"
           "responses *backend_channel_response_multi*.\n"
           "\n"
-          "You have to specify the desired spacing in the keyword *spacing*,\n"
+          "You have to specify the desired spacing in the keyword ``spacing``,\n"
           "which has a default value of 100 MHz. (The actual value is 0.1e9,\n"
           "since our unit is Hz.)\n"
           "\n"
@@ -7387,7 +7387,7 @@ Available models:
           "the backend frequencies *f_backend*, and the backend channel\n"
           "responses *backend_channel_response*.\n"
           "\n"
-          "You have to specify the desired spacing in the keyword *spacing*,\n"
+          "You have to specify the desired spacing in the keyword ``spacing``,\n"
           "which has a default value of 100 MHz. (The actual value is 0.1e9,\n"
           "since our unit is Hz.)"
           "\n"
@@ -7418,7 +7418,7 @@ Available models:
           "band frequencies *f_backend* and the spectral channel response\n"
           "functions given by *backend_channel_response*.\n"
           "\n"
-          "You have to specify the desired spacing in the keyword *spacing*, which\n"
+          "You have to specify the desired spacing in the keyword ``spacing``, which\n"
           "has a default value of 5e8 Hz.\n"
           "\n"
           "The produced grid will not have exactly the requested spacing, but\n"
@@ -7447,24 +7447,24 @@ Available models:
           "The method calculates *f_grid* to match the specifications of a\n"
           "*met_mm_backend* table and method arguments.\n"
           "\n"
-          "You have to specify the desired spacing using the keyword *freq_spacing*.\n"
+          "You have to specify the desired spacing using the keyword ``freq_spacing``.\n"
           "You can pass a *Vector* with one element to apply the same spacing to all\n"
           "channels or pass a spacing value for each channel separately.\n"
           "\n"
-          "Optionally, *freq_number* can be set to specify the mininum number of\n"
+          "Optionally, ``freq_number`` can be set to specify the mininum number of\n"
           "frequencies per passband for each channel. The frequencies are placed\n"
           "equally spaced in each passband. The minimum spacing resulting from\n"
-          "*freq_number* and *freq_spacing* will be used for the calculation. To\n"
-          "explicitly use *freq_spacing* for a channel, *freq_number* can be set\n"
+          "``freq_number`` and ``freq_spacing`` will be used for the calculation. To\n"
+          "explicitly use ``freq_spacing`` for a channel, ``freq_number`` can be set\n"
           "to -1 for this channel.\n"
           "\n"
-          "The number of elements in *freq_number* can either be the number of\n"
+          "The number of elements in ``freq_number`` can either be the number of\n"
           "channels or 1. If only one element is given, this number is used for\n"
-          "all channels. If *freq_number* is 1 and *freq_spacing* is wider than\n"
+          "all channels. If ``freq_number`` is 1 and ``freq_spacing`` is wider than\n"
           "the bandwidth of the channel, one frequency is placed in the middle of\n"
           "each passband.\n"
           "\n"
-          "Frequencies that would be closer than *freq_merge_threshold* in the\n"
+          "Frequencies that would be closer than ``freq_merge_threshold`` in the\n"
           "generated *f_grid* are merged together. This value should be left at\n"
           "the default value. This is only meant to compensate for numerical\n"
           "inaccuracies in the frequency calculation to merge frequency that are\n"
@@ -8165,8 +8165,8 @@ Available models:
       DESCRIPTION(
           "Counts number of points in the atmosphere.\n"
           "\n"
-          "For a 3D atmosphere the method sets *n* to:\n"
-          "  p_grid.nelem()*lat_grid.nelem()*lon_grid.nelem()\n"
+          "For a 3D atmosphere the method sets ``n`` to:\n"
+          "  p_grid.nelem() *lat_grid.nelem() * lon_grid.nelem()\n"
           "For 1D and 2D the same calculation is done, but ignoring dimensions\n"
           "not active.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -8284,7 +8284,7 @@ Available models:
           "*rtp_pos*. The altitude in *rtp_pos* is completely ignored.\n"
           "Linear interpolation is applied.\n"
           "\n"
-          "The input field (*gfield2*) is expected to have latitude and\n"
+          "The input field (``gfield2``) is expected to have latitude and\n"
           "longitude as first and second dimension.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -8364,11 +8364,11 @@ Available models:
           "For each observation geometry specified by the combination of\n"
           "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
           "an altitude is determined. The intersections are described by the\n"
-          "GOUT *pos* and *los.\n"
+          "GOUT ``pos`` and *los.\n"
           "\n"
-          "For cases with no intersection, *pos* and *los* are filled with NaN.\n"
+          "For cases with no intersection, ``pos`` and ``los`` are filled with NaN.\n"
           "\n"
-          "The GOUT *pos* and *los* can NOT be *sensor_pos* and *sensor_los*.\n"
+          "The GOUT ``pos`` and ``los`` can NOT be *sensor_pos* and *sensor_los*.\n"
           "If you want to store the intersections in *sensor_pos* and *sensor_los*\n"
           "use *sensor_pos_losForwardToAltitude*. For *rte_pos* and *rte_los*\n"
           "you have *rte_pos_losForwardToAltitude*.\n"),
@@ -8926,7 +8926,7 @@ Available models:
         "The function accepts that the input atmosphere is 1D, as well as\n"
         "that there is no active cloudbox.\n"
         "\n"
-        "The constructed 1D atmosphere is exported if the GIN *return_atm1d*\n"
+        "The constructed 1D atmosphere is exported if the GIN ``return_atm1d``\n"
         "is set to 1. The default then is to include all atmospheric fields,\n"
         "but *vmr_field* and *pnd_field* can be deselected by two of the GIN-s.\n"
         "The order of the fields is specified by the first grid in the structure\n"
@@ -8999,12 +8999,12 @@ Available models:
           "For the zenith angle dimensions several options for controlling\n"
           "the interpolation are at hand. Default is linear interpolation.\n"
           "Higher order polynomial interpolation is activated by setting\n"
-          "*za_interp_order* to a value > 1. Default is to perform the\n"
+          "``za_interp_order`` to a value > 1. Default is to perform the\n"
           "interpolation separately for [0,90[ and ]90,180]. To handle\n"
           "90 degree or use the full range ([0,180]) as basis for the\n"
-          "interpolation, set *za_restrict* to 0. You can select to use\n"
+          "interpolation, set ``za_restrict`` to 0. You can select to use\n"
           "cos(za) as the independent variable (instead of za) by setting\n"
-          "*cos_za_interp* to 1.\n"
+          "``cos_za_interp`` to 1.\n"
           "\n"
           "For the azimuth dimension the interpolation order can be\n"
           "selected, in the same manner as for zenith.\n"),
@@ -9308,7 +9308,7 @@ Available models:
           "This method does not consider *iy_unit_radar*. Unit changes are instead\n"
           "applied in *yRadar. The output of this method matches the option \"1\".\n"
           "\n"
-          "The extinction due to particles can be scaled (by *pext_scaling*),\n"
+          "The extinction due to particles can be scaled (by ``pext_scaling``),\n"
           "which could be of interest when e.g. characterising inversions or\n"
           "trying to compensate for ignored multiple scattering. The later is\n"
           "commented further for *particle_bulkpropRadarOnionPeeling*.\n"
@@ -9316,7 +9316,7 @@ Available models:
           "For Jacobian calculations the default is to assume that the\n"
           "transmittance is unaffected by the retrieval quantities. This is\n"
           "done to save computational time, and should be a valid approximation\n"
-          "for the single-scattering conditions. Set *trans_in_jacobian* to 1 to\n"
+          "for the single-scattering conditions. Set ``trans_in_jacobian`` to 1 to\n"
           "activate full Jacobian calculations.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
@@ -9334,7 +9334,7 @@ Available models:
           "    ppath point, taken as the diagonal of the local extinction matrix.\n"
           " \"Particle extinction\": Extinction due to particles at each\n"
           "    ppath point, taken as the diagonal of the local extinction matrix.\n"
-          "    The retunred values includes *pext_scaling*\n"),
+          "    The retunred values includes ``pext_scaling``\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy",
           "iy_aux",
@@ -9396,7 +9396,7 @@ Available models:
           "Change of main output variable.\n"
           "\n"
           "With this method you can replace the content of *iy* with one of\n"
-          "the auxiliary variables. The selected variable (by *aux_var*) must\n"
+          "the auxiliary variables. The selected variable (by ``aux_var``) must\n"
           "be part of *iy_aux_vars*. The corresponding data from *iy_aux* are\n"
           "copied to form a new *iy* (*iy_aux* is left unchanged). Elements of\n"
           "*iy* correponding to Stokes elements not covered by the auxiliary\n"
@@ -9413,6 +9413,7 @@ Available models:
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
+
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
@@ -10086,7 +10087,7 @@ Available models:
           "   \"rh\"     : Relative humidity.\n"
           "   \"q\"      : Specific humidity.\n"
           "\n"
-          "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
+          "Note that ``for_species_tag`` is used to indicate if species tag VMR,\n"
           "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
           "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
           "\n"
@@ -10094,7 +10095,7 @@ Available models:
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"),
@@ -10133,7 +10134,7 @@ Available models:
           "   \"LineStrength\"\n"
           "   \"LineCenter\"\n"
           "\n"
-          "The *catalog_identity* should be able to identify one or many\n"
+          "The ``catalog_identity`` should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
           "Note that partial matching for energy levels are allowed but not\n"
           "recommended, as it is somewhat nonsensical to add multiple parameters.\n"
@@ -10166,8 +10167,8 @@ Available models:
           "See *jacobianAddBasicCatalogParameter*.\n"
           "\n"
           "This adds a multiple of parameters for first each catalog identity in\n"
-          "*catalog_identities* and then for each catalog parameter in\n"
-          "*catalog_parameters* by looping calls to *jacobianAddBasicCatalogParameter*\n"
+          "``catalog_identities`` and then for each catalog parameter in\n"
+          "``catalog_parameters`` by looping calls to *jacobianAddBasicCatalogParameter*\n"
           "over these input.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
@@ -10284,12 +10285,12 @@ Available models:
           "The function loops over each input list\n"
           "individually and appends the information to *jacobian_quantities*.\n"
           "\n"
-          "Special \"ALL\" for 1 length *variables* and *coefficients* are\n"
+          "Special \"ALL\" for 1 length ``variables`` and ``coefficients`` are\n"
           "allowed to compute all variables/coefficients in the order described\n"
           "in the description of *jacobianAddShapeCatalogParameter*.\n"
           "\n"
-          "For example, if *line_identities* have length 5, *species* length 4,\n"
-          "*variables* length 3, and *coefficients* length 2, there will be\n"
+          "For example, if ``line_identities`` have length 5, ``species`` length 4,\n"
+          "``variables`` length 3, and ``coefficients`` length 2, there will be\n"
           "5*4x3x2 = 120 new additions to *jacobian_quantities* in the order:\n"
           "\t[{line_identities[0], species[0], variables[0] coefficients[0]}]\n"
           "\t[{line_identities[0], species[0], variables[0] coefficients[1]}]\n"
@@ -10329,12 +10330,12 @@ Available models:
           "calculations can only be performed by analytic expressions.\n"
           "\n"
           "The magnetic field components are retrieved separately, and,\n"
-          "hence, the argument *component* can be  \"u\", \"v\", \"w\",\n"
+          "hence, the argument ``component`` can be  \"u\", \"v\", \"w\",\n"
           "and \"strength\".\n"
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"
@@ -10370,7 +10371,7 @@ Available models:
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"
@@ -10411,7 +10412,7 @@ Available models:
           "Adds energy_level_identities.nelem() times as many arguments to *x*\n"
           "as *jacobianAddNLTE*, ordered as energy_level_identities describes\n"
           "\n"
-          "This method is preferred to *jacobianAddNLTE*, since *energy_level_identities*\n"
+          "This method is preferred to *jacobianAddNLTE*, since ``energy_level_identities``\n"
           "is conveniently almost always the same as *nlte_level_identifiers*.\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
@@ -10443,7 +10444,7 @@ Available models:
           "the sensor can be included by this method. The weighing functions\n"
           "can be calculated in several ways:\n"
           "   calcmode = \"recalc\": Recalculation of pencil beam spectra,\n"
-          "      shifted with *dza* from nominal values. A single-sided\n"
+          "      shifted with ``dza`` from nominal values. A single-sided\n"
           "      perturbation is applied (towards higher zenith angles).\n"
           "   calcmode = \"interp\": Inter/extrapolation of existing pencil\n"
           "       beam spectra. For this option, allow some extra margins for\n"
@@ -10499,11 +10500,11 @@ Available models:
           "If the simulation/retrieval deals with a single spectrum, the number\n"
           "of elements added to the state vector (*x*) is poly_order+1. The\n"
           "coefficient for polynomial order 0 comes first etc. The same is true\n"
-          "if *no_pol_variation*, *no_los_variation* and *no_mblock_variation*\n"
+          "if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``\n"
           "all are set to 1, even if several spectra are involved. Otherwise the"
           "number of elements added to *x* depends on the number of spectra and\n"
-          "the settings of *no_pol_variation*, *no_los_variation* and \n"
-          "*no_mblock_variation*. The coefficients of the different polynomial\n"
+          "the settings of ``no_pol_variation``, ``no_los_variation`` and \n"
+          "``no_mblock_variation``. The coefficients of the different polynomial\n"
           "orders are treated as separate retrieval quantities. That is, the\n"
           "the elements associated with polynomial order 0 are grouped and form\n"
           "together a retrieval quantity. The coefficients for higher polynomial\n"
@@ -10542,7 +10543,7 @@ Available models:
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"),
@@ -10586,12 +10587,12 @@ Available models:
           "\n"
           "If the simulation/retrieval deals with a single spectrum, the number\n"
           "of elements added to the state vector (*x*) is 2*nperiods, where\n"
-          "nperiods is the length of *period_lengths*. The same is true\n"
-          "if *no_pol_variation*, *no_los_variation* and *no_mblock_variation*\n"
+          "nperiods is the length of ``period_lengths``. The same is true\n"
+          "if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``\n"
           "all are set to 1, even if several spectra are involved. Otherwise the"
           "number of elements added to *x* depends on the number of spectra and\n"
-          "the settings of *no_pol_variation*, *no_los_variation* and \n"
-          "*no_mblock_variation*. The sine and cosine terms for each period\n"
+          "the settings of ``no_pol_variation``, ``no_los_variation`` and \n"
+          "``no_mblock_variation``. The sine and cosine terms for each period\n"
           "length are treated as a  separate retrieval quantities. That is, the\n"
           "the elements associated with the first period length are grouped and\n"
           "form together a retrieval quantity, etc. Inside each retrieval quantity\n"
@@ -10638,7 +10639,7 @@ Available models:
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"),
@@ -10670,7 +10671,7 @@ Available models:
       DESCRIPTION(
           "Includes a surface quantity in the Jacobian.\n"
           "\n"
-          "The quantity is specified by the GIN-variable *quantity*. The name\n"
+          "The quantity is specified by the GIN-variable ``quantity``. The name\n"
           "of the quantity must match the name used in *surface_props_names*.\n"
           "\n"
           "For 1D or 2D calculations the latitude and/or longitude grid of\n"
@@ -10678,7 +10679,7 @@ Available models:
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2\n"
-          "where n_g1 and n_g2 are the length of GIN *g1* and *g2*, respectively.\n"
+          "where n_g1 and n_g2 are the length of GIN ``g1`` and ``g2``, respectively.\n"
           "Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with latitude as innermost loop and longitude\n"
           "as outermost loop.\n"),
@@ -10715,7 +10716,7 @@ Available models:
           "totally, but considers the local effect of HSE.\n"
           "The later should be accaptable for observations around zenith and\n"
           "nadir. There is no warning if the method is applied incorrectly, \n"
-          "with respect to these issues. Note that the argument *hse* of this\n"
+          "with respect to these issues. Note that the argument ``hse`` of this\n"
           "WSM only refers to the Jacobian calculation, if the model and/or\n"
           "retrieved atmosphere actually fulfils HSE or not is governed in\n"
           "other manners.\n"
@@ -10727,7 +10728,7 @@ Available models:
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"),
@@ -10762,12 +10763,12 @@ Available models:
           "and as a consequence *abs_f_interp_order* must be > 0.\n"
           "\n"
           "The wind field components are retrieved separately, and,\n"
-          "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
+          "hence, the argument ``component`` can be \"u\", \"v\" or \"w\" \n"
           "for vector components, or just \"strength\" for total wind speed.\n"
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
           "respectively. Here empty vectors should be considered to have a length 1.\n"
           "The elements are sorted with pressure as innermost loop, followed by\n"
           "latitude and longitude as outermost loop.\n"),
@@ -11045,9 +11046,9 @@ Available models:
       DESCRIPTION(
           "Sets *jacobian* based on the difference vetween two measurement vectors.\n"
           "\n"
-          "This function assumes that *y_pert* contains a measurement calculated\n"
+          "This function assumes that ``y_pert`` contains a measurement calculated\n"
           "with some variable perturbed, in comparison to the calculation\n"
-          "behind *y*. The function takes the differences between *y_pert*\n"
+          "behind *y*. The function takes the differences between ``y_pert``\n"
           "and *y* to form a numerical derived estimate of *jacobian*.\n"
           "This gives a Jacobian wit a single column.\n"
           "\n"
@@ -11188,7 +11189,7 @@ Available models:
           "Instead, the method *jacobianAdjustAndTransform* must be called to\n"
           "activate the transformations.\n"
           "\n"
-          "The following transformations can be selected (by *transformation_func*):\n"
+          "The following transformations can be selected (by ``transformation_func``):\n"
           "   log   : The natural logarithm\n"
           "   log10 : The base-10 logarithm\n"
           "   atanh : Area hyperbolic tangent \n"
@@ -11199,16 +11200,16 @@ Available models:
           "the option \"none\" exists only for reasons of flexibility).\n"
           "\n"
           "The log-options are applied as log(z-z_min) and log10(z-z_min).\n"
-          "The default for *z_min* is zero, but by changing it the lower limit\n"
-          "for z can be changed. Note that *z_min* becomes the lower limit for\n"
-          "allowed values of z. The GIN *z_max* is here ignored.\n"
+          "The default for ``z_min`` is zero, but by changing it the lower limit\n"
+          "for z can be changed. Note that ``z_min`` becomes the lower limit for\n"
+          "allowed values of z. The GIN ``z_max`` is here ignored.\n"
           "\n"
-          "For the atanh-option, also *z_max* is considered. This transformation\n"
-          "is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,*z_min*\n"
-          "is lower limit for allowed values of z. On the other hand, *z_max*\n"
+          "For the atanh-option, also ``z_max`` is considered. This transformation\n"
+          "is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,``z_min``\n"
+          "is lower limit for allowed values of z. On the other hand, ``z_max``\n"
           "eines the upper limit for z.\n"
           "\n"
-          "The GIN *transformation_func* is so far only used for atanh. The parameter\n"
+          "The GIN ``transformation_func`` is so far only used for atanh. The parameter\n"
           "specifies the maximum allowed value allowed for u. That is, the valid\n"
           "range for u becomes ]0,tfunc_parameter[. Note that log and log10\n"
           "demands/ensures that u > 0, but implies no upper limit.\n"
@@ -11610,7 +11611,7 @@ Available models:
           "\n"
           "The size if the matrix created is n x n. Default is to return a\n"
           "true identity matrix (I), but you can also select another value\n"
-          "along the diagonal by setting *value*. That is, the output is\n"
+          "along the diagonal by setting ``value``. That is, the output is\n"
           "value*I.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -11866,7 +11867,7 @@ Available models:
       DESCRIPTION(
           "Sets *mblock_dlos* based on a 1D gaussian antenna response.\n"
           "\n"
-          "The length of *mblock_dlos* is determined by *npoints*. The end\n"
+          "The length of *mblock_dlos* is determined by ``npoints``. The end\n"
           "points of the grid are set to be the same as for the antenna\n"
           "response. The spacing of the grid follows the magnitude of the\n"
           "response; the spacing is smaller where the response is high.\n"
@@ -11888,8 +11889,8 @@ Available models:
       DESCRIPTION(
           "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
           "\n"
-          "The gaussian antenna pattern is determined by *za_sigma* and\n"
-          "*aa_sigma*, which represent the standard deviations in the\n"
+          "The gaussian antenna pattern is determined by ``za_sigma`` and\n"
+          "``aa_sigma``, which represent the standard deviations in the\n"
           "uncorrelated bivariate normal distribution.\n"),
       AUTHORS("Cory Davis"),
       OUT("mc_antenna"),
@@ -11908,8 +11909,8 @@ Available models:
       DESCRIPTION(
           "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
           "\n"
-          "The gaussian antenna pattern is determined by *za_fwhm* and\n"
-          "*aa_fwhm*, which represent the full width half maximum (FWHM)\n"
+          "The gaussian antenna pattern is determined by ``za_fwhm`` and\n"
+          "``aa_fwhm``, which represent the full width half maximum (FWHM)\n"
           "of the antenna response, in the zenith and azimuthal planes.\n"),
       AUTHORS("Cory Davis"),
       OUT("mc_antenna"),
@@ -12213,9 +12214,9 @@ Available models:
           "Clipping of a Numeric.\n"
           "\n"
           "The input value is copied to the output one (that can be same WSV)\n"
-          "but ensures that *out* is inside the range [limit_low,limit_high].\n"
-          "When the input value is below *limit_low*, *out* is set to *limit_low*.\n"
-          "And the same is performed with respect to *limit_high*.\n"),
+          "but ensures that ``out`` is inside the range [limit_low,limit_high].\n"
+          "When the input value is below ``limit_low``, ``out`` is set to ``limit_low``.\n"
+          "And the same is performed with respect to ``limit_high``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -12647,33 +12648,33 @@ Available models:
           "\n"
           "Description of the special input arguments:\n"
           "\n"
-          "*method*\n"
+          "``method``\n"
           "  \"li\": A linear problem is assumed and a single iteration is performed.\n"
           "  \"li_cg\": A linear problem is assumed and solved using the CG solver.\n"
           "  \"gn\": Non-linear, with Gauss-Newton iteration scheme.\n"
           "  \"gn_cg\": Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
           "  \"lm\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
           "  \"lm_cg\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
-          "*max_start_cost*\n"
+          "``max_start_cost``\n"
           "  No inversion is done if the cost matching the a priori state is above\n"
           "  this value. If set to a negative value, all values are accepted.\n"
           "  This argument also controls if the start cost is calculated. If\n"
           "  set to <= 0, the start cost in *oem_diagnostics* is set to NaN\n"
           "  when using \"li\" and \"gn\".\n"
-          "*x_norm*\n"
+          "``x_norm``\n"
           "  A normalisation vector for *x*. A normalisation of *x* can be needed\n"
           "  due to limited numerical precision. If this vector is set to be empty\n"
           "  no normalisation is done (defualt case). Otherwise, this must be a\n"
           "  vector with same length as *x*, just having values above zero.\n"
-          "  Elementwise division between *x* and *x_norm* (x./x_norm) shall give\n"
+          "  Elementwise division between *x* and ``x_norm`` (x./x_norm) shall give\n"
           "  a vector where all values are in the order of unity. Maybe the best\n"
-          "  way to set *x_norm* is x_norm = sqrt( diag( Sx ) ).\n"
-          "*max_iter*\n"
+          "  way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).\n"
+          "``max_iter``\n"
           "  Maximum number of iterations to perform. No effect for \"li\".\n"
-          "*stop_dx*\n"
+          "``stop_dx``\n"
           "  Iteration stop criterion. The criterion used is the same as given\n"
           "  in Rodgers\' \"Inverse Methods for Atmospheric Sounding\"\n"
-          "*lm_ga_settings*\n"
+          "``lm_ga_settings``\n"
           "  Settings controlling the gamma factor, part of the \"LM\" method.\n"
           "  This is a vector of length 6, having the elements (0-based index):\n"
           "    0: Start value.\n"
@@ -12687,10 +12688,10 @@ Available models:
           "       is not considered until there has been one succesful iteration\n"
           "       having a gamma <= this value.\n"
           "  The default setting triggers an error if \"lm\" is selected.\n"
-          "*clear matrices*\n"
+          "``clear matrices``\n"
           "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
           "   matrices.\n"
-          "*display_progress*\n"
+          "``display_progress``\n"
           "   Controls if there is any screen output. The overall report level\n"
           "   is ignored by this WSM.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -12979,7 +12980,7 @@ Available models:
           "Inverts radar reflectivities by in an onion peeling manner.\n"
           "\n"
           "The method assumes space-based measurements and invert one altitude\n"
-          "at the time, based on a pre-calculated inversion table (*invtable*)\n"
+          "at the time, based on a pre-calculated inversion table (``invtable``)\n"
           "and starting at the top of the atmosphere. If attenuation is\n"
           "completely ignored, the table is effectively used as a look-up table\n"
           "to map dBZe to hydrometeor values. The method considers attenuation\n"
@@ -12989,7 +12990,7 @@ Available models:
           "\n"
           "The inversion table consists of two GriddedField3. The first field\n"
           "shall match liquid hydrometeors and is applied for temperatures above\n"
-          "*t_phase*. The second field is applied for lower temperatures and\n"
+          "``t_phase``. The second field is applied for lower temperatures and\n"
           "shall thus correspond to ice hydrometeors.\n"
           "\n"
           "The size of each field is (2,ndb,nt). The two page dimensions match\n"
@@ -13000,34 +13001,34 @@ Available models:
           "in a nearest neighbour fashion, while in a linear interpolation is\n"
           "applied in the dBZe dimension.\n"
           "\n"
-          "The field of radar reflectivities (*dBZe*) shall cover the complete\n"
+          "The field of radar reflectivities (``dBZe``) shall cover the complete\n"
           "atmosphere and then match e.g. *t_field* in size. The observation\n"
           "geometry is here specified by giving the incidence angle for each\n"
-          "profile of dBZe values (by *incangles*). A flat Earth approximation\n"
+          "profile of dBZe values (by ``incangles``). A flat Earth approximation\n"
           "is applied inside the method.\n"
           "\n"
-          "All values below *dbze_noise* are treated as pure noise and\n"
+          "All values below ``dbze_noise`` are treated as pure noise and\n"
           "*particle_bulkprop_field* is set to zero for these positions.\n"
-          "The comparison to *dbze_noise* is done with uncorrected values.\n"
+          "The comparison to ``dbze_noise`` is done with uncorrected values.\n"
           "\n"
           "Further, all values at altitudes below z_surface + h_clutter are\n"
-          "assumed to be surface clutter and are rejected. If *fill_clutter*\n"
+          "assumed to be surface clutter and are rejected. If ``fill_clutter``\n"
           "is set to 1, the retrieval just above the clutter zone is assumed\n"
           "valid also below and is copied to all altitudes below (also for\n"
           "altitudes below the surface).\n"
           "\n"
           "Unfiltered clutter can cause extremely high retrived water contents.\n"
-          "The GIN *wc_max* defines an upper limit for reasonable water contents.\n"
+          "The GIN ``wc_max`` defines an upper limit for reasonable water contents.\n"
           "Retrievals ending up above this value are set to zero. Values below\n"
-          "*wc_max* but above *wc_clip*, are set to *wc_clip*.\n"
+          "``wc_max`` but above ``wc_clip``, are set to ``wc_clip``.\n"
           "\n"
           "Significant radar echos (>dbze_noise and above clutter zone) are\n"
-          "assumed to match liquid hydrometeors for temperatures >= *t_phase*\n"
+          "assumed to match liquid hydrometeors for temperatures >= ``t_phase``\n"
           "and ice ones for lower temperatures.\n"
           "\n"
           "Default is to consider attenuation of both hydrometeors and absorption\n"
           "species. These two sources to attenuation can be ignored by setting\n"
-          "*do_atten_hyd* and *do_atten_abs* to zero, respectively.\n"
+          "``do_atten_hyd`` and ``do_atten_abs`` to zero, respectively.\n"
           "\n"
           "Default is to consider hydrometeor attenuation, but there could be\n"
           "two reasons to ignore it. It can cause a \"run away\" effect in the\n"
@@ -13035,14 +13036,14 @@ Available models:
           "scattering in space-based observations, as shown by: Matrosov and\n"
           "Battaglia, GRL, 2009. However, ignoring the hydrometeor attenuation\n"
           "totally gives a too high compensating effect and the GIN\n"
-          "*atten_hyd_scaling* allows to test intermediate compensations. This\n"
+          "``atten_hyd_scaling`` allows to test intermediate compensations. This\n"
           "GIN matches the GIN pext_scaling of *iyRadarSingleScat*, but they\n"
           "have different default values. The default in this method follows the\n"
           "results for CloudSat in Matrosov and Battaglia. Please note that\n"
-          "*do_atten_hyd* must be true to apply *atten_hyd_scaling*.\n"
+          "``do_atten_hyd`` must be true to apply ``atten_hyd_scaling``.\n"
           "\n"
-          "Even with *atten_hyd_scaling* below 1, there could be a run-away in\n"
-          "the estimated attenuation, and *atten_hyd_max* stops this by setting\n"
+          "Even with ``atten_hyd_scaling`` below 1, there could be a run-away in\n"
+          "the estimated attenuation, and ``atten_hyd_max`` stops this by setting\n"
           "a maximum value to the hydrometeor attenuation.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("particle_bulkprop_field", "particle_bulkprop_names"),
@@ -13102,8 +13103,8 @@ Available models:
           "\n"
           "The method allows you to apply hard limits the values of\n"
           "*particle_bulkprop_field*. All values, of the property selected,\n"
-          "below *limit_low*, are simply set to *limit_low*. And the same\n"
-          "is performed with respect to *limit_high*. That is, the data in x\n"
+          "below ``limit_low``, are simply set to ``limit_low``. And the same\n"
+          "is performed with respect to ``limit_high``. That is, the data in x\n"
           "for the retrieval quantity are forced to be inside the range\n"
           "[limit_low,limit_high].\n"
           "\n"
@@ -13416,7 +13417,7 @@ Available models:
           "bin deriving pnd (units #/m3) from psd (units #/m3/m). Some checks\n"
           "on the sufficiency of the size grid range and coverage are applied.\n"
           "\n"
-          "*quad_order* can be 0 for rectangular or 1 for trapezoidal\n"
+          "``quad_order`` can be 0 for rectangular or 1 for trapezoidal\n"
           "integration. The only difference is the treatment of the start and\n"
           "end nodes. For trapezoidal their corresponding bins end exactly at\n"
           "the nodes, while for rectangular they extend further out by the half\n"
@@ -13426,13 +13427,13 @@ Available models:
           "bulk extinction sufficiently. Specifically, it is tested that\n"
           " (a) psd*ext is decreasing at the small and large particle size\n"
           "     ends of the size grid - but only if scattering species bulk\n"
-          "     extinction exceeds 1% of *threshold_ss_ext*.\n"
+          "     extinction exceeds 1% of ``threshold_ss_ext``.\n"
           " (b) removing the smallest and largest particles changes the\n"
           "     resulting bulk extinction by less then a fraction of\n"
-          "     *threshold_se_ext* - but only if scattering species bulk\n"
-          "     extinction exceeds *threshold_ss_ext* and number density (pnd)\n"
+          "     ``threshold_se_ext`` - but only if scattering species bulk\n"
+          "     extinction exceeds ``threshold_ss_ext`` and number density (pnd)\n"
           "     of the edge size point at this atmospheric level is larger\n"
-          "     than *threshold_se_pnd* times the maximum pnd of this\n"
+          "     than ``threshold_se_pnd`` times the maximum pnd of this\n"
           "     scattering element over all atmospheric levels.\n"
           "Skipping tests in case of low extinction is done in order to\n"
           "minimize issues arising from very low mass densities,\n"
@@ -13539,7 +13540,7 @@ Available models:
           "This method interpolates the particle number density field\n"
           "from the raw data *pnd_field_raw* to obtain *pnd_field*.\n"
           "For 1D cases, where internally *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid* are applied, *zeropadding*=1 sets the\n"
+          "*GriddedFieldLatLonRegrid* are applied, ``zeropadding``=1 sets the\n"
           "*pnd_field* at pressure levels levels exceeding pnd_field_raw's\n"
           "pressure grid to 0 (not implemented for 2D and 3D yet). Default:\n"
           "zeropadding=0, which throws an error if the calculation pressure grid\n"
@@ -13576,7 +13577,7 @@ Available models:
           "At the latitude and longitude cloudbox edge points *pnd_field* is set to\n"
           "zero. This corresponds to nzero=1. If you want a larger margin between\n"
           "the lat and lon cloudbox edges and the \"cloud\" you increase\n"
-          "*nzero*, where *nzero* is the number of grid points for which\n"
+          "``nzero``, where ``nzero`` is the number of grid points for which\n"
           "*pnd_field* shall be set to 0, counted from each lat and lon edge.\n"
           "\n"
           "See further *AtmFieldsExpand1D*.\n"),
@@ -13792,13 +13793,13 @@ Available models:
           "of the atmosphere altitude nor the sensor's altitude.\n"
           "\n"
           "Default is to apply a step length of *ppath_lmax* everywhere.\n"
-          "By setting *za_scale* to 1, the step length is scaled with zenith\n"
+          "By setting ``za_scale`` to 1, the step length is scaled with zenith\n"
           "angle and the steps are rather constant in altitude spacing.\n"
           "\n"
-          "With *z_coarse* and *l_coarse* you can introduce another step length\n"
-          "at higher altitudes. If *z_coarse* is > 0, then *l_coarse* is applied\n"
-          "above *z_coarse*, instead of *ppath_lmax*. *za_scale* is considered\n"
-          "also for *l_coarse*.\n"),
+          "With ``z_coarse`` and ``l_coarse`` you can introduce another step length\n"
+          "at higher altitudes. If ``z_coarse`` is > 0, then ``l_coarse`` is applied\n"
+          "above ``z_coarse``, instead of *ppath_lmax*. ``za_scale`` is considered\n"
+          "also for ``l_coarse``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -13834,8 +13835,8 @@ Available models:
           "the value of *rte_los* (at *rte_pos*) linking the two positions.\n"
           "\n"
           "See the user guide for a description of the search algorithm,\n"
-          "including a more detailed definition of *za_accuracy*, \n"
-          "*pplrt_factor* and *pplrt_lowest*.\n"
+          "including a more detailed definition of ``za_accuracy``, \n"
+          "``pplrt_factor`` and ``pplrt_lowest``.\n"
           "\n"
           "The standard application of this method should be to radio link\n"
           "calculations, where *rte_pos2* corresponds to a transmitter, and\n"
@@ -13960,9 +13961,9 @@ Available models:
           "\n"
           "If *file_index is >= 0, the variable is written to a file with name:\n"
           "   <filename>.<file_index>.xml.\n"
-          "where <file_index> is the value of *file_index*.\n"
+          "where <file_index> is the value of ``file_index``.\n"
           "\n"
-          "This means that *filename* shall here not include the .xml\n"
+          "This means that ``filename`` shall here not include the .xml\n"
           "extension. Omitting filename works as for *WriteXML*.\n"),
       AUTHORS("Oliver Lemke"),
       OUT(),
@@ -14277,7 +14278,7 @@ Available models:
           "Some extrapolation is allowed. For pressure and frequency interpolation\n"
           "the standard extrapolation factor of 0.5 is applied. The factor is the\n"
           "default for temperature and VMR interpolation, but the extrapolation\n"
-          "limit can here be adjusted by the *extpolfac* argument.\n"),
+          "limit can here be adjusted by the ``extpolfac`` argument.\n"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -14410,20 +14411,20 @@ offers
 it to the diagonal of *propmat_clearsky* and derivates to other variables.
 Does the same for NLTE variables if required.
 
-If *lines_speedup_option* is not "None", then some speed-up logic is applied.
+If ``lines_speedup_option`` is not "None", then some speed-up logic is applied.
 Valid speed-up logic other than "None" includes:
     LinearIndependent:
         Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
         until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
         A linear interpolation scheme is used between the bins to fill up the dense
-        absorption.  The maximum of df[n] is given by *lines_sparse_df* and the minimum
-        transition between dense-to-sparse grid calculations are given by *lines_sparse_lim*.
+        absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
+        transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
     QuadraticIndependent:
         Using a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]
         until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
         A quadratic interpolation scheme is used between the bins to fill up the dense
-        absorption.  The maximum of df[n] is given by *lines_sparse_df* and the minimum
-        transition between dense-to-sparse grid calculations are given by *lines_sparse_lim*.
+        absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
+        transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
 
 Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
 
@@ -14563,7 +14564,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "Optionally, particle extinction (sum of absorption and scattering\n"
           "coefficient) can be used instead of absorption only. To choose this\n"
-          "case, set the *use_abs_as_ext* flag to 0. However, be aware that\n"
+          "case, set the ``use_abs_as_ext`` flag to 0. However, be aware that\n"
           "this creates some unphysical emission term, hence is only suitable,\n"
           "where the source term is negligible anyways, e.g. for occultation\n"
           "simulations.\n"
@@ -14805,7 +14806,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -14836,20 +14837,20 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "'Normalized particle size distribution for remote sensing\n"
           "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
           "\n"
-          "The PSD has two independent parameters *n0Star*, the intercept\n"
-          "parameter, and *Dm*, the volume-weighted diameter.\n"
+          "The PSD has two independent parameters ``n0Star``, the intercept\n"
+          "parameter, and ``Dm``, the volume-weighted diameter.\n"
           "This implementation expects as input two out of the following\n"
-          "three quantities: *iwc*, *n0Star*, *Dm*. In this case one of\n"
-          "the input parameters *iwc*, *n0Star*, *Dm* must be set to -999.\n*"
-          "It is also possible to provide only *iwc*, in which case an a\n"
-          "priori assumption will be used to deduce *n0Star* from temperature.\n"
-          "In this case both *n0Star* and *Dm* must be set to -999.0.\n"
+          "three quantities: ``iwc``, ``n0Star``, ``Dm``. In this case one of\n"
+          "the input parameters ``iwc``, ``n0Star``, ``Dm`` must be set to -999.\n*"
+          "It is also possible to provide only ``iwc``, in which case an a\n"
+          "priori assumption will be used to deduce ``n0Star`` from temperature.\n"
+          "In this case both ``n0Star`` and ``Dm`` must be set to -999.0.\n"
           "\n"
           "This PSD is not defined for vanishing concentrations of\n"
-          "scatterers as it requires normalization by *Dm*. It is up\n"
-          "to the user to ensure that the value of *Dm* is sufficiently\n"
-          "large. An error is thrown if *Dm* is zero or below the value\n"
-          "provided by *dm_min*.\n"),
+          "scatterers as it requires normalization by ``Dm``. It is up\n"
+          "to the user to ensure that the value of ``Dm`` is sufficiently\n"
+          "large. An error is thrown if ``Dm`` is zero or below the value\n"
+          "provided by ``dm_min``.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14899,7 +14900,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "*beta* paramter of the shape function",
           "Low temperature limit to calculate a psd.",
           "High temperature limit to calculate a psd.",
-          "Lower threshold for *Dm* below which an error is thrown.",
+          "Lower threshold for ``Dm`` below which an error is thrown.",
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -14921,28 +14922,28 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "1e-9 kg/m3.\n"
           "\n"
           "Both parametrization for tropics and midlatitudes are handled,\n"
-          "governed by setting of *regime*, where \"TR\" selectes the tropical\n"
+          "governed by setting of ``regime``, where \"TR\" selectes the tropical\n"
           "case, and \"ML\" the midlatitude one.\n"
           "\n"
           "The validity range of mass content is not limited. Negative mass\n"
           "contents will produce negative psd values following a distribution\n"
           "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
           "\n"
-          "For temperatures below *t_min_psd*, the size distribution is\n"
-          "calculated for T = *t_min_psd*. Likewise, for temperatures above\n"
-          "*t_max_psd*, the distribution is derived for T = *t_max_psd*.\n"
+          "For temperatures below `t_min_psd``, the size distribution is\n"
+          "calculated for T = `t_min_psd``. Likewise, for temperatures above\n"
+          "``t_max_psd``, the distribution is derived for T = ``t_max_psd``.\n"
           "\n"
-          "Defaults of *t_min_psd* and *t_max_psd* were set considering that\n"
+          "Defaults of `t_min_psd`` and ``t_max_psd`` were set considering that\n"
           "the parametrization has been derived from measurements over\n"
           "temperatures of -60C to 0C."
           "\n"
           "Checks of the sanity of the mass-dimension relationship are performed\n"
           "Errors are thrown if:\n"
           "- Mass-dimension relation exponent *scat_species_b* is outside\n"
-          "  [*beta_min*, *beta_max*].\n"),
+          "  [``beta_min``, ``beta_max``].\n"),
       AUTHORS("Jana Mendrok"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14978,8 +14979,8 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "High temperature limit to calculate a psd.",
           "Low temperature limit to use as paramtrization temperature.",
           "High temperature limit to use as paramtrization temperature.",
-          "Low *b* limit (only if picky).",
-          "High *b* limit (only if picky).",
+          "Low ``b`` limit (only if picky).",
+          "High ``b`` limit (only if picky).",
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -15004,7 +15005,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(HWC), ie. abs(psd)=f(abs(HWC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Stuart Fox"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15048,14 +15049,14 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
           "\n"
-          "For temperatures below *t_min_psd*, the size distribution is\n"
-          "calculated for T = *t_min_psd*. Likewise, for temperatures above\n"
-          "*t_max_psd*, the distribution is derived for T = *t_max_psd*.\n"
+          "For temperatures below `t_min_psd``, the size distribution is\n"
+          "calculated for T = `t_min_psd``. Likewise, for temperatures above\n"
+          "``t_max_psd``, the distribution is derived for T = ``t_max_psd``.\n"
           "\n"
-          "Defaults of *t_min_psd* and *t_max_psd* were set considering that\n"
+          "Defaults of `t_min_psd`` and ``t_max_psd`` were set considering that\n"
           "the parametrization has been derived from measurements over\n"
           "temperatures of -70C to -20C."
           "\n"
@@ -15104,7 +15105,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "Derivatives with respect to WC and N_tot are obtained analytically.\n"
           "\n"
           "Six particle size distributions for the different hydrometeors are handled,\n"
-          "governed by setting of *hydrometeor_type*, where \n"
+          "governed by setting of ``hydrometeor_type``, where \n"
           "    \"cloud_water\" selects cloud liquid water , \n"
           "    \"cloud_ice\" selects cloud ice, \n"
           "    \"snow\" selects snow, \n"
@@ -15124,7 +15125,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "negative psd values following a distribution given by abs(WC), ie.\n"
           "abs(psd)=f(abs(WC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
 
           ),
@@ -15186,7 +15187,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "Derivatives can only be obtained for parameters that are specified by\n"
           "*pnd_agenda_input*.\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
@@ -15531,10 +15532,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "*dpnd_data_dx_names*.\n"
           "\n"
           "The method checks that the scattering species indicated (by\n"
-          "*species_index*) has a single element, and just inserts the provided\n"
+          "``species_index``) has a single element, and just inserts the provided\n"
           "number density in *psd_data*.\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15568,11 +15569,11 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "*dpnd_data_dx_names*.\n"
           "\n"
           "The method checks that the scattering species indicated (by\n"
-          "*species_index*) has a single element, and sets *psd_data* based\n"
+          "``species_index``) has a single element, and sets *psd_data* based\n"
           "on the mass contents given and the particle mass (derived from\n"
           "*scat_meta*).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15614,7 +15615,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "Derivatives with respect to WC and N_tot are obtained analytically.\n"
           "\n"
           "Six particle size distributions for the different hydrometeors are handled,\n"
-          "governed by setting of *hydrometeor_type*, where \n"
+          "governed by setting of ``hydrometeor_type``, where \n"
           "    \"cloud_water\" selects cloud liquid water , \n"
           "    \"cloud_ice\" selects cloud ice, \n"
           "    \"snow\" selects snow, \n"
@@ -15634,7 +15635,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "negative psd values following a distribution given by abs(WC), ie.\n"
           "abs(psd)=f(abs(WC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
 
           ),
@@ -15683,7 +15684,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
           "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Jana Mendrok, Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15711,10 +15712,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "A simple way to make *p_grid* more dense.\n"
           "\n"
           "The method includes new values in *p_grid*. For each intermediate\n"
-          "pressure range, *nfill* points are added. That is, setting *nfill*\n"
-          "to zero returns an unmodified copy of *p_grid_old*. The number of\n"
+          "pressure range, ``nfill`` points are added. That is, setting ``nfill``\n"
+          "to zero returns an unmodified copy of ``p_grid_old``. The number of\n"
           "elements of the new *p_grid* is (n0-1)*(1+nfill)+1, where n0 is the\n"
-          "length of *p_grid_old*.\n"
+          "length of ``p_grid_old``.\n"
           "\n"
           "The new points are distributed equidistant in log(p).\n"
           "\n"
@@ -15884,9 +15885,9 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "Grid of dBZe values to use for the table.",
                "Temperature grid to use for the table.",
                "A water content value that gives a dBZe smaller than first "
-               "value of *dbze_grid*.",
+               "value of ``dbze_grid``.",
                "A water content value that gives a dBZe larger than last "
-               "value of *dbze_grid*.",
+               "value of ``dbze_grid``.",
                "Reference temperature for conversion to Ze. See further *yRadar*.",
                "Reference dielectric factor. See further *yRadar*.")));
 
@@ -16351,9 +16352,9 @@ where N>=0 and the species name is something line "H2O".
                   "\n"
                   "The variable is read from a file with name:\n"
                   "   <filename>.<file_index>.xml.\n"
-                  "where <file_index> is the value of *file_index*.\n"
+                  "where <file_index> is the value of ``file_index``.\n"
                   "\n"
-                  "This means that *filename* shall here not include the .xml\n"
+                  "This means that ``filename`` shall here not include the .xml\n"
                   "extension. Omitting filename works as for *ReadXML*.\n"),
       AUTHORS("Oliver Lemke"),
       OUT(),
@@ -16602,7 +16603,7 @@ where N>=0 and the species name is something line "H2O".
           "track. The new ellipsoid is determined simply, by determining the\n"
           "radius at the maximum latitude and from this value calculate a new\n"
           "new eccentricity. The orbit is specified by giving the orbit\n"
-          "inclination (*orbitinc*), that is normally a value around 100 deg\n"
+          "inclination (``orbitinc``), that is normally a value around 100 deg\n"
           "for polar sun-synchronous orbits.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
@@ -16679,7 +16680,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "An error is issued if free electrons not are part of *abs_species*\n"
           "(and there exist a corresponding \"vmr\"-value). This demand is\n"
-          "removed if *demand_vmr_value* is set to 0, but use this option\n"
+          "removed if ``demand_vmr_value`` is set to 0, but use this option\n"
           "with care.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refr_index_air", "refr_index_air_group"),
@@ -16928,7 +16929,7 @@ where N>=0 and the species name is something line "H2O".
           "retrieval quantities and corresponding covariance matrices.\n"
           "By default, Jacobian quantities should be added withing the.\n"
           "retrieval definition section. If Jacobian quantities are\n"
-          "defined separately *initialize_jacobian* must be set to 0,\n"
+          "defined separately ``initialize_jacobian`` must be set to 0,\n"
           "otherwise the quantities will be discarded.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se",
@@ -16956,7 +16957,7 @@ where N>=0 and the species name is something line "H2O".
       NAME("retrievalAddCatalogParameter"),
       DESCRIPTION(
           "Similar to *jacobianAddBasicCatalogParameter* but also adds a corresponding\n"
-          "block to *covmat_sx* with the given *var* as variance value.\n"
+          "block to *covmat_sx* with the given ``var`` as variance value.\n"
           "\n"
           "For number and order of elements added to *x*,\n"
           "see *jacobianAddBasicCatalogParameter*.\n"),
@@ -17351,30 +17352,30 @@ where N>=0 and the species name is something line "H2O".
           "atmosphere outside the cloudbox improving the RT solution for\n"
           "non-plane-parallel media compared to the plain RT4 output.\n"
           "\n"
-          "*nstreams* is the number of polar angles taken into account\n"
-          "internally in the scattering solution. That is, *nstreams*\n"
+          "``nstreams`` is the number of polar angles taken into account\n"
+          "internally in the scattering solution. That is, ``nstreams``\n"
           "determines the angular resolution, hence the accuracy, of the\n"
           "scattering solution. The more anisotropic the bulk scattering\n"
           "matrix, the more streams are required. The computational burden\n"
-          "increases approximately with the third power of *nstreams*.\n"
-          "The default value (*nstreams*=16) was found to be sufficient for\n"
+          "increases approximately with the third power of ``nstreams``.\n"
+          "The default value (``nstreams``=16) was found to be sufficient for\n"
           "most microwave scattering calculations. It is likely insufficient\n"
           "for IR calculations involving ice clouds, though.\n"
           "\n"
           "Here, *za_grid* is NOT an input parameter, but output, and its\n"
-          "size equals *nstreams* or *nstreams*+2 (Gauss-Legendre and Double\n"
-          "Gauss quadratures in case *add_straight_angles*=1) (the reason is\n"
+          "size equals ``nstreams`` or ``nstreams``+2 (Gauss-Legendre and Double\n"
+          "Gauss quadratures in case ``add_straight_angles``=1) (the reason is\n"
           "that the computational burden is high for additional angles,\n"
           "regardless whether they are quadrature angles or not; hence the\n"
           "quadrature angles supplemented with 0 and 180deg are considered to\n"
           "provide the best radiation field for a given effort).\n"
           "\n"
-          "The *auto_inc_nstreams* feature can be used to increase the number\n"
+          "The ``auto_inc_nstreams`` feature can be used to increase the number\n"
           "of streams used internally in the scattering solution when found\n"
           "necessary.\n"
           "NOTE: this number-of-streams increase is only internally - the\n"
           "angular dimension of the output *cloudbox_field* is fixed to the\n"
-          "*nstreams* given as input to this WSM.\n"
+          "``nstreams`` given as input to this WSM.\n"
           "\n"
           "Quadrature methods available are: 'L'obatto, 'G'auss-Legendre and\n"
           "'D'ouble Gauss quadrature.\n"
@@ -17388,7 +17389,7 @@ where N>=0 and the species name is something line "H2O".
           "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
           "  background (temperature taken from the ARTS-internal constant).\n"
           "\n"
-          "The keyword *pfct_method* allows to choose how to extract the\n"
+          "The keyword ``pfct_method`` allows to choose how to extract the\n"
           "scattering matrix, by chosing one specific temperature grid point\n"
           "from the single scattering data: 'low' choses the lowest T-point,\n"
           "'high' the highest T-point, and 'median' the median T-point. As\n"
@@ -17455,19 +17456,19 @@ where N>=0 and the species name is something line "H2O".
                "Flag whether to internally increase nstreams (individually"
                " per frequency) if norm of (bulk) scattering matrix is not"
                " preserved properly. If 0, no adaptation is done. Else"
-               " *auto_inc_nstreams* gives the maximum number of streams to"
+               " ``auto_inc_nstreams`` gives the maximum number of streams to"
                " increase to. Note that the output *cloudbox_field* remains"
-               " with angular dimension of *nstreams*, only the internal"
+               " with angular dimension of ``nstreams``, only the internal"
                " solution is adapted (and then interpolated to the"
                " lower-resolution output angular grid).",
-               "For *auto_inc_nstreams*>0, flag whether to not fail even if"
+               "For ``auto_inc_nstreams``>0, flag whether to not fail even if"
                " scattering matrix norm is not preserved when maximum stream"
                " number is reached. Internal RT4 calculations is then"
-               " performed with nstreams=*auto_inc_nstreams*.",
-               "For *auto_inc_nstreams*>0, polar angle interpolation order"
+               " performed with nstreams=``auto_inc_nstreams``.",
+               "For ``auto_inc_nstreams``>0, polar angle interpolation order"
                " for interpolation from internal increased stream to"
                " originally requested nstreams-ifield.",
-               "For *auto_inc_nstreams*>0, flag whether to do polar angle"
+               "For ``auto_inc_nstreams``>0, flag whether to do polar angle"
                " interpolation in cosine (='mu') space.",
                "Maximum optical depth of infinitesimal layer (where single"
                " scattering approximation is assumed to apply).")));
@@ -17553,16 +17554,16 @@ where N>=0 and the species name is something line "H2O".
                "Flag whether to internally increase nstreams (individually"
                " per frequency) if norm of (bulk) scattering matrix is not"
                " preserved properly. If 0, no adaptation is done. Else"
-               " *auto_inc_nstreams* gives the maximum number of streams to"
+               " ``auto_inc_nstreams`` gives the maximum number of streams to"
                " increase to.",
-               "For *auto_inc_nstreams*>0, flag whether to not fail even if"
+               "For ``auto_inc_nstreams``>0, flag whether to not fail even if"
                " scattering matrix norm is not preserved when maximum stream"
                " number is reached. Internal RT4 calculations is then"
-               " performed with nstreams=*auto_inc_nstreams*.",
-               "For *auto_inc_nstreams*>0, polar angle interpolation order"
+               " performed with nstreams=``auto_inc_nstreams``.",
+               "For ``auto_inc_nstreams``>0, polar angle interpolation order"
                " for interpolation from internal increased stream to"
                " originally requested nstreams-ifield.",
-               "For *auto_inc_nstreams*>0, flag whether to do polar angle"
+               "For ``auto_inc_nstreams``>0, flag whether to do polar angle"
                " interpolation in cosine (='mu') space.",
                "Maximum optical depth of infinitesimal layer (where single"
                " scattering approximation is assumed to apply).")));
@@ -17884,9 +17885,9 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method allows to extend the temperature range of given single\n"
           "scattering data by duplicating optical property data at the low\n"
-          "and/or high limits of the associated temperature grid. *T_low* and\n"
-          "*T_high* specify the temperature grid points that are added.\n"
-          "Extension is only performed if *T_low* is lower and *T_high* is\n"
+          "and/or high limits of the associated temperature grid. ``T_low`` and\n"
+          "``T_high`` specify the temperature grid points that are added.\n"
+          "Extension is only performed if ``T_low`` is lower and ``T_high`` is\n"
           "higher than the original lowest and highest temperatures,\n"
           "respectively, and if the original data contains more than one\n"
           "temperature grid point (i.e., when not assumed constant anyways).\n"
@@ -17902,10 +17903,10 @@ where N>=0 and the species name is something line "H2O".
           "sense and on meaningful single scattering data.\n"
           "\n"
           "The temperature extension is applied on all scattering elements of\n"
-          "a scattering species. If *scat_species* is defined, *species* can\n"
+          "a scattering species. If *scat_species* is defined, ``species`` can\n"
           "be used to select the species on which the extension shall be\n"
-          "applied comparing *species* with the scattering species name part\n"
-          "of *scat_species*. If no *species* is specified, the method is\n"
+          "applied comparing ``species`` with the scattering species name part\n"
+          "of *scat_species*. If no ``species`` is specified, the method is\n"
           "applied on the current last existing scattering species in\n"
           "*scat_data*. Through the latter the method can be applied for cases\n"
           "when *scat_species* is not defined (e.g. when *pnd_field* data is\n"
@@ -18092,14 +18093,14 @@ where N>=0 and the species name is something line "H2O".
           "element, i.e. a combination of particle shape, size, aspect ratio\n"
           "and orientation.\n"
           "\n"
-          "Particle shape (*shape*) has two options:\n"
+          "Particle shape (``shape``) has two options:\n"
           "   \"spheroidal\" and \"cylindrical\"\n"
           "\n"
-          "Particle size (*diameter_volume_equ*) is given as the equivalent\n"
+          "Particle size (``diameter_volume_equ``) is given as the equivalent\n"
           "volume sphere diameter. That is, the diameter obtained if all the\n"
           "particle's material is rearranged into a (solid) sphere.\n"
           "\n"
-          "Particle aspect ratio ar (*aspect_ratio*) is a numeric value, defined\n"
+          "Particle aspect ratio ar (``aspect_ratio``) is a numeric value, defined\n"
           "according to Mishchenko's definition as ratio of horizontal axis a to\n"
           "vertical (rotational) axis b: ar=a/b. That is, oblates have ar>1,\n"
           "prolates ar<1.\n"
@@ -18107,16 +18108,16 @@ where N>=0 and the species name is something line "H2O".
           "To avoid these, we internally increase their aspect ratio by 1e-6,\n"
           "i.e. turning perfect spheres into very light oblates.\n"
           "\n"
-          "Particle type (*ptype*) has two options:\n"
+          "Particle type (``ptype``) has two options:\n"
           "   \"totally_random\" and \"azimuthally_random\"\n"
-          "For totally randomly oriented particles, *data_aa_grid* is not taken\n"
+          "For totally randomly oriented particles, ``data_aa_grid`` is not taken\n"
           "into account (but a Vector type container needs to be passed).\n"
           "\n"
           "For further information on how aspect ratio and the different shapes\n"
           "and orientations are defined, see the documentation of the T-matrix\n"
           "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
           "\n"
-          "Regarding *ndgs*, we refer to the this comment from the documentation:\n"
+          "Regarding ``ndgs``, we refer to the this comment from the documentation:\n"
           "   \"Parameter controlling the number of division points\n"
           "   in computing integrals over the particle surface.\n"
           "   For compact particles, the recommended value is 2.\n"
@@ -18252,7 +18253,7 @@ where N>=0 and the species name is something line "H2O".
           "  of dimension 1.\n"
           "- In the latter case, the scattering element's f_grid value must\n"
           "  not deviate from any of the *f_grid* values by more than a\n"
-          "  fraction of *dfrel_threshold*.\n"
+          "  fraction of ``dfrel_threshold``.\n"
           "- The frequency dimension of pha_mat_data, ext_mat_data, and\n"
           "  abs_vec_data is either equal to the scattering element's f_grid\n"
           "  or 1.\n"
@@ -18265,8 +18266,8 @@ where N>=0 and the species name is something line "H2O".
           "The single scattering property contents are checked using\n"
           "*scat_dataCheck*. For details, see there. The depth of these checks\n"
           "and their rigour can adapted (see description of parameters\n"
-          "*check_level* and *sca_mat_threshold* in *scat_dataCheck*) or can\n"
-          "be skipped entirely (setting *check_level* to 'none').\n"
+          "``check_level`` and ``sca_mat_threshold`` in *scat_dataCheck*) or can\n"
+          "be skipped entirely (setting ``check_level`` to 'none').\n"
           "NOTE: These test shall only be skipped when one is confident that\n"
           "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
           "of data before, e.g. in a separate ARTS run.\n"),
@@ -18282,8 +18283,8 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC("Maximum relative frequency deviation between (single entry)"
                " scattering element f_grid values and the RT calculation's"
                " *f_grid*.",
-               "See *check_level* in *scat_dataCheck*.",
-               "See *sca_mat_threshold* in *scat_dataCheck*.")));
+               "See ``check_level`` in *scat_dataCheck*.",
+               "See ``sca_mat_threshold`` in *scat_dataCheck*.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_monoCalc"),
@@ -18344,7 +18345,7 @@ where N>=0 and the species name is something line "H2O".
           "that is any NaN elements in K, Z, or a or any negative values in\n"
           "the 'scalar' properties K11, Z11, and a1.\n"
           "\n"
-          "When *check_type* is 'all', it is furthermore checked that the\n"
+          "When ``check_type`` is 'all', it is furthermore checked that the\n"
           "scattering matrix is properly normalized, that is that the solid\n"
           "sphere integrated scattering matrix (int_Z11), which is supposed to\n"
           "be normalized to the scattering cross section, is sufficiently\n"
@@ -18352,9 +18353,9 @@ where N>=0 and the species name is something line "H2O".
           "the difference of extinction (K11) and absorption (a1):\n"
           "int_z11 ~ C_sca = K11-a1.\n"
           "Sufficient consistency is defined by the maximum allowed deviation\n"
-          "in single scattering albedo, *sca_mat_threshold*, testing for\n"
+          "in single scattering albedo, ``sca_mat_threshold``, testing for\n"
           "  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) <= sca_mat_threshold.\n"
-          "The check is skipped if *check_type* is 'sane'.\n"),
+          "The check is skipped if ``check_type`` is 'sane'.\n"),
       AUTHORS("Claudia Emde", "Jana Mendrok"),
       OUT(),
       GOUT(),
@@ -18408,7 +18409,7 @@ where N>=0 and the species name is something line "H2O".
           "*scat_species_a* for details.\n"
           "\n"
           "The quantity to be used as size descriptor is here denoted as x, and\n"
-          "is selected by setting *x_unit*. The options are:\n"
+          "is selected by setting ``x_unit``. The options are:\n"
           " \"dveq\" : The size grid is set to scat_meta.diameter_volume_equ\n"
           " \"dmax\" : The size grid is set to scat_meta.diameter_max\n"
           " \"area\" : The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
@@ -18446,7 +18447,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "This WSM checks if the input particle field (e.g.\n"
           "*particle_bulkprop_field*) contains values\n"
-          "smaller than the given *threshold*. In this case, these values will\n"
+          "smaller than the given ``threshold``. In this case, these values will\n"
           "be set to zero.\n"
           "\n"
           "The method should be applied if the particle fields contain\n"
@@ -18471,7 +18472,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Tensor4", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("A particle property field, e.g. *particle_bulkprop_field*",
-               "Threshold below which the *particle_field* values are set to"
+               "Threshold below which the ``particle_field`` values are set to"
                " zero.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -18582,14 +18583,14 @@ where N>=0 and the species name is something line "H2O".
           "The geometric line-of-sight between pair of points.\n"
           "\n"
           "The method sets *sensor_los* to the line-of-sights, that matches the\n"
-          "geometrical propagation path from *sensor_pos* to *target_pos*. This\n"
+          "geometrical propagation path from *sensor_pos* to ``target_pos``. This\n"
           "is done for pair of positions, i.e. the two matrices shall have the same\n"
-          "number of rows. The number of columns in *target_pos* shall be two for\n"
+          "number of rows. The number of columns in ``target_pos`` shall be two for\n"
           "1D and 2D and two for 3D, exactly as for *rte_pos2*.\n"
           "\n"
           "See also *rte_losGeometricFromRtePosToRtePos2*. This method calls that\n"
           "method for each pair of positions, where values in *sensor_pos* matches\n"
-          "*rte_pos and values in *target_pos* matches *rte_pos2*.\n"),
+          "*rte_pos and values in ``target_pos`` matches *rte_pos2*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -18756,14 +18757,14 @@ where N>=0 and the species name is something line "H2O".
           "sufficiently broad).\n"
           "\n"
           "There exist different options for two dimensional antenna patterns.\n"
-          "(If 2D, the GIN *option_2d* must be set, the default setting results\n"
+          "(If 2D, the GIN ``option_2d`` must be set, the default setting results\n"
           "in an error). A normalisation is always applied for 2D antennas.\n"
           "\n"
           "\"interp_response\"\n"
           "Both radiances and the antenna pattern are treated as step-wise\n"
           "constant functions. The antenna pattern is interpolated to the\n"
           "*mblock_dlos* directions. At extrapolation, the antenna response\n"
-          "is set to zero. This option considers GIN *solid_angles*, that\n"
+          "is set to zero. This option considers GIN ``solid_angles``, that\n"
           "shall be a vector with length matching the rows of *mblock_dlos*.\n"
           "The values going into *sensor_response* are the interpolated antenna\n"
           "values times the corresponding solid angle.\n"
@@ -18947,8 +18948,8 @@ where N>=0 and the species name is something line "H2O".
           "method shall normally be called directly after *sensor_responseInit*.\n"
           "\n"
           "Between each neighbouring points of *f_grid*, this method adds\n"
-          "*nfill* grid points. The polynomial order of the interpolation is\n"
-          "*polyorder*.\n"),
+          "``nfill`` grid points. The polynomial order of the interpolation is\n"
+          "``polyorder``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -19107,7 +19108,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method does not support 2D atmospheres (across-track scanning is\n"
           "inconsistent with 2D). For simpler switching between 1D and 3D,\n"
-          "the argument *mirror_dza* is at hand. It can only be used for 3D.\n"
+          "the argument ``mirror_dza`` is at hand. It can only be used for 3D.\n"
           "If set to true, the zenith angles in *antenna_dlos* are mapped\n"
           "to also cover the other side of the swath and the simulations will\n"
           "cover both sides of the swath.\n"),
@@ -19532,7 +19533,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The size of the matrix created is n x n. Default is to return a\n"
           "true identity matrix (I), but you can also select another value\n"
-          "along the diagonal be setting *value*. That is, the output is\n"
+          "along the diagonal be setting ``value``. That is, the output is\n"
           "value*I.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
@@ -19581,10 +19582,10 @@ where N>=0 and the species name is something line "H2O".
           "critical for the accuracy for zenith angles close to 90 degrees. That\n"
           "is, using ppath_lmax=-1 is not recommended for this function.\n"
           "\n"
-          "Information on transmittance is also provided by the GOUT *trans_field*.\n"
+          "Information on transmittance is also provided by the GOUT ``trans_field``.\n"
           "For up-welling radiation (scat_za > 90), this variable holds the\n"
           "transmittance to space, for considered position and propagation direction.\n"
-          "For down-welling radiation, *trans_field* holds instead the transmittance\n"
+          "For down-welling radiation, ``trans_field`` holds instead the transmittance\n"
           "down to the surface.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("spectral_radiance_field"),
@@ -19717,8 +19718,8 @@ where N>=0 and the species name is something line "H2O".
           "specular direction. That is, the variation of *z_surface* (as well as\n"
           "the geoid radius) is considered and the specular direction is calculated\n"
           "including the specified topography. This part can be deactivated by\n"
-          "setting *ignore_surface_slope* to 1. In this case, the zenith angle of\n"
-          "the specular direction is simply 180-rtp_los[0]. *ignore_surface_slope*\n"
+          "setting ``ignore_surface_slope`` to 1. In this case, the zenith angle of\n"
+          "the specular direction is simply 180-rtp_los[0]. ``ignore_surface_slope``\n"
           "has only an effect for 2D and 3D, as 1D implies a constant radius of\n"
           "the surface (i.e. no topography).\n"),
       AUTHORS("Patrick Eriksson"),
@@ -20240,17 +20241,17 @@ where N>=0 and the species name is something line "H2O".
           "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
           "\n"
           "The down-welling radiation field is estimated by making calculations\n"
-          "for *lambertian_nza* directions. The range of zenith angles ([0,90])\n"
+          "for ``lambertian_nza`` directions. The range of zenith angles ([0,90])\n"
           "is divided in an equidistant manner for 1D. For 2D and 3D see below.\n"
           "The values for *surface_rmatrix* are assuming a constant radiance\n"
           "over each zenith angle range. See AUG.\n"
           "\n"
           "Default is to select the zenith angles for *sensor_los* to be placed\n"
-          "centrally in the grid ranges. For example, if *lambertian_nza* is set\n"
+          "centrally in the grid ranges. For example, if ``lambertian_nza`` is set\n"
           "to 9, down-welling radiation will be calculated for zenith angles = \n"
           "5, 15, ..., 85. The position of these angles can be shifted by\n"
-          "*za_pos*. This variable specifies the fractional distance inside the\n"
-          "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
+          "``za_pos``. This variable specifies the fractional distance inside the\n"
+          "ranges. For example, a ``za_pos`` of 0.7 (np still 9) gives the angles\n"
           "7, 17, ..., 87.\n"
           "\n"
           "Only upper-left diagonal element of the *surface_rmatrix* is\n"
@@ -20297,7 +20298,7 @@ where N>=0 and the species name is something line "H2O".
           "properties with *stokes_dim* set to 2, 3 or 4. This Stokes dimension\n"
           "is below called local_stokes_dim.\n"
           "\n"
-          "The polarisation to apply is selected by *pol_angle*. This angle is\n"
+          "The polarisation to apply is selected by ``pol_angle``. This angle is\n"
           "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
           "\n"
           "If local_stokes_dim was set to 2, *surface_rmatrix is assumed to have\n"
@@ -20346,13 +20347,13 @@ where N>=0 and the species name is something line "H2O".
           "pencil beam hits the surface at a position that is not contained in the\n"
           "given atlas.\n"
           "\n"
-          "The above behavior can be avoided by setting *d_max* to a positive value.\n"
+          "The above behavior can be avoided by setting ``d_max`` to a positive value.\n"
           "This enables nearest neighbor interpolation, which assigns the emissivities\n"
           "of the nearest found cell in the atlas to the given position. In this case,\n"
           "an error is only thrown if the distance of the found neighbor is higher\n"
           "than the provided value of *d_max.\n"
           "\n"
-          "You can limit the final reflectivity applied by setting *r_min* and *r_max*.\n"
+          "You can limit the final reflectivity applied by setting ``r_min`` and ``r_max``.\n"
           "\n"
           "To extract a land-sea mask from a given telsem atlas see the WSM\n"
           "*telsemSurfaceTypeLandSea*.\n"),
@@ -20832,13 +20833,13 @@ where N>=0 and the species name is something line "H2O".
           "The method works with scalar reflectivies, i.e. it is assumed that\n"
           "the reflection at vertical and horizontal polarisation is identical.\n"
           "The scalar reflectivity is given at a number of frequencies,\n"
-          "specified by the GIN *f_reflectivities*. The reflectivity at the\n"
+          "specified by the GIN ``f_reflectivities``. The reflectivity at the\n"
           "first frequency is denoted as \"Scalar reflectivity 0\" etc. Between\n"
-          "the frequencies in *f_reflectivities*, the reflectivity is treated\n"
+          "the frequencies in ``f_reflectivities``, the reflectivity is treated\n"
           "to vary linearly. The reflectivity is assumed to be constant outside\n"
-          "of *f_reflectivities*, and the end points in *f_reflectivities* can be\n"
+          "of ``f_reflectivities``, and the end points in ``f_reflectivities`` can be\n"
           "both inside and outside of the range of *f_grid*. Setting\n"
-          "*f_reflectivities* to have a single value, implies that the reflectivity\n"
+          "``f_reflectivities`` to have a single value, implies that the reflectivity\n"
           "is constant over *f_grid*.\n"
           "\n"
           "For this method, *surface_props_data* must contain these data:\n"
@@ -20847,7 +20848,7 @@ where N>=0 and the species name is something line "H2O".
           "  \"Scalar reflectivity 1\"\n"
           "  ...\n"
           "  \"Scalar reflectivity N\"\n"
-          "where N is the length of *f_reflectivities*-1.\n"),
+          "where N is the length of ``f_reflectivities``-1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -20972,11 +20973,11 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "Since TELSEM atlases do not contain data for all locations\n"
           "this function allows for nearest neighbor interpolation, which\n"
-          "can be enabled by setting the *d_max* GIN to a positive value.\n"
+          "can be enabled by setting the ``d_max`` GIN to a positive value.\n"
           "\n"
           "This WSM throws a runtime error if the queried location is not\n"
           "contained in the atlas or the distance of the neighboring cell\n"
-          "exceeds the given *d_max* value.\n"),
+          "exceeds the given ``d_max`` value.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("emissivities"),
@@ -21192,9 +21193,9 @@ where N>=0 and the species name is something line "H2O".
          "\n"
          "The method allows you to apply hard limits the values of a\n"
          "Tensor4. The quantati (book dimension) is specified by *iq*.\n"
-         "*All values of the quantity below *limit_low*, are simply\n"
-         "set to *limit_low*. And the same is performed with respect to\n"
-         "*limit_high*. That is, the data in x for the quantity are\n"
+         "*All values of the quantity below ``limit_low``, are simply\n"
+         "set to ``limit_low``. And the same is performed with respect to\n"
+         "``limit_high``. That is, the data in x for the quantity are\n"
          "forced to be inside the range [limit_low,limit_high].\n"
          "\n"
          "Setting iq=-1, is a shortcut for applying the limits on all\n"
@@ -21493,7 +21494,7 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("time_stampsSort"),
-      DESCRIPTION("Sort *in* by *time_stamps* into *out*.\n"),
+      DESCRIPTION("Sort ``in`` by *time_stamps* into ``out``.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("out"),
@@ -21613,10 +21614,10 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method calculates c = a + b.\n"
           "\n"
-          "The variable *b* is allowed to have length 1, for any length of\n"
-          "*a*. This single value in *b* is then added to every element of *a*.\n"
+          "The variable ``b`` is allowed to have length 1, for any length of\n"
+          "``a``. This single value in ``b`` is then added to every element of ``a``.\n"
           "\n"
-          "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
           "the same WSV as any of the the other vector.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -21635,13 +21636,13 @@ where N>=0 and the species name is something line "H2O".
           "Clipping of a vector.\n"
           "\n"
           "The input vector is copied to the output one (that can be same WSV)\n"
-          "but ensures that all values in *out* are inside the range [limit_low,\n"
-          "limit_high]. Where the input vector is below *limit_low*, *out* is set\n"
-          "to *limit_low*. And the same is performed with respect to *limit_high*.\n"
+          "but ensures that all values in ``out`` are inside the range [limit_low,\n"
+          "limit_high]. Where the input vector is below ``limit_low``, ``out`` is set\n"
+          "to ``limit_low``. And the same is performed with respect to ``limit_high``.\n"
           "That is, the method works as *NumericClip* for each element of the\n"
           "vector.\n"
           "\n"
-          "The method adopts the length of *out* when needed.\n"),
+          "The method adopts the length of ``out`` when needed.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -21701,10 +21702,10 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method calculates c = a / b.\n"
           "\n"
-          "The variable *b* is allowed to have length 1, for any length of\n"
-          "*a*. This single value in *b* is then applied to every element of *a*.\n"
+          "The variable ``b`` is allowed to have length 1, for any length of\n"
+          "``a``. This single value in ``b`` is then applied to every element of ``a``.\n"
           "\n"
-          "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
           "the same WSV as any of the the other vector.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -21819,7 +21820,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The first element equals always the start value, and the spacing\n"
           "equals always the step value, but the last value can deviate from\n"
-          "the stop value. *step* can be both positive and negative.\n"
+          "the stop value. ``step`` can be both positive and negative.\n"
           "\n"
           "The created vector is [start, start+step, start+2*step, ...]\n "),
       AUTHORS("Patrick Eriksson"),
@@ -21907,11 +21908,11 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method calculates c = a * b.\n"
           "\n"
-          "The variable *b* is allowed to have length 1, for any length of\n"
-          "*a*. This single value in *b* is then multiplied with every element\n"
-          "of *a*.\n"
+          "The variable ``b`` is allowed to have length 1, for any length of\n"
+          "``a``. This single value in ``b`` is then multiplied with every element\n"
+          "of ``a``.\n"
           "\n"
-          "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
           "the same WSV as any of the the other vector.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -22077,10 +22078,10 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method calculates c = a - b.\n"
           "\n"
-          "The variable *b* is allowed to have length 1, for any length of\n"
-          "*a*. This single value in *b* is then subtracted to every element of *a*.\n"
+          "The variable ``b`` is allowed to have length 1, for any length of\n"
+          "``a``. This single value in ``b`` is then subtracted to every element of ``a``.\n"
           "\n"
-          "The vectors *a* and *c* can be the same WSV, while *b* can not be\n"
+          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
           "the same WSV as any of the the other vector.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -22234,9 +22235,9 @@ where N>=0 and the species name is something line "H2O".
           "Clipping of *vmr_field*.\n"
           "\n"
           "The method allows you to apply hard limits the values of *vmr_field*.\n"
-          "All values, of the species selected, below *limit_low*, are simply\n"
-          "set to *limit_low*. And the same is performed with respect to\n"
-          "*limit_high*. That is, the data in x for the retrieval quantity are\n"
+          "All values, of the species selected, below ``limit_low``, are simply\n"
+          "set to ``limit_low``. And the same is performed with respect to\n"
+          "``limit_high``. That is, the data in x for the retrieval quantity are\n"
           "forced to be inside the range [limit_low,limit_high].\n"
           "\n"
           "Setting species=\"ALL\", is a shortcut for applying the limits on all\n"
@@ -22350,7 +22351,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "Only the first H2O species is modified.\n"
           "\n"
-          "The default value of *vmr_threshold* aims at avoiding changing VMRs\n"
+          "The default value of ``vmr_threshold`` aims at avoiding changing VMRs\n"
           "above the tropopause.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("vmr_field"),
@@ -22371,7 +22372,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "Default is setting the saturation pressure to the one with respect\n"
           "to water at temperatures >= 0C, and to the one with respect to ice\n"
-          "for <0C. The GIN *only_liquid* allows you to apply the liquid value\n"
+          "for <0C. The GIN ``only_liquid`` allows you to apply the liquid value\n"
           "at all temperatures.\n"
           "\n"
           "The saturation pressure with respect to liquid and ice water is\n"
@@ -22643,7 +22644,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("filename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of the *molecular_tau_file*.")));
+      GIN_DESC("Name of the ``molecular_tau_file``.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteNetCDF"),
@@ -22754,9 +22755,9 @@ where N>=0 and the species name is something line "H2O".
                   "\n"
                   "The variable is written to a file with name:\n"
                   "   <filename>.<file_index>.xml.\n"
-                  "where <file_index> is the value of *file_index*.\n"
+                  "where <file_index> is the value of ``file_index``.\n"
                   "\n"
-                  "This means that *filename* shall here not include the .xml\n"
+                  "This means that ``filename`` shall here not include the .xml\n"
                   "extension. Omitting filename works as for *WriteXML*.\n"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT(),
@@ -22833,9 +22834,9 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method allows you to apply hard limits the values of a\n"
           "retrieval quantity. The retrieval quantity is specified by\n"
-          "*ijq*. All values of the quantity below *limit_low*, are simply\n"
-          "set to *limit_low*. And the same is performed with respect to\n"
-          "*limit_high*. That is, the data in x for the retrieval quantity\n"
+          "``ijq``. All values of the quantity below ``limit_low``, are simply\n"
+          "set to ``limit_low``. And the same is performed with respect to\n"
+          "``limit_high``. That is, the data in x for the retrieval quantity\n"
           "are forced to be inside the range [limit_low,limit_high].\n"
           "\n"
           "Setting ijq=-1, is a shortcut for applying the limits on all\n"
@@ -23079,10 +23080,10 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "Assumes data is ordered as Cold-Atm-Hot-Atm-Cold-Atm-Hot-Atm-...,\n"
           "but Cold does not have to be at data[0], instead the first cold\n"
-          "position is set by *first_c_index*, which defaults to 0 but can be any positive\n"
-          "index so that *level0_data*[*first_c_index*] is a cold-measurements.  Note that if\n"
-          "*first_c_index* is larger than 1, then the first output data will be around the\n"
-          "observation cycle -HAC-, where H is at *first_c_index*-2\n"
+          "position is set by ``first_c_index``, which defaults to 0 but can be any positive\n"
+          "index so that *level0_data*[``first_c_index``] is a cold-measurements.  Note that if\n"
+          "``first_c_index`` is larger than 1, then the first output data will be around the\n"
+          "observation cycle -HAC-, where H is at ``first_c_index``-2\n"
           "\n"
           "Also returns the times of the Atm measurements in *sensor_time*\n"
           "if the measurement's time data is provided\n"
@@ -23419,14 +23420,14 @@ where N>=0 and the species name is something line "H2O".
           "calculations. If an atmospheric quantity is part of both Jacobians,\n"
           "the same retrieval grids must be used in both cases.\n"
           "The treatment of instrument related Jacobians (baseline fits,\n"
-          "pointing ...) follows the *append_instrument_wfs* argument.\n"
+          "pointing ...) follows the ``append_instrument_wfs`` argument.\n"
           "\n"
           "A difference to *yCalc* is that *jacobian_quantities* is both in-\n"
           "and output variable. The input version shall match the measurement\n"
           "to be calculated, while the output version matches the output *y*,\n"
           "the combined, measurements. A copies of *jacobian_quantities* of the\n"
           "first measurement must be made and shall be provided to the method\n"
-          "as *jacobian_quantities_copy*.\n"
+          "as ``jacobian_quantities_copy``.\n"
           "\n"
           "As for *yCalc* Jacobian transformations are not handled, and the\n"
           "the input Jacobian shall not contain transformations. That is\n"
@@ -23522,15 +23523,15 @@ where N>=0 and the species name is something line "H2O".
           "where sum(sigma) = 4 * pi * b, and b is the backscatter coefficient.\n"
           "\n"
           "The reference dielectric factor can either specified directly by\n"
-          "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"
-          "shall be set to 0.75 (citaion needed). If *k2* is set to be \n"
+          "the argument ``k2``. For example, to mimic the CloudSat data, ``k2``\n"
+          "shall be set to 0.75 (citaion needed). If ``k2`` is set to be \n"
           "negative (which is defualt), k2 is calculated as:\n"
           "   k2 = abs( (n^2-1)/(n^2+2) )^2,\n"
           "where n is the refractive index of liquid water at temperature\n"
-          "*ze_tref* and the frequency of the radar, calculated by the MPM93\n"
+          "``ze_tref`` and the frequency of the radar, calculated by the MPM93\n"
           "parameterization.\n"
           "\n"
-          "A lower limit for dBZe is applied (*dbze_min*). The main reason is to\n"
+          "A lower limit for dBZe is applied (``dbze_min``). The main reason is to\n"
           "handle the fact that dBZe is not defined for Ze=0, and dBZe is set to\n"
           "the clip value when Ze < 10^(dbze_min/10).\n"),
       AUTHORS("Patrick Eriksson"),
@@ -23570,7 +23571,7 @@ where N>=0 and the species name is something line "H2O".
           "monochromatic pencil beam data to spectra with a fixed resolution.\n"
           "\n"
           "The method mimics a spectrometer with rectangular response\n"
-          "functions, all having the same width (*df*). The position of\n"
+          "functions, all having the same width (``df``). The position of\n"
           "the first spectrometer channel is set to f_grid[0]+df/2.\n"
           "The centre frequency of channels are returned as *y_f*.\n"
           "\n"
@@ -24668,7 +24669,7 @@ Options are:
     String doc{R"--(Sets the *propmat_clearsky_agenda* automatically
 
 This method introspects the input and uses it for generating the
-*propmat_clearsky_agenda* automatically.  If *use_abs_lookup*, all
+*propmat_clearsky_agenda* automatically.  If ``use_abs_lookup``, all
 methods that can be used to generate the absorption lookup table
 are ignored and instead the calculations from the absorption
 lookup are used.

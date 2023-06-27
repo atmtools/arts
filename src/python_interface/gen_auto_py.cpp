@@ -1,9 +1,11 @@
 #include <global_data.h>
 
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -99,6 +101,10 @@ struct AgendaData {
   std::vector<std::string> outs;
 };
 
+String unwrap_stars(String);
+
+String add_type(String, const String&);
+
 std::map<std::string, Group> groups() {
   std::map<std::string, std::size_t> group;
   for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
@@ -107,17 +113,18 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::string> desc;
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
+
     val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds a :class:`~pyarts.arts.",
                      global_data::wsv_groups[x.Group()].name,
                      "`: ",
-                     x.Description());
+                     add_type(unwrap_stars(x.Description()), global_data::wsv_groups[x.Group()].name));
     
     //! FIXME: Better default, why can't it print???
     if (x.has_defaults())
       val += var_string("\nDefault value\n"
-                        "-------------\n\n",
+                        "-------------\n\n``",
                         TokValPrinter(x.default_value()),
-                        "\n\n");
+                        "``\n\n");
 
     std::pair<std::vector<std::string>, std::vector<std::string>> usedocs;
     for (auto& method : global_data::md_data_raw) {
@@ -511,8 +518,8 @@ void workspace_variables(size_t n, const NameMaps& arts) {
 void print_method_desc(std::ofstream& os,
                        const Method& method,
                        const std::map<std::string, Group>& groups,
-                       bool pass_verbosity) {
-  os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << method.desc;
+                       bool pass_verbosity) try {
+  os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << unwrap_stars(method.desc);
   os << "\nAuthor(s): ";
   for (auto& author : method.authors) {
     if (&author == &method.authors.back() and method.authors.size() > 1) {
@@ -538,7 +545,7 @@ void print_method_desc(std::ofstream& os,
   for (size_t i = 0; i < method.gout.name.size(); i++) {
     os << method.gout.name[i] << " : "
        << "~pyarts.arts." << method.gout.group[i] << "\n    "
-       << method.gout.desc[i] << " (OUT)\n";
+       << unwrap_stars(method.gout.desc[i]) << " (OUT)\n";
   }
   for (const auto& i : method.in.varname) {
     if (std::none_of(method.out.varname.cbegin(),
@@ -555,7 +562,7 @@ void print_method_desc(std::ofstream& os,
     if (method.gin.hasdefs[i]) {
       os << ", optional";
     }
-    os << "\n    " << method.gin.desc[i] << " (IN";
+    os << "\n    " << unwrap_stars(method.gin.desc[i]) << " (IN";
     if (method.gin.hasdefs[i]) {
       os << "; default: " << method.gin.defs[i];
     }
@@ -566,6 +573,10 @@ void print_method_desc(std::ofstream& os,
     os << "verbosity : ~pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` (IN)\n";
 
   os << "\n)-METHODS_DESC-\")";
+} catch (std::invalid_argument& e) {
+  throw std::runtime_error(var_string("Failing in method ", std::quoted(method.name), " with error message:\n", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(e.what());
 }
 
 void print_method_args(std::ofstream& os,

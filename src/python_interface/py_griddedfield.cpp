@@ -49,7 +49,7 @@ void py_griddedfield(py::module_& m) {
       .def_readwrite_static("to_dict", &details::GriddedField::to_dict)
       .def_readwrite_static("from_xarray", &details::GriddedField::from_xarray);
 
-  py::class_<GriddedField>(m, "_GriddedField")
+  py::class_<GriddedField>(m, "GriddedField")
       .def_property_readonly(
           "dim",
           [](GriddedField& gf) { return gf.get_dim(); },

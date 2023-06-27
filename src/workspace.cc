@@ -1218,7 +1218,7 @@ void define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("dnlte_source_dx"),
       DESCRIPTION(
-          "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
+          "NLTE partial derivatives output is two parts:  S * dB/dx + dS/dx * B.\n"
           "\n"
           "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
           "\n"
@@ -1284,7 +1284,7 @@ void define_wsv_data() {
           "This variable holds the value of the scattering integral for all\n"
           "points inside the cloudbox. For more information refer to AUG.\n"
           "\n"
-          "Usage: Input to *cloudbox_fieldUpdate...*. \n"
+          "Usage: Input to ``cloudbox_fieldUpdate...``. \n"
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
@@ -2003,8 +2003,8 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "The matrix holding the Jacobians of the retrieval quantities. The\n"
           "matrix has to be initialised before the retrieval quantities can be\n"
-          "defined. Initialisation is done by*jacobianInit*. Retrieval quantities\n"
-          "are then added with *jacobianAdd...* or *retrievalAdd..* methods.\n"
+          "defined. Initialisation is done by *jacobianInit*. Retrieval quantities\n"
+          "are then added with ``jacobianAdd...`` or ``retrievalAdd...`` methods.\n"
           "\n"
           "The order between rows and columns follows how data are stored in *y*\n"
           "and *x*, respectively.\n"
@@ -3478,7 +3478,7 @@ Can currently only contain data for new MT CKD models of water.
           "vector must have length 2, where the two elements are:\n"
           "  1: Equatorial radius.\n"
           "  2: The eccentricity.\n"
-          "The eccentricity is sqrt(1-b*b/a*a) where a and b are equatorial and\n"
+          "The eccentricity is sqrt(1-b * b/a * a) where a and b are equatorial and\n"
           "polar radius, respectively. If the eccentricity is set to 0, an\n"
           "average radius should be used instead of the equatorial one.\n"
           "\n"
@@ -4272,11 +4272,11 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "configuration. The *sensor_response* has to initialised by the \n"
           "*sensor_responseInit* method.\n"
           "\n"
-          "Usage: Output/input to the *sensor_response...* methods.\n"
+          "Usage: Output/input to the ``sensor_response...`` methods.\n"
           "\n"
           "Units: -\n"
           "\n"
-          "Dimension: See the individual *sensor_response...* method. \n"),
+          "Dimension: See the individual ``sensor_response...`` method. \n"),
       GROUP("Sparse")));
 
   wsv_data.push_back(WsvRecord(
