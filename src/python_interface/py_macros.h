@@ -295,25 +295,26 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
            py::doc("Automatic conversion from a workspace variable"))
 
 //! Place at the end!
-#define PythonInterfaceWorkspaceDocumentation(Type)                            \
-  doc() =                                                                      \
-      var_string(                                                              \
-          global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)).desc, \
-          '\n',                                                                \
-          group_generics_inout(#Type),                                         \
-          group_workspace_types(#Type))                                        \
-          .c_str()
+#define PythonInterfaceWorkspaceDocumentation(Type)                           \
+  doc() = unwrap_stars(var_string(global_data::wsv_groups                     \
+                                      .at(global_data::WsvGroupMap.at(#Type)) \
+                                      .desc,                                  \
+                                  '\n',                                       \
+                                  group_generics_inout(#Type),                \
+                                  group_workspace_types(#Type)))              \
+              .c_str()
 
 //! Place at the end!  Add a few line-breaks to fit in extra documentation!
-#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)              \
-  doc() = var_string(                                                        \
-              global_data::wsv_groups.at(global_data::WsvGroupMap.at(#Type)) \
-                      .desc +                                                \
-                  extra,                                                     \
-              '\n',                                                          \
-              group_generics_inout(#Type),                                   \
-              group_workspace_types(#Type))                                  \
-              .c_str()
+#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)               \
+  doc() =                                                                     \
+      unwrap_stars(var_string(global_data::wsv_groups                         \
+                                      .at(global_data::WsvGroupMap.at(#Type)) \
+                                      .desc +                                 \
+                                  extra,                                      \
+                              '\n',                                           \
+                              group_generics_inout(#Type),                    \
+                              group_workspace_types(#Type)))                  \
+          .c_str()
 
 /*! The workspace array interface
 
@@ -353,45 +354,42 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)
 
 #define PythonInterfaceGriddedField(Type)                                       \
-  def_readwrite("data", &Type::data)                                            \
-      .def(                                                                     \
-          py::pickle(                                                           \
-              [](const Type& self) {                                            \
-                Index n = self.get_dim();                                       \
-                std::vector<std::variant<Vector, ArrayOfString>> outgrid;       \
-                ArrayOfString outname;                                          \
+  def_readwrite("data", &Type::data, "Data of field")                           \
+      .def(py::pickle(                                                          \
+          [](const Type& self) {                                                \
+            Index n = self.get_dim();                                           \
+            std::vector<std::variant<Vector, ArrayOfString>> outgrid;           \
+            ArrayOfString outname;                                              \
                                                                                 \
-                for (Index i = 0; i < n; i++) {                                 \
-                  outname.emplace_back(self.get_grid_name(i));                  \
-                  if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)               \
-                    outgrid.emplace_back(self.get_numeric_grid(i));             \
-                  else                                                          \
-                    outgrid.emplace_back(self.get_string_grid(i));              \
-                }                                                               \
+            for (Index i = 0; i < n; i++) {                                     \
+              outname.emplace_back(self.get_grid_name(i));                      \
+              if (self.get_grid_type(i) == GRID_TYPE_NUMERIC)                   \
+                outgrid.emplace_back(self.get_numeric_grid(i));                 \
+              else                                                              \
+                outgrid.emplace_back(self.get_string_grid(i));                  \
+            }                                                                   \
                                                                                 \
-                return py::make_tuple(                                          \
-                    self.get_name(), self.data, outname, outgrid);              \
-              },                                                                \
-              [](const py::tuple& t) {                                          \
-                ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")             \
+            return py::make_tuple(                                              \
+                self.get_name(), self.data, outname, outgrid);                  \
+          },                                                                    \
+          [](const py::tuple& t) {                                              \
+            ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")                 \
                                                                                 \
-                auto name = t[0].cast<String>();                                \
-                auto data = t[1].cast<decltype(Type::data)>();                  \
-                auto grid_names = t[2].cast<ArrayOfString>();                   \
-                auto grids = t[3].cast<                                         \
-                    std::vector<std::variant<Vector, ArrayOfString>>>();        \
+            auto name = t[0].cast<String>();                                    \
+            auto data = t[1].cast<decltype(Type::data)>();                      \
+            auto grid_names = t[2].cast<ArrayOfString>();                       \
+            auto grids =                                                        \
+                t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>();  \
                                                                                 \
-                auto out = std::make_unique<Type>(name);                        \
-                out->data = data;                                               \
-                for (Index i = 0; i < out->get_dim(); i++) {                    \
-                  out->set_grid_name(i, grid_names[i]);                         \
-                  std::visit([&](auto&& v) { out->set_grid(i, v); },            \
-                             grids[i]);                                         \
-                }                                                               \
+            auto out = std::make_unique<Type>(name);                            \
+            out->data = data;                                                   \
+            for (Index i = 0; i < out->get_dim(); i++) {                        \
+              out->set_grid_name(i, grid_names[i]);                             \
+              std::visit([&](auto&& v) { out->set_grid(i, v); }, grids[i]);     \
+            }                                                                   \
                                                                                 \
-                return out;                                                     \
-              }),                                                               \
-          py::doc("Data of the gridded field (tensor of gridded field size)"))  \
+            return out;                                                         \
+          }))                                                                   \
       .def(                                                                     \
           "__eq__",                                                             \
           [](Type& g1, Type& g2) {                                              \
@@ -444,7 +442,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           [](py::object& g) {                                                   \
             return g.attr("data").attr("value").attr("shape");                  \
           },                                                                    \
-          "Shape of the gridded field")                                         \
+          ":class:`list` Shape of the gridded field")                           \
       .def(                                                                     \
           "__getitem__",                                                        \
           [](py::object& g, py::object& i) {                                    \
@@ -513,17 +511,17 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
             return details::GriddedField::from_xarray(g, v);                    \
           },                                                                    \
           py::doc(                                                              \
-              R"--(Create GriddedField from a xarray.DataArray object.\
+              R"--(Create gridded field from a :class:`xarray.DataArray` object.\
 \
-The data and its dimensions are returned as a :class:`GriddedField` object.\
-The DataArray name is used as name for the gridded field. If the attribute\
-`data_name` is present, it is used as `dataname` on the :class:`GriddedField`.\
+The data and its dimensions are returned as a gridded field object.\
+The :class:`~xarray.DataArray` name is used as name for the gridded field. If the attribute\
+:attr:`name` is present, it is used as `dataname` on the class.\
 \
 Parameters:\
-    da (xarray.DataArray): xarray.DataArray containing the dimensions and data.\
+    da (:class:`xarray.DataArray`): Object containing the dimensions and data.\
 \
 Returns:\
-    GriddedField object.\
+    gridded field object.\
 )--"))
 
 #define PythonInterfaceReadWriteData(Type, data) \

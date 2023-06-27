@@ -67,11 +67,11 @@ def refine_grid(gin, new_grid, axis=0, type="linear", hidden_kwargs={}):
 
 
 def to_xarray(g):
-    """Convert GriddedField to xarray.DataArray object.
-    Convert a GriddedField object into a :func:`xarray.DataArray`
-    object.  The dataname is used as the DataArray name.
+    """Convert gridded field to :class:`xarray.DataArray` object.
+    Convert a gridded field object into a :class:`xarray.DataArray`
+    object.  The dataname is used as the :class:`~xarray.DataArray` name.
     Returns:
-        xarray.DataArray object corresponding to gridded field
+        (:class:`xarray.DataArray`): Object corresponding to gridded field
     """
 
     da = xarray.DataArray(g.data)
@@ -87,12 +87,12 @@ def to_xarray(g):
 
 
 def from_xarray(cls, da):
-    """Create GriddedField from a xarray.DataArray object.
-    The data and its dimensions are returned as a :class:`GriddedField` object.
-    The DataArray name is used as name for the gridded field. If the attribute
-    `data_name` is present, it is used as `dataname` on the :class:`GriddedField`.
+    """Create gridded field from a :class:`xarray.DataArray` object.
+    The data and its dimensions are returned as a gridded field object.
+    The :class:`~xarray.DataArray` name is used as name for the gridded field. If the attribute
+    `data_name` is present, it is used as `dataname` on the :fridded field.
     Parameters:
-        da (xarray.DataArray): xarray.DataArray containing the dimensions and data.
+        da (:class:`xarray.DataArray`): :class:`xarray.DataArray` containing the dimensions and data.
     Returns:
         GriddedField object.
     """
@@ -109,15 +109,15 @@ def from_xarray(cls, da):
 
 
 def to_dict(self):
-    """Convert GriddedField to dictionary.
+    """Convert gridded field to :class:`dict`.
     
-    Converts a GriddedField object into a classic Python dictionary. The
+    Converts a gridded field object into a classic Python dictionary. The
     gridname is used as dictionary key. If the grid is unnamed the key is
     generated automatically ('grid1', 'grid2', ...). The data can be
     accessed through the 'data' key.
     
     Returns:
-        Dictionary containing the grids and data.
+        (:class:`dict`): Dictionary containing the grids and data.
     """
     grids, gridnames = self.grids, self.gridnames
 

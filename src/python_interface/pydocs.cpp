@@ -8,10 +8,10 @@
 #include "workspace_global_data.h"
 
 namespace Python {
-std::string group_generics_inout(const std::string& group) {
+String group_generics_inout(const String& group) {
   const Index gr = global_data::WsvGroupMap.at(group);
 
-  std::pair<std::vector<std::string>, std::vector<std::string>> outdocs;
+  std::pair<std::vector<String>, std::vector<String>> outdocs;
   for (auto& method : global_data::md_data_raw) {
     if (std::any_of(method.GOutType().cbegin(),
                     method.GOutType().cend(),
@@ -23,7 +23,7 @@ std::string group_generics_inout(const std::string& group) {
       outdocs.second.push_back(method.Name());
   }
 
-  std::string out;
+  String out;
 
   if (outdocs.first.size()) {
     out += var_string("\nGeneric methods that can generate ",
@@ -51,15 +51,15 @@ std::string group_generics_inout(const std::string& group) {
   return out;
 }
 
-std::string group_workspace_types(const std::string& group) {
+String group_workspace_types(const String& group) {
   const Index gr = global_data::WsvGroupMap.at(group);
 
-  std::vector<std::string> vars;
+  std::vector<String> vars;
   for (auto& var: global_data::wsv_data) {
     if (gr == var.Group()) vars.push_back(var.Name());
   }
 
-  std::string out;
+  String out;
   if (vars.size()) {
     out += var_string("\nWorkspace variables of type ",
                       group,

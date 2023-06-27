@@ -30,7 +30,7 @@ String as_pyarts(const String& x) {
   const auto find = [&](auto& map) { return map.find(x) not_eq map.end(); };
 
   if (find(global_data::WsvGroupMap))
-    return var_string(":class:`~pyarts.arts.`", x);
+    return var_string(":class:`~pyarts.arts.", x, '`');
   if (find(global_data::MdRawMap))
     return var_string(":func:`~pyarts.workspace.Workspace.", x, '`');
   if (find(global_data::WsvMap))

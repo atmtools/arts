@@ -1,9 +1,11 @@
 #pragma once
 
-#include <string>
+#include "mystring.h"
+
+String unwrap_stars(String x);
 
 namespace Python {
-std::string group_generics_inout(const std::string& group);
+String group_generics_inout(const String& group);
 
-std::string group_workspace_types(const std::string& group);
+String group_workspace_types(const String& group);
 }  // namespace Python
