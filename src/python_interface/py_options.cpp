@@ -8,10 +8,12 @@
 //! See DeclareOption macro, but this may rename the python class
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)       \
   py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
-      .def(py::init([]() { return opt_namespace::opt_localname{}; }))        \
+      .def(py::init([]() { return opt_namespace::opt_localname{}; }),        \
+           "Default value")                                                  \
       .def(py::init([](const std::string& s) {                               \
-        return opt_namespace::to##opt_localname##OrThrow(s);                 \
-      }))                                                                    \
+             return opt_namespace::to##opt_localname##OrThrow(s);            \
+           }),                                                               \
+           "From :class:`str`")                                              \
       .def_property(                                                         \
           "value",                                                           \
           [](const opt_namespace::opt_localname& x) { return toString(x); }, \
@@ -102,5 +104,8 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(JacobianLine, Jacobian, Line)
   DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor)
   DeclareOptionRenamed(JacobianSpecial, Jacobian, Special)
+
+  // Predef enums
+  DeclareOptionRenamed(PredefinedModelDataKey, Absorption::PredefinedModel, DataKey)
 }
 }  // namespace Python

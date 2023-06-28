@@ -12,22 +12,22 @@ void py_physics(py::module_& m) {
 
   physics.def("number_density",
               py::vectorize(&number_density),
+              py::arg("P"),
+              py::arg("T"),
               py::doc(R"--(Calculates the atmospheric number density.
 
 Parameters
 ----------
-  P : Numeric
+  P : Numeric or numpy.ndarray
     Pressure [Pa]
 
-  T : Numeric
+  T : Numeric or numpy.ndarray
     Temperature [K]
 
 Returns
 -------
-  n : Numeric
+  n : Numeric or numpy.ndarray
     Number density [1/m³]
-)--"),
-              py::arg("P"),
-              py::arg("T"));
+)--"));
 }
 }  // namespace Python
