@@ -95,7 +95,7 @@ predefined_model_data : ~pyarts.arts.PredefinedModelData
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -138,7 +138,7 @@ predefined_model_data : ~pyarts.arts.PredefinedModelData
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -170,7 +170,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -191,7 +191,7 @@ abs_coef : Vector
 
 Parameters
 ----------
-f_grid : Vector
+f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
 rtp_pressure : float
     Pressure value [Pa]
@@ -204,7 +204,7 @@ x_h2o : float , optional
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -224,17 +224,23 @@ void internalMPM93(py::module_& m) {
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes nitrogen absorption using MPM93
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+x_h2o : float, optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -262,7 +268,7 @@ lwc : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -294,7 +300,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -315,7 +321,7 @@ abs_coef : Vector
 
 Parameters
 ----------
-f_grid : Vector
+f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
 rtp_pressure : float
     Pressure value [Pa]
@@ -328,7 +334,7 @@ x_h2o : float , optional
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -360,7 +366,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -381,7 +387,7 @@ abs_coef : Vector
 
 Parameters
 ----------
-f_grid : Vector
+f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
 rtp_pressure : float
     Pressure value [Pa]
@@ -394,7 +400,7 @@ x_h2o : float , optional
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -424,7 +430,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -445,7 +451,7 @@ abs_coef : Vector
 
 Parameters
 ----------
-f_grid : Vector
+f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
 rtp_pressure : float
     Pressure value [Pa]
@@ -458,7 +464,7 @@ x_h2o : float , optional
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -491,7 +497,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -515,7 +521,7 @@ void internalTRE05(py::module_& m) {
 
 Parameters
 ----------
-f_grid : Vector
+f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
 rtp_pressure : float
     Pressure value [Pa]
@@ -528,7 +534,7 @@ x_h2o : float , optional
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -560,7 +566,7 @@ x_o2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -593,7 +599,7 @@ x_n2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -623,7 +629,7 @@ x_o2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -655,7 +661,7 @@ x_co2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -685,7 +691,7 @@ x_o2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -721,7 +727,7 @@ x_o2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -757,7 +763,7 @@ x_o2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -789,7 +795,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -819,7 +825,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -849,7 +855,7 @@ x_n2 : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -882,7 +888,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
@@ -914,7 +920,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 
@@ -934,7 +940,7 @@ abs_coef : Vector
 
 Parameters
 ----------
-f_grid : Vector
+f_grid : ~pyarts.arts.Vector
     Frequency grid [Hz]
 rtp_pressure : float
     Pressure value [Pa]
@@ -945,7 +951,7 @@ x_h2o : float
 
 Returns
 -------
-abs_coef : Vector
+abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
