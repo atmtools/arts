@@ -1,6 +1,7 @@
 #include <arts_options.h>
 #include <lineshapemodel.h>
 
+#include "energylevelmap.h"
 #include "py_macros.h"
 #include "py_auto_interface.h"
 #include "python_interface.h"
@@ -13,14 +14,8 @@
       .def(py::init([](const std::string& s) {                               \
              return opt_namespace::to##opt_localname##OrThrow(s);            \
            }),                                                               \
+           py::arg("str"),                                                   \
            "From :class:`str`")                                              \
-      .def_property(                                                         \
-          "value",                                                           \
-          [](const opt_namespace::opt_localname& x) { return toString(x); }, \
-          [](opt_namespace::opt_localname& x, const std::string& s) {        \
-            x = opt_namespace::to##opt_localname##OrThrow(s);                \
-          },                                                                 \
-          py::doc("Value held by instance"))                                 \
       .PythonInterfaceCopyValue(opt_namespace::opt_localname)                \
       .PythonInterfaceBasicRepresentation(opt_namespace::opt_localname)      \
       .def(py::self == py::self)                                             \
@@ -107,5 +102,12 @@ void py_options(py::module_& m) {
 
   // Predef enums
   DeclareOptionRenamed(PredefinedModelDataKey, Absorption::PredefinedModel, DataKey)
+
+  // Predef enums
+  DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type)
+
+  // Species enums
+  DeclareOption(Species, Species)
+  DeclareOptionRenamed(SpeciesTagType, Species, TagType)
 }
 }  // namespace Python

@@ -6,17 +6,17 @@
 namespace Python {
 void py_star(py::module_& m) {
   py::class_<Sun>(m, "Sun")
-      .def(py::init([]() { return std::make_unique<Sun>(); }))
+      .def(py::init([]() { return std::make_unique<Sun>(); }), "Empty sun")
       .PythonInterfaceCopyValue(Sun)
 //      .PythonInterfaceWorkspaceVariableConversion(Sun)
       .PythonInterfaceBasicRepresentation(Sun)
       .PythonInterfaceFileIO(Sun)
-      .def_readwrite("description", &Sun::description)
-      .def_readwrite("spectrum", &Sun::spectrum)
-      .def_readwrite("radius", &Sun::radius)
-      .def_readwrite("distance", &Sun::distance)
-      .def_readwrite("latitude", &Sun::latitude)
-      .def_readwrite("longitude", &Sun::longitude)
+      .def_readwrite("description", &Sun::description, ":class:`~pyarts.arts.String` Sun description")
+      .def_readwrite("spectrum", &Sun::spectrum, ":class:`~pyarts.arts.Matrix` Sun spectrum, monochrmatic radiance spectrum at the surface of the sun")
+      .def_readwrite("radius", &Sun::radius, ":class:`float` Sun radius")
+      .def_readwrite("distance", &Sun::distance, ":class:`float` Sun distance")
+      .def_readwrite("latitude", &Sun::latitude, ":class:`float` Sun latitude")
+      .def_readwrite("longitude", &Sun::longitude, ":class:`float` Sun longitude")
       .def(py::pickle(
           [](const Sun& self) {
             return py::make_tuple(self.description,
@@ -34,7 +34,9 @@ void py_star(py::module_& m) {
                              t[3].cast<Numeric>(),
                              t[4].cast<Numeric>(),
                              t[5].cast<Numeric>()});
-          })).doc()=R"--(Each sun is described by a struct with its spectrum, radius
+          })).doc()=R"--(A single sun.
+          
+Each sun is described by a struct with its spectrum, radius
 distance from center of planet to center of sun,
 temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type )--";

@@ -215,8 +215,8 @@ void py_workspace(py::module_& m,
            return w;
          }),
          py::arg("verbosity") = 0,
-         py::arg("agenda_verbosity") = 0)
-      .def(py::init([](Workspace& w) {return w.shallowcopy();}))
+         py::arg("agenda_verbosity") = 0, "Default workspace")
+      .def(py::init([](Workspace& w) {return w.shallowcopy();}), "Shallowly copy another workspace")
       .def(
           "__copy__",
           [](Workspace& w) { return w.shallowcopy(); },
@@ -233,8 +233,14 @@ void py_workspace(py::module_& m,
                  correct_include_path(path).c_str(),
                  *static_cast<Verbosity*>(w.get<Verbosity>("verbosity")))};
              a->execute(w);
-           })
-      .def_property_readonly("size", &Workspace::nelem)
+           }, R"(Execute a .arts file
+
+Parameters
+----------
+file : ~os.PathLike
+    Path to a file to execute
+)", py::arg("file"))
+      .def_property_readonly("size", &Workspace::nelem, ":class:`int` The number of variables on the workspace")
       .def(
           "create_variable",
           [](Workspace& w,
@@ -273,7 +279,17 @@ void py_workspace(py::module_& m,
           py::keep_alive<0, 1>(),
           py::arg("group").none(false),
           py::arg("name"),
-          py::arg("desc") = std::nullopt);
+          py::arg("desc") = std::nullopt, R"(Creates a workspace variable
+
+Parameters
+----------
+group : str
+    The name of the type of variable to create
+name : str
+    The name of the variable to create
+desc : str, optional
+    A description of the created workspace variable
+)");
 
   ws.def("_hasattr_check_", [](Workspace& w, const char* name) -> bool {
     return w.WsvMap_ptr->find(name) != w.WsvMap_ptr->end();
@@ -289,7 +305,7 @@ void py_workspace(py::module_& m,
   ws.def(
       "swap",
       [](Workspace& w_1, Workspace& w_2) { w_1.swap(w_2); },
-      py::arg("ws").noconvert().none(false));
+      py::arg("ws").noconvert().none(false), "Swap with another workspace");
 
   ws.def("__repr__", [](const Workspace&) { return "Workspace"; });
 
@@ -306,7 +322,7 @@ void py_workspace(py::module_& m,
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
 
-  wsv.def(py::init([](WorkspaceVariable& w) { return w; }))
+  wsv.def(py::init([](WorkspaceVariable& w) { return w; }), "From another variable")
       .def(
           "__copy__",
           [](WorkspaceVariable&) { ARTS_USER_ERROR("Cannot copy") },
@@ -321,7 +337,8 @@ void py_workspace(py::module_& m,
                                return wv.ws.wsv_data_ptr->at(wv.pos).Description();
                              }, "A description of the workspace variable")
       .def_property_readonly("init", &WorkspaceVariable::is_initialized, "Flag if the variable is initialized")
-      .def("initialize_if_not", &WorkspaceVariable::initialize_if_not, "Default initialize the variable if it is not already initialized")
+      .def("initialize_if_not", &WorkspaceVariable::initialize_if_not,
+        "Default initialize the variable if it is not already initialized")
       .def("__str__",
            [](const WorkspaceVariable& w) {
              return var_string("Workspace ",
@@ -348,7 +365,13 @@ void py_workspace(py::module_& m,
     Index count = 0;
     for (Index i=0; i<w.nelem(); i++) count += w.is_initialized(i);
     return count;
-  });
+  }, R"(Number of initialized variables on the workspace
+
+Returns
+-------
+nelem : int
+    The number
+)");
 
   py::class_<WsvRecord>(m, "WsvRecord")
       .PythonInterfaceCopyValue(WsvRecord)

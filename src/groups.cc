@@ -309,25 +309,37 @@ dimension
 
 For Stokes dimension 4:
 
-K11  K12  K13  K14
-K12  K11  K23  K24
-K13 -K23  K11  K34
-K14 -K24 -K34  K11
+.. math::
+    \begin {array} {rrrr}
+    K11 & K12 & K13 & K14 \\
+    K12 & K11 & K23 & K24 \\
+    K13 &-K23 & K11 & K34 \\
+    K14 &-K24 &-K34 & K11
+    \end {array}
 
 For Stokes dimension 3:
 
-K11  K12  K13
-K12  K11  K23
-K13 -K23  K11
+.. math::
+    \begin {array} {rrr}
+    K11 & K12 & K13 \\
+    K12 & K11 & K23 \\
+    K13 &-K23 & K11
+    \end {array}
 
 For Stokes dimension 2:
 
-K11  K12
-K12  K11
+.. math::
+    \begin {array} {rr}
+    K11 & K12 \\
+    K12 & K11
+    \end {array}
 
 For Stokes dimension 1:
 
-K11
+.. math::
+    \begin {array} {r}
+    K11
+    \end {array}
 
 The propagation matrix make use of these symmetries to computate the matrix inverses and exponents
 required to turn the data into a *TransmissionMatrix* (with information about the distance))--");

@@ -20,7 +20,7 @@ py::class_<EnergyLevelMapType>(m, "EnergyLevelMapType")
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return EnergyLevelMapType{
                 toEnergyLevelMapType(t[0].cast<std::string>())};
-          }));
+          })).doc() = "Type of energy level";
   py::implicitly_convertible<std::string, EnergyLevelMapType>();
 
   py::class_<EnergyLevelMap>(m, "EnergyLevelMap")

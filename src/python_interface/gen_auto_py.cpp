@@ -541,11 +541,13 @@ void print_method_desc(std::ofstream& os,
     }
     os << "OUT), defaults to ``self." << i << "``\n";
   }
+  
   for (size_t i = 0; i < method.gout.name.size(); i++) {
     os << method.gout.name[i] << " : "
        << "~pyarts.arts." << method.gout.group[i] << "\n    "
        << unwrap_stars(method.gout.desc[i]) << " (OUT)\n";
   }
+
   for (const auto& i : method.in.varname) {
     if (std::none_of(method.out.varname.cbegin(),
                      method.out.varname.cend(),
@@ -554,6 +556,7 @@ void print_method_desc(std::ofstream& os,
          << ", optional\n    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (IN), defaults to ``self." << i << "``\n";
     }
   }
+
   for (size_t i = 0; i < method.gin.name.size(); i++) {
     os << method.gin.name[i] << " : "
        << "~pyarts.arts." << method.gin.group[i];
@@ -562,14 +565,15 @@ void print_method_desc(std::ofstream& os,
     }
     os << "\n    " << unwrap_stars(method.gin.desc[i]) << " (IN)";
     if (method.gin.hasdefs[i]) {
-      os << ", defaults to ``" << method.gin.defs[i] << "``\n";
-    } else os << '\n';
+      os << ", defaults to ``" << method.gin.defs[i] << "``";
+    }
+    os << '\n';
   }
 
   if (pass_verbosity)
     os << "verbosity : ~pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` for more details (IN), defaults to ``self.verbosity``\n";
 
-  os << "\n)-METHODS_DESC-\")";
+  os << ")-METHODS_DESC-\")";
 } catch (std::invalid_argument& e) {
   throw std::runtime_error(var_string("Failing in method ", std::quoted(method.name), " with error message:\n", e.what()));
 } catch (std::exception& e) {

@@ -531,7 +531,7 @@ Returns:\
                 py::doc(docstr))
 
 #define PythonInterfaceBasicReferenceProperty(                               \
-    Type, PropertyName, ReadFunction, WriteFunction)                         \
+    Type, PropertyName, ReadFunction, WriteFunction, docstr)                 \
   def_property(                                                              \
       #PropertyName,                                                         \
       py::cpp_function(                                                      \
@@ -543,7 +543,8 @@ Returns:\
           py::return_value_policy::reference_internal),                      \
       [](Type& x, std::remove_reference_t<decltype(x.ReadFunction())> y) {   \
         x.WriteFunction() = std::move(y);                                    \
-      })
+      },                                                                     \
+      py::doc(docstr))
 
 #define PythonInterfaceSelfAttribute(ATTR) \
   def_property_readonly(                   \

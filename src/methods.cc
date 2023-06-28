@@ -24685,7 +24685,7 @@ The following methods are considered for addition:
 To perform absorption lookupo table calculation, call:
     1) *propmat_clearsky_agendaAuto*
     2) *abs_lookupCalc*
-    3) *propmat_clearsky_agendaAuto*(use_abs_lookup=1)
+    3) *propmat_clearsky_agendaAuto* (use_abs_lookup=1)
     4) Perform other calculations
 )--";
 

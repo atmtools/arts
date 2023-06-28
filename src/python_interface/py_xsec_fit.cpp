@@ -49,19 +49,19 @@ void py_xsec(py::module_& m) {
       .def_property("version", &XsecRecord::Version, &XsecRecord::SetVersion)
       .def_property("species", &XsecRecord::Species, &XsecRecord::SetSpecies)
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitcoeffs, FitCoeffs, FitCoeffs)
+          XsecRecord, fitcoeffs, FitCoeffs, FitCoeffs, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitminpressures, FitMinPressures, FitMinPressures)
+          XsecRecord, fitminpressures, FitMinPressures, FitMinPressures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitmaxpressures, FitMaxPressures, FitMaxPressures)
+          XsecRecord, fitmaxpressures, FitMaxPressures, FitMaxPressures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(XsecRecord,
                                              fitmintemperatures,
                                              FitMinTemperatures,
-                                             FitMinTemperatures)
+                                             FitMinTemperatures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(XsecRecord,
                                              fitmaxtemperatures,
                                              FitMaxTemperatures,
-                                             FitMaxTemperatures)
+                                             FitMaxTemperatures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(py::pickle(
           [](const XsecRecord& self) {
             return py::make_tuple(self.Version(),

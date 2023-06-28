@@ -14,34 +14,16 @@
 #include "species_tags.h"
 
 namespace Python {
-void internal_species(py::module_& m) {
-  m.doc() = "For internal functionality dealing with species";
-
-  py::class_<SpeciesTagTypeStatus>(m, "SpeciesTagTypeStatus")
-      .def(py::init([](const ArrayOfArrayOfSpeciesTag& s) {
-        return std::make_unique<SpeciesTagTypeStatus>(s);
-      }))
-      .def_readwrite("Plain", &SpeciesTagTypeStatus::Plain)
-      .def_readwrite("Zeeman", &SpeciesTagTypeStatus::Zeeman)
-      .def_readwrite("Predefined",
-                     &SpeciesTagTypeStatus::Predefined)
-      .def_readwrite("Cia", &SpeciesTagTypeStatus::Cia)
-      .def_readwrite("FreeElectrons", &SpeciesTagTypeStatus::FreeElectrons)
-      .def_readwrite("Particles", &SpeciesTagTypeStatus::Particles)
-      .def_readwrite("XsecFit", &SpeciesTagTypeStatus::XsecFit)
-      .PythonInterfaceBasicRepresentation(SpeciesTagTypeStatus);
-}
-
 void py_species(py::module_& m) {
   py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin),
-           py::doc("Get the builtin values"))
+           py::doc("Builtin values"))
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
       .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotopologueRatios)
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
-      .def_readonly_static("maxsize", &SpeciesIsotopologueRatios::maxsize)
-      .def_readwrite("data", &SpeciesIsotopologueRatios::data)
+      .def_readonly_static("maxsize", &SpeciesIsotopologueRatios::maxsize, ":class:`int` The max size of the data")
+      .def_readwrite("data", &SpeciesIsotopologueRatios::data, ":class:`list` The max size of the data")
       .def(py::pickle(
           [](const SpeciesIsotopologueRatios& t) {
             return py::make_tuple(t.maxsize, t.data);
@@ -59,45 +41,26 @@ void py_species(py::module_& m) {
           }))
       .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
-  py::class_<Species::Species>(m, "Species")
-      .def(py::init([]() { return std::make_unique<Species::Species>(); }))
-      .def(py::init([](const std::string& c) {
-        if (auto out = Species::fromShortName(c); good_enum(out)) return out;
-        return Species::toSpeciesOrThrow(c);
-      }))
-      .PythonInterfaceCopyValue(Species::Species)
-      .PythonInterfaceBasicRepresentation(Species::Species)
-      .def(py::pickle(
-          [](const Species::Species& t) {
-            return py::make_tuple(std::string(Species::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<Species::Species>(
-                Species::toSpecies(t[0].cast<std::string>()));
-          }));
-  py::implicitly_convertible<std::string, Species::Species>();
-
   py::class_<ArrayOfSpecies>(m, "ArrayOfSpecies")
       .PythonInterfaceBasicRepresentation(ArrayOfSpecies)
-      .PythonInterfaceArrayDefault(Species::Species);
+      .PythonInterfaceArrayDefault(Species::Species).doc() = "List of :class:`~pyarts.arts.options.Species`";
   py::implicitly_convertible<std::vector<Species::Species>, ArrayOfSpecies>();
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
 
   py::class_<SpeciesIsotopeRecord>(m, "SpeciesIsotopeRecord")
       .def(py::init([](Index i) { return Species::Isotopologues.at(i); }),
-           py::arg("isot") = 0)
+           py::arg("isot") = 0, "From position")
       .def(py::init([](const std::string& c) {
         return Species::Isotopologues.at(Species::find_species_index(c));
-      }))
+      }), "From :class:`str`")
       .PythonInterfaceCopyValue(SpeciesIsotopeRecord)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopeRecord)
-      .def_readwrite("spec", &SpeciesIsotopeRecord::spec)
-      .def_readwrite("isotname", &SpeciesIsotopeRecord::isotname)
-      .def_readwrite("mass", &SpeciesIsotopeRecord::mass)
-      .def_readwrite("gi", &SpeciesIsotopeRecord::gi)
-      .def_property_readonly("name", &SpeciesIsotopeRecord::FullName)
-      .def_property_readonly("predef", &Species::is_predefined_model)
+      .def_readwrite("spec", &SpeciesIsotopeRecord::spec, ":class:`~pyarts.arts.options.Species` The species")
+      .def_readwrite("isotname", &SpeciesIsotopeRecord::isotname, ":class:`str` A custom name that is unique for this Species type")
+      .def_readwrite("mass", &SpeciesIsotopeRecord::mass, ":class:`float` The mass of the isotope in units of grams per mol. It is Nan if not defined")
+      .def_readwrite("gi", &SpeciesIsotopeRecord::gi, ":class:`float` The degeneracy of states of the molecule. It is -1 if not defined.")
+      .def_property_readonly("name", &SpeciesIsotopeRecord::FullName, ":class:`~pyarts.arts.String` The full name")
+      .def_property_readonly("predef", &Species::is_predefined_model, ":class:`bool` Check if this represents a predefined model")
       .def(py::pickle(
           [](const SpeciesIsotopeRecord& t) {
             return py::make_tuple(t.spec, t.isotname, t.mass, t.gi);
@@ -108,7 +71,7 @@ void py_species(py::module_& m) {
                                             t[1].cast<std::string>(),
                                             t[2].cast<Numeric>(),
                                             t[3].cast<Index>());
-          }));
+          })).doc() = "An isotopologue record entry";
   py::implicitly_convertible<std::string, SpeciesIsotopeRecord>();
 
   py::class_<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
@@ -116,21 +79,18 @@ void py_species(py::module_& m) {
              if (full_list) return ArrayOfIsotopeRecord{Species::Isotopologues};
              return ArrayOfIsotopeRecord{};
            }),
-           py::arg("full_list") = false)
+           py::arg("full_list") = false, "Empty list")
       .PythonInterfaceBasicRepresentation(ArrayOfIsotopeRecord)
       .PythonInterfaceIndexItemAccess(ArrayOfIsotopeRecord)
-      .def(py::init([](Index a, SpeciesIsotopeRecord b) {
-        return std::make_unique<ArrayOfIsotopeRecord>(a, b);
-      }))
       .def(py::init([](const std::vector<SpeciesIsotopeRecord>& a) {
         return std::make_unique<ArrayOfIsotopeRecord>(a);
-      }))
+      }), "From :class:`list`")
       .def(
           "append",
           [](ArrayOfIsotopeRecord& x, SpeciesIsotopeRecord y) {
             x.emplace_back(y);
           },
-          py::doc("Appends a SpeciesIsotopeRecord at the end of the Array"))
+          py::doc("Appends a :class:`pyarts.arts.SpeciesIsotopeRecord` at the end of the array"))
       .def(py::pickle(
           [](const ArrayOfIsotopeRecord& v) {
             auto n = v.size();
@@ -144,36 +104,21 @@ void py_species(py::module_& m) {
                 t[0].cast<std::vector<SpeciesIsotopeRecord>>());
           }))
       .doc() =
-      "A list of isotope records\n"
-      "\n"
-      "Initialize with ArrayOfIsotopeRecord(True) to get all "
-      "available Arts isotopologues\n";
+      R"(A list of isotope records
 
-  py::class_<Species::TagType>(m, "SpeciesTagType")
-      .def(py::init([]() { return std::make_unique<Species::TagType>(); }))
-      .def(py::init([](const std::string& c) { return Species::toTagType(c); }))
-      .PythonInterfaceCopyValue(Species::TagType)
-      .PythonInterfaceBasicRepresentation(Species::TagType)
-      .def(py::pickle(
-          [](const Species::TagType& t) {
-            return py::make_tuple(std::string(Species::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<Species::TagType>(
-                Species::toTagType(t[0].cast<std::string>()));
-          }));
-  py::implicitly_convertible<std::string, Species::TagType>();
+Initialize with ArrayOfIsotopeRecord(True) to get all
+available Arts isotopologues
+)";
 
   py::class_<SpeciesTag>(m, "SpeciesTag")
-      .def(py::init([]() { return std::make_unique<SpeciesTag>(); }))
-      .def(py::init([](const std::string& s) { return std::make_unique<SpeciesTag>(s); }))
+      .def(py::init([]() { return std::make_unique<SpeciesTag>(); }), "Empty tag")
+      .def(py::init([](const std::string& s) { return std::make_unique<SpeciesTag>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(SpeciesTag)
-      .def_readwrite("spec_ind", &SpeciesTag::spec_ind)
-      .def_readwrite("lower_freq", &SpeciesTag::lower_freq)
-      .def_readwrite("upper_freq", &SpeciesTag::upper_freq)
-      .def_readwrite("type", &SpeciesTag::type)
-      .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species)
+      .def_readwrite("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
+      .def_readwrite("lower_freq", &SpeciesTag::lower_freq, ":class:`float` Lower cutoff frequency")
+      .def_readwrite("upper_freq", &SpeciesTag::upper_freq, ":class:`float` Upper cutoff frequency")
+      .def_readwrite("type", &SpeciesTag::type, ":class:`~pyarts.arts.options.SpeciesTagType` Type of tag")
+      .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species, ":class:`~pyarts.arts.options.Species` CIA species")
       .def("partfun",
            py::vectorize(&SpeciesTag::Q),
            py::doc(R"--(Compute the partition function at a given temperature
@@ -189,7 +134,7 @@ Returns
     Partition function [-]
 )--"),
            py::arg("T"))
-      .def_property_readonly("full_name", &SpeciesTag::FullName)
+      .def_property_readonly("full_name", &SpeciesTag::FullName, ":class:`~pyarts.arts.String` The full name")
       .PythonInterfaceBasicRepresentation(SpeciesTag)
       .def(py::self == py::self)
       .def(py::pickle(
@@ -212,9 +157,9 @@ Returns
           }));
   py::implicitly_convertible<std::string, SpeciesTag>();
 
-  py::class_<Array<SpeciesTag>>(m, "ArrayOfSpeciesTagInternal")
+  py::class_<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag")
       .PythonInterfaceBasicRepresentation(Array<SpeciesTag>)
-      .PythonInterfaceArrayDefault(Species::Tag);
+      .PythonInterfaceArrayDefault(Species::Tag).doc() = "Internal array type - do not use manually ";
 
   py::class_<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)
@@ -223,14 +168,12 @@ Returns
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
       .def(py::self == py::self)
-      .def(py::init([]() { return std::make_unique<ArrayOfSpeciesTag>(); }))
+      .def(py::init([]() { return std::make_unique<ArrayOfSpeciesTag>(); }), "Empty list")
       .def(py::init(
-          [](const std::string& s) { return std::make_unique<ArrayOfSpeciesTag>(s); }))
-      .def(py::init(
-          [](Index a, SpeciesTag b) { return std::make_unique<ArrayOfSpeciesTag>(a, b); }))
+          [](const std::string& s) { return std::make_unique<ArrayOfSpeciesTag>(s); }), "From :class:`str`")
       .def(py::init([](const std::vector<SpeciesTag>& v) {
         return std::make_unique<ArrayOfSpeciesTag>(v);
-      }))
+      }), "From :class:`list`")
       .def(
           "append",
           [](ArrayOfSpeciesTag& x, SpeciesTag y) { x.emplace_back(y); },
@@ -260,8 +203,5 @@ Returns
   py::implicitly_convertible<std::string, ArrayOfSpeciesTag>();
 
   PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag).def(py::self == py::self);
-
-  auto species = m.def_submodule("species");
-  internal_species(species);
 }
 }  // namespace Python
