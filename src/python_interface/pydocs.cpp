@@ -29,7 +29,7 @@ String group_generics_inout(const String& group) {
     out += var_string("\nMethods that can generate ",
                       group,
                       "\n",
-                      String(25 + group.size(), '-'),
+                      String(26 + group.size(), '-'),
                       "\n.. hlist::");
     for (auto& m : outdocs.first)
       out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
@@ -39,7 +39,7 @@ String group_generics_inout(const String& group) {
     out += var_string("\nMethods that require ",
                       group,
                       "\n",
-                      String(20 + group.size(), '-'),
+                      String(21 + group.size(), '-'),
                       "\n.. hlist::");
     for (auto& m : outdocs.second)
       out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');

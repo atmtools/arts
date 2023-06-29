@@ -15,6 +15,26 @@
 
 namespace Python {
 void py_species(py::module_& m) {
+  //! This class should behave as an `options` but we need also the "fromShortName" policy
+  py::class_<Species::Species>(m, "Species")
+      .def(py::init([]() { return std::make_unique<Species::Species>(); }), "Default value")
+      .def(py::init([](const std::string& c) {
+        if (auto out = Species::fromShortName(c); good_enum(out)) return out;
+        return Species::toSpeciesOrThrow(c);
+      }), "From :class:`str`")
+      .PythonInterfaceCopyValue(Species::Species)
+      .PythonInterfaceBasicRepresentation(Species::Species)
+      .def(py::pickle(
+          [](const Species::Species& t) {
+            return py::make_tuple(std::string(Species::toString(t)));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return std::make_unique<Species::Species>(
+                Species::toSpecies(t[0].cast<std::string>()));
+          }));
+  py::implicitly_convertible<std::string, Species::Species>();
+
   py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin),
            py::doc("Builtin values"))
@@ -43,7 +63,7 @@ void py_species(py::module_& m) {
 
   py::class_<ArrayOfSpecies>(m, "ArrayOfSpecies")
       .PythonInterfaceBasicRepresentation(ArrayOfSpecies)
-      .PythonInterfaceArrayDefault(Species::Species).doc() = "List of :class:`~pyarts.arts.options.Species`";
+      .PythonInterfaceArrayDefault(Species::Species).doc() = "List of :class:`~pyarts.arts.Species`";
   py::implicitly_convertible<std::vector<Species::Species>, ArrayOfSpecies>();
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
 
@@ -55,7 +75,7 @@ void py_species(py::module_& m) {
       }), "From :class:`str`")
       .PythonInterfaceCopyValue(SpeciesIsotopeRecord)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopeRecord)
-      .def_readwrite("spec", &SpeciesIsotopeRecord::spec, ":class:`~pyarts.arts.options.Species` The species")
+      .def_readwrite("spec", &SpeciesIsotopeRecord::spec, ":class:`~pyarts.arts.Species` The species")
       .def_readwrite("isotname", &SpeciesIsotopeRecord::isotname, ":class:`str` A custom name that is unique for this Species type")
       .def_readwrite("mass", &SpeciesIsotopeRecord::mass, ":class:`float` The mass of the isotope in units of grams per mol. It is Nan if not defined")
       .def_readwrite("gi", &SpeciesIsotopeRecord::gi, ":class:`float` The degeneracy of states of the molecule. It is -1 if not defined.")
@@ -118,7 +138,7 @@ available Arts isotopologues
       .def_readwrite("lower_freq", &SpeciesTag::lower_freq, ":class:`float` Lower cutoff frequency")
       .def_readwrite("upper_freq", &SpeciesTag::upper_freq, ":class:`float` Upper cutoff frequency")
       .def_readwrite("type", &SpeciesTag::type, ":class:`~pyarts.arts.options.SpeciesTagType` Type of tag")
-      .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species, ":class:`~pyarts.arts.options.Species` CIA species")
+      .def_readwrite("cia_2nd_species", &SpeciesTag::cia_2nd_species, ":class:`~pyarts.arts.Species` CIA species")
       .def("partfun",
            py::vectorize(&SpeciesTag::Q),
            py::doc(R"--(Compute the partition function at a given temperature

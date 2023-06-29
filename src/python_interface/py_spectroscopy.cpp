@@ -797,7 +797,7 @@ but does not enforce it.
           []() { return std::make_unique<SpeciesErrorCorrectedSuddenData>(); }), "Empty data")
       .PythonInterfaceCopyValue(SpeciesErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(SpeciesErrorCorrectedSuddenData)
-      .def_readwrite("spec", &SpeciesErrorCorrectedSuddenData::spec, ":class:`~pyarts.arts.options.Species` The species")
+      .def_readwrite("spec", &SpeciesErrorCorrectedSuddenData::spec, ":class:`~pyarts.arts.Species` The species")
       .def_readwrite("scaling", &SpeciesErrorCorrectedSuddenData::scaling, ":class:`~pyarts.arts.LineShapeModelParameters` The scaling parameter")
       .def_readwrite("beta", &SpeciesErrorCorrectedSuddenData::beta, ":class:`~pyarts.arts.LineShapeModelParameters` The beta parameter")
       .def_readwrite("lambda", &SpeciesErrorCorrectedSuddenData::lambda, ":class:`~pyarts.arts.LineShapeModelParameters` The lambda parameter")

@@ -1046,4 +1046,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    b = x.test_pickle()
+    b = x.testArrayOfArrayOfAbsorptionLines()

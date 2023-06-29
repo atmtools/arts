@@ -107,7 +107,6 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type)
 
   // Species enums
-  DeclareOption(Species, Species)
   DeclareOptionRenamed(SpeciesTagType, Species, TagType)
 }
 }  // namespace Python
