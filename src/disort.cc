@@ -1485,6 +1485,10 @@ void run_cdisort_flux(Workspace& ws,
 
   if (only_tro && (Npfct < 0 || Npfct > 3)) {
     nang = Npfct;
+    if (Npfct < 0){
+      get_angs(pfct_angs, scat_data, Npfct);
+      nang = pfct_angs.nelem();
+    }
     nlinspace(pfct_angs, 0, 180, nang);
 
     pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
@@ -1582,14 +1586,16 @@ void run_cdisort_flux(Workspace& ws,
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
 
+  //
+  Index N_lev= p_grid.nelem();
   Matrix spectral_direct_irradiance_field;
-  Matrix dFdtau(nf, ds.nlyr+1,0);
-  Matrix deltatau(nf, ds.nlyr,0);
-  Matrix snglsctalbedo(nf, ds.nlyr,0);
+  Matrix dFdtau(nf, N_lev,0);
+  Matrix deltatau(nf, N_lev,0);
+  Matrix snglsctalbedo(nf, N_lev,0);
 
   if (suns_do){
     //Resize direct field
-    spectral_direct_irradiance_field.resize(nf, ds.nlyr+1);
+    spectral_direct_irradiance_field.resize(nf, N_lev);
     spectral_direct_irradiance_field = 0;
   }
 
