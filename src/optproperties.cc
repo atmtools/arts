@@ -2428,12 +2428,20 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   // Check that all data is TRO
   {
     bool all_totrand = true;
+    bool temp_const = false;
     for (Index ie = 0; ie < nse; ie++) {
       if (scat_data[ie].ptype != PTYPE_TOTAL_RND)
         all_totrand = false;
+
+      if (scat_data[ie].T_grid.nelem()){
+        temp_const = true;
+      }
     }
     ARTS_USER_ERROR_IF (!all_totrand,
                         "This method demands that all scat_data are TRO");
+
+    ARTS_USER_ERROR_IF( temp_const, "This method demands that the scat data \n"
+                       "must not be constant in temperature.");
   }
 
   // Help variables to hold non-zero data inside the cloudbox
