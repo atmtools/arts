@@ -471,7 +471,7 @@ void py_spectroscopy(py::module_& m) {
             band.lines.at(line);
 
             return band.ShapeParameters(line, T, P, VMR);
-          },
+          }, py::arg("line"), py::arg("T"), py::arg("P"), py::arg("VMR"),
           py::doc(
               R"--(Computes the line shape paramters for the given atmospheric state
 
@@ -823,7 +823,7 @@ but does not enforce it.
             out->collisional_distance = t[4].cast<LineShapeModelParameters>();
             out->mass = t[5].cast<Numeric>();
             return out;
-          }));
+          })).doc() = "Holds data required for a single species error corrected sudden method application";
 
   py::class_<Array<SpeciesErrorCorrectedSuddenData>>(
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")

@@ -27,13 +27,13 @@ String as_pyarts(const String& x) {
     once = true;
   }
 
-  const auto find = [&](auto& map) { return map.find(x) not_eq map.end(); };
+  const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
 
-  if (find(global_data::WsvGroupMap))
+  if (found_in(global_data::WsvGroupMap))
     return var_string(":class:`~pyarts.arts.", x, '`');
-  if (find(global_data::MdRawMap))
+  if (found_in(global_data::MdRawMap))
     return var_string(":func:`~pyarts.workspace.Workspace.", x, '`');
-  if (find(global_data::WsvMap))
+  if (found_in(global_data::WsvMap))
     return var_string(":attr:`~pyarts.workspace.Workspace.", x, '`');
 
   throw std::invalid_argument(
@@ -46,21 +46,22 @@ String as_pyarts(const String& x) {
 }
 
 String unwrap_stars(String x) {
-  const auto find = [&](auto p) { return std::find(p + 1, x.end(), '*'); };
+  const auto find = [&](auto p) { p = std::min(p, x.end()); return std::find(p, x.end(), '*'); };
   const auto idx = [&](auto p) { return std::distance(x.begin(), p); };
   const auto mv = [&](auto p) {
-    while (p not_eq x.end() and not nonstd::isspace(*p) and (*p) not_eq '*')
+    do 
       p++;
+    while (p < x.end() and not nonstd::isspace(*p) and (*p) not_eq '*');
     return std::min(p, x.end());
   };
 
   std::vector<Index> start_pos;
 
   auto ptr = find(x.begin());
-  while (ptr not_eq x.end()) {
+  while (ptr < x.end()) {
     const Index pos = idx(ptr);
-    ptr = mv(ptr + 1);
-    if (ptr not_eq x.end() and *(ptr) == '*') start_pos.push_back(pos);
+    ptr = mv(ptr);
+    if (ptr < x.end() and *(ptr) == '*') start_pos.push_back(pos);
     ptr = find(ptr + 1);
   }
 
@@ -68,7 +69,7 @@ String unwrap_stars(String x) {
     const Index pos = start_pos.back();
     start_pos.pop_back();
     const auto start_ptr = x.begin() + pos;
-    const auto end_ptr = 1 + mv(start_ptr + 1);
+    const auto end_ptr = 1 + mv(start_ptr);
     const auto replace_name =
         x.substr(pos, std::distance(start_ptr, end_ptr));
     x.replace(start_ptr,
@@ -84,6 +85,7 @@ String add_type(String x, const String& type) {
 
   x.replace(first_newline,
             first_newline,
-            var_string("\n\nThis workspace variable holds the group: :class:`~pyarts.arts.", type, "`\n\n"));
+            var_string("\n\nThis workspace variable holds the group: :class:`~pyarts.arts.", type, "`\n"));
+  while (x.ends_with("\n\n")) x.pop_back();  // Renove extra spaces
   return x;
 }

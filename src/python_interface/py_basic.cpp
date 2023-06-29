@@ -312,7 +312,7 @@ You can get copies and set the value by the "value" property)--");
                         },
                         py::keep_alive<0, 1>(), "Value of instance as :class:`numpy.ndarray`"),
                     [](ArrayOfNumeric& x, ArrayOfNumeric& y) { x = y; })
-      .doc() = R"--(This is a wrapper class for Arts ArrayOfNumeric.
+      .doc() = R"--(A list of :class:`~pyarts.arts.Numeric`.
 
 This class is compatible with numpy arrays.  The data can
 be accessed without copy using np.array(x, copy=False),

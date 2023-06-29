@@ -104,9 +104,9 @@ void py_species(py::module_& m) {
                 t[0].cast<std::vector<SpeciesIsotopeRecord>>());
           }))
       .doc() =
-      R"(A list of isotope records
+      R"(A list of :class:`~pyarts.arts.IsotopeRecord`
 
-Initialize with ArrayOfIsotopeRecord(True) to get all
+Initialize with ``ArrayOfIsotopeRecord(True)`` to get all
 available Arts isotopologues
 )";
 
@@ -154,7 +154,7 @@ Returns
             out->type = t[3].cast<Species::TagType>();
             out->cia_2nd_species = t[4].cast<Species::Species>();
             return out;
-          }));
+          })).doc() = "The tag of a single absorption species";
   py::implicitly_convertible<std::string, SpeciesTag>();
 
   py::class_<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag")

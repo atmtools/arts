@@ -597,6 +597,8 @@ via x.value)--");
       .PythonInterfaceBasicRepresentation(Rational)
       .PythonInterfaceCommonMath(Index)
       .PythonInterfaceCommonMathSelf
+      .def_readwrite("n", &Rational::numer, ":class:`int` Numerator")
+      .def_readwrite("d", &Rational::denom, ":class:`int` Denominator")
       .def(py::pickle(
           [](const Rational& self) {
             return py::make_tuple(self.numer, self.denom);

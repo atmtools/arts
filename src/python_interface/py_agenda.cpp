@@ -219,8 +219,9 @@ void py_agenda(py::module_& m) {
           [](CallbackFunction& f, Workspace& ws) { f(ws); },
           py::is_operator())
       .PythonInterfaceWorkspaceDocumentationExtra(CallbackFunction, R"(
+
 An instance of this object can be called taking only an
-instance of the workspace as input.)
+instance of the workspace as input.
 
 Example
 -------
@@ -757,7 +758,7 @@ Both agendas must be defined on the same workspace)--"),
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<ArrayOfAgenda>(t[0].cast<std::vector<Agenda>>());
           }))
-      .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfAgenda, "These arrays are partial to contain inter-item logic, please be cautious using them");
+      .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfAgenda, "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
 }
 }  // namespace Python

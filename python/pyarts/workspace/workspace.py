@@ -342,6 +342,9 @@ _group_types = [eval(f"cxx.{x.name}") for x in list(cxx.globals.get_wsv_groups()
 
 
 class Workspace(InternalWorkspace):
+    """
+    A wrapper for the C++ workspace object
+    """
     def __getattribute__(self, attr):
         if attr.startswith("__"):
             object.__getattribute__(self, attr)

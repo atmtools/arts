@@ -202,7 +202,7 @@ units of m^5 molec^(-2) )--");
   wsv_groups.emplace_back("CallbackFunction",
                           "Used to inject custom code into *Agenda*");
 
-  wsv_groups.emplace_back("CovarianceMatrix", "Contains the covariance matrix");
+  wsv_groups.emplace_back("CovarianceMatrix", "A covariance matrix");
 
   wsv_groups.emplace_back("EnergyLevelMap",
                           R"--(Maps data based on energy levels
@@ -278,7 +278,7 @@ required to compute the relaxation matrix
 If there is no identifier or species avaialable, default values that approximates a diagonal
 relaxation matrix are set)--");
 
-  wsv_groups.emplace_back("MCAntenna", "An Antenna object used by *MCGeneral*");
+  wsv_groups.emplace_back("MCAntenna", "An antenna object used by *MCGeneral*");
 
   wsv_groups.emplace_back("Matrix", "A 2 dimensional array of *Numeric*");
 
@@ -429,11 +429,7 @@ if it is contained in the Atlas and NAN otherwise.)--");
 
   wsv_groups.emplace_back("Timer", "Represents a clock");
 
-  wsv_groups.emplace_back("Time", R"(Represents a time stamp in the format:
-"YEAR-MONTH-DAY HOUR:MINUTE:SECOND", e.g., "2023-03-06 14:32:35.35"
-
-Note that most direct user input of a Time accepts a string as above to
-represent the time stamp.
+  wsv_groups.emplace_back("Time", R"(Represents a time stamp
 )");
 
   wsv_groups.emplace_back(

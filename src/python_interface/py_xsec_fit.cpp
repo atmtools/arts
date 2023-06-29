@@ -34,7 +34,7 @@ void py_xsec(py::module_& m) {
   }));
 
   py::class_<details::XsecRecord>(m , "XsecRecord::details")
-    .def_readwrite_static("to_xarray", &details::XsecRecord::to_xarray)
+    .def_readwrite_static("to_xarray", &details::XsecRecord::to_xarray, "Convert to :class:`xarray.DataArray`")
     .def_readwrite_static("from_xarray", &details::XsecRecord::from_xarray)
     .def_readwrite_static("to_netcdf", &details::XsecRecord::to_netcdf)
     .def_readwrite_static("from_netcdf", &details::XsecRecord::from_netcdf)
