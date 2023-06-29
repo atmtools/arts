@@ -26,27 +26,24 @@ String group_generics_inout(const String& group) {
   String out;
 
   if (outdocs.first.size()) {
-    out += var_string("\nGeneric methods that can generate ",
+    out += var_string("\nMethods that can generate ",
                       group,
                       "\n",
-                      String(34 + group.size(), '-'),
-                      "\n");
+                      String(25 + group.size(), '-'),
+                      "\n.. hlist::");
     for (auto& m : outdocs.first)
-      out += var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
+      out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
   }
 
   if (outdocs.second.size()) {
-    out += var_string("\nGeneric methods that require ",
+    out += var_string("\nMethods that require ",
                       group,
                       "\n",
-                      String(29 + group.size(), '-'),
-                      "\n");
+                      String(20 + group.size(), '-'),
+                      "\n.. hlist::");
     for (auto& m : outdocs.second)
-      out += var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
+      out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
   }
-
-  //! FIXME: Add Workspace Variables of type XYZ
-  //! FIXME: Use RAW MD instead of generated MD
 
   return out;
 }
@@ -65,11 +62,11 @@ String group_workspace_types(const String& group) {
                       group,
                       "\n",
                       String(28 + group.size(), '-'),
-                      "\n");
+                      "\n.. hlist::");
     for (auto& m : vars)
-      out += var_string("\n\n    :attr:`~pyarts.workspace.Workspace.", m, '`');
+      out += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
   }
 
-  return out;
+  return out + "\n";
 }
 }  // namespace Python

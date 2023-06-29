@@ -4,11 +4,15 @@
 #include <iomanip>
 #include <iterator>
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 
+#include "compare.h"
 #include "debug.h"
 #include "global_data.h"
+#include "matpack_constexpr.h"
 #include "nonstd.h"
+#include "python_interface/pydocs.h"
 #include "workspace.h"
 #include "workspace_global_data.h"
 
@@ -88,4 +92,76 @@ String add_type(String x, const String& type) {
             var_string("\n\nThis workspace variable holds the group: :class:`~pyarts.arts.", type, "`\n"));
   while (x.ends_with("\n\n")) x.pop_back();  // Renove extra spaces
   return x;
+}
+
+String get_agenda_io(const String & x) {
+  static bool once = false;
+  if (not once) {
+    define_wsv_groups();
+    define_wsv_data();
+    define_wsv_map();
+    define_md_data_raw();
+    define_md_raw_map();
+    expand_md_data_raw_to_md_data();
+    define_md_map();
+    define_agenda_data();
+    define_agenda_map();
+    once = true;
+  }
+
+  String out{R"(
+Parameters
+----------
+)"};
+
+  struct AgendaIO {
+    bool in;
+    bool out;
+    String group;
+    String name;
+  };
+
+  auto& ag = global_data::agenda_data[global_data::AgendaMap.at(x)];
+  auto& out_ind = ag.Out();
+  auto& in_ind = ag.In();
+
+  const auto output = [&](const Index ind) {
+    return std::any_of(out_ind.begin(), out_ind.end(), Cmp::eq(ind));
+  };
+
+  const auto input = [&](const Index ind) {
+    return std::any_of(in_ind.begin(), in_ind.end(), Cmp::eq(ind));
+  };
+
+  std::vector<AgendaIO> writer;
+  for (auto& var : out_ind) {
+    writer.emplace_back(
+        input(var),
+        true,
+        global_data::wsv_groups[global_data::wsv_data[var].Group()].name,
+        global_data::wsv_data[var].Name());
+  }
+
+  for (auto& var : in_ind) {
+    if (not output(var))
+      writer.emplace_back(
+          true,
+          false,
+          global_data::wsv_groups[global_data::wsv_data[var].Group()].name,
+          global_data::wsv_data[var].Name());
+  }
+
+  constexpr matpack::matpack_constant_data<std::string_view, 2, 2> inout{
+      "(ERROR)", "(OUT)", "(IN)", "(INOUT)"};
+  for (auto& var : writer) {
+    out += var_string(var.name,
+                      " : ~pyarts.arts.",
+                      var.group,
+                      '\n',
+                      "    See :attr:`~pyarts.workspace.Workspace.",
+                      var.name,
+                      "` for more details ", inout[var.in][var.out], '\n');
+  }
+
+  return out;
 }

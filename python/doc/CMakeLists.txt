@@ -13,7 +13,7 @@ if (SPHINX_FOUND)
     ${SPHINX_SOURCE} ${SPHINX_BUILD}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating documentation with Sphinx")
-  add_dependencies (pyarts_docs pyarts gen_pyarts_arts_rst)
+  add_dependencies (pyarts_docs pyarts gen_pyarts_arts_rst gen_arts_overview_rst)
 
   file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.py")
   foreach(file ${PYTHON_SOURCE_FILES})
@@ -36,6 +36,14 @@ if (SPHINX_FOUND)
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_pyarts_arts_rst.py > ${CMAKE_CURRENT_BINARY_DIR}/source/pyarts_arts.rst
   )
   add_dependencies (gen_pyarts_arts_rst pyarts)
+  
+  add_custom_target(gen_arts_overview_rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Agendas > ${CMAKE_CURRENT_BINARY_DIR}/source/auto_wsa_overview.rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Variables > ${CMAKE_CURRENT_BINARY_DIR}/source/auto_wsv_overview.rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Groups > ${CMAKE_CURRENT_BINARY_DIR}/source/auto_wsg_overview.rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Methods > ${CMAKE_CURRENT_BINARY_DIR}/source/auto_wsm_overview.rst
+  )
+  add_dependencies (gen_arts_overview_rst pyarts)
 
   #
   # Clean

@@ -42,6 +42,6 @@ provided in the :ref:`getting_started` section.
    :maxdepth: 2
 
    getting_started
+   workspace_overview
    modules
    indices
-

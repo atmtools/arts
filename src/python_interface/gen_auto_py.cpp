@@ -15,6 +15,8 @@
 #include "tokval_io.h"
 #include "workspace.h"
 
+#include "pydocs.h"
+
 namespace global_data {
 extern Array<WsvRecord> wsv_data;
 
@@ -101,10 +103,6 @@ struct AgendaData {
   std::vector<std::string> outs;
 };
 
-String unwrap_stars(String);
-
-String add_type(String, const String&);
-
 std::map<std::string, Group> groups() {
   std::map<std::string, std::size_t> group;
   for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
@@ -114,11 +112,15 @@ std::map<std::string, Group> groups() {
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
 
-    val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds a :class:`~pyarts.arts.",
+    val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds type :class:`~pyarts.arts.",
                      global_data::wsv_groups[x.Group()].name,
                      "`: ",
                      add_type(unwrap_stars(x.Description()), global_data::wsv_groups[x.Group()].name));
     
+    if (global_data::wsv_groups[x.Group()].name == "Agenda" or global_data::wsv_groups[x.Group()].name == "ArrayOfAgenda") {
+      val += get_agenda_io(x.Name());
+    }
+
     //! FIXME: Better default, why can't it print???
     if (x.has_defaults())
       val += var_string("\nDefault value\n"
@@ -126,47 +128,92 @@ std::map<std::string, Group> groups() {
                         TokValPrinter(x.default_value()),
                         "``\n\n");
 
-    std::pair<std::vector<std::string>, std::vector<std::string>> usedocs;
+    struct wsv_io {
+      std::vector<String> wsm_out;
+      std::vector<String> wsm_in;
+      std::vector<String> ag_out;
+      std::vector<String> ag_in;
+    };
+
+    wsv_io usedocs;
     for (auto& method : global_data::md_data_raw) {
       if (std::any_of(method.Out().cbegin(),
                       method.Out().cend(),
                       [&name = x.Name()](auto& mind) {
                         return global_data::wsv_data[mind].Name() == name;
                       }))
-        usedocs.first.push_back(method.Name());
+        usedocs.wsm_out.push_back(method.Name());
 
       if (std::any_of(method.In().cbegin(),
                       method.In().cend(),
                       [&name = x.Name()](auto& mind) {
                         return global_data::wsv_data[mind].Name() == name;
                       }))
-        usedocs.second.push_back(method.Name());
+        usedocs.wsm_in.push_back(method.Name());
     }
 
-    if (usedocs.first.size()) {
-      val += var_string("\n\nSpecific methods that can generate ",
-                        x.Name(),
-                        "\n", String(35 + x.Name().size(), '-'), "\n\n");
-      for (auto& m : usedocs.first)
-        val +=
-            var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
+    for (auto& agenda: global_data::agenda_data) {
+      if (std::any_of(agenda.Out().cbegin(),
+                      agenda.Out().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.ag_out.push_back(agenda.Name());
+
+      if (std::any_of(agenda.In().cbegin(),
+                      agenda.In().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.ag_in.push_back(agenda.Name());
     }
-    if (usedocs.second.size()) {
-      val += var_string("\n\nSpecific methods that require ",
+
+    if (usedocs.wsm_out.size()) {
+      val += var_string("\n\nMethods that can generate ",
                         x.Name(),
-                        "\n", String(30 + x.Name().size(), '-'), "\n\n");
-      for (auto& m : usedocs.second)
+                        "\n", String(26 + x.Name().size(), '-'), "\n.. hlist::");
+      for (auto& m : usedocs.wsm_out)
         val +=
-            var_string("\n\n    :func:`~pyarts.workspace.Workspace.", m, '`');
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
     }
+
+    if (usedocs.wsm_in.size()) {
+      val += var_string("\n\nMethods that require ",
+                        x.Name(),
+                        "\n", String(20 + x.Name().size(), '-'), "\n.. hlist::");
+      for (auto& m : usedocs.wsm_in)
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+    }
+
+    if (usedocs.ag_out.size()) {
+      val += var_string("\n\nAgendas that can generate ",
+                        x.Name(),
+                        "\n", String(26 + x.Name().size(), '-'), "\n.. hlist::");
+      for (auto& m : usedocs.ag_out)
+        val +=
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+    }
+
+    if (usedocs.ag_in.size()) {
+      val += var_string("\n\nAgendas that require ",
+                        x.Name(),
+                        "\n", String(20 + x.Name().size(), '-'), "\n.. hlist::");
+      for (auto& m : usedocs.ag_in)
+        val +=
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+    }
+
     val += var_string(
         "\n\nGeneric methods that can generate or use ",
         x.Name(),
-        "\n", String(41 + x.Name().size(), '-'), "\n\n    See :class:`~pyarts.arts.",
+        "\n", String(41 + x.Name().size(), '-'), "\nSee :class:`~pyarts.arts.",
         global_data::wsv_groups[x.Group()].name,
         "`");
     if (global_data::wsv_groups[x.Group()].name not_eq "Any")
-      val += var_string(" and :class:`~pyarts.arts.Any`");
+      val += var_string(" and/or :class:`~pyarts.arts.Any`\n");
+
+    
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
