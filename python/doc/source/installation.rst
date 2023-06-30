@@ -21,7 +21,7 @@ Older versions of Arts are available as well to support the reproduction of publ
 scientific results in a traceable manner.  These are as listed
 
 .. hlist::
-    :columns: 4
+    :columns: 3
 
     * `Arts 1.0.x <https://github.com/atmtools/arts/tree/v1.0.x>`_
     * `Arts 2.0.x <https://github.com/atmtools/arts/tree/v2.0.x>`_
