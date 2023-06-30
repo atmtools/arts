@@ -53,167 +53,172 @@ void define_wsv_groups() {
 
   wsv_groups.emplace_back(
       "AbsorptionLines",
-      "Contains line-by-line absorption information for a number of related absorption lines");
+      "Contains line-by-line absorption information for a number of related absorption lines\n");
 
   wsv_groups.emplace_back(
-      "Agenda", "Describes a set of function calls and variable definitions");
+      "Agenda", "Describes a set of function calls and variable definitions\n");
 
   wsv_groups.emplace_back(
       "Any",
-      "Meta type for when methods can take any argument (avoid manual use)");
+      "Meta type for when methods can take any argument (avoid manual use)\n");
 
   wsv_groups.emplace_back("ArrayOfAbsorptionLines",
                           "A list of *AbsorptionLines*");
 
   wsv_groups.emplace_back("ArrayOfArrayOfAbsorptionLines",
-                          "A list of *ArrayOfAbsorptionLines*");
+                          "A list of *ArrayOfAbsorptionLines*\n");
 
-  wsv_groups.emplace_back("ArrayOfAgenda", "A list of *Agenda*");
+  wsv_groups.emplace_back("ArrayOfAgenda", "A list of *Agenda*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfGriddedField1",
-                          "A list of *ArrayOfGriddedField1*");
+                          "A list of *ArrayOfGriddedField1*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfGriddedField2",
-                          "A list of *ArrayOfGriddedField2*");
+                          "A list of *ArrayOfGriddedField2*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfGriddedField3",
-                          "A list of *ArrayOfGriddedField3*");
+                          "A list of *ArrayOfGriddedField3*\n");
 
-  wsv_groups.emplace_back("ArrayOfArrayOfIndex", "A list of *ArrayOfIndex*");
+  wsv_groups.emplace_back("ArrayOfArrayOfIndex", "A list of *ArrayOfIndex*\n");
 
-  wsv_groups.emplace_back("ArrayOfArrayOfMatrix", "A list of *ArrayOfMatrix*");
+  wsv_groups.emplace_back("ArrayOfArrayOfMatrix", "A list of *ArrayOfMatrix*\n");
 
-  wsv_groups.emplace_back("ArrayOfPpath", "A list of *Ppath*");
+  wsv_groups.emplace_back("ArrayOfPpath", "A list of *Ppath*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfPropagationMatrix",
-                          "A list of *ArrayOfPropagationMatrix*");
+                          "A list of *ArrayOfPropagationMatrix*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfRadiationVector",
-                          "A list of *ArrayOfRadiationVector*");
+                          "A list of *ArrayOfRadiationVector*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfScatteringMetaData",
-                          "A list of *ArrayOfScatteringMetaData*");
+                          "A list of *ArrayOfScatteringMetaData*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfSingleScatteringData",
-                          "A list of *ArrayOfSingleScatteringData*");
+                          "A list of *ArrayOfSingleScatteringData*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfSpeciesTag",
-                          "A list of *ArrayOfSpeciesTag*");
+                          "A list of *ArrayOfSpeciesTag*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfStokesVector",
-                          "A list of *ArrayOfStokesVector*");
+                          "A list of *ArrayOfStokesVector*\n");
 
-  wsv_groups.emplace_back("ArrayOfArrayOfString", "A list of *ArrayOfString*");
+  wsv_groups.emplace_back("ArrayOfArrayOfString", "A list of *ArrayOfString*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfTensor3",
-                          "A list of *ArrayOfTensor3*");
+                          "A list of *ArrayOfTensor3*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfTensor6",
-                          "A list of *ArrayOfTensor6*");
+                          "A list of *ArrayOfTensor6*\n");
 
-  wsv_groups.emplace_back("ArrayOfArrayOfTime", "A list of *ArrayOfTime*");
+  wsv_groups.emplace_back("ArrayOfArrayOfTime", "A list of *ArrayOfTime*\n");
 
   wsv_groups.emplace_back("ArrayOfArrayOfTransmissionMatrix",
-                          "A list of *ArrayOfTransmissionMatrix*");
+                          "A list of *ArrayOfTransmissionMatrix*\n");
 
-  wsv_groups.emplace_back("ArrayOfArrayOfVector", "A list of *ArrayOfVector*");
+  wsv_groups.emplace_back("ArrayOfArrayOfVector", "A list of *ArrayOfVector*\n");
 
-  wsv_groups.emplace_back("ArrayOfCIARecord", "A list of *CIARecord*");
+  wsv_groups.emplace_back("ArrayOfCIARecord", "A list of *CIARecord*\n");
 
-  wsv_groups.emplace_back("ArrayOfGriddedField1", "A list of *GriddedField1*");
+  wsv_groups.emplace_back("ArrayOfGriddedField1", "A list of *GriddedField1*\n");
 
-  wsv_groups.emplace_back("ArrayOfGriddedField2", "A list of *GriddedField2*");
+  wsv_groups.emplace_back("ArrayOfGriddedField2", "A list of *GriddedField2*\n");
 
-  wsv_groups.emplace_back("ArrayOfGriddedField3", "A list of *GriddedField3*");
+  wsv_groups.emplace_back("ArrayOfGriddedField3", "A list of *GriddedField3*\n");
 
-  wsv_groups.emplace_back("ArrayOfGriddedField4", "A list of *GriddedField4*");
+  wsv_groups.emplace_back("ArrayOfGriddedField4", "A list of *GriddedField4*\n");
 
-  wsv_groups.emplace_back("ArrayOfIndex", "A list of *Index*");
+  wsv_groups.emplace_back("ArrayOfIndex", "A list of *Index*\n");
 
   wsv_groups.emplace_back("ArrayOfJacobianTarget",
-                          "A list of *JacobianTarget*");
+                          "A list of *JacobianTarget*\n");
 
-  wsv_groups.emplace_back("ArrayOfMatrix", "A list of *Matrix*");
+  wsv_groups.emplace_back("ArrayOfMatrix", "A list of *Matrix*\n");
 
   wsv_groups.emplace_back("ArrayOfPropagationMatrix",
-                          "A list of *PropagationMatrix*");
+                          "A list of *PropagationMatrix*\n");
 
   wsv_groups.emplace_back("ArrayOfQuantumIdentifier",
-                          "A list of *QuantumIdentifier*");
+                          "A list of *QuantumIdentifier*\n");
 
   wsv_groups.emplace_back("ArrayOfRadiationVector",
-                          "A list of *RadiationVector*");
+                          "A list of *RadiationVector*\n");
 
   wsv_groups.emplace_back("ArrayOfRetrievalQuantity",
-                          "A list of retrieval quantitities");
+                          "A list of retrieval quantitities\n");
 
   wsv_groups.emplace_back("ArrayOfScatteringMetaData",
-                          "A list of *ScatteringMetaData*");
+                          "A list of *ScatteringMetaData*\n");
 
   wsv_groups.emplace_back("ArrayOfSingleScatteringData",
-                          "A list of *SingleScatteringData*");
+                          "A list of *SingleScatteringData*\n");
 
   wsv_groups.emplace_back("ArrayOfSpeciesTag", R"--(A list of species tags
 
 These tags include the species and a lot of optional information
-about the isotopologue, the absorption scheme, and the frequency limits)--");
+about the isotopologue, the absorption scheme, and the frequency limits
+)--");
 
-  wsv_groups.emplace_back("ArrayOfSparse", "A list of *Sparse*");
+  wsv_groups.emplace_back("ArrayOfSparse", "A list of *Sparse*\n");
 
-  wsv_groups.emplace_back("ArrayOfSun", "A list of sun");
+  wsv_groups.emplace_back("ArrayOfSun", "A list of sun\n");
 
-  wsv_groups.emplace_back("ArrayOfStokesVector", "A list of *StokesVector*");
+  wsv_groups.emplace_back("ArrayOfStokesVector", "A list of *StokesVector*\n");
 
-  wsv_groups.emplace_back("ArrayOfString", "A list of *String*");
+  wsv_groups.emplace_back("ArrayOfString", "A list of *String*\n");
 
-  wsv_groups.emplace_back("ArrayOfTelsemAtlas", "A list of *TelsemAtlas*");
+  wsv_groups.emplace_back("ArrayOfTelsemAtlas", "A list of *TelsemAtlas*\n");
 
-  wsv_groups.emplace_back("ArrayOfTensor3", "A list of *Tensor3*");
+  wsv_groups.emplace_back("ArrayOfTensor3", "A list of *Tensor3*\n");
 
-  wsv_groups.emplace_back("ArrayOfTensor4", "A list of *Tensor4*");
+  wsv_groups.emplace_back("ArrayOfTensor4", "A list of *Tensor4*\n");
 
-  wsv_groups.emplace_back("ArrayOfTensor5", "A list of *Tensor5*");
+  wsv_groups.emplace_back("ArrayOfTensor5", "A list of *Tensor5*\n");
 
-  wsv_groups.emplace_back("ArrayOfTensor6", "A list of *Tensor6*");
+  wsv_groups.emplace_back("ArrayOfTensor6", "A list of *Tensor6*\n");
 
-  wsv_groups.emplace_back("ArrayOfTensor7", "A list of *Tensor7*");
+  wsv_groups.emplace_back("ArrayOfTensor7", "A list of *Tensor7*\n");
 
-  wsv_groups.emplace_back("ArrayOfTime", "A list of *Time*");
+  wsv_groups.emplace_back("ArrayOfTime", "A list of *Time*\n");
 
   wsv_groups.emplace_back("ArrayOfTransmissionMatrix",
-                          "A list of *TransmissionMatrix*");
+                          "A list of *TransmissionMatrix*\n");
 
-  wsv_groups.emplace_back("ArrayOfVector", "A list of *Vector*");
+  wsv_groups.emplace_back("ArrayOfVector", "A list of *Vector*\n");
 
   wsv_groups.emplace_back("ArrayOfXsecRecord",
                           R"--(A list of cross-section records
 
 These cross-section records contains information about the valid temperature and
 pressure ranges as well as well as the fitting coefficients used to compute
-and interpolate the cross-section to other temperatures and pressures)--");
+and interpolate the cross-section to other temperatures and pressures
+)--");
 
   wsv_groups.emplace_back(
       "CIARecord",
       R"--(Contains information to compute collision induced absorption for a pair of species
 
 Holds an the record data in a gridded field with grids of temperature and frequency in
-units of m^5 molec^(-2) )--");
+units of m^5 molec^(-2)
+)--");
 
   wsv_groups.emplace_back("CallbackFunction",
-                          "Used to inject custom code into *Agenda*");
+                          "Used to inject custom code into *Agenda*\n");
 
-  wsv_groups.emplace_back("CovarianceMatrix", "A covariance matrix");
+  wsv_groups.emplace_back("CovarianceMatrix", "A covariance matrix\n");
 
   wsv_groups.emplace_back("EnergyLevelMap",
                           R"--(Maps data based on energy levels
 
-Used for keeping track of non-local thermodynamic equilibrium data)--");
+Used for keeping track of non-local thermodynamic equilibrium data
+)--");
 
   wsv_groups.emplace_back("GasAbsLookup", R"--(An absorption lookup table
 
 This class holds an absorption lookup table, as well as all
 information that is necessary to use the table to extract
-absorption)--");
+absorption
+)--");
 
   wsv_groups.emplace_back("GridPos", "A position in a grid");
 
@@ -229,43 +234,48 @@ Both the data and the grid may be named)--");
 
 The grid is a combination of 2 *Vector* and/or *ArrayOfString*
 
-Both the data and the grid may be named)--");
+Both the data and the grid may be named
+)--");
 
   wsv_groups.emplace_back("GriddedField3",
                           R"--(A 3 dimensional gridded set of *Numeric* data
 
 The grid is a combination of 3 *Vector* and/or *ArrayOfString*
 
-Both the data and the grid may be named)--");
+Both the data and the grid may be named
+)--");
 
   wsv_groups.emplace_back("GriddedField4",
                           R"--(A 4 dimensional gridded set of *Numeric* data
 
 The grid is a combination of 4 *Vector* and/or *ArrayOfString*
 
-Both the data and the grid may be named)--");
+Both the data and the grid may be named
+)--");
 
   wsv_groups.emplace_back("GriddedField5",
                           R"--(A 5 dimensional gridded set  of *Numeric* data
 
 The grid is a combination of 5 *Vector* and/or *ArrayOfString*
 
-Both the data and the grid may be named)--");
+Both the data and the grid may be named
+)--");
 
   wsv_groups.emplace_back("GriddedField6",
                           R"--(A 6 dimensional gridded set of *Numeric* data
 
 The grid is a combination of 6 *Vector* and/or *ArrayOfString*
 
-Both the data and the grid may be named)--");
+Both the data and the grid may be named
+)--");
 
   wsv_groups.emplace_back("HitranRelaxationMatrixData",
-                          "Wraps data required to use Hitran line mixing");
+                          "Wraps data required to use Hitran line mixing\n");
 
-  wsv_groups.emplace_back("Index", "A 64 bit signed integer type");
+  wsv_groups.emplace_back("Index", "A 64 bit signed integer type\n");
 
   wsv_groups.emplace_back(
-      "JacobianTarget", "A single target if a partial derivative computation");
+      "JacobianTarget", "A single target if a partial derivative computation\n");
 
   wsv_groups.emplace_back(
       "MapOfErrorCorrectedSuddenData",
@@ -276,18 +286,20 @@ This map contains a list of an underlying data type.  This underlying data type 
 required to compute the relaxation matrix
 
 If there is no identifier or species avaialable, default values that approximates a diagonal
-relaxation matrix are set)--");
+relaxation matrix are set
+)--");
 
-  wsv_groups.emplace_back("MCAntenna", "An antenna object used by *MCGeneral*");
+  wsv_groups.emplace_back("MCAntenna", "An antenna object used by *MCGeneral*\n");
 
-  wsv_groups.emplace_back("Matrix", "A 2 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Matrix", "A 2 dimensional array of *Numeric*\n");
 
-  wsv_groups.emplace_back("Numeric", "IEEE 754 binary64 floating point number");
+  wsv_groups.emplace_back("Numeric", "IEEE 754 binary64 floating point number\n");
 
-  wsv_groups.emplace_back("Ppath", "Describes a propagation path");
+  wsv_groups.emplace_back("Ppath", "Describes a propagation path\n");
 
   wsv_groups.emplace_back("PredefinedModelData",
-                          R"--(Contains any data required for a predefined model)--");
+                          R"--(Contains any data required for a predefined model
+)--");
 
   wsv_groups.emplace_back("PropagationMatrix",
                           R"--(The propagation matrix data is help by this type
@@ -342,7 +354,8 @@ For Stokes dimension 1:
     \end {array}
 
 The propagation matrix make use of these symmetries to computate the matrix inverses and exponents
-required to turn the data into a *TransmissionMatrix* (with information about the distance))--");
+required to turn the data into a *TransmissionMatrix* (with information about the distance)
+)--");
 
   wsv_groups.emplace_back("QuantumIdentifier",
                           R"--(An ID for an absorption species state
@@ -354,7 +367,8 @@ and can thus be used to identify one of the following:
 3) an absorption band of an isotopologue
 4) an absorption line of an isotopologue
 5) the energy level of absorption band(s) of an isotopologue
-6) the energy level of absorption line(s) of an isotopologue)--");
+6) the energy level of absorption line(s) of an isotopologue
+)--");
 
   wsv_groups.emplace_back(
       "RadiationVector",
@@ -370,7 +384,8 @@ This is often used in combination with *TransmissionMatrix* to compute the radia
 transfer through the atmosphere
 
 It holds information about the radiance, unlike its cousin *StokesVector*, which holds information
-about the vector absorption/emission)--");
+about the vector absorption/emission
+)--");
 
   wsv_groups.emplace_back("Rational",
                           "Holds a rational number as two *Index* n / d");
@@ -381,11 +396,11 @@ about the vector absorption/emission)--");
   wsv_groups.emplace_back("SingleScatteringData",
                           "Holds single scattering data");
 
-  wsv_groups.emplace_back("Sparse", "A sparse version of *Matrix*");
+  wsv_groups.emplace_back("Sparse", "A sparse version of *Matrix*\n");
 
   wsv_groups.emplace_back(
       "SpeciesIsotopologueRatios",
-      "Contains a list of isotopologue ratios for all defined species");
+      "Contains a list of isotopologue ratios for all defined species\n");
 
   wsv_groups.emplace_back("StokesVector", R"--(A stokes vector
 
@@ -400,9 +415,10 @@ Number of zenith angles as *Index*
 Number of azimuth angles as *Index* 
 The Stokes dimension as *Index* (usually from *stokes_dim*)
 
-This is often used to compute the source emission with the help of a *PropagationMatrix*)--");
+This is often used to compute the source emission with the help of a *PropagationMatrix*
+)--");
 
-  wsv_groups.emplace_back("String", "Basic string type");
+  wsv_groups.emplace_back("String", "Basic string type\n");
 
   wsv_groups.emplace_back("TelsemAtlas", R"--(A telsem atlas
 
@@ -415,25 +431,26 @@ sequentially starting with the first latitude band at -90 degrees and
 moving up to 90 degrees.
 
 The correspondance array contains the data indices for each cellnumber
-if it is contained in the Atlas and NAN otherwise.)--");
+if it is contained in the Atlas and NAN otherwise.
+)--");
 
-  wsv_groups.emplace_back("Tensor3", "A 3 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Tensor3", "A 3 dimensional array of *Numeric*\n");
 
-  wsv_groups.emplace_back("Tensor4", "A 4 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Tensor4", "A 4 dimensional array of *Numeric*\n");
 
-  wsv_groups.emplace_back("Tensor5", "A 5 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Tensor5", "A 5 dimensional array of *Numeric*\n");
 
-  wsv_groups.emplace_back("Tensor6", "A 6 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Tensor6", "A 6 dimensional array of *Numeric*\n");
 
-  wsv_groups.emplace_back("Tensor7", "A 7 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Tensor7", "A 7 dimensional array of *Numeric*\n");
 
-  wsv_groups.emplace_back("Timer", "Represents a clock");
+  wsv_groups.emplace_back("Timer", "Represents a clock\n");
 
   wsv_groups.emplace_back("Time", R"(Represents a time stamp
 )");
 
   wsv_groups.emplace_back(
-      "TessemNN", "Data required by TESSEM to calculate surface emissivity");
+      "TessemNN", "Data required by TESSEM to calculate surface emissivity\n");
 
   wsv_groups.emplace_back(
       "TransmissionMatrix",
@@ -452,13 +469,14 @@ The transmission matrix is often computed from the combination of two *Propagati
 at different atmospheric path points (using the distance between these points)
 
 It holds information about the polarized transmission, unlike its cousin *PropagationMatrix*,
-which holds information about the polarized absorption)--");
+which holds information about the polarized absorption
+)--");
 
-  wsv_groups.emplace_back("Vector", "A 1 dimensional array of *Numeric*");
+  wsv_groups.emplace_back("Vector", "A 1 dimensional array of *Numeric*\n");
 
   wsv_groups.emplace_back(
       "Verbosity",
-      "Controls the screen, agenda, and file verbosity level (i.e. the level of information printed)");
+      "Controls the screen, agenda, and file verbosity level (i.e. the level of information printed)\n");
 
   std::sort(wsv_groups.begin(), wsv_groups.end(), [](auto& a, auto& b) {
     return a.name < b.name;

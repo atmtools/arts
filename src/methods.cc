@@ -2555,7 +2555,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAll"),
-      DESCRIPTION("Sets *abs_species*[i][0] to all species in ARTS\n"),
+      DESCRIPTION("Sets *abs_species* [i][0] to all species in ARTS\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_species",
           "propmat_clearsky_agenda_checked"),
@@ -3634,8 +3634,8 @@ Available models:
           "if not ``pert_mode`` is set to "
           "relative"
           " when this is done\n"
-          "  perturbed_field = original_field\n"
-          "  perturbed_field(p_index,lat_index,lon_index) *= 1*pert_size\n"
+          "  ``perturbed_field = original_field``\n"
+          "  ``perturbed_field(p_index,lat_index,lon_index) *= 1 * pert_size``\n"
           "where p_index etc. are derived from ``pert_index``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -4321,7 +4321,7 @@ Available models:
           "\n"
           "For detailed tagging conventions see *atm_fields_compact*.\n"
           "\n"
-          "Works only for *atmosphere_dim*==1.\n"),
+          "Works only for *atmosphere_dim* == 1.\n"),
       AUTHORS("Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -4483,7 +4483,7 @@ Available models:
           "*ArrayOfGriddedField4* and use *ReadXML* to load them directly into\n"
           "*batch_atm_fields_compact*).\n"
           "\n"
-          "Works only for *atmosphere_dim*==1.\n"
+          "Works only for *atmosphere_dim* == 1.\n"
           "\n"
           "See *atm_fields_compactFromMatrix* for basic documentation.\n"
           "\n"
@@ -4601,7 +4601,7 @@ Available models:
           "of first pressure level).\n"
           "``cloudbox_margin`` will be applied on each call of the WSM.\n"
           "\n"
-          "Works only for *atmosphere_dim*==1.\n"),
+          "Works only for *atmosphere_dim* == 1.\n"),
       AUTHORS("Jana Mendrok, Daniel Kreyling"),
       OUT("cloudbox_on", "cloudbox_limits"),
       GOUT(),
@@ -8166,7 +8166,7 @@ Available models:
           "Counts number of points in the atmosphere.\n"
           "\n"
           "For a 3D atmosphere the method sets ``n`` to:\n"
-          "  p_grid.nelem() *lat_grid.nelem() * lon_grid.nelem()\n"
+          "  p_grid.nelem() * lat_grid.nelem() * lon_grid.nelem()\n"
           "For 1D and 2D the same calculation is done, but ignoring dimensions\n"
           "not active.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -8364,7 +8364,7 @@ Available models:
           "For each observation geometry specified by the combination of\n"
           "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
           "an altitude is determined. The intersections are described by the\n"
-          "GOUT ``pos`` and *los.\n"
+          "GOUT ``pos`` and ``los``.\n"
           "\n"
           "For cases with no intersection, ``pos`` and ``los`` are filled with NaN.\n"
           "\n"
@@ -10580,13 +10580,13 @@ Available models:
           "Works as *jacobianAddPolyfit*, beside that a series of sine and\n"
           "cosine terms are used for the baseline fit.\n"
           "\n"
-          "For each value in *period_lengths one sine and one cosine term are\n"
+          "For each value in ``period_lengths`` one sine and one cosine term are\n"
           "included (in mentioned order). By these two terms the amplitude and\n"
           "\"phase\" for each period length can be determined. The sine and\n"
           "cosine terms have value 0 and 1, respectively, for first frequency.\n"
           "\n"
           "If the simulation/retrieval deals with a single spectrum, the number\n"
-          "of elements added to the state vector (*x*) is 2*nperiods, where\n"
+          "of elements added to the state vector (*x*) is 2 * nperiods, where\n"
           "nperiods is the length of ``period_lengths``. The same is true\n"
           "if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``\n"
           "all are set to 1, even if several spectra are involved. Otherwise the"
@@ -11162,7 +11162,7 @@ Available models:
           "and x is the final state vector.\n"
           "\n"
           "So far, the following must be true for valid A-matrices\n"
-          "   z = A'*x + b\n"
+          "   z = A' * x + b\n"
           "That is, the reversed transformation is given by A transposed.\n"
           "\n"
           "This method must only be called if an affine transformation is wanted.\n"
@@ -11612,7 +11612,7 @@ Available models:
           "The size if the matrix created is n x n. Default is to return a\n"
           "true identity matrix (I), but you can also select another value\n"
           "along the diagonal by setting ``value``. That is, the output is\n"
-          "value*I.\n"),
+          "value * I.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -11630,7 +11630,7 @@ Available models:
           "Multiply a Matrix with another Matrix and store the result in the result\n"
           "Matrix.\n"
           "\n"
-          "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
+          "This just computes the normal Matrix-Matrix product, Y = M * X. It is ok\n"
           "if Y and X are the same Matrix.\n"),
       AUTHORS("Stefan Buehler"),
       OUT(),
@@ -11692,7 +11692,7 @@ Available models:
           "Creates a matrix as reshaped version of a tenor3.\n"
           "\n"
           "If the size of the tensor is [npages, nrows, ncols], the created\n"
-          "matrix gets size [npages*nrows, ncols]. The matrix is filled with\n"
+          "matrix gets size [npages * nrows, ncols]. The matrix is filled with\n"
           "the tensor's page dimension as the outermost loop.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -12046,7 +12046,7 @@ Available models:
           "terminated. A value of one calculates only single scattering.\n"
           "\n"
           "The WSV *mc_max_iter* describes the maximum number of `photons\'\n"
-          "used in the simulation (more photons means smaller *mc_error*).\n"
+          "used in the simulation (more photons means smaller *mc_error* ).\n"
           "The method will terminate once the max_iter criterium is met.\n"
           "If negative values are given for these parameters then it is\n"
           "ignored.\n"
@@ -12272,7 +12272,7 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericMultiply"),
       DESCRIPTION(
-          "Multiplies a Numeric with a value (out = in*value).\n"
+          "Multiplies a Numeric with a value (out = in * value).\n"
           "\n"
           "The result can either be stored in the same or another Numeric.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -13288,12 +13288,12 @@ Available models:
           "*rtp_temperature* is positive. If only a single temperature point\n"
           "is available, data for this point is used without modification. In\n"
           "order to speed up calculations, temperature interpolation can be\n"
-          "avoided by passing a *rtp_temperature*<0. In this case, a specific\n"
+          "avoided by passing a *rtp_temperature* < 0. In this case, a specific\n"
           "temperature grid from the *scat_data* grid is used without\n"
           "modification. The selection is as follows:\n"
-          "  -10 < *rtp_temperature * <   0   T_grid[0]     lowest temperature\n"
-          "  -20 < *rtp_temperature * < -10   T_grid[nT-1]  highest temperature\n"
-          "        *rtp_temperature*  < -20   T_grid[nT/2]  median grid point\n"),
+          "  -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature\n"
+          "  -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature\n"
+          "        *rtp_temperature* < -20   T_grid[nT/2]  median grid point\n"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -13641,9 +13641,9 @@ Available models:
           "angle range from the surface tangent plus 1e-4 degrees to 90 degrees minus\n"
           "1e-4 degrees.\n"
           "\n"
-          "The top of the atmosphere is from *z_field*(-1, 0, 0) [python range notation].\n"
+          "The top of the atmosphere is from *z_field* (-1, 0, 0) [python range notation].\n"
           "\n"
-          "The field will consist of 3*nz arrays structured as [up, limb, down]\n"
+          "The field will consist of 3 * nz arrays structured as [up, limb, down]\n"
           "\n"
           "The intent of this function is to generate a field so that calculations\n"
           "of *ppvar_iy* of all the fields will cover the zenith angle space\n"
@@ -17340,7 +17340,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "RT4 provides the radiation field (*cloudbox_field*) from a vector\n"
           "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
-          "Earth). It calculates up to two Stokes parameters (*stokes_dim*<=2),\n"
+          "Earth). It calculates up to two Stokes parameters (*stokes_dim* <= 2),\n"
           "i.e., all azimuthally randomly oriented particles are allowed (this\n"
           "also includes macroscopically isotropic particles). Refraction is\n"
           "not taken into account.\n"
@@ -20351,7 +20351,7 @@ where N>=0 and the species name is something line "H2O".
           "This enables nearest neighbor interpolation, which assigns the emissivities\n"
           "of the nearest found cell in the atlas to the given position. In this case,\n"
           "an error is only thrown if the distance of the found neighbor is higher\n"
-          "than the provided value of *d_max.\n"
+          "than the provided value of ``d_max``.\n"
           "\n"
           "You can limit the final reflectivity applied by setting ``r_min`` and ``r_max``.\n"
           "\n"
@@ -23343,7 +23343,7 @@ where N>=0 and the species name is something line "H2O".
           "The frequency, polarisation etc. for each measurement value is\n"
           "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
           "\n"
-          "The content of *y_aux* follows *iy_aux_vars. See the method selected\n"
+          "The content of *y_aux* follows *iy_aux_vars*. See the method selected\n"
           "for *iy_main_agenda* for allowed choices.\n"
           "\n"
           "The geo-positions (*y_geo*) are set based on *sensor_response*. When\n"
@@ -23572,10 +23572,10 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The method mimics a spectrometer with rectangular response\n"
           "functions, all having the same width (``df``). The position of\n"
-          "the first spectrometer channel is set to f_grid[0]+df/2.\n"
+          "the first spectrometer channel is set to f_grid[0] + df / 2.\n"
           "The centre frequency of channels are returned as *y_f*.\n"
           "\n"
-          "Auxiliary variables and *jacobian*s are not handled.\n"),
+          "Auxiliary variables and *jacobian* s are not handled.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f"),
       GOUT(),
