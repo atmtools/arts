@@ -3,4 +3,4 @@
 Workspace Methods
 =================
 
-.. include:: auto_wsm_overview.rst
+.. include:: workspace.methods.auto.rst

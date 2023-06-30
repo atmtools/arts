@@ -3,4 +3,4 @@
 Workspace Groups
 ================
 
-.. include:: auto_wsg_overview.rst
+.. include:: workspace.groups.auto.rst

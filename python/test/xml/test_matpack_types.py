@@ -12,7 +12,6 @@ from scipy import sparse
 import pytest
 
 from pyarts import xml
-from pyarts.catalogues import Sparse
 
 
 def _create_tensor(n):
@@ -63,20 +62,6 @@ def _create_empty_tensor(n):
     return np.ndarray((0,) * n)
 
 
-def _create_sparse(n):
-    """Create a n x n diagonal sparse with ones on the diagonal.
-
-    Args:
-        n (int): size
-
-    Returns:
-        arts.catalogues.Sparse: sparse matrix with ones as diagonals
-
-    """
-    a = sparse.diags(np.ones(n), format='csc')
-    return Sparse(a)
-
-
 class TestLoad:
     """Testing the ARTS XML reading functions.
 
@@ -110,13 +95,6 @@ class TestLoad:
         reference = _create_tensor(2)
         test_data = xml.load(self.ref_dir + 'matrix.xml')
         assert np.array_equal(test_data, reference)
-
-    @pytest.mark.parametrize('suffix', ['.xml', '-bin.xml'])
-    def test_load_sparse(self, suffix):
-        """Load reference XML file for ARTS type Sparse."""
-        reference = _create_sparse(10) * 7
-        test_data = xml.load(self.ref_dir + 'sparse' + suffix)
-        assert np.array_equal(test_data.toarray(), reference.toarray())
 
     @pytest.mark.parametrize('n', range(3, 8))
     def test_load_tensor(self, n):
@@ -251,14 +229,6 @@ class TestSave:
         xml.save(reference, self.f, format='binary')
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
-
-    @pytest.mark.parametrize('fileformat', ['ascii', 'binary'])
-    def test_sparse(self, fileformat):
-        """Save Sparse to file, read it and compare the result."""
-        reference = _create_sparse(10)
-        xml.save(reference, self.f, format=fileformat)
-        test_data = xml.load(self.f)
-        assert np.array_equal(test_data.toarray(), reference.toarray())
 
     def test_save_complex_matrix(self):
         """Save complex Matrix to file, read it and compare the results."""

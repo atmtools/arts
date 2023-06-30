@@ -10,7 +10,6 @@ from xml.etree import ElementTree
 import numpy as np
 
 from .names import dimension_names
-from .. import types
 
 __all__ = ['parse']
 
@@ -158,17 +157,10 @@ class ARTSElement(ElementTree.Element):
     binaryfp = None
 
     def value(self):
-        if hasattr(types, self.tag):
-            try:
-                return types.classes[self.tag].from_xml(self)
-            except AttributeError:
-                raise RuntimeError('Type {} exists, but has no XML parsing '
-                                   'support.'.format(self.tag))
-        else:
-            try:
-                return getattr(ARTSTypesLoadMultiplexer, self.tag)(self)
-            except AttributeError:
-                raise RuntimeError('Unknown ARTS type {}'.format(self.tag))
+        try:
+            return getattr(ARTSTypesLoadMultiplexer, self.tag)(self)
+        except AttributeError:
+            raise RuntimeError('Unknown ARTS type {}'.format(self.tag))
 
 
 def parse(source, binaryfp=None):

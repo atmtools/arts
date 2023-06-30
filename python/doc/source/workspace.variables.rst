@@ -3,4 +3,4 @@
 Workspace Variables
 ===================
 
-.. include:: auto_wsv_overview.rst
+.. include:: workspace.variables.auto.rst

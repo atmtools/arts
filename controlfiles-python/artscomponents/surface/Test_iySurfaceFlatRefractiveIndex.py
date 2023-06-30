@@ -6,7 +6,7 @@
 
 import numpy as np
 from pyarts.workspace import Workspace, arts_agenda
-from pyarts.arts import constant
+from pyarts.arts import constants
 from pyarts import xml
 
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     wavelength = np.array([600]) * 1e-9
 
     # Frequency grid
-    f_grid = constant.c / wavelength
+    f_grid = constants.c / wavelength
 
     # Set Complex refractive index similar to water at 600 nm
     ComplexRefractiveIndex = np.array([1.333, 1e-8]).T

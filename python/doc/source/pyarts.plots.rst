@@ -1,5 +1,26 @@
-pyarts.plots.ppath
+pyarts.plots
 ============
+
+.. automodule:: pyarts.plots
+
+.. currentmodule:: pyarts.plots
+
+
+Main Functions
+--------------
+
+.. autosummary::
+   :toctree: stubs
+
+   plot_arts_lookup
+   polar_ppath
+   polar_ppath_list
+
+Full Modules
+------------
+
+pyarts.plots.ppath
+^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pyarts.plots.ppath
 
@@ -20,4 +41,3 @@ pyarts.plots.ppath
    polar_ppath_default_axes
    polar_ppath
    polar_ppath_list
-   

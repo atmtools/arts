@@ -3,4 +3,4 @@
 Workspace Agendas
 =================
 
-.. include:: auto_wsa_overview.rst
+.. include:: workspace.agendas.auto.rst
