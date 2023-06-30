@@ -12,7 +12,9 @@ Documentation index
    :maxdepth: 2
 
    installation
+   getting.started
    workspace
    pyarts
+   examples
    indices
    contact

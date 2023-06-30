@@ -1,7 +1,4 @@
 """
-ARTS controlfile parser
-=======================
-
 This module implements a parse for ARTS controlfile. Its implemented
 using lark, which greatly simplifies the parsing. Functions are provided
 to transform the parsed controlfile to a Python script.

@@ -1,5 +1,3 @@
-.. _pyarts_sensor:
-
 pyarts.sensor
 =============
 

@@ -46,8 +46,8 @@ void py_xsec(py::module_& m) {
       // .PythonInterfaceWorkspaceVariableConversion(XsecRecord)
       .PythonInterfaceFileIO(XsecRecord)
       .PythonInterfaceBasicRepresentation(XsecRecord)
-      .def_property("version", &XsecRecord::Version, &XsecRecord::SetVersion)
-      .def_property("species", &XsecRecord::Species, &XsecRecord::SetSpecies)
+      .def_property("version", &XsecRecord::Version, &XsecRecord::SetVersion, ":class:`int` The version")
+      .def_property("species", &XsecRecord::Species, &XsecRecord::SetSpecies, ":class:`~pyarts.arts.Species` The species")
       .PythonInterfaceBasicReferenceProperty(
           XsecRecord, fitcoeffs, FitCoeffs, FitCoeffs, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(

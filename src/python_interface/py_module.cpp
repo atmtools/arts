@@ -56,7 +56,7 @@ void py_hitran(py::module_& m);
  * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
 PYBIND11_MODULE(arts, m) {
-  m.doc() = "Contains direct C++ interface for Arts";
+  m.doc() = "Interface directly to the C++ types via python";
   py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "Pyarts::Workspace");
   py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
   wsv.doc() = "A wrapper around all workspace variables";

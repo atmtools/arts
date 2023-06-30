@@ -41,3 +41,18 @@ pyarts.plots.ppath
    polar_ppath_default_axes
    polar_ppath
    polar_ppath_list
+
+pyarts.plots.arts_lookup
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pyarts.plots.arts_lookup
+
+.. currentmodule:: pyarts.plots.arts_lookup
+
+.. autosummary::
+   :toctree: stubs
+
+   plot_lookup_xsec
+   plot_lookup_opacity
+   calc_opacity_from_lookup
+   plot_arts_lookup
