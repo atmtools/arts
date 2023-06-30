@@ -135,20 +135,20 @@ Parameters
 
   std::vector<AgendaIO> writer;
   for (auto& var : out_ind) {
-    writer.emplace_back(
+    writer.emplace_back(AgendaIO{
         input(var),
         true,
         global_data::wsv_groups[global_data::wsv_data[var].Group()].name,
-        global_data::wsv_data[var].Name());
+        global_data::wsv_data[var].Name()});
   }
 
   for (auto& var : in_ind) {
     if (not output(var))
-      writer.emplace_back(
+      writer.emplace_back(AgendaIO{
           true,
           false,
           global_data::wsv_groups[global_data::wsv_data[var].Group()].name,
-          global_data::wsv_data[var].Name());
+          global_data::wsv_data[var].Name()});
   }
 
   constexpr matpack::matpack_constant_data<std::string_view, 2, 2> inout{
