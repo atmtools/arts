@@ -61,8 +61,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pyarts'
-copyright = 'The Typhon and ARTS Developers'
-author = 'The Typhon and ARTS Developers'
+copyright = 'The ARTS Developers'
+author = 'The ARTS Developers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
