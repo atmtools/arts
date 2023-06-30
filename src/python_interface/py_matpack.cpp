@@ -92,8 +92,9 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentationExtra(Vector, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Matrix>(); }), "Default matrix")
@@ -149,8 +150,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Matrix, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor3>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor3>(); }), "Default tensor")
@@ -209,8 +211,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor3, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor4>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor4>(); }), "Default tensor")
@@ -276,8 +279,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor4, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor5>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor5>(); }), "Default tensor")
@@ -349,8 +353,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor5, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor6>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor6>(); }), "Default tensor")
@@ -430,8 +435,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor6, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor7>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return std::make_unique<Tensor7>(); }), "Default tensor")
@@ -521,8 +527,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor7, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::implicitly_convertible<std::vector<Scalar>, Vector>();
   py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();

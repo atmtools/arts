@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "array.h"
+#include "compare.h"
 #include "debug.h"
 #include "mystring.h"
 #include "tokval_io.h"
@@ -180,7 +181,7 @@ std::map<std::string, Group> groups() {
     if (usedocs.wsm_in.size()) {
       val += var_string("\n\nMethods that require ",
                         x.Name(),
-                        "\n", String(20 + x.Name().size(), '-'), "\n.. hlist::");
+                        "\n", String(21 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.wsm_in)
         val +=
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
@@ -198,7 +199,7 @@ std::map<std::string, Group> groups() {
     if (usedocs.ag_in.size()) {
       val += var_string("\n\nAgendas that require ",
                         x.Name(),
-                        "\n", String(20 + x.Name().size(), '-'), "\n.. hlist::");
+                        "\n", String(21 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.ag_in)
         val +=
             var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
@@ -580,27 +581,28 @@ void print_method_desc(std::ofstream& os,
 
   for (const auto& i : method.out.varname) {
     os << i << " : ~pyarts.arts." << groups.at(i).varname_group << ", optional\n";
-    os << "    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (";
-    if (std::none_of(method.in.varname.cbegin(),
-                     method.in.varname.cend(),
-                     [out = i](const auto& in) { return in == out; })) {
+    os << "    " << unwrap_stars(short_doc(i)) << " See :attr:`~pyarts.workspace.Workspace." << i << "`, defaults to ``self." << i << "`` **[";
+    if (std::any_of(
+            method.in.varname.cbegin(), method.in.varname.cend(), Cmp::eq(i))) {
       os << "IN";
     }
-    os << "OUT), defaults to ``self." << i << "``\n";
+    os << "OUT]**\n";
   }
   
   for (size_t i = 0; i < method.gout.name.size(); i++) {
     os << method.gout.name[i] << " : "
        << "~pyarts.arts." << method.gout.group[i] << "\n    "
-       << unwrap_stars(method.gout.desc[i]) << " (OUT)\n";
+       << unwrap_stars(method.gout.desc[i]) << " **[OUT]**\n";
   }
 
   for (const auto& i : method.in.varname) {
     if (std::none_of(method.out.varname.cbegin(),
                      method.out.varname.cend(),
-                     [in = i](const auto& out) { return in == out; })) {
+                     Cmp::eq(i))) {
       os << i << " : ~pyarts.arts." << groups.at(i).varname_group
-         << ", optional\n    See :attr:`~pyarts.workspace.Workspace." << i << "` for more details (IN), defaults to ``self." << i << "``\n";
+         << ", optional\n    " << unwrap_stars(short_doc(i))
+         << " See :attr:`~pyarts.workspace.Workspace." << i
+         << "`, defaults to ``self." << i << "`` **[IN]**\n";
     }
   }
 
@@ -610,15 +612,17 @@ void print_method_desc(std::ofstream& os,
     if (method.gin.hasdefs[i]) {
       os << ", optional";
     }
-    os << "\n    " << unwrap_stars(method.gin.desc[i]) << " (IN)";
+    os << "\n    " << unwrap_stars(method.gin.desc[i]);
     if (method.gin.hasdefs[i]) {
-      os << ", defaults to ``" << method.gin.defs[i] << "``";
+      os << ", defaults to ``" << method.gin.defs[i] << "`` **[IN]**";
     }
     os << '\n';
   }
 
   if (pass_verbosity)
-    os << "verbosity : ~pyarts.arts.Verbosity, optional\n    See :attr:`~pyarts.workspace.Workspace.verbosity` for more details (IN), defaults to ``self.verbosity``\n";
+    os << "verbosity : ~pyarts.arts.Verbosity, optional\n    "
+       << unwrap_stars(short_doc("verbosity"))
+       << " See :attr:`~pyarts.workspace.Workspace.verbosity`, defaults to ``self.verbosity`` **[IN]**\n";
 
   os << ")-METHODS_DESC-\")";
 } catch (std::invalid_argument& e) {

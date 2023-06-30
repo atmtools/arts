@@ -165,3 +165,42 @@ Parameters
 
   return out;
 }
+
+String until_first_newline(const String& x) {
+  std::string out{x.begin(), std::find(x.begin(), x.end(), '\n')};
+  if (not out.ends_with('.')) out.push_back('.');
+  return out;
+}
+
+String short_doc(const String& x) {
+    static bool once = false;
+  if (not once) {
+    define_wsv_groups();
+    define_wsv_data();
+    define_wsv_map();
+    define_md_data_raw();
+    define_md_raw_map();
+    expand_md_data_raw_to_md_data();
+    define_md_map();
+    define_agenda_data();
+    define_agenda_map();
+    once = true;
+  }
+
+  const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
+
+  if (found_in(global_data::WsvGroupMap))
+    return until_first_newline(global_data::wsv_groups[global_data::WsvGroupMap.at(x)].desc);
+  if (found_in(global_data::MdRawMap))
+    return until_first_newline(global_data::md_data_raw[global_data::MdRawMap.at(x)].Description());
+  if (found_in(global_data::WsvMap))
+    return until_first_newline(global_data::wsv_data[global_data::WsvMap.at(x)].Description());
+
+  throw std::invalid_argument(
+      var_string(std::quoted(x),
+                 " is not a valid group, method, or workspace variable.\n"
+                 "If it is a GIN or GOUT, consider representing it as \"``",
+                 x,
+                 "``\" instead?\nIf it is an old or deleted method or "
+                 "variable or group, please remove it from the documentation!\n"));
+}
