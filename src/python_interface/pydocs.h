@@ -10,6 +10,7 @@ String get_agenda_io(const String&);
 
 String short_doc(const String& x);
 
+String method_docs(const String& name);
 namespace Python {
 String group_generics_inout(const String& group);
 

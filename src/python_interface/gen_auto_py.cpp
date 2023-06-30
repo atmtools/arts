@@ -567,6 +567,8 @@ void print_method_desc(std::ofstream& os,
                        const Method& method,
                        const std::map<std::string, Group>& groups,
                        bool pass_verbosity) try {
+                       os << ",\npy::doc(\nR\"" << method_docs(method.name) << "\")";
+                       return;
   os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << unwrap_stars(method.desc);
   os << "\nAuthor(s): ";
   for (auto& author : method.authors) {
@@ -1469,7 +1471,6 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
 
         full_exe.replace(full_exe.find(path1), path1.length(), path1_exe);
         full_exe.replace(full_exe.find(path2), path2.length(), path2_exe);
-        //std::cerr << full_exe << '\n';
 
         os << full_exe;
       } else {
