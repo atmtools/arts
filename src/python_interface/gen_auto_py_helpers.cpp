@@ -150,11 +150,12 @@ Parameters
                       " : ~pyarts.arts.",
                       var.group,
                       '\n',
-                      "    See :attr:`~pyarts.workspace.Workspace.",
+                      "    ", unwrap_stars(short_doc(var.name)),
+                      " See :attr:`~pyarts.workspace.Workspace.",
                       var.name,
-                      "` for more details ",
+                      "` **[",
                       inout[var.in][var.out],
-                      '\n');
+                      "]**\n");
   }
 
   return out;

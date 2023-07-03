@@ -172,7 +172,7 @@ std::map<std::string, Group> groups() {
     if (usedocs.wsm_out.size()) {
       val += var_string("\n\nWorkspace methods that can generate ",
                         x.Name(),
-                        "\n", String(26 + x.Name().size(), '-'), "\n.. hlist::");
+                        "\n", String(36 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.wsm_out)
         val +=
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
@@ -181,7 +181,7 @@ std::map<std::string, Group> groups() {
     if (usedocs.wsm_in.size()) {
       val += var_string("\n\nWorkspace methods that require ",
                         x.Name(),
-                        "\n", String(21 + x.Name().size(), '-'), "\n.. hlist::");
+                        "\n", String(31 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.wsm_in)
         val +=
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
@@ -190,7 +190,7 @@ std::map<std::string, Group> groups() {
     if (usedocs.ag_out.size()) {
       val += var_string("\n\nWorkspace agendas that can generate ",
                         x.Name(),
-                        "\n", String(26 + x.Name().size(), '-'), "\n.. hlist::");
+                        "\n", String(36 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.ag_out)
         val +=
             var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
@@ -199,7 +199,7 @@ std::map<std::string, Group> groups() {
     if (usedocs.ag_in.size()) {
       val += var_string("\n\nWorkspace agendas that require ",
                         x.Name(),
-                        "\n", String(21 + x.Name().size(), '-'), "\n.. hlist::");
+                        "\n", String(31 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.ag_in)
         val +=
             var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
@@ -208,7 +208,7 @@ std::map<std::string, Group> groups() {
     val += var_string(
         "\n\nGeneric workspace methods that can generate or use ",
         x.Name(),
-        "\n", String(41 + x.Name().size(), '-'), "\nSee :class:`~pyarts.arts.",
+        "\n", String(51 + x.Name().size(), '-'), "\nSee :class:`~pyarts.arts.",
         global_data::wsv_groups[x.Group()].name,
         "`");
     if (global_data::wsv_groups[x.Group()].name not_eq "Any")

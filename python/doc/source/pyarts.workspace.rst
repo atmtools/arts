@@ -24,14 +24,10 @@ pyarts.workspace.workspace
 .. autosummary::
    :toctree: stubs
 
-   InternalWorkspace
-   Agenda
    DelayedAgenda
    Include
-   arts_agenda
    parse_function
    continue_parser_function
-   Workspace
 
 pyarts.workspace.utility
 ------------------------
