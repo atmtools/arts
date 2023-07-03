@@ -564,69 +564,8 @@ void workspace_variables(size_t n, const NameMaps& arts) {
 }
 
 void print_method_desc(std::ofstream& os,
-                       const Method& method,
-                       const std::map<std::string, Group>& groups,
-                       bool pass_verbosity) try {
-                       os << ",\npy::doc(\nR\"" << method_docs(method.name) << "\")";
-                       return;
-  os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << unwrap_stars(method.desc);
-  os << "\nAuthor(s): ";
-  for (auto& author : method.authors) {
-    if (&author == &method.authors.back() and method.authors.size() > 1) {
-      if (method.authors.size() > 2) os << ',';
-      os << " and ";
-    } else if (&author not_eq &method.authors.front())
-      os << ", ";
-    os << author;
-  }
-  os << '\n' << '\n' << "Parameters\n----------\n";
-
-  for (const auto& i : method.out.varname) {
-    os << i << " : ~pyarts.arts." << groups.at(i).varname_group << ", optional\n";
-    os << "    " << unwrap_stars(short_doc(i)) << " See :attr:`~pyarts.workspace.Workspace." << i << "`, defaults to ``self." << i << "`` **[";
-    if (std::any_of(
-            method.in.varname.cbegin(), method.in.varname.cend(), Cmp::eq(i))) {
-      os << "IN";
-    }
-    os << "OUT]**\n";
-  }
-  
-  for (size_t i = 0; i < method.gout.name.size(); i++) {
-    os << method.gout.name[i] << " : "
-       << "~pyarts.arts." << method.gout.group[i] << "\n    "
-       << unwrap_stars(method.gout.desc[i]) << " **[OUT]**\n";
-  }
-
-  for (const auto& i : method.in.varname) {
-    if (std::none_of(method.out.varname.cbegin(),
-                     method.out.varname.cend(),
-                     Cmp::eq(i))) {
-      os << i << " : ~pyarts.arts." << groups.at(i).varname_group
-         << ", optional\n    " << unwrap_stars(short_doc(i))
-         << " See :attr:`~pyarts.workspace.Workspace." << i
-         << "`, defaults to ``self." << i << "`` **[IN]**\n";
-    }
-  }
-
-  for (size_t i = 0; i < method.gin.name.size(); i++) {
-    os << method.gin.name[i] << " : "
-       << "~pyarts.arts." << method.gin.group[i];
-    if (method.gin.hasdefs[i]) {
-      os << ", optional";
-    }
-    os << "\n    " << unwrap_stars(method.gin.desc[i]);
-    if (method.gin.hasdefs[i]) {
-      os << ", defaults to ``" << method.gin.defs[i] << "`` **[IN]**";
-    }
-    os << '\n';
-  }
-
-  if (pass_verbosity)
-    os << "verbosity : ~pyarts.arts.Verbosity, optional\n    "
-       << unwrap_stars(short_doc("verbosity"))
-       << " See :attr:`~pyarts.workspace.Workspace.verbosity`, defaults to ``self.verbosity`` **[IN]**\n";
-
-  os << ")-METHODS_DESC-\")";
+                       const Method& method) try {
+  os << ",\npy::doc(\nR\"" << method_docs(method.name) << "\")";
 } catch (std::invalid_argument& e) {
   throw std::runtime_error(var_string("Failing in method ", std::quoted(method.name), " with error message:\n", e.what()));
 } catch (std::exception& e) {
@@ -948,7 +887,7 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
     print_method_args(os, method, pass_verbosity);
 
     // Put description at the end
-    print_method_desc(os, method, arts.varname_group, pass_verbosity);
+    print_method_desc(os, method);
 
     os << ')' << ';' << '\n' << '\n';
 
@@ -1513,7 +1452,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
     print_method_args(os, method, pass_verbosity);
 
     // Put description at the end
-    print_method_desc(os, method, arts.varname_group, pass_verbosity);
+    print_method_desc(os, method);
 
     os << ')' << ';' << '\n' << '\n';
 
@@ -1539,7 +1478,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
       Delete(w, Index(1), x.name(), verbosity.has_value() ? *verbosity : WorkspaceVariable{w, )--"
        << verbpos << "});\n}";
     print_method_args(os, *method_ptr, true);
-    print_method_desc(os, *method_ptr, arts.varname_group, pass_verbosity);
+    print_method_desc(os, *method_ptr);
     os << ");\n\n";
 
     osptr++;
