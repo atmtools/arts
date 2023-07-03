@@ -26,7 +26,7 @@ String group_generics_inout(const String& group) {
   String out;
 
   if (outdocs.first.size()) {
-    out += var_string("\nMethods that can generate ",
+    out += var_string("\nWorkspace methods that can generate ",
                       group,
                       "\n",
                       String(26 + group.size(), '-'),
@@ -36,7 +36,7 @@ String group_generics_inout(const String& group) {
   }
 
   if (outdocs.second.size()) {
-    out += var_string("\nMethods that require ",
+    out += var_string("\nWorkspace methods that require ",
                       group,
                       "\n",
                       String(21 + group.size(), '-'),

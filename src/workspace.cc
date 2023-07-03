@@ -3281,8 +3281,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
   wsv_data.push_back(WsvRecord(
       NAME("predefined_model_data"),
       DESCRIPTION(
-          R"--(This contains predefined model data that cannot
-be distributed directly for whatever reason
+          R"--(This contains predefined model data.
 
 Can currently only contain data for new MT CKD models of water.
 )--"),
@@ -3291,9 +3290,7 @@ Can currently only contain data for new MT CKD models of water.
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
       DESCRIPTION(
-          "This contains the absorption coefficients for one point in the\n"
-          "atmosphere (one set of pressure, temperature, magnetic field, and\n"
-          "VMR values).\n"
+          "This contains the absorption coefficients for one point in the atmosphere.\n"
           "\n"
           "Dimensions: [naa, nza, nf, f(stokes_dim)]\n"
           "\n"
@@ -4684,6 +4681,9 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       DESCRIPTION(
           "The reflection coefficients for the directions given by\n"
           "*surface_los* to the direction of interest.\n"
+          "\n"
+          "..math::\n"
+          R"(    \begin{array}{cc}a & b\end{array})"
           "\n"
           "The rows and columns of this tensor holds the reflection\n"
           "coefficient matrix for one frequency and one LOS. The reflection\n"

@@ -116,7 +116,7 @@ std::map<std::string, Group> groups() {
     val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds type :class:`~pyarts.arts.",
                      global_data::wsv_groups[x.Group()].name,
                      "`: ",
-                     add_type(unwrap_stars(x.Description()), global_data::wsv_groups[x.Group()].name));
+                     unwrap_stars(x.Description()));
     
     if (global_data::wsv_groups[x.Group()].name == "Agenda" or global_data::wsv_groups[x.Group()].name == "ArrayOfAgenda") {
       val += get_agenda_io(x.Name());
@@ -170,7 +170,7 @@ std::map<std::string, Group> groups() {
     }
 
     if (usedocs.wsm_out.size()) {
-      val += var_string("\n\nMethods that can generate ",
+      val += var_string("\n\nWorkspace methods that can generate ",
                         x.Name(),
                         "\n", String(26 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.wsm_out)
@@ -179,7 +179,7 @@ std::map<std::string, Group> groups() {
     }
 
     if (usedocs.wsm_in.size()) {
-      val += var_string("\n\nMethods that require ",
+      val += var_string("\n\nWorkspace methods that require ",
                         x.Name(),
                         "\n", String(21 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.wsm_in)
@@ -188,7 +188,7 @@ std::map<std::string, Group> groups() {
     }
 
     if (usedocs.ag_out.size()) {
-      val += var_string("\n\nAgendas that can generate ",
+      val += var_string("\n\nWorkspace agendas that can generate ",
                         x.Name(),
                         "\n", String(26 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.ag_out)
@@ -197,7 +197,7 @@ std::map<std::string, Group> groups() {
     }
 
     if (usedocs.ag_in.size()) {
-      val += var_string("\n\nAgendas that require ",
+      val += var_string("\n\nWorkspace agendas that require ",
                         x.Name(),
                         "\n", String(21 + x.Name().size(), '-'), "\n.. hlist::");
       for (auto& m : usedocs.ag_in)
@@ -206,7 +206,7 @@ std::map<std::string, Group> groups() {
     }
 
     val += var_string(
-        "\n\nGeneric methods that can generate or use ",
+        "\n\nGeneric workspace methods that can generate or use ",
         x.Name(),
         "\n", String(41 + x.Name().size(), '-'), "\nSee :class:`~pyarts.arts.",
         global_data::wsv_groups[x.Group()].name,

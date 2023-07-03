@@ -86,20 +86,6 @@ String unwrap_stars(String x) {
   return x;
 }
 
-String add_type(String x, const String& type) {
-  const auto first_newline = std::find(x.begin(), x.end(), '\n');
-
-  x.replace(
-      first_newline,
-      first_newline,
-      var_string(
-          "\n\nThis workspace variable holds the group: :class:`~pyarts.arts.",
-          type,
-          "`\n"));
-  while (x.ends_with("\n\n")) x.pop_back();  // Renove extra spaces
-  return x;
-}
-
 String get_agenda_io(const String& x) {
   static bool once = false;
   if (not once) {
