@@ -101,8 +101,8 @@ def xsecrecord__eq__(self, other):
         return False
 
 
-getattr(cxx, "XsecRecord::details").to_xarray = to_xarray
-getattr(cxx, "XsecRecord::details").from_xarray = from_xarray
-getattr(cxx, "XsecRecord::details").to_netcdf = to_netcdf
-getattr(cxx, "XsecRecord::details").from_netcdf = from_netcdf
-getattr(cxx, "XsecRecord::details").__eq__ = xsecrecord__eq__
+getattr(cxx, "_detailsXsecRecord").to_xarray = to_xarray
+getattr(cxx, "_detailsXsecRecord").from_xarray = from_xarray
+getattr(cxx, "_detailsXsecRecord").to_netcdf = to_netcdf
+getattr(cxx, "_detailsXsecRecord").from_netcdf = from_netcdf
+getattr(cxx, "_detailsXsecRecord").__eq__ = xsecrecord__eq__

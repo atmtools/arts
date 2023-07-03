@@ -135,8 +135,8 @@ def to_dict(self):
     return d
 
 
-getattr(cxx, "GriddedField::details").extract_slice = extract_slice
-getattr(cxx, "GriddedField::details").refine_grid = refine_grid
-getattr(cxx, "GriddedField::details").from_xarray = from_xarray
-getattr(cxx, "GriddedField::details").to_xarray = to_xarray
-getattr(cxx, "GriddedField::details").to_dict = to_dict
+getattr(cxx, "_detailsGriddedField").extract_slice = extract_slice
+getattr(cxx, "_detailsGriddedField").refine_grid = refine_grid
+getattr(cxx, "_detailsGriddedField").from_xarray = from_xarray
+getattr(cxx, "_detailsGriddedField").to_xarray = to_xarray
+getattr(cxx, "_detailsGriddedField").to_dict = to_dict

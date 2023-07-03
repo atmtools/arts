@@ -41,7 +41,7 @@ void py_griddedfield(py::module_& m) {
                  details::GriddedField::from_xarray = details::two_args;
                }));
 
-  py::class_<details::GriddedField>(m, "GriddedField::details")
+  py::class_<details::GriddedField>(m, "_detailsGriddedField")
       .def_readwrite_static("extract_slice",
                             &details::GriddedField::extract_slice)
       .def_readwrite_static("refine_grid", &details::GriddedField::refine_grid)

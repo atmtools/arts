@@ -19,7 +19,7 @@ except:
     pass
 
 
-InternalWorkspace = getattr(cxx, "Pyarts::Workspace")
+_InternalWorkspace = getattr(cxx, "_Workspace")
 Agenda = cxx.Agenda
 
 
@@ -170,7 +170,7 @@ def parse_function(func, arts, allow_callbacks, set_agenda):
 
 
 def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
-    assert isinstance(arts, InternalWorkspace), f"Expects Workspace, got {type(arts)}"
+    assert isinstance(arts, _InternalWorkspace), f"Expects Workspace, got {type(arts)}"
 
     func_ast = ast.body[0]
     if not isinstance(func_ast, FunctionDef):
@@ -341,7 +341,7 @@ you might call. Everything else is undefined behaviour. ;-)
 _group_types = [eval(f"cxx.{x.name}") for x in list(cxx.globals.get_wsv_groups())]
 
 
-class Workspace(InternalWorkspace):
+class Workspace(_InternalWorkspace):
     """
     A wrapper for the C++ workspace object
     """

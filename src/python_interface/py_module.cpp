@@ -57,7 +57,7 @@ void py_hitran(py::module_& m);
  */
 PYBIND11_MODULE(arts, m) {
   m.doc() = "Interface directly to the C++ types via python";
-  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "Pyarts::Workspace");
+  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "_Workspace");
   py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
   wsv.doc() = "A wrapper around all workspace variables";
 
