@@ -230,7 +230,7 @@ The grid is 1 *Vector* or *ArrayOfString*
 Both the data and the grid may be named)--");
 
   wsv_groups.emplace_back("GriddedField2",
-                          R"--(A 2 dimensional gridded set *Numeric* data
+                          R"--(A 2 dimensional gridded set of *Numeric* data
 
 The grid is a combination of 2 *Vector* and/or *ArrayOfString*
 
@@ -275,7 +275,7 @@ Both the data and the grid may be named
   wsv_groups.emplace_back("Index", "A 64 bit signed integer type\n");
 
   wsv_groups.emplace_back(
-      "JacobianTarget", "A single target if a partial derivative computation\n");
+      "JacobianTarget", "A single target of a partial derivative computation\n");
 
   wsv_groups.emplace_back(
       "MapOfErrorCorrectedSuddenData",
@@ -362,12 +362,13 @@ required to turn the data into a *TransmissionMatrix* (with information about th
 
 It contains information about the species and a set of quantum numbers
 and can thus be used to identify one of the following:
-1) a species
-2) an isotopologue of a species
-3) an absorption band of an isotopologue
-4) an absorption line of an isotopologue
-5) the energy level of absorption band(s) of an isotopologue
-6) the energy level of absorption line(s) of an isotopologue
+
+1. a species
+2. an isotopologue of a species
+3. an absorption band of an isotopologue
+4. an absorption line of an isotopologue
+5. the energy level of absorption band(s) of an isotopologue
+6. the energy level of absorption line(s) of an isotopologue
 )--");
 
   wsv_groups.emplace_back(

@@ -647,30 +647,30 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
   if (value.has_value()) w.push_move(pos, std::make_shared<)--"
        << group << R"--(>(*value));
 }, py::doc(R"-x-(
-Create new )--"
-       << group << R"--( on the workspace
+Create new :class:`~pyarts.arts.)--"
+       << group << R"--(` on the workspace
 
 It is recommended that this is only called once per Workspace instance.
 
 If there is no default value, the variable remains uninitialized
 
 If the variable already exist, an error is thrown only if the group
-is not )--"
-       << group << R"--(.  If the variable does exist, a new value
+is not :class:`~pyarts.arts.)--"
+       << group << R"--(`.  If the variable does exist, a new value
 is pushed onto its stack iff value is given.  This efficiently puts
 any current value out of reach for the current Agenda level.
 
-Parameters:
------------
-  name : str
+Parameters
+----------
+name : str
     Name of the variable, can be accessed later with getattr() on the workspace
 
-  desc : str, optional:
-    Description of the variable
+desc : str, optional:
+    Description of the variable, defaults to ``"User-generated workspace variable"``
 
-  value : )--"
+value : )--"
        << group << R"--(, optional
-    Initialized value
+    Initialized value, default is to not initialize the variable
 )-x-"),
   py::arg("name").none(false),
   py::arg("desc")=std::nullopt,

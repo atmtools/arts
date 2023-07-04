@@ -485,7 +485,7 @@ void test11() {
   }
 }
 
-constexpr bool is_around(Numeric x, Numeric x0, Numeric e = 1e-12) {
+constexpr bool is_around(Numeric x, Numeric x0, Numeric e = 1e-) {
   return x - x0 < e and x - x0 > -e;
 }
 

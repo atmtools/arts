@@ -334,7 +334,7 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_hitran_relmat_dataReadHitranRelmatDataAndLines"),
-      DESCRIPTION("Reads HITRAN line mixing data from a basedir\n"
+      DESCRIPTION("Reads HITRAN line mixing data from a basedir\n\n"
         "The basedir must point at line mixing data as provided by HITRAN.\n"
         "The lines will be changed such that ALL CO2 lines are truncated\n"
         "before adding the HITRAN line mixing lines.\n"
@@ -468,9 +468,9 @@ void define_md_data_raw() {
       DESCRIPTION("Remove lines *abs_lines* outside of specifications\n"
         "\n"
         "The specifications are:\n"
-        "\tThe lower frequency bound (all lines of this frequency or higher may be kept)\n"
-        "\tThe upper frequency bound (all lines of this frequency or lower may be kept)\n"
-        "\tThe lower intensity bound (all lines with lower intensity may be removed)\n"
+        " - The lower frequency bound (all lines of this frequency or higher may be kept)\n"
+        " - The upper frequency bound (all lines of this frequency or lower may be kept)\n"
+        " - The lower intensity bound (all lines with lower intensity may be removed)\n"
         "\n"
         "If safe evaluates true, all lines in an absorption band must fail the above\n"
         "tests to be removed\n"
@@ -759,16 +759,13 @@ void define_md_data_raw() {
       create_mdrecord(NAME("abs_linesNormalization"),
                DESCRIPTION(R"--(Sets normalization type for all lines
 
-Available options:
-    "VVH"  : Van Vleck and Huber
+Available ``option``:
 
-    "VVW"  : Van Vleck and Weisskopf
-
-    "RQ"   : Rosenkranz quadratic
-
-    "SFS"  : Simple frequency scaling
-
-    "None" : No extra normalization
+:``"VVH"``: Van Vleck and Huber
+:``"VVW"``: Van Vleck and Weisskopf
+:``"RQ"``: Rosenkranz quadratic
+:``"SFS"``: Simple frequency scaling
+:``"None"``: No extra normalization
 
 See the theory guide for more details.
 )--"),
@@ -787,16 +784,13 @@ See the theory guide for more details.
       create_mdrecord(NAME("abs_lines_per_speciesNormalization"),
                DESCRIPTION(R"--(Sets normalization type for all lines
 
-Available options:
-    "VVH"  : Van Vleck and Huber
+Available ``option``:
 
-    "VVW"  : Van Vleck and Weisskopf
-
-    "RQ"   : Rosenkranz quadratic
-
-    "SFS"  : Simple frequency scaling
-
-    "None" : No extra normalization
+:``"VVH"``: Van Vleck and Huber
+:``"VVW"``: Van Vleck and Weisskopf
+:``"RQ"``: Rosenkranz quadratic
+:``"SFS"``: Simple frequency scaling
+:``"None"``: No extra normalization
 
 See the theory guide for more details.
 )--"),
@@ -817,16 +811,13 @@ See the theory guide for more details.
 
 Match is done with a quantum identifier
 
-Available options:
-    "VVH"  : Van Vleck and Huber
+Available ``option``:
 
-    "VVW"  : Van Vleck and Weisskopf
-
-    "RQ"   : Rosenkranz quadratic
-
-    "SFS"  : Simple frequency scaling
-
-    "None" : No extra normalization
+:``"VVH"``: Van Vleck and Huber
+:``"VVW"``: Van Vleck and Weisskopf
+:``"RQ"``: Rosenkranz quadratic
+:``"SFS"``: Simple frequency scaling
+:``"None"``: No extra normalization
 
 See the theory guide for more details.
 )--"),
@@ -848,16 +839,13 @@ See the theory guide for more details.
 
 Match is done with a quantum identifier
 
-Available options:
-    "VVH"  : Van Vleck and Huber
+Available ``option``:
 
-    "VVW"  : Van Vleck and Weisskopf
-
-    "RQ"   : Rosenkranz quadratic
-
-    "SFS"  : Simple frequency scaling
-
-    "None" : No extra normalization
+:``"VVH"``: Van Vleck and Huber
+:``"VVW"``: Van Vleck and Weisskopf
+:``"RQ"``: Rosenkranz quadratic
+:``"SFS"``: Simple frequency scaling
+:``"None"``: No extra normalization
 
 See the theory guide for more details.
 )--"),
@@ -879,16 +867,13 @@ See the theory guide for more details.
 
 Match is done with a species tag
 
-Available options:
-    "VVH"  : Van Vleck and Huber
+Available ``option``:
 
-    "VVW"  : Van Vleck and Weisskopf
-
-    "RQ"   : Rosenkranz quadratic
-
-    "SFS"  : Simple frequency scaling
-
-    "None" : No extra normalization
+:``"VVH"``: Van Vleck and Huber
+:``"VVW"``: Van Vleck and Weisskopf
+:``"RQ"``: Rosenkranz quadratic
+:``"SFS"``: Simple frequency scaling
+:``"None"``: No extra normalization
 
 See the theory guide for more details.
 )--"),
@@ -908,14 +893,12 @@ See the theory guide for more details.
       create_mdrecord(NAME("abs_linesMirroring"),
                DESCRIPTION(R"--(Sets mirroring type for all lines.
 
-Available options:
-    "None"            : No mirrored line
+Available ``option``:
 
-    "SameAsLineShape" : Mirrored line broadened by line shape
-
-    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
-
-    "Lorentz"         : Mirrored line broadened by Lorentz
+:``"None"``: No mirrored line
+:``"SameAsLineShape"``: Mirrored line broadened by line shape
+:``"Manual"``: Manually mirrored line (be careful; allows all frequencies)
+:``"Lorentz"``: Mirrored line broadened by Lorentz
 
 Note that mirroring is never applied for DP line shape
 
@@ -939,14 +922,12 @@ offsets might not work as hoped.
       create_mdrecord(NAME("abs_lines_per_speciesMirroring"),
                DESCRIPTION(R"--(Sets mirroring type for all lines.
 
-Available options:
-    "None"            : No mirrored line
-    
-    "SameAsLineShape" : Mirrored line broadened by line shape
+Available ``option``:
 
-    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
-
-    "Lorentz"         : Mirrored line broadened by Lorentz
+:``"None"``: No mirrored line
+:``"SameAsLineShape"``: Mirrored line broadened by line shape
+:``"Manual"``: Manually mirrored line (be careful; allows all frequencies)
+:``"Lorentz"``: Mirrored line broadened by Lorentz
 
 Note that mirroring is never applied for DP line shape
 
@@ -972,14 +953,12 @@ offsets might not work as hoped.
 
 Match is done with a quantum identifier
 
-Available options:
-    "None"            : No mirrored line
-    
-    "SameAsLineShape" : Mirrored line broadened by line shape
+Available ``option``:
 
-    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
-
-    "Lorentz"         : Mirrored line broadened by Lorentz
+:``"None"``: No mirrored line
+:``"SameAsLineShape"``: Mirrored line broadened by line shape
+:``"Manual"``: Manually mirrored line (be careful; allows all frequencies)
+:``"Lorentz"``: Mirrored line broadened by Lorentz
 
 Note that mirroring is never applied for DP line shape
 
@@ -1007,13 +986,11 @@ offsets might not work as hoped.
 Match is done with a quantum identifier
 
 Available options:
-    "None"            : No mirrored line
-    
-    "SameAsLineShape" : Mirrored line broadened by line shape
 
-    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
-
-    "Lorentz"         : Mirrored line broadened by Lorentz
+:``"None"``: No mirrored line
+:``"SameAsLineShape"``: Mirrored line broadened by line shape
+:``"Manual"``: Manually mirrored line (be careful; allows all frequencies)
+:``"Lorentz"``: Mirrored line broadened by Lorentz
 
 Note that mirroring is never applied for DP line shape
 
@@ -1041,13 +1018,11 @@ offsets might not work as hoped.
 Match is done with a species tag
 
 Available options:
-    "None"            : No mirrored line
-    
-    "SameAsLineShape" : Mirrored line broadened by line shape
 
-    "Manual"          : Manually mirrored line (be careful; allows all frequencies)
-
-    "Lorentz"         : Mirrored line broadened by Lorentz
+:``"None"``: No mirrored line
+:``"SameAsLineShape"``: Mirrored line broadened by line shape
+:``"Manual"``: Manually mirrored line (be careful; allows all frequencies)
+:``"Lorentz"``: Mirrored line broadened by Lorentz
 
 Note that mirroring is never applied for DP line shape
 
@@ -1084,7 +1059,7 @@ offsets might not work as hoped.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesManualMirroring"),
-               DESCRIPTION("Makes a copy of all lines at negative frequency setting them.\n"
+               DESCRIPTION("Makes a copy of all lines at negative frequency setting them"
                            "to manual mirroring mode\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
@@ -1130,20 +1105,15 @@ offsets might not work as hoped.
       create_mdrecord(NAME("abs_linesPopulation"),
                DESCRIPTION(R"--(Sets population type for all lines.
 
-Available options:
-    "LTE"                           : Assume band is in LTE
+Available ``option``:
 
-    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
-
-    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-
-    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-
-    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-
-    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-
-    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+:``"LTE"``: Assume band is in LTE
+:``"NLTE"``: Assume band is in NLTE and the upper-to-lower ratio is known
+:``"VibTemps"``: Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+:``"ByHITRANRosenkranzRelmat"``: Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+:``"ByHITRANFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+:``"ByMakarovFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+:``"ByRovibLinearDipoleLineMixing"``: Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 
 You must have set *nlte_field* and/or its ilk to use the NLTE methods.
 
@@ -1166,24 +1136,19 @@ You must have *ecs_data* for the other two relaxation matrix options
       create_mdrecord(NAME("abs_lines_per_speciesPopulation"),
                DESCRIPTION(R"--(Sets population type for all lines.
 
-Available options:
-    "LTE"                           : Assume band is in LTE
+Available ``option``:
 
-    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
-
-    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-
-    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-
-    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-
-    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-
-    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+:``"LTE"``: Assume band is in LTE
+:``"NLTE"``: Assume band is in NLTE and the upper-to-lower ratio is known
+:``"VibTemps"``: Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+:``"ByHITRANRosenkranzRelmat"``: Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+:``"ByHITRANFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+:``"ByMakarovFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+:``"ByRovibLinearDipoleLineMixing"``: Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 
 You must have set *nlte_field* and/or its ilk to use the NLTE methods.
 
-You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+You must have *abs_hitran_relmat_data* for the ``"ByHITRAN..."`` methods.
 
 You must have *ecs_data* for the other two relaxation matrix options
 )--"),
@@ -1204,20 +1169,15 @@ You must have *ecs_data* for the other two relaxation matrix options
 
 Match is done with a quantum identifier
 
-Available options:
-    "LTE"                           : Assume band is in LTE
+Available ``option``:
 
-    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
-
-    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-
-    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-
-    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-
-    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-
-    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+:``"LTE"``: Assume band is in LTE
+:``"NLTE"``: Assume band is in NLTE and the upper-to-lower ratio is known
+:``"VibTemps"``: Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+:``"ByHITRANRosenkranzRelmat"``: Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+:``"ByHITRANFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+:``"ByMakarovFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+:``"ByRovibLinearDipoleLineMixing"``: Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 
 You must have set *nlte_field* and/or its ilk to use the NLTE methods.
 
@@ -1243,24 +1203,19 @@ You must have *ecs_data* for the other two relaxation matrix options
 
 Match is done with a quantum identifier
 
-Available options:
-    "LTE"                           : Assume band is in LTE
+Available ``option``:
 
-    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
-
-    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-
-    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-
-    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-
-    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-
-    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+:``"LTE"``: Assume band is in LTE
+:``"NLTE"``: Assume band is in NLTE and the upper-to-lower ratio is known
+:``"VibTemps"``: Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+:``"ByHITRANRosenkranzRelmat"``: Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+:``"ByHITRANFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+:``"ByMakarovFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+:``"ByRovibLinearDipoleLineMixing"``: Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 
 You must have set *nlte_field* and/or its ilk to use the NLTE methods.
 
-You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+You must have *abs_hitran_relmat_data* for the ``"ByHITRAN..."`` methods.
 
 You must have *ecs_data* for the other two relaxation matrix options
 )--"),
@@ -1282,24 +1237,19 @@ You must have *ecs_data* for the other two relaxation matrix options
 
 Match is done with a species tag
 
-Available options:
-    "LTE"                           : Assume band is in LTE
+Available ``option``:
 
-    "NLTE"                          : Assume band is in NLTE and the upper-to-lower ratio is known
-
-    "VibTemps"                      : Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-
-    "ByHITRANRosenkranzRelmat"      : Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-
-    "ByHITRANFullRelmat"            : Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-
-    "ByMakarovFullRelmat"           : Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-
-    "ByRovibLinearDipoleLineMixing" : Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
+:``"LTE"``: Assume band is in LTE
+:``"NLTE"``: Assume band is in NLTE and the upper-to-lower ratio is known
+:``"VibTemps"``: Assume band is in NLTE described by vibrational temperatures and LTE at other levels
+:``"ByHITRANRosenkranzRelmat"``: Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
+:``"ByHITRANFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to HITRAN
+:``"ByMakarovFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
+:``"ByRovibLinearDipoleLineMixing"``: Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
 
 You must have set *nlte_field* and/or its ilk to use the NLTE methods.
 
-You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
+You must have *abs_hitran_relmat_data* for the ``"ByHITRAN..."`` methods.
 
 You must have *ecs_data* for the other two relaxation matrix options
 )--"),
@@ -1319,16 +1269,13 @@ You must have *ecs_data* for the other two relaxation matrix options
       create_mdrecord(NAME("abs_linesLineShapeType"),
                DESCRIPTION(R"--(Sets shape calculations type for all lines.
 
-Available options:
-    "DP"   : Doppler profile
+Available ``option``:
 
-    "LP"   : Lorentz profile
-
-    "VP"   : Voigt profile
-
-    "SDVP" : Speed-dependent Voigt profile
-
-    "HTP"  : Hartman-Tran profile
+:``"DP"``: Doppler profile
+:``"LP"``: Lorentz profile
+:``"VP"``: Voigt profile
+:``"SDVP"``: Speed-dependent Voigt profile
+:``"HTP"``: Hartman-Tran profile
 
 See the theory guide for more details.
 )--"),
@@ -1347,16 +1294,13 @@ See the theory guide for more details.
       create_mdrecord(NAME("abs_lines_per_speciesLineShapeType"),
                DESCRIPTION(R"--(Sets shape calculations type for all lines.
 
-Available options:
-    "DP"   : Doppler profile
+Available ``option``:
 
-    "LP"   : Lorentz profile
-
-    "VP"   : Voigt profile
-    
-    "SDVP" : Speed-dependent Voigt profile
-
-    "HTP"  : Hartman-Tran profile
+:``"DP"``: Doppler profile
+:``"LP"``: Lorentz profile
+:``"VP"``: Voigt profile
+:``"SDVP"``: Speed-dependent Voigt profile
+:``"HTP"``: Hartman-Tran profile
 
 See the theory guide for more details.
 )--"),
@@ -1377,16 +1321,13 @@ See the theory guide for more details.
 
 Match is done with a quantum identifier
 
-Available options:
-    "DP"   : Doppler profile
+Available ``option``:
 
-    "LP"   : Lorentz profile
-
-    "VP"   : Voigt profile
-    
-    "SDVP" : Speed-dependent Voigt profile
-
-    "HTP"  : Hartman-Tran profile
+:``"DP"``: Doppler profile
+:``"LP"``: Lorentz profile
+:``"VP"``: Voigt profile
+:``"SDVP"``: Speed-dependent Voigt profile
+:``"HTP"``: Hartman-Tran profile
 
 See the theory guide for more details.
 )--"),
@@ -1408,16 +1349,13 @@ See the theory guide for more details.
 
 Match is done with a quantum identifier
 
-Available options:
-    "DP"   : Doppler profile
+Available ``option``:
 
-    "LP"   : Lorentz profile
-
-    "VP"   : Voigt profile
-    
-    "SDVP" : Speed-dependent Voigt profile
-
-    "HTP"  : Hartman-Tran profile
+:``"DP"``: Doppler profile
+:``"LP"``: Lorentz profile
+:``"VP"``: Voigt profile
+:``"SDVP"``: Speed-dependent Voigt profile
+:``"HTP"``: Hartman-Tran profile
 
 See the theory guide for more details.
 )--"),
@@ -1439,16 +1377,13 @@ See the theory guide for more details.
 
 Match is done with a species tag
 
-Available options:
-    "DP"   : Doppler profile
+Available ``option``:
 
-    "LP"   : Lorentz profile
-
-    "VP"   : Voigt profile
-    
-    "SDVP" : Speed-dependent Voigt profile
-
-    "HTP"  : Hartman-Tran profile
+:``"DP"``: Doppler profile
+:``"LP"``: Lorentz profile
+:``"VP"``: Voigt profile
+:``"SDVP"``: Speed-dependent Voigt profile
+:``"HTP"``: Hartman-Tran profile
 
 See the theory guide for more details.
 )--"),
@@ -1471,10 +1406,10 @@ See the theory guide for more details.
 The line is cut off when this is active at the given frequency.
 "The only non-zero range is from this range to its negative equivalent
 
-Available options:
-    "None"   : No cutoff
+Available ``option``:
 
-    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+:``"None"``: No cutoff
+:``"ByLine"``: Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
 
 For "ByLine", the negative frequency is at F0-cutoff-D0
 )--"),
@@ -1497,10 +1432,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 The line is cut off when this is active at the given frequency.
 "The only non-zero range is from this range to its negative equivalent
 
-Available options:
-    "None"   : No cutoff
-    
-    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+Available ``option``:
+
+:``"None"``: No cutoff
+:``"ByLine"``: Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
 
 For "ByLine", the negative frequency is at F0-cutoff-D0
 )--"),
@@ -1525,10 +1460,10 @@ Match is done with a quantum identifier
 The line is cut off when this is active at the given frequency.
 "The only non-zero range is from this range to its negative equivalent
 
-Available options:
-    "None"   : No cutoff
-    
-    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+Available ``option``:
+
+:``"None"``: No cutoff
+:``"ByLine"``: Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
 
 For "ByLine", the negative frequency is at F0-cutoff-D0
 )--"),
@@ -1554,10 +1489,10 @@ Match is done with a quantum identifier
 The line is cut off when this is active at the given frequency.
 "The only non-zero range is from this range to its negative equivalent
 
-Available options:
-    "None"   : No cutoff
-    
-    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+Available ``option``:
+
+:``"None"``: No cutoff
+:``"ByLine"``: Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
 
 For "ByLine", the negative frequency is at F0-cutoff-D0
 )--"),
@@ -1583,10 +1518,10 @@ Match is done with a species tag
 The line is cut off when this is active at the given frequency.
 "The only non-zero range is from this range to its negative equivalent
 
-Available options:
-    "None"   : No cutoff
-    
-    "ByLine" : Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
+Available ``option``:
+
+:``"None"``: No cutoff
+:``"ByLine"``: Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
 
 For "ByLine", the negative frequency is at F0-cutoff-D0
 )--"),
@@ -1763,10 +1698,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLevel"),
       DESCRIPTION(
-          "Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
-          "Only works for these parameters:\n"
-          "parameter_name = \"Statistical Weight\"\n"
-          "parameter_name = \"Zeeman Coefficient\"\n"),
+          "Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n\n"
+          "Only works for these ``parameter_name``:\n"
+          " - ``\"Statistical Weight\"``\n"
+          " - ``\"Zeeman Coefficient\"``\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1835,10 +1770,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesBaseParameterMatchingLevel"),
       DESCRIPTION(
-          "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
+          "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n\n"
           "Only works for these parameters:\n"
-          "parameter_name = \"Statistical Weight\"\n"
-          "parameter_name = \"Zeeman Coefficient\"\n"),
+          " - parameter_name = \"Statistical Weight\"\n"
+          " - parameter_name = \"Zeeman Coefficient\"\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1903,16 +1838,16 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLines"),
       DESCRIPTION(
-          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
-          "Only works for these parameters:\n"
-          "parameter_name = \"Central Frequency\"\n"
-          "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Lower State Energy\"\n"
-          "parameter_name = \"Einstein Coefficient\"\n"
-          "parameter_name = \"Lower Statistical Weight\"\n"
-          "parameter_name = \"Upper Statistical Weight\"\n"
-          "parameter_name = \"Lower Zeeman Coefficient\"\n"
-          "parameter_name = \"Upper Zeeman Coefficient\"\n"),
+          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n\n"
+          "Only works for these ``parameter_name``:\n"
+          " - ``\"Central Frequency\"``\n"
+          " - ``\"Line Strength\"``\n"
+          " - ``\"Lower State Energy\"``\n"
+          " - ``\"Einstein Coefficient\"``\n"
+          " - ``\"Lower Statistical Weight\"``\n"
+          " - ``\"Upper Statistical Weight\"``\n"
+          " - ``\"Lower Zeeman Coefficient\"``\n"
+          " - ``\"Upper Zeeman Coefficient\"``\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1965,16 +1900,16 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesBaseParameterMatchingLines"),
       DESCRIPTION(
-          "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
-          "Only works for these parameters:\n"
-          "parameter_name = \"Central Frequency\"\n"
-          "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Lower State Energy\"\n"
-          "parameter_name = \"Einstein Coefficient\"\n"
-          "parameter_name = \"Lower Statistical Weight\"\n"
-          "parameter_name = \"Upper Statistical Weight\"\n"
-          "parameter_name = \"Lower Zeeman Coefficient\"\n"
-          "parameter_name = \"Upper Zeeman Coefficient\"\n"),
+          "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n\n"
+          "Only works for these ``parameter_name``:\n"
+          " - ``\"Central Frequency\"``\n"
+          " - ``\"Line Strength\"``\n"
+          " - ``\"Lower State Energy\"``\n"
+          " - ``\"Einstein Coefficient\"``\n"
+          " - ``\"Lower Statistical Weight\"``\n"
+          " - ``\"Upper Statistical Weight\"``\n"
+          " - ``\"Lower Zeeman Coefficient\"``\n"
+          " - ``\"Upper Zeeman Coefficient\"``\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1994,32 +1929,32 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
         "\n"
         "The matching is done so that QI must be in the line identifier\n"
         "\n"
-        "Acceptable parameter(s) are:\n"
-        "\t\"G0\"\n"
-        "\t\"D0\"\n"
-        "\t\"G2\"\n"
-        "\t\"D2\"\n"
-        "\t\"FVC\"\n"
-        "\t\"ETA\"\n"
-        "\t\"Y\"\n"
-        "\t\"G\"\n"
-        "\t\"DV\"\n"
+        "Acceptable ``parameter`` (s) are:\n"
+        " - ``\"G0\"``\n"
+        " - ``\"D0\"``\n"
+        " - ``\"G2\"``\n"
+        " - ``\"D2\"``\n"
+        " - ``\"FVC\"``\n"
+        " - ``\"ETA\"``\n"
+        " - ``\"Y\"``\n"
+        " - ``\"G\"``\n"
+        " - ``\"DV\"``\n"
         "\n"
-        "Acceptable temperaturemodel(s) are:\n"
-        "\tNone,\n"
-        "\t\"T0\"\n"
-        "\t\"T1\"\n"
-        "\t\"T2\"\n"
-        "\t\"T3\"\n"
-        "\t\"T4\"\n"
-        "\t\"T5\"\n"
-        "\t\"LM_AER\"\n"
-        "\t\"DPL\"\n"
+        "Acceptable ``temperaturemodel`` (s) are:\n"
+        " - ``\"None\"``\n"
+        " - ``\"T0\"``\n"
+        " - ``\"T1\"``\n"
+        " - ``\"T2\"``\n"
+        " - ``\"T3\"``\n"
+        " - ``\"T4\"``\n"
+        " - ``\"T5\"``\n"
+        " - ``\"LM_AER\"``\n"
+        " - ``\"DPL\"``\n"
         "\n"
-        "Acceptable species are:\n"
-        "\t\"AIR\" (so long as it is the broadening species list)\n"
-        "\t\"SELF\" (so long as it is the broadening species list)\n"
-        "\tAny species in the line broadening species\n"
+        "Acceptable ``species`` are:\n"
+        " - ``\"AIR\"`` (so long as it is the broadening species list)\n"
+        " - ``\"SELF\"`` (so long as it is the broadening species list)\n"
+        " - Any species in the line broadening species\n"
         "\n"
         "See the user guide for the meanings of all of these keywords\n"
       ),
@@ -2275,8 +2210,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "to 3D only after that. This particularly if nonlinear species\n"
           "(i.e., H2O) are involved."
           "\n"
-          "See also:\n"
-          "   *abs_lookupSetupBatch*\n"),
+          "See also: *abs_lookupSetupBatch*\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_p",
           "abs_t",
@@ -2390,11 +2324,11 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                "abs_t_pert and abs_nls_pert. The order is [t_pert_min, "
                "t_pert_max, nls_pert_min, nls_pert_max].",
                /* robust */
-               "A flag with value 1 or 0. If set to one, the batch\n"
-               "setup will continue, even if individual fields are invalid.\n"
-               "This is consistent with the behaviour of *ybatchCalc*.",
+               "A flag with value 1 or 0. If set to one, the batch"
+               " setup will continue, even if individual fields are invalid."
+               " This is consistent with the behaviour of *ybatchCalc*.",
                /* check_gridnames */
-               "A flag with value 1 or 0. If set to one, the gridnames of \n"
+               "A flag with value 1 or 0. If set to one, the gridnames of"
                " every *atm_fields_compact* are checked.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -2454,9 +2388,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_nlteFromRaw"),
-      DESCRIPTION("Sets NLTE values manually\n"
-                  "\n"
-                  "Touch\n"),
+      DESCRIPTION("Sets NLTE values manually\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_nlte"),
       GOUT(),
@@ -2490,9 +2422,9 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GIN("species"),
       GIN_TYPE("ArrayOfString"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Specify one String for each tag group that you want to\n"
-               "add. Inside the String, separate the tags by commas\n"
-               "(plus optional blanks).\n")));
+      GIN_DESC("Specify one String for each tag group that you want to"
+               " add. Inside the String, separate the tags by commas"
+               " (plus optional blanks).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesAdd2"),
@@ -2550,8 +2482,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC(
-          "The name and path of a particular atmospheric scenario.\n"
-          "For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical")));
+          "The name and path of a particular atmospheric scenario."
+          " For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAll"),
@@ -2595,27 +2527,25 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "\n"
           "A tag is defined in terms of the name of the species, isotopologue, and a\n"
           "range of frequencies. Species are named after the standard chemical\n"
-          "names, e.g., \"O3\". Isotopologues are given by the last digit of the atomic\n"
-          "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
+          "names, e.g., ``\"O3\"``. Isotopologues are given by the last digit of the atomic\n"
+          "weight, i.g., ``\"O3-668\"`` for the asymmetric ozone molecule including an\n"
           "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
-          "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
+          "and upper limit of a frequency range, e.g., ``\"O3-666-500e9-501e9\"``.\n"
           "\n"
-          "To turn on Zeeman calculation for a species, \"-Z\" may be appended\n"
-          "to its name: \"O2-Z\" or \"O2-Z-66\"\n"
+          "To turn on Zeeman calculation for a species, ``\"-Z\"`` may be appended\n"
+          "to its name: ``\"O2-Z\"`` or ``\"O2-Z-66\"``\n"
           "\n"
-          "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
+          "The symbol ``\"*\"`` acts as a wild card. Furthermore, frequency range or\n"
           "frequency range and isotopologue may be omitted.\n"
           "\n"
-          "Finally, instead of the isotopologue the special letter \"nl\" may be given,\n"
-          "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
+          "Finally, instead of the isotopologue the special letter ``\"nl\"`` may be given,\n"
+          "e.g., ``\"H2O-nl\"``. This means that no absorption at all is associated\n"
           "with this tag. (It is not quite clear if this feature is useful for\n"
           "anything right now.)\n"
           "\n"
           "Example:\n"
           "\n"
-          "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
-          "               \"O3\",\n"
-          "               \"H2O-PWR98\" ]\n"
+          ">>> species = [ \"O3-666-500e9-501e9, O3-686\", \"O3\", \"H2O-PWR98\" ]\n"
           "\n"
           "   The first tag group selects all O3-666 lines between 500 and\n"
           "   501 GHz plus all O3-686 lines. \n"
@@ -2629,9 +2559,9 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "\n"
           "   Note that order of tag groups in the species list matters. In our\n"
           "   example, changing the order of the first two tag group will give\n"
-          "   different results: as \"O3\" already selects all O3 transitions,\n"
+          "   different results: as ``\"O3\"`` already selects all O3 transitions,\n"
           "   no lines will remain to be selected by the\n"
-          "   \"O3-666-500e9-501e9, O3-686\" tag.\n"
+          "   ``\"O3-666-500e9-501e9, O3-686\"`` tag.\n"
           "\n"
           "For CIA species the tag consists of the two involved species and\n"
           "a dataset index. CIA species can be defined for multiple regions\n"
@@ -2640,7 +2570,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "\n"
           "Example\n"
           "\n"
-          "species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
+          ">>> species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
           "\n"
           "For Hitran cross section species the tag consists of the species and\n"
           "the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be\n"
@@ -2657,9 +2587,9 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GIN("species"),
       GIN_TYPE("ArrayOfString"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Specify one String for each tag group that you want to\n"
-               "create. Inside the String, separate the tags by commas\n"
-               "(plus optional blanks).\n")));
+      GIN_DESC("Specify one String for each tag group that you want to"
+               " create. Inside the String, separate the tags by commas"
+               " (plus optional blanks).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_vecAddGas"),
@@ -2747,286 +2677,258 @@ Only supports temperature and wind speed derivatives
 
 Available models:
 
-    O2-MPM2020:
-        60 GHz and 118 GHz lines only (no continua, no higher Hz line centers) 
+:O2-MPM2020:
+    60 GHz and 118 GHz lines only (no continua, no higher Hz line centers) 
 
-        Dmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020, Revision of the 
-        60-GHz atmospheric oxygen absorption band models for practical use, 
-        https://doi.org/10.1016/j.jqsrt.2019.106798
+    Dmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020, Revision of the 
+    60-GHz atmospheric oxygen absorption band models for practical use, 
+    https://doi.org/10.1016/j.jqsrt.2019.106798
+:H2O-ForeignContCKDMT350:
+    Foreign continua.  Expects H2O line center cutoff at 25 cm-1
 
-    H2O-ForeignContCKDMT350:
-        Foreign continua.  Expects H2O line center cutoff at 25 cm-1
+    CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
+    Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
+    http://www.rtweb.aer.com/continuum_frame.html
+:H2O-SelfContCKDMT350:
+    Self continua.  Expects H2O line center cutoff at 25 cm-1
 
-        CKD_MTv3.50 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
-        Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
-        http://www.rtweb.aer.com/continuum_frame.html
+    CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
+    Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
+    http://www.rtweb.aer.com/continuum_frame.html
+:H2O-SelfContCKDMT400:
+    Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
-    H2O-SelfContCKDMT350:
-        Self continua.  Expects H2O line center cutoff at 25 cm-1
+    Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
 
-        CKD_MTv3.50 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
-        Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
-        http://www.rtweb.aer.com/continuum_frame.html
+    Note that this model comes with the copyright statement [1].
 
-    H2O-SelfContCKDMT400:
-        Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
+    Note also that this model requires *predefined_model_data* to contain relevant data set either using
+    *predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
+:H2O-ForeignContCKDMT400:
+    Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 
-        Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
+    Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
 
-        Note that this model comes with the copyright statement [1].
+    Note that this model comes with the copyright statement [1].
 
-        Note also that this model requires *predefined_model_data* to contain relevant data set either using
-        *predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
+    Note also that this model requires *predefined_model_data* to contain relevant data set either using
+    *predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
+:H2O-ForeignContStandardType:
+    Water microwave continua
 
-    H2O-ForeignContCKDMT400:
-        Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
+    P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+    Radio Science, Vol. 34(4), 1025, 1999.
+:H2O-SelfContStandardType:
+    Water microwave continua
 
-        Our code is reimplemented based on original Fortran90 code that is/was/will-be-made available via hitran.org
+    P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+    Radio Science, Vol. 34(4), 1025, 1999.
+:H2O-MPM89:
+    Microwave water absorption model
 
-        Note that this model comes with the copyright statement [1].
+    H. J. Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631.
+:H2O-PWR98:
+    Microwave water absorption model
 
-        Note also that this model requires *predefined_model_data* to contain relevant data set either using
-        *predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
+    P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
+    Radio Science, Vol. 34(4), 1025, 1999.
+:H2O-PWR2021:
+    Microwave water absorption model developed by P.W. Rosenkranz.
 
-    H2O-ForeignContStandardType:
-        Water microwave continua
+    Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+:H2O-PWR2022:
+    Microwave water absorption model developed by P.W. Rosenkranz.
 
-        P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
-        Radio Science, Vol. 34(4), 1025, 1999.
+    Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+:CO2-CKDMT252:
+    MT CKD absorption for CO2
 
-    H2O-SelfContStandardType:
-        Water microwave continua
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 2.50 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html
+:O2-CIAfunCKDMT100:
+    CIA for oxygen from MT CKD
 
-        P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
-        Radio Science, Vol. 34(4), 1025, 1999.
+    F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman,
+    J.-M. Hartmann, Ch. Boulet,<br>
+    Infrared collision-induced absorption by O2 near 6.4 microns for
+    atmospheric applications: measurements and emprirical modeling,<br>
+    Appl. Optics, 35, 5911-5917, (1996).
 
-    H2O-MPM89:
-        Microwave water absorption model
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 1.00 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html
+:O2-MPM89:
+    Oxygen microwave absorption model
 
-        H. J. Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631.
+    Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+    <i>Propagation modeling of moist air and suspended water/ice
+    particles at frequencies below 1000 GHz</i>,<br>
+    AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+    Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+:O2-PWR98:
+    Oxygen microwave absorption model
 
-    H2O-PWR98:
-        Microwave water absorption model
+    P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
+    BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
+    H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
+    M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
+    SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
+:O2-PWR2021:
+    Oxygen microwave absorption model developed by P.W. Rosenkranz.
 
-        P. W. Rosenkranz., Radio Science, 33(4), 919, 1998 and
-        Radio Science, Vol. 34(4), 1025, 1999.
+    Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+:O2-PWR2022:
+    Oxygen microwave absorption model developed by P.W. Rosenkranz.
 
-    H2O-PWR2021:
-        Microwave water absorption model developed by P.W. Rosenkranz.
+    Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+:O2-SelfContStandardType:
+    Microwave continua term
 
-        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+    Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
+    <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
+    John Wiley & Sons, Inc., 1993.<br>
+    <br>
+    Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+    <i>Propagation modeling of moist air and suspended water/ice
+    particles at frequencies below 1000 GHz</i>,<br>
+    AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+    Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+:O2-TRE05:
+    Oxygen microwave absorption model
 
-    H2O-PWR2022:
-        Microwave water absorption model developed by P.W. Rosenkranz.
+    References: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+    <i>Propagation modeling of moist air and suspended water/ice
+    particles at frequencies below 1000 GHz</i>,<br>
+    AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+    Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
 
-        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+    M.Yu. Tretyakov, M.A. Koshelev, V.V. Dorovskikh,
+    D.S. Makarov, P.W. Rosenkranz; 60-GHz oxygen band: precise broadening and central frequencies
+    of fine-structure lines, absolute absorption profile
+    at atmospheric pressure, and revision of mixing coefficients
+    doi:10.1016/j.jms.2004.11.011
+:O2-v0v0CKDMT100:
+    MT CKD
 
-    CO2-CKDMT252:
-        MT CKD absorption for CO2
+    CKD_MT 1.00 implementation of oxygen collision induced fundamental model of
+    O2 continuum formulated by
+    Mate et al. over the spectral region 7550-8486 cm-1:
+    B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
+    "Absolute Intensities for the O2 1.27 micron
+    continuum absorption",
+    J. Geophys. Res., 104, 30,585-30,590, 1999.
 
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 2.50 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html
-    
-    O2-CIAfunCKDMT100:
-        CIA for oxygen from MT CKD
+    Also, refer to the paper "Observed  Atmospheric
+    Collision Induced Absorption in Near Infrared Oxygen Bands",
+    Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
+    Journal of Geophysical Research (1997).
 
-        F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman,
-        J.-M. Hartmann, Ch. Boulet,<br>
-        Infrared collision-induced absorption by O2 near 6.4 microns for
-        atmospheric applications: measurements and emprirical modeling,<br>
-        Appl. Optics, 35, 5911-5917, (1996).
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 1.00 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html<br>
+    <br>
+:O2-v1v0CKDMT100:
+    MT CKD
 
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 1.00 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html
+    Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
+    Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
+    J. Geophys. Res., 103, D4, 3859-3863, 1998.
 
-    O2-MPM89:
-        Oxygen microwave absorption model
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 1.00 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html<br>
+:O2-visCKDMT252:
+    MT CKD
 
-        Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-        <i>Propagation modeling of moist air and suspended water/ice
-        particles at frequencies below 1000 GHz</i>,<br>
-        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-    
-    O2-PWR98:
-        Oxygen microwave absorption model
+    O2 continuum formulated by Greenblatt et al. over the spectral region
+    8797-29870 cm-1:  "Absorption Coefficients of Oxygen Between 
+    330 and 1140 nm, G.D. Green blatt, J.J. Orlando, J.B. Burkholder,
+    and A.R. Ravishabkara,  J. Geophys. Res., 95, 18577-18582, 1990.
 
-        P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
-        BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
-        H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
-        M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
-        SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
-    
-    O2-PWR2021:
-        Oxygen microwave absorption model developed by P.W. Rosenkranz.
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 2.50 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html<br>
+:N2-CIAfunCKDMT252:
+    MT CKD
 
-        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+    Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and
+    J._M. Hartmann,<br>
+    Infrared collision-induced absorption by
+    N2 near 4.3 microns for atmospheric applications:
+    Measurements and emprirical modeling, <br>
+    Appl. Optics, 35, 5911-5917, (1996)
 
-    O2-PWR2022:
-        Oxygen microwave absorption model developed by P.W. Rosenkranz.
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 1.00 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html
+:N2-CIArotCKDMT252:
+    MT CKD
 
-        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+    Borysow, A, and L. Frommhold,<br>
+    Collision-induced rototranslational absorption spectra of N2-N2
+    pairs for temperatures from 50 to 300 K,<br>
+    The Astrophysical Journal, 311, 1043-1057, 1986.
 
-    O2-SelfContStandardType:
-        Microwave continua term
+    This absorption model is taken from the FORTRAN77 code of
+    CKD_MT version 1.00 written by<br>
+    Atmospheric and Environmental Research Inc. (AER),<br>
+    Radiation and Climate Group<br>
+    131 Hartwell Avenue<br>
+    Lexington, MA 02421, USA<br>
+    http://www.rtweb.aer.com/continuum_frame.html
+:N2-SelfContStandardType:
+    Microwave nitrogen absorption continua
 
-        Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
-        <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
-        John Wiley & Sons, Inc., 1993.<br>
-        <br>
-        Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-        <i>Propagation modeling of moist air and suspended water/ice
-        particles at frequencies below 1000 GHz</i>,<br>
-        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-    
-    O2-TRE05:
-        Oxygen microwave absorption model
+    Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
+    <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
+    John Wiley & Sons, Inc., 1993.
+:N2-SelfContMPM93:
+    Microwave nitrogen absorption continua from MPM93 model
 
-        References: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-        <i>Propagation modeling of moist air and suspended water/ice
-        particles at frequencies below 1000 GHz</i>,<br>
-        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+    Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
+    <i>Propagation modeling of moist air and suspended water/ice
+    particles at frequencies below 1000 GHz</i>,<br>
+    AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+    Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
+:N2-SelfContPWR2021:
+    Microwave nitrogen absorption continua developed by P.W. Rosenkranz.
 
-        M.Yu. Tretyakov, M.A. Koshelev, V.V. Dorovskikh,
-        D.S. Makarov, P.W. Rosenkranz; 60-GHz oxygen band: precise broadening and central frequencies
-        of fine-structure lines, absolute absorption profile
-        at atmospheric pressure, and revision of mixing coefficients
-        doi:10.1016/j.jms.2004.11.011
-    
-    O2-v0v0CKDMT100:
-        MT CKD
+    Note that this also includes O2-N2 and O2-O2 collision-induced absorption and is
+    only applicable to Earth
 
-        CKD_MT 1.00 implementation of oxygen collision induced fundamental model of
-        O2 continuum formulated by
-        Mate et al. over the spectral region 7550-8486 cm-1:
-        B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
-        "Absolute Intensities for the O2 1.27 micron
-        continuum absorption",
-        J. Geophys. Res., 104, 30,585-30,590, 1999.
+    Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
+:liquidcloud-ELL07:
+    Water droplet absorption
 
-        Also, refer to the paper "Observed  Atmospheric
-        Collision Induced Absorption in Near Infrared Oxygen Bands",
-        Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
-        Journal of Geophysical Research (1997).
-
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 1.00 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html<br>
-        <br>
-
-    O2-v1v0CKDMT100:
-        MT CKD
-
-        Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
-        Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
-        J. Geophys. Res., 103, D4, 3859-3863, 1998.
-
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 1.00 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html<br>
-
-    O2-visCKDMT252:
-        MT CKD
-
-        O2 continuum formulated by Greenblatt et al. over the spectral region
-        8797-29870 cm-1:  "Absorption Coefficients of Oxygen Between 
-        330 and 1140 nm, G.D. Green blatt, J.J. Orlando, J.B. Burkholder,
-        and A.R. Ravishabkara,  J. Geophys. Res., 95, 18577-18582, 1990.
-
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 2.50 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html<br>
-
-    N2-CIAfunCKDMT252:
-        MT CKD
-
-        Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and
-        J._M. Hartmann,<br>
-        Infrared collision-induced absorption by
-        N2 near 4.3 microns for atmospheric applications:
-        Measurements and emprirical modeling, <br>
-        Appl. Optics, 35, 5911-5917, (1996)
-
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 1.00 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html
-    
-    N2-CIArotCKDMT252:
-        MT CKD
-
-        Borysow, A, and L. Frommhold,<br>
-        Collision-induced rototranslational absorption spectra of N2-N2
-        pairs for temperatures from 50 to 300 K,<br>
-        The Astrophysical Journal, 311, 1043-1057, 1986.
-
-        This absorption model is taken from the FORTRAN77 code of
-        CKD_MT version 1.00 written by<br>
-        Atmospheric and Environmental Research Inc. (AER),<br>
-        Radiation and Climate Group<br>
-        131 Hartwell Avenue<br>
-        Lexington, MA 02421, USA<br>
-        http://www.rtweb.aer.com/continuum_frame.html
-    
-    N2-SelfContStandardType:
-        Microwave nitrogen absorption continua
-
-        Reference: P. W. Rosenkranz, Chapter 2, in M. A. Janssen, <br>
-        <I>Atmospheric Remote Sensing by Microwave Radiometry</i>,<br>
-        John Wiley & Sons, Inc., 1993.
-
-    N2-SelfContMPM93:
-        Microwave nitrogen absorption continua from MPM93 model
-
-        Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
-        <i>Propagation modeling of moist air and suspended water/ice
-        particles at frequencies below 1000 GHz</i>,<br>
-        AGARD 52nd Specialists Meeting of the Electromagnetic Wave
-        Propagation Panel,<br> Palma de Mallorca, Spain, 1993, May 17-21
-
-    N2-SelfContPWR2021:
-        Microwave nitrogen absorption continua developed by P.W. Rosenkranz.
-
-        Note that this also includes O2-N2 and O2-O2 collision-induced absorption and is
-        only applicable to Earth
-
-        Our code is reimplemented based on the Fortran code available at http://cetemps.aquila.infn.it/mwrnet/lblmrt_ns.html
-
-    
-    liquidcloud-ELL07:
-        Water droplet absorption
-
-        W. J. Ellison, <br>
-        <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
-        Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
-        J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
+    W. J. Ellison, <br>
+    <i>Permittivity of Pure Water, at Standard Atmospheric Pressure, over the
+    Frequency Range 0-25 THz and Temperature Range 0-100C</i>,<br>
+    J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
 )--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky",
@@ -3158,19 +3060,22 @@ Available models:
           "it suffices to use the default values of N_za_grid and N_aa_grid.\n"
           "From N_aa_grid an equally spaced grid is created and stored in the\n"
           "WSV *aa_grid*.\n"
+          "\n"
           "Depending on the desired za_grid_type *za_grid* will be\n"
           "equally spaced ('linear') or unequally ('linear_mu','double_gauss')\n"
           "Important, N_za_grid must be an even number because for the \n"
           "integration over each hemisphere N_za_grid / 2 zenith angles are needed.\n"
           "\n"
           "Possible zenith angle grid types are:\n"
-          "double_gauss:     The zenith grid and the integration weights are set according\n"
-          "                  to a gauss-legendre integration for each hemispheres.\n"
-          "linear:           Equally space grid between 0 deg and 180 deg including the poles\n"
-          "linear_mu:        Similar to 'linear' but equally spaced for cos(180 deg) to cos(0 deg),\n"
-          "                  which results a unequally spaced angular grid\n"
-
-          ),
+R"(
+:double_gauss:
+    The zenith grid and the integration weights are set according
+    to a gauss-legendre integration for each hemispheres.
+:linear: Equally space grid between 0 deg and 180 deg including the poles
+:linear_mu:
+    Similar to 'linear' but equally spaced for cos(180 deg) to cos(0 deg),
+    which results a unequally spaced angular grid
+)"),
       AUTHORS("Manfred Brath"),
       OUT("za_grid", "aa_grid", "za_grid_weights"),
       GOUT(),
@@ -3632,10 +3537,9 @@ Available models:
           "  perturbed_field = original_field\n"
           "  perturbed_field(p_index,lat_index,lon_index) += pert_size\n"
           "if not ``pert_mode`` is set to "
-          "relative"
-          " when this is done\n"
-          "  ``perturbed_field = original_field``\n"
-          "  ``perturbed_field(p_index,lat_index,lon_index) *= 1 * pert_size``\n"
+          "relative when this is done\n\n"
+          "* ``perturbed_field = original_field``\n"
+          "* ``perturbed_field(p_index,lat_index,lon_index) *= 1 * pert_size``\n\n"
           "where p_index etc. are derived from ``pert_index``.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
@@ -3812,7 +3716,7 @@ Available models:
           "The method extracts data for given latitude and longitude index\n"
           "to create a 1D atmosphere. *AtmosphereSet1D* is called to set\n"
           "output values of *atmosphere_dim*, *lat_grid* and *lon_grid*.\n"
-          "Nothing is done if *atmosphere_dim* alöready is 1.\n"),
+          "Nothing is done if *atmosphere_dim* already is 1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("atmosphere_dim",
           "lat_grid",
@@ -3881,9 +3785,9 @@ Available models:
       GIN("p_step", "interp_order"),
       GIN_TYPE("Numeric", "Index"),
       GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC("Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
-               "the pressure grid is coarser than this, additional points\n"
-               "are added until each log step is smaller than this.\n",
+      GIN_DESC("Maximum step in log(p[Pa]) (natural logarithm, as always). If"
+               " the pressure grid is coarser than this, additional points"
+               " are added until each log step is smaller than this.",
                "Interpolation order.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -3936,7 +3840,7 @@ Available models:
                /* p_min */
                "Minimum-pressure level to consider (for TOA).",
                /* check_gridnames */
-               "A flag with value 1 or 0. If set to one, the gridnames of \n"
+               "A flag with value 1 or 0. If set to one, the gridnames of"
                " the *atm_fields_compact* are checked.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -4114,7 +4018,7 @@ Available models:
           "*vmr_field_raw*.  *nlte_field_raw* is set to empty.\n"
           "\n"
           "Files in a scenarios should be named matching the pattern of:\n"
-          "basename.speciesname.xml\n (for temperature and altitude the\n"
+          "basename.speciesname.xml (for temperature and altitude the\n"
           "expected 'speciesname' are 't' and'z', respectivly)."
           "\n"
           "The files can be anywhere, but they must all be in the same\n"
@@ -4488,7 +4392,7 @@ Available models:
           "See *atm_fields_compactFromMatrix* for basic documentation.\n"
           "\n"
           "See *batch_atm_fields_compactAddConstant* and\n"
-          "batch_atm_fields_compactAddSpecies* for adding additional fields.\n"),
+          "*batch_atm_fields_compactAddSpecies* for adding additional fields.\n"),
       AUTHORS("Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"),
       OUT("batch_atm_fields_compact"),
       GOUT(),
@@ -4589,7 +4493,7 @@ Available models:
           "and last pressure index, where the value is unequal to zero. This\n"
           "index is then copied to *cloudbox_limits*.\n"
           "If ``particle_field`` is empty, the cloudbox is switched off\n"
-          "(*cloudbox_on*=0).\n"
+          "(*cloudbox_on* = 0).\n"
           "\n"
           "Additionaly the lower cloudbox_limit is altered by ``cloudbox_margin``.\n"
           "The margin is given as a height difference in meters and transformed\n"
@@ -4780,7 +4684,8 @@ Available models:
           "    *doit_rte_agenda*.\n"
           " 3. Convergence test using *doit_conv_test_agenda*.\n"
           "\n"
-          "Note: The atmospheric dimensionality *atmosphere_dim* can be\n"
+          "Note:\n"
+          "      The atmospheric dimensionality *atmosphere_dim* can be\n"
           "      either 1 or 3. To these dimensions the method adapts\n"
           "      automatically. 2D scattering calculations are not\n"
           "      supported.\n"),
@@ -4808,12 +4713,12 @@ Available models:
           "``new_limit0`` is an index with respect to *p_grid*, etc.\n"
           "\n"
           "The following must be valid:\n"
-          "  new_limit0 >= cloudbox_limits[0]\n"
-          "  new_limit1 <= cloudbox_limits[1]\n"
-          "  new_limit2 >= cloudbox_limits[2]\n"
-          "  new_limit3 <= cloudbox_limits[3]\n"
-          "  new_limit4 >= cloudbox_limits[4]\n"
-          "  new_limit5 <= cloudbox_limits[5]\n"
+          "* new_limit0 >= cloudbox_limits[0]\n"
+          "* new_limit1 <= cloudbox_limits[1]\n"
+          "* new_limit2 >= cloudbox_limits[2]\n"
+          "*  new_limit3 <= cloudbox_limits[3]\n"
+          "* new_limit4 >= cloudbox_limits[4]\n"
+          "* new_limit5 <= cloudbox_limits[5]\n"
           "\n"
           "Indexes for dimensions not used are ignored.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -4840,8 +4745,7 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldInterp2Azimuth"),
       DESCRIPTION(
-          "Interpolate a *cloudbox_field* with azimuthal dependency to a *cloudbox_field*"
-          "with a specific azimuth angle.\n"
+          "Reinterpolate a *cloudbox_field* with azimuthal dependency.\n"
           "\n"
           "Intended use: Call directly after DisortCalc if sun is present and yCalc should be\n"
           "should be run afterwards."
@@ -5097,7 +5001,7 @@ Available models:
       NAME("cloudbox_fieldUpdateSeq1DPP"),
       DESCRIPTION(
           "RT calculation in cloudbox with fixed scattering integral.\n"
-          "\n "
+          "\n"
           "Update radiation field (*cloudbox_field*) in DOIT module.\n"
           "This method loops through the cloudbox to update the\n"
           "radiation field for all\n"
@@ -5391,12 +5295,12 @@ Available models:
           "Journal of Physical and Chemical Reference Data 27, 761 (1998), \n"
           "https://doi.org/10.1063/1.556029 27, 761 \n"
           "\n"
-          "see also http://www.iapws.org/release.html or https://www.nist.gov"
+          "See also: http://www.iapws.org/release.html or https://www.nist.gov"
           "\n"
           "Range of validity:\n"
-          "271.15K < temperature < 773.15K\n"
-          "0 kg m^-3 < density < 1060 kg m^-3\n"
-          "157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
+          " 271.15K < temperature < 773.15K\n"
+          "  0 kg m^-3 < density < 1060 kg m^-3\n"
+          "  157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
           "\n"
           "Density can be set as Vector of size 1 or it must have the same size as\n"
           "as data_t_grid.\n"
@@ -5415,10 +5319,10 @@ Available models:
       GIN_DESC("Frequency grid for refractive index calculation",
                "Temperature grid for refractive index calculation",
                "Density of water",
-               "Flag. If true refractive index is calculated only\n"
-               "within range of validity and it will throw an error if outside\n"
-               "range of validity. \n"
-               "If false no check is made, so use at your own risk.")));
+               "Flag. If true refractive index is calculated only"
+               " within range of validity and it will throw an error if outside"
+               " range of validity."
+               " If false no check is made, so use at your own risk.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Copy"),
@@ -5460,19 +5364,19 @@ Available models:
           "Create 1D covariance matrix.\n"
           "\n"
           "Creates a 1D covariance matrix for two retrieval quantities on given \n"
-          " grids from a given functional form. Elements  of the covariance matrix\n"
+          "grids from a given functional form. Elements  of the covariance matrix\n"
           "are computed as\n"
-          " S_{i,j} = sigma_i * sigma_j * f(d_{i,j} / l_{i,j}) \n"
-          " where d_{i,j} is the distance between the two grid points and l_{i,j}\n"
-          " the mean of the correlation lengths of the grid points.\n"
+          " S_{i,j} = sigma_i * sigma_j * f(d_{i,j} / l_{i,j}), \n"
+          "where d_{i,j} is the distance between the two grid points and l_{i,j}\n"
+          "the mean of the correlation lengths of the grid points.\n"
           "\n"
-          " If a cutoff value co is given elements with absolute value less than this \n"
-          " are set to zero.\n"
+          "If a cutoff value ``co`` is given elements with absolute value less than this \n"
+          "are set to zero.\n"
           "\n"
-          "The following functional forms are available:\n"
-          "  \"exp\": f(x) = exp(-x) \n"
-          "  \"lin\": f(x) = 1.0 - x, for x > 1.0, 0.0 otherwise \n"
-          "  \"gauss\": f(x) = exp(-x^2) \n"),
+          "The following functional forms are available:\n\n"
+          ":``\"exp\"``: f(x) = exp(-x) \n"
+          ":``\"lin\"``: f(x) = 1.0 - x, for x > 1.0, 0.0 otherwise \n"
+          ":``\"gauss\"``: f(x) = exp(-x^2) \n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("out"),
@@ -5516,11 +5420,11 @@ Available models:
       DESCRIPTION(
           "Create Markov Process Covariance Matrix.\n"
           "\n"
-          "Create a markov process covariance matrix for a retrieval quantity on \n"
-          " evenly spaced 1D grid. The correlation between two grid points i,j is \n"
-          " is computed as \n"
-          " cov(i,j) = sigma[i] * sigma[j] * exp(- d(i,j) / lc)\n"
-          " where d(i,j) = abs(grid[i] - grid[j]).\n"
+          "Create a markov process covariance matrix for a retrieval quantity on\n"
+          "evenly spaced 1D grid. The correlation between two grid points i,j is \n"
+          "is computed as \n"
+          " cov(i,j) = sigma[i] * sigma[j] * exp(- d(i,j) / lc),\n"
+          "where d(i,j) = abs(grid[i] - grid[j]).\n"
           "\n"
           "This function also sets covmat_inv_block to the analytically computed inverse\n"
           "of the covariance matrix of the markov provess, which is tri-diagonal. Note\n"
@@ -5576,9 +5480,9 @@ Available models:
           "This functions adds a given dense or sparse matrix as block to the covariance\n"
           "matrix *covmat_sx*. The position of the block can be given by the generic\n"
           "arguments ``i`` and ``j``. Note that diagonal blocks must be added in order starting from\n"
-          " in  the top left corner. If an off-diagonal block is added it must have corresponding\n"
-          " existing blocks on the diagonal and these must be consistent with the dimensions\n"
-          " of the block.  If ``i`` and ``j``  are not provided, the blok will be added\n"
+          "in the top left corner. If an off-diagonal block is added it must have corresponding\n"
+          "existing blocks on the diagonal and these must be consistent with the dimensions\n"
+          "of the block.  If ``i`` and ``j``  are not provided, the blok will be added\n"
           "at the first free spot on the diagonal.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se"),
@@ -5613,7 +5517,7 @@ Available models:
           "will be added at the position of the most recently added non-inverse diagonal\n"
           "block.\n"
           "\n"
-          "\n Note that for this to work this retrieval quantity must be independent from\n"
+          "\nNote that for this to work this retrieval quantity must be independent from\n"
           "other retrieval quantities that do not have an inverse. Otherwise the inverse\n"
           "will be ignored and recomputed numerically.\n"
           "\n"
@@ -5726,7 +5630,7 @@ Available models:
           "will be added at the position of the most recently added non-inverse diagonal\n"
           "block.\n"
           "\n"
-          "\n Note that for this to work this retrieval quantity must be independent from\n"
+          "Note that for this to work this retrieval quantity must be independent from\n"
           "other retrieval quantities that do not have an inverse. Otherwise the inverse\n"
           "will be ignored and recomputed numerically.\n"
           "\n"
@@ -5750,7 +5654,7 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxExtractSqrtDiagonal"),
       DESCRIPTION(
-          "Extract the square root of the diagonal of the state space covariance matrix."
+          "Extract the square root of the diagonal of the state space covariance matrix.\n"
           "\n"
           "This function extracts the diagonal of the state space covariance matrix\n"
           "*covmat_sx* and computes its square root. The resulting vector can then\n"
@@ -5855,10 +5759,10 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("DiagonalMatrix"),
       DESCRIPTION(
-          "Create a diagonal matrix from a vector."
+          "Create a diagonal matrix from a vector.\n"
           "\n"
           "This creates a dense or sparse diagonal matrix with the elements of the given vector\n"
-          " on the diagonal.\n"),
+          "on the diagonal.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("out"),
@@ -5946,7 +5850,7 @@ Available models:
           "\n"
           "If GIN ``crop_circular`` is true, dlos-es at a radius outside of\n"
           "width/2 are removed. The resulting number of directions then\n"
-          "approaches pi``npoints``npoints/4, for high values of ``npoints``.\n"
+          "approaches pi * npoints * npoints / 4, for high values of ``npoints``.\n"
           "There is no effect of ``crop_circular`` for npoints=2, while for\n"
           "npoints=3 the corner points are removed (despite being inside\n"
           "the radius limit) and the number of directions becomes five.\n"),
@@ -6000,23 +5904,15 @@ Available models:
           "Different sphericity levels are emulated here by embedding DISORT\n"
           "in different ways and using different output. The available options\n"
           "(from low to high sphericity level) are:\n"
-          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
-          "  from *cloudboxSetFullAtm*).\n"
-          "- Cloudbox extends over a limited part of the atmosphere only (e.g.\n"
-          "  by setting cloudbox from *cloudboxSetAutomatically* or\n"
-          "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
-          "  atmosphere, but only the radiation field within the cloudbox is\n"
-          "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
+          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox from *cloudboxSetFullAtm*).\n"
+          "- Cloudbox extends over a limited part of the atmosphere only (e.g. by setting cloudbox from *cloudboxSetAutomatically* or *cloudboxSetManually*). Internally, DISORT is run over the whole atmosphere, but only the radiation field within the cloudbox is passed on and used further in ARTS (e.g. by *yCalc*).\n"
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical"
-          "                              thickness.\n"
-          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
-          "                               scattering albedo.\n"
-          " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
-          "                               Zero, if no sun is present \n"),
+          ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
+          ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\" scattering albedo.\n"
+          ":``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level. Zero, if no sun is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -6054,21 +5950,21 @@ Available models:
       GIN("nstreams", "Npfct", "only_tro", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "181", "0", "0", "1", "1"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
-               "solution (must be an even number).\n",
-               "Number of angular grid points to calculate bulk phase\n"
-               "function on (and derive Legendre polynomials from). If <0,\n"
-               "the finest za_grid from scat_data will be used.\n",
-               "Set to 1 if the scattering data is just of TRO type. Has\n"
-               "effect only if Npfct > 3 or Npfct<0, but then leads to\n"
-               "much faster calculations.\n",
-               "Silence C Disort warnings.\n",
-               "Enables blackbody emission. Set to zero, if no\n "
-               "Emission e. g. like in visible regime for earth\n"
-               "is needed\n",
-               "Enables intensity correction. Importantant for low number of \n"
-               "streams. Set to zero, if problems encounter or using a high number\n "
-               "of streams (>30)\n")));
+      GIN_DESC("Number of polar angle directions (streams) in DISORT"
+               " solution (must be an even number).",
+               "Number of angular grid points to calculate bulk phase"
+               " function on (and derive Legendre polynomials from). If <0,"
+               " the finest za_grid from scat_data will be used.",
+               "Set to 1 if the scattering data is just of TRO type. Has"
+               " effect only if Npfct > 3 or Npfct<0, but then leads to"
+               " much faster calculations.",
+               "Silence C Disort warnings.",
+               "Enables blackbody emission. Set to zero, if no"
+               " Emission e. g. like in visible regime for earth"
+               " is needed",
+               "Enables intensity correction. Importantant for low number of"
+               " streams. Set to zero, if problems encounter or using a high number"
+               " of streams (>30)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcWithARTSSurface"),
@@ -6086,12 +5982,9 @@ Available models:
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical"
-          "                              thickness.\n"
-          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
-          "                               scattering albedo.\n"
-          " \"Direct beam\": Matrix [f_grid, p_grid]. Attenuated direct at level.\n"
-          "                               Zero, if no sun is present \n"),
+          ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
+          ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\"scattering albedo.\n"
+          ":``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level.Zero, if no sun is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -6129,21 +6022,21 @@ Available models:
       GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index","Numeric"),
       GIN_DEFAULT("8", "181", "0", "0", "1", "1", "-1"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).\n",
-               "Number of angular grid points to calculate bulk phase\n"
-               "function on (and derive Legendre polynomials from). If <0,\n"
-               "the finest za_grid from scat_data will be used.\n",
-               "Set to 1 if the scattering data is just of TRO type. Has\n"
-               "effect only if Npfct > 3 or Npfct<0, but then leads to\n"
-               "much faster calculations.\n",
-               "Silence C Disort warnings.\n",
-               "Enables blackbody emission. Set to zero, if no\n "
-               "Emission e. g. like in visible regime for earth\n"
-               "is needed\n",
-               "Enables intensity correction. Importantant for low number of \n"
-               "streams. Set to zero, if problems encounter or using a high number\n "
-               "of streams (>30)\n",
-               "Incidence angle, see above.\n")));
+               " solution (must be an even number).",
+               "Number of angular grid points to calculate bulk phase"
+               " function on (and derive Legendre polynomials from). If <0,"
+               " the finest za_grid from scat_data will be used.",
+               "Set to 1 if the scattering data is just of TRO type. Has"
+               " effect only if Npfct > 3 or Npfct<0, but then leads to"
+               " much faster calculations.",
+               "Silence C Disort warnings.",
+               "Enables blackbody emission. Set to zero, if no"
+               " Emission e. g. like in visible regime for earth"
+               " is needed",
+               "Enables intensity correction. Importantant for low number of"
+               " streams. Set to zero, if problems encounter or using a high number"
+               " of streams (>30)",
+               "Incidence angle, see above.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcClearsky"),
@@ -6160,12 +6053,9 @@ Available models:
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical\n"
-          "                              thickness.\n"
-          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\n"
-          "                               scattering albedo.\n"
-          " \"Direct beam\": Matrix [f_grid, p_grid]. Level direct spectral radiance.\n"
-          "                               Zero, if no sun is present \n"),
+          ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
+          ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
+          ":``\"Direct beam\"``: Matrix [f_grid, p_grid]. Level direct spectral radiance. Zero, if no sun is present \n"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
       OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
@@ -6197,15 +6087,15 @@ Available models:
       GIN("nstreams", "quiet", "emission", "intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("8", "0", "1", "1"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
-               "solution (must be an even number).\n",
-               "Silence C Disort warnings.\n",
-               "Enables blackbody emission. Set to zero, if no\n "
-               "Emission e. g. like in visible regime for earth\n"
-               "is needed\n",
-               "Enables intensity correction. Importantant for low number of \n"
-               "streams. Set to zero, if problems encounter or using a high number\n "
-               "of streams (>30)\n")));
+      GIN_DESC("Number of polar angle directions (streams) in DISORT"
+               " solution (must be an even number).",
+               "Silence C Disort warnings.",
+               "Enables blackbody emission. Set to zero, if no "
+               " Emission e. g. like in visible regime for earth"
+               " is needed",
+               "Enables intensity correction. Importantant for low number of "
+               " streams. Set to zero, if problems encounter or using a high number "
+               " of streams (>30)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcIrradiance"),
@@ -6230,15 +6120,10 @@ Available models:
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Layer optical thickness\": Matrix [f_grid, size of p_grid - 1] layer optical\n"
-          "                              thickness.\n"
-          " \"Single scattering albedo\": Matrix [f_grid, size of p_grid - 1] layer single\"\n"
-          "                               scattering albedo.\n"
-          " \"Direct downward spectral irradiance\": Matrix [f_grid, p_grid]. \n"
-          "                               Direct downward spectral irradiance.\n"
-          "                               Zero, if no sun is present. \n"
-          " \"dFdtau\": Matrix [f_grid, p_grid]. Flux divergence in optical \n"
-          "                               thickness space.\n"),
+          ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
+          ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
+          ":``\"Direct downward spectral irradiance\"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. \n"
+          ":``\"dFdtau\"``: Matrix [f_grid, p_grid]. Flux divergence in optical thickness space.\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field","disort_aux"),
       GOUT(),
@@ -6271,21 +6156,21 @@ Available models:
       GIN("nstreams", "Npfct", "only_tro", "quiet", "emission","intensity_correction"),
       GIN_TYPE("Index", "Index", "Index", "Index", "Index", "Index"),
       GIN_DEFAULT("6", "181", "0", "0", "1", "1"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT\n"
-               "solution (must be an even number).\n",
-               "Number of angular grid points to calculate bulk phase\n"
-               "function on (and derive Legendre polynomials from). If <0,\n"
-               "the finest za_grid from scat_data will be used.\n",
-               "Set to 1 if the scattering data is just of TRO type. Has\n"
-               "effect only if Npfct > 3 or Npfct<0, but then leads to\n"
-               "much faster calculations.\n",
-               "Silence C Disort warnings.\n",
-               "Enables blackbody emission. Set to zero, if no\n "
-               "Emission e. g. like in visible regime for earth\n"
-               "is needed\n",
-               "Enables intensity correction. Importantant for low number of \n"
-               "streams. Set to zero, if problems encounter or using a high number\n "
-               "of streams (>30)\n")));
+      GIN_DESC("Number of polar angle directions (streams) in DISORT"
+               " solution (must be an even number).",
+               "Number of angular grid points to calculate bulk phase"
+               " function on (and derive Legendre polynomials from). If <0,"
+               " the finest za_grid from scat_data will be used.",
+               "Set to 1 if the scattering data is just of TRO type. Has"
+               " effect only if Npfct > 3 or Npfct<0, but then leads to"
+               " much faster calculations.",
+               "Silence C Disort warnings.",
+               "Enables blackbody emission. Set to zero, if no "
+               " Emission e. g. like in visible regime for earth"
+               " is needed",
+               "Enables intensity correction. Importantant for low number of "
+               " streams. Set to zero, if problems encounter or using a high number "
+               " of streams (>30)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
@@ -6331,10 +6216,10 @@ Available models:
       GIN("robust"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
-      GIN_DESC("A flag with value 1 or 0. If set to one, the batch\n"
-               "calculation will continue, even if individual jobs fail. In\n"
-               "that case, a warning message is written to screen and file\n"
-               "(out1 output stream), and the output array entry for the\n"
+      GIN_DESC("A flag with value 1 or 0. If set to one, the batch "
+               "calculation will continue, even if individual jobs fail. In "
+               "that case, a warning message is written to screen and file "
+               "(out1 output stream), and the output array entry for the "
                "failed job in the output fields is left empty.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -6453,7 +6338,7 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitGetIncoming1DAtm"),
       DESCRIPTION(
-          "As *DoitGetIncoming* but assumes clear sky part to be 1D."
+          "As *DoitGetIncoming* but assumes clear sky part to be 1D.\n"
           "\n"
           "The incoming field is calculated only for one position and azimuth\n"
           "angle for each cloud box boundary, and obtained values are used\n"
@@ -6589,10 +6474,12 @@ Available models:
           "iteration fields. It picks out the maximum values for each Stokes\n"
           "component separately. The convergence test is fullfilled under the\n"
           "following conditions:\n"
-          "   |I(m+1) - I(m)| < epsilon_1     Intensity.\n"
-          "   |Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n"
-          "   |U(m+1) - U(m)| < epsilon_3   \n"
-          "   |V(m+1) - V(m)| < epsilon_4   \n"
+          "\n"
+          ":``|I(m+1) - I(m)| < epsilon_1``: Intensity.\n"
+          ":``|Q(m+1) - Q(m)| < epsilon_2``: The other Stokes components.\n"
+          ":``|U(m+1) - U(m)| < epsilon_3``: \n"
+          ":``|V(m+1) - V(m)| < epsilon_4``: \n"
+          "\n"
           "These conditions have to be valid for all positions in the\n"
           "cloudbox and for all directions.\n"),
       AUTHORS("Claudia Emde"),
@@ -6681,20 +6568,20 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("OptimizeDoitPressureGrid"),
       DESCRIPTION(
-          "Optimization of the pressure grid for RT calculation.\n"
+          "Optimization of the pressure grid for RT calculation.\n\n"
           "The methods consists of three parts:\n"
-          "1) Calculate the single scattering albedo and the scattering optical"
-          "thickness from the scattering and absorption species. \n"
-          "2) Enhance z_field according to the two thresholds sgl_alb_max and tau_scat_max."
-          "If the resulting cloudbox size is bigger than cloudbox_size_max, this step is \n"
-          "repeated with a higher threshold of tau_scat_max. \n"
-          "3) Interpolate all variables used in doit_mono_agenda to the new z_field \n"
-          "This method should be called inside\n"
-          "*doit_mono_agenda*, right before *cloudbox_field_monoIterate*. It can \n"
-          "only be used if *ScatSpeciesMerge* has been called and if it is\n"
-          "called, *cloudbox_field_monoOptimizeReverse* has to be\n"
-          "called right after *cloudbox_field_monoIterate* to interpolate\n"
-          "*cloudbox_field_mono* back to the original size.\n"
+          "1. Calculate the single scattering albedo and the scattering optical"
+          "   thickness from the scattering and absorption species. \n"
+          "2. Enhance z_field according to the two thresholds sgl_alb_max and tau_scat_max."
+          "   If the resulting cloudbox size is bigger than cloudbox_size_max, this step is \n"
+          "   repeated with a higher threshold of tau_scat_max. \n"
+          "3. Interpolate all variables used in doit_mono_agenda to the new z_field \n"
+          "   This method should be called inside\n"
+          "   *doit_mono_agenda*, right before *cloudbox_field_monoIterate*. It can \n"
+          "   only be used if *ScatSpeciesMerge* has been called and if it is\n"
+          "   called, *cloudbox_field_monoOptimizeReverse* has to be\n"
+          "   called right after *cloudbox_field_monoIterate* to interpolate\n"
+          "   *cloudbox_field_mono* back to the original size.\n"
           "Optimization currently only works with *stokes_dim* = 1 .\n"),
       AUTHORS("Jakob Doerr"),
       OUT("p_grid",
@@ -7302,7 +7189,7 @@ Available models:
       DESCRIPTION("Sets *f_grid* to a grid relative to *abs_lines_per_species*\n"
                   "\n"
                   "Each line will have *abs_lines_per_species* will have a grid\n"
-                  "of ``num_freqs`` grid points in [f0+``delta_f_low``, f0+``delta_f_upp``],\n"
+                  "of ``num_freqs`` grid points in [ f0 + ``delta_f_low``, f0 + ``delta_f_upp`` ],\n"
                   "where f0 is the line center.\n"
                   "\n"
                   "Before leaving the function, *f_grid* is sorted.\n"
@@ -7878,7 +7765,7 @@ Available models:
       NAME("GriddedFieldLatLonExpand"),
       DESCRIPTION(
           "Expands the latitude and longitude grid of the GriddedField to\n"
-          "[-90, 90] and [0,360], respectively. Expansion is only done in\n"
+          "[-90, 90] and [0,360], respectively.\n\nExpansion is only done in\n"
           "the dimension(s), where the grid size is 1.\n"
           "The values from the input data will be duplicated to accomodate\n"
           "for the larger size of the output field.\n"
@@ -8003,16 +7890,16 @@ Available models:
          "The table produced largely follows the format used in RTTOV-SCATT for\n"
          "its \"hydrotables\". The table is returned as a GriddedField4, with\n"
          "dimensions (in order):\n"
-         "   Scattering property\n"
-         "   Frequency (equals WSV f_grid)\n"
-         "   Temperature (equals GIN T_grid)\n"
-         "   Particle content [kg/m3]  (equals GIN wc_grid)\n"
+         "1. Scattering property\n"
+         "2. Frequency (equals WSV f_grid)\n"
+         "3. Temperature (equals GIN T_grid)\n"
+         "4. Particle content [kg/m3]  (equals GIN wc_grid)\n"
          "\n"
          "Four scattering properties are calculated. They are (in order)\n"
-         "   Extinction [m-1]\n"
-         "   Single scattering albedo [-]\n"
-         "   Asymmetry parameter [-]\n"
-         "   Radar reflectivity [m2]\n"),
+         "1. Extinction [m-1]\n"
+         "2. Single scattering albedo [-]\n"
+         "3. Asymmetry parameter [-]\n"
+         "4. Radar reflectivity [m2]\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("hydrotable"),
@@ -8039,18 +7926,7 @@ Available models:
           "about unused input workspace variables. What it does is: Nothing!\n"
           "In other words, it just ignores the variable it is called on.\n"
           "\n"
-          "This method can ignore any workspace variable you want.\n"
-          "\n"
-          "Usage example:\n"
-          "\n"
-          "AgendaSet(els_agenda){\n"
-          "  Ignore(ls_sigma)\n"
-          "  elsLorentz\n"
-          "}\n"
-          "\n"
-          "Without Ignore you would get an error message, because 'els_agenda' is\n"
-          "supposed to use the Doppler width 'ls_sigma', but the Lorentz lineshape\n"
-          "'elsLorentz' does not need it.\n"),
+          "This method can ignore any workspace variable you want.\n"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT(),
@@ -8521,15 +8397,11 @@ Available models:
           "outside the cloudbox (no scattering). For details se the user guide.\n"
           "\n"
           "The possible choices for *iy_unit* are\n"
-          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
-          "                     frequency unit).\n"
-          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
-          "                     temperature.\n"
-          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
-          " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
-          "                     wavelength unit).\n"
-          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
-          "                     wavenumber unit).\n"
+          ":``\"1\"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).\n"
+          ":``\"RJBT\"``: Conversion to Rayleigh-Jean brightness temperature.\n"
+          ":``\"PlanckBT\"``: Conversion to Planck brightness temperature.\n"
+          ":``\"W/(m^2 m sr)\"``: Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).\n"
+          ":``\"W/(m^2 m-1 sr)\"``: Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).\n"
           "Expressions applied and considerations for the unit conversion of\n"
           "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
           "\n"
@@ -8537,32 +8409,37 @@ Available models:
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
           "Recognised choices for *rt_integration_option* are:\n"
-          "   \"first order\": A first order integration is applied.\n"
-          "   \"second order\": A second order integration is applied.\n"
-          "   \"default\": Another way to select the first order option.\n"
+          ":``\"first order\"``: A first order integration is applied.\n"
+          ":``\"second order\"``: A second order integration is applied.\n"
+          ":``\"default\"``: Another way to select the first order option.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
+          ":``\"Radiative background\"``:\n"
+          "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
           "    and 2=cloudbox.\n"
-          " \"Optical depth\": Scalar optical depth between the observation point\n"
+          ":``\"Optical depth\"``:\n"
+          "    Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
-          " \"Direct radiation\": Stokes vector of direct radiation. It dimensions\n"
-          "   are number of frequencies and *stokes_dim*. If no sun is present \n"
-          "   in the line of sight, it is zero.\n"
-          " \"Radiation Background\": Stokes vector of the radiation at start of\n"
-          "   the propagation path. It dimensions are number of frequencies and\n"
-          "   *stokes_dim*.\n"
+          ":``\"Direct radiation\"``:\n"
+          "    Stokes vector of direct radiation. It dimensions\n"
+          "    are number of frequencies and *stokes_dim*. If no sun is present \n"
+          "    in the line of sight, it is zero.\n"
+          ":``\"Radiation Background\"``:\n"
+          "    Stokes vector of the radiation at start of\n"
+          "    the propagation path. It dimensions are number of frequencies and\n"
+          "    *stokes_dim*.\n"
           "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
           "i.e. the column matching Stokes element I, while remaing columns are\n"
           "are filled with zeros.\n"
           "\n"
-          "IMPORTANT: No jacobian calculation is supported when suns or gas "
-          "scattering is included! This will be implemented in a future version.\n"),
+          "IMPORTANT:\n"
+          "    No jacobian calculation is supported when suns or gas "
+          "    scattering is included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke", "Manfred Brath"),
       OUT("iy",
           "iy_aux",
@@ -8732,15 +8609,11 @@ Available models:
           "outside the cloudbox (no scattering). For details se the user guide.\n"
           "\n"
           "The possible choices for *iy_unit* are\n"
-          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
-          "                     frequency unit).\n"
-          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
-          "                     temperature.\n"
-          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
-          " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
-          "                     wavelength unit).\n"
-          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
-          "                     wavenumber unit).\n"
+          ":``\"1\"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).\n"
+          ":``\"RJBT\"``: Conversion to Rayleigh-Jean brightness temperature.\n"
+          ":``\"PlanckBT\"``: Conversion to Planck brightness temperature.\n"
+          ":``\"W/(m^2 m sr)\"``: Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).\n"
+          ":``\"W/(m^2 m-1 sr)\"``: Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).\n"
           "Expressions applied and considerations for the unit conversion of\n"
           "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
           "\n"
@@ -8748,17 +8621,19 @@ Available models:
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
           "Recognised choices for *rt_integration_option* are:\n"
-          "   \"first order\": A first order integration is applied.\n"
-          "   \"second order\": A second order integration is applied.\n"
-          "   \"default\": Another way to select the first order option.\n"
+          ":``\"first order\"``: A first order integration is applied.\n"
+          ":``\"second order\"``: A second order integration is applied.\n"
+          ":``\"default\"``: Another way to select the first order option.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
+          ":``\"Radiative background\"``:\n"
+          "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
           "    and 2=cloudbox.\n"
-          " \"Optical depth\": Scalar optical depth between the observation point\n"
+          ":``\"Optical depth\"``:\n"
+          "    Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
@@ -9051,7 +8926,7 @@ Available models:
           "The method loops the frequencies in *f_grid* and calls\n"
           "*iy_loop_freqs_agenda* for each individual value. This method is\n"
           "placed in *iy_main_agenda*, and the actual radiative transfer\n"
-          " method is put in *iy_loop_freqs_agenda*.\n"
+          "method is put in *iy_loop_freqs_agenda*.\n"
           "\n"
           "A common justification for using the method should be to consider\n"
           "dispersion. By using this method it is ensured that the propagation\n"
@@ -9105,12 +8980,13 @@ Available models:
           "*iy_unit*.\n"
           "\n"
           "The following auxiliary data can be obtained:\n"
-          "  \"Error (uncorrelated)\": Calculation error. Size: [nf,ns,1,1].\n"
+          ":``\"Error (uncorrelated)\"``:\n"
+          "    Calculation error. Size: [nf,ns,1,1].\n"
           "    (The later part of the text string is required. It is used as\n"
           "    a flag to yCalc for how to apply the sensor data.)\n"
           "where\n"
-          "  nf: Number of frequencies.\n"
-          "  ns: Number of Stokes elements.\n"),
+          ":`nf`: Number of frequencies.\n"
+          ":`ns`: Number of Stokes elements.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "diy_dx"),
       GOUT(),
@@ -9322,17 +9198,21 @@ Available models:
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
+          ":``\"Radiative background\"``:\n"
+          "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
           "    and 2=cloudbox (the last case should not occur!). Only column\n"
           "    matching first Stokes element filled. Other columns are set to 0.\n"
-          " \"Backscattering\": The unattenuated back-scattering. That is, as\n"
+          ":``\"Backscattering\"``:\n"
+          "    The unattenuated back-scattering. That is, as\n"
           "    *iy* but with no attenuated applied. Here all columns are filled.\n"
           "    By combing *iy* and this auxiliary variable, the total two-way\n"
           "    attenuation can be derived.\n"
-          " \"Abs species extinction\": Extinction due to *abs_species* at each\n"
+          ":``\"Abs species extinction\"``:\n"
+          "    Extinction due to *abs_species* at each\n"
           "    ppath point, taken as the diagonal of the local extinction matrix.\n"
-          " \"Particle extinction\": Extinction due to particles at each\n"
+          ":``\"Particle extinction\"``:\n"
+          "    Extinction due to particles at each\n"
           "    ppath point, taken as the diagonal of the local extinction matrix.\n"
           "    The retunred values includes ``pext_scaling``\n"),
       AUTHORS("Patrick Eriksson"),
@@ -9467,8 +9347,9 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatReflectivity"),
       DESCRIPTION(
-          "This method calculates upwelling radiation for a specular flat surface\n"
-          "due to the reflection of the downgoing diffuse radiation and emission from\n"
+          "This method calculates upwelling radiation for a specular flat surface.\n"
+          "\n"
+          "These are due to the reflection of the downgoing diffuse radiation and emission from\n"
           "the surface using a predefined reflectivity matrix. \n"
           "\n"
           "This method is designed to be part of *iy_surface_agenda*\n"
@@ -9585,8 +9466,9 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatRefractiveIndex"),
       DESCRIPTION(
-          "This method calculates upwelling radiation for a specular flat surface\n"
-          "due to the reflection of the downgoing diffuse radiation and emission from\n"
+          "This method calculates upwelling radiation for a specular flat surface.\n"
+          "\n"
+          "These are due to the reflection of the downgoing diffuse radiation and emission from\n"
           "the surface using a predefined reflectivity matrix. \n"
           "\n"
           "This method is designed to be part of *iy_surface_agenda*\n"
@@ -9728,9 +9610,9 @@ Available models:
           "the surface.\n"
           "This method works only for 1D or 3D atmospheres.\n"
           "For the integration over the zenith angles a gaussian quadrature with\n"
-          "N_za\n angles is used.\n"
+          "N_za angles is used.\n"
           "For 1D atmospheres N_aa is ignored. For 3D atmospheres without clouds\n"
-          "azimuthal dependency\n can be neglected. N_aa = 1 is sufficient.\n"
+          "azimuthal dependency can be neglected. N_aa = 1 is sufficient.\n"
           "For 3D atmospheres with cloudbox on azimuthal dependency needs to be \n"
           "accounted. In that case the number of azimuth angles N_aa as a rule of"
           "thumb should be set to 4*N_za.\n"
@@ -9956,17 +9838,20 @@ Available models:
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
+          ":``\"Radiative background\"``:\n"
+          "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
           "    and 2=cloudbox. The value is added to each column.\n"
-          " \"Optical depth\": Scalar optical depth between the observation point\n"
+          ":``\"Optical depth\"``:\n"
+          "    Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
           "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT. The value is added to each\n"
           "    column.\n"
           "\n"
-          "IMPORTANT: No jacobian calculation is supported when gas scattering is\n "
-          "included! This will be implemented in a future version.\n"),
+          "IMPORTANT:\n"
+          "    No jacobian calculation is supported when gas scattering is\n "
+          "    included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
           "iy_aux",
@@ -10030,7 +9915,7 @@ Available models:
           "\n"
           "The method is intended to be used as possible input of "
           "*iyTransmissionStandard.\n"
-          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n "
+          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n"
           "The polarisation state is taken from *instrument_pol*, where\n"
           "*instrument_pol* must contain an element for each frequency in *f_grid*.\n"
           "The transmitted signal/pulses are set to be of unit magnitude, such\n"
@@ -10053,7 +9938,7 @@ Available models:
           "\n"
           "The method is intended to be used as possible input of "
           "*iyTransmissionStandard.\n"
-          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n "
+          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n"
           "The polarisation state is taken from *instrument_pol*, where\n"
           "*instrument_pol* must contain a single value.\n"
           "This polarisation state is applied for all frequencies.\n"
@@ -10079,13 +9964,13 @@ Available models:
           "the retrieval field should set to have zero length.\n"
           "\n"
           "These retrieval units are at hand for all gas species:\n"
-          "   \"vmr\"    : Volume mixing ratio.\n"
-          "   \"nd\"     : Number density.\n"
-          "   \"rel\"    : Relative unit (e.g. 1.1 means 10% more of the gas).\n"
+          ":``\"vmr\"``: Volume mixing ratio.\n"
+          ":``\"nd\"``: Number density.\n"
+          ":``\"rel\"``: Relative unit (e.g. 1.1 means 10% more of the gas).\n"
           "\n"
           "For water vapour, also these units are at hand:\n"
-          "   \"rh\"     : Relative humidity.\n"
-          "   \"q\"      : Specific humidity.\n"
+          ":``\"rh\"``: Relative humidity.\n"
+          ":``\"q\"``: Specific humidity.\n"
           "\n"
           "Note that ``for_species_tag`` is used to indicate if species tag VMR,\n"
           "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
@@ -10130,9 +10015,9 @@ Available models:
           "Includes a basic catalog parameter in the Jacobian. These are constant\n"
           "over all layers and so only a single vector output is returned.\n"
           "\n"
-          "The only basic catalog parameters currently supported are:\n"
-          "   \"LineStrength\"\n"
-          "   \"LineCenter\"\n"
+          "The only basic catalog parameters currently supported are:\n\n"
+          "* ``\"LineStrength\"``\n"
+          "* ``\"LineCenter\"``\n"
           "\n"
           "The ``catalog_identity`` should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
@@ -10238,22 +10123,25 @@ Available models:
           "catalog; please see the ARTS documentation for more details.\n"
           "\n"
           "The input are as follows:\n"
-          "  line_identity: Identifier of preferably a single line\n"
-          "  species:       A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
-          "                 Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
-          "                 affected by self and air-broadening, respectively.\n"
-          "  variable:      A variable supported by the line, these can be\n"
-          "                    \"G0\":  Speed-independent pressure broadening\n"
-          "                    \"G2\":  Speed-dependent pressure broadening\n"
-          "                    \"D0\":  Speed-independent pressure shift\n"
-          "                    \"D2\":  Speed-dependent pressure shift\n"
-          "                    \"FVC\": Frequency of velocity changing collisions\n"
-          "                    \"ETA\": partial correlation between velocity and\n"
-          "                             rotational state changes due to collisions\n"
-          "                    \"Y\":   First order line-mixing parameter\n"
-          "                    \"G\":   Second order line-mixing parameter for strength\n"
-          "                    \"DV\":  Second order line-mixing parameter for shifting\n"
-          "  coefficient:   A coefficient in the model to compute the above parameters.\n"
+          ":line_identity:\n"
+          "    Identifier of preferably a single line\n"
+          ":species:\n"
+          "    A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
+          "    Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
+          "    affected by self and air-broadening, respectively.\n"
+          ":variable:\n"
+          "    A variable supported by the line, these can be\n"
+          "    :``\"G0\"``:  Speed-independent pressure broadening\n"
+          "    :``\"G2\"``:  Speed-dependent pressure broadening\n"
+          "    :``\"D0\"``:  Speed-independent pressure shift\n"
+          "    :``\"D2\"``:  Speed-dependent pressure shift\n"
+          "    :``\"FVC\"``: Frequency of velocity changing collisions\n"
+          "    :``\"ETA\"``: partial correlation between velocity and rotational state changes due to collisions\n"
+          "    :``\"Y\"``:   First order line-mixing parameter\n"
+          "    :``\"G\"``:   Second order line-mixing parameter for strength\n"
+          "    :``\"DV\"``:  Second order line-mixing parameter for shifting\n"
+          ":coefficient:\n"
+          "    A coefficient in the model to compute the above parameters.\n"
           "\n"
           "Note that we cannot test if the line in question supports the variable and\n"
           "coefficient at the level of this function, so many errors will only be reported\n"
@@ -10443,14 +10331,16 @@ Available models:
           "Retrieval of deviations between nominal and actual zenith angle of\n"
           "the sensor can be included by this method. The weighing functions\n"
           "can be calculated in several ways:\n"
-          "   calcmode = \"recalc\": Recalculation of pencil beam spectra,\n"
-          "      shifted with ``dza`` from nominal values. A single-sided\n"
-          "      perturbation is applied (towards higher zenith angles).\n"
-          "   calcmode = \"interp\": Inter/extrapolation of existing pencil\n"
-          "       beam spectra. For this option, allow some extra margins for\n"
-          "       zenith angle grids, to avoid artifacts when extrapolating\n"
-          "       the data (to shifted zenith angles). The average of a\n"
-          "       negative and a positive shift is taken."
+          ":``calcmode = \"recalc\"``:\n"
+          "    Recalculation of pencil beam spectra,\n"
+          "    shifted with ``dza`` from nominal values. A single-sided\n"
+          "    perturbation is applied (towards higher zenith angles).\n"
+          ":``calcmode = \"interp\"``:\n"
+          "    Inter/extrapolation of existing pencil\n"
+          "    beam spectra. For this option, allow some extra margins for\n"
+          "    zenith angle grids, to avoid artifacts when extrapolating\n"
+          "    the data (to shifted zenith angles). The average of a\n"
+          "    negative and a positive shift is taken."
           "\n"
           "The interp option is recommended. It should in general be both\n"
           "faster and more accurate (due to the double sided disturbance).\n"
@@ -10628,9 +10518,9 @@ Available models:
           "\n"
           "Similar to *jacobianAddAbsSpecies* but only for number densities.\n"
           "\n"
-          "Species allowed are:\n"
-          "    \"electrons\"\n"
-          "    \"particulates\"\n"
+          "Species allowed are:\n\n"
+          "* \"electrons\"\n"
+          "* \"particulates\"\n"
           "\n"
           "Note that the average of all particulates are used to scale its\n"
           "*jacobian*, so this method works best when only one type of\n"
@@ -11190,10 +11080,10 @@ Available models:
           "activate the transformations.\n"
           "\n"
           "The following transformations can be selected (by ``transformation_func``):\n"
-          "   log   : The natural logarithm\n"
-          "   log10 : The base-10 logarithm\n"
-          "   atanh : Area hyperbolic tangent \n"
-          "   none  : No transformation at all\n"
+          ":``\"log\"``: The natural logarithm\n"
+          ":``\"log10\"``: The base-10 logarithm\n"
+          ":``\"atanh\"``: Area hyperbolic tangent \n"
+          ":``\"none\"``: No transformation at all\n"
           "\n"
           "This method needs only to be called if a functional transformation\n"
           "is wanted. Default is to make no such tranformation at all (i.e.\n"
@@ -11221,11 +11111,11 @@ Available models:
           "operations are applied as:\n"
           "   x = A * ( f(u(z)) - b ) \n"
           "where\n"
-          "   z is the quantity as defined ARTS\n"
-          "   u represents the change of unit\n"
-          "   f is the transformation function\n"
-          "   A and b define together an affine transformation\n"
-          "   x is the retrieved quantity\n"
+          "- z is the quantity as defined ARTS\n"
+          "- u represents the change of unit\n"
+          "- f is the transformation function\n"
+          "- A and b define together an affine transformation\n"
+          "- x is the retrieved quantity\n"
           "For example, this systen allows to retrive a principal component\n"
           "representation (A and b) of the log (f) of relative humidity (u).\n"
           "\n"
@@ -11252,7 +11142,7 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("lat_gridFromRawField"),
       DESCRIPTION(
-          "Sets *lat_grid* according to given raw atmospheric field's lat_grid.\n"
+          "Sets *lat_grid* according to given raw atmospheric field's lat_grid.\n\n"
           "Similar to *p_gridFromZRaw*, but acting on a generic *GriddedField3*\n"
           "(e.g., a wind or magnetic field component).\n"),
       AUTHORS("Jana Mendrok"),
@@ -11303,7 +11193,7 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("lon_gridFromRawField"),
       DESCRIPTION(
-          "Sets *lon_grid* according to given raw atmospheric field's lat_grid.\n"
+          "Sets *lon_grid* according to given raw atmospheric field's lat_grid.\n\n"
           "Similar to *p_gridFromZRaw*, but acting on a generic *GriddedField3*\n"
           "(e.g., a wind or magnetic field component).\n"),
       AUTHORS("Jana Mendrok"),
@@ -12177,9 +12067,9 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("collision_coefficientsFromSplitFiles"),
       DESCRIPTION(
-          "Reads *collision_coefficients* and *collision_line_identifiers* from location on filesystem\n"
-          "with many species.  The species in this location must match *abs_species*.  The location\n"
-          "must also contain an ArrayOfQuantumIdentifier file ending with qid.xml\n"),
+          "Reads *collision_coefficients* and *collision_line_identifiers* from files.\n"
+          "\nThe species in in these files must match *abs_species*.  The location\n"
+          "must also contain an *ArrayOfQuantumIdentifier* file ending with ``qid.xml``\n"),
       AUTHORS("Richard Larsson"),
       OUT("collision_coefficients", "collision_line_identifiers"),
       GOUT(),
@@ -12253,11 +12143,11 @@ Available models:
           "Derivs a Numeric from a vector, following selected operation.\n"
           "\n"
           "The following operations can be selected:\n"
-          "  first : Selects the first element of the vector.\n"
-          "   last : Selects the last element of the vector.\n"
-          "    max : Selects the maximum element of the vector.\n"
-          "    min : Selects the minimum element of the vector.\n"
-          "   mean : Calculates the mean of the vector.\n"),
+          ":``\"first\"``: Selects the first element of the vector.\n"
+          ":``\"last\"``: Selects the last element of the vector.\n"
+          ":``\"max\"``: Selects the maximum element of the vector.\n"
+          ":``\"min\"``: Selects the minimum element of the vector.\n"
+          ":``\"mean\"``: Calculates the mean of the vector.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -12493,7 +12383,7 @@ Available models:
           "For now only vibrational energy states are assumed to be able to be in\n"
           "non-LTE conditions.  The *QuantumIdentifier* for an energy state in ARTS\n"
           "can look like:\n"
-          "\t\"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"\n"
+          "    ``\"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"``\n"
           "and the matching will match ALL lines with the above.  Note then that if, e.g.,\n"
           "the \"v1 0/1\" term was removed from the above, then ARTS will assume that\n"
           "\"v1\" is not part of the level of energy state of interest, so lines\n"
@@ -12501,9 +12391,10 @@ Available models:
           "to more than one energy state, errors should be thrown, but be careful.\n"
           "\n"
           "Set type of population to change computations and expected input as:\n"
-          "\tLTE: Compute population by ratios found from LTE temperatures\n"
-          "\tTV:  Compute population by ratios found from NLTE vibrational temperatures\n"
-          "\tND:  Compute population by ratios found from NLTE number densities\n"),
+          "\n"
+          ":``\"LTE\"``: Compute population by ratios found from LTE temperatures\n"
+          "``\"TV\"``: Compute population by ratios found from NLTE vibrational temperatures\n"
+          "``\"ND\"``: Compute population by ratios found from NLTE number densities\n"),
       AUTHORS("Richard Larsson"),
       OUT("nlte_do", "abs_lines_per_species"),
       GOUT(),
@@ -12517,9 +12408,7 @@ Available models:
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nlte_fieldFromRaw"),
-      DESCRIPTION("Sets NLTE values manually\n"
-                  "\n"
-                  "Touch\n"),
+      DESCRIPTION("Sets NLTE values manually\n"),
       AUTHORS("Richard Larsson"),
       OUT("nlte_field"),
       GOUT(),
@@ -12627,8 +12516,8 @@ Available models:
           "of *y*, is:\n"
           "   cost = cost_y + cost_x\n"
           "where\n"
-          "   cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]\n"
-          "   cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
+          "- cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]\n"
+          "- cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
           "\n"
           " The current implementation provides 3 methods for the minimization of\n"
           "the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.\n"
@@ -12649,12 +12538,12 @@ Available models:
           "Description of the special input arguments:\n"
           "\n"
           "``method``\n"
-          "  \"li\": A linear problem is assumed and a single iteration is performed.\n"
-          "  \"li_cg\": A linear problem is assumed and solved using the CG solver.\n"
-          "  \"gn\": Non-linear, with Gauss-Newton iteration scheme.\n"
-          "  \"gn_cg\": Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
-          "  \"lm\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
-          "  \"lm_cg\": Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
+          ":``\"li\"``: A linear problem is assumed and a single iteration is performed.\n"
+          ":``\"li_cg\"``: A linear problem is assumed and solved using the CG solver.\n"
+          ":``\"gn\"``: Non-linear, with Gauss-Newton iteration scheme.\n"
+          ":``\"gn_cg\"``: Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
+          ":``\"lm\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
+          ":``\"lm_cg\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
           "``max_start_cost``\n"
           "  No inversion is done if the cost matching the a priori state is above\n"
           "  this value. If set to a negative value, all values are accepted.\n"
@@ -12677,14 +12566,14 @@ Available models:
           "``lm_ga_settings``\n"
           "  Settings controlling the gamma factor, part of the \"LM\" method.\n"
           "  This is a vector of length 6, having the elements (0-based index):\n"
-          "    0: Start value.\n"
-          "    1: Fractional decrease after succesfull iteration.\n"
-          "    2: Fractional increase after unsuccessful iteration.\n"
-          "    3: Maximum allowed value. If the value is passed, the inversion\n"
+          "    0. Start value.\n"
+          "    1. Fractional decrease after succesfull iteration.\n"
+          "    2. Fractional increase after unsuccessful iteration.\n"
+          "    3. Maximum allowed value. If the value is passed, the inversion\n"
           "       is halted.\n"
-          "    4: Lower treshold. If the threshold is passed, gamma is set to zero.\n"
+          "    4. Lower treshold. If the threshold is passed, gamma is set to zero.\n"
           "       If gamma must be increased from zero, gamma is set to this value.\n"
-          "    5: Gamma limit. This is an additional stop criterion. Convergence\n"
+          "    5. Gamma limit. This is an additional stop criterion. Convergence\n"
           "       is not considered until there has been one succesful iteration\n"
           "       having a gamma <= this value.\n"
           "  The default setting triggers an error if \"lm\" is selected.\n"
@@ -12745,10 +12634,10 @@ Available models:
   md_data_raw.push_back(create_mdrecord(
       NAME("avkCalc"),
       DESCRIPTION(
-          "Calculates the averaging kernel matrix describing the sensitivity of the\n"
+          "Calculate the averaging kernel matrix.\n\n This is done by describing the sensitivity of the\n"
           "OEM retrieval with respect to the true state of the system. A prerequisite\n"
           "for the calculation of the averaging kernel matrix is a successful OEM\n"
-          "calculation in which the jacobian and the gain matrix dxdy have been calculated.\n"),
+          "calculation in which the *jacobian* and the gain matrix *dxdy* have been calculated.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("avk"),
       GOUT(),
@@ -12764,7 +12653,7 @@ Available models:
       NAME("covmat_soCalc"),
       DESCRIPTION(
           "Calculates the covariance matrix describing the error due to uncertainties\n"
-          "in the observation system. The uncertainties of the observation system are\n"
+          "in the observation system.\n\nThe uncertainties of the observation system are\n"
           "described by *covmat_se*, which must be set by the user to include the\n"
           "relevant contributions from the measurement and the forward model.\n"
           "\n"
@@ -12785,7 +12674,7 @@ Available models:
       NAME("covmat_ssCalc"),
       DESCRIPTION(
           "Calculates the covariance matrix describing the error due to smoothing.\n"
-          ""
+          "\n"
           "The calculation of *covmat_ss* also requires the averaging kernel matrix *avk*\n"
           "to be computed after a successful OEM calculation.\n"),
       AUTHORS("Simon Pfreundschuh"),
@@ -13291,9 +13180,9 @@ Available models:
           "avoided by passing a *rtp_temperature* < 0. In this case, a specific\n"
           "temperature grid from the *scat_data* grid is used without\n"
           "modification. The selection is as follows:\n"
-          "  -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature\n"
-          "  -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature\n"
-          "        *rtp_temperature* < -20   T_grid[nT/2]  median grid point\n"),
+          "- -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature\n"
+          "- -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature\n"
+          "- *rtp_temperature* < -20   T_grid[nT/2]  median grid point\n"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -13540,10 +13429,10 @@ Available models:
           "This method interpolates the particle number density field\n"
           "from the raw data *pnd_field_raw* to obtain *pnd_field*.\n"
           "For 1D cases, where internally *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid* are applied, ``zeropadding``=1 sets the\n"
+          "*GriddedFieldLatLonRegrid* are applied, ``zeropadding`` = 1 sets the\n"
           "*pnd_field* at pressure levels levels exceeding pnd_field_raw's\n"
           "pressure grid to 0 (not implemented for 2D and 3D yet). Default:\n"
-          "zeropadding=0, which throws an error if the calculation pressure grid\n"
+          "zeropadding = 0, which throws an error if the calculation pressure grid\n"
           "*p_grid* is not completely covered by pnd_field_raw's pressure grid.\n"),
       AUTHORS("Sreerekha T.R.", "Claudia Emde", "Oliver Lemke"),
       OUT("pnd_field", "dpnd_field_dx"),
@@ -13778,7 +13667,7 @@ Available models:
       DESCRIPTION(
           "Full propagation path calculation with fixed step length.\n"
           "\n"
-          "Restrictions:\n"
+          "Restrictions:\n\n"
           "1. An active cloudbox is not handled (causes an error).\n"
           "2. Observations of limb sounding type not handled. That is, zenith\n"
           "   angles between 90 and about 120 deg will cause an error.\n"
@@ -13959,7 +13848,7 @@ Available models:
           "This cam drastically decrease the time for reading the structure\n"
           "by some external software.\n"
           "\n"
-          "If *file_index is >= 0, the variable is written to a file with name:\n"
+          "If ``file_index`` is >= 0, the variable is written to a file with name:\n"
           "   <filename>.<file_index>.xml.\n"
           "where <file_index> is the value of ``file_index``.\n"
           "\n"
@@ -14156,11 +14045,11 @@ Available models:
           "\n"
           "This function converts a vector of altitudes to an approximate vector\n"
           "of corresponding pressures. The formula used to convert altitide z to height\n"
-          " is:\n"
+          "is:\n"
           "p = 10.0^(5.0 - z / 1600)\n"
           "\n"
           "Note that all altitude values in the vector must be less than 120 km, \n"
-          " otherwise an error will be thrown.\n"),
+          "otherwise an error will be thrown.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("p_grid"),
@@ -14303,7 +14192,7 @@ Available models:
       GIN_TYPE("Numeric","Index"),
       GIN_DEFAULT("0.5","1"),
       GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).",
-               "Boolean. If it is true negative values due to interpolation\n"
+               "Boolean. If it is true negative values due to interpolation "
                "are set to zero.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -14413,18 +14302,18 @@ Does the same for NLTE variables if required.
 
 If ``lines_speedup_option`` is not "None", then some speed-up logic is applied.
 Valid speed-up logic other than "None" includes:
-    LinearIndependent:
-        Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
-        until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
-        A linear interpolation scheme is used between the bins to fill up the dense
-        absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
-        transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
-    QuadraticIndependent:
-        Using a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]
-        until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
-        A quadratic interpolation scheme is used between the bins to fill up the dense
-        absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
-        transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
+:LinearIndependent:
+    Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
+    until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
+    A linear interpolation scheme is used between the bins to fill up the dense
+    absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
+    transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
+:QuadraticIndependent:
+    Using a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]
+    until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
+    A quadratic interpolation scheme is used between the bins to fill up the dense
+    absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
+    transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
 
 Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
 
@@ -14575,7 +14464,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "*ScatElementsToabs_speciesAdd* can be used to add all required\n"
           "settings/data for individual scattering elements at once, i.e. a\n"
-          " 'particles' tag to *abs_species*, a set of single scattering data to\n"
+          "'particles' tag to *abs_species*, a set of single scattering data to\n"
           "*scat_data* and a number density field to *vmr_field_raw*\n"
           "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
           "*abs_species* have been added) is appended for each scattering\n"
@@ -14605,14 +14494,14 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       GIN("use_abs_as_ext"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
-      GIN_DESC("A flag with value 1 or 0. If set to one, particle absorption\n"
-               "is used in extinction and emission parts of the RT equation,\n"
-               "and scattering out of LOS as well as into LOS is neglected.\n"
-               "Otherwise, particle extinction (absorption+scattering) is\n"
-               "applied in both the extinction as well as the emission part\n"
-               "of the RT equation. That is, true extinction is applied, but\n"
-               "emission also includes a pseudo-emission contribution from\n"
-               "the scattering coefficient.\n")));
+      GIN_DESC("A flag with value 1 or 0. If set to one, particle absorption "
+               "is used in extinction and emission parts of the RT equation, "
+               "and scattering out of LOS as well as into LOS is neglected. "
+               "Otherwise, particle extinction (absorption+scattering) is "
+               "applied in both the extinction as well as the emission part "
+               "of the RT equation. That is, true extinction is applied, but "
+               "emission also includes a pseudo-emission contribution from "
+               "the scattering coefficient. ")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddZeeman"),
@@ -15106,12 +14995,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "Six particle size distributions for the different hydrometeors are handled,\n"
           "governed by setting of ``hydrometeor_type``, where \n"
-          "    \"cloud_water\" selects cloud liquid water , \n"
-          "    \"cloud_ice\" selects cloud ice, \n"
-          "    \"snow\" selects snow, \n"
-          "    \"rain\" selects rain, \n"
-          "    \"graupel\" selects graupel, and \n"
-          "    \"hail\" selects hail, \n"
+          " (1) \"cloud_water\" selects cloud liquid water , \n"
+          " (2) \"cloud_ice\" selects cloud ice, \n"
+          " (3) \"snow\" selects snow, \n"
+          " (4) \"rain\" selects rain, \n"
+          " (5) \"graupel\" selects graupel, and \n"
+          " (6) \"hail\" selects hail, \n"
           "\n"
           "Requirements:\n"
           "\n"
@@ -15191,8 +15080,8 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "picky=0, or an error is thrown if picky=1.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
-          "  la > 0\n"
-          "  ga > 0\n"),
+          " (1) la > 0\n"
+          " (2) ga > 0\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -15246,10 +15135,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "for the dependent parameter.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
-          "  mu + scat_species_b + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  If la is the dependent parameter, mass content must be > 0.\n"),
+          " (1) mu + scat_species_b + 1 > 0\n"
+          " (2) la > 0\n"
+          " (3) ga > 0\n"
+          " (4) If la is the dependent parameter, mass content must be > 0.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -15293,10 +15182,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "of dependent parameters is two.\n"
           "\n"
           "These requirements apply:\n"
-          "  mu + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Ntot must be > 0.\n"),
+          " (1) mu + 1 > 0\n"
+          " (2) la > 0\n"
+          " (3) ga > 0\n"
+          " (4) Ntot must be > 0.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -15343,10 +15232,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "of dependent parameters is two.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
-          "  mu + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Mmean must be > 0.\n"),
+          " (1) mu + 1 > 0\n"
+          " (2) la > 0\n"
+          " (3) ga > 0\n"
+          " (4) Mmean must be > 0.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -15437,10 +15326,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "parameters is two.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
-          "  mu + scat_species_b + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Xmean must be > 0.\n"),
+          " (1) mu + scat_species_b + 1 > 0\n"
+          " (2) la > 0\n"
+          " (3) ga > 0\n"
+          " (4) Xmean must be > 0.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -15485,10 +15374,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "dependent parameters is two.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
-          "  mu + scat_species_b + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Xmedian must be > 0.\n"),
+          " (1) mu + scat_species_b + 1 > 0\n"
+          " (2) la > 0\n"
+          " (3) ga > 0\n"
+          " (4) Xmedian must be > 0.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -15616,12 +15505,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "Six particle size distributions for the different hydrometeors are handled,\n"
           "governed by setting of ``hydrometeor_type``, where \n"
-          "    \"cloud_water\" selects cloud liquid water , \n"
-          "    \"cloud_ice\" selects cloud ice, \n"
-          "    \"snow\" selects snow, \n"
-          "    \"rain\" selects rain, \n"
-          "    \"graupel\" selects graupel, and \n"
-          "    \"hail\" selects hail, \n"
+          " (1) \"cloud_water\" selects cloud liquid water , \n"
+          " (2) \"cloud_ice\" selects cloud ice, \n"
+          " (3) \"snow\" selects snow, \n"
+          " (4) \"rain\" selects rain, \n"
+          " (5) \"graupel\" selects graupel, and \n"
+          " (6) \"hail\" selects hail, \n"
           "\n"
           "Requirements:\n"
           "\n"
@@ -15743,7 +15632,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       NAME("p_gridFromZRaw"),
       DESCRIPTION(
           "Sets *p_grid* according to input atmosphere's raw z_field, derived\n"
-          "e.g. from *AtmRawRead*.\n"
+          "e.g. from *AtmRawRead*.\n\n"
           "Attention: as default only pressure values for altitudes >= 0 are\n"
           "extracted. If negative altitudes shall also be selected, set no_neg=0.\n"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
@@ -15826,7 +15715,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "For safety, new grid and old grid Vectors are not allowed to be the\n"
           "same variable (both will be needed later on for regridding of the\n"
-          "atmospheric fields), and atmospheric field related *checked WSV are\n"
+          "atmospheric fields), and atmospheric field related ``..._checked`` WSV are\n"
           "reset to 0 (unchecked).\n"),
       AUTHORS("Stefan Buehler, Jana Mendrok"),
       OUT("p_grid", "atmfields_checked", "atmgeom_checked", "cloudbox_checked"),
@@ -16119,9 +16008,9 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       DESCRIPTION("Reads a HITRAN .par file.\n"
                   "\n"
                   "The HITRAN type switch can be:\n"
-                  "\t\"Pre2004\"  \t-\t for old format\n"
-                  "\t\"Post2004\" \t-\t for new format\n"
-                  "\t\"Online\"   \t-\t for the online format with quantum numbers (recommended)\n"
+                  ":``\"Pre2004\"``: for old format\n"
+                  ":``\"Post2004\"``: for new format\n"
+                  ":``\"Online\"``: for the online format with quantum numbers (recommended)\n"
                   "\n"
                   "Be careful setting the options!\n"
                   "\n"
@@ -16133,19 +16022,19 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                   "catalog in the new version of Arts.  This step needs only be done once per\n"
                   "version of Hitran you are using\n"
                   "\n"
-                  "The complete flow to downgrade, read Hitran, and update is:\n"
-                  "\t'git checkout <commit hash>' to get the old version of Arts\n"
-                  "\tCompile the program\n"
-                  "\tRun *ReadHITRAN* to get *abs_lines* of that version of Hitran\n"
-                  "\tRun *abs_linesWriteSpeciesSplitCatalog* to store the *abs_lines* to a folder\n"
-                  "\t'git checkout -' to get back to your previous version of Arts\n"
-                  "\tCompile the program\n"
-                  "\tUse *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
+                  "The complete flow to downgrade, read Hitran, and update is:\n\n"
+                  "1. 'git checkout <commit hash>' to get the old version of Arts\n"
+                  "2. Compile the program\n"
+                  "3. Run *ReadHITRAN* to get *abs_lines* of that version of Hitran\n"
+                  "4. Run *abs_linesWriteSpeciesSplitCatalog* to store the *abs_lines* to a folder\n"
+                  "5. 'git checkout -' to get back to your previous version of Arts\n"
+                  "6. Compile the program\n"
+                  "7. Use *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
                   "\n"
-                  "The <commit hash> required per version of Hitran are:\n"
-                  "\tHitran 2020-XXXX: Your current version is OK.\n"
-                  "\tHitran 2004-2016: 60a9664f69f10b3f3eef3d9456282c3638b637fc\n"
-                  "\tHitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7\n"
+                  "The <commit hash> required per version of Hitran are:\n\n"
+                  "- Hitran 2020-XXXX: Your current version is OK.\n"
+                  "- Hitran 2004-2016: 60a9664f69f10b3f3eef3d9456282c3638b637fc\n"
+                  "- Hitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
@@ -16367,7 +16256,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT("", "0"),
       GIN_DESC(
           "File name. See above.",
-          "Equalize the widths of all numbers by padding with zeros as necessary.\n"
+          "Equalize the widths of all numbers by padding with zeros as necessary. "
           "0 means no padding (default)."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
@@ -16422,12 +16311,12 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The reference ellipsoid (*refellipsoid*) is set to model the Earth,\n"
           "following different models. The options are:\n"
-          "\n"
-          "   \"Sphere\" : A spherical Earth. The radius is set following\n"
-          "      the value set for the Earth radius in constants.cc.\n"
-          "\n"
-          "   \"WGS84\" : The reference ellipsoid used by the GPS system.\n"
-          "      Should be the standard choice for a non-spherical Earth.\n"),
+          ":\"Sphere\":\n"
+          "    A spherical Earth. The radius is set following\n"
+          "    the value set for the Earth radius in constants.cc.\n"
+          ":\"WGS84\":\n"
+          "    The reference ellipsoid used by the GPS system.\n"
+          "    Should be the standard choice for a non-spherical Earth.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
       GOUT(),
@@ -16487,8 +16376,7 @@ where N>=0 and the species name is something line "H2O".
           "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
           "folowing different models. The options are:\n"
           "\n"
-          "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
-          "      report of the IAU/IAG Working Group.\n"),
+          ":\"Sphere\": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.\n"),
       AUTHORS("Richard Larsson"),
       OUT("refellipsoid"),
       GOUT(),
@@ -16508,8 +16396,7 @@ where N>=0 and the species name is something line "H2O".
           "The reference ellipsoid (*refellipsoid*) is set to model Io,\n"
           "folowing different models. The options are:\n"
           "\n"
-          "   \"Sphere\" : A spherical planetesimal. The radius is taken from\n"
-          "      report of the IAU/IAG Working Group.\n"),
+          ":\"Sphere\": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.\n"),
       AUTHORS("Richard Larsson"),
       OUT("refellipsoid"),
       GOUT(),
@@ -16529,11 +16416,8 @@ where N>=0 and the species name is something line "H2O".
           "The reference ellipsoid (*refellipsoid*) is set to model Jupiter,\n"
           "folowing different models. The options are:\n"
           "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
-          "      a report of the IAU/IAG Working Group.\n"),
+          ":\"Sphere\": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.\n"
+          ":\"Ellipsoid\": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
       GOUT(),
@@ -16553,11 +16437,8 @@ where N>=0 and the species name is something line "H2O".
           "The reference ellipsoid (*refellipsoid*) is set to model Mars,\n"
           "folowing different models. The options are:\n"
           "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
-          "      a report of the IAU/IAG Working Group.\n"),
+          ":\"Sphere\": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.\n"
+          ":\"Ellipsoid\": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
       GOUT(),
@@ -16577,12 +16458,14 @@ where N>=0 and the species name is something line "H2O".
           "The reference ellipsoid (*refellipsoid*) is set to model Moon,\n"
           "folowing different models. The options are:\n"
           "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
+          ":\"Sphere\":\n"
+          "    A spherical planet. The radius is taken from a\n"
+          "    report of the IAU/IAG Working Group.\n"
           "\n"
-          "   \"Ellipsoid\" : A reference ellipsoid with parameters taken from\n"
-          "      Wikepedia (see code for details). The IAU/IAG working group\n"
-          "      defines the Moon ellipsoid to be a sphere.\n"),
+          ":\"Ellipsoid\":\n"
+          "    A reference ellipsoid with parameters taken from\n"
+          "    Wikepedia (see code for details). The IAU/IAG working group\n"
+          "    defines the Moon ellipsoid to be a sphere.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("refellipsoid"),
       GOUT(),
@@ -16945,7 +16828,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("initialize_jacobian"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
-      GIN_DESC("Flag whether or not to (re)initialize Jacobian-related\n"
+      GIN_DESC("Flag whether or not to (re)initialize Jacobian-related "
                "quantities. Set to 0 if Jacobian is already defined."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
@@ -17385,9 +17268,8 @@ where N>=0 and the species name is something line "H2O".
           "RT4's core solver (instead of their RT4-internal calculation as\n"
           "used by *RT4CalcWithRT4Surface*).\n"
           "\n"
-          "Known issues of ARTS implementation:\n"
-          "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
-          "  background (temperature taken from the ARTS-internal constant).\n"
+          "Known issues of ARTS implementation:\n\n"
+          "- TOA incoming radiation is so far assumed as blackbody cosmic background (temperature taken from the ARTS-internal constant).\n"
           "\n"
           "The keyword ``pfct_method`` allows to choose how to extract the\n"
           "scattering matrix, by chosing one specific temperature grid point\n"
@@ -17781,9 +17663,7 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
-      DESCRIPTION("Sets NLTE values manually\n"
-                  "\n"
-                  "Touch\n"),
+      DESCRIPTION("Sets NLTE values manually\n"),
       AUTHORS("Richard Larsson"),
       OUT("rtp_nlte"),
       GOUT(),
@@ -18248,7 +18128,7 @@ where N>=0 and the species name is something line "H2O".
           "Checks dimensions, grids and single scattering properties of all\n"
           "scattering elements in *scat_data*.\n"
           "\n"
-          "Dimension and grid equirements:\n"
+          "Dimension and grid equirements:\n\n"
           "- The scattering element's f_grid is either identical to *f_grid* or\n"
           "  of dimension 1.\n"
           "- In the latter case, the scattering element's f_grid value must\n"
@@ -18410,10 +18290,10 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The quantity to be used as size descriptor is here denoted as x, and\n"
           "is selected by setting ``x_unit``. The options are:\n"
-          " \"dveq\" : The size grid is set to scat_meta.diameter_volume_equ\n"
-          " \"dmax\" : The size grid is set to scat_meta.diameter_max\n"
-          " \"area\" : The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
-          " \"mass\" : The size grid is set to scat_meta.mass\n"
+          ":``\"dveq\"``: The size grid is set to scat_meta.diameter_volume_equ\n"
+          ":``\"dmax\"``: The size grid is set to scat_meta.diameter_max\n"
+          ":``\"area\"``: The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
+          ":``\"mass\"``: The size grid is set to scat_meta.mass\n"
           "This selection determines *scat_species_x*.\n"
           "\n"
           "The parameters *scat_species_a* and *scat_species_b* are determined by\n"
@@ -18590,7 +18470,7 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "See also *rte_losGeometricFromRtePosToRtePos2*. This method calls that\n"
           "method for each pair of positions, where values in *sensor_pos* matches\n"
-          "*rte_pos and values in ``target_pos`` matches *rte_pos2*.\n"),
+          "*rte_pos* and values in ``target_pos`` matches *rte_pos2*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -18980,7 +18860,7 @@ where N>=0 and the species name is something line "H2O".
           "A general method for frequency switching. The WSM\n"
           "*sensor_responseBackendFrequencySwitching* gives a description of\n"
           "this observation technique, and is also a more straightforward\n"
-          " method for pure singel sideband cases.\n"
+          "method for pure singel sideband cases.\n"
           "\n"
           "It is here assume that *sensor_responseMultiMixerBackend* has been\n"
           "used to calculate the spectrum for two LO positions. This method\n"
@@ -19044,15 +18924,14 @@ where N>=0 and the species name is something line "H2O".
           "characteristics. Use *sensorOff* if pure monochromatic pencil\n"
           "beam calculations shall be performed.\n"
           "\n"
-          "The variables are set as follows:\n"
-          "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
-          "                     *stokes_dim* and *mblock_dlos*.\n"
-          "   sensor_response_f       : Repeated values of *f_grid*.\n"
-          "   sensor_response_pol     : Data matching *stokes_dim*.\n"
-          "   sensor_response_dlos    : Repeated values of *mblock_dlos*.\n"
-          "   sensor_response_f_grid  : Equal to *f_grid*.\n"
-          "   sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
-          "   sensor_response_dlos_grid : Equal to *mblock_dlos*.\n"),
+          "The variables are set as follows:\n\n"
+          ":sensor_response: Identity matrix, with size matching *f_grid*, *stokes_dim* and *mblock_dlos*.\n"
+          ":sensor_response_f: Repeated values of *f_grid*.\n"
+          ":sensor_response_pol: Data matching *stokes_dim*.\n"
+          ":sensor_response_dlos: Repeated values of *mblock_dlos*.\n"
+          ":sensor_response_f_grid: Equal to *f_grid*.\n"
+          ":sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
+          ":sensor_response_dlos_grid: Equal to *mblock_dlos*.\n"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -19621,7 +19500,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("use_parallel_za"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("1"),
-      GIN_DESC("Flag to select parallelization over zenith angles.\n")));
+      GIN_DESC("Flag to select parallelization over zenith angles.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldCopyCloudboxField"),
@@ -19701,7 +19580,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("use_parallel_za"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
-      GIN_DESC("Flag to select parallelization over zenith angles.\n")));
+      GIN_DESC("Flag to select parallelization over zenith angles.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
@@ -19794,14 +19673,14 @@ where N>=0 and the species name is something line "H2O".
                   "5772",
                   "0",
                   "0"),
-      GIN_DESC("The radius of the sun in meter.\n"
-               "Default is the radius of our sun.\n",
-               "The average distance between the sun and the planet in meter.\n"
-               "Default value is set to 1 a.u.\n",
-               "The effective temperature of the suns photosphere in Kelvin.\n"
-               "Default is the temperature of our sun - 5772 Kelvin\n",
-               "The latitude or the zenith position of the sun in the sky.\n",
-               "The longitude or azimuthal position of the sun in the sky.\n")));
+      GIN_DESC("The radius of the sun in meter. "
+               "Default is the radius of our sun. ",
+               "The average distance between the sun and the planet in meter. "
+               "Default value is set to 1 a.u. ",
+               "The effective temperature of the suns photosphere in Kelvin. "
+               "Default is the temperature of our sun - 5772 Kelvin ",
+               "The latitude or the zenith position of the sun in the sky. ",
+               "The longitude or azimuthal position of the sun in the sky. ")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsAddSingleFromGrid"),
@@ -19814,9 +19693,10 @@ where N>=0 and the species name is something line "H2O".
           "The sun spectrum is expected to be stored as\n"
           "the irradiance at the suns photosphere.\n"
           "\n"
-          "Unit:        GriddedField2: [W m-2 Hz-1]\n"
-          "                 Vector *f_grid*[Hz]\n"
-          "                 Vector *stokes_dim*[1]\n"
+          "Unit:\n"
+          " - GriddedField2: [W m-2 Hz-1]\n"
+          "  - Vector *f_grid* [Hz]\n"
+          "  - Vector *stokes_dim* [1]\n"
           "\n"
           "Dimensions: [f_grid, stokes_dim]\n"
           "\n"
@@ -19854,18 +19734,18 @@ where N>=0 and the species name is something line "H2O".
                   "0",
                   "0",
                   "Sun spectrum from Griddedfield."),
-      GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
-               "The radius of the sun in meter.\n"
-               "Default is the radius of our sun.\n",
-               "The average distance between the center of the sun and the \n"
-               "center of the planet in meter.\n"
-               "Default value is set to 1 a.u.\n",
-               "The temperature of the padding if the f_grid is outside the \n"
-               "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"
-               "temperature for a padding using plack's law.\n",
-               "The latitude or the zenith position of the sun in the sky.\n",
-               "The longitude or azimuthal position of the sun in the sky.\n",
-               "The description of the sun.\n")));
+      GIN_DESC("Raw data for monochromatic irradiance spectra. ",
+               "The radius of the sun in meter. "
+               "Default is the radius of our sun. ",
+               "The average distance between the center of the sun and the  "
+               "center of the planet in meter. "
+               "Default value is set to 1 a.u. ",
+               "The temperature of the padding if the f_grid is outside the  "
+               "sun spectrum data. Choose 0 for 0 at the edges or a effective "
+               "temperature for a padding using plack's law. ",
+               "The latitude or the zenith position of the sun in the sky. ",
+               "The longitude or azimuthal position of the sun in the sky. ",
+               "The description of the sun. ")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsAddSingleFromGridAtLocation"),
@@ -19879,9 +19759,10 @@ where N>=0 and the species name is something line "H2O".
           "irradiance.\n"
           "It is coverted to the irradiance at the suns photosphere.\n"
           "\n"
-          "Unit:        GriddedField2: [W m-2 Hz-1]\n"
-          "                 Vector *f_grid*[Hz]\n"
-          "                 Vector *stokes_dim*[1]\n"
+          "Unit:\n"
+          " - GriddedField2: [W m-2 Hz-1]\n"
+          "  - Vector *f_grid* [Hz]\n"
+          "  - Vector *stokes_dim* [1]\n"
           "\n"
           "Dimensions: [f_grid, stokes_dim]\n"
           "\n"
@@ -19929,21 +19810,21 @@ where N>=0 and the species name is something line "H2O".
                   "0",
                   "0",
                   "1e5"),
-      GIN_DESC("Raw data for monochromatic irradiance spectra.\n",
-               "The radius of the sun in meter.\n"
-               "Default is the radius of our Sun.\n",
-               "The distance between the location and the \n"
-               "center of the sun in meter.\n"
-               "Default value is set to 1 a.u.\n",
-               "The temperature of the padding if the f_grid is outside the \n"
-               "sun spectrum data. Choose 0 for 0 at the edges or a effective\n"
-               "temperature for a padding using plack's law.\n",
-               "Zenith angle of the sun in the sky.\n",
-               "Azimuthal angle of the sun in the sky.\n",
-               "The description of the sun.\n",
-               "The latitude of the sun spectrum measurement.\n",
-               "The longitude of the sun spectrum measurement.\n",
-               "The altitude of the sun spectrum measurement.\n")));  
+      GIN_DESC("Raw data for monochromatic irradiance spectra. ",
+               "The radius of the sun in meter. "
+               "Default is the radius of our Sun. ",
+               "The distance between the location and the  "
+               "center of the sun in meter. "
+               "Default value is set to 1 a.u. ",
+               "The temperature of the padding if the f_grid is outside the  "
+               "sun spectrum data. Choose 0 for 0 at the edges or a effective "
+               "temperature for a padding using plack's law. ",
+               "Zenith angle of the sun in the sky. ",
+               "Azimuthal angle of the sun in the sky. ",
+               "The description of the sun. ",
+               "The latitude of the sun spectrum measurement. ",
+               "The longitude of the sun spectrum measurement. ",
+               "The altitude of the sun spectrum measurement. ")));  
       
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsOff"),
@@ -20301,10 +20182,12 @@ where N>=0 and the species name is something line "H2O".
           "The polarisation to apply is selected by ``pol_angle``. This angle is\n"
           "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
           "\n"
-          "If local_stokes_dim was set to 2, *surface_rmatrix is assumed to have\n"
+          "If local_stokes_dim was set to 2, *surface_rmatrix* is assumed to have\n"
           "the structure:\n"
-          "   [ (rv+rh)/2 (rv-rh)/2; \n"
-          "     (rv-rh)/2 (rv+rh)/2 ],\n"
+          R"(
+.. math:: 
+    \begin{array}{cc} (rv+rh)/2 & (rv-rh)/2 \\ (rv-rh)/2 & (rv+rh)/2 \end{array}
+)"
           "while if local_stokes_dim was set to 3 or 4, the mapping involves\n"
           "several transformation matrices. The later case covers also couplings\n"
           "between V/H and +-45 deg, and the mapping is described in the ARTS\n"
@@ -20425,13 +20308,13 @@ where N>=0 and the species name is something line "H2O".
           "interpolation of a geographical field of such data. The position\n"
           "for which refraction shall be extracted is given by *rtp_pos*.\n"
           "The refractive index field is expected to be stored as:\n"
-          "   GriddedField5:\n"
-          "      Vector f_grid[N_f]\n"
-          "      Vector T_grid[N_T]\n"
-          "      ArrayOfString Complex[2]\n"
-          "      Vector \"Latitude\"  [N_lat]\n"
-          "      Vector \"Longitude\" [N_lon]\n"
-          "      Tensor5 data[N_f][N_T][2][N_lat][N_lon]\n"
+          " - GriddedField5:\n"
+          "  - Vector f_grid[N_f]\n"
+          "  - Vector T_grid[N_T]\n"
+          "  - ArrayOfString Complex[2]\n"
+          "  - Vector \"Latitude\"  [N_lat]\n"
+          "  - Vector \"Longitude\" [N_lon]\n"
+          "  - Tensor5 data[N_f][N_T][2][N_lat][N_lon]\n"
           "\n"
           "Definition and treatment of the three first dimensions follows\n"
           "*complex_refr_index*, e.g. the temperature grid is allowed\n"
@@ -20462,14 +20345,14 @@ where N>=0 and the species name is something line "H2O".
           "direction for which the reflectivity shall be extracted are given\n"
           "by *rtp_pos* and *rtp_los*. The reflectivity field is expected to\n"
           "be stored as:\n"
-          "   GriddedField6:\n"
-          "      Vector \"Frequency\"       [N_f]\n"
-          "      Vector \"Stokes element\"  [N_s1]\n"
-          "      Vector \"Stokes_element\"  [N_s2]\n"
-          "      Vector \"Incidence angle\" [N_ia]\n"
-          "      Vector \"Latitude\"        [N_lat]\n"
-          "      Vector \"Longitude\"       [N_lon]\n"
-          "      Tensor6 data[N_f][N_s1][N_s2][N_ia][N_lat][N_lon]\n"
+          " - GriddedField6:\n"
+          "  - Vector \"Frequency\"       [N_f]\n"
+          "  - Vector \"Stokes element\"  [N_s1]\n"
+          "  - Vector \"Stokes_element\"  [N_s2]\n"
+          "  - Vector \"Incidence angle\" [N_ia]\n"
+          "  - Vector \"Latitude\"        [N_lat]\n"
+          "  - Vector \"Longitude\"       [N_lon]\n"
+          "  - Tensor6 data[N_f][N_s1][N_s2][N_ia][N_lat][N_lon]\n"
           "\n"
           "Grids for incidence angle, latitude and longitude must have a\n"
           "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
@@ -20481,12 +20364,12 @@ where N>=0 and the species name is something line "H2O".
           "*surface_reflectivity* and surface_rmatrix*.\n"
           "\n"
           "The interpolation is done in steps:\n"
-          "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
-          "   2: Interpolation in incidence angle (std. extrapolation).\n"
-          "      If the grid has a length of >= 4, cubic interpolation is\n"
-          "      applied. Otherwise linear interpolation.\n"
-          "   3. Linear interpolation in frequency (if input data have more\n"
-          "      than one frequency).\n"),
+          "   (1) Linear interpolation for lat and lon (std. extrapolation).\n"
+          "   (2) Interpolation in incidence angle (std. extrapolation).\n"
+          "       If the grid has a length of >= 4, cubic interpolation is\n"
+          "       applied. Otherwise linear interpolation.\n"
+          "   (3) Linear interpolation in frequency (if input data have more\n"
+          "       than one frequency).\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_reflectivity"),
       GOUT(),
@@ -20640,12 +20523,12 @@ where N>=0 and the species name is something line "H2O".
           "direction for which the reflectivity shall be extracted are given\n"
           "by *rtp_pos* and *rtp_los*. The reflectivity field is expected to\n"
           "be stored as:\n"
-          "   GriddedField4:\n"
-          "      Vector \"Frequency\"       [N_f]\n"
-          "      Vector \"Incidence angle\" [N_ia]\n"
-          "      Vector \"Latitude\"        [N_lat]\n"
-          "      Vector \"Longitude\"       [N_lon]\n"
-          "      Tensor4 data[N_f][N_ia][N_lat][N_lon]\n"
+          " - GriddedField4:\n"
+          "  - Vector \"Frequency\"       [N_f]\n"
+          "  - Vector \"Incidence angle\" [N_ia]\n"
+          "  - Vector \"Latitude\"        [N_lat]\n"
+          "  - Vector \"Longitude\"       [N_lon]\n"
+          "  - Tensor4 data[N_f][N_ia][N_lat][N_lon]\n"
           "\n"
           "Grids for incidence angle, latitude and longitude must have a\n"
           "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
@@ -20653,8 +20536,8 @@ where N>=0 and the species name is something line "H2O".
           "following the definition of *surface_scalar_reflectivity*.\n"
           "\n"
           "The interpolation is done in steps:\n"
-          "   1: Linear interpolation for lat and lon (std. extrapolation).\n"
-          "   2: Interpolation in incidence angle (std. extrapolation).\n"
+          "   1. Linear interpolation for lat and lon (std. extrapolation).\n"
+          "   2. Interpolation in incidence angle (std. extrapolation).\n"
           "      If the grid has a length of >= 4, cubic interpolation is\n"
           "      applied. Otherwise linear interpolation.\n"
           "   3. Linear interpolation if frequency (if input data have more\n"
@@ -21002,7 +20885,7 @@ where N>=0 and the species name is something line "H2O".
           "Lookup SSMI emissivities from Telsem Atlas.\n"
           "\n"
           "This returns the emissivities (indices [0,..,6])\n"
-          " for the SSMI channels that are contained in\n"
+          "for the SSMI channels that are contained in\n"
           "the Telsem atlas.\n"
           "\n"
           "If given latitude and longitude are not in the atlas an empty\n"
@@ -21460,11 +21343,11 @@ where N>=0 and the species name is something line "H2O".
                            "\n"
                            "Use *timerStop* to stop the timer.\n"
                            "\n"
-                           "Usage example:\n"
-                           "   timerStart\n"
-                           "   ReadXML(f_grid,\"frequencies.xml\")\n"
-                           "   timerStop\n"
-                           "   Print(timer)\n"),
+                           "Usage example:\n\n"
+                           " - timerStart\n"
+                           " - ReadXML(f_grid,\"frequencies.xml\")\n"
+                           " - timerStop\n"
+                           " - Print(timer)\n"),
                AUTHORS("Oliver Lemke"),
                OUT("timer"),
                GOUT(),
@@ -21797,11 +21680,11 @@ where N>=0 and the species name is something line "H2O".
           "the same.\n"
           "\n"
           "Generic output:\n"
-          "  Vector : The new grid vector.\n"
+          " - Vector : The new grid vector.\n"
           "\n"
           "Generic input:\n"
-          "  Vector : The original grid vector.\n"
-          "  Vector : The points to insert.\n"),
+          " - Vector : The original grid vector.\n"
+          " - Vector : The points to insert.\n"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT("out"),
@@ -22771,7 +22654,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC(
           "Workspace variable to be saved.",
           "File name. See above.",
-          "Equalize the widths of all numbers by padding with zeros as necessary.\n"
+          "Equalize the widths of all numbers by padding with zeros as necessary. "
           "0 means no padding (default)."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
@@ -22787,13 +22670,13 @@ where N>=0 and the species name is something line "H2O".
           "The method creates *xa* based on *jacobian_quantities* and the various\n"
           "atmospheric fields. In the case of scattering species, the data are\n"
           "taken from *particle_bulkprop_field*. The following retrieval quantities\n"
-          "are handled:\n"
-          "   Temperature\n"
-          "   Absorption species\n"
-          "   Scattering species\n"
-          "   Pointing\n"
-          "   Polynomial baseline fit\n"
-          "   Sinusoidal baseline fit\n"),
+          "are handled:\n\n"
+          " - Temperature\n"
+          " - Absorption species\n"
+          " - Scattering species\n"
+          " - Pointing\n"
+          " - Polynomial baseline fit\n"
+          " - Sinusoidal baseline fit\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("xa"),
       GOUT(),
@@ -22866,12 +22749,12 @@ where N>=0 and the species name is something line "H2O".
           "other variables, make sure that you also call *x2artsSensor* and/or\n"
           "*x2artsSpectroscopy*.\n"
           "\n"
-          "The following retrieval quantities are handled by this method:\n"
-          "   Temperature\n"
-          "   Absorption species\n"
-          "   Scattering species\n"
-          "   Winds\n"
-          "   Surface variables\n"
+          "The following retrieval quantities are handled by this method:\n\n"
+          " - Temperature\n"
+          " - Absorption species\n"
+          " - Scattering species\n"
+          " - Winds\n"
+          " - Surface variables\n"
           "\n"
           "Should only be used inside *inversion_iterate_agenda*.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -22925,12 +22808,12 @@ where N>=0 and the species name is something line "H2O".
           "Maps OEM's state vector, *x*, to the matching ARTS variables. This\n"
           "method handles variables associated with the sensor. If you retrieve\n"
           "other variables, make sure that you also call *x2artsAtmAndSurf*\n"
-          " and/or *x2artsSpectroscopy*.\n"
+          "and/or *x2artsSpectroscopy*.\n"
           "\n"
           "The following retrieval quantities are handled by this method:\n"
-          "   Pointing\n"
-          "   Frequency shift and stretch\n"
-          "   Baseline fits\n"
+          " - Pointing\n"
+          " - Frequency shift and stretch\n"
+          " - Baseline fits\n"
           "\n"
           "Should only be used inside *inversion_iterate_agenda*.\n"
           "\n"
@@ -23112,10 +22995,9 @@ where N>=0 and the species name is something line "H2O".
           "ybatch_n elements. Indices in the output array start\n"
           "with zero, independent of *ybatch_start*.\n"
           "\n"
-          "The method performs the following:\n"
-          "   1. Sets *ybatch_index* = *ybatch_start*.\n"
-          "   2. Performs a-d until\n"
-          "      *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
+          "The method performs the following:\n\n"
+          "   (1) Sets *ybatch_index* = *ybatch_start*.\n"
+          "   (2) Performs a-d until *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
           "        a. Executes *ybatch_calc_agenda*.\n"
           "        b. If *ybatch_index* = *ybatch_start*, resizes *ybatch*\n"
           "           based on *ybatch_n* and length of *y*.\n"
@@ -23131,16 +23013,8 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The input variable *ybatch_start* is set to a default of zero.\n"
           "\n"
-          "An agenda that calculates spectra for different temperature profiles\n"
-          "could look like this:\n"
-          "\n"
-          "   AgendaSet(ybatch_calc_agenda){\n"
-          "      Extract(t_field,tensor4_1,ybatch_index)\n"
-          "      yCalc\n"
-          "   }\n"
-          "\n"
           "Jacobians are also collected, and stored in output variable *ybatch_jacobians*. \n"
-          "(This will be empty if yCalc produces empty Jacobians.)\n"
+          "(This will be empty if *yCalc* produces empty Jacobians.)\n"
           "\n"
           "See the user guide for further practical examples.\n"),
       AUTHORS("Stefan Buehler"),
@@ -23152,10 +23026,10 @@ where N>=0 and the species name is something line "H2O".
       GIN("robust"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
-      GIN_DESC("A flag with value 1 or 0. If set to one, the batch\n"
-               "calculation will continue, even if individual jobs fail. In\n"
-               "that case, a warning message is written to screen and file\n"
-               "(out1 output stream), and the *y* Vector entry for the\n"
+      GIN_DESC("A flag with value 1 or 0. If set to one, the batch "
+               "calculation will continue, even if individual jobs fail. In "
+               "that case, a warning message is written to screen and file "
+               "(out1 output stream), and the *y* Vector entry for the "
                "failed job in *ybatch* is left empty.")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -23510,13 +23384,13 @@ where N>=0 and the species name is something line "H2O".
           "average inside the bins. If a bin is totally outside the model\n"
           "atmosphere, NaN is returned.\n"
           "\n"
-          "The options for *iy_unit_radar* are:\n"
-          " \"1\"   : Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
-          "           attenuation, this equals the scattering matrix value for\n"
-          "           the backward direction. See further AUG.\n"
-          " \"Ze\"  : Equivalent reflectivity. Unit is mm^6/m^3. Conversion\n"
-          "           formula is given below.\n"
-          " \"dBZe\": 10*log10(Ze/Z0), where Z0 is 1 mm^6/m^3.\n"
+          "The options for *iy_unit_radar* are:\n\n"
+          ":``\"1\"``:\n"
+          "    Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
+          "    attenuation, this equals the scattering matrix value for\n"
+          "    the backward direction. See further AUG.\n"
+          ":``\"Ze\"``: Equivalent reflectivity. Unit is mm^6/m^3. Conversion formula is given below.\n"
+          ":``\"dBZe\"``: 10*log10(Ze/Z0), where Z0 is 1 mm^6/m^3.\n"
           "\n"
           "The conversion from backscatter coefficient to Ze is:\n"
           "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
@@ -23750,30 +23624,27 @@ default and that we strongly recommend users to update these values if they
 are using non-Earth atmospheres.
 
 Options are:
-    Earth:
-        Uses *refellipsoidEarth* with model="Sphere"
-        Sets *molarmass_dry_air* to 28.966
-        Sets *planet_rotation_period* to 86164.1
-    
-    Io:
-        Uses *refellipsoidIo* with model="Sphere"
-        Sets *molarmass_dry_air* to 63.110068828000003
-        Sets *planet_rotation_period* to 152853
-    
-    Jupiter:
-        Uses *refellipsoidJupiter* with model="Sphere"
-        Sets *molarmass_dry_air* to 2.22
-        Sets *planet_rotation_period* to 35730
-    
-    Mars:
-        Uses *refellipsoidMars* with model="Sphere"
-        Sets *molarmass_dry_air* to 43.34
-        Sets *planet_rotation_period* to 88643
-    
-    Venus:
-        Uses *refellipsoidVenus* with model="Sphere"
-        Sets *molarmass_dry_air* to 43.45
-        Sets *planet_rotation_period* to -2.0997e7
+
+:``"Earth"``:
+    1. Uses *refellipsoidEarth* with model="Sphere"
+    2. Sets *molarmass_dry_air* to 28.966
+    3. Sets *planet_rotation_period* to 86164.1
+:``"Io"``:
+    1. Uses *refellipsoidIo* with model="Sphere"
+    2. Sets *molarmass_dry_air* to 63.110068828000003
+    3. Sets *planet_rotation_period* to 152853
+:``"Jupiter"``:
+    1. Uses *refellipsoidJupiter* with model="Sphere"
+    2. Sets *molarmass_dry_air* to 2.22
+    3. Sets *planet_rotation_period* to 35730
+:``"Mars"``:
+    1. Uses *refellipsoidMars* with model="Sphere"
+    2. Sets *molarmass_dry_air* to 43.34
+    3. Sets *planet_rotation_period* to 88643
+:``"Venus"``:
+    1. Uses *refellipsoidVenus* with model="Sphere"
+    2. Sets *molarmass_dry_air* to 43.45
+    3. Sets *planet_rotation_period* to -2.0997e7
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("g0_agenda", "refellipsoid", "molarmass_dry_air", "planet_rotation_period"),
@@ -23929,20 +23800,12 @@ Options are:
                       DESCRIPTION(R"--(Sets *g0_agenda* to a default value
 
 Options are:
-    Earth:
-        Uses *g0Earth* to set *g0*
-    
-    Io:
-        Uses *g0Io* to set *g0*
-    
-    Jupiter:
-        Uses *g0Jupiter* to set *g0*
-    
-    Mars:
-        Uses *g0Mars* to set *g0*
-    
-    Venus:
-        Uses *g0Venus* to set *g0*
+
+:``"Earth"``: Uses *g0Earth* to set *g0*
+:``"Io"``: Uses *g0Io* to set *g0*
+:``"Jupiter"``: Uses *g0Jupiter* to set *g0*
+:``"Mars"``: Uses *g0Mars* to set *g0*
+:``"Venus"``: Uses *g0Venus* to set *g0*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("g0_agenda"),
@@ -23964,9 +23827,10 @@ Options are:
                       DESCRIPTION(R"--(Sets *gas_scattering_agenda* to a default value
 
 Options are:
-    Dummy:
-        Will *Ignore* all agenda inputs
-        Uses *Touch* on all agenda outputs
+
+:``"Dummy"``:
+    1. Will *Ignore* all agenda inputs
+    2. Uses *Touch* on all agenda outputs
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("gas_scattering_agenda"),
@@ -24010,11 +23874,9 @@ Options are:
                       DESCRIPTION(R"--(Sets *iy_cloudbox_agenda* to a default value
 
 Options are:
-    LinInterpField:
-        Uses *iyInterpCloudboxField* to set *iy*
-    
-    QuarticInterpField:
-        Uses *iyInterpCloudboxField* to set *iy* using za_interp_order=4
+
+:``"LinInterpField"``: Uses *iyInterpCloudboxField* to set *iy*
+:``"QuarticInterpField"``: Uses *iyInterpCloudboxField* to set *iy* using ``za_interp_order=4``
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_cloudbox_agenda"),
@@ -24058,19 +23920,13 @@ Options are:
                       DESCRIPTION(R"--(Sets *iy_loop_freqs_agenda* to a default value
 
 Options are:
-    Emission:
-        Uses *ppathCalc* to set *ppath*
-        Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                       *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                       *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                             to modify *diy_dx*
 
-    Transmission:
-        Uses *ppathCalc* to set *ppath*
-        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                 to modify *diy_dx*
+:``"Emission"``:
+    1. Uses *ppathCalc* to set *ppath*
+    2. Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also  to modify *diy_dx*
+:``"Transmission"``:
+    1. Uses *ppathCalc* to set *ppath*
+    2. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_loop_freqs_agenda"),
@@ -24092,65 +23948,41 @@ Options are:
                       DESCRIPTION(R"--(Sets *iy_main_agenda* to a default value
 
 Options are:
-    Emission:
-        Uses *ppathCalc* to set *ppath*
-        Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                       *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                       *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                             to modify *diy_dx*
-        Sets *geo_pos* to empty
 
-    EmissionPlaneParallel:
-        Uses *ppathPlaneParallel* to set *ppath*
-        Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                       *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                       *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                             to modify *diy_dx*
-        Sets *geo_pos* to empty
-
-    Clearsky:
-        Uses *ppathCalc* to set *ppath*
-        Uses *iyClearsky* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                               *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                               *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also 
-                     to modify *diy_dx*
-        Sets *geo_pos* to empty
-
-    Transmission:
-        Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
-        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                 to modify *diy_dx*
-        Sets *geo_pos* to empty
-
-    TransmissionUnitUnpolIntensity:
-        Uses *MatrixUnitIntensity* using out=*iy_transmitter*, and f=*f_grid*
-        Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
-        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                 to modify *diy_dx*
-        Sets *geo_pos* to empty
-
-    TransmissionUnitPolIntensity:
-        Uses *iy_transmitterSinglePol* to set *iy_transmitter*
-        Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
-        Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*,
-                                           *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*,
-                                           *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also
-                                 to modify *diy_dx*
-        Sets *geo_pos* to empty
-
-    Freqloop:
-        Uses *iyLoopFrequencies* to set *iy*, *iy_aux*, *ppath*, and *diy_dx*
-        Sets *geo_pos* to empty
-        Will *Ignore* the *diy_dx* agenda input
-
-    ScattMC:
-        Uses *iyMC* to set *iy*, *iy_aux*, and *diy_dx*
-        Sets *geo_pos* to empty
-        Will *Ignore* the *diy_dx* agenda input
+:``"Emission"``:
+    1. Uses *ppathCalc* to set *ppath*
+    2. Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also  to modify *diy_dx*
+    3. Sets *geo_pos* to empty
+:``"EmissionPlaneParallel"``:
+    1. Uses *ppathPlaneParallel* to set *ppath*
+    2. Uses *iyEmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also  to modify *diy_dx*
+    3. Sets *geo_pos* to empty
+:``"Clearsky"``:
+    1. Uses *ppathCalc* to set *ppath*
+    2. Uses *iyClearsky* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also  to modify *diy_dx*
+    3. Sets *geo_pos* to empty
+:``"Transmission"``:
+    1. Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
+    2. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    3. Sets *geo_pos* to empty
+:``"TransmissionUnitUnpolIntensity"``:
+    1. Uses *MatrixUnitIntensity* using out=*iy_transmitter*, and f=*f_grid*
+    2. Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
+    3. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    4. Sets *geo_pos* to empty
+:``"TransmissionUnitPolIntensity"``:
+    1. Uses *iy_transmitterSinglePol* to set *iy_transmitter*
+    2. Uses *ppathCalc* to set *ppath* using *cloudbox_on*=0
+    4. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, *ppvar_p*, *ppvar_t*, *ppvar_nlte*, *ppvar_vmr*, *ppvar_wind*, *ppvar_mag*, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    5. Sets *geo_pos* to empty
+:``"Freqloop"``:
+    1. Uses *iyLoopFrequencies* to set *iy*, *iy_aux*, *ppath*, and *diy_dx*
+    2. Sets *geo_pos* to empty
+    3. Will *Ignore* the *diy_dx* agenda input
+:``"ScattMC"``:
+    1. Uses *iyMC* to set *iy*, *iy_aux*, and *diy_dx*
+    2. Sets *geo_pos* to empty
+    3. Will *Ignore* the *diy_dx* agenda input
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_main_agenda"),
@@ -24194,8 +24026,9 @@ Options are:
                       DESCRIPTION(R"--(Sets *iy_space_agenda* to a default value
 
 Options are:
-    CosmicBackground:
-        Uses *MatrixCBR* using out=*iy*, and f=*f_grid*
+
+:``"CosmicBackground"``:
+    1. Uses *MatrixCBR* using out=*iy*, and f=*f_grid*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_space_agenda"),
@@ -24217,11 +24050,10 @@ Options are:
                       DESCRIPTION(R"--(Sets *iy_space_agenda* to a default value
 
 Options are:
-    UseSurfaceRtprop:
-        Uses *SurfaceDummy* to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-        Uses *iySurfaceRtpropAgenda* to set *iy*, *surface_skin_t*, *surface_los*,
-                                          *surface_rmatrix*, and *surface_emission*, and also
-                                to modify *diy_dx*
+
+:``"UseSurfaceRtprop"``:
+    1. Uses *SurfaceDummy* to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+    2. Uses *iySurfaceRtpropAgenda* to set *iy*, *surface_skin_t*, *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *diy_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_surface_agenda"),
@@ -24327,16 +24159,14 @@ Options are:
                       DESCRIPTION(R"--(Sets *ppath_agenda* to a default value
 
 Options are:
-    FollowSensorLosPath:
-        Uses *ppathStepByStep* to set *ppath*
-    
-    PlaneParallel:
-        Uses *ppathPlaneParallel* to set *ppath*
 
-    TransmitterReceiverPath:
-        Uses *rte_losGeometricFromRtePosToRtePos2* to set *rte_los*
-        Uses *ppathFromRtePos2* to set *ppath*, and also
-                           to modify *rte_los*, and *ppath_lraytrace*
+:``"FollowSensorLosPath"``:
+    1. Uses *ppathStepByStep* to set *ppath*
+:``"PlaneParallel"``:
+    1. Uses *ppathPlaneParallel* to set *ppath*
+:``"TransmitterReceiverPath"``:
+    1. Uses *rte_losGeometricFromRtePosToRtePos2* to set *rte_los*
+    2. Uses *ppathFromRtePos2* to set *ppath*, and also to modify *rte_los*, and *ppath_lraytrace*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("ppath_agenda"),
@@ -24358,11 +24188,11 @@ Options are:
                       DESCRIPTION(R"--(Sets *ppath_step_agenda* to a default value
 
 Options are:
-    GeometricPath:
-        Uses *ppath_stepGeometric* to modify *ppath*
-    
-    RefractedPath:
-        Uses *ppath_stepRefractionBasic* to modify *ppath*
+
+:``"GeometricPath"``:
+    Uses *ppath_stepGeometric* to modify *ppath*
+:``"RefractedPath"``:
+    Uses *ppath_stepRefractionBasic* to modify *ppath*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("ppath_step_agenda"),
@@ -24388,9 +24218,9 @@ as it will ensure you have the best coverage of use cases.  The options below ar
 available for feature testing
 
 Options are:
-    Empty:
-        Uses *propmat_clearskyInit* to set *propmat_clearsky*, *nlte_source*,
-        *dpropmat_clearsky_dx*, and *dnlte_source_dx*
+
+:``"Empty"``:
+    1. Uses *propmat_clearskyInit* to set *propmat_clearsky*, *nlte_source*, *dpropmat_clearsky_dx*, and *dnlte_source_dx*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("propmat_clearsky_agenda"),
@@ -24412,41 +24242,36 @@ Options are:
                       DESCRIPTION(R"--(Sets *refr_index_air_agenda* to a default value
 
 Options are:
-    NoRefrac:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-    
-    GasMicrowavesEarth:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-        Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
-    
-    GasInfraredEarth:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-        Uses *refr_index_airInfraredEarth* to modify *refr_index_air*, and *refr_index_air_group*
-    
-    GasMicrowavesGeneral:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-        Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
-    
-    FreeElectrons:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-        Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
-    
-    GasMicrowavesGeneralAndElectrons:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-        Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
-        Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
-    
-    GasMicrowavesEarthAndElectrons:
-        Sets *refr_index_air* to 1
-        Sets *refr_index_air_group* to 1
-        Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
-        Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
+
+:``"NoRefrac"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+:``"GasMicrowavesEarth"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+    3. Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
+:``"GasInfraredEarth"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+    3. Uses *refr_index_airInfraredEarth* to modify *refr_index_air*, and *refr_index_air_group*
+:``"GasMicrowavesGeneral"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+    3. Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
+:``"FreeElectrons"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+    3. Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
+:``"GasMicrowavesGeneralAndElectrons"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+    3. Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
+    4. Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
+:``"GasMicrowavesEarthAndElectrons"``:
+    1. Sets *refr_index_air* to 1
+    2. Sets *refr_index_air_group* to 1
+    3. Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
+    4. Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("refr_index_air_agenda"),
@@ -24512,42 +24337,33 @@ Options are:
                       DESCRIPTION(R"--(Sets *surface_rtprop_agenda* to a default value
 
 Options are:
-    Blackbody_SurfTFromt_surface:
-        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
-        Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                           to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
 
-    Blackbody_SurfTFromt_field:
-        Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
-        Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                           to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-    Specular_NoPol_ReflFix_SurfTFromt_surface:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
-        Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                                        to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-    Specular_NoPol_ReflFix_SurfTFromt_field:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
-        Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also
-                                        to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-    Specular_WithPol_ReflFix_SurfTFromt_surface:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
-        Uses *surfaceFlatReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
-
-    lambertian_ReflFix_SurfTFromt_surface:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
-        Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
-
-    lambertian_ReflFix_SurfTFromt_field:
-        Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-        Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
-        Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
+:``"Blackbody_SurfTFromt_surface"``:
+    1. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
+    2. Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+:``"Blackbody_SurfTFromt_field"``:
+    1. Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
+    2. Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+:``"Specular_NoPol_ReflFix_SurfTFromt_surface"``:
+    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+    2. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
+    3. Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+:``"Specular_NoPol_ReflFix_SurfTFromt_field"``:
+    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+    2. Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
+    3. Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
+:``"Specular_WithPol_ReflFix_SurfTFromt_surface"``:
+    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+    2. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
+    3. Uses *surfaceFlatReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
+:``"lambertian_ReflFix_SurfTFromt_surface"``:
+    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+    2. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=*t_surface*
+    3. Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
+:``"lambertian_ReflFix_SurfTFromt_field"``:
+    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
+    2. Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=*t_field*
+    3. Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("surface_rtprop_agenda"),
@@ -24591,7 +24407,8 @@ Options are:
                       DESCRIPTION(R"--(Sets *water_p_eq_agenda* to a default value
 
 Options are:
-    MK05:
+
+:"MK05":
         Uses *water_p_eq_fieldMK05* to set *water_p_eq_field*
 )--"),
                       AUTHORS("Richard Larsson"),

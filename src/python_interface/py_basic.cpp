@@ -116,15 +116,7 @@ be accessed without copy using element-wise access operators)--");
                         },
                         py::keep_alive<0, 1>()),
                     [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; }, "Operate on type as if :class:`numpy.ndarray` type")
-      .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfIndex, R"--(
-
-This class is compatible with numpy arrays.  The data can
-be accessed without copy using np.array(x, copy=False),
-with x as an instance of this class.  Note that access to
-any and all of the mathematical operations are only available
-via the numpy interface.  The main constern equality operations,
-which only checks pointer equality if both LHS and RHS of this
-object's instances (i.e., no element-wise comparisions))--");
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfIndex);
   py::implicitly_convertible<std::vector<Index>, ArrayOfIndex>();
 
   PythonInterfaceWorkspaceArray(ArrayOfIndex);
@@ -197,12 +189,7 @@ object's instances (i.e., no element-wise comparisions))--");
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<Numeric_>(t[0].cast<Numeric>());
           }))
-      .PythonInterfaceWorkspaceDocumentationExtra(Numeric,
-                                                  R"--(
-
-This is a wrapper class for Arts Numeric.
-
-You can get copies and set the value by the "value" property)--");
+      .PythonInterfaceWorkspaceDocumentation(Numeric);
 
   py::class_<Index_>(m, "Index")
       .def(py::init([]() { return std::make_unique<Index_>(); }), "Create default")
@@ -266,12 +253,7 @@ You can get copies and set the value by the "value" property)--");
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<Index_>(t[0].cast<Index>());
           }))
-      .PythonInterfaceWorkspaceDocumentationExtra(Index,
-                                                  R"--(
-
-This is a wrapper class for Arts Index.
-
-You can get copies and set the value by the "value" property)--");
+      .PythonInterfaceWorkspaceDocumentation(Index);
 
   py::implicitly_convertible<py::str, String>();
   py::implicitly_convertible<std::vector<py::str>, ArrayOfString>();
@@ -312,15 +294,7 @@ You can get copies and set the value by the "value" property)--");
                         },
                         py::keep_alive<0, 1>(), "Value of instance as :class:`numpy.ndarray`"),
                     [](ArrayOfNumeric& x, ArrayOfNumeric& y) { x = y; })
-      .doc() = R"--(A list of :class:`~pyarts.arts.Numeric`.
-
-This class is compatible with numpy arrays.  The data can
-be accessed without copy using np.array(x, copy=False),
-with x as an instance of this class.  Note that access to
-any and all of the mathematical operations are only available
-via the numpy interface.  The main constern equality operations,
-which only checks pointer equality if both LHS and RHS of this
-object's instances (i.e., no element-wise comparisions))--";
+      .doc() = R"--(A list of :class:`~pyarts.arts.Numeric`)--";
   py::implicitly_convertible<std::vector<Numeric>, ArrayOfNumeric>();
 }
 }  // namespace Python
