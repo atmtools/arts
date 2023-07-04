@@ -10,6 +10,9 @@ import os
 import sys
 
 
+MAXDEPTH = 2
+
+
 def recursive_python_files(path):
     out = {}
     files_and_dirs = os.listdir(path)
@@ -24,20 +27,19 @@ def recursive_python_files(path):
     return out
 
 
-def title_from_path(path, origpath, extra):
-    title = path
-    for c in origpath:
-        if len(title):
-            if title[0] == c:
-                title = title[1:]
-    for c in "yp.":
-        if len(title):
-            if title[-1] == c:
-                title = title[:-1]
+def title_to_heading(title):
+    pos = title.rfind(".")
+    if pos == -1:
+        return title[0].upper() + title[1:]
+    else:
+        return title[pos + 1].upper() + title[pos + 2:]
+
+
+def title_from_path(path, origpath, extra=None):
+    title = path.removeprefix(origpath).removesuffix(".py")
     title = title.replace("/", ".").replace("\\", ".")
     if len(title):
-        while title[0] == '.':
-            title = title[1:]
+        title = title.lstrip(".")
         return extra + "." + title
     else:
         return extra  # For empty, i.e., main folder
@@ -49,16 +51,46 @@ def rstfn_from_title(title, outpath):
 
 def readme_path(path):
     if os.path.isdir(path):
-        readme = os.path.join(path, "README.txt")
+        readme = os.path.join(path, "README.rst")
     else:
         d, f = os.path.split(path)
-        readme = os.path.join(d, "README." + f.rstrip(".py") + ".txt")
+        readme = os.path.join(d, "README." + f.removesuffix(".py") + ".rst")
 
     if os.path.exists(readme):
         print(f"Found readme: {readme}")
         return readme
     print(f"Did not find readme: {readme}")
     return None
+
+
+def combine_pyfiles(paths, origpath, extra, outpath):
+    parentpath = os.path.dirname(paths[0])
+    title = title_from_path(parentpath, origpath, extra)
+    rstfn = rstfn_from_title(title, outpath)
+    print(f"Creating {rstfn} from {parentpath}")
+    with open(rstfn, "w") as rstfile:
+        heading = title_to_heading(title)
+        rstfile.write(f"{heading}\n{'=' * len(heading)}\n")
+        for path in paths:
+            title = title_from_path(path, origpath, extra)
+            readme = readme_path(path)
+
+            if len(paths) > 1:
+                heading = title_to_heading(title)
+                rstfile.write(f"{heading}\n{'-' * len(heading)}\n")
+
+            if readme:
+                with open(readme, "r") as r:
+                    rstfile.write(r.read())
+                    rstfile.write("\n")
+
+            rstfile.write(".. code-block:: python\n")
+            rstfile.write(f"    :name: {heading}\n")
+            rstfile.write(f"    :caption: {heading}\n")
+            rstfile.write("    :linenos:\n\n")
+            with open(path, "r") as pyfile:
+                for line in pyfile.read().split('\n'):
+                    rstfile.write(f"    {line}\n")
 
 
 def print_pyfile(path, origpath, extra, outpath):
@@ -68,7 +100,8 @@ def print_pyfile(path, origpath, extra, outpath):
 
     print(f"Creating {rstfn} from {path}")
     with open(rstfn, "w") as rstfile:
-        rstfile.write(f"{title}\n{'=' * len(title)}\n")
+        heading = title_to_heading(title)
+        rstfile.write(f"{heading}\n{'=' * len(heading)}\n")
 
         if readme:
             with open(readme, "r") as r:
@@ -90,7 +123,8 @@ def print_folder(path, paths, origpath, extra, outpath):
 
     print(f"Creating {rstfn} from {path}")
     with open(rstfn, "w") as rstfile:
-        rstfile.write(f"{title}\n{'=' * len(title)}\n")
+        heading = title_to_heading(title)
+        rstfile.write(f"{heading}\n{'=' * len(heading)}\n")
 
         if readme:
             with open(readme, "r") as r:
@@ -102,14 +136,27 @@ def print_folder(path, paths, origpath, extra, outpath):
             rstfile.write(f"    {title_from_path(key, origpath, extra)}\n")
 
 
-def folders(paths, origpath, extra, outpath):
+def folders(paths, origpath, extra, outpath, depth=0):
     keys = paths.keys()
-    for key in keys:
-        if os.path.isdir(key):
-            folders(paths[key], origpath, extra, outpath)
-            print_folder(key, paths[key], origpath, extra, outpath)
-        else:
-            print_pyfile(paths[key], origpath, extra, outpath)
+    if depth < MAXDEPTH:
+        for key in keys:
+            if os.path.isdir(key):
+                print(f"Processing {key}")
+                print(f"FolderDepth {depth}")
+                folders(paths[key], origpath, extra, outpath, depth+1)
+                if depth+1 < MAXDEPTH:
+                    print_folder(key, paths[key], origpath, extra, outpath)
+            else:
+                print_pyfile(paths[key], origpath, extra, outpath)
+    else:
+        combine_files = []
+        for key in keys:
+            if os.path.isdir(key):
+                print(f"Ignoring folder {key}")
+            else:
+                combine_files.append(paths[key])
+        print(f"Combining {combine_files}")
+        combine_pyfiles(combine_files, origpath, extra, outpath)
 
 
 if __name__ == "__main__":
