@@ -85,6 +85,13 @@ AgRecord::AgRecord(const char* name,
       throw runtime_error(os.str());
     }
   }
+
+  //! Overwrite description in wsv data with agenda data
+  auto& wsv = global_data::wsv_data[global_data::WsvMap[mname]];
+  wsv = WsvRecord(wsv.Name().c_str(),
+                  mdescription.c_str(),
+                  wsv.Group(),
+                  wsv.default_value());
 }
 
 void define_agenda_map() {
