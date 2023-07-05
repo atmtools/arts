@@ -124,43 +124,13 @@ void py_griddedfield(py::module_& m) {
             return details::GriddedField::extract_slice(g, s, i);
           },
           py::arg("slice"),
-          py::arg("axis") = 0,
-          py::doc(
-              R"--(Return a new GriddedField containing a slice of the current one.
-
-Parameters:
-    s (slice): Slice.
-    axis (int): Axis to slice along.
-
-Returns:
-    gridded field containing sliced grids and data.
-)--"))
+          py::arg("axis") = 0)
       .def(
           "to_xarray",
-          [](py::object& g) { return details::GriddedField::to_xarray(g); },
-          py::doc(
-              R"--(Convert gridded field to xarray.DataArray object.
-
-Convert a gridded field object into a :func:`xarray.DataArray`
-object.  The dataname is used as the DataArray name.
-
-Returns:
-    xarray.DataArray object corresponding to gridded field
-)--"))
+          [](py::object& g) { return details::GriddedField::to_xarray(g); })
       .def(
           "to_dict",
-          [](py::object& g) { return details::GriddedField::to_dict(g); },
-          py::doc(
-              R"--(Convert gridded field to dictionary.
-
-Converts a gridded field object into a classic Python dictionary. The
-gridname is used as dictionary key. If the grid is unnamed the key is
-generated automatically ('grid1', 'grid2', ...). The data can be
-accessed through the 'data' key.
-
-Returns:
-    Dictionary containing the grids and data.
-)--"))
+          [](py::object& g) { return details::GriddedField::to_dict(g); })
       .def(
           "refine_grid",
           [](py::object& g,
@@ -174,25 +144,7 @@ Returns:
           },
           py::arg("new_grid"),
           py::arg("axis") = py::int_(0),
-          py::arg("type") = py::str("linear"),
-          py::doc(
-              R"--(Interpolate gridded field axis to a new grid.
-
-This function replaces a grid of a GriddField and interpolates all
-data to match the new coordinates. :func:`scipy.interpolate.interp1d`
-is used for interpolation.
-
-Parameters:
-    new_grid (ndarray): The coordinates of the interpolated values.
-    axis (int): Specifies the axis of data along which to interpolate.
-        Interpolation defaults to the first axis of the gridded field.
-    type (str or function): Rescaling type for function if str or the
-        actual rescaling function
-    **kwargs:
-        Keyword arguments passed to :func:`scipy.interpolate.interp1d`.
-
-Returns: gridded field
-)--"))
+          py::arg("type") = py::str("linear"))
       .doc() = "Base class for gridding fields of data";
 
   py::class_<GriddedField1, GriddedField>(m, "GriddedField1")

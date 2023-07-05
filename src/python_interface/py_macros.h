@@ -509,20 +509,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           [](py::object& v) {                                                   \
             auto g = py::type::of<Type>();                                      \
             return details::GriddedField::from_xarray(g, v);                    \
-          },                                                                    \
-          py::doc(                                                              \
-              R"--(Create gridded field from a :class:`xarray.DataArray` object.\
-\
-The data and its dimensions are returned as a gridded field object.\
-The :class:`~xarray.DataArray` name is used as name for the gridded field. If the attribute\
-:attr:`name` is present, it is used as `dataname` on the class.\
-\
-Parameters:\
-    da (:class:`xarray.DataArray`): Object containing the dimensions and data.\
-\
-Returns:\
-    gridded field object.\
-)--"))
+          })
 
 #define PythonInterfaceReadWriteData(Type, data, docstr)     \
   def_readwrite(#data,                                       \
