@@ -20,19 +20,19 @@ void py_global(py::module_& m) {
       .def_readwrite_static(
           "includepath",
           &parameters.includepath,
-          ":class:`~pyarts.arts.ArrayOfString` Automatic include paths")
+          py::doc(":class:`~pyarts.arts.ArrayOfString` Automatic include paths"))
       .def_readwrite_static(
           "datapath",
           &parameters.datapath,
-          ":class:`~pyarts.arts.ArrayOfString` Automatic data paths")
+          py::doc(":class:`~pyarts.arts.ArrayOfString` Automatic data paths"))
       .def_readwrite_static(
           "numthreads",
           &parameters.numthreads,
-          ":class:`~pyarts.arts.Index` Number of threads allowed to start")
+          py::doc(":class:`~pyarts.arts.Index` Number of threads allowed to start"))
       .def_readwrite_static(
           "out_basename",
           &out_basename,
-          ":class:`~pyarts.arts.String` Automatic path for saving data")
+          py::doc(":class:`~pyarts.arts.String` Automatic path for saving data"))
       .doc() = "Access to static settings data";
 
   global.def(

@@ -650,7 +650,7 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
 Create new :class:`~pyarts.arts.)--"
        << group << R"--(` on the workspace
 
-It is recommended that this is only called once per Workspace instance.
+It is recommended that this is only called once per new Workspace variable.
 
 If there is no default value, the variable remains uninitialized
 

@@ -298,8 +298,8 @@ void define_md_data_raw() {
           "in *abs_species*.\n"
           "\n"
           "The units in the HITRAN file are:\n"
-          "Frequency: cm^(-1)\n"
-          "Binary absorption cross-section: cm^5 molec^(-2)\n"
+          " - Frequency: cm^(-1)\n"
+          " - Binary absorption cross-section: cm^5 molec^(-2)\n"
           "\n"
           "Upon reading we convert this to the ARTS internal SI units \n"
           "of Hz and m^5 molec^(-2).\n"),
@@ -518,9 +518,9 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveLinesFromSpecies"),
-      DESCRIPTION("As *abs_linesRemoveLines* but only for bands of the given species\n"
+      DESCRIPTION("As *abs_linesRemoveLines* but only for bands of the given species.\n"
       "\n"
-      "species must be a single entry, and must specify the isotopologue\n"
+      "``species`` must be a single entry, and must specify the isotopologue\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
@@ -1404,7 +1404,7 @@ See the theory guide for more details.
                DESCRIPTION(R"--(Sets cutoff type and magnitude for all lines.
 
 The line is cut off when this is active at the given frequency.
-"The only non-zero range is from this range to its negative equivalent
+The only non-zero range is from this range to its negative equivalent
 
 Available ``option``:
 
@@ -1430,7 +1430,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
                DESCRIPTION(R"--(Sets cutoff type and magnitude for all lines.
 
 The line is cut off when this is active at the given frequency.
-"The only non-zero range is from this range to its negative equivalent
+The only non-zero range is from this range to its negative equivalent.
 
 Available ``option``:
 
@@ -1458,7 +1458,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 Match is done with a quantum identifier
 
 The line is cut off when this is active at the given frequency.
-"The only non-zero range is from this range to its negative equivalent
+The only non-zero range is from this range to its negative equivalent
 
 Available ``option``:
 
@@ -1487,7 +1487,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 Match is done with a quantum identifier
 
 The line is cut off when this is active at the given frequency.
-"The only non-zero range is from this range to its negative equivalent
+The only non-zero range is from this range to its negative equivalent
 
 Available ``option``:
 
@@ -1516,7 +1516,7 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 Match is done with a species tag
 
 The line is cut off when this is active at the given frequency.
-"The only non-zero range is from this range to its negative equivalent
+The only non-zero range is from this range to its negative equivalent
 
 Available ``option``:
 
@@ -1771,9 +1771,9 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       NAME("abs_linesBaseParameterMatchingLevel"),
       DESCRIPTION(
           "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n\n"
-          "Only works for these parameters:\n"
-          " - parameter_name = \"Statistical Weight\"\n"
-          " - parameter_name = \"Zeeman Coefficient\"\n"),
+          "Only works for these ``parameter_name``:\n"
+          " - ``\"Statistical Weight\"``\n"
+          " - ``\"Zeeman Coefficient\"``\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -2350,11 +2350,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
           "You can give min an max values for the atmospheric conditions. The\n"
           "default values are chosen such that they cover the value range over\n"
           "the complete Chevallier91L data set, and a bit more. The statistics\n"
-          "of the Chevallier91L data are:\n"
-          "\n"
-          "min(p)   / max(p)   [Pa]:  1 / 104960\n"
-          "min(T)   / max(T)   [K]:   158.21 / 320.39\n"
-          "min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"),
+          "of the Chevallier91L data are::\n"
+          " min(p)   / max(p)   [Pa]:  1 / 104960\n"
+          " min(T)   / max(T)   [K]:   158.21 / 320.39\n"
+          " min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_p",
           "abs_t",
@@ -3534,8 +3533,8 @@ R"(
           "As *AtmFieldPerturb*, but perturbation follows the atmospheric grids.\n"
           "\n"
           "The method effectively performs this\n"
-          "  perturbed_field = original_field\n"
-          "  perturbed_field(p_index,lat_index,lon_index) += pert_size\n"
+          " - ``perturbed_field = original_field``\n"
+          " - ``perturbed_field(p_index,lat_index,lon_index) += pert_size``\n"
           "if not ``pert_mode`` is set to "
           "relative when this is done\n\n"
           "* ``perturbed_field = original_field``\n"
@@ -4101,7 +4100,7 @@ R"(
           "A list of condensibles can be optionally specified if the VMR of\n"
           "the added species is assuming dry air. The VMR of the added species\n"
           "is then scaled down by the sum of the condensibles' VMR:\n"
-          "VMR * (1 - VMR_sum_of_condensibles).\n"
+          " VMR * (1 - VMR_sum_of_condensibles).\n\n"
           "For Earth this should be set to [\"abs_species-H2O\"]\n"),
       AUTHORS("Stefan Buehler, Oliver Lemke"),
       OUT("atm_fields_compact"),
@@ -4713,12 +4712,12 @@ R"(
           "``new_limit0`` is an index with respect to *p_grid*, etc.\n"
           "\n"
           "The following must be valid:\n"
-          "* new_limit0 >= cloudbox_limits[0]\n"
-          "* new_limit1 <= cloudbox_limits[1]\n"
-          "* new_limit2 >= cloudbox_limits[2]\n"
-          "*  new_limit3 <= cloudbox_limits[3]\n"
-          "* new_limit4 >= cloudbox_limits[4]\n"
-          "* new_limit5 <= cloudbox_limits[5]\n"
+          " * new_limit0 >= cloudbox_limits[0]\n"
+          " * new_limit1 <= cloudbox_limits[1]\n"
+          " * new_limit2 >= cloudbox_limits[2]\n"
+          " * new_limit3 <= cloudbox_limits[3]\n"
+          " * new_limit4 >= cloudbox_limits[4]\n"
+          " * new_limit5 <= cloudbox_limits[5]\n"
           "\n"
           "Indexes for dimensions not used are ignored.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -5079,7 +5078,7 @@ R"(
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoOptimizeReverse"),
       DESCRIPTION(
-          "Interpolate *cloudbox_field_mono* back to the original p_grid.\n"
+          "Interpolate *cloudbox_field_mono* back to the original p_grid.\n\n"
           "For detailed description, see *OptimizeDoitPressureGrid*. \n"),
       AUTHORS("Jakob Doerr"),
       OUT("cloudbox_field_mono"),
@@ -5298,9 +5297,9 @@ R"(
           "See also: http://www.iapws.org/release.html or https://www.nist.gov"
           "\n"
           "Range of validity:\n"
-          " 271.15K < temperature < 773.15K\n"
-          "  0 kg m^-3 < density < 1060 kg m^-3\n"
-          "  157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
+          " - 271.15K < temperature < 773.15K\n"
+          " - 0 kg m^-3 < density < 1060 kg m^-3\n"
+          " - 157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
           "\n"
           "Density can be set as Vector of size 1 or it must have the same size as\n"
           "as data_t_grid.\n"
@@ -5904,12 +5903,12 @@ R"(
           "Different sphericity levels are emulated here by embedding DISORT\n"
           "in different ways and using different output. The available options\n"
           "(from low to high sphericity level) are:\n"
-          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox from *cloudboxSetFullAtm*).\n"
-          "- Cloudbox extends over a limited part of the atmosphere only (e.g. by setting cloudbox from *cloudboxSetAutomatically* or *cloudboxSetManually*). Internally, DISORT is run over the whole atmosphere, but only the radiation field within the cloudbox is passed on and used further in ARTS (e.g. by *yCalc*).\n"
+          " - Cloudbox extends over whole atmosphere (e.g. by setting cloudbox from *cloudboxSetFullAtm*).\n"
+          " - Cloudbox extends over a limited part of the atmosphere only (e.g. by setting cloudbox from *cloudboxSetAutomatically* or *cloudboxSetManually*). Internally, DISORT is run over the whole atmosphere, but only the radiation field within the cloudbox is passed on and used further in ARTS (e.g. by *yCalc*).\n"
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\" scattering albedo.\n"
           ":``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level. Zero, if no sun is present \n"),
@@ -5981,7 +5980,7 @@ R"(
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\"scattering albedo.\n"
           ":``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level.Zero, if no sun is present \n"),
@@ -6052,7 +6051,7 @@ R"(
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
           ":``\"Direct beam\"``: Matrix [f_grid, p_grid]. Level direct spectral radiance. Zero, if no sun is present \n"),
@@ -6119,7 +6118,7 @@ R"(
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
           "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           ":``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
           ":``\"Direct downward spectral irradiance\"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. \n"
@@ -6569,7 +6568,7 @@ R"(
       NAME("OptimizeDoitPressureGrid"),
       DESCRIPTION(
           "Optimization of the pressure grid for RT calculation.\n\n"
-          "The methods consists of three parts:\n"
+          "The methods consists of three parts:\n\n"
           "1. Calculate the single scattering albedo and the scattering optical"
           "   thickness from the scattering and absorption species. \n"
           "2. Enhance z_field according to the two thresholds sgl_alb_max and tau_scat_max."
@@ -7890,16 +7889,16 @@ R"(
          "The table produced largely follows the format used in RTTOV-SCATT for\n"
          "its \"hydrotables\". The table is returned as a GriddedField4, with\n"
          "dimensions (in order):\n"
-         "1. Scattering property\n"
-         "2. Frequency (equals WSV f_grid)\n"
-         "3. Temperature (equals GIN T_grid)\n"
-         "4. Particle content [kg/m3]  (equals GIN wc_grid)\n"
+         " 1. Scattering property\n"
+         " 2. Frequency (equals WSV f_grid)\n"
+         " 3. Temperature (equals GIN T_grid)\n"
+         " 4. Particle content [kg/m3]  (equals GIN wc_grid)\n"
          "\n"
          "Four scattering properties are calculated. They are (in order)\n"
-         "1. Extinction [m-1]\n"
-         "2. Single scattering albedo [-]\n"
-         "3. Asymmetry parameter [-]\n"
-         "4. Radar reflectivity [m2]\n"),
+         " 1. Extinction [m-1]\n"
+         " 2. Single scattering albedo [-]\n"
+         " 3. Asymmetry parameter [-]\n"
+         " 4. Radar reflectivity [m2]\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("hydrotable"),
@@ -8396,7 +8395,7 @@ R"(
           "Designed to be part of *iy_main_agenda*. That is, only valid\n"
           "outside the cloudbox (no scattering). For details se the user guide.\n"
           "\n"
-          "The possible choices for *iy_unit* are\n"
+          "The possible choices for *iy_unit* are\n\n"
           ":``\"1\"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).\n"
           ":``\"RJBT\"``: Conversion to Rayleigh-Jean brightness temperature.\n"
           ":``\"PlanckBT\"``: Conversion to Planck brightness temperature.\n"
@@ -8408,14 +8407,14 @@ R"(
           "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
-          "Recognised choices for *rt_integration_option* are:\n"
+          "Recognised choices for *rt_integration_option* are:\n\n"
           ":``\"first order\"``: A first order integration is applied.\n"
           ":``\"second order\"``: A second order integration is applied.\n"
           ":``\"default\"``: Another way to select the first order option.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Radiative background\"``:\n"
           "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
@@ -8608,7 +8607,7 @@ R"(
           "Designed to be part of *iy_main_agenda*. That is, only valid\n"
           "outside the cloudbox (no scattering). For details se the user guide.\n"
           "\n"
-          "The possible choices for *iy_unit* are\n"
+          "The possible choices for *iy_unit* are\n\n"
           ":``\"1\"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).\n"
           ":``\"RJBT\"``: Conversion to Rayleigh-Jean brightness temperature.\n"
           ":``\"PlanckBT\"``: Conversion to Planck brightness temperature.\n"
@@ -8620,14 +8619,14 @@ R"(
           "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
-          "Recognised choices for *rt_integration_option* are:\n"
+          "Recognised choices for *rt_integration_option* are:\n\n"
           ":``\"first order\"``: A first order integration is applied.\n"
           ":``\"second order\"``: A second order integration is applied.\n"
           ":``\"default\"``: Another way to select the first order option.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Radiative background\"``:\n"
           "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
@@ -8979,12 +8978,12 @@ R"(
           "As for *MCGeneral*, the value of *mc_error* shall be adopted to\n"
           "*iy_unit*.\n"
           "\n"
-          "The following auxiliary data can be obtained:\n"
+          "The following auxiliary data can be obtained:\n\n"
           ":``\"Error (uncorrelated)\"``:\n"
           "    Calculation error. Size: [nf,ns,1,1].\n"
           "    (The later part of the text string is required. It is used as\n"
           "    a flag to yCalc for how to apply the sensor data.)\n"
-          "where\n"
+          "where\n\n"
           ":`nf`: Number of frequencies.\n"
           ":`ns`: Number of Stokes elements.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -9197,7 +9196,7 @@ R"(
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Radiative background\"``:\n"
           "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
@@ -9605,8 +9604,8 @@ R"(
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceLambertian"),
       DESCRIPTION(
-          "This method calculates upwelling radiation for a lambertian surface\n"
-          "due to the scattering of the downgoing diffuse radiation and emission from\n"
+          "This method calculates upwelling radiation for a lambertian surface.\n\n"
+          "These are due to the scattering of the downgoing diffuse radiation and emission from\n"
           "the surface.\n"
           "This method works only for 1D or 3D atmospheres.\n"
           "For the integration over the zenith angles a gaussian quadrature with\n"
@@ -9837,7 +9836,7 @@ R"(
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
+          "Valid choices for auxiliary data are:\n\n"
           ":``\"Radiative background\"``:\n"
           "    Index value flagging the radiative\n"
           "    background. The following coding is used: 0=space, 1=surface\n"
@@ -9850,7 +9849,7 @@ R"(
           "    column.\n"
           "\n"
           "IMPORTANT:\n"
-          "    No jacobian calculation is supported when gas scattering is\n "
+          "    No jacobian calculation is supported when gas scattering is\n"
           "    included! This will be implemented in a future version.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
@@ -9914,7 +9913,7 @@ R"(
           "Transmitted signal having multiple polarisations.\n"
           "\n"
           "The method is intended to be used as possible input of "
-          "*iyTransmissionStandard.\n"
+          "*iyTransmissionStandard*.\n"
           "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n"
           "The polarisation state is taken from *instrument_pol*, where\n"
           "*instrument_pol* must contain an element for each frequency in *f_grid*.\n"
@@ -9937,7 +9936,7 @@ R"(
           "Transmitted signal having a single polarisations.\n"
           "\n"
           "The method is intended to be used as possible input of "
-          "*iyTransmissionStandard.\n"
+          "*iyTransmissionStandard*.\n"
           "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n"
           "The polarisation state is taken from *instrument_pol*, where\n"
           "*instrument_pol* must contain a single value.\n"
@@ -9963,12 +9962,12 @@ R"(
           "For 1D or 2D calculations the latitude and/or longitude grid of\n"
           "the retrieval field should set to have zero length.\n"
           "\n"
-          "These retrieval units are at hand for all gas species:\n"
+          "These retrieval units are at hand for all gas species:\n\n"
           ":``\"vmr\"``: Volume mixing ratio.\n"
           ":``\"nd\"``: Number density.\n"
           ":``\"rel\"``: Relative unit (e.g. 1.1 means 10% more of the gas).\n"
           "\n"
-          "For water vapour, also these units are at hand:\n"
+          "For water vapour, also these units are at hand:\n\n"
           ":``\"rh\"``: Relative humidity.\n"
           ":``\"q\"``: Specific humidity.\n"
           "\n"
@@ -10122,7 +10121,7 @@ R"(
           "format. The shape of the function f() is determined by input\n"
           "catalog; please see the ARTS documentation for more details.\n"
           "\n"
-          "The input are as follows:\n"
+          "The input are as follows:\n\n"
           ":line_identity:\n"
           "    Identifier of preferably a single line\n"
           ":species:\n"
@@ -10130,7 +10129,7 @@ R"(
           "    Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
           "    affected by self and air-broadening, respectively.\n"
           ":variable:\n"
-          "    A variable supported by the line, these can be\n"
+          "    A variable supported by the line, these can be\n\n"
           "    :``\"G0\"``:  Speed-independent pressure broadening\n"
           "    :``\"G2\"``:  Speed-dependent pressure broadening\n"
           "    :``\"D0\"``:  Speed-independent pressure shift\n"
@@ -10180,17 +10179,17 @@ R"(
           "For example, if ``line_identities`` have length 5, ``species`` length 4,\n"
           "``variables`` length 3, and ``coefficients`` length 2, there will be\n"
           "5*4x3x2 = 120 new additions to *jacobian_quantities* in the order:\n"
-          "\t[{line_identities[0], species[0], variables[0] coefficients[0]}]\n"
-          "\t[{line_identities[0], species[0], variables[0] coefficients[1]}]\n"
-          "\t[{line_identities[0], species[0], variables[1] coefficients[0]}]\n"
-          "\t[{line_identities[0], species[0], variables[1] coefficients[1]}]\n"
-          "\t[{line_identities[0], species[0], variables[2] coefficients[0]}]\n"
-          "\t[{line_identities[0], species[0], variables[2] coefficients[1]}]\n"
-          "\t[{line_identities[0], species[1], variables[0] coefficients[0]}]\n"
-          "\t...\n"
-          "\t[{line_identities[4], species[3], variables[1] coefficients[1]}]\n"
-          "\t[{line_identities[4], species[3], variables[2] coefficients[0]}]\n"
-          "\t[{line_identities[4], species[3], variables[2] coefficients[1]}]\n"
+          " - [{line_identities[0], species[0], variables[0] coefficients[0]}]\n"
+          " - [{line_identities[0], species[0], variables[0] coefficients[1]}]\n"
+          " - [{line_identities[0], species[0], variables[1] coefficients[0]}]\n"
+          " - [{line_identities[0], species[0], variables[1] coefficients[1]}]\n"
+          " - [{line_identities[0], species[0], variables[2] coefficients[0]}]\n"
+          " - [{line_identities[0], species[0], variables[2] coefficients[1]}]\n"
+          " - [{line_identities[0], species[1], variables[0] coefficients[0]}]\n"
+          " - ...\n"
+          " - [{line_identities[4], species[3], variables[1] coefficients[1]}]\n"
+          " - [{line_identities[4], species[3], variables[2] coefficients[0]}]\n"
+          " - [{line_identities[4], species[3], variables[2] coefficients[1]}]\n"
           "or in words: lines first, then species, then variables, then coefficients\n"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
@@ -10330,7 +10329,7 @@ R"(
           "\n"
           "Retrieval of deviations between nominal and actual zenith angle of\n"
           "the sensor can be included by this method. The weighing functions\n"
-          "can be calculated in several ways:\n"
+          "can be calculated in several ways:\n\n"
           ":``calcmode = \"recalc\"``:\n"
           "    Recalculation of pencil beam spectra,\n"
           "    shifted with ``dza`` from nominal values. A single-sided\n"
@@ -10354,8 +10353,8 @@ R"(
           "between the spectra, set the order to -1.\n"
           "\n"
           "The number of elements added to the state vector (*x*) is\n"
-          "  if poly_order < 0 : length of *sensor_time*\n"
-          "         otherwise : poly_order+1\n"
+          " * if poly_order < 0 : length of *sensor_time*\n"
+          " * otherwise : poly_order+1\n"
           "In the first case, the order in *x* matches *sensor_time*. In the second\n"
           "case, the coefficient for polynomial order 0 comes first etc.\n"),
       AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
@@ -11039,7 +11038,7 @@ R"(
           "\n"
           "See *jacobianSetFuncTransformation* for  a general description of how\n"
           "retrieval transformations are defined. Transformations are not applied by\n"
-          "methods such as*yCalc*. Instead, the method *jacobianAdjustAndTransform*\n"
+          "methods such as *yCalc*. Instead, the method *jacobianAdjustAndTransform*\n"
           "must be called to activate the transformations.\n"
           "\n"
           "The affine transformation is specified by a transformation matrix, A,\n"
@@ -11075,11 +11074,11 @@ R"(
           "*jacobian_quantities*.\n"
           "\n"
           "See below for a general description of how retrieval transformations\n"
-          "are defined. Transformations are not applied by methods such as*yCalc*.\n"
+          "are defined. Transformations are not applied by methods such as *yCalc*.\n"
           "Instead, the method *jacobianAdjustAndTransform* must be called to\n"
           "activate the transformations.\n"
           "\n"
-          "The following transformations can be selected (by ``transformation_func``):\n"
+          "The following transformations can be selected (by ``transformation_func``):\n\n"
           ":``\"log\"``: The natural logarithm\n"
           ":``\"log10\"``: The base-10 logarithm\n"
           ":``\"atanh\"``: Area hyperbolic tangent \n"
@@ -11111,11 +11110,11 @@ R"(
           "operations are applied as:\n"
           "   x = A * ( f(u(z)) - b ) \n"
           "where\n"
-          "- z is the quantity as defined ARTS\n"
-          "- u represents the change of unit\n"
-          "- f is the transformation function\n"
-          "- A and b define together an affine transformation\n"
-          "- x is the retrieved quantity\n"
+          " - z is the quantity as defined ARTS\n"
+          " - u represents the change of unit\n"
+          " - f is the transformation function\n"
+          " - A and b define together an affine transformation\n"
+          " - x is the retrieved quantity\n"
           "For example, this systen allows to retrive a principal component\n"
           "representation (A and b) of the log (f) of relative humidity (u).\n"
           "\n"
@@ -11843,7 +11842,7 @@ R"(
           "Stokes vector integrated over the antenna function, and the\n"
           "estimated error in this vector, respectively.\n"
           "\n"
-          "The WSV *mc_max_iter* describes the maximum number of `photons\'\n"
+          "The WSV *mc_max_iter* describes the maximum number of \'photons\'\n"
           "used in the simulation (more photons means smaller *mc_error*).\n"
           "*mc_std_err* is the desired value of mc_error. *mc_max_time* is\n"
           "the maximum allowed number of seconds for MCGeneral. The method\n"
@@ -11932,10 +11931,10 @@ R"(
           "transmitter.\n"
           "\n"
           "The WSV *mc_max_scatorder* prescribes the maximum scattering \n"
-          "order to consider, after which `photon\'-tracing will be\n"
+          "order to consider, after which \'photon\'-tracing will be\n"
           "terminated. A value of one calculates only single scattering.\n"
           "\n"
-          "The WSV *mc_max_iter* describes the maximum number of `photons\'\n"
+          "The WSV *mc_max_iter* describes the maximum number of \'photons\'\n"
           "used in the simulation (more photons means smaller *mc_error* ).\n"
           "The method will terminate once the max_iter criterium is met.\n"
           "If negative values are given for these parameters then it is\n"
@@ -12142,7 +12141,7 @@ R"(
       DESCRIPTION(
           "Derivs a Numeric from a vector, following selected operation.\n"
           "\n"
-          "The following operations can be selected:\n"
+          "The following operations can be selected:\n\n"
           ":``\"first\"``: Selects the first element of the vector.\n"
           ":``\"last\"``: Selects the last element of the vector.\n"
           ":``\"max\"``: Selects the maximum element of the vector.\n"
@@ -12350,8 +12349,8 @@ R"(
                DESCRIPTION("Disable Non-LTE calculations.\n"
                            "\n"
                            "The variables are set as follows:\n"
-                           "   nlte_field             : Empty.\n"
-                           "   nlte_level_identifiers : Empty.\n"),
+                           " -  nlte_field             : Empty.\n"
+                           " -  nlte_level_identifiers : Empty.\n"),
                AUTHORS("Oliver Lemke"),
                OUT("nlte_do", "nlte_field", "nlte_level_identifiers"),
                GOUT(),
@@ -12393,8 +12392,8 @@ R"(
           "Set type of population to change computations and expected input as:\n"
           "\n"
           ":``\"LTE\"``: Compute population by ratios found from LTE temperatures\n"
-          "``\"TV\"``: Compute population by ratios found from NLTE vibrational temperatures\n"
-          "``\"ND\"``: Compute population by ratios found from NLTE number densities\n"),
+          ":``\"TV\"``: Compute population by ratios found from NLTE vibrational temperatures\n"
+          ":``\"ND\"``: Compute population by ratios found from NLTE number densities\n"),
       AUTHORS("Richard Larsson"),
       OUT("nlte_do", "abs_lines_per_species"),
       GOUT(),
@@ -12516,10 +12515,10 @@ R"(
           "of *y*, is:\n"
           "   cost = cost_y + cost_x\n"
           "where\n"
-          "- cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]\n"
-          "- cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
+          " - cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]\n"
+          " - cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
           "\n"
-          " The current implementation provides 3 methods for the minimization of\n"
+          "The current implementation provides 3 methods for the minimization of\n"
           "the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.\n"
           "The Gauss-Newton minimizer attempts to find a minimum solution by \n"
           "fitting a quadratic function to the cost functional. The linear minimizer\n"
@@ -12537,20 +12536,21 @@ R"(
           "\n"
           "Description of the special input arguments:\n"
           "\n"
-          "``method``\n"
-          ":``\"li\"``: A linear problem is assumed and a single iteration is performed.\n"
-          ":``\"li_cg\"``: A linear problem is assumed and solved using the CG solver.\n"
-          ":``\"gn\"``: Non-linear, with Gauss-Newton iteration scheme.\n"
-          ":``\"gn_cg\"``: Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
-          ":``\"lm\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
-          ":``\"lm_cg\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
-          "``max_start_cost``\n"
+          ":``method``:\n"
+          " One of the following:\n\n"
+          " :``\"li\"``: A linear problem is assumed and a single iteration is performed.\n"
+          " :``\"li_cg\"``: A linear problem is assumed and solved using the CG solver.\n"
+          " :``\"gn\"``: Non-linear, with Gauss-Newton iteration scheme.\n"
+          " :``\"gn_cg\"``: Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
+          " :``\"lm\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
+          " :``\"lm_cg\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
+          ":``max_start_cost``:\n"
           "  No inversion is done if the cost matching the a priori state is above\n"
           "  this value. If set to a negative value, all values are accepted.\n"
           "  This argument also controls if the start cost is calculated. If\n"
           "  set to <= 0, the start cost in *oem_diagnostics* is set to NaN\n"
           "  when using \"li\" and \"gn\".\n"
-          "``x_norm``\n"
+          ":``x_norm``:\n"
           "  A normalisation vector for *x*. A normalisation of *x* can be needed\n"
           "  due to limited numerical precision. If this vector is set to be empty\n"
           "  no normalisation is done (defualt case). Otherwise, this must be a\n"
@@ -12558,12 +12558,12 @@ R"(
           "  Elementwise division between *x* and ``x_norm`` (x./x_norm) shall give\n"
           "  a vector where all values are in the order of unity. Maybe the best\n"
           "  way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).\n"
-          "``max_iter``\n"
+          ":``max_iter``:\n"
           "  Maximum number of iterations to perform. No effect for \"li\".\n"
-          "``stop_dx``\n"
+          ":``stop_dx``:\n"
           "  Iteration stop criterion. The criterion used is the same as given\n"
           "  in Rodgers\' \"Inverse Methods for Atmospheric Sounding\"\n"
-          "``lm_ga_settings``\n"
+          ":``lm_ga_settings``:\n"
           "  Settings controlling the gamma factor, part of the \"LM\" method.\n"
           "  This is a vector of length 6, having the elements (0-based index):\n"
           "    0. Start value.\n"
@@ -12577,10 +12577,10 @@ R"(
           "       is not considered until there has been one succesful iteration\n"
           "       having a gamma <= this value.\n"
           "  The default setting triggers an error if \"lm\" is selected.\n"
-          "``clear matrices``\n"
+          ":``clear matrices``:\n"
           "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
           "   matrices.\n"
-          "``display_progress``\n"
+          ":``display_progress``:\n"
           "   Controls if there is any screen output. The overall report level\n"
           "   is ignored by this WSM.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -12634,7 +12634,7 @@ R"(
   md_data_raw.push_back(create_mdrecord(
       NAME("avkCalc"),
       DESCRIPTION(
-          "Calculate the averaging kernel matrix.\n\n This is done by describing the sensitivity of the\n"
+          "Calculate the averaging kernel matrix.\n\nThis is done by describing the sensitivity of the\n"
           "OEM retrieval with respect to the true state of the system. A prerequisite\n"
           "for the calculation of the averaging kernel matrix is a successful OEM\n"
           "calculation in which the *jacobian* and the gain matrix *dxdy* have been calculated.\n"),
@@ -13180,9 +13180,9 @@ R"(
           "avoided by passing a *rtp_temperature* < 0. In this case, a specific\n"
           "temperature grid from the *scat_data* grid is used without\n"
           "modification. The selection is as follows:\n"
-          "- -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature\n"
-          "- -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature\n"
-          "- *rtp_temperature* < -20   T_grid[nT/2]  median grid point\n"),
+          " - -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature\n"
+          " - -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature\n"
+          " - *rtp_temperature* < -20   T_grid[nT/2]  median grid point\n"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -13538,7 +13538,7 @@ R"(
           "of *ppvar_iy* of all the fields will cover the zenith angle space\n"
           "of all positions in *z_field*.\n"
           "\n"
-          "Only works for *atmosphere_dim* 1, spherical planets, and *ppath_lmax*<0\n"),
+          "Only works for *atmosphere_dim* 1, spherical planets, and *ppath_lmax* < 0\n"),
       AUTHORS("Richard Larsson"),
       OUT("ppath_field"),
       GOUT(),
@@ -13575,7 +13575,7 @@ R"(
           "transfer calculations, and this method is not part of the control\n"
           "file. A reason to call this function directly would be to obtain a\n"
           "propagation path for plotting. Anyhow, use this method instead\n"
-          "of calling e.g.*ppathStepByStep directly.\n"),
+          "of calling e.g. *ppathStepByStep* directly.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -14021,7 +14021,7 @@ R"(
           "\n"
           "This function converts a vector of pressure values to an approximate vector\n"
           "of corresponding heights. The formula used to convert pressure to height is:\n"
-          "z = 16000 * (5.0 - log10(p))"
+          " z = 16000 * (5.0 - log10(p))\n"
           "That is, a pressure is  assumed to decrease by a factor of 10 every 16km.\n"
           "\n"
           "Note that all pressure values in the vector must be greater than 0.01.\n"),
@@ -14302,6 +14302,7 @@ Does the same for NLTE variables if required.
 
 If ``lines_speedup_option`` is not "None", then some speed-up logic is applied.
 Valid speed-up logic other than "None" includes:
+
 :LinearIndependent:
     Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
     until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
@@ -14634,12 +14635,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "This is useful in two different contexts:\n"
           "\n"
           "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
-          "absorption is calculated or extracted locally, therefore there is no\n"
-          "need to calculate a global field. But this method is handy for easy\n"
-          "plotting of absorption vs. pressure, for example.)\n"
+          "   absorption is calculated or extracted locally, therefore there is no\n"
+          "   need to calculate a global field. But this method is handy for easy\n"
+          "   plotting of absorption vs. pressure, for example.)\n"
           "\n"
           "2. Inside the scattering region, monochromatic absorption is\n"
-          "pre-calculated for the entire atmospheric field.\n"
+          "   pre-calculated for the entire atmospheric field.\n"
           "\n"
           "The calculation itself is performed by the\n"
           "*propmat_clearsky_agenda*.\n"),
@@ -14894,7 +14895,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(HWC), ie. abs(psd)=f(abs(HWC)).\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Stuart Fox"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -14938,14 +14939,14 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
           "\n"
           "For temperatures below `t_min_psd``, the size distribution is\n"
           "calculated for T = `t_min_psd``. Likewise, for temperatures above\n"
           "``t_max_psd``, the distribution is derived for T = ``t_max_psd``.\n"
           "\n"
-          "Defaults of `t_min_psd`` and ``t_max_psd`` were set considering that\n"
+          "Defaults of ``t_min_psd`` and ``t_max_psd`` were set considering that\n"
           "the parametrization has been derived from measurements over\n"
           "temperatures of -70C to -20C."
           "\n"
@@ -15066,9 +15067,9 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "The GIN route is especially suitable for selecting special cases of MGD.\n"
           "For example, by setting mu=0 and ga=1, an exponential PSD is obtained:\n"
-          "   n(x) = n0 * exp( -la*x )\n"
+          "   n(x) = n0 * exp( -la * x )\n"
           "With mu=1 and ga=1, the gamma PSD is obtained:\n"
-          "   n(x) = n0 * x^mu *exp( -la*x )\n"
+          "   n(x) = n0 * x^mu * exp( -la * x )\n"
           "There should be little overhead in using the method for exponential\n"
           "and gamma PSDs, there is an internal switch to dedicated expressions\n"
           "for those PSDs.\n"
@@ -15076,7 +15077,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "Derivatives can only be obtained for parameters that are specified by\n"
           "*pnd_agenda_input*.\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
           "\n"
           "These requirements apply to the MGD parameters:\n"
@@ -15424,7 +15425,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "``species_index``) has a single element, and just inserts the provided\n"
           "number density in *psd_data*.\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15462,7 +15463,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "on the mass contents given and the particle mass (derived from\n"
           "*scat_meta*).\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15524,7 +15525,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "negative psd values following a distribution given by abs(WC), ie.\n"
           "abs(psd)=f(abs(WC)).\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"
 
           ),
@@ -15573,7 +15574,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "contents will produce negative psd values following a distribution\n"
           "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
           "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
+          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
       AUTHORS("Jana Mendrok, Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
@@ -15610,7 +15611,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "For safety, new grid and old grid Vectors are not allowed to be the\n"
           "same variable (both will be needed later on for regridding of the\n"
-          "atmospheric fields), and atmospheric field related *checked WSV are\n"
+          "atmospheric fields), and atmospheric field related ``.._checked`` WSV are\n"
           "reset to 0 (unchecked).\n"),
       AUTHORS("Patrick Eriksson, Jana Mendrok"),
       OUT("p_grid", "atmfields_checked", "atmgeom_checked", "cloudbox_checked"),
@@ -16007,7 +16008,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
       NAME("ReadHITRAN"),
       DESCRIPTION("Reads a HITRAN .par file.\n"
                   "\n"
-                  "The HITRAN type switch can be:\n"
+                  "The HITRAN type switch can be:\n\n"
                   ":``\"Pre2004\"``: for old format\n"
                   ":``\"Post2004\"``: for new format\n"
                   ":``\"Online\"``: for the online format with quantum numbers (recommended)\n"
@@ -16310,7 +16311,7 @@ where N>=0 and the species name is something line "H2O".
           "Earth reference ellipsoids.\n"
           "\n"
           "The reference ellipsoid (*refellipsoid*) is set to model the Earth,\n"
-          "following different models. The options are:\n"
+          "following different models. The options are:\n\n"
           ":\"Sphere\":\n"
           "    A spherical Earth. The radius is set following\n"
           "    the value set for the Earth radius in constants.cc.\n"
@@ -16526,7 +16527,8 @@ where N>=0 and the species name is something line "H2O".
           "The reference ellipsoid (*refellipsoid*) is set to model Venus,\n"
           "folowing different models. The options are:\n"
           "\n"
-          "   \"Sphere\" : A spherical planet. The radius is taken from a\n"
+          ":\"Sphere\":\n"
+          "      A spherical planet. The radius is taken from a\n"
           "      report of the IAU/IAG Working Group.\n"
           "\n"
           "According to the report used above, the Venus ellipsoid lacks\n"
@@ -16622,7 +16624,7 @@ where N>=0 and the species name is something line "H2O".
           "The refractivity of dry air and water vapour is added to\n"
           "*refr_index_air*. To obtain the complete value, *refr_index_air*\n"
           "should be set to 1 before calling this WSM. This applies also to\n"
-          "*refr_index_air_group.\n"
+          "*refr_index_air_group*.\n"
           "\n"
           "The expression used is non-dispersive. Hence, *refr_index_air*\n"
           "and *refr_index_air_group* are identical.\n"
@@ -16665,7 +16667,7 @@ where N>=0 and the species name is something line "H2O".
           "The refractivity of a specified gas mixture is calculated and added\n"
           "to *refr_index_air*. To obtain the complete value, *refr_index_air*\n"
           "should be set to 1 before calling this WSM. This applies also to\n"
-          "*refr_index_air_group.\n"
+          "*refr_index_air_group*.\n"
           "\n"
           "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
           "*refr_index_air_group* are identical.\n"
@@ -17364,9 +17366,9 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "The following surface type/property methods are available and\n"
           "require the the following input:\n"
-          "- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
-          "- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*\n"
-          "- 'S'pecular: *surface_reflectivity*, *surface_skin_t*\n"
+          " - 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
+          " - 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*\n"
+          " - 'S'pecular: *surface_reflectivity*, *surface_skin_t*\n"
           "'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel\n"
           "methods modified to behave similar to ARTS'\n"
           "*surfaceFlatReflectivity*.\n"),
@@ -18289,7 +18291,7 @@ where N>=0 and the species name is something line "H2O".
           "*scat_species_a* for details.\n"
           "\n"
           "The quantity to be used as size descriptor is here denoted as x, and\n"
-          "is selected by setting ``x_unit``. The options are:\n"
+          "is selected by setting ``x_unit``. The options are:\n\n"
           ":``\"dveq\"``: The size grid is set to scat_meta.diameter_volume_equ\n"
           ":``\"dmax\"``: The size grid is set to scat_meta.diameter_max\n"
           ":``\"area\"``: The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
@@ -18437,8 +18439,8 @@ where N>=0 and the species name is something line "H2O".
           "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
           "\n"
           "The variables are set as follows:\n"
-          "   mblock_dlos        : One row with zero(s).\n"
-          "   sensor_response*        : As returned by *sensor_responseInit*.\n"),
+          " - *mblock_dlos*        : One row with zero(s).\n"
+          " - *sensor_response*        : As returned by *sensor_responseInit*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -20214,8 +20216,8 @@ where N>=0 and the species name is something line "H2O".
           "\n"
           "This method uses second version of the TELSEM model for calculating\n"
           "land surface emissivities (F. Aires et al, \"A Tool to Estimate \n"
-          " Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use\n"
-          " in numerical weather prediction\" Quarterly Journal of the Royal\n"
+          "Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use\n"
+          "in numerical weather prediction\" Quarterly Journal of the Royal\n"
           "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
           "This methods computes land surface emissivities for a given pencil beam\n"
           "using a given TELSEM2 atlas.\n"
@@ -23062,7 +23064,7 @@ where N>=0 and the species name is something line "H2O".
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
       DESCRIPTION(
-          "This method is used for simulating ARTS for metoffice model fields"
+          "This method is used for simulating ARTS for metoffice model fields\n"
           "\n"
           "This method reads in *met_amsu_data* which contains the\n"
           "lat-lon of the metoffice profile files as a Matrix. It then\n"
@@ -24028,7 +24030,7 @@ Options are:
 Options are:
 
 :``"CosmicBackground"``:
-    1. Uses *MatrixCBR* using out=*iy*, and f=*f_grid*
+    1. Uses *MatrixCBR* using out = *iy*, and f = *f_grid*
 )--"),
                       AUTHORS("Richard Larsson"),
                       OUT("iy_space_agenda"),

@@ -144,7 +144,7 @@ Parameters
   }
 
   constexpr matpack::matpack_constant_data<std::string_view, 2, 2> inout{
-      "(ERROR)", "(OUT)", "(IN)", "(INOUT)"};
+      "[ERROR]", "[OUT]", "[IN]", "[INOUT]"};
   for (auto& var : writer) {
     out += var_string(var.name,
                       " : ~pyarts.arts.",
@@ -153,12 +153,12 @@ Parameters
                       "    ", unwrap_stars(short_doc(var.name)),
                       " See :attr:`~pyarts.workspace.Workspace.",
                       var.name,
-                      "` **[",
+                      "` **",
                       inout[var.in][var.out],
-                      "]**\n");
+                      "**\n");
   }
 
-  return out;
+  return writer.size() ? out : "";
 }
 
 String until_first_newline(const String& x) {

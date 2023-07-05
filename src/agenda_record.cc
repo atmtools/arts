@@ -56,6 +56,10 @@ AgRecord::AgRecord(const char* name,
     throw std::runtime_error(os.str());
   }
 
+  if (mdescription.back() not_eq '\n') {
+    mdescription += '\n';
+  }
+
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {
     auto wsv_ptr = global_data::WsvMap.find(output[j]);

@@ -94,7 +94,7 @@ void define_wsv_data() {
           "This grid is used for RT calculations inside the cloudbox, \n"
           "therefore one has to define it if the cloudbox is activated by \n"
           "the flag *cloudbox_on*. Furthermore the zenith angle grid is also used"
-          "for RT calculations of clear-sky *spectral radiance field*.\n"
+          "for RT calculations of clear-sky *spectral_radiance_field*.\n"
           "The grid must be sorted in increasing order, with no repetitions.\n"
           "\n"
           "Usage:      Set by the user.\n"
@@ -645,9 +645,9 @@ void define_wsv_data() {
           "\n"
           "Size:\n"
           " - Array[N_ch]\n"
-          "  - GriddedField1 \n "
-          "  - [N_f] \n"
-          "  - [N_f] \n"),
+          "  - GriddedField1\n"
+          "   - [N_f]\n"
+          "   - [N_f]\n"),
       GROUP("ArrayOfGriddedField1")));
 
   wsv_data.push_back(WsvRecord(
@@ -1804,9 +1804,9 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "Usage:      Used by radiative transfer methods.\n"
           "\n"
           "Unit:\n"
-          "            For passive observations, as  selected by *iy_unit*.\n"
-          "            For transmission calculations, same as for transmitted\n"
-          "            signal.\n"
+          " - For passive observations, as  selected by *iy_unit*.\n"
+          " - For transmission calculations, same as for transmitted\n"
+          "   signal.\n"
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"),
       GROUP("Matrix")));
@@ -2563,15 +2563,15 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "This array must match the number and order of channels in\n"
           "*met_mm_backend*.\n"
           "\n"
-          "Possible values:\n"
-          "V: Vertical polarisation\n"
-          "H: Horizontal polarisation\n"
-          "LHC: Left-hand circular polarisation\n"
-          "RHC: Right-hand circular polarisation\n"
-          "AMSU-V: Vertical polarisation dependening on AMSU zenith angle\n"
-          "AMSU-H: Horizontal polarisation dependening on AMSU zenith angle\n"
-          "ISMAR-V: Vertical polarisation dependening on ISMAR zenith angle\n"
-          "ISMAR-H: Horizontal polarisation dependening on AMSU zenith angle\n"
+          "Possible values:\n\n"
+          ":``\"V\"``: Vertical polarisation\n"
+          ":``\"H\"``: Horizontal polarisation\n"
+          ":``\"LHC\"``: Left-hand circular polarisation\n"
+          ":``\"RHC\"``: Right-hand circular polarisation\n"
+          ":``\"AMSU-V\"``: Vertical polarisation dependening on AMSU zenith angle\n"
+          ":``\"AMSU-H\"``: Horizontal polarisation dependening on AMSU zenith angle\n"
+          ":``\"ISMAR-V\"``: Vertical polarisation dependening on ISMAR zenith angle\n"
+          ":``\"ISMAR-H\"``: Horizontal polarisation dependening on AMSU zenith angle\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
@@ -2706,11 +2706,11 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "This is a vector of length 5, having the elements (0-based index):\n"
           "  0. Convergence status, with coding\n"
-          "       0. converged\n"
-          "       1. max iterations reached\n"
-          "       2. max gamma of LM reached\n"
-          "       9. some error when calling *inversion_iterate_agenda*\n"
-          "       99. too high start cost.\n"
+          "       - 0 = converged\n"
+          "       - 1 = max iterations reached\n"
+          "       - 2 = max gamma of LM reached\n"
+          "       - 9 = some error when calling *inversion_iterate_agenda*\n"
+          "       - 99 = too high start cost.\n"
           "  1. Start value of cost function.\n"
           "  2. End value of cost function.\n"
           "  3. End value of y-part of cost function.\n"
@@ -3845,8 +3845,7 @@ Can currently only contain data for new MT CKD models of water.
           "*pha_matCalc*. It holds the information about the position for which the\n"
           "scattering calculations are done.\n"
           "\n"
-          "Usage:    Input to the methods *spt_calc_agenda*,\n"
-          "                               *pha_mat_spt_agenda*\n"),
+          "Usage:    Input to the methods *spt_calc_agenda*, *pha_mat_spt_agenda*\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -3859,8 +3858,7 @@ Can currently only contain data for new MT CKD models of water.
           "*pha_matCalc*. It holds the information about the position for which the\n"
           "scattering calculations are done.\n"
           "\n"
-          "Usage:    Input to the methods *spt_calc_agenda*,\n"
-          "                               *pha_mat_spt_agenda*\n"),
+          "Usage:    Input to the methods *spt_calc_agenda*, *pha_mat_spt_agenda*\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -3964,8 +3962,7 @@ Can currently only contain data for new MT CKD models of water.
           "*pha_matCalc*. It holds the information about the location for which the\n"
           "scattering calculations are done.\n"
           "\n"
-          "Usage:    Input to the methods *spt_calc_agenda*,\n"
-          "                               *pha_mat_spt_agenda*\n"),
+          "Usage:    Input to the methods *spt_calc_agenda*, *pha_mat_spt_agenda*\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -4676,9 +4673,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "The reflection coefficients for the directions given by\n"
           "*surface_los* to the direction of interest.\n"
           "\n"
-          "..math::\n"
-          R"(    \begin{array}{cc} a & b \end{array})"
-          "\n"
           "The rows and columns of this tensor holds the reflection\n"
           "coefficient matrix for one frequency and one LOS. The reflection\n"
           "coefficients shall take into accound the angular weighting of the\n"
@@ -4956,10 +4950,10 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Unit:  K\n"
           "\n"
           "Size:\n"
-          " -  GriddedField3 \n "
-          "  -     [N_p] \n"
-          "  -     [N_lat] \n"
-          "  -     [N_lon] \n"
+          " -  GriddedField3\n"
+          "  -     [N_p]\n"
+          "  -     [N_lat]\n"
+          "  -     [N_lon]\n"
           "  -     [N_p, N_lat, N_lon] \n"),
       GROUP("GriddedField3")));
 
@@ -5656,11 +5650,11 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Unit:  K\n"
           "\n"
           "Size:\n"
-          " -  GriddedField3 \n "
-          "  -     [N_p] \n"
-          "  -     [N_lat] \n"
-          "  -     [N_lon] \n"
-          "  -     [N_p, N_lat, N_lon] \n"),
+          " -  GriddedField3\n"
+          "  -     [N_p]\n"
+          "  -     [N_lat]\n"
+          "  -     [N_lon]\n"
+          "  -     [N_p, N_lat, N_lon]\n"),
       GROUP("GriddedField3")));
 
   wsv_data.push_back(WsvRecord(

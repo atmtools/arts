@@ -115,7 +115,8 @@ void py_xsec(py::module_& m) {
           [](py::object& xr, py::object& other) {
             return details::XsecRecord::__eq__(xr, other);
           },
-          py::is_operator());
+          py::is_operator()).doc() = R"--(A cross-section record.
+)--";
 
   PythonInterfaceWorkspaceArray(XsecRecord);
 }
