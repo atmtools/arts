@@ -224,6 +224,26 @@ String compose_generic_groups(Index grp, const ArrayOfIndex& inds) {
   return out;
 }
 
+String to_defval_str(const String& x) {
+  std::string out = var_string(x);
+
+  auto pos = out.find('\n');
+  while (pos not_eq out.npos) {
+    out.replace(pos, 1, " ");
+    pos = out.find('\n');
+  }
+  
+  while (out.front() == ' ') out.erase(out.begin());
+  while (out.back() == ' ') out.pop_back();
+
+  if (out.size() == 0) {
+    if (std::is_same_v<std::decay_t<decltype(x)>, String>) return "\"\"";
+    return "[]";
+  }
+
+  return out;
+}
+
 String method_docs(const String& name) {
   static bool once = false;
   if (not once) {
@@ -336,7 +356,7 @@ String method_docs(const String& name) {
     const bool has_defval = defval not_eq NODEF;
     const String opt{has_defval ? ", optional" : ""};
     const String optval{
-        has_defval ? var_string(" Defaults to ``", defval, "``") : ""};
+        has_defval ? var_string(" Defaults to ``", to_defval_str(defval), "``") : ""};
     out += var_string('\n',
                       varname,
                       " : ",

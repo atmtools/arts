@@ -30,20 +30,22 @@ String group_generics_inout(const String& group) {
                       group,
                       "\n",
                       String(36 + group.size(), '-'),
-                      "\n.. hlist::");
+                      "\n\n.. hlist::");
     for (auto& m : outdocs.first)
       out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
   }
+  out += '\n';
 
   if (outdocs.second.size()) {
     out += var_string("\nWorkspace methods that require ",
                       group,
                       "\n",
                       String(31 + group.size(), '-'),
-                      "\n.. hlist::");
+                      "\n\n.. hlist::");
     for (auto& m : outdocs.second)
       out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
   }
+  out += '\n';
 
   return out;
 }
@@ -62,7 +64,7 @@ String group_workspace_types(const String& group) {
                       group,
                       "\n",
                       String(28 + group.size(), '-'),
-                      "\n.. hlist::");
+                      "\n\n.. hlist::");
     for (auto& m : vars)
       out += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
   }
