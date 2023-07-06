@@ -2428,6 +2428,20 @@ Available models:
   Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
   http://www.rtweb.aer.com/continuum_frame.html
 
+- H2O-ForeignContCKDMT320:
+  Foreign continua.  Expects H2O line center cutoff at 25 cm-1
+
+  CKD_MTv3.20 H2O foreign continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
+  Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
+  http://www.rtweb.aer.com/continuum_frame.html
+
+- H2O-SelfContCKDMT320:
+  Self continua.  Expects H2O line center cutoff at 25 cm-1
+
+  CKD_MTv3.20 H2O self continuum from the FORTRAN77 code written by Atmospheric and Environmental Research Inc. (AER),
+  Radiation and Climate Group 131 Hartwell Avenue Lexington, MA 02421, USA
+  http://www.rtweb.aer.com/continuum_frame.html
+
 - H2O-SelfContCKDMT400:
   Self continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
 

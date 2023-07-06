@@ -15,6 +15,7 @@ if (NOT ENABLE_ARTS_LGPL)
     MT_CKD100.cc
     MT_CKD252.cc
     CKDMT350.cc
+    CKDMT320.cc
     MT_CKD400.cc)
   target_link_libraries(predef_aer PUBLIC matpack)
   target_include_directories(predef_aer PRIVATE ${ARTS_SOURCE_DIR}/3rdparty/)

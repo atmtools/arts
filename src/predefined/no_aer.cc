@@ -7,7 +7,7 @@ when AER is disabled
 
 #include "predef.h"
 
-#define NOPE                                                                   \
+#define NOPE \
   { ARTS_USER_ERROR("Compiled with -DENABLE_ARTS_LGPL=1") }
 
 namespace Absorption::PredefinedModel {
@@ -48,4 +48,12 @@ void compute_self_h2o(PropagationMatrix &, const Vector &, const Numeric &,
 void compute_foreign_h2o(PropagationMatrix &, const Vector &, const Numeric &,
                          const Numeric &, const Numeric &) NOPE;
 } // namespace CKDMT350
+
+namespace CKDMT320 {
+void compute_self_h2o(PropagationMatrix &, const Vector &, const Numeric &,
+                      const Numeric &, const Numeric &) NOPE;
+
+void compute_foreign_h2o(PropagationMatrix &, const Vector &, const Numeric &,
+                         const Numeric &, const Numeric &) NOPE;
+} // namespace CKDMT320
 } // namespace Absorption::PredefinedModel
