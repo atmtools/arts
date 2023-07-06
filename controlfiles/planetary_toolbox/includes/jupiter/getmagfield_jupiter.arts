@@ -48,25 +48,25 @@ Append( aogf3tmp, gf3tmp )
 Append( aogf3tmp, gf3tmp )
 Append( aogf3tmp, gf3tmp )
 # this to have a properly formated file to read after the forloops
-WriteXML( output_file_format=tmpformat, in=aogf3tmp, filename=Btmp )
+WriteXML( output_file_format=tmpformat, input=aogf3tmp, filename=Btmp )
 
 # Get data for one magfield component
 AgendaCreate( Bcomploop_agenda )
 AgendaSet( Bcomploop_agenda ){
-  ReadXML( out=aogf3tmp, filename=Btmp )
+  ReadXML( output=aogf3tmp, filename=Btmp )
   Extract( strtmp, Bcomparray, forloop_index )
   Append( specfilename, strtmp )
 #  Print( specfilename, 0 )
   ReadXML( gf3tmp, specfilename )
   Append( aogf3tmp, gf3tmp )
-  WriteXML( output_file_format=tmpformat, in=aogf3tmp, filename=Btmp )
+  WriteXML( output_file_format=tmpformat, input=aogf3tmp, filename=Btmp )
 }
 
 # Get data for the magfield case, looping over the components
 AgendaCreate( Bloop_agenda )
 AgendaSet( Bloop_agenda ){
   Touch( aogf3tmp )
-  WriteXML( output_file_format=tmpformat, in=aogf3tmp, filename=Btmp )
+  WriteXML( output_file_format=tmpformat, input=aogf3tmp, filename=Btmp )
   Extract( specfilename, casearray, forloop_index )
   nelemGet( ncases, Bcomparray )
   IndexStepDown( ncases, ncases )
@@ -84,7 +84,7 @@ nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, Bloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
-ReadXML( out=aogf3tmp, filename=Btmp )
+ReadXML( output=aogf3tmp, filename=Btmp )
 Extract( mag_w_raw, aogf3tmp, 3 )
 Extract( mag_v_raw, aogf3tmp, 4 )
 Extract( mag_u_raw, aogf3tmp, 5 )
@@ -94,7 +94,7 @@ Extract( mag_u_raw, aogf3tmp, 5 )
 #  variable into them.)
 Delete( strtmp )
 Touch( strtmp )
-WriteXML( output_file_format=tmpformat, in=strtmp, filename=Btmp )
+WriteXML( output_file_format=tmpformat, input=strtmp, filename=Btmp )
 
 }
  

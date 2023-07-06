@@ -6,7 +6,7 @@ Arts2 {
   NumericCreate(maxabsdiff)
   NumericSet(maxabsdiff, 1e-08)
   
-  ReadXML(out=gf, filename="gf_data.xml")
+  ReadXML(output=gf, filename="gf_data.xml")
 
   ########## GriddedFieldPRegrid ##########
 
@@ -15,7 +15,7 @@ Arts2 {
   #
   StringSet(fname, "gfREFERENCE_0p_none.xml")
   VectorNLogSpace(p_grid, 20, 6000, 2000)
-  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=0)
+  GriddedFieldPRegrid(output=gf_regridded, input=gf, zeropadding=0)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
@@ -25,7 +25,7 @@ Arts2 {
   #
   StringSet(fname, "gfREFERENCE_0p_both_sides.xml")
   VectorNLogSpace(p_grid, 20, 15000, 100)
-  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=1)
+  GriddedFieldPRegrid(output=gf_regridded, input=gf, zeropadding=1)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
@@ -35,7 +35,7 @@ Arts2 {
   #
   StringSet(fname, "gfREFERENCE_0p_bottom.xml")
   VectorNLogSpace(p_grid, 20, 5000, 100)
-  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=1)
+  GriddedFieldPRegrid(output=gf_regridded, input=gf, zeropadding=1)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
@@ -45,7 +45,7 @@ Arts2 {
   #
   StringSet(fname, "gfREFERENCE_0p_top.xml")
   VectorNLogSpace(p_grid, 20, 15000, 5000)
-  GriddedFieldPRegrid(out=gf_regridded, in=gf, zeropadding=1)
+  GriddedFieldPRegrid(output=gf_regridded, input=gf, zeropadding=1)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
@@ -55,7 +55,7 @@ Arts2 {
 
   ReadXML(gf, "gf.xml")
   GriddedField3Create(gf_z)
-  ReadXML(out=gf_z, filename="gf_data_z.xml")
+  ReadXML(output=gf_z, filename="gf_data_z.xml")
 
   VectorSet(lat_grid, [0])
   VectorSet(lon_grid, [0])
@@ -67,10 +67,10 @@ Arts2 {
   #
   StringSet(fname, "gfREFERENCE_0p_none.xml")
   VectorNLogSpace(p_grid, 20, 6000, 2000)
-  GriddedFieldPRegrid(out=zraw_regridded, in=gf, zeropadding=0)
-  FieldFromGriddedField(out=z_field, in=zraw_regridded)
+  GriddedFieldPRegrid(output=zraw_regridded, input=gf, zeropadding=0)
+  FieldFromGriddedField(output=z_field, input=zraw_regridded)
 
-  GriddedFieldZToPRegrid(out=gf_regridded, in=gf_z, zeropadding=1)
+  GriddedFieldZToPRegrid(output=gf_regridded, input=gf_z, zeropadding=1)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
 
@@ -80,8 +80,8 @@ Arts2 {
   StringSet(fname, "gfREFERENCE_z_0p_both_sides.xml")
   ReadXML(p_grid, "p_grid_both.xml")
   ReadXML(z_field_raw, "z_both.xml")
-  FieldFromGriddedField(out=z_field, in=z_field_raw)
-  GriddedFieldZToPRegrid(out=gf_regridded, in=gf_z, zeropadding=1)
+  FieldFromGriddedField(output=z_field, input=z_field_raw)
+  GriddedFieldZToPRegrid(output=gf_regridded, input=gf_z, zeropadding=1)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
@@ -92,8 +92,8 @@ Arts2 {
   StringSet(fname, "gfREFERENCE_z_0p_bottom.xml")
   ReadXML(p_grid, "p_grid_bottom.xml")
   ReadXML(z_field_raw, "z_bottom.xml")
-  FieldFromGriddedField(out=z_field, in=z_field_raw)
-  GriddedFieldZToPRegrid(out=gf_regridded, in=gf_z, zeropadding=1)
+  FieldFromGriddedField(output=z_field, input=z_field_raw)
+  GriddedFieldZToPRegrid(output=gf_regridded, input=gf_z, zeropadding=1)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)
@@ -104,8 +104,8 @@ Arts2 {
   StringSet(fname, "gfREFERENCE_z_0p_top.xml")
   ReadXML(p_grid, "p_grid_top.xml")
   ReadXML(z_field_raw, "z_top.xml")
-  FieldFromGriddedField(out=z_field, in=z_field_raw)
-  GriddedFieldZToPRegrid(out=gf_regridded, in=gf_z, zeropadding=1)
+  FieldFromGriddedField(output=z_field, input=z_field_raw)
+  GriddedFieldZToPRegrid(output=gf_regridded, input=gf_z, zeropadding=1)
   #WriteXML("ascii", gf_regridded, fname)
   ReadXML(gf_ref, fname)
   Compare(gf_regridded, gf_ref, maxabsdiff)

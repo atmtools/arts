@@ -59,8 +59,8 @@ ArrayOfIndexCreate( cloudcasearray )
 # Loop agenda to get pnd & ssd data of all modes in a cloud layer
 AgendaCreate( caseloop_agenda )
 AgendaSet( caseloop_agenda ){
-  ReadXML( out=pnd_field_raw, filename=pndtmp )
-  ReadXML( out=ssdfiles, filename=poptmp )
+  ReadXML( output=pnd_field_raw, filename=pndtmp )
+  ReadXML( output=ssdfiles, filename=poptmp )
 
   Extract( itmp, cloudcase, forloop_index )
   Extract( itmp, cloudcasearray, itmp )
@@ -75,11 +75,11 @@ AgendaSet( caseloop_agenda ){
   Print( pndstr, 0 )
   ReadXML( aogf3tmp, pndstr )
   Append( pnd_field_raw, aogf3tmp )
-  WriteXML( output_file_format=tmpformat, in=pnd_field_raw, filename=pndtmp )
+  WriteXML( output_file_format=tmpformat, input=pnd_field_raw, filename=pndtmp )
 
   Print( ssdstr, 0 )
   Append( ssdfiles, ssdstr )
-  WriteXML( output_file_format=tmpformat, in=ssdfiles, filename=poptmp )
+  WriteXML( output_file_format=tmpformat, input=ssdfiles, filename=poptmp )
 }
 
 
@@ -141,8 +141,8 @@ Print( infostr )
 # second, we need to initialize the containers for the pndfield and scatdata
 Touch( pnd_field_raw )
 Touch( ssdfiles )
-WriteXML( output_file_format=tmpformat, in=pnd_field_raw, filename=pndtmp )
-WriteXML( output_file_format=tmpformat, in=ssdfiles, filename=poptmp )
+WriteXML( output_file_format=tmpformat, input=pnd_field_raw, filename=pndtmp )
+WriteXML( output_file_format=tmpformat, input=ssdfiles, filename=poptmp )
 
 
 # third, we loop over the included cloud layers/cloud types. separately per

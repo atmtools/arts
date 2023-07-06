@@ -37,11 +37,11 @@ StringCreate( dummyfile )
 StringSet( dummyfile, "dummy.tmp" )
 ArrayOfGriddedField3Create( addvmr )
 Touch( addvmr )
-WriteXML( in=addvmr, filename=dummyfile )
+WriteXML( input=addvmr, filename=dummyfile )
 
 #VectorCreate( ally )
 #VectorSet( ally, [] )
-#WriteXML( in=ally )
+#WriteXML( input=ally )
 
 # some basic RT settings
 #####
@@ -230,9 +230,9 @@ AgendaSet( forloop_agenda_particles ){
 
   yCalc
   #Print( y, 0 )
-  #ReadXML( out=ally )
+  #ReadXML( output=ally )
   #Append( ally, y )
-  #WriteXML( in=ally )
+  #WriteXML( input=ally )
 }
 
 AgendaCreate( forloop_agenda_addspecies )
@@ -241,9 +241,9 @@ AgendaSet( forloop_agenda_addspecies ){
   Append( basename, caseext )
   ReadXML( gf3tmp, basename )
   Append( vmr_field_raw, gf3tmp )
-  ReadXML( out=addvmr, filename=dummyfile )
+  ReadXML( output=addvmr, filename=dummyfile )
   Append( addvmr, gf3tmp )
-  WriteXML( in=addvmr, filename=dummyfile )
+  WriteXML( input=addvmr, filename=dummyfile )
 }
 
 AgendaCreate( forloop_agenda_atmcase )
@@ -272,12 +272,12 @@ AgendaSet( forloop_agenda_atmcase ){
   abs_speciesAdd( species=addspecies )
   Delete( addvmr )
   Touch( addvmr )
-  WriteXML( in=addvmr, filename=dummyfile )
+  WriteXML( input=addvmr, filename=dummyfile )
   Copy( forloop_agenda, forloop_agenda_addspecies )
   nelemGet( ncases, addspecies )
   IndexStepDown( ncases, ncases )
   ForLoop( forloop_agenda, 0, ncases, 1 )
-  ReadXML( out=addvmr, filename=dummyfile )
+  ReadXML( output=addvmr, filename=dummyfile )
   Append( vmr_field_raw, addvmr )
 
 

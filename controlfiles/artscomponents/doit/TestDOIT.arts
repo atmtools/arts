@@ -14,7 +14,7 @@ INCLUDE "artscomponents/doit/doit_setup.arts"
 
 INCLUDE "artscomponents/doit/doit_calc.arts"
 
-WriteXML( in=y )
+WriteXML( input=y )
 
 #==================check==========================
 

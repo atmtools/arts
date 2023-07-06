@@ -51,28 +51,28 @@ StringSet( abstmp, "abstmp_venus.xml" )
 #(filename=speciesname.xml)
 AgendaCreate( speciesloop_agenda )
 AgendaSet( speciesloop_agenda ){
-  ReadXML( out=vmr_field_raw, filename=vmrtmp )
+  ReadXML( output=vmr_field_raw, filename=vmrtmp )
   Extract( strtmp, casearray, forloop_index )
   Append( specfilename, strtmp )
 #  Print( specfilename, 0 )
   ReadXML( gf3tmp, specfilename )
   Append( vmr_field_raw, gf3tmp )
-  WriteXML( output_file_format=tmpformat, in=vmr_field_raw, filename=vmrtmp )
+  WriteXML( output_file_format=tmpformat, input=vmr_field_raw, filename=vmrtmp )
 }
 
 # Get data for abs_species, where filenames do NOT follow the basic convention
 AgendaCreate( subspeciesloop_agenda )
 AgendaSet( subspeciesloop_agenda ){
-  ReadXML( out=vmr_field_raw, filename=vmrtmp )
-  ReadXML( out=abs_species, filename=abstmp )
+  ReadXML( output=vmr_field_raw, filename=vmrtmp )
+  ReadXML( output=abs_species, filename=abstmp )
   abs_speciesAdd( species=speciesname )
   Extract( strtmp, casearray, forloop_index )
   Append( specfilename, strtmp )
 #  Print( specfilename, 0 )
   ReadXML( gf3tmp, specfilename )
   Append( vmr_field_raw, gf3tmp )
-  WriteXML( output_file_format=tmpformat, in=vmr_field_raw, filename=vmrtmp )
-  WriteXML( output_file_format=tmpformat, in=abs_species, filename=abstmp )
+  WriteXML( output_file_format=tmpformat, input=vmr_field_raw, filename=vmrtmp )
+  WriteXML( output_file_format=tmpformat, input=abs_species, filename=abstmp )
 }
 
 
@@ -103,8 +103,8 @@ Print( infostr )
 
 Touch( vmr_field_raw )
 Touch( abs_species )
-WriteXML( output_file_format=tmpformat, in=vmr_field_raw, filename=vmrtmp )
-WriteXML( output_file_format=tmpformat, in=abs_species, filename=abstmp )
+WriteXML( output_file_format=tmpformat, input=vmr_field_raw, filename=vmrtmp )
+WriteXML( output_file_format=tmpformat, input=abs_species, filename=abstmp )
 
 # (1) z = Altitude
 Copy( specfilename, atmostr )
@@ -126,13 +126,13 @@ nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, subspeciesloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
-ReadXML( out=abs_species, filename=abstmp )
+ReadXML( output=abs_species, filename=abstmp )
 
 # (4) base-vmr (species without subscenarios)
 Copy( specfilename, atmostr )
 Select( speciesname, basespeciesarray, basespecies )
 abs_speciesAdd( species=speciesname )
-WriteXML( output_file_format=tmpformat, in=abs_species, filename=abstmp )
+WriteXML( output_file_format=tmpformat, input=abs_species, filename=abstmp )
 Select( casearray, basespeciesnamesarray, basespecies )
 nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
@@ -159,16 +159,16 @@ ForLoop( forloop_agenda, 0, ncases, 1 )
 
 
 # now we're ready with the abs_species (and vmr_fields).
-ReadXML( out=abs_species, filename=abstmp )
-ReadXML( out=vmr_field_raw, filename=vmrtmp )
+ReadXML( output=abs_species, filename=abstmp )
+ReadXML( output=vmr_field_raw, filename=vmrtmp )
 
 
 # and we clean up the dummy files (not completely, though. but we write an empty
 #  variable into them.)
 Delete( strtmp )
 Touch( strtmp )
-WriteXML( output_file_format=tmpformat, in=strtmp, filename=abstmp )
-WriteXML( output_file_format=tmpformat, in=strtmp, filename=vmrtmp )
+WriteXML( output_file_format=tmpformat, input=strtmp, filename=abstmp )
+WriteXML( output_file_format=tmpformat, input=strtmp, filename=vmrtmp )
 
 }
  

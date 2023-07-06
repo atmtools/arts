@@ -200,11 +200,11 @@ class TestVariables:
         
         ws.Touch(ws.covmat_sx)
         
-        ws.covmatDiagonal(out = ws.covmat_block,
+        ws.covmatDiagonal(output = ws.covmat_block,
                           out_inverse = ws.covmat_block,
                           vars = 10.0 * np.ones(ws.p_grid.value.size))
         ws.covmat_sxAddBlock(block = ws.covmat_block)
-        ws.covmatDiagonal(out = ws.covmat_block,
+        ws.covmatDiagonal(output = ws.covmat_block,
                           out_inverse = ws.covmat_block,
                           vars = 20.0 * np.ones(ws.p_grid.value.size))
         ws.covmat_sxAddBlock(block = ws.covmat_block)

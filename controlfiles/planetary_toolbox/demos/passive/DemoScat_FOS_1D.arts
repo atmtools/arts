@@ -179,8 +179,8 @@ AgendaSet( forloop_agenda_angles )
   rte_losSet( za=za, aa=za )
   Print( rte_los, 0 )
   iyCalc
-  WriteXMLIndexed( in=iy, file_index=forloop_index )
-  WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
+  WriteXMLIndexed( input=iy, file_index=forloop_index )
+  WriteXMLIndexed( input=iy_aux, file_index=forloop_index )
 }
 
 IndexCreate( nangles )

@@ -17,7 +17,7 @@ IndexSet( stokes_dim, 4 )
 INCLUDE "artscomponents/doit/doit_setup.arts"
 
 # Perturbing the pnd_field by 1%
-Tensor4Multiply( out=pnd_field, in=pnd_field, value=1.01 )
+Tensor4Multiply( output=pnd_field, input=pnd_field, value=1.01 )
 
 # Main agenda for DOIT calculation
 # --------------------------------
@@ -30,12 +30,12 @@ AgendaSet( doit_mono_agenda ){
   Ignore( f_grid )
   # Alternative method (needs less memory):
   #scat_data_monoCalc
-  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
+  #WriteXMLIndexed( input=cloudbox_field_mono, file_index=f_index )
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
   cloudbox_field_monoIterate
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
+  #WriteXMLIndexed( input=cloudbox_field_mono, file_index=f_index )
 }
 
 
@@ -65,7 +65,7 @@ DoitCalc
 StringSet( iy_unit, "RJBT" )
 yCalc
 
-WriteXML( in=y )
+WriteXML( input=y )
 
 #==================stop==========================
 

@@ -75,7 +75,7 @@ VectorZtanToZaRefr1D( zang, refr_index_air_agenda, sensor_pos,
                       p_grid, t_field, z_field, vmr_field,
                       refellipsoid, atmosphere_dim, f_grid, tanh )
 Append( allzang, zang )
-#WriteXML( in=allzang )
+#WriteXML( input=allzang )
 
 # for use with yCalc
 #Matrix1ColFromVector( sensor_los, allzang )

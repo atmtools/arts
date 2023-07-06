@@ -470,45 +470,45 @@ Agenda get_surface_rtprop_agenda(Workspace& ws, const String& option) {
   switch (Options::tosurface_rtprop_agendaDefaultOptionsOrThrow(option)) {
     case Blackbody_SurfTFromt_surface:
       agenda.add("InterpSurfaceFieldToPosition",
-                 "out=surface_skin_t",
+                 "output=surface_skin_t",
                  "field=t_surface");
       agenda.add("surfaceBlackbody");
       break;
     case Blackbody_SurfTFromt_field:
       agenda.add(
-          "InterpAtmFieldToPosition", "out=surface_skin_t", "field=t_field");
+          "InterpAtmFieldToPosition", "output=surface_skin_t", "field=t_field");
       agenda.add("surfaceBlackbody");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_surface:
       agenda.add("specular_losCalc");
       agenda.add("InterpSurfaceFieldToPosition",
-                 "out=surface_skin_t",
+                 "output=surface_skin_t",
                  "field=t_surface");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_field:
       agenda.add("specular_losCalc");
       agenda.add(
-          "InterpAtmFieldToPosition", "out=surface_skin_t", "field=t_field");
+          "InterpAtmFieldToPosition", "output=surface_skin_t", "field=t_field");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_WithPol_ReflFix_SurfTFromt_surface:
       agenda.add("specular_losCalc");
       agenda.add("InterpSurfaceFieldToPosition",
-                 "out=surface_skin_t",
+                 "output=surface_skin_t",
                  "field=t_surface");
       agenda.add("surfaceFlatReflectivity");
       break;
     case lambertian_ReflFix_SurfTFromt_surface:
       agenda.add("InterpSurfaceFieldToPosition",
-                 "out=surface_skin_t",
+                 "output=surface_skin_t",
                  "field=t_surface");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
       break;
     case lambertian_ReflFix_SurfTFromt_field:
       agenda.add(
-          "InterpAtmFieldToPosition", "out=surface_skin_t", "field=t_field");
+          "InterpAtmFieldToPosition", "output=surface_skin_t", "field=t_field");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
       break;

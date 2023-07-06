@@ -68,16 +68,16 @@ Arts2{
   NumericCreate( wind_speed )
   ArrayOfAgendaAppend( surface_rtprop_agenda_array ){
     Ignore( agenda_array_index )
-    InterpGriddedField2ToPosition( out=surface_skin_t,
+    InterpGriddedField2ToPosition( output=surface_skin_t,
                              gfield2=surface_t_field )
-    InterpGriddedField2ToPosition( out=wind_speed,
+    InterpGriddedField2ToPosition( output=wind_speed,
                              gfield2=surface_w_field )
     surfaceTessem( wind_speed = wind_speed )
   }
   ArrayOfAgendaAppend( surface_rtprop_agenda_array ){
     Ignore( agenda_array_index )
     specular_losCalc( ignore_surface_slope=1 )
-    InterpGriddedField2ToPosition( out=surface_skin_t,
+    InterpGriddedField2ToPosition( output=surface_skin_t,
                            gfield2 = surface_t_field )
     VectorSetConstant( surface_scalar_reflectivity, 1, 0.12 )
     surfaceFlatScalarReflectivity

@@ -117,8 +117,8 @@ Print(timer, 1)
 
 # OK?
 # ---
-WriteXML( in=y )
-WriteXML( in=f_grid )
+WriteXML( input=y )
+WriteXML( input=f_grid )
 #WriteXML( "ascii", y, "yREFERENCE.xml" )
 VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )

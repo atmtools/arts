@@ -25,7 +25,7 @@
 
 Arts2 {
 
-GriddedFieldPRegrid( out=rawfield, in=rawfield, zeropadding=auxfield_zeropad )
-FieldFromGriddedField( out=finalfield, in=rawfield )
+GriddedFieldPRegrid( output=rawfield, input=rawfield, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( output=finalfield, input=rawfield )
 
 }
