@@ -50,8 +50,8 @@ endwhile()
 
 ########################################################################################
 # Build the generator
-add_executable(gen_auto_py gen_auto_py.cpp)
-target_link_libraries(gen_auto_py PUBLIC methods)
+add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
+target_link_libraries(gen_auto_py PUBLIC methods artscore)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
@@ -99,6 +99,9 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_math.cpp
     py_options.cpp
     py_hitran.cpp
+
+    pydocs.cpp
+    gen_auto_py_helpers.cpp
 
     py_auto_interface.h
     py_auto_interface.cc

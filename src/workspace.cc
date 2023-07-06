@@ -94,7 +94,7 @@ void define_wsv_data() {
           "This grid is used for RT calculations inside the cloudbox, \n"
           "therefore one has to define it if the cloudbox is activated by \n"
           "the flag *cloudbox_on*. Furthermore the zenith angle grid is also used"
-          "for RT calculations of clear-sky *spectral radiance field*.\n"
+          "for RT calculations of clear-sky *spectral_radiance_field*.\n"
           "The grid must be sorted in increasing order, with no repetitions.\n"
           "\n"
           "Usage:      Set by the user.\n"
@@ -127,7 +127,7 @@ void define_wsv_data() {
           "(2012), New section of the HITRAN database: Collision-induced\n"
           "absorption (CIA), J. Quant. Spectrosc. Radiat. Transfer, 113,\n"
           "1276-1285, doi:10.1016/j.jqsrt.2011.11.004.\n"
-          " \n"
+          "\n"
           "The binary absorption cross-sections have to be multiplied with the\n"
           "densities of both molecules to get absorption coefficients.\n"
           "\n"
@@ -147,9 +147,9 @@ void define_wsv_data() {
           "file can hold several datasets (data for different temperatures but\n"
           "fixed frequency range).\n"
           "\n"
-          "Units: \n"
-          "Frequencies: Hz\n"
-          "Binary absorption cross-sections: m^5*molecule^-2\n"),
+          "Units:\n\n"
+          " - Frequencies: Hz\n"
+          " - Binary absorption cross-sections: m^5*molecule^-2\n"),
       GROUP("ArrayOfCIARecord")));
 
   wsv_data.push_back(WsvRecord(
@@ -178,8 +178,8 @@ void define_wsv_data() {
           "as per J. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"
           "\n"
           "It is used for absorption bands with these population tags:\n"
-          "\tByHITRANFullRelmat\n"
-          "\tByHITRANRosenkranzRelmat\n"),
+          " - ByHITRANFullRelmat\n"
+          " - ByHITRANRosenkranzRelmat\n"),
       GROUP("HitranRelaxationMatrixData")));
   
   wsv_data.push_back(WsvRecord(NAME("abs_lines"),
@@ -298,7 +298,7 @@ void define_wsv_data() {
           "Flag to indicate whether *abs_lookupAdapt* has already been\n"
           "called.\n"
           "\n"
-          "Values: 0=false, 1=true.\n"),
+          "Values:\n\n - 0=false\n - 1=true.\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -402,7 +402,7 @@ void define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_vmrs"),
-      DESCRIPTION("The VMRs (unit: absolute number) on the abs_p grid.\n"
+      DESCRIPTION("The VMRs (unit of absolute number) on the abs_p grid.\n"
                   "\n"
                   "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"),
       GROUP("Matrix")));
@@ -492,15 +492,17 @@ void define_wsv_data() {
           "Usage: Set by the user.\n"
           "\n"
           "Unit: The unit of the actual response is 1/sr. Properly normalised\n"
-          "      a 4pi integration shall shall give 1.\n"
+          "a 4pi integration shall shall give 1.\n"
           "\n"
           "Dimensions: \n"
-          "   GriddedField4:\n"
-          "      ArrayOfString field_names[N_pol]\n"
-          "      Vector f_grid[N_f]\n"
-          "      Vector za_grid[N_za]\n"
-          "      Vector aa_grid[N_aa]\n"
-          "      Tensor4 data[N_pol][N_f][N_za][N_aa]\n"),
+          "\n"
+          "- GriddedField4:\n"
+          "\n"
+          "  - ArrayOfString field_names[N_pol]\n"
+          "  - Vector f_grid[N_f]\n"
+          "  - Vector za_grid[N_za]\n"
+          "  - Vector aa_grid[N_aa]\n"
+          "  - Tensor4 data[N_pol][N_f][N_za][N_aa]\n"),
       GROUP("GriddedField4")));
 
   wsv_data.push_back(WsvRecord(
@@ -598,19 +600,22 @@ void define_wsv_data() {
           "   This has to be given for scattering species only, indicating the\n"
           "   type of the scattering species fields, i.e. 'mass_density',\n"
           "   'mass_flux', 'number_density', 'mean_mass'.\n"
+          "\n"
           "Dashes ('-') serve as delimiter, separating the elements of each\n"
           "field name tag.\n"
           "\n"
           "Usage: Used inside batch calculations, to hold successive atmospheric\n"
-          "       states from an *ArrayOfGriddedField4*.\n"
+          "states from an *ArrayOfGriddedField4*.\n"
           "\n"
           "Dimensions: \n"
-          "   GriddedField4:\n"
-          "      ArrayOfString field_names[N_fields]\n"
-          "      Vector p_grid[N_p]\n"
-          "      Vector lat_grid[N_lat]\n"
-          "      Vector lon_grid[N_lon]\n"
-          "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"),
+          "\n"
+          "- GriddedField4:\n"
+          "\n"
+          "  - ArrayOfString field_names[N_fields]\n"
+          "  - Vector p_grid[N_p]\n"
+          "  - Vector lat_grid[N_lat]\n"
+          "  - Vector lon_grid[N_lon]\n"
+          "  - Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"),
       GROUP("GriddedField4")));
 
   wsv_data.push_back(WsvRecord(
@@ -643,10 +648,14 @@ void define_wsv_data() {
           "\n"
           "Usage: Set by the user.\n"
           "\n"
-          "Size:  Array[N_ch]\n"
-          "       GriddedField1 \n "
-          "       [N_f] \n"
-          "       [N_f] \n"),
+          "Size:\n"
+          "\n"
+          "- Array[N_ch]\n"
+          "\n"
+          "  - GriddedField1\n"
+          "\n"
+          "    - [N_f]\n"
+          "    - [N_f]\n"),
       GROUP("ArrayOfGriddedField1")));
 
   wsv_data.push_back(WsvRecord(
@@ -737,7 +746,7 @@ void define_wsv_data() {
           "2D and 3D). Pure clear-sky variables are covered by\n"
           "*atmfields_checked* (and *atmgeom_checked*).\n"
           "\n"
-          "Relevant checks are performed by *cloudbox_checkedCalc. Only the\n"
+          "Relevant checks are performed by *cloudbox_checkedCalc*. Only the\n"
           "value 1 is taken as OK.\n"),
       GROUP("Index"), Index{0}));
 
@@ -754,13 +763,14 @@ void define_wsv_data() {
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
-          " Size: [f_grid,\n"
-          "       p_grid, \n"
-          "       lat_grid, \n"
-          "       lon_grid, \n"
-          "       za_grid,\n"
-          "       aa_grid,\n"
-          "       stokes_dim ]\n"
+          "Size:\n"
+          " [ f_grid,\n"
+          " p_grid, \n"
+          " lat_grid, \n"
+          " lon_grid, \n"
+          " za_grid,\n"
+          " aa_grid,\n"
+          " stokes_dim ]\n"
           "\n"
           "Note: For 1D, the size of the latitude, longitude and azimuth\n"
           "dimension (N_aa) are all 1.\n"),
@@ -779,10 +789,11 @@ void define_wsv_data() {
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+          "Size:\n"
+          "       [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
           "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
           "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa, N_i ]\n"
+          "       N_za, N_aa, N_i ]\n"
           "\n"
           "Note: For 1D, the size of the azimuth angle dimension (N_aa) is\n"
           "always 1.\n"),
@@ -803,10 +814,11 @@ void define_wsv_data() {
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa, N_i ]\n"),
+          "Size:\n"
+          "      [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+          "      (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+          "      (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+          "      N_za, N_aa, N_i ]\n"),
       GROUP("Tensor6")));
 
   wsv_data.push_back(WsvRecord(
@@ -842,7 +854,7 @@ void define_wsv_data() {
           "\"workspace variables\".\n"
           "\n"
           "Usage: Set by the user, either directly or using a method\n"
-          "       checking the extension of scattering particles.\n"
+          "checking the extension of scattering particles.\n"
           "\n"
           "Unit:  Index values.\n"
           "\n"
@@ -893,10 +905,10 @@ void define_wsv_data() {
           "Unit:       -\n"
           "\n"
           "Dimensions: \n"
-          "      Vector f_grid[N_f]\n"
-          "      Vector T_grid[N_T]\n"
-          "      ArrayOfString Complex[2]\n"
-          "      Tensor3 data[N_f][N_T][2]\n"),
+          " - Vector f_grid[N_f]\n"
+          " - Vector T_grid[N_T]\n"
+          " - ArrayOfString Complex[2]\n"
+          " - Tensor3 data[N_f][N_T][2]\n"),
       GROUP("GriddedField3")));
 
   wsv_data.push_back(WsvRecord(
@@ -906,7 +918,7 @@ void define_wsv_data() {
           "\n"
           "The matrix contained in this block will be added to the blocks in\n"
           "in *covmat_sx* and *covmat_se* by the corresponding WSMs. Its dimensions\n"
-          "must agree with gridpoints of the correlated retrieval quantities."
+          "must agree with gridpoints of the correlated retrieval quantities.\n"
           "\n"
           "Usage:   Used by the retrievalAdd functions.\n"),
       GROUP("Sparse")));
@@ -928,16 +940,17 @@ void define_wsv_data() {
           "Covariance matrix for observation uncertainties.\n"
           "\n"
           "This matrix (Se) describes the uncertainty of the measurement vector (*y*),\n"
-          "and can be writtenn as\n"
-          "   Se = Seps + Kb * Sb * Kb',\n"
+          "and can be writtenn as::\n"
+          "\n"
+          "  Se = Seps + Kb * Sb * Kb'\n"
+          "\n"
           "where Seps describes direct measurement errors (such as thermal noise),\n"
           "Kb is Jacobian for forward model parameters, and Sb describes the uncertainty\n"
           "of the forwatrd model parameters.\n"
           "\n"
           "Usage:   Used by inversion methods.\n"
           "\n"
-          "Dimensions: \n"
-          "     [ y, y ]\n"),
+          "Dimensions: [ y, y ]\n"),
       GROUP("CovarianceMatrix")));
 
   wsv_data.push_back(WsvRecord(
@@ -989,7 +1002,7 @@ void define_wsv_data() {
           "matrix (*avk*).\n"
           "\n"
           "Usage: Set by the covmat_ssCalc workspace method to characterize the.\n"
-          "errors of a successful OEM calculation."
+          "errors of a successful OEM calculation.\n"
           "\n"
           "Dimensions:\n"
           "    [x,x]\n"),
@@ -1024,7 +1037,7 @@ void define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("disort_aux_vars"),
       DESCRIPTION(
-          "Selection of quantities for *disort_aux* .\n"
+          "Selection of quantities for *disort_aux*.\n"
           "\n"
           "Each element of this string array determines the quantity for the\n"
           "corresponding element in *disort_aux* (i.e. the quantities\n"
@@ -1047,9 +1060,10 @@ void define_wsv_data() {
           "\n"
           "Let us say that you add relative angles to a line-of-sight of za = 90\n"
           "and aa=0. Then adding the following (dza,daa) gives los of (za,aa):\n"
-          "   (1,0) -> (91,0)\n"
-          "   (0,1) -> (90,1)\n"
-          "   (-90,45) -> (0,undefined)\n"),
+          "\n"
+          "- (1,0) -> (91,0)\n"
+          "- (0,1) -> (90,1)\n"
+          "- (-90,45) -> (0,undefined)\n"),
       GROUP("Matrix")));
 
   wsv_data.push_back(WsvRecord(
@@ -1218,7 +1232,7 @@ void define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("dnlte_source_dx"),
       DESCRIPTION(
-          "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
+          "NLTE partial derivatives output is two parts:  S * dB/dx + dS/dx * B.\n"
           "\n"
           "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
           "\n"
@@ -1284,14 +1298,15 @@ void define_wsv_data() {
           "This variable holds the value of the scattering integral for all\n"
           "points inside the cloudbox. For more information refer to AUG.\n"
           "\n"
-          "Usage: Input to *cloudbox_fieldUpdate...*. \n"
+          "Usage: Input to ``cloudbox_fieldUpdate...``. \n"
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa, N_i ]\n"),
+          "Size:\n"
+          "     [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+          "     (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+          "     (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+          "     N_za, N_aa, N_i ]\n"),
       GROUP("Tensor6")));
 
   wsv_data.push_back(
@@ -1320,8 +1335,8 @@ void define_wsv_data() {
       NAME("doit_za_interp"),
       DESCRIPTION("Flag for interplation method in zenith angle dimension.\n"
                   "\n"
-                  "0 - linear interpolation \n"
-                  "1 - cubic interpolation \n"
+                  " - 0 - linear interpolation \n"
+                  " - 1 - cubic interpolation \n"
                   "\n"
                   "Usage: Set by user in *doit_za_interpSet*. \n"),
       GROUP("Index")));
@@ -1376,8 +1391,8 @@ void define_wsv_data() {
           "Dimensions: [num IDs] [num Species]\n"
           "\n"
           "It is used for absorption bands with these population tags:\n"
-          "\t ByMakarovFullRelmat \n"
-          "\t ByRovibLinearDipoleLineMixing \n"),
+          " - ByMakarovFullRelmat \n"
+          " - ByRovibLinearDipoleLineMixing \n"),
       GROUP("MapOfErrorCorrectedSuddenData")));
 
   wsv_data.push_back(WsvRecord(
@@ -1617,11 +1632,11 @@ void define_wsv_data() {
           "has been performed.\n"
           "\n"
           "Otherwise, this should be a vector having length 5. The elements are:\n"
-          "   altitude\n"
-          "   latitude\n"
-          "   longitide\n"
-          "   zenith angle\n"
-          "   azimuth angle\n"
+          " - altitude\n"
+          " - latitude\n"
+          " - longitide\n"
+          " - zenith angle\n"
+          " - azimuth angle\n"
           "\n"
           "Dimensions: 0 or 5\n"
           "\n"
@@ -1653,9 +1668,7 @@ void define_wsv_data() {
           "\n"
           "Units: K s^-1\n"
           "\n"
-          "Size: [ p_grid, \n"
-          "        lat_grid, \n"
-          "        lon_grid ]\n"),
+          "Size: [ p_grid, lat_grid, lon_grid ]\n"),
       GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
@@ -1666,38 +1679,48 @@ void define_wsv_data() {
           "Dimensions: [ n_species ]\n"
           "\n"
           "XsecRecord:\n"
-          "  species: Name of species\n"
-          "  version: Fit model version\n"
-          "  fitcoeffs:\n"
-          "    Fit model coefficients as an *ArrayOfGriddedField2*\n"
-          "    Dimensions: [ n_bands ]\n"
-          "      GriddedField2: [ n_band_frequencies, n_coeffs ]\n"
-          "        The fit model:\n"
-          "          z = p00 + p10*x + p01*y + p20*x^2\n"
           "\n"
-          "          z = Xsec [m^2]\n"
-          "          x = T / T0\n"
-          "          y = P / P0\n"
+          "- species: Name of species\n"
+          "- version: Fit model version\n"
+          "- fitcoeffs:\n"
           "\n"
-          "          T0 = 1 [K]\n"
-          "          P0 = 1 [Pa]\n"
+          "  -  Fit model coefficients as an *ArrayOfGriddedField2*\n"
+          "  -  Dimensions: [ n_bands ]\n"
           "\n"
-          "          fitcoeffs(:, 0)           p00  [m^2]\n"
-          "          fitcoeffs(:, 1)           p10  [m^2]\n"
-          "          fitcoeffs(:, 2)           p01  [m^2]\n"
-          "          fitcoeffs(:, 3)           p20  [m^2]\n"
-          "  fitminpressures:\n"
-          "    Minimum pressure available in source xsec data to generate the fit coefficients.\n"
-          "    Dimensions: [ n_bands ]\n"
-          "  fitmaxpressures:\n"
-          "    Maximum pressure available in source xsec data to generate the fit coefficients.\n"
-          "    Dimensions: [ n_bands ]\n"
-          "  fitmintemperatures:\n"
-          "    Minimum temperature available in source xsec data to generate the fit coefficients.\n"
-          "    Dimensions: [ n_bands ]\n"
-          "  fitmintemperatures:\n"
-          "    Maximum temperature available in source xsec data to generate the fit coefficients.\n"
-          "    Dimensions: [ n_bands ]\n"
+          "    -   GriddedField2: [ n_band_frequencies, n_coeffs ]\n"
+          "\n"
+          "      -    The fit model:\n"
+          "\n"
+          "        -     z = p00 + p10*x + p01*y + p20*x^2\n"
+          "        -     z = Xsec [m^2]\n"
+          "        -     x = T / T0\n"
+          "        -     y = P / P0\n"
+          "        -     T0 = 1 [K]\n"
+          "        -     P0 = 1 [Pa]\n"
+          "        -     fitcoeffs(:, 0)           p00  [m^2]\n"
+          "        -     fitcoeffs(:, 1)           p10  [m^2]\n"
+          "        -     fitcoeffs(:, 2)           p01  [m^2]\n"
+          "        -     fitcoeffs(:, 3)           p20  [m^2]\n"
+          "\n"
+          "- fitminpressures:\n"
+          "\n"
+          "  -  Minimum pressure available in source xsec data to generate the fit coefficients.\n"
+          "  -  Dimensions: [ n_bands ]\n"
+          "\n"
+          "- fitmaxpressures:\n"
+          "\n"
+          "  -  Maximum pressure available in source xsec data to generate the fit coefficients.\n"
+          "  -  Dimensions: [ n_bands ]\n"
+          "\n"
+          "- fitmintemperatures:\n"
+          "\n"
+          "  -  Minimum temperature available in source xsec data to generate the fit coefficients.\n"
+          "  -  Dimensions: [ n_bands ]\n"
+          "\n"
+          "- fitmintemperatures:\n"
+          "\n"
+          "  -  Maximum temperature available in source xsec data to generate the fit coefficients.\n"
+          "  -  Dimensions: [ n_bands ]\n"
           "\n"
           "fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures\n"
           "are not used to apply the model and solely serve for informational purposes.\n"),
@@ -1713,17 +1736,17 @@ void define_wsv_data() {
           "that are actually measured, or are transmitted.\n"
           "\n"
           "The polarisation states/components are coded as\n"
-          "   0 = Undefined.\n"
-          "   1 = I, total intensity.\n"
-          "   2 = Q, second Stokes component, Iv - Ih.\n"
-          "   3 = U, third Stokes component, I+45 - I-45.\n"
-          "   4 = V, forth Stokes component, Irc - Ilc\n"
-          "   5 = Iv, intensity of vertically polarised component.\n"
-          "   6 = Ih, intensity of horizontally polarised component.\n"
-          "   7 = I+45, intensity of +45 deg linearly polarised component.\n"
-          "   8 = I-45, intensity of -45 deg linearly polarised component.\n"
-          "   9 = Ilhc, intensity of left-hand circularly polarised component.\n"
-          "  10 = Irhc, intensity of right-hand circularly polarised component.\n"
+          "  (0) Undefined.\n"
+          "  (1) I, total intensity.\n"
+          "  (2) Q, second Stokes component, Iv - Ih.\n"
+          "  (3) U, third Stokes component, I+45 - I-45.\n"
+          "  (4) V, forth Stokes component, Irc - Ilc\n"
+          "  (5) Iv, intensity of vertically polarised component.\n"
+          "  (6) Ih, intensity of horizontally polarised component.\n"
+          "  (7) I+45, intensity of +45 deg linearly polarised component.\n"
+          "  (8) I-45, intensity of -45 deg linearly polarised component.\n"
+          "  (9) Ilhc, intensity of left-hand circularly polarised component.\n"
+          "  (10) Irhc, intensity of right-hand circularly polarised component.\n"
           "\n"
           "See the documentation for definition of the Stokes vector and the\n"
           "different components.\n"
@@ -1777,10 +1800,7 @@ void define_wsv_data() {
           "\n"
           "Units: W m^-2\n"
           "\n"
-          "Size: [ p_grid, \n"
-          "        lat_grid, \n"
-          "        lon_grid, \n"
-          "        2 ]\n"),
+          "Size: [ p_grid,  lat_grid,  lon_grid,  2 ]\n"),
       GROUP("Tensor4")));
 
   wsv_data.push_back(
@@ -1806,9 +1826,10 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "Usage:      Used by radiative transfer methods.\n"
           "\n"
-          "Unit:       For passive observations, as  selected by *iy_unit*.\n"
-          "            For transmission calculations, same as for transmitted\n"
-          "            signal.\n"
+          "Unit:\n"
+          " - For passive observations, as  selected by *iy_unit*.\n"
+          " - For transmission calculations, same as for transmitted\n"
+          "   signal.\n"
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"),
       GROUP("Matrix")));
@@ -1825,7 +1846,8 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "Unit:       W / (m^2 Hz sr) or transmittance.\n"
           "\n"
-          "Dimensions: [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
+          "Dimensions:\n"
+          "            [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
           "            mblock_dlos, and nf is length of f_grid.\n"),
       GROUP("Vector")));
 
@@ -1836,7 +1858,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "The agenda *iy_main_agenda* can be used recursively and this flag\n"
           "is used to tell the methods inside the agenda which is the primary\n"
-          " call. This is handled automatically for methods using\n"
+          "call. This is handled automatically for methods using\n"
           "*iy_main_agenda*, such as *yCalc*, but the user must set this\n"
           "variable to 1 if the agenda is called directly inside the control\n"
           "file (which should be a rare case).\n"),
@@ -1891,8 +1913,10 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "calculations of *iy*. This id-number can e.g. be used as input to \n"
           "*WriteXMLIndexed*, to link filenames to the different calculations.\n"
           "\n"
-          "Some methods sets and updates *iy_id*. The general numbering scheme is:\n"
-          "   xxxyyycba\n"
+          "Some methods sets and updates *iy_id*. The general numbering scheme is::\n"
+          "\n"
+          "  xxxyyycba\n"
+          "\n"
           "where xxx identifies the row in sensorPos/los (i.e. the mblock_index),\n"
           "yyy identifies pencil beam direction inside measurement block (should\n"
           "in general match a row in mblock_dlos), and cba identies later legs\n"
@@ -2003,8 +2027,8 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "The matrix holding the Jacobians of the retrieval quantities. The\n"
           "matrix has to be initialised before the retrieval quantities can be\n"
-          "defined. Initialisation is done by*jacobianInit*. Retrieval quantities\n"
-          "are then added with *jacobianAdd...* or *retrievalAdd..* methods.\n"
+          "defined. Initialisation is done by *jacobianInit*. Retrieval quantities\n"
+          "are then added with ``jacobianAdd...`` or ``retrievalAdd...`` methods.\n"
           "\n"
           "The order between rows and columns follows how data are stored in *y*\n"
           "and *x*, respectively.\n"
@@ -2097,12 +2121,15 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "*lat_true* and *lon_true*. Can be left empty when not used.\n"
           "Otherwise:\n"
           "\n"
-          "   1D: *lat_true* shall have length 1\n"
-          "\n"
-          "   2D: Both *lat_true* and *lon_true* shall have a length matching\n"
-          "       *lat_grid*. That is, *lat_true* and *lon_true* shall not be\n"
-          "       seen as grids, they are vectors giving the actual lat or lon\n"
-          "       for each point corresponding to *lat_grid*.\n"
+          "   -\n"
+          "     1D.\n"
+          "     *lat_true* shall have length 1\n"
+          "   -\n"
+          "     2D.\n"
+          "     Both *lat_true* and *lon_true* shall have a length matching\n"
+          "     *lat_grid*. That is, *lat_true* and *lon_true* shall not be\n"
+          "     seen as grids, they are vectors giving the actual lat or lon\n"
+          "     for each point corresponding to *lat_grid*.\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
@@ -2202,12 +2229,16 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "*lat_true* and *lon_true*. Can be left empty when not used.\n"
           "Otherwise:\n"
           "\n"
-          "   1D: *lon_true* shall have length 1\n"
+          "   -\n"
+          "    1D.\n"
+          "    *lon_true* shall have length 1\n"
           "\n"
-          "   2D: Both *lat_true* and *lon_true* shall have a length matching\n"
-          "       *lat_grid*. That is, *lat_true* and *lon_true* shall not be\n"
-          "       seen as grids, they are vectors giving the actual lat or lon\n"
-          "       for each point corresponding to *lat_grid*.\n"
+          "   -\n"
+          "     2D.\n"
+          "     Both *lat_true* and *lon_true* shall have a length matching\n"
+          "     *lat_grid*. That is, *lat_true* and *lon_true* shall not be\n"
+          "     seen as grids, they are vectors giving the actual lat or lon\n"
+          "     for each point corresponding to *lat_grid*.\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
@@ -2347,8 +2378,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       DESCRIPTION(
           "Antenna pattern description for dedicated MC calculaions.\n"
           "\n"
-          "Usage: Input to MCGeneral. Set by *mc_antennaSetGaussian* and similar\n"
-          "       methods.\n"),
+          "Usage: Input to MCGeneral. Set by *mc_antennaSetGaussian* and similar methods.\n"),
       GROUP("MCAntenna")));
 
   wsv_data.push_back(WsvRecord(
@@ -2521,23 +2551,24 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "This is a compact description of a passband-type sensor, e.g. AMSU-A. The matrix\n"
           "contains one row for each instrument channel. Each row contains four elements:\n\n"
-          "  LO position [Hz]\n"
-          "  first offset from the LO [Hz]\n"
-          "  second offset from the LO+offset1 [Hz]\n"
-          "  channel width [Hz]\n"
+          " - LO position [Hz]\n"
+          " - first offset from the LO [Hz]\n"
+          " - second offset from the LO+offset1 [Hz]\n"
+          " - channel width [Hz]\n"
           "\n"
-          "                          LO\n"
-          "                           |\n"
-          "               offset1     |    offset1\n"
-          "           ----------------+----------------\n"
-          "           |                               |\n"
-          "           |                               |\n"
-          "  offset2  |  offset2             offset2  |  offset2\n"
-          "  ---------+---------             ---------+---------\n"
-          "  |                 |             |                 |\n"
-          "  |                 |             |                 |\n"
-          "#####             #####         #####             #####\n"
-          "width             width         width             width\n"
+          "Overview::\n\n"
+          "                            LO\n"
+          "                             |\n"
+          "                 offset1     |    offset1\n"
+          "             ----------------+----------------\n"
+          "             |                               |\n"
+          "             |                               |\n"
+          "    offset2  |  offset2             offset2  |  offset2\n"
+          "    ---------+---------             ---------+---------\n"
+          "    |                 |             |                 |\n"
+          "    |                 |             |                 |\n"
+          "  #####             #####         #####             #####\n"
+          "  width             width         width             width\n"
           "\n"
           "For a sensor with 1 passband, offset1 and offset2 are zero.\n"
           "For a sensor with 2 passbands, only offset2 is zero.\n"
@@ -2557,15 +2588,15 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "This array must match the number and order of channels in\n"
           "*met_mm_backend*.\n"
           "\n"
-          "Possible values:\n"
-          "V: Vertical polarisation\n"
-          "H: Horizontal polarisation\n"
-          "LHC: Left-hand circular polarisation\n"
-          "RHC: Right-hand circular polarisation\n"
-          "AMSU-V: Vertical polarisation dependening on AMSU zenith angle\n"
-          "AMSU-H: Horizontal polarisation dependening on AMSU zenith angle\n"
-          "ISMAR-V: Vertical polarisation dependening on ISMAR zenith angle\n"
-          "ISMAR-H: Horizontal polarisation dependening on AMSU zenith angle\n"
+          "Possible values:\n\n"
+          "- ``\"V\"``: Vertical polarisation\n"
+          "- ``\"H\"``: Horizontal polarisation\n"
+          "- ``\"LHC\"``: Left-hand circular polarisation\n"
+          "- ``\"RHC\"``: Right-hand circular polarisation\n"
+          "- ``\"AMSU-V\"``: Vertical polarisation dependening on AMSU zenith angle\n"
+          "- ``\"AMSU-H\"``: Horizontal polarisation dependening on AMSU zenith angle\n"
+          "- ``\"ISMAR-V\"``: Vertical polarisation dependening on ISMAR zenith angle\n"
+          "- ``\"ISMAR-H\"``: Horizontal polarisation dependening on AMSU zenith angle\n"
           "\n"
           "Usage: Set by the user.\n"
           "\n"
@@ -2699,16 +2730,16 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "Basic diagnostics of an OEM type inversion.\n"
           "\n"
           "This is a vector of length 5, having the elements (0-based index):\n"
-          "  0: Convergence status, with coding\n"
-          "       0 = converged\n"
-          "       1 = max iterations reached\n"
-          "       2 = max gamma of LM reached\n"
-          "       9 = some error when calling *inversion_iterate_agenda*\n"
-          "      99 = too high start cost.\n"
-          "  1: Start value of cost function.\n"
-          "  2: End value of cost function.\n"
-          "  3: End value of y-part of cost function.\n"
-          "  4: Number of iterations used.\n"
+          "  0. Convergence status, with coding\n"
+          "       - 0 = converged\n"
+          "       - 1 = max iterations reached\n"
+          "       - 2 = max gamma of LM reached\n"
+          "       - 9 = some error when calling *inversion_iterate_agenda*\n"
+          "       - 99 = too high start cost.\n"
+          "  1. Start value of cost function.\n"
+          "  2. End value of cost function.\n"
+          "  3. End value of y-part of cost function.\n"
+          "  4. Number of iterations used.\n"
           "\n"
           "See WSM *OEM* for a definition of \"cost\". Values not calculated\n"
           "are set to NaN.\n"),
@@ -2723,9 +2754,10 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
       DESCRIPTION(
           "Output file format.\n"
           "\n"
-          "This variable sets the format for output files. It could be set to\n"
-          "\"ascii\" for plain xml files, \"zascii\" for zipped xml files, or\n"
-          "\"binary\".\n"
+          "This variable sets the format for output files. It could be set to:\n\n"
+          "- \"ascii\": for plain xml files\n"
+          "- \"zascii\": for zipped xml files\n"
+          "- \"binary\": for binary.\n"
           "\n"
           "To change the value of this variable use the workspace methods\n"
           "*output_file_formatSetAscii*, *output_file_formatSetZippedAscii*, and\n"
@@ -2820,8 +2852,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "Unit:        m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
-          "Dimensions: [T,za_grid, aa_grid, za_grid, aa_grid, \n"
-          " stokes_dim, stokes_dim]\n"),
+          "Dimensions: [T,za_grid, aa_grid, za_grid, aa_grid, stokes_dim, stokes_dim]\n"),
       GROUP("Tensor7")));
 
   wsv_data.push_back(WsvRecord(
@@ -2840,8 +2871,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "Unit:       m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
-          "Dimensions: [number of scattering elements, za_grid, aa_grid,\n"
-          "             stokes_dim, stokes_dim]\n"),
+          "Dimensions: [number of scattering elements, za_grid, aa_grid, stokes_dim, stokes_dim]\n"),
       GROUP("Tensor5")));
 
   wsv_data.push_back(WsvRecord(
@@ -2866,9 +2896,10 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "Unit:        m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
           "Dimensions: \n"
-          "[number of scattering elements]\n"
-          "[T, za_grid, aa_grid, za_grid, aa_grid,\n"
-          " stokes_dim, stokes_dim]\n"),
+          "\n"
+          "- [number of scattering elements]\n"
+          "\n"
+          "  - [T, za_grid, aa_grid, za_grid, aa_grid, stokes_dim, stokes_dim]\n"),
       GROUP("ArrayOfTensor7")));
 
   wsv_data.push_back(WsvRecord(
@@ -2881,7 +2912,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "is a value roughly 4 min less than 24 h.\n"
           "\n"
           "A negative value signifies a retrograde rotation, i.e. opposite to\n"
-          "the rotation of Earth.\n"
+          "the rotation of Earth.\n\n"
           "Unit:   s\n"),
       GROUP("Numeric")));
 
@@ -2988,10 +3019,11 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "\n"
           "Unit:        m^-3\n"
           "\n"
-          "Size: [number of scattering elements, \n"
-          "       (*cloudbox_limits*[1] - *cloudbox_limits*[0]) +1, \n"
-          "       (*cloudbox_limits*[3] - *cloudbox_limits*[2]) +1, \n"
-          "       (*cloudbox_limits*[5] - *cloudbox_limits*[4]) +1 ] \n"),
+          "Size:\n"
+          " [number of scattering elements, \n"
+          " ( *cloudbox_limits* [1] - *cloudbox_limits* [0]) +1, \n"
+          " ( *cloudbox_limits* [3] - *cloudbox_limits* [2]) +1, \n"
+          " ( *cloudbox_limits* [5] - *cloudbox_limits* [4]) +1 ] \n"),
       GROUP("Tensor4")));
 
   wsv_data.push_back(WsvRecord(
@@ -3017,17 +3049,21 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
           "GriddedField3. It includes one GriddedField3 for each scattering\n"
           "element, which contains both the data and the corresponding grids.\n"
           "\n"
-          "Usage: Set by the user. Input to methods *ScatElementsPndAndScatAdd* and \n"
-          "       *ScatSpeciesPndAndScatAdd*\n"
+          "Usage:\n"
+          "  Set by the user. Input to methods *ScatElementsPndAndScatAdd* and \n"
+          "  *ScatSpeciesPndAndScatAdd*\n"
           "\n"
           "Unit:  m^-3\n"
           "\n"
-          "Size:  Array[number of scattering elementst]\n"
-          "       GriddedField3 \n "
-          "       [number of pressure levels] \n"
-          "       [number of latitudes] \n"
-          "       [number of longitudes] \n"
-          "       [number of pressure levels, number of latitudes, number of longitudes]\n"),
+          "Size:\n"
+          "\n"
+          "- Array[number of scattering elementst]\n"
+          "\n"
+          "  - GriddedField3\n"
+          "  - [number of pressure levels]\n"
+          "  - [number of latitudes]\n"
+          "  - [number of longitudes]\n"
+          "  - [number of pressure levels, number of latitudes, number of longitudes]\n"),
       GROUP("ArrayOfGriddedField3")));
 
   wsv_data.push_back(WsvRecord(
@@ -3281,8 +3317,7 @@ This variable is set to the default provided by *isotopologue_ratiosInitFromBuil
   wsv_data.push_back(WsvRecord(
       NAME("predefined_model_data"),
       DESCRIPTION(
-          R"--(This contains predefined model data that cannot
-be distributed directly for whatever reason
+          R"--(This contains predefined model data.
 
 Can currently only contain data for new MT CKD models of water.
 )--"),
@@ -3291,9 +3326,7 @@ Can currently only contain data for new MT CKD models of water.
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
       DESCRIPTION(
-          "This contains the absorption coefficients for one point in the\n"
-          "atmosphere (one set of pressure, temperature, magnetic field, and\n"
-          "VMR values).\n"
+          "This contains the absorption coefficients for one point in the atmosphere.\n"
           "\n"
           "Dimensions: [naa, nza, nf, f(stokes_dim)]\n"
           "\n"
@@ -3384,7 +3417,7 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "This variable is used to interpolate *cloudbox_field* back to its original\n"
           "size after the calculation with *OptimizeDoitPressureGrid*.\n"
-          " The variable is listed as a subentry to\n"
+          "The variable is listed as a subentry to\n"
           "\"workspace variables\".\n"
           "\n"
           "Usage: Set by the user.\n"
@@ -3476,9 +3509,11 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "This vector specifies the shape of the reference ellipsoid. The\n"
           "vector must have length 2, where the two elements are:\n"
-          "  1: Equatorial radius.\n"
-          "  2: The eccentricity.\n"
-          "The eccentricity is sqrt(1-b*b/a*a) where a and b are equatorial and\n"
+          "\n"
+          "1. Equatorial radius.\n"
+          "2. The eccentricity.\n"
+          "\n"
+          "The eccentricity is sqrt(1-b * b/a * a) where a and b are equatorial and\n"
           "polar radius, respectively. If the eccentricity is set to 0, an\n"
           "average radius should be used instead of the equatorial one.\n"
           "\n"
@@ -3509,7 +3544,7 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "The vector contains the square roots  of the diagonal elements of  the\n"
           "covariance matrix of the error due to measurement noise, S_m in Rodgers'\n"
-          " book.\n"),
+          "book.\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -3715,7 +3750,7 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Usage: Communication variable.\n"
           "\n"
-          "Units: [ K/# ]\n"
+          "Units: [ K/# ]\n\n"
           "Size:  [ NLTE levels, 1, 1, 1 ] or [ 0, 0, 0, 0 ]\n"),
       GROUP("EnergyLevelMap")));
 
@@ -3756,7 +3791,7 @@ Can currently only contain data for new MT CKD models of water.
       DESCRIPTION(
           "OK-flag for *scat_data*.\n"
           "\n"
-          "Relevant checks are performed by *scat_data_checkedCalc. Only the\n"
+          "Relevant checks are performed by *scat_data_checkedCalc*. Only the\n"
           "value 1 is taken as OK.\n"),
       GROUP("Index"), Index{0}));
 
@@ -3776,21 +3811,27 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Usage: Method ouput.\n"
           "\n"
-          "Members: SingleScatteringData:\n"
-          "  Enum[ptype attribute]\n"
-          "  String[description] \n"
-          "  Vector[f_grid]\n"
-          "  Vector[T_grid]\n"
-          "  Vector[za_grid]\n"
-          "  Vector[aa_grid]\n"
-          "  Tensor7[pha_mat_data]\n"
-          "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
-          "                       ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^\n"
-          "                       scattered         incoming\n"
-          "  Tensor5[ext_mat_data]\n"
-          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-          "  Tensor5[abs_vec_data]\n"
-          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+          "Members:\n"
+          "\n"
+          "- SingleScatteringData:\n"
+          "\n"
+          "  - Enum[ptype attribute]\n"
+          "  - String[description] \n"
+          "  - Vector[f_grid]\n"
+          "  - Vector[T_grid]\n"
+          "  - Vector[za_grid]\n"
+          "  - Vector[aa_grid]\n"
+          "  - Tensor7[pha_mat_data]\n"
+          "\n"
+          "    - [f_grid, T_grid, za_grid(scattered), aa_grid(scattered), za_grid(incoming), aa_grid(incoming), matrix_element]\n"
+          "\n"
+          "  - Tensor5[ext_mat_data]\n"
+          "\n"
+          "    - [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+          "\n"
+          "  - Tensor5[abs_vec_data]\n"
+          "\n"
+          "    - [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
           "\n"
           "Dimensions: [number of scattering species][number of scattering elements] \n"),
       GROUP("ArrayOfArrayOfSingleScatteringData")));
@@ -3816,21 +3857,27 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Usage: Set by the user.\n"
           "\n"
-          "Dimensions:  SingleScatteringData \n"
-          "  Enum[ptype attribute]\n"
-          "  String[description] \n"
-          "  Vector[f_grid]\n"
-          "  Vector[T_grid]\n"
-          "  Vector[za_grid]\n"
-          "  Vector[aa_grid]\n"
-          "  Tensor7[pha_mat_data]\n"
-          "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
-          "                       ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^\n"
-          "                       scattered         incoming\n"
-          "  Tensor5[ext_mat_data]\n"
-          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-          "  Tensor5[abs_vec_data]\n"
-          "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"),
+          "Dimensions:\n"
+          "\n"
+          "- SingleScatteringData \n"
+          "\n"
+          "  - Enum[ptype attribute]\n"
+          "  - String[description] \n"
+          "  - Vector[f_grid]\n"
+          "  - Vector[T_grid]\n"
+          "  - Vector[za_grid]\n"
+          "  - Vector[aa_grid]\n"
+          "  - Tensor7[pha_mat_data]\n"
+          "\n"
+          "    - [f_grid, T_grid, za_grid(scattered), aa_grid(scattered), za_grid(incoming), aa_grid(incoming), matrix_element]\n"
+          "\n"
+          "  - Tensor5[ext_mat_data]\n"
+          "\n"
+          "    - [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+          "\n"
+          "  - Tensor5[abs_vec_data]\n"
+          "\n"
+          "    - [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"),
       GROUP("SingleScatteringData")));
 
   wsv_data.push_back(WsvRecord(
@@ -3843,8 +3890,7 @@ Can currently only contain data for new MT CKD models of water.
           "*pha_matCalc*. It holds the information about the position for which the\n"
           "scattering calculations are done.\n"
           "\n"
-          "Usage:    Input to the methods *spt_calc_agenda*,\n"
-          "                               *pha_mat_spt_agenda*\n"),
+          "Usage:    Input to the methods *spt_calc_agenda*, *pha_mat_spt_agenda*\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -3857,8 +3903,7 @@ Can currently only contain data for new MT CKD models of water.
           "*pha_matCalc*. It holds the information about the position for which the\n"
           "scattering calculations are done.\n"
           "\n"
-          "Usage:    Input to the methods *spt_calc_agenda*,\n"
-          "                               *pha_mat_spt_agenda*\n"),
+          "Usage:    Input to the methods *spt_calc_agenda*, *pha_mat_spt_agenda*\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -3947,9 +3992,9 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Usage: Set by the user.\n"
           "\n"
-          "Dimensions: [scattering species][scattering elements]"
+          "Dimensions: [scattering species][scattering elements]\n"
           "\n"
-          "For more details, see also *scat_meta_single*.\n"),
+          "See also: *scat_meta_single*.\n"),
       GROUP("ArrayOfArrayOfScatteringMetaData")));
 
   wsv_data.push_back(WsvRecord(
@@ -3962,8 +4007,7 @@ Can currently only contain data for new MT CKD models of water.
           "*pha_matCalc*. It holds the information about the location for which the\n"
           "scattering calculations are done.\n"
           "\n"
-          "Usage:    Input to the methods *spt_calc_agenda*,\n"
-          "                               *pha_mat_spt_agenda*\n"),
+          "Usage:    Input to the methods *spt_calc_agenda*, *pha_mat_spt_agenda*\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -3996,8 +4040,10 @@ Can currently only contain data for new MT CKD models of water.
           "\n"
           "Some methods require a relationship between mass and particle size,\n"
           "valid for the complete scattering species. A common model for this\n"
-          "relationship is:\n"
-          "    mass(x) = a * x^b,\n"
+          "relationship is::\n"
+          "\n"
+          "  mass(x) = a * x^b,\n"
+          "\n"
           "where x is size (that could be Dveq, Dmax or mass) and a/b are parameters.\n"
           "\n"
           "This WSV is a in the expression above.\n"
@@ -4272,11 +4318,11 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "configuration. The *sensor_response* has to initialised by the \n"
           "*sensor_responseInit* method.\n"
           "\n"
-          "Usage: Output/input to the *sensor_response...* methods.\n"
+          "Usage: Output/input to the ``sensor_response...`` methods.\n"
           "\n"
           "Units: -\n"
           "\n"
-          "Dimension: See the individual *sensor_response...* method. \n"),
+          "Dimension: See the individual ``sensor_response...`` method. \n"),
       GROUP("Sparse")));
 
   wsv_data.push_back(WsvRecord(
@@ -4420,8 +4466,9 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "A text string describing which of the two sidebands (of a heterodyne\n"
           "instrument) that can be seen as \"main\" band. Possible choices are:\n"
-          " \"lower\" : Low frequency sideband shall be considered as target.\n"
-          " \"upper\" : High frequency sideband shall be considered as target.\n"
+          "\n"
+          "- \"lower\" : Low frequency sideband shall be considered as target.\n"
+          "- \"upper\" : High frequency sideband shall be considered as target.\n"
           "\n"
           "Usage: Set by the user.\n"),
       GROUP("String")));
@@ -4458,9 +4505,11 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Usage: Set by the user.\n"
           "\n"
           "Dimensions: \n"
-          "   GriddedField1:\n"
-          "      Vector f_grid[N_f]\n"
-          "      Vector data[N_f]\n"),
+          "\n"
+          "-  GriddedField1:\n"
+          "\n"
+          "  -    Vector f_grid[N_f]\n"
+          "  -    Vector data[N_f]\n"),
       GROUP("GriddedField1")));
 
   wsv_data.push_back(WsvRecord(
@@ -4489,11 +4538,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Units: W m^-2 Hz^-1\n"
           "\n"
-          " Size: [ Nf,\n"
-          "         p_grid, \n"
-          "         lat_grid, \n"
-          "         lon_grid, \n"
-          "         2 ]\n"),
+          " Size: [ Nf, p_grid, lat_grid, lon_grid, 2 ]\n"),
       GROUP("Tensor5")));
 
   wsv_data.push_back(WsvRecord(
@@ -4509,16 +4554,11 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Units: W / (m^2 Hz sr)\n"
           "\n"
-          " Size: [f_grid,\n"
-          "       p_grid, \n"
-          "       lat_grid, \n"
-          "       lon_grid, \n"
-          "       za_grid,\n"
-          "       aa_grid,\n"
-          "       stokes_dim ]\n"
+          " Size: [f_grid, p_grid,  lat_grid,  lon_grid,  za_grid, aa_grid, stokes_dim ]\n"
           "\n"
-          "Note: For 1D, the size of the latitude, longitude and azimuth\n"
-          "dimension (N_aa) are all 1.\n"),
+          "Note:\n"
+          " For 1D, the size of the latitude, longitude and azimuth\n"
+          " dimension (N_aa) are all 1.\n"),
       GROUP("Tensor7")));
 
   wsv_data.push_back(WsvRecord(
@@ -4530,9 +4570,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                   "\n"
                   "Units: K J^-1 kg^-1\n"
                   "\n"
-                  "Size: [ p_grid, \n"
-                  "        lat_grid, \n"
-                  "        lon_grid] \n"),
+                  "Size: [ p_grid, lat_grid,  lon_grid] \n"),
       GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
@@ -4793,10 +4831,12 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "array is valid for that position etc.\n"
           "\n"
           "Dimensions: \n"
-          "   GriddedField2:\n"
-          "      Vector Latitude [N_lat]\n"
-          "      Vector Longitude [N_lon]\n"
-          "      Matrix data [N_lat][N_lon]\n"),
+          "\n"
+          "-  GriddedField2:\n"
+          "\n"
+          "  -    Vector Latitude [N_lat]\n"
+          "  -    Vector Longitude [N_lon]\n"
+          "  -    Matrix data [N_lat][N_lon]\n"),
       GROUP("GriddedField2")));
 
   wsv_data.push_back(
@@ -4961,11 +5001,14 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Unit:  K\n"
           "\n"
-          "Size   GriddedField3 \n "
-          "       [N_p] \n"
-          "       [N_lat] \n"
-          "       [N_lon] \n"
-          "       [N_p, N_lat, N_lon] \n"),
+          "Size:\n"
+          "\n"
+          "-  GriddedField3\n"
+          "\n"
+          "  -     [N_p]\n"
+          "  -     [N_lat]\n"
+          "  -     [N_lon]\n"
+          "  -     [N_p, N_lat, N_lon] \n"),
       GROUP("GriddedField3")));
 
   wsv_data.push_back(WsvRecord(
@@ -4983,14 +5026,16 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
        "\n"
        "Unit:  K\n"
        "\n"
-       "Size   ArrayOfGriddedField3 \n "
-       "array:\n"
-       "       [NLTE levels] or [ 0 ]\n"
-       "fields:\n"
-       "       [N_p] \n"
-       "       [N_lat] \n"
-       "       [N_lon] \n"
-       "       [N_p, N_lat, N_lon] \n"),
+       "Size:\n"
+       "\n"
+       "- ArrayOfGriddedField3 \n"
+       "\n"
+       "  -     [NLTE levels] or [ 0 ]\n"
+       "\n"
+       "    -    [N_p] \n"
+       "    -    [N_lat] \n"
+       "    -    [N_lon] \n"
+       "    -    [N_p, N_lat, N_lon] \n"),
       GROUP("ArrayOfGriddedField3")));
 
   wsv_data.push_back(WsvRecord(
@@ -5026,7 +5071,8 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Usage:    Set by user.\n"
           "\n"
-          "See also: *verbosityInit*\n"
+          "See also:\n"
+          "          *verbosityInit*\n"
           "          *verbositySet*\n"
           "          *verbositySetAgenda*\n"
           "          *verbositySetScreen*\n"
@@ -5064,17 +5110,23 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "For the calculation the data is \n"
           "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"
           "\n"
-          "Usage: Output of *AtmRawRead*\n"
-          "       Input to *AtmFieldsCalc*.\n"
+          "Usage:\n"
+          "\n"
+          "- Output of *AtmRawRead*.\n"
+          "- Input to *AtmFieldsCalc*.\n"
           "\n"
           "Unit:  absolute number\n"
           "\n"
-          "Size:  Array[number of absorption species]\n"
-          "       GriddedField3 \n "
-          "       [N_p] \n"
-          "       [N_lat] \n"
-          "       [N_lon] \n"
-          "       [N_p, N_lat, N_lon] \n"),
+          "Size:\n"
+          "\n"
+          "- Array[number of absorption species]\n"
+          "\n"
+          "  -     GriddedField3\n"
+          "\n"
+          "    -    [N_p] \n"
+          "    -    [N_lat] \n"
+          "    -    [N_lon] \n"
+          "    -    [N_p, N_lat, N_lon] \n"),
       GROUP("ArrayOfGriddedField3")));
 
   wsv_data.push_back(WsvRecord(
@@ -5290,18 +5342,18 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "with each element in *y* are given by *y_pol*, *y_f*, *y_pos* and\n"
           "*y_los*. For monochromatic pencil beam radiances, data are sorted\n"
           "in the following way, from the innermost to the outermost loop\n"
-          "    Stokes\n"
-          "    Frequency\n"
-          "    LOS inside the measurement block\n"
-          "    Measurement block\n"
+          "\n"
+          "-   Stokes\n"
+          "-   Frequency\n"
+          "-   LOS inside the measurement block\n"
+          "-   Measurement block\n"
+          "\n"
           "With sensor response included, the order can be differ. As output\n"
           "of *yRadar*, the order will also be different.\n"
           "\n"
-          "Usage: Output from radiative transfer calculations considering\n"
-          "       sensor response.\n"
+          "Usage: Output from radiative transfer calculations considering sensor response.\n"
           "\n"
-          "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
-          "       optical thickness.\n"),
+          "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and optical thickness.\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -5360,8 +5412,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Don't confuse this variable with *yf*.\n"
           "\n"
-          "Usage: Output from radiative transfer calculations considering\n"
-          "       sensor response.\n"
+          "Usage: Output from radiative transfer calculations considering sensor response.\n"
           "\n"
           "Unit:  [ Hz ]\n"),
       GROUP("Vector")));
@@ -5407,8 +5458,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "for each element of *y*, following y_f, and the number of rows equals\n"
           "the length of *y*.\n"
           "\n"
-          "Usage: Output from radiative transfer calculations considering\n"
-          "       sensor response.\n"
+          "Usage: Output from radiative transfer calculations considering sensor response.\n"
           "\n"
           "Unit:  [ degrees, degrees ]\n"),
       GROUP("Matrix")));
@@ -5423,8 +5473,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "See *instrument_pol* for coding of polarisation components.\n"
           "\n"
-          "Usage: Output from radiative transfer calculations considering\n"
-          "       sensor response.\n"
+          "Usage: Output from radiative transfer calculations considering sensor response.\n"
           "\n"
           "Unit:  [ - ]\n"),
       GROUP("ArrayOfIndex")));
@@ -5438,8 +5487,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "holds the altitude). Data are provided for each element of *y*,\n"
           "following y_f, and the number of rows equals the length of *y*.\n"
           "\n"
-          "Usage: Output from radiative transfer calculations considering\n"
-          "       sensor response.\n"
+          "Usage: Output from radiative transfer calculations considering sensor response.\n"
           "\n"
           "Unit:  [ m, deg, deg ]\n"),
       GROUP("Matrix")));
@@ -5487,11 +5535,10 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Usage: Most commonly produced by *ybatchCalc*.\n"
           "\n"
-          "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
-          "       optical thickness.\n"
+          "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and optical thickness.\n"
           "\n"
           "Dimensions: Number of array elements equals number of batch cases,\n"
-          "            Vectors have length(y)\n"),
+          "Vectors have length(y)\n"),
       GROUP("ArrayOfVector")));
 
   wsv_data.push_back(WsvRecord(
@@ -5520,7 +5567,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                   "See further *ybatchCalc*.\n"
                   "\n"
                   "Usage: Set by *ybatchCalc*, for communication with\n"
-                  "       *ybatch_calc_agenda*.\n"),
+                  "*ybatch_calc_agenda*.\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -5529,7 +5576,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "Correction terms for *ybatch*.\n"
           "\n"
           "Dimensions: Number of array elements equals number of batch cases,\n"
-          "            Vectors have length depending on correction method\n"),
+          "Vectors have length depending on correction method\n"),
       GROUP("ArrayOfVector")));
 
   wsv_data.push_back(WsvRecord(
@@ -5542,9 +5589,12 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
                   "\n"
                   "Unit:  Depends on unit of y and on Jacobian type.\n"
                   "\n"
-                  "Dimensions: [number of batch cases] \n"
-                  "             (length(y), \n"
-                  "             number of retrieval quantities and grids)\n"),
+                  "Dimensions:\n"
+                  "\n"
+                  "- [number of batch cases]\n"
+                  "\n"
+                  "  -           (length(y),\n"
+                  "  -           number of retrieval quantities and grids)\n"),
       GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(
@@ -5589,7 +5639,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "This grid is used for RT calculations inside the cloudbox, therefore\n"
           "the grid has to be defined if the cloudbox is activated by the flag\n"
           "*cloudbox_on*. Furthermore the zenith angle grid is also used for RT\n"
-          "calculations of clear-sky *spectral radiance field*. \n"
+          "calculations of clear-sky *spectral_radiance_field*. \n"
           "The grid must be sorted in increasing order, with no repetitions.\n"
           "\n"
           "Usage:      Set by the user.\n"
@@ -5614,8 +5664,7 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "This variable is used internally in WSMs for computing scattering \n"
           "properties. \n"
           "\n"
-          "Usage:    Input to the agendas *spt_calc_agenda*, \n "
-          "                               *pha_mat_spt_agenda*.\n"),
+          "Usage:    Input to the agendas *spt_calc_agenda*, *pha_mat_spt_agenda*.\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
@@ -5665,11 +5714,14 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
           "\n"
           "Unit:  K\n"
           "\n"
-          "Size   GriddedField3 \n "
-          "       [N_p] \n"
-          "       [N_lat] \n"
-          "       [N_lon] \n"
-          "       [N_p, N_lat, N_lon] \n"),
+          "Size:\n"
+          "\n"
+          "-  GriddedField3\n"
+          "\n"
+          "  -     [N_p]\n"
+          "  -     [N_lat]\n"
+          "  -     [N_lon]\n"
+          "  -     [N_p, N_lat, N_lon]\n"),
       GROUP("GriddedField3")));
 
   wsv_data.push_back(WsvRecord(

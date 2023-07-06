@@ -8,40 +8,45 @@
 
 namespace Python {
 void internalCKDMT400(
-    py::module_& m,
-    py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>& c) {
-  c.def(py::init([]() {
-     return std::make_unique<Absorption::PredefinedModel::MT_CKD400::WaterData>();
-   }))
+    py::module_& m) {
+  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>(
+      m, "MTCKD400WaterData")
+      .def(py::init([]() {
+             return std::make_unique<
+                 Absorption::PredefinedModel::MT_CKD400::WaterData>();
+           }),
+           "Default water data")
       .def_readonly_static(
-          "key", &Absorption::PredefinedModel::MT_CKD400::WaterData::key)
+          "key",
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::key,
+          ":class:`~pyarts.arts.predef.DataKey` Static key to self")
       .def_readwrite(
           "ref_temp",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp, ":class:`float` Reference temperature")
       .def_readwrite(
           "ref_press",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press, ":class:`float` Reference pressure")
       .def_readwrite(
           "ref_h2o_vmr",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr, ":class:`float` Reference water VMR")
       .def_readwrite(
           "self_absco_ref",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref, ":class:`list` Self absorption")
       .def_readwrite(
           "for_absco_ref",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref, ":class:`list` Foreign absorption")
       .def_readwrite(
           "wavenumbers",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers, ":class:`list` Wavenumbers")
       .def_readwrite(
           "self_texp",
-          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp)
+          &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp, ":class:`list` Self temperature exponent")
       .def(py::pickle(
-          [](const Absorption::PredefinedModel::MT_CKD400::WaterData &t) {
+          [](const Absorption::PredefinedModel::MT_CKD400::WaterData& t) {
             return py::make_tuple(t.self_absco_ref, t.for_absco_ref,
                                   t.wavenumbers, t.self_texp);
           },
-          [](const py::tuple &t) {
+          [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
             auto out = std::make_unique<Absorption::PredefinedModel::MT_CKD400::WaterData>();
             out->self_absco_ref = t[0].cast<std::vector<double>>();
@@ -49,7 +54,7 @@ void internalCKDMT400(
             out->wavenumbers = t[2].cast<std::vector<double>>();
             out->self_texp = t[3].cast<std::vector<double>>();
             return out;
-          }));
+          })).doc() = "Water data representation for the MT CKD 4.0 model";
 
   m.def(
       "get_foreign_h2o_ckdmt400",
@@ -75,17 +80,23 @@ void internalCKDMT400(
       py::arg("predefined_model_data"),
       py::doc(R"--(Computes foreign absorption using MT CKD Hitran version
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
-    predefined_model_data : PredefinedModelData
-       As WSV
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+predefined_model_data : ~pyarts.arts.PredefinedModelData
+    As WSV
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -112,17 +123,23 @@ Parameters:
       py::arg("predefined_model_data"),
       py::doc(R"--(Computes self absorption using MT CKD Hitran version
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
-    predefined_model_data : PredefinedModelData
-       As WSV
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+predefined_model_data : ~pyarts.arts.PredefinedModelData
+    As WSV
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -140,15 +157,21 @@ void internalMPM89(py::module_& m) {
       py::arg("x_h2o"),
       py::doc(R"--(Computes water absorption using MPM89
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -166,17 +189,23 @@ Parameters:
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes oxygen absorption using MPM89
 
-Parameters:
-    f_grid : Vector
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric , optional
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_h2o : float , optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -195,17 +224,23 @@ void internalMPM93(py::module_& m) {
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes nitrogen absorption using MPM93
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+x_h2o : float, optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -222,13 +257,19 @@ void internalELL07(py::module_& m) {
       py::arg("lwc"),
       py::doc(R"--(Computes water absorption using PWR98
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    lwc : Numeric
-        Liquid water content [1e-10, ...)
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_temperature : float
+    Temperature value [K]
+lwc : float
+    Liquid water content [1e-10, ...)
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -246,15 +287,21 @@ void internalPWR98(py::module_& m) {
       py::arg("x_h2o"),
       py::doc(R"--(Computes water absorption using PWR98
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -272,17 +319,23 @@ Parameters:
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes oxygen absorption using PWR98
 
-Parameters:
-    f_grid : Vector
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric , optional
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_h2o : float , optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -300,15 +353,21 @@ void internalPWR20xx(py::module_& m) {
       py::arg("x_h2o"),
       py::doc(R"--(Computes water absorption using PWR2021
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -326,17 +385,23 @@ Parameters:
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes oxygen absorption using PWR2021
 
-Parameters:
-    f_grid : Vector
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric , optional
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_h2o : float , optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -352,15 +417,21 @@ Parameters:
       py::arg("x_h2o"),
       py::doc(R"--(Computes water absorption using PWR2022
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -378,17 +449,23 @@ Parameters:
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes oxygen absorption using PWR2022
 
-Parameters:
-    f_grid : Vector
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric , optional
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_h2o : float , optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -405,17 +482,23 @@ Parameters:
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes nitrogen absorption using PWR2021
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -436,17 +519,23 @@ void internalTRE05(py::module_& m) {
       py::arg("x_h2o")=0.0,
       py::doc(R"--(Computes oxygen absorption using TRE05
 
-Parameters:
-    f_grid : Vector
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric , optional
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_h2o : float , optional
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -464,15 +553,21 @@ void internalCKDMT100(py::module_& m) {
       py::arg("x_o2"),
       py::doc(R"--(Computes self absorption using MT CKD version 3.50
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -489,17 +584,23 @@ Parameters:
       py::arg("x_n2"),
       py::doc(R"--(Computes self absorption using MT CKD version 3.50
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -515,15 +616,21 @@ Parameters:
       py::arg("x_o2"),
       py::doc(R"--(Computes self absorption using MT CKD version 3.50
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -541,15 +648,21 @@ void internalCKDMT252(py::module_& m) {
       py::arg("x_co2"),
       py::doc(R"--(Computes self absorption using MT CKD version 2.52
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_co2 : Numeric
-        Ratio of carbon dioxide in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_co2 : float
+    Ratio of carbon dioxide in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -565,15 +678,21 @@ Parameters:
       py::arg("x_o2"),
       py::doc(R"--(Computes self absorption using MT CKD version 2.52
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -591,19 +710,25 @@ Parameters:
       py::arg("x_o2"),
       py::doc(R"--(Computes N2 fun absorption using MT CKD version 2.52
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -621,19 +746,25 @@ Parameters:
       py::arg("x_o2"),
       py::doc(R"--(Computes N2 rot absorption using MT CKD version 2.52
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -651,15 +782,21 @@ void internalSTANDARD(py::module_& m) {
       py::arg("x_h2o"),
       py::doc(R"--(Computes self water absorption using Rosenkranz standard
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -675,15 +812,21 @@ Parameters:
       py::arg("x_h2o"),
       py::doc(R"--(Computes foreign water absorption using Rosenkranz standard
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -699,15 +842,21 @@ Parameters:
       py::arg("x_n2"),
       py::doc(R"--(Computes nitrogen absorption using Rosenkranz standard
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_n2 : Numeric
-        Ratio of nitrogen in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_n2 : float
+    Ratio of nitrogen in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -724,17 +873,23 @@ Parameters:
       py::arg("x_h2o"),
       py::doc(R"--(Computes oxygen absorption using Rosenkranz standard
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_o2 : Numeric
-        Ratio of oxygen in the atmosphere in the range [0, 1]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_o2 : float
+    Ratio of oxygen in the atmosphere in the range [0, 1]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 }
 
@@ -752,15 +907,21 @@ void internalCKDMT350(py::module_& m) {
       py::arg("x_h2o"),
       py::doc(R"--(Computes self absorption using MT CKD version 3.50
 
-Parameters:
-    f_grid : :class:`Vector`
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
 
   m.def(
@@ -777,28 +938,22 @@ Parameters:
       py::arg("x_h2o"),
       py::doc(R"--(Computes foreign absorption using MT CKD version 3.50
 
-Parameters:
-    f_grid : Vector
-        Frequency grid [Hz]
-    rtp_pressure : Numeric
-        Pressure value [Pa]
-    rtp_temperature : Numeric
-        Temperature value [K]
-    x_h2o : Numeric
-        Ratio of water in the atmosphere in the range [0, 1]
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
 )--"));
-}
-
-struct PyInternalClasses {
-  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData> mod1;
-};
-
-PyInternalClasses internalNamedClasses(py::module_& predef) {
-  auto mtckd400 = predef.def_submodule("MTCKD400");
-  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>
-      mtckd400_water_data(mtckd400, "WaterData");
-
-    return {mtckd400_water_data};
 }
 
 void py_predefined(py::module_& m) {
@@ -806,33 +961,9 @@ void py_predefined(py::module_& m) {
   auto predef = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
 
-  //! Must name internal classes first as PredefinedModelData can return them
-  auto [mtckd400_water_data] = internalNamedClasses(predef);
-
-  //! A predefined model key
-  py::class_<PredefinedModelDataKey>(predef, "PredefinedModelDataKey")
-      .def(py::init([]() { return std::make_unique<PredefinedModelDataKey>(); }))
-      .def(py::init([](const std::string& c) {
-        return Absorption::PredefinedModel::toDataKeyOrThrow(c);
-      }))
-      .PythonInterfaceCopyValue(PredefinedModelDataKey)
-      .PythonInterfaceBasicRepresentation(PredefinedModelDataKey)
-      .def(py::pickle(
-          [](const PredefinedModelDataKey& t) {
-            return py::make_tuple(
-                std::string(Absorption::PredefinedModel::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<PredefinedModelDataKey>(
-                Absorption::PredefinedModel::toDataKey(
-                    t[0].cast<std::string>()));
-          }));
-  py::implicitly_convertible<std::string, PredefinedModelDataKey>();
-
   //! ARTS Workspace class, must live on the main (m) namespace
   py::class_<PredefinedModelData>(m, "PredefinedModelData")
-      .def(py::init([]() { return std::make_unique<PredefinedModelData>(); }))
+      .def(py::init([]() { return std::make_unique<PredefinedModelData>(); }), "Default model data")
       .PythonInterfaceWorkspaceVariableConversion(PredefinedModelData)
       .PythonInterfaceFileIO(PredefinedModelData)
       .PythonInterfaceCopyValue(PredefinedModelData)
@@ -841,12 +972,28 @@ void py_predefined(py::module_& m) {
            [](PredefinedModelData& x,
               Absorption::PredefinedModel::MT_CKD400::WaterData d) {
              x.set(std::move(d));
-           })
+           }, R"(Set the model data
+
+This method is very internal and might be changed in the future
+
+Parameters
+----------
+water_data : ~pyarts.arts.predef.MTCKD400WaterData
+    Water data for the MT CKD 4.0 models and beyond
+)")
       .def("get_h2o_data_mtckd400",
            [](PredefinedModelData& x) {
              return x
                  .get<Absorption::PredefinedModel::MT_CKD400::WaterData>();
-           })
+           }, R"(Get the data
+
+This method is very internal and might be changed in the future
+
+Returns
+-------
+water_data : ~pyarts.arts.predef.MTCKD400WaterData
+    Water data for the MT CKD 4.0 models and beyond
+)")
       .def(py::pickle(
           [](const PredefinedModelData& t) { return py::make_tuple(t.data); },
           [](const py::tuple& t) {
@@ -861,7 +1008,7 @@ void py_predefined(py::module_& m) {
   internalCKDMT350(predef);
   internalCKDMT252(predef);
   internalCKDMT100(predef);
-  internalCKDMT400(predef, mtckd400_water_data);
+  internalCKDMT400(predef);
   internalMPM89(predef);
   internalMPM93(predef);
   internalPWR98(predef);

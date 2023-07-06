@@ -20,7 +20,8 @@ void py_rte(py::module_& m) {
              return std::make_unique<TransmissionMatrix>(nf, ns);;
            }),
            py::arg("nf") = 0,
-           py::arg("stokes_dim") = 1)
+           py::arg("stokes_dim") = 1,
+           py::doc("Init by frequency size and stokes dimensionality"))
       .PythonInterfaceCopyValue(TransmissionMatrix)
       .PythonInterfaceWorkspaceVariableConversion(TransmissionMatrix)
       .PythonInterfaceFileIO(TransmissionMatrix)
@@ -52,7 +53,7 @@ void py_rte(py::module_& m) {
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](TransmissionMatrix& x, TransmissionMatrix& y) { x = y; })
+                    [](TransmissionMatrix& x, TransmissionMatrix& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def(py::pickle(
           [](const TransmissionMatrix& self) {
@@ -109,7 +110,7 @@ void py_rte(py::module_& m) {
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](RadiationVector& x, RadiationVector& y) { x = y; })
+                    [](RadiationVector& x, RadiationVector& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def(py::pickle(
           [](const RadiationVector& self) {
@@ -143,7 +144,8 @@ void py_rte(py::module_& m) {
            py::arg("ns") = 1,
            py::arg("nza") = 1,
            py::arg("naa") = 1,
-           py::arg("v") = 0)
+           py::arg("v") = 0,
+           py::doc("Init by frequency size, angles, and stokes dimensionality to a value"))
       .PythonInterfaceCopyValue(PropagationMatrix)
       .PythonInterfaceWorkspaceVariableConversion(PropagationMatrix)
       .PythonInterfaceFileIO(PropagationMatrix)
@@ -163,7 +165,7 @@ void py_rte(py::module_& m) {
                                "\nGot shape: ",
                                matpack::shape_help<4>{d.shape()})
             s.Data() = d;
-          })
+          }, ":class:`~pyarts.arts.Tensor4` The underlying data object")
       .def(py::pickle(
           [](const PropagationMatrix& self) {
             return py::make_tuple(self.NumberOfFrequencies(),
@@ -184,7 +186,7 @@ void py_rte(py::module_& m) {
           }))
       .PythonInterfaceWorkspaceDocumentation(PropagationMatrix);
 
-  py::class_<StokesVector>(m, "StokesVector")
+  py::class_<StokesVector, PropagationMatrix>(m, "StokesVector")
       .def(py::init([](Index nf, Index ns, Index nza, Index naa, Numeric v) {
              ARTS_USER_ERROR_IF(ns < 1 or ns > 4,
                                 "Bad Stokes Dimension ",
@@ -198,7 +200,8 @@ void py_rte(py::module_& m) {
            py::arg_v("ns", Index(1), "Index(1)"),
            py::arg_v("nza", Index(1), "Index(1)"),
            py::arg_v("naa", Index(1), "Index(1)"),
-           py::arg_v("v", Numeric(0), "Numeric(0)"))
+           py::arg_v("v", Numeric(0), "Numeric(0)"),
+           py::doc("Init by frequency size, angles, and stokes dimensionality to a value"))
       .PythonInterfaceCopyValue(StokesVector)
       .PythonInterfaceWorkspaceVariableConversion(StokesVector)
       .PythonInterfaceFileIO(StokesVector)
@@ -219,7 +222,7 @@ void py_rte(py::module_& m) {
                                matpack::shape_help<4>{d.shape()},
                                ')')
             s.Data() = d;
-          })
+          }, ":class:`~pyarts.arts.Tensor4` The underlying data object")
       .def(py::pickle(
           [](const StokesVector& self) {
             return py::make_tuple(self.NumberOfFrequencies(),
@@ -251,7 +254,7 @@ void py_rte(py::module_& m) {
   PythonInterfaceWorkspaceArray(ArrayOfStokesVector);
 
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }))
+      .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }), "Default interpolation")
       .PythonInterfaceCopyValue(LagrangeInterpolation)
       .def(py::pickle(
           [](const LagrangeInterpolation& self) {
@@ -266,36 +269,37 @@ void py_rte(py::module_& m) {
             out->lx = t[1].cast<Array<Numeric>>();
             out->dlx = t[2].cast<Array<Numeric>>();
             return out;
-          }));
+          })).doc() = "Interpolation object";
 
   py::class_<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .PythonInterfaceArrayDefault(LagrangeInterpolation)
-      .PythonInterfaceBasicRepresentation(ArrayOfLagrangeInterpolation);
+      .PythonInterfaceBasicRepresentation(ArrayOfLagrangeInterpolation)
+      .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
   py::implicitly_convertible<std::vector<LagrangeInterpolation>,
                              ArrayOfLagrangeInterpolation>();
 
   py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .def(py::init([]() { return std::make_unique<GasAbsLookup>(); }))
+      .def(py::init([]() { return std::make_unique<GasAbsLookup>(); }), "Default lookup")
       .PythonInterfaceCopyValue(GasAbsLookup)
       .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)
       .PythonInterfaceBasicRepresentation(GasAbsLookup)
       .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup, species, Species, Species)
+          GasAbsLookup, species, Species, Species, ":class:`~pyarts.arts.ArrayOfArrayOfSpeciesTag` Active species")
       .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup, non_linear_species, NonLinearSpecies, NonLinearSpecies)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, f_grid, Fgrid, Fgrid)
+          GasAbsLookup, non_linear_species, NonLinearSpecies, NonLinearSpecies, ":class:`~pyarts.arts.ArrayOfIndex` Non-linear species")
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, f_grid, Fgrid, Fgrid, ":class:`~pyarts.arts.ArrayOfIndex` Trained frequencies")
       .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup, flag_default, FLAGDefault, FLAGDefault)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, p_grid, Pgrid, Pgrid)
+          GasAbsLookup, flag_default, FLAGDefault, FLAGDefault, ":class:`~pyarts.arts.ArrayOfLagrangeInterpolation` Active interpolation")
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, p_grid, Pgrid, Pgrid, ":class:`~pyarts.arts.Vector` Trained pressures")
       .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup, log_p_grid, LogPgrid, LogPgrid)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, vmrs, VMRs, VMRs)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_ref, Tref, Tref)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_pert, Tpert, Tpert)
+          GasAbsLookup, log_p_grid, LogPgrid, LogPgrid, ":class:`~pyarts.arts.Vector` Trained pressure in log")
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, vmrs, VMRs, VMRs, ":class:`~pyarts.arts.Matrix` Training VMRs")
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_ref, Tref, Tref, ":class:`~pyarts.arts.Vector` Trained temperatures")
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, t_pert, Tpert, Tpert, ":class:`~pyarts.arts.Vector` Temperature perturbations")
       .PythonInterfaceBasicReferenceProperty(
-          GasAbsLookup, nls_pert, NLSPert, NLSPert)
-      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, xsec, Xsec, Xsec)
+          GasAbsLookup, nls_pert, NLSPert, NLSPert, ":class:`~pyarts.arts.Vector` Non-linear perturbations")
+      .PythonInterfaceBasicReferenceProperty(GasAbsLookup, xsec, Xsec, Xsec, ":class:`~pyarts.arts.Tensor4` Cross-section data")
       .def(py::pickle(
           [](GasAbsLookup& self) {
             return py::make_tuple(self.Species(),

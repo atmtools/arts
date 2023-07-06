@@ -235,7 +235,7 @@ class TestAgendas:
     
     def test_agenda_set(self):
         def get_agendas():
-            wsvdata = pyarts.arts.get_wsv_data()
+            wsvdata = pyarts.arts.globals.get_wsv_data()
             out = []
             for wsv in wsvdata:
                 if wsv.groupname == "Agenda":
@@ -245,8 +245,8 @@ class TestAgendas:
         def set_agendas(ws, agenda_string):
             options = eval(f"pyarts.arts.options.{agenda_string}DefaultOptions.get_options_as_strings()")
             for enum_option in options:
-                if (enum_option + ":" )not in eval(f"ws.{agenda_string}Set").__doc__:
-                    raise RuntimeError(f"The option {enum_option} is not documented for {agenda_string}")
+                if enum_option not in eval(f"ws.{agenda_string}Set").__doc__:
+                    raise RuntimeError(f"The option {enum_option} is not mentioned for {agenda_string}")
                 try:
                     eval(f"ws.{agenda_string}Set(option=enum_option)")
                 except RuntimeError as err:
@@ -332,12 +332,12 @@ exist in the future
 
         ws = pyarts.workspace.Workspace()
         for opt in options:
-            assert (opt+':') in ws.PlanetSet.__doc__, f"The {opt}-option is not documented correctly"
+            assert opt in ws.PlanetSet.__doc__, f"The {opt}-option is not documented correctly"
             ws.PlanetSet(option=opt)
 
 
 if __name__ == "__main__":
     ta = TestAgendas()
     ta.setup_method()
-    ta.test_agenda_set()
+    ta.test_planet_set()
 

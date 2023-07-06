@@ -8,114 +8,22 @@
 
 namespace Python {
 void py_jac(py::module_& m) {
-  py::class_<Jacobian::Type>(m, "JacobianType")
-      .def(py::init([]() { return Jacobian::Type{}; }))
-      .def(py::init(
-               [](const std::string& c) { return Jacobian::toTypeOrThrow(c); }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(Jacobian::Type)
-      .PythonInterfaceBasicRepresentation(Jacobian::Type)
-      .def(py::pickle(
-          [](const Jacobian::Type& t) {
-            return py::make_tuple(std::string(Jacobian::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return Jacobian::Type{
-                Jacobian::toType(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, Jacobian::Type>();
-
-  py::class_<Jacobian::Atm>(m, "JacobianAtm")
-      .def(py::init([]() { return Jacobian::Atm{}; }))
-      .def(py::init(
-               [](const std::string& c) { return Jacobian::toAtmOrThrow(c); }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(Jacobian::Atm)
-      .PythonInterfaceBasicRepresentation(Jacobian::Atm)
-      .def(py::pickle(
-          [](const Jacobian::Atm& t) {
-            return py::make_tuple(std::string(Jacobian::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return Jacobian::Atm{
-                Jacobian::toAtm(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, Jacobian::Atm>();
-
-  py::class_<Jacobian::Line>(m, "JacobianLine")
-      .def(py::init([]() { return Jacobian::Line{}; }))
-      .def(py::init(
-               [](const std::string& c) { return Jacobian::toLineOrThrow(c); }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(Jacobian::Line)
-      .PythonInterfaceBasicRepresentation(Jacobian::Line)
-      .def(py::pickle(
-          [](const Jacobian::Line& t) {
-            return py::make_tuple(std::string(Jacobian::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return Jacobian::Line{
-                Jacobian::toLine(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, Jacobian::Line>();
-
-  py::class_<Jacobian::Sensor>(m, "JacobianSensor")
-      .def(py::init([]() { return Jacobian::Sensor{}; }))
-      .def(py::init([](const std::string& c) {
-             return Jacobian::toSensorOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(Jacobian::Sensor)
-      .PythonInterfaceBasicRepresentation(Jacobian::Sensor)
-      .def(py::pickle(
-          [](const Jacobian::Sensor& t) {
-            return py::make_tuple(std::string(Jacobian::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return Jacobian::Sensor{
-                Jacobian::toSensor(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, Jacobian::Sensor>();
-
-  py::class_<Jacobian::Special>(m, "JacobianSpecial")
-      .def(py::init([]() { return Jacobian::Special{}; }))
-      .def(py::init([](const std::string& c) {
-             return Jacobian::toSpecialOrThrow(c);
-           }),
-           py::arg("str").none(false))
-      .PythonInterfaceCopyValue(Jacobian::Special)
-      .PythonInterfaceBasicRepresentation(Jacobian::Special)
-      .def(py::pickle(
-          [](const Jacobian::Special& t) {
-            return py::make_tuple(std::string(Jacobian::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return Jacobian::Special{
-                Jacobian::toSpecial(t[0].cast<std::string>())};
-          }));
-  py::implicitly_convertible<std::string, Jacobian::Special>();
-
   py::class_<JacobianTarget>(m, "JacobianTarget")
-      .def(py::init([]() { return std::make_unique<JacobianTarget>(); }))
+      .def(py::init([]() { return std::make_unique<JacobianTarget>(); }), "Default target")
       .PythonInterfaceCopyValue(JacobianTarget)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
       .PythonInterfaceFileIO(JacobianTarget)
       .PythonInterfaceBasicRepresentation(JacobianTarget)
-      .PythonInterfaceReadWriteData(JacobianTarget, type)
-      .PythonInterfaceReadWriteData(JacobianTarget, atm)
-      .PythonInterfaceReadWriteData(JacobianTarget, line)
-      .PythonInterfaceReadWriteData(JacobianTarget, sensor)
-      .PythonInterfaceReadWriteData(JacobianTarget, special)
-      .PythonInterfaceReadWriteData(JacobianTarget, perturbation)
-      .PythonInterfaceReadWriteData(JacobianTarget, qid)
-      .PythonInterfaceReadWriteData(JacobianTarget, species_array_id)
-      .PythonInterfaceReadWriteData(JacobianTarget, string_id)
-      .PythonInterfaceReadWriteData(JacobianTarget, species_id)
+      .PythonInterfaceReadWriteData(JacobianTarget, type, ":class:`~pyarts.arts.options.JacobianType` Type of target")
+      .PythonInterfaceReadWriteData(JacobianTarget, atm, ":class:`~pyarts.arts.options.JacobianAtm` Type of atmospheric target")
+      .PythonInterfaceReadWriteData(JacobianTarget, line, ":class:`~pyarts.arts.options.JacobianLine` Type of line target")
+      .PythonInterfaceReadWriteData(JacobianTarget, sensor, ":class:`~pyarts.arts.options.JacobianSensor` Type of sensor target")
+      .PythonInterfaceReadWriteData(JacobianTarget, special, ":class:`~pyarts.arts.options.JacobianSpecial` Type of special target")
+      .PythonInterfaceReadWriteData(JacobianTarget, perturbation, ":class:`float` Perturbation magnitude")
+      .PythonInterfaceReadWriteData(JacobianTarget, qid, ":class:`~pyarts.arts.QuantumIdentifier` Identifier")
+      .PythonInterfaceReadWriteData(JacobianTarget, species_array_id, ":class:`~pyarts.arts.ArrayOfSpeciesTag` Identifier")
+      .PythonInterfaceReadWriteData(JacobianTarget, string_id, ":class:`~pyarts.arts.String` Identifier")
+      .PythonInterfaceReadWriteData(JacobianTarget, species_id, ":class:`~pyarts.arts.Species` Identifier")
       .def(py::pickle(
           [](const JacobianTarget& t) {
             return py::make_tuple(t.type, t.atm, t.line, t.sensor, t.special, t.perturbation, t.qid, t.species_array_id, t.string_id, t.species_id);
@@ -143,7 +51,7 @@ void py_jac(py::module_& m) {
   PythonInterfaceWorkspaceArray(JacobianTarget);
 
   py::class_<RetrievalQuantity>(m, "RetrievalQuantity")
-      .def(py::init([]() { return std::make_unique<RetrievalQuantity>(); }))
+      .def(py::init([]() { return std::make_unique<RetrievalQuantity>(); }), "Empty quantity")
       .def(py::pickle(
           [](const RetrievalQuantity& self) {
             return py::make_tuple(self.SubTag(),
@@ -172,7 +80,7 @@ void py_jac(py::module_& m) {
             out->Target() = t[8].cast<JacobianTarget>();
             
             return out;
-          }));
+          })).doc() = "A retrieval quantity";
 
   PythonInterfaceWorkspaceArray(RetrievalQuantity);
 }

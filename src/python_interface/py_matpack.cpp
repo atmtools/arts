@@ -36,7 +36,7 @@ void py_matpack(py::module_& m) {
            }),
            py::arg("offset"),
            py::arg("extent"),
-           py::arg("stride") = 1)
+           py::arg("stride") = 1, "Valued initialization")
       .PythonInterfaceBasicRepresentation(Range)
       .def(py::pickle(
           [](const Range& self) {
@@ -47,11 +47,11 @@ void py_matpack(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
             return std::make_unique<Range>(
                 t[0].cast<Index>(), t[1].cast<Index>(), t[2].cast<Index>());
-          }));
+          })).doc() = "A range, used to select parts of a matpack type";
 
 
   py::class_<Vector>(m, "Vector", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Vector>(); }))
+      .def(py::init([]() { return std::make_unique<Vector>(); }), "Default vector")
       .def(py::init([](const std::vector<Scalar>& v) {
              auto out = std::make_unique<Vector>(v.size());;
              for (size_t i = 0; i < v.size(); i++)
@@ -59,7 +59,7 @@ void py_matpack(py::module_& m) {
                    [](auto&& x) { return static_cast<Numeric>(x); }, v[i]);
              return out;
            }),
-           py::arg("vec").none(false))
+           py::arg("vec").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .PythonInterfaceBasicRepresentation(Vector)
@@ -80,7 +80,7 @@ void py_matpack(py::module_& m) {
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Vector& x, Vector& y) { x = y; })
+                    [](Vector& x, Vector& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -92,11 +92,12 @@ void py_matpack(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentationExtra(Vector, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Matrix>(); }))
+      .def(py::init([]() { return std::make_unique<Matrix>(); }), "Default matrix")
       .def(py::init([](const std::vector<std::vector<Scalar>>& v) {
              test_correct_size(v);
              auto n1 = v.size();
@@ -110,7 +111,7 @@ via x.value)--");
              }
              return out;
            }),
-           py::arg("mat").none(false))
+           py::arg("mat").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Matrix)
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
@@ -137,7 +138,7 @@ via x.value)--");
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Matrix& x, Matrix& y) { x = y; })
+                    [](Matrix& x, Matrix& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -149,11 +150,12 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Matrix, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor3>(m, "Tensor3", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor3>(); }))
+      .def(py::init([]() { return std::make_unique<Tensor3>(); }), "Default tensor")
       .def(py::init([](const std::vector<std::vector<std::vector<Scalar>>>& v) {
              test_correct_size(v);
              auto n1 = v.size();
@@ -171,7 +173,7 @@ via x.value)--");
              }
              return out;
            }),
-           py::arg("ten3").none(false))
+           py::arg("ten3").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Tensor3)
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
@@ -197,7 +199,7 @@ via x.value)--");
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Tensor3& x, Tensor3& y) { x = y; })
+                    [](Tensor3& x, Tensor3& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -209,11 +211,12 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor3, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor4>(m, "Tensor4", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor4>(); }))
+      .def(py::init([]() { return std::make_unique<Tensor4>(); }), "Default tensor")
       .def(py::init([](const std::vector<
                         std::vector<std::vector<std::vector<Scalar>>>>& v) {
              test_correct_size(v);
@@ -235,7 +238,7 @@ via x.value)--");
              }
              return out;
            }),
-           py::arg("ten4").none(false))
+           py::arg("ten4").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Tensor4)
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
@@ -264,7 +267,7 @@ via x.value)--");
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Tensor4& x, Tensor4& y) { x = y; })
+                    [](Tensor4& x, Tensor4& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -276,11 +279,12 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor4, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor5>(m, "Tensor5", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor5>(); }))
+      .def(py::init([]() { return std::make_unique<Tensor5>(); }), "Default tensor")
       .def(py::init([](const std::vector<std::vector<
                            std::vector<std::vector<std::vector<Scalar>>>>>& v) {
              test_correct_size(v);
@@ -305,7 +309,7 @@ via x.value)--");
              }
              return out;
            }),
-           py::arg("ten5").none(false))
+           py::arg("ten5").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Tensor5)
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
@@ -337,7 +341,7 @@ via x.value)--");
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Tensor5& x, Tensor5& y) { x = y; })
+                    [](Tensor5& x, Tensor5& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -349,11 +353,12 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor5, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor6>(m, "Tensor6", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor6>(); }))
+      .def(py::init([]() { return std::make_unique<Tensor6>(); }), "Default tensor")
       .def(
           py::init([](const std::vector<std::vector<std::vector<
                           std::vector<std::vector<std::vector<Scalar>>>>>>& v) {
@@ -382,7 +387,7 @@ via x.value)--");
             }
             return out;
           }),
-          py::arg("ten6").none(false))
+          py::arg("ten6").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Tensor6)
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
@@ -418,7 +423,7 @@ via x.value)--");
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Tensor6& x, Tensor6& y) { x = y; })
+                    [](Tensor6& x, Tensor6& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -430,11 +435,12 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor6, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::class_<Tensor7>(m, "Tensor7", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor7>(); }))
+      .def(py::init([]() { return std::make_unique<Tensor7>(); }), "Default tensor")
       .def(py::init(
                [](const std::vector<std::vector<std::vector<std::vector<
                       std::vector<std::vector<std::vector<Scalar>>>>>>>& v) {
@@ -469,7 +475,7 @@ via x.value)--");
                  }
                  return out;
                }),
-           py::arg("ten7").none(false))
+           py::arg("ten7").none(false), py::doc("From :class:`list` equivalent"))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceBasicRepresentation(Tensor7)
@@ -509,7 +515,7 @@ via x.value)--");
                           return np.attr("array")(x, py::arg("copy") = false);
                         },
                         py::keep_alive<0, 1>()),
-                    [](Tensor7& x, Tensor7& y) { x = y; })
+                    [](Tensor7& x, Tensor7& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
       .def(py::pickle(
           [](const py::object& self) {
             return py::make_tuple(self.attr("value"));
@@ -521,8 +527,9 @@ via x.value)--");
       .PythonInterfaceWorkspaceDocumentationExtra(Tensor7, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
-The data can be accessed without copy using np.array(x, copy=False) or
-via x.value)--");
+The data can be accessed without copy using ``np.array(x, copy=False)`` or
+via x.value
+)--");
 
   py::implicitly_convertible<std::vector<Scalar>, Vector>();
   py::implicitly_convertible<std::vector<std::vector<Scalar>>, Matrix>();
@@ -546,7 +553,7 @@ via x.value)--");
              std::copy(x.begin(), x.end(), y.begin());
              return y;
            }),
-           py::arg("arr").none(false));
+           py::arg("arr").none(false), py::doc("From :class:`list`"));
   py::implicitly_convertible<std::vector<std::vector<Vector>>,
                              ArrayOfArrayOfVector>();
 
@@ -556,7 +563,7 @@ via x.value)--");
              std::copy(x.begin(), x.end(), y.begin());
              return y;
            }),
-           py::arg("arr").none(false));
+           py::arg("arr").none(false), py::doc("From :class:`list`"));
   py::implicitly_convertible<std::vector<std::vector<Matrix>>,
                              ArrayOfArrayOfMatrix>();
 
@@ -566,7 +573,7 @@ via x.value)--");
              std::copy(x.begin(), x.end(), y.begin());
              return y;
            }),
-           py::arg("arr").none(false));
+           py::arg("arr").none(false), py::doc("From :class:`list`"));
   py::implicitly_convertible<std::vector<std::vector<Tensor3>>,
                              ArrayOfArrayOfTensor3>();
 
@@ -576,7 +583,7 @@ via x.value)--");
              std::copy(x.begin(), x.end(), y.begin());
              return y;
            }),
-           py::arg("arr").none(false));
+           py::arg("arr").none(false), py::doc("From :class:`list`"));
   py::implicitly_convertible<std::vector<std::vector<Tensor6>>,
                              ArrayOfArrayOfTensor6>();
 
@@ -586,17 +593,19 @@ via x.value)--");
              return Rational(n, d);
            }),
            py::arg("n") = 0,
-           py::arg("d") = 1)
+           py::arg("d") = 1, py::doc("Default rational"))
       .PythonInterfaceCopyValue(Rational)
       .PythonInterfaceWorkspaceVariableConversion(Rational)
-      .def(py::init([](const String& s) { return std::make_unique<Rational>(s); }))
-      .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }))
+      .def(py::init([](const String& s) { return std::make_unique<Rational>(s); }), "From :class:`str`")
+      .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }), "From :class:`float`")
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
       .PythonInterfaceFileIO(Rational)
       .PythonInterfaceBasicRepresentation(Rational)
       .PythonInterfaceCommonMath(Index)
       .PythonInterfaceCommonMathSelf
+      .def_readwrite("n", &Rational::numer, ":class:`int` Numerator")
+      .def_readwrite("d", &Rational::denom, ":class:`int` Denominator")
       .def(py::pickle(
           [](const Rational& self) {
             return py::make_tuple(self.numer, self.denom);

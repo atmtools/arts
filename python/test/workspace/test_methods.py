@@ -137,8 +137,8 @@ class TestMethods:
             self.ws.yCalc()
     
     def test_predefined_doc(self):
-        isots = pyarts.arts.get_isotopologues()
-        desc = str(pyarts.arts.get_md_data()[pyarts.arts.get_MdMap()["propmat_clearskyAddPredefined"]].desc)
+        isots = pyarts.arts.globals.get_isotopologues()
+        desc = str(pyarts.arts.globals.get_md_data()[pyarts.arts.globals.get_MdMap()["propmat_clearskyAddPredefined"]].desc)
         
         for x in isots:
             if x.predef:

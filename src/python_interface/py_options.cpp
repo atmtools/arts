@@ -1,6 +1,7 @@
 #include <arts_options.h>
 #include <lineshapemodel.h>
 
+#include "energylevelmap.h"
 #include "py_macros.h"
 #include "py_auto_interface.h"
 #include "python_interface.h"
@@ -8,16 +9,13 @@
 //! See DeclareOption macro, but this may rename the python class
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)       \
   py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
-      .def(py::init([]() { return opt_namespace::opt_localname{}; }))        \
+      .def(py::init([]() { return opt_namespace::opt_localname{}; }),        \
+           "Default value")                                                  \
       .def(py::init([](const std::string& s) {                               \
-        return opt_namespace::to##opt_localname##OrThrow(s);                 \
-      }))                                                                    \
-      .def_property(                                                         \
-          "value",                                                           \
-          [](const opt_namespace::opt_localname& x) { return toString(x); }, \
-          [](opt_namespace::opt_localname& x, const std::string& s) {        \
-            x = opt_namespace::to##opt_localname##OrThrow(s);                \
-          })                                                                 \
+             return opt_namespace::to##opt_localname##OrThrow(s);            \
+           }),                                                               \
+           py::arg("str"),                                                   \
+           "From :class:`str`")                                              \
       .PythonInterfaceCopyValue(opt_namespace::opt_localname)                \
       .PythonInterfaceBasicRepresentation(opt_namespace::opt_localname)      \
       .def(py::self == py::self)                                             \
@@ -33,10 +31,13 @@
           }))                                                                \
       .def_static(                                                           \
           "get_options",                                                     \
-          []() { return opt_namespace::enumtyps::opt_localname##Types; })    \
+          []() { return opt_namespace::enumtyps::opt_localname##Types; },    \
+          py::doc(":class:`list` of full set of options available"))         \
       .def_static(                                                           \
           "get_options_as_strings",                                          \
-          []() { return opt_namespace::enumstrs::opt_localname##Names; })    \
+          []() { return opt_namespace::enumstrs::opt_localname##Names; },    \
+          py::doc(                                                           \
+              ":class:`list` of full set of options available as strings"))  \
       .doc() = "Options for " #opt_rename;                                   \
   py::implicitly_convertible<std::string, opt_namespace::opt_localname>();
 
@@ -91,5 +92,21 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(AbsorptionNormalizationType, Absorption, NormalizationType)
   DeclareOptionRenamed(LineShapeType, LineShape, Type)
   DeclareOptionRenamed(LineShapeVariable, LineShape, Variable)
+
+  // Jacobian enums
+  DeclareOptionRenamed(JacobianType, Jacobian, Type)
+  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm)
+  DeclareOptionRenamed(JacobianLine, Jacobian, Line)
+  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor)
+  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special)
+
+  // Predef enums
+  DeclareOptionRenamed(PredefinedModelDataKey, Absorption::PredefinedModel, DataKey)
+
+  // Predef enums
+  DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type)
+
+  // Species enums
+  DeclareOptionRenamed(SpeciesTagType, Species, TagType)
 }
 }  // namespace Python

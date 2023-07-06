@@ -5,7 +5,7 @@ import xarray
 import pyarts.arts as cxx
 
 
-def xsecrecord_to_xarray(self):
+def to_xarray(self):
     """Convert XsecRecord to xarray dataset"""
     attrs = {'creation_date': str(datetime.now())}
     coords = {
@@ -53,7 +53,7 @@ def xsecrecord_to_xarray(self):
     return xarray.Dataset(data_vars, coords, attrs)
 
 
-def xsecrecord_from_xarray(cls, ds):
+def from_xarray(cls, ds):
     """Set XsecRecord from xarray dataset"""
     xr = cls()
     coeff_grid = cxx.ArrayOfString(["p00", "p10", "p01", "p20"])
@@ -77,12 +77,12 @@ def xsecrecord_from_xarray(cls, ds):
     return xr
 
 
-def xsecrecord_to_netcdf(self, filename):
+def to_netcdf(self, filename):
     """Save XsecRecord to NetCDF file"""
     self.to_xarray().to_netcdf(filename)
 
 
-def xsecrecord_from_netcdf(cls, filename):
+def from_netcdf(cls, filename):
     """Read XsecRecord from NetCDF file"""
     return cls.from_xarray(xarray.load_dataset(filename))
 
@@ -101,8 +101,8 @@ def xsecrecord__eq__(self, other):
         return False
 
 
-getattr(cxx, "XsecRecord::details").to_xarray = xsecrecord_to_xarray
-getattr(cxx, "XsecRecord::details").from_xarray = xsecrecord_from_xarray
-getattr(cxx, "XsecRecord::details").to_netcdf = xsecrecord_to_netcdf
-getattr(cxx, "XsecRecord::details").from_netcdf = xsecrecord_from_netcdf
-getattr(cxx, "XsecRecord::details").__eq__ = xsecrecord__eq__
+getattr(cxx, "_detailsXsecRecord").to_xarray = to_xarray
+getattr(cxx, "_detailsXsecRecord").from_xarray = from_xarray
+getattr(cxx, "_detailsXsecRecord").to_netcdf = to_netcdf
+getattr(cxx, "_detailsXsecRecord").from_netcdf = from_netcdf
+getattr(cxx, "_detailsXsecRecord").__eq__ = xsecrecord__eq__

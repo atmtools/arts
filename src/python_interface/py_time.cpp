@@ -7,25 +7,25 @@
 namespace Python {
 void py_time(py::module_& m) {
   py::class_<std::clock_t>(m, "clock_t")
-      .def(py::init([]() { return std::clock(); }))
+      .def(py::init([]() { return std::clock(); }), "Default clock")
       .def(py::pickle([](const clock_t& self) { return py::make_tuple(self); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
                         return clock_t{t[0].cast<clock_t>()};
-                      }));
+                      })).doc() = "The C++ standard clock type";
 
   py::class_<Timer>(m, "Timer")
-      .def(py::init([]() { return std::make_unique<Timer>(); }))
+      .def(py::init([]() { return std::make_unique<Timer>(); }), "Empty timer")
       .PythonInterfaceCopyValue(Timer)
       .PythonInterfaceWorkspaceVariableConversion(Timer)
       .PythonInterfaceFileIO(Timer)
       .def("__repr__", [](Timer&) { return "Timer"; })
-      .def_readwrite("running", &Timer::running)
-      .def_readwrite("finished", &Timer::finished)
-      .def_readwrite("cputime_start", &Timer::cputime_start)
-      .def_readwrite("realtime_start", &Timer::realtime_start)
-      .def_readwrite("cputime_end", &Timer::cputime_end)
-      .def_readwrite("realtime_end", &Timer::realtime_end)
+      .def_readwrite("running", &Timer::running, ":class:`bool`")
+      .def_readwrite("finished", &Timer::finished, ":class:`bool`")
+      .def_readwrite("cputime_start", &Timer::cputime_start, ":class:`~pyarts.arts.clock_t`")
+      .def_readwrite("realtime_start", &Timer::realtime_start, ":class:`~pyarts.arts.clock_t`")
+      .def_readwrite("cputime_end", &Timer::cputime_end, ":class:`~pyarts.arts.clock_t`")
+      .def_readwrite("realtime_end", &Timer::realtime_end, ":class:`~pyarts.arts.clock_t`")
       .def(py::pickle(
           [](const Timer& self) {
             return py::make_tuple(self.running,
@@ -52,27 +52,27 @@ void py_time(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentation(Timer);
 
   py::class_<Time>(m, "Time")
-      .def(py::init([]() { return std::make_unique<Time>(); }))
+      .def(py::init([]() { return std::make_unique<Time>(); }), "Current time")
       .def(py::init([](std::chrono::system_clock::time_point nt) {
         Time t;
         t.time = nt;
         return t;
-      }))
+      }), "From :class:`datetime.datetime`")
       .def(py::init([](Numeric x) {
         Time t;
         t.Seconds(x);
         return t;
-      }))
+      }), "From :class:`float` seconds from Unix time start")
       .PythonInterfaceCopyValue(Time)
       .PythonInterfaceWorkspaceVariableConversion(Time)
-      .def(py::init([](const std::string& s) { return std::make_unique<Time>(s); }))
+      .def(py::init([](const std::string& s) { return std::make_unique<Time>(s); }), "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
       .PythonInterfaceFileIO(Time)
       .PythonInterfaceBasicRepresentation(Time)
-      .def_readwrite("time", &Time::time)
+      .def_readwrite("time", &Time::time, ":class:`datetime.datetime` The time")
       .def_property(
           "sec",
           [](const Time& t) { return t.Seconds(); },
-          [](Time& t, Numeric n) { return t.Seconds(n); })
+          [](Time& t, Numeric n) { return t.Seconds(n); }, ":class:`float` Time from Unix start")
       .def(
           "__add__",
           [](Time& t, Numeric n) {
@@ -127,14 +127,14 @@ void py_time(py::module_& m) {
         for (Index i = 0; i < n; i++) out[i] = in[i].time;
         return out;
       },
-      py::doc("Converts to a list of datetimes (e.g. for plotting)"));
+      py::doc("A :class:`list` of :class:`datetime.datetime`"));
 
   PythonInterfaceWorkspaceArray(ArrayOfTime)
       .def(py::init([](const std::vector<std::vector<Time>>& x) {
         ArrayOfArrayOfTime y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), "From nested lists");
   py::implicitly_convertible<std::vector<std::vector<Time>>,
                              ArrayOfArrayOfTime>();
 }

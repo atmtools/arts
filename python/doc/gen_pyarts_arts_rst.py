@@ -10,7 +10,7 @@ class DocData:
         self.modules = m
 
     def print_classes(self, level=0):
-        self.classes.sort()
+        self.classes.sort(key=lambda x: x.lower())
         if len(self.classes) == 0: return ""
         
         out = f"""
@@ -28,7 +28,7 @@ Classes
 
 
     def print_funcs(self, level=0):
-        self.funcs.sort()
+        self.funcs.sort(key=lambda x: x.lower())
         if len(self.funcs) == 0: return ""
         
         out = f"""
@@ -46,7 +46,7 @@ Functions
 
     def print_submodules(self):
         keys = list(self.modules.keys())
-        keys.sort()
+        keys.sort(key=lambda x: x.lower())
         
         out = ""
         for submodule in keys:

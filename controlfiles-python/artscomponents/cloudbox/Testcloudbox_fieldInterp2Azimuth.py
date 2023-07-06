@@ -19,7 +19,7 @@ cloudbox_field without azimuthal dependency so that it can be by yCalc.
 import numpy as np
 
 from pyarts.workspace import Workspace, arts_agenda
-from pyarts.constants import c
+from pyarts.arts.constants import c
 
 # constants
 # =============================================================================

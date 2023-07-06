@@ -9,7 +9,7 @@
 import numpy as np
 
 from pyarts.workspace import Workspace, arts_agenda
-from pyarts.constants import c  # import speed of light
+from pyarts.arts.constants import c  # import speed of light
 
 # =============================================================================
 # paths/constants

@@ -70,7 +70,7 @@ void define_agenda_data() {
       AgRecord(NAME("dobatch_calc_agenda"),
                DESCRIPTION("Calculations to perform for each batch case.\n"
                            "\n"
-                           "See further *DOBatchCalc*.\n"),
+                           "See also: *DOBatchCalc*\n"),
                OUTPUT("spectral_radiance_field",
                       "radiance_field",
                       "irradiance_field",
@@ -88,12 +88,12 @@ void define_agenda_data() {
           "which are to be defined in this agenda.\n"
           "\n"
           "Possible workspace methods are:\n"
-          "*doit_conv_flagAbs*: Calculates the absolute differences \n"
-          "  for each Stokes component separately.\n"
-          "*doit_conv_flagAbsBT*: Same as above, but the convergence limit\n"
-          "  can be specified in Kelvin BT (Rayleigh Jeans).\n"
-          "*doit_conv_flagLsq*: Least square convergence test. Not recommended\n"
-          "  because result can be inaccurate.\n"),
+          " - *doit_conv_flagAbs*: Calculates the absolute differences \n"
+          "   for each Stokes component separately.\n"
+          " - *doit_conv_flagAbsBT*: Same as above, but the convergence limit\n"
+          "   can be specified in Kelvin BT (Rayleigh Jeans).\n"
+          " - *doit_conv_flagLsq*: Least square convergence test. Not recommended\n"
+          "   because result can be inaccurate.\n"),
       OUTPUT("doit_conv_flag", "doit_iteration_counter"),
       INPUT("doit_conv_flag",
             "doit_iteration_counter",
@@ -106,13 +106,14 @@ void define_agenda_data() {
           "Performs monochromatic DOIT calculation."
           "\n"
           "This agenda includes for example the following methods:\n"
-          "   1. *DoitScatteringDataPrepare* \n"
-          "   2. *cloudbox_field_monoIterate*\n"
+          "\n"
+          "1. *DoitScatteringDataPrepare* \n"
+          "2. *cloudbox_field_monoIterate*\n"
           "\n"
           "The result of the agenda is the radiation field inside the \n"
           "cloudbox and on the cloudbox boundary, which can be used \n"
           "as radiative background for a clearsky radiative transfer \n"
-          "calculation. \n"
+          "calculation.\n"
           "\n"
           "See the Arts online documentation\n"
           "for more information about the methods.\n"),
@@ -128,17 +129,17 @@ void define_agenda_data() {
           "The following methods can be used for calculating the \n"
           "scattering integral field: \n"
           "\n"
-          "*doit_scat_fieldCalc*: This method calculates the scattering \n"
-          "  integral field by using the angular grids *za_grid* \n"
-          "  and *aa_grid*, which are also used in the update of the \n"
-          "  radiation field (*doit_rte_agenda*).\n"
+          "-  *doit_scat_fieldCalc*: This method calculates the scattering \n"
+          "   integral field by using the angular grids *za_grid* \n"
+          "   and *aa_grid*, which are also used in the update of the \n"
+          "   radiation field (*doit_rte_agenda*).\n"
           "\n"
-          "*doit_scat_fieldCalcLimb*: This method calculates the scattering \n"
-          "  integral field.  The difference to the previous method is that \n"
-          "  the data is interpolated on equidistant angular grids. \n"
-          "  Especially for limb, where a very fine zenith angle grid \n"
-          "  resolution is required for the RT transfer part, this method \n"
-          "  is much faster than *doit_scat_fieldCalc*. \n"),
+          "-  *doit_scat_fieldCalcLimb*: This method calculates the scattering \n"
+          "   integral field.  The difference to the previous method is that \n"
+          "   the data is interpolated on equidistant angular grids. \n"
+          "   Especially for limb, where a very fine zenith angle grid \n"
+          "   resolution is required for the RT transfer part, this method \n"
+          "   is much faster than *doit_scat_fieldCalc*. \n"),
       OUTPUT("doit_scat_field"),
       INPUT("doit_scat_field", "cloudbox_field_mono")));
 
@@ -153,21 +154,23 @@ void define_agenda_data() {
           "This agenda is called repeatedly in each DOIT iteration.\n"
           "\n"
           "Normally one should use\n"
-          "*cloudbox_fieldUpdateSeq1D* or *cloudbox_fieldUpdateSeq3D*:\n"
-          "Seqential update of the radiation field.\n"
-          "   This method is the fastest and most accurate method.\n"
+          "\n"
+          " - *cloudbox_fieldUpdateSeq1D* or *cloudbox_fieldUpdateSeq3D*:\n"
+          "    Seqential update of the radiation field.\n"
+          "    This method is the fastest and most accurate method.\n"
           "\n"
           "A very similar method in plane parallel approximation is\n"
-          "*cloudbox_fieldUpdateSeq1DPP*:\n"
-          "   This method also includes the sequential update and is slightly\n"
-          "   faster than the above one. The drawback is that it is less\n"
-          "   accurate, especially for limb geometries and large off-nadir\n"
-          "   viewing angles.\n"
+          " - *cloudbox_fieldUpdateSeq1DPP*:\n"
+          "    This method also includes the sequential update and is slightly\n"
+          "    faster than the above one. The drawback is that it is less\n"
+          "    accurate, especially for limb geometries and large off-nadir\n"
+          "    viewing angles.\n"
           "\n"
           "The following method was used before the sequential update\n"
           "was invented. It is very slow and should therefore only \n"
-          "be used for test cases.\n"
-          "*cloudbox_fieldUpdate1D*: Old method.\n"),
+          "be used for test cases:\n"
+          "\n"
+          " - *cloudbox_fieldUpdate1D*: Old method.\n"),
       OUTPUT("cloudbox_field_mono"),
       INPUT("cloudbox_field_mono", "doit_scat_field")));
 
@@ -455,13 +458,13 @@ void define_agenda_data() {
           "\n"
           "This agenda can be, for example, set up like this:\n"
           "\n"
-          "*AtmFieldsCalc*\n"
-          "*abs_lookupAdapt*\n"
-          "*DoitInit*\n"
-          "*DoitGetIncoming*\n"
-          "*cloudbox_fieldSetClearsky*\n"
-          "*DoitCalc*\n"
-          "*yCalc*\n"),
+          "1. *AtmFieldsCalc*\n"
+          "2. *abs_lookupAdapt*\n"
+          "3. *DoitInit*\n"
+          "4. *DoitGetIncoming*\n"
+          "5. *cloudbox_fieldSetClearsky*\n"
+          "6. *DoitCalc*\n"
+          "7. *yCalc*\n"),
       OUTPUT("y"),
       INPUT("t_field_raw",
             "vmr_field_raw",
@@ -572,7 +575,7 @@ void define_agenda_data() {
           "number of new points of each step can exceed one.\n"
           "\n"
           "The include file 'agendas.arts' defines some agendas that can be\n"
-          "used here."),
+          "used here.\n"),
       OUTPUT("ppath_step"),
       INPUT("ppath_step", "ppath_lmax", "ppath_lraytrace", "f_grid")));
 

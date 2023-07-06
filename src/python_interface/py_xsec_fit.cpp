@@ -33,8 +33,8 @@ void py_xsec(py::module_& m) {
     details::XsecRecord::__eq__ = details::two_args;
   }));
 
-  py::class_<details::XsecRecord>(m , "XsecRecord::details")
-    .def_readwrite_static("to_xarray", &details::XsecRecord::to_xarray)
+  py::class_<details::XsecRecord>(m , "_detailsXsecRecord")
+    .def_readwrite_static("to_xarray", &details::XsecRecord::to_xarray, "Convert to :class:`xarray.DataArray`")
     .def_readwrite_static("from_xarray", &details::XsecRecord::from_xarray)
     .def_readwrite_static("to_netcdf", &details::XsecRecord::to_netcdf)
     .def_readwrite_static("from_netcdf", &details::XsecRecord::from_netcdf)
@@ -46,22 +46,22 @@ void py_xsec(py::module_& m) {
       // .PythonInterfaceWorkspaceVariableConversion(XsecRecord)
       .PythonInterfaceFileIO(XsecRecord)
       .PythonInterfaceBasicRepresentation(XsecRecord)
-      .def_property("version", &XsecRecord::Version, &XsecRecord::SetVersion)
-      .def_property("species", &XsecRecord::Species, &XsecRecord::SetSpecies)
+      .def_property("version", &XsecRecord::Version, &XsecRecord::SetVersion, ":class:`int` The version")
+      .def_property("species", &XsecRecord::Species, &XsecRecord::SetSpecies, ":class:`~pyarts.arts.Species` The species")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitcoeffs, FitCoeffs, FitCoeffs)
+          XsecRecord, fitcoeffs, FitCoeffs, FitCoeffs, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitminpressures, FitMinPressures, FitMinPressures)
+          XsecRecord, fitminpressures, FitMinPressures, FitMinPressures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitmaxpressures, FitMaxPressures, FitMaxPressures)
+          XsecRecord, fitmaxpressures, FitMaxPressures, FitMaxPressures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(XsecRecord,
                                              fitmintemperatures,
                                              FitMinTemperatures,
-                                             FitMinTemperatures)
+                                             FitMinTemperatures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(XsecRecord,
                                              fitmaxtemperatures,
                                              FitMaxTemperatures,
-                                             FitMaxTemperatures)
+                                             FitMaxTemperatures, ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .def(py::pickle(
           [](const XsecRecord& self) {
             return py::make_tuple(self.Version(),
@@ -115,7 +115,8 @@ void py_xsec(py::module_& m) {
           [](py::object& xr, py::object& other) {
             return details::XsecRecord::__eq__(xr, other);
           },
-          py::is_operator());
+          py::is_operator()).doc() = R"--(A cross-section record.
+)--";
 
   PythonInterfaceWorkspaceArray(XsecRecord);
 }

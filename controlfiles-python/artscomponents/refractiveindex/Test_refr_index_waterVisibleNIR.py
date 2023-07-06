@@ -25,7 +25,7 @@ def wavelength_in_microns2frequency(wavelength):
     '''
 
     # speed of light
-    c = pa.arts.constant.c  # [m/s]
+    c = pa.arts.constants.c  # [m/s]
 
     return c / (wavelength * 1e-6)  # [Hz]
 
