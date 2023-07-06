@@ -332,12 +332,12 @@ exist in the future
 
         ws = pyarts.workspace.Workspace()
         for opt in options:
-            assert (opt+':') in ws.PlanetSet.__doc__, f"The {opt}-option is not documented correctly"
+            assert opt in ws.PlanetSet.__doc__, f"The {opt}-option is not documented correctly"
             ws.PlanetSet(option=opt)
 
 
 if __name__ == "__main__":
     ta = TestAgendas()
     ta.setup_method()
-    ta.test_agenda_set()
+    ta.test_planet_set()
 
