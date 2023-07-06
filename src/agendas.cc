@@ -154,6 +154,7 @@ void define_agenda_data() {
           "This agenda is called repeatedly in each DOIT iteration.\n"
           "\n"
           "Normally one should use\n"
+          "\n"
           " - *cloudbox_fieldUpdateSeq1D* or *cloudbox_fieldUpdateSeq3D*:\n"
           "    Seqential update of the radiation field.\n"
           "    This method is the fastest and most accurate method.\n"
@@ -167,7 +168,8 @@ void define_agenda_data() {
           "\n"
           "The following method was used before the sequential update\n"
           "was invented. It is very slow and should therefore only \n"
-          "be used for test cases\n"
+          "be used for test cases:\n"
+          "\n"
           " - *cloudbox_fieldUpdate1D*: Old method.\n"),
       OUTPUT("cloudbox_field_mono"),
       INPUT("cloudbox_field_mono", "doit_scat_field")));

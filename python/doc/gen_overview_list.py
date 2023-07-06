@@ -9,38 +9,50 @@ def sort_ignore_case(entities):
 
 
 def agendas():
+    existing = pyarts.workspace.Workspace().__dir__()
+
     vars = sort_ignore_case(pyarts.arts.globals.get_agenda_data())
     txt = """.. hlist::
 """
     for var in vars:
-        txt += f"    * :attr:`~pyarts.workspace.Workspace.{var}`\n"
+        if var in existing:
+            txt += f"    * :attr:`~pyarts.workspace.Workspace.{var}`\n"
     return txt
 
 
 def variables():
+    existing = pyarts.workspace.Workspace().__dir__()
+
     vars = sort_ignore_case(pyarts.arts.globals.get_wsv_data())
     txt = """.. hlist::
 """
     for var in vars:
-        txt += f"    * :attr:`~pyarts.workspace.Workspace.{var}`\n"
+        if var in existing:
+            txt += f"    * :attr:`~pyarts.workspace.Workspace.{var}`\n"
     return txt
 
 
 def groups():
+    existing = pyarts.arts.__dir__()
+
     vars = sort_ignore_case(pyarts.arts.globals.get_wsv_groups())
     txt = """.. hlist::
 """
     for var in vars:
-        txt += f"    * :attr:`~pyarts.arts.{var}`\n"
+        if var in existing:
+            txt += f"    * :attr:`~pyarts.arts.{var}`\n"
     return txt
 
 
 def methods():
+    existing = pyarts.workspace.Workspace().__dir__()
+
     vars = sort_ignore_case(pyarts.arts.globals.get_md_data_raw())
     txt = """.. hlist::
 """
     for var in vars:
-        txt += f"    * :func:`~pyarts.workspace.Workspace.{var}`\n"
+        if var in existing:
+            txt += f"    * :func:`~pyarts.workspace.Workspace.{var}`\n"
     return txt
 
 

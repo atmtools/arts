@@ -126,7 +126,7 @@ std::map<std::string, Group> groups() {
     if (x.has_defaults())
       val += var_string("\nDefault value\n"
                         "-------------\n\n``",
-                        to_defval_str(var_string(TokValPrinter(x.default_value()))),
+                        to_defval_str(var_string(TokValPrinter(x.default_value())), global_data::wsv_groups[x.Group()].name),
                         "``\n\n");
 
     struct wsv_io {
