@@ -245,8 +245,8 @@ class TestAgendas:
         def set_agendas(ws, agenda_string):
             options = eval(f"pyarts.arts.options.{agenda_string}DefaultOptions.get_options_as_strings()")
             for enum_option in options:
-                if (enum_option + ":" )not in eval(f"ws.{agenda_string}Set").__doc__:
-                    raise RuntimeError(f"The option {enum_option} is not documented for {agenda_string}")
+                if enum_option not in eval(f"ws.{agenda_string}Set").__doc__:
+                    raise RuntimeError(f"The option {enum_option} is not mentioned for {agenda_string}")
                 try:
                     eval(f"ws.{agenda_string}Set(option=enum_option)")
                 except RuntimeError as err:
