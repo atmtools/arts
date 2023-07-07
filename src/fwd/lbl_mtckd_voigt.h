@@ -122,24 +122,4 @@ struct band_lm {
   void at(ComplexVector& out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
-
-struct full {
-  band bands;
-  band_lm bands_lm;
-
-  full(Numeric T,
-       Numeric P,
-       const SpeciesIsotopologueRatios& isotopologue_ratios,
-       const ArrayOfArrayOfSpeciesTag& allspecs,
-       const Vector& allvmrs,
-       const ArrayOfArrayOfAbsorptionLines& specbands)
-      : bands(T, P, isotopologue_ratios, allspecs, allvmrs, specbands),
-        bands_lm(T, P, isotopologue_ratios, allspecs, allvmrs, specbands) {}
-
-  [[nodiscard]] std::size_t size() const;
-
-  [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& out, const Vector& fs) const;
-  [[nodiscard]] ComplexVector at(const Vector& fs) const;
-};
 }  // namespace lbl::mtckd

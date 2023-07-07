@@ -239,22 +239,6 @@ ComplexVector band_lm::at(const Vector& f) const {
   at(out, f);
   return out;
 }
-
-std::size_t full::size() const { return bands.size() + bands_lm.size(); }
-
-Complex full::at(Numeric f) const { return bands.at(f) + bands_lm.at(f); }
-
-ComplexVector full::at(const Vector& f) const {
-  ComplexVector out(f.size());
-  at(out, f);
-  return out;
-}
-
-void full::at(ComplexVector& out, const Vector& fs) const {
-  std::transform(fs.begin(), fs.end(), out.begin(), [this](const auto& f) {
-    return at(f);
-  });
-}
 }  // namespace lbl::mtckd
 
 static_assert(lbl::singleable<lbl::mtckd::single>,
@@ -267,7 +251,4 @@ static_assert(lbl::singleable<lbl::mtckd::single_lm>,
               "lbl::mtckd::single is not representative of a single line");
 
 static_assert(lbl::bandable<lbl::mtckd::band_lm>,
-              "lbl::mtckd::single is not representative of a band of lines");
-
-static_assert(lbl::bandable<lbl::mtckd::full>,
               "lbl::mtckd::single is not representative of a band of lines");
