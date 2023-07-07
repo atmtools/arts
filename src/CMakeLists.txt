@@ -385,3 +385,6 @@ add_subdirectory(gpl)
 target_link_libraries(artscore PUBLIC artscore_gpl_selector)
 
 add_subdirectory(tests)
+
+add_subdirectory(fwd)
+target_link_libraries(artscore PUBLIC fwd)

@@ -617,5 +617,37 @@ via x.value
           }))
       .PythonInterfaceWorkspaceDocumentation(Rational);
   py::implicitly_convertible<Index, Rational>();
+
+  py::class_<ComplexVector>(m, "ComplexVector", py::buffer_protocol())
+      .def(py::init([]() { return std::make_unique<ComplexVector>(); }), "Default vector")
+      .PythonInterfaceCopyValue(ComplexVector)
+      .PythonInterfaceBasicRepresentation(ComplexVector)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](ComplexVector& x) -> py::buffer_info {
+        return py::buffer_info(x.data_handle(),
+                               sizeof(Complex),
+                               py::format_descriptor<Complex>::format(),
+                               1,
+                               {x.nelem()},
+                               {sizeof(Complex)});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](ComplexVector& x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](ComplexVector& x, ComplexVector& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
+      .def(py::pickle(
+          [](const py::object& self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<ComplexVector>()(t[0]).cast<ComplexVector>();
+          }))
+      .doc() = R"--(Holds complex vector data.
+)--";
 }
 }  // namespace Python
