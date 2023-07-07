@@ -94,19 +94,19 @@ Touch( zang )
 StringSet( tmpformat, "ascii" )
 #StringSet( tmpformat, "binary" )
 StringSet( strtmp, "tmp1.xml" )
-WriteXML( output_file_format=tmpformat, in=zang, filename=strtmp )
+WriteXML( output_file_format=tmpformat, input=zang, filename=strtmp )
 #
 AgendaCreate( forloop_agenda_tanh )
 AgendaSet( forloop_agenda_tanh )
 {
-ReadXML( out=zang, filename=strtmp )
+ReadXML( output=zang, filename=strtmp )
 Extract( azimuth, tanh_azi, forloop_index )
 Append( itanh, forloop_index )
 Select( tanh, tanh, itanh )
 refellipsoidForAzimuth( refellipsoid, obslat, azimuth )
 VectorZtanToZa1D( tzang, sensor_pos, refellipsoid, 1, tanh )
 Append( zang, tzang )
-WriteXML( output_file_format=tmpformat, in=zang, filename=strtmp )
+WriteXML( output_file_format=tmpformat, input=zang, filename=strtmp )
 }
 #
 MatrixSetConstant( sensor_pos, 1, 1, obsh )
@@ -116,10 +116,10 @@ IndexStepDown( ntanh, ntanh )
 Copy( forloop_agenda, forloop_agenda_tanh )
 ForLoop( forloop_agenda, 0, ntanh, 1  )
 #
-ReadXML( out=zang, filename=strtmp )
+ReadXML( output=zang, filename=strtmp )
 Append( allang_zen, zang )
 Append( allang_azi, tanh_azi )
-#WriteXML( in=allang_zen )
+#WriteXML( input=allang_zen )
 #Print( allang_zen )
 
 

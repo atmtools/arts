@@ -142,8 +142,8 @@ cloudbox_checkedCalc
 yRadar
 #
 Copy( Ja, jacobian )
-#WriteXML( in=y, filename="y0.xml" )
-#WriteXML( in=jacobian, filename="J_iwc_analytical.xml" )
+#WriteXML( input=y, filename="y0.xml" )
+#WriteXML( input=jacobian, filename="J_iwc_analytical.xml" )
 
 
 # IWC, perturbation Jacobian
@@ -171,7 +171,7 @@ AgendaSet(ybatch_calc_agenda){
 ybatchCalc( ybatch_start=0 )
 jacobianFromYbatch( pert_size = perturbation )
 Copy( Jp, jacobian )
-#WriteXML( in=jacobian, filename="J_iwc_perturbation.xml" )
+#WriteXML( input=jacobian, filename="J_iwc_perturbation.xml" )
 # 
 CompareRelative( Jp, Ja, 1 )
 
@@ -204,7 +204,7 @@ cloudbox_checkedCalc
 yRadar
 #
 Copy( Ja, jacobian )
-#WriteXML( in=jacobian, filename="J_h2o_analytical.xml" )
+#WriteXML( input=jacobian, filename="J_h2o_analytical.xml" )
 
 
 # H2O, perturbation Jacobian
@@ -229,7 +229,7 @@ AgendaSet(ybatch_calc_agenda){
 ybatchCalc( ybatch_start=0 )
 jacobianFromYbatch( pert_size = perturbation )
 Copy( Jp, jacobian )
-#WriteXML( in=jacobian, filename="J_h2o_perturbation.xml" )
+#WriteXML( input=jacobian, filename="J_h2o_perturbation.xml" )
 # 
 CompareRelative( Ja, Jp, 0.2 )
 
@@ -262,7 +262,7 @@ cloudbox_checkedCalc
 yRadar
 #
 Copy( Ja, jacobian )
-#WriteXML( in=jacobian, filename="J_t_analytical.xml" )
+#WriteXML( input=jacobian, filename="J_t_analytical.xml" )
 
 
 # Temparature, perturbation Jacobian
@@ -288,6 +288,6 @@ AgendaSet(ybatch_calc_agenda){
 ybatchCalc( ybatch_start=0 )
 jacobianFromYbatch( pert_size = perturbation )
 Copy( Jp, jacobian )
-#WriteXML( in=jacobian, filename="J_t_perturbation.xml" )
+#WriteXML( input=jacobian, filename="J_t_perturbation.xml" )
 
 }

@@ -106,7 +106,7 @@ class TestMethods:
         assert(np.allclose(mat, ws.sensor_los.value))
 
         ws.sensor_los = np.zeros((2, 2))
-        ws.ReadXML(out = ws.sensor_los, filename = tempfile.name)
+        ws.ReadXML(output = ws.sensor_los, filename = tempfile.name)
         assert(np.allclose(mat, ws.sensor_los.value))
 
     def test_supergeneric_overload_resolution(self):

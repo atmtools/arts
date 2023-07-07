@@ -17,7 +17,7 @@ scat_dataCheck
 pnd_fieldCalcFrompnd_field_raw
 
 # here we want a really thin cloud
-Tensor4Multiply( out=pnd_field, in=pnd_field, value=0.01 )
+Tensor4Multiply( output=pnd_field, input=pnd_field, value=0.01 )
 
 # Consistency checks needed for running merge
 atmfields_checkedCalc
@@ -44,7 +44,7 @@ AgendaSet( doit_mono_agenda ){
   # Interpolate cloudbox_field_mono back to original size
   cloudbox_field_monoOptimizeReverse
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
+  #WriteXMLIndexed( input=cloudbox_field_mono, file_index=f_index )
 }
 
 # Convergence test

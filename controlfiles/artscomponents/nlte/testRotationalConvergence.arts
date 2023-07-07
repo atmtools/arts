@@ -12,7 +12,7 @@ Arts2{
 
     AgendaSet(ppath_step_agenda) { Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric }
 
-    AgendaSet(surface_rtprop_agenda) { InterpAtmFieldToPosition(out=surface_skin_t, field=t_field) surfaceBlackbody }
+    AgendaSet(surface_rtprop_agenda) { InterpAtmFieldToPosition(output=surface_skin_t, field=t_field) surfaceBlackbody }
     
     # Names that are uninitialized but needs to be initialized empty for the code to work
     Touch(surface_props_names)

@@ -25,16 +25,16 @@
 Arts2 {
 
 # do the interpolation/regridding separately for each magfield component
-GriddedFieldLatLonRegrid( out=mag_u_raw, in=mag_u_raw )
-GriddedFieldPRegrid( out=mag_u_raw, in=mag_u_raw, zeropadding=auxfield_zeropad )
-FieldFromGriddedField( out=mag_u_field, in=mag_u_raw )
+GriddedFieldLatLonRegrid( output=mag_u_raw, input=mag_u_raw )
+GriddedFieldPRegrid( output=mag_u_raw, input=mag_u_raw, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( output=mag_u_field, input=mag_u_raw )
 
-GriddedFieldLatLonRegrid( out=mag_v_raw, in=mag_v_raw )
-GriddedFieldPRegrid( out=mag_v_raw, in=mag_v_raw, zeropadding=auxfield_zeropad )
-FieldFromGriddedField( out=mag_v_field, in=mag_v_raw )
+GriddedFieldLatLonRegrid( output=mag_v_raw, input=mag_v_raw )
+GriddedFieldPRegrid( output=mag_v_raw, input=mag_v_raw, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( output=mag_v_field, input=mag_v_raw )
 
-GriddedFieldLatLonRegrid( out=mag_w_raw, in=mag_w_raw )
-GriddedFieldPRegrid( out=mag_w_raw, in=mag_w_raw, zeropadding=auxfield_zeropad )
-FieldFromGriddedField( out=mag_w_field, in=mag_w_raw )
+GriddedFieldLatLonRegrid( output=mag_w_raw, input=mag_w_raw )
+GriddedFieldPRegrid( output=mag_w_raw, input=mag_w_raw, zeropadding=auxfield_zeropad )
+FieldFromGriddedField( output=mag_w_field, input=mag_w_raw )
 
 }

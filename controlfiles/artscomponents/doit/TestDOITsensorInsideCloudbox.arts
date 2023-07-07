@@ -21,7 +21,7 @@ Matrix1ColFromVector( sensor_pos, vector_2 )
 
 INCLUDE "artscomponents/doit/doit_calc.arts"
 
-#WriteXML( in=y )
+#WriteXML( input=y )
 
 #==================check==========================
 

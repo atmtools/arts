@@ -17,7 +17,7 @@ AgendaSet( doit_mono_agenda ){
   # default is set to 0 (no acceleration) 
   cloudbox_field_monoIterate(accelerated=4)
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
+  #WriteXMLIndexed( input=cloudbox_field_mono, file_index=f_index )
 }
 
 # Convergence test
@@ -39,6 +39,6 @@ AgendaSet( doit_conv_test_agenda ){
 }
 
 # we want a really thick cloud here
-Tensor4Multiply( out=pnd_field, in=pnd_field, value=80 )
+Tensor4Multiply( output=pnd_field, input=pnd_field, value=80 )
 
 } # End of Main

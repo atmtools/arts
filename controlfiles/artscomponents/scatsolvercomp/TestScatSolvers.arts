@@ -156,7 +156,7 @@ scat_dataCalc
 scat_data_checkedCalc( sca_mat_threshold=0.25 )
 #
 VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
-InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
 
 
 # Test 1: Cloubox with no scattering
@@ -232,7 +232,7 @@ Tensor4Multiply( particle_bulkprop_field, particle_bulkprop_field, 0.3333333 )
 pnd_fieldCalcFromParticleBulkProps
 MatrixAdd( z_surface, z_surface, 3000 )
 VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
-InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
 ##
 StringSet( message, "Surface moved upwards" )
 Print( message, 0 )

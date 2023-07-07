@@ -60,7 +60,7 @@ surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 #
 VectorSet( surface_scalar_reflectivity, [0] )
 VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
-InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
 
 
 

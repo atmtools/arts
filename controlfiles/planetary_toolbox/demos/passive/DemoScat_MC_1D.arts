@@ -193,8 +193,8 @@ AgendaSet( forloop_agenda_angles )
   Print( rte_los, 0 )
   iyCalc
   iyApplyUnit( iy_unit=strtmp )
-  WriteXMLIndexed( in=iy, file_index=forloop_index )
-  WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
+  WriteXMLIndexed( input=iy, file_index=forloop_index )
+  WriteXMLIndexed( input=iy_aux, file_index=forloop_index )
 }
 
 IndexCreate( nangles )

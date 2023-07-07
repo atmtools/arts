@@ -267,11 +267,11 @@ ybatchCalc
 # with the next batch job.
 # ybatchCalc( robust=1 )
 
-#WriteXML( in=ybatch, filename="TestBatch.ybatch.ref.xml" )
+#WriteXML( input=ybatch, filename="TestBatch.ybatch.ref.xml" )
 
 # Verify results
 ArrayOfVectorCreate( ybatch_ref )
-ReadXML( out=ybatch_ref, filename="TestBatch.ybatch.ref.xml" )
+ReadXML( output=ybatch_ref, filename="TestBatch.ybatch.ref.xml" )
 
 Compare( ybatch, ybatch_ref, 1e-6 )
 

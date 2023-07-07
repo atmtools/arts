@@ -191,7 +191,7 @@ class TestAgendas:
             """
             This agenda uses a starred expression.
             """
-            ws.IndexSet(**{"out" : ws.stokes_dim,
+            ws.IndexSet(**{"output" : ws.stokes_dim,
                            "value" : 42})
 
         self.ws.stokes_dim = 0

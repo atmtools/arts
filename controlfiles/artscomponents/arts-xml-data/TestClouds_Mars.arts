@@ -34,7 +34,7 @@ NumericCreate( pmin )
 NumericCreate( pmax )
 #VectorCreate( ally )
 #VectorSet( ally, [] )
-#WriteXML( in=ally )
+#WriteXML( input=ally )
 
 # some basic RT settings
 #####
@@ -233,9 +233,9 @@ AgendaSet( forloop_agenda_particles ){
 
   yCalc
   #Print( y, 0 )
-  #ReadXML( out=ally )
+  #ReadXML( output=ally )
   #Append( ally, y )
-  #WriteXML( in=ally )
+  #WriteXML( input=ally )
 }
 
 AgendaCreate( forloop_agenda_dust )

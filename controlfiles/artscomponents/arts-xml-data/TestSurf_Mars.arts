@@ -205,7 +205,7 @@ VectorSet( surface_scalar_reflectivity, [0.4] )
 # surface temp from atmospheric t_field
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )   
+   InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )   
    #Print( surface_skin_t, 0 )
    surfaceFlatScalarReflectivity
 }
@@ -233,7 +233,7 @@ ReadXML( ri_surface, casefull )
 
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+   InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
@@ -242,8 +242,8 @@ AgendaSet( surface_rtprop_agenda ){
 } 
 yCalc
 #Print( y, 0 )
-#WriteXML( in=y )
-ReadXML( out=yREFERENCE, filename="TestSurf_Mars.y.xml" )
+#WriteXML( input=y )
+ReadXML( output=yREFERENCE, filename="TestSurf_Mars.y.xml" )
 Compare( y, yREFERENCE, 1e-6 )
 
 
@@ -259,7 +259,7 @@ Copy( lon_grid, lon_grid3D_glob )
 
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+   InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )
    #Print( surface_skin_t, 0 )
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )

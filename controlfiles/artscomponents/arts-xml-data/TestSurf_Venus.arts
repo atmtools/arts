@@ -149,7 +149,7 @@ VectorSet( surface_scalar_reflectivity, [0.4] )
 # surface temp from atmospheric t_field
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+   InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
    surfaceFlatScalarReflectivity
 }
 #yCalc
@@ -162,7 +162,7 @@ AgendaSet( surface_rtprop_agenda ){
 # surface temp from t_surface field
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )  
+  InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )  
   surfaceFlatScalarReflectivity
 } 
 yCalc
@@ -176,7 +176,7 @@ yCalc
 
 AgendaSet( surface_rtprop_agenda ){
    specular_losCalc
-   InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )  
+   InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )  
    Select( lat_true, rtp_pos, [1] )
    Select( lon_true, rtp_pos, [2] )
    surface_complex_refr_indexFromGriddedField5( complex_refr_index_field=ri_surface )

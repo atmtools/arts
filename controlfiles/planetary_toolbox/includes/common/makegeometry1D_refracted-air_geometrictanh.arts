@@ -72,7 +72,7 @@ nelemGet( ntanh, tanh )
 MatrixSetConstant( sensor_pos, ntanh, 1, obsh )
 VectorZtanToZa1D( zang, sensor_pos, refellipsoid, atmosphere_dim, tanh )
 Append( allzang, zang )
-#WriteXML( in=allzang )
+#WriteXML( input=allzang )
 #Print( allzang )
 
 

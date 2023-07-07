@@ -57,7 +57,7 @@ StringSet( atmcase, "planets/Earth/Fascod/tropical/tropical" )
 
 # derive abs species from scenario data
 abs_speciesDefineAllInScenario( basename=atmcase )
-WriteXML( in=abs_species )
+WriteXML( input=abs_species )
 
 # Atmospheric scenario
 AtmRawRead( basename = atmcase )
@@ -133,20 +133,20 @@ VectorCreate( yREFERENCE )
 
 ReadXML( isotopologue_ratios, "planets/Venus/isotopratio_Venus" )
 yCalc
-#WriteXML( in=y, filename="TestPlanetIsoRatios.Venus.y_reference.xml" )
-ReadXML( out=yREFERENCE, filename="TestPlanetIsoRatios.Venus.y_reference.xml" )
+#WriteXML( input=y, filename="TestPlanetIsoRatios.Venus.y_reference.xml" )
+ReadXML( output=yREFERENCE, filename="TestPlanetIsoRatios.Venus.y_reference.xml" )
 Compare( yREFERENCE, y, 2e-9 )
 
 ReadXML( isotopologue_ratios, "planets/Mars/isotopratio_Mars" )
 yCalc
-#WriteXML( in=y, filename="TestPlanetIsoRatios.Mars.y_reference.xml" )
-ReadXML( out=yREFERENCE, filename="TestPlanetIsoRatios.Mars.y_reference.xml" )
+#WriteXML( input=y, filename="TestPlanetIsoRatios.Mars.y_reference.xml" )
+ReadXML( output=yREFERENCE, filename="TestPlanetIsoRatios.Mars.y_reference.xml" )
 Compare( y, yREFERENCE, 2e-9 )
 
 ReadXML( isotopologue_ratios, "planets/Jupiter/isotopratio_Jupiter" )
 yCalc
-#WriteXML( in=y, filename="TestPlanetIsoRatios.Jupiter.y_reference.xml" )
-ReadXML( out=yREFERENCE, filename="TestPlanetIsoRatios.Jupiter.y_reference.xml" )
+#WriteXML( input=y, filename="TestPlanetIsoRatios.Jupiter.y_reference.xml" )
+ReadXML( output=yREFERENCE, filename="TestPlanetIsoRatios.Jupiter.y_reference.xml" )
 Compare( y, yREFERENCE, 2e-9 )
 
 }

@@ -81,7 +81,7 @@ complex_refr_indexWaterLiebe93( surface_complex_refr_index,
                                 data_f_grid, data_T_grid )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
-  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+  InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )
   surfaceFlatRefractiveIndex
 } 
 

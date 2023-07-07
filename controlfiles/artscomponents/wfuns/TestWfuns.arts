@@ -125,7 +125,7 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, "O3", "rel", 1 )
 jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_O3_analytical.xml" )
+#WriteXML( input=jacobian_quantities, filename="Jq_O3_analytical.xml" )
 
 
 # No scattering
@@ -138,8 +138,8 @@ cloudbox_checkedCalc
 
 
 yCalc
-#WriteXML( in=y, filename="y_O3_analytical.xml" )
-#WriteXML( in=jacobian, filename="J_O3_analytical.xml" )
+#WriteXML( input=y, filename="y_O3_analytical.xml" )
+#WriteXML( input=jacobian, filename="J_O3_analytical.xml" )
 Copy( Ja, jacobian )
 
 # Same with perturbations
@@ -165,8 +165,8 @@ AgendaSet(ybatch_calc_agenda){
 #
 ybatchCalc( ybatch_start=0 )
 jacobianFromYbatch( pert_size = perturbation )
-#WriteXML( in=y, filename="y_O3_perturbation.xml" )
-#WriteXML( in=jacobian, filename="J_O3_perturbation.xml" )
+#WriteXML( input=y, filename="y_O3_perturbation.xml" )
+#WriteXML( input=jacobian, filename="J_O3_perturbation.xml" )
 Copy( Jp, jacobian )
 # 
 Compare( Ja, Jp, 0.005 )
@@ -197,10 +197,10 @@ jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, "off" )
 jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_T_analytical.xml" )
+#WriteXML( input=jacobian_quantities, filename="Jq_T_analytical.xml" )
 yCalc
-#WriteXML( in=y, filename="y_T_analytical.xml" )
-#WriteXML( in=jacobian, filename="J_T_analytical.xml" )
+#WriteXML( input=y, filename="y_T_analytical.xml" )
+#WriteXML( input=jacobian, filename="J_T_analytical.xml" )
 Copy( Ja, jacobian )
 
 
@@ -226,8 +226,8 @@ AgendaSet(ybatch_calc_agenda){
 ybatchCalc( ybatch_start=0 )
 jacobianFromYbatch( pert_size = perturbation )
 #
-#WriteXML( in=y, filename="y_T_perturbation.xml" )
-#WriteXML( in=jacobian, filename="J_T_perturbation.xml" )
+#WriteXML( input=y, filename="y_T_perturbation.xml" )
+#WriteXML( input=jacobian, filename="J_T_perturbation.xml" )
 Copy( Jp, jacobian )
 
 # Compare
@@ -288,11 +288,11 @@ jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim,
                  p_grid, lat_grid, lon_grid, 
                  retrieval_grid, lat_grid, lon_grid, "v" )
 jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_wind.xml" )
+#WriteXML( input=jacobian_quantities, filename="Jq_wind.xml" )
 yCalc
 Copy( Ja, jacobian )
-#WriteXML( in=y, filename="y_wind_analytical.xml" )
-#WriteXML( in=jacobian, filename="J_wind_analytical.xml" )
+#WriteXML( input=y, filename="y_wind_analytical.xml" )
+#WriteXML( input=jacobian, filename="J_wind_analytical.xml" )
 
 # Same with perturbations
 #
@@ -320,8 +320,8 @@ AgendaSet(ybatch_calc_agenda){
 ybatchCalc( ybatch_start=0 )
 jacobianFromYbatch( pert_size = perturbation )
 #
-#WriteXML( in=y, filename="y_wind_perturbation.xml" )
-#WriteXML( in=jacobian, filename="J_wind_perturbation.xml" )
+#WriteXML( input=y, filename="y_wind_perturbation.xml" )
+#WriteXML( input=jacobian, filename="J_wind_perturbation.xml" )
 Copy( Jp, jacobian )
 
 # Compare
@@ -351,11 +351,11 @@ jacobianAddSinefit( jacobian_quantities, jacobian_agenda,
     [200e6,40e6], 0, 0, 0 )
 
 jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_Other.xml" )
+#WriteXML( input=jacobian_quantities, filename="Jq_Other.xml" )
 
 yCalc
-#WriteXML( in=y, filename="y_Other.xml" )
-#WriteXML( in=jacobian, filename="J_Other.xml" )
+#WriteXML( input=y, filename="y_Other.xml" )
+#WriteXML( input=jacobian, filename="J_Other.xml" )
 
 
 ##############################################################################

@@ -180,10 +180,10 @@ MatrixSetConstant( z_surface, nlat, nlon, surface_altitude )
 #  to be set.
 #
 #ReadXML( surface_altitude_field, surface_altitude_file )
-#GriddedFieldLatLonRegrid( out=surface_altitude_field,
-#                          in=surface_altitude_field,
+#GriddedFieldLatLonRegrid( output=surface_altitude_field,
+#                          input=surface_altitude_field,
 #                          lat_true=lat_grid, lon_true=lon_grid )
-#FieldFromGriddedField( out=z_surface, in=surface_altitude_field )
+#FieldFromGriddedField( output=z_surface, input=surface_altitude_field )
 
 
 
@@ -252,7 +252,7 @@ MatrixSetConstant( z_surface, nlat, nlon, surface_altitude )
 # NOTE: Requires lat_true and lon_true to be set. Requires
 #  surface_refractive_index_file to be set.
 #
-#ReadXML( out=surface_refractive_index_field,
+#ReadXML( output=surface_refractive_index_field,
 #         filename=surface_refractive_index_file )
 #AgendaSet( surface_rtprop_agenda ){
 #  specular_losCalc
@@ -312,7 +312,7 @@ MatrixSetConstant( z_surface, nlat, nlon, surface_altitude )
 #                            surface_refractive_index_imag )
 #AgendaSet( surface_rtprop_agenda ){
 #  specular_losCalc
-#  InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+#  InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
 #  surfaceFlatRefractiveIndex
 #} 
 
@@ -323,14 +323,14 @@ MatrixSetConstant( z_surface, nlat, nlon, surface_altitude )
 # NOTE: Requires lat_true and lon_true to be set. Requires
 #  surface_refractive_index_file to be set.
 #
-#ReadXML( out=surface_refractive_index_field,
+#ReadXML( output=surface_refractive_index_field,
 #         filename=surface_refractive_index_file )
 #AgendaSet( surface_rtprop_agenda ){
 #  specular_losCalc
 #  surface_complex_refr_indexFromGriddedField5(
 #      complex_refr_index_field=surface_refractive_index_field,
 #      lat_true=lat_grid, lon_true=lon_grid )
-#  InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+#  InterpAtmFieldToPosition( output=surface_skin_t, field=t_field )
 #  surfaceFlatRefractiveIndex
 #} 
 
@@ -348,17 +348,17 @@ StringSet( infostr, "Surface temperature data taken from: " )
 Append( infostr, surface_temperature_file )
 Print( infostr )
 ReadXML( surface_temperature_field, surface_temperature_file )
-GriddedFieldLatLonRegrid( out=surface_temperature_field,
-                          in=surface_temperature_field,
+GriddedFieldLatLonRegrid( output=surface_temperature_field,
+                          input=surface_temperature_field,
                           lat_true=lat_grid, lon_true=lon_grid )
-FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
+FieldFromGriddedField( output=t_surface, input=surface_temperature_field )
 
 
 # subCASE 3a) Blackbody surface
 # ---
 #AgendaSet( surface_rtprop_agenda ){
 #  Ignore( rtp_los )
-#  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+#  InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )
 #  Print( surface_skin_t, 0 )
 #  surfaceBlackbody
 #} 
@@ -397,7 +397,7 @@ FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
 #                            surface_refractive_index_imag )
 #AgendaSet( surface_rtprop_agenda ){
 #  specular_losCalc
-#  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+#  InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )
 #  surfaceFlatRefractiveIndex
 #} 
 
@@ -408,14 +408,14 @@ FieldFromGriddedField( out=t_surface, in=surface_temperature_field )
 # NOTE: Requires lat_true and lon_true to be set. Requires
 #  surface_refractive_index_file to be set.
 #
-ReadXML( out=surface_refractive_index_field,
+ReadXML( output=surface_refractive_index_field,
          filename=surface_refractive_index_file )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   surface_complex_refr_indexFromGriddedField5(
       complex_refr_index_field=surface_refractive_index_field,
       lat_true=lat_grid, lon_true=lon_grid )
-  InterpSurfaceFieldToPosition( out=surface_skin_t, field=t_surface )
+  InterpSurfaceFieldToPosition( output=surface_skin_t, field=t_surface )
   surfaceFlatRefractiveIndex
 } 
 

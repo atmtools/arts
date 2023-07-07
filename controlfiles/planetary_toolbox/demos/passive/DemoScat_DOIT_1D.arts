@@ -166,18 +166,18 @@ ArrayOfStringSet( iy_aux_vars,
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 AgendaCreate( convloop_agenda )
 AgendaSet( convloop_agenda ){
-  ReadXML( out=vtmp, filename=strtmp )
+  ReadXML( output=vtmp, filename=strtmp )
   Extract( ntmp, epsilonTb, forloop_index )
   Append( vtmp, ntmp )
-  WriteXML( output_file_format=tmpformat, in=vtmp, filename=strtmp )
+  WriteXML( output_file_format=tmpformat, input=vtmp, filename=strtmp )
 }
 Touch( vtmp )
-WriteXML( output_file_format=tmpformat, in=vtmp, filename=strtmp )
+WriteXML( output_file_format=tmpformat, input=vtmp, filename=strtmp )
 Copy( ncases, stokes_dim )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, convloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
-ReadXML( out=epsilonTb, filename=strtmp )
+ReadXML( output=epsilonTb, filename=strtmp )
 
 
 # only MODIFY if you know, what you are doing (else the default setting should
@@ -234,8 +234,8 @@ AgendaSet( forloop_agenda_angles )
   rte_losSet( za=za, aa=za )
   Print( rte_los, 0 )
   iyCalc
-  WriteXMLIndexed( in=iy, file_index=forloop_index )
-  WriteXMLIndexed( in=iy_aux, file_index=forloop_index )
+  WriteXMLIndexed( input=iy, file_index=forloop_index )
+  WriteXMLIndexed( input=iy_aux, file_index=forloop_index )
 }
 
 IndexCreate( nangles )

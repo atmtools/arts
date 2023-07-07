@@ -32,7 +32,7 @@ Arts2 {
 # forth, we get the pnd field and and single scattering data in their respective
 #  WSVs pnd_field_raw and scat_data.
 ScatSpeciesInit
-ReadXML( out=ssdfiles, filename=poptmp )
+ReadXML( output=ssdfiles, filename=poptmp )
 ScatSpeciesPndAndScatAdd( scat_data_files=ssdfiles, pnd_fieldarray_file=pndtmp )
 scat_dataCheck( scat_data=scat_data_raw )
 
@@ -54,7 +54,7 @@ pnd_fieldCalcFrompnd_field_raw( zeropadding=1 )
 #  into them.)
 Delete( strtmp )
 Touch( strtmp )
-WriteXML( output_file_format=tmpformat, in=strtmp, filename=pndtmp )
-WriteXML( output_file_format=tmpformat, in=strtmp, filename=poptmp )
+WriteXML( output_file_format=tmpformat, input=strtmp, filename=pndtmp )
+WriteXML( output_file_format=tmpformat, input=strtmp, filename=poptmp )
 
 }

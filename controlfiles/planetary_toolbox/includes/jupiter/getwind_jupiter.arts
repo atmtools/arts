@@ -43,7 +43,7 @@ Touch( gf3tmp )  #this in case gf3tmp hasn't been used before
 Delete( gf3tmp ) #this to throw away possible data in gf3tmp (if it was used before)
 Touch( gf3tmp )  #this to initialize it again after deleting
 # this to have a properly formated file to read after the forloops
-WriteXML( output_file_format=tmpformat, in=gf3tmp, filename=Btmp )
+WriteXML( output_file_format=tmpformat, input=gf3tmp, filename=Btmp )
 
 # Get data for one wind component
 AgendaCreate( windloop_agenda )
@@ -52,7 +52,7 @@ AgendaSet( windloop_agenda ){
   Append( specfilename, strtmp )
 #  Print( specfilename, 0 )
   ReadXML( gf3tmp, specfilename )
-  WriteXML( output_file_format=tmpformat, in=gf3tmp, filename=Btmp )
+  WriteXML( output_file_format=tmpformat, input=gf3tmp, filename=Btmp )
 }
 
 
@@ -83,14 +83,14 @@ nelemGet( ncases, casearray )
 IndexStepDown( ncases, ncases )
 Copy( forloop_agenda, windloop_agenda )
 ForLoop( forloop_agenda, 0, ncases, 1 )
-ReadXML( out=wind_u_raw, filename=Btmp )
+ReadXML( output=wind_u_raw, filename=Btmp )
 
 
 # and we clean up the dummy files (not completely, though. but we write an empty
 #  variable into them.)
 Delete( strtmp )
 Touch( strtmp )
-WriteXML( output_file_format=tmpformat, in=strtmp, filename=Btmp )
+WriteXML( output_file_format=tmpformat, input=strtmp, filename=Btmp )
 
 }
  

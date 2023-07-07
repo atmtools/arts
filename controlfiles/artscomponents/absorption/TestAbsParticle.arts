@@ -148,11 +148,11 @@ scat_data_checkedCalc
 sensor_checkedCalc
 
 
-#WriteXML( in=abs_species )
+#WriteXML( input=abs_species )
 StringSet( iy_unit, "RJBT" )
 yCalc
 
-WriteXML( in=y )
+WriteXML( input=y )
 
 #==================stop==========================
 

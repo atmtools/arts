@@ -21,8 +21,8 @@ DoitCalc
 # Writing out the radition field solution from inside cloudbox for
 # initialization of perturbed pnd_field calculation from non-clearsky first
 # guess
-#WriteXML( in=cloudbox_field, filename="cloudbox_fieldREFERENCE_DOIT.xml" )
-#WriteXML( in=cloudbox_field )
+#WriteXML( input=cloudbox_field, filename="cloudbox_fieldREFERENCE_DOIT.xml" )
+#WriteXML( input=cloudbox_field )
 
 # Calculate RT from cloudbox boundary to the sensor
 yCalc

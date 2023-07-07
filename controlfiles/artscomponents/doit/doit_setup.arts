@@ -69,7 +69,7 @@ AtmFieldsCalc
 #abs_xsec_agenda_checkedCalc
 #abs_lookupSetup
 #abs_lookupCalc
-#WriteXML( output_file_format="binary", in=abs_lookup, filename="my_gas_abs_lookup.xml" )
+#WriteXML( output_file_format="binary", input=abs_lookup, filename="my_gas_abs_lookup.xml" )
 
 ReadXML( abs_lookup, "testdata/testdoit_gas_abs_lookup.xml" )
 abs_lookupAdapt
@@ -91,7 +91,7 @@ VectorCreate( n_t_grid )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   InterpAtmFieldToPosition( 
-    out   = surface_skin_t, 
+    output = surface_skin_t, 
     field = t_field )
   VectorSetConstant( n_t_grid, 1, surface_skin_t )
   complex_refr_indexWaterLiebe93( 
@@ -154,7 +154,7 @@ scat_dataCalc
 pnd_fieldCalcFrompnd_field_raw
 # rescaling back to pnd equivalent to only one scattering element. in a true
 # case, this is NOT needed!
-Tensor4Multiply( out=pnd_field, in=pnd_field, value=0.5 )
+Tensor4Multiply( output=pnd_field, input=pnd_field, value=0.5 )
 
 
 
@@ -197,7 +197,7 @@ AgendaSet( doit_mono_agenda ){
   # fixed scattering integral field, 3. convergence test 
   cloudbox_field_monoIterate
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
+  #WriteXMLIndexed( input=cloudbox_field_mono, file_index=f_index )
 }
 
 # Definitions for methods used in *i_fieldIterate*:

@@ -64,7 +64,7 @@
 #               name of output file is DEMONAME.iy_aux.LOS-ID.xml              #
 #                                                                              #
 #   Further variables can be output (actually, ANY workspace variable) to file #
-#   using WriteXML( in=VARIABLENAME ). The demo is setup to also provide:      #
+#   using WriteXML( input=VARIABLENAME ). The demo is setup to also provide:      #
 #     f_grid         as the WSV                                                #
 #     abs_species    as the WSV                                                #
 #                                                                              #
@@ -125,7 +125,7 @@ StringSet( iy_unit, "PlanckBT" )
 
 # monochromatic frequency grid
 VectorLinSpace( f_grid, 505e9, 510e9, 5e9 )
-WriteXML( in=f_grid )
+WriteXML( input=f_grid )
 
 # number of Stokes parameters to consider ( 1: scalarRT, 4: fully polarised )
 IndexSet( stokes_dim, 4 )
@@ -144,7 +144,7 @@ IndexSet( stokes_dim, 4 )
 #     winds will give an error when cloudbox is checked durther down!
 ###
 INCLUDE "planetary_toolbox/demos/common/DemoVenusAtmo1D.arts"
-WriteXML( in=abs_species )
+WriteXML( input=abs_species )
 
 # The particulate matter (clouds, aerosols, dust, haze) part
 ###
@@ -229,13 +229,13 @@ INCLUDE "planetary_toolbox/includes/common/makegeometry1D_refracted-air_geometri
 # b) calculate and use absorption lookup table (generally recommended)
 INCLUDE "planetary_toolbox/includes/common/make-and-use-absLUT.arts"
 # b-1) if you want to keep the absLUT data for later use or analysis, uncomment:
-#WriteXML( in=abs_lookup )
+#WriteXML( input=abs_lookup )
 
 # c) use a previously calculated absorption lookup table
 #  if you want to use an absLUT created earlier, uncomment the following 3 lines
 #  (you might also have to specify the name. check online-doc of ReadXML)
 #Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
-#ReadXML( out=abs_lookup )
+#ReadXML( output=abs_lookup )
 #abs_lookupAdapt
 
 

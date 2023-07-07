@@ -68,7 +68,7 @@ arts.Copy(arts.iy_main_agenda, iy_main_agenda_emission)
 
 @pyarts.workspace.arts_agenda(ws=arts)
 def surface_rtprop_agenda(arts):
-    arts.InterpSurfaceFieldToPosition(out=arts.surface_skin_t, field=arts.t_surface)
+    arts.InterpSurfaceFieldToPosition(output=arts.surface_skin_t, field=arts.t_surface)
     arts.surfaceBlackbody()
 arts.Copy(arts.surface_rtprop_agenda, surface_rtprop_agenda)
  
