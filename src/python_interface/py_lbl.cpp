@@ -39,12 +39,12 @@
 \
 Parameters\
 ----------\
-f : Numeric or numpy.ndarray\
+f : float or ~numpy.ndarray\
     Frequency in Hz\
 \
 Returns\
 -------\
-Complex or numpy.ndarray\
+complex or ~numpy.ndarray\
     The absorption coefficient\
 )--"));                                                                     \
   varname.doc() = docstr;
@@ -80,7 +80,7 @@ Complex or numpy.ndarray\
 \
 Parameters\
 ----------\
-f : ~pyarts.arts.Numeric\
+f : float\
     Frequency in Hz\
 \
 Returns\
@@ -138,7 +138,7 @@ void py_lbl(py::module_& m) {
 
 Parameters
 ----------
-f : ~pyarts.arts.Numeric
+f : float
     Frequency in Hz
 
 Returns
