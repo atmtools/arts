@@ -956,6 +956,69 @@ abs_coef : ~pyarts.arts.Vector
 )--"));
 }
 
+void internalCKDMT320(py::module_& m) {
+  m.def(
+      "get_self_h2o_ckdmt320",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::CKDMT320::compute_self_h2o(pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_h2o"),
+      py::doc(R"--(Computes self absorption using MT CKD version 3.20
+
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
+)--"));
+
+  m.def(
+      "get_foreign_h2o_ckdmt320",
+      [](const Vector& f, Numeric p, Numeric t, Numeric x) -> Vector {
+        PropagationMatrix pm(f.nelem());
+        Absorption::PredefinedModel::CKDMT320::compute_foreign_h2o(
+            pm, f, p, t, x);
+        return std::move(pm.Data()).flatten();
+      },
+      py::arg("f_grid"),
+      py::arg("rtp_pressure"),
+      py::arg("rtp_temperature"),
+      py::arg("x_h2o"),
+      py::doc(R"--(Computes foreign absorption using MT CKD version 3.20
+
+Parameters
+----------
+f_grid : ~pyarts.arts.Vector
+    Frequency grid [Hz]
+rtp_pressure : float
+    Pressure value [Pa]
+rtp_temperature : float
+    Temperature value [K]
+x_h2o : float
+    Ratio of water in the atmosphere in the range [0, 1]
+
+Returns
+-------
+abs_coef : ~pyarts.arts.Vector
+    Absorption coefficients
+)--"));
+}
+
 void py_predefined(py::module_& m) {
   //! The predef python namespace where all INTERNAL data lives
   auto predef = m.def_submodule("predef");
@@ -1006,6 +1069,7 @@ water_data : ~pyarts.arts.predef.MTCKD400WaterData
   
   //! All internal functionality, included methods of named classes go on the predef namespace
   internalCKDMT350(predef);
+  internalCKDMT320(predef);
   internalCKDMT252(predef);
   internalCKDMT100(predef);
   internalCKDMT400(predef);
