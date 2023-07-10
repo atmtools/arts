@@ -33,16 +33,3 @@ pyarts.utils.common
    path_append
    path_prepend
    path_remove
-
-pyarts.utils.sphinxext
-----------------------
-
-.. automodule:: pyarts.utils.sphinxext
-
-.. currentmodule:: pyarts.utils.sphinxext
-
-.. autosummary::
-   :toctree: stubs
-
-   setup
-   arts_docserver_role

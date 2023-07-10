@@ -34,15 +34,11 @@ from pyarts.environment import environ
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'matplotlib.sphinxext.plot_directive',
-    'pyarts.utils.sphinxext',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
