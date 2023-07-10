@@ -40,6 +40,11 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
                     const Species::Species sp1,
                     const Species::Species sp2);
 
+std::shared_ptr<CIARecord> cia_get_data(
+    const std::vector<std::shared_ptr<CIARecord>>& cia_data,
+    const Species::Species sp1,
+    const Species::Species sp2);
+
 /** CIA data for a single pair of molecules.
  
  A variable of this class can hold the complete information from one HITRAN CIA file.

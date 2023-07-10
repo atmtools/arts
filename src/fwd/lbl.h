@@ -9,10 +9,9 @@
 namespace lbl {
 using band_models = std::variant<mtckd::band_lm, mtckd::band>;
 
-class full {
+struct full {
   std::vector<band_models> models{};
 
-public:
   full() = default;
 
   full(Numeric t,
