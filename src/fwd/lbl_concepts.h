@@ -9,6 +9,16 @@ template <typename T>
 concept sizeable = requires(const T& t) {
   { t.size() } -> std::convertible_to<std::size_t>;
 };
+
+template <typename T>
+concept constructable = std::constructible_from<std::remove_cvref_t<T>> and
+                        std::constructible_from<std::remove_cvref_t<T>,
+                                                Numeric,
+                                                Numeric,
+                                                SpeciesIsotopologueRatios,
+                                                ArrayOfArrayOfSpeciesTag,
+                                                Vector,
+                                                ArrayOfArrayOfAbsorptionLines>;
 }  // namespace band
 
 template <typename T>
@@ -27,7 +37,8 @@ template <typename T>
 concept singleable = num_callable<T>;
 
 template <typename T>
-concept bandable = band::sizeable<T> and vec_callable<T> and num_callable<T>;
+concept bandable = band::sizeable<T> and band::constructable<T> and
+                   vec_callable<T> and num_callable<T>;
 
 template <typename T>
 concept list_singleable = requires(T t) {

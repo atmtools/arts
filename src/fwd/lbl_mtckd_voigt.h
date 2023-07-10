@@ -13,9 +13,7 @@
 #include "species_tags.h"
 
 namespace lbl::mtckd {
-struct cutoff_range {
-  static constexpr Numeric limit = 750e9;
-};
+static constexpr Numeric cutoff_freq = 750e9;
 
 struct single {
   Numeric scl{};
@@ -63,7 +61,7 @@ struct single_lm {
 
   [[nodiscard]] constexpr Complex cutoff(Numeric f) const {
     f = std::clamp<Numeric>(
-        0.5 + (f - F0) / (2 * cutoff_range::limit), 0.0, 1.0);
+        0.5 + (f - F0) / (2 * cutoff_freq), 0.0, 1.0);
     return {std::lerp(cutlow.real(), cutupp.real(), f),
             std::lerp(cutlow.imag(), cutupp.imag(), f)};
   }
@@ -86,6 +84,8 @@ struct band {
   Numeric T;
   Numeric P;
 
+  band() = default;
+
   band(Numeric T,
        Numeric P,
        const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -106,6 +106,8 @@ struct band_lm {
   std::vector<std::vector<single_lm>> bands;
   Numeric T;
   Numeric P;
+
+  band_lm() = default;
 
   band_lm(Numeric T,
           Numeric P,

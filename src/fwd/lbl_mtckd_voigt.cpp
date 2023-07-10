@@ -44,13 +44,13 @@ single::single(Numeric T,
         boltzman_ratio(T, band.T0, ln.E0) /
         (F0 * std::expm1(-hz2joule(F0) / kelvin2joule(band.T0)) * QT);
 
-  cutoff = at<true>(F0 + cutoff_range::limit);
+  cutoff = at<true>(F0 + cutoff_freq);
 }
 
 bool single::is_valid(const AbsorptionLines& band) {
   return band.lineshapetype == LineShapeType::VP and
          band.cutoff == AbsorptionCutoffType::ByLine and
-         band.cutofffreq == cutoff_range::limit and
+         band.cutofffreq == cutoff_freq and
          band.population == AbsorptionPopulationType::LTE and
          band.normalization == AbsorptionNormalizationType::SFS and
          not band.AnyLinemixing();
@@ -88,14 +88,14 @@ single_lm::single_lm(Numeric T,
          (F0 * std::expm1(-hz2joule(F0) / kelvin2joule(band.T0)) * QT)) *
         Complex{1 + X.G, -X.Y};
 
-  cutupp = at<true>(F0 + cutoff_range::limit);
-  cutlow = at<true>(F0 - cutoff_range::limit);
+  cutupp = at<true>(F0 + cutoff_freq);
+  cutlow = at<true>(F0 - cutoff_freq);
 }
 
 bool single_lm::is_valid(const AbsorptionLines& band) {
   return band.lineshapetype == LineShapeType::VP and
          band.cutoff == AbsorptionCutoffType::ByLine and
-         band.cutofffreq == cutoff_range::limit and
+         band.cutofffreq == cutoff_freq and
          band.population == AbsorptionPopulationType::LTE and
          band.normalization == AbsorptionNormalizationType::SFS and
          band.AnyLinemixing();
@@ -144,7 +144,7 @@ Complex band::at(Numeric f) const {
   const Numeric fscl = -f * std::expm1(-hz2joule(f) / kelvin2joule(T));
   const Numeric nscl = number_density(P, T);
 
-  const Complex sum = sumup<cutoff_range>(lines, f);
+  const Complex sum = sumup(lines, f, cutoff_freq);
   return sum.real() < 0 ? Complex{0, 0} : sum * fscl * nscl;
 }
 
@@ -218,7 +218,7 @@ Complex band_lm::at(Numeric f) const {
   const Numeric nscl = number_density(P, T);
 
   const auto allsum = [f](auto& band) {
-    const Complex sum = sumup<cutoff_range>(band, f);
+    const Complex sum = sumup(band, f, cutoff_freq);
     return sum.real() < 0 ? Complex{0, 0} : sum;
   };
 

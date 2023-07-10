@@ -106,85 +106,37 @@ Returns\
 F : ~pyarts.arts.ComplexVector\
     The absorption coefficients\
 )--"));                                                                     \
-  varname.doc() = docstr;                                                   \
-  full.def(                                                                 \
-      "add",                                                                \
-      [](lbl::full& self, const FullName& model) { self.add(model); },      \
-      py::arg("model"),                                                     \
-      py::doc(R"--(Add a model to compute\
-\
-Parameters\
-----------\
-model : ~pyarts.arts.lbl.)--" SubName R"--(\
-    The model to add\
-)--"));
+  varname.doc() = docstr;
 
 namespace Python {
 void py_lbl(py::module_& m) {
   auto lbl = m.def_submodule("lbl");
 
-  auto full =
-      py::class_<lbl::full>(lbl, "full")
-          .def(py::init([]() { return new lbl::full{}; }), "From values")
-          .def("size", &lbl::full::size, "Return number of lines of all models")
-          .def(
-              "at",
-              [](const lbl::full& self, const Numeric& f) {
-                return self.at(f);
-              },
-              py::arg("f"),
-              py::doc(
-                  R"--(This returns the complex absorption coefficient
-
-Parameters
-----------
-f : float
-    Frequency in Hz
-
-Returns
--------
-F : ~pyarts.arts.Complex
-    The absorption coefficient
-)--"))
-          .def(
-              "at",
-              [](const lbl::full& self, const Vector& f) { return self.at(f); },
-              py::arg("f"),
-              py::doc(
-                  R"--(This returns the complex absorption coefficient
-
-Parameters
-----------
-f : ~pyarts.arts.Vector
-    Frequency in Hz
-
-Returns
--------
-F : ~pyarts.arts.ComplexVector
-    The absorption coefficients
-)--"));
-  full.doc() =
-      R"--(This is a collection of line-by-line models.
-)--";
-
   SingleModel(
       mtckd_single,
       lbl::mtckd::single,
       "mtckd_single",
-      "(This is a single line model fitting the MT_CKD model w/o line mixing.");
+      "This is a single line model fitting the MT_CKD model w/o line mixing.");
   SingleModel(
       mtckd_single_lm,
       lbl::mtckd::single_lm,
       "mtckd_single_lm",
-      "(This is a single line model fitting the MT_CKD model w/ line mixing.");
+      "This is a single line model fitting the MT_CKD model w/ line mixing.");
 
   BandModel(mtckd_band,
             lbl::mtckd::band,
             "mtckd_band",
-            "(This is a full model fitting the MT_CKD model w/o line mixing.");
+            "This is a full model fitting the MT_CKD model w/o line mixing.");
   BandModel(mtckd_band_lm,
             lbl::mtckd::band_lm,
             "mtckd_band_lm",
             "(This is a full model fitting the MT_CKD model w/ line mixing.");
+  BandModel(full,
+            lbl::full,
+            "full",
+            "This is a collection of line-by-line models.");
+  full.def("at_par", [](const lbl::full& self, const Vector& f) {
+    return self.at_par(f);
+  }, "Parallel version of :func:`at`");
 }
 }  // namespace Python
