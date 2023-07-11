@@ -1,11 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <vector>
 #include "../cia.h"
+
 #include "matpack_concepts.h"
 #include "messages.h"
 #include "species_tags.h"
+#include <memory>
+#include <vector>
 
 
 namespace cia {

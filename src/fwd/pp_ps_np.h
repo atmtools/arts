@@ -23,5 +23,6 @@ struct plane_parallel_planck_surface_no_polarization {
       Verbosity cia_verb = {});
   
   [[nodiscard]] Vector profile_at(Numeric f, Numeric za) const;
+  void profile_at(ExhaustiveVectorView, Numeric f, Numeric za) const;
 };
 }  // namespace profile

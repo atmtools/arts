@@ -75,8 +75,8 @@ plane_parallel_planck_surface_no_polarization::
   }
 }
 
-Vector plane_parallel_planck_surface_no_polarization::profile_at(
-    Numeric f, Numeric za) const {
+void plane_parallel_planck_surface_no_polarization::profile_at(
+    ExhaustiveVectorView abs, Numeric f, Numeric za) const {
   const std::size_t n = altitude.size();
   ARTS_USER_ERROR_IF(
       za > 89 and za < 91,
@@ -86,22 +86,15 @@ Vector plane_parallel_planck_surface_no_polarization::profile_at(
       za,
       " degrees.")
 
-  const bool down = za > 90;
-
-  // Output vector
-  Vector abs(n);
-
   const Numeric z_scl = 1.0 / std::abs(Conversion::cosd(za));
 
-  if (down) {
+  const bool looking_down = za > 90;
+  if (looking_down) {
     abs[0] = planck(f, temperature[0]);
 
-    Numeric abs_this;
     Numeric abs_past = models.front().at(f).real();
-
     for (std::size_t i = 1; i < n; ++i) {
-      abs_this = models[i].at(f).real();
-
+      const Numeric abs_this = models[i].at(f).real();
       const Numeric B = planck(f, temperature[i - 1]);
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i] - altitude[i - 1]));
@@ -112,12 +105,9 @@ Vector plane_parallel_planck_surface_no_polarization::profile_at(
   } else {
     abs[n - 1] = planck(f, Constant::cosmic_microwave_background_temperature);
 
-    Numeric abs_this;
     Numeric abs_past = models.front().at(f).real();
-
-    for (std::size_t i = n - 2; i < n; --i) {
-      abs_this = models[i].at(f).real();
-
+    for (std::size_t i = n - 2; i < n; --i) {  // wraps around
+      const Numeric abs_this = models[i].at(f).real();
       const Numeric B = planck(f, temperature[i + 1]);
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i + 1] - altitude[i]));
@@ -126,7 +116,12 @@ Vector plane_parallel_planck_surface_no_polarization::profile_at(
       abs_past = abs_this;
     }
   }
+}
 
+Vector plane_parallel_planck_surface_no_polarization::profile_at(
+    Numeric f, Numeric za) const {
+  Vector abs(altitude.size());
+  profile_at(abs, f, za);
   return abs;
 }
 }  // namespace profile

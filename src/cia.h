@@ -14,7 +14,6 @@
 #ifndef cia_h
 #define cia_h
 
-#include "arts.h"
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "messages.h"
