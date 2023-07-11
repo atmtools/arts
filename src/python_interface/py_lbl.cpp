@@ -8,7 +8,7 @@
 
 #define SingleModel(varname, FullName, SubName, docstr)                     \
   auto varname =                                                            \
-      py::class_<FullName>(lbl, SubName)                                    \
+      py::class_<FullName>(fwd, SubName)                                    \
           .def(py::init(                                                    \
                    [](Numeric T,                                            \
                       Numeric P,                                            \
@@ -51,7 +51,7 @@ complex or ~numpy.ndarray\
 
 #define BandModel(varname, FullName, SubName, docstr)                       \
   auto varname =                                                            \
-      py::class_<FullName>(lbl, SubName)                                    \
+      py::class_<FullName>(fwd, SubName)                                    \
           .def(py::init(                                                    \
                    [](Numeric T,                                            \
                       Numeric P,                                            \
@@ -110,33 +110,36 @@ F : ~pyarts.arts.ComplexVector\
 
 namespace Python {
 void py_lbl(py::module_& m) {
-  auto lbl = m.def_submodule("lbl");
+  auto fwd = m.def_submodule("fwd");
 
   SingleModel(
-      mtckd_single,
-      lbl::mtckd::single,
-      "mtckd_single",
+      lbl_mtckd_single,
+      fwd::lbl::mtckd::single,
+      "lbl_mtckd_single",
       "This is a single line model fitting the MT_CKD model w/o line mixing.");
   SingleModel(
-      mtckd_single_lm,
-      lbl::mtckd::single_lm,
-      "mtckd_single_lm",
+      lbl_mtckd_single_lm,
+      fwd::lbl::mtckd::single_lm,
+      "lbl_mtckd_single_lm",
       "This is a single line model fitting the MT_CKD model w/ line mixing.");
 
-  BandModel(mtckd_band,
-            lbl::mtckd::band,
-            "mtckd_band",
+  BandModel(lbl_mtckd_band,
+            fwd::lbl::mtckd::band,
+            "lbl_mtckd_band",
             "This is a full model fitting the MT_CKD model w/o line mixing.");
-  BandModel(mtckd_band_lm,
-            lbl::mtckd::band_lm,
-            "mtckd_band_lm",
+  BandModel(lbl_mtckd_band_lm,
+            fwd::lbl::mtckd::band_lm,
+            "lbl_mtckd_band_lm",
             "(This is a full model fitting the MT_CKD model w/ line mixing.");
-  BandModel(full,
-            lbl::full,
-            "full",
+  BandModel(lbl_full,
+            fwd::lbl::full,
+            "lbl",
             "This is a collection of line-by-line models.");
-  full.def("at_par", [](const lbl::full& self, const Vector& f) {
-    return self.at_par(f);
-  }, "Parallel version of :func:`at`");
+  lbl_full.def(
+      "at_par",
+      [](const fwd::lbl::full& self, const Vector& f) {
+        return self.at_par(f);
+      },
+      "Parallel version of :func:`at`");
 }
 }  // namespace Python

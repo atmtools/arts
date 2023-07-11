@@ -5,30 +5,27 @@ add_library(fwdlbl STATIC
 target_link_libraries(fwdlbl PUBLIC matpack Faddeeva)
 
 add_library(fwdcia STATIC
-cia.cpp
-../cia.cc  ### FIXME: Include this elsewise, or do manual computations ###
+  cia.cpp
+  ../cia.cc # ## FIXME: Include this elsewise, or do manual computations ###
 )
 target_link_libraries(fwdcia PUBLIC matpack)
-#add_dependencies(fwdcia make_tokval)  ### FIXME: remove when messages.h is gone? ###
 
+# add_dependencies(fwdcia make_tokval)  ### FIXME: remove when messages.h is gone? ###
 add_library(fwdpredef STATIC
-predef.cpp
+  predef.cpp
 )
 target_link_libraries(fwdpredef PUBLIC matpack predef)
 
 add_library(fwdabs STATIC
-abs.cpp
+  abs.cpp
 )
 target_link_libraries(fwdabs PUBLIC fwdlbl fwdcia fwdpredef)
 
-add_library(fwd_plane_parallel STATIC
-pp_ps_np.cpp
+add_library(fwdprofile STATIC
+  profile.cpp
 )
-target_link_libraries(fwd_plane_parallel PUBLIC fwdabs)
+target_link_libraries(fwdprofile PUBLIC fwdabs)
 
-add_library(fwdprofile INTERFACE)
-target_link_libraries(fwdprofile INTERFACE fwd_plane_parallel)
-
-
+# ## Main interface, everyone should just "include <fwd/fwd.h>" and link to fwd"
 add_library(fwd INTERFACE)
 target_link_libraries(fwd INTERFACE fwdabs fwdprofile)

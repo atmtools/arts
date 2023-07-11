@@ -9,7 +9,7 @@
 
 #include "debug.h"
 
-namespace cia {
+namespace fwd::cia {
 single::single(Numeric p,
                Numeric t,
                Numeric VMR1,
@@ -55,8 +55,10 @@ full::full(Numeric p,
         const auto data = cia_get_data(cia, spec.Spec(), spec.cia_2nd_species);
         ARTS_USER_ERROR_IF(not data, "Cannot find CIA data for tag: ", spec)
 
-        const Numeric VMR1 = vmrs[find_first_species(allspecs, data -> Species(0))];
-        const Numeric VMR2 = vmrs[find_first_species(allspecs, data -> Species(1))];
+        const Numeric VMR1 =
+            vmrs[find_first_species(allspecs, data->Species(0))];
+        const Numeric VMR2 =
+            vmrs[find_first_species(allspecs, data->Species(1))];
 
         models.emplace_back(p, t, VMR1, VMR2, data, extrap, robust, verb);
       }
@@ -82,4 +84,4 @@ ComplexVector full::at(const Vector& fs) const {
   at(abs, fs);
   return abs;
 }
-}  // namespace cia
+}  // namespace fwd::cia

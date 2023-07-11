@@ -1,15 +1,14 @@
 #pragma once
 
-#include "../cia.h"
-
-#include "matpack_concepts.h"
-#include "messages.h"
-#include "species_tags.h"
 #include <memory>
 #include <vector>
 
+#include "../cia.h"
+#include "matpack_concepts.h"
+#include "messages.h"
+#include "species_tags.h"
 
-namespace cia {
+namespace fwd::cia {
 struct single {
   Numeric scl{};
   Numeric T;
@@ -25,9 +24,9 @@ struct single {
          Numeric VMR1,
          Numeric VMR2,
          const std::shared_ptr<CIARecord>& cia,
-         Numeric extrap={},
-         Index robust={},
-         Verbosity verb={});
+         Numeric extrap = {},
+         Index robust = {},
+         Verbosity verb = {});
 
   [[nodiscard]] Complex at(Numeric f) const;
   void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
@@ -44,12 +43,12 @@ struct full {
        const Vector& vmrs,
        const ArrayOfArrayOfSpeciesTag& allspecs,
        const std::vector<std::shared_ptr<CIARecord>>& cia,
-       Numeric extrap={},
-       Index robust={},
-       Verbosity verb={});
+       Numeric extrap = {},
+       Index robust = {},
+       Verbosity verb = {});
 
   [[nodiscard]] Complex at(Numeric f) const;
   void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
-}  // namespace cia
+}  // namespace fwd::cia

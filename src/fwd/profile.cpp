@@ -1,5 +1,3 @@
-#include "pp_ps_np.h"
-
 #include <predefined/predef_data.h>
 
 #include <cstddef>
@@ -11,22 +9,21 @@
 #include "debug.h"
 #include "matpack_concepts.h"
 #include "physics_funcs.h"
+#include "profile.h"
 
-namespace profile {
-plane_parallel_planck_surface_no_polarization::
-    plane_parallel_planck_surface_no_polarization(
-        const Vector& z,
-        const Vector& p,
-        const Vector& t,
-        const std::vector<Vector>& allvmrs,
-        const ArrayOfArrayOfSpeciesTag& allspecs,
-        const PredefinedModelData& predef_data,
-        const ArrayOfCIARecord& cia_data,
-        const SpeciesIsotopologueRatios& isotopologue_ratios,
-        const ArrayOfArrayOfAbsorptionLines& lbl_data,
-        Numeric cia_extrap,
-        Index cia_robust,
-        Verbosity cia_verb)
+namespace fwd::profile {
+full::full(const Vector& z,
+           const Vector& p,
+           const Vector& t,
+           const std::vector<Vector>& allvmrs,
+           const ArrayOfArrayOfSpeciesTag& allspecs,
+           const PredefinedModelData& predef_data,
+           const ArrayOfCIARecord& cia_data,
+           const SpeciesIsotopologueRatios& isotopologue_ratios,
+           const ArrayOfArrayOfAbsorptionLines& lbl_data,
+           Numeric cia_extrap,
+           Index cia_robust,
+           Verbosity cia_verb)
     : altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
   const std::vector<std::shared_ptr<CIARecord>> cia_records = [&]() {
     std::vector<std::shared_ptr<CIARecord>> ciar;
@@ -75,8 +72,7 @@ plane_parallel_planck_surface_no_polarization::
   }
 }
 
-void plane_parallel_planck_surface_no_polarization::profile_at(
-    ExhaustiveVectorView abs, Numeric f, Numeric za) const {
+void full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeric za) const {
   const std::size_t n = altitude.size();
   ARTS_USER_ERROR_IF(
       za > 89 and za < 91,
@@ -118,10 +114,9 @@ void plane_parallel_planck_surface_no_polarization::profile_at(
   }
 }
 
-Vector plane_parallel_planck_surface_no_polarization::profile_at(
-    Numeric f, Numeric za) const {
+Vector full::plane_par(Numeric f, Numeric za) const {
   Vector abs(altitude.size());
-  profile_at(abs, f, za);
+  plane_par(abs, f, za);
   return abs;
 }
-}  // namespace profile
+}  // namespace fwd::profile

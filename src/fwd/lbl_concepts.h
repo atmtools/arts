@@ -3,7 +3,7 @@
 #include <absorptionlines.h>
 #include <matpack_concepts.h>
 
-namespace lbl {
+namespace fwd::lbl {
 namespace band {
 template <typename T>
 concept sizeable = requires(const T& t) {
@@ -56,4 +56,4 @@ concept cutoffable = requires(T t) {
 constexpr bool has_cutoff(cutoffable auto&& t) {
   return t.limit < std::numeric_limits<Numeric>::max();
 }
-}  // namespace lbl
+}  // namespace fwd::lbl

@@ -12,7 +12,7 @@
 #include "matpack_concepts.h"
 #include "species_tags.h"
 
-namespace lbl::mtckd {
+namespace fwd::lbl::mtckd {
 static constexpr Numeric cutoff_freq = 750e9;
 
 struct single {
@@ -60,8 +60,7 @@ struct single_lm {
             Index line);
 
   [[nodiscard]] constexpr Complex cutoff(Numeric f) const {
-    f = std::clamp<Numeric>(
-        0.5 + (f - F0) / (2 * cutoff_freq), 0.0, 1.0);
+    f = std::clamp<Numeric>(0.5 + (f - F0) / (2 * cutoff_freq), 0.0, 1.0);
     return {std::lerp(cutlow.real(), cutupp.real(), f),
             std::lerp(cutlow.imag(), cutupp.imag(), f)};
   }
@@ -124,4 +123,4 @@ struct band_lm {
   void at(ExhaustiveComplexVectorView out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
-}  // namespace lbl::mtckd
+}  // namespace fwd::lbl::mtckd

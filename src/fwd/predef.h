@@ -1,11 +1,11 @@
 #pragma once
 
-#include <memory>
-
 #include <predefined_absorption_models.h>
 #include <species_tags.h>
 
-namespace predef {
+#include <memory>
+
+namespace fwd::predef {
 struct full {
   std::vector<Species::IsotopeRecord> tags;
   Numeric P;
@@ -25,4 +25,4 @@ struct full {
   void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
-}  // namespace predef
+}  // namespace fwd::predef

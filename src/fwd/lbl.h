@@ -2,11 +2,11 @@
 
 #include <functional>
 
-#include "fwd/lbl_concepts.h"
+#include "lbl_concepts.h"
 #include "lbl_mtckd_voigt.h"
 #include "matpack_concepts.h"
 
-namespace lbl {
+namespace fwd::lbl {
 using band_models = std::variant<mtckd::band_lm, mtckd::band>;
 
 struct full {
@@ -35,4 +35,4 @@ struct full {
     return *this;
   }
 };
-}  // namespace lbl
+}  // namespace fwd::lbl

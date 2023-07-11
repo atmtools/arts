@@ -5,7 +5,7 @@
 #include "jacobian.h"
 #include "propagationmatrix.h"
 
-namespace predef {
+namespace fwd::predef {
 full::full(Numeric p,
            Numeric t,
            const Vector& allvmrs,
@@ -56,4 +56,4 @@ ComplexVector full::at(const Vector& fs) const {
   at(abs, fs);
   return abs;
 }
-}  // namespace predef
+}  // namespace fwd::predef

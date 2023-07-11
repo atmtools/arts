@@ -12,7 +12,7 @@
 #include "lineshapemodel.h"
 #include "physics_funcs.h"
 
-namespace lbl::mtckd {
+namespace fwd::lbl::mtckd {
 single::single(Numeric T,
                Numeric P,
                const SpeciesIsotopologueRatios& isotopologue_ratios,
@@ -239,16 +239,16 @@ ComplexVector band_lm::at(const Vector& f) const {
   at(out, f);
   return out;
 }
-}  // namespace lbl::mtckd
+}  // namespace fwd::lbl::mtckd
 
-static_assert(lbl::singleable<lbl::mtckd::single>,
+static_assert(fwd::lbl::singleable<fwd::lbl::mtckd::single>,
               "lbl::mtckd::single is not representative of a single line");
 
-static_assert(lbl::bandable<lbl::mtckd::band>,
+static_assert(fwd::lbl::bandable<fwd::lbl::mtckd::band>,
               "lbl::mtckd::single is not representative of a band of lines");
 
-static_assert(lbl::singleable<lbl::mtckd::single_lm>,
+static_assert(fwd::lbl::singleable<fwd::lbl::mtckd::single_lm>,
               "lbl::mtckd::single is not representative of a single line");
 
-static_assert(lbl::bandable<lbl::mtckd::band_lm>,
+static_assert(fwd::lbl::bandable<fwd::lbl::mtckd::band_lm>,
               "lbl::mtckd::single is not representative of a band of lines");

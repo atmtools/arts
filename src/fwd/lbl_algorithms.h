@@ -2,7 +2,7 @@
 
 #include "lbl_concepts.h"
 
-namespace lbl {
+namespace fwd::lbl {
 namespace internal {
 /** Sums up the contribution of input lines [first, last)
  *
@@ -26,7 +26,6 @@ constexpr Complex sumup(const std::forward_iterator auto& first,
 }
 }  // namespace internal
 
-
 /** Sums up the contribution of input lines
  * 
  * @param lines List of absorption lines
@@ -36,7 +35,6 @@ constexpr Complex sumup(const std::forward_iterator auto& first,
 constexpr Complex sumup(const list_singleable auto& lines, Numeric f) {
   return internal::sumup(lines.begin(), lines.end(), f);
 }
-
 
 /** Sums up the contribution of input lines in range [f - fc, f + fc]
  * 
@@ -58,4 +56,4 @@ constexpr Complex sumup(const list_singleable auto& lines,
       });
   return internal::sumup(first, last, f);
 }
-}  // namespace lbl
+}  // namespace fwd::lbl
