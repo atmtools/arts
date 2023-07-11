@@ -4,7 +4,7 @@
 #include <pybind11/pybind11.h>
 
 #include "debug.h"
-#include "fwd/lbl.h"
+#include "fwd/fwd_lbl.h"
 
 #define SingleModel(varname, FullName, SubName, docstr)                     \
   auto varname =                                                            \
