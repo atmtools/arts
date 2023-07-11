@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "absorptionlines.h"
-#include "lbl_concepts.h"
+#include "fwd_lbl_concepts.h"
 #include "lineshapemodel.h"
 #include "matpack_concepts.h"
 #include "species_tags.h"

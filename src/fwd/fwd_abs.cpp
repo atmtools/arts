@@ -1,4 +1,4 @@
-#include "abs.h"
+#include "fwd_abs.h"
 
 namespace fwd {
 full_absorption::full_absorption(

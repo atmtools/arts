@@ -1,8 +1,8 @@
 #pragma once
 
-#include "cia.h"
-#include "lbl.h"
-#include "predef.h"
+#include "fwd_cia.h"
+#include "fwd_lbl.h"
+#include "fwd_predef.h"
 
 namespace fwd {
 struct full_absorption {

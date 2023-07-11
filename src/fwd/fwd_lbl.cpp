@@ -1,4 +1,4 @@
-#include "lbl.h"
+#include "fwd_lbl.h"
 
 #include <algorithm>
 #include <iostream>

@@ -1,4 +1,5 @@
-#include "lbl_mtckd_voigt.h"
+#include "fwd_lbl_mtckd_voigt.h"
+#include "fwd_lbl_algorithms.h"
 
 #include <algorithm>
 #include <iterator>
@@ -7,7 +8,6 @@
 #include "absorptionlines.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "lbl_algorithms.h"
 #include "linescaling.h"
 #include "lineshapemodel.h"
 #include "physics_funcs.h"

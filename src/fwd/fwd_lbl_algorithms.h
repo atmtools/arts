@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lbl_concepts.h"
+#include "fwd_lbl_concepts.h"
 
 namespace fwd::lbl {
 namespace internal {

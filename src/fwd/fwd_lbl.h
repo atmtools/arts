@@ -2,8 +2,8 @@
 
 #include <functional>
 
-#include "lbl_concepts.h"
-#include "lbl_mtckd_voigt.h"
+#include "fwd_lbl_concepts.h"
+#include "fwd_lbl_mtckd_voigt.h"
 #include "matpack_concepts.h"
 
 namespace fwd::lbl {

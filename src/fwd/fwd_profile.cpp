@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "matpack_concepts.h"
 #include "physics_funcs.h"
-#include "profile.h"
+#include "fwd_profile.h"
 
 namespace fwd::profile {
 full::full(const Vector& z,
