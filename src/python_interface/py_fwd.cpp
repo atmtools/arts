@@ -1,10 +1,11 @@
+#include <fwd.h>
 #include <py_auto_interface.h>
 #include <pybind11/attr.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
 #include "debug.h"
-#include "fwd/fwd_lbl.h"
+#include "py_macros.h"
 
 #define SingleModel(varname, FullName, SubName, docstr)                     \
   auto varname =                                                            \
@@ -141,5 +142,34 @@ void py_lbl(py::module_& m) {
         return self.at_par(f);
       },
       "Parallel version of :func:`at`");
+
+  py::class_<ForwardAbsorption>(m, "ForwardAbsorption");
+  py::class_<ForwardProfile>(m, "ForwardProfile")
+      .PythonInterfaceCopyValue(ForwardProfile)
+      .PythonInterfaceWorkspaceVariableConversion(ForwardProfile)
+      .PythonInterfaceFileIO(ForwardProfile)
+      .PythonInterfaceBasicRepresentation(ForwardProfile)
+      .def(
+          "plane_par",
+          [](const ForwardProfile& fwd_prof, Numeric f, Numeric za) {
+            return fwd_prof.plane_par(f, za);
+          },
+          py::arg("f"),
+          py::arg("za"),
+          py::doc(R"--(Plane parallel computer of radiance profile
+
+Parameters
+----------
+f : float
+    Frequency [Hz]
+za : float
+    Zenith angle [degrees]
+
+Returns
+-------
+prof : ~pyarts.arts.Vector
+    Profile of radiation
+)--"))
+      .PythonInterfaceWorkspaceDocumentation(ForwardProfile);
 }
 }  // namespace Python

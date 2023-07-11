@@ -213,6 +213,10 @@ units of m^5 molec^(-2)
 Used for keeping track of non-local thermodynamic equilibrium data
 )--");
 
+  wsv_groups.emplace_back(
+      "ForwardProfile",
+      "A type that computes the forward profile in some manner --- BETA before ARTS3\n");
+
   wsv_groups.emplace_back("GasAbsLookup", R"--(An absorption lookup table
 
 This class holds an absorption lookup table, as well as all

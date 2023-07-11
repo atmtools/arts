@@ -179,6 +179,7 @@ add_library (artscore STATIC
   m_disort.cc
   m_doit.cc
   m_fluxes.cc
+  m_fwd.cc
   m_predefined_absorption_models.cc
   m_propmat.cc
   m_gas_scattering.cc
@@ -351,7 +352,7 @@ add_library (methods STATIC
         )
 
 set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-target_link_libraries(methods PUBLIC matpack predef species)
+target_link_libraries(methods PUBLIC matpack predef species fwd)
 
 ########################################################################################
 

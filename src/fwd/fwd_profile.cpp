@@ -1,7 +1,11 @@
+#include "fwd_profile.h"
+
 #include <predefined/predef_data.h>
 
 #include <cstddef>
+#include <exception>
 #include <memory>
+#include <stdexcept>
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
@@ -9,7 +13,6 @@
 #include "debug.h"
 #include "matpack_concepts.h"
 #include "physics_funcs.h"
-#include "fwd_profile.h"
 
 namespace fwd::profile {
 full::full(const Vector& z,
@@ -24,7 +27,7 @@ full::full(const Vector& z,
            Numeric cia_extrap,
            Index cia_robust,
            Verbosity cia_verb)
-    : altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
+    : refl(0), altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
   const std::vector<std::shared_ptr<CIARecord>> cia_records = [&]() {
     std::vector<std::shared_ptr<CIARecord>> ciar;
     ciar.reserve(cia_data.size());
@@ -72,21 +75,22 @@ full::full(const Vector& z,
   }
 }
 
-void full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeric za) const {
+ExhaustiveVectorView full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeric za) const try {
   const std::size_t n = altitude.size();
+  ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(abs.nelem()),
+                     "Bad size absorption input vector view'\n")
   ARTS_USER_ERROR_IF(
       za > 89 and za < 91,
       "You cannot look sideways in a plane-parallel atmosphere.\n"
-      "The zenith angle must be above or below 1 degree of the limb.\n"
-      "Input is at ",
-      za,
-      " degrees.")
+      "The zenith angle must be above or below 1 degree of the limb.\n")
 
   const Numeric z_scl = 1.0 / std::abs(Conversion::cosd(za));
 
   const bool looking_down = za > 90;
   if (looking_down) {
-    abs[0] = planck(f, temperature[0]);
+    const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, temperature[0]);
+    const Numeric Ibg = refl == 0.0 ? 0.0 : plane_par(abs, f, 180-za)[0];
+    abs[0] = Bbg + refl * (Ibg - Bbg);
 
     Numeric abs_past = models.front().at(f).real();
     for (std::size_t i = 1; i < n; ++i) {
@@ -95,7 +99,7 @@ void full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeric za) const {
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i] - altitude[i - 1]));
 
-      abs[i] = T * abs[i - 1] + (1 - T) * B;
+      abs[i] = B + T * (abs[i - 1] - B);
       abs_past = abs_this;
     }
   } else {
@@ -108,15 +112,24 @@ void full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeric za) const {
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i + 1] - altitude[i]));
 
-      abs[i] = T * abs[i + 1] + (1 - T) * B;
+      abs[i] = B + T * (abs[i + 1] - B);
       abs_past = abs_this;
     }
   }
+
+  return abs;
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Input: f=", f, "; za=", za, '\n', e.what()));
 }
 
 Vector full::plane_par(Numeric f, Numeric za) const {
   Vector abs(altitude.size());
   plane_par(abs, f, za);
   return abs;
+}
+
+std::ostream& operator<<(std::ostream& os, const full&) {
+  return os << "No useful output operator yet";
 }
 }  // namespace fwd::profile

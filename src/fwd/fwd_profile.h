@@ -1,7 +1,9 @@
 #include "fwd_abs.h"
+#include <ostream>
 
 namespace fwd::profile {
 struct full {
+  Numeric refl;
   std::vector<Numeric> altitude;
   std::vector<Numeric> temperature;  // FIXME: Should be AtmPoint...
   std::vector<full_absorption> models;
@@ -25,6 +27,8 @@ struct full {
   [[nodiscard]] Vector plane_par(Numeric f, Numeric za) const;
 
   //! FIXME: Will change in arts-3
-  void plane_par(ExhaustiveVectorView, Numeric f, Numeric za) const;
+  ExhaustiveVectorView plane_par(ExhaustiveVectorView, Numeric f, Numeric za) const;
+
+  friend std::ostream& operator<<(std::ostream&, const full&);
 };
 }  // namespace fwd::profile

@@ -23539,6 +23539,47 @@ where N>=0 and the species name is something line "H2O".
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  md_data_raw.push_back(create_mdrecord(
+      NAME("fwd_profBuildPlaneParallel"),
+      DESCRIPTION(R"--(Create a forward profile
+
+This is an experimental solution.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("fwd_prof"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("z_field",
+         "ppath_lmax",
+         "atmosphere_dim",
+         "p_grid",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "abs_species",
+         "predefined_model_data",
+         "abs_cia_data",
+         "isotopologue_ratios",
+         "abs_lines_per_species"),
+      GIN("T_extrapolfac", "ignore_errors"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT("0.5", "0"),
+      GIN_DESC(
+          "Temperature extrapolation factor (relative to grid spacing).",
+          "Set to 1 to suppress runtime errors (and return NAN values instead)."),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
+
   md_data_raw.push_back(
       create_mdrecord(NAME("PlanetSet"),
                       DESCRIPTION(R"--(Sets *g0_agenda*, *refellipsoid*, *molarmass_dry_air*, and *planet_rotation_period* to default values

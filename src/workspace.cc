@@ -3324,6 +3324,18 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("PredefinedModelData"), PredefinedModelData{}));
 
   wsv_data.push_back(WsvRecord(
+      NAME("fwd_prof"),
+      DESCRIPTION(
+          R"--(Forward profile computer
+
+Intended to compute forward profiles when single frequencies
+are key.
+
+This is an experimental solution.
+)--"),
+      GROUP("ForwardProfile")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
       DESCRIPTION(
           "This contains the absorption coefficients for one point in the atmosphere.\n"
