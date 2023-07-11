@@ -50,6 +50,10 @@ String as_pyarts(const String& x) {
       "variable or group, please remove it from the documentation!\n"));
 }
 
+uint32_t hlist_num_cols(const std::vector<String>& v) {
+  return v.size() < 5 ? 1 : 2;
+};
+
 String unwrap_stars(String x) {
   const auto find = [&](auto p) {
     p = std::min(p, x.end());
