@@ -30,7 +30,7 @@ struct single {
          Verbosity verb={});
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& abs, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
 
@@ -49,7 +49,7 @@ struct full {
        Verbosity verb={});
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& abs, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
 }  // namespace cia

@@ -29,7 +29,7 @@ Complex single::at(Numeric f) const {
   return scl * ciarecords->Extract(f, T, extrapol, ignore_errors, verbosity);
 }
 
-void single::at(ComplexVector& abs, const Vector& fs) const {
+void single::at(ExhaustiveComplexVectorView abs, const Vector& fs) const {
   std::transform(fs.begin(), fs.end(), abs.begin(), [this](const auto& f) {
     return at(f);
   });
@@ -71,7 +71,7 @@ Complex full::at(Numeric f) const {
       });
 }
 
-void full::at(ComplexVector& abs, const Vector& fs) const {
+void full::at(ExhaustiveComplexVectorView abs, const Vector& fs) const {
   for (auto& mod : models) {
     mod.at(abs, fs);
   }

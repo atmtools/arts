@@ -148,7 +148,7 @@ Complex band::at(Numeric f) const {
   return sum.real() < 0 ? Complex{0, 0} : sum * fscl * nscl;
 }
 
-void band::at(ComplexVector& out, const Vector& fs) const {
+void band::at(ExhaustiveComplexVectorView out, const Vector& fs) const {
   std::transform(fs.begin(), fs.end(), out.begin(), [this](const auto& f) {
     return at(f);
   });
@@ -228,7 +228,7 @@ Complex band_lm::at(Numeric f) const {
   return fscl * nscl * sum;
 }
 
-void band_lm::at(ComplexVector& out, const Vector& fs) const {
+void band_lm::at(ExhaustiveComplexVectorView out, const Vector& fs) const {
   std::transform(fs.begin(), fs.end(), out.begin(), [this](const auto& f) {
     return at(f);
   });

@@ -25,7 +25,7 @@ struct full {
        Verbosity cia_verb = {});
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& abs, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
 }  // namespace fwd

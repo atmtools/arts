@@ -29,7 +29,7 @@ concept num_callable = requires(T t, const Numeric& f) {
 template <typename T>
 concept vec_callable = requires(T t, const Vector& f) {
   { t.at(f) } -> std::convertible_to<ComplexVector>;
-} and requires(T t, ComplexVector& out, const Vector& f) {
+} and requires(T t, ExhaustiveComplexVectorView out, const Vector& f) {
   { t.at(out, f) };
 };
 

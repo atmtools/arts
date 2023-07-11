@@ -98,7 +98,7 @@ struct band {
   [[nodiscard]] std::size_t size() const { return lines.size(); }
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& out, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
 
@@ -121,7 +121,7 @@ struct band_lm {
   [[nodiscard]] std::size_t size() const;
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& out, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
 }  // namespace lbl::mtckd

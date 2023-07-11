@@ -45,7 +45,7 @@ Complex full::at(Numeric f) const {
   return propmat_clearsky.Kjj()[0];
 }
 
-void full::at(ComplexVector& abs, const Vector& fs) const {
+void full::at(ExhaustiveComplexVectorView abs, const Vector& fs) const {
   std::transform(fs.begin(), fs.end(), abs.begin(), [this](const auto& f) {
     return at(f);
   });

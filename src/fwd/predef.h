@@ -22,7 +22,7 @@ struct full {
        const std::shared_ptr<PredefinedModelData>& data);
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& abs, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
 };
 }  // namespace predef

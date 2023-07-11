@@ -76,7 +76,7 @@ ComplexVector lbl::full::at(const Vector& f) const {
   return out;
 }
 
-void lbl::full::at(ComplexVector& out, const Vector& fs) const {
+void lbl::full::at(ExhaustiveComplexVectorView out, const Vector& fs) const {
   std::transform(fs.begin(), fs.end(), out.begin(), [this](const auto& f) {
     return at(f);
   });
@@ -88,7 +88,7 @@ ComplexVector lbl::full::at_par(const Vector& f) const {
   return out;
 }
 
-void lbl::full::at_par(ComplexVector& out, const Vector& fs) const {
+void lbl::full::at_par(ExhaustiveComplexVectorView out, const Vector& fs) const {
   const Index n = fs.size();
   #pragma omp parallel for
   for (Index i=0; i<n; ++i) {

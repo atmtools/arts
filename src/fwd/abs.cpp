@@ -20,7 +20,7 @@ Complex full::at(Numeric f) const {
   return cia.at(f) + predef.at(f) + lbl.at(f);
 }
 
-void full::at(ComplexVector& abs, const Vector& fs) const {
+void full::at(ExhaustiveComplexVectorView abs, const Vector& fs) const {
   cia.at(abs, fs);
   predef.at(abs, fs);
   lbl.at(abs, fs);

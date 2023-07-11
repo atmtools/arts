@@ -24,9 +24,9 @@ struct full {
   [[nodiscard]] std::size_t size() const;
 
   [[nodiscard]] Complex at(Numeric f) const;
-  void at(ComplexVector& out, const Vector& fs) const;
+  void at(ExhaustiveComplexVectorView out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at(const Vector& fs) const;
-  void at_par(ComplexVector& out, const Vector& fs) const;
+  void at_par(ExhaustiveComplexVectorView out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at_par(const Vector& fs) const;
 
   template <bandable bandable_t>
