@@ -110,7 +110,7 @@ F : ~pyarts.arts.ComplexVector\
   varname.doc() = docstr;
 
 namespace Python {
-void py_lbl(py::module_& m) {
+void py_fwd(py::module_& m) {
   auto fwd = m.def_submodule("fwd");
 
   SingleModel(
@@ -145,14 +145,15 @@ void py_lbl(py::module_& m) {
 
   py::class_<ForwardAbsorption>(m, "ForwardAbsorption");
   py::class_<ForwardProfile>(m, "ForwardProfile")
+      .def(py::init<>(), "From nothing")
       .PythonInterfaceCopyValue(ForwardProfile)
       .PythonInterfaceWorkspaceVariableConversion(ForwardProfile)
       .PythonInterfaceFileIO(ForwardProfile)
       .PythonInterfaceBasicRepresentation(ForwardProfile)
       .def(
-          "plane_par",
+          "planar",
           [](const ForwardProfile& fwd_prof, Numeric f, Numeric za) {
-            return fwd_prof.plane_par(f, za);
+            return fwd_prof.planar(f, za);
           },
           py::arg("f"),
           py::arg("za"),
@@ -168,6 +169,27 @@ za : float
 Returns
 -------
 prof : ~pyarts.arts.Vector
+    Profile of radiation
+)--"))
+      .def(
+          "planar_par",
+          [](const ForwardProfile& fwd_prof, const Vector& f, Numeric za) {
+            return fwd_prof.planar_par(f, za);
+          },
+          py::arg("f"),
+          py::arg("za"),
+          py::doc(R"--(Plane parallel computer of radiance profile
+
+Parameters
+----------
+f :  ~pyarts.arts.Vector
+    Frequency [Hz]
+za : float
+    Zenith angle [degrees]
+
+Returns
+-------
+prof : ~pyarts.arts.Matrix
     Profile of radiation
 )--"))
       .PythonInterfaceWorkspaceDocumentation(ForwardProfile);

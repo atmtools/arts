@@ -1,5 +1,7 @@
 #include <fwd.h>
 
+#include <algorithm>
+
 #include "agenda_set.h"
 #include "auto_md.h"
 #include "rte.h"
@@ -69,10 +71,18 @@ void fwd_profBuildPlaneParallel(
                     mag_v_field,
                     mag_w_field);
 
-  fwd_prof = ForwardProfile(Vector{ppath.pos(0, joker)},
-                            ppvar_p,
-                            ppvar_t,
-                            {ppvar_vmr.begin(), ppvar_vmr.end()},
+  const Vector z = reverse(Vector{ppath.pos(joker, 0)});
+  const Vector p = reverse(ppvar_p);
+  const Vector t = reverse(ppvar_t);
+
+  ppvar_vmr = transpose(ppvar_vmr);
+  std::vector<Vector> allvmrs{ppvar_vmr.begin(), ppvar_vmr.end()};
+  std::reverse(allvmrs.begin(), allvmrs.end());
+
+  fwd_prof = ForwardProfile(z,
+                            p,
+                            t,
+                            allvmrs,
                             abs_species,
                             predefined_model_data,
                             abs_cia_data,

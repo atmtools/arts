@@ -15,7 +15,7 @@ full_absorption::full_absorption(
     Verbosity cia_verb)
     : cia(p, t, allvmrs, allspecs, cia_data, cia_extrap, cia_robust, cia_verb),
       predef(p, t, allvmrs, allspecs, predef_data),
-      lbl(p, t, isotopologue_ratios, allspecs, allvmrs, lbl_data) {}
+      lbl(t, p, isotopologue_ratios, allspecs, allvmrs, lbl_data) {}
 
 Complex full_absorption::at(Numeric f) const {
   return cia.at(f) + predef.at(f) + lbl.at(f);

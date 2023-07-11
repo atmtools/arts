@@ -38,14 +38,14 @@ full::full(const Vector& z,
   }();
   const std::shared_ptr<PredefinedModelData> predef_model_data =
       std::make_shared<PredefinedModelData>(predef_data);
-
+  
   const std::size_t n = altitude.size();
   const std::size_t m = allspecs.size();
   ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(p.size()),
-                     "Size mismatch: altitude and pressure")
+                     "Size mismatch: altitude and pressure (", n, " vs ", p.size(), ')')
   ARTS_USER_ERROR_IF(n not_eq temperature.size(),
-                     "Size mismatch: altitude and temperature")
-  ARTS_USER_ERROR_IF(n not_eq allvmrs.size(), "Size mismatch: altitude and vmr")
+                     "Size mismatch: altitude and temperature (", n, " vs ", t.size(), ')')
+  ARTS_USER_ERROR_IF(n not_eq allvmrs.size(), "Size mismatch: altitude and vmr (", n, " vs ", allvmrs.size(), ')')
   ARTS_USER_ERROR_IF(
       std::any_of(allvmrs.begin(),
                   allvmrs.end(),
@@ -57,7 +57,7 @@ full::full(const Vector& z,
                      "Size mismatch: species and absorption lines data")
   ARTS_USER_ERROR_IF(not std::is_sorted(altitude.begin(), altitude.end()),
                      "Altitude must be sorted in ascending order")
-  ARTS_USER_ERROR_IF(n == 0, "Must have some atmospheric size")
+  ARTS_USER_ERROR_IF(n == 0, "Must have some atmospheric size: [\n")
 
   models.reserve(n);
   for (std::size_t i = 0; i < n; ++i) {
@@ -75,7 +75,7 @@ full::full(const Vector& z,
   }
 }
 
-ExhaustiveVectorView full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeric za) const try {
+ExhaustiveVectorView full::planar(ExhaustiveVectorView abs, Numeric f, Numeric za) const try {
   const std::size_t n = altitude.size();
   ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(abs.nelem()),
                      "Bad size absorption input vector view'\n")
@@ -89,17 +89,19 @@ ExhaustiveVectorView full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeri
   const bool looking_down = za > 90;
   if (looking_down) {
     const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, temperature[0]);
-    const Numeric Ibg = refl == 0.0 ? 0.0 : plane_par(abs, f, 180-za)[0];
-    abs[0] = Bbg + refl * (Ibg - Bbg);
+    const Numeric Ibg = refl == 0.0 ? 0.0 : planar(abs, f, 180-za)[0];
+
+    abs[0] = std::lerp(Bbg, Ibg, refl);
 
     Numeric abs_past = models.front().at(f).real();
+
     for (std::size_t i = 1; i < n; ++i) {
       const Numeric abs_this = models[i].at(f).real();
       const Numeric B = planck(f, temperature[i - 1]);
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i] - altitude[i - 1]));
 
-      abs[i] = B + T * (abs[i - 1] - B);
+      abs[i] = std::lerp(B, abs[i - 1], T);
       abs_past = abs_this;
     }
   } else {
@@ -112,7 +114,7 @@ ExhaustiveVectorView full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeri
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i + 1] - altitude[i]));
 
-      abs[i] = B + T * (abs[i + 1] - B);
+      abs[i] = std::lerp(B, abs[i + 1], T);
       abs_past = abs_this;
     }
   }
@@ -123,10 +125,25 @@ ExhaustiveVectorView full::plane_par(ExhaustiveVectorView abs, Numeric f, Numeri
       var_string("Input: f=", f, "; za=", za, '\n', e.what()));
 }
 
-Vector full::plane_par(Numeric f, Numeric za) const {
+Vector full::planar(Numeric f, Numeric za) const {
   Vector abs(altitude.size());
-  plane_par(abs, f, za);
+  planar(abs, f, za);
   return abs;
+}
+
+void full::planar_par(ExhaustiveMatrixView y, const Vector& fs, Numeric za) const {
+  const Index n = fs.size();
+
+  #pragma omp parallel for
+  for (Index i=0; i<n; i++) {
+    planar(y[i], fs[i], za);
+  }
+}
+
+Matrix full::planar_par(const Vector& fs, Numeric za) const {
+  Matrix out(fs.size(), altitude.size());
+  planar_par(out, fs, za);
+  return out;
 }
 
 std::ostream& operator<<(std::ostream& os, const full&) {

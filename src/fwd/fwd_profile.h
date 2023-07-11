@@ -24,10 +24,14 @@ struct full {
        Verbosity cia_verb = {});
 
   //! FIXME: Will change in arts-3
-  [[nodiscard]] Vector plane_par(Numeric f, Numeric za) const;
+  [[nodiscard]] Vector planar(Numeric f, Numeric za) const;
 
   //! FIXME: Will change in arts-3
-  ExhaustiveVectorView plane_par(ExhaustiveVectorView, Numeric f, Numeric za) const;
+  ExhaustiveVectorView planar(ExhaustiveVectorView, Numeric f, Numeric za) const;
+
+  //! FIXME: Will change in arts-3
+  [[nodiscard]] Matrix planar_par(const Vector& f, Numeric za) const;
+  void planar_par(ExhaustiveMatrixView y, const Vector& f, Numeric za) const;
 
   friend std::ostream& operator<<(std::ostream&, const full&);
 };
