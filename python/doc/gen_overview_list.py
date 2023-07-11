@@ -8,11 +8,17 @@ def sort_ignore_case(entities):
     return sorted
 
 
+def _hlist_num_cols(v):
+    return 1 if len(v) < 5 else 2
+
+
 def agendas():
     existing = pyarts.workspace.Workspace().__dir__()
 
     vars = sort_ignore_case(pyarts.arts.globals.get_agenda_data())
-    txt = """.. hlist::
+    txt = f""".. hlist::
+    :columns: {_hlist_num_cols(vars)}
+
 """
     for var in vars:
         if var in existing:
@@ -24,7 +30,9 @@ def variables():
     existing = pyarts.workspace.Workspace().__dir__()
 
     vars = sort_ignore_case(pyarts.arts.globals.get_wsv_data())
-    txt = """.. hlist::
+    txt = f""".. hlist::
+    :columns: {_hlist_num_cols(vars)}
+
 """
     for var in vars:
         if var in existing:
@@ -36,7 +44,9 @@ def groups():
     existing = pyarts.arts.__dir__()
 
     vars = sort_ignore_case(pyarts.arts.globals.get_wsv_groups())
-    txt = """.. hlist::
+    txt = f""".. hlist::
+    :columns: {_hlist_num_cols(vars)}
+
 """
     for var in vars:
         if var in existing:
@@ -48,7 +58,9 @@ def methods():
     existing = pyarts.workspace.Workspace().__dir__()
 
     vars = sort_ignore_case(pyarts.arts.globals.get_md_data_raw())
-    txt = """.. hlist::
+    txt = f""".. hlist::
+    :columns: {_hlist_num_cols(vars)}
+
 """
     for var in vars:
         if var in existing:

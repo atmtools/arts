@@ -30,7 +30,9 @@ String group_generics_inout(const String& group) {
                       group,
                       "\n",
                       String(36 + group.size(), '-'),
-                      "\n\n.. hlist::");
+                      "\n\n.. hlist::\n    :columns: ",
+                      hlist_num_cols(outdocs.first),
+                      "\n");
     for (auto& m : outdocs.first)
       out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
   }
@@ -41,7 +43,9 @@ String group_generics_inout(const String& group) {
                       group,
                       "\n",
                       String(31 + group.size(), '-'),
-                      "\n\n.. hlist::");
+                      "\n\n.. hlist::\n    :columns: ",
+                      hlist_num_cols(outdocs.second),
+                      "\n");
     for (auto& m : outdocs.second)
       out += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
   }
@@ -64,7 +68,9 @@ String group_workspace_types(const String& group) {
                       group,
                       "\n",
                       String(28 + group.size(), '-'),
-                      "\n\n.. hlist::");
+                      "\n\n.. hlist::\n    :columns: ",
+                      hlist_num_cols(vars),
+                      "\n");
     for (auto& m : vars)
       out += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
   }

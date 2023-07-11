@@ -2,6 +2,8 @@
 
 #include "mystring.h"
 
+uint32_t hlist_num_cols(const std::vector<String>& v);
+
 String unwrap_stars(String);
 
 String get_agenda_io(const String&);

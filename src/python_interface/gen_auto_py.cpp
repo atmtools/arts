@@ -172,7 +172,8 @@ std::map<std::string, Group> groups() {
     if (usedocs.wsm_out.size()) {
       val += var_string("\n\nWorkspace methods that can generate ",
                         x.Name(),
-                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::");
+                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.wsm_out), "\n");
       for (auto& m : usedocs.wsm_out)
         val +=
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
@@ -182,7 +183,8 @@ std::map<std::string, Group> groups() {
     if (usedocs.wsm_in.size()) {
       val += var_string("\n\nWorkspace methods that require ",
                         x.Name(),
-                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::");
+                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.wsm_in), "\n");
       for (auto& m : usedocs.wsm_in)
         val +=
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
@@ -192,7 +194,8 @@ std::map<std::string, Group> groups() {
     if (usedocs.ag_out.size()) {
       val += var_string("\n\nWorkspace agendas that can generate ",
                         x.Name(),
-                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::");
+                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.ag_out), "\n");
       for (auto& m : usedocs.ag_out)
         val +=
             var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
@@ -202,7 +205,8 @@ std::map<std::string, Group> groups() {
     if (usedocs.ag_in.size()) {
       val += var_string("\n\nWorkspace agendas that require ",
                         x.Name(),
-                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::");
+                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.ag_in), "\n");
       for (auto& m : usedocs.ag_in)
         val +=
             var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
