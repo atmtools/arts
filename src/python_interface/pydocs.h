@@ -4,6 +4,8 @@
 
 uint32_t hlist_num_cols(const std::vector<String>& v);
 
+bool str_compare_nocase(const std::string& lhs, const std::string& rhs);
+
 String unwrap_stars(String);
 
 String get_agenda_io(const String&);

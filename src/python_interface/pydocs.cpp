@@ -23,6 +23,9 @@ String group_generics_inout(const String& group) {
       outdocs.second.push_back(method.Name());
   }
 
+  std::sort(outdocs.first.begin(), outdocs.first.end(), str_compare_nocase);
+  std::sort(outdocs.second.begin(), outdocs.second.end(), str_compare_nocase);
+
   String out;
 
   if (outdocs.first.size()) {
@@ -61,6 +64,8 @@ String group_workspace_types(const String& group) {
   for (auto& var: global_data::wsv_data) {
     if (gr == var.Group()) vars.push_back(var.Name());
   }
+
+  std::sort(vars.begin(), vars.end(), str_compare_nocase);
 
   String out;
   if (vars.size()) {

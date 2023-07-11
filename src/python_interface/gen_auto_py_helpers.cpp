@@ -54,6 +54,19 @@ uint32_t hlist_num_cols(const std::vector<String>& v) {
   return v.size() < 5 ? 1 : 2;
 };
 
+bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
+  auto str_toupper = [](std::string s) {
+    std::transform(s.begin(),
+                   s.end(),
+                   s.begin(),
+                   [](unsigned char c) { return std::toupper(c); }  // correct
+    );
+    return s;
+  };
+
+  return str_toupper(lhs) < str_toupper(rhs);
+};
+
 String unwrap_stars(String x) {
   const auto find = [&](auto p) {
     p = std::min(p, x.end());
