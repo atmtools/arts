@@ -9,6 +9,7 @@ cia.cpp
 ../cia.cc  ### FIXME: Include this elsewise, or do manual computations ###
 )
 target_link_libraries(fwdcia PUBLIC matpack)
+#add_dependencies(fwdcia make_tokval)  ### FIXME: remove when messages.h is gone? ###
 
 add_library(fwdpredef STATIC
 predef.cpp
