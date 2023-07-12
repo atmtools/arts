@@ -23566,6 +23566,7 @@ This is an experimental solution.
          "abs_species",
          "predefined_model_data",
          "abs_cia_data",
+         "xsec_fit_data",
          "isotopologue_ratios",
          "abs_lines_per_species"),
       GIN("T_extrapolfac", "ignore_errors"),

@@ -22,11 +22,12 @@ radiance::radiance(const Vector& z,
                    const ArrayOfArrayOfSpeciesTag& allspecs,
                    const PredefinedModelData& predef_data,
                    const ArrayOfCIARecord& cia_data,
+                   const ArrayOfXsecRecord& xsec_data,
                    const SpeciesIsotopologueRatios& isotopologue_ratios,
                    const ArrayOfArrayOfAbsorptionLines& lbl_data,
                    Numeric cia_extrap,
                    Index cia_robust,
-                   Verbosity cia_verb)
+                   Verbosity verb)
     : refl(0), altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
   const std::vector<std::shared_ptr<CIARecord>> cia_records = [&]() {
     std::vector<std::shared_ptr<CIARecord>> ciar;
@@ -35,6 +36,14 @@ radiance::radiance(const Vector& z,
       ciar.push_back(std::make_shared<CIARecord>(cia));
     }
     return ciar;
+  }();
+  const std::vector<std::shared_ptr<XsecRecord>> xsec_records = [&]() {
+    std::vector<std::shared_ptr<XsecRecord>> xsecr;
+    xsecr.reserve(cia_data.size());
+    for (const auto& xsec : xsec_data) {
+      xsecr.push_back(std::make_shared<XsecRecord>(xsec));
+    }
+    return xsecr;
   }();
   const std::shared_ptr<PredefinedModelData> predef_model_data =
       std::make_shared<PredefinedModelData>(predef_data);
@@ -80,11 +89,12 @@ radiance::radiance(const Vector& z,
                         allspecs,
                         predef_model_data,
                         cia_records,
+                        xsec_records,
                         isotopologue_ratios,
                         lbl_data,
                         cia_extrap,
                         cia_robust,
-                        cia_verb);
+                        verb);
   }
 }
 

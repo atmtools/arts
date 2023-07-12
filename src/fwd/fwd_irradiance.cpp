@@ -12,11 +12,12 @@ irradiance::irradiance(const Vector& z,
                        const ArrayOfArrayOfSpeciesTag& allspecs,
                        const PredefinedModelData& predef_data,
                        const ArrayOfCIARecord& cia_data,
+                       const ArrayOfXsecRecord& xsec_data,
                        const SpeciesIsotopologueRatios& isotopologue_ratios,
                        const ArrayOfArrayOfAbsorptionLines& lbl_data,
                        Numeric cia_extrap,
                        Index cia_robust,
-                       Verbosity cia_verb)
+                       Verbosity verb)
     : rad(z,
           p,
           t,
@@ -24,11 +25,12 @@ irradiance::irradiance(const Vector& z,
           allspecs,
           predef_data,
           cia_data,
+          xsec_data,
           isotopologue_ratios,
           lbl_data,
           cia_extrap,
           cia_robust,
-          cia_verb) {}
+          verb) {}
 
 void irradiance::planar(ExhaustiveVectorView irr,
                         Numeric f,

@@ -17,11 +17,12 @@ struct irradiance {
              const ArrayOfArrayOfSpeciesTag& allspecs,
              const PredefinedModelData& predef_data,
              const ArrayOfCIARecord& cia_data,
+             const ArrayOfXsecRecord& xsec_data,
              const SpeciesIsotopologueRatios& isotopologue_ratios,
              const ArrayOfArrayOfAbsorptionLines& lbl_data,
              Numeric cia_extrap = {},
              Index cia_robust = {},
-             Verbosity cia_verb = {});
+             Verbosity verb = {});
   
   irradiance(radiance  fwd_rad) : rad(std::move(fwd_rad)) {}
 
