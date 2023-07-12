@@ -57,7 +57,7 @@ class test:
 
 
 list_of_groups = [x.name for x in cxx.globals.get_wsv_groups()]
-special_groups = ["CallbackFunction", "Any", "ForwardRadiance"]
+special_groups = ["CallbackFunction", "Any", "ForwardRadiance", "ForwardIrradiance"]
 
 
 class TestGroups:
@@ -1009,6 +1009,8 @@ class TestGroups:
                 continue  # Cannot unpickle a standalone Agenda
             elif x[i] == "ForwardRadiance":
                 continue  # Cannot unpickle ForwardRadiance
+            elif x[i] == "ForwardIrradiance":
+                continue  # Cannot unpickle ForwardIrradiance
             elif x[i] == "ArrayOfAgenda":
                 continue  # Cannot unpickle a standalone ArrayOfAgenda
             else:
