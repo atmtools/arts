@@ -247,3 +247,25 @@ jobs:
           cd cmake-build
           make check-conversion
 
+      - uses: actions/upload-artifact@v3
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
+        with:
+          name: docs-uguide
+          path: |
+            cmake-build/doc/uguide/arts_user.pdf
+            cmake-build/doc/uguide/arts_theory.pdf
+            cmake-build/doc/uguide/arts_developer.pdf
+
+      - uses: actions/upload-artifact@v3
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
+        with:
+          name: docs-doxygen
+          path: |
+            cmake-build/doc/doxygen/html
+
+      - uses: actions/upload-artifact@v3
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
+        with:
+          name: docs-sphinx
+          path: |
+            cmake-build/python/doc/build
