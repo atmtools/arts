@@ -998,6 +998,9 @@ class TestGroups:
     def testForwardRadiance(self):
         cxx.Verbosity()
 
+    def testForwardIrradiance(self):
+        cxx.Verbosity()
+
     def test_pickle(self):
         ws = Workspace()
         x = list(cxx.globals.get_WsvGroupMap().keys())

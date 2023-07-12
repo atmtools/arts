@@ -23540,7 +23540,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("fwd_profBuildPlaneParallel"),
+      NAME("fwd_radBuildPlaneParallel"),
       DESCRIPTION(R"--(Create a forward profile
 
 This is an experimental solution.

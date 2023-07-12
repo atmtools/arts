@@ -6,7 +6,7 @@
 #include "auto_md.h"
 #include "rte.h"
 
-void fwd_profBuildPlaneParallel(
+void fwd_radBuildPlaneParallel(
     Workspace& ws,
     ForwardRadiance& fwd_rad,
     const Tensor3& z_field,
