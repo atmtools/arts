@@ -214,8 +214,12 @@ Used for keeping track of non-local thermodynamic equilibrium data
 )--");
 
   wsv_groups.emplace_back(
-      "ForwardProfile",
-      "A type that computes the forward profile in some manner --- BETA before ARTS3\n");
+      "ForwardRadiance",
+      "WIP A type that computes the forward radiance profile in some manner --- BETA before ARTS3 WIP\n");
+
+  wsv_groups.emplace_back(
+      "ForwardIrradiance",
+      "WIP A type that computes the forward irradiance profile in some manner --- BETA before ARTS3 WIP\n");
 
   wsv_groups.emplace_back("GasAbsLookup", R"--(An absorption lookup table
 

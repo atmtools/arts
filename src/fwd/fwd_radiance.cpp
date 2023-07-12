@@ -1,4 +1,4 @@
-#include "fwd_profile.h"
+#include "fwd_radiance.h"
 
 #include <predefined/predef_data.h>
 
@@ -15,18 +15,18 @@
 #include "physics_funcs.h"
 
 namespace fwd::profile {
-full::full(const Vector& z,
-           const Vector& p,
-           const Vector& t,
-           const std::vector<Vector>& allvmrs,
-           const ArrayOfArrayOfSpeciesTag& allspecs,
-           const PredefinedModelData& predef_data,
-           const ArrayOfCIARecord& cia_data,
-           const SpeciesIsotopologueRatios& isotopologue_ratios,
-           const ArrayOfArrayOfAbsorptionLines& lbl_data,
-           Numeric cia_extrap,
-           Index cia_robust,
-           Verbosity cia_verb)
+radiance::radiance(const Vector& z,
+                   const Vector& p,
+                   const Vector& t,
+                   const std::vector<Vector>& allvmrs,
+                   const ArrayOfArrayOfSpeciesTag& allspecs,
+                   const PredefinedModelData& predef_data,
+                   const ArrayOfCIARecord& cia_data,
+                   const SpeciesIsotopologueRatios& isotopologue_ratios,
+                   const ArrayOfArrayOfAbsorptionLines& lbl_data,
+                   Numeric cia_extrap,
+                   Index cia_robust,
+                   Verbosity cia_verb)
     : refl(0), altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
   const std::vector<std::shared_ptr<CIARecord>> cia_records = [&]() {
     std::vector<std::shared_ptr<CIARecord>> ciar;
@@ -38,14 +38,27 @@ full::full(const Vector& z,
   }();
   const std::shared_ptr<PredefinedModelData> predef_model_data =
       std::make_shared<PredefinedModelData>(predef_data);
-  
+
   const std::size_t n = altitude.size();
   const std::size_t m = allspecs.size();
   ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(p.size()),
-                     "Size mismatch: altitude and pressure (", n, " vs ", p.size(), ')')
+                     "Size mismatch: altitude and pressure (",
+                     n,
+                     " vs ",
+                     p.size(),
+                     ')')
   ARTS_USER_ERROR_IF(n not_eq temperature.size(),
-                     "Size mismatch: altitude and temperature (", n, " vs ", t.size(), ')')
-  ARTS_USER_ERROR_IF(n not_eq allvmrs.size(), "Size mismatch: altitude and vmr (", n, " vs ", allvmrs.size(), ')')
+                     "Size mismatch: altitude and temperature (",
+                     n,
+                     " vs ",
+                     t.size(),
+                     ')')
+  ARTS_USER_ERROR_IF(n not_eq allvmrs.size(),
+                     "Size mismatch: altitude and vmr (",
+                     n,
+                     " vs ",
+                     allvmrs.size(),
+                     ')')
   ARTS_USER_ERROR_IF(
       std::any_of(allvmrs.begin(),
                   allvmrs.end(),
@@ -75,9 +88,11 @@ full::full(const Vector& z,
   }
 }
 
-ExhaustiveVectorView full::planar(ExhaustiveVectorView abs, Numeric f, Numeric za) const try {
+ExhaustiveVectorView radiance::planar(ExhaustiveVectorView rad,
+                                      Numeric f,
+                                      Numeric za) const try {
   const std::size_t n = altitude.size();
-  ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(abs.nelem()),
+  ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(rad.nelem()),
                      "Bad size absorption input vector view'\n")
   ARTS_USER_ERROR_IF(
       za > 89 and za < 91,
@@ -89,9 +104,9 @@ ExhaustiveVectorView full::planar(ExhaustiveVectorView abs, Numeric f, Numeric z
   const bool looking_down = za > 90;
   if (looking_down) {
     const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, temperature[0]);
-    const Numeric Ibg = refl == 0.0 ? 0.0 : planar(abs, f, 180-za)[0];
+    const Numeric Ibg = refl == 0.0 ? 0.0 : planar(rad, f, 180 - za)[0];
 
-    abs[0] = std::lerp(Bbg, Ibg, refl);
+    rad[0] = std::lerp(Bbg, Ibg, refl);
 
     Numeric abs_past = models.front().at(f).real();
 
@@ -101,11 +116,11 @@ ExhaustiveVectorView full::planar(ExhaustiveVectorView abs, Numeric f, Numeric z
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i] - altitude[i - 1]));
 
-      abs[i] = std::lerp(B, abs[i - 1], T);
+      rad[i] = std::lerp(B, rad[i - 1], T);
       abs_past = abs_this;
     }
   } else {
-    abs[n - 1] = planck(f, Constant::cosmic_microwave_background_temperature);
+    rad[n - 1] = planck(f, Constant::cosmic_microwave_background_temperature);
 
     Numeric abs_past = models.front().at(f).real();
     for (std::size_t i = n - 2; i < n; --i) {  // wraps around
@@ -114,39 +129,41 @@ ExhaustiveVectorView full::planar(ExhaustiveVectorView abs, Numeric f, Numeric z
       const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
                                  (altitude[i + 1] - altitude[i]));
 
-      abs[i] = std::lerp(B, abs[i + 1], T);
+      rad[i] = std::lerp(B, rad[i + 1], T);
       abs_past = abs_this;
     }
   }
 
-  return abs;
+  return rad;
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Input: f=", f, "; za=", za, '\n', e.what()));
 }
 
-Vector full::planar(Numeric f, Numeric za) const {
-  Vector abs(altitude.size());
-  planar(abs, f, za);
-  return abs;
+Vector radiance::planar(Numeric f, Numeric za) const {
+  Vector rad(altitude.size());
+  planar(rad, f, za);
+  return rad;
 }
 
-void full::planar_par(ExhaustiveMatrixView y, const Vector& fs, Numeric za) const {
+void radiance::planar_par(ExhaustiveMatrixView rad,
+                          const Vector& fs,
+                          Numeric za) const {
   const Index n = fs.size();
 
-  #pragma omp parallel for
-  for (Index i=0; i<n; i++) {
-    planar(y[i], fs[i], za);
+#pragma omp parallel for
+  for (Index i = 0; i < n; i++) {
+    planar(rad[i], fs[i], za);
   }
 }
 
-Matrix full::planar_par(const Vector& fs, Numeric za) const {
-  Matrix out(fs.size(), altitude.size());
-  planar_par(out, fs, za);
-  return out;
+Matrix radiance::planar_par(const Vector& fs, Numeric za) const {
+  Matrix rad(fs.size(), altitude.size());
+  planar_par(rad, fs, za);
+  return rad;
 }
 
-std::ostream& operator<<(std::ostream& os, const full&) {
+std::ostream& operator<<(std::ostream& os, const radiance&) {
   return os << "No useful output operator yet";
 }
 }  // namespace fwd::profile

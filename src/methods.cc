@@ -23546,7 +23546,7 @@ where N>=0 and the species name is something line "H2O".
 This is an experimental solution.
 )--"),
       AUTHORS("Richard Larsson"),
-      OUT("fwd_prof"),
+      OUT("fwd_rad"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

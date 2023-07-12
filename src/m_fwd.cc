@@ -8,7 +8,7 @@
 
 void fwd_profBuildPlaneParallel(
     Workspace& ws,
-    ForwardProfile& fwd_prof,
+    ForwardRadiance& fwd_rad,
     const Tensor3& z_field,
     const Numeric& ppath_lmax,
     const Index& atmosphere_dim,
@@ -79,7 +79,7 @@ void fwd_profBuildPlaneParallel(
   std::vector<Vector> allvmrs{ppvar_vmr.begin(), ppvar_vmr.end()};
   std::reverse(allvmrs.begin(), allvmrs.end());
 
-  fwd_prof = ForwardProfile(z,
+  fwd_rad = ForwardRadiance(z,
                             p,
                             t,
                             allvmrs,

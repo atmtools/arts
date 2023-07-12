@@ -144,15 +144,15 @@ void py_fwd(py::module_& m) {
       "Parallel version of :func:`at`");
 
   py::class_<ForwardAbsorption>(m, "ForwardAbsorption");
-  py::class_<ForwardProfile>(m, "ForwardProfile")
+  py::class_<ForwardRadiance>(m, "ForwardRadiance")
       .def(py::init<>(), "From nothing")
-      .PythonInterfaceCopyValue(ForwardProfile)
-      .PythonInterfaceWorkspaceVariableConversion(ForwardProfile)
-      .PythonInterfaceFileIO(ForwardProfile)
-      .PythonInterfaceBasicRepresentation(ForwardProfile)
+      .PythonInterfaceCopyValue(ForwardRadiance)
+      .PythonInterfaceWorkspaceVariableConversion(ForwardRadiance)
+      .PythonInterfaceFileIO(ForwardRadiance)
+      .PythonInterfaceBasicRepresentation(ForwardRadiance)
       .def(
           "planar",
-          [](const ForwardProfile& fwd_prof, Numeric f, Numeric za) {
+          [](const ForwardRadiance& fwd_prof, Numeric f, Numeric za) {
             return fwd_prof.planar(f, za);
           },
           py::arg("f"),
@@ -173,7 +173,7 @@ prof : ~pyarts.arts.Vector
 )--"))
       .def(
           "planar_par",
-          [](const ForwardProfile& fwd_prof, const Vector& f, Numeric za) {
+          [](const ForwardRadiance& fwd_prof, const Vector& f, Numeric za) {
             return fwd_prof.planar_par(f, za);
           },
           py::arg("f"),
@@ -192,6 +192,42 @@ Returns
 prof : ~pyarts.arts.Matrix
     Profile of radiation
 )--"))
-      .PythonInterfaceWorkspaceDocumentation(ForwardProfile);
+      .PythonInterfaceWorkspaceDocumentation(ForwardRadiance);
+
+  py::class_<ForwardIrradiance>(m, "ForwardIrradiance")
+      .def(py::init<>(), "From nothing")
+      .def(py::init<ForwardRadiance>(), "From forward radiance")
+      .PythonInterfaceCopyValue(ForwardIrradiance)
+      .PythonInterfaceWorkspaceVariableConversion(ForwardIrradiance)
+      .PythonInterfaceFileIO(ForwardIrradiance)
+      .PythonInterfaceBasicRepresentation(ForwardIrradiance)
+      .def_property_readonly(
+          "altitude",
+          [](const ForwardIrradiance& fwd_prof) {
+            return Vector(fwd_prof.rad.altitude);
+          },
+          py::doc("The altitudes the irradiance is computed at"))
+      .def(
+          "planar",
+          [](const ForwardIrradiance& fwd_prof, Numeric f, const Vector& za) {
+            return fwd_prof.planar(f, za);
+          },
+          py::arg("f"),
+          py::arg("za"),
+          py::doc(R"--(Plane parallel computer of radiance profile
+
+Parameters
+----------
+f : float
+    Frequency [Hz]
+za : float
+    Zenith angle [degrees]
+
+Returns
+-------
+prof : ~pyarts.arts.Vector
+    Profile of radiation
+)--"))
+      .PythonInterfaceWorkspaceDocumentation(ForwardIrradiance);
 }
 }  // namespace Python
