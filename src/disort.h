@@ -369,9 +369,9 @@ void get_paroptprop(MatrixView ext_bulk_par,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
                     ConstMatrixView pnd_profiles,
                     ConstVectorView t_profile,
-                    ConstVectorView p_grid,
+                    ConstVectorView DEBUG_ONLY(p_grid),
                     const ArrayOfIndex& cloudbox_limits,
-                    ConstVectorView f_grid);
+                    const Index f_index);
 
 /** get_dtauc_ssalb
  *
@@ -444,7 +444,8 @@ void get_parZ(Tensor3& pha_bulk_par,
               ConstMatrixView pnd_profiles,
               ConstVectorView t_profile,
               ConstVectorView pfct_angs,
-              const ArrayOfIndex& cloudbox_limits);
+              const ArrayOfIndex& cloudbox_limits,
+              const Index f_index);
 
 /** get_pfct.
  *
