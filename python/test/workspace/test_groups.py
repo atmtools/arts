@@ -57,7 +57,7 @@ class test:
 
 
 list_of_groups = [x.name for x in cxx.globals.get_wsv_groups()]
-special_groups = ["CallbackFunction", "Any", "ForwardRadiance", "ForwardIrradiance"]
+special_groups = ["CallbackFunction", "Any", "SpectralRadianceProfileOperator"]
 
 
 class TestGroups:
@@ -995,11 +995,8 @@ class TestGroups:
     def testVerbosity(self):
         cxx.Verbosity()
 
-    def testForwardRadiance(self):
-        cxx.Verbosity()
-
-    def testForwardIrradiance(self):
-        cxx.Verbosity()
+    def testSpectralRadianceProfileOperator(self):
+        cxx.SpectralRadianceProfileOperator()
 
     def test_pickle(self):
         ws = Workspace()
@@ -1010,10 +1007,8 @@ class TestGroups:
                 continue
             elif x[i] == "Agenda":
                 continue  # Cannot unpickle a standalone Agenda
-            elif x[i] == "ForwardRadiance":
-                continue  # Cannot unpickle ForwardRadiance
-            elif x[i] == "ForwardIrradiance":
-                continue  # Cannot unpickle ForwardIrradiance
+            elif x[i] == "SpectralRadianceProfileOperator":
+                continue  # Cannot unpickle SpectralRadianceProfileOperator
             elif x[i] == "ArrayOfAgenda":
                 continue  # Cannot unpickle a standalone ArrayOfAgenda
             else:
