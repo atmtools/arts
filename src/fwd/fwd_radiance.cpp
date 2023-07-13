@@ -15,19 +15,20 @@
 #include "physics_funcs.h"
 
 namespace fwd::profile {
-radiance::radiance(const Vector& z,
-                   const Vector& p,
-                   const Vector& t,
-                   const std::vector<Vector>& allvmrs,
-                   const ArrayOfArrayOfSpeciesTag& allspecs,
-                   const PredefinedModelData& predef_data,
-                   const ArrayOfCIARecord& cia_data,
-                   const ArrayOfXsecRecord& xsec_data,
-                   const SpeciesIsotopologueRatios& isotopologue_ratios,
-                   const ArrayOfArrayOfAbsorptionLines& lbl_data,
-                   Numeric cia_extrap,
-                   Index cia_robust,
-                   Verbosity verb)
+spectral_radiance::spectral_radiance(
+    const Vector& z,
+    const Vector& p,
+    const Vector& t,
+    const std::vector<Vector>& allvmrs,
+    const ArrayOfArrayOfSpeciesTag& allspecs,
+    const PredefinedModelData& predef_data,
+    const ArrayOfCIARecord& cia_data,
+    const ArrayOfXsecRecord& xsec_data,
+    const SpeciesIsotopologueRatios& isotopologue_ratios,
+    const ArrayOfArrayOfAbsorptionLines& lbl_data,
+    Numeric cia_extrap,
+    Index cia_robust,
+    Verbosity verb)
     : refl(0), altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
   const std::vector<std::shared_ptr<CIARecord>> cia_records = [&]() {
     std::vector<std::shared_ptr<CIARecord>> ciar;
@@ -98,9 +99,9 @@ radiance::radiance(const Vector& z,
   }
 }
 
-ExhaustiveVectorView radiance::planar(ExhaustiveVectorView rad,
-                                      Numeric f,
-                                      Numeric za) const try {
+ExhaustiveVectorView spectral_radiance::planar(ExhaustiveVectorView rad,
+                                               Numeric f,
+                                               Numeric za) const try {
   using Conversion::cosd;
   using std::abs;
   using std::exp;
@@ -162,15 +163,15 @@ ExhaustiveVectorView radiance::planar(ExhaustiveVectorView rad,
       var_string("Input: f=", f, "; za=", za, '\n', e.what()));
 }
 
-Vector radiance::planar(Numeric f, Numeric za) const {
+Vector spectral_radiance::planar(Numeric f, Numeric za) const {
   Vector rad(altitude.size());
   planar(rad, f, za);
   return rad;
 }
 
-void radiance::planar_par(ExhaustiveMatrixView rad,
-                          const Vector& fs,
-                          Numeric za) const {
+void spectral_radiance::planar_par(ExhaustiveMatrixView rad,
+                                   const Vector& fs,
+                                   Numeric za) const {
   const Index n = fs.size();
 
 #pragma omp parallel for
@@ -179,13 +180,13 @@ void radiance::planar_par(ExhaustiveMatrixView rad,
   }
 }
 
-Matrix radiance::planar_par(const Vector& fs, Numeric za) const {
+Matrix spectral_radiance::planar_par(const Vector& fs, Numeric za) const {
   Matrix rad(fs.size(), altitude.size());
   planar_par(rad, fs, za);
   return rad;
 }
 
-std::ostream& operator<<(std::ostream& os, const radiance&) {
+std::ostream& operator<<(std::ostream& os, const spectral_radiance&) {
   return os << "No useful output operator yet";
 }
 }  // namespace fwd::profile

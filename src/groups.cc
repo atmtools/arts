@@ -213,14 +213,6 @@ units of m^5 molec^(-2)
 Used for keeping track of non-local thermodynamic equilibrium data
 )--");
 
-  wsv_groups.emplace_back(
-      "ForwardRadiance",
-      "WIP A type that computes the forward radiance profile in some manner --- BETA before ARTS3 WIP\n");
-
-  wsv_groups.emplace_back(
-      "ForwardIrradiance",
-      "WIP A type that computes the forward irradiance profile in some manner --- BETA before ARTS3 WIP\n");
-
   wsv_groups.emplace_back("GasAbsLookup", R"--(An absorption lookup table
 
 This class holds an absorption lookup table, as well as all
@@ -377,6 +369,17 @@ and can thus be used to identify one of the following:
 4. an absorption line of an isotopologue
 5. the energy level of absorption band(s) of an isotopologue
 6. the energy level of absorption line(s) of an isotopologue
+)--");
+
+  wsv_groups.emplace_back(
+      "SpectralRadianceProfileOperator",
+      R"--(An operator that turns a frequency and zenith angle into a spectral radiance profile
+
+The operations on this object are through methods and not through the call-operator
+
+Currently, the only supported operation is plane-parallel geometry
+
+This is still a work in progress, and the interface will change in the future
 )--");
 
   wsv_groups.emplace_back(

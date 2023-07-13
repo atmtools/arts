@@ -23540,7 +23540,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("spectral_radiance_fieldPlaneParallelForwardRadiance"),
+      NAME("spectral_radiance_fieldPlaneParallelSpectralRadianceOperator"),
       DESCRIPTION(R"--(Create a *spectral_radiance_field*
 
 This is an experimental solution.
@@ -23550,37 +23550,20 @@ This is an experimental solution.
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("fwd_rad", "f_grid", "za_grid"),
+      IN("spectral_radiance_profile_operator", "f_grid", "za_grid"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("spectral_radiance_fieldPlaneParallelForwardRadianceSingleFreq"),
-      DESCRIPTION(R"--(Create a *spectral_radiance_field*
+      NAME("spectral_radiance_profile_operatorPlaneParallel"),
+      DESCRIPTION(R"--(Create a radiance profile operator
 
 This is an experimental solution.
 )--"),
       AUTHORS("Richard Larsson"),
-      OUT("spectral_radiance_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("fwd_rad", "za_grid"),
-      GIN("f"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("A frequency [Hz]")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("fwd_radBuildPlaneParallel"),
-      DESCRIPTION(R"--(Create a forward profile
-
-This is an experimental solution.
-)--"),
-      AUTHORS("Richard Larsson"),
-      OUT("fwd_rad"),
+      OUT("spectral_radiance_profile_operator"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

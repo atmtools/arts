@@ -7,9 +7,9 @@
 #include "messages.h"
 #include "rte.h"
 
-void fwd_radBuildPlaneParallel(
+void spectral_radiance_profile_operatorPlaneParallel(
     Workspace& ws,
-    ForwardRadiance& fwd_rad,
+    SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
     const Tensor3& z_field,
     const Numeric& ppath_lmax,
     const Index& atmosphere_dim,
@@ -81,52 +81,39 @@ void fwd_radBuildPlaneParallel(
   std::vector<Vector> allvmrs{ppvar_vmr.begin(), ppvar_vmr.end()};
   std::reverse(allvmrs.begin(), allvmrs.end());
 
-  fwd_rad = ForwardRadiance(z,
-                            p,
-                            t,
-                            allvmrs,
-                            abs_species,
-                            predefined_model_data,
-                            abs_cia_data,
-                            xsec_fit_data,
-                            isotopologue_ratios,
-                            abs_lines_per_species,
-                            cia_extrap,
-                            cia_robust,
-                            verbosity);
+  spectral_radiance_profile_operator =
+      SpectralRadianceProfileOperator(z,
+                                      p,
+                                      t,
+                                      allvmrs,
+                                      abs_species,
+                                      predefined_model_data,
+                                      abs_cia_data,
+                                      xsec_fit_data,
+                                      isotopologue_ratios,
+                                      abs_lines_per_species,
+                                      cia_extrap,
+                                      cia_robust,
+                                      verbosity);
 }
 
-void spectral_radiance_fieldPlaneParallelForwardRadiance(
+void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
     Tensor7& spectral_radiance_field,
-    const ForwardRadiance& fwd_rad,
+    const SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
     const Vector& f_grid,
     const Vector& za_grid,
     const Verbosity&) {
   const Index n = f_grid.size();
   const Index m = za_grid.size();
 
-  spectral_radiance_field.resize(n, fwd_rad.altitude.size(), 1, 1, m, 1, 1);
+  spectral_radiance_field.resize(
+      n, spectral_radiance_profile_operator.altitude.size(), 1, 1, m, 1, 1);
 
 #pragma omp parallel for collapse(2)
   for (Index i = 0; i < n; ++i) {
     for (Index j = 0; j < m; ++j) {
-      spectral_radiance_field(i, joker, 0, 0, j, 0, 0) = fwd_rad.planar(f_grid(i), za_grid(j));
+      spectral_radiance_field(i, joker, 0, 0, j, 0, 0) =
+          spectral_radiance_profile_operator.planar(f_grid(i), za_grid(j));
     }
-  }
-}
-
-void spectral_radiance_fieldPlaneParallelForwardRadianceSingleFreq(
-    Tensor7& spectral_radiance_field,
-    const ForwardRadiance& fwd_rad,
-    const Vector& za_grid,
-    const Numeric& f,
-    const Verbosity&) {
-  const Index m = za_grid.size();
-
-  spectral_radiance_field.resize(1, fwd_rad.altitude.size(), 1, 1, m, 1, 1);
-
-#pragma omp parallel for
-  for (Index j = 0; j < m; ++j) {
-    spectral_radiance_field(0, joker, 0, 0, j, 0, 0) = fwd_rad.planar(f, za_grid(j));
   }
 }

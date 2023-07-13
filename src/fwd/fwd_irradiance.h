@@ -6,7 +6,7 @@
 
 namespace fwd::profile {
 struct irradiance {
-  radiance rad;
+  spectral_radiance rad;
 
   irradiance() = default;
 
@@ -24,7 +24,7 @@ struct irradiance {
              Index cia_robust = {},
              Verbosity verb = {});
   
-  irradiance(radiance  fwd_rad) : rad(std::move(fwd_rad)) {}
+  irradiance(spectral_radiance  fwd_rad) : rad(std::move(fwd_rad)) {}
 
   //! FIXME: Will change in arts-3
   [[nodiscard]] Vector planar(Numeric f, const Index streams) const;

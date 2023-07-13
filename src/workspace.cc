@@ -3324,13 +3324,13 @@ Can currently only contain data for new MT CKD models of water.
       GROUP("PredefinedModelData"), PredefinedModelData{}));
 
   wsv_data.push_back(WsvRecord(
-      NAME("fwd_rad"),
+      NAME("spectral_radiance_profile_operator"),
       DESCRIPTION(
-          R"--(Forward spectral radiance profile computer
+          R"--(An operator to create a spectral radiance profile.
 
 This is an experimental solution.
 )--"),
-      GROUP("ForwardRadiance")));
+      GROUP("SpectralRadianceProfileOperator")));
 
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky"),
