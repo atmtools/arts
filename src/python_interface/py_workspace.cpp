@@ -2,6 +2,7 @@
 #include <memory>
 #include <mutex>
 #include <parameters.h>
+#include <pybind11/pytypes.h>
 #include <wsv_aux_operator.h>
 
 #include <pybind11/pybind11.h>
@@ -330,7 +331,8 @@ ws : ~pyarts.workspace.Workspace
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
 
-  wsv.def(py::init([](WorkspaceVariable& w) { return w; }), "From another variable")
+  wsv.def(py::init([](WorkspaceVariable& w) { return w; }),
+          "From another variable")
       .def(
           "__copy__",
           [](WorkspaceVariable&) { ARTS_USER_ERROR("Cannot copy") },
@@ -339,41 +341,52 @@ ws : ~pyarts.workspace.Workspace
           "__deepcopy__",
           [](WorkspaceVariable&, py::dict&) { ARTS_USER_ERROR("Cannot copy") },
           "Cannot copy a workspace variable, try instead to copy its value")
-      .def_property_readonly("name", &WorkspaceVariable::name, ":class:`str` The name of the workspace variable")
-      .def_property_readonly("desc",
-                             [](WorkspaceVariable& wv) {
-                               return wv.ws.wsv_data_ptr->at(wv.pos).Description();
-                             }, ":class:`~pyarst.arts.String` A description of the workspace variable")
-      .def_property_readonly("init", &WorkspaceVariable::is_initialized, ":class:`bool` Flag if the variable is initialized")
-      .def("initialize_if_not", &WorkspaceVariable::initialize_if_not,
-        "Default initialize the variable if it is not already initialized")
+      .def_property_readonly("name",
+                             &WorkspaceVariable::name,
+                             ":class:`str` The name of the workspace variable")
+      .def_property_readonly(
+          "desc",
+          [](WorkspaceVariable& wv) {
+            return wv.ws.wsv_data_ptr->at(wv.pos).Description();
+          },
+          ":class:`~pyarst.arts.String` A description of the workspace variable")
+      .def_property_readonly(
+          "init",
+          &WorkspaceVariable::is_initialized,
+          ":class:`bool` Flag if the variable is initialized")
+      .def("initialize_if_not",
+           &WorkspaceVariable::initialize_if_not,
+           "Default initialize the variable if it is not already initialized")
       .def("__str__",
-           [](const WorkspaceVariable& w) {
-             return var_string("Workspace ",
-                               global_data::wsv_groups.at(w.group()));
-           })
+           [](const py::object& w) { return py::str(w.attr("value")); })
       .def("__repr__",
-           [](const WorkspaceVariable& w) {
-             return var_string("Workspace ",
-                               global_data::wsv_groups.at(w.group()));
-           })
-      .def_property_readonly("group",
-                             [](const WorkspaceVariable& w) {
-                               return global_data::wsv_groups.at(w.group());
-                             }, ":class:`~pyarts.arts.GroupRecord` The group of the variable")
-      .def("delete_level", [](WorkspaceVariable& v) {
-        if (v.stack_depth()) v.pop_workspace_level();
-      }, "Delete a level from the workspace variable stack, if it has depth")
-      .def("readxml",[](const py::object& wsvi, const char* const filename){
-        wsvi.attr("initialize_if_not")();
-        wsvi.attr("value").attr("readxml")(filename);
-      }, R"(Read the variable from an xml file
+           [](const py::object& w) { return py::str(w.attr("value")); })
+      .def_property_readonly(
+          "group",
+          [](const WorkspaceVariable& w) {
+            return global_data::wsv_groups.at(w.group());
+          },
+          ":class:`~pyarts.arts.GroupRecord` The group of the variable")
+      .def(
+          "delete_level",
+          [](WorkspaceVariable& v) {
+            if (v.stack_depth()) v.pop_workspace_level();
+          },
+          "Delete a level from the workspace variable stack, if it has depth")
+      .def(
+          "readxml",
+          [](const py::object& wsvi, const char* const filename) {
+            wsvi.attr("initialize_if_not")();
+            wsvi.attr("value").attr("readxml")(filename);
+          },
+          R"(Read the variable from an xml file
 
 Parameters
 ----------
 filename : str
     Filename to read
-)", py::arg("filename"));
+)",
+          py::arg("filename"));
 
   ws.def("number_of_initialized_variables", [](Workspace& w){
     Index count = 0;
