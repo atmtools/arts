@@ -228,6 +228,8 @@ jobs:
           cd cmake-build
           make -j2 -C doc
           make -j2 pyarts_docs
+          tar -zcf doxygen.tar.gz doc/doxygen/html
+          tar -zcf sphinx.tar.gz python/doc/build
 
       - name: Check (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
@@ -261,11 +263,11 @@ jobs:
         with:
           name: docs-doxygen
           path: |
-            cmake-build/doc/doxygen/html
+            cmake-build/doxygen.tar.gz
 
       - uses: actions/upload-artifact@v3
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         with:
           name: docs-sphinx
           path: |
-            cmake-build/python/doc/build
+            cmake-build/sphinx.tar.gz
