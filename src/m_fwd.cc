@@ -4,6 +4,7 @@
 
 #include "agenda_set.h"
 #include "auto_md.h"
+#include "messages.h"
 #include "rte.h"
 
 void fwd_radBuildPlaneParallel(
@@ -34,7 +35,7 @@ void fwd_radBuildPlaneParallel(
   const Agenda ppath_agenda =
       AgendaManip::get_ppath_agenda(ws, "PlaneParallel");
 
-  Vector rte_pos{max(z_field) + 1};
+  Vector rte_pos{max(z_field) + 10};
   Vector rte_los{180};
 
   Ppath ppath;
@@ -93,4 +94,39 @@ void fwd_radBuildPlaneParallel(
                             cia_extrap,
                             cia_robust,
                             verbosity);
+}
+
+void spectral_radiance_fieldPlaneParallelForwardRadiance(
+    Tensor7& spectral_radiance_field,
+    const ForwardRadiance& fwd_rad,
+    const Vector& f_grid,
+    const Vector& za_grid,
+    const Verbosity&) {
+  const Index n = f_grid.size();
+  const Index m = za_grid.size();
+
+  spectral_radiance_field.resize(n, fwd_rad.altitude.size(), 1, 1, m, 1, 1);
+
+#pragma omp parallel for collapse(2)
+  for (Index i = 0; i < n; ++i) {
+    for (Index j = 0; j < m; ++j) {
+      spectral_radiance_field(i, joker, 0, 0, j, 0, 0) = fwd_rad.planar(f_grid(i), za_grid(j));
+    }
+  }
+}
+
+void spectral_radiance_fieldPlaneParallelForwardRadianceSingleFreq(
+    Tensor7& spectral_radiance_field,
+    const ForwardRadiance& fwd_rad,
+    const Vector& za_grid,
+    const Numeric& f,
+    const Verbosity&) {
+  const Index m = za_grid.size();
+
+  spectral_radiance_field.resize(1, fwd_rad.altitude.size(), 1, 1, m, 1, 1);
+
+#pragma omp parallel for
+  for (Index j = 0; j < m; ++j) {
+    spectral_radiance_field(0, joker, 0, 0, j, 0, 0) = fwd_rad.planar(f, za_grid(j));
+  }
 }

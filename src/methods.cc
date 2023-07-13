@@ -23540,6 +23540,40 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("spectral_radiance_fieldPlaneParallelForwardRadiance"),
+      DESCRIPTION(R"--(Create a *spectral_radiance_field*
+
+This is an experimental solution.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("spectral_radiance_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("fwd_rad", "f_grid", "za_grid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("spectral_radiance_fieldPlaneParallelForwardRadianceSingleFreq"),
+      DESCRIPTION(R"--(Create a *spectral_radiance_field*
+
+This is an experimental solution.
+)--"),
+      AUTHORS("Richard Larsson"),
+      OUT("spectral_radiance_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("fwd_rad", "za_grid"),
+      GIN("f"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("A frequency [Hz]")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("fwd_radBuildPlaneParallel"),
       DESCRIPTION(R"--(Create a forward profile
 

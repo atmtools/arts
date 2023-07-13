@@ -209,23 +209,44 @@ prof : ~pyarts.arts.Matrix
           py::doc("The altitudes the irradiance is computed at"))
       .def(
           "planar",
-          [](const ForwardIrradiance& fwd_prof, Numeric f, const Vector& za) {
-            return fwd_prof.planar(f, za);
+          [](const ForwardIrradiance& fwd_prof, Numeric f, Index streams) {
+            return fwd_prof.planar(f, streams);
           },
           py::arg("f"),
-          py::arg("za"),
+          py::arg("streams"),
           py::doc(R"--(Plane parallel computer of radiance profile
 
 Parameters
 ----------
 f : float
     Frequency [Hz]
-za : float
-    Zenith angle [degrees]
+streams : int
+    Zenith angle count [must be positive and even]
 
 Returns
 -------
 prof : ~pyarts.arts.Vector
+    Profile of radiation
+)--"))
+      .def(
+          "planar_par",
+          [](const ForwardIrradiance& fwd_prof, const Vector& f, Index streams) {
+            return fwd_prof.planar_par(f, streams);
+          },
+          py::arg("f"),
+          py::arg("streams"),
+          py::doc(R"--(Plane parallel computer of radiance profile in parallel
+
+Parameters
+----------
+f : ~pyarts.arts.Vector
+    Frequency [Hz]
+streams : int
+    Zenith angle count [must be positive and even]
+
+Returns
+-------
+prof : ~pyarts.arts.Matrix
     Profile of radiation
 )--"))
       .PythonInterfaceWorkspaceDocumentation(ForwardIrradiance);

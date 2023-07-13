@@ -27,10 +27,11 @@ struct irradiance {
   irradiance(radiance  fwd_rad) : rad(std::move(fwd_rad)) {}
 
   //! FIXME: Will change in arts-3
-  [[nodiscard]] Vector planar(Numeric f, const Vector& za) const;
+  [[nodiscard]] Vector planar(Numeric f, const Index streams) const;
 
   //! FIXME: Will change in arts-3
-  void planar(ExhaustiveVectorView irr, Numeric f, const Vector& za) const;
+  void planar(ExhaustiveVectorView irr, Numeric f, const Index streams) const;
+  [[nodiscard]] Matrix planar_par(const Vector& f, const Index streams) const;
 
   friend std::ostream& operator<<(std::ostream&, const irradiance&);
 };

@@ -101,46 +101,58 @@ radiance::radiance(const Vector& z,
 ExhaustiveVectorView radiance::planar(ExhaustiveVectorView rad,
                                       Numeric f,
                                       Numeric za) const try {
+  using Conversion::cosd;
+  using std::abs;
+  using std::exp;
+  using std::lerp;
+  using std::midpoint;
+  using std::size_t;
+  constexpr Numeric Tcmb = Constant::cosmic_microwave_background_temperature;
+
   const std::size_t n = altitude.size();
-  ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(rad.nelem()),
+  ARTS_USER_ERROR_IF(n not_eq static_cast<size_t>(rad.nelem()),
                      "Bad size absorption input vector view'\n")
   ARTS_USER_ERROR_IF(
-      za > 89 and za < 91,
+      za == 90.0,
       "You cannot look sideways in a plane-parallel atmosphere.\n"
       "The zenith angle must be above or below 1 degree of the limb.\n")
 
-  const Numeric z_scl = 1.0 / std::abs(Conversion::cosd(za));
+  const Numeric z_scl = 1.0 / abs(cosd(za));
 
   const bool looking_down = za > 90;
   if (looking_down) {
-    const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, temperature[0]);
+    const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, temperature.front());
     const Numeric Ibg = refl == 0.0 ? 0.0 : planar(rad, f, 180 - za)[0];
-
-    rad[0] = std::lerp(Bbg, Ibg, refl);
+    rad[0] = lerp(Bbg, Ibg, refl);
 
     Numeric abs_past = models.front().at(f).real();
-
-    for (std::size_t i = 1; i < n; ++i) {
+    Numeric B_past = planck(f, temperature.front());
+    for (size_t i = 1; i < n; ++i) {
       const Numeric abs_this = models[i].at(f).real();
-      const Numeric B = planck(f, temperature[i - 1]);
-      const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
-                                 (altitude[i] - altitude[i - 1]));
+      const Numeric B_this = planck(f, temperature[i]);
+      const Numeric B = midpoint(B_past, B_this);
+      const Numeric T = exp(-z_scl * midpoint(abs_this, abs_past) *
+                            (altitude[i] - altitude[i - 1]));
 
-      rad[i] = std::lerp(B, rad[i - 1], T);
+      rad[i] = lerp(B, rad[i - 1], T);
       abs_past = abs_this;
+      B_past = B_this;
     }
   } else {
-    rad[n - 1] = planck(f, Constant::cosmic_microwave_background_temperature);
+    rad[n - 1] = planck(f, Tcmb);
 
-    Numeric abs_past = models.front().at(f).real();
-    for (std::size_t i = n - 2; i < n; --i) {  // wraps around
+    Numeric abs_past = models.back().at(f).real();
+    Numeric B_past = planck(f, temperature.back());
+    for (size_t i = n - 2; i < n; --i) {  // wraps around
       const Numeric abs_this = models[i].at(f).real();
-      const Numeric B = planck(f, temperature[i + 1]);
-      const Numeric T = std::exp(-z_scl * std::midpoint(abs_this, abs_past) *
-                                 (altitude[i + 1] - altitude[i]));
+      const Numeric B_this = planck(f, temperature[i]);
+      const Numeric B = midpoint(B_past, B_this);
+      const Numeric T = exp(-z_scl * midpoint(abs_this, abs_past) *
+                            (altitude[i + 1] - altitude[i]));
 
-      rad[i] = std::lerp(B, rad[i + 1], T);
+      rad[i] = lerp(B, rad[i + 1], T);
       abs_past = abs_this;
+      B_past = B_this;
     }
   }
 

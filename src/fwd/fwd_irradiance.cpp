@@ -1,6 +1,9 @@
 #include "fwd_irradiance.h"
+
 #include <algorithm>
+
 #include "arts_constants.h"
+#include "arts_conversions.h"
 #include "debug.h"
 #include "matpack_view.h"
 
@@ -34,50 +37,58 @@ irradiance::irradiance(const Vector& z,
 
 void irradiance::planar(ExhaustiveVectorView irr,
                         Numeric f,
-                        const Vector& za) const {
+                        const Index streams) const {
   const std::size_t n = rad.altitude.size();
-  const Index m = za.size();
-  ARTS_USER_ERROR_IF(
-      not static_cast<bool>(m) or za[0] not_eq 0.0 or za[m - 1] not_eq 180.0,
-      "We need zenith angles, [0, ..., 180], got: [",
-      za,
-      "]\n")
+  ARTS_USER_ERROR_IF(streams < 1 or streams % 2 not_eq 0,
+                     "streams must be a positive even number, got: ",
+                     streams)
   ARTS_USER_ERROR_IF(irr.size() not_eq static_cast<Index>(n),
                      "Size mismatch: irradiance and altitude (",
                      irr.size(),
                      " vs ",
                      n,
                      ')')
-  ARTS_USER_ERROR_IF(not std::is_sorted(za.begin(), za.end()),
-                     "Zenith angles must be sorted in ascending order")
 
-  // Do first step manually to reset input irradiance
-  Numeric h_past = 1.0, h_this = Conversion::cosd(za[1]);
-  Vector rads_past=rad.planar(f, za[0]), rads_this=rad.planar(f, za[1]);
-  Numeric scl = 0.5 * (h_past - h_this);
-  for (std::size_t j = 0; j < n; j++) {
-    irr[j] = scl * std::midpoint(rads_this[j], rads_past[j]);
-  }
-  h_past = h_this;
-  rads_past.swap(rads_this);
+  const auto cos_za = [streams](Index i) {
+    return (i == streams - 1) ? -1.0
+                              : 1.0 - 2.0 * static_cast<Numeric>(i) /
+                                          (static_cast<Numeric>(streams) - 1.0);
+  };
 
-  for (Index i = 2; i < m; i++) {
-    h_this = Conversion::cosd(za[i]);
-    rad.planar(rads_this, f, za[i]);
+  const Numeric dza_daa = Constant::pi * (1.0 - cos_za(1));
 
-    scl = 0.5 * (h_past - h_this);
-    for (std::size_t j = 0; j < n; j++) {
-      irr[j] += scl * std::midpoint(rads_this[j], rads_past[j]);
+  Vector rads(n);
+  for (Index i = 0; i < streams; i++) {
+    const Numeric za = Conversion::acosd(cos_za(i));
+    rad.planar(rads, f, za);
+
+    if (i == 0) {
+      for (std::size_t j = 0; j < n; j++) {
+        irr[j] = 0.5 * rads[j] * dza_daa;
+      }
+    } else if (i == streams - 1) {
+      for (std::size_t j = 0; j < n; j++) {
+        irr[j] += 0.5 * rads[j] * dza_daa;
+      }
+    } else {
+      for (std::size_t j = 0; j < n; j++) {
+        irr[j] += rads[j] * dza_daa;
+      }
     }
-
-    h_past = h_this;
-    rads_past.swap(rads_this);
   }
 }
 
-Vector irradiance::planar(Numeric f, const Vector& za) const {
+Vector irradiance::planar(Numeric f, const Index streams) const {
   Vector irr(rad.altitude.size());
-  planar(irr, f, za);
+  planar(irr, f, streams);
+  return irr;
+}
+
+Matrix irradiance::planar_par(const Vector& f, const Index streams) const {
+  const Index n = f.size();
+  Matrix irr(n, rad.altitude.size());
+#pragma omp parallel for
+  for (Index i = 0; i < n; i++) planar(irr[i], f[i], streams);
   return irr;
 }
 
