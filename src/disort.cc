@@ -1113,7 +1113,7 @@ void run_cdisort(Workspace& ws,
   if (gas_scattering_do){
     sca_bulk_par_layer.resize(1, ds.nlyr);
     sca_coeff_gas_layer.resize(1, ds.nlyr);
-    sca_coeff_gas_level(1, ds.nlyr + 1);
+    sca_coeff_gas_level.resize(1, ds.nlyr + 1);
     pmom_gas.resize(ds.nlyr, Nlegendre);
 
   }
@@ -1204,7 +1204,8 @@ void run_cdisort(Workspace& ws,
 
     // Optical depth of layers
     // Single scattering albedo of layers
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
+    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
