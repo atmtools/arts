@@ -14,7 +14,8 @@
 #ifndef cia_h
 #define cia_h
 
-#include "arts.h"
+#include <memory>
+
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "messages.h"
@@ -39,6 +40,11 @@ void cia_interpolation(VectorView result,
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
                     const Species::Species sp1,
                     const Species::Species sp2);
+
+std::shared_ptr<CIARecord> cia_get_data(
+    const std::vector<std::shared_ptr<CIARecord>>& cia_data,
+    const Species::Species sp1,
+    const Species::Species sp2);
 
 /** CIA data for a single pair of molecules.
  

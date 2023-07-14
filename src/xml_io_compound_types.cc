@@ -12,6 +12,7 @@
 #include "arts.h"
 #include "cloudbox.h"
 #include "debug.h"
+#include "fwd.h"
 #include "global_data.h"
 #include "predefined/predef_data.h"
 #include "xml_io.h"
@@ -2258,6 +2259,21 @@ void xml_read_from_stream(istream&,
 
 void xml_write_to_stream(ostream&,
                          const Agenda&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */,
+                         const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_read_from_stream(istream&,
+                          SpectralRadianceProfileOperator&,
+                          bifstream* /* pbifs */,
+                          const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const SpectralRadianceProfileOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */,
                          const Verbosity&) {

@@ -10,6 +10,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
+#include "double_imanip.h"
 #include "geodetic.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;

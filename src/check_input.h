@@ -17,12 +17,13 @@
   === External declarations
   ===========================================================================*/
 
-#include "agenda_class.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "mystring.h"
-//#include <cfloat>
+
+//! We don't want to depend on all of ARTS in a header file.
+class Agenda;
 
 /*===========================================================================
   === Functions in check_input.cc
@@ -86,9 +87,9 @@ void chk_matrix_nrows(const String& x_name, ConstMatrixView x, const Index& l);
  
  \author Stefan Buehler
  \date   2013-04-23 */
-class runtime_error_not_found : public runtime_error {
+class runtime_error_not_found : public std::runtime_error {
  public:
-  runtime_error_not_found(const string& s) : runtime_error(s) {}
+  runtime_error_not_found(const std::string& s) : std::runtime_error(s) {}
 };
 
 /** Subclasses of runtime_error.
@@ -97,9 +98,9 @@ class runtime_error_not_found : public runtime_error {
  
  \author Stefan Buehler
  \date   2013-04-23 */
-class runtime_error_not_unique : public runtime_error {
+class runtime_error_not_unique : public std::runtime_error {
  public:
-  runtime_error_not_unique(const string& s) : runtime_error(s) {}
+  runtime_error_not_unique(const std::string& s) : std::runtime_error(s) {}
 };
 
 /*===========================================================================
@@ -129,7 +130,7 @@ class runtime_error_not_unique : public runtime_error {
 template <class T>
 Index chk_contains(const String& x_name, const Array<T>& x, const T& what) {
   // To generate error messages:
-  ostringstream os;
+  std::ostringstream os;
 
   // To store the positions:
   ArrayOfIndex pos;

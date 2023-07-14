@@ -99,6 +99,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_math.cpp
     py_options.cpp
     py_hitran.cpp
+    py_fwd.cpp
 
     pydocs.cpp
     gen_auto_py_helpers.cpp

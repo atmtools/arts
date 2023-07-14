@@ -372,6 +372,17 @@ and can thus be used to identify one of the following:
 )--");
 
   wsv_groups.emplace_back(
+      "SpectralRadianceProfileOperator",
+      R"--(An operator that turns a frequency and zenith angle into a spectral radiance profile
+
+The operations on this object are through methods and not through the call-operator
+
+Currently, the only supported operation is plane-parallel geometry
+
+This is still a work in progress, and the interface will change in the future
+)--");
+
+  wsv_groups.emplace_back(
       "RadiationVector",
       R"--(Contains the radiation vector as a function of frequency
 

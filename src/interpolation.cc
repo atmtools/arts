@@ -27,6 +27,8 @@
 #include "check_input.h"
 #include "logic.h"
 
+#include "matpack_math.h"
+
 // File-global constants:
 
 //! The maximum difference from 1 that we allow for a sum check.

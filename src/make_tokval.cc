@@ -37,6 +37,7 @@ int main() {
 #include "transmissionmatrix.h"
 #include "xsec_fit.h"
 
+#include <fwd.h>
 #include <predefined/predef_data.h>
 
 template <class base> class Array;
