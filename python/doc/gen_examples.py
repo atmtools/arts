@@ -16,6 +16,7 @@ MAXDEPTH = 2
 def recursive_python_files(path):
     out = {}
     files_and_dirs = os.listdir(path)
+    files_and_dirs.sort()
     for part_path in files_and_dirs:
         part = os.path.abspath(os.path.join(path, part_path))
 

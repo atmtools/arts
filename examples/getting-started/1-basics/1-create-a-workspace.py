@@ -1,8 +1,3 @@
-"""
-This example shows how to create a Workspace, the common entry point for
-all pyarts simulations.
-"""
-
 # The first step is to import the pyarts package. This will make all
 # pyarts modules available to you.
 import pyarts
