@@ -1011,6 +1011,8 @@ void run_cdisort(Workspace& ws,
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
 
+  Index N_lev= p_grid.nelem();
+
   if (suns_do) {
     nphi = aa_grid.nelem();
     umu0 = Conversion::cosd(sun_rte_los[0]);
@@ -1117,9 +1119,9 @@ void run_cdisort(Workspace& ws,
     pmom_gas.resize(ds.nlyr, Nlegendre);
 
   }
-  Matrix directbeam(nf, ds.nlyr + 1,0);
-  Matrix deltatau(nf, ds.nlyr + 1,0);
-  Matrix snglsctalbedo(nf, ds.nlyr + 1,0);
+  Matrix directbeam(nf,N_lev,0);
+  Matrix deltatau(nf,N_lev,0);
+  Matrix snglsctalbedo(nf, N_lev,0);
 
 
   // loop over all frequencies
@@ -1307,21 +1309,23 @@ void run_cdisort(Workspace& ws,
 
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
       deltatau(f_index, k - 1 + ncboxremoved) =
-          dtauc(0, ds.nlyr - k  + ncboxremoved);
+          dtauc(0, ds.nlyr - k  + cboxlims[0]);
     }
 
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
       snglsctalbedo(f_index, k - 1 + ncboxremoved) =
-          ssalb(0, ds.nlyr - k + ncboxremoved);
+          ssalb(0, ds.nlyr - k + cboxlims[0]);
     }
 
-    directbeam(1, cboxlims[1] - cboxlims[0] + ncboxremoved) =
-        suns[0].spectrum(f_index, 0)/PI;
+    if (suns_do){
+      directbeam(1, cboxlims[1] - cboxlims[0] + ncboxremoved) =
+          suns[0].spectrum(f_index, 0)/PI;
 
-    for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-      directbeam(f_index, k - 1 + ncboxremoved) =
-          directbeam(f_index, k + ncboxremoved) *
-          exp(-dtauc(0, ds.nlyr - k + ncboxremoved)/umu0);
+      for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+        directbeam(f_index, k - 1 + ncboxremoved) =
+            directbeam(f_index, k + ncboxremoved) *
+            exp(-dtauc(0, ds.nlyr - k + cboxlims[0])/umu0);
+      }
     }
   }
 
