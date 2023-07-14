@@ -1,4 +1,6 @@
 Getting started
 ===============
 
-Placeholder.  Some introductory text will go here.  Mostly, this file will redirect to the future ``arts/examples/getting_started/*`` files and folders
+We recommend following the guides in :ref:`~arts.examples.getting-started`
+to get started with pyarts.  These guides are run as part of our continous
+integration process, so they should always be up to date.
