@@ -1755,7 +1755,6 @@ void run_cdisort_flux(Workspace& ws,
       }
       dFdtau(f_index, k) = dFdtau(f_index, k + 1);
     }
-    std::cout << "end of index " << f_index << "\n";
 
   }
 
