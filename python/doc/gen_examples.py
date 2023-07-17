@@ -64,6 +64,14 @@ def readme_path(path):
     return None
 
 
+def output_readme(rstfile, path):
+    readme = readme_path(path)
+    if readme:
+        with open(readme, "r") as r:
+            rstfile.write(r.read())
+            rstfile.write("\n")
+
+
 def combine_pyfiles(paths, origpath, extra, outpath):
     parentpath = os.path.dirname(paths[0])
     title = title_from_path(parentpath, origpath, extra)
@@ -72,18 +80,15 @@ def combine_pyfiles(paths, origpath, extra, outpath):
     with open(rstfn, "w") as rstfile:
         heading = title_to_heading(title)
         rstfile.write(f"{heading}\n{'=' * len(heading)}\n")
+        output_readme(rstfile, parentpath)
         for path in paths:
             title = title_from_path(path, origpath, extra)
-            readme = readme_path(path)
 
             if len(paths) > 1:
                 heading = title_to_heading(title)
                 rstfile.write(f"{heading}\n{'-' * len(heading)}\n")
 
-            if readme:
-                with open(readme, "r") as r:
-                    rstfile.write(r.read())
-                    rstfile.write("\n")
+            output_readme(rstfile, path)
 
             rstfile.write(".. code-block:: python\n")
             rstfile.write(f"    :name: {heading}\n")
@@ -97,17 +102,13 @@ def combine_pyfiles(paths, origpath, extra, outpath):
 def print_pyfile(path, origpath, extra, outpath):
     title = title_from_path(path, origpath, extra)
     rstfn = rstfn_from_title(title, outpath)
-    readme = readme_path(path)
 
     print(f"Creating {rstfn} from {path}")
     with open(rstfn, "w") as rstfile:
         heading = title_to_heading(title)
         rstfile.write(f"{heading}\n{'=' * len(heading)}\n")
 
-        if readme:
-            with open(readme, "r") as r:
-                rstfile.write(r.read())
-                rstfile.write("\n")
+        output_readme(rstfile, path)
 
         rstfile.write(".. code-block:: python\n")
         rstfile.write("    :linenos:\n\n")
@@ -120,17 +121,13 @@ def print_folder(path, paths, origpath, extra, outpath):
     keys = paths.keys()
     title = title_from_path(path, origpath, extra)
     rstfn = rstfn_from_title(title, outpath)
-    readme = readme_path(path)
 
     print(f"Creating {rstfn} from {path}")
     with open(rstfn, "w") as rstfile:
         heading = title_to_heading(title)
         rstfile.write(f"{heading}\n{'=' * len(heading)}\n")
 
-        if readme:
-            with open(readme, "r") as r:
-                rstfile.write(r.read())
-                rstfile.write("\n")
+        output_readme(rstfile, path)
 
         rstfile.write(".. toctree::\n")
         for key in keys:
