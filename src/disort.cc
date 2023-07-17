@@ -1318,7 +1318,7 @@ void run_cdisort(Workspace& ws,
     }
 
     if (suns_do){
-      directbeam(1, cboxlims[1] - cboxlims[0] + ncboxremoved) =
+      directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
           suns[0].spectrum(f_index, 0)/PI;
 
       for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
@@ -1553,7 +1553,7 @@ void run_cdisort_flux(Workspace& ws,
   if (gas_scattering_do){
     sca_bulk_par_layer.resize(1, ds.nlyr);
     sca_coeff_gas_layer.resize(1, ds.nlyr);
-    sca_coeff_gas_level(1, ds.nlyr + 1);
+    sca_coeff_gas_level.resize(1, ds.nlyr + 1);
     pmom_gas.resize(ds.nlyr, Nlegendre);
 
   }
