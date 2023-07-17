@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <ostream>
 
 class Workspace;
@@ -12,15 +13,9 @@ struct CallbackFunction : public std::function<void(Workspace&)> {
 };
 
 struct CallbackOperator {
-  CallbackFunction callback;
+  std::function<void(std::shared_ptr<Workspace>)> callback;
   std::vector<std::string> inputs;
   std::vector<std::string> outputs;
-
-  CallbackOperator() = default;
-
-  CallbackOperator(CallbackFunction cb,
-                   std::vector<std::string> i,
-                   std::vector<std::string> o) : callback(std::move(cb)), inputs(std::move(i)), outputs(std::move(o)) {}
 
   void operator()(Workspace& ws) const;
 

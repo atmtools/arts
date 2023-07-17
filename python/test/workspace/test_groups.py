@@ -11,7 +11,7 @@ import pickle
 
 import numpy as np
 import pyarts.arts as cxx
-from pyarts.workspace import Workspace, arts_agenda
+from pyarts.workspace import Workspace, arts_agenda, callback_operator
 
 
 class test:
@@ -57,8 +57,12 @@ class test:
 
 
 list_of_groups = [x.name for x in cxx.globals.get_wsv_groups()]
-special_groups = ["CallbackFunction", "Any", "SpectralRadianceProfileOperator"]
-
+special_groups = [
+    "CallbackFunction",
+    "Any",
+    "SpectralRadianceProfileOperator",
+    "CallbackOperator",
+]
 
 class TestGroups:
     def test_if_test_exist(self):
@@ -998,12 +1002,37 @@ class TestGroups:
     def testSpectralRadianceProfileOperator(self):
         cxx.SpectralRadianceProfileOperator()
 
+    def testCallbackOperator(self):
+        @callback_operator
+        def test(a, b):
+            print("oi")
+            b += 3
+            a += 3
+            atmosphere_dim = b
+            return atmosphere_dim, a
+
+        ws = Workspace()
+        ws.a = cxx.Index(1)
+        ws.b = cxx.Index(2)
+        
+        assert not ws.atmosphere_dim.init
+        assert ws.a.value == 1
+        assert ws.b.value == 2
+        
+        test(ws)
+        
+        assert ws.a.value == 4
+        assert ws.b.value == 2
+        assert ws.atmosphere_dim.value == 5
+
     def test_pickle(self):
         ws = Workspace()
         x = list(cxx.globals.get_WsvGroupMap().keys())
 
         for i in range(len(x)):
             if x[i] == "CallbackFunction":
+                continue
+            elif x[i] == "CallbackOperator":
                 continue
             elif x[i] == "Agenda":
                 continue  # Cannot unpickle a standalone Agenda
@@ -1051,4 +1080,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    b = x.testArrayOfArrayOfAbsorptionLines()
+    b = x.testCallbackOperator()

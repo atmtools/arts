@@ -31,7 +31,7 @@ void CallbackOperator::operator()(Workspace& ws_in) const {
     ws->set_wsv(ws_in.copy_wsv(n));
   }
 
-  callback(*ws);
+  callback(ws);
 
   for (auto& n : outputs) {
     ws_in.set_wsv(ws->copy_wsv(n));
