@@ -178,6 +178,10 @@ class Workspace final : public std::enable_shared_from_this<Workspace> {
     return nullptr;
   }
 
+  std::tuple<WorkspaceVariableStruct, WsvRecord> copy_wsv(std::string_view) const;
+
+  void set_wsv(const std::tuple<WorkspaceVariableStruct, WsvRecord>&);
+
   /** Swap with another workspace */
   void swap(Workspace &other) noexcept;
 

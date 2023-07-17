@@ -6,13 +6,14 @@
  */
 
 #include "workspace_ng.h"
-#include "debug.h"
-#include "tokval.h"
-#include "workspace_global_data.h"
+
 #include <memory>
 
 #include "agenda_class.h"
+#include "debug.h"
 #include "global_data.h"
+#include "tokval.h"
+#include "workspace_global_data.h"
 #include "workspace_memory_handler.h"
 #include "wsv_aux.h"
 
@@ -73,15 +74,15 @@ Workspace::Workspace(const Workspace &workspace)
 }
 
 void Workspace::claim_agenda_ownership() {
-  for (Index i=0; i<nelem(); i++) {
+  for (Index i = 0; i < nelem(); i++) {
     if (is_initialized(i)) {
       auto group = wsv_data_ptr->at(i).Group();
 
       if (group == WorkspaceGroupIndexValue<Agenda>) {
-        Agenda& ag = *static_cast<Agenda*>((*this)[i].get());
+        Agenda &ag = *static_cast<Agenda *>((*this)[i].get());
         ag.set_workspace(*this);
       } else if (group == WorkspaceGroupIndexValue<ArrayOfAgenda>) {
-        for (auto& ag: *static_cast<ArrayOfAgenda*>((*this)[i].get())) {
+        for (auto &ag : *static_cast<ArrayOfAgenda *>((*this)[i].get())) {
           ag.set_workspace(*this);
         }
       }
@@ -89,8 +90,7 @@ void Workspace::claim_agenda_ownership() {
   }
 }
 
-void Workspace::pop(Index i) {
-  ws[i].pop(); }
+void Workspace::pop(Index i) { ws[i].pop(); }
 
 void Workspace::swap(Workspace &other) noexcept {
   ws.swap(other.ws);
@@ -107,7 +107,9 @@ bool Workspace::is_initialized(Index i) const {
   return ws[i].size() and ws[i].top().initialized;
 }
 
-Index Workspace::depth(Index i) const { return static_cast<Index>(ws[i].size()); }
+Index Workspace::depth(Index i) const {
+  return static_cast<Index>(ws[i].size());
+}
 
 void Workspace::emplace(Index i) {
   static const auto agenda_index = global_data::WsvGroupMap.at("Agenda");
@@ -132,8 +134,8 @@ Workspace::Workspace()
       wsv_data_ptr(std::make_shared<Array<WsvRecord>>(global_data::wsv_data)),
       WsvMap_ptr(std::make_shared<unordered_map<String, Index>>()),
       original_workspace(this) {
-  for(auto x : global_data::WsvMap) WsvMap_ptr -> emplace(x);
-  ARTS_ASSERT(wsv_data_ptr -> size() == WsvMap_ptr->size())
+  for (auto x : global_data::WsvMap) WsvMap_ptr->emplace(x);
+  ARTS_ASSERT(wsv_data_ptr->size() == WsvMap_ptr->size())
 
   for (Index i = 0; i < (*wsv_data_ptr).nelem(); i++) {
     if ((*wsv_data_ptr)[i].has_defaults()) {
@@ -145,10 +147,8 @@ Workspace::Workspace()
 std::shared_ptr<Workspace> Workspace::deepcopy() {
   auto mout = Workspace{};
   auto out = std::make_shared<Workspace>(std::move(mout));
-  out->wsv_data_ptr = std::make_shared<Workspace::wsv_data_type>(
-      *wsv_data_ptr);
-  out->WsvMap_ptr = std::make_shared<Workspace::WsvMap_type>(
-      *WsvMap_ptr);
+  out->wsv_data_ptr = std::make_shared<Workspace::wsv_data_type>(*wsv_data_ptr);
+  out->WsvMap_ptr = std::make_shared<Workspace::WsvMap_type>(*WsvMap_ptr);
   out->ws.resize(nelem());
 
   for (Index i = 0; i < out->nelem(); i++) {
@@ -224,4 +224,41 @@ std::shared_ptr<Workspace> Workspace::create() {
 std::shared_ptr<Workspace> Workspace::shallowcopy() const {
   auto mout = Workspace{*this};
   return std::make_shared<Workspace>(std::move(mout));
+}
+
+std::tuple<WorkspaceVariableStruct, WsvRecord> Workspace::copy_wsv(
+    std::string_view x) const {
+  auto ind = WsvMap_ptr->find(x);
+  ARTS_USER_ERROR_IF(ind == WsvMap_ptr->end(),
+                     "No WSV named ",
+                     std::quoted(x),
+                     " on workspace")
+  
+  WorkspaceVariableStruct wsv = ws[ind->second].top();
+  ARTS_USER_ERROR_IF(
+      not wsv.initialized, "Trying to copy uninitialized WSV: ", std::quoted(x))
+  
+  auto wsvr = wsv_data_ptr->operator[](ind->second);
+  
+  wsv.wsv = workspace_memory_handler.duplicate(wsvr.Group(), wsv.wsv);
+  
+  return {wsv, wsvr};
+}
+
+void Workspace::set_wsv(
+    const std::tuple<WorkspaceVariableStruct, WsvRecord> &x) {
+  const auto &[wsv, wsvr] = x;
+
+  const auto ind = WsvMap_ptr->find(wsvr.Name());
+  if (ind == WsvMap_ptr->end()) {
+    ws[add_wsv(wsvr)].push(wsv);
+  } else {
+    // implicit assumption: a named wsv has the correct type
+
+    auto &stack = ws[ind->second];
+    if (stack.size())
+      stack.top() = wsv;
+    else
+      stack.push(wsv);
+  }
 }

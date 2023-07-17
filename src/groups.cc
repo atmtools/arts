@@ -205,6 +205,16 @@ units of m^5 molec^(-2)
   wsv_groups.emplace_back("CallbackFunction",
                           "Used to inject custom code into *Agenda*\n");
 
+  wsv_groups.emplace_back("CallbackOperator",
+                          R"--(Used to inject custom code into *Agenda*
+
+Unlike *CallbackFunction*, this type also holds information about the inputs and outputs
+of the custom code.  This is used to create a new limited scope workspace for the custom
+code to run in.
+
+FIXME: ADD DETAILS
+)--");
+
   wsv_groups.emplace_back("CovarianceMatrix", "A covariance matrix\n");
 
   wsv_groups.emplace_back("EnergyLevelMap",

@@ -622,6 +622,25 @@ void define_md_data_raw() {
       PASSWSVNAMES(false)));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("CallbackOperatorExecute"),
+      DESCRIPTION("Execute any code keeping the workspace safe\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("op"),
+      GIN_TYPE("CallbackOperator"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("This will execute the callback operator"),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(true),
+      PASSWSVNAMES(false)));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("CheckUnique"),
       DESCRIPTION(
           "Checks that *abs_lines* contains only unique absorption lines\n"),

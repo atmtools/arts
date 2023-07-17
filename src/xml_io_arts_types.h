@@ -146,6 +146,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 
 TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
 TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
+TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 
 //==========================================================================
 

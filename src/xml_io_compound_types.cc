@@ -2347,3 +2347,20 @@ void xml_write_to_stream(ostream&,
                          const Verbosity&) {
   ARTS_USER_ERROR("Method not implemented!");
 }
+
+//=== CallbackOperator =========================================
+
+void xml_read_from_stream(istream&,
+                          CallbackOperator&,
+                          bifstream* /* pbifs */,
+                          const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const CallbackOperator&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */,
+                         const Verbosity&) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
