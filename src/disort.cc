@@ -1112,17 +1112,22 @@ void run_cdisort(Workspace& ws,
   Matrix sca_bulk_par_layer;
   Matrix sca_coeff_gas_level;
   Matrix pmom_gas;
-  if (gas_scattering_do){
+  if (gas_scattering_do) {
     sca_bulk_par_layer.resize(1, ds.nlyr);
     sca_coeff_gas_layer.resize(1, ds.nlyr);
     sca_coeff_gas_level.resize(1, ds.nlyr + 1);
     pmom_gas.resize(ds.nlyr, Nlegendre);
-
   }
-  Matrix directbeam(nf,N_lev,0);
-  Matrix deltatau(nf,N_lev,0);
-  Matrix snglsctalbedo(nf, N_lev,0);
+  Matrix directbeam(nf, N_lev, 0);
+  Matrix deltatau(nf, N_lev, 0);
+  Matrix snglsctalbedo(nf, N_lev, 0);
 
+  //Special case for only tro
+  if (only_tro && Npfct > 0) {
+    nang = Npfct;
+    pha_bulk_par.resize(1, ds.nlyr + 1, nang);
+    nlinspace(pfct_angs, 0, 180, nang);
+  }
 
   // loop over all frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
@@ -1130,44 +1135,42 @@ void run_cdisort(Workspace& ws,
     f_grid_i=f_grid[f_index];
 
     // Get particle bulk properties
-    if (pnd_non_zero){
+    if (pnd_non_zero) {
+      if (only_tro && (Npfct < 0 || Npfct > 3)) {
+        ext_bulk_par = 0.0;
+        abs_bulk_par = 0.0;
+        pha_bulk_par = 0.0;
 
-//      if (only_tro && (Npfct < 0 || Npfct > 3)) {
-//        if (Npfct > 0) {
-//          nang = Npfct;
-//          pha_bulk_par.resize(1, ds.nlyr + 1, nang);
-//        }
-//        nlinspace(pfct_angs, 0, 180, nang);
-//
-//        ext_bulk_par = 0.0;
-//        abs_bulk_par = 0.0;
-//        pha_bulk_par = 0.0;
-//
-//        Index iflat = 0;
-//
-//        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
-//          const Index nse = scat_data[iss].nelem();
-//          ext_abs_pfun_from_tro(ext_bulk_par,
-//                                abs_bulk_par,
-//                                pha_bulk_par,
-//                                scat_data[iss],
-//                                iss,
-//                                pnd(Range(iflat, nse), joker),
-//                                cboxlims,
-//                                t,
-//                                pfct_angs,
-//                                f_index);
-//          iflat += nse;
-//        }
-//      } else {
+        Index iflat = 0;
 
-
-        get_paroptprop(
-            ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_index);
+        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
+          const Index nse = scat_data[iss].nelem();
+          ext_abs_pfun_from_tro(ext_bulk_par,
+                                abs_bulk_par,
+                                pha_bulk_par,
+                                scat_data[iss],
+                                iss,
+                                pnd(Range(iflat, nse), joker),
+                                cboxlims,
+                                t,
+                                pfct_angs,
+                                f_index);
+          iflat += nse;
+        }
+      } else {
+        get_paroptprop(ext_bulk_par,
+                       abs_bulk_par,
+                       scat_data,
+                       pnd,
+                       t,
+                       p,
+                       cboxlims,
+                       f_index);
         get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
-//      }
+      }
 
-      get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+      get_pfct(
+          pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
       // Legendre's polynomials of phase function
       get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
@@ -1177,7 +1180,6 @@ void run_cdisort(Workspace& ws,
       abs_bulk_par = 0.0;
       pmom = 0.0;
     }
-
 
     if (gas_scattering_do) {
       // gas scattering
@@ -1550,71 +1552,72 @@ void run_cdisort_flux(Workspace& ws,
   Matrix sca_bulk_par_layer;
   Matrix sca_coeff_gas_level;
   Matrix pmom_gas;
-  if (gas_scattering_do){
+  if (gas_scattering_do) {
     sca_bulk_par_layer.resize(1, ds.nlyr);
     sca_coeff_gas_layer.resize(1, ds.nlyr);
     sca_coeff_gas_level.resize(1, ds.nlyr + 1);
     pmom_gas.resize(ds.nlyr, Nlegendre);
-
   }
-  Matrix dFdtau(nf, N_lev,0);
-  Matrix deltatau(nf, N_lev,0);
-  Matrix snglsctalbedo(nf, N_lev,0);
+  Matrix dFdtau(nf, N_lev, 0);
+  Matrix deltatau(nf, N_lev, 0);
+  Matrix snglsctalbedo(nf, N_lev, 0);
 
+  //Special case for only tro
+  if (only_tro && Npfct > 0) {
+    nang = Npfct;
+    pha_bulk_par.resize(1, ds.nlyr + 1, nang);
+    nlinspace(pfct_angs, 0, 180, nang);
+  }
 
   // start loop over all frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
 
     f_grid_i=f_grid[f_index];
 
-    std::cout << "f_index = " << f_index << "\n";
-    std::cout << "f_grid_i = " << f_grid_i << "\n";
-
     // Get particle bulk properties but onl if pnd_field is non-zero
-    if (pnd_non_zero){
-//      if (only_tro && (Npfct < 0 || Npfct > 3)) {
-//
-//        if (Npfct > 0) {
-//          nang = Npfct;
-//          pha_bulk_par.resize(1, ds.nlyr + 1, nang);
-//        }
-//        nlinspace(pfct_angs, 0, 180, nang);
-//
-//        ext_bulk_par = 0.0;
-//        abs_bulk_par = 0.0;
-//        pha_bulk_par = 0.0;
-//
-//        Index iflat = 0;
-//
-//        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
-//          const Index nse = scat_data[iss].nelem();
-//          ext_abs_pfun_from_tro(ext_bulk_par,
-//                                abs_bulk_par,
-//                                pha_bulk_par,
-//                                scat_data[iss],
-//                                iss,
-//                                pnd(Range(iflat, nse), joker),
-//                                cboxlims,
-//                                t,
-//                                pfct_angs,
-//                                f_index);
-//          iflat += nse;
-//        }
-//      } else {
-      get_paroptprop(
-          ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_index);
-      get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
-//      }
+    if (pnd_non_zero) {
+      if (only_tro && (Npfct < 0 || Npfct > 3)) {
+        ext_bulk_par = 0.0;
+        abs_bulk_par = 0.0;
+        pha_bulk_par = 0.0;
+
+        Index iflat = 0;
+
+        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
+          const Index nse = scat_data[iss].nelem();
+          ext_abs_pfun_from_tro(ext_bulk_par,
+                                abs_bulk_par,
+                                pha_bulk_par,
+                                scat_data[iss],
+                                iss,
+                                pnd(Range(iflat, nse), joker),
+                                cboxlims,
+                                t,
+                                pfct_angs,
+                                f_index);
+          iflat += nse;
+        }
+      } else {
+        get_paroptprop(ext_bulk_par,
+                       abs_bulk_par,
+                       scat_data,
+                       pnd,
+                       t,
+                       p,
+                       cboxlims,
+                       f_index);
+        get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
+      }
       //get phase function
-      get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+      get_pfct(
+          pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
       // Legendre's polynomials of phase function
       get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
-    }
-    else{
-      pmom=0.;
-      ext_bulk_par=0.;
-      abs_bulk_par=0.;
+    } else {
+      pmom = 0.;
+      ext_bulk_par = 0.;
+      abs_bulk_par = 0.;
     }
 
     if (gas_scattering_do) {
