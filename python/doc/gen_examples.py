@@ -12,11 +12,26 @@ import sys
 
 MAXDEPTH = 2
 
+PRIORITIZE = ["getting-started"]
+
+
+def priority_sort(paths):
+    paths.sort()
+    basenames = [os.path.basename(p) for p in paths]
+    for prio in PRIORITIZE[::-1]:
+        try:
+            i = basenames.index(prio)
+        except ValueError:
+            pass
+        else:
+            basenames.insert(0, basenames.pop(i))
+            paths.insert(0, paths.pop(i))
+
 
 def recursive_python_files(path):
     out = {}
     files_and_dirs = os.listdir(path)
-    files_and_dirs.sort()
+    priority_sort(files_and_dirs)
     for part_path in files_and_dirs:
         part = os.path.abspath(os.path.join(path, part_path))
 
