@@ -107,7 +107,6 @@ def combine_pyfiles(paths, origpath, extra, outpath):
 
             rstfile.write(".. code-block:: python\n")
             rstfile.write(f"    :name: {heading}\n")
-            rstfile.write(f"    :caption: {heading}\n")
             rstfile.write("    :linenos:\n\n")
             with open(path, "r") as pyfile:
                 for line in pyfile.read().split('\n'):
