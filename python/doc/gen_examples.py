@@ -7,6 +7,7 @@ Created on Sat Jul  1 10:59:55 2023
 """
 
 import os
+import re
 import sys
 
 
@@ -46,9 +47,15 @@ def recursive_python_files(path):
 def title_to_heading(title):
     pos = title.rfind(".")
     if pos == -1:
-        return title[0].upper() + title[1:]
+        ret = title[0].upper() + title[1:]
     else:
-        return title[pos + 1].upper() + title[pos + 2:]
+        ret = title[pos + 1].upper() + title[pos + 2:]
+    ret = re.sub(r"^(\d+)-", r"\1. ", ret)
+    m = re.match(r"^\d+\. ", ret)
+    if m:
+        pos = len(m.group(0))
+        ret = ret[:pos] + ret[pos].upper() + ret[pos + 1:]
+    return ret
 
 
 def title_from_path(path, origpath, extra=None):
