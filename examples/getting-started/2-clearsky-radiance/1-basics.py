@@ -93,13 +93,13 @@ ws.sensor_checkedCalc()
 # We perform the calculations
 ws.yCalc()
 
-
+# Create a simple plot to look at the simulations.  Try increasing NF
+# above to see more details
 plt.plot(ws.f_grid.value/1e9, ws.y.value.value.reshape(2, NF).T)
 plt.xlabel("Frequency [GHz]")
 plt.ylabel("Brightness temperature [K]")
 plt.legend(["Looking down", "Looking up"])
 plt.title("Low resolution O$_2$ millimeter absorption band")
-
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
