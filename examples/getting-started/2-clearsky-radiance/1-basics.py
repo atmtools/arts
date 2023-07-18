@@ -1,6 +1,7 @@
 # Import the module
 import pyarts
 import numpy as np  # This example uses numpy
+import matplotlib.pyplot as plt
 
 
 # Create a workspace
@@ -39,7 +40,7 @@ ws.stokes_dim = 1
 # The atmosphere is assumed 1-dimensional
 ws.atmosphere_dim = 1
 
-# We have one sensor position, looking down, and one
+# We have one sensor position in space, looking down, and one
 # sensor position at the surface, looking up.
 ws.sensor_pos = [[300e3], [0]]
 ws.sensor_los = [[180], [0]]
@@ -53,7 +54,8 @@ ws.lon_grid = []
 ws.z_surface = [[0.0]]
 
 # Our sensor sees 10 frequency bins between 40 and 120 GHz
-ws.f_grid = np.linspace(40e9, 120e9, 10)
+NF = 10
+ws.f_grid = np.linspace(40e9, 120e9, NF)
 
 # The atmosphere consists of water, oxygen and nitrogen.
 # We set these to be computed using predefined absorption
@@ -90,6 +92,14 @@ ws.sensor_checkedCalc()
 
 # We perform the calculations
 ws.yCalc()
+
+
+plt.plot(ws.f_grid.value/1e9, ws.y.value.value.reshape(2, NF).T)
+plt.xlabel("Frequency [GHz]")
+plt.ylabel("Brightness temperature [K]")
+plt.legend(["Looking down", "Looking up"])
+plt.title("Low resolution O$_2$ millimeter absorption band")
+
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
