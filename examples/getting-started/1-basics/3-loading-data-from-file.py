@@ -56,24 +56,7 @@ context, and what you find most readable.
 """
 
 # Call the WorkspaceVariable member method "readxml" to load data from file
-ws.example_line_list = pyarts.arts.ArrayOfAbsorptionLines()  # Create an empty object
-ws.example_line_list.readxml("lines/O2-66.xml")
-
-# Call the Workspace Method "ReadXML" to load data from file
-ws.example_griddedfield3 = pyarts.arts.GriddedField3()
-ws.ReadXML(ws.example_griddedfield3, "planets/Earth/Fascod/tropical/tropical.t.xml")
-
-# Call the pure python function "pyarts.xml.load" to load data from file
-ws.example_griddedfield2 = pyarts.arts.GriddedField2()
-ws.example_griddedfield2 = pyarts.xml.load("star/Sun/solar_spectrum_May_2004.xml")
-
-"""
-This example is a bit special.  The pyarts.xml.load function creates an
-instance of the type that it finds in the file, and then loads the data into
-that instance.  This means that you can also just duck type the variable:
-
->>> ws.example_griddedfield2_2 = pyarts.xml.load("star/Sun/solar_spectrum_May_2004.xml")
-"""
+ws.abs_lines.readxml("lines/O2-66.xml")
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT

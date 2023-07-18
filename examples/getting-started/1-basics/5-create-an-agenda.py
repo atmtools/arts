@@ -28,9 +28,8 @@ ws.iy_space_agendaSet(option="CosmicBackground")
 """
 That said, we provide interpreted ways to create agendas manually.
 The cosmic background radiation agenda of the method call above
-can be created by the following code:
+can be created by the following, decorated code:
 """
-
 @pyarts.workspace.arts_agenda
 def cosmic_background(ws):
     ws.MatrixCBR(output=ws.iy, f=ws.f_grid)
@@ -44,10 +43,11 @@ print("ws.iy_space_agenda:", type(ws.iy_space_agenda.value))
 The local namespace of your python instance will now contain
 the variable "cosmic_background".  This is of type DelayedAgenda.
 The assignment to "ws.iy_space_agenda" will cause the agenda to
-be created and set on the workspace.
+be created and set on the workspace.  DelayedAgenda:s are useful
+when you want to set up your agendas independently of the workspace.
 
-It is possible to create an actual agenda object by naming the
-workspace:
+It is possible to create an actual Agenda object by naming the
+workspace input as a named-argument to the decorator:
 """
 @pyarts.workspace.arts_agenda(ws=ws)
 def cosmic_background_instant(ws):
@@ -58,6 +58,9 @@ ws.iy_space_agenda = cosmic_background_instant
 print("cosmic_background_instant:", type(cosmic_background_instant))
 
 """
+The "cosmic_background_instant" variable is now an Agenda instance and
+can be used only with the named workspace instance.
+
 You can also just set the agenda to the workspace directly by providing
 the "set_agenda=True" argument to the decorator:
 """
@@ -70,9 +73,16 @@ ws.iy_space_agenda = cosmic_background_set
 print("ws.cosmic_background_set:", type(ws.cosmic_background_set.value))
 
 """
-In fact, naming the decorated function "iy_space_agenda" will cause
-the agenda to be set on the workspace automatically, leaving out the
-necessity to assign it to the right group all together:
+Now the type of the "cosmic_background_set" variable is actually a
+WorkspaceVariable, it lives already on the workspace and it has
+defined "ws.cosmic_background_set".  Note that this is not very
+useful as Agenda:s must be named properly to work in Arts.  Their
+names themselves carry a lot of meaning for the internal controlflow.
+
+
+In fact, it is better to simply name the decorated function
+"iy_space_agenda" as this will cause the agenda to be set on
+the workspace automatically:
 """
 @pyarts.workspace.arts_agenda(ws=ws, set_agenda=True)
 def iy_space_agenda(ws):
@@ -89,6 +99,7 @@ can call pure python functions, you can do it by providing the
 """
 @pyarts.workspace.arts_agenda(ws=ws, set_agenda=True, allow_callbacks=True)
 def iy_space_agenda(ws):
+    print("Running iy_space_agenda")
     ws.MatrixCBR(output=ws.iy, f=ws.f_grid)
     ws.Ignore(ws.rtp_pos)
     ws.Ignore(ws.rtp_los)
@@ -99,6 +110,6 @@ from outputs when callbacks are involved.  This means that the agenda
 above may leak any changes it does to the workspace to the outside world.
 
 The whole point of the Agenda system is to control the inputs and outputs
-of the simulation, so this is not recommended to make use of this feature
+of the simulation, so it is not recommended to make use of this feature
 as it is too powerful in scope.
 """

@@ -10,13 +10,13 @@ ws = pyarts.Workspace()
 Indices can be set from the built-in python int.
 
 It is necessary to create an index object first, since the workspace
-variable must know the type
+variable must know the type.
 """
 ws.example_index = pyarts.arts.Index(1)
 print("Should contain 1:           ", ws.example_index)
 
 """
-Once an index exist on the workspace, you can set it directly from int
+Once an index exist on the workspace, you can set it directly from int.
 """
 ws.example_index = 2
 print("Should contain 2:           ", ws.example_index)
@@ -31,7 +31,7 @@ print("Should contain 3:           ", ws.ybatch_index)
 
 """
 Lastly, there exist a workspace method to set indices.  To-date, this is
-the only way to set the value of indices inside an Agenda
+the only way to set the value of indices inside an Agenda.
 """
 ws.IndexSet(ws.ybatch_index, 4)
 print("Should contain 4:           ", ws.ybatch_index)
@@ -83,9 +83,8 @@ ws.iy = np.array([[5, 6], [7, 8]])  # from numpy array
 print("Should contain\n 5 6\n7 8:\n", ws.iy)
 
 """
-Many more types are supported.  Please look at the documentation of
-the respective Workspace Group for more information on how to initialize
-them.
+Many more types are supported.  Please look at the documentation of the
+respective Workspace Group for more information on how to initialize them.
 """
 
 # TESTING
