@@ -55,7 +55,7 @@ def title_to_heading(title):
     if m:
         pos = len(m.group(0))
         ret = ret[:pos] + ret[pos].upper() + ret[pos + 1:]
-    return ret
+    return ret.replace("-", " ")
 
 
 def title_from_path(path, origpath, extra=None):
