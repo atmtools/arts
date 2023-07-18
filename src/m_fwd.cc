@@ -4,6 +4,7 @@
 
 #include "agenda_set.h"
 #include "auto_md.h"
+#include "debug.h"
 #include "messages.h"
 #include "rte.h"
 
@@ -123,4 +124,6 @@ void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
       }
     }
   }
+
+  ARTS_USER_ERROR_IF(error_msg.size(), error_msg, '\n')
 }
