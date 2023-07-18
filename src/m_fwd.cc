@@ -109,11 +109,18 @@ void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
   spectral_radiance_field.resize(
       n, spectral_radiance_profile_operator.altitude.size(), 1, 1, m, 1, 1);
 
+  String error_msg;
 #pragma omp parallel for collapse(2)
   for (Index i = 0; i < n; ++i) {
     for (Index j = 0; j < m; ++j) {
-      spectral_radiance_field(i, joker, 0, 0, j, 0, 0) =
-          spectral_radiance_profile_operator.planar(f_grid(i), za_grid(j));
+      if (error_msg.size()) continue;
+      try {
+        spectral_radiance_field(i, joker, 0, 0, j, 0, 0) =
+            spectral_radiance_profile_operator.planar(f_grid(i), za_grid(j));
+      } catch (std::exception& e) {
+#pragma omp critical
+        if (error_msg.size() == 0) error_msg = e.what();
+      }
     }
   }
 }
