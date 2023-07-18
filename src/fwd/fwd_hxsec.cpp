@@ -40,7 +40,7 @@ full::full(Numeric p,
        Verbosity verb) {
   for (auto& specs : allspecs) {
     for (auto& spec : specs) {
-      if (spec.type == Species::TagType::Cia) {
+      if (spec.type == Species::TagType::XsecFit) {
         const auto data = hitran_xsec_get_data(xsec, spec.Spec());
         ARTS_USER_ERROR_IF(not data, "Cannot find XSEC data for tag: ", spec)
 

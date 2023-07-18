@@ -82,21 +82,31 @@ spectral_radiance::spectral_radiance(
                      "Altitude must be sorted in ascending order")
   ARTS_USER_ERROR_IF(n == 0, "Must have some atmospheric size: [\n")
 
-  models.reserve(n);
+  String error_msg;
+  models.resize(n);
+#pragma omp parallel for
   for (std::size_t i = 0; i < n; ++i) {
-    models.emplace_back(p[i],
-                        t[i],
-                        allvmrs[i],
-                        allspecs,
-                        predef_model_data,
-                        cia_records,
-                        xsec_records,
-                        isotopologue_ratios,
-                        lbl_data,
-                        cia_extrap,
-                        cia_robust,
-                        verb);
+    if (error_msg.size()) continue;
+    try {
+      models[i] = full_absorption(p[i],
+                                  t[i],
+                                  allvmrs[i],
+                                  allspecs,
+                                  predef_model_data,
+                                  cia_records,
+                                  xsec_records,
+                                  isotopologue_ratios,
+                                  lbl_data,
+                                  cia_extrap,
+                                  cia_robust,
+                                  verb);
+    } catch (std::exception& e) {
+#pragma omp critical
+      if (error_msg.size() == 0) error_msg = e.what();
+    }
   }
+
+  ARTS_USER_ERROR_IF(error_msg.size(), error_msg, '\n')
 }
 
 ExhaustiveVectorView spectral_radiance::planar(ExhaustiveVectorView rad,
