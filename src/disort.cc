@@ -1575,7 +1575,7 @@ void run_cdisort_flux(Workspace& ws,
     f_grid_i=f_grid[f_index];
 
     // Get particle bulk properties but onl if pnd_field is non-zero
-    if (pnd_non_zero) {
+    if (pnd_non_zero && (suns_do || emission)) {
       if (only_tro && (Npfct < 0 || Npfct > 3)) {
         ext_bulk_par = 0.0;
         abs_bulk_par = 0.0;
