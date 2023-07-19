@@ -1705,7 +1705,37 @@ void run_cdisort_flux(Workspace& ws,
                 pmom(0, joker, joker).unsafe_data_handle(),
                 sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
-    c_disort(&ds, &out);
+    enum class Status { FIRST_TRY, RETRY, SUCCESS };
+    Status tries = Status::FIRST_TRY;
+    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    do {
+      try {
+        c_disort(&ds, &out);
+        tries = Status::SUCCESS;
+      } catch (const std::runtime_error& e) {
+        //catch cases if solar zenith angle=quadrature angle
+        if (tries == Status::FIRST_TRY) {
+          // change angle
+          if (umu0 < 1 - eps) {
+            umu0 += eps;
+          } else if (umu0 > 1 - eps) {
+            umu0 -= eps;
+          }
+
+          const Numeric shift =
+              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+          CREATE_OUT1;
+          out1
+              << "Solar zenith angle coincided with one of the quadrature angles\n"
+              << "We needed to shift the solar sun angle by " << shift
+              << "deg.\n";
+
+          ds.bc.umu0 = umu0;
+          tries = Status::RETRY;
+        } else
+          throw e;
+      }
+    } while (tries != Status::SUCCESS);
 
     //factor for converting it into spectral radiance units
     const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
