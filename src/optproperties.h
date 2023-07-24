@@ -303,6 +303,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
                            ConstMatrixView pnd_data,
                            ArrayOfIndex& cloudbox_limits,
                            ConstVectorView T_grid,
-                           ConstVectorView sa_grid);
+                           ConstVectorView sa_grid,
+                           const Index f_index = -1);
 
 #endif  //optproperties_h

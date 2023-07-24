@@ -442,13 +442,12 @@ void get_paroptprop(MatrixView ext_bulk_par,
                     ConstVectorView t_profile,
                     ConstVectorView DEBUG_ONLY(p_grid),
                     const ArrayOfIndex& cloudbox_limits,
-                    ConstVectorView f_grid) {
+                    const Index f_index) {
   const Index Np_cloud = pnd_profiles.ncols();
   DEBUG_ONLY(const Index Np = p_grid.nelem());
-  const Index nf = f_grid.nelem();
 
-  ARTS_ASSERT(ext_bulk_par.nrows() == nf);
-  ARTS_ASSERT(abs_bulk_par.nrows() == nf);
+  ARTS_ASSERT(ext_bulk_par.nrows() == 1);
+  ARTS_ASSERT(abs_bulk_par.nrows() == 1);
   ARTS_ASSERT(ext_bulk_par.ncols() == Np);
   ARTS_ASSERT(abs_bulk_par.ncols() == Np);
 
@@ -482,7 +481,8 @@ void get_paroptprop(MatrixView ext_bulk_par,
                       1,
                       T_array,
                       dir_array,
-                      -1);
+                      f_index);
+
   opt_prop_ScatSpecBulk(ext_mat_ssbulk,
                         abs_vec_ssbulk,
                         ptype_ssbulk,
@@ -498,16 +498,13 @@ void get_paroptprop(MatrixView ext_bulk_par,
                 abs_vec_ssbulk,
                 ptype_ssbulk);
 
-  Index f_this = 0;
-  bool pf = (abs_vec_bulk.nbooks() != 1);
-  for (Index ip = 0; ip < Np_cloud; ip++)
-    for (Index f_index = 0; f_index < nf; f_index++) {
-      if (pf) f_this = f_index;
-      ext_bulk_par(f_index, ip + cloudbox_limits[0]) =
-          ext_mat_bulk(f_this, ip, 0, 0, 0);
-      abs_bulk_par(f_index, ip + cloudbox_limits[0]) =
-          abs_vec_bulk(f_this, ip, 0, 0);
-    }
+
+  for (Index ip = 0; ip < Np_cloud; ip++){
+      ext_bulk_par(0, ip + cloudbox_limits[0]) =
+          ext_mat_bulk(0, ip, 0, 0, 0);
+      abs_bulk_par(0, ip + cloudbox_limits[0]) =
+          abs_vec_bulk(0, ip, 0, 0);
+  }
 }
 
 void get_dtauc_ssalb(MatrixView dtauc,
@@ -589,7 +586,8 @@ void get_parZ(Tensor3& pha_bulk_par,
               ConstMatrixView pnd_profiles,
               ConstVectorView t_profile,
               ConstVectorView pfct_angs,
-              const ArrayOfIndex& cloudbox_limits) {
+              const ArrayOfIndex& cloudbox_limits,
+              const Index f_index) {
   const Index Np_cloud = pnd_profiles.ncols();
   const Index nang = pfct_angs.nelem();
 
@@ -623,7 +621,7 @@ void get_parZ(Tensor3& pha_bulk_par,
                      T_array,
                      pdir_array,
                      idir_array,
-                     -1);
+                     f_index);
   pha_mat_ScatSpecBulk(pha_mat_ssbulk,
                        ptype_ssbulk,
                        pha_mat_Nse,
@@ -983,6 +981,15 @@ void run_cdisort(Workspace& ws,
                 pnd_profiles,
                 cloudbox_limits);
 
+  //check if pnd field is zero, if yes we do not need to calculate particle
+  //scattering properties
+  bool pnd_non_zero=false;
+  for (Index i = 0; i < pnd.nrows(); i++) {
+    for (Index j = 0; j < pnd.ncols(); j++){
+      pnd_non_zero+=bool(pnd(i,j));
+    }
+  }
+
   #if not ARTS_LGPL
   disort_state ds;
   disort_output out;
@@ -1003,6 +1010,8 @@ void run_cdisort(Workspace& ws,
   Numeric phi0 = 0.;
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
+
+  Index N_lev= p_grid.nelem();
 
   if (suns_do) {
     nphi = aa_grid.nelem();
@@ -1082,120 +1091,154 @@ void run_cdisort(Workspace& ws,
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
 
-  // Get particle bulk properties
+
+  //get angles and number of angles
   Index nang;
   Vector pfct_angs;
-  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
-  Index nf_ssd = scat_data[0][0].f_grid.nelem();
-  Tensor3 pha_bulk_par;
+  get_angs(pfct_angs, scat_data, Npfct);
+  nang = pfct_angs.nelem();
 
-  if (only_tro && (Npfct < 0 || Npfct > 3)) {
-    nang = Npfct;
-    nlinspace(pfct_angs, 0, 180, nang);
+  //allocate
+  Matrix ext_bulk_par(1, ds.nlyr + 1), abs_bulk_par(1, ds.nlyr + 1);
+  Tensor3 pha_bulk_par(1, ds.nlyr + 1, nang);
+  Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
+  Tensor3 pmom(1, ds.nlyr, Nlegendre);
+  Vector f_grid_i(1);
+  Matrix ssalb(1, ds.nlyr);
+  Matrix ext_bulk_gas_i(1, ds.nlyr + 1);
+  Matrix dtauc(1, ds.nlyr);
 
-    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
-
-    ext_bulk_par = 0.0;
-    abs_bulk_par = 0.0;
-    pha_bulk_par = 0.0;
-
-    Index iflat = 0;
-
-    for (Index iss = 0; iss < scat_data.nelem(); iss++) {
-      const Index nse = scat_data[iss].nelem();
-      ext_abs_pfun_from_tro(ext_bulk_par,
-                            abs_bulk_par,
-                            pha_bulk_par,
-                            scat_data[iss],
-                            iss,
-                            pnd(Range(iflat, nse), joker),
-                            cboxlims,
-                            t,
-                            pfct_angs);
-      iflat += nse;
-    }
-  } else {
-    get_angs(pfct_angs, scat_data, Npfct);
-    nang = pfct_angs.nelem();
-
-    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
-
-    get_paroptprop(
-        ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
-    get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
-  }
-
-  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
-  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
-
-  // Legendre polynomials of phase function
-  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
-  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
-
+  Matrix sca_coeff_gas_layer;
+  Matrix sca_bulk_par_layer;
+  Matrix sca_coeff_gas_level;
+  Matrix pmom_gas;
   if (gas_scattering_do) {
-    // gas scattering
+    sca_bulk_par_layer.resize(1, ds.nlyr);
+    sca_coeff_gas_layer.resize(1, ds.nlyr);
+    sca_coeff_gas_level.resize(1, ds.nlyr + 1);
+    pmom_gas.resize(ds.nlyr, Nlegendre);
+  }
+  Matrix directbeam(nf, N_lev, 0);
+  Matrix deltatau(nf, N_lev, 0);
+  Matrix snglsctalbedo(nf, N_lev, 0);
 
-    // layer averaged particle scattering coefficient
-    Matrix sca_bulk_par_layer(nf_ssd, ds.nlyr);
-    get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
-
-    // call gas_scattering_properties
-    Matrix sca_coeff_gas_layer(nf_ssd, ds.nlyr, 0.);
-    Matrix sca_coeff_gas_level(nf_ssd, ds.nlyr + 1, 0.);
-    Matrix pmom_gas(ds.nlyr, Nlegendre, 0.);
-
-    get_gas_scattering_properties(ws,
-                                  sca_coeff_gas_layer,
-                                  sca_coeff_gas_level,
-                                  pmom_gas,
-                                  f_grid,
-                                  p,
-                                  t,
-                                  vmr,
-                                  gas_scattering_agenda);
-
-    // call add_norm_phase_functions
-    add_normed_phase_functions(
-        pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
-
-    // add gas_scat_ext to ext_bulk_par
-    ext_bulk_par += sca_coeff_gas_level;
+  //Special case for only tro
+  if (only_tro && Npfct > 0) {
+    nang = Npfct;
+    pha_bulk_par.resize(1, ds.nlyr + 1, nang);
+    nlinspace(pfct_angs, 0, 180, nang);
   }
 
-  // Optical depth of layers
-  Matrix dtauc(nf, ds.nlyr);
-  // Single scattering albedo of layers
-  Matrix ssalb(nf, ds.nlyr);
-  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
-
-  //upper boundary conditions:
-  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
-  // emission. Both are applied additively.
-  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
-  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
-  // are additive we should use either the one or the other.
-  // Note: previous setup (using fisot) setting temis=0 should be avoided.
-  // Generally, temis!=1 should be avoided since that technically implies a
-  // reflective upper boundary (though it seems that this is not exploited in
-  // DISORT1.2, which we so far use).
-
-  // Cosmic background
-  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
-  ds.bc.fisot = 0;
-
-  // Top of the atmosphere temperature and emissivity
-  ds.bc.ttemp = COSMIC_BG_TEMP;
-  ds.bc.btemp = surface_skin_t;
-  ds.bc.temis = 1.;
-
+  // loop over all frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+
+    f_grid_i=f_grid[f_index];
+
+    // Get particle bulk properties
+    if (pnd_non_zero) {
+      if (only_tro && (Npfct < 0 || Npfct > 3)) {
+        ext_bulk_par = 0.0;
+        abs_bulk_par = 0.0;
+        pha_bulk_par = 0.0;
+
+        Index iflat = 0;
+
+        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
+          const Index nse = scat_data[iss].nelem();
+          ext_abs_pfun_from_tro(ext_bulk_par,
+                                abs_bulk_par,
+                                pha_bulk_par,
+                                scat_data[iss],
+                                iss,
+                                pnd(Range(iflat, nse), joker),
+                                cboxlims,
+                                t,
+                                pfct_angs,
+                                f_index);
+          iflat += nse;
+        }
+      } else {
+        get_paroptprop(ext_bulk_par,
+                       abs_bulk_par,
+                       scat_data,
+                       pnd,
+                       t,
+                       p,
+                       cboxlims,
+                       f_index);
+        get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
+      }
+
+      get_pfct(
+          pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+
+      // Legendre's polynomials of phase function
+      get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+    } else {
+      // no particle scattering
+      ext_bulk_par = 0.0;
+      abs_bulk_par = 0.0;
+      pmom = 0.0;
+    }
+
+    if (gas_scattering_do) {
+      // gas scattering
+
+      // layer averaged particle scattering coefficient
+      get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
+
+      // call gas_scattering_properties
+      get_gas_scattering_properties(ws,
+                                    sca_coeff_gas_layer,
+                                    sca_coeff_gas_level,
+                                    pmom_gas,
+                                    f_grid_i,
+                                    p,
+                                    t,
+                                    vmr,
+                                    gas_scattering_agenda);
+
+      // call add_norm_phase_functions
+      add_normed_phase_functions(
+          pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
+
+      // add gas_scat_ext to ext_bulk_par
+      ext_bulk_par += sca_coeff_gas_level;
+    }
+
+    // Optical depth of layers
+    // Single scattering albedo of layers
+    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
+
+    //upper boundary conditions:
+    // DISORT offers isotropic incoming radiance or emissivity-scaled planck
+    // emission. Both are applied additively.
+    // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
+    // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
+    // are additive we should use either the one or the other.
+    // Note: previous setup (using fisot) setting temis=0 should be avoided.
+    // Generally, temis!=1 should be avoided since that technically implies a
+    // reflective upper boundary (though it seems that this is not exploited in
+    // DISORT1.2, which we so far use).
+
+    // Cosmic background
+    // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
+    ds.bc.fisot = 0;
+
+    // Top of the atmosphere temperature and emissivity
+    ds.bc.ttemp = COSMIC_BG_TEMP;
+    ds.bc.btemp = surface_skin_t;
+    ds.bc.temis = 1.;
+
+
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
-                dtauc(f_index, joker).unsafe_data_handle(),
+                dtauc(0, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
     std::memcpy(ds.ssalb,
-                ssalb(f_index, joker).unsafe_data_handle(),
+                ssalb(0, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
 
     // Wavenumber in [1/cm]
@@ -1214,7 +1257,7 @@ void run_cdisort(Workspace& ws,
     ds.bc.fbeam = fbeam;
 
     std::memcpy(ds.pmom,
-                pmom(f_index, joker, joker).unsafe_data_handle(),
+                pmom(0, joker, joker).unsafe_data_handle(),
                 sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
@@ -1265,6 +1308,27 @@ void run_cdisort(Workspace& ws,
         }
       }
     }
+
+    for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+      deltatau(f_index, k - 1 + ncboxremoved) =
+          dtauc(0, ds.nlyr - k  + cboxlims[0]);
+    }
+
+    for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+      snglsctalbedo(f_index, k - 1 + ncboxremoved) =
+          ssalb(0, ds.nlyr - k + cboxlims[0]);
+    }
+
+    if (suns_do){
+      directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
+          suns[0].spectrum(f_index, 0)/PI;
+
+      for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+        directbeam(f_index, k - 1 + ncboxremoved) =
+            directbeam(f_index, k + ncboxremoved) *
+            exp(-dtauc(0, ds.nlyr - k + cboxlims[0])/umu0);
+      }
+    }
   }
 
   // Allocate aux data
@@ -1276,41 +1340,14 @@ void run_cdisort(Workspace& ws,
 
     if (disort_aux_vars[i] == "Layer optical thickness"){
       cnt += 1;
-      Matrix deltatau(nf, ds.nlyr, 0);
-      for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-        for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-          deltatau(f_index, k - 1 + ncboxremoved) =
-              dtauc(f_index, ds.nlyr - k  + ncboxremoved);
-        }
-      }
       disort_aux[cnt] = deltatau;
     }
     else if (disort_aux_vars[i] == "Single scattering albedo"){
       cnt+=1;
-      Matrix snglsctalbedo(nf, ds.nlyr,0);
-      for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-        for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-          snglsctalbedo(f_index, k - 1 + ncboxremoved) =
-              ssalb(f_index, ds.nlyr - k + ncboxremoved);
-        }
-      }
       disort_aux[cnt]=snglsctalbedo;
     }
     else if (disort_aux_vars[i] == "Direct beam") {
       cnt += 1;
-      Matrix directbeam(nf, ds.nlyr + 1, 0);
-      if (suns_do) {
-        for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-          directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
-              suns[0].spectrum(f_index, 0)/PI;
-
-          for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-            directbeam(f_index, k - 1 + ncboxremoved) =
-                directbeam(f_index, k + ncboxremoved) *
-                exp(-dtauc(f_index, ds.nlyr - k + ncboxremoved)/umu0);
-          }
-        }
-      }
       disort_aux[cnt]=directbeam;
     } else {
       ARTS_USER_ERROR (
@@ -1380,6 +1417,16 @@ void run_cdisort_flux(Workspace& ws,
                 vmr_profiles,
                 pnd_profiles,
                 cloudbox_limits);
+
+  //check if pnd field is zero, if yes we do not need to calculate particle
+  //scattering properties
+  bool pnd_non_zero=false;
+  for (Index i = 0; i < pnd.nrows(); i++) {
+    for (Index j = 0; j < pnd.ncols(); j++){
+      pnd_non_zero+=bool(pnd(i,j));
+    }
+  }
+
 
 #if not ARTS_LGPL
 
@@ -1472,135 +1519,171 @@ void run_cdisort_flux(Workspace& ws,
     for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
   }
 
+  //
+  Index N_lev= p_grid.nelem();
+  Matrix spectral_direct_irradiance_field;
+  if (suns_do){
+    //Resize direct field
+    spectral_direct_irradiance_field.resize(nf, N_lev);
+    spectral_direct_irradiance_field = 0;
+  }
+
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
 
-  // Get particle bulk properties
+  //get angles and number of angles
   Index nang;
   Vector pfct_angs;
-  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
-  Index nf_ssd = scat_data[0][0].f_grid.nelem();
-  Tensor3 pha_bulk_par;
+  get_angs(pfct_angs, scat_data, Npfct);
+  nang = pfct_angs.nelem();
 
-  if (only_tro && (Npfct < 0 || Npfct > 3)) {
-    nang = Npfct;
-    nlinspace(pfct_angs, 0, 180, nang);
+  //Allocate
+  Matrix ext_bulk_par(1, ds.nlyr + 1), abs_bulk_par(1, ds.nlyr + 1);
+  Tensor3 pha_bulk_par(1, ds.nlyr + 1, nang);
+  Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
+  Tensor3 pmom(1, ds.nlyr, Nlegendre);
+  Vector f_grid_i(1);
+  Matrix ssalb(1, ds.nlyr);
+  Matrix ext_bulk_gas_i(1, ds.nlyr + 1);
+  Matrix dtauc(1, ds.nlyr);
 
-    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
-
-    ext_bulk_par = 0.0;
-    abs_bulk_par = 0.0;
-    pha_bulk_par = 0.0;
-
-    Index iflat = 0;
-
-    for (Index iss = 0; iss < scat_data.nelem(); iss++) {
-      const Index nse = scat_data[iss].nelem();
-      ext_abs_pfun_from_tro(ext_bulk_par,
-                            abs_bulk_par,
-                            pha_bulk_par,
-                            scat_data[iss],
-                            iss,
-                            pnd(Range(iflat, nse), joker),
-                            cboxlims,
-                            t,
-                            pfct_angs);
-      iflat += nse;
-    }
-  } else {
-    get_angs(pfct_angs, scat_data, Npfct);
-    nang = pfct_angs.nelem();
-
-    pha_bulk_par.resize(nf_ssd, ds.nlyr + 1, nang);
-
-    get_paroptprop(
-        ext_bulk_par, abs_bulk_par, scat_data, pnd, t, p, cboxlims, f_grid);
-    get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims);
-  }
-
-  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
-  get_pfct(pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
-
-  // Legendre polynomials of phase function
-  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
-  get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
-
+  Matrix sca_coeff_gas_layer;
+  Matrix sca_bulk_par_layer;
+  Matrix sca_coeff_gas_level;
+  Matrix pmom_gas;
   if (gas_scattering_do) {
-    // gas scattering
+    sca_bulk_par_layer.resize(1, ds.nlyr);
+    sca_coeff_gas_layer.resize(1, ds.nlyr);
+    sca_coeff_gas_level.resize(1, ds.nlyr + 1);
+    pmom_gas.resize(ds.nlyr, Nlegendre);
+  }
+  Matrix dFdtau(nf, N_lev, 0);
+  Matrix deltatau(nf, N_lev, 0);
+  Matrix snglsctalbedo(nf, N_lev, 0);
 
-    // layer averaged particle scattering coefficient
-    Matrix sca_bulk_par_layer(nf_ssd, ds.nlyr);
-    get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
-
-    // call gas_scattering_properties
-    Matrix sca_coeff_gas_layer(nf_ssd, ds.nlyr, 0.);
-    Matrix sca_coeff_gas_level(nf_ssd, ds.nlyr + 1, 0.);
-    Matrix pmom_gas(ds.nlyr, Nlegendre, 0.);
-
-    get_gas_scattering_properties(ws,
-                                  sca_coeff_gas_layer,
-                                  sca_coeff_gas_level,
-                                  pmom_gas,
-                                  f_grid,
-                                  p,
-                                  t,
-                                  vmr,
-                                  gas_scattering_agenda);
-
-    // call add_norm_phase_functions
-    add_normed_phase_functions(
-        pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
-
-    // add gas_scat_ext to ext_bulk_par
-    ext_bulk_par += sca_coeff_gas_level;
+  //Special case for only tro
+  if (only_tro && Npfct > 0) {
+    nang = Npfct;
+    pha_bulk_par.resize(1, ds.nlyr + 1, nang);
+    nlinspace(pfct_angs, 0, 180, nang);
   }
 
-  // Optical depth of layers
-  Matrix dtauc(nf, ds.nlyr);
-  // Single scattering albedo of layers
-  Matrix ssalb(nf, ds.nlyr);
-  get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
-
-  //upper boundary conditions:
-  // DISORT offers isotropic incoming radiance or emissivity-scaled planck
-  // emission. Both are applied additively.
-  // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
-  // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
-  // are additive we should use either the one or the other.
-  // Note: previous setup (using fisot) setting temis=0 should be avoided.
-  // Generally, temis!=1 should be avoided since that technically implies a
-  // reflective upper boundary (though it seems that this is not exploited in
-  // DISORT1.2, which we so far use).
-
-  // Cosmic background
-  // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
-  ds.bc.fisot = 0;
-
-  // Top of the atmosphere temperature and emissivity
-  ds.bc.ttemp = COSMIC_BG_TEMP;
-  ds.bc.btemp = surface_skin_t;
-  ds.bc.temis = 1.;
-
-  Matrix spectral_direct_irradiance_field;
-  Matrix dFdtau(nf, ds.nlyr+1,0);
-  Matrix deltatau(nf, ds.nlyr,0);
-  Matrix snglsctalbedo(nf, ds.nlyr,0);
-
-  if (suns_do){
-    //Resize direct field
-    spectral_direct_irradiance_field.resize(nf, ds.nlyr+1);
-    spectral_direct_irradiance_field = 0;
-  }
-
+  // start loop over all frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+
+    f_grid_i=f_grid[f_index];
+
+    // Get particle bulk properties but onl if pnd_field is non-zero
+    if (pnd_non_zero && (suns_do || emission)) {
+      if (only_tro && (Npfct < 0 || Npfct > 3)) {
+        ext_bulk_par = 0.0;
+        abs_bulk_par = 0.0;
+        pha_bulk_par = 0.0;
+
+        Index iflat = 0;
+
+        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
+          const Index nse = scat_data[iss].nelem();
+          ext_abs_pfun_from_tro(ext_bulk_par,
+                                abs_bulk_par,
+                                pha_bulk_par,
+                                scat_data[iss],
+                                iss,
+                                pnd(Range(iflat, nse), joker),
+                                cboxlims,
+                                t,
+                                pfct_angs,
+                                f_index);
+          iflat += nse;
+        }
+      } else {
+        get_paroptprop(ext_bulk_par,
+                       abs_bulk_par,
+                       scat_data,
+                       pnd,
+                       t,
+                       p,
+                       cboxlims,
+                       f_index);
+        get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
+      }
+      //get phase function
+      get_pfct(
+          pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
+
+      // Legendre's polynomials of phase function
+      get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
+    } else {
+      pmom = 0.;
+      ext_bulk_par = 0.;
+      abs_bulk_par = 0.;
+    }
+
+    if (gas_scattering_do) {
+      // gas scattering
+
+      // layer averaged particle scattering coefficient
+      get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
+
+      // call gas_scattering_properties
+      sca_coeff_gas_layer=0;
+      sca_coeff_gas_level=0;
+      pmom_gas=0;
+
+      get_gas_scattering_properties(ws,
+                                    sca_coeff_gas_layer,
+                                    sca_coeff_gas_level,
+                                    pmom_gas,
+                                    f_grid_i,
+                                    p,
+                                    t,
+                                    vmr,
+                                    gas_scattering_agenda);
+
+      // call add_norm_phase_functions
+      add_normed_phase_functions(
+          pmom, sca_bulk_par_layer, pmom_gas, sca_coeff_gas_layer);
+
+      // add gas_scat_ext to ext_bulk_par
+      ext_bulk_par += sca_coeff_gas_level;
+    }
+
+    // Optical depth of layers
+    // Single scattering albedo of layers
+    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
+
+    //upper boundary conditions:
+    // DISORT offers isotropic incoming radiance or emissivity-scaled planck
+    // emission. Both are applied additively.
+    // We want to have cosmic background radiation, for which ttemp=COSMIC_BG_TEMP
+    // and temis=1 should give identical results to fisot(COSMIC_BG_TEMP). As they
+    // are additive we should use either the one or the other.
+    // Note: previous setup (using fisot) setting temis=0 should be avoided.
+    // Generally, temis!=1 should be avoided since that technically implies a
+    // reflective upper boundary (though it seems that this is not exploited in
+    // DISORT1.2, which we so far use).
+
+    // Cosmic background
+    // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
+    ds.bc.fisot = 0;
+
+    // Top of the atmosphere temperature and emissivity
+    ds.bc.ttemp = COSMIC_BG_TEMP;
+    ds.bc.btemp = surface_skin_t;
+    ds.bc.temis = 1.;
+
+
+
+
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
-                dtauc(f_index, joker).unsafe_data_handle(),
+                dtauc(0, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
     std::memcpy(ds.ssalb,
-                ssalb(f_index, joker).unsafe_data_handle(),
+                ssalb(0, joker).unsafe_data_handle(),
                 sizeof(Numeric) * ds.nlyr);
 
     // Wavenumber in [1/cm]
@@ -1619,10 +1702,40 @@ void run_cdisort_flux(Workspace& ws,
     ds.bc.fbeam = fbeam;
 
     std::memcpy(ds.pmom,
-                pmom(f_index, joker, joker).unsafe_data_handle(),
+                pmom(0, joker, joker).unsafe_data_handle(),
                 sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
-    c_disort(&ds, &out);
+    enum class Status { FIRST_TRY, RETRY, SUCCESS };
+    Status tries = Status::FIRST_TRY;
+    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    do {
+      try {
+        c_disort(&ds, &out);
+        tries = Status::SUCCESS;
+      } catch (const std::runtime_error& e) {
+        //catch cases if solar zenith angle=quadrature angle
+        if (tries == Status::FIRST_TRY) {
+          // change angle
+          if (umu0 < 1 - eps) {
+            umu0 += eps;
+          } else if (umu0 > 1 - eps) {
+            umu0 -= eps;
+          }
+
+          const Numeric shift =
+              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+          CREATE_OUT1;
+          out1
+              << "Solar zenith angle coincided with one of the quadrature angles\n"
+              << "We needed to shift the solar sun angle by " << shift
+              << "deg.\n";
+
+          ds.bc.umu0 = umu0;
+          tries = Status::RETRY;
+        } else
+          throw e;
+      }
+    } while (tries != Status::SUCCESS);
 
     //factor for converting it into spectral radiance units
     const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
@@ -1672,6 +1785,7 @@ void run_cdisort_flux(Workspace& ws,
       }
       dFdtau(f_index, k) = dFdtau(f_index, k + 1);
     }
+
   }
 
   // Allocate aux data

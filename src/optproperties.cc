@@ -2405,15 +2405,20 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
                            ConstMatrixView pnd_data,
                            ArrayOfIndex& cloudbox_limits,
                            ConstVectorView T_grid,
-                           ConstVectorView sa_grid)
-{
+                           ConstVectorView sa_grid,
+                           const Index f_index) {
   // Sizes
   const Index nse = scat_data.nelem();
-  const Index nf = scat_data[0].f_grid.nelem();
   [[maybe_unused]] const Index nt = T_grid.nelem();
   const Index nsa = sa_grid.nelem();
   const Index ncl = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  
+  Index nf;
+  if (f_index == -1) {
+    nf = scat_data[0].f_grid.nelem();
+  } else {
+    nf = 1;
+  }
+
   ARTS_ASSERT(ext_data.nrows() == nf);
   ARTS_ASSERT(ext_data.ncols() == nt);
   ARTS_ASSERT(abs_data.nrows() == nf);
@@ -2428,12 +2433,20 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   // Check that all data is TRO
   {
     bool all_totrand = true;
+    bool temp_const = false;
     for (Index ie = 0; ie < nse; ie++) {
       if (scat_data[ie].ptype != PTYPE_TOTAL_RND)
         all_totrand = false;
+
+      if (scat_data[ie].T_grid.nelem() == 1) {
+        temp_const = true;
+      }
     }
     ARTS_USER_ERROR_IF (!all_totrand,
                         "This method demands that all scat_data are TRO");
+
+    ARTS_USER_ERROR_IF( temp_const, "This method demands that the scat data \n"
+                       "must not be constant in temperature.");
   }
 
   // Help variables to hold non-zero data inside the cloudbox
@@ -2478,24 +2491,59 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
       Tensor3 itw2(nvals, nsa, 4);
       interpweights(itw2, gp_t, gp_sa);
 
-      // Loop frequencies
-      for (Index iv = 0; iv < nf; iv++) {
+      if (f_index < 0) {
+        // Loop frequencies
+        for (Index iv = 0; iv < nf; iv++) {
+          // Interpolate
+          Vector ext1(nvals), abs1(nvals);
+          Matrix pfu1(nvals, nsa);
+          interp(
+              ext1, itw1, scat_data[ie].ext_mat_data(iv, joker, 0, 0, 0), gp_t);
+          interp(
+              abs1, itw1, scat_data[ie].abs_vec_data(iv, joker, 0, 0, 0), gp_t);
+          interp(pfu1,
+                 itw2,
+                 scat_data[ie].pha_mat_data(iv, joker, joker, 0, 0, 0, 0),
+                 gp_t,
+                 gp_sa);
+
+          // Add to container variables
+          for (Index i = 0; i < nvals; i++) {
+            const Index ic = cboxlayer[i];
+            const Index it = cl_start + ic;
+            ext_data(iv, it) += pnd_data(ie, ic) * ext1[i];
+            abs_data(iv, it) += pnd_data(ie, ic) * abs1[i];
+            for (Index ia = 0; ia < nsa; ia++) {
+              pfun_data(iv, it, ia) += pnd_data(ie, ic) * pfu1(i, ia);
+            }
+          }
+        }
+      } else {
         // Interpolate
         Vector ext1(nvals), abs1(nvals);
-        Matrix pfu1(nvals,nsa);
-        interp(ext1, itw1, scat_data[ie].ext_mat_data(iv,joker,0,0,0), gp_t);
-        interp(abs1, itw1, scat_data[ie].abs_vec_data(iv,joker,0,0,0), gp_t);
-        interp(pfu1, itw2, scat_data[ie].pha_mat_data(iv,joker,joker,0,0,0,0),
-               gp_t, gp_sa);
+        Matrix pfu1(nvals, nsa);
+        interp(ext1,
+               itw1,
+               scat_data[ie].ext_mat_data(f_index, joker, 0, 0, 0),
+               gp_t);
+        interp(abs1,
+               itw1,
+               scat_data[ie].abs_vec_data(f_index, joker, 0, 0, 0),
+               gp_t);
+        interp(pfu1,
+               itw2,
+               scat_data[ie].pha_mat_data(f_index, joker, joker, 0, 0, 0, 0),
+               gp_t,
+               gp_sa);
 
         // Add to container variables
         for (Index i = 0; i < nvals; i++) {
           const Index ic = cboxlayer[i];
           const Index it = cl_start + ic;
-          ext_data(iv,it) += pnd_data(ie,ic) * ext1[i];
-          abs_data(iv,it) += pnd_data(ie,ic) * abs1[i];
+          ext_data(0, it) += pnd_data(ie, ic) * ext1[i];
+          abs_data(0, it) += pnd_data(ie, ic) * abs1[i];
           for (Index ia = 0; ia < nsa; ia++) {
-            pfun_data(iv,it,ia) += pnd_data(ie,ic) * pfu1(i,ia);
+            pfun_data(0, it, ia) += pnd_data(ie, ic) * pfu1(i, ia);
           }
         }
       }
