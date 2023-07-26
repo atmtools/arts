@@ -1,8 +1,6 @@
 About
 =====
 
-FIXME: THIS IS COPILOT AUTO-COMPLETED WITH ITEMS FROM THE ARTS WEBSITE.  MANY THINGS ARE MISSING, BUT NOT WRONG.  PLEASE FILL IN DETAILS.
-
 Arts is a radiative transfer model. It is written in C++ and Python and
 is available as open source under the GNU General Public License (GPL)
 or the GNU Lesser General Public License (LGPL) via `GitHub <https://github.com/atmtools/arts>`_.
