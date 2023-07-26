@@ -4,9 +4,9 @@ Installation
 Pre-compiled binaries
 ^^^^^^^^^^^^^^^^^^^^^
 
-Pre-compiled binaries of the ARTS interface including the ARTS engine for
-performing RT simulations can be installed from the conda-forge environment
-at the rttools channel:
+Pre-compiled binaries of the ARTS interface for macOS and Linux including
+the ARTS engine for performing RT simulations can be installed from the
+conda-forge environment at the rttools channel:
 
 .. code-block:: bash
 
