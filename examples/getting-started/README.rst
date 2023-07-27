@@ -16,3 +16,7 @@ To date it consists of
    and its variables can be set and accessed.
 2. Clearsky radiance --- shows some examples of how to set up
    pyarts to run clearsky simulations.
+
+Once you're familiar with the basics, have a look at
+:doc:`the other examples <examples>` which demonstrate more ARTS
+features.
