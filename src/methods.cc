@@ -4534,7 +4534,7 @@ R"(
       DESCRIPTION(
           "Reinterpolate a *cloudbox_field* with azimuthal dependency.\n"
           "\n"
-          "Intended use: Call directly after DisortCalc if sun is present and yCalc should be\n"
+          "Intended use: Call directly after cloudbox_fieldDisort if sun is present and yCalc should be\n"
           "should be run afterwards."
           "\n"
           "In ARTS a 1D atmosphere cannot have a azimuth dependency, but if a \n"
@@ -5661,7 +5661,7 @@ R"(
                "Set to 1, to crop dlos-es to obtain a pseudo-circular pattern.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalc"),
+      NAME("cloudbox_fieldDisort"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
@@ -5765,11 +5765,11 @@ R"(
                " of streams (>30)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcWithARTSSurface"),
+      NAME("cloudbox_fieldDisortWithARTSSurface"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
-          "As *DisortCalc* but uses *surface_rtprop_agenda*.\n"
+          "As *cloudbox_fieldDisort* but uses *surface_rtprop_agenda*.\n"
           "\n"
           "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
           "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
@@ -5837,7 +5837,7 @@ R"(
                "Incidence angle, see above.")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcClearsky"),
+      NAME("spectral_radiance_fieldDisortClearsky"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running clear-sky cases.\n"
@@ -5845,7 +5845,7 @@ R"(
           "The method runs DISORT with *pnd_field* set to zero.\n"
           "\n"
           "Note that this version returns *spectral_radiance_field*, i.e.\n"
-          "the solution for the full atmosphere. The standard *DisortCalc*\n"
+          "the solution for the full atmosphere. The standard *cloudbox_fieldDisort*\n"
           "only returns the field inside the cloudbox.\n"
           "\n"
           "Some auxiliary quantities can be obtained. Auxiliary\n"
@@ -5896,7 +5896,7 @@ R"(
                " of streams (>30)")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("DisortCalcIrradiance"),
+      NAME("spectral_irradiance_fieldDisort"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "for running flux (irradiance) calculations\n"

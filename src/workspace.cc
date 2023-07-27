@@ -1023,7 +1023,7 @@ void define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("disort_aux"),
       DESCRIPTION(
-          "Auxilary data to the output of the DisortCalc-Methods.\n"
+          "Auxilary data to the output of the cloudbox_fieldDisort-Methods.\n"
           "\n"
           "Different data beside the direct result of Disort\n"
           "calculations can be obtained by this variable. These auxilary\n"

@@ -19,7 +19,7 @@ endif()
 arts_test_run_pyfile(fast artscomponents/cutoff/ycalc.py)
 
 if (NOT ENABLE_ARTS_LGPL)
-  arts_test_run_pyfile(fast artscomponents/disort/TestDisortCalcIrradiance.py)
+  arts_test_run_pyfile(fast artscomponents/disort/Test_spectral_irradiance_fieldDisort.py)
 endif()
 
 if (NOT ENABLE_ARTS_LGPL)

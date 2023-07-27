@@ -226,20 +226,20 @@ VectorSet( aa_grid, [0] )
 iy_cloudbox_agendaSet( option="QuarticInterpField" )
 
 Extract( pol_angle, pols, 0 )
-DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
+cloudbox_fieldDisortWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
 yCalc
 Extract( yv, y, 0 )
 Append( yd, yv )
 #
 Extract( pol_angle, pols, 1 )
-DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
+cloudbox_fieldDisortWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
 yCalc
 Extract( yv, y, 0 )
 Append( yd, yv )
 #
 #
 Extract( pol_angle, pols, 2 )
-DisortCalcWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
+cloudbox_fieldDisortWithARTSSurface( nstreams = 16, inc_angle = inc_angle )
 yCalc
 Extract( yv, y, 0 )
 Append( yd, yv )

@@ -4,7 +4,7 @@ Arts2{
 
 gas_scatteringOff
 
-DisortCalc
+cloudbox_fieldDisort
 yCalc( y = y_disort )
 
 }

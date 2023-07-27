@@ -53,7 +53,7 @@ def main():
     ws.atmgeom_checkedCalc()
     ws.cloudbox_checkedCalc()
     
-    ws.DisortCalcIrradiance(nstreams=2)
+    ws.spectral_irradiance_fieldDisort(nstreams=2)
     
     sim_irrad = (
         np.squeeze(ws.spectral_irradiance_field.value)[:, -1, 0] * -1
