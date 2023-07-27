@@ -182,7 +182,7 @@ ws.atmfields_checkedCalc()
 ws.atmgeom_checkedCalc()
 ws.cloudbox_checkedCalc()
 
-ws.DisortCalc(nstreams=20, intensity_correction=0)
+ws.cloudbox_fieldDisort(nstreams=20, intensity_correction=0)
 ws.cloudbox_fieldInterp2Azimuth(local_los_azimuth_angle=local_los_azimuth_angle)
 
 if new_reference:

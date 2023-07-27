@@ -158,7 +158,7 @@ ws.atmfields_checkedCalc()
 ws.atmgeom_checkedCalc()
 ws.cloudbox_checkedCalc()
 
-ws.DisortCalcIrradiance(emission=0)
+ws.spectral_irradiance_fieldDisort(emission=0)
 
 # calculate irradiance (flux)
 ws.RadiationFieldSpectralIntegrate(ws.irradiance_field, f_grid, ws.spectral_irradiance_field)

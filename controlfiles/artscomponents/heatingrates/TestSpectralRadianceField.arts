@@ -105,7 +105,7 @@ Copy( ref_field, spectral_radiance_field )
 
 # Set spectral_radiance_field as full DISORT calculation
 #
-DisortCalcClearsky( nstreams = 8 )
+spectral_radiance_fieldDisortClearsky( nstreams = 8 )
 #WriteXML( "binary", spectral_radiance_field, "f2.xml" )
 Compare( ref_field, spectral_radiance_field, 2e-18 )
 #Copy( ref_field, spectral_radiance_field )
@@ -120,7 +120,7 @@ scat_data_checkedCalc
 
 # Run DISORT and use a third method
 #
-DisortCalc( nstreams = 8 )
+cloudbox_fieldDisort( nstreams = 8 )
 Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuarticInterpField )
 spectral_radiance_fieldExpandCloudboxField
 #WriteXML( "binary", spectral_radiance_field, "f3.xml" )
