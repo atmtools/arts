@@ -1,4 +1,7 @@
 Getting started
 ===============
 
-Placeholder.  Some introductory text will go here.  Mostly, this file will redirect to the future ``arts/examples/getting_started/*`` files and folders
+We recommend starting with the :doc:`"Getting-started" <examples.getting-started>` section
+under :doc:`"Examples" <examples>` to get started with pyarts. These guides are run as part
+of our continous integration process, so they should always be up to date.
+
