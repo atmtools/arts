@@ -92,7 +92,7 @@ ws.abs_speciesSet(species=["H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350"]
 if recalc == False:
     try:
         ws.Touch(ws.abs_lines_per_species)
-        ws.ReadXML(ws.abs_lookup, "TestDisortCalcIrradiance.abs_lookup.xml")
+        ws.ReadXML(ws.abs_lookup, "Test_spectral_irradiance_fieldDisort.abs_lookup.xml")
         ws.abs_lookupAdapt()
         ws.lbl_checked = 1
 
@@ -107,7 +107,7 @@ if recalc == True:
     ws.propmat_clearsky_agendaAuto()
     ws.lbl_checkedCalc()
     ws.abs_lookupCalc()
-    ws.WriteXML('binary', ws.abs_lookup, "TestDisortCalcIrradiance.abs_lookup.xml")
+    ws.WriteXML('binary', ws.abs_lookup, "Test_spectral_irradiance_fieldDisort.abs_lookup.xml")
 
 ws.propmat_clearsky_agendaAuto(use_abs_lookup=1)
 
@@ -164,9 +164,9 @@ ws.spectral_irradiance_fieldDisort(emission=0)
 ws.RadiationFieldSpectralIntegrate(ws.irradiance_field, f_grid, ws.spectral_irradiance_field)
 
 # Uncomment, if you want to save new reference data
-# ws.WriteXML('ascii', ws.irradiance_field, "TestDisortCalcIrradiance.irradiance_fieldREFERENCE.xml")
+# ws.WriteXML('ascii', ws.irradiance_field, "Test_spectral_irradiance_fieldDisort.irradiance_fieldREFERENCE.xml")
 
 # Do the check
 ws.Tensor4Create("irradiance_field0")
-ws.ReadXML(ws.irradiance_field0, "TestDisortCalcIrradiance.irradiance_fieldREFERENCE.xml")
+ws.ReadXML(ws.irradiance_field0, "Test_spectral_irradiance_fieldDisort.irradiance_fieldREFERENCE.xml")
 ws.Compare(ws.irradiance_field, ws.irradiance_field0, 1e-6)
