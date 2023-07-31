@@ -14,7 +14,8 @@
 #ifndef cia_h
 #define cia_h
 
-#include "arts.h"
+#include <memory>
+
 #include "gridded_fields.h"
 #include "matpack_data.h"
 #include "mystring.h"
@@ -37,6 +38,11 @@ void cia_interpolation(VectorView result,
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
                     const Species::Species sp1,
                     const Species::Species sp2);
+
+std::shared_ptr<CIARecord> cia_get_data(
+    const std::vector<std::shared_ptr<CIARecord>>& cia_data,
+    const Species::Species sp1,
+    const Species::Species sp2);
 
 /** CIA data for a single pair of molecules.
  
@@ -178,7 +184,7 @@ class CIARecord {
   /** Read CIA catalog file. */
   void ReadFromCIA(const String& filename);
 
-  friend void xml_read_from_stream(istream& is_xml,
+  friend void xml_read_from_stream(std::istream& is_xml,
                                    CIARecord& cr,
                                    bifstream* pbifs);
 
@@ -197,7 +203,7 @@ class CIARecord {
             Species::Species spec2)
       : mdata(std::move(data)), mspecies({spec1, spec2}) {}
 
-  friend ostream& operator<<(ostream& os, const CIARecord& cr);
+  friend std::ostream& operator<<(std::ostream& os, const CIARecord& cr);
 
  private:
   /** Append dataset to mdata. */

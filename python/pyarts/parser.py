@@ -1,7 +1,4 @@
 """
-ARTS controlfile parser
-=======================
-
 This module implements a parse for ARTS controlfile. Its implemented
 using lark, which greatly simplifies the parsing. Functions are provided
 to transform the parsed controlfile to a Python script.
@@ -17,7 +14,7 @@ import pyarts.workspace.global_data as global_data
 
 workspace_methods = global_data.get_raw_method_map()
 workspace_variables = global_data.get_variables_map()
-group_names =  [str(x.name) for x in global_data.cxx.get_wsv_groups()]
+group_names =  [str(x.name) for x in global_data.cxx.globals.get_wsv_groups()]
 
 grammar = r"""
     controlfile : statement*

@@ -1,17 +1,18 @@
-#include <memory>
 #include <pybind11/attr.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
-#include "python_interface.h"
 
 #include <functional>
+#include <memory>
 #include <stdexcept>
 
 #include "details.h"
-#include "xsec_fit.h"
+#include "physics_funcs.h"
 #include "py_macros.h"
+#include "python_interface.h"
 #include "species.h"
+#include "xsec_fit.h"
 
 namespace Python {
 namespace details {
@@ -25,20 +26,22 @@ struct XsecRecord {
 }  // namespace details
 
 void py_xsec(py::module_& m) {
-  m.add_object("_cleanupXsecRecord", py::capsule([](){
-    details::XsecRecord::to_xarray = details::one_arg;
-    details::XsecRecord::from_xarray = details::two_args;
-    details::XsecRecord::to_netcdf = details::two_args;
-    details::XsecRecord::from_netcdf = details::two_args;
-    details::XsecRecord::__eq__ = details::two_args;
-  }));
+  m.add_object("_cleanupXsecRecord", py::capsule([]() {
+                 details::XsecRecord::to_xarray = details::one_arg;
+                 details::XsecRecord::from_xarray = details::two_args;
+                 details::XsecRecord::to_netcdf = details::two_args;
+                 details::XsecRecord::from_netcdf = details::two_args;
+                 details::XsecRecord::__eq__ = details::two_args;
+               }));
 
-  py::class_<details::XsecRecord>(m , "XsecRecord::details")
-    .def_readwrite_static("to_xarray", &details::XsecRecord::to_xarray)
-    .def_readwrite_static("from_xarray", &details::XsecRecord::from_xarray)
-    .def_readwrite_static("to_netcdf", &details::XsecRecord::to_netcdf)
-    .def_readwrite_static("from_netcdf", &details::XsecRecord::from_netcdf)
-    .def_readwrite_static("__eq__", &details::XsecRecord::__eq__);
+  py::class_<details::XsecRecord>(m, "_detailsXsecRecord")
+      .def_readwrite_static("to_xarray",
+                            &details::XsecRecord::to_xarray,
+                            "Convert to :class:`xarray.DataArray`")
+      .def_readwrite_static("from_xarray", &details::XsecRecord::from_xarray)
+      .def_readwrite_static("to_netcdf", &details::XsecRecord::to_netcdf)
+      .def_readwrite_static("from_netcdf", &details::XsecRecord::from_netcdf)
+      .def_readwrite_static("__eq__", &details::XsecRecord::__eq__);
 
   py::class_<XsecRecord>(m, "XsecRecord")
       .def(py::init([]() { return std::make_unique<XsecRecord>(); }))
@@ -46,22 +49,82 @@ void py_xsec(py::module_& m) {
       // .PythonInterfaceWorkspaceVariableConversion(XsecRecord)
       .PythonInterfaceFileIO(XsecRecord)
       .PythonInterfaceBasicRepresentation(XsecRecord)
-      .def_property("version", &XsecRecord::Version, &XsecRecord::SetVersion)
-      .def_property("species", &XsecRecord::Species, &XsecRecord::SetSpecies)
+      .def_property("version",
+                    &XsecRecord::Version,
+                    &XsecRecord::SetVersion,
+                    ":class:`int` The version")
+      .def_property("species",
+                    &XsecRecord::Species,
+                    &XsecRecord::SetSpecies,
+                    ":class:`~pyarts.arts.Species` The species")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitcoeffs, FitCoeffs, FitCoeffs)
+          XsecRecord,
+          fitcoeffs,
+          FitCoeffs,
+          FitCoeffs,
+          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitminpressures, FitMinPressures, FitMinPressures)
+          XsecRecord,
+          fitminpressures,
+          FitMinPressures,
+          FitMinPressures,
+          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
       .PythonInterfaceBasicReferenceProperty(
-          XsecRecord, fitmaxpressures, FitMaxPressures, FitMaxPressures)
-      .PythonInterfaceBasicReferenceProperty(XsecRecord,
-                                             fitmintemperatures,
-                                             FitMinTemperatures,
-                                             FitMinTemperatures)
-      .PythonInterfaceBasicReferenceProperty(XsecRecord,
-                                             fitmaxtemperatures,
-                                             FitMaxTemperatures,
-                                             FitMaxTemperatures)
+          XsecRecord,
+          fitmaxpressures,
+          FitMaxPressures,
+          FitMaxPressures,
+          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .PythonInterfaceBasicReferenceProperty(
+          XsecRecord,
+          fitmintemperatures,
+          FitMinTemperatures,
+          FitMinTemperatures,
+          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .PythonInterfaceBasicReferenceProperty(
+          XsecRecord,
+          fitmaxtemperatures,
+          FitMaxTemperatures,
+          FitMaxTemperatures,
+          ":class:`~pyarts.arts.ArrayOfGriddedField2` Fit coefficients")
+      .def(
+          "compute_abs",
+          [](XsecRecord& xsec,
+             Numeric T,
+             Numeric P,
+             Numeric VMR,
+             const Vector& f) {
+            Vector out(f.nelem(), 0);
+
+            xsec.Extract(out, f, P, T);
+
+            out *= VMR * number_density(P, T);
+            return out;
+          },
+          py::arg("T"),
+          py::arg("P"),
+          py::arg("VMR"),
+          py::arg("f"),
+          py::doc(
+              R"--(Computes the Hitran cross-section absorption in 1/m
+
+Parameters
+----------
+T : Numeric
+    Temperature [K]
+P : Numeric
+    Pressure [Pa]
+VMR : Numeric
+    VMR of species [-]
+f : Vector
+    Frequency grid [Hz]
+
+Returns
+-------
+  abs : Vector
+    Absorption profile [1/m]
+
+)--"))
       .def(py::pickle(
           [](const XsecRecord& self) {
             return py::make_tuple(self.Version(),
@@ -115,7 +178,9 @@ void py_xsec(py::module_& m) {
           [](py::object& xr, py::object& other) {
             return details::XsecRecord::__eq__(xr, other);
           },
-          py::is_operator());
+          py::is_operator())
+      .doc() = R"--(A cross-section record.
+)--";
 
   PythonInterfaceWorkspaceArray(XsecRecord);
 }

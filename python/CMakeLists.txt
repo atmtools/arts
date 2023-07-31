@@ -27,7 +27,11 @@ configure_file(MANIFEST.in MANIFEST.in)
 
 add_custom_target(pyarts
   ALL
-  COMMAND ${Python3_EXECUTABLE} setup.py build
+  DEPENDS pyarts_cpp
+  COMMENT "Updating ARTS python package.")
+add_custom_target(pyarts-package
+  ALL
+  COMMAND ${Python3_EXECUTABLE} -m build
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_cpp
   COMMENT "Building ARTS python package.")

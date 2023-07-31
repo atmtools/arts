@@ -6,9 +6,9 @@
 namespace Python {
 void py_mcantenna(py::module_& m) {
   py::enum_<AntennaType>(m, "AntennaType")
-      .value("ANTENNA_TYPE_PENCIL_BEAM", AntennaType::ANTENNA_TYPE_PENCIL_BEAM)
-      .value("ANTENNA_TYPE_GAUSSIAN", AntennaType::ANTENNA_TYPE_GAUSSIAN)
-      .value("ANTENNA_TYPE_LOOKUP", AntennaType::ANTENNA_TYPE_LOOKUP)
+      .value("ANTENNA_TYPE_PENCIL_BEAM", AntennaType::ANTENNA_TYPE_PENCIL_BEAM, "As pencil beam")
+      .value("ANTENNA_TYPE_GAUSSIAN", AntennaType::ANTENNA_TYPE_GAUSSIAN, "As gaussian beam")
+      .value("ANTENNA_TYPE_LOOKUP", AntennaType::ANTENNA_TYPE_LOOKUP, "As from a lookup")
       .PythonInterfaceCopyValue(AntennaType)
       .def(py::pickle(
           [](const AntennaType& self) {
@@ -18,20 +18,20 @@ void py_mcantenna(py::module_& m) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             
             return static_cast<AntennaType>(t[0].cast<Index>());
-          }));
+          }));  // NOTE: Cannot add docstring to py::enum_ (python 3.10.10, macOS)
 
   py::class_<MCAntenna>(m, "MCAntenna")
-      .def(py::init([]() { return std::make_unique<MCAntenna>(); }))
+      .def(py::init([]() { return std::make_unique<MCAntenna>(); }), "Default Monte Carlo antenna")
       .PythonInterfaceCopyValue(MCAntenna)
       .PythonInterfaceWorkspaceVariableConversion(MCAntenna)
       .PythonInterfaceFileIO(MCAntenna)
       .PythonInterfaceBasicRepresentation(MCAntenna)
-      .def_readwrite("atype", &MCAntenna::atype)
-      .def_readwrite("sigma_aa", &MCAntenna::sigma_aa)
-      .def_readwrite("sigma_za", &MCAntenna::sigma_za)
-      .def_readwrite("aa_grid", &MCAntenna::aa_grid)
-      .def_readwrite("za_grid", &MCAntenna::za_grid)
-      .def_readwrite("G_lookup", &MCAntenna::G_lookup)
+      .def_readwrite("atype", &MCAntenna::atype, ":class:`~pyarts.arts.AntennaType` The antenna type")
+      .def_readwrite("sigma_aa", &MCAntenna::sigma_aa, ":class:`float` The azimuthal half-width")
+      .def_readwrite("sigma_za", &MCAntenna::sigma_za, ":class:`float` The zenith half-width")
+      .def_readwrite("aa_grid", &MCAntenna::aa_grid, ":class:`~pyarts.arts.Vector` The azimuth grid")
+      .def_readwrite("za_grid", &MCAntenna::za_grid, ":class:`~pyarts.arts.Vector` The zenith grid")
+      .def_readwrite("G_lookup", &MCAntenna::G_lookup, ":class:`~pyarts.arts.Matrix` The lookup")
       .def(py::pickle(
           [](const MCAntenna& self) {
             return py::make_tuple(self.atype,

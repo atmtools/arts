@@ -15,6 +15,7 @@
 #include "check_input.h"
 #include "cia.h"
 #include <cmath>
+#include <memory>
 #include <numeric>
 #include "matpack_concepts.h"
 #include "species_tags.h"
@@ -155,13 +156,13 @@ void cia_interpolation(VectorView result,
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(Tnew, data_T_grid, T_extrapolfac);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 2) {
-      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(Tnew, data_T_grid, T_extrapolfac);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else if (T_order == 3) {
-      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(Tnew, data_T_grid);
+      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(Tnew, data_T_grid, T_extrapolfac);
       result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
     } else {
       throw std::runtime_error("Cannot have this T_order, you must update the code...");
@@ -195,6 +196,26 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
       return i;
 
   return -1;
+}
+
+/** Get the correct cia recrod
+ 
+ \param[in] cia_data CIA data array
+ \param[in] sp1 First species index
+ \param[in] sp2 Second species index
+
+ \returns Correct CIA record or nullptr if not found.
+ */
+std::shared_ptr<CIARecord> cia_get_data(
+    const std::vector<std::shared_ptr<CIARecord>>& cia_data,
+    const Species::Species sp1,
+    const Species::Species sp2) {
+  for (auto& data : cia_data)
+    if ((data->Species(0) == sp1 && data->Species(1) == sp2) ||
+        (data->Species(0) == sp2 && data->Species(1) == sp1))
+      return data;
+
+  return nullptr;
 }
 
 // Documentation in header file.

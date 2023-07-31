@@ -2,6 +2,7 @@
 #include <memory>
 #include <mutex>
 #include <parameters.h>
+#include <pybind11/pytypes.h>
 #include <wsv_aux_operator.h>
 
 #include <pybind11/pybind11.h>
@@ -226,8 +227,16 @@ void py_workspace(py::module_& m,
              std::unique_ptr<Agenda> a{parse_agenda(w, 
                  correct_include_path(path).c_str())};
              a->execute(w);
-           })
-      .def_property_readonly("size", &Workspace::nelem)
+           }, R"(Execute a .arts file
+
+The effects are seen as changes to this workspace
+
+Parameters
+----------
+file : ~os.PathLike
+    Path to a file to execute
+)", py::arg("file"))
+      .def_property_readonly("size", &Workspace::nelem, ":class:`int` The number of variables on the workspace")
       .def(
           "create_variable",
           [](Workspace& w,
@@ -266,7 +275,17 @@ void py_workspace(py::module_& m,
           py::keep_alive<0, 1>(),
           py::arg("group").none(false),
           py::arg("name"),
-          py::arg("desc") = std::nullopt);
+          py::arg("desc") = std::nullopt, R"(Creates a workspace variable
+
+Parameters
+----------
+group : str
+    The name of the type of variable to create
+name : str
+    The name of the variable to create
+desc : str, optional
+    A description of the created workspace variable
+)");
 
   ws.def("_hasattr_check_", [](Workspace& w, const char* name) -> bool {
     return w.WsvMap_ptr->find(name) != w.WsvMap_ptr->end();
@@ -282,7 +301,13 @@ void py_workspace(py::module_& m,
   ws.def(
       "swap",
       [](Workspace& w_1, Workspace& w_2) { w_1.swap(w_2); },
-      py::arg("ws").noconvert().none(false));
+      py::arg("ws").noconvert().none(false), R"(Swap self with another workspace
+
+Parameters
+----------
+ws : ~pyarts.workspace.Workspace
+    Another workspace
+)");
 
   ws.def("__repr__", [](const Workspace&) { return "Workspace"; });
 
@@ -299,7 +324,8 @@ void py_workspace(py::module_& m,
     return var_string("Workspace [ ", stringify(vars, ", "), ']');
   });
 
-  wsv.def(py::init([](WorkspaceVariable& w) { return w; }))
+  wsv.def(py::init([](WorkspaceVariable& w) { return w; }),
+          "From another variable")
       .def(
           "__copy__",
           [](WorkspaceVariable&) { ARTS_USER_ERROR("Cannot copy") },
@@ -308,51 +334,75 @@ void py_workspace(py::module_& m,
           "__deepcopy__",
           [](WorkspaceVariable&, py::dict&) { ARTS_USER_ERROR("Cannot copy") },
           "Cannot copy a workspace variable, try instead to copy its value")
-      .def_property_readonly("name", &WorkspaceVariable::name, "The name of the workspace variable")
-      .def_property_readonly("desc",
-                             [](WorkspaceVariable& wv) {
-                               return wv.ws.wsv_data_ptr->at(wv.pos).Description();
-                             }, "A description of the workspace variable")
-      .def_property_readonly("init", &WorkspaceVariable::is_initialized, "Flag if the variable is initialized")
-      .def("initialize_if_not", &WorkspaceVariable::initialize_if_not, "Default initialize the variable if it is not already initialized")
+      .def_property_readonly("name",
+                             &WorkspaceVariable::name,
+                             ":class:`str` The name of the workspace variable")
+      .def_property_readonly(
+          "desc",
+          [](WorkspaceVariable& wv) {
+            return wv.ws.wsv_data_ptr->at(wv.pos).Description();
+          },
+          ":class:`~pyarst.arts.String` A description of the workspace variable")
+      .def_property_readonly(
+          "init",
+          &WorkspaceVariable::is_initialized,
+          ":class:`bool` Flag if the variable is initialized")
+      .def("initialize_if_not",
+           &WorkspaceVariable::initialize_if_not,
+           "Default initialize the variable if it is not already initialized")
       .def("__str__",
-           [](const WorkspaceVariable& w) {
-             return var_string("Workspace ",
-                               global_data::wsv_groups.at(w.group()));
-           })
+           [](const py::object& w) { return py::str(w.attr("value")); })
       .def("__repr__",
-           [](const WorkspaceVariable& w) {
-             return var_string("Workspace ",
-                               global_data::wsv_groups.at(w.group()));
-           })
-      .def_property_readonly("group",
-                             [](const WorkspaceVariable& w) {
-                               return global_data::wsv_groups.at(w.group());
-                             }, "The group of the variable")
-      .def("delete_level", [](WorkspaceVariable& v) {
-        if (v.stack_depth()) v.pop_workspace_level();
-      }, "Delete a level from the workspace variable stack")
-      .def("readxml",[](const py::object& wsv, const char* const filename){
-        wsv.attr("initialize_if_not")();
-        wsv.attr("value").attr("readxml")(filename);
-      }, "Read the variable from an xml file");
+           [](const py::object& w) { return py::str(w.attr("value")); })
+      .def_property_readonly(
+          "group",
+          [](const WorkspaceVariable& w) {
+            return global_data::wsv_groups.at(w.group());
+          },
+          ":class:`~pyarts.arts.GroupRecord` The group of the variable")
+      .def(
+          "delete_level",
+          [](WorkspaceVariable& v) {
+            if (v.stack_depth()) v.pop_workspace_level();
+          },
+          "Delete a level from the workspace variable stack, if it has depth")
+      .def(
+          "readxml",
+          [](const py::object& wsvi, const char* const filename) {
+            wsvi.attr("initialize_if_not")();
+            wsvi.attr("value").attr("readxml")(filename);
+          },
+          R"(Read the variable from an xml file
+
+Parameters
+----------
+filename : str
+    Filename to read
+)",
+          py::arg("filename"));
 
   ws.def("number_of_initialized_variables", [](Workspace& w){
     Index count = 0;
     for (Index i=0; i<w.nelem(); i++) count += w.is_initialized(i);
     return count;
-  });
+  }, R"(Number of initialized variables on the workspace
+
+Returns
+-------
+nelem : int
+    The number
+)");
 
   py::class_<WsvRecord>(m, "WsvRecord")
       .PythonInterfaceCopyValue(WsvRecord)
-      .def_property_readonly("name", &WsvRecord::Name)
-      .def_property_readonly("description", &WsvRecord::Description)
-      .def_property_readonly("group", &WsvRecord::Group)
-      .def_property_readonly("defval", &WsvRecord::default_value)
+      .def_property_readonly("name", &WsvRecord::Name, ":class:`~pyarts.arts.String` Name of record")
+      .def_property_readonly("description", &WsvRecord::Description, ":class:`~pyarts.arts.String` Description of record")
+      .def_property_readonly("group", &WsvRecord::Group, ":class:`~pyarts.arts.Index` Group of record")
+      .def_property_readonly("defval", &WsvRecord::default_value, ":class:`~pyarts.arts.Tokval` Default value, if defined, of record")
       .def_property_readonly("groupname",
                              [](const WsvRecord& x) {
                                return global_data::wsv_groups[x.Group()].name;
-                             })
+                             }, ":class:`~pyarts.arts.String` Name of group of record")
       .def("__str__", [](const WsvRecord& mr) { return var_string(mr); })
       .def("__repr__", [](const WsvRecord& mr) { return var_string(mr); })
       .def(py::pickle(
@@ -368,11 +418,11 @@ void py_workspace(py::module_& m,
                                  t[1].cast<String>().c_str(),
                                  t[2].cast<String>(),
                                  t[3].cast<TokVal>());
-          }));
+          })).doc() = "A workspace variable record";
 
   py::class_<Array<WsvRecord>>(m, "ArrayOfWsvRecord")
       .PythonInterfaceArrayDefault(WsvRecord)
-      .PythonInterfaceBasicRepresentation(Array<WsvRecord>);
+      .PythonInterfaceBasicRepresentation(Array<WsvRecord>).doc() = "A list of :class:`~pyarts.arts.WsvRecord`";
 
   ws.def(py::pickle(
       [](Workspace& w) {

@@ -4,8 +4,8 @@ import pyarts.arts as cxx
 
 def get_raw_method_map():
     """ Returns a combined Arts MdRawMap and md_data_raw """
-    map = cxx.get_MdRawMap()
-    data = cxx.get_md_data_raw()
+    map = cxx.globals.get_MdRawMap()
+    data = cxx.globals.get_md_data_raw()
 
     for key in map:
         map[key] = data[map[key]]
@@ -14,8 +14,8 @@ def get_raw_method_map():
 
 def get_variables_map():
     """ Returns a combined Arts WsvMap and wsv_data """
-    map = cxx.get_WsvMap()
-    data = cxx.get_wsv_data()
+    map = cxx.globals.get_WsvMap()
+    data = cxx.globals.get_wsv_data()
 
     for key in map:
         map[key] = data[map[key]]
@@ -30,7 +30,7 @@ def get_variable_name(i):
     Returns:
         str: The name of the workspace variable.
     """
-    vars = cxx.get_wsv_data()
+    vars = cxx.globals.get_wsv_data()
     return str(vars[i].name)
 
 def convert(group, value):
@@ -40,7 +40,7 @@ def convert(group, value):
     """
     
     if isinstance(group, int):
-        data = cxx.get_wsv_groups()
+        data = cxx.globals.get_wsv_groups()
         groupname = data[group].name
     else:
         groupname = group

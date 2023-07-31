@@ -17,6 +17,8 @@
 #include "mystring.h"
 #include "species.h"
 
+#include <memory>
+
 /** Hitran crosssection class.
  *
  * Stores the coefficients from our model for hitran crosssection data and
@@ -136,5 +138,9 @@ using ArrayOfXsecRecord = Array<XsecRecord>;
 
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             Species::Species species);
+
+std::shared_ptr<XsecRecord> hitran_xsec_get_data(
+    const std::vector<std::shared_ptr<XsecRecord>>& xsec_data,
+    const Species::Species species);
 
 #endif  // HITRAN_XSEC_H

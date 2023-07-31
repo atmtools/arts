@@ -1,17 +1,22 @@
 #include <global_data.h>
 
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
 #include "array.h"
+#include "compare.h"
 #include "debug.h"
 #include "mystring.h"
 #include "tokval_io.h"
 #include "workspace.h"
+
+#include "pydocs.h"
 
 namespace global_data {
 extern Array<WsvRecord> wsv_data;
@@ -107,14 +112,117 @@ std::map<std::string, Group> groups() {
   std::map<std::string, std::string> desc;
   for (auto& x : global_data::wsv_data) {
     auto& val = desc[x.Name()];
-    val = var_string("Group: pyarts.arts.",
+
+    val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds type :class:`~pyarts.arts.",
                      global_data::wsv_groups[x.Group()].name,
-                     "\n\n",
-                     x.Description());
+                     "`: ",
+                     unwrap_stars(x.Description()));
+    
+    if (global_data::wsv_groups[x.Group()].name == "Agenda" or global_data::wsv_groups[x.Group()].name == "ArrayOfAgenda") {
+      val += get_agenda_io(x.Name());
+    }
+
+    //! FIXME: Better default, why can't it print???
     if (x.has_defaults())
-      val += var_string("\nUse import pyarts; pyarts.workspace.Workspace().",
+      val += var_string("\nDefault value\n"
+                        "-------------\n\n``",
+                        to_defval_str(var_string(TokValPrinter(x.default_value())), global_data::wsv_groups[x.Group()].name),
+                        "``\n\n");
+
+    struct wsv_io {
+      std::vector<String> wsm_out;
+      std::vector<String> wsm_in;
+      std::vector<String> ag_out;
+      std::vector<String> ag_in;
+    };
+
+    wsv_io usedocs;
+    for (auto& method : global_data::md_data_raw) {
+      if (std::any_of(method.Out().cbegin(),
+                      method.Out().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.wsm_out.push_back(method.Name());
+
+      if (std::any_of(method.In().cbegin(),
+                      method.In().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.wsm_in.push_back(method.Name());
+    }
+
+    for (auto& agenda: global_data::agenda_data) {
+      if (std::any_of(agenda.Out().cbegin(),
+                      agenda.Out().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.ag_out.push_back(agenda.Name());
+
+      if (std::any_of(agenda.In().cbegin(),
+                      agenda.In().cend(),
+                      [&name = x.Name()](auto& mind) {
+                        return global_data::wsv_data[mind].Name() == name;
+                      }))
+        usedocs.ag_in.push_back(agenda.Name());
+    }
+
+    if (usedocs.wsm_out.size()) {
+      val += var_string("\n\nWorkspace methods that can generate ",
                         x.Name(),
-                        ".value to see default");
+                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.wsm_out), "\n");
+      for (auto& m : usedocs.wsm_out)
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      val += "\n";
+    }
+
+    if (usedocs.wsm_in.size()) {
+      val += var_string("\n\nWorkspace methods that require ",
+                        x.Name(),
+                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.wsm_in), "\n");
+      for (auto& m : usedocs.wsm_in)
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      val += "\n";
+    }
+
+    if (usedocs.ag_out.size()) {
+      val += var_string("\n\nWorkspace agendas that can generate ",
+                        x.Name(),
+                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.ag_out), "\n");
+      for (auto& m : usedocs.ag_out)
+        val +=
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+      val += "\n";
+    }
+
+    if (usedocs.ag_in.size()) {
+      val += var_string("\n\nWorkspace agendas that require ",
+                        x.Name(),
+                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::",
+                        "\n    :columns: ", hlist_num_cols(usedocs.ag_in), "\n");
+      for (auto& m : usedocs.ag_in)
+        val +=
+            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+      val += "\n";
+    }
+
+    val += var_string(
+        "\n\nGeneric workspace methods that can generate or use ",
+        x.Name(),
+        "\n", String(51 + x.Name().size(), '-'), "\n\nSee :class:`~pyarts.arts.",
+        global_data::wsv_groups[x.Group()].name,
+        "`");
+    if (global_data::wsv_groups[x.Group()].name not_eq "Any")
+      val += var_string(" and/or :class:`~pyarts.arts.Any`\n");
+
+    
   }
   std::map<std::string, std::size_t> pos;
   for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
@@ -460,66 +568,19 @@ void workspace_variables(size_t n, const NameMaps& arts) {
 }
 
 void print_method_desc(std::ofstream& os,
-                       const Method& method,
-                       const std::map<std::string, Group>& groups) {
-  os << ",\npy::doc(\nR\"-METHODS_DESC-(\n" << method.desc;
-  os << "\nAuthor(s): ";
-  for (auto& author : method.authors) {
-    if (&author == &method.authors.back() and method.authors.size() > 1) {
-      if (method.authors.size() > 2) os << ',';
-      os << " and ";
-    } else if (&author not_eq &method.authors.front())
-      os << ", ";
-    os << author;
-  }
-  os << '\n' << '\n' << "Parameters\n----------\n";
-
-  for (const auto& i : method.out.varname) {
-    os << i << " : "
-       << "pyarts.arts." << groups.at(i).varname_group << ", optional\n";
-    os << "    As WSV (";
-    if (std::none_of(method.in.varname.cbegin(),
-                     method.in.varname.cend(),
-                     [out = i](const auto& in) { return in == out; })) {
-      os << "IN";
-    }
-    os << "OUT)\n";
-  }
-  for (size_t i = 0; i < method.gout.name.size(); i++) {
-    os << method.gout.name[i] << " : "
-       << "pyarts.arts." << method.gout.group[i] << "\n    "
-       << method.gout.desc[i] << " (OUT)\n";
-  }
-  for (const auto& i : method.in.varname) {
-    if (std::none_of(method.out.varname.cbegin(),
-                     method.out.varname.cend(),
-                     [in = i](const auto& out) { return in == out; })) {
-      os << i << " : "
-         << "pyarts.arts." << groups.at(i).varname_group
-         << ", optional\n    As WSV (IN)\n";
-    }
-  }
-  for (size_t i = 0; i < method.gin.name.size(); i++) {
-    os << method.gin.name[i] << " : "
-       << "pyarts.arts." << method.gin.group[i];
-    if (method.gin.hasdefs[i]) {
-      os << ", optional";
-    }
-    os << "\n    " << method.gin.desc[i] << " (IN";
-    if (method.gin.hasdefs[i]) {
-      os << "; default: " << method.gin.defs[i];
-    }
-    os << ')' << '\n';
-  }
-
-  os << "\n)-METHODS_DESC-\")";
+                       const Method& method) try {
+  os << ",\npy::doc(\nR\"" << method_docs(method.name) << "\")";
+} catch (std::invalid_argument& e) {
+  throw std::runtime_error(var_string("Failing in method ", std::quoted(method.name), " with error message:\n", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(e.what());
 }
 
 void print_method_args(std::ofstream& os,
                        const Method& method) {
   for (const auto& i : method.out.varname) {
     os << ',' << '\n'
-       << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i
+       << "py::arg_v(\"" << i << "\", std::nullopt, \"self." << i
        << "\").noconvert()";
   }
   for (const auto& i : method.gout.name) {
@@ -530,7 +591,7 @@ void print_method_args(std::ofstream& os,
                      method.out.varname.cend(),
                      [in = i](const auto& out) { return in == out; })) {
       os << ',' << '\n'
-         << "py::arg_v(\"" << i << "\", std::nullopt, \"ws." << i << "\")";
+         << "py::arg_v(\"" << i << "\", std::nullopt, \"self." << i << "\")";
     }
   }
   for (size_t i = 0; i < method.gin.name.size(); i++) {
@@ -586,30 +647,30 @@ void workspace_method_create(size_t n, const NameMaps& arts) {
   if (value.has_value()) w.push_move(pos, std::make_shared<)--"
        << group << R"--(>(*value));
 }, py::doc(R"-x-(
-Create new )--"
-       << group << R"--( on the workspace
+Create new :class:`~pyarts.arts.)--"
+       << group << R"--(` on the workspace
 
-It is recommended that this is only called once per Workspace instance.
+It is recommended that this is only called once per new Workspace variable.
 
 If there is no default value, the variable remains uninitialized
 
 If the variable already exist, an error is thrown only if the group
-is not )--"
-       << group << R"--(.  If the variable does exist, a new value
+is not :class:`~pyarts.arts.)--"
+       << group << R"--(`.  If the variable does exist, a new value
 is pushed onto its stack iff value is given.  This efficiently puts
 any current value out of reach for the current Agenda level.
 
-Parameters:
------------
-  name : str
+Parameters
+----------
+name : str
     Name of the variable, can be accessed later with getattr() on the workspace
 
-  desc : str, optional:
-    Description of the variable
+desc : str, optional:
+    Description of the variable, defaults to ``"User-generated workspace variable"``
 
-  value : )--"
+value : )--"
        << group << R"--(, optional
-    Initialized value
+    Initialized value, default is to not initialize the variable
 )-x-"),
   py::arg("name").none(false),
   py::arg("desc")=std::nullopt,
@@ -624,7 +685,7 @@ Parameters:
   for (auto& os : oss) os << "}\n}  // namespace Python\n";
 }
 
-void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
+void workspace_method_nongenerics(size_t n, const NameMaps& arts) try {
   std::vector<std::ofstream> oss(n);
   for (size_t i = 0; i < n; i++) {
     oss[i] =
@@ -812,7 +873,7 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
     print_method_args(os, method);
 
     // Put description at the end
-    print_method_desc(os, method, arts.varname_group);
+    print_method_desc(os, method);
 
     os << ')' << ';' << '\n' << '\n';
 
@@ -821,6 +882,9 @@ void workspace_method_nongenerics(size_t n, const NameMaps& arts) {
   }
 
   for (auto& os : oss) os << "}\n}  // namespace Python\n";
+}
+catch (std::exception &e) {
+  throw std::runtime_error("Error in workspace_method_generics: "s + e.what());
 }
 
 struct ArgumentHelper {
@@ -1321,7 +1385,6 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
 
         full_exe.replace(full_exe.find(path1), path1.length(), path1_exe);
         full_exe.replace(full_exe.find(path2), path2.length(), path2_exe);
-        //std::cerr << full_exe << '\n';
 
         os << full_exe;
       } else {
@@ -1360,7 +1423,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
     print_method_args(os, method);
 
     // Put description at the end
-    print_method_desc(os, method, arts.varname_group);
+    print_method_desc(os, method);
 
     os << ')' << ';' << '\n' << '\n';
 
@@ -1381,7 +1444,7 @@ void workspace_method_generics(size_t n, const NameMaps& arts) {
       Delete(w, Index(1), x.name());
     })--";
     print_method_args(os, *method_ptr);
-    print_method_desc(os, *method_ptr, arts.varname_group);
+    print_method_desc(os, *method_ptr);
     os << ");\n\n";
 
     osptr++;

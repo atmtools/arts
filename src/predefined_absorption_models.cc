@@ -87,11 +87,20 @@ bool compute_selection(PropmatVector& pm [[maybe_unused]],
     case find_species_index(Species::Species::Water, "MPM89"):
       if constexpr (not check_exist) MPM89::water(pm, f, p, t, vmr.H2O);
       return true;
+    case find_species_index(Species::Species::Nitrogen, "SelfContMPM93"):
+      if constexpr (not check_exist) MPM93::nitrogen(pm, f, p, t, vmr.N2, vmr.H2O);
+      return true;
     case find_species_index(Species::Species::Water, "ForeignContCKDMT350"):
       if constexpr (not check_exist) CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "SelfContCKDMT350"):
       if constexpr (not check_exist) CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
+      return true;
+    case find_species_index(Species::Species::Water, "ForeignContCKDMT320"):
+      if constexpr (not check_exist) CKDMT320::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
+      return true;
+    case find_species_index(Species::Species::Water, "SelfContCKDMT320"):
+      if constexpr (not check_exist) CKDMT320::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "ForeignContStandardType"):
       if constexpr (not check_exist) Standard::water_foreign(pm, f, p, t, vmr.H2O);

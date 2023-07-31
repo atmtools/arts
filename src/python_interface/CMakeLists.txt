@@ -50,8 +50,8 @@ endwhile()
 
 ########################################################################################
 # Build the generator
-add_executable(gen_auto_py gen_auto_py.cpp)
-target_link_libraries(gen_auto_py PUBLIC methods)
+add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
+target_link_libraries(gen_auto_py PUBLIC methods artscore)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
@@ -102,6 +102,11 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_hitran.cpp
     py_atm.cpp
     py_surf.cpp
+    py_fwd.cpp
+    py_cia.cpp
+
+    pydocs.cpp
+    gen_auto_py_helpers.cpp
 
     py_auto_interface.h
     py_auto_interface.cc
@@ -121,4 +126,7 @@ target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_definitions(pyarts_cpp PUBLIC PYBIND11_DETAILED_ERROR_MESSAGES)
+set_target_properties(
+  pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+                        "${ARTS_BINARY_DIR}/python/pyarts/")
 ########################################################################################

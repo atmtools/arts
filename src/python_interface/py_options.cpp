@@ -8,59 +8,59 @@
 #include "python_interface.h"
 
 //! See DeclareOption macro, but this may rename the python class
-#define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)         \
-  [&]() {                                                                      \
-    auto cls =                                                                 \
-        py::class_<opt_namespace::opt_localname>(opt, #opt_rename)             \
-            .def(py::init([]() { return opt_namespace::opt_localname{}; }))    \
-            .def(py::init([](const std::string &s) {                           \
-              return opt_namespace::to##opt_localname##OrThrow(s);             \
-            }))                                                                \
-            .def_property(                                                     \
-                "value",                                                       \
-                [](const opt_namespace::opt_localname &x) {                    \
-                  return toString(x);                                          \
-                },                                                             \
-                [](opt_namespace::opt_localname &x, const std::string &s) {    \
-                  x = opt_namespace::to##opt_localname##OrThrow(s);            \
-                })                                                             \
-            .def(py::self == py::self)                                         \
-            .def(py::self != py::self)                                         \
-            .def("__hash__",                                                   \
-                 [](opt_namespace::opt_localname &x) {                         \
-                   return std::hash<opt_namespace::opt_localname>{}(x);        \
-                 })                                                            \
-            .PythonInterfaceCopyValue(opt_namespace::opt_localname)            \
-            .def("__repr__",                                                   \
-                 [](opt_namespace::opt_localname &x) { return toString(x); })  \
-            .def(py::self == py::self)                                         \
-            .def(py::self != py::self)                                         \
-            .def(py::pickle(                                                   \
-                [](const opt_namespace::opt_localname &t) {                    \
-                  return py::make_tuple(                                       \
-                      std::string(opt_namespace::toString(t)));                \
-                },                                                             \
-                [](const py::tuple &t) {                                       \
-                  ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")          \
-                  return opt_namespace::opt_localname{                         \
-                      opt_namespace::to##opt_localname##OrThrow(               \
-                          t[0].cast<std::string>())};                          \
-                }))                                                            \
-            .def_static(                                                       \
-                "get_options",                                                 \
-                []() {                                                         \
-                  return opt_namespace::enumtyps::opt_localname##Types;        \
-                })                                                             \
-            .def_static("get_options_as_strings", []() {                       \
-              return opt_namespace::enumstrs::opt_localname##Names;            \
-            });                                                                \
-    cls.doc() = "Options for " #opt_rename;                                    \
-    for (auto &x : opt_namespace::enumtyps::opt_localname##Types) {            \
-      cls.def_property_readonly_static(String(toString(x)).c_str(),            \
-                                       [x](py::object) { return x; });         \
-    }                                                                          \
-    py::implicitly_convertible<std::string, opt_namespace::opt_localname>();   \
-    return cls;                                                                \
+#define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)             \
+  [&]() {                                                                          \
+    auto cls =                                                                     \
+        py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
+            .def(py::init([]() { return opt_namespace::opt_localname{}; }),        \
+                 "Default value")                                                  \
+            .def(py::init([](const std::string& s) {                               \
+                   return opt_namespace::to##opt_localname##OrThrow(s);            \
+                 }),                                                               \
+                 py::arg("str"),                                                   \
+                 "From :class:`str`")                                              \
+            .def("__hash__",                                                       \
+                 [](opt_namespace::opt_localname& x) {                             \
+                   return std::hash<opt_namespace::opt_localname>{}(x);            \
+                 })                                                                \
+            .PythonInterfaceCopyValue(opt_namespace::opt_localname)                \
+            .PythonInterfaceBasicRepresentation(opt_namespace::opt_localname)      \
+            .def(py::self == py::self)                                             \
+            .def(py::self != py::self)                                             \
+            .def(py::pickle(                                                       \
+                [](const opt_namespace::opt_localname& t) {                        \
+                  return py::make_tuple(                                           \
+                      std::string(opt_namespace::toString(t)));                    \
+                },                                                                 \
+                [](const py::tuple& t) {                                           \
+                  ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")              \
+                  return opt_namespace::opt_localname{                             \
+                      opt_namespace::to##opt_localname##OrThrow(                   \
+                          t[0].cast<std::string>())};                              \
+                }))                                                                \
+            .def_static(                                                           \
+                "get_options",                                                     \
+                []() {                                                             \
+                  return opt_namespace::enumtyps::opt_localname##Types;            \
+                },                                                                 \
+                py::doc(":class:`list` of full set of options available"))         \
+            .def_static(                                                           \
+                "get_options_as_strings",                                          \
+                []() {                                                             \
+                  return opt_namespace::enumstrs::opt_localname##Names;            \
+                },                                                                 \
+                py::doc(                                                           \
+                    ":class:`list` of full set of options available as strings")); \
+    cls.doc() = "Options for " #opt_rename;                                        \
+    for (auto& x : opt_namespace::enumtyps::opt_localname##Types) {                \
+      cls.def_property_readonly_static(                                            \
+          String(toString(x)).c_str(),                                             \
+          [x](py::object) { return x; },                                           \
+          py::doc(":class:`~pyarts.options." #opt_rename                           \
+                  "` static value as named"));                                     \
+    }                                                                              \
+    py::implicitly_convertible<std::string, opt_namespace::opt_localname>();       \
+    return cls;                                                                    \
   }();
 
 //! Exposes and option defined by the ARTS internal ENUMCLASS macro to pyarts
@@ -125,5 +125,20 @@ void py_options(py::module_& m) {
   DeclareOptionRenamed(AtmKey, Atm, Key)
 
 
+  // Jacobian enums
+  DeclareOptionRenamed(JacobianType, Jacobian, Type)
+  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm)
+  DeclareOptionRenamed(JacobianLine, Jacobian, Line)
+  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor)
+  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special)
+
+  // Predef enums
+  DeclareOptionRenamed(PredefinedModelDataKey, Absorption::PredefinedModel, DataKey)
+
+  // Predef enums
+  DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type)
+
+  // Species enums
+  DeclareOptionRenamed(SpeciesTagType, Species, TagType)
 }
 }  // namespace Python

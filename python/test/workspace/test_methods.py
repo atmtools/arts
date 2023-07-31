@@ -106,7 +106,7 @@ class TestMethods:
         assert(np.allclose(mat, ws.sensor_los.value))
 
         ws.sensor_los = np.zeros((2, 2))
-        ws.ReadXML(out = ws.sensor_los, filename = tempfile.name)
+        ws.ReadXML(output = ws.sensor_los, filename = tempfile.name)
         assert(np.allclose(mat, ws.sensor_los.value))
 
     def test_supergeneric_overload_resolution(self):
@@ -137,8 +137,8 @@ class TestMethods:
             self.ws.yCalc()
     
     def test_predefined_doc(self):
-        isots = pyarts.arts.get_isotopologues()
-        desc = str(pyarts.arts.get_md_data()[pyarts.arts.get_MdMap()["propmat_clearskyAddPredefined"]].desc)
+        isots = pyarts.arts.globals.get_isotopologues()
+        desc = str(pyarts.arts.globals.get_md_data()[pyarts.arts.globals.get_MdMap()["propmat_clearskyAddPredefined"]].desc)
         
         for x in isots:
             if x.predef:

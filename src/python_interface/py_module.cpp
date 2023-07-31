@@ -46,6 +46,8 @@ void py_options(py::module_& m);
 void py_hitran(py::module_& m);
 void py_atm(py::module_& m);
 void py_surf(py::module_ &m);
+void py_fwd(py::module_& m);
+void py_cia(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -59,10 +61,10 @@ void py_surf(py::module_ &m);
  * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
 PYBIND11_MODULE(arts, m) {
-  m.doc() = "Contains direct C++ interface for Arts";
-  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "Pyarts::Workspace");
+  m.doc() = "Interface directly to the C++ types via python";
+  py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "_Workspace");
   py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
-  wsv.doc() = "A wrapper around all workspace variables";
+  wsv.doc() = "A wrapper around all workspace groups";
 
   static bool init = true;
   if (init) {
@@ -138,6 +140,8 @@ PYBIND11_MODULE(arts, m) {
   py_agenda(m);
   py_atm(m);
   py_surf(m);
+  py_fwd(m);
+  py_cia(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(m, ws, wsv);

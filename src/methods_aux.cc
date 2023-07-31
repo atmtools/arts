@@ -143,6 +143,24 @@ MdRecord::MdRecord(const char* name,
     throw std::runtime_error(os.str());
   }
 
+  //! Check that there are no newlines in GIN and GOUT descriptions
+  if (std::any_of(gindesc.begin(), gindesc.end(), [](auto& str){
+        return str.find('\n') != std::string::npos;
+      })) {
+    std::ostringstream os;
+    os << "Newlines in GIN descriptions are not allowed: \n";
+    os << "Method: " << mname << "\n";
+    throw std::runtime_error(os.str());
+  }
+  if (std::any_of(goutdesc.begin(), goutdesc.end(), [](auto& str){
+        return str.find('\n') != std::string::npos;
+      })) {
+    std::ostringstream os;
+    os << "Newlines in GOUT descriptions are not allowed: \n";
+    os << "Method: " << mname << "\n";
+    throw std::runtime_error(os.str());
+  }
+
   // Map the WSV names to indexes
   moutput.resize(output.nelem());
   for (Index j = 0; j < output.nelem(); ++j) {

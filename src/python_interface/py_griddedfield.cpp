@@ -41,7 +41,7 @@ void py_griddedfield(py::module_& m) {
                  details::GriddedField::from_xarray = details::two_args;
                }));
 
-  py::class_<details::GriddedField>(m, "GriddedField::details")
+  py::class_<details::GriddedField>(m, "_detailsGriddedField")
       .def_readwrite_static("extract_slice",
                             &details::GriddedField::extract_slice)
       .def_readwrite_static("refine_grid", &details::GriddedField::refine_grid)
@@ -49,32 +49,37 @@ void py_griddedfield(py::module_& m) {
       .def_readwrite_static("to_dict", &details::GriddedField::to_dict)
       .def_readwrite_static("from_xarray", &details::GriddedField::from_xarray);
 
-  py::class_<GriddedField>(m, "GriddedField")
-      .def_property_readonly("dim",
-                             [](GriddedField& gf) { return gf.get_dim(); })
-      .def_property("name", &GriddedField::get_name, &GriddedField::set_name)
+  py::class_<GriddedField>(m, "_GriddedField")
+      .def_property_readonly(
+          "dim",
+          [](GriddedField& gf) { return gf.get_dim(); },
+          ":class:`~pyarts.arts.Index` Dimensionality of field")
+      .def_property("name",
+                    &GriddedField::get_name,
+                    &GriddedField::set_name,
+                    ":class:`~pyarts.arts.String` Name of field")
       .def("get_grid",
            [](GriddedField& g, Index i) -> VectorOrArrayOfString {
              if (i < 0 or i > g.get_dim()) throw std::out_of_range("Bad axis");
              if (g.get_grid_type(i) == GRID_TYPE_NUMERIC)
                return g.get_numeric_grid(i);
              return g.get_string_grid(i);
-           })
+           }, "Get the grid at position i\n\nReturn\n------\n    (:class:`~pyarts.arts.ArrayOfString` or :class:`~pyarts.arts.Vector`) Grid values", py::arg("i"))
       .def("set_grid",
            [](GriddedField& g, Index i, const VectorOrArrayOfString& y) {
              if (i < 0 or i > g.get_dim()) throw std::out_of_range("Bad axis");
              std::visit([&](auto&& z) { g.set_grid(i, z); }, y);
-           })
+           }, "Set the grid at position i", py::arg("i"), py::arg("new_grid"))
       .def("get_grid_name",
            [](GriddedField& g, Index i) {
              if (i < 0 or i > g.get_dim()) throw std::out_of_range("Bad axis");
              return g.get_grid_name(i);
-           })
+           }, "Get the grid name at position i\n\nReturn\n------\n    (:class:`~pyarts.arts.String`) Grid name", py::arg("i"))
       .def("set_grid_name",
            [](GriddedField& g, Index i, const String& s) {
              if (i < 0 or i > g.get_dim()) throw std::out_of_range("Bad axis");
              g.set_grid_name(i, s);
-           })
+           }, "Set the grid name at position i", py::arg("i"), py::arg("new_grid_name"))
       .def_property(
           "grids",
           [](GriddedField& g) {
@@ -95,7 +100,7 @@ void py_griddedfield(py::module_& m) {
             for (Index i = 0; i < n; i++) {
               std::visit([&](auto&& z) { g.set_grid(i, z); }, y[i]);
             }
-          })
+          }, ":class:`list` Grids of the field")
       .def_property(
           "gridnames",
           [](GriddedField& g) {
@@ -110,52 +115,22 @@ void py_griddedfield(py::module_& m) {
             for (Index i = 0; i < n; i++) {
               g.set_grid_name(i, s[i]);
             }
-          })
-      .def("checksize_strict", &GriddedField::checksize_strict)
-      .def("checksize", &GriddedField::checksize)
+          }, ":class:`~pyarts.arts.String` Grid names of the field")
+      .def("checksize_strict", &GriddedField::checksize_strict, "Check the grid and throw if bad")
+      .def("checksize", &GriddedField::checksize, "Check the grid and return its state.\n\nReturn\n------\n    (bool) Good state when ``True``")
       .def(
           "extract_slice",
           [](py::object& g, py::object& s, py::object& i) {
             return details::GriddedField::extract_slice(g, s, i);
           },
           py::arg("slice"),
-          py::arg("axis") = 0,
-          py::doc(
-              R"--(Return a new GriddedField containing a slice of the current one.
-
-Parameters:
-    s (slice): Slice.
-    axis (int): Axis to slice along.
-
-Returns:
-    GriddedField containing sliced grids and data.
-)--"))
+          py::arg("axis") = 0)
       .def(
           "to_xarray",
-          [](py::object& g) { return details::GriddedField::to_xarray(g); },
-          py::doc(
-              R"--(Convert GriddedField to xarray.DataArray object.
-
-Convert a GriddedField object into a :func:`xarray.DataArray`
-object.  The dataname is used as the DataArray name.
-
-Returns:
-    xarray.DataArray object corresponding to gridded field
-)--"))
+          [](py::object& g) { return details::GriddedField::to_xarray(g); })
       .def(
           "to_dict",
-          [](py::object& g) { return details::GriddedField::to_dict(g); },
-          py::doc(
-              R"--(Convert GriddedField to dictionary.
-
-Converts a GriddedField object into a classic Python dictionary. The
-gridname is used as dictionary key. If the grid is unnamed the key is
-generated automatically ('grid1', 'grid2', ...). The data can be
-accessed through the 'data' key.
-
-Returns:
-    Dictionary containing the grids and data.
-)--"))
+          [](py::object& g) { return details::GriddedField::to_dict(g); })
       .def(
           "refine_grid",
           [](py::object& g,
@@ -169,29 +144,12 @@ Returns:
           },
           py::arg("new_grid"),
           py::arg("axis") = py::int_(0),
-          py::arg("type") = py::str("linear"),
-          py::doc(
-              R"--(Interpolate GriddedField axis to a new grid.
-
-This function replaces a grid of a GriddField and interpolates all
-data to match the new coordinates. :func:`scipy.interpolate.interp1d`
-is used for interpolation.
-
-Parameters:
-    new_grid (ndarray): The coordinates of the interpolated values.
-    axis (int): Specifies the axis of data along which to interpolate.
-        Interpolation defaults to the first axis of the GriddedField.
-    type (str or function): Rescaling type for function if str or the
-        actual rescaling function
-    **kwargs:
-        Keyword arguments passed to :func:`scipy.interpolate.interp1d`.
-
-Returns: GriddedField
-)--"));
+          py::arg("type") = py::str("linear"))
+      .doc() = "Base class for gridding fields of data";
 
   py::class_<GriddedField1, GriddedField>(m, "GriddedField1")
-      .def(py::init([]() { return std::make_unique<GriddedField1>(); }))
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField1>(s); }))
+      .def(py::init([]() { return std::make_unique<GriddedField1>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField1>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 1>& grids,
                        const Vector& data,
                        const std::optional<std::array<String, 1>>& gridnames,
@@ -209,7 +167,7 @@ Returns: GriddedField
            py::arg("grids"),
            py::arg("data"),
            py::arg("gridnames") = std::nullopt,
-           py::arg_v("name", "", "None"))
+           py::arg_v("name", "", "None"), py::doc("Complete field"))
       .PythonInterfaceCopyValue(GriddedField1)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField1)
       .PythonInterfaceFileIO(GriddedField1)
@@ -218,8 +176,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField1);
 
   py::class_<GriddedField2, GriddedField>(m, "GriddedField2")
-      .def(py::init([]() { return std::make_unique<GriddedField2>(); }))
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField2>(s); }))
+      .def(py::init([]() { return std::make_unique<GriddedField2>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField2>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 2>& grids,
                        const Matrix& data,
                        const std::optional<std::array<String, 2>>& gridnames,
@@ -237,7 +195,7 @@ Returns: GriddedField
            py::arg("grids"),
            py::arg("data"),
            py::arg("gridnames") = std::nullopt,
-           py::arg_v("name", "", "None"))
+           py::arg_v("name", "", "None"), "Complete field")
       .PythonInterfaceCopyValue(GriddedField2)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField2)
       .PythonInterfaceFileIO(GriddedField2)
@@ -246,8 +204,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField2);
 
   py::class_<GriddedField3, GriddedField>(m, "GriddedField3")
-      .def(py::init([]() { return std::make_unique<GriddedField3>(); }))
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField3>(s); }))
+      .def(py::init([]() { return std::make_unique<GriddedField3>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField3>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 3>& grids,
                        const Tensor3& data,
                        const std::optional<std::array<String, 3>>& gridnames,
@@ -265,7 +223,7 @@ Returns: GriddedField
            py::arg("grids"),
            py::arg("data"),
            py::arg("gridnames") = std::nullopt,
-           py::arg_v("name", "", "None"))
+           py::arg_v("name", "", "None"), "Complete field")
       .PythonInterfaceCopyValue(GriddedField3)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField3)
       .PythonInterfaceFileIO(GriddedField3)
@@ -274,8 +232,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField3);
 
   py::class_<GriddedField4, GriddedField>(m, "GriddedField4")
-      .def(py::init([]() { return std::make_unique<GriddedField4>(); }))
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField4>(s); }))
+      .def(py::init([]() { return std::make_unique<GriddedField4>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField4>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 4>& grids,
                        const Tensor4& data,
                        const std::optional<std::array<String, 4>>& gridnames,
@@ -293,7 +251,7 @@ Returns: GriddedField
            py::arg("grids"),
            py::arg("data"),
            py::arg("gridnames") = std::nullopt,
-           py::arg_v("name", "", "None"))
+           py::arg_v("name", "", "None"), "Complete field")
       .PythonInterfaceCopyValue(GriddedField4)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField4)
       .PythonInterfaceFileIO(GriddedField4)
@@ -302,8 +260,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField4);
 
   py::class_<GriddedField5, GriddedField>(m, "GriddedField5")
-      .def(py::init([]() { return std::make_unique<GriddedField5>(); }))
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField5>(s); }))
+      .def(py::init([]() { return std::make_unique<GriddedField5>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField5>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 5>& grids,
                        const Tensor5& data,
                        const std::optional<std::array<String, 5>>& gridnames,
@@ -321,7 +279,7 @@ Returns: GriddedField
            py::arg("grids"),
            py::arg("data"),
            py::arg("gridnames") = std::nullopt,
-           py::arg_v("name", "", "None"))
+           py::arg_v("name", "", "None"), "Complete field")
       .PythonInterfaceCopyValue(GriddedField5)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField5)
       .PythonInterfaceFileIO(GriddedField5)
@@ -330,8 +288,8 @@ Returns: GriddedField
       .PythonInterfaceWorkspaceDocumentation(GriddedField5);
 
   py::class_<GriddedField6, GriddedField>(m, "GriddedField6")
-      .def(py::init([]() { return std::make_unique<GriddedField6>(); }))
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField6>(s); }))
+      .def(py::init([]() { return std::make_unique<GriddedField6>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_unique<GriddedField6>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 6>& grids,
                        const Tensor6& data,
                        const std::optional<std::array<String, 6>>& gridnames,
@@ -349,7 +307,7 @@ Returns: GriddedField
            py::arg("grids"),
            py::arg("data"),
            py::arg("gridnames") = std::nullopt,
-           py::arg_v("name", "", "None"))
+           py::arg_v("name", "", "None"), "Complete field")
       .PythonInterfaceCopyValue(GriddedField6)
       .PythonInterfaceWorkspaceVariableConversion(GriddedField6)
       .PythonInterfaceFileIO(GriddedField6)
@@ -367,7 +325,7 @@ Returns: GriddedField
         ArrayOfArrayOfGriddedField1 y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), "Initialize from lists");
   py::implicitly_convertible<std::vector<std::vector<GriddedField1>>,
                              ArrayOfArrayOfGriddedField1>();
 
@@ -376,7 +334,7 @@ Returns: GriddedField
         ArrayOfArrayOfGriddedField2 y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), "Initialize from lists");
   py::implicitly_convertible<std::vector<std::vector<GriddedField2>>,
                              ArrayOfArrayOfGriddedField2>();
 
@@ -385,7 +343,7 @@ Returns: GriddedField
         ArrayOfArrayOfGriddedField3 y(x.size());
         std::copy(x.begin(), x.end(), y.begin());
         return y;
-      }));
+      }), "Initialize from lists");
   py::implicitly_convertible<std::vector<std::vector<GriddedField3>>,
                              ArrayOfArrayOfGriddedField3>();
 }

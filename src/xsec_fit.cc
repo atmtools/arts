@@ -9,6 +9,7 @@
 #include "xsec_fit.h"
 
 #include <algorithm>
+#include <memory>
 #include <numeric>
 
 #include "absorption.h"
@@ -193,6 +194,22 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
     if (xsec_data[i].Species() == species) return i;
 
   return -1;
+}
+
+/** Get the index in xsec_fit_data for the given species.
+
+ \param[in] xsec_fit_data Hitran Xsec data array
+ \param[in] species Species name
+
+ \returns Correct CIA record or nullptr if not found.
+ */
+std::shared_ptr<XsecRecord> hitran_xsec_get_data(
+    const std::vector<std::shared_ptr<XsecRecord>>& xsec_data,
+    const Species::Species species) {
+  for (auto& xsec : xsec_data) {
+    if (xsec->Species() == species) return xsec;
+  }
+  return nullptr;
 }
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd) {

@@ -38,6 +38,7 @@ int main() {
 #include "timer_struct.h"
 #include "xsec_fit.h"
 
+#include <fwd.h>
 #include <predefined/predef_data.h>
 #include <rtepack.h>
 

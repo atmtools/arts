@@ -26,6 +26,15 @@ void oxygen(PropmatVector& propmat_clearsky,
             const Numeric h2o);
 }  // namespace MPM89
 
+namespace MPM93 {
+    void nitrogen(PropmatVector &propmat_clearsky,
+                  const Vector &f_grid,
+                  const Numeric p_pa,
+                  const Numeric t,
+                  const Numeric n2,
+                  const Numeric h2o);
+}   // namespace MPM93
+
 namespace MPM2020 {
 void compute(PropmatVector& propmat_clearsky,
              const Vector& f_grid,
@@ -172,6 +181,20 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                          const Numeric& Tave,
                          const Numeric& vmrh2o);
 }  // namespace CKDMT350
+
+namespace CKDMT320 {
+void compute_self_h2o(PropmatVector& propmat_clearsky,
+                      const Vector& f_grid,
+                      const Numeric& p,
+                      const Numeric& Tave,
+                      const Numeric& vmrh2o);
+
+void compute_foreign_h2o(PropmatVector& propmat_clearsky,
+                         const Vector& f_grid,
+                         const Numeric& p,
+                         const Numeric& Tave,
+                         const Numeric& vmrh2o);
+}  // namespace CKDMT320
 
 namespace MT_CKD400 {
 void compute_foreign_h2o(PropmatVector& propmat_clearsky,

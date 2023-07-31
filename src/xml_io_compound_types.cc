@@ -13,6 +13,7 @@
 #include "atm.h"
 #include "cloudbox.h"
 #include "debug.h"
+#include "fwd.h"
 #include "global_data.h"
 #include "gridded_fields.h"
 #include "isotopologues.h"
@@ -2539,6 +2540,19 @@ void xml_read_from_stream(istream&,
 
 void xml_write_to_stream(ostream&,
                          const Agenda&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_read_from_stream(istream&,
+                          SpectralRadianceProfileOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const SpectralRadianceProfileOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");

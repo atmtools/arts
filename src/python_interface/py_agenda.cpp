@@ -209,22 +209,36 @@ MRecord simple_delete_method(WorkspaceVariable val) {
 
 void py_agenda(py::module_& m) {
   py::class_<CallbackFunction>(m, "CallbackFunction")
-      .def(py::init([]() { return std::make_unique<CallbackFunction>(); }))
+      .def(py::init([]() { return std::make_unique<CallbackFunction>(); }), py::doc("Initialize as empty call"))
       .PythonInterfaceCopyValue(CallbackFunction)
       .def(py::init([](const std::function<void(Workspace&)>& f) {
         return std::make_unique<CallbackFunction>(f);
-      }))
+      }), py::doc("Initialize from python callable"))
       .def(
           "__call__",
           [](CallbackFunction& f, Workspace& ws) { f(ws); },
           py::is_operator())
-      .PythonInterfaceWorkspaceDocumentation(CallbackFunction);
+      .PythonInterfaceWorkspaceDocumentationExtra(CallbackFunction, R"(
+
+An instance of this object can be called taking only an
+instance of the workspace as input.
+
+Example
+-------
+>>> import pyarts
+>>> def print_ws(ws):
+>>>     print(ws.iy_unit.value)
+>>> ws = pyarts.workspace.Workspace()
+>>> cb = pyarts.arts.CallbackFunction(print_ws)
+>>> cb(ws)
+1
+)");
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
   py::class_<TokVal>(m, "TokVal")
-      .def(py::init([](const py::int_& x) { return TokVal{x.cast<Index>()}; }))
-      .def(py::init([](const py::float_& x) { return TokVal{x.cast<Numeric>()}; }))
+      .def(py::init([](const py::int_& x) { return TokVal{x.cast<Index>()}; }), "Holds :class:`~pyarts.arts.Index` from :class:`int`")
+      .def(py::init([](const py::float_& x) { return TokVal{x.cast<Numeric>()}; }), "Holds :class:`~pyarts.arts.Numeric` from :class:`float`")
       .def(py::init([](const WorkspaceVariablesVariant& x) -> TokVal {
         return std::visit(
             [](auto& v) -> TokVal {
@@ -241,7 +255,7 @@ void py_agenda(py::module_& m) {
                 return *v;
             },
             x);
-      }))
+      }), "Holds custom ARTS Workspace group")
       .def_property(
           "value",
           [](const TokVal& x) {
@@ -251,7 +265,7 @@ void py_agenda(py::module_& m) {
                 },
                 *tokval_type(x.data()));
           },
-          [](TokVal& x, TokVal y) { std::swap(x, y); })
+          [](TokVal& x, TokVal y) { std::swap(x, y); }, py::doc("The current token value"))
       .def("__repr__",
            [](py::object& x) { return x.attr("value").attr("__repr__")(); })
       .def("__str__",
@@ -263,89 +277,88 @@ void py_agenda(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<TokVal>(py::type::of<TokVal>()(t[0]).cast<TokVal>());
-          }));
+          })).doc() = "Custom class holding any value in token form inside ARTS - do not use manually";
   py::implicitly_convertible<WorkspaceVariablesVariant, TokVal>();
   py::implicitly_convertible<py::int_, TokVal>();
   py::implicitly_convertible<py::float_, TokVal>();
 
   py::class_<MRecord>(m, "MRecord")
-      .def_property_readonly("id", &MRecord::Id)
-      .def_property_readonly("output", &MRecord::Out)
-      .def_property_readonly("input", &MRecord::In)
-      .def_property_readonly("value", &MRecord::SetValue)
-      .def_property_readonly("tasks", &MRecord::Tasks)
-      .PythonInterfaceBasicRepresentation(MRecord);
+      .def_property_readonly("id", &MRecord::Id, ":class:`~pyarts.arts.Index` Method record identity")
+      .def_property_readonly("output", &MRecord::Out, ":class:`~pyarts.arts.ArrayOfIndex` Method record output")
+      .def_property_readonly("input", &MRecord::In, ":class:`~pyarts.arts.ArrayOfIndex` Method record input")
+      .def_property_readonly("value", &MRecord::SetValue, ":class:`~pyarts.arts.TokVal` Method record token values to set")
+      .def_property_readonly("tasks", &MRecord::Tasks, ":class:`~pyarts.arts.Agenda` Method record agenda to set")
+      .PythonInterfaceBasicRepresentation(MRecord).doc() = "Method record for :class:`~pyarts.arts.Agenda` - do not use manually";
 
   py::class_<Array<MRecord>>(m, "ArrayOfMRecord")
       .PythonInterfaceArrayDefault(MRecord)
-      .PythonInterfaceBasicRepresentation(Array<MRecord>);
+      .PythonInterfaceBasicRepresentation(Array<MRecord>).doc() = ":class:`list` of :class:`~pyarts.arts.MRecord` - do not use manually";
 
   py::class_<MdRecord>(m, "MdRecord")
-      .def(py::init([]() { return std::make_unique<MdRecord>(); }))
-      .def_property_readonly("name", &MdRecord::Name)
-      .def_property_readonly("outs", &MdRecord::Out)
-      .def_property_readonly("g_out", &MdRecord::GOut)
-      .def_property_readonly("g_out_types", &MdRecord::GOutType)
-      .def_property_readonly("ins", &MdRecord::In)
-      .def_property_readonly("g_in", &MdRecord::GIn)
-      .def_property_readonly("g_in_types", &MdRecord::GInType)
-      .def_property_readonly("g_in_default", &MdRecord::GInDefault)
-      .def_property_readonly("desc", &MdRecord::Description)
+      .def(py::init([]() { return std::make_unique<MdRecord>(); }), py::doc("Create empty"))
+      .def_property_readonly("name", &MdRecord::Name, ":class:`~pyarts.arts.String` Name of method")
+      .def_property_readonly("outs", &MdRecord::Out, ":class:`~pyarts.arts.ArrayOfIndex` Output of method")
+      .def_property_readonly("g_out", &MdRecord::GOut, ":class:`~pyarts.arts.ArrayOfString` Generic output of method")
+      .def_property_readonly("g_out_types", &MdRecord::GOutType, ":class:`~pyarts.arts.ArrayOfIndex` Types of the generic output")
+      .def_property_readonly("ins", &MdRecord::In, ":class:`~pyarts.arts.ArrayOfIndex`  Input to method")
+      .def_property_readonly("g_in", &MdRecord::GIn, ":class:`~pyarts.arts.ArrayOfString` Generic input to method")
+      .def_property_readonly("g_in_types", &MdRecord::GInType, ":class:`~pyarts.arts.ArrayOfIndex` Types of the generic input")
+      .def_property_readonly("g_in_default", &MdRecord::GInDefault, ":class:`~pyarts.arts.ArrayOfString` Generic input parsable defaults to method")
+      .def_property_readonly("desc", &MdRecord::Description, ":class:`~pyarts.arts.String` Description of method")
       .PythonInterfaceCopyValue(MdRecord)
       .def("__str__", [](MdRecord& mr) { return var_string('"', mr, '"'); })
-      .def("__repr__", [](MdRecord& mr) { return var_string('"', mr, '"'); });
+      .def("__repr__", [](MdRecord& mr) { return var_string('"', mr, '"'); }).doc() = "Method record for the workspace - do not use manually";
 
   py::class_<Array<MdRecord>>(m, "ArrayOfMdRecord")
       .PythonInterfaceArrayDefault(MdRecord)
-      .PythonInterfaceBasicRepresentation(Array<MdRecord>);
+      .PythonInterfaceBasicRepresentation(Array<MdRecord>).doc() = ":class:`list` of :class:`~pyarts.arts.MdRecord` - do not use manually";
 
   py::class_<AgRecord>(m, "AgRecord")
-      .def(py::init([]() { return std::make_unique<AgRecord>(); }))
+      .def(py::init([]() { return std::make_unique<AgRecord>(); }), py::doc("Create empty"))
       .PythonInterfaceCopyValue(AgRecord)
-      .def_property_readonly("name", &AgRecord::Name)
-      .def_property_readonly("description", &AgRecord::Description)
-      .def_property_readonly("outs", &AgRecord::Out)
-      .def_property_readonly("ins", &AgRecord::In)
+      .def_property_readonly("name", &AgRecord::Name, ":class:`~pyarts.arts.String` Name of record")
+      .def_property_readonly("description", &AgRecord::Description, ":class:`~pyarts.arts.String` Description of record")
+      .def_property_readonly("outs", &AgRecord::Out, ":class:`~pyarts.arts.ArrayOfIndex`  Outputs of record")
+      .def_property_readonly("ins", &AgRecord::In, ":class:`~pyarts.arts.ArrayOfIndex`  Inputs to record")
       .def("__str__", [](AgRecord& ar) { return var_string(ar); })
-      .def("__repr__", [](AgRecord& ar) { return var_string(ar); });
+      .def("__repr__", [](AgRecord& ar) { return var_string(ar); }).doc() = "Internal agenda record - do not use manually";
 
   py::class_<Array<AgRecord>>(m, "ArrayOfAgRecord")
       .PythonInterfaceArrayDefault(AgRecord)
-      .PythonInterfaceBasicRepresentation(Array<AgRecord>);
+      .PythonInterfaceBasicRepresentation(Array<AgRecord>).doc() = ":class:`list` of :class:`~pyarts.arts.AgRecord` - do not use manually";
 
   py::class_<Agenda>(m, "Agenda")
-      .def(py::init([](Workspace& ws) { return std::make_unique<Agenda>(ws); }))
+      .def(py::init([](Workspace& ws) { return std::make_unique<Agenda>(ws); }), "Create empty")
       .def(py::init([](Workspace&, const Agenda& a) { return a; }),
-           py::doc("Copy Agenda with extra argument (to mimic DelayedAgenda)"))
+           py::doc("Copy with extra argument (to mimic :class:`~pyarts.workspace.DelayedAgenda`)"))
       .def(py::init([](Workspace& ws,
                        const std::function<py::object(Workspace&)>& f) {
              return py::cast<Agenda>(f(ws));
            }),
-           py::keep_alive<0, 1>())
+           py::keep_alive<0, 1>(), "Parse :class:`~pyarts.workspace.DelayedAgenda`")
       .def_property_readonly("workspace",
                              py::cpp_function(
                                  [](Agenda& a) {
-                                   //FIXME: Is there a way to return the pyarts.workspace.Workspace instead?
                                    return a.workspace();
                                  },
                                  py::return_value_policy::reference,
                                  py::keep_alive<0, 1>()),
-                             py::doc("For internal testing only, do not use"))
+                             py::doc("Returns an internal workspace - do not use manually"))
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .def(py::init([](Workspace& w, const std::filesystem::path& path) {
              return parse_agenda(w,
                                  correct_include_path(path).c_str());
            }),
-           py::keep_alive<0, 1>())
+           py::keep_alive<0, 1>(), py::doc("Parse file"))
       .PythonInterfaceFileIO(Agenda)
-      .def_property_readonly("main", &Agenda::is_main_agenda)
-      .def_property("name", &Agenda::name, &Agenda::set_name)
-      .def_property_readonly("output2push", &Agenda::get_output2push)
-      .def_property_readonly("output2dup", &Agenda::get_output2dup)
+      .def_property_readonly("main", &Agenda::is_main_agenda, ":class:`bool` Main agenda flag")
+      .def_property("name", &Agenda::name, &Agenda::set_name, py::doc(":class:`pyarts.arts.String` Name of agenda"))
+      .def_property_readonly("output2push", &Agenda::get_output2push, py::doc(":class:`pyarts.arts.ArrayOfIndex` Additional output"))
+      .def_property_readonly("output2dup", &Agenda::get_output2dup, py::doc(":class:`pyarts.arts.ArrayOfIndex` Duplicational output"))
       .def("set_outputs_to_push_and_dup",
            [](Agenda& a) {
              a.set_outputs_to_push_and_dup();
-           })
+           }, py::doc("Sets variable from state"))
       .def(
           "add_workspace_method",
           [](Agenda& a,
@@ -621,7 +634,6 @@ Both agendas must be defined on the same workspace)--"),
             a.check(w);
           },
           py::doc("Checks if the agenda works"))
-      .def_property("name", &Agenda::name, &Agenda::set_name)
       .def("__repr__",
            [](Agenda& a) { return var_string("Agenda ", a.name()); })
       .def("__str__",
@@ -633,12 +645,12 @@ Both agendas must be defined on the same workspace)--"),
              out += os.str();
              return out;
            })
-      .def_property("methods", &Agenda::Methods, &Agenda::set_methods)
-      .def("has_same_origin", &Agenda::has_same_origin)
+      .def_property("methods", &Agenda::Methods, &Agenda::set_methods, py::doc(":class:`pyarts.arts.ArrayOfMRecord` Methods of the agenda"))
+      .def("has_same_origin", &Agenda::has_same_origin, "Checks if another workspace works with this agenda")
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
   py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
-      .def(py::init([]() { return std::make_unique<ArrayOfAgenda>(); }))
+      .def(py::init([]() { return std::make_unique<ArrayOfAgenda>(); }), "Create empty")
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
       .PythonInterfaceCopyValue(ArrayOfAgenda)
       .def(py::init([](std::vector<Agenda> va) {
@@ -657,7 +669,7 @@ Both agendas must be defined on the same workspace)--"),
               '\n')
         }
         return va;
-      }))
+      }), "Create from :class:`list`")
       .def("__repr__", [](ArrayOfAgenda&) { return "ArrayOfAgenda"; })
       .def("__str__",
            [](ArrayOfAgenda& aa) {
@@ -705,7 +717,7 @@ Both agendas must be defined on the same workspace)--"),
              if (x.nelem() and y.name() not_eq x.front().name())
                y.set_name(x.front().name());
              x.emplace_back(std::move(y));
-           })
+           }, "Appends a :class:`~pyarts.arts.Agenda` at the end of the array")
       .def(
           "pop",
           [](ArrayOfAgenda& aa) {
@@ -729,7 +741,7 @@ Both agendas must be defined on the same workspace)--"),
           },
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
-          })
+          }, py::doc(":class:`~pyarts.arts.String` Name of the array of agenda"))
       .def(py::pickle(
           [](const ArrayOfAgenda& v) {
             auto n = v.size();
@@ -741,7 +753,7 @@ Both agendas must be defined on the same workspace)--"),
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<ArrayOfAgenda>(t[0].cast<std::vector<Agenda>>());
           }))
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAgenda);
+      .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfAgenda, "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
 }
 }  // namespace Python

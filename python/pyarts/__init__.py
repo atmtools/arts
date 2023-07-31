@@ -16,3 +16,6 @@ from pyarts import cat  # noqa
 __all__ = [s for s in dir() if not s.startswith('_')]
 __version__ = "@ARTS_VERSION@"
 version = __version__
+
+# Name the workspace
+Workspace = workspace.Workspace

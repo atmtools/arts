@@ -7,4 +7,5 @@ if (ENABLE_GUI)
   endif()
 endif()
 
-collect_test_subdir(arts-cat-data)
+collect_test_subdir(arts-catalogue-data)
+collect_test_subdir(getting-started)

@@ -34,15 +34,11 @@ from pyarts.environment import environ
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'matplotlib.sphinxext.plot_directive',
-    'pyarts.utils.sphinxext',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,8 +57,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pyarts'
-copyright = 'The Typhon and ARTS Developers'
-author = 'The Typhon and ARTS Developers'
+copyright = 'The ARTS Developers'
+author = 'The ARTS Developers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -79,7 +75,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -311,7 +307,7 @@ autosummary_generate = True
 
 # -- Intersphinx configuration -------------------------------------------
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.6', None),
+    'python': ('https://docs.python.org/3.11', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/', None),
     'skimage': ('https://scikit-image.org/docs/stable/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),

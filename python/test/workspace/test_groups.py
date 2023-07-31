@@ -56,8 +56,8 @@ class test:
         return True
 
 
-list_of_groups = [x.name for x in cxx.get_wsv_groups()]
-special_groups = ["CallbackFunction", "Any"]
+list_of_groups = [x.name for x in cxx.globals.get_wsv_groups()]
+special_groups = ["CallbackFunction", "Any", "SpectralRadianceProfileOperator"]
 
 
 class TestGroups:
@@ -1023,15 +1023,20 @@ class TestGroups:
         x["O2-68"] = 0.0021
         test.io(x, delete=True)
         
+    def testSpectralRadianceProfileOperator(self):
+        cxx.SpectralRadianceProfileOperator()
+
     def test_pickle(self):
         ws = Workspace()
-        x = list(cxx.get_WsvGroupMap().keys())
+        x = list(cxx.globals.get_WsvGroupMap().keys())
 
         for i in range(len(x)):
             if x[i] == "CallbackFunction":
                 continue
             elif x[i] == "Agenda":
                 continue  # Cannot unpickle a standalone Agenda
+            elif x[i] == "SpectralRadianceProfileOperator":
+                continue  # Cannot unpickle SpectralRadianceProfileOperator
             elif x[i] == "ArrayOfAgenda":
                 continue  # Cannot unpickle a standalone ArrayOfAgenda
             else:
@@ -1075,3 +1080,4 @@ class TestGroups:
 if __name__ == "__main__":
     x = TestGroups()
     b = x.testVibrationalEnergyLevels()
+    b = x.testArrayOfArrayOfAbsorptionLines()

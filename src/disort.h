@@ -36,7 +36,7 @@ void add_normed_phase_functions(Tensor3View pftc1,
 
 /** check_disort_input. *** FIXMEDOC *** in disort.cc, line 197
  *
- * Checks that input of DisortCalc* is sane.
+ * Checks that input of cloudbox_fieldDisort* is sane.
  *
  * @param[in]  cloudbox_on           as the WSV.
  * @param[in]  disort_is_initialized as the WSV.
@@ -63,7 +63,7 @@ void check_disort_input(  // Input
 
 /** check_disort_input.
  *
- * Checks that input of DisortCalcIrradiance* is sane.
+ * Checks that input of spectral_irradiance_fieldDisort* is sane.
  *
  * @param[in]  disort_is_initialized as the WSV.
  * @param[in]  atmfields_checked     as the WSV.
@@ -360,9 +360,9 @@ void get_paroptprop(MatrixView ext_bulk_par,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
                     ConstMatrixView pnd_profiles,
                     ConstVectorView t_profile,
-                    ConstVectorView p_grid,
+                    ConstVectorView DEBUG_ONLY(p_grid),
                     const ArrayOfIndex& cloudbox_limits,
-                    ConstVectorView f_grid);
+                    const Index f_index);
 
 /** get_dtauc_ssalb
  *
@@ -435,7 +435,8 @@ void get_parZ(Tensor3& pha_bulk_par,
               ConstMatrixView pnd_profiles,
               ConstVectorView t_profile,
               ConstVectorView pfct_angs,
-              const ArrayOfIndex& cloudbox_limits);
+              const ArrayOfIndex& cloudbox_limits,
+              const Index f_index);
 
 /** get_pfct.
  *

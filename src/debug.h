@@ -9,6 +9,7 @@
 #ifndef debug_h
 #define debug_h
 
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <version>
@@ -19,6 +20,7 @@ template <typename ... Args>
 std::string var_string(Args&& ... args) {
   if constexpr (sizeof...(Args) not_eq 0) {
     std::ostringstream os;
+    os << std::setprecision(15);
     ((os << std::forward<Args>(args)), ...);
     return os.str();
   } else {

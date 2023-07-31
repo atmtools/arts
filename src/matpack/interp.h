@@ -811,7 +811,7 @@ struct Lagrange {
      } else {
        if constexpr (PolyOrder == 0) {
        } else if constexpr (PolyOrder == 1) {
-         lx[0] = l<PolyOrder, type, Limit>(pos, x, xi, 0);
+         lx.front() = l<PolyOrder, type, Limit>(pos, x, xi, 0);
        } else {
          for (Index j = 0; j < PolyOrder; j++)
            lx[j] = l<PolyOrder, type, Limit>(pos, x, xi, j);

@@ -64,6 +64,7 @@ inline constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("H2O"), "181", 20.014811, 1),
   IsotopeRecord(fromShortName("H2O"), "182", 21.020985, 6),
   IsotopeRecord(fromShortName("H2O"), "262", 20.022915, 1),
+  IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT320"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT350"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContCKDMT400"),
   IsotopeRecord(fromShortName("H2O"), "ForeignContStandardType"),
@@ -71,6 +72,7 @@ inline constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("H2O"), "PWR2021"),
   IsotopeRecord(fromShortName("H2O"), "PWR2022"),
   IsotopeRecord(fromShortName("H2O"), "PWR98"),
+  IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT320"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT350"),
   IsotopeRecord(fromShortName("H2O"), "SelfContCKDMT400"),
   IsotopeRecord(fromShortName("H2O"), "SelfContStandardType"),
@@ -261,6 +263,7 @@ inline constexpr std::array Isotopologues {
   IsotopeRecord(fromShortName("N2"), "45", 29.003182, 6),
   IsotopeRecord(fromShortName("N2"), "CIAfunCKDMT252"),
   IsotopeRecord(fromShortName("N2"), "CIArotCKDMT252"),
+  IsotopeRecord(fromShortName("N2"), "SelfContMPM93"),
   IsotopeRecord(fromShortName("N2"), "SelfContPWR2021"),
   IsotopeRecord(fromShortName("N2"), "SelfContStandardType"),
   /** N2 species **/

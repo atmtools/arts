@@ -29,7 +29,7 @@
 #include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalc(Workspace& ws,
+void cloudbox_fieldDisort(Workspace& ws,
                     // WS Output:
                     Tensor7& cloudbox_field,
                     ArrayOfMatrix& disort_aux,
@@ -219,7 +219,7 @@ ARTS_USER_ERROR("ERROR")
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcWithARTSSurface(Workspace& ws,
+void cloudbox_fieldDisortWithARTSSurface(Workspace& ws,
                     // WS Output:
                     Tensor7& cloudbox_field,
                     ArrayOfMatrix& disort_aux,
@@ -429,7 +429,7 @@ const Numeric surf_alt = surface_field.single_value(Surf::Key::h, lat_true[0], l
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcClearsky(Workspace& ws,
+void spectral_radiance_fieldDisortClearsky(Workspace& ws,
                     // WS Output:
                     Tensor7& spectral_radiance_field,
                     ArrayOfMatrix& disort_aux,
@@ -491,7 +491,7 @@ void DisortCalcClearsky(Workspace& ws,
 
   Matrix optical_depth_dummy;
 
-  DisortCalc(ws,
+  cloudbox_fieldDisort(ws,
                  // WS Output:
                  spectral_radiance_field,
               disort_aux,
@@ -530,7 +530,7 @@ void DisortCalcClearsky(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DisortCalcIrradiance(Workspace& ws,
+void spectral_irradiance_fieldDisort(Workspace& ws,
                 // WS Output:
                 Tensor5& spectral_irradiance_field,
                 ArrayOfMatrix& disort_aux,

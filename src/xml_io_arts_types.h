@@ -16,40 +16,13 @@
 
 #include <cfloat>
 #include <stdexcept>
-#include "nlte.h"
-#include "rtepack.h"
-#include "surf.h"
-#include "xml_io_general_types.h"
-#include "absorption.h"
+
+// All workspace groups are known by the agenda class through tokval.h
 #include "agenda_class.h"
-#include "array.h"
-#include "artstime.h"
-#include "bifstream.h"
-#include "bofstream.h"
-#include "cia.h"
-#include "covariance_matrix.h"
-#include "gas_abs_lookup.h"
-#include "gridded_fields.h"
-#include "xsec_fit.h"
-#include "jacobian.h"
-#include "linemixing_hitran.h"
-#include "m_general.h"
-#include "matpack_data.h"
-#include "mc_antenna.h"
+
+// Extras
 #include "mc_interp.h"
-#include "optproperties.h"
 #include "template_partfun.h"
-#include "ppath_struct.h"
-#include <predefined/predef_data.h>
-#include <rtepack.h>
-#include "sun.h"
-#include "surf.h"
-#include "telsem.h"
-#include "tessem.h"
-#include "xsec_fit.h"
-#include "absorptionlines.h"
-#include "linemixing.h"
-#include "callback.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
   void xml_read_from_stream(std::istream &, what &, bifstream *);              \
@@ -160,6 +133,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 //=== Not storable Types ===================================================
 
 TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
+TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
 
 //=== rtepack types ========================================================
 

@@ -513,7 +513,9 @@ def polar_ppath_list(
     select : str, optional
         The selection criteria for the positions and line of sights in the
         ppath list.  Default is "end".
+        
         Options are:
+
             - "end" - end_pos and end_los for each :class:`Ppath`
             - "start" - start_pos and start_los for each :class:`Ppath`
             - "low" - the lowest r's pos and los for each :class:`Ppath`
@@ -521,7 +523,9 @@ def polar_ppath_list(
 
     show : str or list, optional
         Selects what to show.  Default is "poslos" for showing everything.
+        
         Options are:
+            
             - "pos" - show the position
             - "los" - show the line of sight
             - "no_map" - don't show the map
