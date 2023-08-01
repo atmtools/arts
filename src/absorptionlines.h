@@ -928,6 +928,14 @@ Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
  * @return true if any Lines have a cutoff enum value other than None
  */
 [[nodiscard]] bool any_cutoff(const Array<Array<Lines>>& abs_lines_per_species);
+
+/** Finds all bands that may be part of qid
+
+  @param[in] lines A list of lines
+  @param[in] qid Quantum identifier
+  @return A list of indices of bands that may be part of qid
+*/
+std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const QuantumIdentifier& qid);
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;

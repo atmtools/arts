@@ -528,7 +528,11 @@ X : ~pyarts.arts.LineShapeOutput
           }))
       .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
 
-  PythonInterfaceWorkspaceArray(AbsorptionLines);
+  PythonInterfaceWorkspaceArray(AbsorptionLines).
+    def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
+      return fuzzy_find_all(a, q);
+    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier");
+
   PythonInterfaceWorkspaceArray(ArrayOfAbsorptionLines);
 
   py::class_<LineShape::Calculator>(m, "LineShapeCalculator")

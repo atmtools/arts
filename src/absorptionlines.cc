@@ -2901,4 +2901,16 @@ Index nelem(const Array<Array<Lines>> &l) {
     n += nelem(x);
   return n;
 }
+
+
+std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const QuantumIdentifier& qid) {
+  std::vector<std::size_t> out;
+
+  for (std::size_t i=0; i<lines.size(); i++) {
+    if (qid.may_be(lines[i].quantumidentity))
+      out.push_back(i);
+  }
+
+  return out;
+}
 } // namespace Absorption
