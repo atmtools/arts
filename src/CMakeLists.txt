@@ -394,3 +394,5 @@ add_subdirectory(tests)
 
 add_subdirectory(fwd)
 target_link_libraries(artscore PUBLIC fwd)
+
+add_subdirectory(workspace)
