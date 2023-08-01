@@ -983,6 +983,10 @@ bool GlobalState::part_of(const GlobalState& other) const {
          (test.low == CheckValue::Full or test.low == CheckValue::AinB);
 }
 
+bool GlobalState::may_be(const GlobalState& other) const {
+  return other.part_of(*this);
+}
+
 std::ostream& operator<<(std::ostream& os, const LocalState& vl) {
   return os << vl.values();
 }

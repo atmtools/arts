@@ -1076,10 +1076,13 @@ struct GlobalState {
   auto operator==(const GlobalState& g) const {return std::strong_ordering::equal == (*this <=> g);}
   auto operator!=(const GlobalState& g) const {return std::strong_ordering::equal != (*this <=> g);}
 
-  //! Checks wheter all of the LHS is part of RHS
+  //! Checks whether all of the LHS is part of RHS
   [[nodiscard]] bool part_of(const GlobalState& other) const;
 
-  //! Checks wheter all of the LHS is part of any of the RHS
+  //! Checks whether all of the RHS is part of LHS (uses reverse part_of)
+  [[nodiscard]] bool may_be(const GlobalState& other) const;
+
+  //! Checks whether all of the LHS is part of any of the RHS
   [[nodiscard]] LevelTest part_of(const GlobalState& g, const LocalState& l) const;
 
   //! Test if there are bad quantum numbers (undefined ones) or if the isotopologue is not a normal target
