@@ -12,9 +12,9 @@ const auto& wsms = workspace_methods();
 
 std::ostream& operator<<(std::ostream& os, const Method& m) {
   if (m.setval) {
-    os << "Setting " << std::quoted(m.name);
+    os << "setting " << std::quoted(m.name);
   } else {
-    os << "Method call to " << std::quoted(m.name) << "\n";
+    os << "calling " << std::quoted(m.name);
   }
   return os;
 }
@@ -90,5 +90,5 @@ void Method::operator()(Workspace& ws) const try {
   }
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error in method\n", *this, "\n", e.what()));
+      var_string("Error in method ", *this, "\n", e.what()));
 }

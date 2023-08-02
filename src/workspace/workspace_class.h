@@ -24,11 +24,11 @@ class Workspace {
   //! Returns a copy of the workspace variable with the given name.
   [[nodiscard]] std::shared_ptr<Wsv> copy(const std::string& name) const;
 
-  //! Returns a copy of the workspace variable with the given name.
-  [[nodiscard]] std::shared_ptr<Wsv> copy_type(const std::string& name) const;
-
   //! Sets the workspace variable with the given name to the given value.
   void set(const std::string& name, const std::shared_ptr<Wsv>& data);
+
+  //! Overwrites a variable with another variable of the same type
+  void overwrite(const std::string& name, const std::shared_ptr<Wsv>& data);
 
   //! Copy the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
@@ -46,6 +46,24 @@ class Workspace {
   template <WorkspaceGroup T>
   void set(const std::string& name, T* data) {
     set(name, std::make_shared<Wsv>(data));
+  }
+
+  //! Copy the workspace variable with the given name to the given value.
+  template <WorkspaceGroup T>
+  void overwrite(const std::string& name, const T& data) {
+    overwrite(name, std::make_shared<Wsv>(data));
+  }
+
+  //! Move the workspace variable with the given name to the given value.
+  template <WorkspaceGroup T>
+  void overwrite(const std::string& name, T&& data) {
+    overwrite(name, std::make_shared<Wsv>(std::move(data)));
+  }
+
+  //! Borrows the workspace variable with the given name to the given value.
+  template <WorkspaceGroup T>
+  void overwrite(const std::string& name, T* data) {
+    overwrite(name, std::make_shared<Wsv>(data));
   }
 
   //! Returns a type directly based on the name of the workspace variable.
@@ -69,6 +87,8 @@ class Workspace {
     set(name, out);
     return out -> get<T>();
   }
+
+  [[nodiscard]] bool contains(const std::string& name) const;
 
 friend std::ostream& operator<<(std::ostream& os, const Workspace& ws);
 };

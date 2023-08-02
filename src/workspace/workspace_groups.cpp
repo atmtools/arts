@@ -47,5 +47,10 @@ internal_workspace_groups() {
     "Test vector"
   };
 
+   wsv_groups["Agenda"] = WorkspaceGroupRecord {
+    "workspace_agenda_class.h",
+    "Test agenda"
+  };
+
   return wsv_groups;
 }

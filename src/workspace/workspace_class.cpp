@@ -1,8 +1,12 @@
 #include "workspace_class.h"
 
 #include <iomanip>
+#include <ranges>
+#include <stdexcept>
+#include <type_traits>
 
 #include "auto_wsv.h"
+#include "debug.h"
 
 const auto& wsv_data = workspace_variables();
 
@@ -27,41 +31,86 @@ std::shared_ptr<Wsv> Workspace::share(const std::string& name) const try {
 }
 
 std::shared_ptr<Wsv> Workspace::copy(const std::string& name) const {
-  return std::make_shared<Wsv>(*share(name));
+  return std::visit([](auto x){return std::make_shared<Wsv>(std::move(*x));}, share(name) -> value);
 }
 
-std::shared_ptr<Wsv> Workspace::copy_type(const std::string& name) const {
-  return std::make_shared<Wsv>(share(name)->copy_type());
-}
-
-void Workspace::set(const std::string& name, const std::shared_ptr<Wsv>& data) {
+void Workspace::set(const std::string& name,
+                    const std::shared_ptr<Wsv>& data) try {
   auto ptr = wsv.find(name);
 
   if (ptr == wsv.end()) {
     if (auto wsv_ptr = wsv_data.find(name);
         wsv_ptr != wsv_data.end() and wsv_ptr->second.type != data->type_name())
-      throw std::runtime_error(
-          var_string("Cannot set built-in workspace variable ",
-                     std::quoted(name),
-                     " of workspace group ",
-                     std::quoted(wsv_ptr->second.type),
-                     " to ",
-                     std::quoted(data->type_name())));
-    wsv[name] = data;
+      throw wsv_ptr->second.type;
+
+    wsv[name] = std::make_shared<Wsv>(data->copy());
   } else {
-    if (not ptr->second->holds_same(*data))
-      throw std::runtime_error(
-          var_string("Cannot set existing workspace variable ",
-                     std::quoted(name),
-                     " of workspace group ",
-                     std::quoted(ptr->second->type_name()),
-                     " to ",
-                     std::quoted(data->type_name())));
-    ptr->second = data;
+    std::visit(
+        [&data](auto& v) {
+          // std::get may throw std::bad_variant_access
+          *v = *std::get<std::remove_cvref_t<decltype(v)>>(data->value);
+        },
+        ptr->second->value);
   }
+} catch (const std::bad_variant_access& e) {
+  throw std::runtime_error(var_string("Workspace variable ",
+                                      std::quoted(name),
+                                      " is of type ",
+                                      std::quoted(wsv.at(name)->type_name()),
+                                      ".\nIt cannot be set to ",
+                                      std::quoted(data->type_name())));
+} catch (const std::string& type) {
+  throw std::runtime_error(var_string("Cannot set built-in workspace variable ",
+                                      std::quoted(name),
+                                      " of workspace group ",
+                                      std::quoted(type),
+                                      " to ",
+                                      std::quoted(data->type_name())));
 }
 
-std::ostream& operator<<(std::ostream& os, const Workspace&) {
-  os << "Workspace: PLACEHOLDER\n";
+void Workspace::overwrite(const std::string& name,
+                          const std::shared_ptr<Wsv>& data) try {
+  if (auto wsv_ptr = wsv_data.find(name);
+      wsv_ptr != wsv_data.end() and wsv_ptr->second.type != data->type_name())
+    throw wsv_ptr->second.type;
+  wsv[name] = data;
+} catch (const std::string& type) {
+  throw std::runtime_error(var_string("Cannot set built-in workspace variable ",
+                                      std::quoted(name),
+                                      " of workspace group ",
+                                      std::quoted(type),
+                                      " to ",
+                                      std::quoted(data->type_name())));
+}
+
+std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
+  os << "Workspace containing:";
+
+  if (ws.wsv.empty()) {
+    os << " nothing";
+    return os;
+  }
+
+  os << "\n  ";
+
+  constexpr std::size_t linebreak = 77;
+  auto str = var_string(std::quoted(ws.wsv.begin() -> first), " : ", ws.wsv.begin() -> second ->type_name());
+  os << str;
+  std::size_t count = str.size();
+  for (auto& v: std::ranges::drop_view{ws.wsv, 1}) {
+    str = var_string(std::quoted(v.first), " : ", v.second -> type_name());
+    count += str.size();
+    if (count >= linebreak) {
+      os << ",\n  ";
+      count = 0;
+    } else {
+      os << ", ";
+    }
+    os << str;
+  }
   return os;
+}
+
+bool Workspace::contains(const std::string& name) const {
+  return wsv.contains(name);
 }

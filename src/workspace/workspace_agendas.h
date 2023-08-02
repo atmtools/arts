@@ -5,9 +5,9 @@
 #include <vector>
 
 struct WorkspaceAgendaInternalRecord {
-  std::string desc;
-  std::vector <std::string> output;
-  std::vector <std::string> input;
+  std::string desc{};
+  std::vector <std::string> output{};
+  std::vector <std::string> input{};
   bool array{false};
 };
 

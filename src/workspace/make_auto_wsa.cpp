@@ -13,10 +13,10 @@ const auto wsv = internal_workspace_variables();
 
 //! List of groups and their variables
 struct auto_ag {
-std::string desc;
-std::vector<std::pair<std::string, std::string>> o;
-std::vector<std::pair<std::string, std::string>> i;
-bool array;
+  std::string desc;
+  std::vector<std::pair<std::string, std::string>> o;
+  std::vector<std::pair<std::string, std::string>> i;
+  bool array;
 };
 
 void helper_auto_ag(std::vector<std::pair<std::string, std::string>>& vars, const std::string& name, const std::string& var) {
@@ -50,9 +50,7 @@ std::map<std::string, auto_ag> auto_ags() {
     }
 
     for (const auto& in: record.input) {
-      if (std::none_of(record.output.begin(), record.output.end(), [in](auto& elem){return elem == in;})) {
-        helper_auto_ag(ag.i, name, in);
-      }
+      helper_auto_ag(ag.i, name, in);
     }
   }
 
@@ -114,9 +112,10 @@ void header(std::ostream& os) {
 
 #include <auto_wsg.h>
 
+class Workspace;
+
 struct WorkspaceAgendaRecord {
   std::string desc;
-  std::vector <std::string> inout;
   std::vector <std::string> output;
   std::vector <std::string> input;
 };
@@ -135,8 +134,7 @@ const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas(
 void agenda_checker(std::ostream& os, const std::string& name, bool array) {
   if (array) {
     os << "  if (agenda_array_index < 0 or static_cast<std::size_t>(agenda_array_index) >= " << name << ".size()) {\n"
-          "    throw std::runtime_error(R\"--(Agenda "
-       << std::quoted(name) << " has invalid index)--\");\n  }\n\n";
+          "    throw std::runtime_error(R\"--(Array index out-of-bounds)--\");\n  }\n\n";
   }
 
   os << "  if (not " << name;
@@ -144,28 +142,32 @@ void agenda_checker(std::ostream& os, const std::string& name, bool array) {
     os << "[agenda_array_index]";
   }
   os << ".is_checked()) {\n"
-        "    throw std::runtime_error(R\"--(Agenda "
-     << std::quoted(name) << " is not checked)--\");\n  }\n";
+        "    throw std::runtime_error(R\"--(Must finalize() agenda)--\");\n  }\n";
 }
 
 void workspace_setup_and_exec(std::ostream& os, const std::string& name, const auto_ag& ag) {
-  os << "\n  Workspace _lws{WorkspaceInitialization::Empty};\n";
+  os << "\n  Workspace _lws{WorkspaceInitialization::Empty};\n\n";
 
-  for (auto& o: ag.o) {
-    os << "  _lws.set(" << std::quoted(o.second) << ", &" << o.second << ");\n";
-  }
+  os << "  // Always share original data here\n";
 
   for (auto& i: ag.i) {
-    os << "  _lws.set(" << std::quoted(i.second) << ", std::make_shared<Wsv>(" << i.second << "));\n";
+    os << "  _lws.set(" << std::quoted(i.second) << ", const_cast<"<<i.first<<"*>(&" << i.second << "));\n";
   }
 
-  os << "  " << name;
+  os << "\n"
+        "  // Copy and share data from old workspace (this will copy pure inputs that are modified)\n  ";
+  os << name;
   if (ag.array) {
     os << "[agenda_array_index]";
   }
-  os << ".copy_workspace(_lws, ws);\n\n";
+  os << ".copy_workspace(_lws, ws);\n";
 
-  os << "  " << name;
+  os << "\n  // Modified data must be copied here\n";
+  for (auto& o: ag.o) {
+    os << "  _lws.overwrite(" << std::quoted(o.second) << ", &" << o.second << ");\n";
+  }
+
+  os << "\n  // Run all the methods\n  " << name;
   if (ag.array) {
     os << "[agenda_array_index]";
   }
@@ -189,13 +191,12 @@ std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
 
   for (const auto& [name, ag] : agmap) {
     os << "ags[" << std::quoted(name)
-       << "] = WorkspaceAgendaRecord{\n    R\"--(" << ag.desc << ")--\","
-       << "\n    {";
-    os << "},\n    {";
+       << "] = WorkspaceAgendaRecord{\n    .desc=R\"--(" << ag.desc << ")--\","
+       << "\n    .output={";
     for (const auto& o : ag.o) {
       os << std::quoted(o.second) << ", ";
     }
-    os << "},\n    {";
+    os << "},\n    .input={";
     for (const auto& i : ag.i) {
       os << std::quoted(i.second) << ", ";
     }
@@ -205,7 +206,7 @@ std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
   os << R"--(  return ags;
 }
 
-const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agenda() {
+const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas() {
   const static auto ags = get_workspace_agendas();
   return ags;
 }

@@ -101,7 +101,7 @@ struct Wsv {
   template <WorkspaceGroup T> Wsv(const T& x) : value(std::make_shared<T>(x)) {}
 
   //! Borrow value as workspace variable
-  template <WorkspaceGroup T> Wsv(T* x) : value(std::shared_ptr<T>(x, [](auto*){})) {}
+  template <WorkspaceGroup T> Wsv(T* x) : value(std::shared_ptr<T>(x, [](void*){})) {}
 
   //! Must declare destructor to avoid incomplete type error
   Wsv() = default;
@@ -120,7 +120,7 @@ struct Wsv {
     return std::holds_alternative<T*>(value);
   }
 
-  [[nodiscard]] Wsv copy_type() const;
+  [[nodiscard]] Wsv copy() const;
 
   template <WorkspaceGroup T>
   [[nodiscard]] T& get() const {
@@ -168,7 +168,7 @@ void implementation(std::ostream& os) {
   return std::binary_search(val.begin(), val.end(), x);
 }
 
-Wsv Wsv::copy_type() const {
+Wsv Wsv::copy() const {
   return std::visit([](const auto& val) -> Wsv {
     return Wsv{*val};
   }, value);
