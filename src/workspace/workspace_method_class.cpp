@@ -1,3 +1,4 @@
+#include "workspace_agenda_class.h"
 #include "workspace_method_class.h"
 
 #include "workspace_class.h"
@@ -91,4 +92,9 @@ void Method::operator()(Workspace& ws) const try {
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Error in method ", *this, "\n", e.what()));
+}
+
+
+void Method::add_setvals(Agenda&) const {
+  
 }

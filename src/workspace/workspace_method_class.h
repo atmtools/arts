@@ -8,6 +8,7 @@
 
 #include "auto_wsg.h"
 
+class Agenda;
 class Workspace;
 
 class Method {
@@ -28,6 +29,7 @@ Method(std::string name, const Wsv& wsv);
 [[nodiscard]] const std::optional<Wsv>& get_setval() const {return setval;}
 
 void operator()(Workspace& ws) const;
+void add_setvals(Agenda&) const;
 
 friend std::ostream& operator<<(std::ostream& os, const Method& m);
 };

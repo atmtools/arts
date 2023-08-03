@@ -17,30 +17,7 @@ Agenda::Agenda(std::string n) : name(std::move(n)), methods() {}
 void Agenda::add(const Method& method) {
   checked = false;
 
-  const std::vector<std::string>& outs = method.get_outs();
-  const std::vector<std::string>& ins = method.get_ins();
-
-  for (auto& var: outs) {
-    if (var.front() == '<') {
-      throw std::runtime_error(var_string(
-          "Undefined output variable ", std::quoted(var), " in agenda ", std::quoted(name)));
-    }
-  }
-
-  for (auto& var: ins) {
-    if (var.front() == '<') {
-      const auto& wsm = workspace_methods();
-
-      const auto& wsmr = wsm.at(method.get_name());
-      auto ptr = wsmr.defs.find(var);
-      if (ptr == wsmr.defs.end()){
-        throw std::runtime_error(var_string(
-            "Undefined input variable ", std::quoted(var), " in agenda ", std::quoted(name)));
-      }
-      
-      methods.emplace_back(var, ptr->second);
-    }
-  }
+  method.add_setvals(*this);
 
   methods.push_back(method);
 }
@@ -57,15 +34,12 @@ void Agenda::finalize() try {
   static const auto& wsa = workspace_agendas();
 
   for (auto& method : methods) {
-    std::ranges::copy_if(
-        method.get_ins(), std::back_inserter(copy), is_in(method.get_outs()));
-    std::ranges::copy_if(method.get_ins(),
-                         std::back_inserter(share),
-                         is_not_in(method.get_outs()));
+    const auto& ins = method.get_ins();
+    const auto& outs = method.get_outs();
 
-    // FIXME: Is this really necessary???
-    std::ranges::copy_if(
-        method.get_outs(), std::back_inserter(share), is_in(method.get_ins()));
+    std::ranges::copy_if(ins, std::back_inserter(copy), is_in(outs));
+    std::ranges::copy_if(ins, std::back_inserter(share), is_not_in(outs));
+    std::ranges::copy_if(outs, std::back_inserter(share), is_in(ins));
   }
 
   const auto remove_copies = [](std::vector<string>& seq) {
