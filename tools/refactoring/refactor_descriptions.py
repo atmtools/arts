@@ -19,9 +19,13 @@ with open(sys.argv[1] + ".new", "w") as f:
     while i < numlines:
         line = lines[i]
         if re.match(r' *//', line):
-            f.write(line)
-            i += 1
-            continue
+            if inside:
+                # Make FIXME comments part of the description
+                line = '"' + re.sub(r'^.*//(.*)$', r'\1', line[:-1]) + '"\n'
+            else:
+                f.write(line)
+                i += 1
+                continue
         if i < numlines - 1:
             nextline = lines[i + 1]
             while re.match(r' *//', line):
@@ -33,6 +37,7 @@ with open(sys.argv[1] + ".new", "w") as f:
             end_description = False
         if inside:
             s = line[:-1]
+            s = re.sub(r'^.*"(.*)".*//(.*)$', r'"\1 \2"', s)
             if re.match(r' *R"\(', s) or re.match(r' *R"--\(', s):
                 inside_r = True
                 f.write('\n')
@@ -85,6 +90,9 @@ with open(sys.argv[1] + ".new", "w") as f:
                 else:
                     i += 1
                     s = lines[i][:-1]
+                    # Make FIXME comments part of the description
+                    if re.match(r' *//', s):
+                        s = '"' + re.sub(r'^.*//(.*)$', r'\1', s)
                 s = re.sub('^ *"', 'R"--(', s)
                 s = re.sub('" *$', '', s)
                 s = s.replace('\\n\\n', '\n')
