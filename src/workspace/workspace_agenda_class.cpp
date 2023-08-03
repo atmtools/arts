@@ -17,10 +17,8 @@ Agenda::Agenda(std::string n) : name(std::move(n)), methods() {}
 
 void Agenda::add(const Method& method) {
   checked = false;
-
-  method.agenda_setvals(*this, true);
+  method.add_defaults_to_agenda(*this);
   methods.push_back(method);
-  method.agenda_setvals(*this, false);
 }
 
 auto is_in(const std::vector<std::string>& seq) {
@@ -64,6 +62,9 @@ void Agenda::finalize() try {
       share.erase(ptr);
     }
   }
+
+  std::erase_if(share, [](auto& str) { return str.front() == '_'; });
+  std::erase_if(copy, [](auto& str) { return str.front() == '_'; });
 
   checked = true;
 } catch (std::exception& e) {

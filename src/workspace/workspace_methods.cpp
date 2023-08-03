@@ -53,5 +53,18 @@ internal_workspace_methods() {
     .gin_desc = {"Vector input", "Something to append"},
   };
 
+  wsm_data["defval_append"] = {
+    .desc = R"--(GOUT / GIN --- GENERIC
+)--",
+    .author = {"Richard Larsson"},
+    .gout = {"v_out"},
+    .gout_type = {"Vector"},
+    .gout_desc = {"A variable"},
+    .gin = {"v_in", "n"},
+    .gin_type = {"Vector", "Index, Numeric"},
+    .gin_value = {std::nullopt, Index{1}},
+    .gin_desc = {"Vector input", "Something to append"},
+  };
+
   return wsm_data;
 }

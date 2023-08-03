@@ -11,6 +11,14 @@ struct boolstruct {
   bool a2 : 1 {false} ;
 };
 
+void defval_append(Vector& v_out, const Vector& v_in, const Index& n) {
+  append(v_out, v_in, static_cast<Numeric>(n));
+}
+
+void defval_append(Vector& v_out, const Vector& v_in, const Numeric& n) {
+  append(v_out, v_in, n);
+}
+
 void append(Vector& v_out, const Vector& v_in, const Index& n) {
   append(v_out, v_in, static_cast<Numeric>(n));
 }
@@ -59,6 +67,7 @@ void print<Numeric>(const Numeric&) {
 void create(Index&) {}
 
 int main() {
+
   const Method printy("print", {}, {{"v", "y"}});
   const Method printx("print", {}, {{"v", "x"}});
   const Method printnum("print", {}, {{"v", "num"}});
@@ -66,6 +75,7 @@ int main() {
   const Method create("create", {"num"});
   const Method add("add", {"y", "x"});
   const Method append("append", {"y", "y"}, {{"n", "x"}});
+  const Method dappend("defval_append", {"y", "y"}, {{"n", "x"}});
   const Method myy("y", Vector{1,2,3,4,5,6,7,8,9,10});
 
   Agenda y_out("y_out_agenda");
@@ -75,9 +85,10 @@ int main() {
   y_out.add(append);
   y_out.add(add);
   y_out.add(append);
+  y_out.add(dappend);
   y_out.finalize();
-
-/*
+  
+  /*
   {
     Workspace ws;
     //ws.set("y", Numeric{1.0});
@@ -117,7 +128,7 @@ int main() {
     printnum(ws);
   }
   */
-  
+
   {
     Workspace ws;
     y_out.execute(ws);
@@ -148,4 +159,5 @@ std::visit([](auto&& x){
   std::cout << *x << '\n';}, myy.get_setval().value().value);
 
   std::cout << sizeof(boolstruct) << '\n';
+  
 }

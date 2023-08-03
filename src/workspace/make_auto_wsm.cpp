@@ -648,7 +648,7 @@ void wsm_record(std::ostream& os,
     os << comma(first, "          ") << "\"" << str << "\"";
   }
   for (auto& str : wsmr.gout) {
-    os << comma(first, "          ") << "\"" << str << "\"";
+    os << comma(first, "          ") << "\"_" << str << "\"";
   }
   os << "},\n";
   os << "    .in={";
@@ -657,14 +657,14 @@ void wsm_record(std::ostream& os,
     os << comma(first, "         ") << "\"" << str << "\"";
   }
   for (auto& str : wsmr.gin) {
-    os << comma(first, "         ") << "\"" << str << "\"";
+    os << comma(first, "         ") << "\"_" << str << "\"";
   }
   os << "},\n";
   os << "    .defs={";
   first = true;
   for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
     if (wsmr.gin_value[i]) {
-      os << comma(first, "           ") << "{\"" << wsmr.gin[i]
+      os << comma(first, "           ") << "{\"_" << wsmr.gin[i]
          << "\", internal_workspace_methods().at(\"" << name << "\").gin_value["
          << i << "].value()}";
     }
