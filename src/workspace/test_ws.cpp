@@ -4,6 +4,13 @@
 #include "auto_wsg.h"
 #include "workspace.h"
 
+
+
+struct boolstruct {
+  bool a1;
+  bool a2 : 1 {false} ;
+};
+
 void append(Vector& v_out, const Vector& v_in, const Index& n) {
   append(v_out, v_in, static_cast<Numeric>(n));
 }
@@ -35,6 +42,11 @@ void print<Agenda>(const Agenda&) {
 }
 
 template <>
+void print<ArrayOfAgenda>(const ArrayOfAgenda&) {
+  std::cout << "ArrayOfAgenda" << '\n';
+}
+
+template <>
 void print<Vector>(const Vector& v) {
   std::cout << v << '\n';
 }
@@ -55,7 +67,6 @@ int main() {
   const Method add("add", {"y", "x"});
   const Method append("append", {"y", "y"}, {{"n", "x"}});
   const Method myy("y", Vector{1,2,3,4,5,6,7,8,9,10});
-
 
   Agenda y_out("y_out_agenda");
   y_out.add(myy);
@@ -126,13 +137,15 @@ int main() {
     printy(ws);
   }
 
+for (int i = 0; i < 1000000; ++i)
   {
     Vector y{1,2,3,4};
     Workspace ws;
     y_out_agendaExecute(ws, y, y_out);
-    std::cout << y << '\n';
   }
 
 std::visit([](auto&& x){
   std::cout << *x << '\n';}, myy.get_setval().value().value);
+
+  std::cout << sizeof(boolstruct) << '\n';
 }

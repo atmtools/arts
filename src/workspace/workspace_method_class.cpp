@@ -94,7 +94,6 @@ void Method::operator()(Workspace& ws) const try {
       var_string("Error in method ", *this, "\n", e.what()));
 }
 
+void Method::agenda_setvals(Agenda&, bool) const {
 
-void Method::add_setvals(Agenda&) const {
-  
 }

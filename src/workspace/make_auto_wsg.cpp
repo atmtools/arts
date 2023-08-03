@@ -117,20 +117,26 @@ struct Wsv {
 
   template <WorkspaceGroup T>
   [[nodiscard]] constexpr bool holds() const {
-    return std::holds_alternative<T*>(value);
+    return std::holds_alternative<std::shared_ptr<T>>(value);
   }
 
   [[nodiscard]] Wsv copy() const;
 
   template <WorkspaceGroup T>
+  [[nodiscard]] T& get_unsafe() const {
+    return **std::get_if<std::shared_ptr<T>>(&value);
+  }
+
+  template <WorkspaceGroup T>
   [[nodiscard]] T& get() const {
-    auto* retval = std::get_if<std::shared_ptr<T>>(&value);
-    if (not retval)
+    if (not holds<T>()) {
       throw std::runtime_error(var_string("Cannot use workspace variable of workspace group ",
                                           std::quoted(type_name()),
                                           " as ",
                                           std::quoted(WorkspaceGroupInfo<T>::name)));
-    return **retval;
+    }
+
+    return get_unsafe<T>();
   }
 };
 )--";

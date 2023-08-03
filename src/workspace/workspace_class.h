@@ -90,5 +90,10 @@ class Workspace {
 
   [[nodiscard]] bool contains(const std::string& name) const;
 
-friend std::ostream& operator<<(std::ostream& os, const Workspace& ws);
+  friend std::ostream& operator<<(std::ostream& os, const Workspace& ws);
+
+  [[nodiscard]] auto begin() const { return wsv.begin(); }
+
+  [[nodiscard]] auto end() const { return wsv.end(); }
+
 };

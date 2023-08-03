@@ -52,5 +52,10 @@ internal_workspace_groups() {
     "Test agenda"
   };
 
+   wsv_groups["ArrayOfAgenda"] = WorkspaceGroupRecord {
+    "workspace_agenda_class.h",
+    "Test agenda"
+  };
+
   return wsv_groups;
 }

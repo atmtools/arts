@@ -29,7 +29,7 @@ Method(std::string name, const Wsv& wsv);
 [[nodiscard]] const std::optional<Wsv>& get_setval() const {return setval;}
 
 void operator()(Workspace& ws) const;
-void add_setvals(Agenda&) const;
+void agenda_setvals(Agenda& agenda, bool del) const;
 
 friend std::ostream& operator<<(std::ostream& os, const Method& m);
 };

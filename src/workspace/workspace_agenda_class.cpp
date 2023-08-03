@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "workspace_class.h"
@@ -17,9 +18,9 @@ Agenda::Agenda(std::string n) : name(std::move(n)), methods() {}
 void Agenda::add(const Method& method) {
   checked = false;
 
-  method.add_setvals(*this);
-
+  method.agenda_setvals(*this, true);
   methods.push_back(method);
+  method.agenda_setvals(*this, false);
 }
 
 auto is_in(const std::vector<std::string>& seq) {
@@ -40,6 +41,7 @@ void Agenda::finalize() try {
     std::ranges::copy_if(ins, std::back_inserter(copy), is_in(outs));
     std::ranges::copy_if(ins, std::back_inserter(share), is_not_in(outs));
     std::ranges::copy_if(outs, std::back_inserter(share), is_in(ins));
+    std::ranges::copy_if(outs, std::back_inserter(copy), is_not_in(ins));
   }
 
   const auto remove_copies = [](std::vector<string>& seq) {
@@ -69,19 +71,55 @@ void Agenda::finalize() try {
       "Error finalizing agenda ", std::quoted(name), "\n", e.what()));
 }
 
-void Agenda::copy_workspace(Workspace& out, const Workspace& in) const try {
-  for (auto& str : share) {
-    out.set(str, in.share(str));
-  }
-
-  for (auto& str : copy) {
-    if (out.contains(str)) {
-      //! If copy and share are the same, copy will overwrite share (keep them unique!)
-      //! Also if named-agenda call has set output variable, copy will take a copy of variable
-      out.overwrite(str, out.copy(str));
-    } else {
-      out.set(str, in.copy(str));
+void agenda_add_inner_logic(Workspace& out, const Workspace& in, WorkspaceAgendaBoolHandler handle) {
+startover:
+  for (auto& var: out) {
+    if (var.second->holds<Agenda>()) {
+      if (not handle.has(var.first)) {
+        auto& ag = var.second->get<Agenda>();
+        handle.set(var.first);
+        ag.copy_workspace(out, in, true);
+        goto startover;
+      }
+    } else if (var.second->holds<ArrayOfAgenda>()) {
+      if (not handle.has(var.first)) {
+        auto& aag = var.second->get<ArrayOfAgenda>(); 
+        handle.set(var.first);
+        for (auto& ag: aag) {
+          ag.copy_workspace(out, in, true);
+        }
+        goto startover;
+      }
     }
+  }
+}
+
+void Agenda::copy_workspace(Workspace& out, const Workspace& in, bool share_only) const try {
+  if (share_only) {
+    for (auto& str : share) {
+      if (not out.contains(str)) out.set(str, in.share(str));
+    }
+    for (auto& str : copy) {
+      if (not out.contains(str)) out.set(str, in.share(str));
+    }
+  } else {
+    for (auto& str : share) {
+      out.set(str, in.share(str));
+    }
+
+    for (auto& str : copy) {
+      if (out.contains(str)) {
+        //! If copy and share are the same, copy will overwrite share (keep them unique!)
+        //! Also if named-agenda call has set output variable, copy will take a copy of variable
+        out.overwrite(str, out.copy(str));
+      } else {
+        out.set(str, in.copy(str));
+      }
+    }
+
+    WorkspaceAgendaBoolHandler handle;
+    handle.set(name);
+    agenda_add_inner_logic(out, in, handle);
   }
 } catch (std::exception& e) {
   throw std::runtime_error(var_string(
@@ -120,3 +158,4 @@ bool Agenda::has_method(const std::string& method) const {
   }
   return false;
 }
+

@@ -122,6 +122,19 @@ struct WorkspaceAgendaRecord {
 
 const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas();
 
+struct WorkspaceAgendaBoolHandler {
+)--";
+
+  for (auto& ag: agmap) {
+    os << "  bool has_" << ag.first << " : 1 {false};\n";
+  }
+
+ os << R"--(
+  bool has(const std::string&) const;
+  void set(const std::string&);
+  friend std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab);
+};
+
 )--";
 
   for (auto& ag: agmap) {
@@ -209,6 +222,32 @@ std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
 const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas() {
   const static auto ags = get_workspace_agendas();
   return ags;
+}
+
+bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {
+)--";
+  for (auto& ag: agmap) {
+    os << "  if (ag == \""<<ag.first<<"\") return has_" << ag.first << ";\n";
+  }
+  os << R"--(
+  throw std::runtime_error(var_string("Not a predefined agenda: ", std::quoted(ag)));
+}
+
+void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
+)--";
+  for (auto& ag: agmap) {
+    os << "  if (ag == \""<<ag.first<<"\") {has_" << ag.first << " = true; return;}\n";
+  }
+  os << R"--(
+  throw std::runtime_error(var_string("Not a predefined agenda: ", std::quoted(ag)));
+}
+std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab) {
+)--";
+  for (auto& ag: agmap) {
+    os << "  os << \""<<ag.first<<": \" << wab.has_" << ag.first << " << '\\n';\n";
+  }
+  os << R"--(
+  return os;
 }
 
 )--";
